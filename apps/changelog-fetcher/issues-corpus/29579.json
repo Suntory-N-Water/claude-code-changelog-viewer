@@ -1,0 +1,42 @@
+{
+  "number": 29579,
+  "title": "[BUG] API Error: Rate limit reached despite Claude Max subscription and only 16% usage",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nEvery request immediately returns \"API Error: Rate limit reached\" despite Claude Max subscription being active and only 16% usage shown in /status.\n\n### What Should Happen?\n\nRequests should succeed within Claude Max plan limits (only 16% used).\n\n### Error Messages/Logs\n\n```shell\nAPI Error: Rate limit reached\n```\n\n### Steps to Reproduce\n\n1. Run claude logout, then claude login\n2. Open Claude Code — shows \"Claude Max\" in header\n3. Run /status — Login method: Claude Max Account, 16% session usage\n4. Type any message (e.g. \"hi\")\n5. Immediately get \"API Error: Rate limit reached\"\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nv2.1.63\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nPrior to this, credentials.json showed subscriptionType: null and rateLimitTier: null. \nAPI credits were added as a workaround — they were consumed instantly (within seconds), \nleaving the account in debt. After fresh login subscription is recognized \n(subscriptionType: \"max\", rateLimitTier: \"default_claude_max_5x\") but rate limit \nerror persists despite only 16% usage. Session resets at 3pm Europe/Budapest.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:auth",
+    "area:api",
+    "platform:vscode"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-28T12:33:32Z",
+  "updated_at": "2026-05-29T05:57:10Z",
+  "closed_at": null,
+  "reactions_total": 93,
+  "comments_count": 152,
+  "author": "CaptainDaredevil",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "KSEGIT",
+      "author_association": "NONE",
+      "body": "I have similar issue , they have some problem with API rate limiting #29584\n",
+      "created_at": "2026-02-28T13:31:44Z"
+    },
+    {
+      "author": "erojasoficial-byte",
+      "author_association": "NONE",
+      "body": "## Same issue — Max 20x ($200/month), Windows, v2.1.63, only 16% session usage\n\n### Environment\n- **Plan:** Claude Max 20x ($200/month)\n- **Platform:** Windows (win32)\n- **Claude Code version:** 2.1.63 (latest)\n- **Model:** Default Opus 4.6\n- **Login method:** Claude Max Account (OAuth, not API key)\n\n### What's happening\nIntermittent `API Error: Rate limit reached` despite very low usage:\n- **Session usage:** 16%\n- **Weekly (all models):** 24%\n- **Weekly (Sonnet only):** 1%\n- `/status` correctly",
+      "created_at": "2026-03-02T01:43:55Z"
+    },
+    {
+      "author": "PedroProcopio",
+      "author_association": "NONE",
+      "body": "Please man, fix this shit wtf",
+      "created_at": "2026-03-02T17:31:34Z"
+    }
+  ]
+}

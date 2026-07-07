@@ -1,0 +1,35 @@
+{
+  "number": 5105,
+  "title": "[FEATURE REQUEST] Allow Claude Code to access gitignored files",
+  "body": "## Current Behavior\nClaude Code currently respects `.gitignore` files and excludes gitignored files from:\n- `@`-mention autocomplete suggestions\n- General file awareness and reading (unless explicitly requested)\n\n## Problem Description\nThis behavior creates friction for local development workflows where users want to:\n- Keep certain files out of version control (private notes, local configs, etc.)\n- Still have Claude Code access these files for development assistance\n- Avoid committing sensitive or personal files to public repositories\n\n### Use Case Example\nI maintain a local `tasks/` folder with markdown files containing project notes and TODOs. These files are:\n- Gitignored to keep them out of the public repository\n- Useful for Claude Code to reference when providing development assistance\n- Currently inaccessible via `@`-mentions, making the workflow cumbersome\n\n## Proposed Solution\nIntroduce a `.claudeignore` file that works similarly to `.gitignore` but specifically controls Claude Code's file awareness:\n\n- **Override gitignore**: Allow patterns like `!tasks/` to make gitignored files visible to Claude Code\n- **Additional exclusions**: Support standard ignore patterns to exclude files from Claude Code even if they're tracked by git\n- **Precedence**: `.claudeignore` rules should take precedence over `.gitignore` for Claude Code's file handling\n\n### Example `.claudeignore` configuration:\n```\n# Make tasks folder visible to Claude Code despite being gitignored\n!tasks/\n\n# Exclude specific files from Claude Code even if tracked by git\n*.log\ntemp/\n```\n\n## Alternative Solutions\n1. **Command-line flag**: `--include-gitignored` to override gitignore behavior globally\n2. **Config file option**: Setting in Claude Code's configuration to control gitignore respect\n3. **Environment variable**: `CLAUDE_RESPECT_GITIGNORE=false` for session-based control\n\n## Benefits\n- Maintains security by keeping sensitive files out of version control\n- Improves local development experience with Claude Code\n- Provides granular control over file visibility\n- Follows familiar patterns (similar to `.gitignore` syntax)\n\n## Impact\nThis would significantly improve the local development workflow for users who need to reference private/local files while keeping them out of version control.\n\nThis issue has been re-created, because the initial one has been closed without the solution: https://github.com/anthropics/claude-code/issues/2305",
+  "labels": ["enhancement", "area:tools", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-08-04T18:00:35Z",
+  "updated_at": "2026-01-06T14:29:12Z",
+  "closed_at": "2025-10-24T21:33:05Z",
+  "reactions_total": 110,
+  "comments_count": 60,
+  "author": "npupko",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "@luiz00martins @deviantony  @funkyOne \n\nThis is now configurable through:\n\n1. Disable \"Respect .gitignore in file picker\" in `/config`\n2. Create a new `.ignore` file in the current directory and add the patterns you want ignored in the search\n3. Profit 💯 \n\nThis is now also supported in the VSCode extension. There's a separate config in the VSCode extension as well (although settings here aren't shared, and you'll need to disable the setting again in VSCode for it to work)\n\n**WARNING: Understand",
+      "created_at": "2025-11-04T14:04:57Z"
+    },
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "Should just be `.ignore`",
+      "created_at": "2025-11-05T03:53:34Z"
+    },
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "Just submitted a change to add per-project setting for this one, so you can add `\"respectGitignore\": false` to `settings.json` or `settings.local.json` and have this setting be applied locally. Should be available later in the week!",
+      "created_at": "2026-01-06T02:29:51Z"
+    }
+  ]
+}

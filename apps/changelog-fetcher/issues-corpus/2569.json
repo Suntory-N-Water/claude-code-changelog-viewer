@@ -1,0 +1,35 @@
+{
+  "number": 2569,
+  "title": "[BUG] Vertex AI 413 - can't count tokens",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [X] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.33\n- Operating System: macOS 15.5\n- Terminal:  iTerm2\n## Bug Description\n\nWhen using Claude through Vertex AI, requests intermittently fail with a 413 \"prompt is too long\" error. \nEndpoint count-tokens:rawPredict returns a 400 error, preventing accurate token counting and causing the 413 error (assumption).\n\nIt seems that issue is with field\n```\n\"cache_control\": {\n    \"type\": \"ephemeral\"\n  }\n```\nIf I try to make same call without this cache_control, I received 200 OK. And in response I can see\n```\n{\n    \"input_tokens\": 252461\n}\n```\nSo that's the reason for 413.\n\n\n\n## Steps to Reproduce\n1. Analyze big codebase\n2. It sends request with >200k tokens and fails\n\n## Expected Behavior\nChunk it to smaller requests\n\n\n\n## Additional Context\n<!-- Add any other context about the problem here, such as screenshots, logs, etc. -->",
+  "labels": ["bug", "has repro", "api:vertex", "platform:macos", "area:api"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-25T06:56:35Z",
+  "updated_at": "2026-01-15T14:19:57Z",
+  "closed_at": "2026-01-08T10:20:45Z",
+  "reactions_total": 13,
+  "comments_count": 8,
+  "author": "Dasio",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "nktl",
+      "author_association": "NONE",
+      "body": "I am seeing the same thing with Vertex:\n\n```\nAPI Error: 413 {\"error\":{\"message\":\"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"Prompt is too long\\\"}}\",\"type\":\"None\",\"param\":\"None\",\"code\":\"413\"}\n```\n\nEven though: ` Context left until auto-compact: 2%`\nAt this point `/compact` does not work (same 413 error), the only way to get it out of this state is to restart or `/clear`\n\nLooking at the payload, CC seems to be polluting context with large number of tools and co",
+      "created_at": "2025-07-15T14:33:41Z"
+    },
+    {
+      "author": "jordanlewis",
+      "author_association": "NONE",
+      "body": "We're seeing this issue as well.\n\nI suppose Vertex has a limit on the count-tokens endpoint where Anthropic does not.\n\nClaude Code team, this is a blocker for our usage in a large organization. Can you have the tool chunk the count-tokens requests, or another approach?",
+      "created_at": "2025-07-17T23:14:08Z"
+    },
+    {
+      "author": "nktl",
+      "author_association": "NONE",
+      "body": "It also feels like that when CC gets 413, there should be some sort of heuristic throwing some less important/older pieces away from the context and re-trying - allowing to recover gracefully from this situation (rather than having to drop all the context).\n\nI suspect there is more than one scenario possible where upstream API tells you go do away due to (perceived) tokens limit, with all these non-Anthropic-native hosts, enterprise LLM proxies, etc. out there.",
+      "created_at": "2025-07-18T08:53:27Z"
+    }
+  ]
+}

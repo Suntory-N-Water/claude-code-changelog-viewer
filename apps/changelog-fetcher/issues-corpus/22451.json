@@ -1,0 +1,35 @@
+{
+  "number": 22451,
+  "title": "Desktop app MCP Tools hanging for 5-10 minutes then failing.",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Environment\n- **Product**: Claude Desktop (Windows GUI app, NOT Claude Code CLI)\n- **Version**: 1.1.1520 (48ced7)\n- **OS**: Windows 11\n- **Date Started**: February 1, 2026\n\n## Bug Description\nALL MCP tool calls hang for exactly ~5 minutes, then fail with \"No result received from client-side tool execution\". This makes Claude Desktop completely unusable for any MCP-based workflows.\n\n## Reproduction Steps\n1. Configure any MCP server (SSH, filesystem, etc.)\n2. Attempt to use MCP tool\n3. Observe 5+ minute hang\n4. Tool fails with \"No result received from client-side tool execution\"\n\n## Tested MCP Servers (ALL FAIL):\n- SSH server (custom tradasite server to 91.99.146.87)\n- Filesystem servers\n- All operations timeout\n\n## Timing Evidence\nTest performed: 21:20:05 → 21:25:46 = **5 minutes 41 seconds hang**\n\n## Expected Behavior\nMCP tools should execute within seconds, not hang for 5+ minutes\n\n## Actual Behavior\n- 5+ minute freeze\n- No progress indication\n- Eventually fails with \"No result received\"\n- Operation never executes on server\n\n## Screenshots\n[Attach your 3 screenshots showing the hang and timestamps]\n\n## Related Issues\nMay be related to Claude Code MCP hanging bugs reported Jan 31, 2026:\n- #22158 (v2.1.27 hangs at 100% CPU)\n- #22172 (v2.1.23+ parallel instance hangs)\n- #15945 (CRITICAL MCP Server 16+ hour hang)\n\n## Impact\n**CRITICAL - Production blocking**\n- Unusable for development workflows\n- All MCP functionality broken\n- No workaround available\n\n## Request\nEmergency hotfix needed - this version is completely broken for MCP users.\n\n### What Should Happen?\n\nClaude should connect to my server instantly (5 seconds), perform coding tasks, and summerise without delays.\n\n### Error Messages/Logs\n\n```shell\nThe command didn't return output. Let me try a simpler search.\nNo result received from client-side tool execution.\n```\n\n### Steps to Reproduce\n\n## Steps to Reproduce\n\n1. **Install Claude Desktop version 1.1.1520** (Windows)\n\n2. **Configure a simple filesystem MCP server** in `%APPDATA%\\Claude\\claude_desktop_config.json`:\n```json\n{\n  \"mcpServers\": {\n    \"filesystem\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"@modelcontextprotocol/server-filesystem\",\n        \"C:\\\\Users\\\\%USERNAME%\\\\Documents\"\n      ]\n    }\n  }\n}\n```\n\n3. **Restart Claude Desktop** completely (close and reopen)\n\n4. **Verify MCP server connected** - check for hammer icon (🔨) in chat input box\n\n5. **Start timer** - note current time (HH:MM:SS)\n\n6. **Send this prompt:**\n```\n   Please use the filesystem MCP tool to list all files in Documents folder\n```\n\n7. **Observe the hang:**\n   - MCP tool call is initiated\n   - Application shows spinner/loading state\n   - Application becomes unresponsive\n   - **Wait and time it** - will hang for approximately 5+ minutes\n   - Eventually fails with error: \"No result received from client-side tool execution\"\n\n8. **Record end time** - note when error appears (HH:MM:SS)\n\n9. **Calculate duration** - should be approximately 5-6 minutes\n\n## Minimal Example\n\n**Config file location:** `%APPDATA%\\Claude\\claude_desktop_config.json`\n\n**Config content:**\n```json\n{\n  \"mcpServers\": {\n    \"test-filesystem\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@modelcontextprotocol/server-filesystem\", \"C:\\\\temp\"]\n      }\n  }\n}\n```\n\n**Test prompt:** \"Use the test-filesystem MCP to create test.txt with content 'hello'\"\n\n**Expected:** File created in ~1-5 seconds  \n**Actual:** 5+ minute hang, then failure with \"No result received\"\n\n## Timing Evidence from Real Test\n- Start: 21:20:05\n- End: 21:25:46  \n- Duration: **5 minutes 41 seconds**\n- Result: Operation failed, MCP tool never executed\n\n## Reproduced On\n- Windows 11\n- Claude Desktop v1.1.1520 (48ced7)\n- Multiple different MCP server",
+  "labels": ["bug", "has repro", "platform:windows", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-01T22:38:32Z",
+  "updated_at": "2026-05-25T22:45:47Z",
+  "closed_at": "2026-05-25T22:45:47Z",
+  "reactions_total": 20,
+  "comments_count": 20,
+  "author": "bimnow",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for the report. The Desktop hang was traced and the fix shipped in February. The \"expand the tool box to unblock it\" workaround a few of you found lines up with the cause. Closing this; please reopen if you still see the 5-10 minute hang on a current Desktop build.\n",
+      "created_at": "2026-05-25T22:45:46Z"
+    },
+    {
+      "author": "sonofsmog",
+      "author_association": "NONE",
+      "body": "Same as\n\nhttps://github.com/anthropics/claude-code/issues/22299\nand\nhttps://github.com/anthropics/claude-code/issues/22319\n\nI looked further into it and the MCP server works once per tool call the next call never makes it to the server. Any MCP server. You can see other threads on the Claude Chrome extension basically failing the same way. All Claude Desktop and Chrome MCP servers are affected.",
+      "created_at": "2026-02-02T00:35:01Z"
+    },
+    {
+      "author": "dnielso5",
+      "author_association": "NONE",
+      "body": "my desktop app hasn't been able to read my filesystem for almost 3 days now.",
+      "created_at": "2026-02-02T16:55:36Z"
+    }
+  ]
+}

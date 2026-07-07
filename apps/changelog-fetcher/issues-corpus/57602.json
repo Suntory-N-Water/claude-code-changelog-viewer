@@ -1,0 +1,35 @@
+{
+  "number": 57602,
+  "title": "[BUG] Active session auto-archives within seconds of window focus loss (Windows)",
+  "body": "## What happened\n\nAn active Claude Code Desktop session auto-archives itself within seconds of the app losing window focus (e.g., alt-tab to a browser to look at a URL, return after ~30 s, find the session marked \"This session is archived, to restart it click unarchive\"). Has occurred 2+ times in the same continuous work session today.\n\nThe session was unambiguously **not idle** — it was mid-conversation with the assistant actively working on a multi-file feature.\n\n## Repro steps\n\n1. Start a Claude Code Desktop session in a project directory\n2. Have a multi-turn conversation (this happens after the session has been alive for ~hours)\n3. Alt-tab to another window (browser, etc.) for less than a minute\n4. Return to Claude Code\n\n**Expected:** session is exactly where I left it.\n**Actual:** session pane shows \"This session is archived, to restart it, click unarchive.\"\n\n## Diagnostic info\n\n- **OS:** Windows 11 Pro 26200\n- **Approximate time of latest occurrence:** ~12:25 UTC, 2026-05-09\n- **Session UUID:** available on request (happy to share privately with Anthropic engineering — don't want to post a session identifier in a public thread)\n- **Local config ruled out:** no `Stop` / `SessionStart` / archive hooks in user `settings.json`, no `settings.local.json`, no `keybindings.json`, no scheduled tasks. No mechanism in the user's local config calls `archive_session`.\n\n## Related\n\nPossibly the same root cause as #24534 (\"Archived Code sessions not visible on Windows\"), but the trigger here is much more specific — focus loss within seconds, not \"vanished overnight.\"\n\n## Workaround\n\nManually click \"Unarchive.\" Conversation state is preserved (the JSONL on disk is intact); only the UI pointer is broken.",
+  "labels": ["bug", "has repro", "platform:windows", "area:desktop", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-05-09T12:31:08Z",
+  "updated_at": "2026-06-13T10:55:18Z",
+  "closed_at": "2026-06-13T10:55:18Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "eddyafram",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/57586\n2. https://github.com/anthropics/claude-code/issues/48045\n3. https://github.com/anthropics/claude-code/issues/24534\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-09T12:36:42Z"
+    },
+    {
+      "author": "eddyafram",
+      "author_association": "NONE",
+      "body": "## What happened (corrected)\n\nActive session auto-archives after ~3 minutes of user idleness, **with Claude Code Desktop in foreground focus**. Initially suspected this was focus-loss-triggered, but observed it occurring while the app remained the active window — user simply stepped away from the keyboard. The assistant was actively generating a response at the time of archival.\n\n## Revised repro\n\n1. Start a Claude Code Desktop session\n2. Have a multi-turn conversation (~hours-old session)\n3. St",
+      "created_at": "2026-05-09T12:40:03Z"
+    },
+    {
+      "author": "satayutata",
+      "author_association": "NONE",
+      "body": "+1, hitting this exact behavior on Windows 10 Home 19045.6466 with Claude Code Desktop running Opus 4.7.\n\n**Frequency in one continuous work session today (2026-05-11):** auto-archived **3 times** during a single project conversation. Each time required clicking Unarchive to continue.\n\n**Specific trigger pattern I noticed:**\nThe archives all happened during periods where Claude was waiting on long-running background tasks — specifically `gh pr merge --auto` waiting on a Codex Cloud audit (~3-5 m",
+      "created_at": "2026-05-11T01:12:48Z"
+    }
+  ]
+}

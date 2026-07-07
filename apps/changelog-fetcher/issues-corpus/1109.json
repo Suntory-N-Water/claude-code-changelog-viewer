@@ -1,0 +1,35 @@
+{
+  "number": 1109,
+  "title": "Usage Metrics Visibility for Max Subscribers",
+  "body": "## Feature Request: Usage Metrics Visibility for Max Subscribers\n\n### Description\nAs a Claude Max subscriber, I would like to retain the ability to view my usage metrics (time spent, input/output token count, conversation turns, etc.) even though I don't need to monitor costs. Currently, when using the `/cost` command as a Max subscriber, I only see:\n\n> With your Claude Max subscription, no need to monitor cost — your subscription includes Claude Code usage\n\n### Why This Matters\nWhile I understand that Max subscribers don't need to worry about billing, these metrics are still valuable to me for:\n\n1. **Developer productivity tracking**: Quantifying my development time and efficiency\n2. **Resource usage awareness**: Understanding my token consumption patterns\n3. **Workflow optimization**: Identifying potential areas to improve my interaction with Claude Code\n\n### Suggested Implementation\nAllow Max subscribers to view detailed usage metrics with a command such as `/stats` or an enhanced `/cost` that includes:\n- Session duration\n- Input/output token counts\n- Number of conversation turns\n- Commands executed\n- Time saved (if possible to estimate)\n\n### Current Behavior\nWhen using `/cost` as a Max subscriber, only a subscription reminder is shown without any metrics.\n\n### Requested Behavior\nEven as a Max subscriber, I should be able to access detailed usage metrics that help me quantify and optimize my development workflow.",
+  "labels": ["enhancement", "area:cost"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-05-15T04:41:34Z",
+  "updated_at": "2026-05-22T15:51:23Z",
+  "closed_at": null,
+  "reactions_total": 61,
+  "comments_count": 21,
+  "author": "XiaTiaoQAQ",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "XiaTiaoQAQ",
+      "author_association": "NONE",
+      "body": "If you’d like to monitor usage while in Max mode (before Anthropic officially supports it), you can manually patch the CLI.\n\nGo to your node_modules, find the claude-node directory, and open cli.js. Search for the string \"With your Claude Max subscription\". You’ll find a line like:\n\n`if (o3()) return \"With your Claude Max subscription...\"`\n\nChange it to something like:\n\n`if (o3()) return mg1()`\n\nThis will allow the /cost command to return your current usage stats even while using Claude Max.\n\nTh",
+      "created_at": "2025-05-16T06:12:36Z"
+    },
+    {
+      "author": "0ttik",
+      "author_association": "NONE",
+      "body": "> That said, there’s a minor issue: input tokens seem to increase by ~0.3k every time you run /cost, even when no other interactions happen. For example:\n> \n> ```\n> > /cost  \n>   ⎿  Total cost:            $0.0052\n>      Token usage by model:\n>          claude-3-5-haiku:  5.6k input, 181 output\n> \n> > /cost  \n>   ⎿  Total cost:            $0.0055\n>      Token usage by model:\n>          claude-3-5-haiku:  5.9k input, 203 output\n> ```\n> \n\nSeems that it's an intended behavior since some requests are",
+      "created_at": "2025-05-30T21:44:32Z"
+    },
+    {
+      "author": "XiaTiaoQAQ",
+      "author_association": "NONE",
+      "body": "Today, after updating Claude Code, I found an interesting clue while trying to modify the **\"/cost\"** code. It might be that Claude Code will be opened up to Pro users in the next few days.\n\n![Image](https://github.com/user-attachments/assets/8c3c15a6-67e7-46ee-9dbf-ea5dce0c957a)",
+      "created_at": "2025-06-05T10:57:53Z"
+    }
+  ]
+}

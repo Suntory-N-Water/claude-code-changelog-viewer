@@ -1,0 +1,42 @@
+{
+  "number": 20223,
+  "title": "[Bug] File loading adds 70% token overhead due to line number formatting",
+  "body": "**Bug Description**\n# Claude Code Context Overhead Issue Report\n\n**Date**: 2026-01-22\n**Claude Code Version**: VSCode Extension + CLI\n**Model**: claude-sonnet-4-5-20250929\n\n## Summary\n\nClaude Code's file loading mechanism (both `@` syntax and Read tool) adds approximately **70% token overhead** due to line number formatting. Combined with an undocumented **2000-line truncation limit**, this significantly impacts context efficiency and causes unexpected behavior.\n\n## Problem Statement\n\n### Issue 1: Excessive Token Overhead (70% waste)\n\nWhen files are loaded into context via `@filename` syntax or the Read tool, Claude Code adds line numbers and formatting that consumes **1.7x the raw token count**.\n\n**Impact**:\n- A 31,000 token documentation set consumes 52,700 tokens (21,700 tokens wasted on formatting)\n- Users hit context limits much faster than expected\n- Context cost is significantly higher than necessary\n\n### Issue 2: Undocumented 2000-Line Truncation\n\nFiles loaded via `@` syntax are silently truncated at 2000 lines without clear warning to the user.\n\n**Impact**:\n- Users believe they've loaded complete files when they haven't\n- Critical information beyond line 2000 is silently omitted\n- No error message or warning is displayed\n- This matches the Read tool's default limit but is not documented for `@` syntax\n\n## Reproduction & Evidence\n\n**Testing Environment**:\n- ✅ Claude Code CLI (Terminal)\n- ✅ Claude Code VSCode Extension\n- **Both environments exhibited identical behavior** - this is not VSCode-specific\n\n### Test Setup\n\nWe created controlled test files with known token counts and measured the actual context consumption.\n\n**Test files created:**\n```bash\n# File with 1000 lines of numbers (1\\n2\\n3\\n...)\ntest_1000_numbers.txt: 2,001 tokens (raw)\n\n# File with 5000 lines of code (const value1 = 1;)\ntest_5000_short.js: 43,008 tokens (raw)\n```\n\n### Test 1: Medium File (1000 lines)\n\n**Command**: `@ claude-token-test/test_1000_numbers.txt`\n\n**Results**:\n- Raw tokens: 2,001\n- Messages category: 6,400 tokens\n- **Multiplier: 3.2x** ⚠️\n\n**Note**: This 3.2x includes both formatting overhead AND conversation overhead (Claude's response). The pure file overhead is ~1.7x.\n\n### Test 2: Large File (5000 lines)\n\n**Command**: `@ claude-token-test/test_5000_short.js`\n\n**Results**:\n- Full file: 43,008 tokens (5000 lines)\n- **Only first 2000 lines loaded**: 16,002 tokens (raw)\n- Messages category: 27,300 tokens\n- **Multiplier: 1.7x** ✓\n- **63% of file was silently truncated** ⚠️\n\nClaude's response confirmed: *\"I'm seeing the first 2000 lines\"*\n\n### Test 3: Real-World Documentation\n\n**6 documentation files loaded via `@` syntax:**\n\n| File | Lines | Raw Tokens |\n|------|-------|------------|\n| docs/01-overview/01-project-overview.md | 191 | 1,871 |\n| docs/00-current-state/project-status.md | 578 | 5,142 |\n| docs/00-current-state/developer-onboarding.md | 718 | 4,683 |\n| docs/00-current-state/technical-inventory.md | 572 | 4,350 |\n| tasks/conversation-layer--overview.md | 638 | 4,501 |\n| tasks/conversation-layer-1--cli.md | 1232 | 10,543 |\n| **Total** | **3,929** | **31,090** |\n\n**Results**:\n- Expected context usage (raw): 31,090 tokens\n- Actual Messages category: 54,400 tokens\n- **Overhead: 23,310 tokens (75% waste)**\n- **Multiplier: 1.75x**\n\n### Test 4: Read Tool vs @ Syntax Comparison\n\nBoth mechanisms exhibit similar overhead:\n\n| Method | File | Raw Tokens | Context Tokens | Multiplier |\n|--------|------|------------|----------------|------------|\n| Read tool | test_1000_numbers.txt | 2,001 | ~6,300 | 3.15x |\n| @ syntax | test_1000_numbers.txt | 2,001 | ~6,400 | 3.2x |\n| @ syntax | test_5000_short.js (truncated) | 16,002 | 27,300 | 1.7x |\n\n**Note**: The 3.x multipliers include conversation overhead. Pure file formatting overhead is consistently ~1.7x.\n\n## Root Cause Analysis\n\n### Line Number Formatting\n\nThe Read tool output includes line numbers in this format:\n```\n     1→1\n     2→2\n     3→3\n   ...\n  1000→1000\n```\n\nEach line contains:\n- Padding spaces (6 characters for alignment)\n- Line number (1-4+ digits)\n- Arrow sepa",
+  "labels": [
+    "bug",
+    "documentation",
+    "has repro",
+    "area:cost",
+    "area:tools",
+    "area:core"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-23T02:45:47Z",
+  "updated_at": "2026-03-30T20:57:17Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 12,
+  "author": "puya",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18218\n2. https://github.com/anthropics/claude-code/issues/6910\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-23T02:48:52Z"
+    },
+    {
+      "author": "puya",
+      "author_association": "NONE",
+      "body": "\n\n> Found 2 possible duplicate issues:\n> \n> 1. [[Bug] Read tool consuming excessive tokens with line number prefixes #18218](https://github.com/anthropics/claude-code/issues/18218)\n> 2. [[BUG] Read tool does not limit itself to 2000 lines by default #6910](https://github.com/anthropics/claude-code/issues/6910)\n> ...\n\nThis is NOT a duplicate - it provides comprehensive analysis that unifies multiple scattered reports into a single root cause with quantifiable data and solutions.\n\n## How This Repo",
+      "created_at": "2026-01-23T02:56:26Z"
+    },
+    {
+      "author": "puya",
+      "author_association": "NONE",
+      "body": "@bcherny -  could you please have a look at this issue? This affects all Claude Code users and wastes 40% of context. \nWould appreciate urgent review given the widespread impact.",
+      "created_at": "2026-01-23T03:01:51Z"
+    }
+  ]
+}

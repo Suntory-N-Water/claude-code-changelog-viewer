@@ -1,0 +1,35 @@
+{
+  "number": 60755,
+  "title": "[FEATURE] Setting to disable copy-on-selection in the agents view (TUI)",
+  "body": "## Summary\n\nAdd a setting to disable Claude Code's automatic copy-on-selection behavior in the **agents view** (the background-agents management UI), so selection only highlights and explicit `Cmd+C` is required to copy (matching native macOS terminal conventions).\n\n## Current behavior\n\nInside the **agents view** in the Claude Code TUI, any text selection (drag, double-click word, triple-click line) is automatically copied to the system clipboard, and a \"copied X chars to clipboard\" toast appears.\n\nThis does **not** happen in a normal interactive Claude Code session — only inside the agents view — so the auto-copy logic appears to live in that view's input handler specifically.\n\n## Why this is a problem\n\nAny quick visual selection inside the agents view silently overwrites whatever the user had in their clipboard. This is surprising and easy to miss, especially because:\n\n- The same behavior does not happen in a normal interactive Claude Code session.\n- The same WezTerm session does not exhibit this behavior at a regular shell prompt or inside other TUI CLIs (e.g. Codex).\n\nEven with WezTerm configured with `disable_default_mouse_bindings = true` and explicit `Nop` bindings on mouse-Up events, the auto-copy still happens inside the agents view, confirming it is Claude Code's own copy logic in that view, not the terminal's.\n\n## Proposed solution\n\nAdd one of:\n\n- A `copyOnSelection` boolean in `~/.claude/settings.json` (default `true` to preserve current behavior)\n- An env var like `CLAUDE_CODE_NO_COPY_ON_SELECT=1`\n\nSetting it to disable would mean selection only highlights inside the agents view, and `Cmd+C` is required to copy, matching native macOS terminal conventions and the rest of Claude Code.\n\n## Workarounds considered\n\n`CLAUDE_CODE_DISABLE_MOUSE=1` is too heavy-handed since it disables all mouse interaction, not just the copy-on-select side-effect.\n\n## Environment\n\n- Claude Code (latest)\n- WezTerm 20240203 on macOS\n- Reproduces: agents view inside Claude Code\n- Does NOT reproduce: normal interactive Claude Code session, Codex CLI, shell prompt",
+  "labels": ["enhancement", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-20T03:54:43Z",
+  "updated_at": "2026-06-30T10:31:17Z",
+  "closed_at": null,
+  "reactions_total": 59,
+  "comments_count": 8,
+  "author": "parthnaik-phantom",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "marc-himmelberger",
+      "author_association": "NONE",
+      "body": "I face the same problem on Windows in the VScode terminal when connected to WSL, no special mode needed, just plain `claude`. I would also appreciate a dedicated NO_COPY_ON_SELECT option, as CLAUDE_CODE_DISABLE_MOUSE also effectively breaks scrolling for me.",
+      "created_at": "2026-05-24T23:28:34Z"
+    },
+    {
+      "author": "pidement",
+      "author_association": "NONE",
+      "body": "Yes please, add an option to disable this feature. I frequently use Shift-click to select a range of text, and this change breaks that behavior.\n\nIn general, I don’t like features that change the app’s behavior without asking first. This should be opt-in or configurable.\n",
+      "created_at": "2026-05-28T18:59:46Z"
+    },
+    {
+      "author": "ArthurkaX",
+      "author_association": "NONE",
+      "body": "Add an option pls!",
+      "created_at": "2026-06-11T18:41:42Z"
+    }
+  ]
+}

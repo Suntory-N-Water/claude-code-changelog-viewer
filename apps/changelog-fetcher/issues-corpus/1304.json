@@ -1,0 +1,35 @@
+{
+  "number": 1304,
+  "title": "Need for dedicated .claudeignore file - .gitignore is insufficient for multi-platform projects",
+  "body": "## Problem\n\nThe current implementation suggests using `.gitignore` to exclude directories from Claude Code analysis (as mentioned in #79). However, this approach is inadequate for multi-platform projects where you need context-specific directory exclusion that differs from your Git workflow.\n\n## Use Case\n\nI have a large iOS/Mac project with shared code and the following structure:\n- Root-level directories shared between platforms\n- Platform-specific directories (iOS-specific and Mac-specific folders)\n- When working on iOS features, I need to ignore Mac-specific directories to save tokens\n- When working on Mac features, I need to ignore iOS-specific directories\n\n**The problem**: I cannot add Mac directories to `.gitignore` when working on iOS because:\n1. Both platforms are part of the same repository\n2. Mac directories contain legitimate code that needs to be tracked in Git\n3. The exclusion needs are context-dependent, not permanent\n\n## Current Workaround Limitations\n\nThe suggested solution of [\"adding large build directories to your .gitignore file\"](https://docs.anthropic.com/en/docs/claude-code/troubleshooting#high-cpu-or-memory-usage) doesn't work because:\n- These aren't build directories - they're source code directories\n- They shouldn't be permanently ignored by Git\n- The ignore patterns need to change based on current development context\n\n## Proposed Solution\n\nA dedicated `.claudeignore` file (or similar mechanism) that:\n- Works independently of `.gitignore`\n- Allows temporary/context-specific exclusions\n- Can be easily modified without affecting Git workflow\n- Supports different ignore patterns for different development contexts\n\n## Related\n\nThis extends the discussion in #79 about directory exclusion, but addresses cases where `.gitignore` is not a viable solution.\n\n---\n\n**Environment:**\n- Large multi-platform (iOS/Mac) codebase\n- Shared root-level directories\n- Platform-specific subdirectories that need conditional exclusion",
+  "labels": ["enhancement", "platform:macos", "area:cost", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-05-25T07:45:33Z",
+  "updated_at": "2025-08-30T14:06:04Z",
+  "closed_at": "2025-08-22T18:30:21Z",
+  "reactions_total": 79,
+  "comments_count": 32,
+  "author": "houmie",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "igorkofman",
+      "author_association": "COLLABORATOR",
+      "body": "Hey folks, we recommend using the deny read rules to exclude any files you want Claude to not read.\nhttps://docs.anthropic.com/en/docs/claude-code/settings#excluding-sensitive-files\n\nRunning in a subfolder and using /add-dir to pull in those things you want Claude to look at is another option.\n",
+      "created_at": "2025-08-22T18:30:22Z"
+    },
+    {
+      "author": "ZachHandley",
+      "author_association": "NONE",
+      "body": "Bump to this. Kinda ridiculous I either don't commit something (to keep it in context, but not on GitHub) or Claude doesn't care that it exists, with no in-between",
+      "created_at": "2025-06-24T23:38:41Z"
+    },
+    {
+      "author": "lobinator",
+      "author_association": "NONE",
+      "body": "> Bump to this. Kinda ridiculous I either don't commit something (to keep it in context, but not on GitHub) or Claude doesn't care that it exists, with no in-between\n\nAgreed (see below for a poorly working workaround). Both Cline and Roo, two open source projects that likely have less resources and community involvement than CC, have had this feature for months.\n\nUse case:\n\nI sometimes don’t want Claude.md and other memory related files to be version controlled and will store them in a foobar/ d",
+      "created_at": "2025-06-26T17:23:04Z"
+    }
+  ]
+}

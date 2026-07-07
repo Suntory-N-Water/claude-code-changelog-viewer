@@ -1,0 +1,42 @@
+{
+  "number": 15168,
+  "title": "[BUG] LSP plugin system not connecting to language servers - always returns \"No LSP server available\"",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n### Environment\n\n- Claude Code version: 2.0.76\n- OS: WSL2 Ubuntu 22.04 (Linux 5.15.146.1-microsoft-standard-WSL2)\n- Node.js: 22.14.0\n- typescript-language-server: 5.1.3 (globally installed)\n- TypeScript: 5.9.3 (bundled with tsserver)\n\n### Problem\n\nThe LSP tool always returns \"No LSP server available for file type: .ts\" despite:\n\n1. Plugin typescript-lsp@claude-plugins-official installed at user scope\n2. Plugin enabled in ~/.claude/settings.json\n3. typescript-language-server binary correctly installed and working\n\n### Configuration Files\n\n~/.claude/settings.json:\n```json\n{\n  \"enabledPlugins\": {\n    \"typescript-lsp@claude-plugins-official\": true\n  }\n}\n```\n\n~/.claude/plugins/installed_plugins.json:\n```json\n{\n  \"version\": 2,\n  \"plugins\": {\n    \"typescript-lsp@claude-plugins-official\": [\n      {\n        \"scope\": \"user\",\n        \"installPath\": \"/home/gustavo/.claude/plugins/cache/claude-plugins-official/typescript-lsp/1.0.0\",\n        \"version\": \"1.0.0\",\n        \"installedAt\": \"2025-12-23T14:56:53.476Z\",\n        \"lastUpdated\": \"2025-12-23T14:56:53.476Z\",\n        \"isLocal\": true\n      }\n    ]\n  }\n}\n```\n\n### Diagnostic Tests\n\n1. Binary exists and responds:\n```bash\n$ which typescript-language-server\n/home/gustavo/.nvm/versions/node/v22.14.0/bin/typescript-language-server\n\n$ typescript-language-server --version\n5.1.3\n```\n\n2. LSP protocol works when tested directly via Node.js:\n```javascript\nconst {spawn} = require('child_process');\nconst msg = JSON.stringify({jsonrpc:'2.0',id:1,method:'initialize',params:{processId:null,rootUri:'file:///tmp',capabilities:{}}});\nconst header = 'Content-Length: ' + Buffer.byteLength(msg) + '\\r\\n\\r\\n';\nconst p = spawn('typescript-language-server', ['--stdio']);\np.stdout.on('data', d => console.log(d.toString()));\np.stdin.write(header + msg);\n```\nResult: Returns proper LSP response with capabilities (completions, code actions, etc.)\n\n3. Claude Code LSP tool fails:\n```\nLSP operation: hover\nFile: projects/backend2/apps/main/src/app.controller.ts\nResult: \"No LSP server available for file type: .ts\"\n```\n\n### Steps to Reproduce\n\n1. Install plugin: `claude plugins install typescript-lsp@claude-plugins-official`\n2. Verify ~/.claude/settings.json has `\"typescript-lsp@claude-plugins-official\": true`\n3. Restart Claude Code\n4. Use LSP tool on any .ts file\n5. Observe \"No LSP server available for file type: .ts\"\n\n### Expected Behavior\n\nLSP operations (hover, goToDefinition, findReferences, etc.) should work on TypeScript files.\n\n### Actual Behavior\n\nLSP tool returns \"No LSP server available for file type: .ts\" for all operations.\n\n### Additional Context\n\n- Tried installing at both project scope and user scope - same result\n- Cleared plugin cache and reinstalled - same result\n- The marketplace.json contains correct lspServers configuration\n- Also tested pyright-lsp plugin - same issue (\"No LSP server available for file type: .py\")\n\n### What Should Happen?\n\nLSP operations (hover, goToDefinition, findReferences, etc.) should work on TypeScript files when the typescript-lsp plugin is installed and enabled. The LSP tool should connect to the typescript-language-server and return type information, hover documentation, and code navigation results.\n\n### Error Messages/Logs\n\n```shell\nLSP operation: hover\nFile: projects/backend2/apps/main/src/app.controller.ts\nResult: \"No LSP server available for file type: .ts\"\n```\n\n### Steps to Reproduce\n\n1. Install the typescript-lsp plugin:\n   ```bash\n   claude plugins install typescript-lsp@claude-plugins-official\n   ```\n2. Verify ~/.claude/settings.json contains:\n   ```json\n   {\n     \"enabledPlugins\": {\n       \"typescript-lsp@claude-plugins-official\": true\n     }\n   }\n   ```\n3. Restart Claude Code\n4. Open any TypeScript project\n5. Use the LSP too",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "area:core"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-23T15:34:57Z",
+  "updated_at": "2026-06-21T10:17:12Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 22,
+  "author": "gustavo-cerqueira",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14803\n2. https://github.com/anthropics/claude-code/issues/15148\n3. https://github.com/anthropics/claude-code/issues/13952\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-23T15:39:22Z"
+    },
+    {
+      "author": "ytzhakov",
+      "author_association": "NONE",
+      "body": "got the same issue version 2.0.76",
+      "created_at": "2025-12-25T16:10:20Z"
+    },
+    {
+      "author": "mmereu",
+      "author_association": "NONE",
+      "body": "## Additional Windows-specific issue: Hook path corruption\n\nOn Windows, there's an additional bug where the `${CLAUDE_PLUGIN_ROOT}` variable is incorrectly expanded in plugin hooks.\n\n### Environment\n- Claude Code: 2.0.76\n- OS: Windows 11\n- Shell: Git Bash (MINGW64)\n\n### The Problem\n\nWhen plugin hooks try to use `${CLAUDE_PLUGIN_ROOT}`, the path gets corrupted:\n\n**Expected:**\n```\nC:\\Users\\marco.mereu\\.claude\\plugins\\cache\\boostvolt-lsps\\pyright\\1.0.0/hooks/check-pyright.sh\n```\n\n**Actual (error me",
+      "created_at": "2025-12-25T18:37:38Z"
+    }
+  ]
+}

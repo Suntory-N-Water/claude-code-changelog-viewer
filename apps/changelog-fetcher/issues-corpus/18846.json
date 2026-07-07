@@ -1,0 +1,35 @@
+{
+  "number": 18846,
+  "title": "[BUG] Bash permissions in settings.json not enforced - requires custom hook workaround",
+  "body": "# Bug Report: Bash Permissions in settings.json Not Respected\n\n## Summary\n\nThe `permissions.allow` and `permissions.deny` rules for Bash commands in `settings.json` are **not reliably enforced**. Users must create custom PreToolUse hooks to achieve the permission behavior that the configuration system promises.\n\n## Environment\n\n- **Claude Code Version**: Latest (check with `claude --version`)\n- **OS**: macOS (Darwin 25.2.0)\n- **Interface**: CLI (Terminal)\n\n## Steps to Reproduce\n\n1. Create `~/.claude/settings.json` with Bash permissions:\n\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(mkdir:*)\",\n      \"Bash(ls:*)\",\n      \"Bash(git status:*)\"\n    ],\n    \"deny\": [\n      \"Bash(rm:*)\"\n    ]\n  }\n}\n```\n\n2. Start a new Claude Code session\n3. Ask Claude to run `mkdir -p /tmp/test`\n4. **Expected**: Command runs without permission prompt\n5. **Actual**: Permission prompt appears despite the allow rule\n\n## Expected Behavior\n\nCommands matching patterns in `permissions.allow` should execute without prompting.\nCommands matching patterns in `permissions.deny` should be blocked automatically.\n\n## Actual Behavior\n\n- Allow rules are ignored for Bash commands\n- Users are prompted for every Bash command regardless of configuration\n- This forces users to either:\n  - Use `--dangerously-skip-permissions` (unsafe)\n  - Click \"Allow\" hundreds of times per session\n  - Implement custom PreToolUse hooks (workaround I had to use)\n\n## Related Issues\n\n- **#15921**: VSCode Extension doesn't respect Bash/Write/Edit permissions at all\n- **#13340**: Piped commands bypass permission allowlist\n\n## Impact\n\nThis is a **high-friction issue** that significantly degrades the user experience:\n\n1. **Productivity loss**: Users spend time approving commands that should be auto-approved\n2. **Workaround complexity**: Users must write custom Python hooks to get basic functionality\n3. **Documentation mismatch**: The settings.json documentation implies this should work\n4. **Trust erosion**: Users lose confidence in the permission system\n\n## Workaround\n\nI created a PreToolUse hook that properly enforces the allow/deny rules:\n\n```python\n#!/usr/bin/env python3\n\"\"\"PreToolUse hook that enforces Bash permissions from settings.json.\"\"\"\nimport json\nimport sys\nfrom pathlib import Path\n\ndef load_settings():\n    settings_file = Path.home() / \".claude\" / \"settings.json\"\n    allow_patterns = []\n    deny_patterns = []\n\n    if settings_file.exists():\n        with open(settings_file, 'r') as f:\n            settings = json.load(f)\n            permissions = settings.get(\"permissions\", {})\n\n            for rule in permissions.get(\"allow\", []):\n                if rule.startswith(\"Bash(\") and rule.endswith(\")\"):\n                    allow_patterns.append(rule[5:-1])\n\n            for rule in permissions.get(\"deny\", []):\n                if rule.startswith(\"Bash(\") and rule.endswith(\")\"):\n                    deny_patterns.append(rule[5:-1])\n\n    return allow_patterns, deny_patterns\n\ndef pattern_matches(pattern, command):\n    command = command.strip()\n    if pattern.endswith(\":*\"):\n        return command.startswith(pattern[:-2])\n    if pattern.endswith(\" *\"):\n        return command.startswith(pattern[:-2])\n    return command.startswith(pattern)\n\ndef main():\n    try:\n        input_data = json.load(sys.stdin)\n    except json.JSONDecodeError:\n        sys.exit(0)\n\n    if input_data.get(\"tool_name\") != \"Bash\":\n        sys.exit(0)\n\n    command = input_data.get(\"tool_input\", {}).get(\"command\", \"\")\n    allow_patterns, deny_patterns = load_settings()\n\n    # Deny takes priority\n    for pattern in deny_patterns:\n        if pattern_matches(pattern, command):\n            print(json.dumps({\n                \"hookSpecificOutput\": {\n                    \"hookEventName\": \"PreToolUse\",\n                    \"permissionDecision\": \"deny\",\n                    \"permissionDecisionReason\": f\"Denied: {pattern}\"\n                }\n            }))\n            sys.exit(0)\n\n    # Check allow\n    for pattern in allow_patterns:\n        if pattern_matches(pattern, command):\n            print(json.dumps({\n                \"hookS",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-17T17:59:13Z",
+  "updated_at": "2026-07-02T12:16:04Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 10,
+  "author": "lucasmccomb",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18160\n2. https://github.com/anthropics/claude-code/issues/17321\n3. https://github.com/anthropics/claude-code/issues/13340\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-17T18:03:36Z"
+    },
+    {
+      "author": "lucasmccomb",
+      "author_association": "NONE",
+      "body": "## Update: Same Issue Affects Edit and Write Tools\n\nThis bug isn't limited to Bash commands — **Edit and Write tool permissions are also not enforced**.\n\n### Reproduction\n\n1. Add Edit/Write permissions to `settings.json`:\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Edit(/Users/me/code/**)\",\n      \"Write(/Users/me/code/**)\",\n      \"Edit(/tmp/**)\"\n    ]\n  }\n}\n```\n\n2. Ask Claude to edit a file in `~/code/`\n3. **Expected**: Edit proceeds without prompt\n4. **Actual**: Permission prompt still a",
+      "created_at": "2026-01-17T18:04:22Z"
+    },
+    {
+      "author": "mdbudnick",
+      "author_association": "NONE",
+      "body": "🦗 🦗 🦗 ",
+      "created_at": "2026-01-21T14:24:17Z"
+    }
+  ]
+}

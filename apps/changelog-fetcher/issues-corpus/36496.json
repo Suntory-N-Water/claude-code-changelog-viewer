@@ -1,0 +1,35 @@
+{
+  "number": 36496,
+  "title": "Scheduled task ignores model setting, always runs Sonnet",
+  "body": "## Bug Description\n\nScheduled tasks always run with Sonnet regardless of model configuration. The model setting in the task edit UI and SKILL.md frontmatter are both ignored.\n\n## Steps to Reproduce\n\n1. Create a scheduled task in Claude Code Desktop\n2. Open Edit screen → change model dropdown to \"Opus 4.6 (1M context)\" → Save\n3. Run the task via \"Run now\"\n4. Observe: the task session shows \"Sonnet 4.6\" in the bottom-right model indicator\n\n## Additional Attempts\n\n- Added `model: opus` to SKILL.md frontmatter → still runs Sonnet\n- Changed model dropdown in the running session → next run still starts with Sonnet\n- Verified no `ANTHROPIC_MODEL` environment variable is set\n- Verified no model override in `~/.claude/settings.json`\n\n## Expected Behavior\n\nTask should run with Opus as configured in the edit screen and/or SKILL.md frontmatter.\n\n## Actual Behavior\n\nTask always starts with Sonnet regardless of configuration.\n\n## Environment\n\n- Claude Code Desktop (Mac)\n- Max plan\n- macOS",
+  "labels": ["bug", "has repro", "platform:macos", "area:desktop"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-20T06:19:02Z",
+  "updated_at": "2026-04-14T05:20:29Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 4,
+  "author": "fourdesignllc",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/21679\n2. https://github.com/anthropics/claude-code/issues/18346\n3. https://github.com/anthropics/claude-code/issues/31490\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-20T06:21:58Z"
+    },
+    {
+      "author": "fourdesignllc",
+      "author_association": "NONE",
+      "body": "## Additional Issue: Scheduled task requires user to view the task screen to progress\n\nThe scheduled task does not make progress unless the user navigates to the task's session screen in the Desktop app. The task appears to hang indefinitely when running in the background. Only when the user opens the task screen does execution resume.\n\nThis defeats the purpose of scheduled/automated tasks, as they require human attention to complete. The task should run to completion regardless of whether the u",
+      "created_at": "2026-03-20T08:01:20Z"
+    },
+    {
+      "author": "morganfreemannz4",
+      "author_association": "NONE",
+      "body": "This is a serious issue for users relying on scheduled tasks in production. We run multiple scheduled tasks daily (lead research, customer outreach emails, compliance audits) — all silently downgraded to Sonnet despite Opus being selected. The quality difference matters for customer-facing communications and nuanced lead qualification. This has been open for 3 weeks with 9+ duplicates and no team response. Is there a timeline for a fix?",
+      "created_at": "2026-04-08T21:37:03Z"
+    }
+  ]
+}

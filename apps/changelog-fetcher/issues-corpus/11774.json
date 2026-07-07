@@ -1,0 +1,16 @@
+{
+  "number": 11774,
+  "title": "[BUG] Claude Code is unable to see Personal Commands (~/.claude/commands/) for automatic invocation in it's SlashCommand Tool",
+  "body": "## Bug Description\n\nClaude Code can only see project-level slash commands (from `.claude/commands/`) in its internal `SlashCommand` tool's available commands list. User-level commands from `~/.claude/commands/` are completely invisible to Claude until they are actually invoked.\n\n**IMPORTANT**: This is NOT about the user's slash command autocomplete UI. When users type `/`, they correctly see both project-level AND user-level commands.\n\n## Impact\n\nThis creates confusion because:\n1. **Claude doesn't know user-level commands exist** - They're not in Claude's SlashCommand tool manifest\n2. Claude may suggest incorrect/non-existent commands when users ask for help\n3. Claude cannot proactively suggest relevant user-level commands\n4. Users expect Claude to be aware of all available commands (both project and user-level)\n\n## Reproduction Steps\n\n1. Create a user-level slash command in `~/.claude/commands/` (e.g., `/update-subtask`)\n2. Ask Claude to list available slash commands or ask it about updating a subtask\n3. Observe that Claude only shows project-level commands marked with `(project)`\n4. Invoke the user-level command (e.g., by saying \"update subtask 1.25\")\n5. Claude will not match the request to any command in it's SlashCommand tool, since it wasn't in the visible list\n\n## Expected Behavior\n\nClaude should see **both** project-level and user-level slash commands in the available commands list, with clear indication of their scope:\n- User-level commands marked with `(user)` or `(global)`\n- Project-level commands marked with `(project)`\n\n## Actual Behavior\n\nClaude only sees project-level commands. When a user-level command is invoked, Claude receives the expanded command documentation but was previously unaware of its existence.\n\n## Example\n\nIn the conversation, Claude saw these project commands:\n- `/taskmaster:enhance-subtask` (project)\n- `/implement-skill` (project)\n- etc.\n\nBut the user had a `/update-subtask` command at the user level that Claude couldn't see until it was triggered.\n\n## System Information\n\n- Platform: macOS (Darwin 25.1.0)\n- Model: Claude Sonnet 4.5\n- Working directory: Project with both user-level and project-level slash commands\n\n## Suggested Fix\n\nUpdate the `SlashCommand` tool's available commands list to include both:\n1. Project-level commands from `{project}/.claude/commands/`\n2. User-level commands from `~/.claude/commands/`\n\nWith clear labeling to distinguish between scopes (e.g., `(user)` vs `(project)`).",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-17T07:29:22Z",
+  "updated_at": "2025-11-24T14:07:48Z",
+  "closed_at": "2025-11-17T08:01:55Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "mbelot007",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

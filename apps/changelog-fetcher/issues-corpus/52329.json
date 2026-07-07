@@ -1,0 +1,16 @@
+{
+  "number": 52329,
+  "title": "[BUG] /rewind causes complete terminal lockup on any --resume'd session — Ctrl+C does not work",
+  "body": "### What's wrong\n\nOn any `claude --resume`'d session, invoking `/rewind` (or `Esc Esc`) opens the rewind picker but it is completely unresponsive to keyboard input. Esc, Enter, and arrow keys do nothing. **Ctrl+C also does not work** — the session is a hard lockup. The only way to recover is `Ctrl+Z` to suspend, then `kill %1`.\n\nVerified working correctly on 2.1.116. Broken on 2.1.118.\n\n### Repro\n\n1. `claude --resume <any session>` (reproducible on an absolute clean repo with minimal history — not session-specific)\n2. Type `/rewind` (or press `Esc Esc`)\n3. Picker renders, but no keys reach it. Ctrl+C doesn't kill the session either.\n4. Recovery: `Ctrl+Z`, then `kill %1`\n\n### Scope\n\n- Only reproducible after `--resume`. Fresh `claude` sessions handle `/rewind` correctly.\n- Reproducible in **every** resumed session, not specific to one.\n- Reproducible with a minimal `~/.claude.json` copied to a throwaway `CLAUDE_CONFIG_DIR`, so it's not session-history bloat.\n- **Not** reproducible with an empty `CLAUDE_CONFIG_DIR`. Something in `~/.claude.json` state is the trigger.\n\n### Environment\n\n- Claude Code: **2.1.118** (confirmed working on **2.1.116**)\n- OS: macOS\n- Terminal: Ghostty (also reproduces in Terminal.app — not terminal-specific)\n- `TERM=xterm-256color`\n- tmux: not involved\n- Vim mode: off\n- No `~/.claude/keybindings.json`\n\n### What I tried\n\n- Disabled vim mode: no change\n- Switched to Terminal.app: no change\n- Killed all stale Claude Code processes and restarted terminal: no change\n- Clean `CLAUDE_CONFIG_DIR`: works correctly. Problem reappears when `~/.claude.json` is in place.\n- Problem does not depend on session history size — reproducible with near-empty history.\n\n### Expected\n\n`/rewind` picker responds to Esc / Enter / arrows. At minimum, Ctrl+C should always kill the session.\n\n### Related issues\n\nAppears closely related to / possibly same root cause as:\n- #52281 — Interactive menus (MCP, rewind) completely unresponsive on --resume (macOS, 2.1.118)\n- #52268 — Console freezes when using /rewind immediately after /resume (Windows, 2.1.118)\n- #52319 — /rewind interactive picker stops accepting keyboard input in 2.1.118 (Linux regression from 2.1.117)\n- #52209 — Rewind functionality causes terminal freeze (macOS, 2.1.118)\n\nThis report adds the `CLAUDE_CONFIG_DIR` bisection data point: the trigger lives in `~/.claude.json` contents, not in session-history size or the session file itself.",
+  "labels": ["duplicate", "platform:macos", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-23T09:17:57Z",
+  "updated_at": "2026-05-01T14:47:52Z",
+  "closed_at": "2026-04-23T20:35:05Z",
+  "reactions_total": 8,
+  "comments_count": 4,
+  "author": "marto",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

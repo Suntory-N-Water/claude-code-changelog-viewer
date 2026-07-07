@@ -1,0 +1,35 @@
+{
+  "number": 34437,
+  "title": "Worktrees should share the same project directory as the main repo",
+  "body": "## Problem\n\nWhen using git worktrees (either via `claude --worktree` or manually created), Claude Code creates a **separate project directory** in `~/.claude/projects/` for each worktree path. This splits conversation history, auto-memory, and project-level settings across multiple isolated directories — even though the worktrees are branches of the same repository.\n\nFor example, working in `~/project` and then creating a worktree at `~/project-feature-branch` produces:\n\n```\n~/.claude/projects/-home-user-project/           # main\n~/.claude/projects/-home-user-project-feature-branch/  # worktree — separate conversations, memory, settings\n```\n\nThis means:\n- **Auto-memory is fragmented** — memories saved in a worktree session are invisible to main repo sessions and vice versa\n- **Conversation history is split** — the `/resume` picker may show sessions across worktrees, but project-level context is lost\n- **Project settings diverge** — each worktree gets its own project config\n\nOver time this creates significant knowledge fragmentation, especially for teams using worktrees for parallel development (e.g., running multiple Claude Code sessions in tmux panes on different branches).\n\n## Proposed Solution\n\nDetect when a working directory is a git worktree and resolve the project directory to the **main worktree's path** instead of the current working directory path.\n\nGit already provides this via:\n```bash\ngit worktree list --porcelain  # lists all worktrees and identifies the main one\ngit rev-parse --git-common-dir  # resolves to the shared .git dir\n```\n\nAll worktrees of the same repo would then share:\n- `~/.claude/projects/<main-repo-path>/memory/`\n- `~/.claude/projects/<main-repo-path>/*.jsonl` (conversations)\n- `~/.claude/projects/<main-repo-path>/` (project-level settings)\n\n### Alternative: opt-in configuration\n\nIf automatic detection is too opinionated, a configuration option would also work:\n\n```json\n// ~/.claude/settings.json or project CLAUDE.md\n{\n  \"projectDirectoryStrategy\": \"git-root\"  // vs default \"working-directory\"\n}\n```\n\n## Current Workaround\n\nManually moving `.jsonl` files, UUID session directories, and memory files from worktree project directories into the main project directory, then deleting the empty source directories. This works but needs to be repeated after every worktree session.\n\n## Environment\n\n- Claude Code CLI\n- Linux (also applicable to macOS)",
+  "labels": ["enhancement", "area:core", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-14T19:07:51Z",
+  "updated_at": "2026-06-09T15:30:40Z",
+  "closed_at": null,
+  "reactions_total": 33,
+  "comments_count": 9,
+  "author": "fbaltor",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/15776\n2. https://github.com/anthropics/claude-code/issues/30667\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-14T19:10:57Z"
+    },
+    {
+      "author": "epechuzal",
+      "author_association": "NONE",
+      "body": "**+1** — heavy worktree user here and this is a real pain point.\n\nMy specific case: I use team-provisioned claude.ai MCP servers (Gmail, Google Calendar, Slack, etc.) which also brings along ~10 MCPs I don't use (Figma, Miro, Notion, Pendo, Postman, etc.). I disable them via `disabledMcpServers` in the project entry, but every new worktree creates a fresh project entry with an empty disable list — so the unwanted MCPs come back every time.\n\nTwo compounding issues:\n\n1. **Settings don't carry over",
+      "created_at": "2026-03-17T18:10:22Z"
+    },
+    {
+      "author": "jboulter11",
+      "author_association": "NONE",
+      "body": "This, alongside shared permissions, would be great.  Just because I make a new worktree, I should not have to also now re-approve all the same stuff and lose my project memories.",
+      "created_at": "2026-03-25T20:24:04Z"
+    }
+  ]
+}

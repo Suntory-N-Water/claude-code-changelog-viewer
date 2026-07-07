@@ -1,0 +1,23 @@
+{
+  "number": 1676,
+  "title": "[BUG] Claude Code - Persistent Logout & Configuration Loss Bug Report",
+  "body": "# Claude Code - Persistent Logout & Configuration Loss Bug Report\n\n## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.11 (Claude Code)\n- Operating System: macOS 15.5.0 (Darwin Kernel Version 24.5.0)\n- Terminal: Warp Terminal\n\n## Bug Description\nClaude Code persistently logs users out and loses all configuration settings including:\n- Authentication session\n- Theme preferences \n- MCP server configurations\n- All personalized settings\n\nThis occurs after system events like battery drain, laptop sleep, or unexpected shutdowns, making the development experience frustrating and unreliable.\n\n## Steps to Reproduce\n1. Set up Claude Code with authentication\n2. Configure theme preferences\n3. Set up MCP servers\n4. Work on development projects normally\n5. Experience a system event (battery drain, forced shutdown, extended sleep)\n6. Restart laptop and attempt to use Claude Code\n7. Observe that user is logged out and all configurations are lost\n\n## Expected Behavior\n- Authentication session should persist across system restarts\n- Theme preferences should be saved and restored\n- MCP server configurations should be preserved\n- User should not need to reconfigure everything after normal system events\n- Settings should be stored in a persistent location that survives system events\n\n## Actual Behavior\n- User gets logged out completely\n- All theme preferences reset to default\n- MCP servers configuration completely disappears (shows \"No MCP servers configured\")\n- User must manually reconfigure everything from scratch\n- This creates significant workflow disruption and productivity loss\n\n## Frequency\n- Occurs consistently after system events\n- Has happened multiple times (at least twice in recent days)\n- Appears to be a recurring pattern, not a one-time issue\n\n## Impact\n- **High** - Causes significant workflow disruption\n- Forces complete reconfiguration of development environment\n- Leads to lost productivity and frustration\n- Makes Claude Code unreliable for regular development work\n\n## Additional Context\n\n### System Context\n- Development machine: MacBook Pro with Apple Silicon (arm64)\n- Common scenario: Working on development projects with Claude Code active\n- Triggering events: Battery depletion, forced restarts, extended system sleep, **MCP server configuration with Claude piping**\n\n### Previous Incident Pattern\n**Critical Discovery**: A previous logout/reset occurred **without battery loss** during MCP server configuration. The incident happened while configuring an MCP server that uses \"Claude piping\" functionality, where Claude Code can serve as an MCP server itself (`claude mcp serve`). \n\n**Suspicious Configuration Evidence**: The searchable directories found in `~/.claude/config.json` match directories that were being configured during the previous incident:\n```json\n{\n  \"searchableDirectories\": [\n    \"/Users/codaveto/Repos/Forks/flutter-packages\",\n    \"/Users/codaveto/Repos/Forks/flutter-packages/turbo_response\"\n  ]\n}\n```\n\nThis suggests the MCP configuration process may be **writing to or modifying Claude Code's internal configuration** in ways that trigger instability or reset behavior.\n\n### Configuration Lost\n- Authentication tokens/sessions\n- Theme settings (dark/light mode preferences)\n- MCP server configurations (complete loss of server setups)\n- Any personalized UI preferences\n\n### Expected Configuration Persistence\nThe following should persist across sessions:\n- User authentication (secure token storage)\n- User preferences (theme, UI settings)\n- MCP server configurations\n- Project-specific settings\n\n### Suggested Investigation Areas\n1. **Authentication Token Storage**: Check if tokens are stored in temporary locations that get cleared on restart\n2. **Configuration File Location**: Verify if config files are being saved to persistent directories\n3. **MCP Server Config**: Investigate why MCP configurations completely disappear\n4. **Session Management**: Review session persistence mechanisms\n5. **macOS Keychain Integratio",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:auth",
+    "area:mcp",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-05T21:06:25Z",
+  "updated_at": "2026-01-17T14:08:05Z",
+  "closed_at": "2026-01-08T10:18:05Z",
+  "reactions_total": 11,
+  "comments_count": 43,
+  "author": "appboypov",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

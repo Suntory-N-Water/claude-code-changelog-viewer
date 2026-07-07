@@ -1,0 +1,42 @@
+{
+  "number": 41458,
+  "title": "[BUG] cleanupPeriodDays: 99999 ignored — 490 sessions silently deleted despite explicit setting",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n`cleanupPeriodDays: 99999` has been set in `~/.claude/settings.json` since **January 22, 2026** (verified via automated hourly git backups of dotfiles). The setting was never removed or modified — every backup commit from Jan 22 through today shows `cleanupPeriodDays: 99999`. Despite this, **490 session JSONL files were silently deleted**.\n\n### Evidence\n\n**1. The setting was always present (git-verified):**\n\n```\n2026-03-27 ce1a39c9 cleanup=99999\n2026-03-25 f15a7447 cleanup=99999\n... (every backup since Jan 22) ...\n2026-01-22 2a2aece8 cleanup=99999  ← first set\n```\n\nBefore Jan 22, `cleanupPeriodDays` was absent (default 30). It was added once and never changed.\n\n**2. sessions-index.json proves the sessions existed:**\n\nScanning all `sessions-index.json` files across `~/.claude/projects/`:\n\n```\nTotal indexed sessions with existing JSONL: 0\nTotal indexed sessions with MISSING JSONL:  490\n\nMissing sessions by month:\n  2025-12: 44\n  2026-01: 382\n  2026-02: 64\n\nOverall missing range: 2025-12-17 to 2026-02-04\n```\n\nEvery single indexed session has had its JSONL file deleted. The index metadata (including `fileMtime`) survives but the files are gone.\n\n**3. sessions-index.json itself is stale:**\n\nThe most recent `sessions-index.json` modification is **January 31, 2026**. CC stopped maintaining the index at some point (version update?). Current sessions (385 JSONL files from Feb 25+) are not in any index.\n\n**4. Current JSONL files start much later than expected:**\n\n```\nEarliest JSONL:  2026-02-25 (1 file)\nNext oldest:     2026-03-13 (bulk starts here)\n```\n\n90 days of expected data reduced to ~34 days of actual data.\n\n**5. The settings.json schema uses `.passthrough()`:**\n\nBinary analysis of v2.1.87 confirms the settings Zod schema uses `.passthrough()`, so extra keys don't cause validation errors. All keys in the user's settings.json (`cleanupPeriodDays`, `env`, `hooks`, `permissions`, `statusLine`, `enabledPlugins`, `extraKnownMarketplaces`, `alwaysThinkingEnabled`, `effortLevel`, `autoMemoryEnabled`, `skipDangerousModePermissionPrompt`) are recognized in the current schema.\n\n### Possible Root Causes\n\n1. **Version upgrade reset**: A CC version upgrade between Feb-Mar 2026 may have introduced a code path where cleanup ran before settings were fully loaded, or where the settings reader returned null (triggering the `?? 30` default fallback in `G$H()`).\n\n2. **Subagent context leak** (related to #39667 comment): The user runs many autonomous spawned sessions with `--dangerously-skip-permissions`. If cleanup runs in a subprocess with incorrect HOME or failed settings resolution, `cleanupPeriodDays` falls back to default 30.\n\n3. **Cleanup ran from a CC version that didn't recognize all schema keys**: Though current v2.1.87 uses `.passthrough()`, an older version might have used `.strict()` mode, causing the entire settings object to fail validation.\n\n### What Should Happen\n\n- `cleanupPeriodDays: 99999` should prevent ALL cleanup of session files\n- If settings fail to parse for any reason, cleanup should NOT fall back to the 30-day default — it should skip cleanup entirely (fail safe, not fail destructive)\n- The current fallback pattern `((settings || {}).cleanupPeriodDays ?? 30) * 86400000` is dangerous: a null settings object silently triggers aggressive cleanup\n\n### Suggested Fix\n\n```js\n// Current (dangerous):\nlet q = ((X8()||{}).cleanupPeriodDays ?? xGK) * 24*60*60*1000;\n\n// Safe alternative:\nconst settings = X8();\nif (settings === null || settings === undefined) {\n    log(\"Settings failed to load — skipping cleanup\");\n    return; // Don't clean up if we can't read the user's preference\n}\nlet q = (settings.cleanupPeriodDays ?? xGK) * 24*60*60*1000;\n```\n\n### Error Messages/Logs\n\nNo error ",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "regression",
+    "data-loss"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-31T11:37:58Z",
+  "updated_at": "2026-07-03T02:32:09Z",
+  "closed_at": null,
+  "reactions_total": 3,
+  "comments_count": 18,
+  "author": "TweedBeetle",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/39667\n2. https://github.com/anthropics/claude-code/issues/22547\n3. https://github.com/anthropics/claude-code/issues/16978\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-31T11:42:37Z"
+    },
+    {
+      "author": "r-ef",
+      "author_association": "NONE",
+      "body": "your settings file failed zod validation which caused sessions older than 30 days to be deleted, even if you have `cleanupPeriodDays` set",
+      "created_at": "2026-03-31T11:47:12Z"
+    },
+    {
+      "author": "TweedBeetle",
+      "author_association": "NONE",
+      "body": "## Not a duplicate of the linked issues\n\nThe triage bot linked three issues, but none are the same bug:\n\n| Issue | What it's about | Why it's different |\n|-------|----------------|-------------------|\n| **#39667** | JSONL files deleted, sessions-index stale | Reporter [corrected themselves](https://github.com/anthropics/claude-code/issues/39667#issuecomment-2781938371): their files were legitimately cleaned by the 30-day default because they **never set** `cleanupPeriodDays` |\n| **#22547** | Bad",
+      "created_at": "2026-03-31T12:22:41Z"
+    }
+  ]
+}

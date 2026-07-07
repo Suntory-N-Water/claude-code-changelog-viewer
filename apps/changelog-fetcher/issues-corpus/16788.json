@@ -1,0 +1,35 @@
+{
+  "number": 16788,
+  "title": "[FEATURE] Expose Vim Mode State in Statusline JSON",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nI use Vim mode in Claude Code with a custom statusline script. The `statusLine.command` JSON payload exposes model, cost, context, and workspace data—but not the Vim mode state.\n\n### Current Behavior\n\nThe Vim mode indicator is rendered by Claude Code's internal UI and cannot be customized:\n\n```\n🤖 Opus | 📁 my-project | main | $0.42    ← customizable via statusLine.command\n-- INSERT -- ▐▐ plan mode on               ← hardcoded, not exposed\n```\n\nThe `statusLine.command` JSON payload includes session, model, cost, and workspace data, but **no Vim mode state**:\n\n```json\n{\n  \"session_id\": \"...\",\n  \"model\": { \"id\": \"...\", \"display_name\": \"...\" },\n  \"workspace\": { \"current_dir\": \"...\", \"project_dir\": \"...\" },\n  \"cost\": { \"total_cost_usd\": 0.42, \"total_duration_ms\": 45000 },\n  \"context_window\": { ... }\n  // vi_mode: missing\n}\n```\n\n\n### Proposed Solution\n\nAdd a `vi_mode` object to the `statusLine.command` JSON payload:\n\n```json\n{\n  \"vi_mode\": {\n    \"enabled\": true,\n    \"mode\": \"insert\"\n  }\n}\n```\n\nThis lets users render the Vim mode in their statusline script with custom styling, or omit it entirely.\n\n### Alternative Solutions\n\nThere's no workaround—the indicator is rendered by Claude Code's internal UI, not exposed to statusline scripts.\n\n### Priority\n\nLow - Nice to have\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\nExample scenario:\n1. I use Claude Code with Vim mode and a custom statusline script\n2. I want to style my Vim mode indicator to match my statusline aesthetic\n3. With this feature, I could render the mode in my script with custom colors/icons\n4. This would save me time because I wouldn't need to live with the hardcoded `-- INSERT --` styling\n\n### Additional Context\n\n### Related Issues\n\nThis follows the established pattern of exposing internal state to `statusline.sh` scripts:\n- [#15029](https://github.com/anthropics/claude-code/issues/15029) — `session_name`\n- [#11535](https://github.com/anthropics/claude-code/issues/11535) — token usage\n- [#13158](https://github.com/anthropics/claude-code/issues/13158) — thinking mode\n- [#1204](https://github.com/anthropics/claude-code/issues/1204) — More Vim motions (open)\n- [#2442](https://github.com/anthropics/claude-code/issues/2442) — Visual mode (not planned)",
+  "labels": ["enhancement", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-08T05:03:45Z",
+  "updated_at": "2026-05-24T22:29:36Z",
+  "closed_at": "2026-05-24T22:29:36Z",
+  "reactions_total": 5,
+  "comments_count": 11,
+  "author": "Vvkmnn",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7411\n2. https://github.com/anthropics/claude-code/issues/9488\n3. https://github.com/anthropics/claude-code/issues/15029\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-08T05:07:17Z"
+    },
+    {
+      "author": "fercor-cisco",
+      "author_association": "NONE",
+      "body": "https://github.com/anthropics/claude-code/issues/7411 was closed due to inactivity but the request is still valid. Please do not close this ticket.",
+      "created_at": "2026-01-23T18:00:34Z"
+    },
+    {
+      "author": "komealy",
+      "author_association": "NONE",
+      "body": "+1 - I use a custom `claude-statusline.sh` script and would love to display the current vim mode.\n\nThis becomes especially useful if #21316 gets implemented (vim-style scrolling in chat/transcript views). With an ESC toggle between input and nav mode, showing that state in the statusline would be essential for UX.\n\nIdeal: expose `vim_mode` (or similar) in the statusline JSON so custom scripts can render it however they want.",
+      "created_at": "2026-01-31T01:53:14Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 10882,
+  "title": "\"File has been unexpectedly modified\" errors break Edit tool in VSCode extension",
+  "body": "# \"File has been unexpectedly modified\" errors break Edit tool in VSCode extension\n\n## Environment\n- **Claude Code Version**: VSCode Extension\n- **OS**: Windows 11\n- **Working Directory**: Git repository with TypeScript/JavaScript files\n- **File Types Affected**: `.js`, `.ts` files\n\n## Summary\nThe Edit tool consistently fails with \"File has been unexpectedly modified. Read it again before attempting to write it.\" error, even when no manual edits are being made. The file appears to be modified by some VSCode background process between Claude's Read and Edit operations.\n\n## Steps to Reproduce\n1. Open a JavaScript/TypeScript project in VSCode with Claude Code extension\n2. Ask Claude to edit a file using the Edit tool\n3. Observe that Edit tool fails with \"File has been unexpectedly modified\"\n4. Note: This occurs even when user has not manually edited the file\n\n## Expected Behavior\nThe Edit tool should successfully apply changes to files that the user has not manually modified.\n\n## Actual Behavior\nEdit tool fails repeatedly with \"File has been unexpectedly modified\" error, forcing fallback to complex workarounds using awk/sed commands which introduce their own issues (shell escaping problems, especially on Windows/Git Bash).\n\n## Example Workflow That Fails\n\n```\n1. Claude: Read file (lib/helpers.js) ✓\n2. VSCode: Auto-format or linter runs in background\n3. Claude: Edit file with changes ✗ \"File has been unexpectedly modified\"\n4. Claude: Read file again ✓\n5. VSCode: Auto-format runs again\n6. Claude: Edit file ✗ \"File has been unexpectedly modified\"\n... repeats indefinitely\n```\n\n## Impact\nThis makes the Edit tool essentially unusable in the VSCode extension for active development workflows. Claude is forced to use:\n- Complex awk/sed scripts (brittle, error-prone)\n- Read entire file + Write back (loses granular editing benefits)\n- Manual file operations via Bash (defeats purpose of Edit tool)\n\n\n## Suspected Root Cause\nThe Edit tool appears to:\n1. Read file at time T1\n2. Store file hash/timestamp\n3. Perform edit operation at time T2\n4. Verify file hasn't changed since T1\n\nBetween T1 and T2, some VSCode background process (possibly file watchers, formatters like Prettier, linters like ESLint, TypeScript compiler, or VSCode's own file sync) modifies the file, causing the verification to fail. **This is speculation based on observed behavior** - the actual cause has not been confirmed.\n\n## Suggested Fixes\n\n### Option 1: Add retry logic with brief delay\nIf \"File has been unexpectedly modified\" error occurs:\n- Wait 100-500ms for file watchers to settle\n- Re-read file automatically\n- Retry edit operation\n- Fail after 2-3 retries\n\n### Option 2: Detect common file watcher changes\n- If file modification is only whitespace/formatting (same AST)\n- Automatically re-read and apply edit to new version\n- Only fail on substantive changes\n\n### Option 3: Lock file during edit\n- Request file lock before Edit operation\n- Prevent other processes from modifying during edit\n- Release lock after edit completes\n\n\n## Additional Context\nThis issue significantly degrades the user experience in the VSCode extension compared to the CLI version. It's particularly frustrating because:\n1. The file modifications are automatic (user didn't cause them)\n2. The error message suggests user action (\"Read it again\") but doesn't help\n3. The issues occurs both in CLI and VSCode extension. \n4. Workarounds are significantly worse than the Edit tool\n## Related Issues\n- Potentially related to file watching/auto-save behaviors in VSCode\n- May affect all file types that have formatters/linters configured\n- It started occuring after I upgraded from 2.0.27 to 2.0.31\n---\n\n**Reported by**: Akhil Kumar (akhil@apralabs.com)\n",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools", "area:ide"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-03T03:56:28Z",
+  "updated_at": "2026-01-30T14:19:46Z",
+  "closed_at": "2026-01-22T23:48:16Z",
+  "reactions_total": 5,
+  "comments_count": 15,
+  "author": "kumaakh",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "blois",
+      "author_association": "COLLABORATOR",
+      "body": "Improvements should be in the next release.",
+      "created_at": "2026-01-22T23:48:16Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/10633\n2. https://github.com/anthropics/claude-code/issues/7918\n3. https://github.com/anthropics/claude-code/issues/10788\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-03T04:00:28Z"
+    },
+    {
+      "author": "Korenwolf9642",
+      "author_association": "NONE",
+      "body": "I have had the same issue for the last two days. Its not just the VS Code extension. Regular terminal Claude Code also has broken Edit and Write tools. Claude has been working overtime using Bash commands and writing temporary files. It doesn't go very well compared to the Edit tool.",
+      "created_at": "2025-11-03T05:05:43Z"
+    }
+  ]
+}

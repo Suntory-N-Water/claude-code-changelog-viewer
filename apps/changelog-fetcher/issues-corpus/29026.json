@@ -1,0 +1,41 @@
+{
+  "number": 29026,
+  "title": "Desktop app ignores settings.json permissions.allow and defaultMode: bypassPermissions",
+  "body": "## Bug Description\n\n`~/.claude/settings.json` permission settings (`permissions.allow` rules and `defaultMode: \"bypassPermissions\"`) have **no effect** in the Claude Code desktop app (macOS). Every tool call still prompts for manual approval.\n\n## Steps to Reproduce\n\n1. Set `~/.claude/settings.json`:\n```json\n{\n  \"permissions\": {\n    \"defaultMode\": \"bypassPermissions\",\n    \"allow\": [\n      \"Bash(*)\",\n      \"Read(*)\",\n      \"Write(*)\",\n      \"Edit(*)\",\n      \"Glob(*)\",\n      \"Grep(*)\"\n    ],\n    \"deny\": []\n  }\n}\n```\n\n2. Also enabled \"Allow bypass permissions mode\" in Desktop app → Settings → Claude Code\n\n3. Start a **new** session in the Claude Code desktop app\n\n4. Any tool call (Bash, Read, Write, Edit) still prompts \"Allow Claude to Run/Read/Write...?\" with Deny/Allow once/Always allow for session\n\n## What Was Tried (All Failed)\n\n| Attempt | Result |\n|---------|--------|\n| Specific path patterns: `Write(//Users/me/path/**)` | Still prompted |\n| Wildcard patterns: `Bash(echo *)`, `Write(*)` | Still prompted |\n| Blanket wildcards: `Bash(*)`, `Read(*)`, `Write(*)`, `Edit(*)` | Still prompted |\n| `defaultMode: \"bypassPermissions\"` | Still prompted |\n| Desktop app UI: Settings → Claude Code → \"Allow bypass permissions mode\" ON | Still prompted |\n| All of the above combined | Still prompted |\n\n## Expected Behavior\n\nWith `defaultMode: \"bypassPermissions\"` or matching `permissions.allow` rules, tool calls should auto-approve without prompting.\n\n## Actual Behavior\n\nEvery tool call prompts for approval regardless of settings. The `\"Always allow for session\"` button sometimes appears but:\n- Only approves the exact command, not the pattern (each `echo` with different content triggers a new prompt)\n- Sometimes doesn't appear at all (only \"Deny\" and \"Allow once\")\n\n## Environment\n\n- **Claude Code desktop app** (macOS, Sequoia 15.5)\n- Claude Opus 4.6\n- `~/.claude/settings.json` confirmed correct (validated JSON, correct keys)\n- No project-level settings.json overriding\n- CLI `claude --dangerously-skip-permissions` works — only desktop app is affected\n\n## Impact\n\nWorkflows that involve repeated tool calls (batch processing, session documentation protocols) require dozens of manual approvals per session, making automation impractical.\n\n## Workaround\n\nNone for the desktop app. CLI with `--dangerously-skip-permissions` is the only working alternative.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:permissions",
+    "area:desktop"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-26T15:15:17Z",
+  "updated_at": "2026-05-22T21:53:17Z",
+  "closed_at": "2026-05-04T00:14:41Z",
+  "reactions_total": 31,
+  "comments_count": 20,
+  "author": "kdmyers56",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18160\n2. https://github.com/anthropics/claude-code/issues/24381\n3. https://github.com/anthropics/claude-code/issues/27040\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-26T15:22:53Z"
+    },
+    {
+      "author": "kdmyers56",
+      "author_association": "NONE",
+      "body": "**Additional data points from continued use (Feb 25-27):**\n\n1. **Read tool also prompts** — even `Read(*)` in `permissions.allow` doesn't auto-approve file reads in the desktop app\n\n2. **\"Always allow for session\" is inconsistent** — sometimes the button appears (with Cmd+Enter shortcut), sometimes it doesn't. When it DOES appear and is clicked, it only approves that exact command — not the pattern. For example, clicking \"Always allow for session\" on one `echo '...' >> file.jsonl` does NOT appro",
+      "created_at": "2026-02-27T14:26:00Z"
+    },
+    {
+      "author": "blwfish",
+      "author_association": "NONE",
+      "body": "I’m one of likely many with great frustration on this. I’m not 100% certain, but I think that in my case, it’s even worse. I have some permissive Allow() that *mostly* worked. Really trivial stuff like ls, find and grep. They used to work at least a lot of the time - definitely not ALL the time - but now that I have put bypassPermissions in, they seem to be ignrored comprehensively. AND since bypassPermissions does not work, it makes me approve pretty much every single action. Yikes.\n\nI routinel",
+      "created_at": "2026-03-02T16:01:47Z"
+    }
+  ]
+}

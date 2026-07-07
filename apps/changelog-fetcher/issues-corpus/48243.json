@@ -1,0 +1,35 @@
+{
+  "number": 48243,
+  "title": "Notion plugin MCP server: persistent Internal Server Error after reinstall",
+  "body": "## Description\n\nThe Notion plugin (`notion@claude-plugins-official`, v0.1.0) fails to connect with an \"Internal Server Error\" after multiple attempts to reconnect, re-authenticate, and reinstall.\n\n## Steps to Reproduce\n\n1. Notion plugin was working earlier in the session (tools like `notion-search`, `notion-create-pages`, `notion-update-page` all functioned correctly)\n2. After some time, the Notion MCP server disconnected\n3. Ran `/mcp` multiple times — Notion server fails to reconnect\n4. Uninstalled and reinstalled the plugin:\n   ```\n   claude plugin uninstall notion@claude-plugins-official --scope user\n   claude plugin install notion@claude-plugins-official --scope user\n   ```\n5. Ran `/mcp` again — still \"Internal Server Error\"\n6. The plugin shows as installed and enabled (`claude plugin list` confirms `notion@claude-plugins-official`, scope: user, status: enabled)\n\n## Environment\n\n- **OS**: macOS (Darwin 24.3.0)\n- **Plugin**: notion@claude-plugins-official v0.1.0\n- **Scope**: user\n- **Other plugins working**: Slack, Atlassian, Google Calendar all connect fine in the same session\n\n## Expected Behavior\n\nNotion MCP server should reconnect and authenticate successfully after `/mcp`.\n\n## Actual Behavior\n\n\"Internal Server Error\" on every connection attempt. No auth prompt appears — it fails before reaching authentication.\n\n## Additional Context\n\n- The Notion tools worked correctly earlier in the session for ~30+ API calls (search, create-pages, fetch, update-page)\n- The disconnect happened mid-session without any user action\n- Other MCP plugins (Slack, Atlassian, Google Calendar) remain connected and functional\n- Reinstalling the plugin did not resolve the issue",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp", "area:plugins"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-15T02:55:29Z",
+  "updated_at": "2026-05-25T22:45:51Z",
+  "closed_at": "2026-05-25T22:45:51Z",
+  "reactions_total": 21,
+  "comments_count": 21,
+  "author": "geekybaiyi",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for the report. This and #48878 turned out to share the same root cause on our side, and the fix landed on May 21. That also explains why the plugin and the claude.ai connector failed while `mcp-remote` and integration-token setups kept working, and why some people saw it come and go in late April. Closing as fixed; please reopen if you still see the Internal Server Error on the Notion plugin after May 21.\n",
+      "created_at": "2026-05-25T22:45:50Z"
+    },
+    {
+      "author": "metaWuming",
+      "author_association": "NONE",
+      "body": "I suffer exactly same situation now and don't know how to fix it...",
+      "created_at": "2026-04-15T17:57:41Z"
+    },
+    {
+      "author": "jackchien-jpg",
+      "author_association": "NONE",
+      "body": "me too...",
+      "created_at": "2026-04-16T01:34:25Z"
+    }
+  ]
+}

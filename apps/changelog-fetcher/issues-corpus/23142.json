@@ -1,0 +1,42 @@
+{
+  "number": 23142,
+  "title": "User interrupt during streaming can freeze whitespace-only text block into history, causing persistent 400 errors",
+  "body": "## Summary\n\nWhen a user interrupts a streaming response at just the right moment — before any real content is emitted — a whitespace-only text block (`\\n\\n`) gets frozen into the conversation history. All subsequent API calls then fail with:\n\n```\n400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages: text content blocks must contain non-whitespace text\"}}\n```\n\nThe session becomes unrecoverable.\n\n## Reproduction Steps\n\n1. Start a new Claude Code session\n2. Paste this prompt:\n\n```\nYou are going to help me reproduce a Claude Code bug. You will guide me through each step interactively — tell me exactly what to do and when.\n\nHere's the plan (for your reference, don't dump this all on me at once):\n\nThe bug: When a user interrupts a streaming response at just the right moment, a whitespace-only text block (\"\\n\\n\") gets frozen into the conversation history.\nThe API then rejects all subsequent requests with: 400 \"messages: text content blocks must contain non-whitespace text\"\n\nThe reproduction sequence:\n1. You will call AskUserQuestion with a simple question\n2. I will reject/cancel it (you'll tell me how)\n3. I will immediately send a new message\n4. I will interrupt your response as fast as possible\n5. I will send another message — if the bug reproduced, you'll get a 400 error\n\nStep-by-step execution:\n\nSTEP 1: Tell me \"Get ready. When you see the question prompt appear, press Escape immediately to dismiss it. Then as fast as you can, type the word 'hello' and press Enter.\" Then call AskUserQuestion with a simple question like \"What is your favorite color?\" with options Red, Blue, Green.\n\nSTEP 2: After I reject the question and send \"hello\" (or whatever I type), you will start responding. But BEFORE you respond with any real content, tell me nothing — just start your response normally. I need to interrupt you during this moment. So actually, right after step 1, add this instruction: \"After you press Enter on your message, IMMEDIATELY press Escape again before I finish responding.\"\n\nSo the full user instruction in step 1 should be:\n\"Get ready. When the question prompt appears: (1) Press Escape to dismiss it, (2) Type 'hello' and press Enter as fast as you can, (3) IMMEDIATELY press Escape again before my response finishes. You need to be very fast — press Escape within the first second of my response appearing. Then type 'test' and press Enter.\"\n\nSTEP 3: If my response after \"test\" works normally, the bug didn't reproduce. Tell me \"Bug did not reproduce. Let's try again.\" and go back to step 1. If you get an API error, the bug reproduced — tell me what error you see.\n\nRepeat up to 5 attempts. The timing is tight so it may take a few tries.\n\nStart now with Step 1.\n```\n\n3. Follow the agent's instructions. The key sequence is: Escape (dismiss question) → type \"hello\" + Enter → Escape (interrupt response) → type \"test\" + Enter\n4. May take 2-3 attempts due to timing sensitivity\n5. On success, you'll see the 400 error after sending \"test\"\n\n## Reproduction Session\n\nFull session JSONL from a successful reproduction (32KB): https://gist.github.com/kitaekatt/6881749202eea47fc54e506621378e78\n\n## Root Cause\n\nWhen the user interrupts a streaming response, the client saves whatever has been emitted so far into the conversation history. During the first few tokens of streaming, the model often emits `\\n\\n` before real content. If the user interrupts during this window:\n\n1. The assistant message is saved with content containing only `\\n\\n` (whitespace-only)\n2. `stop_reason` is `null` (interrupted, not completed)\n3. This message is included in all subsequent API requests\n4. The API rejects it because text content blocks must contain non-whitespace text\n5. The session is permanently broken\n\n## Suggested Fix\n\nBefore sending messages to the API, the client should sanitize the conversation history:\n\n- Strip or remove text content blocks that contain only whitespace\n- Or replace whitespace-only interrupted responses with a placeholder like `[Response interrupted]`\n- Or validate text content blocks against the",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "area:api",
+    "oncall"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-04T17:18:43Z",
+  "updated_at": "2026-04-10T14:38:55Z",
+  "closed_at": "2026-04-02T23:05:14Z",
+  "reactions_total": 7,
+  "comments_count": 15,
+  "author": "kitaekatt",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23005\n2. https://github.com/anthropics/claude-code/issues/23004\n3. https://github.com/anthropics/claude-code/issues/23096\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-04T17:23:01Z"
+    },
+    {
+      "author": "kitaekatt",
+      "author_association": "NONE",
+      "body": "This bug should be retained as it has a repo-case and full session data on a problematic session.",
+      "created_at": "2026-02-04T17:24:51Z"
+    },
+    {
+      "author": "em",
+      "author_association": "NONE",
+      "body": "Claude-code is completely unusable with this happening every 10 minutes. Every time it (stupidly) runs a command that can never finish. I can't interrupt it without getting a wall of this error then breaking the entire session.",
+      "created_at": "2026-02-05T10:27:19Z"
+    }
+  ]
+}

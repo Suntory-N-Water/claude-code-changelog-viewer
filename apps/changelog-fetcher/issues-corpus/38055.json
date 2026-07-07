@@ -1,0 +1,35 @@
+{
+  "number": 38055,
+  "title": "[BUG] Cowork: Minor version update permanently deletes chat history and scheduled tasks",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter a minor version update of Claude Desktop (Cowork mode) on Windows 11 Pro, ALL previous chat session history (left sidebar) and ALL Cowork MCP scheduled tasks were permanently deleted. Restarting the app does not restore the data.\n\n### What Should Happen?\n\nChat session history and scheduled tasks should be preserved across minor version updates. At minimum, users should receive a warning before any data-destructive update occurs.\n\n### Error Messages/Logs\n\n```shell\nNo error message shown. The app updated silently and launched normally, but all previous session data was gone.\n\nInvestigation findings (via filesystem inspection):\n- %APPDATA%\\Claude\\local-agent-mode-sessions\\ contained only 1 session (the current one)\n- Previous sessions under the old VM UUID were deleted during update\n- mcp__scheduled-tasks__list_scheduled_tasks returned \"No scheduled tasks found\"\n- sessiondata.vhdx appeared to be freshly initialized\n```\n\n### Steps to Reproduce\n\n1. Use Claude Desktop (Cowork mode) over multiple sessions, accumulating chat history and scheduled tasks\n2. Allow the app to perform a minor version auto-update\n3. Relaunch the app\n4. Observe: left sidebar shows no previous chat history\n5. Run any scheduled task list tool: returns \"No scheduled tasks found\"\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nUnknown - version before the minor update that caused the issue\n\n### Claude Code Version\n\nClaude Desktop (Cowork mode) - claude-code v2.1.78\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n## Root Cause Analysis\n\n**Chat history loss:**\nSession data is stored in:\n%APPDATA%\\Claude\\local-agent-mode-sessions\\{vm-uuid}\\{org-id}\\\n\nThe minor version update appears to provision a new VM instance (new vm-uuid) without migrating .json/.jsonl session files from the previous instance. Only the active session survives.\n\n**Scheduled task loss:**\nCowork MCP scheduled tasks are stored inside sessiondata.vhdx (VM persistent disk). This file appears to be reset/replaced during the update, wiping all task definitions.\n\n## Impact Summary\n- Chat history: permanently lost (unrecoverable)\n- MCP scheduled tasks: permanently lost (unrecoverable)\n- No warning shown before or after the update\n\n## Suggested Fixes\n1. Migrate session .json/.jsonl files between VM UUID directories on update\n2. Preserve sessiondata.vhdx content across version upgrades\n3. Show warning dialog before any data-destructive update\n4. Consider cloud backup for session metadata",
+  "labels": ["bug", "platform:windows", "area:cowork", "data-loss", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-24T02:36:47Z",
+  "updated_at": "2026-05-25T11:30:36Z",
+  "closed_at": "2026-05-25T11:30:36Z",
+  "reactions_total": 3,
+  "comments_count": 19,
+  "author": "jmylot",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/35131\n2. https://github.com/anthropics/claude-code/issues/29373\n3. https://github.com/anthropics/claude-code/issues/29154\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-24T02:41:51Z"
+    },
+    {
+      "author": "Shiney1965",
+      "author_association": "NONE",
+      "body": "I also have this issue. Claude Cowork in Claude PRo in windows 11 Pro.  Today after a version update a prior project -- which was my only project -- was completely deleted. I lost two days of work on that project which had exceeded available memory on both days.  Claude had a lot of trouble with reorganizing documents in a folder which is supposed to be a straightforward, core task for the model.  The prior project was nowhere to be found and Clauide reported that it found no session or project ",
+      "created_at": "2026-03-24T03:05:43Z"
+    },
+    {
+      "author": "jmylot",
+      "author_association": "NONE",
+      "body": "Requesting to keep this open — this is not a duplicate of the flagged issues.\n\n## Why this is distinct from the flagged duplicates\n\nAll three flagged issues (#35131, #29373, #29154) describe a different failure mode:\n\n| | Flagged duplicates | This issue (#38055) |\n|---|---|---|\n| **Platform** | macOS (all three) | Windows 11 Pro |\n| **Data on disk?** | Files preserved, just not displayed | Files permanently gone — no recovery possible |\n| **Root cause** | Index/directory migration missing | New ",
+      "created_at": "2026-03-24T03:08:48Z"
+    }
+  ]
+}

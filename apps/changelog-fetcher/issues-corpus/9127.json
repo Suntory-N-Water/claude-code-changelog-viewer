@@ -1,0 +1,35 @@
+{
+  "number": 9127,
+  "title": "[Bug] Jira Authentication Fails: Persistent Reconnection and Session Issues",
+  "body": "TURNS OUT this is atlassian's issue now. \nupvote here -> https://github.com/atlassian/atlassian-mcp-server/issues/8\n\n**Bug Description**\nI never can authenticate or reauthenticate with jira.  I always get \" Authentication successful, but server reconnection failed. You may need to manually restart Claude Code for the changes to take effect.\"  I restart claude and I am not authenticated anymore and not connected and have the authenticate again.  This is the only MCP server that is not working for us. \n\n**Environment Info**\n- Platform: darwin\n- Terminal: iTerm.app\n- Version: 2.0.10\n- Feedback ID: 23602404-448f-4f6c-87e1-3f3e1447b0b7\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": ["bug", "platform:macos", "area:auth", "area:mcp", "oncall"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-08T05:57:54Z",
+  "updated_at": "2026-01-19T14:19:14Z",
+  "closed_at": "2026-01-12T10:15:25Z",
+  "reactions_total": 39,
+  "comments_count": 36,
+  "author": "deanbiltup",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "deanbiltup",
+      "author_association": "NONE",
+      "body": "NOTE: my claude.ai IS CONNECTED to jira MCP server just claude code I cannot get to connect. ",
+      "created_at": "2025-10-08T06:17:57Z"
+    },
+    {
+      "author": "deanbiltup",
+      "author_association": "NONE",
+      "body": "I cannot tell if this is atlassian bug or claude code bug since claude.ai works with jira MCP server but claude code does not. \nHere is a post on their side -> https://community.atlassian.com/forums/Jira-questions/claude-code-with-jira-MCP-constant-fail/qaq-p/3125446#M1151925",
+      "created_at": "2025-10-08T06:28:10Z"
+    },
+    {
+      "author": "indradhanush",
+      "author_association": "NONE",
+      "body": "I can confirm this is a regression in version 2.0.10. The Atlassian MCP server works perfectly in 2.0.9 but fails in 2.0.10.\n\n**Root cause:** Version 2.0.10 removed SSE (Server-Sent Events) support from native builds. The Atlassian MCP server endpoint is `https://mcp.atlassian.com/v1/sse` which requires SSE protocol.\n\n**Debug log evidence from 2.0.10:**\n```\n[DEBUG] MCP server \"atlassian\": Connection failed after 0ms: SSE MCP servers are currently not supported in native builds.\n[ERROR] MCP serve",
+      "created_at": "2025-10-08T08:10:02Z"
+    }
+  ]
+}

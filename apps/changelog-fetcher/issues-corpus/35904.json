@@ -1,0 +1,35 @@
+{
+  "number": 35904,
+  "title": "effortLevel setting doesn't support \"max\" value",
+  "body": "## Bug\n\n`/effort max` works as a session-only command and sets effort to \"Maximum capability with deepest reasoning (Opus 4.6 only)\", but this value cannot be persisted in `settings.json`.\n\nThe `effortLevel` field in the settings schema only allows `\"low\"`, `\"medium\"`, `\"high\"`:\n\n```json\n\"effortLevel\": {\n  \"description\": \"Persisted effort level for supported models.\",\n  \"type\": \"string\",\n  \"enum\": [\"low\", \"medium\", \"high\"]\n}\n```\n\nSetting `\"effortLevel\": \"max\"` in `~/.claude/settings.json` is silently ignored (falls back to default).\n\n## Expected behavior\n\n`\"max\"` should be a valid value in the `effortLevel` enum so it can be persisted across sessions, just like the other effort levels.\n\n## Steps to reproduce\n\n1. Run `/effort max` — works, confirms \"Set effort level to max (this session only)\"\n2. Add `\"effortLevel\": \"max\"` to `~/.claude/settings.json`\n3. Restart Claude Code\n4. Run `/effort` — shows \"high\", not \"max\"\n\n## Environment\n\n- Windows 11 Pro\n- Claude Code CLI\n- Model: Opus 4.6",
+  "labels": ["bug", "has repro", "platform:windows", "area:cli"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-18T18:21:29Z",
+  "updated_at": "2026-04-21T10:30:46Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 7,
+  "author": "g-pachakis",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "toffee-desuwa",
+      "author_association": "NONE",
+      "body": "Same issue here. Windows 11 + PowerShell, v2.1.79. Setting \"effortLevel\": \"max\" in ~/.claude/settings.json is silently ignored, falls back to medium. /effort max works at runtime but doesn't persist.",
+      "created_at": "2026-03-19T08:02:34Z"
+    },
+    {
+      "author": "Astro-Han",
+      "author_association": "NONE",
+      "body": "Can confirm — `\"effortLevel\": \"max\"` in settings.json is silently ignored because the schema enum is `[\"low\", \"medium\", \"high\"]`. No warning, no error, just falls back to default.\n\nI read this field via `--slurpfile` in [claude-lens](https://github.com/Astro-Han/claude-lens) and `max` never appears in the statusline output, even when set — because the fallback happens before any external script reads it.\n\n+1 on adding `max` to the enum. The silent fallback is the worst part — at minimum it shoul",
+      "created_at": "2026-03-24T01:04:37Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "The schema currently only accepts `\"low\"`, `\"medium\"`, `\"high\"` — `\"max\"` is only available as a runtime command via `/effort max` and doesn't persist across sessions.\n**Workaround — SessionStart hook to auto-remind:**\n```json\n// ~/.claude/settings.json\n{\n  \"effortLevel\": \"high\",\n  \"hooks\": {\n    \"Notification\": [\n      {\n        \"matcher\": \"SessionStart\",\n        \"hooks\": [{\n          \"type\": \"command\",\n          \"command\": \"echo '⚡ effort is set to high (max not supported in settings). Run /ef",
+      "created_at": "2026-03-30T05:46:50Z"
+    }
+  ]
+}

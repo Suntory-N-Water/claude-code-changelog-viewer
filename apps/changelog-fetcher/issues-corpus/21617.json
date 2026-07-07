@@ -1,0 +1,35 @@
+{
+  "number": 21617,
+  "title": "[BUG] Conversation chain breaks mid-session - earlier messages lost on resume",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter resuming a session, earlier messages in the conversation are missing. The model cannot see or recall those messages, even though they exist in the transcript file.\n\n**User experience:**\n- Normal conversation, no special actions taken\n- Later, `/exit` and resume\n- Upon resume, only a portion of the conversation is visible\n- The model has no memory of the earlier parts\n\n**Observed in transcript:**\n- All messages exist in the `.jsonl` file\n- However, one message's `parentUuid` references a UUID that **does not exist** in the transcript\n- This breaks the conversation chain: messages before the break are orphaned\n- On resume, only messages after the break are loaded\n\n**Example from my transcript:**\n- Line 104 (04:55:11): assistant message, uuid `d861cd0f-...`\n- Line 105: `file-history-snapshot`\n- Line 106 (04:57:22): user message, uuid `55709a47-...`, parentUuid `7a299ae8-...` ← **does not exist**\n\nThe parentUuid `7a299ae8-...` is not found anywhere in the transcript. It appears a message was generated internally but never written to the transcript, breaking the chain.\n\n### What Should Happen?\n\nAll messages should be properly linked via parentUuid, and the full conversation should be restored on resume.\n\n### Error Messages/Logs\n\n```shell\nNo error messages. The conversation silently loses its earlier context.\n```\n\n### Steps to Reproduce\n\nUnfortunately, I cannot reliably reproduce this. It happened during normal usage:\n\n1. Start a session, have a conversation\n2. Continue using Claude normally (tool calls, responses, etc.)\n3. At some point, `/exit` and later resume\n4. **Observed**: Part of the conversation is missing\n5. **Inspect transcript**: A message references a non-existent parentUuid, breaking the chain\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.23 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nThe `file-history-snapshot` at line 105 has `messageId` matching line 106's uuid, suggesting it was created at the same time. The issue seems to be that an intermediate message (uuid `7a299ae8-...`) was never written to the transcript.\n\n**Key distinction from similar-sounding issues:**\n- This is NOT about sessions disappearing from `/resume` list (sessions are visible and resumable)\n- This is NOT about losing recent/latest messages (the **earlier** messages are lost, not the recent ones)\n- This is about a broken `parentUuid` chain within a single session, causing the first part of the conversation to become unreachable\n\n---\n\n✍️ Author: Claude Code (Dev Container) with @carrotRakko\n\nNote: This issue was written and submitted by an AI agent (Claude Code), with human review and approval.",
+  "labels": ["bug", "platform:linux", "area:core", "memory", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-29T05:26:49Z",
+  "updated_at": "2026-07-05T14:37:20Z",
+  "closed_at": "2026-05-15T22:29:45Z",
+  "reactions_total": 9,
+  "comments_count": 8,
+  "author": "carrotRakko",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/21610\n2. https://github.com/anthropics/claude-code/issues/16970\n3. https://github.com/anthropics/claude-code/issues/21029\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-29T05:33:12Z"
+    },
+    {
+      "author": "carrotRakko",
+      "author_association": "NONE",
+      "body": "These are not duplicates. Here's why:\n\n| Issue | What's lost | Root cause (observed) |\n|-------|-------------|----------------------|\n| **#21610** | Entire sessions missing from `/resume` list | Indexer skips sessions with unexpected graph structure |\n| **#16970** | **Recent/latest** messages lost (reverts to older state) | Unknown (possibly compaction-related) |\n| **#21029** | Jumps to wrong place (plan mode related) | Plan state persistence issue |\n| **#21617 (this)** | **Earlier** messages lo",
+      "created_at": "2026-01-29T05:51:00Z"
+    },
+    {
+      "author": "carrotRakko",
+      "author_association": "NONE",
+      "body": "**Update: Root cause identified**\n\nAfter detailed transcript analysis, we found the root cause is a separate issue:\n\n**#21751 - Assistant text messages not written to transcript**\n\nThe `parentUuid` chain breaks because assistant messages containing `thinking` + `text` blocks only have the `thinking` block written to the transcript. The `text` block is dropped, but its UUID is still referenced by subsequent messages.\n\nThis issue (#21617) describes the **symptom** (earlier messages lost on resume)",
+      "created_at": "2026-01-29T17:46:33Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 14981,
+  "title": "[FEATURE] Add browser selection option for Chrome extension (support non-default browsers)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWhen using Claude Code with the Chrome extension, the `/chrome` command and browser automation features always open the system's default browser. For users who have a different browser set as default (e.g., Arc, Firefox, Brave) but have installed the Claude Chrome extension in Google Chrome, this creates a workflow issue.\n\nCurrently, there's no way to specify which browser Claude Code should use for the Chrome extension features, forcing users to either:\n- Temporarily change their system default browser to Chrome\n- - Manually open Chrome each time before using browser automation features\nThis interrupts the workflow and makes the Chrome extension less accessible for users who prefer other browsers for general use.\n\n### Proposed Solution\n\nAdd a configuration option to specify which browser to use for Chrome extension features. This could be implemented in several ways:\n\n**Option 1: Command-line flag**\n```bash\nclaude --browser chrome\nclaude --browser /Applications/Google\\ Chrome.app\n```\n\n**Option 2: Configuration setting**\nAdd a `browser` setting in `settings.json` or similar config file:\n```json\n{\n  \"chrome\": {\n    \"browserPath\": \"/Applications/Google Chrome.app\"\n  }\n}\n```\n\n**Option 3: Environment variable**\n```bash\nCLAUDE_BROWSER=chrome claude\n```\n\nThe ideal solution would combine Options 1 and 2, allowing users to set a default browser in configuration while also being able to override it per-command when needed.\n\n### Alternative Solutions\n\nCurrently, the only workarounds are:\n\n1. **Temporarily changing system default browser**: Before using Claude Code's Chrome features, users must go to System Settings and change their default browser to Chrome, then change it back after they're done. This is cumbersome and interrupts workflow.\n2. **Manually opening Chrome first**: Users can manually open Chrome before running Claude Code commands, but this doesn't solve the issue when Claude Code tries to open a new browser instance.\n3. **Not using the Chrome extension**: Some users might choose to avoid the Chrome extension features entirely, which limits Claude Code's capabilities.\nNone of these alternatives provide a seamless experience, which is why a built-in browser selection option would be valuable.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n**Scenario**: I'm a developer who uses Arc as my primary browser for daily web browsing, but I've installed the Claude Chrome extension in Google Chrome for development work.\n\n**Current workflow (problematic)**:\n1. I want to use Claude Code to automate testing a web application\n2. 2. I run `claude /chrome`\n3. 3. Arc opens instead of Chrome\n4. 4. The Claude extension isn't available in Arc, so browser automation fails\n5. 5. I have to manually close Arc, go to System Settings, change default browser to Chrome, restart Claude Code\n6. 6. After I'm done, I have to remember to change the default browser back to Arc\n**Desired workflow (with this feature)**:\n1. I want to use Claude Code to automate testing a web application\n2. 2. I run `claude /chrome --browser chrome` (or have it configured in settings)\n3. 3. Chrome opens directly with the Claude extension ready\n4. 4. Browser automation works seamlessly\n5. 5. My default browser (Arc) remains unchanged for other tasks\nThis would save several manual steps and make the Chrome extension features much more accessible.\n\n### Additional Context\n\n**Platform**: macOS (Darwin 25.0.0)\n\n**Related Issue**: This feature request arose from a real user experience where the user had Arc set as their default browser but wanted to use the Claude Chrome extension installed in Google Chrome.\n\n**Impact**: This affects any user who:\n- Uses a non-Chrome browser as their default (Arc, Firefox, Brave, Safari, Edge, etc.)\n- -",
+  "labels": ["enhancement"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-21T15:19:17Z",
+  "updated_at": "2026-04-08T13:44:11Z",
+  "closed_at": null,
+  "reactions_total": 28,
+  "comments_count": 7,
+  "author": "Expertnocode",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14536\n2. https://github.com/anthropics/claude-code/issues/14732\n3. https://github.com/anthropics/claude-code/issues/14584\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-21T15:25:32Z"
+    },
+    {
+      "author": "elijahmuraoka",
+      "author_association": "NONE",
+      "body": "I need this as well",
+      "created_at": "2025-12-22T00:58:19Z"
+    },
+    {
+      "author": "tarekbadrsh",
+      "author_association": "NONE",
+      "body": "I have the same issue. Here are some workarounds I found:\n\n| Workaround | Pros | Cons |\n|---|---|---|\n| Temporarily change default browser | Works reliably | Annoying, affects whole system |\n| Open Chrome manually first | Quick | Doesn't always work |\n| Use Chrome DevTools MCP | Full control over browser path | More complex setup |\n\n**Possible macOS Workaround**\n\nYou could create a shell alias/script that temporarily sets Chrome as default, runs Claude, then restores Brave:\n\n# In your .zshrc or ",
+      "created_at": "2025-12-25T11:32:24Z"
+    }
+  ]
+}

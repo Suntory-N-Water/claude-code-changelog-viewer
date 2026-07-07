@@ -1,0 +1,35 @@
+{
+  "number": 49585,
+  "title": "[BUG] Per-turn smoosh pipeline folds dynamic <system-reminder> text into tool_result.content, breaking prompt cache",
+  "body": "## Summary\n\n`normalizeMessagesForAPI` runs a smoosh pass every turn that folds `<system-reminder>`-prefixed text blocks into the preceding `tool_result.content` string. Because many of CC's own built-in reminders carry dynamic values (`token_usage`, `output_token_usage`, `budget_usd`, `deferred_tools_delta`, `todo_reminder`, `mcp_instructions_delta`, etc.), the smoosh produces different byte output turn-over-turn. The resulting byte drift in historical user messages breaks the prompt cache prefix, causing `cache_creation` to spike by tens or hundreds of thousands of tokens on turns that should have been clean cache hits.\n\n**No user-side hooks required** — CC-internal reminders alone are sufficient to trigger this. We ported the relevant functions and reproduced the byte divergence end-to-end (simulation below).\n\nThis is distinct from the resume/scatter bugs in #40524 (closed, partial fix in 2.1.90), #44045 (resume skill_listing scatter), #48644 (`am7` reminder breakpoint movement), #43657 (resume cache invalidation), #49038 (non-deterministic tool ordering), and our own #48734 / #38542 — all of which describe adjacent but different mechanisms. The smoosh bug fires *per turn on non-resume paths* and has not been reported specifically.\n\n## Affected code\n\n`src/utils/messages.ts` (function names verified against the leaked TS source):\n\n| Function | Line | Role |\n|---|---|---|\n| `normalizeMessagesForAPI` | ~1989 | Entry point, runs the full pipeline every outgoing request |\n| `smooshSystemReminderSiblings` | ~1835 | Walks each user message, extracts `<system-reminder>`-prefixed text blocks, folds them into the *last* `tool_result` via `smooshIntoToolResult` |\n| `smooshIntoToolResult` | ~2534 | The actual fold: joins `tool_result.content` + incoming text blocks with `\\n\\n` separators |\n| `mergeAdjacentUserMessages` | called before smoosh | Combines consecutive user messages, creating the adjacencies smoosh then folds |\n| Feature gate `tengu_chair_sermon` | ~2274, ~2335 | Statsig-cached (`_CACHED_MAY_BE_STALE`) gate; when ON, runs the merge+smoosh pipeline |\n\nThe smoosh's own comment claims \"Idempotent. Pure function of shape.\" That claim holds for a single fixed input — but the *input* is not stable turn-over-turn when:\n1. Reminders carry dynamic values (`token_usage`, etc.)\n2. New attachments are appended between turns (`deferred_tools_delta`, `todo_reminder` after N turns, `mcp_instructions_delta`)\n3. The Statsig cache refreshes mid-session and toggles the gate\n4. `mergeAdjacentUserMessages` creates different adjacencies as history grows\n\nAny of the above makes the smoosh output differ from what was previously cached on the server, breaking the prefix match.\n\n### Observed fold is distributed by `toolUseID`, not concentrated on last tool_result\n\nOur captured miss #1 showed `msg[30]` going from 6 blocks to 3, with each text block folded into *a different* `tool_result` (+107, +107, +519 chars matching each reminder's size). A port-faithful simulation of `smooshSystemReminderSiblings` alone (which folds all text into the LAST tool_result) does NOT reproduce this shape — the mechanism must involve an earlier pass.\n\nTracing through `normalizeMessagesForAPI` (messages.ts:1989):\n\n1. **`reorderAttachmentsForAPI`** (messages.ts:1481) — bubbles each hook-attachment user-message up in the list until it lands right after its matching `tool_result`. Unconditional (no gate).\n2. **`mergeAdjacentUserMessages`** (messages.ts:2451) — walks the resulting list and merges consecutive user messages pairwise via `mergeUserMessagesAndToolResults` (messages.ts:2372).\n3. That merge delegates to **`mergeUserContentBlocks`** (messages.ts:2600), which when `tengu_chair_sermon` is ON takes the universal-smoosh branch (messages.ts:2628-2643) and folds each incoming reminder into the **currently-last** `tool_result` of the accumulating message.\n4. Because the pairwise merges happen in order — and each hook attachment is positioned right after its own tool_result thanks to step 1 — each reminder lands on ITS specific tool_result rather than ",
+  "labels": ["bug", "has repro", "area:cost", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-16T23:02:56Z",
+  "updated_at": "2026-05-25T22:32:58Z",
+  "closed_at": "2026-05-25T22:32:58Z",
+  "reactions_total": 0,
+  "comments_count": 19,
+  "author": "deafsquad",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/48734\n2. https://github.com/anthropics/claude-code/issues/48644\n3. https://github.com/anthropics/claude-code/issues/44045\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-16T23:06:21Z"
+    },
+    {
+      "author": "deafsquad",
+      "author_association": "NONE",
+      "body": "Not a duplicate of the three flagged candidates — they're siblings in the \"message-pipeline byte drift breaks prompt cache\" family, but each names a different concrete code path. Differences below so the dup-detector can re-check:\n\n| Issue | Trigger | Code path cited | Manifestation |\n|---|---|---|---|\n| **#49585 (this)** | Dynamic `<system-reminder>`-prefixed text (CC-internal reminders with per-turn-variable values) being folded into `tool_result.content` strings by the smoosh pass | `smooshSy",
+      "created_at": "2026-04-16T23:59:02Z"
+    },
+    {
+      "author": "cnighswonger",
+      "author_association": "NONE",
+      "body": "We merged your smoosh_split PR (#26) and published as v2.0.0-beta.4:\n\n```bash\nnpm install -g claude-code-cache-fix@beta\n```\n\nbeta.4 includes both smoosh_normalize (our pattern-based fix for 4 known counters) and your smoosh_split (universal un-smoosh). They compose: normalize runs first, split peels any remainder.\n\nWe couldn't trigger either fix locally — our account doesn't appear to have tengu_chair_sermon active. Your captured miss bodies were the validation. If you're able to run a session w",
+      "created_at": "2026-04-17T01:35:13Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 40652,
+  "title": "CLI mutates historical tool results via cch= billing hash substitution, permanently breaking prompt cache",
+  "body": "## Summary\n\nCertain Claude Code sessions permanently lose prompt cache hits mid-conversation. Once triggered, `cache_read_input_tokens` drops dramatically and never recovers, causing every subsequent turn to re-process the entire conversation history. For long sessions this wastes 30-50K+ tokens per turn.\n\n## Root Cause Theory\n\nThe CLI performs a find-and-replace of `cch=XXXXX` billing hash values across **all message content** (including stored historical tool results) before each API call. Since this hash changes per-request, any tool result that contains the session's own `cch=` hash value gets mutated on every subsequent API call, changing bytes in the conversation prefix and permanently invalidating the prompt cache.\n\n## Evidence\n\n### 1. Confirmed cache breakage pattern\n\nMultiple sessions observed with this pattern:\n- Healthy: `cache_read_input_tokens` grows steadily, `input_tokens` stays at 1-3\n- Broken: `cache_read` drops to ~15K (system prompt only), `cache_creation` jumps to 30K+ every turn\n- Once broken, **never self-heals** — every subsequent turn re-creates the cache\n\n### 2. Diff of consecutive API requests from broken session\n\nA prior investigation set up a local proxy (via `ANTHROPIC_BASE_URL`) to capture raw API request bodies. Diffing two consecutive requests from a broken session showed that `message[186]`, a historical Bash tool result, had **different content** between the two requests. The diff was in an `x-anthropic-billing-header` value embedded in the tool result:\n\n```\nRequest 1: cch=14f72\nRequest 2: cch=59b51\n```\n\nThe tool result contained proxy log output that incidentally captured billing headers. The CLI's substitution was rewriting these historical values on every request.\n\n### 3. Live reproduction (this session)\n\nThis investigation session (e9212a5a) ran `grep` on an infected session's JSONL to count `cch=` patterns:\n\n```\n  14 cch=80528\n   6 cch=59b51\n   6 cch=14f72\n```\n\nThis grep output landed in a Bash tool result. The session's cache broke immediately on the next turn:\n\n| Turn | cache_read | cache_create | Notes |\n|------|-----------|-------------|-------|\n| 48   | 42,668    | 1,854       | Healthy |\n| 49   | 15,559    | 29,408      | **BROKEN** — cache_read dropped 27K |\n| 50+  | 15,559    | 30K-35K     | Permanently broken |\n\n### 4. Substitution is session-specific\n\nWe attempted to infect a separate session by putting `cch=59b51` and `cch=14f72` (the hashes from the broken session) into its tool results. **Its cache did not break.** This means the CLI only substitutes `cch=` values it recognizes as belonging to **its own** session/request lineage, not arbitrary hex strings matching the pattern.\n\n### 5. Synthetic values don't trigger it\n\nPutting `cch=a1b2c` or `cch=a1b2c3d4e5` into tool results via file reads also did **not** break caching. Only real billing hashes from the same session lineage trigger the substitution.\n\n## What We Don't Know\n\n1. **Exact substitution logic** — Is it tied to the OAuth token? The session ID? A per-process value? We couldn't inspect the CLI source to find the regex/replacement logic.\n2. **Where in the CLI this happens** — The substitution occurs somewhere between reading the session JSONL and sending the API request. We haven't located the code path.\n3. **Whether this is intentional** — The substitution may be a security measure to avoid leaking billing attribution tokens in logged content, but the side effect of mutating historical messages is catastrophic for caching.\n\n## Reproduction Steps\n\n1. Start a Claude Code session, verify cache is healthy (cache_read growing, input_tokens = 1-3)\n2. Run a command that captures the session's own raw API traffic (e.g., proxy via `ANTHROPIC_BASE_URL` that logs request headers)\n3. The proxy output will contain `cch=XXXXX` in the billing header\n4. This output lands in a tool result in the session JSONL\n5. On the next turn, the CLI rewrites the `cch=` value in that historical tool result → prefix changes → cache invalidated\n6. Every subsequent turn: the value gets rewritten again → permanent cache miss\n\n**",
+  "labels": ["bug", "has repro", "area:cost", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-29T17:33:41Z",
+  "updated_at": "2026-06-01T22:53:27Z",
+  "closed_at": "2026-06-01T22:53:27Z",
+  "reactions_total": 13,
+  "comments_count": 13,
+  "author": "eumemic",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/40524\n2. https://github.com/anthropics/claude-code/issues/34629\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-29T17:38:05Z"
+    },
+    {
+      "author": "jmarianski",
+      "author_association": "NONE",
+      "body": "Same, man. Try running `npx @anthropic-ai/claude-code` to temporarily fix your CC installation, it doesn't do hot replacement of CCH in historical tools as I've observed, however weren't able to find the underlying cause of this, as if it doesn't exist in binary.",
+      "created_at": "2026-03-29T19:42:26Z"
+    },
+    {
+      "author": "eumemic",
+      "author_association": "NONE",
+      "body": "Updated repro / correction: the trigger is much smaller than the original report suggested.\n\nWhat I can now reproduce reliably:\n- The minimal confirmed toxic prompt is just `cch=00000`\n- The surrounding `x-anthropic-billing-header: ...` text is not required\n- A plain user prompt is sufficient; this does not need to come from a `tool_result`\n- This reproduces on `haiku`, not just Opus\n\nWhat does *not* seem sufficient:\n- `00000`\n- `cch=`\n\nWhy this has to be interactive:\n- In my testing, `claude --",
+      "created_at": "2026-03-30T03:24:34Z"
+    }
+  ]
+}

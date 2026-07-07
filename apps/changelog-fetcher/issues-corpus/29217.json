@@ -1,0 +1,35 @@
+{
+  "number": 29217,
+  "title": "Race condition: .claude.json corrupted by concurrent writes from multiple sessions",
+  "body": "## Bug Description\n\n`.claude.json` gets repeatedly corrupted when multiple Claude Code sessions run concurrently (or are rapidly restarted). The file is truncated mid-write, producing `JSON Parse error: Unexpected EOF`.\n\n## Evidence\n\nOver a ~40 minute window (Feb 26, 14:54–15:35), **165 corrupted backup files** were generated in `~/.claude/backups/`. The corruption cascades — each recovery attempt gets corrupted again by a competing process, producing progressively smaller truncated files:\n\n```\n-rw-r--r-- 11873 Feb 26 14:15 .claude.json.corrupted.1772095551270   # full config\n-rw-r--r--   469 Feb 26 14:16 .claude.json.corrupted.1772095565563   # partially recovered\n-rw-r--r--   157 Feb 26 14:16 .claude.json.corrupted.1772095562170   # barely anything\n-rw-r--r--    77 Feb 26 14:16 .claude.json.corrupted.1772095562117   # just opening brace\n```\n\nFiles as small as 77 bytes (just `{\"numStartups\":1,\"installMethod\":\"native\",\"autoUpdates\":false}`) show the file being read mid-write by another process.\n\n## Impact\n\n- **Token waste**: Each corrupted restart triggers re-initialization (feature flag fetches, re-auth, session setup), burning tokens on repeated failed startups\n- **Config loss**: The final state was a fresh config (`numStartups: 1`) replacing a real config (`numStartups: 72`) with all project history, theme settings, and tool usage data\n- **User had to manually restore** from `.claude.json.backup`\n\n## Root Cause\n\nThe file write to `.claude.json` is not atomic. When multiple processes write simultaneously, one truncates the file while another is mid-read or mid-write, producing invalid JSON.\n\n## Suggested Fix\n\nUse **atomic file writes**: write to a temporary file (e.g., `.claude.json.tmp`), then `rename()` it to `.claude.json`. On most filesystems, `rename()` is atomic and prevents partial reads. Additionally, consider using file locking (`flock` / platform equivalent) to serialize access.\n\n## Environment\n\n- Windows 11 (via Git Bash)\n- Claude Code (native install)\n- Trigger: multiple sessions or rapid restarts from same directory\n\n## Reproduction\n\n1. Open 2+ Claude Code sessions in the same directory simultaneously\n2. Use both actively (so both write config updates)\n3. Observe corruption errors on next startup",
+  "labels": ["bug", "has repro", "platform:windows", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-27T05:12:59Z",
+  "updated_at": "2026-05-25T22:32:30Z",
+  "closed_at": "2026-05-25T22:32:30Z",
+  "reactions_total": 2,
+  "comments_count": 10,
+  "author": "ssupppp",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "DomenicoDomotz",
+      "author_association": "NONE",
+      "body": "## Additional Forensic Evidence (7-day dataset, 423+ corruptions)\n\nAdding comprehensive data from a power-user setup (25 hooks, frequent subagent spawns via Task tool):\n\n### Scale of Impact\n\n| Date | Corruptions | Notes |\n|------|------------|-------|\n| Feb 20 | 1 | First occurrence |\n| Feb 21 | 57 | Moderate hook usage |\n| Feb 22 | 74 | |\n| Feb 23 | 1 | Light usage day |\n| Feb 24 | 6 | |\n| Feb 25 | 4 | |\n| Feb 26 | 280 | Heavy subagent + hook usage |\n| **Total** | **423** | |\n\n### Smoking Gun: ",
+      "created_at": "2026-02-27T06:11:36Z"
+    },
+    {
+      "author": "callmesomesh",
+      "author_association": "NONE",
+      "body": "## Additional reproduction - heavy multi-session Windows user\n\nSame issue. I run 5+ concurrent Claude Code sessions daily (one per workflow/project). The corruption happens consistently.\n\n### My setup\n- Windows 11 (Git Bash / MINGW64)\n- Claude Code v2.1.59, native install\n- 5 workflows, each in its own terminal, running simultaneously from the same workspace root\n- Sessions are long-running (hours) with active tool use in parallel\n\n### What I see\n- `claude.json is corrupted: JSON Parse error: Un",
+      "created_at": "2026-02-27T09:53:38Z"
+    },
+    {
+      "author": "sstklen",
+      "author_association": "NONE",
+      "body": "Ran into this exact issue before — here's what we found.\n\n**What's happening:** The .claude.json file write operation is not atomic. Multiple concurrent Claude Code sessions (or rapid restarts) perform read-modify-write cycles on the same file without file locking or atomic rename. Process A reads the file, Process B truncates and begins writing, Process A (or C) reads the partially-written truncated content, then writes that corrupted state back — creating a corruption cascade where each recove",
+      "created_at": "2026-02-28T01:38:54Z"
+    }
+  ]
+}

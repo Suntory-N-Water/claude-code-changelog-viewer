@@ -1,0 +1,35 @@
+{
+  "number": 34421,
+  "title": "[BUG] Agent Teams teammates lose [1m] context window suffix — root cause: tmux spawn hardcodes model without variant",
+  "body": "## Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues) and found related closed issues (#24429, #27038, #27261) but they were closed as NOT_PLANNED without addressing this specific root cause\n- [x] I can reproduce this on the latest version of Claude Code\n\n## Bug Description\n\nWhen spawning Agent Teams teammates, the `[1m]` context window variant suffix is stripped from the `--model` argument passed to the tmux pane process. This silently downgrades teammates from 1M to 200K context window.\n\n## Root Cause (verified via `ps -eo pid,args`)\n\nThe parent session runs as `claude-opus-4-6[1m]`, but when spawning a teammate via tmux, the CLI constructs the command as:\n\n```\n/Users/.../.local/share/claude/versions/2.1.76 \\\n  --agent-id inspect-me@test-team-9 \\\n  --agent-name inspect-me \\\n  --team-name test-team-9 \\\n  --agent-color blue \\\n  --parent-session-id 192a86de-... \\\n  --model claude-opus-4-6          ← [1m] suffix stripped\n```\n\nThe `--model` value is `claude-opus-4-6` instead of `claude-opus-4-6[1m]`. The variant suffix is lost during model resolution before the tmux command is constructed.\n\n## Reproduction\n\n```\n# Parent session: claude-opus-4-6[1m]\n\n# Test 1: Subagent (inherits [1m] correctly)\nAgent(prompt=\"Report your model ID\")\n→ \"claude-opus-4-6[1m]\" ✅\n\n# Test 2: Teammate (loses [1m])\nTeamCreate(team_name=\"test\")\nAgent(team_name=\"test\", name=\"t1\", prompt=\"Report your model ID\")\n→ \"claude-opus-4-6\" ❌ (200K instead of 1M)\n\n# Test 3: Subagent spawned FROM a teammate (inherits [1m])\n# (teammate spawns Agent() without team_name)\n→ \"claude-opus-4-6[1m]\" ✅\n```\n\nTest 3 is particularly interesting — subagents always inherit `[1m]` regardless of where they're spawned from, but the teammate itself never gets it.\n\n## Impact\n\n- **Silent 5x context reduction**: Teammates intended for large codebase analysis (research, architecture review, module exploration) are silently limited to 200K instead of 1M\n- **No workaround**: The `model` parameter enum only accepts `\"sonnet\" | \"opus\" | \"haiku\"` — cannot pass `\"opus[1m]\"`. Setting `model: \"opus[1m]\"` in settings.json also does not propagate to teammates\n- **Cost without benefit**: Users paying for 1M context don't get it on teammates\n\n## Suggested Fix\n\nIn the teammate spawn path (tmux/iTerm2 backend), preserve the full model string including variant suffix when constructing the `--model` argument:\n\n```diff\n- --model claude-opus-4-6\n+ --model claude-opus-4-6[1m]\n```\n\nOr better: if no explicit model override is specified for the teammate, don't pass `--model` at all and let it inherit from the session default (same as subagents do).\n\n## Environment\n\n- Claude Code version: 2.1.76\n- OS: macOS Darwin 24.6.0\n- Model: claude-opus-4-6[1m]\n- Teammate backend: tmux (pane-based)\n\n## Related Issues\n\n- #24429 — Root issue for model parameter ignored (closed NOT_PLANNED)\n- #27038 — Detailed source analysis of the bug\n- #27261 — Duplicate focusing on [1m] inheritance",
+  "labels": ["bug", "has repro", "platform:macos", "area:agents", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-14T17:52:39Z",
+  "updated_at": "2026-05-25T22:29:16Z",
+  "closed_at": "2026-05-25T22:29:16Z",
+  "reactions_total": 5,
+  "comments_count": 12,
+  "author": "Danie1Ka0",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/27261\n2. https://github.com/anthropics/claude-code/issues/26109\n3. https://github.com/anthropics/claude-code/issues/23561\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-14T17:56:23Z"
+    },
+    {
+      "author": "keyur2maru",
+      "author_association": "NONE",
+      "body": "@Danie1Ka0 @lukaemon @mcande21 @mriffault\n\nFeel free to use this patch (CC created) until the official fix is available. I have tested it on MacOS with CC version 2.1.76. it will make the teammates match the lead instead of using a hardcoded default.\nhttps://gist.github.com/keyur2maru/0d2e4e728d7537aa7c36cbc936b2b6b4",
+      "created_at": "2026-03-15T22:16:29Z"
+    },
+    {
+      "author": "Danie1Ka0",
+      "author_association": "NONE",
+      "body": "thanks for sharing\n\n> [@Danie1Ka0](https://github.com/Danie1Ka0) [@lukaemon](https://github.com/lukaemon) [@mcande21](https://github.com/mcande21) [@mriffault](https://github.com/mriffault)\n> \n> Feel free to use this patch (CC created) until the official fix is available. I have tested it on MacOS with CC version 2.1.76. it will make the teammates match the lead instead of using a hardcoded default. https://gist.github.com/keyur2maru/0d2e4e728d7537aa7c36cbc936b2b6b4\n\n",
+      "created_at": "2026-03-17T04:56:48Z"
+    }
+  ]
+}

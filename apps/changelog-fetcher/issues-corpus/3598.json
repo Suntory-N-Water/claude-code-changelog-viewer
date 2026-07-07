@@ -1,0 +1,41 @@
+{
+  "number": 3598,
+  "title": "[BUG] VS Code extension installation fails with 'End of central directory record signature not found' on /status",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.53\n- Operating System: Windows 11\n- Terminal:  Windows Terminal (PowerShell 7)\n\n## Bug Description\nClaude Code fails to install its VS Code extension with an \"End of central directory record signature not found\" error when running `/status`. The extension installation process appears to be trying to extract a corrupted or truncated `.vsix` file.\n\n## Steps to Reproduce\n1. Install Claude Code globally via npm: `npm install -g @anthropic-ai/claude-code`\n2. Open a terminal in any project directory\n3. Run `claude` to start Claude Code\n4. Type `/status` to check IDE integration status\n5. Observe the VS Code extension installation failure\n\n## Expected Behavior\nThe VS Code extension should install successfully and show \"✔ VS Code extension installed\" in the status output.\n\n## Actual Behavior\nThe extension installation fails with the following error:\n```\n⚠ Error installing VS Code extension: 1: 1 Error: End of central directory record signature not found. Either not a zip file, or file is truncated.\n```\nThe error indicates the `.vsix` file located at `file:///c%3A/Users/.../AppData/Local/nvm/v22.17.0/node_modules/%40anthropic-ai/claude-code/vendor/claude-code.vsix` appears to be corrupted or incomplete.\n\n## Additional Context\n- The error occurs consistently on every `/status` check\n- Restarting VS Code as suggested does not resolve the issue\n- The `.vsix` file may have been corrupted during npm installation\n- Using nvm for Node.js version management (v22.17.0)\n- VS Code version: 1.102.0\n- The issue prevents full IDE integration functionality\n- Manually install the vs code extension doesn't help, I can use the extension but claude-code.vsix is 0 byte",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:packaging",
+    "area:ide"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-16T06:58:49Z",
+  "updated_at": "2025-08-01T14:07:57Z",
+  "closed_at": "2025-07-17T16:08:29Z",
+  "reactions_total": 7,
+  "comments_count": 15,
+  "author": "bukanpeneliti",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Duplicate of #3574?",
+      "created_at": "2025-07-16T18:26:46Z"
+    },
+    {
+      "author": "blois",
+      "author_association": "COLLABORATOR",
+      "body": "This should be fixed in the upcoming release.",
+      "created_at": "2025-07-17T16:08:30Z"
+    },
+    {
+      "author": "Simon33rd",
+      "author_association": "NONE",
+      "body": "I found the same issue. my claude-code.vsix file is empty.",
+      "created_at": "2025-07-16T08:06:38Z"
+    }
+  ]
+}

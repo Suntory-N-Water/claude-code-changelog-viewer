@@ -1,0 +1,35 @@
+{
+  "number": 9935,
+  "title": "Excessive scroll events causing UI jitter in terminal multiplexers (4,000-6,700 scrolls/second)",
+  "body": "## Summary\n\nClaude Code's streaming output causes **4,000-6,700 scroll events per second** when running inside terminal multiplexers (tmux/smux), resulting in severe UI jitter and flickering. This issue was identified through comprehensive instrumentation of a tmux fork (smux) with microsecond-precision logging.\n\n## Problem Description\n\nWhen Claude Code streams LLM responses, it causes excessive terminal scrolling that overwhelms the rendering capability of terminal multiplexers, creating a poor user experience with:\n\n- **Visual jitter/flickering** during streaming output\n- **Scrollbar jumping** erratically\n- **Screen tearing** effects\n- **Degraded performance** for 100+ second durations\n\n## Root Cause Analysis\n\n### Measured Metrics (106-second test session)\n\n- **Total scroll events**: 423,575 (logged) / 715,901 (counter)\n- **Scroll rate**: 4,002-6,764 scrolls/second\n- **PTY read callbacks**: 8,044 (avg 4,095 bytes each)\n- **Linefeeds parsed**: 400,930 (3,782/second)\n- **Burst pattern**: 94.7% of scrolls occur in sub-millisecond bursts\n\n### Timing Analysis\n\n```\nScroll burst example:\n- Scrolls #1-36: All within 144 microseconds\n- Scroll #37: 1.26 second gap\n- Scrolls #38-45: Burst of 8 in 1.7ms\n- Scroll #46: 2.27 second gap\n- Scrolls #47-50: Burst of 4 in microseconds\n```\n\n**Sub-millisecond scroll timing** (first 1,000 scrolls):\n- Same microsecond: 4.6%\n- 0-1ms apart: **94.7%**\n- 1-10ms apart: 0.1%\n- >10ms apart: 0.6%\n\n### Data Pattern\n\nClaude Code sends output in **4,095-byte chunks** with a **repeating pattern** of newlines per chunk:\n```\nPattern: 124, 36, 47, 58, 53, 46, 42, 23 newlines (then repeats)\n```\n\nThis suggests **full-screen redraws** happening repeatedly, likely for:\n- Main content area\n- Status sections\n- Progress indicators\n- Syntax-highlighted code blocks\n\n### ANSI Overhead\n\nEach line includes heavy ANSI formatting:\n- Background color: `\\e[48;2;55;55;55m` (~20 bytes)\n- Foreground color: `\\e[38;2;255;255;255m` (~22 bytes)\n- Content\n- Reset codes: `\\e[39m\\e[49m` (~8 bytes)\n\n**Estimated overhead**: ~189 KB/second of ANSI codes alone (50 bytes/line × 3,782 lines/sec)\n\n## Technical Details\n\n### Three-Layer Instrumentation Results\n\nWe instrumented smux at three critical layers to trace data flow:\n\n1. **PTY Raw Input** (`/tmp/smux_pty_raw.log` - 14 MB)\n   - Captured raw bytes from Claude Code's PTY\n   - Hex dump + ASCII representation\n   - Newline counts per chunk\n\n2. **Linefeed Parser** (`/tmp/smux_linefeed.log` - 11 MB)\n   - Every LF/VT/FF character processed\n   - 400,930 total linefeeds\n\n3. **Scroll Trigger Detection** (`/tmp/smux_scroll_trigger.log` - 25 MB)\n   - Actual scroll events when cursor at bottom\n   - **100% of scrolls had cy=24** (cursor always at screen bottom)\n   - Every linefeed triggered a scroll\n\n### Why This Happens\n\nClaude Code appears to use a **full-screen redraw strategy** for streaming:\n\n```javascript\n// Suspected rendering loop\nfor await (const chunk of llmResponseStream) {\n    responseBuffer += chunk;\n    const renderedOutput = renderFullView(responseBuffer);  // ← Full redraw!\n    process.stdout.write(renderedOutput);\n}\n```\n\nInstead of:\n```javascript\n// Optimal approach\nfor await (const chunk of llmResponseStream) {\n    responseBuffer += chunk;\n    const incrementalUpdate = renderOnlyNewContent(chunk);  // ← Incremental!\n    process.stdout.write(incrementalUpdate);\n}\n```\n\n## Comparison to Normal Terminal Usage\n\n```\nvim editing:         10-50 scrolls/second\ntail -f logfile:     1-100 scrolls/second\ncat large file:      100-500 scrolls/second\nnpm install:         100-300 scrolls/second (bursts)\nClaude Code:         4,000-6,700 scrolls/second (SUSTAINED)\n```\n\n**Claude Code is 40-600x higher than typical terminal usage!**\n\n## Proposed Solutions\n\n### Option 1: Incremental Updates (Recommended)\n\nSwitch from full-screen redraws to incremental updates:\n\n1. **Only output new content** to terminal\n2. **Append to bottom** instead of redrawing entire screen\n3. **Batch UI updates** at reasonable intervals (e.g., every 16ms)\n4. **Optimize ANSI usage** - don't reset colors on every line\n\n**Expec",
+  "labels": ["bug", "has repro", "platform:linux", "area:tui", "perf:memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-20T00:34:35Z",
+  "updated_at": "2026-04-01T05:47:32Z",
+  "closed_at": null,
+  "reactions_total": 52,
+  "comments_count": 18,
+  "author": "rinadelph",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4851\n2. https://github.com/anthropics/claude-code/issues/1495\n3. https://github.com/anthropics/claude-code/issues/9874\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-20T00:41:47Z"
+    },
+    {
+      "author": "kylesnowschwartz",
+      "author_association": "NONE",
+      "body": "This problem is not only limited to multiplexors. Using Claude with verbose output on in iTerm2 with no tmux results in the inability to scroll up while Claude is 'working.' That removes the utility of seeing the verbose output, which I would like to read as Claude works, to better understand its methodology and help gauge the appropriateness of its complete response. We gotta do something about these scroll events!",
+      "created_at": "2025-10-20T00:43:31Z"
+    },
+    {
+      "author": "EarthmanWeb",
+      "author_association": "NONE",
+      "body": "Been reviewing all the 'possible duplicates' and can't find the definitive one that will be actioned upon.  I need resolution of this, how can i find which ticket to follow ad contribute to? I am NOT using TMUX (afaik), just claude code in vscode, with MCP's and this happens often, sometimes correlating with background 'compacting', sometimes correlating with MCP output that doesn't wrap properly (ie: serena, sequential thinking mcp tools) and sometimes correlating with pasting large snippets of",
+      "created_at": "2025-11-17T03:29:20Z"
+    }
+  ]
+}

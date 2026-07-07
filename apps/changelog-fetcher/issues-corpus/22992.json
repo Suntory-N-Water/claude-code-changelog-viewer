@@ -1,0 +1,35 @@
+{
+  "number": 22992,
+  "title": "Support device-code authentication flow (RFC 8628) for Pro/Max subscription users in headless environments",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nClaude Code's OAuth flow requires a browser redirect back to the machine running Claude Code. This makes it impossible to authenticate on headless environments (VMs, SSH sessions, containers, cloud instances) when using a Pro/Max subscription.\n\nAPI key users can simply set `ANTHROPIC_API_KEY` — but subscription users have no equivalent workaround.\n\n### Proposed Solution\n\nA device-code auth flow (RFC 8628), where authentication happens entirely on a separate device:\n\n$ claude\n> /login\nNo browser detected. Use this code to authenticate from another device:\nOpen: https://claude.ai/device\nCode: XXXX-XXXX\nWaiting for authentication...\n✓ Authentication complete.\n\nThis pattern is well-established in major CLI tools:\n- GitHub CLI (`gh auth login`): device code flow with one-time code at github.com/login/device\n- Azure CLI (`az login --use-device-code`): device code flow\n- AWS CLI (`aws sso login --use-device-code`): device code flow\n\nThe key difference from the current OAuth flow is that a device-code flow requires no redirect back to the headless machine — the CLI simply polls for a token after the user completes auth on any browser, anywhere.\n\n### Alternative Solutions\n\nCurrently I work around this by temporarily installing a minimal GUI + browser on the headless VM, completing OAuth in the browser, then purging the GUI packages. Auth persists after removal.\n\nSteps:\n1. sudo apt install -y xfce4 xfce4-session firefox dbus-x11 sddm\n2. Reboot, log into desktop, run `claude`, complete OAuth in Firefox\n3. sudo apt purge -y xfce4 xfce4-* sddm firefox dbus-x11 && sudo apt autoremove -y\n4. Reboot, SSH back in — Claude Code works headless\n\nThis works but takes 15+ minutes, downloads ~2-3GB of packages, and shouldn't be necessary.\n\nOther approaches I tried that did NOT work:\n- SSH port forwarding (ssh -L 8765:localhost:8765) — redirect still fails\n- Copying ~/.claude/ credentials from host via scp — VM still prompts for login\n\n### Priority\n\nCritical - Blocking my work\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n1. I run Claude Code inside a headless Ubuntu Server VM for security isolation\n2. The VM has no GUI or browser — I access it only via SSH\n3. I have a Max subscription, not an API key\n4. Running `claude` shows the OAuth URL but the redirect fails because there's no browser\n5. With a device-code flow, I could run `/login`, get a one-time code, paste the URL in my host browser, and authenticate without needing a GUI on the VM\n6. This saves time because the current workaround (installing/removing a full desktop environment) takes 15+ minutes and ~2-3GB of downloads\n\n### Additional Context\n\n- Environment: Ubuntu Server 24.04 ARM64 in UTM (macOS, M1 Pro)\n- Claude Code (latest at time of testing: v2.1.31), Max subscription\n- Affects all headless use cases: VMs, Docker containers, SSH remote dev, cloud instances\n- API key users are unaffected since they can set ANTHROPIC_API_KEY\n\nRelated issues:\n- #7100 — Documents headless auth workarounds, requests CI/CD auth support (12 upvotes)\n- #5225 (closed) — Auth not persisting for subscription users over SSH (9 upvotes)\n- #1210 (closed) — BROWSER env variable not respected in containers\n\nRFC 8628 (OAuth 2.0 Device Authorization Grant): https://datatracker.ietf.org/doc/html/rfc8628",
+  "labels": ["enhancement", "has repro", "platform:linux", "area:auth"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-04T05:08:53Z",
+  "updated_at": "2026-07-04T13:35:32Z",
+  "closed_at": null,
+  "reactions_total": 35,
+  "comments_count": 16,
+  "author": "rajasuryars",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/21765\n2. https://github.com/anthropics/claude-code/issues/1178\n3. https://github.com/anthropics/claude-code/issues/21914\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-04T05:12:11Z"
+    },
+    {
+      "author": "rajasuryars",
+      "author_association": "NONE",
+      "body": "This is not a duplicate of the flagged issues. Those are bug reports about existing OAuth failing in remote sessions. This is a feature request for a new authentication method — specifically RFC 8628 (OAuth Device Authorization Grant) — which would eliminate the need for a browser redirect entirely. None of the linked issues propose this.",
+      "created_at": "2026-02-04T05:33:06Z"
+    },
+    {
+      "author": "LorenzoWynberg",
+      "author_association": "NONE",
+      "body": "yes please!",
+      "created_at": "2026-02-20T19:52:54Z"
+    }
+  ]
+}

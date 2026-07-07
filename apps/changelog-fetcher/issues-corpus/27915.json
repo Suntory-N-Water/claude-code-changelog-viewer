@@ -1,0 +1,35 @@
+{
+  "number": 27915,
+  "title": "[FEATURE] Expose rate-limit / plan quota usage in statusLine JSON input",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nClaude Code's `statusLine` lets users build custom terminal HUDs via a shell script that receives session JSON on stdin. Today that JSON includes `context_window`, `cost`, `model`, and `workspace` — but **zero information about plan-level rate limits** (the 5-hour session %, weekly all-models %, weekly Sonnet-only % shown in `/usage` and on claude.ai > Settings > Usage).\n\nThe result: users get rate-limited mid-session with no warning. The only way to check quota is to break flow and open a browser or run `/usage` manually (which can't be called programmatically or from hooks/scripts).\n\nThis is the **single most duplicated feature request** on this repo — at least 15 separate issues filed, 30+ upvotes on the top one, multiple community workarounds built, and users have even reverse-engineered an undocumented OAuth endpoint to get this data. The demand is overwhelming and the data already exists internally.\n\n\n### Proposed Solution\n\nAdd a `rate_limits` object to the statusLine JSON input. **Minimal viable spec:**\n\n```json\n{\n  \"rate_limits\": {\n    \"session\": {\n      \"used_percentage\": 42,\n      \"resets_at\": \"2026-02-23T18:00:00Z\"\n    },\n    \"weekly\": {\n      \"used_percentage\": 67,\n      \"resets_at\": \"2026-02-27T08:00:00Z\"\n    },\n    \"weekly_sonnet\": {\n      \"used_percentage\": 15,\n      \"resets_at\": \"2026-02-27T19:00:00Z\"\n    }\n  }\n}\n```\n\nThat's it. Three objects, two fields each. No breaking changes — existing scripts that don't read `rate_limits` are unaffected.\n\n### Why this is low-effort to implement\n\nThe data is **already available** in multiple places:\n\n1. **API response headers** — every API call returns `anthropic-ratelimit-unified-status` and `anthropic-ratelimit-unified-reset` headers. Claude Code already parses these to power the `/usage` command.\n2. **`/usage` command** — already displays this exact data in the TUI. It just needs to be forwarded to the statusLine JSON.\n3. **Undocumented OAuth endpoint** — `GET https://api.anthropic.com/api/oauth/usage` returns `{ \"five_hour\": { \"utilization\": 42.0, \"resets_at\": \"...\" }, \"seven_day\": { ... } }` (discovered by community in #13585).\n\nThe implementation is essentially: take the data `/usage` already has → serialize it into the statusLine JSON payload. No new API calls, no new backend work.\n\n\n### Alternative Solutions\n\n\n| Workaround | Why it fails |\n|---|---|\n| Manually run `/usage` | Can't be called from scripts/hooks, interrupts flow, not persistent |\n| Check claude.ai/settings/usage in browser | Context switch, breaks flow, defeats purpose of CLI |\n| Track `cost.total_cost_usd` | Doesn't map to quota % — plans don't express limits in dollars |\n| Community tools ([claude-rate-monitor](https://github.com/nsanden/claude-rate-monitor), [claude-code-limit-tracker](https://github.com/TylerGallenbeck/claude-code-limit-tracker)) | Fragile hacks, inaccurate, require extracting OAuth tokens from OS keychain |\n| Scraping claude.ai via browser automation | Platform-specific, fragile, slow |\n\nNone of these are real solutions. The data needs to come from Claude Code itself.\n\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n\n1. I start a Claude Code Opus session for a complex refactor\n2. My status line shows: `⬥ Opus 4.6 │ ██████░░░░ 42% ctx │ $0.47 │ ⚡Session: 73% │ 📅Week: 45%`\n3. I see session quota at 73% — I know I have roughly 1 more intensive session before the 5-hour window resets\n4. I finish the critical work on Opus, then switch to Sonnet for routine tasks\n5. I never get surprise rate-limited. I never leave the terminal.\n\nWithout this feature, step 2 shows nothing about quota, and step 3 is replaced by \"suddenly get rate-limited, lose momentum, open browser to find ou",
+  "labels": ["enhancement"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-02-23T15:45:17Z",
+  "updated_at": "2026-05-04T15:03:30Z",
+  "closed_at": "2026-04-25T22:38:46Z",
+  "reactions_total": 34,
+  "comments_count": 8,
+  "author": "morMBen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "BareTread",
+      "author_association": "NONE",
+      "body": "See #28999 for a consolidated tracking comment linking all 10+ duplicate issues requesting quota/usage in statusLine JSON. +1",
+      "created_at": "2026-03-06T08:59:23Z"
+    },
+    {
+      "author": "Astro-Han",
+      "author_association": "NONE",
+      "body": "As @BareTread noted, there's a growing list of duplicates for this. For anyone landing here looking for a solution today: [claude-lens](https://github.com/Astro-Han/claude-lens) does this via the OAuth usage API -- shows 5h/7d remaining plus whether your current pace is sustainable.",
+      "created_at": "2026-03-19T07:55:15Z"
+    },
+    {
+      "author": "nyosegawa",
+      "author_association": "NONE",
+      "body": "This was shipped in v2.1.80 (March 19, 2026)! 🎉😭\n\nThe `rate_limits` field is now available in statusLine JSON with `five_hour` and `seven_day` windows:\n\n```json\n{\n  \"rate_limits\": {\n    \"five_hour\": {\n      \"used_percentage\": 42.3,\n      \"resets_at\": \"2026-03-20T15:00:00Z\"\n    },\n    \"seven_day\": {\n      \"used_percentage\": 85.7,\n      \"resets_at\": \"2026-03-24T00:00:00Z\"\n    }\n  }\n}\n```\n\nI wrote up 5 visual patterns for displaying it: https://nyosegawa.com/posts/claude-code-statusline-rate-limi",
+      "created_at": "2026-03-20T01:10:17Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 14594,
+  "title": "Version 2.0.73: Text rendering bug - lines dropped and garbled output",
+  "body": "## Description\n\nVersion 2.0.73 has a severe text rendering bug where assistant text output is garbled:\n- Lines are randomly dropped (consistently the 4th line in test messages)\n- Left side of text is cut off\n- Large gaps appear where text should be\n\nTool output renders correctly - only the assistant's direct text responses are affected.\n\n## Environment\n\n- **OS**: Windows 11 (10.0.26200)\n- **Terminal**: Windows Terminal and cmd.exe (both affected)\n- **Node**: v22.x\n- **Claude Code Version**: 2.0.73\n\n## Steps to Reproduce\n\n1. Install claude-code 2.0.73\n2. Start a session\n3. Observe that assistant text responses are garbled/incomplete\n\n## Expected Behavior\n\nAll text should render completely and correctly.\n\n## Actual Behavior\n\nText is garbled with:\n- Missing lines (4th line consistently dropped in tests)\n- Left portions of lines cut off\n- Irregular spacing\n\n## Workaround\n\nRolling back to version 2.0.72 resolves the issue:\n```\nnpm uninstall -g @anthropic-ai/claude-code\nnpm install -g @anthropic-ai/claude-code@2.0.72\n```\n\n## Additional Context\n\n- Issue persists across terminal restarts and machine reboots\n- Issue persists in both Windows Terminal and cmd.exe\n- Disabling Norton antivirus did not resolve the issue\n- Fresh sessions (not resumed) also exhibit the bug\n- Only affects 2.0.73; 2.0.72 works correctly",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-19T05:12:52Z",
+  "updated_at": "2025-12-27T14:08:22Z",
+  "closed_at": "2025-12-19T22:21:43Z",
+  "reactions_total": 31,
+  "comments_count": 5,
+  "author": "dross50",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14555\n2. https://github.com/anthropics/claude-code/issues/14574  \n3. https://github.com/anthropics/claude-code/issues/14587\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-19T05:20:23Z"
+    },
+    {
+      "author": "silmonbiggs",
+      "author_association": "NONE",
+      "body": "For workaround\nTo prevent immediate reupdating from claude-code@2.0.72 \nto the version that has garbled output (claude-code@2.073)   \n\nAdd this to ~/.claude/settings.json:\n\n  {\n    \"env\": {\n      \"DISABLE_AUTOUPDATER\": \"1\"\n    }\n  }",
+      "created_at": "2025-12-19T06:03:10Z"
+    },
+    {
+      "author": "capecoma",
+      "author_association": "NONE",
+      "body": "Confirmed: Rollback to 2.0.72 fixes the issue\n\n  Rolled back from 2.0.73 to 2.0.72 using:\n  npm install -g @anthropic-ai/claude-code@2.0.72\n\n  Rendering now works correctly in Windows cmd. The bug is specific to 2.0.73.\n\n  Environment:\n  - Windows 10/11\n  - Tested in VSCode integrated terminal and cmd\n  - Both had the same truncation issue on 2.0.73\n  - Both work correctly on 2.0.72",
+      "created_at": "2025-12-19T17:18:58Z"
+    }
+  ]
+}

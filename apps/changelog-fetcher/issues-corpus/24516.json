@@ -1,0 +1,35 @@
+{
+  "number": 24516,
+  "title": "Main branch detection ignores remote HEAD, hardcodes 'main'",
+  "body": "## Bug\n\nClaude Code's system prompt injects:\n\n> Main branch (you will usually use this for PRs): main\n\nHowever, the repository's remote HEAD is set to `staging`:\n\n```\n$ git remote show origin | grep \"HEAD branch\"\n  HEAD branch: staging\n```\n\nClaude Code appears to detect the \"main branch\" by looking for a branch literally named `main` or `master`, rather than checking the remote HEAD (`refs/remotes/origin/HEAD`). This causes Claude to target PRs at `main` instead of the actual default branch.\n\n## Impact\n\nWhen asked to create a pull request, Claude targets `main` (as instructed by its own system prompt) instead of the correct default branch (`staging` in our case). This requires manual correction every time and has caused PRs to be opened against the wrong branch.\n\nThe workaround is adding an explicit override in `CLAUDE.md` or project memory, but the auto-detection should work correctly in the first place.\n\n## Expected behavior\n\nThe \"Main branch\" in the system prompt should reflect the remote's HEAD branch (i.e., the output of `git remote show origin | grep \"HEAD branch\"` or the target of `refs/remotes/origin/HEAD`).\n\n## Environment\n\n- Claude Code version: 2.1.37\n- OS: macOS (Darwin 25.2.0)\n- Git remote HEAD: `staging`\n- Detected main branch in system prompt: `main`",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-09T20:54:46Z",
+  "updated_at": "2026-05-14T07:21:58Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 6,
+  "author": "golergka",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19527\n2. https://github.com/anthropics/claude-code/issues/17520\n3. https://github.com/anthropics/claude-code/issues/23748\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-09T20:58:11Z"
+    },
+    {
+      "author": "golergka",
+      "author_association": "NONE",
+      "body": "This is similar to #19527, but it was close due to inactivity, so this issue is NOT a duplicate of any other currently open issue",
+      "created_at": "2026-02-09T21:05:15Z"
+    },
+    {
+      "author": "Mart-Bogdan",
+      "author_association": "NONE",
+      "body": "I don't know it fhat's correct place to post it, but Claude desktop in Code mdoe aslo detects wrong branch. It picked one random really old branch.",
+      "created_at": "2026-02-25T19:00:52Z"
+    }
+  ]
+}

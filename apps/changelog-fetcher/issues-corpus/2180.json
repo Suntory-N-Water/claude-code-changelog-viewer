@@ -1,0 +1,16 @@
+{
+  "number": 2180,
+  "title": "Feature Request: Allow Claude to manage git worktrees within project boundaries",
+  "body": "\n## 🛠️ Feature Request: Support for Git Worktrees in Claude Code\n\n### 📌 Summary\n\nClaude Code currently enforces strict directory navigation limits for security, which prevents the use of `git worktree` workflows. This limits productivity for developers using parallel feature development strategies.\n\n---\n\n### 🔍 Current Behavior\n\nWhen attempting to use `git worktree`, Claude throws the following error:\n\n```\nERROR: cd to '../ProjectName-feature' was blocked. For security, Claude Code may only change directories to child directories of the original working directory (/path/to/project) for this session.\n```\n\n---\n\n### 💡 Proposed Solution\n\nIntroduce a configuration option to allow safe navigation to sibling `git worktree` directories. For example:\n\n**.claude/config.json**\n```json\n{\n  \"permissions\": {\n    \"allowGitWorktreeNavigation\": true,\n    \"worktreePattern\": \"../{projectName}-*\"\n  }\n}\n```\n\nClaude should:\n\n- Detect valid git worktrees from `git worktree list`  \n- Permit `cd` into these verified directories  \n- Allow switching between worktrees belonging to the same repo  \n\n---\n\n### ✅ Use Case\n\n```bash\n# From within the main project dir\ngit worktree add ../MyProject-feature1 -b feature/feature1\ngit worktree add ../MyProject-feature2 -b feature/feature2\n```\n\nClaude should support:\n\n- Creating new worktrees  \n- Navigating between them  \n- Performing operations like edits, commits, and codegen in each  \n\n---\n\n### 🚀 Benefits\n\n- **Parallel Feature Dev**: Work across multiple features at once  \n- **Isolated Environments**: Separate `node_modules`, venvs, etc.  \n- **Clean Git Histories**: Feature branches are neatly organized  \n- **Deeper Claude Integration**: Claude could manage the full worktree lifecycle  \n\n---\n\n### 🔐 Security Considerations\n\n- Allow only verified `git worktree` dirs (via `git worktree list`)  \n- Require explicit opt-in via `.claude/config.json`  \n- Limit access to sibling directories matching a defined pattern  \n\n---\n\n### 🔁 Alternative Solutions\n\nIf directory navigation can't be loosened:\n\n- Provide a `claude worktree` command to spawn new sessions in worktrees  \n- Add internal commands to create/switch/manage worktrees  \n- Introduce a higher-level **project workspace** model that groups worktrees  \n\n---\n\n### 📎 Related\n\n- #1052 – *Field Notes: Git Worktree Pattern*\n\n---\n\n### 🙏 Final Note\n\nSupporting `git worktree` would meaningfully boost Claude Code’s developer experience and flexibility—without compromising security when opt-in restrictions are applied.\n",
+  "labels": ["enhancement", "area:tools", "area:core", "area:security"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-17T03:49:52Z",
+  "updated_at": "2026-01-06T14:10:17Z",
+  "closed_at": "2025-12-30T10:10:21Z",
+  "reactions_total": 9,
+  "comments_count": 6,
+  "author": "web3dev1337",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

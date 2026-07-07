@@ -1,0 +1,35 @@
+{
+  "number": 17893,
+  "title": "[BUG] Working directory path in model context contains mispelling/typo/corruption of username",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe environment information passed to the model at conversation start contains an incorrect username in the working directory path.\n\n  Observed behavior:\n  - Model receives: Working directory: /Users/jdprueet/Desktop/...\n  - Actual path: /Users/jdpruett/Desktop/...\n\n  Note the missing 't' in the username (\"jdprueet\" vs \"jdpruett\").\n\n  Verification:\n  All shell commands return the correct username:\n  $ pwd\n  /Users/jdpruett/Desktop/\n\n  $ echo $HOME\n  /Users/jdpruett\n\n  $ whoami\n  jdpruett\n\n  Impact:\n  The model uses this incorrect path when constructing absolute file paths, causing \"file not found\" or \"no such directory\" errors when using tools like Read or Write with absolute paths.\n\n  Environment:\n  - macOS (Darwin 25.1.0)\n  - Claude Code CLI\n\n### What Should Happen?\n\nClaude should be fed the correct user directory without misspellings.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n  1. Start a new Claude Code conversation in any directory:\n  cd /Users/jdpruett/Desktop/some-project\n  claude\n  2. Ask Claude to read a file using an absolute path, or ask it to report what working directory it sees:\n  What is my current working directory according to your context?\n  3. Observe that the model reports an incorrect path with a typo in the username:\n    - Expected: /Users/jdpruett/Desktop/some-project\n    - Actual: /Users/jdprueet/Desktop/some-project (missing 't')\n  4. Alternatively, ask Claude to use the Read tool with an absolute path - it will fail with \"file not found\" because it constructs the path using the incorrect username from its context.\n\n  Note: I'm not sure if this is reproducible for all users or specific to certain usernames/system configurations. The corruption appears to happen when the working directory is captured and passed to the model context at conversation start.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.6\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-13T09:17:54Z",
+  "updated_at": "2026-05-30T22:26:34Z",
+  "closed_at": "2026-05-30T22:26:34Z",
+  "reactions_total": 10,
+  "comments_count": 11,
+  "author": "jdpru",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rcorre",
+      "author_association": "NONE",
+      "body": "Same on `2.1.37 (Claude Code)` on Linux. There's also a discussion at https://github.com/anthropics/claude-code/issues/10580 which was auto-closed but still relevant. \n\nUsing `CLAUDE.md` to prevent this behavior has so far been ineffective:\n\n```\n❯ You just used an absolute path and misspelled my home directory. CLAUDE.md guides against this. I also have a hook that's supposed to prevent this, but it seemed it didn't work. Why?\n                                                                     ",
+      "created_at": "2026-02-14T12:51:35Z"
+    },
+    {
+      "author": "jdpru",
+      "author_association": "NONE",
+      "body": "any update on this? ",
+      "created_at": "2026-03-09T00:48:52Z"
+    },
+    {
+      "author": "joaocanaverde-blue",
+      "author_association": "NONE",
+      "body": "I'm also experiencing this issue. It should use relative paths, but resorts to using absolute paths and then misspells my username. It should be `jpcanaverde` but it uses `jpcanavrede`.",
+      "created_at": "2026-03-11T12:38:33Z"
+    }
+  ]
+}

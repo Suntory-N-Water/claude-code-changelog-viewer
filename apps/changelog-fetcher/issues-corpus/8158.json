@@ -1,0 +1,35 @@
+{
+  "number": 8158,
+  "title": "[BUG] native install fails with EINVAL: invalid argument, copyfile '~/.cache/claude/staging/1.0.123/claude' -> ...",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen installing the native version of claude-code on Ubuntu 22.04.5 I get an error from copyfile.\nApparently, the installation aborts, because when I type the command 'claude' in the terminal, I get \"command not found\".\n\nI tried to remove all relevant files and directories and try again, but got the same error. Here is the command I used to remove leftovers from a failed install:\n\nrm -rf ~/.cache/claude ~/.local/share/claude ~/.claude* \n\nAfter manually copying '~/.cache/claude/staging/1.0.123/claude' to '~/bin', I can run 'claude', but 'claude doctor' complains: \"Warning: Running native installation but config install method is 'unknown'\". Also, this setup will probably fail when claude code tries to update to a new version.\n\n\n\n### What Should Happen?\n\nClaude Code native should get installed in  ~/.local/share/claude and runnable.\n\n### Error Messages/Logs\n\n```shell\nThe error message is:\n✘ Installation failed\n\nEINVAL: invalid argument, copyfile '/home/user/.cache/claude/staging/1.0.123/claude' -> '/home/user/.local/share/claude/versions/1.0.123.tmp.1129780.1758754356342'\n\nTry running with --force to override checks\n```\n\n### Steps to Reproduce\n\nTry to install native Claude Code as suggested in documentation:\ncurl -fsSL https://claude.ai/install.sh | bash\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n1.0.123 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nXterm\n\n### Additional Information\n\n$ claude doctor\n\n Diagnostics\n └ Currently running: native (1.0.123)\n └ Path: /home/user/bin/claude\n └ Invoked: /home/user/claude-bin/claude\n └ Config install method: unknown\n └ Auto-updates enabled: default (true)\n └ Search: OK (bundled)\n Warning: Running native installation but config install method is 'unknown'\n Fix: Run claude install to update configuration\n\n$ cat /etc/os-release \nPRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"22.04\"\nVERSION=\"22.04.5 LTS (Jammy Jellyfish)\"\nVERSION_CODENAME=jammy\n",
+  "labels": ["bug", "has repro", "platform:linux", "area:packaging"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-24T23:43:59Z",
+  "updated_at": "2026-01-18T14:12:16Z",
+  "closed_at": "2026-01-11T10:12:58Z",
+  "reactions_total": 2,
+  "comments_count": 12,
+  "author": "aoand",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "hsbgit",
+      "author_association": "NONE",
+      "body": "Same problem here:\n\n> curl -fsSL https://claude.ai/install.sh | bash\n> Setting up Claude Code...\n> ✘ Installation failed\n> EINVAL: invalid argument, copyfile '/home/XXXX/.cache/claude/staging/1.0.127/claude' -> \n'/home/XXXX/.local/share/claude/versions/1.0.127.tmp.23967.1758986079378'\n\nI cant find a solution, npm install does also NOT work",
+      "created_at": "2025-09-27T15:16:28Z"
+    },
+    {
+      "author": "neuron303",
+      "author_association": "NONE",
+      "body": "I believe I found the issue.\nIt seems to be this: https://github.com/oven-sh/bun/issues/13968\nSo it seems to be related to an encrypted home directory.\n\nrunning `export BUN_CONFIG_DISABLE_COPY_FILE_RANGE=true` lets the installation succeed\n\nPS: I found the issue using strace. The last call was `copy_file_range` but the parameters seemed to be right. Glad to have found the issue reported with bun.\n",
+      "created_at": "2025-10-05T12:29:34Z"
+    },
+    {
+      "author": "aoand",
+      "author_association": "NONE",
+      "body": "> I believe I found the issue. So it seems to be related to an encrypted home directory.\n\nYes, my home directory is encrypted with ecryptfs.\n\n> running `export BUN_CONFIG_DISABLE_COPY_FILE_RANGE=true` lets the installation succeed\n\nInstalling with BUN_CONFIG_DISABLE_COPY_FILE_RANGE=true fixed my problem. The latest Claude version installed successfully with no errors or warnings.\n\nThanks a lot!",
+      "created_at": "2025-10-05T17:02:28Z"
+    }
+  ]
+}

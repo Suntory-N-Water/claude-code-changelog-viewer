@@ -1,0 +1,35 @@
+{
+  "number": 39229,
+  "title": "[BUG] VS Code extension host 'Not responding' — ping/pong heartbeat timeout during tool execution",
+  "body": "## Description\n\nThe Claude Code VS Code extension intermittently shows \"Not responding\" in VS Code's extension host. This occurs because the extension thread is blocked during heavy async work (API responses, tool execution, long-running agent operations), causing it to miss VS Code's extension host liveness heartbeat (ping/pong check).\n\n## Environment\n\n- **VS Code**: Latest stable\n- **OS**: macOS (Darwin 25.2.0)\n- **Claude Code**: Latest version\n- **Model**: claude-opus-4-6\n\n## Steps to Reproduce\n\n1. Start a Claude Code session in VS Code\n2. Execute a complex task that involves multiple sequential tool calls (e.g., file reads, grep searches, bash commands, agent spawning)\n3. During tool execution, VS Code flags the extension as \"Not responding\"\n4. The extension recovers once the blocking operation completes\n\n## Expected Behavior\n\nThe extension should remain responsive to VS Code's heartbeat checks even during heavy async work. The ping/pong loop should stay responsive regardless of API call or tool execution state.\n\n## Actual Behavior\n\nVS Code's extension host liveness check fails because the extension thread is blocked waiting on API responses or executing tools. VS Code shows \"Not responding\" with a red indicator. The extension recovers after the blocking work completes, but the UX is jarring.\n\n## Root Cause Analysis\n\nVS Code's extension host has a liveness check that sends periodic pings and expects pongs within a timeout window. When the Claude Code extension performs blocking work on the main extension host thread (waiting for Anthropic API streaming responses, running tool calls, executing bash commands), it misses the heartbeat and VS Code flags it.\n\n## Suggested Fix\n\nRun blocking work off the main extension host thread:\n- Use a **worker thread** or **child process** for API calls and tool execution\n- Keep the main extension host thread free to respond to VS Code's ping/pong heartbeat\n- The extension already uses child processes for CLI operations — the same pattern could be extended to ensure the extension host thread is never blocked\n\n## Related Issues\n\n- #39183 — Similar \"Not responding\" on WSL2 (WebSocket timeout loop)\n- #38994 — All agent panels go gray/unresponsive (possible extension host crash)\n- #38580 — Docs missing \"Not responding\" red spinner after 60s backend timeout\n- #38258 — Processes hang indefinitely with no timeout\n\nThis differs from those issues in that it specifically identifies the VS Code extension host ping/pong heartbeat mechanism as the root cause, rather than a WebSocket or OAuth issue.",
+  "labels": ["bug", "platform:macos", "platform:vscode", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-26T07:48:35Z",
+  "updated_at": "2026-05-08T14:52:49Z",
+  "closed_at": "2026-04-28T10:48:39Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "Chicooz",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Chicooz",
+      "author_association": "NONE",
+      "body": "<img width=\"266\" height=\"55\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/7bc5f4ce-8dac-45ce-a5f6-d199fa8feb3b\" />",
+      "created_at": "2026-03-26T07:50:03Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/38994\n2. https://github.com/anthropics/claude-code/issues/30536\n3. https://github.com/anthropics/claude-code/issues/20960\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-26T07:52:59Z"
+    },
+    {
+      "author": "crudo",
+      "author_association": "NONE",
+      "body": "@Chicooz downgrading to the previous version `2.1.83` helped.\n",
+      "created_at": "2026-03-26T07:57:03Z"
+    }
+  ]
+}

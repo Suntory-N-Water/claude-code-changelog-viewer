@@ -1,0 +1,35 @@
+{
+  "number": 12433,
+  "title": "[Bug] macOS Activity Monitor shows version number (e.g. '2.0.53') instead of 'claude' as process name",
+  "body": "## Environment\n- **Platform:** macOS (Darwin 25.1.0, Apple Silicon)\n- **Installation method:** Native installation via `bun`\n- **Claude Code version:** 2.0.53\n\n## Description\n\nIn macOS Activity Monitor, Claude Code processes appear with just the version number (e.g., `2.0.53`) as the process name instead of something recognizable like `claude` or `Claude Code`.\n\nThis makes it difficult to:\n- Quickly identify Claude Code processes in Activity Monitor\n- Distinguish Claude Code from other applications\n- Monitor resource usage at a glance\n\n## Root Cause\n\nThe native installation stores versioned binaries at:\n```\n~/.local/share/claude/versions/2.0.53  (actual Mach-O binary)\n~/.local/bin/claude -> ~/.local/share/claude/versions/2.0.53  (symlink)\n```\n\nmacOS Activity Monitor uses `proc_pidpath()` from `libproc.dylib` to get process names, which **resolves symlinks** and returns the actual binary path. Since the binary filename is literally `2.0.53`, that's what Activity Monitor displays.\n\n## Reproduction\n\n1. Install Claude Code via native installation\n2. Run `claude` in terminal\n3. Open Activity Monitor\n4. Search for \"claude\" - no results\n5. Search for the version number (e.g., \"2.0.53\") - Claude Code processes appear\n\n## Expected Behavior\n\nActivity Monitor should show a recognizable name like `claude`, `claude-code`, or `claude-2.0.53`.\n\n## Potential Fix\n\nOne low-disruption option would be to rename the versioned binary files from `{version}` to `claude-{version}`:\n```\n~/.local/share/claude/versions/claude-2.0.53\n```\n\nThis would:\n- Make processes show as `claude-2.0.53` in Activity Monitor (recognizable + shows version)\n- Require minimal changes (just the filename template in build/update logic)\n- Not affect any user-facing paths (symlink remains `~/.local/bin/claude`)\n\nHowever, there may be other approaches the team prefers.\n\n## Additional Context\n\nVerified via:\n```bash\n$ readlink -f ~/.local/bin/claude\n/Users/.../.local/share/claude/versions/2.0.53\n\n$ python3 -c \"\nimport ctypes, os\nlibproc = ctypes.CDLL('/usr/lib/libproc.dylib')\n# ... proc_pidpath() returns the resolved path\n\"\n# Returns: /Users/.../.local/share/claude/versions/2.0.53\n```\n\nThis appears to be unreported - searched existing issues for Activity Monitor, process name/title, and related terms without finding a match.",
+  "labels": ["bug", "has repro", "platform:macos", "area:packaging"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-26T05:46:26Z",
+  "updated_at": "2026-06-24T22:53:09Z",
+  "closed_at": null,
+  "reactions_total": 29,
+  "comments_count": 22,
+  "author": "shaanmajid",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-26T10:10:44Z"
+    },
+    {
+      "author": "shaanmajid",
+      "author_association": "NONE",
+      "body": "This is still occurring as of version 2.0.76",
+      "created_at": "2025-12-30T07:07:54Z"
+    },
+    {
+      "author": "aaronjensen",
+      "author_association": "NONE",
+      "body": "This also impacts Tmux's automatic-rename capability",
+      "created_at": "2026-01-05T16:42:56Z"
+    }
+  ]
+}

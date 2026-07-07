@@ -1,0 +1,42 @@
+{
+  "number": 24792,
+  "title": "[BUG] Compaction seems to be destructive to summarized context, leading to incorrect next actions taken by \"lost and confused\" model",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhenever compaction occurs in Claude Code, either automatically or by command, this seems to result in destructive consequences to the remaining context. I have noted that with a majority of compactions, the next actions the agent takes afterwards (in the case of automatic) are usually incorrect, and often based on earlier work that was being done well before compaction occurred. \n\nThe agent will state that \"based on the summary\" it was continuing \"X\", so it seems that the summarization process is not necessarily....prioritizing the preservation of recent-work details, or necessarily the timeline of operations and work performed. The recent case that lead to me posting this bug report, I was working on testing, evaluation and refinement of the most recent code implemented (which was driven by detailed plans.) This process was driven by simple progressive prompting, running tests against a RESTful API server and local DB, evaluating results, and refining/debugging the implementation. Periodically I would instruct the Claude Code to commit. I committed relatively early after the previous compaction, then was performing ongoing httpie testing and fixing a notable bug that had been discovered through the process. Compaction automatically occurred again, and the immediate actions the agent tried to take afterwards was to check the git workspace, then commit. \n\nI stopped it just before the commit command executed, and asked why it had done that, and it stated that the summary indicated that was the next course of action...as if the \"timeline\" of the history of the work being performed, had regressed, post compaction, to the last time I had instructed the agent to commit. \n\nSeems to indicate that there is a fairly destructive process going on with the compaction routine, that as far as I can tell, disregards the timeline or order of operations as they had occurred thus far, when summarizing the prior context. That then leads to the agent/model being rather confused about its state and what the next action to be taken should be.\n\nFWIW, there were other issues that mention problems with compaction and post-compaction actions by the agent. However they had all been automatically closed after 7 days of inactivity...hence the new report. One prior example: #10727\n\n### What Should Happen?\n\nCompaction should, in its summarization of the context, maintain a proper timeline, order of operations, and aim to preserve more detail for the most recent operations vs. older operations. Once compaction completes, the remaining summarized context should represent the timeline and order of operations that had previously occurred, so that the agent/model, if it continues post-compaction, continues on the correct path and task. Recommended next tasks should be related to the previous tasks that were in-progress.\n\n### Error Messages/Logs\n\n```shell\nThe following output was the output just after compaction. We were previously working on thourough testing of a certain set of APIs. We were in the middle of testing, and had only performed a couple of tests of just one of the APIs at that point, many additional test cases were outstanding. \n\nI was quite surprised when all of a sudden a commit was being made, as I wasn't even sure the latest code was building correctly (as it stands, it does not look like that is the case, and we were likely testing code that wasn't quite the latest revision.) \n\n\n⏺ I'll continue with committing the outstanding changes. Let me first check the current state and review the commit rules.\n\n⏺ Bash(git status)\n  ⎿  On branch feat/feed-v2-candidate-selection-expansion\n     Changes not staged for commit:\n       (use \"git add/rm <file>...\" to update what will be committed)\n     … +19 ",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-10T19:58:59Z",
+  "updated_at": "2026-04-04T14:26:37Z",
+  "closed_at": "2026-03-28T10:14:24Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "jrista",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/21502\n2. https://github.com/anthropics/claude-code/issues/14941\n3. https://github.com/anthropics/claude-code/issues/17890\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-10T20:03:26Z"
+    },
+    {
+      "author": "jrista",
+      "author_association": "NONE",
+      "body": "One of the linked issues has already been itself closed as a duplicate. It was also referring to a much more specific problem with post-compaction actions, whereas my report is more general. Two of the linked issues are not exact duplicates. They refer to the same issue, but are not exactly the same. One offers FAR less context and detail than my issue and I think mine is more useful, the other is more about what kind of activity is resumed (a more specific problem.) My report is more about the ",
+      "created_at": "2026-02-10T20:21:48Z"
+    },
+    {
+      "author": "jrista",
+      "author_association": "NONE",
+      "body": "I was just able to open the post-compaction \"summary prompt\" that was generated. I think I understand more, how Claude compaction works, and I wonder if the approach might be....prone to a significant loss of important details, timeline, order of operations and a bias for recency. \n\nIf I am understanding how Claude Code's compaction works...it looks like a new prompt is crafted, then the context is completely cleared, and the new prompt issued? For some reason, the newly crafted prompt included ",
+      "created_at": "2026-02-10T20:39:40Z"
+    }
+  ]
+}

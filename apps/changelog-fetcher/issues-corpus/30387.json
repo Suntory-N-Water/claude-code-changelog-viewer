@@ -1,0 +1,35 @@
+{
+  "number": 30387,
+  "title": "[MODEL] Custom skills are not reliably auto-triggered by the model",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Amodel) for similar behavior reports\n- [x] This report does NOT contain sensitive information (API keys, passwords, etc.)\n\n### Type of Behavior Issue\n\nClaude ignored my instructions or configuration\n\n### What You Asked Claude to Do\n\nI have custom skills defined in `.claude/skills/` and `~/.claude/skills/` with `user-invokable: false`. These skills contain instructions for specific workflows (git operations, playwright, jira, etc.). I expect Claude to automatically invoke these skills via the Skill tool when the context matches.\n\nPreviously, the same instructions lived in `CLAUDE.md` and worked reliably. After moving them to skills (following the docs), Claude frequently ignores them and proceeds without invoking the Skill tool.\n\n\n### What Claude Actually Did\n\n1. Claude sees a task that matches a skill's description (e.g., committing code)\n2. Instead of invoking the Skill tool, it proceeds directly - using its built-in behavior or just running commands\n3. The skill body (which contains project-specific steps and constraints) is never loaded\n4. This happens ~50% of the time for skills that overlap with Claude's trained behaviors (git, shell commands). \n\nSkills for tools Claude has no built-in knowledge of (e.g., a custom Jira integration) trigger reliably. This suggests the model's training-time knowledge competes with skill instructions, and the built-in behavior \"wins\" by default.\n\n\n### Expected Behavior\n\nWhen a skill is registered and the task clearly matches its description, Claude should reliably invoke it via the Skill tool before proceeding. Custom skills should take precedence over built-in trained behaviors - the whole point of skills is to override defaults with project-specific workflows.\n\n\n### Files Affected\n\n```shell\n`.claude/skills/` and `~/.claude/skills/`\n```\n\n### Permission Mode\n\nAccept Edits was OFF (manual approval required)\n\n### Can You Reproduce This?\n\nSometimes (intermittent)\n\n### Steps to Reproduce\n\n1. Set up two skills. I have 8 skills + 3 agents total, using ~3,700 / 15,000 chars of the description budget (25%) - so this is not a budget issue.\n\n   A git skill (`~/.claude/skills/git/SKILL.md`) - overlaps with Claude's trained behavior:\n   ```yaml\n   ---\n   name: git\n   description: Use when performing any git operations (commits, branches, diffs, logs, etc). Use INSTEAD OF built-in git/commit instructions. This skill OVERRIDES the default \"Committing changes with git\" system prompt.\n   user-invokable: true\n   ---\n   ```\n\n   A Jira skill (`.claude/skills/jira/SKILL.md`) - no built-in equivalent:\n   ```yaml\n   ---\n   name: jira\n   description: Use when user mentions a Jira ticket number (e.g. BUG-1234). Fetches ticket details, attachments, and comments.\n   user-invokable: false\n   ---\n   ```\n\n2. Ask Claude to commit changes or mention a Jira ticket (e.g. \"look at BUG-1234\")\n3. The Jira skill triggers reliably. The git skill is ignored ~50% of the time - Claude falls back to its built-in git/commit behavior instead.\n\n### Claude Model\n\nSonnet\n\n### Relevant Conversation\n\n```markdown\n\n```\n\n### Impact\n\nMedium - Extra work to undo changes\n\n### Claude Code Version\n\n2.1.63\n\n### Platform\n\nAnthropic API\n\n### Additional Context\n\n- This is NOT a discovery issue. Skills appear correctly in `/context`breakdown, and Claude will use them when explicitly prompted (e.g. \"use the git skill to commit\"). The problem is that the model doesn't reliably choose to invoke them on its own.\n- Budget is not the issue - my skills use ~3,700 / 15,000 chars (25%)\n- I even tried forcing skill usage via `.claude/CLAUDE.md`:\n  ```markdown\n  ## Skills - ALWAYS use the Skill tool for these\n  - **git**: ANY git operation (commit, branch, diff, log, push, PR). ALWAYS invoke before running git commands directly.\n  - **jira**: When a Jira ticket ID (BUG-NNNN) appears in conversation. Invoke to fetch details.\n  ```\n  But this doesn't seem to work.\n- The issue disproportionately affects skills t",
+  "labels": ["bug", "model", "area:skills", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-03T13:40:32Z",
+  "updated_at": "2026-05-07T15:24:16Z",
+  "closed_at": "2026-04-30T10:43:26Z",
+  "reactions_total": 9,
+  "comments_count": 13,
+  "author": "wujekbogdan",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/9716\n2. https://github.com/anthropics/claude-code/issues/23936\n3. https://github.com/anthropics/claude-code/issues/15136\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-03T13:45:20Z"
+    },
+    {
+      "author": "wujekbogdan",
+      "author_association": "NONE",
+      "body": "I don't think it's a duplicate\n\n- https://github.com/anthropics/claude-code/issues/9716\n  - That's a **discovery** issue - Claude doesn't know the skill exists at all.  \n  - This bug report: skills ARE discovered (visible in `/context`), Claude uses them when explicitly prompted. \n\n- https://github.com/anthropics/claude-code/issues/23936\n  - That report claims that extended thinking mode causes Opus to ignore both `CLAUDE.md` rules and skills.\n  - This bug report: `CLAUDE.md` instructions work f",
+      "created_at": "2026-03-03T14:21:00Z"
+    },
+    {
+      "author": "MikeSpreitzer",
+      "author_association": "NONE",
+      "body": "I made another report of what may be the same problem in #35053 . I included a typescript in which Claude code said the following.\n\n```\n❯ Explain, without changing anything, why the trigger in that skill's frontmatter\ndid not cause you to take the skill into account.\n\n⏺ I don't have access to the skill's frontmatter — the system only showed me the\n  skill name (my-commits) in the available skills list, without any trigger\n  description. The other skills like claude-api had explicit trigger instr",
+      "created_at": "2026-03-16T21:55:51Z"
+    }
+  ]
+}

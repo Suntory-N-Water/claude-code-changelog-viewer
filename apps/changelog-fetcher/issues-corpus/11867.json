@@ -1,0 +1,35 @@
+{
+  "number": 11867,
+  "title": "Bash tool uses login shell (-l) causing unwanted output",
+  "body": "### Issue\nEvery bash command is executed as a login shell, sourcing `~/.bash_profile` / `~/.profile` on each invocation. This pollutes command output with login script messages and adds unnecessary overhead.\n\n### Steps to Reproduce\n1. Add any output statement to `~/.bash_profile` (e.g., `echo \"Login shell initialized\"`)\n2. Execute any Bash tool command through Claude Code\n3. Observe the extra output from the login script\n\n### Verification\n```bash\n$ shopt login_shell\nlogin_shell     on\n```\n\n### Expected\nCommands should run in non-login shells. The `-l` flag should not be used unless specifically needed.\n\n### Impact\n- Extraneous output in command results\n- Performance overhead from repeatedly sourcing login scripts\n- Unexpected environment modifications",
+  "labels": ["bug", "has repro", "area:tools"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-18T13:52:41Z",
+  "updated_at": "2026-03-13T17:31:38Z",
+  "closed_at": "2026-01-27T10:13:10Z",
+  "reactions_total": 2,
+  "comments_count": 12,
+  "author": "bnordli",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "I added a (secret) env var for this: `CLAUDE_BASH_NO_LOGIN`\nCan you try setting this and confirm it's what you want? If it is I will document it at a minimum and consider making it the default",
+      "created_at": "2025-11-19T14:33:36Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "This is a lot late, but this is now the default behavior in Claude Code. Thanks for the feedback!",
+      "created_at": "2026-03-13T17:30:48Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/11684\n2. https://github.com/anthropics/claude-code/issues/2383\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-18T14:00:57Z"
+    }
+  ]
+}

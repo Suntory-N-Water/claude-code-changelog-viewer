@@ -1,0 +1,35 @@
+{
+  "number": 14705,
+  "title": "Text rendering bug in version 2.0.73 on Windows",
+  "body": "## Description\nText output is fragmented/truncated in version 2.0.73 on Windows. The text appears broken with large empty spaces and only partial words showing.\n\n## Environment\n- OS: Windows 10/11\n- Terminal: Both cmd.exe and Windows Terminal affected\n- Claude Code version: 2.0.73\n\n## Steps to reproduce\n1. Install Claude Code 2.0.73 on Windows\n2. Start a session with `claude`\n3. Observe that text responses are fragmented and difficult to read\n\n## Screenshots\nThe text appears scattered across the screen with missing portions, making responses unreadable.\n\n## Workaround\nDowngrading to version 2.0.72 resolves the issue:\n```\nnpm install -g @anthropic-ai/claude-code@2.0.72\n```\n\n## Expected behavior\nText should render correctly and be fully readable.",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-19T15:38:03Z",
+  "updated_at": "2025-12-27T14:08:38Z",
+  "closed_at": "2025-12-19T22:19:39Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "takaok5",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "dknoodle",
+      "author_association": "NONE",
+      "body": "Same here. Not just malformed, but whole sections of the output are missing and not rendered, but there is black space with no content where there should be content.",
+      "created_at": "2025-12-19T15:41:17Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14594\n2. https://github.com/anthropics/claude-code/issues/14678  \n3. https://github.com/anthropics/claude-code/issues/14694\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-19T15:42:21Z"
+    },
+    {
+      "author": "takaok5",
+      "author_association": "NONE",
+      "body": "## Additional Investigation\n\nAfter further investigation, we can confirm:\n\n### Root Cause\n- **This is NOT an encoding issue** - changing console encoding (UTF-8, chcp 65001, PowerShell OutputEncoding) does not fix the problem\n- The bug appears to be in the **internal text renderer** of Claude Code 2.0.73\n- Text is being fragmented during UI rendering, not during output\n\n### What We Checked\n- `.claude.json` configuration - no encoding settings available\n- `.claude/settings.json` - no encoding set",
+      "created_at": "2025-12-19T15:45:36Z"
+    }
+  ]
+}

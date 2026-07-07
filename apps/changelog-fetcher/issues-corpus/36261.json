@@ -1,0 +1,35 @@
+{
+  "number": 36261,
+  "title": "Feature request: Session persistence & reconnection for Remote Control server mode",
+  "body": "## Summary\n\nWhen using `claude remote-control` in server mode, there is no way to persist or reconnect to sessions after the process restarts. This is a significant limitation for users running Claude Code on always-on servers (e.g., Mac Mini via tmux).\n\n## Current Behavior\n\n1. `claude remote-control --spawn same-dir` generates a **bridge URL** (`?bridge=env_xxx`) and **session URLs** (`/session_xxx`)\n2. If the `claude` process exits (crash, update, OOM, etc.), **all session URLs become invalid**\n3. Restarting generates completely new bridge + session IDs\n4. No way to resume a previous conversation via remote control — always starts fresh\n5. Navigating away from a session in the mobile app (swipe/back) also loses the connection with no way to return (ref: #28402, #34531)\n\n## Expected Behavior\n\n- **Session persistence**: Spawned sessions should survive process restarts. The session state (conversation history, working directory) should be recoverable.\n- **Stable reconnection URL**: A mechanism to reconnect to a previously active session, e.g.:\n  - `claude remote-control --resume` to re-register existing sessions\n  - Stable session IDs that map to on-disk conversation state\n  - Or at minimum, `--resume` + `--remote-control` combo that preserves the remote URL\n\n## Use Case\n\nRunning Claude Code on a headless Mac Mini server accessed from multiple devices (desktop, phone, Windows PC) via Tailscale VPN. The server runs 24/7 in tmux, but any process restart (updates, crashes, system reboot) forces all clients to reconnect to a brand new session with no history.\n\n## Environment\n\n- Claude Code v2.1.79\n- macOS (Darwin 25.3.0, Mac Mini M4)\n- Running in tmux, accessed via Remote Control from multiple devices\n\n## Suggested Approach\n\n1. Persist session state to disk (conversation ID, bridge mapping)\n2. On restart, re-register existing sessions with the bridge service\n3. Clients reconnecting to old session URLs get routed to the restored session\n4. Alternatively, allow `--session-id` flag to pin a stable identifier\n\nThis would make Remote Control viable for always-on server deployments.",
+  "labels": ["enhancement", "area:cli"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-19T16:07:03Z",
+  "updated_at": "2026-05-20T16:30:21Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 3,
+  "author": "youngjin39",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "maticko",
+      "author_association": "NONE",
+      "body": "without this feature, remote-sessions are basically useless as connection gets dropped or process errors way too often and without a user friendly way to resume the session it just makes it unusable",
+      "created_at": "2026-04-09T00:04:43Z"
+    },
+    {
+      "author": "gritse",
+      "author_association": "NONE",
+      "body": "+1, hitting this exact pain point. Running `claude remote-control --name container --remote-control-session-name-prefix container` as an OpenRC service on a headless Alpine VM (supervised by `supervise-daemon` so it auto-restarts on crash). Every supervisor respawn — and every host reboot — produces a brand new session ID; the in-flight conversation on claude.ai/code is unrecoverable, and the old session lingers as \"connected\" until it eventually times out.\n\nThe `--session-id` / `--resume` appro",
+      "created_at": "2026-05-04T12:23:24Z"
+    },
+    {
+      "author": "Snailflyer",
+      "author_association": "NONE",
+      "body": "This issue seems to come down to session identity being tied too tightly to the bridge/session URL rather than to the durable work surface.\n\nFor an official Remote Control fix, the stable thing probably needs to be something like a host/session identity that can be re-registered after process restart, with the old URL either reconnecting or clearly saying which local session can be resumed. Otherwise a headless Mac Mini / tmux setup still has the terminal process and disk state, but the mobile c",
+      "created_at": "2026-05-20T16:29:30Z"
+    }
+  ]
+}

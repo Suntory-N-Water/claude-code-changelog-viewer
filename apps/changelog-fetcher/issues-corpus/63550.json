@@ -1,0 +1,16 @@
+{
+  "number": 63550,
+  "title": "[BUG] Stale \"Pull request status couldn't be checked\" on archived sessions whose repo/worktree was deleted",
+  "body": "## What's Wrong?\n\nA local code session shows a persistent warning: **\"Pull request status couldn't be checked and may be out of date.\"** The session is **archived**, its git **worktree and local repository checkout have been deleted**, and its associated **PR was already merged**. Because the local repo/worktree no longer exist, the app cannot re-run the PR status check, so it displays an un-dismissable stale warning indefinitely.\n\n## What Should Happen?\n\nFor archived sessions (or any session whose working directory / repository no longer exists), the app should either suppress the PR-status check, show a clear terminal state (e.g. \"merged\" or \"repository no longer available\"), or allow dismissing the warning — rather than a permanent \"couldn't be checked\" notice.\n\n## Error Messages/Logs\n\n```\nPull request status couldn't be checked and may be out of date\n```\n\n## Steps to Reproduce\n\n1. Create a local code session that opens a PR from a git worktree.\n2. Merge the PR, then delete the worktree and the local repository checkout.\n3. Archive the session.\n4. The session keeps showing \"Pull request status couldn't be checked and may be out of date,\" with no way to clear it short of deleting the session's metadata file.\n\n## Regression?\nI don't know\n\n## Claude Code Version\n~2.1.156 (Claude Desktop, integrated Claude Code)\n\n## Platform\nAnthropic API\n\n## Operating System\nmacOS\n\n## Terminal/Shell\nOther (Claude Desktop integrated environment)\n\n## Additional Information\n\nRelated to the closed issue `anthropics/claude-code#24834` (\"Footer shows closed/merged PR indicator — should only display open PRs\"). This case differs in that the repo/worktree is gone entirely, so the status is *un-checkable* rather than merely wrong. Workaround: delete the session's local metadata file.\n",
+  "labels": ["bug", "platform:macos", "area:ui", "area:desktop"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-29T07:49:34Z",
+  "updated_at": "2026-05-29T07:50:37Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 0,
+  "author": "BKF-Gitty",
+  "is_maintainer_involved": false,
+  "top_comments": []
+}

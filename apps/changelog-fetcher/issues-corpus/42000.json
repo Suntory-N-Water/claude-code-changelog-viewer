@@ -1,0 +1,29 @@
+{
+  "number": 42000,
+  "title": "[FEATURE] Allow VS Code commands to accept a `prompt` parameter for extension-to-extension integration",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nCurrently, there's no reliable way to programmatically send a prompt to Claude Code from another extension.\n\n**What I tried:**\n- `vscode.commands.executeCommand('claude-vscode.sidebar.open')` - opens the sidebar but accepts no prompt parameter\n- `vscode://anthropic.claude-code/open?prompt=...` -  pre-fills the prompt but always opens a new tab (not the sidebar), and doesn't submit\n- Clipboard workaround - copies the prompt and tells the user to paste. Works, but poor UX\n\n\n\n### Proposed Solution\n\nAdd an optional `prompt` parameter to `claude-vscode.sidebar.open` (and other open commands):\n\n```ts\n// From another VS Code extension:\nawait vscode.commands.executeCommand('claude-vscode.sidebar.open', {\n  prompt: 'Implement the auth module...',\n});\n\n### Alternative Solutions\n\nAlternative would be using an URI option and add the sidebar instead of new tab.\nvscode://anthropic.claude-code/open?prompt=..&location=sidebar\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nDeveloper tools/SDK\n\n### Use Case Example\n\nI'm building a VS Code extension ([TaskPlanner](https://marketplace.visualstudio.com/items?itemName=refined.taskplanner)) that generates task implementation prompts and dispatches them to Claude Code. \nWhen a user clicks \"Implement with AI\" on a task, the extension composes a detailed\nprompt including the task description, priority, tags, and workflow steps, then needs\nto hand it off to Claude Code.\n\n### Additional Context\n\nCursor added this capability in v2.3 (January 2026) after a\n[community request](https://forum.cursor.com/t/a-command-for-passing-a-prompt-to-the-chat/138049).\nVS Code's built-in Copilot Chat also supports it via\n`workbench.action.chat.open` with a `prompt` argument.",
+  "labels": ["enhancement"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-01T12:10:12Z",
+  "updated_at": "2026-04-27T18:44:27Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 2,
+  "author": "refined",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "swasti7",
+      "author_association": "NONE",
+      "body": "This is a major pain point. \n\nI need to programmatically dispatch prompts to Claude, but the URI approach forces a new panel while the sidebar command ignores the prompt argument. I am essentially stalled until the sidebar command supports prompt. ",
+      "created_at": "2026-04-27T06:29:06Z"
+    },
+    {
+      "author": "swasti7",
+      "author_association": "NONE",
+      "body": "Is there a workaround until this is supported?",
+      "created_at": "2026-04-27T17:52:31Z"
+    }
+  ]
+}

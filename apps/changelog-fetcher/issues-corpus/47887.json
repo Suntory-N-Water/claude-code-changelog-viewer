@@ -1,0 +1,22 @@
+{
+  "number": 47887,
+  "title": "[BUG] Cannot paste OAuth auth code in v2.1.107 (regression from v2.1.104)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nPasting text into Claude Code's masked input (OAuth auth code prompt) does not work in v2.1.107. The paste is silently dropped — nothing appears in the input field. Regular bash paste (Cmd+V) works fine before and after launching Claude Code.\nDowngrading to v2.1.104 immediately resolves the issue.\n\n### What Should Happen?\n\nPasting the OAuth auth code should insert the text into the masked input field.\n\n\n\nSuspected cause:\nThe v2.1.107 changelog mentions \"Fixed masked input (e.g., OAuth code paste) leaking the start of the token when wrapping across multiple lines on narrow terminals\" — this change likely broke paste in Docker TTY environments.\nClaude Code Version: 2.1.107 (broken), 2.1.104 (works)\nPlatform: Linux (Ubuntu 24.04 in Docker on macOS)\nOperating System: Ubuntu 24.04\nTerminal/Shell: Bash / iTerm2\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nRun an Ubuntu 24.04 Docker container with Claude Code v2.1.107 (native installer)\nLaunch claude — it prompts for OAuth login\nOpen the auth URL in a browser, copy the auth code\nAttempt to paste (Cmd+V) into the auth code prompt\nNothing is pasted. Input stays empty.\nnpm install -g @anthropic-ai/claude-code@2.1.104 → paste works again.\n\nEnvironment:\n\nHost: macOS (Apple Silicon), iTerm2\nContainer: Ubuntu 24.04 (Docker Desktop)\nDocker run flags: docker run -it\nAlso reproduced with docker exec -it\nTerminal: iTerm2, TERM=xterm\n\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.104\n\n### Claude Code Version\n\n2.1.107\n\n### Platform\n\nOther\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "duplicate",
+    "platform:linux",
+    "area:tui",
+    "area:auth",
+    "regression"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-04-14T11:32:48Z",
+  "updated_at": "2026-04-24T14:53:28Z",
+  "closed_at": "2026-04-16T16:05:24Z",
+  "reactions_total": 14,
+  "comments_count": 6,
+  "author": "pd-alex",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

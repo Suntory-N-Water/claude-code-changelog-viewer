@@ -1,0 +1,35 @@
+{
+  "number": 28999,
+  "title": "Expose /usage subscription quota data in statusLine JSON payload",
+  "body": "## Problem\n\nThe `/usage` REPL command shows subscription plan quota (daily limit, remaining messages, rate limit status) for Claude Max/Pro subscribers. However, this data is **not included** in the JSON payload piped to the `statusLine` command.\n\nThis means there is no way to display subscription usage in the status line, even though Claude Code already has internal access to this data.\n\n## Current workaround\n\nUsers have to open the Claude Desktop App or run `/usage` interactively to check their remaining quota. This is inconvenient and — in the case of the Desktop App — can cause `.claude.json` corruption due to concurrent file writes from both processes (see #3847 or similar).\n\n## Requested fields in statusLine JSON\n\n```json\n{\n  \"usage\": {\n    \"daily_messages_used\": 42,\n    \"daily_messages_limit\": 100,\n    \"daily_remaining_percentage\": 58,\n    \"rate_limit_reset_at\": \"2025-02-26T14:00:00Z\",\n    \"plan\": \"max_5x\"\n  }\n}\n```\n\n(Field names are suggestions — any structured representation would work.)\n\n## Why this matters\n\n- The statusLine feature is designed for at-a-glance session info\n- Subscription quota is the #1 thing users want to monitor continuously\n- Without it, users resort to keeping the Desktop App open alongside CLI, which causes file contention on `~/.claude.json`\n\n## Environment\n\n- Windows 11, Claude Code CLI v2.1.59\n- Claude Max subscription\n- Using `statusLine` with jq filter",
+  "labels": ["enhancement", "area:cost", "area:statusline"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-02-26T13:36:44Z",
+  "updated_at": "2026-05-04T15:03:35Z",
+  "closed_at": "2026-04-26T00:27:22Z",
+  "reactions_total": 40,
+  "comments_count": 15,
+  "author": "mat9922",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "pa-create-19931007",
+      "author_association": "NONE",
+      "body": "Feature request: Please expose Pro plan quota/usage data (5-hour session limit and weekly limit remaining) in Stop hook JSON payload or statusLine JSON.\n\nCurrently, the Stop hook JSON contains no fields for subscription usage data (daily_messages_used, weekly_remaining, rate_limit_reset_at, etc.), making it impossible to build hooks that automatically trigger session wrap-up logic before hitting usage limits.\n\nOur use case: We need a Stop hook to detect when approaching the 5-hour or weekly Pro ",
+      "created_at": "2026-03-02T14:27:59Z"
+    },
+    {
+      "author": "TKMD",
+      "author_association": "NONE",
+      "body": "I'm using Claude Max (20x) on Linux with a tmux-based system monitoring dashboard. I wanted to keep `/usage` rate limit info visible at all times alongside docker stats, nvidia-smi, and htop.\n\nSince statusLine JSON doesn't include utilization data, I wrote a shell script that polls the undocumented OAuth usage endpoint every 60 seconds and renders the 5h/7d percentages as bars in a tmux pane:\n\n<img width=\"1920\" height=\"1080\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/0c73446a-d2",
+      "created_at": "2026-03-02T19:36:01Z"
+    },
+    {
+      "author": "BareTread",
+      "author_association": "NONE",
+      "body": "## Consolidation: 10+ duplicate issues requesting this exact feature\n\nThis issue captures the ask well, but it's worth highlighting how fragmented the demand has become. Here are **all the open issues** requesting quota/usage data in the statusLine JSON:\n\n| Issue | Title | Filed |\n|-------|-------|-------|\n| #18121 | Expose rate limit/session usage data to statusLine configuration | Jan 29 |\n| #22731 | Feature: Expose account usage/quota data to statusline | Feb 5 |\n| #23843 | Expose rate limit ",
+      "created_at": "2026-03-06T08:58:57Z"
+    }
+  ]
+}

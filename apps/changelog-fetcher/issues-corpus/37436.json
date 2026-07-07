@@ -1,0 +1,41 @@
+{
+  "number": 37436,
+  "title": "[BUG] MAX100 subscription - abnormal quota consumption and rate_limit_error with multi-session Claude Code",
+  "body": "## Description\n\nMAX100 subscriber experiencing abnormal 5-hour quota consumption and rate_limit_error when running multiple Claude Code sessions simultaneously.\n\n## Environment\n- Plan: Claude MAX100\n- Claude Code version: 2.1.81\n- OS: Windows 11 Pro\n- Sessions: 5 concurrent Claude Code sessions (VS Code terminals)\n\n## Issue 1: Abnormal Quota Consumption\n- Previous 5-hour quota period: 45% consumed in 45 minutes\n- Current 5-hour quota period: 23% → 32% within minutes of starting sessions, with NO active work being done\n- Sessions were idle (no prompts submitted, no tool calls)\n\n## Issue 2: Rate Limit Error on /usage\n```\nError: Failed to load usage data: \n{\"error\":{\"type\":\"rate_limit_error\",\"message\":\"Rate limited. Please try again later.\"}}\n```\nThis occurred immediately after session startup, with no active work.\n\n## Expected Behavior\n- Idle sessions should not consume significant quota\n- 5 concurrent sessions should be supported for MAX100 plan\n- /usage should not return rate_limit_error\n\n## Steps to Reproduce\n1. Open 5 Claude Code sessions in VS Code (different project directories)\n2. Run `/start-agent-chat-loop` in each (registers agent + starts background watcher)\n3. Observe quota rapidly increasing without any work\n4. Run `/usage` → rate_limit_error\n\n## Additional Context\n- Each session has MCP servers (agent-chat, memory, supabase, context7)\n- Background watcher (watch.py) polls SQLite locally, not API\n- This pattern worked fine in previous quota periods with similar setup",
+  "labels": [
+    "bug",
+    "platform:windows",
+    "area:cost",
+    "area:mcp",
+    "platform:vscode"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-22T13:11:51Z",
+  "updated_at": "2026-06-21T14:55:55Z",
+  "closed_at": "2026-05-02T22:19:00Z",
+  "reactions_total": 3,
+  "comments_count": 11,
+  "author": "sinjaeya",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/1935\n2. https://github.com/anthropics/claude-code/issues/36669\n3. https://github.com/anthropics/claude-code/issues/32503\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-22T13:16:05Z"
+    },
+    {
+      "author": "Another-Joe",
+      "author_association": "NONE",
+      "body": "I'm having the same issue. After a recent forced reauthorization, my consumption rate is at least 4x what it was. I almost never approached my 5 hr limit, but now limit out in 1.5-2 hrs every time. I tried killing everything because it was showing me using API (though I have API off) instead of MAX. That made it show me using MAX again, but the burn rate is still massive. I'm getting phantom windows flash now too, as well as a terminal window opening at times for up to about 10 seconds before cl",
+      "created_at": "2026-03-22T19:20:39Z"
+    },
+    {
+      "author": "rodvivanco",
+      "author_association": "NONE",
+      "body": "Since yesterday, token/usage consumption has become severely abnormal. Simple instructions that previously consumed 2-4% of the 5-hour limit are now consuming 10-15%. ",
+      "created_at": "2026-03-23T18:15:07Z"
+    }
+  ]
+}

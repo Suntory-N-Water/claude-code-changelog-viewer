@@ -1,0 +1,35 @@
+{
+  "number": 9666,
+  "title": "[BUG] : fresh native installation raise warning about npm",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI've removed Claude code and related files entirely from my computer (macOS 26).\n\nThen I've installed Claude code using\n\n```\ncurl -fsSL https://claude.ai/install.sh | bash\n```\n\nSo I'm expecting a clean single installation, but when running `claude doctor`, I get \n```\n claude doctor\n\n Diagnostics\n └ Currently running: native (2.0.19)\n └ Path: /Users/simo/.local/bin/claude\n └ Invoked: /Users/simo/.local/share/claude/versions/2.0.19\n └ Config install method: native\n └ Auto-updates enabled: default (true)\n └ Search: OK (bundled)\n Warning: Multiple installations found\n └ npm-global at /Users/simo/.local/bin/claude\n └ native at /Users/simo/.local/bin/claude\n Warning: Leftover npm global installation at /Users/simo/.local/bin/claude\n Fix: Run: npm -g uninstall @anthropic-ai/claude-code\n\n Press Enter to continue…\n```\n\nThe file at `/Users/simo/.local/bin/claude` is a symlink to the `/Users/simo/.local/share/claude/versions/2.0.19`, however Claude doctor thinks that this is a NPM installation. I think this is a bug.\n\n### What Should Happen?\n\nNo warning\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\ndescribe above\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.19\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:packaging"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-16T15:22:07Z",
+  "updated_at": "2026-06-08T09:10:04Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 19,
+  "author": "S1M0N38",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/8523\n2. https://github.com/anthropics/claude-code/issues/7231\n3. https://github.com/anthropics/claude-code/issues/3199\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-16T15:29:53Z"
+    },
+    {
+      "author": "FLGAI",
+      "author_association": "NONE",
+      "body": "  Claude Code's claude update command incorrectly identifies Homebrew cask\n  installations as npm global installations. When both native and Homebrew\n  cask are installed, it warns about a \"leftover npm global installation\" at\n   /opt/homebrew/bin/claude and suggests running npm -g uninstall\n  @anthropic-ai/claude-code, but no npm package exists. The detection logic\n  should check if the path is actually an npm installation versus a Homebrew\n   cask symlink.\n\nThen when I run claude doctor:\n Diag",
+      "created_at": "2025-11-10T13:39:33Z"
+    },
+    {
+      "author": "oskay",
+      "author_association": "NONE",
+      "body": "## Confirming FLGAI's Report: Homebrew Cask Misdetected as npm-global\n\nI can confirm the same issue that FLGAI reported above. The Homebrew cask installation is incorrectly identified as an npm global installation.\n\n### My Environment\n- **Claude Code Version**: 2.0.46 (native auto-updated) + 2.0.31 (Homebrew cask)\n- **Installation Method**: Originally installed via `brew install --cask claude-code`\n- **OS**: macOS (Darwin 23.6.0)\n- **Platform**: Apple Silicon (Homebrew at /opt/homebrew)\n\n### The",
+      "created_at": "2025-11-19T13:57:08Z"
+    }
+  ]
+}

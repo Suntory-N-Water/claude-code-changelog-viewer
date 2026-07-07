@@ -1,0 +1,35 @@
+{
+  "number": 22319,
+  "title": "Claude Desktop: MCP tool calls shown in UI but never sent to server",
+  "body": "## Description\nClaude Desktop shows tool calls in the UI (spinner appears) but the `tools/call` JSON-RPC message is never sent to the MCP server. The server initializes correctly and responds to `tools/list`, but tool calls never arrive.\n\n## Environment\n- macOS Darwin 25.2.0\n- Claude Desktop (latest as of Jan 31, 2026)\n- Custom Python MCP server using `mcp` SDK v1.26.0\n\n## Steps to Reproduce\n1. Configure a custom Python MCP server in `claude_desktop_config.json`\n2. Restart Claude Desktop - server initializes successfully\n3. Ask Claude to use one of the server's tools\n4. UI shows the tool being called (spinner appears)\n5. Tool call never reaches the server\n\n## Evidence from Logs\n\nServer initializes and lists tools successfully:\n```\n[mcp-gmail] Module starting...\n[mcp-gmail] stdio_server connected, running server...\n[mcp-gmail] list_tools called\nMessage from server: {\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[...]}}\n```\n\nBut no `tools/call` message ever appears in logs. Another MCP server (`projects`, similar Python setup) DOES receive tool calls correctly.\n\n## Workaround\nRunning the same MCP server code directly via CLI works perfectly - the issue is specific to Claude Desktop's tool call routing.\n\n## Additional Context\n- Tried multiple config formats (module vs direct script)\n- Tried with only the affected server enabled\n- Server works perfectly when tested independently\n- Other MCP servers (projects) receive tool calls fine",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-01T05:26:27Z",
+  "updated_at": "2026-02-10T14:39:19Z",
+  "closed_at": "2026-02-03T03:08:04Z",
+  "reactions_total": 26,
+  "comments_count": 9,
+  "author": "eugeniawang",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22299\n2. https://github.com/anthropics/claude-code/issues/2682\n3. https://github.com/anthropics/claude-code/issues/14807\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-01T05:30:38Z"
+    },
+    {
+      "author": "sonofsmog",
+      "author_association": "NONE",
+      "body": "It’s the same on Windows. On my home machine and a second remote machine running a different version of Claude Desktop that I haven’t touched since Thursday, so somehow it’s server-side.",
+      "created_at": "2026-02-01T06:02:49Z"
+    },
+    {
+      "author": "dsarno",
+      "author_association": "NONE",
+      "body": "Agree, this is a serious regression in Claude Desktop around MCPs.  Here's a growing reddit thread about it.\n\nhttps://www.reddit.com/r/ClaudeAI/comments/1qsdq58/claude_desktop_new_mcp_ui_bug_tools_freeze_until/\n\nImage shows un-sent MCP tool call.\n\n<img width=\"620\" height=\"182\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/c06318e1-a079-43ec-9ecf-e64a3f11ebbb\" />",
+      "created_at": "2026-02-01T19:22:53Z"
+    }
+  ]
+}

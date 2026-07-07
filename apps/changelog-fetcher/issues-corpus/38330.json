@@ -1,0 +1,35 @@
+{
+  "number": 38330,
+  "title": "[BUG] 5-Hour Rate Limit Exhaustion Accelerating Despite Comparable Workload",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe 5-hour rate limit is being exhausted 3x faster today compared to previous days with comparable workloads. This represents a service degradation that violates expected usage patterns and contractual rate limit behavior.\nEvidence of Acceleration\nDate \tTotal Requests \tInput Tokens \t5h Exhaustion Events \tTime to First Exhaustion\n2026-03-21 \t~900 \t~3M \t0 \tN/A\n2026-03-22 \t~900 \t~3M \t0 \tN/A\n2026-03-23 \t908 \t3,402,759 \t0 \tN/A\n2026-03-24 \t936 (+3.1%) \t4,169,220 (+22.5%) \t3 \t~4.5 hours\n\nKey Finding: A 3-23% workload increase should not cause infinite → 4.5 hour exhaustion time.\nRate Limit Exhaustion Log\n\n2026/03/24 13:39:46  5h=100.0%  7d=15.0%  → 429 Too Many Requests \n2026/03/24 16:02:48  5h=100.0%  7d=24.0%  → 429 Too Many Requests \n2026/03/24 16:34:37  5h=100.0%  7d=24.0%  → 429 Too Many Requests  \n\n5h Window Progression (2026-03-24)\nTime (UTC) \t5h% \tTime Since Reset\n09:24:19 \t1.0% \t—\n10:09:42 \t11.0% \t—\n13:39:46 \t100.0% \t4h 15m\n15:11:09 \t57.0% (reset) \t—\n16:02:48 \t100.0% \t51m\n\nThe 5h window reset and re-exhausted in 51 minutes.\nCache Efficiency Degradation\nDate \tCache Creation Tokens \tvs Input Ratio\n2026-03-23 \t5,698,495 \t1.68x\n2026-03-24 \t7,287,796 \t1.75x\nSame workload burning 28% more cache creation tokens, accelerating rate limit exhaustion.\nBreach of Service Agreement\nIssue: Unilateral Service Degradation\n\nThe acceleration of rate limit exhaustion represents a material change to service behavior without:\n\n    Advance notice to users\n    Documentation updates\n    Corresponding workload increase to justify the change\n\nQuantified Impact\nMetric \t2026-03-23 \t2026-03-24 \tDelta\n5h exhaustions \t0 \t3 \t∞ increase\nHours of service \t~24 \t~7 (cumulative) \t-71%\nCache creation tokens \t5.7M \t7.3M \t+28%\nCost efficiency \tBaseline \tDegraded \tUnknown excess cost\nRequest for Recompensation\n\nWe request the following:\n\n    Credit for service downtime: 3 complete 5h window exhaustions = ~15 hours of unavailable service capacity\n\n    Refund for excess token burn: 7.3M vs expected ~6M cache creation tokens = ~1.3M excess tokens at published rates\n\n    Investigation commitment: Acknowledgment of this issue and timeline for fix\n\n    Transparency: Explanation of what changed between 2026-03-23 and 2026-03-24 to cause this acceleration\n\n\n### What Should Happen?\n\nExpected Behavior (Contractual)\n\n    Consistent Rate Limit Behavior: The 5h rate limit should exhibit consistent exhaustion timing for comparable workloads, absent documented service changes.\n\n    Documented Thresholds: Rate limit behavior should match published documentation. Acceleration of ~28% in token burn rate without corresponding workload increase suggests a service-side issue.\n\n    Graceful Degradation: If rate limits change, users should receive advance notice or documentation updates.\n\nActual Behavior (Breach)\nAspect \tExpected \tActual\nExhaustion timing \t~12-24h for this workload \t4.5h, then 51m\nConsistency day-over-day \tSimilar exhaustion pattern \t0 → 3 exhaustions\nCache efficiency \tStable ratio to input tokens \t+28% increase\n\n### Error Messages/Logs\n\n```shell\n2026/03/24 13:39:46. [UPSTREAM] /v1/messages 429 Too Many Requests\n{\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your account's rate limit. Please try again later.\"},\"request_id\":\"req_\"}\n\n\n2026/03/24 16:02:48. [UPSTREAM] /v1/messages 429 Too Many Requests\n{\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your account's rate limit. Please try again later.\"},\"request_id\":\"req_\"}\n\n\n2026/03/24 16:34:37. [UPSTREAM] /v1/messages 429 Too Many Requests\n{\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your account's rate limit. Please try again later.\"},\"requ",
+  "labels": ["invalid", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-24T17:12:02Z",
+  "updated_at": "2026-05-22T11:09:10Z",
+  "closed_at": "2026-05-22T11:09:10Z",
+  "reactions_total": 6,
+  "comments_count": 13,
+  "author": "ghost",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ghost",
+      "author_association": "NONE",
+      "body": "Im moving to codex, at least they are honest about selling out and their infra actually works. Anthropic has had nothing but useless quota and models that only work in the first few days after they are published.",
+      "created_at": "2026-03-24T17:19:48Z"
+    },
+    {
+      "author": "blackdiamond6390",
+      "author_association": "NONE",
+      "body": "Same issue here!",
+      "created_at": "2026-03-24T22:08:01Z"
+    },
+    {
+      "author": "vatsalbrighttechnosolutions",
+      "author_association": "NONE",
+      "body": "Yeah Same issue faced!",
+      "created_at": "2026-03-25T13:08:41Z"
+    }
+  ]
+}

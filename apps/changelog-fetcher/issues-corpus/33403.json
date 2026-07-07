@@ -1,0 +1,35 @@
+{
+  "number": 33403,
+  "title": "[BUG] slash command /btw shown in   tips but returns 'Unknown skill' when feature flag isn't enabled.",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nCC actually found the problem:\n\nif((Zn()||zG()&&(aH(process.env.CLAUDE_CODE_BRIEF)||XA(\"tengu_kairos_brief\",!1)))&&A&&!L)                            \n                                                                                                      \n  The /btw feature is gated behind a feature flag called tengu_kairos_brief. It checks either:                         \n  - An environment variable CLAUDE_CODE_BRIEF is set, OR                                                             \n  - A server-side feature flag tengu_kairos_brief is enabled for your account                                          \n\n  It's likely being rolled out gradually and your account hasn't been flagged yet.\n\nThe UI bug: the tips show that /btw is available, but it is advertising a feature that's still gated behind tengu_kairos_brief for your account. The hints are probably hardcoded in the binary without checking the feature flag.    \n\n### What Should Happen?\n\n/btw should be available, but it's not, even though it's advertised as available in the tips\n\n### Error Messages/Logs\n\n```shell\nUnknown skill: btw\n```\n\n### Steps to Reproduce\n\nUse /btw during a long / multi-step process\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nv2.1.73\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "duplicate", "platform:linux", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-11T22:58:32Z",
+  "updated_at": "2026-04-26T14:30:28Z",
+  "closed_at": "2026-04-17T22:20:03Z",
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "sartoriusrex",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "miekassu",
+      "author_association": "NONE",
+      "body": "Additional finding: `DISABLE_TELEMETRY` env var prevents feature flag resolution            \n\nI can confirm this is related to feature flag fetching. In my case, `/btw` works in some\nproject directories but not others. After isolating variables:\n\nRoot cause: Setting `DISABLE_TELEMETRY` in `.claude/settings.json` env config prevents the server-side feature flag from being fetched, so `/btw` is never enabled.\n\nReproduction:\n\n```\n// .claude/settings.json — /btw does NOT work\n{\n  \"env\": {\n    \"DISAB",
+      "created_at": "2026-03-12T03:53:00Z"
+    },
+    {
+      "author": "tumes",
+      "author_association": "NONE",
+      "body": "This is wild and borderline unconscionable, the mechanism for managing feature flags and having to opt in to telemetry should not be linked.",
+      "created_at": "2026-03-12T06:57:24Z"
+    },
+    {
+      "author": "masta79",
+      "author_association": "NONE",
+      "body": "It's not related to DISABLE_TELEMETRY but as soon as any environment variable is set, btw will not work. Seems like there is a broken feature flag check. Removing env from .claude/settings.json fixes the issue for me.",
+      "created_at": "2026-03-12T16:06:46Z"
+    }
+  ]
+}

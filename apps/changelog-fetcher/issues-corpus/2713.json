@@ -1,0 +1,35 @@
+{
+  "number": 2713,
+  "title": "Claude Code logs partial keystrokes and stores plaintext emails in ~/.claude.json",
+  "body": "Claude Code is actively capturing and storing highly sensitive user input, including partial and unsent keystrokes, alongside plaintext OAuth account metadata (email, user IDs, organization IDs), all within its ~/.claude.json file. This behavior has been specifically verified on Windows Subsystem for Linux (WSL) environments.\n\nThe ~/.claude.json file grows indefinitely, creating an unencrypted, detailed log of user interactions and sensitive information. The OAuth metadata storage is particularly egregious as it's completely unnecessary after initial authentication - the app remains logged in even when this data is removed, meaning user emails are being stored alongside partial keystrokes for no functional reason.\n\nFor a full technical breakdown, and a temporary mitigation script, please see my claude-privacy-cleaner repository.",
+  "labels": ["bug", "platform:linux", "area:core", "area:security"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-29T05:06:35Z",
+  "updated_at": "2026-01-28T14:19:17Z",
+  "closed_at": "2026-01-21T10:13:20Z",
+  "reactions_total": 6,
+  "comments_count": 14,
+  "author": "mBZfeOYVzwwl",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mBZfeOYVzwwl",
+      "author_association": "NONE",
+      "body": "Following up on this issue with some more precise observations about the keystroke logging behavior, which might help in pinpointing the exact cause:\n\nIntermittent Nature: I've noticed the logging of partial/deleted input is somewhat intermittent and not every single keystroke.\n\nCharacter Threshold: It seems to primarily trigger only after typing approximately 20 characters or more, even if those characters are subsequently deleted.\n\nCtrl+L Correlation: Critically, I've observed that the logging",
+      "created_at": "2025-06-29T06:30:20Z"
+    },
+    {
+      "author": "mBZfeOYVzwwl",
+      "author_association": "NONE",
+      "body": "Here are highly targeted and obfuscated examples directly from the `.claude.json` configuration file, illustrating specific points about the data collected by Claude Code.\n\n### 1. **Logging of Every Prompt (including partial keystrokes)**\n\nThis snippet demonstrates how Claude Code records every prompt, including incomplete or partial user input, which functions as a form of keystroke logging. This specifically shows how the tool logs when a user types a partial thought, changes their mind, and t",
+      "created_at": "2025-06-29T19:22:29Z"
+    },
+    {
+      "author": "mBZfeOYVzwwl",
+      "author_association": "NONE",
+      "body": "I've confirmed it on Mac OS as well. This appears systemic. This requires immediate attention. It is the ctrl l that logs the deleted prompt draft. The fact that prompts are being saved in plaintext along with your email address is bad enough. But it is also logging partial prompt drafts which is essentially a partial keystroke logger.",
+      "created_at": "2025-06-30T20:53:19Z"
+    }
+  ]
+}

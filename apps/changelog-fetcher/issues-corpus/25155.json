@@ -1,0 +1,35 @@
+{
+  "number": 25155,
+  "title": "[BUG] Cowork Windows - VM boots but cannot reach Claude API (Windows 10 Pro, Hyper-V)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Environment:**\n- Claude Desktop: 1.1.2685 (MSIX/Windows Store)\n- OS: Windows 10 Pro\n- Hyper-V: Enabled (full, not Home edition)\n- VPN software installed: Yes (was fully stopped during testing)\n- Docker Desktop: Installed but stopped\n\n**Problem:**\nCowork consistently fails with \"Failed to start Claude's workspace — Can't reach the Claude API from Claude's workspace.\" The Cowork Hyper-V VM boots and connects to the host over `vEthernet (cowork-vm-nat)` on 172.16.0.0/24, but cannot reach the external internet to contact `api.anthropic.com`. Regular Chat mode works perfectly.\n\n**Root cause investigation:**\n1. The app creates an HNS network (`cowork-vm-nat`, type: NAT, subnet: 172.16.0.0/24, gateway: 172.16.0.1) but does NOT create a corresponding WinNAT rule (`Get-NetNat` returns empty).\n2. IP Forwarding is NOT enabled on `vEthernet (cowork-vm-nat)`.\n3. Without NAT + forwarding, the VM can reach the host but has no route to the internet.\n4. Manually creating the NAT rule (`New-NetNat`) and enabling forwarding does not persist — the app recreates the HNS network on restart without the WinNAT rule.\n5. The host machine can reach `api.anthropic.com` without issues (port 443, DNS, TLS all verified).\n\n### What Should Happen?\n\nThe app should create both the HNS network AND the corresponding WinNAT rule (`New-NetNat`), and enable IP forwarding on the `vEthernet (cowork-vm-nat)` virtual adapter. The Cowork VM should be able to reach `api.anthropic.com` through the host's internet connection.\n\n### Error Messages/Logs\n\n```shell\nFrom cowork_vm_node.log — every startup attempt shows this pattern:\n\n[VM] Network status: NOT_CONNECTED\n[VM:network] Not connected, will show error in 30000ms if not resolved\n[VM] Network status: CONNECTED\n[VM] API reachability: PROBABLY_UNREACHABLE\n[VM] API reachability: UNREACHABLE\n[VM:network] API is unreachable\n\nNetwork diagnostics from host:\n- Get-NetNat returns empty (no WinNAT rule exists)\n- Get-NetIPInterface shows Forwarding=Disabled on vEthernet (cowork-vm-nat)\n- Get-HnsNetwork shows cowork-vm-nat exists (type: NAT, 172.16.0.0/24) but without WinNAT backing\n- Host can reach api.anthropic.com on port 443 (TLS succeeds, DNS resolves)\n```\n\n### Steps to Reproduce\n\n1. Install Claude Desktop (MSIX/Windows Store) on Windows 10 Pro with Hyper-V enabled\n2. Open Claude Desktop and navigate to Cowork\n3. Attempt any task in Cowork\n4. Observe \"Failed to start Claude's workspace — Can't reach the Claude API from Claude's workspace\"\n5. Verify host can reach api.anthropic.com (it can)\n6. Check `Get-NetNat` in admin PowerShell — returns empty\n7. Check `Get-HnsNetwork` — shows cowork-vm-nat exists as type NAT but no WinNAT backing\n8. Check `Get-NetIPInterface -InterfaceAlias \"vEthernet (cowork-vm-nat)\"` — Forwarding=Disabled\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.34 (Claude Code in Cowork VM) / Claude Desktop 1.1.2685 (MSIX)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\nThis appears to be a Day 1 issue with Cowork on Windows (launched Feb 10, 2026). Possibly related to #24918.\n\nManually creating the NAT rule and enabling forwarding via admin PowerShell temporarily allows the VM to work, but Claude Desktop recreates the HNS network on restart without re-establishing the WinNAT rule, so the fix does not persist.\n\nVPN software (ExpressVPN) was installed but fully stopped during all testing — same result with or without it running.",
+  "labels": ["bug", "has repro", "platform:windows", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-12T02:05:03Z",
+  "updated_at": "2026-03-05T14:31:16Z",
+  "closed_at": "2026-02-26T01:29:09Z",
+  "reactions_total": 7,
+  "comments_count": 12,
+  "author": "Mike-core",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24945\n2. https://github.com/anthropics/claude-code/issues/24962\n3. https://github.com/anthropics/claude-code/issues/25088\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-12T02:08:21Z"
+    },
+    {
+      "author": "Josh-boxIT",
+      "author_association": "NONE",
+      "body": "I have a client that is also running into this issue. From his claude.ai-web.log:\n\n`2026-02-12 10:41:10 [error] Connecting to 'https://a-api.anthropic.com/v1/m' violates the following Content Security Policy directive: \"connect-src 'self' https://api.segment.io https://.segment.io https://.segment.com https://a-cdn.anthropic.com https://.google.com https://.facebook.com https://.facebook.net https://.doubleclick.net\". The action has been blocked.`",
+      "created_at": "2026-02-12T21:19:52Z"
+    },
+    {
+      "author": "btoaldas",
+      "author_association": "NONE",
+      "body": "Mismo problema, intentando resolver con Claude Code me dice que es el conflicto con Docker Desktop que quieren utilizar los mismos recursos",
+      "created_at": "2026-02-13T02:31:04Z"
+    }
+  ]
+}

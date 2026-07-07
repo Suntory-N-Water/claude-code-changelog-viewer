@@ -1,0 +1,35 @@
+{
+  "number": 28809,
+  "title": ".claude.json becomes corrupted (Unexpected EOF) during tool use — non-atomic config writes",
+  "body": "## Description\n\nDuring normal tool use (Search, litSearch), `.claude.json` becomes corrupted — JSON parser hits Unexpected EOF, indicating the file was truncated mid-write.\n\n## Reproduction\n\n1. Run Claude Code on Windows with active tool calls (Search/litSearch)\n2. Config becomes corrupted during or around tool execution / permission prompts\n3. Error: `parse error: Unexpected EOF`\n4. Message: `.claude.json corrupted.<timestamp>`\n5. Auto-backup created at `C:\\Users\\Cassie\\.claude\\backups\\.claude.json.backup.<timestamp>`\n6. Suggested restore command points to wrong path (`C:\\Users\\Cassie\\.claude.json` instead of the actual config location)\n\n## Root Cause (Suspected)\n\nNon-atomic config writes. The file is written in-place rather than using the safe pattern (write temp → fsync → rename). Possible triggers:\n- Permission allowlist updates writing to config mid-operation\n- Concurrent writes from multiple Claude sessions/processes\n- Interruption mid-write (crash, kill, forced stop)\n- Bun crashes (documented 29 times in 30 days on #21576) truncating in-progress writes\n\n## Expected Behavior\n\n- Config writes should be atomic (write to temp file → fsync → rename)\n- Concurrent writes should be locked (file lock or single-writer pattern)\n- Permission prompt updates should not corrupt the config file\n- Restore command should point to the correct path\n\n## Additional Context\n\nThis has occurred multiple times. On Feb 24 (documented on #21576 as repro 22), a Bun crash corrupted `.claude.json` with the same \"JSON Parse error: Unexpected EOF\" — mid-write truncation during crash. The auto-backup system saved us, but without it all user config (permissions, settings, allowlists) would be permanently lost.\n\nThe fact that this also happens during normal tool use (not just crashes) suggests the write pattern itself is unsafe, independent of Bun stability issues.\n\n**Environment:** Claude Code v2.1.58, Windows 11 Pro Build 26200, Bun v1.3.10",
+  "labels": ["bug", "duplicate", "platform:windows", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-26T01:56:40Z",
+  "updated_at": "2026-03-07T14:14:45Z",
+  "closed_at": "2026-02-26T16:45:46Z",
+  "reactions_total": 8,
+  "comments_count": 11,
+  "author": "ThatDragonOverThere",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "## Live Reproduction — Within Minutes of Filing This Issue\n\nReproduced immediately. During a normal tool use (adding a BYPASS_RTH command to ibkr_data_service, running a Python ZMQ one-liner via Bash tool):\n\n1. Task running normally: \"Adding BYPASS_RTH command to ibkr_data_service\" (1m 42s in)\n2. Config corruption hits at ~2m 54s\n3. Error: \\`JSON Parse error: Unexpected EOF\\`\n4. Corrupted file backed up to: \\`C:\\Users\\Cassie\\.claude\\backups\\.claude.json.corrupted.1772070805188\\`\n5. Backup exists",
+      "created_at": "2026-02-26T01:58:13Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28806\n2. https://github.com/anthropics/claude-code/issues/3117\n3. https://github.com/anthropics/claude-code/issues/26717\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-26T02:00:37Z"
+    },
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "## Massive New Evidence: 80+ Corrupted Backups in 1 Week\n\nThe scope of this bug is far worse than initially reported. Investigation of `~/.claude/backups/` reveals:\n\n- **80+ corrupted `.claude.json` files** accumulated Feb 18-25, 2026\n- **Clusters of 10-20 corrupted files within the SAME MINUTE** (e.g., 20:27-20:29 on Feb 25 produced 40+ corrupted files)\n- Corrupted files range from **77 bytes to 11KB** (full valid file is ~11KB) — consistent with truncation at random write positions\n- Auto-reco",
+      "created_at": "2026-02-26T04:55:06Z"
+    }
+  ]
+}

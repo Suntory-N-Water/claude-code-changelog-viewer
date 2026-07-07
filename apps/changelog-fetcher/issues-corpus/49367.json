@@ -1,0 +1,35 @@
+{
+  "number": 49367,
+  "title": "[BUG] 1.3036.0 (cf521c): All Cowork sessions crash with \"exited with code 1\" on macOS - Desktop-to-SDK spawn failure, SDK 2.1.111",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter updating to Claude Desktop 1.3036.0 (cf521c) on 2026-04-16, every Cowork session crashes with \"Claude Code process exited with code 1\" approximately 3 seconds after starting. The crash occurs after the VM instance is assigned and the session transitions to running, but before any first response. The Claude Code process dies silently with no stderr output, no CSP violations, and no VM boot errors visible in main.log.\nTiming correlates with the Opus 4.7 release earlier today, though the crash reproduces across all models (Opus 4.7, Opus 4.6, Sonnet 4.6), so it's not model-specific.\n\n### What Should Happen?\n\nCowork sessions should start and respond to messages.\n\n### Error Messages/Logs\n\n```shell\nFrom ~/Library/Logs/Claude/main.log:\n2026-04-16 14:45:10 [info] [LocalAgentModeSessionManager] SDK version 2.1.111 will be used\n2026-04-16 14:45:10 [info] Using Claude VM spawn function for session\n2026-04-16 14:45:10 [info] [Lifecycle] Session local_38cf1389...: initializing → running\n2026-04-16 14:45:11 [error] Session local_38cf1389... query error: Claude Code process exited with code 1\n2026-04-16 14:45:11 [info] [Lifecycle] Session local_38cf1389...: running → idle\n2026-04-16 14:45:11 [info] [CycleHealth] Unhealthy cycle: {\n  session_id: 'local_38cf1389-ef67-4b00-be9e-b9ad6c431520',\n  vm_instance_id: '699449a1-66d4-4725-b31a-6256cf3df68c',\n  model: 'claude-opus-4-7[1m]',\n  cycle_health: 'unhealthy',\n  had_first_response: false,\n  seconds_to_outcome: 3,\n  is_resume: false,\n  unhealthy_reason: 'system_error',\n  error_message: 'Claude Code process exited with code 1',\n  error_category: 'process_crashed'\n}\n```\n\n### Steps to Reproduce\n\nUpdate to Claude Desktop 1.3036.0 (cf521c) on macOS\nOpen Cowork\nStart any new session (or resume an existing one) with any model\nObserve crash within ~3 seconds\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.86 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nTroubleshooting already attempted (no effect):\n\nFull quit and relaunch\nSign out and sign back in\nHelp -> Troubleshooting -> Clear Cache and Restart\nReproduces across Opus 4.7, Opus 4.6, and Sonnet 4.6\nReproduces on both new and resumed sessions",
+  "labels": ["duplicate", "platform:macos", "area:cowork"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-04-16T18:54:15Z",
+  "updated_at": "2026-04-24T14:56:00Z",
+  "closed_at": "2026-04-17T02:23:03Z",
+  "reactions_total": 7,
+  "comments_count": 21,
+  "author": "git-acct-1",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "paul-a-lebrun-nodal",
+      "author_association": "NONE",
+      "body": "Duplicate of this: https://github.com/anthropics/claude-code/issues/49358",
+      "created_at": "2026-04-16T18:55:11Z"
+    },
+    {
+      "author": "shuberhuber",
+      "author_association": "NONE",
+      "body": "Having same issue:  \n\nClaude Code version: 2.1.31\nmacOS version: 26.3.1\nThe exact error: “Claude Code process exited with code 1”",
+      "created_at": "2026-04-16T19:00:48Z"
+    },
+    {
+      "author": "taylorzipp",
+      "author_association": "NONE",
+      "body": "Confirming I'm hitting the same bug, also today (2026-04-16), also on macOS, also immediately after the Claude Desktop update.\nSame fingerprint in my logs:\n\nSDK version 2.1.111\nModel: claude-opus-4-7\n\"Using Claude VM spawn function for session\"\nLifecycle: initializing → running → Claude Code process exited with code 1\nhad_first_response: false, seconds_to_outcome: 2, unhealthy_reason: system_error, error_category: process_crashed\n\nRelevant log excerpt:\n2026-04-16 11:48:55 [info] [LocalAgentModeS",
+      "created_at": "2026-04-16T19:01:42Z"
+    }
+  ]
+}

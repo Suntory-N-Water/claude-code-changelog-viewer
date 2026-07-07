@@ -1,0 +1,35 @@
+{
+  "number": 46767,
+  "title": "[BUG] Tool results silently dropped with \"missing due to internal error\" across all tools on Windows (regression in 2.1.101)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Summary\n\nClaude Code 2.1.101 on Windows 11 (native installer) silently drops tool results\nfor a significant fraction of tool calls. The dropped results surface to the\nmodel as `\"Tool result missing due to internal error\"` — a wrapper-level failure,\nnot a tool-level error. It affects every tool I've exercised: Bash, Glob, Read,\nWrite, WebFetch. Three days of productivity lost so far; ~7-8 dropped results\nin a single working day.\n\n## Environment\n\n- **Version:** 2.1.101 (latest on npm as of 2026-04-11)\n- **OS:** Windows 11 Pro 10.0.26200\n- **Install method:** native (`~/.local/bin/claude.exe`, versions at `~/.local/share/claude/versions/`)\n- **Shell:** Git Bash\n- **autoUpdatesChannel:** `latest`\n- Configured `\"autoUpdates\": false` in `.claude.json` did NOT prevent the upgrade\n  to 2.1.101 (native installer appears to ignore this field; only\n  `env.DISABLE_AUTOUPDATER` in `settings.json` is honored).\n\n## Symptom\n\nTool call → immediate return with `\"Tool result missing due to internal error\"`.\nNo stall, no hang, no timeout. The tool either never ran or ran but its result\nwas discarded on the way back to the model. Model then has no result to continue\nfrom and has to retry or the session must be reset.\n\nDistributed across tools — not a single-tool regression:\n- `Bash ls` — failed\n- `Glob` — failed (cross-drive and same-drive)\n- `Write` — failed (also confirmed the side effect did not occur)\n- `WebFetch` to `https://registry.npmjs.org/@anthropic-ai/claude-code` — failed\n  (happened *live while I was diagnosing this very bug*)\n\n## Scoping data\n\nI ran a scan over 163 session transcripts at `~/.claude/projects/<proj>/*.jsonl`\nfor the 8-day window 2026-04-04 through 2026-04-11, searching for the\n`\"missing due to internal error\"` wrapper string.\n\n**Result: the wrapper error appears in exactly 2 session files, BOTH on\n2026-04-11 — the day 2.1.101 landed on the machine.** Versions present in\ntranscripts earlier in the week (2.1.84, 2.1.85, 2.1.86, 2.1.92) do not show\nthe pattern.\n\nOne affected session had 5 of 15 tool_use blocks with no matching tool_result\n(33% drop rate).\n\n## Suspected cause\n\nThe 2.1.101 changelog has several bullets touching subprocess/tool-result\nlifecycle. My top suspect:\n\n> Improved SDK `query()` to clean up subprocess and temp files when consumers\n> `break` from `for await` or use `await using`\n\nA subprocess lifecycle refactor is the exact shape of bug that would drop tool\nresults — if the cleanup path now fires before the result is delivered back,\nthe wrapper would see nothing to forward and surface the generic\n\"missing due to internal error\" message.\n\nAdjacent suspects from the same release:\n- \"Fixed a crash on `--resume` when a persisted Edit/Write tool result was\n  missing its `file_path`\" — active work on tool-result persistence\n- \"Fixed sandboxed Bash commands failing with `mktemp: No such file or\n  directory`\" — subprocess sandbox fix\n\nNote that 2.1.98 *introduced* subprocess sandboxing as a feature. 2.1.101 is\nthe first release with follow-up fixes in that subsystem. Classic regression\nshape.\n\n## Reproduction\n\nNot cleanly reproducible on demand — the drop rate on this machine is ~10-30%\nof tool calls once it starts happening in a session, which is enough to make\nthe session unusable but not enough to hit on every call. Happy to share a\nraw session transcript with the Anthropic team privately if that helps.\n\n## Workaround\n\nDowngrading to 2.1.98 via the official install script:\n\n```powershell\n& ([scriptblock]::Create((irm https://claude.ai/install.ps1))) 2.1.98\n\n\n### What Should Happen?\n\n## Expected behavior\n\nWhen a tool is invoked, one of these should happen:\n\n1. **Success:** the tool executes and its result (stdout/stderr/structured\n   o",
+  "labels": ["bug", "platform:windows", "area:core", "regression"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-11T20:37:35Z",
+  "updated_at": "2026-06-27T04:31:15Z",
+  "closed_at": null,
+  "reactions_total": 5,
+  "comments_count": 14,
+  "author": "orwellsanimal",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/43866\n2. https://github.com/anthropics/claude-code/issues/46032\n3. https://github.com/anthropics/claude-code/issues/39830\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-11T20:42:07Z"
+    },
+    {
+      "author": "orwellsanimal",
+      "author_association": "NONE",
+      "body": "Thanks bot — going through the three candidates.\n\n**#43866 — not a duplicate.** That issue is scoped specifically to the Skill\ntool (\"Skill tool call returns...\"). Our report covers Bash, Glob, Read,\nWrite, and WebFetch, with no Skill involvement at all. Different scope.\n\n**#39830 — not a duplicate.** That issue is about *parallel* Agent calls\nlosing tool_results in concurrent execution. Our failures happen on\nsequential, single-agent turns with no parallelism and no Agent tool use.\nDifferent tr",
+      "created_at": "2026-04-11T21:02:39Z"
+    },
+    {
+      "author": "orwellsanimal",
+      "author_association": "NONE",
+      "body": "## Update — 8 days of additional Windows evidence (2026-04-11 → 2026-04-19)\n\nContinuing to hit this on **2.1.98** — the downgrade reduces severity but does not fix the underlying bug. Sharing structured data in case it helps triage.\n\n### Sentinel occurrences in session transcripts\n\nScanned all session JSONL files under `~/.claude/sessions/` for the string `Tool result missing due to internal error` since 2026-04-11.\n\n**64 occurrences across 12 session files over 9 days.**\n\n| Date | Hits | Notes ",
+      "created_at": "2026-04-20T02:58:52Z"
+    }
+  ]
+}

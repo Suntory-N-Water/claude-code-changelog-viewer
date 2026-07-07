@@ -1,0 +1,35 @@
+{
+  "number": 18541,
+  "title": "[FEATURE] Improve diff view to show session changes only (exclude read files)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nThe diff button in Claude Code CLI (e.g., Diff +7490 -6880) currently displays misleading statistics that include all files touched during a session, not just files that were actually modified. This makes it nearly impossible to understand what Claude actually changed.\n\nCurrent Behavior\nWhen using Claude Code CLI:\n\nA new session starts and creates a worktree with a new branch\nClaude reads/analyzes multiple files to understand the codebase and build context\nThe diff view shows ALL files that were read OR modified during the session\nResult: Diff shows thousands of lines changed (+7490 -6880) even when only a single small file was actually edited\nExample:\n\nClaude creates one test.txt file with 11 lines\nActual git diff: +11 lines, 1 file changed\nDiff button shows: +7490 -6880 (entire project included)\nWhy This Is Problematic\nMisleading numbers: Users can't trust the diff statistics to understand what changed\nPoor change review: Impossible to quickly see what was actually modified\nConfusing workflow: Users expect git-like behavior (changes since last commit), not session activity tracking\nSafety concerns: Users can't confidently review changes before committing\nEvery session creates confusion: The worktree + branch approach means every new session shows massive diffs\n\n### Proposed Solution\n\nOption 1: Track write operations only\n\nMonitor only Write and Edit tool calls, not Read tool calls\nShow diff stats based on actual file modifications\nLabel: \"Session Changes: +11 -0 (1 file)\"\nOption 2: Rename and clarify\n\nRename \"Diff\" to \"Session Activity\"\nAdd tooltip: \"Shows all files touched (read + written) during this session\"\nAdd a separate \"Changes Only\" view\nOption 3: Add filtering\n\nKeep current behavior as default\nAdd toggle: \"Show modified files only\" vs \"Show all touched files\"\nLet users choose their preference\nOption 4: Align with git behavior\n\nShow git diff statistics relative to the last commit\nMatch what users see in VS Code Source Control panel\nMake it consistent with standard git workflows\n\ni'd recommend option 1\n\n### Alternative Solutions\n\n_No response_\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nInteractive mode (TUI)\n\n### Use Case Example\n\nExample:\n\nClaude creates one test.txt file with 11 lines\nActual git diff: +11 lines, 1 file changed\nDiff button shows: +7490 -6880 (entire project included)\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:tui", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-16T09:52:16Z",
+  "updated_at": "2026-05-21T09:15:24Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 6,
+  "author": "safa-souli",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rubmz",
+      "author_association": "NONE",
+      "body": "Wrote a simple python project to solve this annoying issue: https://github.com/rubmz/claudehist\nIt's for PyCharm users. \nAfter setup you can just prompt `/last` and it opens all the changes made in the prompt. The plugin also lists the history of recent prompts and what changes where made in each - to open it you prompt `/history`\n",
+      "created_at": "2026-02-15T17:44:42Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "A `PostToolUse` hook on Edit/Write can maintain a running diff log:\n```bash\nFILE=$(cat | jq -r '.tool_input.file_path // empty' 2>/dev/null)\n[ -z \"$FILE\" ] || [ ! -f \"$FILE\" ] && exit 0\nDIFF_LOG=\"/tmp/cc-session-diffs.patch\"\nDIFF=$(git diff -- \"$FILE\" 2>/dev/null)\nif [ -n \"$DIFF\" ]; then\n    echo \"--- [$(date +%H:%M:%S)] $FILE ---\" >> \"$DIFF_LOG\"\n    echo \"$DIFF\" >> \"$DIFF_LOG\"\n    echo >> \"$DIFF_LOG\"\nfi\nexit 0\n```\nView all session changes: `cat /tmp/cc-session-diffs.patch`\nFor a summary view:\n`",
+      "created_at": "2026-03-29T13:15:05Z"
+    },
+    {
+      "author": "Astro-Han",
+      "author_association": "NONE",
+      "body": "I built [diffpane](https://github.com/Astro-Han/diffpane) to solve this. It runs in a split pane next to Claude Code and shows only files the agent actually modified, not files it read.\n\nOn startup it snapshots your current HEAD as the baseline, so you see cumulative session changes only. It also auto-follows new changes as they happen, no manual refresh needed.\n\n![demo](https://raw.githubusercontent.com/Astro-Han/diffpane/main/.github/demo.gif)",
+      "created_at": "2026-04-01T07:19:28Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 38074,
+  "title": "OAuth tokens from ccr_inference (Cowork/CCD scheduled tasks) accumulate without cleanup",
+  "body": "## Description\n\nOAuth tokens created by Claude Desktop's background Claude Code Runner sessions (`ccr_inference`) accumulate on the account without being revoked when the background session ends. Over normal usage, 30+ stale tokens pile up visible at https://claude.ai/settings/claude-code.\n\n## Steps to Reproduce\n\n1. Enable `coworkScheduledTasksEnabled` and `ccdScheduledTasksEnabled` in Claude Desktop config (both default to `true`)\n2. Use Claude Desktop normally for a few days\n3. Visit https://claude.ai/settings/claude-code\n4. Observe 30+ `ccr_inference` sessions listed, most from completed/dead background runs\n\n## Expected Behavior\n\nBackground `ccr_inference` sessions should revoke their OAuth token when the session completes or is cleaned up. The settings page should show only active sessions.\n\n## Actual Behavior\n\nEvery background session creates a new OAuth token that persists indefinitely. No automatic cleanup occurs. There is also no \"Revoke All\" button to bulk-clear them.\n\n## Environment\n\n- Claude Desktop v1.1.8359\n- Claude Code v2.1.78\n- macOS 15 (Darwin 25.3.0)\n\n## Additional Context\n\n- No `revoke all` option exists on the settings page — users must click through each one individually\n- The accumulation is confusing and looks like session stealing to users who notice it\n- Feature request: either auto-revoke on session end, or add a \"Revoke All\" bulk action",
+  "labels": ["bug", "platform:macos", "area:auth", "area:cowork", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-24T04:05:51Z",
+  "updated_at": "2026-04-30T15:16:45Z",
+  "closed_at": "2026-04-22T10:38:07Z",
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "trek-e",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "trek-e",
+      "author_association": "NONE",
+      "body": "## Screenshot Evidence\n\nThe settings page shows two distinct token types accumulating:\n\n1. **`user:ccr_inference`** — minimal-scope tokens from Cowork/CCD background sessions (3 created within 1 minute of each other)\n2. **Full-scope tokens** (`user:file_upload`, `user:inference`, `user:mcp_servers`, `user:profile`, `user:sessions:claude_code`) — from regular Claude Code CLI sessions, also accumulating without cleanup\n\nThe visible page shows ~10 tokens in just the last hour. Scrolling reveals man",
+      "created_at": "2026-03-24T04:06:56Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28214\n2. https://github.com/anthropics/claude-code/issues/34198\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-24T04:09:16Z"
+    },
+    {
+      "author": "trek-e",
+      "author_association": "NONE",
+      "body": "## Additional Finding: Token Revocation Cascade\n\nRevoking stale `ccr_inference` tokens from the settings page also kills the **active** Claude Code CLI session, forcing a re-login. This suggests:\n\n1. Background `ccr_inference` sessions and active CLI sessions may share a refresh token chain\n2. Revoking any one token in the chain invalidates the others\n3. Users cannot safely clean up stale tokens without losing their current session\n\nThis makes the token accumulation problem worse — not only do t",
+      "created_at": "2026-03-24T04:20:52Z"
+    }
+  ]
+}

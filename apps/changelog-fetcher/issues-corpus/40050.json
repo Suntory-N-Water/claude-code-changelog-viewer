@@ -1,0 +1,22 @@
+{
+  "number": 40050,
+  "title": "Plugin manager does not preserve execute permissions on hook scripts",
+  "body": "## Description\n\nPlugin hook scripts installed via `claude plugin install` are missing execute permissions (`-rw-r--r--` instead of `-rwxr-xr-x`), causing `SessionStart` hooks to fail with exit code 126 (permission denied).\n\n## Reproduction\n\n1. Install a plugin that includes shell-based hooks (e.g., `explanatory-output-style@claude-plugins-official` or `learning-output-style@claude-plugins-official`)\n2. Start a new Claude Code session\n3. Observe `SessionStart:startup hook error`\n\n## Root cause\n\nThe plugin manager writes hook scripts to `~/.claude/plugins/marketplaces/` without the execute bit set. The cached copies (under `~/.claude/plugins/cache/`) from earlier installs **do** have `+x`, suggesting this is a regression in the install/update path — likely the marketplace sync or file extraction step strips execute permissions.\n\nEvidence:\n```\n# Cached (older, working):\n-rwxr-xr-x  .../cache/.../session-start.sh   (Mar 20-24)\n\n# Marketplace (current, broken):\n-rw-r--r--  .../marketplaces/.../session-start.sh   (Mar 28)\n```\n\n## Affected plugins\n\n- `explanatory-output-style@claude-plugins-official`\n- `learning-output-style@claude-plugins-official`\n- Potentially any plugin with shell hook scripts\n\n## Workaround\n\n```bash\nchmod +x ~/.claude/plugins/marketplaces/claude-plugins-official/plugins/*/hooks-handlers/*.sh\n```\n\nNote: This workaround may need to be reapplied after plugin updates.\n\n## Environment\n\n- macOS (Darwin 25.2.0)\n- Claude Code CLI (latest)",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:hooks",
+    "area:plugins"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-27T23:26:05Z",
+  "updated_at": "2026-04-25T14:35:19Z",
+  "closed_at": "2026-04-18T04:18:06Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "ias-z",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

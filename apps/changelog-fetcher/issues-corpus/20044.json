@@ -1,0 +1,35 @@
+{
+  "number": 20044,
+  "title": "New 'native' installer: Bun/Zig hype train delivers 2010 anti-patterns: no version control, rollbacks, or professional package management",
+  "body": "## Summary\n\nThe new \"native\" Bun-based installer sacrifices professional tooling requirements (version control, rollbacks, reproducibility) for eliminating Node.js dependency. Claude Code in 2026 lacks proper package management integration, making it unsuitable for professional software engineering environments. The current \"official\" installer (`curl | bash`) provides less stability, control, and reproducibility than the deprecated npm method it replaced.\n\n## Problem Description\n\nAs a professional software engineer, I need:\n- Version pinning for stability (critical given frequent regressions)\n- Rollback capability when new versions break functionality\n- Reproducible installations for team standardization\n- Offline/air-gapped support for corporate environments\n- Integration with system package managers for proper dependency management\n\nThe current native installer provides none of these capabilities adequately.\n\n## Comparison: Package Management Methods\n\n| Feature | Traditional Package Manager (Expected) | Previous: npm/pnpm | Current: Native Binary |\n|---------|-------------------------------------------|------------------------|---------------------------|\n| **Installation** | `dnf install claude-code`<br>`apt install claude-code` | `pnpm install -g @anthropic-ai/claude-code` | `curl -fsSL https://claude.ai/install.sh \\| bash` |\n| **Repository** | Official RPM/DEB repos with GPG signing | npmjs.com registry | Google Cloud Storage bucket |\n| **Dependency Management** | ✅ System package manager handles everything | ⚠️ Node.js 18+ required | ❌ Self-contained (no visibility) |\n| **Version Pinning** | ✅ `dnf install claude-code-2.1.10` | ✅ `pnpm install -g @anthropic-ai/claude-code@2.1.10` | ❌ Must use installer script with version arg |\n| **Rollback** | ✅ `dnf downgrade claude-code` | ✅ `pnpm install -g @anthropic-ai/claude-code@2.1.10` | ❌ Must manually re-run installer with old version |\n| **List Available Versions** | ✅ `dnf list --showduplicates claude-code` | ✅ `npm view @anthropic-ai/claude-code versions` | ❌ No discovery mechanism |\n| **Lock to Specific Version** | ✅ `dnf versionlock add claude-code` | ✅ Don't run update command | ⚠️ Set `DISABLE_AUTOUPDATER=1` (still checks on startup) |\n| **Update Control** | ✅ Admin controls via `dnf update` | ✅ Manual `pnpm update -g` | ❌ Auto-updates in background on startup |\n| **Disable Auto-Updates** | ✅ Default (manual only) | ✅ Default (manual only) | ⚠️ Must set env var, still checks on startup |\n| **Verify Installation** | ✅ `rpm -V claude-code` or `debsums` | ⚠️ `npm ls -g @anthropic-ai/claude-code` | ⚠️ `claude doctor` (limited info) |\n| **Security Signatures** | ✅ GPG-signed packages | ⚠️ npm package signatures | ⚠️ SHA256 checksums only |\n| **Audit Trail** | ✅ System logs, rpm/dpkg database | ⚠️ npm logs | ❌ Opaque background updates |\n| **Conflicts Detection** | ✅ Automatic dependency resolution | ⚠️ npm handles Node.js deps | ❌ None (self-contained) |\n| **System Integration** | ✅ Full integration with OS | ⚠️ Node.js ecosystem only | ❌ Standalone user binary |\n| **Multi-User** | ✅ System-wide or per-user | ⚠️ Typically per-user with `-g` | ❌ Per-user only |\n| **Reproducible Builds** | ✅ Lock files, version specs | ✅ `package.json` with exact version | ❌ \"latest\" or \"stable\" channel only |\n| **CI/CD Integration** | ✅ Standard package lists | ✅ `package.json` dependencies | ⚠️ Must hardcode version in install script |\n| **Offline Installation** | ✅ Download .rpm/.deb, install offline | ✅ Download tarball, install offline | ❌ Requires internet for install script |\n| **Corporate Proxy** | ✅ Standard OS proxy settings | ✅ npm proxy config | ⚠️ Depends on curl proxy settings |\n| **Air-Gapped Environments** | ✅ Mirror repos internally | ✅ Mirror npm registry | ❌ Very difficult |\n\n## Professional Engineering Requirements (2026 Standard)\n\n| Requirement | Traditional Package Manager | Previous: npm/pnpm | Current: Native Binary |\n|------------",
+  "labels": ["enhancement", "platform:linux", "area:packaging"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-22T11:25:56Z",
+  "updated_at": "2026-03-05T00:25:10Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 9,
+  "author": "jhinrichsen",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "@jhinrichsen thanks for the well-thought-out feedback.\n\nHistorically, Claude Code required installation of both npm (for distribution) and node (for runtime). We want to move everyone to our native executable; in tandem, we have been trying to shift away from npm as we do not believe it is the best way to distribute that executable.\n\nWhere we stand today:\n- The `@anthropic-ai/claude-code` npm package is continuing to be published (for now), containing the node build (for now)\n- Claude Code nativ",
+      "created_at": "2026-01-23T00:17:18Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13243\n2. https://github.com/anthropics/claude-code/issues/20012\n3. https://github.com/anthropics/claude-code/issues/13090\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-22T11:30:38Z"
+    },
+    {
+      "author": "maxritter",
+      "author_association": "NONE",
+      "body": "@ant-kurt Thanks for giving us this DISABLE_INSTALLATION_CHECKS to continue using npm. The native binary is just a pain to use, takes forever to download and install and performance is much worse than npm version, at least on my Macbook M3 Pro arm64 arch. I will stay on npm until native installation has caught up ;) ",
+      "created_at": "2026-01-24T13:17:39Z"
+    }
+  ]
+}

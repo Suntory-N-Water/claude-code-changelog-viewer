@@ -1,0 +1,35 @@
+{
+  "number": 34171,
+  "title": "Allow persisting thinking effort level across sessions",
+  "body": "## Problem\n\nThe thinking effort level (Low / Medium / Max) resets to Medium every time Claude Code starts. Users who consistently prefer Max effort have to open `/model` and adjust it at the beginning of every session.\n\n## Proposed Solution\n\nAdd an `effortLevel` key to `settings.json` (or `settings.local.json`) that persists the default effort level across sessions:\n\n```json\n{\n  \"effortLevel\": \"high\"\n}\n```\n\nAccepted values: `low`, `medium`, `high` (matching the internal representation).\n\nAlternatively, a CLI flag like `--effort high` would also work, especially for users who want per-project defaults via shell aliases.\n\n## Motivation\n\nFor users working on complex codebases (e.g., hardware design, compiler work), Max effort is almost always the right choice. Having to re-select it every session is unnecessary friction, especially since model selection already persists.",
+  "labels": ["enhancement", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-13T22:14:37Z",
+  "updated_at": "2026-04-17T07:02:39Z",
+  "closed_at": null,
+  "reactions_total": 20,
+  "comments_count": 3,
+  "author": "valentinozegna",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "+1 on this. I run long autonomous sessions and always want max effort.\n\nWorth noting that skill-level effort is already supported via SKILL.md frontmatter:\n\n```yaml\n---\nname: my-skill\neffortLevel: high\n---\n```\n\nSo the infrastructure for effort-level configuration partially exists — it just needs to be lifted to the global settings level.\n\nA `settings.json` key would cover the common case, and per-project CLAUDE.md metadata could override it for specific repos. Something like:\n\n```json\n// ~/.clau",
+      "created_at": "2026-03-15T14:02:50Z"
+    },
+    {
+      "author": "leitai231",
+      "author_association": "NONE",
+      "body": "Hey, just want to add a data point here.\n\nI already have `\"effortLevel\": \"max\"` in my `~/.claude/settings.json`:\n\n```json\n{\n  \"effortLevel\": \"max\"\n}\n```\n\nBut it's completely ignored on startup — every new session still defaults to medium. I have to manually go into `/effort` and switch it back every single time.\n\nSo the key already exists in the settings schema, it's just not being read by the CLI at launch. Would be great to see this actually wired up — it's a small fix that would save a lot of",
+      "created_at": "2026-03-24T22:33:20Z"
+    },
+    {
+      "author": "repulsio",
+      "author_association": "NONE",
+      "body": "@bcherny Can you make it accept `\"effortLevel\": \"max\"` as an option? Why is \"high\" the highest we can set if \"Max\" is an option via the UI?",
+      "created_at": "2026-04-17T07:01:52Z"
+    }
+  ]
+}

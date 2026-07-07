@@ -1,0 +1,35 @@
+{
+  "number": 23109,
+  "title": "[FEATURE] Trusted workspace patterns to skip trust prompt for git worktrees",
+  "body": "## Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n> **Note:** This was previously reported in #993 and #21283, both auto-closed without resolution. A comment on #993 suggested `additionalDirectories` as a workaround — I've tested this and confirmed it does **not** skip the workspace trust prompt (tested with absolute paths, `~` expansion, and wildcard patterns).\n\n## Problem Statement\n\nWhen using git worktrees, every new worktree creates a new directory that Claude Code has never seen before. This triggers the workspace trust prompt (\"Quick safety check: Is this a project you created or one you trust?\") every single time.\n\nFor developers who use worktrees heavily (one worktree per feature branch), this becomes repetitive friction. The parent repository is already trusted, and all worktrees are derived from it — there's no security benefit in re-prompting for each one.\n\n## Proposed Solution\n\nAdd a `trustedWorkspacePatterns` (or similar) setting in `~/.claude/settings.json` that accepts glob patterns for directories that should be automatically trusted:\n\n```json\n{\n  \"trustedWorkspacePatterns\": [\n    \"~/worktrees/my-project/*\",\n    \"~/repos/**\"\n  ]\n}\n```\n\nWhen Claude Code launches in a directory matching any of these patterns, the trust prompt would be skipped.\n\n## Alternative Solutions\n\n- **`additionalDirectories`**: Tested all of the following in global `~/.claude/settings.json` — none skip the trust prompt:\n  - Absolute path: `/Users/me/worktrees/my-project`\n  - Tilde path: `~/worktrees/my-project`\n  - Absolute with wildcard: `/Users/me/worktrees/my-project/*`\n  - Tilde with wildcard: `~/worktrees/my-project/*`\n  \n  This setting only controls file access scope from within an already-trusted session — it does **not** affect the initial workspace trust prompt.\n- **`--dangerously-skip-permissions`**: Disables all permission checks, not just the trust prompt. Overkill for this use case.\n- **`-p` flag**: Skips trust but only works in non-interactive mode.\n- **Manually confirming each time**: Current workaround, but adds unnecessary friction on every new worktree.\n\n## Priority\n\nMedium - Would be very helpful\n\n## Feature Category\n\nConfiguration and settings\n\n## Use Case Example\n\n1. Developer works on a monorepo at `~/repos/my-project/`\n2. They create worktrees via `git worktree add ~/worktrees/my-project/feature-xyz feature-xyz`\n3. They run `claude` in the new worktree directory\n4. **Currently**: trust prompt appears every time for each new worktree\n5. **With this feature**: directories under `~/worktrees/my-project/*` would be auto-trusted via a glob pattern\n\n## Additional Context\n\n- #993 — Original request for this feature, auto-closed after 60 days of inactivity\n- #21283 — Related report about trust prompt not persisting, closed as duplicate\n- The `additionalDirectories` suggestion from #993 has been independently verified as not solving this problem across multiple path formats",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-04T16:32:10Z",
+  "updated_at": "2026-05-16T11:44:51Z",
+  "closed_at": null,
+  "reactions_total": 87,
+  "comments_count": 10,
+  "author": "chasemcdo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "michaellarocca90",
+      "author_association": "NONE",
+      "body": "Upvoting, this would be a great feature.",
+      "created_at": "2026-02-18T18:16:55Z"
+    },
+    {
+      "author": "aroman",
+      "author_association": "NONE",
+      "body": "though minor, this is a very real point of friction for any serious worktree-heavy workflows. big +1!",
+      "created_at": "2026-02-20T04:39:38Z"
+    },
+    {
+      "author": "mnott",
+      "author_association": "NONE",
+      "body": "## Workaround: Parent directory trust cascading\n\nThe trust state is stored in `~/.claude.json` under the `projects` key per directory path. Crucially, Claude Code **walks parent directories** when checking trust — so if a parent is trusted, all subdirectories inherit that trust.\n\n**One-liner fix** — add your home directory (or any common root) as trusted:\n\n```python\npython3 -c \"\nimport json\nwith open('$HOME/.claude.json', 'r+') as f:\n    d = json.load(f)\n    d.setdefault('projects', {}).setdefau",
+      "created_at": "2026-02-26T10:35:33Z"
+    }
+  ]
+}

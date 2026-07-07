@@ -1,0 +1,35 @@
+{
+  "number": 24122,
+  "title": "Agent Teams: Add zellij terminal multiplexer support for split-pane mode",
+  "body": "## Feature Request\n\nAgent Teams currently supports split-pane mode for **tmux** and **iTerm2**, automatically opening each teammate in its own pane. **Zellij** — a modern terminal multiplexer growing in popularity — has no integration, forcing users to fall back to in-process mode.\n\n## Why\n\nZellij is increasingly adopted as a tmux alternative due to its discoverability, sane defaults, and native floating panes. Users running Claude Code inside zellij should get the same split-pane experience as tmux users.\n\n## Implementation Guide\n\nZellij exposes everything needed via `zellij action` CLI commands, analogous to how tmux uses `tmux split-window` / `tmux send-keys`.\n\n### Detection\n\nZellij sets environment variables when running inside a session:\n\n```bash\nZELLIJ=0                          # Present when inside zellij\nZELLIJ_SESSION_NAME=work          # Current session name\nZELLIJ_PANE_ID=3                  # Current pane ID\n```\n\nDetection is simply: `process.env.ZELLIJ !== undefined`\n\nThis mirrors the existing tmux detection (`TMUX` env var).\n\n### Spawning a teammate pane\n\n```bash\n# Split right with a command, named after the agent\nzellij action new-pane \\\n  --direction right \\\n  --name \"researcher\" \\\n  -- claude --teammate-mode in-process ...\n\n# Or split down\nzellij action new-pane \\\n  --direction down \\\n  --name \"implementer\" \\\n  -- claude ...\n```\n\nKey flags:\n- `--direction right|down` — controls split direction (like `tmux split-window -h/-v`)\n- `--name <NAME>` — labels the pane (visible in zellij UI, no need for a separate rename step)\n- `--close-on-exit` — auto-close pane when agent finishes (optional)\n- `--cwd <DIR>` — set working directory\n- `-- <COMMAND>...` — the command to run in the new pane\n\n### Alternative: new tab per agent\n\n```bash\nzellij action new-tab --name \"researcher\"\n# Then the command runs in that tab\n```\n\n### Alternative: floating panes (unique to zellij)\n\n```bash\nzellij action new-pane \\\n  --floating \\\n  --name \"researcher\" \\\n  --width 50% --height 50% \\\n  -- claude ...\n```\n\nThis has no tmux equivalent and could be a zellij-specific bonus feature.\n\n### Writing to a pane\n\n```bash\nzellij action write-chars \"some input\"   # Types into the focused pane\n```\n\n### Mapping to existing tmux integration\n\n| tmux command | zellij equivalent |\n|---|---|\n| `tmux split-window -h cmd` | `zellij action new-pane -d right -- cmd` |\n| `tmux split-window -v cmd` | `zellij action new-pane -d down -- cmd` |\n| `tmux send-keys \"text\" Enter` | `zellij action write-chars \"text\\n\"` |\n| `tmux select-pane -t N` | `zellij action focus-next-pane` (or move-focus) |\n| `tmux rename-window \"name\"` | `--name` flag on `new-pane` / `new-tab` |\n| `$TMUX` detection | `$ZELLIJ` detection |\n\n### `teammateMode` setting\n\nAdd `\"zellij\"` as a valid value alongside `\"tmux\"`, and update `\"auto\"` to detect `$ZELLIJ`:\n\n```\nauto priority: iTerm2 > tmux > zellij > in-process\n```\n\n## Current workaround\n\n```bash\nclaude --teammate-mode in-process\n```\n\nWorks but loses the multi-pane visibility that makes the teams feature compelling.",
+  "labels": ["enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-08T07:35:22Z",
+  "updated_at": "2026-04-21T21:33:52Z",
+  "closed_at": null,
+  "reactions_total": 93,
+  "comments_count": 10,
+  "author": "kmelkon",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/23574\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-08T07:37:31Z"
+    },
+    {
+      "author": "kmelkon",
+      "author_association": "NONE",
+      "body": "Not a duplicate — #23574 is about **WezTerm** support, this is about **Zellij** support. Different terminal multiplexers with different CLIs and APIs.",
+      "created_at": "2026-02-08T07:58:56Z"
+    },
+    {
+      "author": "junebash",
+      "author_association": "NONE",
+      "body": "I would think that zellij should take priority over tmux in auto mode, given tmux often comes preinstalled, but with zellij, you have to go out of your way to use it.\n\nBut otherwise, yes please!",
+      "created_at": "2026-02-09T20:53:05Z"
+    }
+  ]
+}

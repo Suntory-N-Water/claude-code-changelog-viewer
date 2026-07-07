@@ -1,0 +1,35 @@
+{
+  "number": 2169,
+  "title": "[BUG] MCP resources not available for subagents",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API (Claude Code)\n- Claude CLI version: 1.0.22 (Claude Code)\n- Operating System: Ubuntu 24.04.2 LTS (WSL)\n- Terminal:  xterm\n\n## Bug Description\nSubagents spawned by Claude Code do not have access to the same MCP resources, although MCP tools seem to work fine.\n\nMy .claude.json has the following:\n\n```\n  \"mcpServers\": {\n    \"tmdb\": {\n      \"command\": \"/Code/mcp-server-tmdb/dist/index.js\",\n      \"env\": {\n        \"TMDB_API_KEY\": \"...\"\n      }\n    }\n  },\n```\n\nWhen I ask Claude to spawn a subagent to look up a resource, this happens:\n\n```\nTask(Task: Get Armageddon movie info\n  Prompt: I want to get some info on the movie Armageddon. Search TMDB with your tool to find the film id, then\n   use the tmdb resource tmdb:///movie/ to get the info.)\n ⎿  tmdb:search_movies (MCP)(query: \"Armageddon\")\n  ⎿  Found 20 movies:\n  ⎿  readMcpResource(Read resource \"tmdb:///movie/95\" from server \"tmdb\")\n  ⎿  Error: Server \"tmdb\" not found. Available servers:\n  ⎿  listMcpResources(List all MCP resources)\n  ⎿  ⎿  (No resources found)\n```\n\nBut when Claude Code accesses it directly, it works:\n\n```\nreadMcpResource(Read resource \"tmdb:///movie/95\" from server \"tmdb\")\n  ⎿ {\n      \"contents\": [\n        {\n          \"uri\": \"tmdb:///movie/95\",\n          \"mimeType\": \"application/json\",\n          \"text\": \"{\\n  \\\"title\\\": \\\"Armageddon\\\",\\n  \\\"releaseDate\\\": \\\"1998-07-01\\\",\\n  \\\"rating\\\": 6.838,\\n\n    \\\"overview\\\": [...] }\\n  ]\\n}\"\n        }\n      ]\n    }\n```\n\n\n## Steps to Reproduce\n * Configure MCP server with resources\n * Ask Claude Code to spawn subagent that uses a resource. It will fail.\n\n## Expected Behavior\nMCP resources should be available to subagents in the same way as they are to the top-level Claude Code.\n\n## Actual Behavior\nSubagent could not access resources.",
+  "labels": ["bug", "platform:linux", "area:tools", "area:mcp", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-16T19:58:37Z",
+  "updated_at": "2026-01-12T14:13:55Z",
+  "closed_at": "2026-01-05T10:12:33Z",
+  "reactions_total": 12,
+  "comments_count": 6,
+  "author": "qusma",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ChristophRauch",
+      "author_association": "NONE",
+      "body": "I just stumbled upon the same problem.\n\nThis is preventing me from implementing a main-agent token preserving work-flow.\n\nExplanation: I just pass the issue number to the Task() which then is required to pull the full issue definition itself (can be a bit large) and start working on it, but in a Task() resources are apparently blocked, so it can't continue. Flow stops.\n\nIt would be nice if we would have a \"subagent_type\" which could actually access resources, if you don't want to change the beha",
+      "created_at": "2025-07-25T14:09:27Z"
+    },
+    {
+      "author": "ChristophRauch",
+      "author_association": "NONE",
+      "body": "As a workaround I added a `_resource_lookup` tool, which looks up my own MCP server's resources by exposing it via a tool call. This works, but only for resources of my own making, not from other MCP servers.",
+      "created_at": "2025-07-25T14:19:36Z"
+    },
+    {
+      "author": "zach-lm",
+      "author_association": "NONE",
+      "body": "Also encountering this issue",
+      "created_at": "2025-07-29T01:15:17Z"
+    }
+  ]
+}

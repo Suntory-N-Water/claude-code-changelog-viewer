@@ -1,0 +1,35 @@
+{
+  "number": 29207,
+  "title": "teammateMode \"tmux\" silently falls back to in-process since ~v2.1.50+",
+  "body": "## Environment\n\n- **Claude Code version**: 2.1.62\n- **OS**: macOS Darwin 25.4.0\n- **tmux**: 3.6a\n- **`$TMUX`**: set (`/private/tmp/tmux-501/default,30374,3`)\n- **Config**: `\"teammateMode\": \"tmux\"` in `~/.claude/settings.json`\n- **`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`**: `1`\n\n## Bug Description\n\nAll teammates spawn with `backendType: \"in-process\"` and no tmux panes are created, despite `\"teammateMode\": \"tmux\"` being explicitly set in settings. This worked correctly on earlier versions (~Feb 8-9, 2026) but broke silently around Feb 19.\n\n## Expected Behavior\n\nWith `\"teammateMode\": \"tmux\"`, agents should spawn in tmux split-panes (or new windows), producing real pane IDs like `%1`, `%8`, `%25`, etc.\n\n## Actual Behavior\n\nAll agents spawn in-process. Team config files show `\"tmuxPaneId\": \"in-process\"` and `\"backendType\": \"in-process\"` for every teammate. No tmux panes are created.\n\n## Evidence\n\n### Working teams (Feb 8-9, earlier Claude Code version):\n| Team | Pane IDs | Backend |\n|------|----------|---------|\n| tidy-conjuring-axolotl | %1, %2, %3 | tmux |\n| fluffy-wishing-duckling | %6, %7 | tmux |\n| game-polish | %8 | tmux |\n| word-survivor-audit | %9, %16 | tmux |\n| word-survivor-v2 | %25 | tmux |\n| v2-playable | %39 | tmux |\n\n### Broken teams (Feb 19+, Claude Code ~2.1.50+):\n| Team | Pane IDs | Backend |\n|------|----------|---------|\n| sim-fix | all in-process | in-process |\n| animation-prototypes | all in-process | in-process |\n| delightful-v2 | all in-process | in-process |\n| polymarket-refactor | all in-process | in-process |\n| great | all in-process | in-process |\n| life-audit | all in-process | in-process |\n| motion-system | all in-process | in-process |\n\n## Root Cause Analysis\n\nFrom the compiled binary, the teammate spawn decision flows through a gatekeeper function (deobfuscated as `cv()` / `isInProcessEnabled`):\n\n```javascript\n// Decision function — called before any spawn\nfunction cv() {\n  // CHECK 1: Non-interactive session (process.stdin.isTTY)\n  if (F_())            // ← If stdin is not a TTY, returns true immediately\n    return true;       // → FORCE IN-PROCESS, skip config check\n\n  // CHECK 2: Read teammateMode from config\n  let T = U28();       // reads captured teammate mode\n  if (T === \"in-process\") return true;\n  else if (T === \"tmux\") return false;\n  else /* \"auto\" */ return !WwR();\n}\n```\n\nThe spawn entry point:\n\n```javascript\nasync function k28(T, R) {\n  if (cv())            // ← If true, config is never consulted\n    return b28(T, R);  // → in-process spawn (hardcoded)\n\n  if (T.use_splitpane !== false)\n    return P28(T, R);  // → tmux split-pane spawn\n  return y28(T, R);    // → tmux new-window spawn\n}\n```\n\n**The problem**: The non-interactive TTY check (`F_()`, which checks `process.stdin.isTTY`) runs *before* the config check. If `process.stdin.isTTY` returns `false` (even inside a real terminal session), it short-circuits to in-process mode and the `\"teammateMode\": \"tmux\"` setting is never consulted.\n\nThe binary contains the log message `\"[BackendRegistry] isInProcessEnabled: true (non-interactive session)\"` on this code path, confirming this is the bypass route.\n\n## Suggested Fix\n\n1. When `teammateMode` is explicitly `\"tmux\"`, the non-interactive TTY check should not override it. The user has explicitly opted in to tmux mode — that should be respected regardless of TTY state.\n2. If a fallback from tmux to in-process does occur, emit a visible warning/log rather than silently degrading. Something like: `\"[BackendRegistry] Warning: teammateMode is 'tmux' but falling back to in-process because stdin is not a TTY\"`\n\n## Reproduction\n\n1. Be inside a tmux session with `$TMUX` set\n2. Set `\"teammateMode\": \"tmux\"` in `~/.claude/settings.json`\n3. Set `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`\n4. Create a team and spawn teammates\n5. Check `~/.claude/teams/<team-name>/config.json` — all members have `backendType: \"in-process\"` instead of `\"tmux\"`",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "area:agents"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-27T03:40:53Z",
+  "updated_at": "2026-03-22T14:19:59Z",
+  "closed_at": "2026-03-14T08:37:26Z",
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "kylesnav",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/26244\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-27T03:44:59Z"
+    },
+    {
+      "author": "kylesnav",
+      "author_association": "NONE",
+      "body": "Same problem, different reasons.",
+      "created_at": "2026-02-27T03:59:29Z"
+    },
+    {
+      "author": "kylesnav",
+      "author_association": "NONE",
+      "body": "Related: #26244\n\nSame root cause — `isInProcessEnabled()` checks `isTTY`/`isInteractive` before consulting `teammateMode`, so an explicit `\"tmux\"` setting gets silently overridden. Both issues propose the same fix (check `teammateMode === \"tmux\"` first).\n\nThe difference is *why* `isTTY` is falsy: here it's a macOS regression introduced around v2.1.50, while #26244 hits it on Windows where Bun SFE's `process.stdout.isTTY` is always `undefined`. A fix for the shared code path should resolve both.",
+      "created_at": "2026-02-27T04:02:05Z"
+    }
+  ]
+}

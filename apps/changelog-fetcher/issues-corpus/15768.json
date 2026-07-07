@@ -1,0 +1,35 @@
+{
+  "number": 15768,
+  "title": "[BUG] Panic when processing Japanese text: byte index is not a char boundary",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code crashes with a Rust panic when processing Japanese (multibyte) text. The error occurs during string slicing where a byte index falls inside a multibyte UTF-8 character.\n\n### Root Cause Analysis\n\nThe panic message indicates that the code is attempting to slice a string at byte index 2, but the Japanese character 'み' occupies bytes 0-3 (3 bytes in UTF-8). This suggests that somewhere in the codebase, string operations are using byte indices instead of character boundaries when handling multibyte characters.\n\n### Environment\n\n- **Claude Code version**: 2.0.76\n- **OS**: macOS 26.2 (Build 25C56)\n- **Terminal**: xterm-256color\n- **Shell**: zsh\n- **Locale**: C.UTF-8\n\n### Steps to Reproduce\n\nThe crash occurs intermittently during normal usage with Japanese text. The specific trigger is unclear, but it appears to be related to:\n- Status line rendering\n- Text truncation for display\n- Processing of configuration/profile text containing Japanese characters\n\n### Expected Behavior\n\nClaude Code should properly handle UTF-8 multibyte characters by using character boundaries instead of raw byte indices when performing string operations.\n\n### Suggested Fix\n\nIn Rust, string slicing should use methods that respect character boundaries:\n- Use `.chars().take(n)` instead of `&s[..n]` for truncation\n- Use `.char_indices()` to find valid slice points\n- Consider using the `unicode-width` crate for display width calculations\n\n### Additional Context\n\nThis issue affects users who use Claude Code with Japanese (and likely other CJK languages or any multibyte UTF-8 text) in their workflows, file names, or configurations.\n\n### What Should Happen?\n\nClaude Code crashes with a Rust panic when processing Japanese (multibyte) text. The error occurs during string slicing where a byte index falls inside a multibyte UTF-8 character.\n\n### Error Messages/Logs\n\n```shell\nthread '' panicked at /rustc/ed61e7d7e242494fb7057f2657300d9e77bb4fcb/library/core/src/str/mod.rs:833:21:\nbyte index 2 is not a char boundary; it is inside 'み' (bytes 0..3) of み（デフォルト＆Onboardingプロファイル両方）\nnote: run with RUST_BACKTRACE=1 environment variable to display a backtrace\nfatal runtime error: failed to initiate panic, error 5, aborting\nzsh: abort      claude\n```\n\n### Steps to Reproduce\n\nThe panic message indicates that the code is attempting to slice a string at byte index 2, but the Japanese character 'み' occupies bytes 0-3 (3 bytes in UTF-8). This suggests that somewhere in the codebase, string operations are using byte indices instead of character boundaries when handling multibyte characters.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n2.0.76\n\n### Claude Code Version\n\n2.0.76\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n### Expected Behavior\n\nClaude Code should properly handle UTF-8 multibyte characters by using character boundaries instead of raw byte indices when performing string operations.\n\n### Suggested Fix\n\nIn Rust, string slicing should use methods that respect character boundaries:\n- Use `.chars().take(n)` instead of `&s[..n]` for truncation\n- Use `.char_indices()` to find valid slice points\n- Consider using the `unicode-width` crate for display width calculations\n\n### Additional Context\n\nThis issue affects users who use Claude Code with Japanese (and likely other CJK languages or any multibyte UTF-8 text) in their workflows, file names, or configurations.",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-12-30T03:33:43Z",
+  "updated_at": "2026-04-25T14:37:23Z",
+  "closed_at": "2026-04-18T10:13:11Z",
+  "reactions_total": 11,
+  "comments_count": 8,
+  "author": "m0370",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/15425\n2. https://github.com/anthropics/claude-code/issues/15638\n3. https://github.com/anthropics/claude-code/issues/15639\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-30T03:37:11Z"
+    },
+    {
+      "author": "tettuan",
+      "author_association": "NONE",
+      "body": "I'm experiencing the same issue.\n\n**Environment:**\n- Platform: macOS (Darwin 25.1.0)\n- Claude Code version: latest\n\n**Error message:**\n```\nbyte index 5 is not a char boundary; it is inside '用' (bytes 3..6) of `採用`\n```\n\n**Context:**\nThe crash occurred while editing a Markdown file containing Japanese text (specifically the word \"不採用\" / \"採用\" meaning \"rejected\" / \"adopted\").\n\nThis is blocking my workflow with Japanese documentation files.",
+      "created_at": "2026-01-01T14:59:40Z"
+    },
+    {
+      "author": "tettuan",
+      "author_association": "NONE",
+      "body": "## Additional reproduction report\n\n**Environment:**\n- Platform: macOS (Darwin 25.1.0)\n- Command: `claude --dangerously-skip-permissions`\n\n**Error message:**\n```\nthread '<unnamed>' panicked at /rustc/ed61e7d7e242494fb7057f2657300d9e77bb4fcb/library/core/src/str/mod.rs:833:21:\nbyte index 11 is not a char boundary; it is inside '除' (bytes 9..12) of `ンチ削除（ローカル+リモート）`\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\nfatal runtime error: failed to initiate panic, error 5, ",
+      "created_at": "2026-01-09T16:23:18Z"
+    }
+  ]
+}

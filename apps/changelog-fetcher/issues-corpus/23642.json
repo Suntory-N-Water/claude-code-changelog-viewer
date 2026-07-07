@@ -1,0 +1,35 @@
+{
+  "number": 23642,
+  "title": "Support 1Password op:// secret references in settings.json env section",
+  "body": "## Feature Request\n\nSupport `op://` secret references in the `env` section of `settings.json` (and `.claude/settings.json`), so that API keys and other secrets can be resolved from 1Password at startup without wrapper scripts.\n\n### Desired behavior\n\n```json\n{\n  \"env\": {\n    \"ANTHROPIC_API_KEY\": \"op://Private/Claude API Key/credential\"\n  }\n}\n```\n\nClaude Code would detect `op://` prefixed values and resolve them via `op read` (1Password CLI) before use.\n\n### Current workarounds\n\n1. **`apiKeyHelper`** script that calls `op read` — works for `ANTHROPIC_API_KEY` only, not for arbitrary env vars (e.g., MCP server tokens).\n2. **`op run -- claude`** wrapper — works but requires a separate `.env` file and remembering to always launch Claude Code through the wrapper.\n\n### Why this would be useful\n\n- 1Password CLI (`op`) is widely adopted for secret management in developer workflows\n- Many tools already support `op://` references natively (e.g., Docker, various CI systems)\n- It would allow secure, declarative secret injection for both API keys and MCP server environment variables without wrapper scripts\n- The `env` section in settings.json is the natural place to configure this\n\n### Implementation notes\n\n- Only resolve `op://` references if `op` CLI is available in `$PATH`\n- Could generalize to a pluggable secret resolution mechanism (e.g., `aws-secretsmanager://`, `vault://`) in the future\n- Should fail with a clear error message if `op` is not installed or not authenticated\n\n---\n*This issue was generated with [Claude Code](https://claude.ai/code)*",
+  "labels": ["enhancement", "area:auth", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-06T10:29:05Z",
+  "updated_at": "2026-05-19T17:26:21Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 12,
+  "author": "ei-grad",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ei-grad",
+      "author_association": "NONE",
+      "body": "Opus 4.6 initially hallucinated this feature, so I asked it to file a feature request :-). Though, ambiguity for url handling there could cause a problematic behavior.",
+      "created_at": "2026-02-06T10:30:37Z"
+    },
+    {
+      "author": "ei-grad",
+      "author_association": "NONE",
+      "body": "Good point about the ambiguity. Instead of overloading `env` values with URL-scheme detection, a dedicated `secrets` section would be cleaner:\n\n```json\n{\n  \"secrets\": {\n    \"ANTHROPIC_API_KEY\": \"op://Private/Claude API Key/credential\",\n    \"MCP_GITHUB_TOKEN\": \"aws-sm://prod/github-token\",\n    \"DB_PASSWORD\": \"cmd://pass show db/password\"\n  },\n  \"env\": {\n    \"SOME_NORMAL_VAR\": \"plain-value-no-magic\"\n  }\n}\n```\n\nThis way:\n- **`env`** stays plain — values are used as-is, no surprise resolution\n- **`s",
+      "created_at": "2026-02-06T10:32:14Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17719\n2. https://github.com/anthropics/claude-code/issues/15961\n3. https://github.com/anthropics/claude-code/issues/4276\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-06T10:32:44Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 20997,
+  "title": "Claude in Chrome MCP: Browser extension not connected despite extension working",
+  "body": "## Description\nThe Claude in Chrome MCP integration fails to connect even though:\n1. The Claude Chrome extension is installed and working (sidebar chat functions correctly)\n2. The MCP shows as \"connected\" in Claude Code (`/mcp` command shows `claude-in-chrome · ✓ connected`)\n3. The extension was freshly reinstalled from Chrome Web Store\n\n## Steps to Reproduce\n1. Install Claude Chrome extension from Chrome Web Store\n2. Open Chrome and verify the Claude sidebar works (it does - can chat with Claude)\n3. Run `/mcp` in Claude Code - shows `claude-in-chrome · ✓ connected`\n4. Attempt to use any claude-in-chrome MCP tool (e.g., `tabs_context_mcp`)\n\n## Expected Behavior\nThe MCP should connect to the browser and return tab information.\n\n## Actual Behavior\nEvery call to `mcp__claude-in-chrome__tabs_context_mcp` returns:\n```\nBrowser extension is not connected. Please ensure the Claude browser extension is installed and running (https://claude.ai/chrome). If this is your first time connecting to Chrome, you may need to restart Chrome for the installation to take effect.\n```\n\n## Environment\n- Platform: macOS (Darwin 25.2.0)\n- Chrome extension: Freshly reinstalled\n- Claude Code: Latest version\n- The Claude sidebar chat in Chrome works perfectly fine\n\n## Additional Context\n- Previously saw CSP (Content Security Policy) errors in the extension before reinstalling\n- After reinstall, CSP errors appear to be resolved\n- Machine was restarted\n- Chrome was restarted\n- `/mcp` reconnection was performed multiple times\n\n## Screenshots\nThe Claude sidebar works and can see/interact with pages, but the MCP connection from Claude Code does not work.",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-26T15:10:51Z",
+  "updated_at": "2026-05-07T15:11:41Z",
+  "closed_at": "2026-04-26T22:17:42Z",
+  "reactions_total": 2,
+  "comments_count": 11,
+  "author": "CuongNguyen-noob",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/20786\n2. https://github.com/anthropics/claude-code/issues/20990\n3. https://github.com/anthropics/claude-code/issues/20811\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-26T15:14:57Z"
+    },
+    {
+      "author": "stolot0mt0m",
+      "author_association": "NONE",
+      "body": "This might be a Native Messaging Host issue. If you're not on Chrome, try: https://github.com/stolot0mt0m/claude-chromium-native-messaging\n\nIt configures the manifest files that Chrome normally sets up automatically.",
+      "created_at": "2026-01-28T17:28:52Z"
+    },
+    {
+      "author": "jsperson",
+      "author_association": "NONE",
+      "body": "## Additional diagnostic data (macOS)\n\n**Environment:** Claude Code 2.1.39, macOS Darwin 25.2.0, Chrome 145.0.7632.46, Extension 1.0.49, Claude Desktop also installed\n\n**Findings:**\n\n1. Native host process spawns correctly via `com.anthropic.claude_browser_extension` manifest (patched to point to Code's binary at `~/.claude/chrome/chrome-native-host`)\n2. Native host creates Unix socket at `/tmp/claude-mcp-browser-bridge-{user}/{pid}.sock`\n3. Socket is functional — accepts connections via `nc -U`",
+      "created_at": "2026-02-11T16:53:45Z"
+    }
+  ]
+}

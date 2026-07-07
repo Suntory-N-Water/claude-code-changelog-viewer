@@ -1,0 +1,35 @@
+{
+  "number": 20171,
+  "title": "[BUG] Phantom 'Generating...' state - UI stuck after task completion, 0 tokens consumed",
+  "body": "## Description\n\nAfter completing a task, Claude Code gets stuck in a phantom \"Generating...\" state. The UI shows it's working but consumes 0 tokens indefinitely.\n\n## Reproduction\n\n1. Work on a multi-step implementation task\n2. Claude completes all tasks and outputs a summary\n3. Status shows \"Churned for Xm Ys\" (in my case: 22m 13s)\n4. Then UI switches to \"Generating... (esc to interrupt · 8m 22s · ↓ 0 tokens)\"\n5. Token counter stays at 0, no progress is made\n6. User must press Esc to interrupt\n\n## Evidence from Session\n\n```\n● V9.57 Implementation Complete!\n  [... detailed summary of completed work ...]\n\n✻ Churned for 22m 13s\n\n✶ Generating… (esc to interrupt · 8m 22s · ↓ 0 tokens)\n```\n\nThe \"↓ 0 tokens\" indicates nothing is actually being generated despite the UI claiming it is.\n\n## Expected Behavior\n\nAfter completing a task and outputting a summary, Claude Code should:\n- Return to the input prompt, OR\n- Actually generate content if there's more to do\n\nIt should NOT hang in a \"Generating...\" state indefinitely with 0 token consumption.\n\n## Environment\n\n- Claude Code CLI on Windows\n- Model: claude-opus-4-5-20251101\n- Session involved multi-step implementation with ~5 tasks\n\n## Impact\n\n- Wastes user time waiting for \"generation\" that never happens\n- Forces user to manually interrupt\n- Unclear if any work was lost or if session state is corrupted after interrupt",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-22T21:42:00Z",
+  "updated_at": "2026-06-22T14:49:59Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 26,
+  "author": "ThatDragonOverThere",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "**Update:** This has happened multiple times this morning (Jan 22, 2026). Appears to be consistently reproducible after completing multi-step tasks with TodoWrite tracking.",
+      "created_at": "2026-01-22T21:42:31Z"
+    },
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "**Additional detail:** When I manually typed a message asking \"Are you done?\", Claude immediately responded confirming all tasks were complete. \n\nThis confirms Claude had actually finished - it just didn't transition the UI back to the input prompt. The \"Generating... 0 tokens\" state was purely a UI hang, not Claude actually doing work.\n\nThe work was done ~30 minutes before the UI acknowledged it.",
+      "created_at": "2026-01-22T21:43:27Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/15519\n2. https://github.com/anthropics/claude-code/issues/20048\n3. https://github.com/anthropics/claude-code/issues/19999\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-22T21:46:28Z"
+    }
+  ]
+}

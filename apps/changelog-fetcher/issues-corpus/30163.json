@@ -1,0 +1,35 @@
+{
+  "number": 30163,
+  "title": "Opus/Sonnet 1M context variants broken on Max 20x — misleading 'Rate limit reached' error",
+  "body": "## Bug Description\n\nThe 1M context model variants (`opus[1m]` / `claude-opus-4-6[1m]`) selected via `/model` fail with \"API Error: Rate limit reached\" despite ample quota remaining. This has been broken for over a week. The error is misleading — it's not a rate limit issue.\n\nThe non-1M variants (Default, explicit `claude-opus-4-6`) work fine with the same account and quota.\n\n## Reproduction\n\nTested systematically by editing `settings.json` and launching fresh sessions:\n\n| `\"model\"` value in settings.json | Context Window | Result |\n|---|---|---|\n| *(key absent — Default)* | 200k | **Works** |\n| `\"claude-opus-4-6\"` | 200k | **Works** |\n| `\"opus[1m]\"` (via `/model` menu option 2) | 1M | **Rate limit error** |\n| `\"claude-opus-4-6[1m]\"` (manual or rewritten by Claude Code) | 1M | **Rate limit error** |\n\n### Steps\n\n1. Run Claude Code v2.1.63\n2. `/model` → select \"Opus (1M context)\" (option 2)\n3. Settings written as `\"model\": \"opus[1m]\"`\n4. Send any message → `API Error: Rate limit reached`\n5. `/model` → select \"Default\" → works immediately\n\n### Additional observations\n\n- The `/model` menu itself hints at the issue: selecting the stale `claude-opus-4-6[1m]` shows: *\"Newer version available · select Opus for Opus 4.6\"* — but selecting \"Opus (1M context)\" from the menu gives the same broken ID\n- Session JSONL confirms: failed requests show `\"model\":\"<synthetic>\"` with `\"error\":\"rate_limit\"` (never reaches a real model), while Default requests show `\"model\":\"claude-opus-4-6\"` with `\"service_tier\":\"standard\"`\n\n## Usage at Time of Error\n\n```\nCurrent session:   5% used\nCurrent week:     19% used (all models)\nSonnet only:       4% used\n```\n\nNowhere near any limit.\n\n## Impact\n\n- Users who previously selected a 1M context model are permanently broken with no obvious fix\n- The \"Rate limit reached\" error is misleading — users wait for a reset that never helps\n- The only workaround is using \"Default\" (200k context) or manually setting `\"model\": \"claude-opus-4-6\"` and not using `/model`\n\n## Environment\n\n- Claude Code: v2.1.63\n- Plan: Claude Max 20x\n- Platform: Windows 11 Pro (win32)\n- Terminal: Windows Terminal with PowerShell 7\n- Shell (Claude Code): bash\n- Update channel: latest",
+  "labels": ["bug", "has repro", "platform:windows", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-02T19:26:55Z",
+  "updated_at": "2026-05-23T22:26:25Z",
+  "closed_at": "2026-05-23T22:26:25Z",
+  "reactions_total": 11,
+  "comments_count": 10,
+  "author": "cadfan",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "cadfan",
+      "author_association": "NONE",
+      "body": "## Confirmed on macOS (arm64)\n\nSame behavior reproduced on macOS:\n\n| Detail | Value |\n|---|---|\n| **Claude Code** | v2.1.63 |\n| **Platform** | macOS Tahoe 26.3 (Darwin 25.3.0, arm64) |\n| **Machine** | MacBook Pro M2 |\n| **Terminal** | macOS Terminal / zsh |\n| **Plan** | Claude Pro 20x (same account as original report) |\n\n### Reproduction\n\n1. `/model` → select Opus (1M context) → settings written as `opus[1m]`\n2. Send any message → `API Error: Rate limit reached`\n3. `/model` → select Default → wo",
+      "created_at": "2026-03-02T19:40:28Z"
+    },
+    {
+      "author": "yulonglin",
+      "author_association": "NONE",
+      "body": "@cadfan Did you manage to find other workarounds? Default doesn't work for me either",
+      "created_at": "2026-03-03T00:30:24Z"
+    },
+    {
+      "author": "cadfan",
+      "author_association": "NONE",
+      "body": "@yulonglin The most likely cause is a stale `[1m]` model value persisted in your settings — this overrides `/model` picker selections, which could explain why Default doesn't work for you either.\n\nCheck your `settings.json` (run `/config` or look in `~/.claude/settings.json`). If there's a `\"model\"` key set to anything with `[1m]` in it, **remove that line entirely** and restart Claude Code.\n\nIf there's no `\"model\"` key in your settings and Default still fails, that's likely a different issue. I",
+      "created_at": "2026-03-03T17:47:27Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 25186,
+  "title": "Korean IME composition window appears at wrong position (bottom-left of terminal)",
+  "body": "# Korean IME composition window appears at wrong position (bottom-left of terminal)\n\n## Summary\n\nWhen typing Korean (or other CJK languages) in Claude Code, the IME composition/candidate window renders at the **bottom-left corner of the terminal** instead of at the cursor position. This makes Korean input extremely difficult — the composing character appears far from where text is being typed.\n\n## Environment\n\n- **OS**: macOS (Darwin 25.2.0)\n- **Claude Code model**: Opus 4.6\n- **Input method**: macOS default Korean input (2-set / du-beol-sik)\n- **Terminal**: iTerm2 / Terminal.app (reproducible in both)\n\n## Steps to Reproduce\n\n1. Launch Claude Code in a terminal on macOS.\n2. Switch to Korean input method.\n3. Type Korean text in the input prompt (e.g., keystrokes for \"한글\").\n4. Observe where the IME composition window appears.\n\n## Expected Behavior\n\nThe IME composition window should appear **directly adjacent to the text cursor** in the input field.\n\n## Actual Behavior\n\nThe IME composition window appears at the **bottom-left corner of the terminal**, completely detached from the input area:\n\n1. **Split attention**: The composing syllable (ㅎ → 하 → 한) appears far from where text is inserted.\n2. **Disorienting feel**: Characters feel \"pushed away\" or \"lagging\" due to spatial disconnect.\n3. **Affects all Korean input**: Korean users all experience this.\n\n## Screenshot\n\n<img width=\"368\" height=\"89\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/2a54d137-b4c7-403c-9f01-51717df2c7bc\" />\n\n## Technical Analysis\n\n### Root Cause\n\nClaude Code uses React Ink, which hides the real terminal cursor and renders a fake cursor via `chalk.inverse()`. macOS IME relies on the real terminal cursor position to place the composition window. Since the real cursor is hidden, the IME window falls back to position (0,0).\n\n### The Fix: Ink's `useCursor` API\n\nInk 6.7.0 introduced `useCursor` (PR #866) which moves the **real terminal cursor** to specified coordinates after each render:\n\n```tsx\nimport { useCursor } from 'ink';\nimport stringWidth from 'string-width';\n\nconst { setCursorPosition } = useCursor();\nsetCursorPosition({\n  x: stringWidth(prompt + textBeforeCursor),\n  y: inputRow,\n});\n```\n\n**Local verification**: Tested with `ink@6.7.0` + `useCursor` — IME composition window appears at the correct position. Korean input works as expected.\n\n## Related Issues\n\n- #1547, #2620, #3045, #16372, #19207, #21382\n\n## Proposed Fix\n\n1. Integrate `useCursor` from ink >=6.7.0 into Claude Code's text input component\n2. Use `string-width` for CJK-aware cursor column calculation\n3. Show the real terminal cursor alongside the existing visual cursor\n\n### Upstream PRs\n\n- [`ink-text-input` #93](https://github.com/vadimdemedes/ink-text-input/pull/93): Add IME cursor positioning via `useCursor`\n- [`@inkjs/ui` #24](https://github.com/vadimdemedes/ink-ui/pull/24): Add IME cursor positioning to TextInput\n- [`ink` #876](https://github.com/vadimdemedes/ink/pull/876): Improve cursor-ime example with full TextInput\n- [`ink` #866](https://github.com/vadimdemedes/ink/pull/866): `useCursor` hook (merged)\n- [`ink` #872](https://github.com/vadimdemedes/ink/pull/872): `<Cursor>` component (open)\n\n### Reproduction\n\nAvailable at [korean-terminal](https://github.com/subinium/korean-terminal):\n\n| Script | Description | IME behavior |\n|--------|-------------|--------------|\n| `npm run test1` | Fake cursor (current behavior) | IME at bottom-left (broken) |\n| `npm run test2` | `useCursor` with real cursor | IME at correct position (fixed) |\n| `npm run test3` | Full TextInput + `useCursor` | IME at correct position (fixed) |\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "area:a11y",
+    "oncall"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-12T04:45:05Z",
+  "updated_at": "2026-04-01T14:48:47Z",
+  "closed_at": "2026-03-24T17:37:25Z",
+  "reactions_total": 36,
+  "comments_count": 15,
+  "author": "subinium",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16372\n2. https://github.com/anthropics/claude-code/issues/19207\n3. https://github.com/anthropics/claude-code/issues/6342\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-12T04:48:21Z"
+    },
+    {
+      "author": "subinium",
+      "author_association": "NONE",
+      "body": "This is **not** a duplicate — it is a consolidation with a concrete fix.\n\nThe referenced issues (#16372, #19207, #6342) were all closed, but the underlying problem **still exists** as of today. The IME composition window still appears at the bottom-left corner of the terminal when typing Korean in Claude Code.\n\n### What makes this issue different\n\n1. **Reproduction repo**: [subinium/korean-terminal](https://github.com/subinium/korean-terminal) — three runnable demos (`npm run test1/test2/test3`)",
+      "created_at": "2026-02-12T04:56:05Z"
+    },
+    {
+      "author": "myriky",
+      "author_association": "NONE",
+      "body": "### Reproduction video (macOS, iTerm2, Korean IME)\n\n  I recorded a short screen capture demonstrating this issue.\n\n  https://github.com/user-attachments/assets/cb1fe7d3-8cd9-4b79-9263-553fcf996f3d\n\n  **Environment:**\n  - macOS Sequoia 15.5\n  - iTerm2\n  - Claude Code v2.1.42\n  - Korean (2-Set) IME\n\n  **What's happening:**\n  - While composing Hangul characters, the IME candidate window appears at the bottom-left corner of\n   the terminal instead of next to the actual cursor position.\n  - The compo",
+      "created_at": "2026-02-16T20:52:17Z"
+    }
+  ]
+}

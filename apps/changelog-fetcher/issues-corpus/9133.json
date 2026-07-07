@@ -1,0 +1,35 @@
+{
+  "number": 9133,
+  "title": "[BUG] Atlassian MCP Server Tools Not Available in Claude Code   2.0.10 Conversations Despite Successful Connection",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n Environment:\n  - Claude Code Version: 2.0.10\n  - Platform: macOS 15.6.1 (24G90)\n  - Architecture: ARM64 (Apple Silicon)\n  - Node.js: v24.9.0\n  - mcp-remote version: 0.1.29\n  - MCP Server: Official Atlassian Rovo MCP Server\n  (https://mcp.atlassian.com/v1/sse)\n\n  Configuration:\n  {\n    \"atlassian\": {\n      \"type\": \"stdio\",\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"mcp-remote\", \"https://mcp.atlassian.com/v1/sse\"],\n      \"env\": {}\n    }\n  }\n\n  Issue Description:\n  The Atlassian MCP server connects successfully and OAuth authentication\n  completes, but MCP tools are not exposed to Claude in conversation\n  sessions.\n\n  Evidence of Successful Connection:\n  1. claude mcp list shows: ✓ Connected\n  2. OAuth tokens are cached in ~/.mcp-auth/mcp-remote-0.1.29/\n  3. mcp-remote proxy establishes successfully via SSE transport\n  4. No connection errors in logs\n\n  Problem:\n  Despite successful connection, when asked to \"list my recent Jira\n  issues\" or perform any Jira/Confluence operations, Claude reports not\n  having access to any Atlassian MCP tools.\n\n  Expected Behavior:\n  MCP tools from the Atlassian server should be automatically available in\n   conversations for Claude to use (similar to how it works in Claude\n  Desktop/Claude.ai).\n\n  Related Issues:\n  - #2682: MCP Tools Not Available in Conversation Interface Despite\n  Successful Connection\n  - #3426: Claude Code fails to expose MCP tools to AI sessions\n  - #3279: MCP server loses connection\n  - #1611: MCP servers fail to connect despite correct configuration\n\n\n  Additional Context:\n  - This is the official Atlassian Rovo MCP Server recommended by\n  Atlassian\n  - The same server works in Claude Desktop according to Atlassian\n  documentation\n  - Issue affects stdio-based MCP servers with OAuth authentication\n  - Tools should be discoverable but are not being exposed to the AI\n  session\n\n### What Should Happen?\n\nPlease investigate why MCP tools are not being exposed to Claude Code\n  conversation sessions despite successful server connection and\n  authentication.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nRun: claude mcp add --transport stdio atlassian npx -- -y mcp-remote \n  https://mcp.atlassian.com/v1/sse\n  2. Complete OAuth authentication (tokens cached successfully)\n  3. Verify connection: claude mcp list shows ✓ Connected\n  4. Start conversation and ask Claude to use Atlassian tools\n  5. Claude reports tools are not available\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.10\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-08T08:06:06Z",
+  "updated_at": "2026-02-14T14:16:47Z",
+  "closed_at": "2026-02-07T10:11:05Z",
+  "reactions_total": 8,
+  "comments_count": 15,
+  "author": "chkp-shaili",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/2682\n2. https://github.com/anthropics/claude-code/issues/8407\n3. https://github.com/anthropics/claude-code/issues/3426\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-08T08:14:53Z"
+    },
+    {
+      "author": "mrunkel",
+      "author_association": "NONE",
+      "body": "I don't believe this is a dup. I have the same problem, just started today.\n\nI'm getting the message in the log: \n\n````\n  {\n    \"error\": \"Connection failed: SSE MCP servers are currently not supported in native builds.\",\n    \"timestamp\": \"2025-10-09T13:24:20.450Z\",\n    \"sessionId\": \"32d777bf-61ce-4f6d-ae6b-56a5291b903f\",\n    \"cwd\": \"/Users/mrunkel/Herd/kautionskonto\"\n  },\n````\nAfter moving the native client out of the way and running the nodejs claude, it works fine.\n\nSo, the question becomes, w",
+      "created_at": "2025-10-09T13:35:17Z"
+    },
+    {
+      "author": "Nek-12",
+      "author_association": "NONE",
+      "body": "Yes also started today, a few hours ago even. Same question as above, why did it stop working all of a sudden?\n",
+      "created_at": "2025-10-09T13:46:50Z"
+    }
+  ]
+}

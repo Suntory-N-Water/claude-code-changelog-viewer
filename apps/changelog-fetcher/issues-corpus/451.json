@@ -1,0 +1,35 @@
+{
+  "number": 451,
+  "title": "Node.js Memory Allocation Failure in Latest Version",
+  "body": "**Bug Description**\nWhen starting on most projects, this comes up (using the latest version):\n\n<--- Last few GCs --->\n\n```\n[5155:0x128008000]     5760 ms: Mark-Compact (reduce) 4094.3 (4107.5) -> 4094.1 (4100.5) MB, pooled: 0 MB, 4.83 / 0.00 ms  (+ 0.1 ms in 0 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 14 ms) (average mu = 0.945, curren[5155:0x128008000]     5780 ms: Mark-Compact (reduce) 4104.3 (4110.7) -> 4104.2 (4110.7) MB, pooled: 0 MB, 11.12 / 0.00 ms  (+ 0.0 ms in 0 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 14 ms) (average mu = 0.858, curre\n```\n\n<--- JS stacktrace --->\n\n```\nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n```\n\n----- Native stack trace -----\n\n```\n 1: 0x102cc77c0 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n 2: 0x102e713f4 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n 3: 0x10302e424 v8::internal::Heap::CallGCPrologueCallbacks(v8::GCType, v8::GCCallbackFlags, v8::internal::GCTracer::Scope::ScopeId) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n 4: 0x10302ba80 v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n 5: 0x102fcfcdc v8::internal::StackGuard::HandleInterrupts(v8::internal::StackGuard::InterruptLevel) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n 6: 0x1032d9358 v8::internal::Runtime_StackGuardWithGap(int, unsigned long*, v8::internal::Isolate*) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n 7: 0x102abb9f4 Builtins_CEntry_Return1_ArgvOnStack_NoBuiltinExit [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n 8: 0x102a25ec0 Builtins_MaglevFunctionEntryStackCheck_WithoutNewTarget [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n 9: 0x10b2c9218\n10: 0x10b289160\n11: 0x102a61e20 Builtins_AsyncFunctionAwaitResolveClosure [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n12: 0x102b2f298 Builtins_PromiseFulfillReactionJob [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n13: 0x102a51214 Builtins_RunMicrotasks [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n14: 0x102a223f0 Builtins_JSRunMicrotasksEntry [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n15: 0x102fa331c v8::internal::(anonymous namespace)::Invoke(v8::internal::Isolate*, v8::internal::(anonymous namespace)::InvokeParams const&) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n16: 0x102fa3a88 v8::internal::(anonymous namespace)::InvokeWithTryCatch(v8::internal::Isolate*, v8::internal::(anonymous namespace)::InvokeParams const&) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n17: 0x102fce03c v8::internal::MicrotaskQueue::PerformCheckpointInternal(v8::Isolate*) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n18: 0x102bdd5e4 node::InternalCallbackScope::Close() [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n19: 0x102bddb94 node::InternalMakeCallback(node::Environment*, v8::Local<v8::Object>, v8::Local<v8::Object>, v8::Local<v8::Function>, int, v8::Local<v8::Value>*, node::async_context, v8::Local<v8::Value>) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n20: 0x102bf5d90 node::AsyncWrap::MakeCallback(v8::Local<v8::Function>, int, v8::Local<v8::Value>*) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n21: 0x102ccda00 node::fs::FSReqCallback::Resolve(v8::Local<v8::Value>) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n22: 0x102ccf390 node::fs::AfterNoArgs(uv_fs_s*) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n23: 0x102cbe130 node::MakeLibuvRequestCallback<uv_fs_s, void (*)(uv_fs_s*)>::Wrapper(uv_fs_s*) [/opt/homebrew/Cellar/node/23.9.0/bin/node]\n24: 0x10641214c uv__work_done [/opt/homebrew/Cellar/libuv/1.50.0/lib/libuv.1.dylib]\n25: 0x106415a74 uv__async_io [/opt/homebrew/Cellar/libuv/1.50.0/lib/libuv.1.dylib]\n26: 0x10642601c uv__io_poll [/opt/homebrew/Cellar/libuv/1.50.0/lib/libuv.1.dylib]\n27: 0x106415f08 uv_run [/opt/homebrew/Cellar/libuv/1.50.0/lib/libuv.1.dylib]\n28: 0x102bde488 node::SpinEventLoopInternal(node::Environment*) [/opt",
+  "labels": ["bug", "platform:macos"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-03-12T07:14:58Z",
+  "updated_at": "2025-08-09T14:06:43Z",
+  "closed_at": "2025-03-15T17:35:17Z",
+  "reactions_total": 2,
+  "comments_count": 12,
+  "author": "olgeni",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "@olgeni any chance you have a giant ~/.claude.json file?\n",
+      "created_at": "2025-03-12T22:49:37Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "what about the one in your home directory?",
+      "created_at": "2025-03-12T22:57:21Z"
+    },
+    {
+      "author": "olgeni",
+      "author_association": "NONE",
+      "body": "So far it doesn't crash anymore at startup with a quick edit adding `--max-old-space-size=8192`:\n\n```#!/usr/bin/env -S node --no-warnings --enable-source-maps --max-old-space-size=8192```",
+      "created_at": "2025-03-12T07:18:28Z"
+    }
+  ]
+}

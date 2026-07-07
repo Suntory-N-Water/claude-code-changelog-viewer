@@ -1,0 +1,43 @@
+{
+  "number": 23989,
+  "title": "Premature \"Context limit reached\" at ~51% when submitting image during active processing",
+  "body": "## Environment\n- **Claude Code:** v2.1.34\n- **Model:** Opus 4.6\n- **OS:** macOS Darwin 25.2.0\n\n## Bug Description\n\nContext limit is triggered at **~51% utilization** (per status bar) — well under half capacity — when submitting a message that includes a screenshot image while Claude Code is actively processing (running tool calls, mid-response). This is distinct from #23047 where `/compact` fails at actual context limits; here the limit itself fires prematurely, wasting over half the context window.\n\n## Steps to Reproduce\n\n1. Start a normal development session with tool-heavy workflows (file reads, bash commands, edits)\n2. Let Claude Code begin processing a multi-step response (tool calls in progress)\n3. **While processing is active**, submit a new message that includes a screenshot/image attachment\n4. Context immediately jumps to \"limit reached\" at ~51% — session is deadlocked\n\n## What Happens\n\n1. Status bar shows **~51% context** — nowhere near full\n2. `Context limit reached · /compact or /clear to continue` blocks all input\n3. `/compact` fails: `Error: Error during compaction: Error: Conversation too long. Press esc twice to go up a few messages and try again.`\n4. `continue` is also blocked by the same context limit gate\n5. **No recovery path** — forced to kill the process entirely, restart Claude Code, re-run project restoration, and manually reconstruct session state\n\n## Key Observations\n\n- **Only happens with image + mid-processing timing** — in my experience, this never triggers during normal text-only interaction or when submitting images while Claude Code is idle\n- **Triggers at ~51%, not near 100%** — over half the context window is wasted\n- **Heavy tool use sessions are more susceptible** — sessions with many file reads, bash commands, and multi-step agentic workflows\n- **Large system prompts may contribute** — projects with substantial CLAUDE.md files and multiple skills loaded\n- **Auto-compact never fires** — the session goes straight from working to deadlocked, no automatic compaction attempt in between\n\n## Impact\n\nThis effectively caps usable session length to roughly 30-60 minutes for tool-heavy development workflows. Recovery requires killing the process, restarting Claude Code, re-running project setup/restoration commands (which themselves consume context), and manually copying relevant portions from the dead session. This full recovery cycle happens **multiple times per day**, each costing 5-10 minutes plus the context overhead of re-establishing state.\n\n## Likely Cause\n\nSomething about submitting an image while a response is actively streaming/processing appears to corrupt the context accounting — possibly double-counting tokens, failing to properly handle the concurrent message, or miscalculating image token costs in that race condition.\n\n## Related\n\n- #23047 — `/compact` fails when context limit is legitimately reached. That's a separate issue (compaction catch-22). This bug is about the limit triggering **prematurely** due to image submission timing.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:core",
+    "memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-07T18:16:12Z",
+  "updated_at": "2026-03-26T14:50:14Z",
+  "closed_at": "2026-03-19T10:19:56Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "EdwardCourt",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "EdwardCourt",
+      "author_association": "NONE",
+      "body": "## Second occurrence — even lower context threshold\n\n**Claude Code version:** 2.1.37\n**Context at trigger:** 37% (down from ~51% in the original report)\n**Model:** Opus 4.6\n\n### What happened\n- Working on a dashboard enhancement session (Go TUI code)\n- Submitted 2-3 screenshots during the conversation for UI feedback\n- Claude made a small edit (1 line change in a Go file)\n- Immediately after: `Context limit reached · /compact or /clear to continue`\n- Status bar clearly shows `ctx:37%`\n- Session ",
+      "created_at": "2026-02-07T19:43:46Z"
+    },
+    {
+      "author": "EdwardCourt",
+      "author_association": "NONE",
+      "body": "Still reproduces on v2.1.38. Same deadlock — read one image file, immediate context limit, no recovery.",
+      "created_at": "2026-02-10T15:33:10Z"
+    },
+    {
+      "author": "EdwardCourt",
+      "author_association": "NONE",
+      "body": "## Fourth trigger condition: image submission during active Explore agents\n\n**Claude Code version:** current (Opus 4.6)\n**Context at trigger:** ~74%\n\n### New data point\n\nThis time the trigger wasn't during a standard tool call or dialog box — it fired when submitting an image **while two Explore subagents were actively running**. The agents completed (13 and 8 tool uses, 66.2k and 39.9k tokens respectively), but the image submission during their execution triggered the context limit and **1m 25s",
+      "created_at": "2026-02-10T18:02:08Z"
+    }
+  ]
+}

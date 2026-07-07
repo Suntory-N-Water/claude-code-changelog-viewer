@@ -1,0 +1,35 @@
+{
+  "number": 51874,
+  "title": "[BUG] [Error] Tool result could not be submitted.",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Context**\n\n- This error only started appearing after installing the Intercom mcp connector. Could be coincidence or something changed and is impacting everything else.\n- Using Claude Desktop for Mac OS.\n- I've since removed the intercom connector.\n\n**What happens**\n\n- When using Claude Chat to search the web.\n- As soon as it starts searching the web, the error appears each time.\n- This includes any new chats.\n- Any tool that it tries to use will return this error, even with Figma MCP connector.\n\n**Error message**\n\"Tool result could not be submitted. The request may have expired or the connection was interrupted. Refresh the page to continue.\"\n\n**Troubleshooting steps**\n\n- I've uninstalled Claude Desktop and deleted cache and logs\n- Reinstalled the app and the problem still persists\n\nAnyone have any thoughts on this?\n\n### What Should Happen?\n\nIt should use the tool and the error message shouldn't appear.\n\n### Error Messages/Logs\n\n```shell\nTool result could not be submitted. The request may have expired or the connection was interrupted. Refresh the page to continue.\n```\n\n### Steps to Reproduce\n\n- When using Claude Chat to search the web.\n- As soon as it starts searching the web, the error appears each time.\n- This includes any new chats.\n- Any tool that it tries to use will return this error, even with Figma MCP connector.\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude 1.3883.0 (93ff6c) 2026-04-21T17:24:01.000Z\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["invalid"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-22T07:33:56Z",
+  "updated_at": "2026-05-08T14:51:36Z",
+  "closed_at": "2026-04-23T00:11:25Z",
+  "reactions_total": 34,
+  "comments_count": 45,
+  "author": "stephenkungfarmbot",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mttMxr",
+      "author_association": "NONE",
+      "body": "I can confirm this issue and it appears to be the same underlying bug.\n\nIn my case:\n\n* normal completions still succeed\n* tool-assisted turns fail at the final handoff step\n* `POST /api/organizations/.../chat_conversations/.../tool_result` returns `404 Not Found`\n* the UI shows: `Tool result could not be submitted. The request may have expired or the connection was interrupted.`\n* tools may appear to execute, including file creation/modification, but the final tool result cannot be submitted bac",
+      "created_at": "2026-04-22T09:23:40Z"
+    },
+    {
+      "author": "crisis-hamburger",
+      "author_association": "NONE",
+      "body": "I am also experiencing this issue, as of upgrading to Claude 1.3883.0 (93ff6c) 2026-04-21T17:24:01.000Z today. I did not experience this issue on previous versions. \n\nEvery tool call is generating this error, on both Claude Desktop and Claude Web chat. ",
+      "created_at": "2026-04-22T09:50:01Z"
+    },
+    {
+      "author": "Blackjoka",
+      "author_association": "NONE",
+      "body": "this is also happening to me when trying to call on custom skills that I made. This did not happen when I first uploaded/created the skills and it happens with every call. ",
+      "created_at": "2026-04-22T10:54:33Z"
+    }
+  ]
+}

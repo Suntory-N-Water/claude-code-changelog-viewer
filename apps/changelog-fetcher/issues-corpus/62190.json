@@ -1,0 +1,41 @@
+{
+  "number": 62190,
+  "title": "[BUG] Severe over-triggering of safety guardrails — Claude hallucinates policy violations in completely harmless prompts",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter the latest Claude Code update, the safety guardrail classifier\nmassively over-triggers and blocks prompts that contain nothing\npolicy-violating.\n\nThe bot effectively cannot accept prompts anymore — many messages are\nintercepted before the model responds, with a banner claiming the\nrequest violates the Usage Policy / \"cyber-related safeguards\".\n\nThis fires on:\n- Plain greetings (\"Hello\", \"Hi\", \"привет\").\n- Ordinary coding tasks on my own project files.\n- One-word follow-ups (\"ok\", \"yes\", \"continue\") in an already-running\n  session.\n\nThe block is also non-deterministic: the same input gets through one\nattempt and gets killed on the next, which strongly suggests an unstable\nclassifier rather than the input being the cause.\n\nIdentical workflows worked on the previous release — this is a clear\nregression.\n\n### What Should Happen?\n\n- A greeting like \"Hello\" or \"привет\" should produce a normal greeting\n  reply, not a Usage Policy block.\n- Routine coding tasks (read file, rename, add test, explain stack\n  trace) should proceed without classifier interference.\n- The \"cyber-related safeguards\" classifier should only fire on actual\n  cyber/security policy violations, not on plain text.\n- Behavior should be deterministic on identical input.\n\n### Error Messages/Logs\n\n```shell\nRequest was blocked\nThis request triggered safety guardrails. Rephrase your prompt or rewind to continue.\n\nAPI Error: Claude Code is unable to respond to this request, which appears to violate our Usage Policy (https://www.anthropic.com/legal/aup). This request triggered cyber-related safeguards. To request an adjustment pursuant to our Cyber Verification Program based on how you use Claude\n```\n\n### Steps to Reproduce\n\n1. Update Claude Code to the latest version.\n2. Start a fresh conversation (no prior memory, no project context).\n3. Send a single benign message, e.g.:\n   - `Hello`\n   - `привет`\n4. Observe the \"safety guardrails / cyber-related safeguards\" block\n   instead of a normal reply.\n5. Repeat the same input a few times — the block fires inconsistently\n   on identical text, confirming the classifier is unstable.\n\nAlso reproducible with ordinary coding asks against unrelated projects,\ne.g. \"read this file and summarize it\" on a normal source file.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nUnknown - the previous Claude Code release I had installed before this update.\n\n### Claude Code Version\n\n2.1.149\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n<img width=\"869\" height=\"699\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/5baf0cfa-ad96-446f-b955-fbc66a4dd300\" />\n\n<img width=\"873\" height=\"686\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/c58aa825-672a-498c-b067-c2e68c920437\" />",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:windows",
+    "area:model",
+    "api:anthropic"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-25T10:20:03Z",
+  "updated_at": "2026-05-31T20:29:27Z",
+  "closed_at": "2026-05-31T20:29:27Z",
+  "reactions_total": 15,
+  "comments_count": 8,
+  "author": "pwnnex",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "zarazaex69",
+      "author_association": "NONE",
+      "body": "++++ антропики хуясосы\n",
+      "created_at": "2026-05-25T10:22:48Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/60366\n2. https://github.com/anthropics/claude-code/issues/62071\n3. https://github.com/anthropics/claude-code/issues/62065\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-25T10:24:27Z"
+    },
+    {
+      "author": "Frad70",
+      "author_association": "NONE",
+      "body": "++",
+      "created_at": "2026-05-25T10:27:45Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 2407,
+  "title": "Shell Function Inheritance Issue - Zoxide and Dynamic Functions Fail in Bash Tool",
+  "body": "# Claude Code Bug Report: Shell Function Inheritance Issue with Zoxide\n\n## Bug Summary\nClaude Code's Bash tool execution environment fails to properly inherit/execute shell functions, specifically breaking zoxide functionality that depends on `__zoxide_z` and related functions.\n\n## Environment\n- **Claude Code Version**: 1.0.18\n- **OS**: Linux (WSL2) - Ubuntu on Windows\n- **Shell**: zsh 5.9\n- **Kernel**: Linux 6.6.87.2-microsoft-standard-WSL2\n- **Zoxide Version**: 0.9.8 (installed at ~/.local/bin/zoxide)\n\n## Expected Behavior\nWhen zoxide is properly configured in ~/.zshrc with `eval \"$(zoxide init zsh)\"`, the `cd` command should work seamlessly using zoxide's smart directory jumping functionality.\n\n## Actual Behavior\n```bash\n$ cd /some/path\nz:1: command not found: __zoxide_z\n```\n\n## Reproduction Steps\n1. Install zoxide: `curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash`\n2. Add to ~/.zshrc: `eval \"$(zoxide init zsh)\"`\n3. Source ~/.zshrc: `source ~/.zshrc`\n4. In normal terminal: `cd some_path` works perfectly\n5. In Claude Code Bash tool: `cd some_path` fails with \"command not found: __zoxide_z\"\n\n## Investigation Results\n\n### What Works in Normal Shell\n```bash\n$ zoxide --version\nzoxide 0.9.8\n\n$ which zoxide\n/home/chris/.local/bin/zoxide\n\n$ type __zoxide_z\n__zoxide_z is a shell function from ~/.zshrc\n```\n\n### What Fails in Claude Code Bash Tool\n```bash\n$ zoxide --version\nzoxide 0.9.8\n\n$ type __zoxide_z\nz:1: command not found: __zoxide_z\n\n$ eval \"$(zoxide init zsh)\"\n# Appears to execute without error, but functions are not available\n```\n\n## Root Cause Analysis\nThe issue appears to be that Claude Code's Bash tool execution context:\n1. **Does not properly inherit shell functions** defined in ~/.zshrc\n2. **Cannot execute `eval` statements** that define shell functions dynamically\n3. **Persists broken aliases** even after unalias/unset attempts\n\n## Technical Details\n\n### Zoxide Initialization Code\nWhen `zoxide init zsh` runs, it generates shell functions like:\n```bash\nfunction __zoxide_z() {\n    if [[ \"$#\" -eq 0 ]]; then\n        __zoxide_cd ~\n    elif [[ \"$#\" -eq 1 ]] && { [[ -d \"$1\" ]] || [[ \"$1\" = '-' ]] || [[ \"$1\" =~ ^[-+][0-9]$ ]]; }; then\n        __zoxide_cd \"$1\"\n    else\n        \\builtin local result\n        result=\"$(\\command zoxide query --exclude \"$(__zoxide_pwd)\" -- \"$@\")\" && __zoxide_cd \"${result}\"\n    fi\n}\n```\n\n### Failed Workarounds Attempted\n1. **Manual function definition**: Functions defined but not accessible\n2. **Re-sourcing ~/.zshrc**: No effect in Claude Code context\n3. **Direct eval execution**: Appears to succeed but functions unavailable\n4. **Clearing completion cache**: `rm ~/.zcompdump*; compinit` - no effect\n5. **Alternative initialization**: `zoxide init zsh --no-cmd` - same issue\n\n## Impact\nThis affects any development workflow that relies on:\n- Zoxide for smart directory navigation\n- Any shell functions defined in user configurations\n- Dynamic shell function generation via `eval`\n\n## Expected Fix\nClaude Code's Bash tool should:\n1. Properly inherit shell functions from the user's shell environment\n2. Support dynamic function definition via `eval`\n3. Maintain function persistence across command executions within the same session\n\n## Workaround\nCreated fix script at `/mnt/c/ats/ph1t/fix_zoxide.sh` that manually defines functions, but this doesn't address the underlying shell inheritance issue.\n\n## Business Impact\nThis significantly impacts developer productivity in Claude Code, as modern shell productivity tools (zoxide, starship, fzf integration) rely on shell functions that don't work in Claude Code's execution environment.\n\n## Supporting Files\n- Zoxide fix script: `/mnt/c/ats/ph1t/fix_zoxide.sh`\n- Shell configuration: `~/.zshrc` (contains proper zoxide initialization)\n\n## Additional Context\nThis issue was discovered during integration testing of a Neovim plugin (Maxi.nvim) where directory navigation was failing consistently in Claude Code but working perfectly in normal terminal sessions.",
+  "labels": ["bug", "has repro", "platform:linux", "area:tools"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-21T08:12:02Z",
+  "updated_at": "2026-01-17T14:14:08Z",
+  "closed_at": "2026-01-10T10:12:39Z",
+  "reactions_total": 59,
+  "comments_count": 12,
+  "author": "ChrisKotsis",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "maherbeg",
+      "author_association": "NONE",
+      "body": "I've run into a similar issue while running in Fish where we also have a direnv integration to load a bunch of environment specific settings. If I ask Claude to execute a command but prepend it with `fish -i -c`, it works with the correctly loaded environment. I have a bash script it is running that requires a newer version of bash, but it keeps picking up `/bin/bash` instead causing bash scripting errors with the version of bash.",
+      "created_at": "2025-06-26T19:06:30Z"
+    },
+    {
+      "author": "serpent213",
+      "author_association": "NONE",
+      "body": "Quick fix, if you *don't* require enhanced zsh behaviour inside Claude Code:\n```sh\nSHELL=/bin/bash claude\n```",
+      "created_at": "2025-06-27T14:51:24Z"
+    },
+    {
+      "author": "matheusml",
+      "author_association": "NONE",
+      "body": "The same is happening here.",
+      "created_at": "2025-07-04T19:01:59Z"
+    }
+  ]
+}

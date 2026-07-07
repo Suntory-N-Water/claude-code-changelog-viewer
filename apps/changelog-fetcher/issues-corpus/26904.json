@@ -1,0 +1,35 @@
+{
+  "number": 26904,
+  "title": "[FEATURE] Add /delete command to delete current session",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nCurrently, there is no built-in way to delete sessions from within Claude Code. When users want to remove old, test, or sensitive sessions, they must:\n\n1. Exit Claude Code or open a separate terminal\n2. Manually navigate to `~/.claude/projects/`\n3. Find the correct `.jsonl` session file\n4. Manually delete the file\n\nThis breaks the workflow and is error-prone — especially for users who frequently create sessions for testing or experimentation and want to keep their session list clean when using `/resume`.\n\nThe existing `/clear` command only clears conversation history within the current session — it does **not** delete the session itself. There is currently no way to permanently remove a session without leaving Claude Code.\n\n### Proposed Solution\n\nAdd a `/delete` command with two modes:\n\n### Mode 1: Delete current session\n\n```\n/delete\n```\n\nDeletes the currently active session, prompts for confirmation, then exits or starts a new session.\n\n```\n> /delete\nDelete current session \"portfolio-fixes\"? (y/n): y\nSession deleted. Starting new session...\n```\n\n### Mode 2: Delete session by name\n\n```\n/delete <session-name>\n```\n\nDeletes a specific session by name, similar to how `/resume <session-name>` works. Shows a list if the name matches multiple sessions.\n\n```\n> /delete my-old-session\nDelete session \"my-old-session\"? (y/n): y\nSession deleted.\n```\n\n**Ambiguous name handling:**\n\n```\n> /delete test\nMultiple sessions found:\n  1. test-auth-flow\n  2. test-database-migration\n  3. test-ui-components\nSelect a session to delete (1-3): 2\nDelete session \"test-database-migration\"? (y/n): y\nSession deleted.\n```\n\n**Detailed behavior:**\n\n| Scenario | Expected Behavior |\n|---|---|\n| `/delete` with no arguments | Targets the current active session |\n| `/delete <name>` with exact match | Targets that specific session |\n| `/delete <name>` with multiple matches | Shows numbered list to choose from |\n| `/delete <name>` with no match | Error: `No session found matching \"<name>\"` |\n| Confirmation declined (`n`) | Cancels, returns to current session |\n| Deleting current active session | Starts a new session or exits |\n| Deleting a non-active session | Remains in current session |\n\n\n\n### Alternative Solutions\n\n_No response_\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n1. I'm working on a project and create multiple test sessions to experiment with different approaches\n2. After finding the right approach, I have 5-10 leftover test sessions cluttering my `/resume` list\n3. One of those test sessions accidentally contains an API key I pasted during debugging\n4. Currently, I have to exit Claude Code, navigate to `~/.claude/projects/`, figure out which `.jsonl` files correspond to which sessions, and delete them manually\n5. With `/delete`, I could simply type `/delete test-session-3` and confirm — done in seconds without leaving Claude Code\n6. This keeps the session list clean and the sensitive data removed immediately\n\n### Additional Context\n\nThis feature would complete the session lifecycle within Claude Code:\n\n```\nCreate → Work → Resume → Clear → Delete\n```\n\nCurrently the lifecycle is incomplete — users can create, work in, resume, and clear sessions, but cannot delete them without leaving the CLI.\n\n**How `/delete` fits with existing commands:**\n\n| Command | What It Does |\n|---|---|\n| `/resume` | Lists and resumes a previous session |\n| `/clear` | Clears conversation history (session still exists) |\n| `/delete` *(proposed)* | Permanently deletes a session file |\n\n**Additional considerations:**\n- A `--force` or `-f` flag could skip the confirmation prompt for power users\n- Session files are stored as `.jsonl` in `~/.claude/projects/`\n- Should handle edge cases: non-existent sessions, perm",
+  "labels": ["enhancement"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-19T14:07:34Z",
+  "updated_at": "2026-07-06T08:37:30Z",
+  "closed_at": null,
+  "reactions_total": 50,
+  "comments_count": 8,
+  "author": "rstar327",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rstar327",
+      "author_association": "NONE",
+      "body": "https://github.com/anthropics/claude-code/issues/25304, closed as duplicate but actually, this is not duplicated",
+      "created_at": "2026-02-19T14:09:23Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16901\n2. https://github.com/anthropics/claude-code/issues/2562\n3. https://github.com/anthropics/claude-code/issues/26365\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-19T14:11:32Z"
+    },
+    {
+      "author": "ihoooohi",
+      "author_association": "NONE",
+      "body": "+1, still a real pain point. Current workaround (manually `rm`-ing `~/.claude/projects/<project>/<uuid>.jsonl`) is error-prone because session UUIDs aren't shown in `/resume` — you have to grep JSONL files to identify which one to delete. Sessions with accidentally-pasted secrets (API keys, tokens) stay on disk until a manual cleanup. The OP's `/delete <name>` design covers this use case completely; would be great to un-stale this.",
+      "created_at": "2026-04-24T16:55:20Z"
+    }
+  ]
+}

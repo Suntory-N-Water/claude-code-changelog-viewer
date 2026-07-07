@@ -1,0 +1,35 @@
+{
+  "number": 35148,
+  "title": "[BUG] Logo and \"Thinking\" animation colors are dull/washed-out inside tmux",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen running Claude Code inside tmux, the logo and \"Thinking\" animation text appear dull/washed-out compared to running Claude Code directly in the terminal. All other colors in tmux work correctly, and Claude Code's own text output (syntax highlighting, markdown, etc.) appears fine - only the branding UI elements (logo, thinking animation) are affected.\n\n\n\n### What Should Happen?\n\nLogo and \"Thinking\" animation should have the same vibrant colors inside tmux as when running directly in the terminal.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Open iTerm2\n2. Run claude - observe vibrant logo colors\n3. Open tmux inside iTerm2\n4. Run claude - observe dull/muted logo and \"Thinking\" animation colors\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.77 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\nEnvironment\n- Claude Code version: 2.1.77\n- OS: macOS (Darwin 25.3.0, Apple Silicon)\n- Terminal: iTerm2\n- tmux version: 3.6\n- Shell: zsh\n- Theme: dark\n\ntmux config (relevant parts):\nset -g default-terminal \"tmux-256color\"\nset -ag terminal-overrides \",xterm-256color:Tc\"\nset -g mouse on\nset -s extended-keys on\nset -as terminal-features ',xterm-256color:extkeys'\n\nWhat I've tried (none of these fixed the issue):\n- Setting COLORTERM=truecolor via set-environment -g COLORTERM truecolor\n- Setting FORCE_COLOR=3 environment variable\n- Adding set -ag terminal-overrides \",tmux-256color:RGB\"\n- Setting set -g allow-passthrough all\n- Setting set-environment -g TERM_PROGRAM iTerm.app\n- Setting COLORFGBG=\"15;0\" in shell\n- Changing default-terminal to xterm-256color\n- Setting theme to dark via /theme\n\nTruecolor verification:\nTruecolor works correctly inside tmux for all other applications. Running the following produces three distinct, vibrant orange blocks:\n\nprintf '\\e[38;2;231;111;44m██████ truecolor\\e[0m\\n'\nprintf '\\e[38;5;208m██████ 256-color\\e[0m\\n'\nprintf '\\e[38;2;204;102;0m██████ truecolor darker\\e[0m\\n'\n\nSuspected cause\nClaude Code likely performs its own terminal capability detection for UI elements and falls back to a muted color palette when it detects tmux, regardless of actual truecolor support.",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": "reopened",
+  "created_at": "2026-03-17T02:07:22Z",
+  "updated_at": "2026-06-18T11:00:15Z",
+  "closed_at": null,
+  "reactions_total": 19,
+  "comments_count": 9,
+  "author": "quza",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "quza",
+      "author_association": "NONE",
+      "body": "<img width=\"106\" height=\"97\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/b1658c32-31d9-441a-aac5-816ad4d8822e\" /> - Claude logo in iTerm2\n\n<img width=\"105\" height=\"88\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/fc7c6cfe-2dab-4233-87c5-37dd184d80ff\" /> - Claude logo in tmux",
+      "created_at": "2026-03-17T02:09:41Z"
+    },
+    {
+      "author": "quza",
+      "author_association": "NONE",
+      "body": "accidentally closed issue, the problem still persists",
+      "created_at": "2026-03-17T02:11:19Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/32365\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-17T02:11:28Z"
+    }
+  ]
+}

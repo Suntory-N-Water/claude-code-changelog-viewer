@@ -1,0 +1,43 @@
+{
+  "number": 23377,
+  "title": "[BUG]  Github Issue Prompt Too Long",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Bug: \"Prompt is too long\" Error Makes Sessions Completely Unusable\n\n### Description\nThe \"Prompt is too long\" error completely breaks active Claude Code sessions. Once this error appears, **every single subsequent input** returns the same error message, making the session permanently unusable and forcing users to lose all conversation context.\n\n### Severity\n🔴 **CRITICAL** - Session-breaking bug\n\n### Environment\n- **Claude Code Version:** Latest (2026-02-05)\n- **OS:** Windows 11\n- **Model:** Claude Sonnet 4.5\n- **Interface:** VSCode Extension\n\n---\n\n### Steps to Reproduce\n1. Start a coding session with multiple file operations\n2. Continue conversation for 200+ messages\n3. Read several files (especially large ones)\n4. Suddenly receive: `Prompt is too long`\n5. Try to send any message\n6. **Result:** Every message returns `Prompt is too long`\n7. Session is now permanently broken\n\n---\n\n### Expected Behavior\n✅ Users should receive **warnings before** hitting the limit\n✅ Should offer **automatic context management** options\n✅ Should provide **recovery mechanisms** (e.g., `/clear context`)\n✅ Should **never completely lock** a session\n\n### Actual Behavior\n❌ No warning before the error occurs\n❌ No way to recover the session\n❌ Every input returns the same error\n❌ Must close tab and lose ALL context\n❌ Must manually search `.jsonl` files to recover work\n\n---\n\n### Impact\n\n**User Quote (translated from Spanish):**\n> \"THERE'S A VERY UNPLEASANT BUG THAT SCREWS UP MY WINDOWS AND PROJECT CONTEXT. SUDDENLY THIS MESSAGE APPEARS 'Prompt is too long' AND YOU CAN NEVER WRITE AGAIN BECAUSE EVERY WORD YOU TYPE RESPONDS WITH THE SAME 'Prompt is too long'. I'M REALLY FED UP WITH THIS BUG\"\n\n**Real-world impact:**\n- 🚫 Hours of conversation context lost instantly\n- 🚫 Deep work interrupted without warning\n- 🚫 Must start from scratch in new session\n- 🚫 Users lose trust in Claude Code reliability\n- 🚫 Session file: 76 MB / 12,854 messages lost\n\n---\n\n### Proposed Solutions\n\n#### 🔥 Quick Fixes (High Priority)\n1. **Warning System**\n   - 70% full: \"Context filling up - consider clearing\"\n   - 85% full: \"Context almost full - action needed\"\n   - 95% full: \"CRITICAL: Context nearly full\"\n\n2. **Emergency Recovery Command**\n   - Add `/recover` command that works even when context is full\n   - Auto-summarizes and clears old context\n   - Preserves last 20-30 messages\n\n3. **Visual Context Indicator**\n   - Progress bar showing context usage\n   - Color-coded: 🟢 Green (0-60%) → 🟡 Yellow (60-85%) → 🔴 Red (85-100%)\n\n#### 🎯 Long-term Solutions\n1. **Automatic Context Management**\n   - Auto-summarize old messages at 80% capacity\n   - Keep recent detailed context\n   - Store full history but load summaries\n\n2. **Smart Context Pruning**\n   - Remove redundant information automatically\n   - Keep: decisions, code changes, important findings\n   - Remove: intermediate debugging, repeated reads\n\n3. **Streaming Context Window**\n   - Summarize oldest messages as new ones arrive\n   - Maintain sliding window of detailed context\n\n---\n\n### Current Workarounds\nUsers must manually:\n- Run `/clear context` every 50-100 messages\n- Avoid reading large files entirely\n- Use `offset`/`limit` when reading files\n- Start new sessions frequently\n- **Manually search `.jsonl` files to recover context** 😞\n\n**None of these are acceptable solutions.**\n\n---\n\n### Technical Details\n\n**Token Limit:** ~200,000 tokens\n\n**Session Data Location:**\n```\n~/.claude/projects/[project-name]/[session-id].jsonl\n```\n\n**Example Broken Session:**\n- File: `abdb81bf-58ee-4c29-8005-1c6ec7e30848.jsonl`\n- Size: 76 MB\n- Messages: 12,854 lines\n- Lost: Multiple hours of wallet analyzer implementation\n\n---\n\n### Suggested Settings\n```json",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:core",
+    "area:ide",
+    "memory",
+    "oncall"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-05T15:18:13Z",
+  "updated_at": "2026-06-07T02:11:27Z",
+  "closed_at": null,
+  "reactions_total": 37,
+  "comments_count": 42,
+  "author": "cheizdo2-art",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "pleskyjp",
+      "author_association": "NONE",
+      "body": "I do have timed out prompts too => Fixed locally",
+      "created_at": "2026-02-05T15:21:55Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22013\n2. https://github.com/anthropics/claude-code/issues/22381\n3. https://github.com/anthropics/claude-code/issues/16697\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-05T15:22:25Z"
+    },
+    {
+      "author": "giandre",
+      "author_association": "NONE",
+      "body": "> I do have timed out prompts too => Fixed locally\n\n@pleskyjp , how did you fix this locally? I am having this problem constantly.\n",
+      "created_at": "2026-02-08T00:42:33Z"
+    }
+  ]
+}

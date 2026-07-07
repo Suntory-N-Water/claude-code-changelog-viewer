@@ -1,0 +1,35 @@
+{
+  "number": 27803,
+  "title": "[BUG] often uses `git -C`, which is hard to allow-list",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nFrequently, when Claude tries to do git operations, it uses `git -C`, e.g.\n\n```\ngit -C /path/to/this/project add README.md\n```\n\nThat works fine, but it prevents me from writing cross-project `allow` permissions for git commands.\n\n```\n\"allow\": [\n  \"Bash(git add:*)\",\n]\n```\n\nThat `allow` entry won't match because of the intervening `-C /path/to/this/project`. And `allow` entries can't contain multiple wildcards.\n\nI've tried adding an instruction to my global `CLAUDE.md` to no avail.\n\n### What Should Happen?\n\nClaude should only use `-C` if it's doing something outside of the project directory.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. open Claude in a directory that has a git repo\n2. modify a file\n3. ask Claude to commit the file\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.50\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nSomeone else asked the same thing on Reddit about a month ago: https://www.reddit.com/r/ClaudeCode/comments/1qd1dyz/how_do_i_get_cluadecode_to_stop_using_git_c_for/",
+  "labels": ["bug", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-23T04:28:05Z",
+  "updated_at": "2026-04-14T14:53:33Z",
+  "closed_at": "2026-04-06T22:17:09Z",
+  "reactions_total": 9,
+  "comments_count": 10,
+  "author": "jamesarosen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/26546\n2. https://github.com/anthropics/claude-code/issues/25270\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-23T04:31:44Z"
+    },
+    {
+      "author": "jamesarosen",
+      "author_association": "NONE",
+      "body": "Those are very closely related, but not exact duplicates. Note that #25270 was closed in favor of #13371, which is still open. [One proposed solution](https://github.com/anthropics/claude-code/issues/13371#issuecomment-3891292002) for #13371 explicitly only handles the `deny` case, not the `allow` case (this issue).\n\n#13154 would fix this, but it's far from the only option.",
+      "created_at": "2026-02-23T04:59:47Z"
+    },
+    {
+      "author": "tomocrafter",
+      "author_association": "NONE",
+      "body": "exact same problem is happening on my end too. it uses -C everytime tries to run `git` bash tool call. wihch made me spam Enter while it is in Explore agent.",
+      "created_at": "2026-02-24T05:17:03Z"
+    }
+  ]
+}

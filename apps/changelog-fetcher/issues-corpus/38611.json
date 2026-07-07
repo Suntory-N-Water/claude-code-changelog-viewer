@@ -1,0 +1,35 @@
+{
+  "number": 38611,
+  "title": "CLI -p flag returns empty stdout when using stdin pipe (v2.1.83 regression)",
+  "body": "## Bug Description\n\n`claude -p` with `input` via stdin pipe returns empty stdout in v2.1.83. This worked correctly in the previous version (installed before 2026-03-25).\n\n## Reproduction\n\n```python\nimport subprocess\n\nresult = subprocess.run(\n    [\"/Users/admin/.local/bin/claude\", \"-p\"],\n    input=\"Say hello\",\n    capture_output=True, text=True, timeout=30\n)\nprint(f\"RC: {result.returncode}\")      # 0\nprint(f\"STDOUT: [{result.stdout}]\")    # empty\nprint(f\"STDERR: [{result.stderr}]\")    # empty\n```\n\nShell equivalent:\n```bash\necho \"Say hello\" | claude -p\n# No output\n\nclaude -p \"Say hello\" < /dev/null\n# No output\n\nclaude -p --output-format json \"Say hello\" < /dev/null\n# Returns: {\"result\": \"\", ...} with output_tokens: 27\n```\n\nNote: running `claude -p \"Say hello\"` interactively (no pipe, with TTY) works fine and produces output.\n\n## Key Observations\n\n- `returncode` is 0 (success)\n- JSON output format shows `output_tokens: 27` but `result: \"\"` — tokens are generated but not captured in the result field\n- Adding `--output-format text` doesn't help\n- Adding `< /dev/null` to avoid stdin warning doesn't help  \n- `--bare` flag requires API key and doesn't use OAuth auth\n- This is a regression — the same code worked with the CLI version installed before 2026-03-25\n\n## Impact\n\nThis breaks any `subprocess.run()` integration that relies on capturing CLI output via stdout, e.g. using Claude CLI as a backend for prompt research in a Flask app.\n\n## Environment\n\n- Claude Code: v2.1.83\n- OS: macOS Darwin 25.3.0\n- Updated: 2026-03-25 07:46\n- Previous version (working): unknown exact version, updated automatically",
+  "labels": ["bug", "has repro", "platform:macos", "regression", "area:cli"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-03-25T08:05:03Z",
+  "updated_at": "2026-05-01T14:39:08Z",
+  "closed_at": "2026-04-19T04:23:04Z",
+  "reactions_total": 11,
+  "comments_count": 9,
+  "author": "failedprompt",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/36811\n2. https://github.com/anthropics/claude-code/issues/36758\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-25T08:09:20Z"
+    },
+    {
+      "author": "AdityaVallabh",
+      "author_association": "NONE",
+      "body": "@failedprompt , @doobidoo are you folks using any kind of Stop hooks?\nIf yes, then I believe that's the root cause. Filed an issue here: https://github.com/anthropics/claude-code/issues/38651",
+      "created_at": "2026-03-25T09:35:50Z"
+    },
+    {
+      "author": "nicolas-charpentier-extenso",
+      "author_association": "NONE",
+      "body": "This seems fixed in 2.1.84. @AdityaVallabh thank you very much for the tip. \n\n```\n❯ claude --version\n2.1.84 (Claude Code)\n\n❯ claude -p ping\npong\n```",
+      "created_at": "2026-03-26T05:54:11Z"
+    }
+  ]
+}

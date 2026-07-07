@@ -1,0 +1,42 @@
+{
+  "number": 12225,
+  "title": "[BUG] API Error 400: Thinking Block Modification Error (Not a Duplicate)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen viewing the TODO list using the ultrathink command, the following API error occurs, and thereafter the session is unrecoverable due to repeated 400 errors:\n\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.5.content.20: `thinking` or `redacted_thinking` blocks in the latest assistant message cannot be modified. These blocks must remain as they were in the original response.\"}}\n\nThis error is not reported as a duplicate and the issue occurs even after reviewing and searching all existing closed and open issues for similar errors. Please review as a unique bug.\n\n### What Should Happen?\n\nClaude should handle long conversations or ultrathink/todo list queries without entering an unrecoverable error state. If thinking/redacted_thinking blocks cannot be modified (API constraint), Claude Code should detect this before submitting the request and fail gracefully or allow the session to recover.\n\n### Error Messages/Logs\n\n```shell\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.5.content.20: `thinking` or `redacted_thinking` blocks in the latest assistant message cannot be modified. These blocks must remain as they were in the original response.\"}}\n```\n\n### Steps to Reproduce\n\n1. Run 'ultrathink whats next on our todo list' or similar prompt in a long-running session\n2. Trigger a response that would modify or replay an older assistant message containing a thinking or redacted_thinking block\n3. Observe repeated 400 error\n4. Session is unrecoverable until restarted\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.50 (Claude Code)\n\n### Platform\n\nOther\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nPlease confirm this is not marked as a duplicate; prior similar errors do not match the triggering conditions of the ultrathink/todo list pathway for this API error. This is filed to ensure the root cause is distinctly tracked.",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "area:api"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-11-24T01:08:39Z",
+  "updated_at": "2025-12-17T14:08:40Z",
+  "closed_at": "2025-12-09T18:29:28Z",
+  "reactions_total": 10,
+  "comments_count": 24,
+  "author": "samuelkchris",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "smconner",
+      "author_association": "NONE",
+      "body": "I'm getting the same API error. Not triggered by ULTRATHINK specifically. \n\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.3.content.20: `thinking` or `redacted_thinking` blocks in the latest assistant \n    message cannot be modified. These blocks must remain as they were in the original response.\"},\"request_id\":\"req_011CVTRieUTEKMiQ1C6jnx8t\"}\n\nUsing VS Code, on macos. Claude code terminal. \n\nUnable to recover the conversation with: Tried close and /re",
+      "created_at": "2025-11-24T21:36:29Z"
+    },
+    {
+      "author": "art-shen",
+      "author_association": "NONE",
+      "body": "Breaks everything and neither manual nor automatic compaction works. ",
+      "created_at": "2025-11-25T11:05:48Z"
+    },
+    {
+      "author": "liamhelmer",
+      "author_association": "NONE",
+      "body": "bump, as I ran into the same issue. I interrupted a conversation shortly before doing the compact, perhaps this is relevant.",
+      "created_at": "2025-11-27T23:56:21Z"
+    }
+  ]
+}

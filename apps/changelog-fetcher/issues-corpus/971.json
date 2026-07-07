@@ -1,0 +1,35 @@
+{
+  "number": 971,
+  "title": "Where on the filesystem is it trying to create the sqlite database?",
+  "body": "For running containered, I'd like to know were on the filesystem the CLI is trying to create the database so I can ensure it's mapped in as a bind mount, persisted between sessions, and has the correct permissions inside the container to read and write the database.\n\nThis is what I'm seeing:\n\n```\ncodeuser@8419d2b29ca8:/app$ claude --resume\nDatabase is not available. Continue/resume features are disabled.\nThis is likely due to issues with the better-sqlite3 dependency.\nTo fix: Try globally reinstalling better-sqlite3 with your package manager.\nFor more detail, see: https://github.com/WiseLibs/better-sqlite3/blob/master/docs/troubleshooting.md\n\n```\n\nAnd I'm fairly confident it's just a read/write issue on whatever path the CLI is trying to use for this database I need to sort out in my container.",
+  "labels": ["question", "platform:linux"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-05-06T00:09:47Z",
+  "updated_at": "2025-08-09T14:09:26Z",
+  "closed_at": "2025-05-07T01:15:17Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "ianchesal",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "happy to help with this @ianchesal \nthe db is currently stored in ~/.claude/__store.db and this location and not configurable\nfor the next release I can update this so it respects $CLAUDE_CONFIG_DIR",
+      "created_at": "2025-05-06T18:01:17Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "As of `0.2.103` the __store.db file containing the database will respect the `$CLAUDE_CONFIG_DIR` setting",
+      "created_at": "2025-05-07T00:11:26Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "Yes, we are headed in the direction of having everything inside ~/.claude Glad this helped!",
+      "created_at": "2025-05-07T01:09:30Z"
+    }
+  ]
+}

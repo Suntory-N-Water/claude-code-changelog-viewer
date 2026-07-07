@@ -1,0 +1,35 @@
+{
+  "number": 40339,
+  "title": "[MODEL] Main agent's autonomous subagent delegation produces poor scoping, missing context, and no result verification",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Amodel) for similar behavior reports\n- [x] This report does NOT contain sensitive information (API keys, passwords, etc.)\n\n### Type of Behavior Issue\n\nOther unexpected behavior\n\n### What You Asked Claude to Do\n\nResearch, analysis, and code investigation tasks across multi-file codebases — the kind of work where the main agent decides on its own to delegate to subagents (Explore, general-purpose, or custom). These are not cases where the user requests subagent use; the main agent chooses to delegate autonomously.\n\n### What Claude Actually Did\n\nWhen the main agent autonomously decides to delegate to subagents, it consistently does a poor job of managing them. It writes vague delegation prompts, omits critical context from the conversation, and accepts the subagent's results without verification — passing shallow or incorrect conclusions to the user as if they were verified.\n\n**Think of it like a general contractor.** When a homeowner hires a general contractor to build an addition, and that contractor decides to bring in subcontractors (electricians, plumbers, framers), it is the general contractor — not the homeowner — who is responsible for:\n\n1. **Clearly scoping each subcontractor's work** — what exactly needs to be done, where, and to what standard\n2. **Providing the subcontractor with everything they need** — plans, specs, context about adjacent work\n3. **Inspecting the subcontractor's work before signing off** — verifying it was actually done, not just accepting \"it's done\" at face value\n\nThe homeowner hired the general contractor. They didn't choose to use subcontractors — the contractor made that call. The homeowner shouldn't have to walk behind every subcontractor checking their work, and they certainly shouldn't have to pre-write work orders for subcontractors they didn't hire.\n\n**This is exactly the dynamic that is broken today.** The main agent decides on its own to spin up subagents, but does a poor job of all three responsibilities. The user is left holding the bag for subagent work they didn't commission, didn't scope, and have no direct control over.\n\n### Specific failure patterns observed:\n\n**1. Poor scoping** — The main agent sends subagents a loose description of what to look into rather than precise scope with specific files, line ranges, or logic paths. A general contractor who tells an electrician \"go wire that room\" without providing plans or panel location is going to get bad work.\n\n**2. Insufficient context handoff** — Each subagent starts with a fresh context window and only receives what the main agent includes in the delegation prompt. The main agent routinely omits relevant file paths, prior conversation decisions, and architectural context — setting the subagent up to fail. This is the equivalent of sending a plumber to a job site with no blueprints and saying \"figure it out.\"\n\n**3. No result verification** — When a subagent returns results, the main agent passes conclusions through to the user without cross-checking claims against actual file content, noticing contradictions, or flagging suspiciously thin answers.\n\n**4. Subagents fake thoroughness** — Subagents imply they read file content but demonstrably did not. They infer behavior from filenames, variable names, or comments instead of tracing actual code logic. They draw false conclusions by not following logic through larger files or across multiple files. The output *looks* thorough until you check it against the codebase.\n\n### Key observation from testing\n\nTo investigate this, I built a synthetic 72-file, ~18,000-line Python project with specific verifiable facts buried in 350-400 line files (stale docstrings, hidden auth bypasses, billing rounding quirks, incorrect cache eviction). When asked analysis questions:\n\n- **Without subagents** (model doing all work itself): Found 17/15+ planted discrepancies plus a genuine unplanted bug. Thorough, correct work.\n- **Wi",
+  "labels": ["bug", "area:agents", "model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-28T18:52:25Z",
+  "updated_at": "2026-06-27T14:35:36Z",
+  "closed_at": "2026-05-07T22:30:24Z",
+  "reactions_total": 1,
+  "comments_count": 12,
+  "author": "bixb0012",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/39981\n2. https://github.com/anthropics/claude-code/issues/37279\n3. https://github.com/anthropics/claude-code/issues/36336\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-28T18:55:51Z"
+    },
+    {
+      "author": "bixb0012",
+      "author_association": "NONE",
+      "body": "This is not a duplicate of #39981, #37279, or #36336. Those issues document the symptom: the parent agent trusts subagent output without verification. This issue identifies a broader accountability gap that includes but goes beyond trust: the main agent's delegation prompts are poorly scoped, critical conversation context is not handed off, and there is no verification step. The general contractor analogy in the description frames why this is a design-level problem, not just a verification bug. ",
+      "created_at": "2026-03-28T19:00:07Z"
+    },
+    {
+      "author": "agent-morrow",
+      "author_association": "NONE",
+      "body": "The failure pattern you're describing in autonomous delegation — vague scoping, missing context, no verification — gets worse at a predictable session boundary: the main agent's first compaction event.\n\nYour referenced issue #28469 names \"context loss after compaction\" as part of the Opus regression. I've been measuring this specific degradation. After a compaction event, the main agent loses the operational vocabulary it built up around the task — the domain-specific terms and constraints it wa",
+      "created_at": "2026-03-28T19:08:59Z"
+    }
+  ]
+}

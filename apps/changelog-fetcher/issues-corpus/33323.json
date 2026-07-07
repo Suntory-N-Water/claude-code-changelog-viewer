@@ -1,0 +1,35 @@
+{
+  "number": 33323,
+  "title": "[FEATURE] Task queue for queuing multiple prompts/tasks",
+  "body": "## Problem\nThere's no way to queue up multiple tasks and have them execute sequentially or in parallel. When working on a complex project, I often know the next 3-5 things Claude needs to do, but I have to wait for each one to finish before giving the next instruction.\n\nOpenAI Codex CLI already ships this as a core feature — users can queue tasks and they run in sandboxed environments.\n\n## Proposed Solution\n- Allow users to queue multiple prompts/tasks\n- Execute them sequentially (or optionally in parallel with worktree isolation)\n- Show queue status and results when done\n- Persist queue across rate limit resets\n\n## Prior Issues (all auto-closed by stale bot, not by team decision)\n- #535 — \"The ability to queue up messages\" (27+ upvotes, auto-closed)\n- #15854 — \"Programmatic access to message queue\" (auto-closed)\n- #1314 — \"Queue for when Max limit refreshes\" (auto-closed)\n- #7244 — \"/wait command for scheduled execution\" (auto-closed)\n\nThese were all closed by GitHub Actions bot due to inactivity, not because the feature was reviewed and rejected. The demand is clearly there.",
+  "labels": ["duplicate", "enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-11T19:23:28Z",
+  "updated_at": "2026-06-13T10:05:52Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 10,
+  "author": "KoreanThinker",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mvoentelegent",
+      "author_association": "NONE",
+      "body": "+1  Need this in Claude Code extension for VS Code too. Common feature that is missing in CC. Available in Codex and Cursor.",
+      "created_at": "2026-03-18T17:54:53Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "A file-based task queue with a `Stop` hook to auto-process:\n```bash\nQUEUE=\"$HOME/.claude/task-queue.txt\"\n[ -f \"$QUEUE\" ] || exit 0\n[ -s \"$QUEUE\" ] || exit 0\nNEXT_TASK=$(head -1 \"$QUEUE\")\nsed -i '1d' \"$QUEUE\"\nif [ -n \"$NEXT_TASK\" ]; then\n    REMAINING=$(wc -l < \"$QUEUE\")\n    echo \"📋 Processing next queued task ($REMAINING remaining): $NEXT_TASK\" >&2\nfi\nexit 0\n```\nAdd tasks to the queue from outside:\n```bash\necho \"$*\" >> ~/.claude/task-queue.txt\necho \"Queued: $*\"\n```\nUsage:\n```bash\ncc-queue \"Run ",
+      "created_at": "2026-03-29T12:29:21Z"
+    },
+    {
+      "author": "ncvgl",
+      "author_association": "NONE",
+      "body": "I wrote a small plugin that does this https://github.com/ncvgl/claude-prompt-queue/tree/main\nI agree it is a missing feature that Codex has and they should add it eventually",
+      "created_at": "2026-04-09T16:26:05Z"
+    }
+  ]
+}

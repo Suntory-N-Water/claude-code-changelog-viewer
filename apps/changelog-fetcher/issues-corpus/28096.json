@@ -1,0 +1,35 @@
+{
+  "number": 28096,
+  "title": "[BUG] CLI-only \"API Error: Rate limit reached\" on every request despite 97% quota remaining (Max 20x plan)",
+  "body": "## Preflight Checklist\n- [x] I have searched existing issues\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n## What's Wrong?\nClaude Code CLI returns \"API Error: Rate limit reached\" on EVERY request for 24+ hours. claude.ai web and Claude Desktop work perfectly on the same account. Only CLI is affected.\n\n## Environment\n- Platform: macOS\n- Versions tested: v2.1.49, v2.1.50, v2.1.51\n- Plan: Max 20x ($200/month)\n- Account: km78cho@gmail.com\n- Auth: claude.ai (firstParty), no ANTHROPIC_API_KEY set\n\n## Account Status\n- Session: 3-7% used\n- Weekly: 0-1% used\n\n## Troubleshooting Done\n- Logout/login, deleted ~/.claude, re-authenticated\n- Tested 3 CLI versions\n- Removed plugins and MCP configs\n- New project directories\n- Upgraded Max 5x → Max 20x\n- Disabled extra usage after $53/$53 exhaustion\n\n## Root Cause\nExtra usage exhausted ($53/$53) → disabled → CLI rate limit flag stuck server-side. Plan upgrade did not reset it.\n\n## Support Tickets (no human response)\n- 215473191468894\n- 215473197028578\n- 215473205020751\n\n## Related Issues\n#25531 #25778 #27008 #25733\n\n<img width=\"1070\" height=\"139\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/c8b9b161-3bc4-4129-ad74-69562468b8b1\" />",
+  "labels": ["bug", "platform:macos", "area:cost", "area:api", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-24T04:55:43Z",
+  "updated_at": "2026-05-30T22:28:41Z",
+  "closed_at": "2026-05-30T22:28:41Z",
+  "reactions_total": 5,
+  "comments_count": 10,
+  "author": "silverte",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/27336\n2. https://github.com/anthropics/claude-code/issues/26821\n3. https://github.com/anthropics/claude-code/issues/26812\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-24T04:59:49Z"
+    },
+    {
+      "author": "silverte",
+      "author_association": "NONE",
+      "body": "This is not a duplicate. While #27336 describes a similar symptom, my issue has additional context that may help the engineering team:\n\nRoot cause identified: The issue started immediately after extra usage was exhausted ($53/$53, 100%). Disabling extra usage did NOT release the CLI rate limit flag.\nPlan upgrade did not help: Upgraded from Max 5x → Max 20x ($200/month) — CLI still blocked.\nThree support tickets with no human response (215473191468894, 215473197028578, 215473205020751) — all resp",
+      "created_at": "2026-02-24T06:19:17Z"
+    },
+    {
+      "author": "73nuts",
+      "author_association": "NONE",
+      "body": "**Same issue here — with a clear reproduction trigger.**\n\n## My environment\n- **Plan**: Claude Max\n- **Claude Code**: v2.1.55, Opus 4.6 (1M context)\n- **OS**: macOS (Darwin 25.3.0)\n\n## Key finding: Extra Usage toggle is the trigger\n\nI can **reliably reproduce** this by toggling the \"Extra usage\" setting:\n\n1. **Extra usage ON** → Claude Code works perfectly\n2. **Extra usage OFF** → Immediately get `API Error: Rate limit reached` on every request, even `hi` in a brand new session\n3. **Extra usage ",
+      "created_at": "2026-02-25T06:24:42Z"
+    }
+  ]
+}

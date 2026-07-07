@@ -1,0 +1,43 @@
+{
+  "number": 16291,
+  "title": "[Bug] TypeScript LSP Plugin Not Registering with LSP Tool System",
+  "body": "Hi! Default (anthropic-provided) LSP plugin do not work for me. Below the details and proposed (by CC) fix.\n\n**Bug Description**\nBug Report: TypeScript LSP Tool Returns \"No LSP server available\" Despite Plugin Being Enabled\n\n  Summary\n\n  The LSP tool returns \"No LSP server available for file type: .ts\" even when:\n  1. typescript-lsp@claude-plugins-official plugin is enabled in settings\n  2. typescript-language-server is globally installed and accessible in PATH\n\n  Environment\n\n  - Claude Code version: Latest (as of Jan 2026)\n  - OS: macOS (Darwin 24.3.0)\n  - Node: v22.13.1 (via nvm)\n  - typescript-language-server: 4.4.0 (globally installed)\n\n  Steps to Reproduce\n\n  1. Enable the TypeScript LSP plugin in ~/.claude/settings.json:\n  {\n    \"enabledPlugins\": {\n      \"typescript-lsp@claude-plugins-official\": true\n    }\n  }\n  2. Install typescript-language-server globally:\n  npm install -g typescript-language-server\n  3. Verify installation:\n  which typescript-language-server\n  # Returns: /Users/name/.nvm/versions/node/v22.13.1/bin/typescript-language-server\n\n  typescript-language-server --version\n  # Returns: 4.4.0\n  4. Use the LSP tool in Claude Code on any TypeScript file:\n  LSP operation: documentSymbol\n  filePath: src/lib/shared/utils.ts\n  line: 1\n  character: 1\n\n  Expected Behavior\n\n  The LSP tool should connect to the typescript-language-server and return document symbols, hover information, go-to-definition results, etc.\n\n  Actual Behavior\n\n  The LSP tool returns:\n  No LSP server available for file type: .ts\n\n  Investigation Done\n\n  1. Confirmed plugin is enabled in ~/.claude/settings.json ✓\n  2. Confirmed typescript-language-server is globally installed ✓\n  3. Confirmed binary is in PATH and executable ✓\n  4. Restarted Claude Code multiple times ✗ (no effect)\n  5. Checked ~/.claude.json for LSP config options - none documented\n  6. Reviewed Claude Code documentation - no explicit LSP server registration mechanism exists\n\n  Hypothesis\n\n  The typescript-lsp@claude-plugins-official plugin and the LSP tool appear to be disconnected systems. The plugin may provide some functionality, but it doesn't register a language server that the LSP tool can discover and use.\n\n  Requested Fix\n\n  Either:\n  1. Make the typescript-lsp plugin properly register with the LSP tool system\n  2. Add explicit LSP server configuration in settings.json or ~/.claude.json, e.g.:\n```\n  {\n    \"lspServers\": {\n      \"typescript\": {\n        \"command\": \"typescript-language-server\",\n        \"args\": [\"--stdio\"],\n        \"fileTypes\": [\".ts\", \".tsx\", \".js\", \".jsx\"]\n      }\n    }\n  }\n```\n\n**Environment Info**\n- Platform: darwin\n- Terminal: ghostty\n- Version: 2.0.76\n- Feedback ID: 57946a01-2dc6-48aa-abae-d323bf135693\n\n**Errors**\nNo errors",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-04T21:38:53Z",
+  "updated_at": "2026-03-21T14:18:19Z",
+  "closed_at": "2026-03-13T22:12:43Z",
+  "reactions_total": 9,
+  "comments_count": 15,
+  "author": "olegakbarov",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/15202\n2. https://github.com/anthropics/claude-code/issues/15413\n3. https://github.com/anthropics/claude-code/issues/15521\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-04T21:43:00Z"
+    },
+    {
+      "author": "ajbmachon",
+      "author_association": "NONE",
+      "body": "Same for me! No LSP works. Claude found a PR with race conditions. Hopefully we get a fix soon. Its a shame to have such a great feature that doesnt work :(",
+      "created_at": "2026-01-07T15:43:19Z"
+    },
+    {
+      "author": "genesiscz",
+      "author_association": "NONE",
+      "body": "@ajbmachon patch here https://gist.github.com/Zamua/f7ca58ce5dd9ba61279ea195a01b190c?permalink_comment_id=5933528#gistcomment-5933528",
+      "created_at": "2026-01-07T20:28:44Z"
+    }
+  ]
+}

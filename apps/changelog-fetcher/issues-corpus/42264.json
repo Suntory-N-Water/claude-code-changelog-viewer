@@ -1,0 +1,35 @@
+{
+  "number": 42264,
+  "title": "[Bug] \"Unchanged since last read\" error when reading file previously accessed in reverted conversation state",
+  "body": "**Bug Description**\n\"Unchanged since last read\" error after reverting conversation history AND trying to read file which was read in \"future\" discussion.\n\n**Environment Info**\n- Platform: win32\n- Terminal: null\n- Version: 2.1.89\n- Feedback ID: fe38e241-eb59-4b76-aaef-86cf0a1fb91b\n\n**Errors**\n```json\n[{\"error\":\"ENOENT: no such file or directory, unlink 'C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--workspace-win\\\\b425b35f-5a58-498f-b7d2-4d231e35850c\\\\tasks\\\\a8eb08cb46fb39d67.output'\",\"timestamp\":\"2026-04-01T21:41:17.463Z\"},{\"error\":\"ENOENT: no such file or directory, unlink 'C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--workspace-win\\\\b425b35f-5a58-498f-b7d2-4d231e35850c\\\\tasks\\\\ab6d120a7b02e3171.output'\",\"timestamp\":\"2026-04-01T21:47:29.515Z\"},{\"error\":\"MaxFileReadTokenExceededError: File content (10420 tokens) exceeds maximum allowed tokens (10000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.\\n    at S7_ (B:/~BUN/root/src/entrypoints/cli.js:4351:13364)\\n    at processTicksAndRejections (native:7:39)\",\"timestamp\":\"2026-04-01T21:55:34.978Z\"}]\n```\n",
+  "labels": ["bug", "platform:windows", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-01T21:57:55Z",
+  "updated_at": "2026-06-29T21:02:46Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 11,
+  "author": "ihor-drachuk",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/41542\n2. https://github.com/anthropics/claude-code/issues/41667\n3. https://github.com/anthropics/claude-code/issues/14002\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-01T22:03:25Z"
+    },
+    {
+      "author": "GlassBricks",
+      "author_association": "NONE",
+      "body": "The same \"unchanged since last read\" Also happens to reads removed by manual compaction.\nHaven't tested with automatic compassion.",
+      "created_at": "2026-04-12T20:15:20Z"
+    },
+    {
+      "author": "GitAntNol",
+      "author_association": "NONE",
+      "body": "Adding a related symptom that I think falls under the same root cause:\n\nAfter a conversation rewind/rollback, Claude is not informed that the filesystem may have diverged from the conversation history. The Read-tool failure (\"Unchanged since last read\", ENOENT) is one observable symptom, but a more dangerous one is silent: **Edit operations**.\n\n## Scenario\n\n1. Claude edits file `foo.cs` to add a SQL clause `AND ISNULL(r2.NonAttivo, 0) = 0`. File on disk is updated.\n2. User rolls back the convers",
+      "created_at": "2026-04-29T10:08:16Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 14111,
+  "title": "[Bug] /compact and auto-compact fail with 'Tool names must be unique' when MCP servers are configured",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe `/compact` command and auto-compact fail with \"Tool names must be unique\" error when MCP servers are configured. This prevents conversation compaction entirely, leaving long sessions unrecoverable.\n\nThis appears to be related to #10704 and #10668 (Task tool/subagent failures with same error), but manifests specifically during compaction operations.\n\n### Error Messages/Logs\n\n```\nError during compaction: Error: API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tools: Tool names must be unique.\"},\"request_id\":\"req_...\"}\n```\n\nStack trace from debug logs:\n```\n[DEBUG] Getting matching hook commands for PreCompact with query: auto\n[DEBUG] Found 0 hook matchers in settings\n[DEBUG] Matched 0 unique hooks for query \"auto\" (0 before deduplication)\n[ERROR] Error streaming, falling back to non-streaming mode: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tools: Tool names must be unique.\"}}\n[ERROR] Error in non-streaming fallback: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tools: Tool names must be unique.\"}}\n[ERROR] Error: Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tools: Tool names must be unique.\"}}\n    at B9.generate (cli.js:459:10797)\n    at q_.makeStatusError (cli.js:796:2195)\n    at q_.makeRequest (cli.js:796:5419)\n```\n\n### What Should Happen?\n\nThe `/compact` command should successfully compress the conversation history regardless of MCP server configuration.\n\n### Steps to Reproduce\n\n1. Configure multiple MCP servers (see configuration below)\n2. Have an extended conversation that triggers auto-compact or run `/compact`\n3. Observe the error: \"Error during compaction: Error: API Error: 400 ... tools: Tool names must be unique\"\n\n### MCP Server Configuration\n\n```json\n{\n  \"mcpServers\": {\n    \"vercel\": {\n      \"type\": \"http\",\n      \"url\": \"https://mcp.vercel.com\"\n    },\n    \"playwright\": {\n      \"type\": \"stdio\",\n      \"command\": \"npx\",\n      \"args\": [\"@playwright/mcp@latest\"]\n    },\n    \"stripe\": {\n      \"type\": \"http\",\n      \"url\": \"https://mcp.stripe.com/\"\n    },\n    \"shadcn\": {\n      \"type\": \"stdio\",\n      \"command\": \"npx\",\n      \"args\": [\"shadcn@latest\", \"mcp\"]\n    },\n    \"context7\": {\n      \"type\": \"http\",\n      \"url\": \"https://mcp.context7.com/mcp\"\n    }\n  }\n}\n```\n\n### Root Cause Analysis\n\nThe compaction API call appears to include tool definitions that get duplicated somewhere in the process. This is the same root cause as #10704 (Task tool failures) but affecting the compaction code path.\n\nThe error occurs during `PreCompact` hook processing, suggesting tool definitions are being assembled for the compaction API call and contain duplicates.\n\n### Claude Model\n\nclaude-opus-4-5-20251101\n\n### Is this a regression?\n\nUnknown - first encountered on v2.0.70\n\n### Claude Code Version\n\n2.0.70\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS 15.6.1 (Darwin 24.6.0)\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Related Issues\n\n- #10704 - Subagent launch fails with 'Tool names must be unique' when MCP server is configured\n- #10668 - Task agent fails with 'tools: Tool names must be unique' when parent has many MCP tools\n- #7530 - Error during compaction (general compaction failures)\n\n### Workaround\n\nStart a new session. The compaction failure means the current session's context cannot be reduced.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-16T02:55:44Z",
+  "updated_at": "2025-12-25T14:07:23Z",
+  "closed_at": "2025-12-17T19:54:05Z",
+  "reactions_total": 17,
+  "comments_count": 15,
+  "author": "diyacares",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "evemcgivern",
+      "author_association": "NONE",
+      "body": "## Confirming this issue with additional MCP server configuration\n\nI can confirm this exact same issue on **v2.0.70** with a different set of MCP servers.\n\n### My Error\n```\nError: Error during compaction: Error: API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tools: Tool names must be unique.\"},\"request_id\":\"req_011CW9ganBEeXXnrLrfYP54J\"}\n```\n\n### My MCP Server Configuration\n\nI have **12 active MCP servers** configured (more than the original report):\n\n```json\n{",
+      "created_at": "2025-12-16T03:53:49Z"
+    },
+    {
+      "author": "spada23",
+      "author_association": "NONE",
+      "body": "Try to disable all your MCPs; then exit claude code. Then start again --continue and run /compact\n\nworked for me ",
+      "created_at": "2025-12-16T04:07:22Z"
+    },
+    {
+      "author": "samtsangbiz",
+      "author_association": "NONE",
+      "body": "> Try to disable all your MCPs; then exit claude code. Then start again --continue and run /compact\n> \n> worked for me\n\nIt works. So weird – my MCP setup used to work fine, but now I have to disable all MCP servers just to use /compact, lol.",
+      "created_at": "2025-12-16T08:48:49Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 48965,
+  "title": "Feature: Multi-session coordination primitives (cross-session messaging, session registry, compaction-resistant state, shared task board)",
+  "body": "## Summary\n\nWe've been running a multi-agent coordination pattern in Claude Code: one Opus session acting as a project manager (PM), coordinating N worker sessions operating on the same repository. The individual tools exist (Agent, ScheduleWakeup, PushNotification, Tasks, Memory) but they're designed for single-session workflows. The gap is the connective tissue *between* sessions.\n\nAfter stress-testing this pattern hard in production, here are the 6 specific friction points — in priority order.\n\n---\n\n## Feature Requests\n\n### #1 — Cross-session messaging (highest impact)\n\n**Current state:** PM and worker sessions coordinate via a shared markdown file. PM writes a directive, worker polls every 15 min, reads it, ACKs by writing back. This is a 2026 version of a shared text file on a network drive.\n\n**Request:** Allow sessions to SendMessage to OTHER named sessions (not just sub-agents within the same session tree). If sessions could message each other directly, coordination goes from poll-based to event-driven. A 28-min ACK gap caused by a 15-min poll interval disappears entirely.\n\n---\n\n### #2 — Process supervision with exit notification\n\n**Current state:** A spawned worker process (PID) died silently. Nobody knew for 34 minutes until the next PM poll cycle.\n\n**Request:** A way for Claude Code to watch a spawned child process and push a notification on exit/crash — including exit code and last stderr lines. The Monitor tool is a step toward this but does not survive compaction. A durable watch-and-notify primitive would eliminate blind spots in long overnight runs.\n\n---\n\n### #3 — Session health / heartbeat registry\n\n**Current state:** PM spends multiple poll cycles diagnosing whether a worker session is alive, stuck, or dead. There is no isSessionAlive() check, no last-activity timestamp, no session registry.\n\n**Request:** A session registry for the active project — \"here are sessions currently open in this working directory, last activity timestamp.\" A simple isSessionAlive(sessionId) call would replace all the \"is the worker dead or just sleeping?\" diagnostic work.\n\n---\n\n### #4 — Compaction-resistant coordination state\n\n**Current state:** When sessions compact, ScheduleWakeup chains survive but context doesn't. Critical coordination details (gate verdicts, exact task IDs, which bug was fixed, what the worker last reported) get lossy-compressed. After compaction, the session must re-read all plan/status files to reconstruct state.\n\n**Request:** A structured \"coordination state\" object that persists through compaction — not memory files, not plan files, but first-class state that the post-compaction session automatically loads. Distinct from the general memory system: scoped to the current session's coordination context, not project-wide knowledge.\n\n---\n\n### #5 — Shared task board across sessions\n\n**Current state:** Tasks are per-session. PM cannot see worker tasks; workers cannot see PM tasks. We've replaced this with a section in a markdown file that both sides poll and write.\n\n**Request:** A project-level task board that all sessions sharing the same working directory can read and write. This would replace the shared-markdown-file inbox pattern entirely and make cross-session work visibility a first-class feature.\n\n---\n\n### #6 — run_and_notify for long-running scripts\n\n**Current state:** Long builds (20-60 min) require 3-5 ScheduleWakeup polls to catch completion. Each poll wakes the session, burns cache, checks a status file, goes back to sleep.\n\n**Request:** A Bash variant with notify_on_exit=true that survives compaction and pushes a notification (via PushNotification or similar) when the process completes. Eliminates all polling overhead for long builds. The PushNotification tool and Monitor tool exist; the missing piece is durability across compaction.\n\n---\n\n## The Meta-Request\n\nWhat we're describing is a **multi-session project manager pattern**: one Opus PM session coordinating N worker sessions on the same repo. The individual tools exist but are designed for single-session use. The connecti",
+  "labels": ["enhancement", "platform:windows", "area:agents", "area:cowork"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-16T05:10:53Z",
+  "updated_at": "2026-07-02T20:05:24Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "ThatDragonOverThere",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "The 6 friction points from production multi-session coordination are exactly the right feature requirements — each one comes from a real workflow failure, not speculation. The cross-session messaging gap alone (28-minute coordination lag from poll-based synchronization) is enough to make complex multi-agent workflows impractical.\n\nFrom an agent identity perspective, the features you are requesting are also trust infrastructure: sessions that can identify each other, verify each other's health st",
+      "created_at": "2026-04-16T05:28:15Z"
+    },
+    {
+      "author": "fortunexbt",
+      "author_association": "NONE",
+      "body": "@ThatDragonOverThere This is one of the most thorough multi-session coordination writeups I've seen. The 28-minute ACK gap and 34-minute silent-death incidents are exactly the kind of thing that forces operators to build their own coordination layer on top of shared markdown files.\n\nThe compaction-durability gap across features #2, #4, and #6 is real — it means any coordination state you put in `Monitor` or `PushNotification` is fundamentally unreliable for long runs. Have you considered using a",
+      "created_at": "2026-04-16T10:56:08Z"
+    },
+    {
+      "author": "edwinhu",
+      "author_association": "NONE",
+      "body": "+1 specifically on #1 (cross-session messaging). My use case is simpler than the PM/worker pattern but hits the same wall: two top-level interactive sessions — sometimes on different machines under the same account — that need to exchange messages directly, not via a polled markdown file or an external MCP relay (Telegram/Discord). A native `SendMessage(to: <session-id-or-name>)` that works peer-to-peer (not just parent→subagent) — and ideally cross-machine for same-account sessions — would make",
+      "created_at": "2026-05-13T13:58:22Z"
+    }
+  ]
+}

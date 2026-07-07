@@ -1,0 +1,35 @@
+{
+  "number": 9668,
+  "title": "Conversation history shows duplicate 'Warmup' titles and loads wrong conversations",
+  "body": "# Claude Code Bug Report: Conversation History Loading Issue\n\n## Summary\nConversation history UI displays duplicate \"Warmup\" titles for multiple distinct conversations, and selecting a specific conversation loads the wrong conversation content.\n\n## Environment\n- **OS**: Linux (WSL2) - `Linux 6.6.87.2-microsoft-standard-WSL2`\n- **Claude Code Version**: 2.0.17 (from `~/.vscode-server/extensions/anthropic.claude-code-2.0.17`)\n- **VSCode**: Remote (WSL)\n- **Working Directory**: `/home/hrothgarious/bke`\n- **Date of Issue**: October 16, 2025\n\n## Expected Behavior\n1. Each conversation in the history list should display a unique, descriptive title or first message\n2. Selecting a conversation from the history should load that specific conversation\n3. Different conversations should be distinguishable in the UI\n\n## Actual Behavior\n1. Multiple distinct conversations all show \"Warmup\" as the title in the conversation history list\n2. Selecting a specific conversation loads different/wrong conversation content\n3. User cannot distinguish between conversations or reliably resume a previous conversation\n\n## Evidence from Filesystem\nConversation files are stored in `~/.claude/projects/-home-hrothgarious-bke/` as JSONL files.\n\n### Actual Conversations from Today (Oct 16):\n\n#### 1. File: `c7bc33e6-dd71-409e-9a42-c45b27c6789f.jsonl`\n- **Size**: 250KB\n- **Messages**: 69\n- **Last Modified**: 17:23\n- **Actual First Message**: \"@medial_axis/curve_descriptor.py\"\n- **Topic**: Curve analysis and splitting work\n- **Shows in UI as**: \"Warmup\" (incorrect)\n\n#### 2. File: `0d0d6579-39e9-4511-a347-9b3bb2319bb8.jsonl`\n- **Size**: 128KB\n- **Messages**: 87\n- **Last Modified**: 17:03\n- **Topic**: Grasshopper MCP forking and development\n- **Shows in UI as**: \"Warmup\" (incorrect)\n\n#### 3. File: `7cfe8332-8326-4c3c-aa76-fcf2b755eaf0.jsonl`\n- **Size**: 295KB\n- **Messages**: 210\n- **Last Modified**: 17:38 (current/ongoing)\n- **Topic**: GitHub MCP server installation discussion\n- **Shows in UI as**: \"Warmup\" (incorrect)\n\n### JSONL Structure\nFirst line of each conversation file:\n```json\n{\n  \"parentUuid\": null,\n  \"isSidechain\": true,\n  \"userType\": \"external\",\n  \"cwd\": \"/home/hrothgarious/bke\",\n  \"sessionId\": \"7cfe8332-8326-4c3c-aa76-fcf2b755eaf0\",\n  \"version\": \"2.0.17\",\n  \"gitBranch\": \"\",\n  \"type\": \"user\",\n  \"message\": {\n    \"role\": \"user\",\n    \"content\": \"Warmup\"\n  },\n  \"uuid\": \"4aeee286-9ecf-48e1-803a-0c7689c2a31e\",\n  \"timestamp\": \"2025-10-16T14:00:03.919Z\"\n}\n```\n\n## Root Cause Analysis\nThe issue appears to be that:\n1. The conversation history UI is using the FIRST user message (\"Warmup\") as the conversation title\n2. Many users type \"Warmup\" as their first message to initialize the session\n3. The UI should either:\n   - Skip \"Warmup\" messages when determining conversation titles\n   - Use the second user message or a summary of the conversation\n   - Use timestamps or other metadata to disambiguate\n\n## Impact\n- **Severity**: High - Users lose access to their previous work\n- **Frequency**: Reproducible - Affects all conversations that start with \"Warmup\"\n- **Data Loss**: No actual data loss (files intact), but data is effectively inaccessible through the UI\n- **Workaround**: Access conversation JSONL files directly from filesystem (requires technical knowledge)\n\n## Steps to Reproduce\n1. Start multiple conversation sessions\n2. Begin each session with the message \"Warmup\"\n3. Have substantive conversations with different topics\n4. Close and reopen VSCode/Claude Code\n5. Attempt to select a specific previous conversation from the history\n6. Observe that:\n   - All conversations show \"Warmup\" as title\n   - Selecting a conversation may load wrong content\n\n## Suggested Fixes\n1. **Short-term**: Skip common initialization messages (\"Warmup\", \"Hello\", etc.) when generating conversation titles\n2. **Medium-term**: Use AI to generate descriptive titles from the first few substantial messages\n3. **Long-term**:\n   - Add explicit conversation naming/titling feature\n   - Show timestamp + first non-trivial message\n   - Show file tree or code files discussed as subtitle/metadata\n\n## Additi",
+  "labels": ["bug", "has repro", "platform:linux", "area:ide", "oncall"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-10-16T15:41:54Z",
+  "updated_at": "2025-11-04T14:07:30Z",
+  "closed_at": "2025-10-24T21:31:30Z",
+  "reactions_total": 21,
+  "comments_count": 29,
+  "author": "hrothgarious",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "Sorry for the inconvenience, this should be fixed in the latest release! Please update and give it a spin (and let us know if you continue to see if afterwards!)",
+      "created_at": "2025-10-21T16:19:47Z"
+    },
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "Can you please let us know the version you're seeing this in?",
+      "created_at": "2025-10-22T03:28:07Z"
+    },
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "Found the issue, fix inbound!",
+      "created_at": "2025-10-24T02:10:12Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 33258,
+  "title": "[BUG] Claude Code login times out after successful OAuth browser flow",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n### Summary\nClaude Code login consistently fails with:\n\n`Login failed: timeout of 15000ms exceeded`\n\nThe browser-side OAuth flow appears to complete successfully, but Claude Code never finishes login.\n\n### Environment\n- macOS\n- Claude Code 2.1.72\n- Max plan subscription\n- Installed via npm\n- VPN enabled\n\n### Reproduction\n1. Run:\n   `claude auth login`\n2. Browser opens successfully\n3. Complete login in the browser\n4. Claude Code still fails with:\n   `Login failed: timeout of 15000ms exceeded`\n\n### What I observed\n- Browser OAuth succeeds\n- I can see:\n  - `https://platform.claude.com/oauth/code/success?app=claude-code` returns `200 OK`\n  - In an earlier flow, the localhost callback also completed successfully\n- Despite that, Claude Code still times out after 15 seconds\n\n### What I already tested\n- Reproduced with:\n  `env -i HOME=\"$HOME\" PATH=\"$PATH\" SHELL=\"$SHELL\" TERM=\"$TERM\" /opt/homebrew/bin/claude auth login`\n- Cleared local auth/session state:\n  - `~/.claude/session-env`\n  - `~/.claude/cache`\n- Removed Claude-related Keychain entry (`Claude Safe Storage`)\n- Retried after fully restarting Claude Code\n- Reproduced on latest Claude Code (`2.1.72`)\n- Also reproduced after downgrading\n- No OpenRouter/custom base URL/custom Anthropic env vars are present anymore\n\n### Notes\nThis looks like the browser-side auth succeeds, but the CLI/app never receives or processes the final authenticated state before timeout.\n\n### What Should Happen?\n\n### Expected behavior\nAfter browser OAuth succeeds, Claude Code should complete login successfully.\n\n### Actual behavior\nBrowser OAuth appears to complete successfully, but Claude Code times out after 15 seconds and login fails.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Open a terminal on macOS.\n2. Run: `claude auth login`\n3. Claude Code opens the browser to the Claude OAuth authorization page.\n4. Complete the login flow successfully in the browser.\n5. The browser reaches the Claude success page.\n6. Return to the terminal / Claude Code.\n7. Observe that Claude Code does not complete login and instead fails with:\n   `Login failed: timeout of 15000ms exceeded`\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.72(Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:auth"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-11T16:45:05Z",
+  "updated_at": "2026-03-21T14:15:00Z",
+  "closed_at": "2026-03-12T02:31:41Z",
+  "reactions_total": 17,
+  "comments_count": 34,
+  "author": "EmilienLiang",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ManiruzzamanAkash",
+      "author_association": "NONE",
+      "body": "2 hours, still not fixed.",
+      "created_at": "2026-03-11T16:47:15Z"
+    },
+    {
+      "author": "eric9ba9119d-cpu",
+      "author_association": "NONE",
+      "body": "I have the same issue",
+      "created_at": "2026-03-11T16:47:43Z"
+    },
+    {
+      "author": "NerdBase-by-Stark",
+      "author_association": "NONE",
+      "body": "Same issue across all sessions. Multiple login attempts and nothing ",
+      "created_at": "2026-03-11T16:49:13Z"
+    }
+  ]
+}

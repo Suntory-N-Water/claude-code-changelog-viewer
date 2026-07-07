@@ -1,0 +1,35 @@
+{
+  "number": 58897,
+  "title": "VSCode extension v2.1.141: \"Unhandled case: [object Object]\" banner from assertNever on unknown streaming-event types",
+  "body": "## Summary\n\n`webview/index.js` in the VSCode extension has a TypeScript `assertNever`-style exhaustive-check (helper `QB1`) over Anthropic streaming-event types. When the server emits an event type the `switch` doesn't cover, the helper throws `Error(\\`Unhandled case: ${J}\\`)` interpolating the **whole** event object instead of its `.type` field — producing the user-visible banner text:\n\n```\nUnhandled case: [object Object]\nView output logs · Troubleshooting resources\n```\n\nThe banner is non-dismissable except via the manual `×`, persists across subsequent tool calls, and is alarming to operators who reasonably assume the session is broken. The underlying session and the model are unaffected — it's a renderer-side throw, not a data-flow problem.\n\n## Environment\n\n- **Extension:** `anthropic.claude-code` v2.1.141\n- **Platform:** darwin-arm64 (macOS)\n- **Bundle path:** `~/.vscode/extensions/anthropic.claude-code-2.1.141-darwin-arm64/webview/index.js`\n\n## Source of the throw\n\n```js\n// Helper (assertNever pattern, emitted by bundler)\nfunction QB1($, Z) { throw Error(Z ?? `Unhandled case: ${$}`) }\n\n// Caller — switch over streaming-event types\nswitch (J.type) {\n  case \"signature_delta\":   { /* ... */ break }\n  case \"compaction_delta\":  break\n  // ...other cases...\n  default: QB1(J)   // ← passes whole event object, not J.type\n}\n```\n\nThe template-string interpolation `${$}` calls `.toString()` on the event object, yielding the literal `\"[object Object]\"`.\n\n## Known-handled cases in v2.1.141\n\nExtracted from the bundle (last ~3 KB before the `Unhandled case` literal):\n\n`text`, `text_delta`, `thinking_delta`, `signature_delta`, `citations_delta`, `input_json_delta`, `compaction_delta`, `content_block_start`, `content_block_delta`, `content_block_stop`, `message_start`, `message_delta`, `message_stop`.\n\n## Likely missing cases\n\n- **`ping`** — Anthropic streaming keepalive event\n- **`error`** — server-side error events\n- Any new content-block-delta type shipped after the v2.1.141 build cutover\n\nA real reproduction of the offending event requires capturing the VSCode extension output log at the moment of the throw — I have not done that here. The diagnosis is grounded in static source inspection.\n\n## Suggested fixes\n\n**1. Format the error usefully (1-line change):**\n\n```js\nfunction QB1($, Z) {\n  throw Error(Z ?? `Unhandled case: ${$?.type ?? JSON.stringify($)}`)\n}\n```\n\nOperators would then see e.g. `Unhandled case: ping` instead of `Unhandled case: [object Object]`, making the bug self-reporting.\n\n**2. Soften the failure mode (recommended in addition to #1):**\n\nStreaming events the renderer doesn't recognize should be logged to the output channel and skipped, not thrown as a top-of-window banner. Hard-throwing on every new server-side event type couples extension stability to backend compatibility — every Anthropic API addition risks a banner storm in older extension versions still in the field.\n\n## Repro\n\nThe banner fires intermittently during long-running sessions with many streaming responses. I have not produced a deterministic repro (would need to inject a streaming event of an unknown type).\n\n## Diagnosis trail (for reproducibility)\n\n```bash\n# Confirm extension version\nls ~/.vscode/extensions/ | grep claude-code\n\n# Find the throwing helper\ngrep -n \"Unhandled case\" ~/.vscode/extensions/anthropic.claude-code-2.1.141-*/webview/index.js\n\n# Enumerate the switch's known cases\npython3 -c \"\nimport re\ndata = open('$HOME/.vscode/extensions/anthropic.claude-code-2.1.141-darwin-arm64/webview/index.js').read()\nm = re.search(r'Unhandled case', data)\nchunk = data[max(0, m.start()-3000):m.start()]\nprint(sorted(set(re.findall(r'case\\\"([^\\\"]+)\\\"', chunk))))\n\"\n```\n\n## Note on a red herring\n\nIn a prior internal investigation we briefly hypothesized that the banner was triggered by the harness's `<persisted-output>` wrapper (the marker shown when a tool result is spilled to disk because it exceeds the inline display cap). That hypothesis was falsified: the string `persisted-output` does not appear anywhere in the extension bundle ",
+  "labels": ["bug", "platform:macos", "platform:vscode"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-14T01:41:31Z",
+  "updated_at": "2026-05-18T09:04:09Z",
+  "closed_at": "2026-05-14T16:37:54Z",
+  "reactions_total": 12,
+  "comments_count": 20,
+  "author": "basje01",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "carlosresu",
+      "author_association": "NONE",
+      "body": "Is there a workaround for this? It's happening on my Windows 11 Business dev machine as well. ",
+      "created_at": "2026-05-14T02:29:33Z"
+    },
+    {
+      "author": "carlosresu",
+      "author_association": "NONE",
+      "body": "> Is there a workaround for this? It's happening on my Windows 11 Business dev machine as well.\n\nI'm also experiencing it on Windows 11 Business. You guys on Windows can run this command to patch it for now\n\nPatch 1 — readable banner text:\n```\n$f = \"$env:USERPROFILE\\.vscode\\extensions\\anthropic.claude-code-2.1.141-win32-x64\\webview\\index.js\"\n(Get-Content -Raw $f).Replace(\n  'throw Error(Z??`Unhandled case: ${$}`)',\n  'throw Error(Z??`Unhandled case: ${$?.type??JSON.stringify($)}`)'\n) | Set-Conte",
+      "created_at": "2026-05-14T02:35:50Z"
+    },
+    {
+      "author": "JCBauza",
+      "author_association": "NONE",
+      "body": "Confirming on **macOS-arm64, VSCode-Insiders, extension v2.1.141** (Anthropic publisher build, not a fork). Hit this today (2026-05-13 20:22 PST) mid-session against `claude-opus-4-7[1m]` via Anthropic direct API (not Bedrock), so it's not Bedrock-specific despite #52151's witness.\n\n### Two distinct call sites\n\n`QB1` is reached from **two** switch statements in `webview/index.js`, both worth fixing:\n\n```js\n// 1. Top-level SSE event router — XB1.processStreamEvent\nswitch ($.type) {\n  case \"messag",
+      "created_at": "2026-05-14T03:27:14Z"
+    }
+  ]
+}

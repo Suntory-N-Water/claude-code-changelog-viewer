@@ -1,0 +1,35 @@
+{
+  "number": 32145,
+  "title": "[FEATURE] Support MCP server configuration in ~/.claude/settings.json (user-managed file)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nUser-scoped MCP servers are stored in `~/.claude.json`, a runtime state file also holding session caches, OAuth tokens, and 40+ machine-managed keys. This makes MCP configuration:\n\n- Invisible to dotfiles/config managers — the file cannot be safely symlinked or version-controlled\n- Silently lost on Claude Code updates, reinstalls, or state resets\n\nThere is no stable, user-editable path for persistent user-scoped MCP configuration.\n\n### Proposed Solution\n\nSupport `mcpServers` in `~/.claude/settings.json`, the existing user-managed config file. Same schema as `.mcp.json`, with env var interpolation already supported:\n\n```json\n{\n  \"mcpServers\": {\n    \"context7\": {\n      \"type\": \"http\",\n      \"url\": \"https://mcp.context7.com/mcp\",\n      \"headers\": {\n        \"CONTEXT7_API_KEY\": \"${CONTEXT7_API_KEY}\"\n      }\n    },\n    \"brave_search\": {\n      \"type\": \"stdio\",\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@brave/brave-search-mcp-server\", \"--transport\", \"stdio\"],\n      \"env\": {\n        \"BRAVE_API_KEY\": \"${BRAVE_API_KEY}\"\n      }\n    }\n  }\n}\n```\n\n`~/.claude.json` could retain backwards compatibility; `settings.json` takes precedence or merges.\n\n### Alternative Solutions\n\nCurrent workaround: a shell wrapper that re-injects MCP config from a separate file into `~/.claude.json` before every invocation — requires `jq`, breaks on schema changes.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nMCP server integration\n\n### Use Case Example\n\n1. Engineer manages their environment via a dotfiles repo (symlinks, version control)\n2. They symlink `~/.claude/settings.json` from the repo\n3. MCP servers defined there are immediately available across all machines and reinstalls\n4. No shell wrappers, no `jq` merging, no silent config loss\n\n### Additional Context\n\n- `~/.claude/settings.json` already supports env var interpolation — the infrastructure is in place\n- Comparable tools use dedicated, stable config files: Goose (`~/.config/goose/`), Kiro (`~/.kiro/agents/`)\n- Related: #5024 (`~/.claude.json` bloat), #11085 (persistent MCP enable/disable)",
+  "labels": ["enhancement", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-08T14:31:46Z",
+  "updated_at": "2026-06-13T15:14:33Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 8,
+  "author": "clouatre",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "joseandgoose",
+      "author_association": "NONE",
+      "body": "+1 — ran into this directly when trying to disable cloud-synced MCP servers (Notion, ClickUp) on a specific device (headless Linux server) without affecting other machines on the same account.\n\nAttempted workaround: added `disabledMcpServers` to `~/.claude/settings.json` with both the internal names (`claude_ai_Notion`) and display names (`claude.ai Notion`). Neither had any effect — the servers remained connected and continued loading ~30K tokens of tool schemas on every session start.\n\nThe cor",
+      "created_at": "2026-03-17T16:57:29Z"
+    },
+    {
+      "author": "senseihaiku",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-03-22T07:39:19Z"
+    },
+    {
+      "author": "JoeBerg8",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-03-25T15:29:53Z"
+    }
+  ]
+}

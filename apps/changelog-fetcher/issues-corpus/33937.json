@@ -1,0 +1,35 @@
+{
+  "number": 33937,
+  "title": "Effort level 'max' should be persistable in settings.json for Max plan subscribers",
+  "body": "## Problem\n\nMax plan subscribers ($200/month) cannot persist the \"max\" effort level in settings.json. After every \"Clear Conversation\" in VSCode extension, effort resets from 99/100 back to 85/100 (\"high\"), requiring manual slider adjustment each time.\n\n## Current behavior\n\n1. `settings.json` with `\"effortLevel\": \"high\"` → effort 85/100 ✅ (persists)\n2. `settings.json` with `\"effortLevel\": \"max\"` → effort 85/100 (treated as \"high\", no error)\n3. CLI `--effort max` → **rejected**: `Error: Effort level \"max\" is not available for Claude.ai subscribers`\n4. UI slider → can be set to max (99/100) ✅ but **resets after Clear Conversation**\n\n## Expected behavior\n\nMax plan subscribers should be able to set `\"effortLevel\": \"max\"` in settings.json and have it persist across conversation clears, just like the model setting persists.\n\nThe VSCode extension webview already supports 4 effort levels internally (`{low:1, medium:2, high:3, max:4}`), but the CLI validation blocks \"max\" for Claude.ai subscribers, causing a mismatch.\n\n## Workaround\n\nAfter every Clear Conversation, manually click the effort slider to set it back to max. This is needed ~50 times/day for active users.\n\n## Environment\n\n- Claude Code VSCode Extension v2.1.74\n- Max plan subscriber\n- Windows 11\n- Settings configured in both `~/.claude/settings.json` and `.claude/settings.json`",
+  "labels": ["enhancement", "platform:windows", "area:ide", "platform:vscode"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-13T10:15:36Z",
+  "updated_at": "2026-04-21T10:30:36Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 6,
+  "author": "servant777servant",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33542\n2. https://github.com/anthropics/claude-code/issues/30726\n3. https://github.com/anthropics/claude-code/issues/31923\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-13T10:20:11Z"
+    },
+    {
+      "author": "kevin-daniel-hunt",
+      "author_association": "NONE",
+      "body": "Just chiming in that yes, right now, max seems unreliable.  It can be set using the `/model` however, it cannot be set other ways but most notably `ultrathink` triggers high effort instead of max.  Not very `ultra` when you `think` about it.\n\nRelated to issue: https://github.com/anthropics/claude-code/issues/34077",
+      "created_at": "2026-03-13T17:27:54Z"
+    },
+    {
+      "author": "silverwind",
+      "author_association": "NONE",
+      "body": "Does `max` effort level actually still exist? CHANGELOG of 2.1.72 [says it was removed](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#2172):\n\n> Simplified effort levels to low/medium/high (removed max)",
+      "created_at": "2026-03-25T16:07:18Z"
+    }
+  ]
+}

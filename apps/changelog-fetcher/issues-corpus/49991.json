@@ -1,0 +1,16 @@
+{
+  "number": 49991,
+  "title": "[BUG] Scheduled triggers execute in UTC, not local timezone — not documented",
+  "body": "## Summary\n\nCron expressions in Claude Code scheduled triggers are evaluated in UTC, not the user's local timezone. This is not documented anywhere — the trigger creation UI/API doesn't specify a timezone, and the natural assumption is local time.\n\n## Steps to reproduce\n\n1. Create a scheduled trigger with a cron expression for a specific local time, e.g. `0 9 * * *` (intended as 9am local).\n2. On a machine running UTC-5, the trigger fires at 4am local time.\n3. To fire at 9am local, you must offset: `0 14 * * *`.\n\n## Expected behavior\n\nOne of:\n- Cron expressions use the host system's local timezone (preferred), OR\n- Docs explicitly state \"all cron expressions are UTC\" with an offset example\n\n## Why this matters\n\nA trigger configured to \"run a morning standup at 9am\" instead fires at 4am. The failure is silent — the trigger fires, just at the wrong time — so it's hard to diagnose.\n\n## Environment\n\n- macOS Darwin 25.4.0\n- Timezone: America/Bogota (UTC-5)\n- Confirmed via direct testing across multiple trigger schedules",
+  "labels": ["bug", "documentation", "platform:macos", "area:routines"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-17T15:21:16Z",
+  "updated_at": "2026-04-30T15:08:27Z",
+  "closed_at": "2026-04-18T01:17:57Z",
+  "reactions_total": 1,
+  "comments_count": 5,
+  "author": "adelaidasofia",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

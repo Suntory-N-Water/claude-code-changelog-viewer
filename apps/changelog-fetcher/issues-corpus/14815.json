@@ -1,0 +1,35 @@
+{
+  "number": 14815,
+  "title": "[BUG] Plugins show as \"(installed)\" in marketplace but don't appear in Installed tab",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nPlugins from a custom marketplace appear as installed in the marketplace view but do not appear in the Installed tab. The plugin commands and hooks are not available despite state files indicating successful installation.\n\nThe marketplace UI shows contradictory information: `✔ my-plugin (installed) · 0 installs`\n\nState files (`~/.claude/plugins/installed_plugins.json`) correctly contain the plugin entries, and the cache directories exist with valid `plugin.json` files, but the plugin system doesn't recognize them as installed.\n\n### What Should Happen?\n\n- Plugins should appear in the Installed tab after installation\n- Plugin commands should be available (e.g., `/my-plugin:command`)\n- Marketplace view should show consistent install state (not \"installed\" with \"0 installs\")\n\n### Error Messages/Logs\n\n```shell\nNo error messages displayed. \nThe installation appears to succeed silently but the plugins are not loaded.\n```\n\n### Steps to Reproduce\n\n1. Add a custom marketplace:\n   ```\n   /plugin marketplace add owner/my-marketplace\n   ```\n2. Install a plugin from the marketplace:\n   ```\n   /plugin install my-plugin@my-marketplace\n   ```\n3. Run `/plugin` and check the **Installed** tab — plugin is not listed\n4. Navigate to the **Marketplaces** tab and select `my-marketplace`\n5. Observe: plugin shows `✔ my-plugin (installed) · 0 installs`\n6. Try running a plugin command — command not found\n\n**State verification showing the corruption:**\n```bash\n# Shows plugin is \"installed\" in state\ncat ~/.claude/plugins/installed_plugins.json | grep my-plugin\n\n# Cache exists with valid plugin.json\nls ~/.claude/plugins/cache/my-marketplace/my-plugin/\ncat ~/.claude/plugins/cache/my-marketplace/my-plugin/1.0.0/.claude-plugin/plugin.json\n```\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.74 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n**Workaround:** Removing state files and cache, then reinstalling:\n```bash\nrm -rf ~/.claude/plugins/cache/my-marketplace\nrm ~/.claude/plugins/installed_plugins.json\n# Restart Claude Code and reinstall\n```\n\n**Relevant state files:**\n- `~/.claude/plugins/installed_plugins.json` — contains plugin entries\n- `~/.claude/plugins/known_marketplaces.json` — marketplace is registered\n- `~/.claude/plugins/cache/my-marketplace/` — plugin files exist\n- `~/.claude/settings.json` — `enabledPlugins` is empty `{}`\n\nThe disconnect appears to be between the installation state recorded in `installed_plugins.json` and what the plugin loader actually recognizes/loads.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-20T03:05:46Z",
+  "updated_at": "2026-03-05T20:05:12Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 18,
+  "author": "zazu-22",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14202\n2. https://github.com/anthropics/claude-code/issues/13509  \n3. https://github.com/anthropics/claude-code/issues/14689\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-20T03:09:38Z"
+    },
+    {
+      "author": "zazu-22",
+      "author_association": "NONE",
+      "body": "> Found 3 possible duplicate issues:\n> \n> 1. [Bug: Project-scoped plugins incorrectly detected as installed globally #14202](https://github.com/anthropics/claude-code/issues/14202)\n> 2. [[BUG] #13509](https://github.com/anthropics/claude-code/issues/13509)\n> 3. [[Bug] Plugin not visible to Claude despite being visible with /plugins command with --plugin-dir flag #14689](https://github.com/anthropics/claude-code/issues/14689)\n> \n> This issue will be automatically closed as a duplicate in 3 days.\n",
+      "created_at": "2025-12-20T03:12:55Z"
+    },
+    {
+      "author": "kevduong1",
+      "author_association": "NONE",
+      "body": "I'm running into the same issue as well, have you figured out any work arounds?",
+      "created_at": "2025-12-28T14:16:53Z"
+    }
+  ]
+}

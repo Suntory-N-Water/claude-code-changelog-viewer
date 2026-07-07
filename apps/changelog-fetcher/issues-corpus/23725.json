@@ -1,0 +1,42 @@
+{
+  "number": 23725,
+  "title": "[BUG] Linux Terminal Freezes after launching new versions of Claude code from 2.1.34. Complete Freeze - Cannot Type, Ctrl+C Non-Responsive",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Environment\n- **OS**: RHEL 8.10 (Kernel 4.18.0-553.el8_10.x86_64)\n- **Shell**: zsh\n- **Claude Version**: 2.1.34 (broken) vs 2.1.20 (working)\n- **Installation**: Local binary (`~/.local/bin/claude`)\n- **Memory**: 15GB total, 11GB available\n\n## Configuration\n```json\n{\n  \"enabledPlugins\": {\n    \"document-skills@anthropic-agent-skills\": true,\n    \"example-skills@anthropic-agent-skills\": true\n  },\n  \"alwaysThinkingEnabled\": true,\n  \"autoUpdaterStatus\": \"disabled\"\n}\n```\n\n## Reproduction Steps\n1. Launch Claude Code v2.1.34: `claude`\n2. Terminal appears but is completely unresponsive\n3. Cannot type any input\n4. `Ctrl+C`, `Ctrl+Z`, `Ctrl+D` all non-functional\n5. Must force-close terminal\n\n## Expected vs Actual Behavior\n**Expected**: Claude launches with interactive prompt\n**Actual**: Complete freeze, no keyboard input accepted\n\n## Workaround\nDowngrade to v2.1.20 and disable auto-updates\n\n## Additional Context\n- ✅ v2.1.20 works perfectly\n- ❌ v2.1.34 100% reproducible freeze\n- Cannot run `/doctor` or `/bug` in frozen version\n- No error messages or logs visible\n- System resources are adequate\n- Other terminal applications work normally\n\n## Hypothesis\nThe v2.1.34 changes (agent teams crash fix or bash security fix) may have introduced a regression affecting terminal I/O on RHEL 8.10 or zsh configurations.\n\n## Willingness to Help\n- Can test patches or debug builds\n- Can provide strace/debug output if instructions provided\n- Available for follow-up questions\n\n### What Should Happen?\n\n- Claude Code should launch normally and display a prompt\n- User should be able to type commands and interact with the CLI\n- `Ctrl+C` should interrupt operations as designed\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. **Start from working v2.1.20**\n   - Claude Code v2.1.20 launches normally\n   - User can type commands and interact without issues\n\n2. **Update to v2.1.34** (either manually or via auto-update)\n\n3. **Launch Claude Code v2.1.34**\n   ```bash\n   claude\n   ```\n\n4. **Observe freeze immediately**\n   - Terminal appears to launch but is completely unresponsive\n   - No prompt appears or prompt appears but cannot accept input\n   - Cursor may or may not blink, but no keyboard input is registered\n\n5. **Attempt recovery fails**\n   - Press `Ctrl+C` - **No response**\n   - Press `Ctrl+Z` - **No response**\n   - Press `Ctrl+D` - **No response**\n   - Type any characters - **Nothing appears**\n   - Only option is to close terminal window forcefully\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.20\n\n### Claude Code Version\n\n2.1.34\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n### What Doesn't Work\n- ❌ Claude Code v2.1.34 - Complete freeze on launch\n- ❌ Cannot run `/doctor` in frozen version\n- ❌ Cannot run `/bug` in frozen version\n- ❌ No error messages displayed\n- ❌ No logs visible to diagnose issue\n\n### Diagnostic Attempts\nSince v2.1.34 is completely frozen, unable to run:\n- `/doctor` - Cannot type command\n- `/bug` - Cannot type command\n- `Ctrl+C` - Does not respond\n- Any debugging commands - Terminal unresponsive\n\n### Impact\n- **Severity**: CRITICAL - Complete loss of functionality\n- **User Impact**: Cannot use Claude Code at all in v2.1.34\n- **Workaround Available**: Yes (downgrade to v2.1.20)\n- **Data Loss Risk**: No data loss, but complete unusability\n\n\n## Questions for Maintainers\n\n1. Are there any known issues with v2.1.34 on RHEL 8.10 or zsh shells?\n2. Could the agent teams crash fix or bash security fix affect terminal I/O?\n3. Are there debug logs that can be enabled before launch to diagnose this?\n4. Is there a way to run",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tui",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-06T15:59:35Z",
+  "updated_at": "2026-04-11T14:23:00Z",
+  "closed_at": "2026-04-02T22:17:11Z",
+  "reactions_total": 7,
+  "comments_count": 23,
+  "author": "ravibandari28-ops",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23661\n2. https://github.com/anthropics/claude-code/issues/23619\n3. https://github.com/anthropics/claude-code/issues/23326\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-06T16:04:15Z"
+    },
+    {
+      "author": "stevecrawshaw",
+      "author_association": "NONE",
+      "body": "Also on Windows 11 with Git Bash VS Code integrated terminal on v 2.1.34. Seems to \"unlock\" and become responsive when Enter key is pressed(!)",
+      "created_at": "2026-02-06T17:37:40Z"
+    },
+    {
+      "author": "saadsinpk",
+      "author_association": "NONE",
+      "body": "Same issue with mac terminal v 2.1.34",
+      "created_at": "2026-02-07T00:56:44Z"
+    }
+  ]
+}

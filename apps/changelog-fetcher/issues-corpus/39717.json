@@ -1,0 +1,23 @@
+{
+  "number": 39717,
+  "title": "Caps Lock inserts raw Kitty protocol       \n  sequence [57358u in VSCode terminal input",
+  "body": "## Bug Description                               \n  When pressing Caps Lock in the Claude Code VSCode integrated terminal, the raw Kitty keyboard\n  protocol escape sequence [57358u is inserted into the input field as text.                          \n                                                                                                    \n  ## Steps to Reproduce\n  1. Open Claude Code in VSCode integrated terminal\n  2. Focus on the input field                                                                         \n  3. Press Caps Lock key\n                                                                                                      \n  ## Expected Behavior                                                                              \n  Caps Lock should be silently ignored - it is a modifier-only key and should not produce any text\n  input.\n\n  ## Actual Behavior\n  The string [57358u appears in the input field.\n                                                                                                      \n  ## Root Cause\n  VSCode terminal (xterm.js) uses the Kitty keyboard protocol, which encodes modifier keys as CSI     \n  sequences. Caps Lock is sent as \\e[57358u. Claude Code input handler does not filter out           \n  modifier-only Kitty sequences, so the raw escape code is interpreted as literal text.\n                                                                                                      \n  Other potentially affected keys:                                                                  \n  - Num Lock: 57360\n  - Scroll Lock: 57359\n\n  ## Suggested Fix\n  Filter out modifier-only Kitty protocol sequences in the terminal input handler so they are not\n  treated as text input.                                                                              \n   \n  ## Environment                                                                                      \n  - OS: macOS (Darwin 25.3.0)                                                                       \n  - Terminal: VSCode integrated terminal\n  - Claude Code: CLI (latest)",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "platform:vscode"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-27T06:39:57Z",
+  "updated_at": "2026-04-25T14:35:36Z",
+  "closed_at": "2026-04-18T04:17:48Z",
+  "reactions_total": 1,
+  "comments_count": 4,
+  "author": "dudrhks",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

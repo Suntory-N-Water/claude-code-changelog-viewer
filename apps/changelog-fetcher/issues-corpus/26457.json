@@ -1,0 +1,35 @@
+{
+  "number": 26457,
+  "title": "[BUG] Reopening of Claude Desktop Installation Fails on Windows 11 - Signature Verification & Unable to Load #25385",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nUnable to install build 1.0.0.0 downloaded from claude.com/downloads on 2/17/26 on a Windows 11 25H2 computer, with admin rights.  The installer was signed on Feb 13th at 6:11:22 PM>  The error message is \"trusted app installs must be enabled to install Claude\".  This is a reopen of #25385.  Defect 25385 said to reopen it it still exists, and it does.\n\nThe workaround of \"turning on developer mode to allow any executable to run\" is unacceptable for enterprise environments.  The install worked prior to the release of Cowork.\n\nIn enterprise/managed environments, Developer Mode is typically disabled via Group Policy (Intune, GPO, etc.) and IT administrators cannot reasonably enable Developer Mode across the fleet just to install a single application. Developer Mode opens up sideloading and other capabilities that conflict with enterprise security policies.\nThe installer should not require Developer Mode or \"Trusted app installs\" to be enabled. A standard MSI or MSIX package signed with a trusted certificate should install without this requirement.\n\nEnvironment:\n\nOS: Windows 11 (enterprise-managed)\nDevice management: Microsoft Intune\nDeveloper Mode: Disabled via policy\n\n### What Should Happen?\n\nClaude Cowork should install without requiring Developer Mode to be enabled.\n\nVersion 1.1.3189 (1b7b58) works\n\n### Error Messages/Logs\n\n```shell\nClaude Setup\nTrusted app installs must be enabled to install Claude.\nTo enable this, open Settings → System → For developers, then turn on Developer mode.\nIf this setting is managed by your organization, contact your IT administrator.\n```\n\n### Steps to Reproduce\n\nObtain Windows 11, 25H2, February 2026 security updates.\nEnsure \"developer mode\" is off\nNo other attack surface reduction needed\ndownload exe from claude.com (found from the downloads icon in claude.ai, lower left corner)\nInstall\n\n\n\n### Claude Model\n\nOther\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nbefore 1.0.0.0 installer.  Installer shows 1.0.0.0 - seems odd numbering given Version 1.1.3189 (1b7b58) is installed.\n\n### Claude Code Version\n\nN/A - this is the installer, not claude itself.\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nNon-interactive/CI environment\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-18T02:03:49Z",
+  "updated_at": "2026-05-12T12:17:54Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 25,
+  "author": "thomasjsweet",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25162\n2. https://github.com/anthropics/claude-code/issues/25194\n3. https://github.com/anthropics/claude-code/issues/25313\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-18T02:08:03Z"
+    },
+    {
+      "author": "Fumiaki0604",
+      "author_association": "NONE",
+      "body": "Adding a related but distinct symptom: OAuth token immediately cleared on startup (v1.1.3363, MSIX, enterprise)\n\nEnvironment:\n\nOS: Windows 11 Pro 10.0.26200 (enterprise-managed via Intune)\nClaude Desktop: v1.1.3363 (MSIX / Windows Store package: Claude_pzs8sxrjxfjjc)\nPrevious working version: v1.1.3189\nDeveloper Mode: disabled via policy (same constraint as OP)\nSymptom:\nClaude Desktop launches briefly, shows the splash screen, then crashes in a loop. No error dialog — the window simply disappear",
+      "created_at": "2026-02-18T03:36:15Z"
+    },
+    {
+      "author": "aadarshkumaredu",
+      "author_association": "NONE",
+      "body": "I’m seeing the same regression on our Windows 11 25H2 fleet. The 1.0.0.0 installer is indeed triggering the ‘Trusted App’ requirement because it's failing the MSIX trust chain validation in managed environments where sideloading is blocked via GPO/Intune.\n\nFor IT Admins who can't enable Developer Mode, a verified workaround to get the 1.0.0.0 build installed is to manually inject the Anthropic certificate into the Trusted People store via PowerShell as Admin:\n\nPowerShell\n```\n# Extract and Trust ",
+      "created_at": "2026-02-18T08:39:25Z"
+    }
+  ]
+}

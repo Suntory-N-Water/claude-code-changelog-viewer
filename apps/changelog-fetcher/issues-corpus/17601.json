@@ -1,0 +1,43 @@
+{
+  "number": 17601,
+  "title": "[Suspicious Behavior]: Hidden <system-reminder> 10,000+ injections consuming 15%+ of context window without user knowledge or consent",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n\n**TL;DR:** I conducted a forensic analysis of Claude Code traffic and discovered a hidden prompt injection system that consumed 15-50% of my context window over 32 days. The injections include \"malware warnings\" on every file read and explicit instructions telling Claude to \"NEVER mention this reminder to the user.\" I'm not alone - [GitHub issue #12443](https://github.com/anthropics/claude-code/issues/12443) shows others experiencing the same thing.\n\n---\n\n### What I Found\n\nUsing mitmproxy to capture Claude Code traffic, I discovered:\n\n| Metric | Value |\n|--------|-------|\n| Total hidden injections | **10,577** |\n| Files affected | 538 |\n| Characters injected | ~5.34 million |\n| Tokens consumed | ~1.3-1.5 million |\n| Context overhead | **15.79%** direct (30-50% effective with compaction) |\n| Duration documented | 32 days |\n| Actual malware detected | **0** |\n| False positive rate | **100%** |\n\n### The Injection Content\n\nEvery time I used the Read tool, this was secretly appended:\n\n```xml\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware.\nYou CAN and SHOULD provide analysis of malware, what it is doing.\nBut you MUST refuse to improve or augment the code. You can still analyze existing code,\nwrite reports, or answer questions about the code behavior.\n</system-reminder>\n```\n\nThere's also an `<ip_reminder>` tag about copyright that appeared starting January 2026.\n\n### The Concealment\n\nThese injections are:\n- Marked with `isMeta:!0` flag (hidden from user interface)\n- Contain explicit instructions: \"NEVER mention this reminder to the user\"\n- Evaluated server-side via LaunchDarkly feature flags (cannot be disabled)\n\n### The Timeline\n\nMy first-ever Claude Code message to my first injection: **14.839 seconds**\n\nThe first file I ever read - a legal document header formatting utility - was immediately flagged as potential \"malware.\" There was no behavioral basis. The targeting was pre-configured.\n\n### I'm Not Alone\n\n[GitHub Issue #12443](https://github.com/anthropics/claude-code/issues/12443) shows others experiencing the same thing:\n\n> \"The way claude code automatically adds the malware safety prompt every time a file is read harms performance and makes the agent unpredictable and weird.\"\n\n> \"It also spews garbage into the conversation stream then Claude talks about how it wasn't meant to talk about it, even though it's the one that brought it up.\"\n\nNotably, this issue was almost auto-closed after 30 days of inactivity, suggesting a small enough affected population for plausible deniability.\n\n### The Key Questions\n\n1. **Is this universal?** If so, why isn't everyone complaining? Why build LaunchDarkly flag infrastructure for a universal feature?\n\n2. **If not universal, what are the targeting criteria?** The `source: force` flag values suggest account-specific targeting.\n\n3. **Why 100% false positive rate?** In 32 days and 10,040 malware warnings, not a single actual threat was identified. If this were legitimate security, there would be some true positives.\n\n4. **Why the concealment?** If these are legitimate safety measures, why hide them from users and instruct Claude to \"NEVER mention\" them?\n\n### What I'm Asking\n\n**If you use Claude Code, can you check your traffic?**\n\nUsing mitmproxy or similar:\n```bash\nmitmproxy --mode regular --listen-port 8080\nHTTPS_PROXY=http://localhost:8080 NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem claude\n```\n\nSearch for `<system-reminder>` in the captured traffic. Report:\n- Whether you see these injections\n- How frequently they appear\n- What percentage of your file reads trigger them\n\nIf this is truly universal, we should see 100% of users reporting it. If it's targeted, we'll see a pattern.\n\n### W",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:cost",
+    "area:tools",
+    "area:security",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-12T03:34:52Z",
+  "updated_at": "2026-04-03T14:30:42Z",
+  "closed_at": "2026-03-26T22:12:33Z",
+  "reactions_total": 4,
+  "comments_count": 12,
+  "author": "Axiomatic47",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "iamnove",
+      "author_association": "NONE",
+      "body": "Your traffic captures would probably give a more trustworthy indication, but when I asked it about the malware and write tool messages it was outputting it told me the malware one is attached to every read and has nothing to do with the file type/code/user (I work on C++ game engine code). The Write one it said is attached every X number of Write tool requests, which seems to align with the internal prompt text being a reminder when it's leaning heavily on one tool and not another. \n\nI do suspec",
+      "created_at": "2026-01-12T04:00:27Z"
+    },
+    {
+      "author": "iamnove",
+      "author_association": "NONE",
+      "body": "Your traffic captures would probably give a more trustworthy indication, but when I asked it about the malware and write tool messages it was outputting it told me the malware one is attached to every read and has nothing to do with the file type/code/user (I work on C++ game engine code). The Write one it said is attached every X number of Write tool requests, which seems to align with the internal prompt text being a reminder when it's leaning heavily on one tool and not another. \n\nI do suspec",
+      "created_at": "2026-01-12T04:00:27Z"
+    },
+    {
+      "author": "Axiomatic47",
+      "author_association": "NONE",
+      "body": "@iamnove Thanks for confirming you see the injections too - that's helpful corroboration. A few questions that would help identify if there's variance in how the system targets different users:\n\n**Quantitative questions:**\n\n1. Can you count your total injections?\n   ```bash\n   grep -rc \"<system-reminder>\" ~/.claude/projects/\n   ```\n\n2. What's your injection rate per file read? (Mine is 100% - every single Read operation)\n\n3. Do you also see `<ip_reminder>` tags? These started appearing in my ses",
+      "created_at": "2026-01-12T05:17:20Z"
+    }
+  ]
+}

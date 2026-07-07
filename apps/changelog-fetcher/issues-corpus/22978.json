@@ -1,0 +1,35 @@
+{
+  "number": 22978,
+  "title": "[FEATURE] /new slash command to switch to a fresh session while preserving the current one",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nStarting a new session requires exiting (/exit) and re-running claude — a minor but frequent friction. /clear clears history but doesn't create a new session, so you can't\n  return to the previous context via /resume. There's no way to quickly switch to a fresh session while keeping the current one alive.\n\n### Proposed Solution\n\nAdd a /new command that preserves the current session (keeps it resumable), opens a fresh new session in-place, and allows users to /resume back to the previous session\n  later.\n\n### Alternative Solutions\n\nCurrent workaround: /exit, then run claude, then claude --resume to return. This works but adds unnecessary friction when context-switching frequently.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nInteractive mode (TUI)\n\n### Use Case Example\n\n1. I'm deep in a debugging session with significant context built up\n2. I need to quickly look something up or work on a different feature\n3. With /new, I switch to a fresh session, do the quick task\n4. Then /resume back to my debugging session with all context intact\n5. Similar to opening a new browser tab while keeping the old one\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:tui", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-04T03:23:35Z",
+  "updated_at": "2026-03-28T14:20:06Z",
+  "closed_at": "2026-03-13T10:16:12Z",
+  "reactions_total": 12,
+  "comments_count": 9,
+  "author": "tomouchi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/21646\n2. https://github.com/anthropics/claude-code/issues/17120\n3. https://github.com/anthropics/claude-code/issues/12941\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-04T03:26:19Z"
+    },
+    {
+      "author": "tomouchi",
+      "author_association": "NONE",
+      "body": "This is not a duplicate of the suggested issues:\n\n- **#21646** is about a keyboard shortcut to submit a prompt in a fresh context (`/clear` + submit as one action)\n- **#17120** is about `/restart` to refresh the environment (reload plugins/hooks) without exiting\n- **#12941** is about `/clone` to fork/duplicate a conversation to try different approaches from the same point\n\nMy request is specifically about **switching to a brand-new session while preserving the current one**, so you can `/resume`",
+      "created_at": "2026-02-04T03:40:38Z"
+    },
+    {
+      "author": "RickMeijer",
+      "author_association": "NONE",
+      "body": "I found this while making the very same feature request.\n\nHere's an idea though, you could try to wrap claude in a script that restarts on a specific exit code:\n\n```bash\n  # ~/bin/claude-tabs (make executable)\n  #!/bin/bash\n  while true; do\n      claude \"$@\"\n      exit_code=$?\n      [[ $exit_code -eq 42 ]] || break  # Exit code 42 = restart\n  done\n```\n\nThen a `/new` skill could do: `exit 42`\n\nNot tested it, but Claude came up with this.",
+      "created_at": "2026-02-05T19:04:24Z"
+    }
+  ]
+}

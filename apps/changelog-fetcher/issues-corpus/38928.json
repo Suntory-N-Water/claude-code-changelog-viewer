@@ -1,0 +1,35 @@
+{
+  "number": 38928,
+  "title": "Explore agent always fails with \"Prompt is too long\" when many MCP tools are connected",
+  "body": "## Description\n\nThe Explore subagent (`subagent_type: \"Explore\"`) consistently fails to launch with `Prompt is too long` when the parent session has many MCP server integrations connected. The agent never executes a single tool call — it fails immediately on spawn.\n\n## Steps to Reproduce\n\n1. Have multiple MCP integrations connected (Claude.ai integrations like PostHog, Asana, Gmail, Google Calendar, Slack, Circleback + local MCP servers like Playwright, Chrome, Context7, GitHub)\n2. Spawn an Explore agent with any prompt:\n   ```\n   Agent(subagent_type=\"Explore\", prompt=\"Search for how chat responses are streamed\")\n   ```\n\n## Expected Behavior\n\nExplore agent starts and performs the search.\n\n## Actual Behavior\n\n```\nPrompt is too long\nagentId: aef62ee12afe5392a\ntotal_tokens: 0\ntool_uses: 0\nduration_ms: 789\n```\n\nThe agent returns immediately with zero tokens used and zero tool calls. This happens 100% of the time regardless of how short the user prompt is.\n\n## Analysis\n\nThe likely cause is **MCP tool definitions filling the subagent's context window**. In our setup:\n\n- ~230+ MCP tools are listed as deferred tools (PostHog ~100, Playwright ~20, GitHub ~30, Asana ~20, plus Gmail, Calendar, Slack, Circleback, Chrome, Context7)\n- Even as deferred name-only listings, 230+ tool names plus MCP server instruction blocks and skill definitions add up significantly\n- The CLAUDE.md files are only ~30KB — small relative to context limits\n\nThe Explore agent description says it has access to \"All tools except Agent, ExitPlanMode, Edit, Write, NotebookEdit\". If it inherits all MCP tool definitions from the parent session, that's the bottleneck. The `general-purpose` Agent works fine with the same project, presumably because it has a larger context budget.\n\nThe Explore agent should either:\n1. Not inherit MCP tool definitions it can't use (it only needs Read, Grep, Glob, Bash, LS)\n2. Use a model with sufficient context for the inherited tool set\n3. Strip MCP tools from the subagent context since Explore is specifically for codebase navigation\n\n## Workaround\n\nUse `Glob` and `Grep` tools directly, or use the `general-purpose` Agent type.\n\n## Environment\n\n- macOS (Darwin 25.2.0, arm64)\n- Claude Code CLI\n- Model: claude-opus-4-6 (1M context)\n- ~230+ MCP tools across 10+ integrations\n",
+  "labels": ["bug", "platform:macos", "area:agents"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-25T19:16:04Z",
+  "updated_at": "2026-06-03T19:00:05Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 6,
+  "author": "natebransc",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/37793\n2. https://github.com/anthropics/claude-code/issues/38678\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-25T19:19:45Z"
+    },
+    {
+      "author": "marvtub",
+      "author_association": "NONE",
+      "body": "Also hitting this consistently on macOS (Darwin 25.2.0, arm64) with Claude Code CLI on Opus 4.6 (1M context).\n\nMy setup has ~6 MCP servers in `.mcp.json` (Sentry, Linear, Figma, Playwright, Datadog, GraphQL) plus cloud integrations (PostHog, Ahrefs, Notion, Stripe, n8n, MongoDB, Chrome). The deferred tool list easily exceeds 300+ tool names.\n\nEvery Explore agent spawn fails immediately with `Prompt is too long` — 0 tool uses, 0 tokens, ~1s duration. General-purpose agents work fine since they us",
+      "created_at": "2026-03-27T21:16:36Z"
+    },
+    {
+      "author": "tavaresgmg",
+      "author_association": "NONE",
+      "body": "### Additional data point — Claude Opus 4.6 (1M context), 8 MCP servers\n\nSame issue here. Explore agents fail consistently, and even general-purpose agents sometimes hit autocompact thrashing.\n\n**Setup:**\n- Model: `claude-opus-4-6` (1M context window)\n- MCP servers (8): MemPalace (custom, ~20 tools), TickTick (~25 tools), Gmail, Google Calendar, Linear (~25 tools), Exa (~6 tools), Context7 (~2 tools), Sequential Thinking (~1 tool)\n- Estimated total deferred tools: ~150+\n- Skills (superpowers plu",
+      "created_at": "2026-04-07T17:11:03Z"
+    }
+  ]
+}

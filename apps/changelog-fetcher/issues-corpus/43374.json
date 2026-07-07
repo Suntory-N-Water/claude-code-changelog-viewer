@@ -1,0 +1,16 @@
+{
+  "number": 43374,
+  "title": "Remote Trigger MCP connectors not injected into CCR session",
+  "body": "## Summary\n\nMCP connectors (Notion, Supabase) configured on Remote Triggers are not being injected into the CCR (Claude Code Remote) session runtime. The connectors show as connected in the trigger config and at claude.ai/settings/connectors, but the remote agent session cannot discover them via ToolSearch.\n\n## Environment\n\n- **Plan:** Claude Code Max\n- **Environment:** Cynapse (env_01WXuTg37c38KQ4ozv9c64VX, kind: anthropic_cloud)\n- **Affected triggers:** 3 scheduled triggers (workflow-steward, self-improving-agent, proactive-agent)\n- **MCP connectors configured:** Notion (828d32a7-4c9c-48d0-b66f-b211015b5ed6), Supabase (1d8f8691-b1d6-49d3-81be-55bd2d3efe35)\n\n## Reproduction\n\n1. Create a Remote Trigger with `mcp_connections` including Notion and Supabase connectors\n2. Trigger fires on schedule (or via manual `run` API call)\n3. Inside the CCR session, the agent runs `ToolSearch` for Notion MCP tools — **no tools discovered**\n4. `config/.env` is not present (path: `/home/user/cynapseOS/config/.env` does not exist in CCR)\n5. No `NOTION_API_KEY` in environment variables\n6. Agent falls back to degraded mode — cannot read/write Notion databases\n\n## Expected Behavior\n\nMCP connectors listed in `trigger.mcp_connections` should be available to the agent in the CCR session, just as they are in a claude.ai interactive session.\n\n## Evidence\n\nThe workflow-steward agent logged this in its degraded run (committed to git):\n\n```\nSTATUS: FAILED — NOTION UNREACHABLE\n\n- Notion MCP: NOT CONNECTED (no tools discovered via ToolSearch)\n- config/.env: NOT PRESENT in this environment\n- NOTION_API_KEY: NOT SET in environment variables\n- Notion API (direct HTTP): FAILED — no credential available\n\nRoot cause: This is the claude-code-on-the-go web instance. Notion MCP requires\neither an injected OAuth connector or a configured MCP server. Neither is available\nin this session.\n```\n\nFull log: https://github.com/cnapz/cynapseOS/blob/main/logs/agent-runs/workflow-steward-2026-04-04T02-23-38Z.log\n\n## Timeline\n\n- **2026-03-29:** Triggers created with MCP connectors — worked initially\n- **2026-03-31:** Last successful Notion write from a Remote Trigger\n- **2026-04-01 through 2026-04-04:** All runs fail to reach Notion MCP\n- **2026-04-04:** Re-authorized Notion at claude.ai/settings/connectors, refreshed `mcp_connections` via trigger update API — still not injected\n\n## Workaround\n\nWe added Supabase MCP fallback instructions to the trigger prompts so agents write to Supabase `ct_agent_runs` instead of Notion when MCP is unavailable. But the Notion connector should work as configured.\n\n## Impact\n\n3 scheduled agents (running 5x/day total) cannot execute their primary functions. The Agent OS health monitoring, improvement cycle, and morning digest are all degraded.",
+  "labels": ["bug", "has repro", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-04T02:59:23Z",
+  "updated_at": "2026-04-18T14:28:51Z",
+  "closed_at": "2026-04-10T19:45:02Z",
+  "reactions_total": 0,
+  "comments_count": 3,
+  "author": "cnapz",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

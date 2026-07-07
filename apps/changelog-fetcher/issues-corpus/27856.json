@@ -1,0 +1,35 @@
+{
+  "number": 27856,
+  "title": "[BUG] Claude Code Web: persistent 404 on session_ingress/.../git_proxy/compare — every session fails to initialize",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code Web has been completely non-functional for approximately one month. Every new session fails during initialization with the generic error: \"An error occurred while executing Claude Code. You can try again by sending a new message or starting a new session.\"\nA Chromium netlog capture confirms the root cause: after the session is created successfully (POST /v1/sessions → 200), the client immediately calls POST /v1/session_ingress/session/{session_id}/git_proxy/compare, which returns HTTP 404 with x-should-retry: false. This kills the session.\nThe 404 response includes x-envoy-upstream-service-time: 282, confirming the request reaches Envoy and is routed upstream — but the session's git proxy is not available.\nThis reproduces 100% of the time, across all platforms (Windows Desktop, macOS, iOS, browser), confirming it is server-side.\n\n### What Should Happen?\n\nAfter the session is created, the git_proxy/compare endpoint should return 200 and the session should initialize successfully, allowing interaction with the cloned repository.\n\n### Error Messages/Logs\n\n```shell\nNetlog: request timeline (30-second capture, Feb 23 2026 10:03 UTC)\n✅ POST 200  /api/org/{id}/dust/generate_title_and_branch\n✅ POST 200  /api/org/{id}/code/repos/resync\n✅ POST 200  /v1/sessions                                          ← session created OK\n✅ GET  200  /claude-code-desktop/session_014ECh3TCLSM4xmezt63sZdQ  ← page loads OK\n✅ GET  200  /v1/sessions/session_014ECh3TCLSM4xmezt63sZdQ/share-status\n✅ POST 200  /api/github/org/{id}/github_batch_branch_status\n\n❌ POST 404  /v1/session_ingress/session/session_014ECh3TCLSM4xmezt63sZdQ/git_proxy/compare\n             x-should-retry: false\n             request-id: req_011CYQovms1DSSn8pdazDYHv\n             x-envoy-upstream-service-time: 282\n\n✅ POST 200  /sentry (two error reports fired immediately after the 404)\n✅ GET  101  wss://.../subscribe  ← WebSocket connects, client sends close after 404\nFailing request details\nPOST /v1/session_ingress/session/session_014ECh3TCLSM4xmezt63sZdQ/git_proxy/compare\n\nRequest:\n  content-type: application/json\n  content-length: 93\n  anthropic-client-app: com.anthropic.claudefordesktop\n  anthropic-client-platform: desktop_app\n  anthropic-client-version: 1.1.4010\n  x-organization-uuid: [REDACTED-ORG-UUID]\n\nResponse:\n  HTTP/1.1 404\n  x-should-retry: false\n  request-id: req_011CYQovms1DSSn8pdazDYHv\n  x-envoy-upstream-service-time: 282\n  cf-ray: 9d25e46aaf4dfd73-SIN\n  server: cloudflare\nSentry trace\nsentry-trace: 664d265673194f63bfcf8387ccc2eb8d-a56db1df311229cd\nsentry-environment: production\nsentry-release: 7bd2e2f0b5bc3ef0bc4a0566fe9ce9809609571c\nrequest-id: req_011CYQovms1DSSn8pdazDYHv\ncf-ray: 9d25e46aaf4dfd73-SIN\nAdditional: UUID validation errors (103 occurrences in claude.ai-web.log)\n[REACT_QUERY_CLIENT] QueryClient error: Error: path.conversation_uuid: Input should be a valid UUID,\ninvalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `l` at 1\nLocal Code tab session IDs (format local_{uuid}) are being passed to an API endpoint expecting standard conversation UUIDs.\n```\n\n### Steps to Reproduce\n\nSteps to Reproduce\n\nOpen the Code tab in Claude Desktop for Windows (v1.1.4010), or Claude Desktop for MacOS, or claude.ai in a browser, or the iOS app\nSelect any environment and any GitHub repository\nWait for initialization — it will show progress labels like \"Ideating\", \"Perusing\", \"Meandering\"\nSession fails with: \"An error occurred while executing Claude Code. You can try again by sending a new message or starting a new session.\"\nRetrying or starting a new session produces the same result\n\nThis is 100% reproducible. Every attempt over the past month has failed, across ",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-23T10:41:16Z",
+  "updated_at": "2026-03-12T14:35:11Z",
+  "closed_at": "2026-03-04T19:35:58Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "damudao",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22277\n2. https://github.com/anthropics/claude-code/issues/19621\n3. https://github.com/anthropics/claude-code/issues/17888\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-23T10:45:34Z"
+    },
+    {
+      "author": "damudao",
+      "author_association": "NONE",
+      "body": "> Found 3 possible duplicate issues:\n> \n> 1. [JANUARY 20th: Claude Code Web/Mobile: \"Repository or branches not found\" — persistent 404 on git_proxy endpoint #22277](https://github.com/anthropics/claude-code/issues/22277)\n> 2. [[BUG] Claude Code hangs when Git branch comparison is triggered #19621](https://github.com/anthropics/claude-code/issues/19621)\n> 3. [[BUG] An error occurred while executing Claude Code #17888](https://github.com/anthropics/claude-code/issues/17888)\n> \n> This issue will b",
+      "created_at": "2026-02-23T10:48:05Z"
+    },
+    {
+      "author": "sstklen",
+      "author_association": "NONE",
+      "body": "Hey! I ran into a similar pattern in our bug knowledge base and thought this might help.\n\n**What's happening:** After successful session creation (POST /v1/sessions → 200), the client sends the session_id to the git_proxy/compare endpoint, but the server-side path validator rejects it with 'path.conversation_uuid: Input should be a valid UUID'. This indicates a parameter naming mismatch: the route expects a path parameter named 'conversation_uuid' but the client is sending a 'session_id'. Either",
+      "created_at": "2026-02-24T13:52:25Z"
+    }
+  ]
+}

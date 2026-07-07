@@ -1,0 +1,35 @@
+{
+  "number": 14911,
+  "title": "macOS Gatekeeper warning for extracted .node native addon",
+  "body": "## Description\n\nOn macOS, a Gatekeeper warning dialog repeatedly appears when using Claude Code:\n\n> \".7fd3dfffbffbbd2f-00000000.node\" Not Opened\n> \n> Apple could not verify \".7fd3dfffbffbbd2f-00000000.node\" is free of malware that may harm your Mac or compromise your privacy.\n\n## Environment\n\n- Claude Code version: 2.0.75\n- macOS: Darwin 25.1.0 (Sequoia)\n- Architecture: arm64\n\n## Root Cause Analysis\n\nThe file `.7fd3dfffbffbbd2f-00000000.node` appears to be a native addon (likely `better-sqlite3`) that Bun extracts at runtime from the compiled binary.\n\nThe Claude Code binary itself is properly signed:\n```\nAuthority=Developer ID Application: Anthropic PBC (Q6L2SF6YDW)\nAuthority=Developer ID Certification Authority\nAuthority=Apple Root CA\n```\n\nHowever, when Bun extracts native `.node` modules to temp directories at runtime, these extracted files don't inherit the code signature from the parent binary. macOS Gatekeeper sees an unsigned binary and shows the warning.\n\nRunning `spctl --assess` on the Claude binary returns:\n```\nrejected (the code is valid but does not seem to be an app)\n```\n\n## Steps to Reproduce\n\n1. Install Claude Code on macOS\n2. Run `claude` in terminal\n3. The Gatekeeper warning appears (may be intermittent depending on when native modules are loaded)\n\n## Expected Behavior\n\nNo Gatekeeper warnings should appear for signed, distributed software.\n\n## Possible Solutions\n\n1. Pre-sign the extracted native addons\n2. Use Bun's `--compile` with proper entitlements for extracted resources\n3. Bundle the native addon differently so it doesn't require runtime extraction\n4. Add the extracted path to Gatekeeper exceptions during installation\n\n## Workaround\n\nUsers can click \"Done\" (not \"Move to Trash\") when the dialog appears. The file is safe - it's Claude Code's SQLite bindings.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "labels": ["bug", "has repro", "platform:macos", "area:packaging"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-20T21:21:12Z",
+  "updated_at": "2026-02-11T02:04:05Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 4,
+  "author": "peteknowsai",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-21T10:12:43Z"
+    },
+    {
+      "author": "takafu",
+      "author_association": "NONE",
+      "body": "Still experiencing this issue on macOS Sequoia (Darwin 24.6.0) with Claude Code 2.1.17. The only effective workaround is disabling Gatekeeper entirely (`sudo spctl --master-disable`), which is not ideal.",
+      "created_at": "2026-01-23T08:09:53Z"
+    },
+    {
+      "author": "GabbriOunon",
+      "author_association": "NONE",
+      "body": "**Experiencing this on Windows 11 — 14 GB of `.node` files accumulated in `%TEMP%`**\n\n**Environment:**\n- Windows 11 (Build 26200.7623)\n- Claude Code with multiple MCP servers (firecrawl, morph, perplexity) launched via `npx`\n\n**Data collected:**\n- **2,341 `.node` files** in `%TEMP%`, totaling **~14.18 GB**\n- Majority (2,026 files) are exactly **6.64 MB each** (PE32+ DLL — better-sqlite3 native addon extracted by Bun)\n- 297 files at **3.51 MB each** (V8 compile cache from MCP server processes)\n- ",
+      "created_at": "2026-02-11T01:29:03Z"
+    }
+  ]
+}

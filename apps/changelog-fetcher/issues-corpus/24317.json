@@ -1,0 +1,35 @@
+{
+  "number": 24317,
+  "title": "Frequent re-authentication required with multiple concurrent Claude Code sessions (OAuth refresh token race condition)",
+  "body": "# Bug: Frequent re-authentication required with multiple concurrent Claude Code sessions\n\n## Description\n\nClaude Code requires re-authentication (browser OAuth flow) multiple times per day, even though a valid refresh token exists in `~/.claude/.credentials.json`. This appears to be caused by a race condition when multiple concurrent Claude Code sessions attempt to refresh the same OAuth token.\n\n## Environment\n\n- **Claude Code version**: 2.1.37\n- **OS**: macOS 15.7.1 (Apple Silicon, arm64)\n- **Subscription**: Team (Max 5x tier)\n- **Concurrent sessions**: 7-12 active Claude Code processes at any given time\n\n## Steps to Reproduce\n\n1. Open 5+ terminal tabs, each running `claude` in different project directories\n2. Work normally across sessions throughout the day\n3. After some time (typically a few hours), one or more sessions will prompt: `/login` to re-authenticate\n4. Re-authenticating in one session may cause other sessions to lose their auth shortly after\n\n## Expected Behavior\n\nThe refresh token should silently renew the access token without user interaction. Multiple concurrent sessions sharing the same credentials file should coordinate token refresh (e.g., file-based locking, or re-reading the credentials file before attempting refresh).\n\n## Actual Behavior\n\nSessions frequently lose authentication and require a full browser-based OAuth re-login. This happens multiple times per day with several concurrent sessions open.\n\n## Root Cause Analysis\n\nThe credentials file (`~/.claude/.credentials.json`) contains:\n- `accessToken` — short-lived (~15 hour expiry)\n- `refreshToken` — used to obtain new access tokens\n\nOAuth refresh tokens are typically **single-use**: when one process uses the refresh token to get a new access/refresh token pair, the old refresh token is invalidated server-side. With N concurrent Claude Code processes:\n\n1. Process A's access token expires\n2. Process A uses the refresh token → gets new access token + **new** refresh token\n3. Process A writes new credentials to `~/.claude/.credentials.json`\n4. Process B's access token also expires (or was already expired)\n5. Process B tries to use the **old** refresh token (which it read into memory at startup)\n6. Server rejects the old refresh token (already consumed by Process A)\n7. Process B prompts user to re-authenticate via browser\n\nThis race becomes increasingly likely with more concurrent sessions, as the window for token expiry overlap grows.\n\n## Impact\n\n- **Disrupts workflow** — interrupts active coding sessions to complete browser OAuth flow\n- **Blocks headless/SSH use cases entirely** — Claude Code cannot be used over SSH when re-auth is needed, because the OAuth flow opens a browser on the host machine. This makes remote access (e.g., from a mobile SSH client) unreliable.\n- **Scales with usage** — power users who keep multiple sessions open (different projects, different terminal tabs) are most affected\n\n## Suggested Fixes\n\n1. **Re-read credentials from disk before refresh**: Before attempting a token refresh, check if another process has already written a fresh token to the credentials file. If the file's `expiresAt` is in the future, use the new token instead of refreshing.\n\n2. **File-based locking on refresh**: Use a lockfile (`~/.claude/.credentials.lock`) to prevent concurrent refresh attempts. Only one process refreshes at a time; others wait and then read the refreshed token.\n\n3. **Longer-lived refresh tokens**: If the refresh token had a longer lifetime or was multi-use (not invalidated on first use), concurrent sessions could independently refresh without invalidating each other.\n\n4. **In-memory token sharing**: Use a local IPC mechanism (Unix socket, shared memory) so all Claude Code processes share a single token manager that handles refresh.\n\n## Workaround\n\nCurrently, the only workaround is to close stale Claude Code sessions to reduce the number of concurrent processes competing for token refresh. This is not ideal for users who work across multiple projects simultaneously.\n\nAn `ANTHROPIC_API_KEY` environment variable bypasses OA",
+  "labels": ["bug", "has repro", "platform:macos", "area:auth"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-09T03:13:29Z",
+  "updated_at": "2026-05-28T12:25:10Z",
+  "closed_at": "2026-05-07T15:28:02Z",
+  "reactions_total": 40,
+  "comments_count": 22,
+  "author": "pfallonjensen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22600\n2. https://github.com/anthropics/claude-code/issues/13448\n3. https://github.com/anthropics/claude-code/issues/3117\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-09T03:16:16Z"
+    },
+    {
+      "author": "mieubrisse",
+      "author_association": "NONE",
+      "body": "I'm hitting exactly this issue. Thank you for the forensics!",
+      "created_at": "2026-02-10T11:56:36Z"
+    },
+    {
+      "author": "schoukah",
+      "author_association": "NONE",
+      "body": "Same issue here. Thank you for documenting it.",
+      "created_at": "2026-02-20T19:30:16Z"
+    }
+  ]
+}

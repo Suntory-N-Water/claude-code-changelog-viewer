@@ -1,0 +1,35 @@
+{
+  "number": 10864,
+  "title": "[Bug] Task tool missing agent ID in completed agent responses",
+  "body": "**Bug Description**\n\nThe Task tool does not return the agent ID in the tool result when agents complete successfully. The agent ID is only included for async/background agents, but not for regular completed agents.\n\n## Impact\n\nWithout the agent ID, Claude cannot resume agents because the `resume` parameter requires the agent ID:\n\n```\nTask({resume: \"agent-id-here\", prompt: \"Continue where we left off...\"})\n```\n\nCurrently, the only workaround is to manually search the filesystem for agent JSONL files.\n\n## Expected Behavior\n\nThe tool result should include the agent ID after the agent's response:\n\n```\nHello! How can I help you?\n\nAgent completed successfully.\nagentId: fad96168\n```\n\nThis matches the behavior of async agents, which do include the agent ID in their responses.\n\n## Actual Behavior\n\nThe tool result only returns the agent's text response without the agent ID:\n\n```\nHello! How can I help you?\n```\n\nThe agent ID is missing, making it impossible to resume the agent later.\n\n## Root Cause\n\n**File:** `cli.js`\n**Location:** Task tool definition, in the `mapToolResultToToolResultBlockParam` method\n\nThe method that converts internal agent results to Claude-visible tool results strips out the agent ID for completed agents:\n\n```javascript\nif (A.status === \"completed\")\n  return {\n    tool_use_id: B,\n    type: \"tool_result\",\n    content: A.content  // Only returns content array, agentId stripped\n  };\n```\n\n## The Fix\n\nReplace the content line to include the agent ID:\n\n```javascript\n// Before:\nif (A.status === \"completed\")\n  return {tool_use_id: B, type: \"tool_result\", content: A.content};\n\n// After:\nif (A.status === \"completed\")\n  return {\n    tool_use_id: B,\n    type: \"tool_result\",\n    content: [\n      ...A.content,\n      {type: \"text\", text: `\\nAgent completed successfully.\\nagentId: ${A.agentId}`}\n    ]\n  };\n```\n\nThis appends the agent ID to the end of the response, allowing Claude to see and use it for resume operations.\n\n## Status\n\nFixed and verified with curiosity and care 🐾\nWorking in Claude Code 2.0.31.\n\n**Environment Info**\n- Platform: linux\n- Terminal: ghostty\n- Version: 2.0.31\n- Feedback ID: 99b18f95-51da-45a1-9b6b-c0a16cfa8ca9\n\n\n",
+  "labels": ["bug", "has repro", "area:tools", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-02T15:30:43Z",
+  "updated_at": "2025-12-20T14:07:27Z",
+  "closed_at": "2025-12-07T17:23:00Z",
+  "reactions_total": 13,
+  "comments_count": 9,
+  "author": "janbam",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "michael-budnik",
+      "author_association": "NONE",
+      "body": "I'm on 2.0.33 on Windows and this isn't working. Frustrating. No agentId",
+      "created_at": "2025-11-05T14:35:12Z"
+    },
+    {
+      "author": "wengqizun",
+      "author_association": "NONE",
+      "body": "Come on!!Fix it!!!!!Fix it!!!!!Fix it!!!!!",
+      "created_at": "2025-11-15T11:56:16Z"
+    },
+    {
+      "author": "markwallaert",
+      "author_association": "NONE",
+      "body": "Resumption is a key feature for making subagents useful, I'm on 2.0.51 and encountering this on Linux (WSL2). Please escalate the priority of this.\n\n---\nA very hacky work-around that shouldn't be needed (Linux, but if you get the idea you could re-create):\n---\n# Resume Agents\n\n## Agent Session Tracking\n\n**Always track agent invocations**:\n- What: name, agentId, brief task description.\n- Where: `.claude/sessions.md`.\n\n**What to record:**\n- **Name**: Elliot, Jet, Morty, Rick\n- **ID**: 8-char hex\n-",
+      "created_at": "2025-11-24T20:09:29Z"
+    }
+  ]
+}

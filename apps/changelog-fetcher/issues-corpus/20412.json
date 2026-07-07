@@ -1,0 +1,44 @@
+{
+  "number": 20412,
+  "title": "Claude.ai MCP servers auto-injected into Claude Code without opt-in — causes OOM crashes on resource-constrained systems",
+  "body": "## Bug Description\n\nClaude Code 2.1.x silently syncs MCP servers from the user's Claude.ai web account into Claude Code sessions without any opt-in, notification, or consent. This creates **duplicate MCP servers** and significant memory overhead that causes **OOM kills on resource-constrained systems**.\n\n## Environment\n\n- **Claude Code version**: 2.1.17\n- **Platform**: Raspberry Pi 5 (16GB RAM, 2GB swap, aarch64)\n- **OS**: Debian Bookworm (Raspberry Pi OS), kernel 6.12.62+rpt-rpi-2712\n\n## The Problem\n\nAfter updating to 2.1.x, I discovered 6 \"claude.ai\" remote MCP servers were automatically loaded into my Claude Code sessions:\n\n```\nclaude.ai Remote MCP Lookup Directory: https://mcp.remote-mcp.com - ✓ Connected\nclaude.ai PayPal: https://mcp.paypal.com/mcp - ✗ Failed to connect\nclaude.ai AWS Knowledge: https://knowledge-mcp.global.api.aws - ✓ Connected\nclaude.ai CORE Memory: https://core.heysol.ai/api/v1/mcp?source=claude - ✓ Connected\nclaude.ai Notion: https://mcp.notion.com/mcp - ⚠ Needs authentication\nclaude.ai Hugging Face: https://huggingface.co/mcp?login&gradio=none - ⚠ Needs authentication\n```\n\n**I never asked for these to be added to Claude Code.** These were MCP integrations I connected through the Claude.ai web interface for use in the web UI — not for CLI use.\n\n## Impact\n\n### 1. Duplicate MCP servers consuming double memory\nThree of the injected servers are **duplicates** of servers I already configured locally:\n- `aws-knowledge` (local) + `claude.ai AWS Knowledge` (injected)\n- `core-memory` (local) + `claude.ai CORE Memory` (injected)\n- `notion` (local) + `claude.ai Notion` (injected)\n\n### 2. Unwanted servers I never intended to use in Claude Code\n- PayPal MCP (why is this in my CLI coding tool?)\n- Hugging Face MCP (never configured for CLI use)\n- Remote MCP Lookup Directory (unnecessary overhead)\n\n### 3. OOM kills crashing active sessions\nOn my Raspberry Pi 5 (16GB RAM, 2GB swap), the additional memory overhead from these injected servers pushed the system over the edge. The Linux OOM killer started killing Claude processes:\n\n```\ndmesg output:\noom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,\n    oom_memcg=/user.slice/user-1000.slice/user@1000.service,\n    task_memcg=/user.slice/user-1000.slice/user@1000.service,task=claude,pid=XXXX\n```\n\nSwap was 100% exhausted (2.0Gi/2.0Gi, 5.7Mi free). Sessions were being SIGKILL'd mid-work.\n\n### 4. Cannot be removed via CLI\n`claude mcp remove \"claude.ai PayPal\"` returns \"No MCP server found\" — these servers bypass the normal MCP management system entirely.\n\n## Root Cause\n\nThe feature flag `tengu_claudeai_mcp_connectors` (in `cachedGrowthBookFeatures`) was set to `True` without user consent. This causes Claude Code to pull MCP integrations from the user's Claude.ai account and load them into every CLI session.\n\n## Workaround\n\nManually editing `~/.claude.json` to set:\n```json\n\"cachedGrowthBookFeatures\": {\n    \"tengu_claudeai_mcp_connectors\": false\n}\n```\n\nHowever, this is a cached flag and may be overwritten on next update/startup.\n\n## Expected Behavior\n\n1. **This should be opt-in, not opt-out.** Users should explicitly choose to sync Claude.ai MCP servers to Claude Code.\n2. **At minimum, there should be a `claude config` setting** to disable this (e.g., `claude config set syncRemoteMcps false`)\n3. **Duplicate detection** — if a user already has `notion` configured locally, don't also load `claude.ai Notion`\n4. **Resource awareness** — on constrained systems, loading 6 additional MCP servers (each with HTTP connection overhead, memory for tool schemas, etc.) is not free\n5. **`claude mcp remove` should work** for these servers, or there should be a `claude mcp remove --remote` option\n\n## Requested Fix\n\n- Add a user-facing configuration option to disable Claude.ai MCP sync\n- Make this feature opt-in rather than opt-out\n- Implement duplicate detection to avoid loading the same MCP endpoint twice\n- Allow removal of remote MCPs via the standard `claude mcp remove` command",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "area:mcp",
+    "memory",
+    "perf:memory",
+    "oncall"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-23T18:08:57Z",
+  "updated_at": "2026-06-22T06:01:12Z",
+  "closed_at": "2026-06-22T06:01:12Z",
+  "reactions_total": 140,
+  "comments_count": 38,
+  "author": "MattStarfield",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thank you all for the reports and workarounds here.\n\nAs of v2.1.182:\n\n- `\"disableClaudeAiConnectors\": true` in `.claude/settings.json` (project, user, or managed-policy level) opts out before any connection is attempted. A project-level `false` cannot override a user- or policy-level `true`.\n- `deniedMcpServers` accepts connector display names with spaces and dots (e.g., `{\"serverName\": \"claude.ai Slack\"}`) for per-connector denial. Match is exact and case-sensitive.\n\n`ENABLE_CLAUDEAI_MCP_SERVER",
+      "created_at": "2026-06-22T06:01:11Z"
+    },
+    {
+      "author": "MattStarfield",
+      "author_association": "NONE",
+      "body": "## Additional Issue: Selective/Inconsistent Sync\n\nTo make this even more confusing, the sync between Claude.ai and Claude Code is **selective and inconsistent**. Looking at the MCP integrations connected to my Claude.ai account, not all of them are being synced to Claude Code.\n\nFor example:\n- **Google MCPs** (Drive, Calendar, Gmail, Sheets, Docs, Slides) — connected on Claude.ai but **NOT synced** to Claude Code\n- **PayPal** — connected on Claude.ai and **IS synced** to Claude Code\n- **Hugging F",
+      "created_at": "2026-01-23T18:11:07Z"
+    },
+    {
+      "author": "MattStarfield",
+      "author_association": "NONE",
+      "body": "## Additional Issue: Claude.ai Connector \"Remove\" Button Non-Functional\n\nAfter discovering the auto-injected MCPs, I went to Claude.ai's Connectors settings to remove them entirely. \n\n**What I found:**\n- There is a \"Remove\" button next to each connector\n- Clicking it **does nothing** — the connector remains in the list\n- The only functional action is \"Disconnect\", which toggles the connector off but doesn't delete it\n- Disconnected connectors remain in the list indefinitely with no way to perman",
+      "created_at": "2026-01-23T18:32:16Z"
+    }
+  ]
+}

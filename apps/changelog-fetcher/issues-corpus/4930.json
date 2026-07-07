@@ -1,0 +1,35 @@
+{
+  "number": 4930,
+  "title": "[BUG]: CLI error with system prompt and doesn't recognize permissions",
+  "body": "```\ntime claude --mcp-config \"\" --strict-mcp-config --model opus --debug --system-prompt \"Do you have permission to use the bash tool?\" -p\n```\n\nError: Input must be provided either through stdin or as a prompt argument when using --print\n\n\n---\n\nI *did* provide the `--system-prompt` field, which works in other cases. I get the same error with` --append-system-prompt`.\n\nIncidentally, the `--system-prompt` argument appears to work, but does not show up in the `--help` documentation.\n\n---\n\nAnother bug: Claude does not recognize permissions. Look at this:\n\nclaude --mcp-config \"\" --strict-mcp-config --model opus --debug -p \"Do you have permission to use the bash tool?\"\n\n> Yes, I have permission to use the bash tool.\n\ntime claude --mcp-config \"\" --strict-mcp-config --model opus -p --system-prompt \"Here is a large PDF. Use qpdf to extract the first page of this PDF. Then, read and summarize the first page.\" \"mypdf.pdf\"\n\n> The PDF file is too large (143.4MB) to read directly with the Read tool. I need to use qpdf to extract just the first page, which will make it small enough to read. Could you please grant permission for me to use the Bash tool so I can run the qpdf command to extract the first page?",
+  "labels": ["bug", "documentation", "area:tools", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-01T14:52:10Z",
+  "updated_at": "2026-04-09T14:53:07Z",
+  "closed_at": "2026-04-01T22:18:02Z",
+  "reactions_total": 0,
+  "comments_count": 12,
+  "author": "nsheff",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4787\n2. https://github.com/anthropics/claude-code/issues/2546\n3. https://github.com/anthropics/claude-code/issues/932\n\nIf your issue is a duplicate, please close it and 👍 the existing issue instead.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-01T14:57:00Z"
+    },
+    {
+      "author": "nsheff",
+      "author_association": "NONE",
+      "body": "For the issue related to bash permissions, I found the solution: It really needed `Bash(qpdf:*)`. While it had other Bash permissions set, it didn't have that specifically.\nSo, the error messages just needs to be more specific. As is, it was confusing. It didn't need Bash permission (which it had, said generally like that) -- it needed something more specific.  A more specific error message would have prevented me from searching down the wrong path for awhile.",
+      "created_at": "2025-08-01T15:19:11Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-03T10:18:43Z"
+    }
+  ]
+}

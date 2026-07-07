@@ -1,0 +1,42 @@
+{
+  "number": 63870,
+  "title": "[BUG] Bash tool calls emitted as raw <invoke> text instead of executing",
+  "body": "### Preflight Checklist\n\n- [x] I have searched existing issues. Similar reports exist (#61122, #61367, #62344, #63616), but this report adds detailed JSONL evidence from one session with 23 malformed Bash calls.\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code available to me (`2.1.158 (Claude Code)` currently installed). The affected transcript contains failures on both `2.1.156` and `2.1.158`.\n\n### What's Wrong?\n\nIn a long Claude Code session, intended Bash tool calls were intermittently emitted as ordinary assistant text instead of structured `tool_use` objects. The UI showed raw invoke text like:\n\n```text\ncall\n<invoke name=\"Bash\">\n<parameter name=\"command\">...</parameter>\n<parameter name=\"description\">...</parameter>\n<parameter name=\"dangerouslyDisableSandbox\">true</parameter>\n</invoke>\n```\n\nBecause these records are plain `text` content instead of structured `tool_use`, Claude Code does not dispatch the Bash command. There is no `tool_use_id` and no matching `tool_result`.\n\nThis caused repeated false progress in one repo workflow: commits, verification commands, pushes, PR creation, PR merge, and cleanup commands were printed but not actually executed.\n\nImportant detail from the JSONL: one affected assistant message has `stop_reason = \"tool_use\"`, but its content still contains only ordinary text and no `tool_use` object.\n\n### What Should Happen?\n\nWhen Claude intends to run Bash, Claude Code should receive a structured `tool_use` object, execute the command, and append a matching `tool_result`.\n\nIf the model emits malformed tool-call text, Claude Code should surface an explicit parsing/tool-call error or reprompt internally. Raw `<invoke name=\"...\">` blocks should not be rendered as normal assistant prose or fed back into future context where they may cause cascading failures.\n\n### Error Messages/Logs\n\n```shell\nNo shell error is shown, because the command is never dispatched.\n\nRepresentative malformed JSONL shape:\n\n{\n  \"type\": \"assistant\",\n  \"message\": {\n    \"content\": [\n      {\n        \"type\": \"text\",\n        \"text\": \"...\\\\n\\\\ncall\\\\n<invoke name=\\\"Bash\\\">\\\\n<parameter name=\\\"command\\\">MAIN=...\\\\n...</parameter>\\\\n<parameter name=\\\"description\\\">Pull merged main and verify files</parameter>\\\\n<parameter name=\\\"dangerouslyDisableSandbox\\\">true</parameter>\\\\n</invoke>\"\n      }\n    ],\n    \"stop_reason\": \"end_turn\"\n  }\n}\n\nThere is no tool_use object, no tool_use_id, and no following tool_result.\n```\n\n### Steps to Reproduce\n\nThis is intermittent, but the affected local transcript provides a concrete session-level reproduction/evidence trail:\n\n1. Use Claude Code on macOS with Opus in a long repository workflow involving repeated Bash calls.\n2. In the affected session, ask Claude to perform normal git/test/PR workflow actions such as commit, verify, push, create PR, merge PR, and cleanup.\n3. After the session becomes long-context, observe that some intended Bash calls are printed to the conversation as raw text beginning with `call` and `<invoke name=\"Bash\">`.\n4. Inspect the session JSONL and compare normal versus malformed turns:\n   - Normal: `content[].type = \"tool_use\"`, `name = \"Bash\"`, has `id`, followed by matching `tool_result`.\n   - Malformed: `content[].type = \"text\"` containing raw `<invoke name=\"Bash\">...`, no `tool_use_id`, no matching `tool_result`.\n5. Verify downstream state: earlier printed commands had no effect. In this transcript, later turns confirm commit was not made, regression log did not exist, remote branch was absent, PR was not created, PR stayed open, and cleanup was not done.\n\nConcrete analyzed transcript:\n\n- Project: `texas-holdem-poker-recorder`\n- Session id: `1931487f-0ac9-47fe-b759-5ba244821147`\n- Local JSONL path pattern: `<home>/.claude/projects/-Users-<user>-playground-texas-holdem-poker-recorder/1931487f-0ac9-47fe-b759-5ba244821147.jsonl`\n\nJSONL evidence summary:\n\n- Total JSONL lines analyzed: 2,233\n- Normal assistant structured tool uses: 347\n- Normal tool results: 347\n- Malformed raw invoke blocks: ",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:model",
+    "area:bash"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-30T05:36:29Z",
+  "updated_at": "2026-06-30T03:37:29Z",
+  "closed_at": null,
+  "reactions_total": 38,
+  "comments_count": 23,
+  "author": "atwoodwang",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/61367\n2. https://github.com/anthropics/claude-code/issues/62344\n3. https://github.com/anthropics/claude-code/issues/60584\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-30T05:42:50Z"
+    },
+    {
+      "author": "jwlim94",
+      "author_association": "NONE",
+      "body": "fix it\n",
+      "created_at": "2026-05-31T19:50:23Z"
+    },
+    {
+      "author": "TIANQIAN1238",
+      "author_association": "NONE",
+      "body": "hey COME here and fix it \n\nit sucks",
+      "created_at": "2026-06-01T02:01:27Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 17951,
+  "title": "[FEATURE] Terminal Title Configuration (Script-Based, like statusLine)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nClaude Code sets terminal titles based on the current task or just \"Claude Code\" - but there's no way to include:\n\n- **Directory** - which folder you're working in\n- **Repository** - which repo this session belongs to\n- **Branch** - often contains ticket numbers (e.g., `ACME-1234-fix-auth`)\n- **PR number** - when reviewing or working on a pull request\n- **Original terminal name** - what you had before Claude Code took over\n- **Custom information** - client codes, project phases, billing identifiers\n\n**This breaks automatic time tracking.** Tools like RescueTime, Timing, Toggl, and ActivityWatch categorize work by window title. When every Claude Code tab just shows \"Claude Code\" or a task snippet, there's no way to distinguish which client or project you're working in.\n\nFor freelancers and consultants billing multiple clients, this means:\n- Manual time entry instead of automatic tracking\n- Inaccurate billing when you forget to log project switches\n- No audit trail for disputed invoices\n\n**Community tools don't solve this.** Existing solutions ([bluzername/claude-code-terminal-title](https://github.com/bluzername/claude-code-terminal-title), [arorajatin/claude-code-terminal-title](https://github.com/arorajatin/claude-code-terminal-title)) auto-generate titles with fixed formats - no user control over what context appears.\n\n### Proposed Solution\n\nAdd `terminalTitle` to settings.json, working exactly like the existing `statusLine`:\n\n```json\n{\n  \"terminalTitle\": {\n    \"type\": \"command\",\n    \"command\": \"~/.claude/terminal-title.sh\"\n  }\n}\n```\n\nClaude Code passes JSON context to the script (same pattern as `statusLine`), script outputs the desired title:\n\n```bash\n#!/bin/bash\ninput=$(cat)\nDIR=$(echo \"$input\" | jq -r '.workspace.current_dir')\nPARENT=$(basename \"$(dirname \"$DIR\")\")\nPROJECT=$(basename \"$DIR\")\nBRANCH=$(git -C \"$DIR\" branch --show-current 2>/dev/null)\n\necho \"${PARENT}/${PROJECT} [${BRANCH}]\"\n# → \"acme/api [ACME-1234-auth-fix]\"\n```\n\n**Context Object** - The JSON passed to the script could include:\n\n```json\n{\n  \"workspace\": {\n    \"current_dir\": \"/Users/dev/clients/acme/api\",\n    \"git_branch\": \"ACME-1234-auth-fix\",\n    \"git_root\": \"/Users/dev/clients/acme\"\n  },\n  \"model\": {\n    \"name\": \"claude-opus-4-5-20251101\",\n    \"display_name\": \"Opus 4.5\"\n  },\n  \"session\": {\n    \"id\": \"a1b2c3\",\n    \"task\": \"Fixing authentication bug\",\n    \"original_terminal_title\": \"dev-server\"\n  }\n}\n```\n\n**Why Script-Based (Not Templates):**\n1. **Consistency** - mirrors `statusLine` exactly, no new syntax to learn\n2. **Flexibility** - parse branch names, read project config files, call APIs, include PR numbers\n3. **Power users** - the people who care about this are comfortable with scripts\n4. **Simpler to implement** - reuse the existing `statusLine` infrastructure\n\n**Bonus:** A `/title` slash command for ad-hoc overrides would be nice:\n```\n/title \"🔍 [ACME] Debugging auth - 2hr estimate\"\n```\n\n### Alternative Solutions\n\n**Attempted workarounds:**\n\n1. **`CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1`** - Documented but non-functional (#4765, open since July 2025)\n\n2. **Community tools** - [bluzername/claude-code-terminal-title](https://github.com/bluzername/claude-code-terminal-title) and [arorajatin/claude-code-terminal-title](https://github.com/arorajatin/claude-code-terminal-title) auto-generate titles but offer no template/script-based customization\n\n3. **Terminal escape sequences** - Don't work due to subprocess architecture (no TTY passthrough)\n\n**Related issues this would consolidate:**\n- #4765 - `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` broken (open since July 2025)\n- #7229 - Terminal window title settings (open)\n- #15802 - Set terminal title from session (closed as duplicate)\n- #16572, #3396, #15082, #15084 - Various related issues\n\n### Priority\n\nHigh - Significant impact o",
+  "labels": ["enhancement"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-13T14:47:08Z",
+  "updated_at": "2026-03-21T08:04:18Z",
+  "closed_at": null,
+  "reactions_total": 30,
+  "comments_count": 23,
+  "author": "chadfurman",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "batmat",
+      "author_association": "NONE",
+      "body": "+1 for this feature - hitting this pain point daily with Warp terminal.\n\n  The problem in action: Here's my Window menu showing two different [Quarkus](https://quarkus.io/)-based project folders, both running Claude Code. Completely indistinguishable 😅 :\n\n<img width=\"308\" height=\"361\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/6f51ea56-3a32-4922-ad33-2dcb491a5952\" />\n\n  I have to click through each window to find the right one.\n\n  Suggestion to enhance your proposal: Pass Claud",
+      "created_at": "2026-01-16T11:07:16Z"
+    },
+    {
+      "author": "flxmrk",
+      "author_association": "NONE",
+      "body": "+1 I would be happy if just the new configurable \"session name\" was the title of the terminal.  \nRelated: https://github.com/anthropics/claude-code/issues/3161\n",
+      "created_at": "2026-01-16T15:46:58Z"
+    },
+    {
+      "author": "rpedroni",
+      "author_association": "NONE",
+      "body": "+1 for Warp terminal tab title support.\n\nSpecifically, it would be helpful if Claude Code could set the Warp tab title - even just propagating the session name from `/rename` would be a significant improvement. Currently when working across multiple projects, all tabs look identical which makes context-switching painful.\n\nThe script-based approach proposed here would be ideal for customization, but even a simple \"emit the session name to terminal title\" would solve the immediate pain point.",
+      "created_at": "2026-01-26T15:48:50Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 1347,
+  "title": "[BUG] Prompt Caching Works on Claude 3.7 But Not On Claude 4 Family (AWS Bedrock)",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [XX] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.3\n- Operating System: macOS 24.4.0 (Darwin) on ARM64 architectur\n- Terminal:  VS Code\n\n## Bug Description\n**Prompt caching works properly on Claude 3.7 Sonnet but does not work on newer Claude models (Claude Sonnet 4 and Claude Opus 4).**\n\n## Steps to Reproduce\n  1. Start a Claude Code session with default model (Claude 3.7 Sonnet)\n  2. Note that cache writes are properly recorded\n  3. Switch to Claude Sonnet 4 or Claude Opus 4 using model command\n  4. Observe that cache read/write counts remain at 0\n\n## Expected Behavior\nClaude 4 models should properly utilize prompt caching to reduce token usage and costs.\n\n## Actual Behavior\nOnly Claude 3.7 Sonnet shows cache activity (both reads and writes). Claude Sonnet 4 and Claude Opus 4 show 0 cache read/write regardless of\n\n## Additional Context\n<img width=\"993\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/da2bb8d7-9a09-4e82-be58-03b0b62184f7\" />\n\n**Edit**: Separately, the ANTHROPIC_SMALL_FAST_MODEL does not use prompt caching regardless of what model is set. This means that Claude 3.7 does not use prompt caching when ANTHROPIC_SMALL_FAST_MODEL is set to Claude 3.7. This is clearly a bug considering that Claude 3.7 prompt caching does work when it is set as the main model (ANTHROPIC_MODEL).\n\nVerified with a clean install and completely clean configs.\n\nAnthropic guys, I am begging you to fix this. It makes the Claude 4 family completely unusable for coding - the costs are astronomical compared to using Claude 3.7 with prompt caching - and worse - the latency is terrible once you have a bit of context, especially with Claude 4 Opus! \n\nThanks in advance - love the tool - life changing! ",
+  "labels": [
+    "bug",
+    "has repro",
+    "api:bedrock",
+    "platform:macos",
+    "area:cost",
+    "area:model"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-05-27T02:17:39Z",
+  "updated_at": "2025-08-09T14:11:04Z",
+  "closed_at": "2025-05-29T20:08:37Z",
+  "reactions_total": 9,
+  "comments_count": 19,
+  "author": "IliaZenkov",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Marking this one as closed, as this doesn't look like an issue with Claude Code. Thanks all for the discussion!\n\n@IliaZenkov re `ANTHROPIC_SMALL_FAST_MODEL`, this is expected. This model is typically used in scenarios where we do not expect the prefix to repeat in future queries, or the repeated portion is very short.  If you're seeing excessive non-cached usage, feel free to open another issue.",
+      "created_at": "2025-05-29T20:08:37Z"
+    },
+    {
+      "author": "srpouyet",
+      "author_association": "NONE",
+      "body": "I'm seeing the same with both Opus 4 and Sonnet 4, when selected with `/model`:\n\n```\n> Hi\n\n⏺ Hi! How can I help you with the codebase today?\n\n> Hi\n\n⏺ Hello! What would you like to work on in the codebase?\n\n> /cost\n  ⎿  Total cost:            $1.03\n     Total duration (API):  2m 51.0s\n     Total duration (wall): 7m 1.8s\n     Total code changes:    0 lines added, 0 lines removed\n     Token usage by model:\n         claude-3-5-haiku:  7.8k input, 385 output, 0 cache read, 0 cache write\n            c",
+      "created_at": "2025-05-27T08:49:32Z"
+    },
+    {
+      "author": "IliaZenkov",
+      "author_association": "NONE",
+      "body": "For anyone curious, this is NOT easy to fix in the installed code\n```\n/opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js\n```\n\nI tried pretty hard. If anyone else wants to give it a shot, that's the file to do it in. I can see references to caching (e.g. \"ephemeral\") but I could NOT find why 3.7 is cached and 4 is not. \n\nGood luck to anyone attempting this, let us know if you got it working!",
+      "created_at": "2025-05-27T18:30:07Z"
+    }
+  ]
+}

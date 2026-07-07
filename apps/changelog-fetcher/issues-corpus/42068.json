@@ -1,0 +1,16 @@
+{
+  "number": 42068,
+  "title": "Bundled ripgrep binary loses execute permission on macOS (breaks command/skill discovery)",
+  "body": "## Bug Description\n\nAfter updating Claude Code (observed on v2.1.89 via nvm/npm), the bundled ripgrep binary at `vendor/ripgrep/arm64-darwin/rg` is installed with `644` (`rw-r--r--`) permissions instead of `755` (`rwxr-xr-x`). This causes command and skill discovery to silently fail — `/` slash commands from `.claude/commands/` and `.claude/skills/` are not listed or invocable.\n\n## Environment\n\n- **Claude Code version**: 2.1.89\n- **OS**: macOS (Darwin 25.0.0, Apple Silicon)\n- **Node**: v20.19.3 (installed via nvm)\n- **Install method**: `npm install -g @anthropic-ai/claude-code`\n\n## Steps to Reproduce\n\n1. Install/update Claude Code via npm on macOS\n2. Check permissions: `ls -la ~/.nvm/versions/node/v20.19.3/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/arm64-darwin/rg`\n3. Observe `rw-r--r--` (no execute bit)\n4. Try to use `/` commands — custom commands/skills are not discovered\n\n## Debug Log Evidence\n\nFrom `~/.claude/debug/*.txt`:\n\n```\n2026-04-01T14:46:00.566Z [DEBUG] Ripgrep first use test: FAILED (mode=builtin, path=/Users/.../@anthropic-ai/claude-code/vendor/ripgrep/arm64-darwin/rg)\n2026-04-01T14:46:01.091Z [ERROR] Error: Error: spawn /Users/.../@anthropic-ai/claude-code/vendor/ripgrep/arm64-darwin/rg EACCES\n    at ChildProcess._handle.onexit (node:internal/child_process:285:19)\n    at onErrorNT (node:internal/child_process:483:16)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n```\n\n## Impact\n\n- All custom command and skill discovery silently fails\n- No user-visible error — commands simply don't appear in `/` menu\n- Same version (2.1.89) works correctly on a remote Linux host (different binary path, correct permissions)\n\n## Workaround\n\n```bash\nchmod +x ~/.nvm/versions/node/v20.19.3/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/arm64-darwin/rg\n```\n\nThen restart Claude Code.\n\n## Suggested Fix\n\n- Ensure the npm package sets execute permissions on vendor binaries via a `postinstall` script or by preserving file modes in the tarball\n- Consider adding a startup warning when the bundled ripgrep fails its first-use test, rather than silently degrading",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-01T14:49:45Z",
+  "updated_at": "2026-04-25T14:35:35Z",
+  "closed_at": "2026-04-18T04:18:39Z",
+  "reactions_total": 1,
+  "comments_count": 4,
+  "author": "miethe",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

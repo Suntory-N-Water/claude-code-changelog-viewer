@@ -1,0 +1,23 @@
+{
+  "number": 12946,
+  "title": "Critical: Conversation compaction fails for conversations started under previous Claude Code versions",
+  "body": "## Summary\n\nClaude Code 2.0.57 cannot compact conversations that were started under previous versions, resulting in a 400 API error. This effectively freezes ongoing work in those conversations with no recovery path.\n\n## Error Message\n\n```\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.1.content.160: `thinking` or `redacted_thinking` blocks in the latest assistant message cannot be modified. These blocks must remain as they were in the original response.\"},\"request_id\":\"req_011CVjFJq2S3oRkQTSqBVYaX\"}\n```\n\n## Impact\n\n**Severity: Critical (P1)**\n\n- Conversations at 0% context cannot proceed without compaction\n- Compaction fails, making these conversations permanently unusable\n- All accumulated context and work-in-progress is lost\n- No user-side workaround exists (this is an API validation error)\n\n## Environment\n\n- Claude Code version: 2.0.57\n- Previous version: Unknown (conversation started before upgrade)\n- Platform: macOS (Darwin 24.5.0)\n\n## Root Cause Hypothesis\n\nThe compaction process modifies message structure in a way that changes thinking blocks from previous assistant turns. The current API enforces that thinking/redacted_thinking blocks must remain byte-identical to original responses, causing validation failure.\n\n## Expected Behavior\n\nConversations started under previous Claude Code versions should remain functional after upgrade, including compaction. This is a basic backward compatibility expectation for production software.\n\n## Suggested Fixes\n\n1. **Migration**: Automatically migrate old conversation format on upgrade\n2. **Compaction handling**: Modify compaction to preserve thinking blocks exactly as stored\n3. **Graceful degradation**: If compaction fails, offer user options (export context, start fresh with summary) rather than hard failure\n\n## User Impact Statement\n\n> \"Claude Code is not experimental software at this point. As a product owner, I would expect a clean transition from local file formats and/or API stability. Imagine if Microsoft Word didn't open previous documents!\"\n\nThis breaks the fundamental contract of being able to continue previous work sessions.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "area:api",
+    "memory"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-12-03T06:11:16Z",
+  "updated_at": "2025-12-17T14:08:27Z",
+  "closed_at": "2025-12-09T18:23:46Z",
+  "reactions_total": 2,
+  "comments_count": 8,
+  "author": "joshcreter",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

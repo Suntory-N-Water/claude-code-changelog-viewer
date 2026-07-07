@@ -1,0 +1,42 @@
+{
+  "number": 22215,
+  "title": "[BUG] Past Conversations not showing in VSCode extension despite valid sessions-index.json",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nPast Conversations are not appearing in the VSCode extension, even though all session files (.jsonl) and the sessions-index.json exist and are valid. After quitting and reopening VSCode, the conversation history is empty or missing sessions.\n\nThe extension logs reveal it's using a cached session index from a different project:\nUsing cached index entry for session: b186ea61-819c-4036-b856-26f113e06b80\n\n\nThis session ID belongs to Project A, but I'm working in Project B. The extension appears to cross-contaminate session caches between different workspace projects.\n\n\n### What Should Happen?\n\nSessions listed in ~/.claude/projects/{project-path}/sessions-index.json should appear in \"Past Conversations\" for that specific project. Each project's session index should be read independently without cache contamination from other projects.\n\n\n### Error Messages/Logs\n\n```shell\nFrom Claude VSCode.log (~/Library/Application Support/Code/logs/.../Anthropic.claude-code/):\n\n2026-01-31 18:59:55.743 [info] From claude: 2026-01-31T17:59:55.743Z [DEBUG] Using cached index entry for session: b186ea61-819c-4036-b856-26f113e06b80\n\nThis session ID does not exist in the current project's sessions-index.json - it belongs to a completely different project workspace.\n\nNo other errors related to session loading are shown.\n```\n\n### Steps to Reproduce\n\n1. Open VSCode with multiple different project folders (separate windows)\n2. Have conversations in each project\n3. Quit VSCode completely (⌘+Q on macOS)\n4. Reopen VSCode and open one of the projects\n5. Check \"Past Conversations\" → list is empty or shows wrong/missing sessions\n6. Verify that ~/.claude/projects/{project-path}/sessions-index.json contains valid entries\n7. Verify that all .jsonl session files exist in the same directory\n\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.55 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nEnvironment:\n- Claude Code VSCode Extension: 2.1.27\n- OS: macOS 15.2 (Darwin 25.2.0)\n- Architecture: darwin-arm64\n\nVerified manually:\n- sessions-index.json is valid JSON (confirmed with python3 json.load)\n- Contains 6 session entries with correct sessionId, fullPath, and metadata\n- All referenced .jsonl files exist with correct permissions (600)\n- File sizes range from 13KB to 21MB\n- Removed macOS extended attributes with: xattr -cr ~/.claude/projects/{path}/\n\nWorkarounds attempted (none successful):\n- Developer: Reload Window\n- Full VSCode restart (⌘+Q and reopen)\n- Manually editing/repairing sessions-index.json\n- Removing macOS extended attributes\n- Deleting lock files\n\nThe project folder is synced via Dropbox, but all files have correct permissions and no sync conflicts.\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "area:ide",
+    "memory"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-31T18:11:04Z",
+  "updated_at": "2026-03-16T19:19:04Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 13,
+  "author": "bytewerk-dev",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16250\n2. https://github.com/anthropics/claude-code/issues/20102\n3. https://github.com/anthropics/claude-code/issues/15162\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-31T18:14:25Z"
+    },
+    {
+      "author": "asalcedo29",
+      "author_association": "NONE",
+      "body": "Having same issue",
+      "created_at": "2026-02-03T00:52:51Z"
+    },
+    {
+      "author": "utibeokodi",
+      "author_association": "NONE",
+      "body": "Having a similar issue",
+      "created_at": "2026-02-08T02:32:51Z"
+    }
+  ]
+}

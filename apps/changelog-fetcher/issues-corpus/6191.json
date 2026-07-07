@@ -1,0 +1,23 @@
+{
+  "number": 6191,
+  "title": "[BUG] Claude using AWS provided inference profiles when application inference profiles are set",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [x] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.85\n- Operating System: AlmaLinux 9.5\n- Terminal:  Ghostty\n\n## Bug Description\n\nWe are using application inference profiles in our account for Claude Code's access to models. This is so we can track costs and have other tagging. We are setting `$ANTHROPIC_MODEL` and `$ANTHROPIC_SMALL_FAST_MODEL` to application inference profiles for 4 Sonnet and 3.5 Haiku respectively. However, when `/statusline` is used (and sometimes at other times), the following error is thrown:\n\n```\nAPI Error (403 {\"Message\":\"User: arn:aws:sts::XXXXXXXXX:assumed-role/XXXXXXXX/XXX@XXXXX.com is not authorized to perform: bedrock:InvokeModel on resource: arn:aws:bedrock:us-west-2:XXXXXXXXX:inference-profile/us.anthropic.claude-sonnet-4-20250514-v1:0 because no identity-based policy allows the bedrock:InvokeModel action\"}) · Retrying in 1 seconds… (attempt 1/10)\n```\n\nOur role doesn't allow direct access to the AWS provided inference profiles. Access to foundation models is conditional. Here is a redacted IAM policy:\n\n```\n{\n  \"PolicyVersion\": {\n    \"Document\": {\n      \"Statement\": [\n        {\n          \"Action\": [\n            \"bedrock:UseInferenceProfile\",\n            \"bedrock:InvokeModelWithResponseStream\",\n            \"bedrock:InvokeModel\"\n          ],\n          \"Effect\": \"Allow\",\n          \"Resource\": [\n            \"arn:aws:bedrock:us-west-2:XXXXXXXX:application-inference-profile/abcdef\",\n            # [...]\n          ]\n        },\n        {\n          \"Action\": [\n            \"bedrock:InvokeModelWithResponseStream\",\n            \"bedrock:InvokeModel\"\n          ],\n          \"Condition\": {\n            \"ArnEquals\": {\n              \"bedrock:InferenceProfileArn\": [\n                \"arn:aws:bedrock:us-west-2:XXXXX\",\n                # [...]\n              ]\n            }\n          },\n          \"Effect\": \"Allow\",\n          \"Resource\": \"*\"\n        }\n      ],\n      \"Version\": \"2012-10-17\"\n    },\n    \"VersionId\": \"vX\",\n    \"IsDefaultVersion\": true,\n    \"CreateDate\": \"2025-08-11T21:58:04+00:00\"\n  }\n}\n```\n\n## Steps to Reproduce\n1. Set `$CLAUDE_CODE_USE_BEDROCK=1` and $ANTHROPIC_MODEL` and `$ANTHROPIC_SMALL_FAST_MODEL\n2. run Claude Code with `/statusline`\n\n## Expected Behavior\n`/statusline` would throw no errors and use the provided application inference profiles.\n\n## Actual Behavior\nThe API error above.",
+  "labels": [
+    "bug",
+    "has repro",
+    "api:bedrock",
+    "platform:linux",
+    "area:auth",
+    "area:model"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-08-20T15:09:57Z",
+  "updated_at": "2025-08-30T14:06:32Z",
+  "closed_at": "2025-08-23T00:20:17Z",
+  "reactions_total": 13,
+  "comments_count": 5,
+  "author": "cwalkatron",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

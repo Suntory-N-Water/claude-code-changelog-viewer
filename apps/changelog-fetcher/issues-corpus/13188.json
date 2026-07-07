@@ -1,0 +1,23 @@
+{
+  "number": 13188,
+  "title": "[BUG] Sessions become unresponsive after upgrade to 2.0.60 (suspected background agent blocking)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nPlatform: Linux (Ubuntu 24.04)\n\nDescription: After upgrading to 2.0.60, both resumed and fresh conversations randomly become completely unresponsive. The prompt appears active but accepts no input. No error message is displayed.\n\nSymptoms:\n  - Prompt silently stops responding to user input\n  - ESC does not interrupt - prompt remains dead\n  - Some slash commands still work (/context) but others don't\n  - User input appears to be queued but not processed\n\nReproduction Evidence: When I manually logged out of my Anthropic account in a separate terminal session, the stuck session immediately displayed two backlogged prompts with \"Invalid API key\" errors - proving input was being queued but not processed:\n\n  > ULTRATHINK Let's test the comment tool more...\n    ⎿  Invalid API key · Please run /login\n\n  > /end is running…\n    ⎿  Invalid API key · Please run /login\n\nSuspected Cause: The new \"background agent support\" feature (from 2.0.60 release notes: \"Added background agent support. Agents run in the background while you work\") may be silently blocking the main input loop while waiting on something. In the above example however the whole conversation was static for at least an hour, until I got the idea to re-log.\n\nWorkaround: None found, except to log out of anthropic and back in.\n\nRelated but different issues found:\n  - https://github.com/anthropics/claude-code/issues/4580 - Agent freeze but with 100% CPU (yours is silent)\n  - https://github.com/anthropics/claude-code/issues/10210 - Background tasks not notifying properly (closest match, but different symptom)\n  - https://github.com/anthropics/claude-code/issues/10481 - UI freeze on 2.0.28 macOS (different version/platform)\n\nIssue is distinct because:\n  1. Silent freeze (no CPU spike)\n  2. Specifically on 2.0.60 with new background agent feature\n  3. Linux platform\n  4. Input queues but doesn't process (proven by the logout test showing backlogged prompts)\n\n### What Should Happen?\n\nPrompt stays responsive. Background work shows visual feedback. No silent blocking.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n  1. Upgrade to Claude Code 2.0.60\n  2. Start a session (fresh or resumed - both affected)\n  3. Work normally for a while (issue is intermittent)\n  4. At some point, the prompt stops responding to input\n  5. Try ESC - no effect\n  6. Try typing - no response\n  7. Some slash commands work (/context) but user prompts do not\n\n  To prove input is queued (not dropped):\n  8. In a separate terminal, run: claude logout\n  9. The stuck session immediately shows backlogged prompts with \"Invalid API key\" errors\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.60\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tui",
+    "area:core",
+    "oncall"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-06T06:33:10Z",
+  "updated_at": "2025-12-19T14:08:04Z",
+  "closed_at": "2025-12-10T01:10:51Z",
+  "reactions_total": 27,
+  "comments_count": 85,
+  "author": "smconner",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

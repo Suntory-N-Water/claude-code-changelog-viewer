@@ -1,0 +1,35 @@
+{
+  "number": 20309,
+  "title": "Skill tool doesn't prioritize local .claude/skills/ over parent/global skills",
+  "body": "## Description\n\nThe Skill tool does not prioritize local `.claude/skills/` scripts over parent or global skills with the same name. When invoking a skill that exists both locally and globally, Claude Code executes the global version instead of the local override.\n\n## Steps to Reproduce\n\n1. Have a parent workspace with a skill (e.g., `pm-nano/.claude/skills/goodbye.sh`)\n2. Create a child repo with a local skill of the same name (e.g., `fermi-knowledge-base/.claude/skills/goodbye.sh`)\n3. From within the child repo, invoke the skill using the Skill tool: `Skill(goodbye)`\n\n## Expected Behavior\n\nThe local skill at `fermi-knowledge-base/.claude/skills/goodbye.sh` should execute, shadowing/overriding the parent skill.\n\nThis follows standard precedent:\n- Local `node_modules` overrides global packages\n- Local `.git/config` overrides global git config\n- Local environment variables override system defaults\n\n## Actual Behavior\n\nThe parent/global skill (`pm-nano` goodbye) executes instead of the local one. The Skill tool output shows:\n\n```\nAvailable skills:\n- goodbye: PM Session Checkpoint (/goodbye)\n- pm: PM Command\n```\n\nThe local `fermi-knowledge-base/.claude/skills/goodbye.sh` is not recognized or is deprioritized.\n\n## Impact\n\nThis limits the composability and flexibility of the skill system:\n- Can't have project-specific overrides of workspace-level skills\n- Forces unique naming for all skills across nested projects\n- Breaks the expected behavior where \"local overrides global\"\n\n## Workaround\n\nCurrently, the only workaround is to:\n1. Use unique skill names (e.g., `fermi-goodbye` instead of `goodbye`)\n2. Manually invoke via Bash: `bash .claude/skills/goodbye.sh`\n\nBoth defeat the purpose of skill overrides.\n\n## Context\n\n- Repository: `fermi-knowledge-base` (child)\n- Parent workspace: `pm-nano` (parent)\n- Both have `.claude/skills/goodbye.sh`\n- Expected: Local skill should take precedence\n- Actual: Parent skill executes\n\n## Suggested Fix\n\nSkill resolution should follow a search path priority:\n1. `.claude/skills/` in current working directory\n2. `.claude/skills/` in parent directories (walking up)\n3. Global/system skills\n\nThis would match standard tool behavior and enable proper local overrides.",
+  "labels": ["bug", "has repro", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-23T09:19:46Z",
+  "updated_at": "2026-05-21T12:53:26Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 3,
+  "author": "famulare",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "GeoffNordling",
+      "author_association": "NONE",
+      "body": "Hitting this problem also, with user-level vs. project-level skills. I have a personal commit-push skill and a project-level one that handles a two-repo workflow. The project skill should take precedence when I'm in that project.",
+      "created_at": "2026-02-13T18:55:49Z"
+    },
+    {
+      "author": "thomaswitt",
+      "author_association": "NONE",
+      "body": "+1 for this problem. I want to have a skill 'ruby-on-rails-architect' which gets overwritten by a specific project because it has different requirements / architecture.\n\nThat the GLOBAL skill wins doesnt make any sense and is inconsistent. Should be always CWD > Parent > Global.\n\nThat is by the way the case with agents. when I create a user agent that works just fine:\n\n```\n/agents\n   User agents (/Users/thomas/.claude/agents)                                                     \n   test-override-",
+      "created_at": "2026-02-17T16:19:05Z"
+    },
+    {
+      "author": "rado-arqitech",
+      "author_association": "NONE",
+      "body": "+1 on this. I'd also suggest making the precedence **configurable** rather than hardcoding local-first.\n\nUse case: I have a personal `grill-me` skill globally with my preferred interview style. Some projects define their own `grill-me` with domain-specific questions. I want project to win in those repos, but global to win elsewhere.\n\nA fixed local-first rule solves the OP's case but breaks mine. A setting like:\n\n```json\n{\n  \"skillPrecedence\": \"project\" | \"global\"\n}\n```\n\n...would let users choose",
+      "created_at": "2026-05-21T12:52:28Z"
+    }
+  ]
+}

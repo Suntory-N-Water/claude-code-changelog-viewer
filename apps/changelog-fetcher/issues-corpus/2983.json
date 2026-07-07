@@ -1,0 +1,23 @@
+{
+  "number": 2983,
+  "title": "[BUG] Permission request for 'xargs grep' even though settings allow 'xargs grep'",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: `1.0.43 (Claude Code)` \n- Operating System: Linux PopOS\n- Terminal:  Tilix\n\n## Bug Description\n### Issue \nGetting **permissions request** to run `find . -type f -name \"*.txt\" | xargs grep \"pattern\"` by Claude even though I have\n\n```txt\n\"Bash(grep:*)\",\n\"Bash(xargs grep:*)\",\n\"Bash(find:*)\",\n```\n\nIn the settings for allowed tools.\n\nIndividual command like `find . -type f -name \"*.txt\"` works without prompts so must be something with piping.\n\n### Testing\n\n```\nRun the following command\n\n[find . -type f -name \"*.txt\" | xargs grep \"pattern\"]\n```\n\n### Results\n- With `Bash(xargs grep:*)`: [❌ - Permission is Requested]\n- With `Bash(xargs:^grep\\\\s.*)`: [❌ - Permission is Requested]\n- With `Bash(xargs:^\\\\s*grep\\\\s.*)`: [❌ - Permission is Requested]\n- With `Bash(xargs:*grep*)`: [❌ - Permission is Requested]\n\n\n\n\n## Steps to Reproduce\n1. Setup settings with allowed tools, ask to execute `find . -type f -name \"*.txt\" | xargs grep \"pattern\"`\n\n## Expected Behavior\nNo permission requests\n\n## Actual Behavior\nGetting permission request, likely due to pipe being present. \n\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "area:security",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-04T15:01:54Z",
+  "updated_at": "2026-01-06T14:10:43Z",
+  "closed_at": "2025-12-30T10:10:27Z",
+  "reactions_total": 11,
+  "comments_count": 6,
+  "author": "nickolay-kondratyev",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

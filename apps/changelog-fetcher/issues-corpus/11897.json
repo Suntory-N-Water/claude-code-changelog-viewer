@@ -1,0 +1,35 @@
+{
+  "number": 11897,
+  "title": "[BUG] Claude Code on the Web .NET SDK binary downloads blocked by proxy even with \"All domains\" network access enabled",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code on the Web.\nWhen network egress is configured with \"All domains\" allowed, the Claude Code sandbox proxy still blocks downloads of .NET SDK binaries from Microsoft's CDN servers, returning \"Access denied\" (403 Forbidden).\n\nThis prevents compilation of .NET 9.x projects within Claude Code sessions, requiring users to manually compile code on their end and report errors back to Claude.\n\nEnvironment\nPlatform: Ubuntu 24.04.3 LTS (x86_64)\nNetwork Setting: \"All domains\" enabled\n.NET 8.0 available via apt (works)\n.NET 9.0 requires binary download (blocked)\nBlocked Domains\nAll Microsoft .NET binary download servers return 403:\n\nbuilds.dotnet.microsoft.com\nci.dot.net\ndotnetcli.azureedge.net\ndownload.visualstudio.microsoft.com\ndotnet.microsoft.com\naka.ms (redirects to above)\nReproduction Steps\n# This works - GitHub raw content\ncurl -sSL https://raw.githubusercontent.com/dotnet/install-scripts/main/src/dotnet-install.sh -o /tmp/install.sh\n# Returns: valid 1888-line shell script\n\n\nWorkaround\nNone currently. Users must:\n\nHave Claude write code\nPull and compile locally\nReport errors back to Claude\nRepeat until code compiles\nThis significantly reduces productivity for .NET development.\n\nImpact\nCannot compile .NET 9.x projects\nCannot run tests\nCannot validate syntax before committing\nIncreased back-and-forth between user and Claude\n\n### What Should Happen?\n\nClaude should allow installation of the .NET 9.x SDK. Ideally it should be installed by default.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n\n# This fails - Microsoft CDN\ncurl -sSL https://dotnetcli.azureedge.net/dotnet/Sdk/9.0.101/dotnet-sdk-9.0.101-linux-x64.tar.gz\n# Returns: \"Access denied\" (13 bytes)\n\n# Install script fails\n/tmp/install.sh --channel 9.0 --install-dir $HOME/.dotnet\n# Error: 403 Unable to download\nExpected Behavior\nWith \"All domains\" network access enabled, .NET SDK binaries should be downloadable from Microsoft CDN servers.\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Code on the Web\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-18T20:47:46Z",
+  "updated_at": "2026-05-07T17:53:16Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 16,
+  "author": "BrentRector",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "dwymark",
+      "author_association": "NONE",
+      "body": "Maybe related: `git push` is failing for me on Claude Code web as of about an hour ago and will not work for any sessions. Similar proxy errors are printed.",
+      "created_at": "2025-11-18T21:36:20Z"
+    },
+    {
+      "author": "JayVDZ",
+      "author_association": "NONE",
+      "body": "This also affects `dotnet restore` as NuGet package endpoints are blocked, making Claude Code unusable for Dotnet coding.\n\nThe build environment has network restrictions that prevent local build/test verification: when attempting to restore NuGet packages, requests to `api.nuget.org` are routed through a proxy server at `http://21.0.0.139:15004/` which returns `401 Unauthorized` (missing proxy credentials), and when attempting to bypass the proxy entirely by clearing proxy environment variables,",
+      "created_at": "2025-11-27T09:55:07Z"
+    },
+    {
+      "author": "WeihanLi",
+      "author_association": "NONE",
+      "body": "Seems obsolete url used, the CDN used already moved to new url `builds.dotnet.microsoft.com`\n\nhttps://devblogs.microsoft.com/dotnet/critical-dotnet-install-links-are-changing/",
+      "created_at": "2025-12-06T11:46:10Z"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "number": 21063,
+  "title": "API Error 400 \"tool use concurrency issues\" in large projects (400+ files)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Problem\nFrequent \"API Error: 400 due to tool use concurrency issues\" in VSCode extension when working with large projects.\n\n## Environment\n- Claude Code VSCode Extension\n- macOS\n- Project with 424 HTML files\n\n## Reproduction\n1. Open project with 400+ files\n2. Use any tool (Grep, Bash, Read, etc.)\n3. Error appears randomly, even with single tool calls\n\n## Comparison\n- Same setup in smaller projects (<100 files): No errors\n- Same project, same tools: Errors occur\n\n## Suspected cause\nExtension collects context (git status, file changes) for all files, causing parallel API load that exceeds concurrency limits.\n\n\n### What Should Happen?\n\nTool calls should work reliably regardless of project size. \nA project with 400+ files should not cause API concurrency errors \nwhen the user is only making single tool calls.\n\nExpected: Single tool calls complete without \"API Error 400 \ndue to tool use concurrency issues\"\n\nThe extension should queue or throttle internal context collection \n(git status, file watchers, etc.) to avoid exceeding API concurrency limits.\n\n\n### Error Messages/Logs\n\n```shell\nAPI Error: 400 due to tool use concurrency issues.\n```\n\n### Steps to Reproduce\n\n1. Open VSCode with Claude Code extension (v2.1.19)\n2. Open a project folder containing 400+ HTML files\n3. Start a Claude conversation\n4. Make a single tool call (e.g., Grep, Read, or Bash)\n5. Error appears: \"API Error: 400 due to tool use concurrency issues\"\n6. Retry same action → sometimes works, sometimes fails again\n\nNote: Same actions in smaller projects (<100 files) work without errors.\n\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.19 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:api",
+    "area:ide",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-26T19:59:54Z",
+  "updated_at": "2026-03-07T14:27:20Z",
+  "closed_at": "2026-02-28T10:14:27Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "DK-1974",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/20694\n2. https://github.com/anthropics/claude-code/issues/20888\n3. https://github.com/anthropics/claude-code/issues/20929\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-26T20:04:21Z"
+    },
+    {
+      "author": "rubyad",
+      "author_association": "NONE",
+      "body": "I'm having this same issue it only just started now. Claude gave me this to submit but I'll just post it here seeing as this already exists:\nTitle: Tool invocation ID collision error when using Read/Grep tools\n\nDescription:\n\nI'm experiencing a persistent API error when Claude attempts to use Read or Grep tools:\n\n\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.1.content.1: tool_use ids must be unique\"}\nReproduction:\n\nOccurs consistently across multiple ",
+      "created_at": "2026-01-26T20:19:12Z"
+    },
+    {
+      "author": "hahnsangkim",
+      "author_association": "NONE",
+      "body": "I'm experiencing the same issue, and it's causing Claude Code to stop working entirely.",
+      "created_at": "2026-01-26T20:34:22Z"
+    }
+  ]
+}

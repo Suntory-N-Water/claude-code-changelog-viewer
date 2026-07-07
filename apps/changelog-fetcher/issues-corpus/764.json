@@ -1,0 +1,35 @@
+{
+  "number": 764,
+  "title": "[BUG] Symlink Resolution Failure: Claude Code Unable to Traverse Symlinked Directory",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n- Platform: macos\n- Terminal: alacritty\n- Version: 0.2.68\n- Feedback ID: c3f75537-5be5-47f8-a46a-69c0c8c227ec\n\n## Bug Description\nI have the dir ~/.claude symlinked to another dotfile repo which i store all my personal files. I'm using the command stow to symlink my home to this dotfiles repo. After doing so, Claude code is no longer able to detect the files in the dir ~/.claude. this sucks as now i can't checkin my claude files and have git to revise them. \n\n## Steps to Reproduce\n1. Create a dir, call it dotfiles. \n2. In that dir place the folder .claude with the contents of `~/.claude`\n3. In `dotfiles/.claude/commands/` create a hello world command\n4. Use the command `stow --adopt -v --target=$HOME dotfiles`\n5. Use `ls` to confirm that that ~/.claude is successfully symlinked and that you can `cat` the contents\n6. open up Claude code and attempt to invoke the command\n7. You should not be able to see your commands that are located and symlinked from dot files.\n\n## Expected Behavior\nClaude code should be able to follow the symlinks and read the CLAUD.md file as well as any commands\n\n## Actual Behavior\nClaude code shows none of the user commands defined in `~/.claude/commands/*`\n\n## Additional Context\n- running /memory and chasing the local claude file, opens the file. adding a test instruction to the local memory file through claude code works fine and outputs the test message",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-04-11T06:43:30Z",
+  "updated_at": "2026-05-12T21:33:51Z",
+  "closed_at": null,
+  "reactions_total": 68,
+  "comments_count": 14,
+  "author": "rieger-jared",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "egalanos",
+      "author_association": "NONE",
+      "body": "It would be good to get a setting/environment variable to enable following of symlinks.\n\nI appreciate why this isn't done by default for security, but it does make using Claude with worktrees a pain as there are non checked-in resources that I want to share across all worktrees.\n\nEdit December 2025: the `/add-dir` & setting for `additionalDirectories` were added after my original comment + sandboxing features which are a better solution so I personally think this issue should be closed as a WONT",
+      "created_at": "2025-05-19T08:54:29Z"
+    },
+    {
+      "author": "samuelho-dev",
+      "author_association": "NONE",
+      "body": "Bump. Would love for this feature, ideally would like to be able to build a separate and symlink resources to other repositories to use the same architecture features built instead of copying the entire claude folder over.",
+      "created_at": "2025-08-05T17:44:04Z"
+    },
+    {
+      "author": "mortbal",
+      "author_association": "NONE",
+      "body": "well its far from perfect but in my case i needed claude code to read unreal engine source code and my unreal project (which is in another folder) source too so i rand claude code in both folders and ran /init then went to my project's instance of claude code and gave this prompt:\n`this is an unreal engine project located at  \"D:/Projects/MyProject\" and it has its claude.md file unreal engine is located at \"C:/ProgramFiles/EpicGames/UE5.5\" and that also has its own claude.md file read engine's m",
+      "created_at": "2025-08-11T20:50:33Z"
+    }
+  ]
+}

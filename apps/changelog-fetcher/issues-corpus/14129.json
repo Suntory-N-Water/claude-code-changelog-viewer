@@ -1,0 +1,35 @@
+{
+  "number": 14129,
+  "title": "[BUG]  /rate-limit-options command repeatedly auto-executes after session reset, causing excessive token consumption",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nIssue Description:                                                                                              \n                                                                                                                  \n  After a session reset (context limit reached), the /rate-limit-options command is automatically and repeatedly  \n  executed without user intervention, causing significant issues:                                                 \n                                                                                                                  \n  Problems:                                                                                                       \n  1. Terminal interference: The repeated command execution causes constant terminal refreshes, disrupting workflow\n  2. Forced compact operation: User is forced to run /compact to clear the repetitive messages                    \n  3. Excessive token consumption: The forced compact operation consumes 20%+ of available tokens                  \n  4. Workflow disruption: The combination of auto-refreshing terminal and forced compact makes it difficult to continue work                                                                                                   \n                                                                                                                  \n  \n                                                                                                                  \n\n\n### What Should Happen?\n\n  Expected Behavior:                                                                                              \n  - Session should reset cleanly without auto-executing commands                                                  \n  - /rate-limit-options should only execute when user explicitly requests it                                      \n  - Session continuation should not require forced compact                                                        \n                                                                                                                  \n  Actual Behavior:                                                                                                \n  - /rate-limit-options auto-executes repeatedly after session reset                                              \n  - Terminal becomes unusable due to constant refreshing                                                          \n  - User must waste 20%+ tokens on compact to continue working                                                    \n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nSteps to Reproduce:                                                                                             \n  1. Work on a project until session context limit is reached                                                     \n  2. Session automatically resets/compacts                                                                        \n  3. Observe /rate-limit-options command being executed repeatedly                                                \n  4. Terminal continuously refreshes with rate limit option outputs                                               \n  5. User must run /compact to regain control                                                                     \n  6. Compact operation consumes significant tokens                                                                \n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.67 (Claude Code) \n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n  Impact:     ",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-12-16T07:23:32Z",
+  "updated_at": "2026-05-18T20:40:20Z",
+  "closed_at": "2026-05-18T20:40:20Z",
+  "reactions_total": 18,
+  "comments_count": 27,
+  "author": "kalinzt",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "aterveus",
+      "author_association": "NONE",
+      "body": "I'm having the same issue while using Claude Code CLI outside of VS Code too.",
+      "created_at": "2025-12-16T15:47:58Z"
+    },
+    {
+      "author": "benzntech",
+      "author_association": "NONE",
+      "body": "When auto-compact happens due to context limits, /rate-limit-options is included in the compacted conversation history and becomes part of the project context. This causes the conversation to stop and get disrupted. The /rate-limit-options should be excluded from auto-compact operations so it doesn't interfere with the actual conversation context when resuming. It should be treated as a system/diagnostic command, not part of the conversation history.\n",
+      "created_at": "2025-12-17T06:01:34Z"
+    },
+    {
+      "author": "radimt8",
+      "author_association": "NONE",
+      "body": "Having a similar issue - the same command pops basically almost every time I toggle between verbose output and normal mode. Upon return to normal I can see that \"I have already sent\" this exact command",
+      "created_at": "2025-12-18T12:04:00Z"
+    }
+  ]
+}

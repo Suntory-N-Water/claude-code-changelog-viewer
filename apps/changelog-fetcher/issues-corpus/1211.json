@@ -1,0 +1,35 @@
+{
+  "number": 1211,
+  "title": "[BUG] Error: Unknown protocol set in OTEL_EXPORTER_OTLP_METRICS_PROTOCOL",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: ?\n- Operating System: macOs 10.15.5\n- Terminal:  ghostty\n- Node.js v23.11.0\n\n## Bug Description\nAfter using Claude today it said that was an upgrade so I quit and restarted Claude, but it fails with:\n\n```\nError: Unknown protocol set in OTEL_EXPORTER_OTLP_METRICS_PROTOCOL or OTEL_EXPORTER_OTLP_PROTOCOL env var: undefined\n    at jT5 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:1453:6529)\n    at xT5 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:1453:7131)\n    at file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:1453:7874\n```\n\n## Steps to Reproduce\n1. Upgrade claude\n2. run claude\n\n## Expected Behaviour\nNo crash\n\n## Actual Behavior\ncrash\n\n## Additional Context\nI tried deleting and reinstalling but got the same issue.",
+  "labels": ["bug", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-05-21T13:17:31Z",
+  "updated_at": "2025-08-05T14:08:56Z",
+  "closed_at": "2025-06-27T19:32:57Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "channingwalton",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "sid374",
+      "author_association": "CONTRIBUTOR",
+      "body": "@channingwalton are you trying to use any of the open telemetry features as documented [here](https://docs.anthropic.com/en/docs/claude-code/monitoring-usage)?\n\nSpecifically do you have the following env vars set: `CLAUDE_CODE_ENABLE_TELEMETRY=1`  and  `OTEL_EXPORTER_OTLP_METRICS_PROTOCOL` or `OTEL_EXPORTER_OTLP_PROTOCOL`",
+      "created_at": "2025-05-21T20:19:57Z"
+    },
+    {
+      "author": "channingwalton",
+      "author_association": "NONE",
+      "body": "> [@channingwalton](https://github.com/channingwalton) are you trying to use any of the open telemetry features as documented [here](https://docs.staging.ant.dev/en/docs/claude-code/monitoring-usage)?\n\nNo, I ran claude successfully, it said there was an update and to restart, so I did, and the result was this bug.\n\n",
+      "created_at": "2025-05-21T20:42:55Z"
+    },
+    {
+      "author": "channingwalton",
+      "author_association": "NONE",
+      "body": "Sorry I do have the following set\n\n```\n  \"env\": {\n    \"CLAUDE_CODE_ENABLE_TELEMETRY\": \"1\",\n    \"OTEL_METRICS_EXPORTER\": \"otlp\"\n  }\n```\n\nDeleting that has resolved the problem.\n\nBut as I say it did work prior to the upgrade.",
+      "created_at": "2025-05-21T20:46:41Z"
+    }
+  ]
+}

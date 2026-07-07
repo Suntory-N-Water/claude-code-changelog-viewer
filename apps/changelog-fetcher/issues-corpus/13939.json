@@ -1,0 +1,42 @@
+{
+  "number": 13939,
+  "title": "Edit tool replaces Turkish UTF-8 characters with ASCII equivalents",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using the Edit tool to modify files containing Turkish UTF-8 characters, Claude Code systematically replaces Turkish special characters with their ASCII equivalents:\n\n- ş → s\n- ı → i  \n- ğ → g\n- ü → u\n- ö → o\n- ç → c\n- Ş → S\n- İ → I\n- Ğ → G\n- Ü → U\n- Ö → O\n- Ç → C\n\nThis happens both when:\n1. Adding new content that contains Turkish characters\n2. When the edit touches existing Turkish text in the file\n\nThe corruption occurs silently without any warning, causing data loss and requiring manual fixes.\n\n### What Should Happen?\n\nClaude Code should preserve all UTF-8 characters exactly as they appear in the source content. Turkish characters (and other non-ASCII Unicode characters) should remain unchanged when:\n\n1. Reading files with Turkish content\n2. Editing files that contain Turkish characters\n3. Writing new content that includes Turkish characters\n\nThe Edit tool should be encoding-aware and maintain byte-for-byte accuracy for all UTF-8 content.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Create a file with Turkish content:\n   ```typescript\n   // test.ts\n   const message = 'Merhaba dünya! Türkçe karakterler: şğüöçı'\n   ```\n\n2. Ask Claude to edit the file (e.g., \"add a console.log statement\"):\n   ```\n   claude \"Add a console.log to print the message in test.ts\"\n   ```\n\n3. After the edit, check the file content:\n   ```typescript\n   // Result - Turkish characters are corrupted:\n   const message = 'Merhaba dunya! Turkce karakterler: sguoci'\n   ```\n\n**Real-world example from my session:**\n- Original file had: `'PWA (Progressive Web App) özellikleri kapsamlı şekilde geliştirildi'`\n- After Claude's edit: `'PWA (Progressive Web App) ozellikleri kapsamli sekilde gelistirildi'`\n\nThe issue is 100% reproducible with any file containing Turkish characters.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.69 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n## Impact\nThis bug affects all non-English languages that use special UTF-8 characters, including but not limited to:\n- Turkish (ş, ğ, ı, ü, ö, ç)\n- German (ä, ö, ü, ß)\n- French (é, è, ê, ë, à, ç)\n- Spanish (ñ, á, é, í, ó, ú)\n- Portuguese, Polish, Czech, and many others\n\n## Workaround\nCurrently, users must manually review and fix all edited files after each Claude Code operation, which is time-consuming and error-prone.\n\n## Hypothesis\nThe issue may be related to:\n1. Character encoding during file read/write operations\n2. Internal string normalization that converts to ASCII\n3. A tokenization or processing step that strips non-ASCII characters\n\n## Notes\n- The bug is 100% reproducible\n- Affects both the Edit and Write tools\n- Happens regardless of file type (.ts, .tsx, .js, .json, .md, etc.)\n- File encoding is UTF-8 with proper BOM",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tools",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-14T03:53:39Z",
+  "updated_at": "2026-03-15T14:19:47Z",
+  "closed_at": "2026-03-07T22:08:36Z",
+  "reactions_total": 6,
+  "comments_count": 11,
+  "author": "morphaven",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7335\n2. https://github.com/anthropics/claude-code/issues/13080\n3. https://github.com/anthropics/claude-code/issues/7134\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-14T03:57:38Z"
+    },
+    {
+      "author": "xrchz",
+      "author_association": "NONE",
+      "body": "This is also broken for Unicode quotes (‘, ’, “, ”) being replaced by ASCII quotes (', \").",
+      "created_at": "2025-12-24T09:56:54Z"
+    },
+    {
+      "author": "xrchz",
+      "author_association": "NONE",
+      "body": "```\n● Yes, I understand:\n\n  - For term quotations: U+2018 (LEFT SINGLE QUOTATION MARK) and U+2019 (RIGHT SINGLE QUOTATION MARK)\n  - For parsed terms: U+201C (LEFT DOUBLE QUOTATION MARK) and U+201D (RIGHT DOUBLE QUOTATION MARK)\n\n  The issue is that when I write edits, they may be getting converted to ASCII quotes (U+0027 or U+0022). Let me try writing with explicit Unicode escapes or see if I can preserve them.\n```\n\nSuch a capable model held back by such garbage software.",
+      "created_at": "2025-12-30T08:46:35Z"
+    }
+  ]
+}

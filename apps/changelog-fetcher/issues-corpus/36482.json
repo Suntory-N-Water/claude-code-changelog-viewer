@@ -1,0 +1,16 @@
+{
+  "number": 36482,
+  "title": "Remote control bridge should auto-refresh OAuth token before expiry",
+  "body": "## Summary\n\nThe remote control bridge silently dies when the OAuth token expires mid-session. The heartbeat fails with a 401 and the session becomes unrecoverable — but the bridge keeps polling as if nothing happened, giving no indication to the user that the session is dead.\n\n## Steps to reproduce\n\n1. Start a remote control bridge: `claude remote-control --spawn same-dir --verbose`\n2. Connect from a mobile device and use the session normally\n3. Wait ~5 hours\n4. Heartbeat fails with: `Authentication failed (401): Token expired. Remote Control is only available with claude.ai subscriptions.`\n5. Session is dead — bridge continues polling but no work comes in\n\n## Expected behavior\n\nThe bridge should proactively refresh the OAuth token before it expires, keeping the session alive indefinitely (or until the user disconnects).\n\n## Evidence that token refresh already works\n\nThe bridge *does* successfully refresh the token in other code paths. During shutdown, the stop-work call gets a 401, refreshes the token, and retries successfully:\n\n```\n[bridge:api] StopWork: 401 received, attempting token refresh\n[bridge:api] StopWork: Token refreshed, retrying request\n[bridge:api] POST .../work/.../stop -> 200\n```\n\nSo the refresh capability exists — it is just not wired into the heartbeat loop.\n\n## Why this matters\n\nThe primary use case for remote control is controlling Claude Code from a phone while away from the laptop. If the token expires mid-session, there is no way to recover — the user cannot run `/login` from their phone since the bridge runs on the laptop. The session silently dies and the user loses access until they are physically back at the machine.\n\n## Suggested fix\n\n- Proactively refresh the OAuth token before TTL expiry (e.g., at 80% of TTL)\n- Or at minimum: catch 401 on heartbeat, refresh the token, and retry — same pattern already used in the stop-work path\n- If refresh fails, surface a clear error to the connected client rather than silently continuing to poll\n\n## Environment\n\n- macOS (Apple Silicon)\n- Claude Code CLI (latest as of Mar 2026)\n- Session duration before failure: ~5h 14m\n- Bridge continued polling for ~1.5h after token death before manual SIGINT",
+  "labels": ["bug", "has repro", "platform:macos", "area:auth"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-20T05:06:25Z",
+  "updated_at": "2026-04-25T14:35:09Z",
+  "closed_at": "2026-04-18T04:16:45Z",
+  "reactions_total": 0,
+  "comments_count": 3,
+  "author": "syd3n",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

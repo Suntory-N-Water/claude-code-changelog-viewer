@@ -1,0 +1,35 @@
+{
+  "number": 40282,
+  "title": "Expose additional LSP operations: diagnostics, codeAction, rename",
+  "body": "## Feature Request\n\nThe built-in LSP tool currently exposes 9 operations:\n\n`goToDefinition`, `findReferences`, `hover`, `documentSymbol`, `workspaceSymbol`, `goToImplementation`, `prepareCallHierarchy`, `incomingCalls`, `outgoingCalls`\n\nThese are excellent for **code navigation**, but the LSP protocol has ~40+ capabilities, and several high-value ones are missing. Adding them would significantly improve Claude's ability to understand, validate, and refactor code — especially in typed languages like Java, TypeScript, C#, and Rust.\n\n## Requested Operations (by impact)\n\n### 1. `textDocument/diagnostic` (pull diagnostics)\n**Why:** Lets Claude check if code compiles and see errors/warnings *without running a full build*. Currently, the only way to know if a change broke something is to run `mvn compile` or equivalent — which is slow and noisy. Diagnostics from the LSP are instant since the server is already analyzing the code in the background.\n\n**Use case:** After editing a Java file, Claude could immediately check \"did I break anything?\" without a build round-trip.\n\n### 2. `textDocument/codeAction`\n**Why:** LSP code actions are context-aware fixes and refactorings: auto-fix imports, implement interface methods, extract variable/method, convert to lambda, etc. These are operations Claude currently does manually (and sometimes gets wrong — e.g., guessing import paths instead of letting the language server resolve them).\n\n**Use case:** Claude edits a file, a diagnostic shows a missing import → code action resolves the correct fully-qualified import automatically.\n\n### 3. `textDocument/rename`\n**Why:** LSP rename is *semantic* — it understands type hierarchies, updates imports, handles overrides, and renames across the entire workspace. Currently Claude has to use Grep-based find-and-replace, which is fragile (can miss references, rename unrelated symbols with the same name, or break imports).\n\n**Use case:** Renaming a method on an interface correctly propagates to all implementing classes and call sites.\n\n### 4. `textDocument/signatureHelp` (lower priority)\n**Why:** Shows exact parameter types and documentation for a method call. Useful when Claude is writing a call to an API it hasn't read yet.\n\n### 5. `textDocument/typeDefinition` (lower priority)\n**Why:** Navigates from a variable to its *type* declaration (vs `goToDefinition` which goes to the variable's definition). Useful for understanding what type a variable holds without hovering.\n\n## Context\n\n- These operations are language-agnostic — they'd benefit all LSP-enabled plugins (Java/jdtls, TypeScript, Python/pyright, Go/gopls, Rust/rust-analyzer, etc.)\n- The LSP server is already running and maintaining full project state — these capabilities are \"free\" to expose since the server already computes them\n- `ENABLE_LSP_TOOL=1` suggests the tool is still maturing, so this seems like a natural next step\n\n## Environment\n- Claude Code CLI (latest)\n- Using jdtls-lsp plugin (Eclipse JDT.LS 1.57.0)",
+  "labels": ["enhancement", "area:lsp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-28T15:41:22Z",
+  "updated_at": "2026-05-20T17:36:27Z",
+  "closed_at": null,
+  "reactions_total": 36,
+  "comments_count": 7,
+  "author": "alinsim",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "klaidliadon",
+      "author_association": "NONE",
+      "body": "+1 — diagnostics and rename are the big ones for Go development. gopls already computes them, just need the LSP tool to expose the operations.",
+      "created_at": "2026-03-28T21:14:31Z"
+    },
+    {
+      "author": "davidfstr",
+      "author_association": "NONE",
+      "body": "+1 to add an official \"rename\" tool, in particular.\n\nI currently use the \"rename_symbol\" tool from my own [revise-mcp](https://github.com/davidfstr/revise-mcp#readme) server but would love a first-party implementation in Claude Code or its LSP server.\n\nFWIW, VS Code Copilot Agent somewhat recently - in VS Code 1.110 (February 2026) - added its own official \"rename\" tool. ",
+      "created_at": "2026-04-13T12:46:29Z"
+    },
+    {
+      "author": "saturnxxi",
+      "author_association": "NONE",
+      "body": "+1 for rename and codeAction. I have an Intelephense Premium license specifically for these features, but Claude Code's LSP tool only exposes 9 operations. rename would be especially valuable — it's symbol-aware and safer than grep+edit for refactoring. Currently there's no built-in way to leverage paid LSP features like this.",
+      "created_at": "2026-04-18T14:03:17Z"
+    }
+  ]
+}

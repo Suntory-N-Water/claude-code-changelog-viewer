@@ -1,0 +1,35 @@
+{
+  "number": 34290,
+  "title": "Remote Control not available on Max plan — --help shows no remote-control option (v2.1.76)",
+  "body": "## Environment\n- Claude Code version: 2.1.76\n- OS: macOS (Darwin 25.3.0, Apple Silicon M4 Pro)\n- Subscription: Max plan (Stripe, since 2026-02-06)\n- `claude --help | grep -i remote` returns empty\n- `claude remote-control` returns: \"Remote Control is not yet enabled for your account\"\n\n## Expected\nPer the docs (https://code.claude.com/docs/en/remote-control), Max subscribers should be able to run `claude remote-control` or use `/remote-control` to connect from the Claude iOS app.\n\n## Actual\n- `--help` has no remote-control related flags\n- `/remote-control` inside session: \"not a recognized skill\"\n- `claude remote-control` from shell: \"not yet enabled for your account\"\n- `hasAvailableSubscription` in `~/.claude.json` shows `false` despite active Max plan\n\n## Request\nPlease enable the Remote Control feature flag for this account, or advise on any additional steps needed.",
+  "labels": ["bug", "duplicate", "platform:macos", "area:auth", "area:cli"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-14T07:46:59Z",
+  "updated_at": "2026-05-26T23:48:01Z",
+  "closed_at": null,
+  "reactions_total": 2,
+  "comments_count": 10,
+  "author": "joshchaotang",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "joshchaotang",
+      "author_association": "NONE",
+      "body": "Please reply to ch.glass.tw@gmail.com if there are any updates or additional information needed. Thank you.",
+      "created_at": "2026-03-14T07:47:52Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33119\n2. https://github.com/anthropics/claude-code/issues/31606\n3. https://github.com/anthropics/claude-code/issues/30242\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-14T07:49:48Z"
+    },
+    {
+      "author": "joshchaotang",
+      "author_association": "NONE",
+      "body": "This is **not a duplicate** of #33119 — different root cause.\n\n### Already verified:\n- No `CLAUDE_CODE_OAUTH_TOKEN` env var\n- No `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` env var\n- `DISABLE_TELEMETRY=1` is only present in Claude Code's own subprocess (not user-set)\n- `authMethod: claude.ai` (not OAuth)\n- `subscriptionType: max`\n- Full logout → login cycle done multiple times\n\n### Auth status (correct):\n```json\n{\n  \"loggedIn\": true,\n  \"authMethod\": \"claude.ai\",\n  \"apiProvider\": \"firstParty\",\n  \"",
+      "created_at": "2026-03-15T13:01:41Z"
+    }
+  ]
+}

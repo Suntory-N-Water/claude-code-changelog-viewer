@@ -1,0 +1,35 @@
+{
+  "number": 30861,
+  "title": "[BUG] Cowork macOS: MITM egress proxy blocks all non-API domains regardless of allowlist settings",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nCowork's MITM egress proxy blocks all non-API domains regardless of the network egress allowlist configuration. The VM itself boots and connects successfully — the API is reachable — but all other web requests (WebSearch, WebFetch, curl) are rejected by the proxy with `blocked-by-allowlist`.\n\nThis is **not** a network/connectivity issue. The VM has full network access to Anthropic's API. The proxy is selectively blocking everything else, and no combination of allowlist settings changes this behaviour.\n\n**Environment**\n- Claude Desktop 1.1.4328 (d8e391) 2026-02-25T17:04:36.000Z\n- macOS (Apple Silicon)\n- Pro plan\n- No VPN, no third-party firewall, no network extensions\n\n\n\n### What Should Happen?\n\n\n\nDomains added to the egress allowlist (or \"All domains\") should be permitted through the MITM proxy. WebSearch and WebFetch tools should work in Cowork.\n\n\n\n### Error Messages/Logs\n\n```shell\n### Error Messages/Logs\n\nFrom `cowork_vm_node.log` — VM boots and connects fine:\n\n2026-02-26 22:07:21 [info] [VM] Network status: CONNECTED\n2026-02-26 22:07:22 [info] [VM] API reachability: REACHABLE\n2026-02-26 22:07:22 [info] [VM:start] Startup complete, total time: 5444ms\n\n\nThe spawn config shows `allowedDomains=23`, which does not correspond to any setting I have configured.\n\nFrom Cowork session, when asked to reach google.com:\n> \"No luck — google.com is blocked by the network egress proxy. So internet access isn't available right now.\"\n```\n\n### Steps to Reproduce\n\n### Steps to Reproduce\n\n1. Open Claude Desktop Settings → Capabilities\n2. Enable \"Allow network egress\"\n3. Set domain allowlist to \"All domains\" (or any custom domain list)\n4. Quit Claude Desktop (Cmd+Q), reopen\n5. Open a new Cowork session\n6. Ask Cowork to search the web or fetch any non-Anthropic URL\n7. All requests fail — blocked by egress proxy\n\n### Troubleshooting Already Performed\n\n- Tried \"All domains\" — blocked\n- Tried \"Package managers only\" + manually adding google.com — blocked\n- Deleted `~/Library/Application Support/Claude/vm_bundles/`, let VM rebuild from scratch — blocked\n- Full quit and reopen between every settings change — blocked\n- Verified no VPN, no network extensions (System Settings → Login Items & Extensions → Network Extensions is empty)\n- macOS firewall is off\n- Confirmed egress settings are not stored in `claude_desktop_config.json` or `config.json` on disk — they appear to be server-side or JWT-embedded, which may explain why local changes have no effect\n\n### Related Issues\n\n- #30112 — identical symptoms, marked `invalid` and duplicate-chained to #11897 which is a different platform (web sandbox, not Cowork desktop VM)\n- #21706 — \"All domains\" sets a `*` pattern that the app's own validation rejects\n- #18854 — MITM proxy blocking api.anthropic.com (same proxy, different domain)\n- #19087 — additional allowed domains not included in JWT allowlist\n\nThe common thread across all of these is that the MITM proxy inside the Cowork VM does not respect the allowlist configuration set in the UI. #30112 was closed as `invalid` (\"not related to Claude Code\") — but there is no other repo to file Cowork bugs against. If there is a better channel, please redirect rather than close.\n\n\n\n\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Desktop 1.1.4328 (Cowork)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nThe `allowedDomains=23` value in the spawn config is the key clue — the proxy is receiving a domain list, but either the list doesn't contain the right domains, or the proxy is ignoring it. The fact ",
+  "labels": ["invalid"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-04T23:12:45Z",
+  "updated_at": "2026-05-25T17:24:08Z",
+  "closed_at": null,
+  "reactions_total": 20,
+  "comments_count": 10,
+  "author": "gethooo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/30112\n2. https://github.com/anthropics/claude-code/issues/23818\n3. https://github.com/anthropics/claude-code/issues/21706\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-04T23:16:53Z"
+    },
+    {
+      "author": "gethooo",
+      "author_association": "NONE",
+      "body": "the egress setting is being overwritten by the online account settings.  When i manually change the setting in config.json to true, as soon as I go online it is flipping to false. My online settings also allow network egress, all domains \n\nBut nobody will see this because its been set to invalid again. Where are we supposed to post cowork bugs then?",
+      "created_at": "2026-03-04T23:55:12Z"
+    },
+    {
+      "author": "neddy",
+      "author_association": "NONE",
+      "body": "Yeah, I agree, this is annoying and is stopping me from being able to do work...",
+      "created_at": "2026-03-05T23:55:31Z"
+    }
+  ]
+}

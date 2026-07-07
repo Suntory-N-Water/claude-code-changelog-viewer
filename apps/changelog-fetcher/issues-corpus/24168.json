@@ -1,0 +1,35 @@
+{
+  "number": 24168,
+  "title": "[BUG][Bedrock] `x-anthropic-billing-header` text injected into system prompt causes 400 on Bedrock",
+  "body": "\n### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code v2.1.37 unconditionally injects the string `x-anthropic-billing-header: cc_version=...; cc_entrypoint=...; cch=00000;` as a **text block in the system prompt content array**. When the backend is Amazon Bedrock, the API rejects this with:\n\n```\n400 x-anthropic-billing-header is a reserved keyword and may not be used in the system prompt.\n```\n\n**This is distinct from the `anthropic-beta` HTTP header issues** reported in #22893, #21625, #11672, etc. Those are about unsupported HTTP headers. This is about reserved keyword **text content** being placed inside the system prompt body itself.\n\n### Evidence from Binary Analysis\n\nThe billing header is assembled and placed into the system prompt unconditionally in the compiled binary:\n\n```javascript\n// 1. Generated as a string:\nB = `x-anthropic-billing-header: cc_version=${VERSION}.${hash}; cc_entrypoint=${entrypoint}; cch=00000;`\n\n// 2. In the system prompt assembly function, it's identified and placed as the first text block:\nif (q.startsWith(\"x-anthropic-billing-header\")) captured = q;\n// ...\nif (captured) blocks.push({text: captured, cacheScope: null});\n```\n\nThis injection is **not gated by**:\n- `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`\n- `ENABLE_TOOL_SEARCH`\n- Platform detection (bedrock/vertex/firstParty)\n- Any environment variable\n\n### Debug Log Confirmation\n\nFrom `~/.claude/debug/` on two separate failing sessions:\n\n**Session 1 (variant execution via `--print`):**\n```\n[DEBUG] Tool search disabled for model 'us.anthropic.claude-haiku-4-5-20251001-v1:0': model does not support tool_reference blocks.\n[DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.37.981; cc_entrypoint=cli; cch=00000;\n[DEBUG] [API:request] Creating client, ANTHROPIC_CUSTOM_HEADERS present: false, has Authorization header: false\n...\n[ERROR] API error (attempt 1/11): 400 400 x-anthropic-billing-header is a reserved keyword and may not be used in the system prompt.\n```\n\n**Session 2 (separate invocation):**\n```\n[DEBUG] Auto tool search disabled: 1178 tokens (threshold: 20000, 10% of context) [source: query]\n[DEBUG] attribution header x-anthropic-billing-header: cc_version=2.1.37.fbe; cc_entrypoint=cli; cch=00000;\n[DEBUG] [API:request] Creating client, ANTHROPIC_CUSTOM_HEADERS present: false, has Authorization header: false\n...\n[ERROR] API error (attempt 1/11): 400 400 x-anthropic-billing-header is a reserved keyword and may not be used in the system prompt.\n```\n\nKey observations:\n- `ANTHROPIC_CUSTOM_HEADERS present: false` — not caused by custom headers\n- Tool search was already disabled in both sessions — `ENABLE_TOOL_SEARCH=0` would not help\n- The billing header hash suffix changes between calls in the same session (`.981` vs `.fbe`)\n\n### What Should Happen?\n\nWhen the backend is Bedrock, Claude Code should either:\n1. Not inject the billing header string into the system prompt text, or\n2. Send it through a mechanism that Bedrock accepts (e.g., HTTP headers or request metadata), or\n3. Provide an environment variable to suppress it\n\n### Steps to Reproduce\n\n1. Configure Claude Code to use Amazon Bedrock (models in `settings.local.json` with `us.anthropic.*` IDs)\n2. Run in `--print` mode: `claude --print --output-format json --max-turns 100 -` (stdin prompt)\n3. Observe `400 x-anthropic-billing-header is a reserved keyword and may not be used in the system prompt.`\n4. Confirm in `~/.claude/debug/<session-id>.txt` that the billing header was generated and `ANTHROPIC_CUSTOM_HEADERS present: false`\n\nThe error is somewhat intermittent — the billing header hash changes between requests, and not every request triggers the rejection. In my testing, the first request in a session (typically a token-counting call to Haiku) often succeeds, while the ",
+  "labels": ["bug", "has repro", "api:bedrock", "platform:macos", "area:api"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-08T12:32:34Z",
+  "updated_at": "2026-03-04T14:27:45Z",
+  "closed_at": "2026-02-20T19:01:07Z",
+  "reactions_total": 12,
+  "comments_count": 11,
+  "author": "ebrindley",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "taquaki-satwo",
+      "author_association": "NONE",
+      "body": "Hello. I also use macOS.\nThe same issue occurred in 2.1.36, but not in 2.1.34.\n\n```\n# Remove existing installation\nrm -f ~/.local/bin/claude\nrm -rf ~/.local/share/claude\n\ncurl -fsSL https://claude.ai/install.sh | bash -s 2.1.34\n```\n\nI set `DISABLE_AUTOUPDATER` in `settings.json` to disable automatic updates.\nref. https://code.claude.com/docs/en/setup#disable-auto-updates",
+      "created_at": "2026-02-09T13:15:56Z"
+    },
+    {
+      "author": "meetamit",
+      "author_association": "NONE",
+      "body": "I encountered the same issue and also worked around it by rolling back to v2.1.34. If you're still using NPM to install Claude Code, then the fix is:\n\n1. Verify that you have a \"broken\" version:\n  1a. Run `npm list --global`\n  1b. If you see `@anthropic-ai/claude-code@2.1.37` or `2.1.36` then you've got a broken version.\n2. Roll back to a slightly older version: `npm install -g @anthropic-ai/claude-code@2.1.34`",
+      "created_at": "2026-02-09T16:54:10Z"
+    },
+    {
+      "author": "John867530nine",
+      "author_association": "NONE",
+      "body": "Resolved in my containerized instance by breaking the header, like this:\n\nRUN find /usr/local/lib/node_modules/@anthropic-ai/claude-code -name \"*.js\" \\\n    -exec grep -l \"x-anthropic-billing-header\" {} \\; \\\n    -exec sed -i 's/x-anthropic-billing-header/x-anthropic-billing-removed/g' {} \\;",
+      "created_at": "2026-02-09T17:53:20Z"
+    }
+  ]
+}

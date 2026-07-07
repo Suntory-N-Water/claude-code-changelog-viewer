@@ -1,0 +1,35 @@
+{
+  "number": 6549,
+  "title": "[FEATURE REQUEST] Better compaction is possible without any fancy machinery, MCPs, and with very little plumbing.",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [X] Other: Claude code\n- Claude CLI version: `1.0.90 (Claude Code)`\n- Operating System: macOS 15.6, BuildVersion: 24G84\n- Terminal:  zsh 5.9 (arm64-apple-darwin24.0), macOS terminal Version 2.14 (455.1)\n\n## Bug Description\nCurrent autocompaction and manually invoked compaction is acceptably okay-ish, but could be a lot better. This is not necessarily a trivial problem. I'm *by far* not even close to the only one in the world thinking about LLM context management. I'm proposing an automatable workflow that may be an easy to implement tremendous improvement. \n\nI think everybody's kinda known how this relates specifically to claude code for a while, and there are of course plenty of issues filed here about it:\n- https://github.com/anthropics/claude-code/issues/6390\n- https://github.com/anthropics/claude-code/issues/6207\n- https://github.com/anthropics/claude-code/issues/6066\n- https://github.com/anthropics/claude-code/issues/5996\n- https://github.com/anthropics/claude-code/issues/3349\n\n...and closely-matched but not exactly the same issues:\n- https://github.com/anthropics/claude-code/issues/5879\n- https://github.com/anthropics/claude-code/issues/5731\n- https://github.com/anthropics/claude-code/issues/580\n\nSome other users who seem to be paying attention here include:\n- @coygeek\n\n\n## Steps to Reproduce\n1. Give claude a VERY long running task that consumes many many tokens, kick it off to work with autocompaction turned on, OR prepare to pay attention and manually invoke `/compact` as you approach the full window capacity.\n2. Let it autocompact or compact manually\n3. Watch as claude slowly loses focus over the course of several iterations of compaction to the point of digital [punding](https://en.wikipedia.org/wiki/Punding).\n\n## Expected Behavior\n~~Magic~~Claude code intelligently figures out what to bring across the compaction events to continue seamlessly.\n\n## Actual Behavior\nClaude slowly loses focus over the course of several iterations of compaction to the point of being actively counterproductive or harmful.\n\n## Additional Context\nI'm not opening this just to further saturate the Anthropic dev team with open issues on a multibillion dollar product. I've just found one manual workflow that is very simple and has worked nearly perfectly for me for almost a month now, without any complex tooling, memory/planning MCPs, or plumbing. It's kinda shocking to me that it works so well *and* isn't built in.\n\n### The workflow that works for me is:\n1. When approaching the context limits, preferably as early as 130k-140k tokens, interrupt any ongoing work if necessary, ask claude something like one of the prompts after this list, all taken directly from my claude history. Copy the prompt that it spits out to the clipboard.\n2. run `/compact`. Sometimes - *only* for the most complex and longest running tasks - also ask the compaction to `ultrathink` to reduce token usage as much as possible without losing any relevant context, reasoning, information, or anything else critical to seamlessly continuing after the compaction. The decision to ultrathink or not could even be made in the prior step, as an output of the model depending on the complexity it encountered in generating the continuation prompt. \n3. Paste the continuation prompt into the post-compaction input field. Sometimes, it's worth explicitly referencing the notes files that claude wrote to disk in the prior steps.\n\n### Example prompts from my Claude code history\n#### (simple)\n> please provide me with a prompt that contains all the required info, context, reasoning, direction, and references, to seamlessly continue after auto-compaction. It should be seamless - retaining everything you need to perform at your maximum potential and maximum creativity.\"\n\n#### (more complex, more effective)\n> Please write ALL the relevant thoughts, reasoning, context, state, and anything else to notes on disk, and then give me a prompt I can copy and paste into a new session of claude co",
+  "labels": ["enhancement", "platform:macos", "area:core", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-25T23:37:34Z",
+  "updated_at": "2026-01-20T14:21:32Z",
+  "closed_at": "2026-01-13T10:14:20Z",
+  "reactions_total": 4,
+  "comments_count": 10,
+  "author": "ariccio",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/3349\n2. https://github.com/anthropics/claude-code/issues/5996\n3. https://github.com/anthropics/claude-code/issues/6066\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-25T23:42:30Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "This post gave me the idea to fully automate this workflow.\nKeep in mind that it will use Anthropic API key for the initial summarization. \nJust be sure to tweak the \"PROMPT_TO_GENERATE_CONTINUATION\" inside `generate-continuation-prompt.py`.\nHave fun!\n\n___\n\nHere is the concise, developer-focused guide to setting up the automated context persistence workflow.\n\n### **Objective**\n\nAutomate the pre- and post-compaction context-saving workflow using Claude Code's `hooks` system. This involves two scr",
+      "created_at": "2025-08-26T01:02:16Z"
+    },
+    {
+      "author": "ariccio",
+      "author_association": "NONE",
+      "body": "> This post gave me the idea to fully automate this workflow. Keep in mind that it will use Anthropic API key for the initial summarization. Just be sure to tweak the \"PROMPT_TO_GENERATE_CONTINUATION\" inside `generate-continuation-prompt.py`. Have fun!\n\n\nHeh, amazing! I don't know why this is so obvious to me, and it's not standard, so not much else I could do other than open this bug, unless anthropic wants to poach me from the startup I'm building (*mimes old timey young lady trying to get roc",
+      "created_at": "2025-08-26T02:12:54Z"
+    }
+  ]
+}

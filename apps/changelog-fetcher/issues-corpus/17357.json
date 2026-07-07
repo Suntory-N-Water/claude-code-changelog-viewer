@@ -1,0 +1,35 @@
+{
+  "number": 17357,
+  "title": "[BUG] Armenian script generation broken - outputs \"delays\" instead of Armenian characters",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen generating Armenian text, Claude outputs the English word \"delays\" instead of Armenian characters. The first 1-2 Armenian characters may render correctly, then all subsequent characters are replaced with the literal string \"delays\".\n\nExample output when asking for \"Hello\" in Armenian:\nԲdelays delays delays!\n\nInstead of:\nԲարեւ\n\nThis bug affects ONLY Armenian out of 58 tested scripts/languages. Even rare scripts like Cherokee (ᎣᏏᏲ), N'Ko (ߊߟߎ߫), Javanese (ꦲꦭꦺꦴ), and Tibetan (བཀྲ་ཤིས་) work correctly.\n\nThe bug is also reproducible in claude.ai web interface, indicating this is a model-level issue, not specific to Claude Code.\n\n### What Should Happen?\n\nClaude should output proper Armenian text. For example:\n\nInput: \"Write 'Hello, I received a notification' in Armenian\"\n\nExpected output:\nԲարեւ, ես ծանուցում եմ ստացել\n\n(Full Armenian text with proper Unicode characters from the Armenian block U+0530–U+058F)\n\n### Error Messages/Logs\n\n```shell\nNo error messages - the model completes successfully but outputs incorrect text.\n\nSample corrupted output:\nԲdelays delays delays delays delays delays delays delays! Delays delays delays delays Postcard-delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays delays.\n\nThe word \"delays\" consistently replaces Armenian characters.\n```\n\n### Steps to Reproduce\n\n1. Open Claude Code CLI (or claude.ai web interface)\n2. Enter a prompt requesting Armenian text generation, for example:\n   - \"Write 'Hello, how are you?' in Armenian\"\n   - \"Translate this to Armenian: I received a notification from the delivery service\"\n3. Observe the output - Armenian characters will be replaced with the word \"delays\"\n\nAlternative test:\n1. Ask Claude to write an email in Armenian\n2. Notice that after the first 1-2 characters, all Armenian text becomes \"delays delays delays...\"\n\nVerification that this is Armenian-specific:\n1. Test the same prompts with Georgian: Works ✅ (გამარჯობა!)\n2. Test with Greek: Works ✅ (Γεια σας!)\n3. Test with Hebrew: Works ✅ (!שלום)\n4. Test with Arabic: Works ✅ (!مرحبا)\n5. Test with Armenian: Broken ❌ (Բdelays delays delays!)\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\nUnknown - not tested on previous versions\n\n### Claude Code Version\n\n2.1.3 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n## Comprehensive Multi-Script Testing\n\nI tested 58 different non-Latin scripts/languages. Results:\n\n| Status | Count | Languages |\n|--------|-------|-----------|\n| ✅ Working | 57 | Ukrainian, Bulgarian, Serbian, Belarusian, Russian, Macedonian, Mongolian (Cyrillic), Kazakh, Kyrgyz, Tajik, Greek, Georgian, Hebrew, Arabic, Persian, Urdu, Pashto, Kurdish, Uyghur, Sindhi, Yiddish, Thai, Lao, Khmer, Myanmar, Tibetan, Chinese (Simplified), Chinese (Traditional), Japanese, Korean, Hindi, Sanskrit, Nepali, Marathi, Bengali, Gujarati, Punjabi, Tamil, Telugu, Kannada, Malayalam, Sinhala, Odia, Assamese, Amharic, Tigrinya, N'Ko, Cherokee, Inuktitut, Dhivehi, Javanese, Balinese, Sundanese, Uzbek, Bashkir, Chechen, Chuvash |\n| ❌ Broken | 1 | **Armenian** |\n\n## What this rules out\n\n- ❌ NOT a general Unicode issue (57 other scripts work)\n- ❌ NOT a non-Latin script issue (Georgian, Greek work)\n- ❌ NOT a RTL issue (Hebrew, Arabic, Persian, Urdu work)\n- ❌ NOT a multi-byte UTF-8 issue (all tested scripts use multi-byte)\n- ❌ NOT a low-resource language issue (Cherokee ~2k speakers works, Armenian has 3M)\n- ❌ NOT ",
+  "labels": ["bug", "has repro", "platform:macos", "external", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-10T18:10:02Z",
+  "updated_at": "2026-04-01T14:37:50Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 9,
+  "author": "shakespear-dev",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "promentol",
+      "author_association": "NONE",
+      "body": "As a workaround, downgrading Claude Code to 2.0.0 fixes the problem temporary",
+      "created_at": "2026-01-20T04:44:02Z"
+    },
+    {
+      "author": "Nirei",
+      "author_association": "NONE",
+      "body": "This can be reproduced in current Claude 4.5 Opus.",
+      "created_at": "2026-02-02T23:41:07Z"
+    },
+    {
+      "author": "davkh",
+      "author_association": "NONE",
+      "body": "I can confirm. As a workaround, I use cursor for Armenian texts, and i18n library, and ask cursor to write json translations there. ",
+      "created_at": "2026-02-06T05:59:51Z"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "number": 47994,
+  "title": "OAuth login on headless EC2: code paste broken after recent update",
+  "body": "## Problem\n\nAfter a recent Claude CLI update, the OAuth login flow on headless EC2 instances no longer allows reliable copy-paste of the OAuth code.\n\n### Environment\n- Ubuntu 24.04 on EC2 (headless, no browser)\n- SSH from Windows terminal\n- Claude CLI (latest)\n\n### What broke\n1. `claude auth login` prints an OAuth URL and prompts for the code\n2. After authorizing in a local browser, the returned code (format: `XXXXXX#YYYYYY`) cannot be pasted back reliably:\n   - `Ctrl+V` doesn't work in SSH terminals on Windows\n   - The `#` character in OAuth codes gets interpreted as a shell comment\n   - Right-click paste is unreliable\n   - Piping via `echo \"code\" | claude auth login` opens a new PKCE flow, ignoring the piped input\n   - `expect` cannot detect the raw terminal `>` prompt\n\n### Current workaround\nUsing `tmux send-keys` to deliver the code into the same process that generated the PKCE challenge:\n\n```bash\n# Start login in tmux\ntmux new-session -d -s login 'bash -lc \"claude auth login\" 2>&1 | tee /tmp/tmux_login.log'\nsleep 6\ncat /tmp/tmux_login.log\n# Open the URL in local browser, get the code, then:\ntmux send-keys -t login \"CODE_HERE\" Enter\n```\n\nThis works but is cumbersome for production environments with multiple EC2 instances.\n\n### Suggestion\nConsider one of:\n- A `--code` flag: `claude auth login --code <oauth-code>` (non-interactive)\n- A file-based flow: `claude auth login --code-file /tmp/oauth-code.txt`\n- Support for piped stdin: `echo \"code\" | claude auth login`\n- A device-code flow that doesn't require pasting back into the CLI\n\n### What Does NOT Work\n\n| Method | Why It Fails |\n|--------|-------------|\n| Copying credentials from local machine | OAuth tokens are machine-bound |\n| Piping stdin via `echo \"code\" \\| claude auth login` | CLI opens a new OAuth flow |\n| `expect` with prompt matching | Raw terminal input undetectable |\n| Starting multiple login attempts | Each creates new PKCE challenge |\n| Ctrl+V / right-click paste in SSH | Unreliable on Windows; `#` in codes breaks |\n\n### Key Insight: PKCE Challenge Binding\n\nEach `claude auth login` generates a unique `code_challenge`. The OAuth code returned after authorization is cryptographically bound to that specific challenge. This means:\n- You MUST use the code with the SAME session that generated the URL\n- Starting a new `claude auth login` invalidates all previous codes\n- The tmux approach works because `send-keys` types into the SAME process",
+  "labels": ["duplicate", "platform:linux", "area:tui", "area:auth"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-04-14T16:08:21Z",
+  "updated_at": "2026-04-25T14:29:31Z",
+  "closed_at": "2026-04-16T00:30:19Z",
+  "reactions_total": 5,
+  "comments_count": 2,
+  "author": "vgopinath",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

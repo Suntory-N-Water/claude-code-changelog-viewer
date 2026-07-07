@@ -1,0 +1,35 @@
+{
+  "number": 25419,
+  "title": "[BUG] Cowork Windows: sandbox-helper fails to unmount host share, VM service won't start (Win 11 Pro)",
+  "body": "## Bug Description\n\nCowork on Windows fails to start with two distinct errors that occur in sequence:\n\n1. **Initial error** — CLI output is not valid JSON due to sandbox-helper debug output contaminating stdout:\n```\nCLI output was not valid JSON. This may indicate an error during startup.\nOutput: sandbox-helper: failed to unmount host share (virtiofs at /mnt/.virtiofs-root: invalid argument, plan9 at /mnt/.virtiofs-root/shared: invalid argument)\n```\n\n2. **After restarting Claude Desktop** — The workspace fails with:\n```\nVM service not running. The service failed to start.\n```\n\n## Steps to Reproduce\n\n1. Open Claude Desktop on Windows 11 Pro\n2. Try to use Cowork\n3. First attempt shows the `sandbox-helper: failed to unmount host share` error\n4. Restarting Claude Desktop changes the error to \"VM service not running. The service failed to start.\"\n5. Cycle repeats indefinitely\n\n## Troubleshooting Already Attempted\n\n- Deleted `vm_bundles/claudevm.bundle` (rootfs.vhdx, sessiondata.vhdx, smol-bin.vhdx) to force a fresh re-download — same errors after rebuild\n- Restarted Hyper-V services (`vmms`, `HvHost`) — both confirmed running, error persists\n- Terminated all `claude`, `cowork-svc`, `vmwp` processes and restarted — no improvement\n- Confirmed Hyper-V is fully enabled and functional (vmms: Running/Automatic, HvHost: Running/Manual)\n\n## Environment\n\n| Detail | Value |\n|--------|-------|\n| **OS** | Microsoft Windows 11 Pro 10.0.26200 (Build 26200) |\n| **Architecture** | AMD64 |\n| **Claude Desktop version** | 1.1.2998.0 (MSIX/AppX package) |\n| **Claude Code CLI version** | 2.1.39 |\n| **Hyper-V vmms service** | Running (Automatic) |\n| **Hyper-V HvHost service** | Running (Manual) |\n| **Installation type** | Microsoft Store / AppX (`Claude_pzs8sxrjxfjjc`) |\n\n## Expected Behavior\n\nCowork should start the VM workspace successfully without sandbox-helper unmount errors.\n\n## Actual Behavior\n\nThe sandbox-helper fails to unmount host shares using both virtiofs and plan9 protocols with \"invalid argument\", which corrupts the JSON output stream and prevents the workspace from initializing. After restart, the VM service fails to start entirely.\n\n## Possibly Related Issues\n\n- #25206 — VM starts but crashes within 5 minutes, service unrecoverable (Win 11 Pro)\n- #24974 — sessiondata.vhdx not created on Windows\n- #24945 — VM boots but API unreachable on Windows\n- #12056 — Sandbox debug output contaminating JSON stream",
+  "labels": ["bug", "duplicate", "platform:windows", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-13T01:43:11Z",
+  "updated_at": "2026-04-17T14:49:25Z",
+  "closed_at": "2026-04-10T10:30:39Z",
+  "reactions_total": 0,
+  "comments_count": 12,
+  "author": "rickardovidal",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25096\n2. https://github.com/anthropics/claude-code/issues/25132\n3. https://github.com/anthropics/claude-code/issues/25377\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-13T01:46:15Z"
+    },
+    {
+      "author": "ErosEleutherios",
+      "author_association": "NONE",
+      "body": "Confirming this issue on Windows 10 with v1.1.2998.0.\n\n**Additional related errors I'm experiencing:**\n\n1. `sdk-daemon not connected` - occurs after 1-5 successful Cowork requests\n2. `failed to write length: An operation was attempted on something that is not a socket`\n3. Same virtiofs/plan9 mounting failures when attempting folder selection\n\n**Failure pattern:**\n- Fresh install/restart → Cowork works briefly (1-5 requests)\n- Then fails with one of the above errors\n- Requires restart/reinstall f",
+      "created_at": "2026-02-13T13:31:56Z"
+    },
+    {
+      "author": "casperse",
+      "author_association": "NONE",
+      "body": "Already reported, nice to see the updates coming out for windows daily :-)\nI can see this was also on the Mac version in the beginning.\nHope to get it resolved no matter what I do I cant use Cowork any more.\n\n<img width=\"1441\" height=\"262\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/78a7deed-f096-4a62-8bce-5c94ac7fcf19\" />",
+      "created_at": "2026-02-15T09:32:09Z"
+    }
+  ]
+}

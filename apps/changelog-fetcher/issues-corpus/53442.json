@@ -1,0 +1,35 @@
+{
+  "number": 53442,
+  "title": "[BUG] Cowork Google Drive MCP cannot see content in any Workspace Shared Drive",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Repo:** anthropics/claude-code\n**Component:** mcp-google connector (Cowork built-in) — also reproduced against the official `drivemcp.googleapis.com/mcp/v1` connector\n**Connector version observed:** `mcp-google` v0.1.0, commit `dev`, build date `2026-04-24T09:52:04.561Z`\n**Environment:** Cowork mode (research preview), Windows 11 desktop client\n\n## Summary\n\nThe Drive connectors silently omit the Google Drive v3 API parameters required to surface Shared Drive content. As a result, any user whose data lives in a Workspace Shared Drive (i.e. most business, club, and team accounts) cannot reach that content from Cowork — `drive_list_files`, `drive_search_files`, and `drive_get_file` return empty results or `404 Not Found` instead of the actual files. The user's \"My Drive\" works fine, which makes the failure mode hard to spot at first.\n\n## Reproduction\n\nAccount: a Google Workspace account that is a member of one or more Shared Drives.\nStep 1 — confirm that personal My Drive works\ndrive_list_files(folderId='<MY_DRIVE_ROOT_ID>') → returns folders/files as expected\nStep 2 — try a Shared Drive root\ndrive_list_files(folderId='<SHARED_DRIVE_ROOT_ID>') → returns { files: [] } ← bug\nStep 3 — try direct lookup of the Shared Drive root\ndrive_get_file(fileId='<SHARED_DRIVE_ROOT_ID>') → MESSAGE_NOT_FOUND \"File not found: <SHARED_DRIVE_ROOT_ID>\" ← bug\nStep 4 — try searching for known content inside that drive\ndrive_search_files(query=\"'<SHARED_DRIVE_ROOT_ID>' in parents\") → returns { files: [] } ← bug\ndrive_search_files(query=\"name = '2026 Committee' and mimeType = 'application/vnd.google-apps.folder'\") → returns { files: [] } ← bug, even though the folder exists and the user has access\n\nThe same four calls against the user's My Drive root (a `0A...` ID returned by `drive_get_file` with name `\"My Drive\"`) all succeed, which proves the auth and account routing are correct.\n\n## Root cause\n\nThe Google Drive v3 API requires three flags to include Shared Drive content in `files.list` and `files.get`:\nsupportsAllDrives=true includeItemsFromAllDrives=true corpora=allDrives # or corpora=drive&driveId=<id> for a specific Shared Drive\n\nWithout those, the API scopes the request to the user's \"user corpus\" (My Drive + sharedWithMe). Crucially, when a Shared Drive ID or a file inside one is referenced, the API does **not** return an auth error — it returns an empty list or `404`. That makes the failure look like a permission problem when in fact it's a missing query parameter.\n\nReference implementations that handle this correctly: `a-bonus/google-docs-mcp` passes both `supportsAllDrives` and `includeItemsFromAllDrives` on every Drive operation (files.list, files.get, files.create, files.update, files.copy, files.delete, permissions.create).\n\n## Expected behaviour\n\n`drive_list_files`, `drive_search_files`, `drive_get_file`, and any related tools should pass:\n- `supportsAllDrives=true` — on all operations\n- `includeItemsFromAllDrives=true` — on `files.list` style operations\n- `corpora=allDrives` by default for searches, or accept a `driveId` argument to scope to a specific Shared Drive\n\n## Actual behaviour\n\nShared Drive content is invisible. Users see folders and files in the Drive web UI but the connector cannot see them. There is no error indicating why — just empty results.\n\n## Impact\n\nSevere for any Workspace customer using Shared Drives. In my session I was trying to:\n- Locate the latest committee meeting minutes for a sporting club — stored in `Committee` Shared Drive\n- Cross-reference financial reports — stored in `Finance` Shared Drive\n- Pull policy documents — stored in `Policies And Governance` Shared Drive\n\nNone of those drives are reachable. Only the secret",
+  "labels": ["bug", "platform:windows", "area:mcp", "area:cowork"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-26T05:16:58Z",
+  "updated_at": "2026-07-02T11:47:27Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 28,
+  "author": "jwshrive",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "johnstruckmann-cyber",
+      "author_association": "NONE",
+      "body": "this is still an issue, please resolve ASAP! \n",
+      "created_at": "2026-05-06T03:06:23Z"
+    },
+    {
+      "author": "luff-mitchell",
+      "author_association": "NONE",
+      "body": "I am also experiencing this issue. Please fix it as soon as possible. I don't want to waste any more tokens on this.",
+      "created_at": "2026-05-07T13:02:49Z"
+    },
+    {
+      "author": "pskoric",
+      "author_association": "NONE",
+      "body": "+1, also an issue that's been driving me crazy, pls fix",
+      "created_at": "2026-05-08T02:19:37Z"
+    }
+  ]
+}

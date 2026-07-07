@@ -1,0 +1,35 @@
+{
+  "number": 22299,
+  "title": "[BUG] Claude Desktop MCP: tool call responses dropped by client after first successful round-trip (Windows, regression in CCD v2.1.22)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nOn Claude Desktop for Windows (CCD v2.1.22 / app 1.1.1520), the @modelcontextprotocol/server-filesystem server completes the full MCP handshake (initialize → tools/list) successfully, but subsequent tools/call messages are **never sent** by Claude Desktop to the server. The server stays connected and healthy, but no file operations ever reach it.\n\nThis is a **regression introduced in CCD v2.1.22**. The exact same setup worked correctly on v2.1.20 and earlier. The main.log history confirms the transition.\n\nThe warning `UtilityProcess Check: Extension filesystem not found in installed extensions` appears in main.log on every startup — Claude Desktop may be failing to route tools/call messages because it doesn't find the server registered as an internal extension.\n\nRelated: #14807 (same symptom on Windows)\n\n### What Should Happen?\n\nAfter a successful MCP handshake, Claude Desktop should dispatch tools/call messages to the server for any filesystem operations requested by the user. The server connection should remain active for the full duration of the session and respond to all file read/write/list operations.\n\n\n### Error Messages/Logs\n\n```shell\n**mcp-server-filesystem.log:**\n\n[filesystem] [info] Server started and connected successfully\n[filesystem] [info] Message from client: {\"method\":\"initialize\",...,\"id\":0}\n[filesystem] [info] Message from server: {\"jsonrpc\":\"2.0\",\"id\":0,\"result\":{...}}\n[filesystem] [info] Message from client: {\"method\":\"notifications/initialized\",...}\n[filesystem] [info] Message from client: {\"method\":\"tools/list\",...,\"id\":1}\n[filesystem] [info] Message from server: {\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[...]}}\n\n// ← NOTHING after this. No tools/call ever arrives from the client.\n// ~20 minutes later:\n\n[filesystem] [info] Server transport closed\n[filesystem] [error] Server disconnected. Server transport closed unexpectedly,\n  this is likely due to the process exiting early.\n\n\n**main.log:**\n\n[info] Launching MCP Server: filesystem\n[info] Checking if UtilityProcess should be used for extension filesystem\n[warn] UtilityProcess Check: Extension filesystem not found in installed extensions\n[info] [EventLogging] Sending event: desktop_mcp_unexpected_close\n  | extension_name: 'filesystem'\n  | mcp_cmd: 'node'\n  | app_version: '1.1.1520'\n\n\n**mcp.log:**\nThe only tools/call that ever went through was list_allowed_directories (id:2), and only because it fired within the first ~23 seconds of connection. All subsequent calls were never dispatched.\n\n---\n```\n\n### Steps to Reproduce\n\n1. Install @modelcontextprotocol/server-filesystem globally:\n```\nnpm install -g @modelcontextprotocol/server-filesystem\n```\n\n2. Edit claude_desktop_config.json (located at %APPDATA%\\Claude\\claude_desktop_config.json) with this content:\n```json\n{\n  \"mcpServers\": {\n    \"filesystem\": {\n      \"command\": \"node\",\n      \"args\": [\n        \"C:\\\\Users\\\\YOUR_USER\\\\AppData\\\\Roaming\\\\npm\\\\node_modules\\\\@modelcontextprotocol\\\\server-filesystem\\\\dist\\\\index.js\",\n        \"C:\\\\YOUR_ALLOWED_DIRECTORY\"\n      ]\n    }\n  }\n}\n```\nNote: Using node directly instead of npx is required — with npx the stdio pipe breaks entirely and even the handshake fails.\n\n3. Open Claude Desktop. Confirm the server starts successfully by checking mcp-server-filesystem.log (located at %APPDATA%\\Claude\\logs\\) — you should see the handshake complete (initialize → tools/list → response).\n\n4. Ask Claude to read or list any file/directory in the allowed path (e.g. \"list the files in C:\\YOUR_ALLOWED_DIRECTORY\").\n\n5. Observe: No tools/call message ever appears in the server log. The request hangs indefinitely on the client side. After ~20 minutes the server is disconnected with \"Server transport closed unexpectedly\".\n\n**Verificatio",
+  "labels": ["bug", "has repro", "platform:windows", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-01T02:42:31Z",
+  "updated_at": "2026-02-11T14:33:28Z",
+  "closed_at": "2026-02-04T05:29:19Z",
+  "reactions_total": 18,
+  "comments_count": 10,
+  "author": "MandradeMaking",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/9609\n2. https://github.com/anthropics/claude-code/issues/18863\n3. https://github.com/anthropics/claude-code/issues/14807\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-01T02:45:51Z"
+    },
+    {
+      "author": "sonofsmog",
+      "author_association": "NONE",
+      "body": "**Confirming this bug — independent reproduction with additional findings that narrow the root cause.**\n\nSame environment: CCD v2.1.22 / app 1.1.1520, Windows 11 25H2 (26200.7705).\n\nYour report says `tools/call` never dispatches. I can confirm it actually **does dispatch and execute** — but the **response is dropped by the client before it reaches the UI**. Proof: a `Windows-MCP:Snapshot` call opened Task Manager on my machine, but Claude Desktop reported \"No result received from client-side too",
+      "created_at": "2026-02-01T03:05:13Z"
+    },
+    {
+      "author": "sonofsmog",
+      "author_association": "NONE",
+      "body": "UPDATE — Second machine confirms this is the auto-update, not user environment\nTested on a completely untouched work machine that hasn't been modified since Thursday January 29th. MCP was fully working when I left the office Thursday. No troubleshooting, no KB uninstalls, no extension changes — stock Windows 11, stock Claude Desktop.\n\nAbout dialog still showed 1.1.1200 (old version) but MCP was already broken with the identical pattern: first tool call succeeds, all subsequent calls fail with \"N",
+      "created_at": "2026-02-01T04:24:51Z"
+    }
+  ]
+}

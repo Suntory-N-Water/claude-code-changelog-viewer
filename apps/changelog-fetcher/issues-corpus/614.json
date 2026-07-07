@@ -1,0 +1,35 @@
+{
+  "number": 614,
+  "title": "[BUG] iTerm2 keybinding for shift+enter breaks shift+enter in other programs running in iTerm2",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other:\n- Claude CLI version: 0.2.53 (Claude Code)\n- Operating System: macOS 15.3.2\n- Terminal:  iTerm2 3.5.11\n\n## Bug Description\n\nThe terminal setup command, which installs a keybinding for Shift+Enter in iTerm2 config breaks Shift+Enter in other terminal programs, such Neovim, yazi, helix editor.\n\nClaude Code runs the following command to install the Shift+Enter keybinding:\n\n```\ndefaults write com.googlecode.iterm2 GlobalKeyMap -dict-add 0xd-0x20000-0x24 '<dict><key>Text</key><string>\\\\n</string><key>Action</key><integer>12</integer><key>Version</key><integer>1</integer><key>Keycode</key><integer>13</integer><key>Modifiers</key><integer>131072</integer></dict>'\n```\n\n## Steps to Reproduce\n\nReproduce with Neovim:\n\n1. perform terminal setup via `claude`, or run the above setup command directly\n2. launch `nvim`\n3. press `:` to enter command mode\n4. type `imap <S-Enter> hello` and press enter\n5. press `i` to enter insert mode\n6. press shift+enter\n7. notice a new line is added, while \"hello\" should have been inserted into the buffer\n8. remove the iTerm2 keybinding (Settings -> Keys -> Key Bindings)\n9. press shift+enter\n10. notice \"hello\" is inserted into the buffer\n\nReproduce with [Yazi](https://yazi-rs.github.io/):\n\n1. perform terminal setup via `claude`, or run the above setup command directly\n2. launch `yazi`\n3. select a file by pressing space\n4. press shift+enter (this keybinding is a default one, documented here https://yazi-rs.github.io/docs/quick-start)\n5. notice the file is opened immediately in a default associated program (`$EDITOR`)\n6. remove the iTerm2 keybinding (Settings -> Keys -> Key Bindings)\n7. press shift+enter\n8. notice yazi displays \"Open with\" popup, as expected\n\n## Expected Behavior\n\nClaude Code's terminal setup doesn't break Shift+Enter behavior in other terminal programs.\n\n## Actual Behavior\n\nClaude Code's terminal setup breaks Shift+Enter behavior in other terminal programs.\n\n## Additional Context\n\nNeovim, Yazi, and increasing number of CLI programs use [Kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/) for advanced keyboard shortcuts. By mapping Shift+Enter to \"\\n\" (what you do here) you're preventing actual Shift+Enter sequence (kitty protocol encoded) from hitting any program running in iTerm2. I strongly suggest using a different approach for `claude` under iTerm2.",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-03-25T10:51:02Z",
+  "updated_at": "2026-01-13T14:14:23Z",
+  "closed_at": "2026-01-05T10:22:25Z",
+  "reactions_total": 12,
+  "comments_count": 6,
+  "author": "ku1ik",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "moodiRealist",
+      "author_association": "NONE",
+      "body": "Any updates on this bug plz? 🙏 iterm2 key bindings become useless after installing claude!",
+      "created_at": "2025-08-23T17:14:36Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-05T10:16:10Z"
+    },
+    {
+      "author": "ku1ik",
+      "author_association": "NONE",
+      "body": "Still occuring.",
+      "created_at": "2025-12-05T11:59:29Z"
+    }
+  ]
+}

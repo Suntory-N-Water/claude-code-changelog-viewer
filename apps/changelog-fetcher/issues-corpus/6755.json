@@ -1,0 +1,16 @@
+{
+  "number": 6755,
+  "title": "[BUG] Claude LLM - Improper use of verb vs noun hybrid words",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [x] Other: Claude LLM itself?\n- Claude CLI version: NA (LLM training issue)\n- Operating System: NA\n- Terminal:  NA\n\n## Bug Description\nSet up is a verb. Setup is a noun.\nLog in is a verb. Login is a noun.\nClean up is a verb. Cleanup is a noun.\n\nClaude pretty consistently always uses the noun form. If you're performing the action, it is always two words. If you're talking about it as a thing, one word. I use my racecar to race cars. I definitely don't use my race car to racecars. \n\nThese are all incorrect, and are methods that Claude output for me in the span of a day:\nSetupUserInfo() (should be SetUpUserInfo())\nLoginUserAsAdmin() (Should be LogInUserAsAdmin())\nCleanupOrphanedRecords.sql (Should be CleanUpOrphanedRecords.sql)\n\nThese are also incorrect (but are not mistakes Claude currently has made for me - but if making training data, wouldn't want it to blindly overcorrect the other direction):\nGetUserInfoSetUps() (noun, should be Setup -- get is the verb, Setup is the thing).\nGetUserLogIns() (a Login page, or a user Login, is used to LogInToSomething. These are User Logins which the user would use to log in).\n\n\n## Steps to Reproduce\n1. Ask Claude to create a cleanup script. Ask Claude to create a setup method. Ask Claude to create a login method.\n\n## Expected Behavior\nShouldn't output confusing / grammatically incorrect casing, harming readability and perpetuating improper use of common programming terms.\n\n## Actual Behavior\nCasing all over the place for hybrid words - mostly leaning towards the noun hybridization with no regard to whether it is an action or a subject.\n\n## Additional Context\nThis is a very common programmer mistake so I'm sure its just bad training data. Even my bank has a button titled \"Login\" on their login page.\nNitpicky, but combined with Git being obnoxious about changing file name casing on windows it gets really annoying to fix a bunch of these if you don't notice it before the initial commit. Seems real easy to fix at the training level, I'd imagine.\nI couldn't find a better place to file this bug, feel free to point me in the right direction if there's an official spot to report non-security LLM training issues.",
+  "labels": ["invalid"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-08-28T16:39:28Z",
+  "updated_at": "2025-12-07T14:07:29Z",
+  "closed_at": "2025-11-29T20:59:50Z",
+  "reactions_total": 0,
+  "comments_count": 2,
+  "author": "EklipZgit",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

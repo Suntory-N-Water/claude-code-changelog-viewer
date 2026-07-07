@@ -1,0 +1,35 @@
+{
+  "number": 6388,
+  "title": "[BUG] WebFetch \"Unable to verify domain is safe\" error",
+  "body": "Environment\n\n  - Platform (select one):\n  - Claude CLI version: 1.0.89 (Claude Code)\n  - Operating System: macOS (Darwin 24.6.0)\n  - Terminal: VS Code integrated terminal\n\n  Bug Description\n\n  WebFetch tool fails to access Microsoft Learn documentation URLs with \"Unable to verify if domain is safe to\n  fetch\" error. This appears to be a regression as the functionality worked previously. The issue affects deep URLs\n  while base domains work correctly.\n\n  Steps to Reproduce\n\n  1. Open Claude Code in VS Code\n  2. Use WebFetch tool with command: WebFetch(url: \"https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugi\n  ns/adding-mcp-plugins?pivots=programming-language-python\", prompt: \"Get documentation content\")\n  3. Observe the error response\n\n  Expected Behavior\n\n  WebFetch should successfully fetch and process content from Microsoft Learn documentation pages, as it did in\n  previous versions.\n\n  Actual Behavior\n\n  Error: Unable to verify if domain learn.microsoft.com is safe to fetch. This may be due to network restrictions or\n   enterprise security policies blocking claude.ai.\n  API Error (Request timed out.) · Retrying in 1 seconds… (attempt 1/10)\n\n  Full prompt:\n  read https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/adding-mcp-plugins and make sure we are \n  following this pattern\n\n⏺ I'll read the Microsoft documentation on MCP plugins in Semantic Kernel to ensure we're following the correct\n  pattern.\n\n⏺ Fetch(https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/adding-mcp-plugins)\n  ⎿  Error: Unable to verify if domain learn.microsoft.com is safe to fetch. This may be due to network restrictions \n     or enterprise security policies blocking claude.ai.\n\n⏺ Let me try a web search instead to find the Microsoft Semantic Kernel MCP plugin documentation.\n\n⏺ Web Search(\"Microsoft Semantic Kernel MCP plugins adding pattern documentation 2024\")\n  ⎿  Did 0 searches in 360ms                   \n\n  Additional Context\n\n  Working URLs:\n  - ✅ https://www.google.com - Works consistently\n  - ✅ https://learn.microsoft.com (base domain) - Works\n  - ✅ https://github.com - Works initially but sometimes fails after repeated use\n\n  Failing URLs:\n  - ❌ https://learn.microsoft.com/en-us/semantic-kernel/... (deep URLs with paths)\n  - ❌ Some GitHub deep URLs after initial usage\n\n  Network Verification:\n  - Local network can access all URLs successfully via curl/browser\n  - Issue appears to be on Anthropic's infrastructure side, not user network\n  - Inconsistent behavior suggests rate limiting or domain filtering policies\n\n  Impact: This significantly reduces Claude Code effectiveness for searching web for development workflows and\n  documentation research tasks.",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-23T01:37:21Z",
+  "updated_at": "2026-04-09T19:43:42Z",
+  "closed_at": null,
+  "reactions_total": 17,
+  "comments_count": 15,
+  "author": "csseiip",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/6188\n2. https://github.com/anthropics/claude-code/issues/4053\n3. https://github.com/anthropics/claude-code/issues/1217\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-23T01:41:46Z"
+    },
+    {
+      "author": "csseiip",
+      "author_association": "NONE",
+      "body": "using home wifi, not corporate.  ",
+      "created_at": "2025-08-23T01:44:13Z"
+    },
+    {
+      "author": "grantcarthew",
+      "author_association": "NONE",
+      "body": "The comment on https://github.com/anthropics/claude-code/issues/6188 indicates that the WebFetch tool is checking domains via:\n\n```\nhttps://claude.ai/api/web/domain_info?domain=\n```\n\nWe're using Claude Code via Google Vertex AI and the domain claude.ai is blocked by our firewall. This is what's preventing the WebFetch tool from working.\n\n<img width=\"1837\" height=\"115\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/b245c044-719b-42a2-947e-33db9e6e0ec9\" />\n\nThe domain check should be ",
+      "created_at": "2025-08-25T01:08:50Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 25896,
+  "title": "[BUG] Sandbox `denyWithinAllow` list omits `.git/` prefix from git-internal file paths",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## What's Wrong?\n\nThe sandbox's `denyWithinAllow` list constructs incorrect paths for git-internal files. Files that live inside `.git/` (such as `HEAD`, `objects`, `refs`, `hooks`, `config`) are listed without the `.git/` path component, pointing to nonexistent paths at the project root instead.\n\n## Actual Behavior\n\nThe deny list contains:\n```\n/path/to/project/HEAD\n/path/to/project/objects\n/path/to/project/refs\n/path/to/project/hooks\n/path/to/project/config\n```\nThe `.git/` segment is missing from every path.\n\n## Impact\n\n1. **`.git/` internals are unprotected.** The deny rules target nonexistent paths at the project root, so the sandbox does not actually block writes to `.git/HEAD`, `.git/objects`, etc.\n2. **False positives.** If a project happened to have files named `HEAD`, `config`, `objects`, `refs`, or `hooks` at the root level, they would be incorrectly blocked.\n\n\n\n### What Should Happen?\n\n## Expected Behavior\n\nThe deny list should contain:\n\n```\n/path/to/project/.git/HEAD\n/path/to/project/.git/objects\n/path/to/project/.git/refs\n/path/to/project/.git/hooks\n/path/to/project/.git/config\n```\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n## Steps to Reproduce\n\n1. Create a standard (non-bare) git repo\n2. Enable sandbox in settings:\n\n```json\n{\n  \"sandbox\": {\n    \"enabled\": true,\n    \"autoAllowBashIfSandboxed\": true,\n    \"excludedCommands\": [\"git\"]\n  }\n}\n```\n\n3. Start a Claude Code session in the repo\n4. Ask Claude to show the full `denyWithinAllow` list\n5. Observe that git-internal files are listed without the `.git/` prefix\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.42 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "platform:vscode"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-15T11:10:39Z",
+  "updated_at": "2026-06-10T13:53:49Z",
+  "closed_at": "2026-05-25T22:29:34Z",
+  "reactions_total": 6,
+  "comments_count": 11,
+  "author": "bpirvu",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "bpirvu",
+      "author_association": "NONE",
+      "body": "## Note: fixing the paths alone may not be sufficient\n\nDuring investigation, I manually added correct `Edit(.git/**)` deny rules to my permissions config. This resulted in the sandbox blocking legitimate `git add` and `git commit` operations with errors like:\n\n```\nfatal: Unable to create '/path/to/project/.git/index.lock': Operation not permitted\n```\n\n```\nerror: unable to create temporary file: Operation not permitted\nerror: dot_claude/commands/commit-all.md: failed to insert into database\n```\n\n",
+      "created_at": "2026-02-15T12:25:38Z"
+    },
+    {
+      "author": "nf-matt",
+      "author_association": "NONE",
+      "body": "I thought I was going crazy today. Glad you guys know about this, and thanks for what you build. 😃",
+      "created_at": "2026-02-27T03:41:44Z"
+    },
+    {
+      "author": "seanlynch",
+      "author_association": "NONE",
+      "body": "This also prevents use of the sandbox if your project has a subdirectory called for example \"config\". And it's not overridable with your local config settings, meaning there is no workaround other than to not use the sandbox for any bash command that might need to write to one of the inappropriately denied files/directories.\n\nThis is also a security vulnerability in the sandbox so should probably be prioritized rather than being allowed to go stale.",
+      "created_at": "2026-03-24T15:47:52Z"
+    }
+  ]
+}

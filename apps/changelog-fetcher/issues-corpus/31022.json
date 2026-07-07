@@ -1,0 +1,35 @@
+{
+  "number": 31022,
+  "title": "[BUG] Claude Code 2.1.69 freezes on startup in specific project directories on Windows",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code 2.1.69 freezes on startup in specific project directories on Windows. \n2.1.68 works fine in the same directory. Empty directories and small git repos work fine even on 2.1.69.\n\nDebug log shows the process hangs after `Ripgrep first use test: PASSED` with no further output.\nA non-fatal error `Failed to save config with lock: Error: EEXIST: file already exists, mkdir 'C:\\Users\\<user>'` appears in every run but also appears in working directories where startup succeeds, so it's not the direct cause.\n\n### What Should Happen?\n\nClaude Code should start normally and display the TUI, as it does with version 2.1.68 in the same directory.\n\n### Error Messages/Logs\n\n```shell\n2026-03-05T09:54:05.642Z [DEBUG] Git remote URL: git@github.com:<org>/<repo>.git\n2026-03-05T09:54:05.642Z [DEBUG] Parsed repository: null from URL: git@github.com:<org>/<repo>.git\n2026-03-05T09:54:05.642Z [DEBUG] Not in a GitHub repository, skipping path mapping update\n2026-03-05T09:54:05.739Z [DEBUG] [Claude in Chrome] Found brave profiles: Default\n2026-03-05T09:54:05.761Z [DEBUG] [Claude in Chrome] Found edge profiles: Default\n2026-03-05T09:54:05.777Z [DEBUG] [Claude in Chrome] Extension not found in any browser\n2026-03-05T09:54:05.789Z [ERROR] Failed to save config with lock: Error: EEXIST: file already exists, mkdir 'C:\\Users\\<user>'\n2026-03-05T09:54:06.291Z [DEBUG] Ripgrep first use test: PASSED (mode=builtin, path=C:\\Users\\<user>\\.local\\bin\\claude.exe)\n-- hangs here, no further output --\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code 2.1.69 (native or npm) on Windows\n2. Have a project directory with multiple subdirectories (e.g., frontend/, backend/, assets/, docker/, services/)\n3. `cd` into the project directory\n4. Run `claude`\n5. TUI never renders. Process hangs indefinitely. Ctrl+C exits.\n\n**What was tested and ruled out (all still freeze):**\n- Removing project `.claude/` directory\n- Removing `CLAUDE.md`\n- Removing `.git`\n- Removing `node_modules`\n- Creating an empty subdirectory inside the project and running `claude` from there\n- Clearing `~/.claude/history.jsonl`\n- Setting `NODE_TLS_REJECT_UNAUTHORIZED=0`\n- Removing proxy environment variables\n- New PowerShell session\n- PC restart\n\n**What works:**\n- Same directory with 2.1.68: starts normally\n- Empty directory on same drive with 2.1.69: starts normally\n- Home directory (`C:\\Users\\<user>`) with 2.1.69: starts normally\n- Small git repo on same drive with 2.1.69: starts normally\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.68\n\n### Claude Code Version\n\n2.1.69 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n- The project has ~77k files / 1.4GB total\n- Using corporate proxy with SSL inspection\n- Connected via VPN from home (but network was verified working: `curl.exe` to api.anthropic.com returns 404 through proxy)\n- Git remote uses custom SSH host alias (`git@github.com-work:`)\n- Debug log shows `Parsed repository: null` for the remote URL\n- 2.1.69 changelog includes \"Fixed global `.claude` folder detection on Windows\" which may be related\n- The `[ERROR] Failed to save config with lock: EEXIST mkdir 'C:\\Users\\<user>'` appears in BOTH working and non-working directories, so it is not the direct cause\n- Working directory is on D: drive (not C:), but empty D: drive directories work fine on 2.1.69",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui", "regression"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-05T10:20:20Z",
+  "updated_at": "2026-03-14T14:17:51Z",
+  "closed_at": "2026-03-06T04:04:24Z",
+  "reactions_total": 15,
+  "comments_count": 13,
+  "author": "raiki61",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "blois",
+      "author_association": "COLLABORATOR",
+      "body": "Fix should be rolling out in the next version.",
+      "created_at": "2026-03-05T18:07:22Z"
+    },
+    {
+      "author": "blois",
+      "author_association": "COLLABORATOR",
+      "body": "Should be fixed in `2.1.70`.",
+      "created_at": "2026-03-06T04:04:24Z"
+    },
+    {
+      "author": "leandor70",
+      "author_association": "NONE",
+      "body": "Experiencing same bug!",
+      "created_at": "2026-03-05T10:29:19Z"
+    }
+  ]
+}

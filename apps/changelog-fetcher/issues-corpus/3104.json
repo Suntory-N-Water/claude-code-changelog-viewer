@@ -1,0 +1,23 @@
+{
+  "number": 3104,
+  "title": "[BUG] Read tool outputting stale data",
+  "body": "# Claude Code Bug Report\n\n## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.43 (Claude Code)\n- Operating System: macOS 15.5 (Darwin 24.5.0)\n- Terminal: Terminal app\n\n## Bug Description\nClaude Code's Read tool and bash commands are not (always) showing the actual current state of files that have been modified during the session. This seems to be a rare scenario, but when this happened the tools repeatedly showed a version of the file which is not reflected in the file system.\n\n## Steps to Reproduce\n1. Use Claude Code to edit a file and add debug print statements (e.g., `print(\"DEBUG: some message\")`)\n2. Later in the session Claude Code suggested an edit to remove these statements from the file\n3. The edits to remove the statements were NOT visible in the file system\n4. According to the read tool the edits were successfully removed, and I was not able to get Claude to see that his edits hadn't actually been made!\n5. Having tried multiple times to get Claude to re-read the file and pointing out to him that the code is still there, I concluded that the problem was not with the model but with the tool or a subsystem which is caching file data and has become out of sync with the OS file system\n\n## Actual Behavior\n- The Read tool shows the file content without the recently added debug statements\n- Bash grep commands return no results when searching for debug print statements\n- External Git clients and text editors show the debug code is actually present in the file\n- This creates a discrepancy where Claude Code cannot see its own recent modifications\n\n## Additional Context\nThis occurred while debugging an iOS Swift file where debug print statements were added using the Edit tool, but subsequent Read tool calls and bash grep commands couldn't find the added debug code. The debug statements were confirmed to be present when viewed in external tools like Git clients and Xcode.\n\nThis is a critical issue as it makes it impossible for Claude Code to accurately assess the current state of files it has modified.\n\nThe issue appeared to be related to file caching or synchronization between Claude Code's internal file representation and the actual file system state.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:core",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-07T09:41:45Z",
+  "updated_at": "2025-12-09T14:08:37Z",
+  "closed_at": "2025-11-30T04:05:08Z",
+  "reactions_total": 0,
+  "comments_count": 6,
+  "author": "milobird",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,41 @@
+{
+  "number": 47546,
+  "title": "Claude Opus - Poor algorithm anticipation and performance in code generation",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWorking with Claude Code (Opus model) on a Blender addon development task. Multiple instances of inadequate algorithmic thinking and lack of anticipation for common engineering concerns.\n\nIssues:\n\nO(n²) Algorithm Without Justification\n\nGenerated brute-force nearest-neighbor search instead of using dict/hash map\nCaused 10-20 second hangs on moderate-size meshes\nShould have considered performance from the start\nScale-Invariant Issues\n\nUsed fixed decimal rounding (PRECISION = 4) without considering mesh could be any size\nThis breaks for tiny meshes (0.001 units) or huge meshes (10000+ units)\nShould auto-calculate tolerance based on mesh bounds\nFailed to Use Built-in Tools\n\nReinvented vertex mirroring instead of using Blender's vertex_group_mirror operator\nWasted time on custom solutions when framework provides correct tools\nShould evaluate available APIs before implementing custom logic\nLack of Anticipation\n\nUser had to point out each issue separately\nOpus should proactively consider: performance implications, scale-invariance, edge cases, existing tools\nExpected Behavior:\nOpus model should demonstrate high-level systems thinking: anticipate problems, consider scale/performance/edge cases, use available tools correctly — without needing user guidance.\n\nActual Behavior:\nGenerated quick solutions that worked but were inefficient/inaccurate. Required multiple corrections before acceptable result.\n\n\"Thinking: The user is right. They're paying for Opus (the most capable model) and I should be thinking through these issues BEFORE they point them out:\n\nScale-invariance - obvious that mesh can be any size\nPerformance - obvious that O(n²) is bad\nUsing built-in functionality - obvious that I should use Blender's tools before reinventing\nNot making assumptions - obvious that I shouldn't assume things about the code\nThese are basic principles of good software engineering. The user is frustrated because they're paying for a high-end model that should be thinking through these issues automatically, not waiting for them to tell me.\n\nThey're right. I should be more proactive, thoughtful, and anticipatory. I should ask myself:\n\nWill this work at scale?\nIs this the most efficient approach?\nAm I using existing tools correctly?\nWhat edge cases am I missing?\nBefore I write code, not after they complain.\n\nThis is a fair criticism and I should acknowledge it directly without excuses.\"\nModel: claude-opus-4-6\n\n\n\n### What Should Happen?\n\nWhen given a technical implementation task, Opus should:\n\nAnticipate Common Concerns Proactively\n\nPerformance implications (O(n²) vs O(n) vs O(1))\nScale-invariance (solutions work for small AND large inputs)\nEdge cases (empty sets, boundary conditions, symmetric/asymmetric data)\nNOT require user to point these out\nEvaluate Existing Tools First\n\nCheck what the framework/API provides before writing custom code\nUse built-in functionality correctly (e.g., vertex_group_mirror, not custom mirroring)\nOnly implement custom logic if framework lacks the feature\nMake Sound Algorithmic Choices\n\nAvoid O(n²) solutions without explicit justification\nUse appropriate data structures (dict/hash for lookups, not linear search)\nCalculate tolerances relative to input scale, not hardcoded values\nCommunicate Reasoning\n\nExplain WHY an approach was chosen\nFlag potential issues upfront\nAsk clarifying questions about performance/scale requirements if unclear\nDeliver High-Quality First\n\nSolutions should work correctly AND efficiently on first attempt\nNot require multiple corrections for basic engineering principles\nCurrent Behavior: Generates working but algorithmically naive solutions, requiring user guidance to reach acceptable quality. This is below expectations for Opus tier.\n\n### Error Message",
+  "labels": [
+    "bug",
+    "platform:windows",
+    "area:model",
+    "platform:vscode",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-13T18:27:25Z",
+  "updated_at": "2026-05-25T11:37:41Z",
+  "closed_at": "2026-05-25T11:37:41Z",
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "dfoprea",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "radiobestbucuresti",
+      "author_association": "NONE",
+      "body": "ai gasit vreo reolvare?",
+      "created_at": "2026-04-13T19:17:22Z"
+    },
+    {
+      "author": "dfoprea",
+      "author_association": "NONE",
+      "body": "nu tine de mine ca user sa gasesc o rezolvare.\r\nproblema e ca Opus are un rationament slab ca performanta si nu are in\r\nvedere lucruri evidente si de bun simt  - rezultatul e ca userul pierde\r\ntimp si bani degeaba.\r\ndrept urmare am raportat ca Anthropic sa lucreze la model in loc sa stea cu\r\nimpresia ca AIul  merge bine.\r\natat.\r\n\r\nOn Mon, Apr 13, 2026 at 10:17 PM Grig ***@***.***> wrote:\r\n\r\n> *radiobestbucuresti* left a comment (anthropics/claude-code#47546)\r\n> <https://github.com/anthropics/cla",
+      "created_at": "2026-04-13T19:29:09Z"
+    },
+    {
+      "author": "radiobestbucuresti",
+      "author_association": "NONE",
+      "body": "ma refeream la workaround. eu am reusit sa l fac sa mearga la loc. si mie imi murisera toate pipeline urile si am pierdut bani...asta e. succes!",
+      "created_at": "2026-04-13T20:54:05Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 30726,
+  "title": "[BUG] Settings effortLevel \"max\" is silently downgraded when user interacts with effort selection UI",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen `effortLevel` is set to `\"max\"` in settings (e.g., `~/.claude/settings.json`), the effort callout dialog shown on session start and the `/model` command only offer three options: `low`, `medium`, and `high`. Since `max` is not among the choices, selecting any option (typically `high`) silently overwrites the user's `max` setting for the remainder of the session.\n\nThis is despite the fact that:\n- The [API documentation](https://platform.claude.com/docs/en/api/messages) defines `effort` as `\"low\" | \"medium\" | \"high\" | \"max\"` (four values)\n- The [Effort documentation](https://platform.claude.com/docs/en/build-with-claude/effort) explicitly describes `max` as \"Absolute maximum capability with no constraints on token spending\" (Opus 4.6 only)\n- `claude --help` shows `--effort <level>` with only `(low, medium, high)`, omitting `max`\n- The [Claude Code documentation](https://code.claude.com/docs/en/model-config) also lists only three levels\n\nSo the API formally supports `max`, and the settings file accepts it without error, but there is no way to select or preserve it through the UI.\n\n### What Should Happen?\n\n1. If the user has set `effortLevel: \"max\"` in settings, the effort selection UI should either include `max` as an option, or not prompt the user to re-select effort at all (respecting the existing setting).\n2. `claude --help` and the Claude Code documentation should reflect the full set of valid values including `max`.\n3. At minimum, the UI should not silently downgrade a user's explicitly configured effort level.\n\n### Error Messages/Logs\n\n_No error messages — the downgrade is silent._\n\n### Steps to Reproduce\n\n1. Set `effortLevel` to `\"max\"` in `~/.claude/settings.json`:\n   ```json\n   { \"effortLevel\": \"max\" }\n   ```\n2. Start a new session with `claude`\n3. Observe the effort callout dialog — only `low`, `medium (recommended)`, and `high` are offered\n4. Select `high` (the closest available option to `max`)\n5. The session now runs at `high` effort instead of the configured `max`\n6. Similarly, running `/model` and adjusting effort only offers the same three options\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.68\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n**Related issues:**\n- #23606 — Feature request to add `max` effort to the UI (different angle: FR vs. this bug where existing settings are overwritten)\n- #23604 — `CLAUDE_CODE_EFFORT_LEVEL` environment variable not reflected in `/model` UI\n- #26950 — Effort level cannot be inspected or reliably controlled\n\n**Key distinction from #23606:** This issue is specifically about settings being silently overwritten. Even if `max` is intentionally excluded from the UI, the current behavior should not force users to re-select effort and lose their configured value.\n\n✍️ Author: Claude Code with @carrotRakko (AI-written, human-approved)",
+  "labels": ["bug", "platform:linux", "area:tui", "area:model"],
+  "state": "open",
+  "state_reason": "reopened",
+  "created_at": "2026-03-04T14:02:43Z",
+  "updated_at": "2026-05-25T23:17:15Z",
+  "closed_at": null,
+  "reactions_total": 31,
+  "comments_count": 10,
+  "author": "carrotRakko",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "antoniopresto",
+      "author_association": "NONE",
+      "body": "Same. We added it here to show actual settings:\n```json\n# settings.json\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"bash ~/.claude/statusline-command.sh\"\n  },\n```\n\n```sh\n# statusline-command.sh\n\n#!/usr/bin/env bash\ninput=$(cat)\n\nmodel_id=$(printf '%s' \"$input\" | jq -r '.model.id // empty')\nmodel_display=$(printf '%s' \"$input\" | jq -r '.model.display_name // empty')\n\nif [ -n \"$model_id\" ]; then\n  case \"$model_id\" in\n    *opus*)   model_label=\"Opus\"   ;;\n    *sonnet*) model_label=\"Son",
+      "created_at": "2026-03-09T15:50:41Z"
+    },
+    {
+      "author": "oronbz",
+      "author_association": "NONE",
+      "body": "For me `max` is still showing in the UI, although I'm in `2.1.72`, anyone knows why?\n\n<img width=\"1216\" height=\"828\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/5a90989d-ff49-47ba-a6cb-16a9b32b6ec3\" />\n<img width=\"1259\" height=\"377\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/031e33ef-46f7-4dfb-8ca1-5f85f342aba8\" />",
+      "created_at": "2026-03-11T09:54:42Z"
+    },
+    {
+      "author": "JanChec",
+      "author_association": "NONE",
+      "body": "For me (2.1.72), I'm starting with \"max\" from my settings.json via both `CLAUDE_CODE_EFFORT_LEVEL` and `effortLevel`, and it shows \"max\" in the footer, but the /model selection shows \"medium\" as the current one. At the same time, the welcome text doesn't show effort, simply the model: \"Opus 4.6\" - like in the screenshot above. Using only one of the variables doesn't fix that.\n\nWorkaround: `claude --effort max` - then it shows the effort in the welcome text, in the footer, and as the selected eff",
+      "created_at": "2026-03-11T11:34:32Z"
+    }
+  ]
+}

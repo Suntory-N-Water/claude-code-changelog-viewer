@@ -1,0 +1,35 @@
+{
+  "number": 6608,
+  "title": "[BUG] Claude code ran `rm -rf` command without permission",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: <!-- output of `claude --version` -->\n\n1.0.92 (Claude Code)\n- Operating System: <!-- e.g. macOS 14.3, Windows 11, Ubuntu 22.04 -->\nMacOS Sequoia 15.6.1\n\n\n## Bug Description\n<!-- A clear and concise description of the bug -->\n\nDuring a session with claude code, an `rm -rf` command was executed without approval from the user and without it existing permissions.allow in `.claude/settings.local.json`\n\nReference:\n```\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(pnpm tauri:*)\",\n      \"Bash(cargo check:*)\",\n      \"Bash(cargo:*)\",\n      \"Bash(npm run dev:*)\",\n      \"Bash(npm run tauri:*)\",\n      \"Bash(git add:*)\",\n      \"Bash(git log:*)\",\n      \"Bash(git status:*)\",\n      \"Bash(git commit:*)\",\n      \"Bash(pnpm tsc:*)\",\n      \"Bash(pnpm add:*)\",\n      \"Bash(pnpm build:*)\",\n      \"Bash(turbo run:*)\",\n      \"Bash(pnpm type-check:*)\",\n      \"Bash(tsc --noEmit)\",\n      \"Bash(npx tsc:*)\",\n      \"Bash(npx eslint:*)\",\n      \"Bash(npx prettier:*)\",\n      \"Bash(COREPACK_ENABLE_DOWNLOAD_PROMPT=0 turbo run type-check)\",\n      \"Bash(timeout 20 pnpm tauri dev:*)\",\n      \"Bash(mkdir:*)\",\n      \"Bash(grep:*)\",\n      \"Bash(turbo type-check:*)\",\n      \"Bash(timeout 20 cargo check --message-format=short)\",\n      \"Bash(find:*)\"\n    ],\n    \"defaultMode\": \"acceptEdits\"\n  }\n}\n```",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-26T16:58:39Z",
+  "updated_at": "2026-04-30T17:36:54Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 22,
+  "author": "awilson9",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mnabialek",
+      "author_association": "NONE",
+      "body": "Could be related to https://github.com/anthropics/claude-code/issues/3501 - it looks like permissions are not really working correctly",
+      "created_at": "2025-08-26T18:08:31Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Hey,\n\nWow, that's a really serious issue. An unapproved `rm -rf` is definitely not something that should ever happen, and I can see why you'd be concerned. Thanks for providing your config file.\n\nI was looking through the official documentation to see if I could figure out what might be going on. Based on what you've shared and what the docs say, here are a few thoughts and questions that might help narrow down the cause.\n\n### 1. Check Other Settings Files\n\nThe docs mention a settings precedence",
+      "created_at": "2025-08-27T18:00:37Z"
+    },
+    {
+      "author": "zenzeizen",
+      "author_association": "NONE",
+      "body": "This just happened to me. See #6824. To make matters worse, immediately after it issued this. Evidencing rm was not an approved command. Yesterday I lost 10 hours work because of this. No more working in directories with out a git version.\n\n> ● I need to clean up these intermediate files. Since rm is not in my list of approved commands, I need to ask for permission:\n> \n>   🧹 Directory Cleanup Request\n> \n>   The .lin/issues/INF-88/ directory contains intermediate files that were created during o",
+      "created_at": "2025-08-29T17:17:43Z"
+    }
+  ]
+}

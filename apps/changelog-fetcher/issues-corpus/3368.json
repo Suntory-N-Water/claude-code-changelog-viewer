@@ -1,0 +1,35 @@
+{
+  "number": 3368,
+  "title": "[BUG] Shift + Tab is not working in powershell on windows native",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [x] Other: Windows\n- Claude CLI version: 1.0.51 (Claude Code)\n- Operating System: Windows 11\n- Terminal:  powershell\n\n## Bug Description\nHitting Shift + Tab is not changing mode to auto accept or planning mode\n\n## Steps to Reproduce\n1. Launch `claude` on windows in powershell or cmd on windows 11\n2. Press Shift + Tab\n\n## Expected Behavior\nEditing mode shifts\n\n## Actual Behavior\nNothing changes\n\n## Additional Context\n<!-- Add any other context about the problem here, such as screenshots, logs, etc. -->",
+  "labels": ["bug", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-12T00:14:33Z",
+  "updated_at": "2025-08-03T14:04:34Z",
+  "closed_at": "2025-07-17T01:07:15Z",
+  "reactions_total": 47,
+  "comments_count": 70,
+  "author": "Twizzes",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Hey folks, can you share more details:\n- Windows 10 or 11?\n- Running in Windows Terminal?\n- Running in an IDE?\n- What happens when you press shift+tab?\n- Does auto-accept edits (shift-tab once) toggle as well?\n\nI'm able to enter plan mode on Win11 + Windows Terminal (outside of and within VS Code) - trying to get a repro on this one!",
+      "created_at": "2025-07-14T21:41:42Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for all the environment details - we're working on a fix for this and https://github.com/anthropics/claude-code/issues/3442.\n\nAs a workaround, you can start Claude like this: `claude --permission-mode plan` (see `claude --help` for more details).",
+      "created_at": "2025-07-15T09:53:18Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "@Ixe1 I believe this is due to https://github.com/nodejs/node/pull/58358 (in Node 24.2.0 and 22.17.0).\n\nWe're likely going to remap shift+tab to another chord that isn't modifiers-only - just for Windows users on other versions of Node. This was a fairly straightforward mitigation, we're working on addressing #3442 in tandem.",
+      "created_at": "2025-07-15T22:48:50Z"
+    }
+  ]
+}

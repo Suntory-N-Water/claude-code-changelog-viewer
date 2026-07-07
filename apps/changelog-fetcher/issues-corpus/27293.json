@@ -1,0 +1,35 @@
+{
+  "number": 27293,
+  "title": "Feature request: lossless context cleanup before auto-compaction",
+  "body": "## Problem\n\n`/compact` replaces the entire conversation with a short summary. This is lossy — it destroys reasoning, decision context, and nuance. A 150k-token session where you spent 40 minutes mapping architecture becomes \"We discussed the codebase architecture and identified key patterns.\"\n\nBut the majority of a typical session's context isn't conversation at all. From analysis of 33 real Claude Code sessions ([full methodology and data](https://github.com/CosmoNaught/claude-code-cmv/blob/main/docs/CACHE_IMPACT_ANALYSIS.md)):\n\n| Content | % of context | Value on reload |\n|---------|-------------|-----------------|\n| Tool results (file contents, bash output) | ~60-70% | None — already synthesised by the model |\n| Thinking signatures (base64 blobs) | ~15-20% | None — cryptographic verification, not reasoning |\n| Actual conversation | ~10-15% | All of it |\n\n## Proposal\n\nBefore compaction triggers, stub mechanical overhead while preserving every message verbatim:\n\n- `tool_result` blocks over N chars → `[File read: src/auth.ts, 847 lines]`\n- `tool_use` inputs (Write/Edit file contents) → `[Trimmed input: ~N chars]`\n- Image blocks (base64 screenshots) → stripped\n- Thinking block signatures → stripped\n- Pre-compaction dead lines, file-history snapshots, queue operations → skipped\n\nThe model's own synthesis stays intact. If it needs a file again, it can re-read it.\n\n## Evidence\n\nI built [Contextual Memory Virtualisation (CMV)](https://github.com/CosmoNaught/claude-code-cmv) to test this approach. Results from the [cache impact analysis](https://github.com/CosmoNaught/claude-code-cmv/blob/main/docs/CACHE_IMPACT_ANALYSIS.md) across 33 real sessions:\n\n- **Benchmark-estimated reduction: 10.5% mean** (conservative model that understates by ~2x — see methodology)\n- **Observed reduction: ~50%** when validated against actual `/context` output (148k tokens → 74k tokens, [documented with screenshots](https://github.com/CosmoNaught/claude-code-cmv/blob/main/docs/CACHE_IMPACT_ANALYSIS.md#benchmark-vs-observed-reduction-v10))\n- **97% context → ~20%** on a near-full session using the v1.1.0 trimmer, with no observable quality degradation\n- Zero conversation loss — every user message, assistant response, and tool use request is preserved verbatim\n\nFor API-key users, the one-time cache miss penalty from trimming ($0.07-0.22) is recovered within 3-45 turns of continued conversation. For subscription users, there is no cost implication at all — it's purely a context window optimization.\n\nThe [community response](https://www.reddit.com/r/ClaudeCode/comments/1r9ivfs/psa_cli_tool_could_save_you_2070_of_your_tokens/) suggests this is a widely felt pain point.\n\n## Why this matters\n\nContext is the most expensive thing users build. It takes real time and real tokens to get Claude up to speed on a codebase. `/compact` treats that accumulated understanding as disposable. A lossless cleanup step before (or instead of) lossy compaction would let users keep working in the same session far longer without quality degradation.\n\nThe model doesn't struggle after trimming because you're removing **inputs to understanding**, not the understanding itself. When Claude reads 847 lines and responds \"this uses JWT with refresh tokens in httpOnly cookies\", that sentence *is* the knowledge. The 847 lines were consumed to produce it.",
+  "labels": ["stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-21T01:22:07Z",
+  "updated_at": "2026-05-01T14:48:15Z",
+  "closed_at": "2026-04-23T22:21:22Z",
+  "reactions_total": 5,
+  "comments_count": 14,
+  "author": "CosmoNaught",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17428\n2. https://github.com/anthropics/claude-code/issues/25967\n3. https://github.com/anthropics/claude-code/issues/23504\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-21T01:25:08Z"
+    },
+    {
+      "author": "CosmoNaught",
+      "author_association": "NONE",
+      "body": "As mentioned above, I've implemented this in CMV's trimmer so more than happy to contribute a PR implementing this. ",
+      "created_at": "2026-02-21T01:26:00Z"
+    },
+    {
+      "author": "CosmoNaught",
+      "author_association": "NONE",
+      "body": "Related issues: #17428, #25967, #23504\n\n",
+      "created_at": "2026-02-21T01:34:10Z"
+    }
+  ]
+}

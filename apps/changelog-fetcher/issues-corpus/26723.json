@@ -1,0 +1,35 @@
+{
+  "number": 26723,
+  "title": "[BUG] Bun v1.3.10 crashes with \"panic: incorrect alignment\" on Windows 11 ARM64 (v2.1.47)",
+  "body": "\n\nThis issue will be fixed in the next version of Claude Code.\n\nVia https://github.com/oven-sh/bun/pull/27290\n\nOriginal issue:\n\n\n------\n\n### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code v2.1.47 crashes repeatedly with a Bun runtime panic on Windows 11 ARM64. The crash is 100% reproducible — it occurs after ~80–150 seconds of runtime regardless of what command is being executed. Even trivial operations trigger it if the session has been running long enough.\n\nThe crash always produces the identical signature:\n- `panic(thread XXXXX): incorrect alignment`\n- RSS at crash: 0.64–0.78 GB (machine has 34 GB — not memory pressure)\n- Crash happened 5 consecutive times in one session\n\n### What Should Happen?\n\nClaude Code should run without crashing on Windows 11 ARM64. Previous versions worked fine on the same machine.\n\n### Error Messages/Logs\n\n```shell\nBun v1.3.10 (1423d3c8) Windows arm64\nWindows v.win11_dt\nCPU: neon fp aes crc32 atomics\nArgs: \"C:\\Users\\...\\claude.exe\"\nFeatures: Bun.stderr(2) Bun.stdin(2) Bun.stdout(2) fetch(91) jsc spawn(64) standalone_executable process_dlopen(3) yaml_parse(4)\nElapsed: 246271ms | User: 19218ms | Sys: 4750ms\nRSS: 0.72GB | Peak: 0.94GB | Commit: 0.99GB | Faults: 1090072 | Machine: 33.90GB\n\npanic(thread 5184): incorrect alignment\noh no: Bun has crashed. This indicates a bug in Bun, not your code.\n\nhttps://bun.report/1.3.10/W_11423d3cmgkgEugogCwmzrfwl0uiBgyvBw32CwmvBo7xB44wCwvhgmCw236lC4i16lCg6xjkBgsjufCYKERNEL32.DLLg0jCCSntdll.dlloqi1BA0eNrLzEvOLypKTS5RSMzJTM/LTc0rAQBMcwep\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code v2.1.47 on Windows 11 ARM64\n2. Run `claude` in a terminal\n3. Execute any command (bash, file read, or even just wait idle)\n4. After ~80–150 seconds of accumulated runtime, Bun panics with \"incorrect alignment\"\n5. Crash is 100% reproducible — happened 5 consecutive times\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nUnknown — previous version before 2.1.47\n\n### Claude Code Version\n\n2.1.47 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\nBun crash report URL (identical every time):\nhttps://bun.report/1.3.10/W_11423d3cmgkgEugogCwmzrfwl0uiBgyvBw32CwmvBo7xB44wCwvhgmCw236lC4i16lCg6xjkBgsjufCYKERNEL32.DLLg0jCCSntdll.dlloqi1BA0eNrLzEvOLypKTS5RSMzJTM/LTc0rAQBMcwep\n\nThis started recently with the current version — same machine previously worked without crashes. Likely a regression in the Bun build shipped with Claude Code.",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-18T23:19:19Z",
+  "updated_at": "2026-04-24T14:55:48Z",
+  "closed_at": "2026-04-17T00:14:31Z",
+  "reactions_total": 19,
+  "comments_count": 29,
+  "author": "afram123",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Ben-CA",
+      "author_association": "NONE",
+      "body": "I'm having a similar issue. With v2.1.47 on Windows 11, which I installed about an hour ago, it has frozen/crashed my terminal 3 times on me so far, whereas the last version I was running never crashed. (v2.1.39?)",
+      "created_at": "2026-02-18T23:23:50Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/26724\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-18T23:25:34Z"
+    },
+    {
+      "author": "afram123",
+      "author_association": "NONE",
+      "body": "@Ben-CA I just downgraded back to v2.1.45 and it works fine.",
+      "created_at": "2026-02-18T23:27:51Z"
+    }
+  ]
+}

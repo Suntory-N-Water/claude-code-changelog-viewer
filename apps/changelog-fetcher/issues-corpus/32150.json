@@ -1,0 +1,41 @@
+{
+  "number": 32150,
+  "title": "[BUG] Session titles revert to last-prompt text after session close, overriding custom-title entries",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThese chat sessions that worked with the 'first line as title', were critical to me correlating work in Claude Code chat sessions <-> kanbn task manager used for the project.  \n\nSo now I'm having to have Claude try to rename the things that it is automatically renaming, that I already had a solid title for in the very first line.\n\nChat sessions get renamed seemingly at random, and are then mostly un-searchable as the 'session title' has been auto-edited to some arbitrarily-chosen text 'somewhere in the chat session' by (Claude Code, VScode ???).\n\nAfter a session ends, the Claude Code VS Code extension writes a `last-prompt` entry to the session's JSONL file. This entry becomes the final entry in the file, and the sidebar then displays the `lastPrompt` text (the user's final message) as the session title — overriding any `custom-title` entry that was written earlier in the file.\n\nPreviously, the sidebar used the first user message as the session title by default. Now, closed sessions display their last message text instead. This makes sessions unrecognisable in the sidebar, especially for users who rely on writing a descriptive title as the first line of their first message (e.g. \"Task: Task 186.1 - LLM Scoring Heatmap Load Performance — Backend Query Optimisation and Caching\" to identify sessions and pick up e.g. kanbn Task cards to continue the work.\n\n\n\n\n### What Should Happen?\n\nThe session sidebar should display the `custom-title` entry as the title regardless of whether a `last-prompt` entry was appended afterward.\n\nPreviously, sessions were titled by their first user message line, and the title persisted correctly across VS Code restarts and session close/reopen cycles. The `last-prompt` entry should not override a `custom-title` entry when displaying session names in the sidebar.\n\nManual renames (via the edit icon in the sidebar) do work correctly because VS Code appends the new `custom-title` *after* `last-prompt`, making it the final entry. This confirms the sidebar is using \"last entry wins\" logic rather than \"custom-title wins\" logic. The fix would be to prioritise any `custom-title` entry over `last-prompt` for display purposes.\n\nBut again, this adds a lot of friction, when 'first line is title' worked fine, with no more overhead than pasting in the task card title that I was working on.\n\n### Error Messages/Logs\n\n```shell\nNo error messages. The behaviour is silent — sessions simply display the wrong title (last message text instead of the session's custom-title).\n\nExample JSONL file tail showing the problem:\n  ...conversation entries...\n  {\"type\":\"custom-title\",\"sessionId\":\"25e59705-...\",\"customTitle\":\"Find the chat session where we added a custom hook or script...\"}\n  {\"type\":\"last-prompt\",\"lastPrompt\":\"Good, will test by restarting / reloading window shortly...\",\"sessionId\":\"25e59705-...\"}\n\nSidebar displays: \"Good, will test by restarting / reloading window shortly...\"\nExpected display: \"Find the chat session where we added a custom hook or script...\"\n```\n\n### Steps to Reproduce\n\n1. Open Claude Code in VS Code and start a new session.\n2. Type a descriptive first message (e.g. \"Task: Task 149 - My Task Name\").\n3. Have a multi-turn conversation.\n4. Close the session (close the tab or open a new session, or reopen VScode).\n5. Observe the closed session in the sidebar — it now displays the text of your *last* message, not your first message or any previously set custom-title.\n6. Restart VS Code — the wrong title persists across restarts.\n\nRoot cause (confirmed by inspection of JSONL files): the extension appends a `{\"type\":\"last-prompt\",\"lastPrompt\":\"...\"}` entry when a session closes. The sidebar then displays `lastPrompt` because it is the final entry in the fil",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:ide",
+    "platform:vscode"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-08T14:54:18Z",
+  "updated_at": "2026-05-22T21:47:49Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 10,
+  "author": "interconnectedMe",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25090\n2. https://github.com/anthropics/claude-code/issues/31270\n3. https://github.com/anthropics/claude-code/issues/31394\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-08T14:58:35Z"
+    },
+    {
+      "author": "interconnectedMe",
+      "author_association": "NONE",
+      "body": "Not a duplicate of - https://github.com/anthropics/claude-code/issues/31394 - \nPossible partial overlap with 31394, but that is on MacOS, and also does not address the issue in mine of 'user does not have control over chat session names' in general.\n\nNot a duplicate of https://github.com/anthropics/claude-code/issues/31270 -\nthat issue's 'The names revert to the truncated first prompt' - is exactly the reverse of what I have, in some way, I think?\n\nPossibly a partial duplicate of https://github.",
+      "created_at": "2026-03-08T16:40:04Z"
+    },
+    {
+      "author": "interconnectedMe",
+      "author_association": "NONE",
+      "body": "I had Claude Code kick off some research in NotebookLM and document what it could trace through the 'duplicate trail'.  I'm not sure if this is helpful, but as ever, the AI sounds confident about it ;-)\n\nNotebook - https://notebooklm.google.com/notebook/98a2abca-848f-4838-b32b-e1586eadca57\nMindmap - \n\n<img width=\"3840\" height=\"5737\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/f45b3d44-75cd-4c75-8307-ffdee1f93773\" />\n\nTechnical Briefing: Session Renaming and Persistence Failures (",
+      "created_at": "2026-03-08T17:14:09Z"
+    }
+  ]
+}

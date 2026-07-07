@@ -1,0 +1,35 @@
+{
+  "number": 63192,
+  "title": "Cancelling a parallel tool-call batch corrupts thinking blocks -> 400 \"thinking blocks cannot be modified\" permanently wedges the session",
+  "body": "## Problem\n\nWith extended thinking enabled, cancelling a batch of **parallel tool calls** (one tool errors → the rest are auto-cancelled) corrupts the `thinking` blocks of the in-flight assistant message. The next API request is rejected with a 400, and because the corrupted message stays in history, **every subsequent turn re-sends it and re-fails** — the session is permanently wedged.\n\n> **Verbatim error** (recurred on every turn afterward — including a plain text question and a slash-command invocation):\n> ```\n> API Error: 400 messages.1.content.54: `thinking` or `redacted_thinking` blocks in the latest assistant message cannot be modified. These blocks must remain as they were in the original response.\n> ```\n\n> **Verbatim transcript leading up to it** — a batch of parallel `Bash` tool calls, the first of which errored, cascading cancellations onto the rest:\n> ```\n> ⏺ Bash(safari-browser screenshot /tmp/plaud_search.png --url plaud 2>/dev/null && echo \"saved\")\n>   ⎿  Error: Exit code 1\n> ...\n> ⏺ Bash(safari-browser js \"1+1\" --url plaud ...)\n>   ⎿  Cancelled: parallel tool call Bash(safari-browser screenshot /tmp/plaud_sea…) errored\n> ⏺ Bash(echo \"PLAIN_TEXT_TEST_NO_BROWSER\")\n>   ⎿  Cancelled: parallel tool call Bash(safari-browser screenshot /tmp/plaud_sea…) errored\n>   ⎿  API Error: 400 messages.1.content.54: `thinking` or `redacted_thinking` blocks in the latest assistant message cannot be modified. These blocks must remain as they were in the original response.\n> ```\n> — Source: Claude Code session transcript, 2026-05-29\n\n## Type\nbug\n\n## Steps to reproduce (best-effort)\n1. Extended thinking enabled (default in this session)\n2. Model: `claude-opus-4-7` (1M context)\n3. In one assistant turn, issue a batch of parallel tool calls (here: ~10 `Bash` calls)\n4. Arrange for the **first** call in the batch to error (here `safari-browser screenshot … 2>/dev/null` → Exit 1), so Claude Code auto-cancels the remaining parallel calls (`Cancelled: parallel tool call … errored`)\n5. On the next API request, observe the 400\n\n## Expected\nCancelling parallel tool calls MUST preserve the assistant message's `thinking` / `redacted_thinking` blocks byte-for-byte (the API requires they stay identical when thinking + tool use is active), or discard the incomplete assistant turn cleanly. Either way the conversation should remain continuable.\n\n## Actual\nA `thinking` block (here `messages.1.content.54`) is modified during the cancellation/reconstruction. The API rejects the request with 400. The bad message persists in conversation history, so **every subsequent turn replays the same 400** — the user cannot even ask \"what happened\" or invoke a slash command. Only `/clear` or a new session recovers.\n\n## Impact\nTotal, unrecoverable session loss, triggered by a routine event (one tool in a parallel batch failing). High severity for any workflow that issues parallel tool calls with extended thinking on.\n\n## Environment\n- Claude Code 2.1.153\n- Model: `claude-opus-4-7` (1M context), extended thinking enabled\n- Platform: macOS (Darwin 25.5.0)\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-28T16:22:48Z",
+  "updated_at": "2026-05-31T19:24:52Z",
+  "closed_at": null,
+  "reactions_total": 28,
+  "comments_count": 8,
+  "author": "kiki830621",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "craigts",
+      "author_association": "NONE",
+      "body": "I hit this same error message via a different repro. Not sure if I should log a separate issue since it essentially is just the tool call(s) being canceled. My repro:\n\n1. Get to a state where claude asks you questions.\n1. Answer the questions.\n1. Hit esc to cancel the processing.\n1. Tell it to ask you the questions again.\n1. Answer the questions.\n\nYour context is now polluted and you will receive this same error about modifying thinking blocks.\n\n* Claude for mac Claude 1.9255.2 (1dc8f7) 2026-05-",
+      "created_at": "2026-05-28T16:41:06Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Independent confirmation that this is structurally a **sub-pattern of Cluster 13** (Extended-Thinking Session Wedging) rather than a standalone bug — and the parallel-tool-cancellation trigger surface for the same root failure mode documented at [#63147](https://github.com/anthropics/claude-code/issues/63147).\n\n## Cluster framing\n\nTracking this as **sub-pattern 13C** in the four-axis cluster: extended thinking + one of four trigger conditions, all converging on `400 ... thinking blocks cannot be",
+      "created_at": "2026-05-29T04:59:02Z"
+    },
+    {
+      "author": "Benjamin-Sterrett",
+      "author_association": "NONE",
+      "body": "Confirming **13C on Opus 4.8 (1M context)** with two new trigger surfaces beyond the `safari-browser` repro — both are auto-cancellation of an in-flight parallel batch, exactly as framed above.\n\n**Variant 1 — hung hook probes during a CLI workflow's startup.** A dev-workflow orchestrator opened with a few hook-infrastructure probes (sourcing a shared shell helper, a writability check). Several returned no result (hung), so — impatiently — I dispatched *another* parallel batch mixing more `Bash` ",
+      "created_at": "2026-05-30T05:38:40Z"
+    }
+  ]
+}

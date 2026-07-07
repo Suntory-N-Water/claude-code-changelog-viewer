@@ -1,0 +1,42 @@
+{
+  "number": 57415,
+  "title": "[BUG] VS Code extension v2.1.136 (win32-x64) fails to activate — hardcoded Linux CI path in createRequire (regression of #56549, #56725)",
+  "body": "## Summary\n\nVS Code extension `anthropic.claude-code-2.1.136-win32-x64` fails to activate on Windows with a `TypeError` from `createRequire` receiving a hardcoded Linux CI path. This is a **regression** of the same class of bug previously reported and closed for v2.1.129 (e.g. #56549, #56598, #56610, #56725, #56632).\n\n## Environment\n\n- OS: Windows 10 Enterprise Evaluation 10.0.19045\n- VS Code: 8b640eef5a\n- Extension: `anthropic.claude-code` **v2.1.136 win32-x64**\n- Node (Electron host): default bundled\n- Claude CLI: installed and on PATH (`C:\\Users\\<user>\\AppData\\Roaming\\npm\\claude.cmd`)\n\n## Repro\n\n1. Install Claude Code VS Code extension v2.1.136 (win32-x64) from Marketplace\n2. Open any folder in VS Code\n3. Trigger any Claude Code command (Ctrl+Shift+P → \\`Claude Code: ...\\`) or click the extension icon\n4. Sidebar opens but loads infinitely; symptom from the user's perspective is \\`command 'claude-vscode.editor.openLast' not found\\` until the activation error log surfaces\n\n## Actual error (from \\`Window\\` Output channel)\n\n\\`\\`\\`\n2026-05-08 16:56:37.985 [info] ExtensionService#_doActivateExtension Anthropic.claude-code, startup: false, activationEvent: 'onCommand:claude-vscode.editor.openLast'\n2026-05-08 16:56:38.615 [error] Activating extension Anthropic.claude-code failed due to an error:\n2026-05-08 16:56:38.615 [error] TypeError: The argument 'filename' must be a file URL object, file URL string, or absolute path string. Received 'file:///home/runner/work/claude-cli-internal/claude-cli-internal/build-agent-sdk/sdk.mjs'\n    at Module.createRequire (node:internal/modules/cjs/loader:1922:13)\n    at Object.<anonymous> (c:\\Users\\<user>\\.vscode\\extensions\\anthropic.claude-code-2.1.136-win32-x64\\extension.js:103:5579)\n    at Module._compile (node:internal/modules/cjs/loader:1713:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1847:10)\n    at Module.load (node:internal/modules/cjs/loader:1448:32)\n    ...\n\\`\\`\\`\n\n## Root cause (same as previously fixed bug)\n\nThe bundled \\`extension.js\\` contains a hardcoded reference to \\`/home/runner/work/claude-cli-internal/claude-cli-internal/build-agent-sdk/sdk.mjs\\` — a GitHub Actions Linux runner path baked in at build time. Node on Windows rejects this in \\`createRequire\\` because it's not a valid Windows absolute path nor a proper file URL.\n\nThis was previously fixed for v2.1.129 (see closed issues #56549, #56598, #56610, #56725, #56632 etc.) but appears to have **regressed in v2.1.136 win32-x64** — the build pipeline once again is shipping the Linux path in the win32 artifact.\n\n## Workaround\n\nDowngrade to a working prior version (e.g. 2.1.133 or earlier) via VS Code Extensions → \\\"Install Another Version...\\\" and disable Auto Update for the extension to prevent it from upgrading back to 2.1.136.\n\n## Suggested fix\n\nAudit the build pipeline / esbuild config that produces the per-platform VSIX bundles to ensure the SDK path is rewritten or resolved relative to the extension install dir at runtime, rather than baked in from \\`process.cwd()\\` at CI build time. Add a regression test that loads each platform's bundled \\`extension.js\\` on the matching OS and asserts \\`activate()\\` succeeds, since this exact bug has now shipped twice.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:packaging",
+    "platform:vscode",
+    "regression"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-08T20:20:50Z",
+  "updated_at": "2026-06-28T14:38:02Z",
+  "closed_at": "2026-05-09T00:18:07Z",
+  "reactions_total": 9,
+  "comments_count": 12,
+  "author": "ViniciusDamas",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "lcv-leo",
+      "author_association": "NONE",
+      "body": "I independently reproduced the same regression on Windows and accidentally opened #57416 a moment after this issue. Adding the extra evidence here so the signal stays consolidated.\n\nEnvironment from my repro:\n\n```text\nOS: Microsoft Windows 11 Pro 10.0.26200, x64\nVS Code: 1.119.0, x64\nExtension: anthropic.claude-code 2.1.136 win32-x64\nLast working extension version on the same machine: 2.1.133\nBundled native binary: 2.1.136 (Claude Code)\n```\n\nActivation failure from the VS Code Extension Host log",
+      "created_at": "2026-05-08T20:23:15Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/57397\n2. https://github.com/anthropics/claude-code/issues/57389\n3. https://github.com/anthropics/claude-code/issues/57416\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-08T20:25:16Z"
+    },
+    {
+      "author": "cghncol",
+      "author_association": "NONE",
+      "body": "Confirming on Windows 11 Enterprise, VS Code extension 2.1.136-win32-x64. Same createRequire TypeError with the\n  file:///home/runner/work/claude-cli-internal/... path at extension.js:103:5579. Auto-update pushed 2.1.136 ~2 hours\n  ago and broke activation; downgrading to the prior working version and disabling auto-update works around it. Please\n  prioritize — this is the second time this regression has shipped.",
+      "created_at": "2026-05-08T20:35:14Z"
+    }
+  ]
+}

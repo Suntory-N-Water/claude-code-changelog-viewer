@@ -1,0 +1,35 @@
+{
+  "number": 12805,
+  "title": "Edit/Write tools fail with 'File has been unexpectedly modified' on Windows (MINGW)",
+  "body": "## Bug Description\n\nThe Edit and Write tools consistently fail on Windows (MINGW64) even when files have not been modified between Read and Edit operations.\n\n## Environment\n\n- **Claude Code Version:** 2.0.55\n- **OS:** Windows 11 (MINGW64_NT-10.0-26200)\n- **Platform:** win32\n- **Installation method:** PowerShell installer (irm https://claude.ai/install.ps1 | iex)\n\n## Steps to Reproduce\n\n1. Create a simple test file via Bash:\n   ```bash\n   echo \"test123\" > testfile.txt\n   ```\n\n2. Read the file using the Read tool - **succeeds**\n\n3. Immediately attempt to Edit the file:\n   ```\n   Edit: old_string=\"test123\" new_string=\"test456\"\n   ```\n\n4. **Error:** \"File has been unexpectedly modified. Read it again before attempting to write it.\"\n\n5. Read the file again, then try Write tool:\n   **Error:** \"File has not been read yet. Read it first before writing to it.\"\n\n## Diagnostic Evidence\n\nFile was verified NOT modified on disk using stat and md5sum:\n\n```\nFile: testfile.txt\nModify: 2025-12-01 01:35:23.636902300 +0100  # Unchanged\nmd5sum: 7dcc443bcee01e0800f9244380fe33cd      # Unchanged\n```\n\nThe file modification timestamp remained constant between Read and Edit attempts, confirming no actual disk modification occurred.\n\n## Behavior\n\n- Read tool: Works correctly\n- Edit tool: Always fails with \"unexpectedly modified\" error\n- Write tool: Fails with \"not read yet\" even after successful Read\n- Bash tool: Works correctly for file operations\n\n## Workaround\n\nCurrently using Bash with heredocs or Python to write files, bypassing the native Edit/Write tools.\n\n## Possible Causes\n\n1. Windows/MINGW file system timestamp resolution differences\n2. Line ending conversion (CRLF vs LF) being detected as modification\n3. Internal file hash/tracking cache not persisting correctly between tool calls\n4. Race condition in file state tracking\n\n## Impact\n\nThis completely breaks the Edit and Write tools on Windows, forcing all file modifications through Bash workarounds.\n",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-01T14:08:06Z",
+  "updated_at": "2026-03-03T14:26:46Z",
+  "closed_at": "2026-02-23T22:22:13Z",
+  "reactions_total": 5,
+  "comments_count": 24,
+  "author": "will380",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "erwinh22",
+      "author_association": "NONE",
+      "body": "## Updated Patch for Claude Code (Windows \"File has been unexpectedly modified\" fix)\n\nThe obfuscated variable names change between versions. Here are the patterns:\n\n| Version | validateInput | validateInput2 | Write/Edit tool throw |\n|---------|---------------|----------------|-----------|\n| **v2.0.75** | `Ew(B)>J.timestamp` | `Ew(Y)>W.timestamp` | `\\!z\\|\\|E>z.timestamp` |\n| v2.0.72 | `Vw(B)>J.timestamp` | `Vw(Y)>W.timestamp` | `\\!R\\|\\|M>R.timestamp` |\n| v2.0.64 | `KE(B)>I.timestamp` | `KE(Y)>W.",
+      "created_at": "2025-12-06T23:07:50Z"
+    },
+    {
+      "author": "deafsquad",
+      "author_association": "NONE",
+      "body": "## Additional Evidence: Transcript showing Read state not persisting\n\nI have transcript evidence of this bug occurring in a real session. The file is `3e20bca3-7675-4f20-874a-05ebef4883ed.jsonl`, lines 6556-6604.\n\n### Exact sequence observed:\n\n```\nLine 6556: Write(.wslconfig) → \"File has not been read yet. Read it first\"\nLine 6557: Read(.wslconfig) → SUCCESS (returned file contents)\nLine 6566: Write(.wslconfig) → \"File has not been read yet\" ← Read state LOST\nLine 6585: Write(.wslconfig) → \"File",
+      "created_at": "2025-12-07T23:30:16Z"
+    },
+    {
+      "author": "erwinh22",
+      "author_association": "NONE",
+      "body": "## Updated Patch for Claude Code v2.0.61+ (December 2025)\r\n\r\n### Key Changes in v2.0.61+\r\n\r\nThe timestamp validation patterns have changed:\r\n- **Variable names changed**: `B,J` -> `Y,W` and `j,T` -> `z,C`\r\n- **New behavior flag**: Now uses `behavior:\"ask\"` instead of just `message`\r\n\r\n### Updated Manual Patches\r\n\r\n**Bash/Git Bash:**\r\n```bash\r\nCLAUDE_CLI=\"/c/Users/$USER/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/cli.js\"\r\ncp \"$CLAUDE_CLI\" \"${CLAUDE_CLI}.backup.$(date +%Y%m%d%H%M%S)",
+      "created_at": "2025-12-08T22:26:19Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 9027,
+  "title": "[BUG] AWS Bedrock SSO federation login endpoint spamming until 429 error",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI am working in AWS Bedrock, with the latest version of claude code (as of this posting v2.0.8).\n\nSince the v2.x.x versions of claude code, and it might be specifically with Sonnet 4.5, whenever claude is working I get constant aws sso logins because claude is hammering the federation/credentials endpoint. Occasionally I'll see 429 errors when doing basic things like switching models.\n\nI connected mitmproxy to see what was going on, and I wasn't suprised to see that there are 10's/100's of these requests fired off in a tight loop with every new message into claude:\n\n`[::1]:57479: GET https://portal.sso.us-east-1.amazonaws.com/federation/credentials?account_id=xxxx&role_name=xxx\n    host: portal.sso.us-east-1.amazonaws.com\n    connection: keep-alive\n    x-amz-sso_bearer_token: xxxx\n    x-amz-user-agent: aws-sdk-js/3.840.0\n    user-agent: aws-sdk-js/3.840.0 ua/2.1 os/darwin#25.0.0 lang/js md/nodejs#24.5.0 api/sso#3.840.0 m/E\n    amz-sdk-invocation-id: xxxx\n    amz-sdk-request: attempt=3; max=3\n    accept: */*\n    accept-language: *\n    sec-fetch-mode: cors\n    accept-encoding: br, gzip, deflate\n\n    account_id: 'xxxx'\n    role_name: xxxx\n    \n\n << 429 Too Many Requests 104b\n    Date: Mon, 06 Oct 2025 15:44:03 GMT\n    Content-Type: application/json\n    Content-Length: 104\n    Connection: keep-alive\n    Access-Control-Expose-Headers: RequestId\n    Access-Control-Expose-Headers: x-amzn-RequestId\n    RequestId: xxxx\n    Server: AWS SSO\n    x-amzn-RequestId: xxxx\n\n    {\n        \"message\": \"HTTP 429 Unknown Code\",\n        \"__type\": \"com.amazonaws.switchboard.portal#TooManyRequestsException\"\n    }`\n\nLooking at the post message exchange connection teardown, you can see just many connections were opened:\n\n`[16:48:43.978][[::1]:61855] client disconnect\n[16:48:43.978][[::1]:61863] client disconnect\n[16:48:43.978][[::1]:61848] client disconnect\n[16:48:43.979][[::1]:61892] client disconnect\n[16:48:43.979][[::1]:61855] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:43.980][[::1]:61863] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:43.980][[::1]:61848] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:43.980][[::1]:61892] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:43.980][[::1]:61875] client disconnect\n[16:48:43.980][[::1]:61871] client disconnect\n[16:48:43.980][[::1]:61880] client disconnect\n[16:48:43.981][[::1]:61875] server disconnect bedrock-runtime.us-eas***************om:443 (54.209.111.40:443)\n[16:48:43.981][[::1]:61871] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:43.981][[::1]:61880] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:43.981][[::1]:61873] client disconnect\n[16:48:43.981][[::1]:61894] client disconnect\n[16:48:43.981][[::1]:61884] client disconnect\n[16:48:43.982][[::1]:61873] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:43.982][[::1]:61894] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:43.982][[::1]:61884] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:44.001][[::1]:61889] client disconnect\n[16:48:44.001][[::1]:61889] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:44.002][[::1]:61890] client disconnect\n[16:48:44.002][[::1]:61890] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:443)\n[16:48:44.002][[::1]:61878] client disconnect\n[16:48:44.002][[::1]:61878] server disconnect bedrock-runtime.us-east-1.amazonaws.com:443 (54.209.111.40:44",
+  "labels": ["bug", "has repro", "api:bedrock", "platform:macos", "area:auth"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-10-06T15:59:11Z",
+  "updated_at": "2025-11-22T14:05:59Z",
+  "closed_at": "2025-11-14T13:52:33Z",
+  "reactions_total": 2,
+  "comments_count": 12,
+  "author": "ashleigh-hopkins",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Would you mind running Claude Code with the `--debug` flag? Should provide some information about whether the `awsAuthRefresh` is failing or something else is going on. Generally wouldn't expect 429 to trigger re-auth in Claude Code, so it's likely something else is failing.",
+      "created_at": "2025-10-07T00:57:02Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "When you run with `--debug`, you should see something like this:\n\n```\nDebug mode enabled\nLogging to: /some/path/to/debug-logs/debug.txt\n```\n\nCan you look at that file for lines containing \"AWS\"? Trying to understand if you're getting failures of the helper function or what else is going on.\n\nAlso, please share what your awsAuthRefresh or awsCredentialExport helpers are doing (SSO login? third-party tooling?)",
+      "created_at": "2025-10-08T22:59:59Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Also - can you update to the latest AWS CLI? Got a few tentative reports that this fixed the issue",
+      "created_at": "2025-10-10T03:13:57Z"
+    }
+  ]
+}

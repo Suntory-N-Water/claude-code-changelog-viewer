@@ -1,0 +1,41 @@
+{
+  "number": 32934,
+  "title": "ExitPlanMode fails when plan mode toggled via Shift+Tab after starting with --dangerously-skip-permissions",
+  "body": "## Bug Description\n\nWhen starting Claude Code with `--dangerously-skip-permissions` and then manually toggling into plan mode via **Shift+Tab**, the `ExitPlanMode` confirmation flow fails to transition back to act mode. Responding \"yes\" to the exit plan mode prompt does not actually exit plan mode — the session remains stuck in read-only plan mode.\n\n## Steps to Reproduce\n\n1. Start Claude Code with `claude --dangerously-skip-permissions`\n2. Press **Shift+Tab** to toggle into plan mode\n3. Give Claude a task — it creates a plan and calls `ExitPlanMode`\n4. Respond **\"yes\"** to confirm exiting plan mode\n5. **Expected**: Claude exits plan mode and begins implementation (act mode with bypass-permissions)\n6. **Actual**: Claude remains in plan mode. System reminders continue showing \"Plan mode still active\"\n\n## Environment\n\n- **Claude Code version**: 2.1.72\n- **Terminal**: Ghostty (minimal config, `window-padding-y = 0,24` only)\n- **Shell**: zsh (macOS Darwin 23.6.0)\n- **Alias used**: `claude --dangerously-skip-permissions` (via shell alias)\n- **`skipDangerousModePermissionPrompt`**: `true` in `~/.claude/settings.json`\n\n## Notes\n\n- No custom keybindings configured (`~/.claude/keybindings.json` does not exist)\n- No Ghostty input keybindings that could intercept the \"yes\" response\n- The issue appears to be in how Claude Code handles the permission mode state transition when plan mode was entered via Shift+Tab toggle (as opposed to starting with `--permission-mode=plan`)",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "area:permissions"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-10T19:05:53Z",
+  "updated_at": "2026-03-21T21:21:21Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 3,
+  "author": "pstaylor-patrick",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/32923\n2. https://github.com/anthropics/claude-code/issues/30463\n3. https://github.com/anthropics/claude-code/issues/26520\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-10T19:09:51Z"
+    },
+    {
+      "author": "stefansimik",
+      "author_association": "NONE",
+      "body": "Same problem here. This is new issue introduced in latest days (never happened before, just fighting with this problems last few days)\n\nI have feeling, that this started to happen, when I added parameter `claude --permission-mode plan` to start of Claude. But not sure, about this, just my feeling and possible hint.",
+      "created_at": "2026-03-13T12:06:06Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "**Workaround — auto-approve ExitPlanMode via hook:**\n\n```bash\n#!/bin/bash\nTOOL=$(cat | jq -r '.tool_name // empty')\n[ \"$TOOL\" = \"ExitPlanMode\" ] && echo '{\"decision\":\"approve\"}' && exit 0\nexit 0\n```\n\nRegister as PreToolUse with empty matcher. This auto-approves ExitPlanMode regardless of how plan mode was entered.\n",
+      "created_at": "2026-03-21T21:21:21Z"
+    }
+  ]
+}

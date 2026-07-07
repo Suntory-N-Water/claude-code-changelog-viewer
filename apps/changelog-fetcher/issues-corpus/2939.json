@@ -1,0 +1,35 @@
+{
+  "number": 2939,
+  "title": "Image Upload Exceeds Size Limit Causing Persistent API Request Failure",
+  "body": "**Bug Description**\nafter submitting an image too large, the context is polluted and any other request returns the error API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.17.content.1.image.source.base64.data: At least one of the image dimensions exceed max allowed size for many-image requests: 2000 pixels\"}} \n\n**Environment Info**\n- Platform: darwin\n- Terminal: cursor\n- Version: 1.0.41\n- Feedback ID: 635919c9-d04d-4562-9842-2a0a15d8e011\n\n**Errors**\n```json\n[{\"error\":\"Error: Command failed: security find-generic-password -a $USER -w -s \\\"Claude Code\\\"\\nsecurity: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.\\n\\n    at genericNodeError (node:internal/errors:983:15)\\n    at wrappedFn (node:internal/errors:537:14)\\n    at checkExecSyncError (node:child_process:882:11)\\n    at execSync (node:child_process:954:15)\\n    at JI (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:702:3921)\\n    at file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:9038\\n    at Q (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:526:13327)\\n    at _X (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:8184)\\n    at w_ (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:7265)\\n    at U9 (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:11432)\",\"timestamp\":\"2025-07-03T16:45:23.855Z\"},{\"error\":\"Error: Tool mcp__puppeteer__puppeteer_click not found\\n    at dT2 (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:1958:5596)\\n    at ZU (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:65:19802)\\n    at UP (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:42556)\\n    at wP (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:38105)\\n    at o$ (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:38033)\\n    at MU (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:37887)\\n    at EJ (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:34977)\\n    at f5 (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:65:4822)\\n    at DB (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:32233)\\n    at A.Q.updateContainer (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:71:1835)\",\"timestamp\":\"2025-07-03T16:45:27.222Z\"},{\"error\":\"Error: Tool mcp__puppeteer__puppeteer_click not found\\n    at dT2 (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:1958:5596)\\n    at ZU (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:65:19802)\\n    at UP (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:42556)\\n    at wP (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:38105)\\n    at o$ (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:38033)\\n    at MU (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:37887)\\n    at EJ (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:34977)\\n    at f5 (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:65:4822)\\n    at DB (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:67:32233)\\n    at A.Q.updateContainer (file:///Users/alessandro/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:71:1835)\",\"timestamp\":\"2025-07-03T16:45:27.236Z\"},{\"error\":\"Error: Tool mcp__puppeteer__puppeteer_screenshot not found\\n    at dT2 (file:///Users/alessandro/.claude/local/node_modules/@a",
+  "labels": ["bug", "has repro", "platform:macos", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-07-03T16:47:31Z",
+  "updated_at": "2026-04-13T14:11:12Z",
+  "closed_at": null,
+  "reactions_total": 62,
+  "comments_count": 39,
+  "author": "alessandrobologna",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "baryon",
+      "author_association": "NONE",
+      "body": "I didn’t upload any images and still encountered this issue—I only asked CC to modify the copy on the webpage and didn’t upload any images to him. After this error appeared, even the /compact command started returning the same error.\n```\n/compact \n  ⎿ Error: Error during compaction: Error: API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"\n    invalid_request_error\",\"message\":\"messages.95.content.12.image.source.base64.data: At \n    least one of the image dimensions exceed max allowed size: 8000 \n",
+      "created_at": "2025-10-03T08:56:56Z"
+    },
+    {
+      "author": "gthb",
+      "author_association": "NONE",
+      "body": "Found my session afflicted with this same thing soon (within a day) after I started working with the chrome-devtools MCP server. That was going great until the session was entirely incapacitated by this error. And yep, `/compact` is failing too in this session — presumably because it's trying to read that same poisoned item in the context. I'll hazard a guess that a screenshot of the remote-controlled Chrome window (or of a canvas that I have in there in a scrollable container) landed in the con",
+      "created_at": "2025-10-03T09:42:30Z"
+    },
+    {
+      "author": "saynth-ai",
+      "author_association": "NONE",
+      "body": " Error: Error during compaction: Error: API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.380.content.0.image.source.base64.data: At least one of\n     the image dimensions exceed max allowed size: 8000 pixels\"},\"request_id\":\"req_011CU35RmzHC6WGfCL6kKbKB\"}",
+      "created_at": "2025-10-12T09:41:09Z"
+    }
+  ]
+}

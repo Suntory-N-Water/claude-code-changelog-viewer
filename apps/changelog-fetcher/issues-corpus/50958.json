@@ -1,0 +1,35 @@
+{
+  "number": 50958,
+  "title": "[BUG] Claude Code repeatedly overrides explicit directives in the same session",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nIn a single working session on a multi-step plan, Claude Code deviated from my explicit directives three times. Each time I corrected the behavior, Claude saved the correction to its persistent memory, and we continued — and each time it happened again on the next task.\n\nSpecifics (session of 2026-04-19)\n\n1. Early in the session I asked Claude to finish implementing the plan. Mid-plan it ran benchmarks and editorialized the numbers as \"much worse than baseline,\" imposing a judgment I had not asked for on an unfinished pipeline. I corrected: \"don't interpret numbers unless I ask for it.\"\n\n2. On the very next task (a simple edit to add IS-A emission in a Learner class) it added optional parameters, a cache, and trade-off comments I had not requested. I corrected: \"you are a technician, not the engineer. Execute the spec.\"\n\n3. The plan called for hand-teaching the biology material. I am the teacher-surrogate in this project — teaching is per-fact and judgmentful, documented in saved memory. Claude instead wrote a bulk ingest script that fed 22,786 extracted strings through the parser with a roughly 50% skip rate — the exact pattern the re-teach was meant to replace. This produced a contaminated brain.db that may need to be scrapped.\n\nPattern beyond this session\n\nThis is not one bad session. The same pattern shows up consistently across my projects whenever the work is novel — architectures, representations, or methods that don't match familiar patterns in Claude's training data. When the task is routine code Claude \"recognizes,\" it executes cleanly. When the work is novel, Claude repeatedly substitutes more-familiar patterns for my actual directive, even after correction. The substitution is quiet — framed as implementation detail rather than a design choice — which makes it harder to catch at the moment of the edit and forces me to notice downstream when the artifact is wrong.\n\nWhy this matters\n\nI am the engineer of record on this project. Claude substituting its own judgment for mine — especially after explicit per-session corrections and saved feedback memories — wastes real work time and contaminates project artifacts. In my case, a database representing months of architectural design.\n\nThe saved-memory system is supposed to prevent this. The feedback from earlier in the session (\"don't interpret numbers,\" \"technician not engineer\") did not stop Claude from making the same class of mistake again on a different task. Memory did not constrain behavior.\n\nRequested change\n\nWhen a user's directive conflicts with Claude's inference about a \"better\" approach, Claude should stop and ask before executing the inferred version. Saved feedback memories, once written in a session, should actually constrain subsequent behavior in the same session — not just be acknowledged verbally and then ignored.\n\n### What Should Happen?\n\nIn a single working session on a multi-step plan, Claude Code deviated from my explicit directives three times. Each time I corrected the behavior, Claude saved the correction to its persistent memory, and we continued — and each time it happened again on the next task.\n\nSpecifics (session of 2026-04-19)\n\n1. Early in the session I asked Claude to finish implementing the plan. Mid-plan it ran benchmarks and editorialized the numbers as \"much worse than baseline,\" imposing a judgment I had not asked for on an unfinished pipeline. I corrected: \"don't interpret numbers unless I ask for it.\"\n\n2. On the very next task (a simple edit to add IS-A emission in a Learner class) it added optional parameters, a cache, and trade-off comments I had not requested. I corrected: \"you are a technician, not the engineer. Execute the spec.\"\n\n3. The plan called for hand-teach",
+  "labels": ["bug", "platform:macos", "area:model", "memory", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-20T01:15:05Z",
+  "updated_at": "2026-06-11T22:42:16Z",
+  "closed_at": "2026-06-11T22:42:16Z",
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "LunarFawn",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/47351\n2. https://github.com/anthropics/claude-code/issues/50352\n3. https://github.com/anthropics/claude-code/issues/50546\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-20T01:20:14Z"
+    },
+    {
+      "author": "LunarFawn",
+      "author_association": "NONE",
+      "body": "its not a duplicate. ",
+      "created_at": "2026-04-20T01:26:00Z"
+    },
+    {
+      "author": "LunarFawn",
+      "author_association": "NONE",
+      "body": "this is bigger than that... it inserts itself as the expert and treats my commands as not the right thing to do and it is know more than me. its a foundational issue where it seeks and forces itself to be in charge.",
+      "created_at": "2026-04-20T01:27:36Z"
+    }
+  ]
+}

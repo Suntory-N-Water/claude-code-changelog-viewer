@@ -1,0 +1,35 @@
+{
+  "number": 62657,
+  "title": "[FEATURE] Make AskUserQuestion tool timeout configurable",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nIn day-to-day usage, there are many situations where 5 minutes is not enough:\n\n- **Context switching**: I often kick off a long-running task in Claude Code, switch to another window/meeting/IDE, and come back later. If Claude asks a clarifying question while I'm away, the question silently times out and the task is aborted or proceeds with a default — wasting the work already done.\n- **Deep-thought questions**: Some questions (architectural choices, reviewing a multi-option plan) genuinely take more than 5 minutes to think through, especially when I need to read code, check docs, or consult a teammate before answering.\n- **Long-running agent runs**: When running multi-step agent workflows (sub-agents, plans, parallel tasks), a single timed-out question can break the entire chain.\n- **Pair / async workflows**: When working with a colleague or in async mode, a 5-minute window is often too short.\n\nThe current behavior forces me to either (a) babysit the terminal, or (b) re-run the entire task from scratch after a timeout, which is wasteful.\n\n\n### Proposed Solution\n\nExpose the timeout as a user-configurable setting. Any of the following would work; I'd be happy with any one of them, ideally a combination:\n\n1. **`settings.json` field**, e.g.:\n   ```json\n   {\n     \"askUserQuestionTimeoutMs\": 1800000  // 30 minutes\n   }\n2 Environment variable, e.g. CLAUDE_ASK_USER_TIMEOUT_MS=1800000.\n3. CLI flag, e.g. claude --ask-timeout 30m.\n4. Special value for \"no timeout\", e.g. 0 or -1 meaning \"wait indefinitely until the user answers\".\nA sensible default (e.g. keep 5 minutes) is fine; the key request is letting users override it.\n\n### Alternative Solutions\n\n_No response_\n\n### Priority\n\nCritical - Blocking my work\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n_No response_\n\n### Additional Context\n\n_No response_",
+  "labels": ["duplicate", "enhancement"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-27T02:26:59Z",
+  "updated_at": "2026-07-02T14:08:02Z",
+  "closed_at": null,
+  "reactions_total": 20,
+  "comments_count": 5,
+  "author": "loneyyao",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "hongzhizeng",
+      "author_association": "NONE",
+      "body": "Strong +1 on configurable duration. Wanted to add a distinct angle that I think is orthogonal to the timeout *length*: **what the agent does when the timeout fires.**\n\nToday, when an `AskUserQuestion` times out (or never reaches the user — see the auto-deny case in #65382), the work either aborts or proceeds with a default. But the agent is parked the whole time, so it has no chance to *detect* the non-response and adapt. The more graceful behavior would be for the timeout/non-delivery to return",
+      "created_at": "2026-06-08T08:06:15Z"
+    },
+    {
+      "author": "jgspratt",
+      "author_association": "NONE",
+      "body": "Related: https://github.com/anthropics/claude-code/issues/73105",
+      "created_at": "2026-07-02T02:45:46Z"
+    },
+    {
+      "author": "Lingomat",
+      "author_association": "NONE",
+      "body": "I'd like to know what problem this timeout addition was solving. It's a pain in the backside which immediately forces the operator to instruct Claude to add a memory to stop and not proceed after the completely unreasonable 60s timeout.",
+      "created_at": "2026-07-02T03:26:08Z"
+    }
+  ]
+}

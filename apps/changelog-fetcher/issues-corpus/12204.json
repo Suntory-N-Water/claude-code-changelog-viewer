@@ -1,0 +1,35 @@
+{
+  "number": 12204,
+  "title": "[BUG] VS Code extension 2.0.5.0: Invalid API key · Please run /login and black screen even after successful Anthropic Console OAuth and manual API key setup",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI’m unable to use the Claude VS Code extension (version 2.0.5.0) at all.\n\nNo matter what I do, the chat panel either shows:\n\nInvalid API key · Please run /login\n\nor goes completely black after entering an API key.\n\nThis happens both:\n\t•\tafter a successful Anthropic Console OAuth login (browser says I’m set up), and\n\t•\teven when I manually configure an API key from the Anthropic Console.\n\nIt looks like the extension never actually stores or recognizes the credentials after login or manual key entry.\n\n⸻\n\nEnvironment\n\t•\tEditor: Visual Studio Code\n\t•\tVS Code extension: Claude for VS Code 2.0.5.0\n\t•\tOS: macOS (Apple Silicon)\n\t•\tAccount / billing type: Anthropic Console with API-based billing, not Claude Pro/Max\n\t•\tWhere it fails: Inside the Claude VS Code extension chat panel\n\n⸻\n\nSteps to Reproduce (OAuth path)\n\t1.\tInstall the Claude VS Code extension (version 2.0.5.0).\n\t2.\tOpen the Claude sidebar / chat panel in VS Code.\n\t3.\tType /login.\n\t4.\tIn the login options, choose:\n“Anthropic Console (pay for API users through your console account)”.\n\t5.\tA browser window opens:\n\t•\tI log into my Anthropic Console account (the one with API billing set up).\n\t•\tI authorize the VS Code integration.\n\t•\tThe browser shows:\n“Building something great. You’re set up for Claude Code. You can now close this window.”\n\t6.\tGo back to VS Code.\n\nExpected:\n\t•\tClaude in VS Code should be authenticated and accept prompts.\n\nActual:\n\t•\tThe Claude panel still shows:\nInvalid API key · Please run /login\n\t•\tOpening a new Claude tab and retrying leads to the same behavior.\n\t•\tIn one flow I also got a device/identification code, entered it, clicked Continue, and then the window just stayed black, without improving the situation in VS Code.\n\n⸻\n\nSteps to Reproduce (manual API key path)\n\nI also tried using a manually created API key from the Anthropic Console:\n\t1.\tCreate a new API key in the Anthropic Console.\n\t2.\tUse the extension’s UI to enter the API key when prompted (instead of relying on the OAuth flow).\n\t3.\tConfirm / continue.\n\nExpected:\n\t•\tAfter entering a valid API key, the Claude panel should become usable and accept prompts.\n\nActual:\n\t•\tAfter entering the API key, the Claude panel turns completely black (no UI, no messages, nothing).\n\t•\tIf I open a new Claude tab:\n\t•\tI’m again asked to log in / configure credentials.\n\t•\tGoing through the flow again does not fix the problem.\n\t•\tNet result: The extension is stuck in a loop of “login / invalid API key” and black screens, even with a fresh, valid API key.\n\n⸻\n\nFull Reset Attempts\n\nI have already tried a complete clean reset:\n\t1.\tRemoved all Claude-related config directories:\n\nrm -rf ~/.claude\nrm -rf ~/.config/claude-code\nrm -rf ~/.local/share/claude\nrm -rf \"$HOME/Library/Application Support/claude\"\nrm -rf \"$HOME/Library/Application Support/anthropic\"\n\n\n\t2.\tCompletely wiped VS Code, including all extensions and settings:\n\nrm -rf \"/Applications/Visual Studio Code.app\"\nrm -rf \"$HOME/.vscode\"\nrm -rf \"$HOME/Library/Application Support/Code\"\nrm -rf \"$HOME/Library/Application Support/Code - Insiders\"\nrm -rf \"$HOME/Library/Caches/com.microsoft.VSCode\"\nrm -rf \"$HOME/Library/Caches/com.microsoft.VSCode.ShipIt\"\nrm -rf \"$HOME/Library/Preferences/com.microsoft.VSCode.plist\"\nrm -rf \"$HOME/Library/Saved Application State/com.microsoft.VSCode.savedState\"\n\n\n\t3.\tRebooted, then:\n\t•\tReinstalled the latest VS Code\n\t•\tReinstalled the Claude VS Code extension 2.0.5.0\n\t•\tRepeated both login methods:\n\t•\tAnthropic Console OAuth\n\t•\tManual API key entry\n\nThe behavior is still the same:\n\t•\tOAuth path → Invalid API key · Please run /login\n\t•\tManual API key path → Claude panel goes black, and a new tab again asks",
+  "labels": ["bug", "oncall", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-23T17:09:04Z",
+  "updated_at": "2026-05-17T22:25:22Z",
+  "closed_at": "2026-05-17T22:25:22Z",
+  "reactions_total": 7,
+  "comments_count": 25,
+  "author": "user-png-maker",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12105\n2. https://github.com/anthropics/claude-code/issues/9364\n3. https://github.com/anthropics/claude-code/issues/12196\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-23T17:13:32Z"
+    },
+    {
+      "author": "user-png-maker",
+      "author_association": "NONE",
+      "body": "This issue is related to #12105, #9364, and #12196 but is not an exact duplicate.\n\n- #12105: similar “Invalid API key · Please run /login” error, but on Windows.  \n- #9364: similar empty/blank sidebar on macOS after login, but without the repeated “Invalid API key” message.  \n- #12196: similar OAuth / authentication problems on macOS, but focused on recurring 401 “Invalid OAuth token” errors.\n\nMy case combines all of these:\n- macOS + VS Code extension 2.0.5.0  \n- Anthropic Console with API-based",
+      "created_at": "2025-11-23T20:53:42Z"
+    },
+    {
+      "author": "ahnberg",
+      "author_association": "NONE",
+      "body": "I have the exact same error Claude Code extension version 2.0.56 for VS Code on Windows as well as MacOS. I type /login then I chose \"Anthropic Console\" and go through the Oauth flow and nothing happens, if I click the manual link and get the code and paste it back in and continue, the Claude Code window just stays empty and nothing happens no matter how long I wait.\n\nClaude Code on the same computer in terminal works just fine with the /login flow.",
+      "created_at": "2025-12-02T11:33:58Z"
+    }
+  ]
+}

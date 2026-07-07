@@ -1,0 +1,35 @@
+{
+  "number": 4475,
+  "title": "Feature Request: Add a formal `description` field for comments in `settings.json`",
+  "body": "**Title:** Feature Request: Add a formal `description` field for comments in `settings.json`\n\n**Body:**\n\n### **Problem:**\n\nThe `settings.json` file is powerful, but because JSON doesn't support comments, it's hard to document *why* a configuration exists. This makes it difficult for teams to maintain complex settings for hooks, permissions, and other features.\n\nCurrently, we use unofficial keys like `_comment`, which works because the parser ignores them, but it's not a standardized or discoverable solution.\n\n### **Proposed Solution:**\n\nI propose adding an official, optional `description` key that can be added to any object within `settings.json`.\n\n**This pattern already exists within Claude Code.** As documented in `en/docs/claude-code/slash-commands/index`, custom slash commands use a `description` field in their YAML frontmatter for this exact purpose.\n\nAdopting the same `description` key for `settings.json` would create a consistent and predictable developer experience across all configuration files. The Claude Code parser would be updated to recognize and ignore this key, treating it purely as a documentation field.\n\n### **Example Usage:**\n\n```json\n{\n  \"hooks\": {\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Task\",\n        \"description\": \"Validates the JSON output from a sub-agent against our protocol schema.\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \".claude/hooks/validate_agent_output.sh\"\n          }\n        ]\n      }\n    ]\n  },\n  \"permissions\": {\n    \"description\": \"Allowlist essential CI commands but block all network access.\",\n    \"allow\": [\"Bash(npm run test:*)\"],\n    \"deny\": [\"WebFetch\"]\n  }\n}\n```\n\n### **Benefits:**\n\nThis small change would greatly improve the maintainability and clarity of shared configurations. Most importantly, it would align `settings.json` with existing configuration patterns in Claude Code, making the entire tool more consistent and intuitive for teams to manage.",
+  "labels": ["enhancement", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-07-26T05:40:24Z",
+  "updated_at": "2026-05-29T10:59:27Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 11,
+  "author": "coygeek",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "PaulRBerg",
+      "author_association": "NONE",
+      "body": "Or better yet, support `jsonc` extension",
+      "created_at": "2025-08-16T08:34:04Z"
+    },
+    {
+      "author": "PaulRBerg",
+      "author_association": "NONE",
+      "body": "hey @coygeek and Anthropic team, could you please add support for `jsonc` extension?\n\nThe implementation should be super easy but the benefit would be big - my `settings.json` file has grown quite large and I would very much appreciate the ability to use comments to explain my settings!",
+      "created_at": "2025-10-16T08:09:20Z"
+    },
+    {
+      "author": "vmandela-ti",
+      "author_association": "NONE",
+      "body": "Adding support for jsonc would greatly help in reviewing and sharing settings files.",
+      "created_at": "2025-11-30T12:10:49Z"
+    }
+  ]
+}

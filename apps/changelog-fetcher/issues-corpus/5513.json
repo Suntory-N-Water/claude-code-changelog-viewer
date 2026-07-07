@@ -1,0 +1,35 @@
+{
+  "number": 5513,
+  "title": "Feature Request: Add /reloadSettings command to reload configuration without restart",
+  "body": "# Feature Request: `/reloadSettings` slash command\n\n## Summary\nAdd a `/reloadSettings` slash command that reloads the settings.json configuration without requiring a full Claude Code restart.\n\n## Proposed Usage\n```\n/reloadSettings    # Reloads all settings from settings.json files\n```\n\n## Current Problem\nWhen making changes to `settings.json` (user, project, or enterprise level), users must:\n1. Exit Claude Code (Ctrl+D or Ctrl+C)  \n2. Restart Claude Code\n3. Wait for initialization\n\nThis interrupts workflow and loses conversation context when tweaking settings like permissions, hooks, or other configurations.\n\n## Expected Behavior\n- Reload all settings.json files in precedence order (user → project → enterprise)\n- Apply new permissions, hooks, and other configurations immediately\n- Preserve current conversation context and history\n- Show confirmation message indicating settings were reloaded\n- Handle any errors gracefully (invalid JSON, permission conflicts, etc.)\n\n## Use Cases\n- Iterating on permission configurations during development\n- Testing different hook configurations\n- Adjusting timeout settings without losing context\n- Quick experimentation with new settings\n- Collaborative development where settings change frequently\n\n## Implementation Notes\n- Should validate settings before applying (prevent broken configurations)\n- Should handle partial failures gracefully\n- Could show a diff of what changed (optional)\n- Should work with all setting types (permissions, hooks, timeouts, etc.)\n- Consider adding a confirmation prompt for potentially disruptive changes\n\nThis would significantly improve the developer experience when working with Claude Code configurations.",
+  "labels": ["enhancement", "area:tui", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-10T21:04:15Z",
+  "updated_at": "2026-03-23T12:34:37Z",
+  "closed_at": null,
+  "reactions_total": 133,
+  "comments_count": 22,
+  "author": "NightMachinery",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "christiangenco",
+      "author_association": "NONE",
+      "body": "I want this for automatic theme switching when my system changes from light to dark mode or vice versa.\n\nOn macOS I wrote [a system for updating the themes of my terminal apps with current system theme when the theme changes](https://gist.github.com/christiangenco/042f26297ce2650d4c5b3ea4d3f6c7ac). I have this sytem [working with the `~/.claude/settings.json` file to update Claude Code's theme](https://gist.github.com/christiangenco/042f26297ce2650d4c5b3ea4d3f6c7ac#file-update-claude-theme-sh) b",
+      "created_at": "2025-08-17T12:32:45Z"
+    },
+    {
+      "author": "jenko",
+      "author_association": "NONE",
+      "body": "  ## Expand scope to include slash commands and hooks\n\n  I'd love to see this `/reloadSettings` command expanded to also reload:\n\n  - **Slash commands** from `.claude/commands/*.md`\n  - **Hooks** from `.claude/hooks/*`\n  - Pretty much anything that requires a restart\n\n  ### Use Case\n\n  When developing custom slash commands and hooks, the current workflow is painful:\n\n  1. Create/edit a command file (e.g., `.claude/commands/dogit_merge.md`)\n  2. Test it in Claude Code\n  3. Find an issue or want t",
+      "created_at": "2025-10-29T18:32:47Z"
+    },
+    {
+      "author": "efrazier",
+      "author_association": "NONE",
+      "body": "It is only sensible to want this for anyone working on hooks.  The number of restarts I have had to do is insane, just fiddling with syntax and parsing data.  Being able to replay events would be pretty cool as well. So each time I want to test a hook, I have to do more stuff to make that data for testing. ",
+      "created_at": "2025-10-30T17:41:40Z"
+    }
+  ]
+}

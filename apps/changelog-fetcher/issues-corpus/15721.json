@@ -1,0 +1,35 @@
+{
+  "number": 15721,
+  "title": "[FEATURE] Automatic Model Switching for Plan Mode",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n# Feature Request: Automatic Model Switching for Plan Mode\n\n## Summary\n\nAdd configuration to automatically switch between models based on workflow phase (planning vs execution), optimizing for both cost and capability.\n\n## Problem\n\nCurrently, users must manually switch models using `/model` command when transitioning between planning and execution phases. This leads to:\n\n1. **Suboptimal model usage**: Users often stay on one model for entire session\n2. **Cost inefficiency**: Using Opus 4.5 for simple execution tasks burns budget ~5x faster\n3. **Missed opportunities**: Not using Opus for complex planning when it would add value\n4. **Manual overhead**: Remembering to switch models interrupts flow\n\n## Proposed Solution\n\nEnable automatic model switching based on workflow phase:\n\n- **Plan Mode** (`EnterPlanMode`) → Use specified planning model (e.g., Opus 4.5)\n- **Execution Mode** (normal operation) → Use specified execution model (e.g., Sonnet 4.5)\n- **Quick Tasks** (optional) → Use fast model (e.g., Haiku)\n\n## Use Cases\n\n### Use Case 1: Architecture & Implementation\n```\nUser: \"Implement user authentication with OAuth\"\n\nClaude Code:\n1. Enters plan mode → AUTO-SWITCHES to Opus 4.5\n2. Creates comprehensive architectural plan\n3. Exits plan mode → AUTO-SWITCHES to Sonnet 4.5\n4. Executes implementation efficiently\n```\n\n**Benefit**: Best model for planning, cost-effective execution\n\n### Use Case 2: Complex Refactoring\n```\nUser: \"Refactor this monolith into microservices\"\n\nClaude Code:\n1. Plan mode (Opus) → Design service boundaries, data flow, migration strategy\n2. Execution mode (Sonnet) → Implement refactoring, run tests, create PRs\n```\n\n**Benefit**: Opus for complex decisions, Sonnet for code changes\n\n### Use Case 3: Simple Tasks\n```\nUser: \"Fix this typo in README\"\n\nClaude Code:\n→ Stays in Sonnet/Haiku (no plan mode needed)\n```\n\n**Benefit**: No unnecessary model escalation\n\n### Proposed Solution\n\n## Proposed Configuration\n\n### Option A: Settings File\n\n`.claude/settings.json`:\n```json\n{\n  \"models\": {\n    \"plan_mode\": \"opus\",\n    \"execution_mode\": \"sonnet\",\n    \"quick_tasks\": \"haiku\"\n  },\n  \"auto_switch_models\": true\n}\n```\n\n### Option B: Environment Variables\n\n```bash\nexport CLAUDE_PLAN_MODEL=\"opus\"\nexport CLAUDE_EXEC_MODEL=\"sonnet\"\nexport CLAUDE_AUTO_SWITCH=\"true\"\n```\n\n### Option C: CLI Flag\n\n```bash\nclaude code --plan-model opus --exec-model sonnet --auto-switch\n```\n\n## Implementation Details\n\n### When to Switch\n\n**Switch to Plan Model:**\n- `EnterPlanMode` tool is invoked\n- User explicitly requests planning (\"plan the implementation...\")\n- Task complexity score exceeds threshold (optional)\n\n**Switch to Execution Model:**\n- `ExitPlanMode` tool is invoked\n- Plan is approved by user\n- Direct code modification commands (Write, Edit, Bash for git operations)\n\n**Switch to Quick Model (optional):**\n- Simple read operations (Read, Glob, Grep)\n- Documentation-only changes\n- Running tests/linting\n\n### User Control\n\nUsers should be able to:\n1. **Override**: Manual `/model` command always takes precedence\n2. **Disable**: Set `auto_switch_models: false`\n3. **Lock**: `/model opus --lock` prevents auto-switching for session\n4. **Review**: See which model is active in status line/prompt\n\n### Status Line Integration\n\nShow active model and switching events:\n```\n[Opus 4.5] Planning... → Implementation plan ready\n[Switching to Sonnet 4.5]\n[Sonnet 4.5] Executing... → 5 files modified\n```\n\n## Cost/Performance Analysis\n\n### Example Session: \"Implement OAuth Authentication\"\n\n**Without Auto-Switching (All Opus):**\n- Planning: 50K tokens @ Opus rates = $3.75\n- Execution: 200K tokens @ Opus rates = $15.00\n- **Total: $18.75**\n\n**With Auto-Switching (Opus → Sonnet):**\n- Planning: 50K tokens @ Opus rates = $3.75\n- Execution: 200K tokens @ Sonnet rates = $3.00",
+  "labels": ["enhancement", "area:cost", "area:tui", "area:model", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-29T19:11:54Z",
+  "updated_at": "2026-07-03T04:02:17Z",
+  "closed_at": null,
+  "reactions_total": 45,
+  "comments_count": 21,
+  "author": "generik0",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-30T10:16:08Z"
+    },
+    {
+      "author": "dcieslak19973",
+      "author_association": "NONE",
+      "body": "I like this!",
+      "created_at": "2026-02-11T17:42:10Z"
+    },
+    {
+      "author": "adam-kiss-sg",
+      "author_association": "NONE",
+      "body": "Just in case someone else stumbles here, I think this has been added: https://code.claude.com/docs/en/model-config#opusplan-model-setting",
+      "created_at": "2026-02-13T21:08:43Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 19658,
+  "title": "typescript-lsp plugin fails on Windows: spawn ENOENT for npm global binaries",
+  "body": "## Description\n\nThe `typescript-lsp` plugin fails to start on Windows with the error:\n\n```\nLSP server plugin:typescript-lsp:typescript failed to start: ENOENT: no such file or directory, uv_spawn 'typescript-language-server'\n```\n\n## Root Cause\n\nOn Windows, npm installs global packages with `.cmd` wrapper scripts (batch files), not executable binaries. When Claude Code's LSP manager uses Node.js `spawn()` without `shell: true`, it cannot find the `.cmd` files because:\n\n1. Node.js `spawn()` without shell only looks for actual executables (`.exe`)\n2. npm creates `typescript-language-server.cmd` (batch file), not `typescript-language-server.exe`\n3. While cmd.exe respects PATHEXT and finds `.cmd` files, Node.js `spawn()` does not\n\n## Reproduction\n\n```javascript\n// This fails on Windows:\nconst { spawn } = require('child_process');\nspawn('typescript-language-server', ['--version']); // ENOENT\n\n// This works:\nspawn('typescript-language-server', ['--version'], { shell: true }); // OK\nspawn('typescript-language-server', ['--version'], { shell: 'cmd.exe' }); // OK\n```\n\n## Environment\n\n- OS: Windows 11 (build 26220)\n- Claude Code: 2.1.14\n- Node.js: 24.3.0\n- typescript-language-server: 5.1.3 (installed globally via npm)\n\n## Suggested Fix\n\nThe LSP manager should use `shell: true` (or `shell: 'cmd.exe'`) when spawning language servers on Windows. This allows the shell to resolve `.cmd` wrapper scripts.\n\nAlternatively, the plugin could explicitly look for the `.cmd` extension on Windows:\n```javascript\nconst command = process.platform === 'win32' \n  ? 'typescript-language-server.cmd' \n  : 'typescript-language-server';\n```\n\n## Workaround\n\nCreated a .NET shim executable (`typescript-language-server.exe`) that calls the `.cmd` file via cmd.exe. This allows Node.js `spawn()` to find and execute it.",
+  "labels": ["bug", "duplicate", "has repro", "platform:windows", "area:tools"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-21T06:35:30Z",
+  "updated_at": "2026-06-03T10:49:28Z",
+  "closed_at": "2026-05-10T09:30:07Z",
+  "reactions_total": 18,
+  "comments_count": 14,
+  "author": "StreamDemon",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19536\n2. https://github.com/anthropics/claude-code/issues/17718\n3. https://github.com/anthropics/claude-code/issues/17136\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-21T06:39:30Z"
+    },
+    {
+      "author": "pdebuitlear",
+      "author_association": "NONE",
+      "body": "There are multiple dupes of this issue that affects multiple LSP plugins. Multiple of these dupes, like this defect have suggested fixes. Why aren't these fixes being implemented?",
+      "created_at": "2026-01-21T09:19:56Z"
+    },
+    {
+      "author": "AsysKevin",
+      "author_association": "NONE",
+      "body": "I encountered the same issue on Windows 11 (Build 10.0.26200.7628) with Claude Code 2.1.31.\n\n**Root Cause Analysis:**\n\nOn Windows, npm installs global packages with `.cmd` batch wrapper scripts (e.g., `typescript-language-server.cmd`) instead of `.exe` executables. Node.js's `spawn()` function, without `shell: true` option, only looks for actual executables (`.exe`), causing the ENOENT error.\n\n**Suggested Fix:**\n\nWhen spawning LSP servers on Windows, either:\n- Use `shell: true` option in `spawn(",
+      "created_at": "2026-02-04T09:43:46Z"
+    }
+  ]
+}

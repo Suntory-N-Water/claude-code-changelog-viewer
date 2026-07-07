@@ -1,0 +1,42 @@
+{
+  "number": 6577,
+  "title": "Feature Request: Context data access in statusline hooks",
+  "body": "## Problem\n\nCurrently, the statusline configuration in Claude Code runs as an external bash script that cannot access Claude Code's internal context state. This means users cannot display real-time context usage information (token count, memory breakdown, context percentage) in their status lines.\n\n## Current Situation\n\n- The built-in `/context` command provides comprehensive context information\n- External statusline scripts have no way to access this same data\n- Users must manually run `/context` to monitor session state\n\n## Requested Feature\n\nAdd built-in support for exposing context data to statusline hooks, enabling:\n\n1. **Real-time token usage** - Show current/max tokens (e.g., \"33k/200k tokens\")\n2. **Context percentage** - Visual progress indicator (e.g., \"17%\")  \n3. **Memory breakdown** - Show system/tools/memory allocation\n4. **Context progress bar** - Visual representation similar to `/context` command\n\n## Proposed Implementation\n\n**Option 1: Environment Variables**\nExpose context data via environment variables when running statusline commands:\n```bash\nCLAUDE_CONTEXT_TOKENS=33000\nCLAUDE_CONTEXT_MAX=200000  \nCLAUDE_CONTEXT_PERCENT=17\nCLAUDE_MEMORY_TOKENS=7000\n```\n\n**Option 2: JSON Input Extension**\nExtend the existing JSON input to statusline scripts with context data:\n```json\n{\n  \"workspace\": {...},\n  \"model\": {...},\n  \"context\": {\n    \"tokens_used\": 33000,\n    \"tokens_max\": 200000,\n    \"percentage\": 17,\n    \"breakdown\": {\n      \"system\": 3000,\n      \"tools\": 11900,\n      \"memory\": 7000,\n      \"messages\": 3600\n    }\n  }\n}\n```\n\n## Use Cases\n\n- **Developers** want to monitor context usage without interrupting their workflow\n- **Power users** need proactive context management to avoid hitting limits\n- **Teams** want consistent context awareness across development sessions\n- **CI/CD integrations** need programmatic access to context state\n\n## Technical Analysis\n\nThis issue was identified while implementing a Claude Code development environment. We attempted several approaches:\n\n1. ❌ Transcript file parsing - unreliable due to format variations\n2. ❌ External command invocation - `/context` is session-internal only  \n3. ❌ Environment variable detection - Claude Code doesn't currently expose these\n4. ✅ **Feature request** - requires official Anthropic support\n\n## Related Issues\n\nThis relates to the broader theme of programmatic access to Claude Code session state for automation and monitoring purposes.\n\n## Priority\n\nHigh - This is essential for effective context management in long-running development sessions.\n",
+  "labels": [
+    "enhancement",
+    "area:tui",
+    "area:tools",
+    "area:core",
+    "memory",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-26T07:06:27Z",
+  "updated_at": "2026-01-16T14:14:23Z",
+  "closed_at": "2026-01-09T10:10:59Z",
+  "reactions_total": 27,
+  "comments_count": 8,
+  "author": "mishaal79",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5621\n2. https://github.com/anthropics/claude-code/issues/6216\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-26T07:10:29Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "This is a fantastic idea! I was just trying to build a more informative status line myself and ran into the exact same limitation.\n\nYou've nailed the problem description. We have this great `/context` command that shows everything we need, but no way to get that data into the status line where it would be most useful for at-a-glance monitoring.\n\nI just checked the official `statusline` docs and the changelog to confirm. You're right, the current JSON input for the status line script includes `co",
+      "created_at": "2025-08-26T16:45:13Z"
+    },
+    {
+      "author": "ksavage9",
+      "author_association": "NONE",
+      "body": "Here's an idea: Use the hooks interface to run /context  after every prompt and then use the data to populate a custom status line",
+      "created_at": "2025-09-24T18:46:47Z"
+    }
+  ]
+}

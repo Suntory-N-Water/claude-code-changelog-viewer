@@ -1,0 +1,35 @@
+{
+  "number": 30915,
+  "title": "[BUG] /voice fails on Windows - audio-capture.node path hardcoded to CI build machine",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe /voice command fails on Windows with \"Voice recording requires the native audio module, which could not be loaded.\" \n\nIt seems as though the audio-capture.node native module path is hardcoded to the CI build machine path (D:/a/claude-cli-internal/claude-cli-internal/vendor/audio-capture/x64-win32/audio-capture.node) and therefore the module is not bundled with or extracted from the binary.\n\n### What Should Happen?\n\nVoice recording should work on Windows. The native audio-capture.node module should either be bundled and extracted at runtime, shipped alongside the binary, or resolved relative to the executable.\n\n### Error Messages/Logs\n\n```shell\nVoice recording requires the native audio module, which could not be loaded.\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code 2.1.69 Windows binary\n  2. Run claude in any terminal\n  3. Type /voice\n  4. Observe the error\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.69 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nRoot cause analysis from binary inspection:\n\n```\nThe dd$() function in the bundled code attempts to load:\npath.join(\n  path.dirname(\"file:///D:/a/claude-cli-internal/claude-cli-internal/vendor/audio-capture-src/index.ts\"),\n  \"..\", \"audio-capture\", \"x64-win32\", \"audio-capture.node\"\n)\n```\n\nThis resolves to `D:\\a\\claude-cli-internal\\...\\audio-capture.node` - a GitHub Actions runner path that doesn't exist on user machines.\n\nThe code checks for AUDIO_CAPTURE_NODE_PATH env var as an override, but there's no .node file shipped to point to. Unlike the image-processor.node which appears embedded in the binary, audio-capture.node is not bundled.",
+  "labels": ["bug", "has repro", "platform:windows"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-05T03:05:24Z",
+  "updated_at": "2026-03-21T14:16:36Z",
+  "closed_at": "2026-03-05T08:43:29Z",
+  "reactions_total": 15,
+  "comments_count": 5,
+  "author": "spiveym",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "amirlehmam",
+      "author_association": "NONE",
+      "body": "\" ★ Insight ─────────────────────────────────────\n  The /voice command relies on a native Node.js addon (audio-capture.node) that captures microphone input. On Windows, this binary isn't bundled with the Claude Code distribution — it's a known issue where the\n   path references the CI build machine's directory structure rather than the installed location.\n  ─────────────────────────────────────────────────\n\n  Yeah, this is a known Claude Code bug — **the native audio module (audio-capture.node) ",
+      "created_at": "2026-03-05T10:53:55Z"
+    },
+    {
+      "author": "inkihh",
+      "author_association": "NONE",
+      "body": "LOL this is like \"Look at the new homepage draft, it's on C:\\webpage\\index.html\"",
+      "created_at": "2026-03-05T16:38:38Z"
+    },
+    {
+      "author": "MethCDN",
+      "author_association": "NONE",
+      "body": "please solve it, we pay for it and we cant using it.",
+      "created_at": "2026-03-07T08:43:47Z"
+    }
+  ]
+}

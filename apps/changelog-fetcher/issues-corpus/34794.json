@@ -1,0 +1,35 @@
+{
+  "number": 34794,
+  "title": "[BUG] Terminal scrolls to top during agent execution (Windows Terminal + PowerShell)",
+  "body": "## Description\n\nWhile Claude Code is executing tools/commands, the terminal viewport jumps to the topmost position of the PowerShell/terminal buffer. This happens repeatedly during agent work, forcing the user to scroll back down constantly. Expected behavior: maintain the current scroll position so the user can continue working.\n\n## Root Cause Analysis (from cli.js v2.1.76 source)\n\nClaude Code uses **Ink** (React-based terminal UI) for rendering. Ink's rendering strategy:\n\n1. On each re-render, it moves the cursor UP to the start of the component area\n2. Erases all previous lines (`eraseLines(height)`)  \n3. Writes the new content\n\nThe core rendering code (from the bundled `@inquirer/core` and Ink output):\n\n```js\n// Moves cursor up, erases, and rewrites\nthis.write(\n  cursorDown(this.extraLinesUnderPrompt) +\n  eraseLines(this.height) + \n  newContent\n)\n```\n\nWhere `eraseLines` is:\n```js\neraseLines = (count) => {\n  let str = \"\";\n  for (let i = 0; i < count; i++)\n    str += eraseLine + (i < count - 1 ? cursorUp() : \"\");\n  if (count) str += cursorLeft;\n  return str;\n}\n```\n\n**The problem:** When the output grows large (streaming responses, tool results), `eraseLines(this.height)` moves the cursor far up in the terminal buffer. On Windows Terminal, this cursor movement causes the **viewport to follow the cursor** to the top of the render area, even if the user has scrolled away.\n\nThis is a fundamental issue with Ink's diff-based terminal rendering on Windows Terminal. macOS Terminal.app and iTerm2 are also affected (per #34400, #34765).\n\n## Steps to Reproduce\n\n1. Start Claude Code in Windows Terminal (PowerShell)\n2. Give it a multi-step task (e.g., searching files, running commands)\n3. While it's working, scroll up to read previous output\n4. Observe: viewport snaps to top of terminal buffer on each re-render\n\n## Suggested Fix\n\n**Option A: Use alternate screen buffer for the active render area**\n\nInk supports alternate screen buffer mode which prevents scroll interference:\n```js\n// Enter alternate screen before rendering\nprocess.stdout.write('\\x1b[?1049h');\n// Exit alternate screen when done\nprocess.stdout.write('\\x1b[?1049l');\n```\n\n**Option B: Minimize re-render height**\n\nInstead of erasing the entire component and redrawing, only erase/redraw the lines that actually changed (incremental rendering).\n\n**Option C: Disable cursor movement when user has scrolled**\n\nDetect if the user has scrolled away from the bottom and suppress cursor-up movements until they scroll back.\n\n## Environment\n\n- **OS:** Windows 11 Pro 10.0.26200\n- **Terminal:** Windows Terminal\n- **Shell:** PowerShell / bash (Git Bash)\n- **Claude Code:** 2.1.76\n- **Source:** cli.js SHA-256 `38b8fd29d0817e5f75202b2bb211fe959d4b6a4f2224b8118dabf876e503b50b`\n\n## Related Issues\n\n- #34400 — Scroll position resets to top during agent execution (macOS/iTerm)\n- #34765 — Scroll position resets to top of session while processing\n- #33814 — Forces scroll to top when outputting code\n- #34052 — Scroll to top always on CLI\n- #34503 — Terminal scrolls to top on every new output\n- #33624 — Forced scroll when window gains focus (Windows Terminal + WSL2)",
+  "labels": ["bug", "duplicate", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-03-16T01:05:48Z",
+  "updated_at": "2026-05-07T15:11:21Z",
+  "closed_at": "2026-04-26T13:14:37Z",
+  "reactions_total": 18,
+  "comments_count": 16,
+  "author": "cruzlauroiii",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "cruzlauroiii",
+      "author_association": "NONE",
+      "body": "Updated with v2 fix in PR #34798. The v1 approach (patching LH8/exitAlternateScreen/handleResume) only fixed edge cases. v2 injects a global stdout.write interceptor that clamps cursor-up across ALL writes, catching the primary sources: Ink's hV7() clear function and the Inquirer prompt renderer.",
+      "created_at": "2026-03-16T03:14:33Z"
+    },
+    {
+      "author": "cruzlauroiii",
+      "author_association": "NONE",
+      "body": "Updated PR #34798 with 3 combined patches: (1) stateful stdout.write interceptor clamping cursor-up, (2) render throttle 16ms→200ms, (3) disable synchronized update mode. All three are needed — cursor-up clamping alone does not fix it because Windows Terminal exits scroll mode on ANY stdout write, and sync blocks batch writes into one viewport-resetting update. PowerShell apply/revert script included.",
+      "created_at": "2026-03-16T05:08:00Z"
+    },
+    {
+      "author": "cruzlauroiii",
+      "author_association": "NONE",
+      "body": "**v3 update:** Previous fixes (cursor-up clamping, disabling sync update) did not work and caused flickering.\n\nRoot cause identified: **Windows Terminal bug [microsoft/terminal#14774](https://github.com/microsoft/terminal/issues/14774)** — `SetConsoleCursorPosition` always scrolls viewport to cursor, even when visible. Every Ink re-render triggers this. Cannot be fixed from within the process.\n\nv3 patch: render throttle `SK6=16` → `SK6=1000` (1fps). Gives 1 second of uninterrupted reading betwee",
+      "created_at": "2026-03-16T05:16:34Z"
+    }
+  ]
+}

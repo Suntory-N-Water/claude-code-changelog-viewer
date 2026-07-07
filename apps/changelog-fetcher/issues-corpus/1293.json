@@ -1,0 +1,35 @@
+{
+  "number": 1293,
+  "title": "Claude CLI not working with sonnet 4 in bedrock [BUG]",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [x] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.3 (Claude Code)\n- Operating System: MacOS 15.5\n- Terminal:  iTerm, Warp\n\n## Bug Description\nWhen using claude cli with sonnet 4 bedrock model, it received `API Error (429 Too many tokens, please wait before trying again.)` message and never gets a response\n\n## Steps to Reproduce\n1. Run `DISABLE_TELEMETRY=1 ANTHROPIC_SMALL_FAST_MODEL=us.anthropic.claude-3-5-haiku-20241022-v1:0 AWS_REGION=us-east-1 CLAUDE_CODE_USE_BEDROCK=1 DISABLE_PROMPT_CACHING=1 claude --model us.anthropic.claude-sonnet-4-20250514-v1:0`\n\n2. Type in a prompt as simple as 'hi'\n3. 429 Comes back\n\n## Expected Behavior\nExpect a response from the sonnet 4 model\n\n## Actual Behavior\n429 too make tokens API error\n\n## Additional Context\nIf I run the exact same command but use sonnet 3-7, no problems. \nI have access to the sonnet 4 in AWS in the regions I use in the CLI command. I have used that model with other tools without a problem.",
+  "labels": ["bug", "has repro", "api:bedrock", "platform:macos"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-05-24T15:55:44Z",
+  "updated_at": "2025-08-31T14:05:06Z",
+  "closed_at": "2025-08-22T18:43:14Z",
+  "reactions_total": 15,
+  "comments_count": 28,
+  "author": "marklaczynski",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "igorkofman",
+      "author_association": "COLLABORATOR",
+      "body": "Closing this as it's not a Claude Code issue.\nThanks for all the debugging and suggestions here!\nPls open a new issue if there's something we can fix in CC.",
+      "created_at": "2025-08-22T18:43:14Z"
+    },
+    {
+      "author": "strayer",
+      "author_association": "NONE",
+      "body": "Copying comment from closed duplicate #1439:\n\nI had the same issue when trying Bedrock for Claude Code yesterday. I can even send requests using the SAME IAM credentials to InvokeModel at the same time while the errors are happening in Claude Code with other tools and they work completely fine. I had a similar issue while trying Bedrock with Aider and was only able to use it there with the Converse API, not with the default InvokeModel API. Something must be up with how the Bedrock API is called",
+      "created_at": "2025-05-31T09:24:31Z"
+    },
+    {
+      "author": "jralduaveuthey",
+      "author_association": "NONE",
+      "body": "I can write requests that use all claude models over bedrock in normal python and bash scripts. But in Claude Code it does not work and since the beginning i get same 429. It is not related to the quotas and it is not necessary to request a quota increase to the aws team. That can be seen under https://us-east-1.console.aws.amazon.com/servicequotas/home/services/bedrock/quotas \nIt is something funky of Claude Code+bedrock 🤷🏼‍♂️ ",
+      "created_at": "2025-05-31T11:18:24Z"
+    }
+  ]
+}

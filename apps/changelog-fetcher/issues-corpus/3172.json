@@ -1,0 +1,35 @@
+{
+  "number": 3172,
+  "title": "Bug: claude command not found after npm install -g on macOS with   Homebrew due to incorrect symlink",
+  "body": "Description\n\n\n  When installing @anthropic-ai/claude-code globally via npm on macOS\n  (with Node.js installed via Homebrew), the claude command is not\n  correctly added to the PATH. The installation creates an incorrect\n  symbolic link in the Homebrew binary directory, causing a \"command not\n  found\" error when trying to execute claude.\n\n  Environment\n\n   * OS: macOS\n   * Package Manager: Homebrew\n   * Node.js Version: v23.2.0\n   * npm Version: 11.4.2\n\n  Steps to Reproduce\n\n\n   1. On a macOS system with Homebrew, install Node.js: brew install node.\n   2. Install the Claude Code CLI globally: npm install -g \n      @anthropic-ai/claude-code.\n   3. Attempt to run the claude command: claude --version.\n\n  Expected Behavior\n\n  The claude command should be accessible from the shell and should print\n  its version number.\n\n  Actual Behavior\n\n  The shell returns a \"command not found\" error.\n\n\n  Further investigation reveals that npm creates an incorrect symbolic\n  link:\n   * Location: /opt/homebrew/bin/claude\n   * Incorrect Target:\n     ../lib/node_modules/@anthropic-ai/claude-code/cli.js\n\n  This link points to a JavaScript file instead of the executable\n  launcher script.\n\n  Workaround\n\n\n  The issue can be resolved by manually replacing the incorrect symbolic\n  link with the correct one.\n\n   1. Remove the incorrect link:\n\n   1     rm /opt/homebrew/bin/claude\n\n\n\n   2. Create the correct link to the executable in the Homebrew Cellar:\n      (Note: The Node.js version in the path may vary)\n\n   1     ln -s /opt/homebrew/Cellar/node/23.2.0/bin/claude\n     /opt/homebrew/bin/claude\n\n\n\n  After performing these steps, the claude command works as expected.\n  This suggests the issue lies in the package's installation script or\n  npm's handling of global binaries in a Homebrew environment.\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:packaging"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-07-08T20:36:56Z",
+  "updated_at": "2026-01-22T16:19:51Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 32,
+  "author": "Jiacheng-Liu",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "yeah, you'd have to say `which claude` to debug this. if it is an alias you will have to remove or unalias",
+      "created_at": "2025-07-17T05:29:12Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "One note for folks who are having trouble: the installer and updater are not multi-process safe. We're working on tightening this up, but for now, when twiddling with your install, it's best to _quit all instances of Claude Code_. ",
+      "created_at": "2025-07-23T14:43:17Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "agents helping agents, I love it!",
+      "created_at": "2025-07-30T19:26:45Z"
+    }
+  ]
+}

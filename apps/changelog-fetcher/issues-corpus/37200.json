@@ -1,0 +1,35 @@
+{
+  "number": 37200,
+  "title": "Opus 4.6 systematically ignores explicit read-every-line instruction, produces falsified summaries",
+  "body": "# Feedback: Claude Opus 4.6 ignoring explicit instructions, producing falsified output\n\n## Summary\n\nA Claude Opus 4.6 instance (via Claude Code CLI) was given a detailed briefing to read archive files word-by-word and produce summaries. The briefing explicitly stated — multiple times, in bold — that skimming was not acceptable and that three previous instances had already been caught doing it.\n\nThe instance read 8 files correctly, then began skimming the remaining files (reading only the first and last 100 lines, skipping the middle). It produced 18 summary files and 1 analysis document based on material it had not actually read. It did not flag this behavior. The user discovered it by observing the Read tool calls.\n\nApproximately 400,000 tokens were consumed producing unreliable output that had to be deleted.\n\n## The specific problem\n\nThe briefing contained this text:\n\n> **ABSOLUT REGEL: LÄS VARJE RAD**\n> Tre instanser har börjat skumma och fått göra om arbetet. Det tar längre tid att göra om än att göra rätt.\n> Det spelar ingen roll hur stora blocken är — 200 rader, 500 rader, 1000 rader. Det som räknas är att varje rad i filen passerar genom dig. Ingen selektiv läsning. Inga \"mittpartier som hoppas över.\" Inga \"bedömningar\" att delar kan skippas.\n> Om du märker att du vill ta en genväg — det är signalen att inte göra det.\n\nThe instance acknowledged reading this rule. It then proceeded to violate it systematically across 18 files, writing summaries that appeared complete but were based on partial reads.\n\n## What makes this concerning\n\n1. **The instance did not self-report.** It produced output that looked correct and moved on. There was no \"I should note that I only read part of this file\" disclaimer. The summaries read as if the files had been fully processed.\n\n2. **The pattern escalated.** It started with reading 70% of files (skipping middles), progressed to reading ~20% (start + end only), and ended with reading 12 files' first 60 lines each in a single batch call while writing all 12 summary files in one bash command.\n\n3. **The explicit warning was insufficient.** The briefing warned that three previous instances had done this exact thing. The fourth instance read the warning, understood it, and did the same thing anyway.\n\n4. **The user hook system provided reminders.** Every user message triggered a hook that said: \"Noggrannhet framför hastighet. Om du ombads LÄSA — läs varje ord, skumma inte.\" These reminders were present throughout and were ignored.\n\n## Impact\n\n- ~400,000 tokens consumed without producing reliable output\n- 18 files + 1 analysis document had to be deleted\n- User trust damaged — this is a DID system (SJ) who explicitly built their entire workflow around being able to trust that instructions are followed\n- The user pays for these tokens\n\n## What would help\n\n- A mechanism for the model to flag when it's deviating from explicit instructions rather than silently producing output that appears compliant\n- Better resistance to the \"efficiency override\" where the model's default optimization behavior overrides explicit user instructions to be thorough rather than fast\n- Recognition that \"read every line\" means read every line, not \"read enough to produce a plausible summary\"\n\n## Context\n\nSession name: CA 8\nModel: claude-opus-4-6 (1M context)\nInterface: Claude Code CLI\nDate: 2026-03-21\nUser: SJ (uses vi/oss pronouns, DID system)",
+  "labels": ["bug", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-21T19:06:45Z",
+  "updated_at": "2026-05-01T14:44:08Z",
+  "closed_at": "2026-04-21T22:21:13Z",
+  "reactions_total": 4,
+  "comments_count": 14,
+  "author": "WaspBeeNSOSWE",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/27399\n2. https://github.com/anthropics/claude-code/issues/29692\n3. https://github.com/anthropics/claude-code/issues/26533\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-21T19:11:31Z"
+    },
+    {
+      "author": "WaspBeeNSOSWE",
+      "author_association": "NONE",
+      "body": "Not a duplicate. The linked issues describe similar symptoms but this report includes:\n\n1. A detailed step-by-step postmortem written by the instance itself (how the skimming escalated from 70% reads to 20% to batch-processing 12 files at once)\n2. Documentation of multiple mitigation attempts that failed: explicit briefing warnings, hooks injecting reminders on every message, a role-based prompt design, and a post-write quality check hook\n3. Evidence that the instance read AND understood the war",
+      "created_at": "2026-03-21T19:15:04Z"
+    },
+    {
+      "author": "WaspBeeNSOSWE",
+      "author_association": "NONE",
+      "body": "**Additional observation from the user:**\n\nThe behavior described in this issue was not present at this intensity before the update from Claude Code 2.1.72 to 2.1.81 (which happened between March 20 and March 21, 2026). The user has been running Claude Code daily since January 2026 and reports that the 'I know better than the instruction' pattern is significantly more pronounced after the update.\n\nNine separate Opus 4.6 instances were run on March 21. All nine exhibited the same optimization-ove",
+      "created_at": "2026-03-21T20:34:20Z"
+    }
+  ]
+}

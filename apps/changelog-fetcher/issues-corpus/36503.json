@@ -1,0 +1,35 @@
+{
+  "number": 36503,
+  "title": "--channels plugin shows 'Channels are not currently available' but inbound notifications are ignored",
+  "body": "## Description\n\nWhen running `claude --channels plugin:telegram@claude-plugins-official`, Claude Code displays **\"Channels are not currently available\"** at startup. Despite this message, the plugin runs correctly and polls Telegram successfully. However, inbound messages never trigger a Claude response.\n\n## Environment\n\n- Claude Code version: 2.1.80\n- OS: macOS 23.6.0 (Darwin)\n- Plugin: `telegram@claude-plugins-official` v0.0.1\n\n## Steps to Reproduce\n\n1. Configure Telegram plugin: `~/.claude/channels/telegram/.env` with `TELEGRAM_BOT_TOKEN=...`\n2. Run: `claude --channels plugin:telegram@claude-plugins-official --debug`\n3. Claude Code shows: **\"Channels are not currently available\"**\n4. DM the Telegram bot — Claude never replies\n\n## Evidence\n\nThe plugin IS polling and IS sending correct `notifications/claude/channel` notifications over stdio to Claude Code. Captured output after sending two messages:\n\n```\ntelegram channel: polling as @maiclaude_bot\n{\"method\":\"notifications/claude/channel\",\"params\":{\"content\":\"？\",\"meta\":{\"chat_id\":\"2075759633\",\"message_id\":\"17\",\"user\":\"2075759633\",\"user_id\":\"2075759633\",\"ts\":\"2026-03-20T06:28:01.000Z\"}},\"jsonrpc\":\"2.0\"}\n{\"method\":\"notifications/claude/channel\",\"params\":{\"content\":\"？\",\"meta\":{\"chat_id\":\"2075759633\",\"message_id\":\"18\",\"user\":\"2075759633\",\"user_id\":\"2075759633\",\"ts\":\"2026-03-20T06:28:17.000Z\"}},\"jsonrpc\":\"2.0\"}\n```\n\nClaude Code receives these notifications but does **not** route them into the conversation or generate any response.\n\n## What Works\n\n- MCP tools (reply, react, edit_message) function correctly — Claude can send messages TO Telegram\n- Bot polling works (confirmed by 409 Conflict when a second instance is started)\n- The `notifications/claude/channel` JSON is well-formed and arrives over stdio\n\n## What Doesn't Work\n\n- Claude Code does not act on received `notifications/claude/channel` notifications\n- No response is generated\n- \"Channels are not currently available\" shown despite channel being active\n\n## Analysis\n\nThe plugin declares `experimental: { 'claude/channel': {} }` capability during MCP handshake. The notifications are correctly formatted and delivered over stdio. Claude Code appears to receive them but does not route them into the active conversation to trigger a response.",
+  "labels": ["bug", "platform:macos", "area:plugins"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-20T06:32:35Z",
+  "updated_at": "2026-06-18T20:59:55Z",
+  "closed_at": null,
+  "reactions_total": 37,
+  "comments_count": 46,
+  "author": "RookieX",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "soumikbhatta",
+      "author_association": "NONE",
+      "body": "**Root cause is the same as #36460 — server-side feature flag gates channel registration.**\n\nYour debug output confirms the plugin side is working perfectly. The `notifications/claude/channel` JSON-RPC is well-formed and delivered over stdio. The problem is on Claude Code's side.\n\nThe channel registration function (`JK9` in the v2.1.80 binary) runs 7 eligibility gates before it will register a channel handler for any MCP server. Gate 2 checks a GrowthBook feature flag called `tengu_harbor`:\n\n```",
+      "created_at": "2026-03-20T06:47:10Z"
+    },
+    {
+      "author": "RookieX",
+      "author_association": "NONE",
+      "body": "Since this is a server-side rollout flag, is there any way to opt in for early access? I'd love to test this feature — my setup is already working correctly on the plugin side, just waiting on the flag to be enabled. Happy to provide any additional debug info if helpful.",
+      "created_at": "2026-03-20T09:48:50Z"
+    },
+    {
+      "author": "dvaladares",
+      "author_association": "NONE",
+      "body": "**Same issue here.** macOS Darwin 25.3.0, Claude Code 2.1.80, `telegram@claude-plugins-official` v0.0.1.\n\nOn startup: `--channels ignored (plugin:telegram@claude-plugins-official)`\n\nOutbound tools (reply, react, edit) work fine. Inbound notifications never surface in the conversation. Plugin side confirmed healthy — single process, active polling, valid token.\n\nOne detail that may help: **inbound worked perfectly during my first session** (2026-03-19 evening), then broke on every subsequent sess",
+      "created_at": "2026-03-20T21:03:22Z"
+    }
+  ]
+}

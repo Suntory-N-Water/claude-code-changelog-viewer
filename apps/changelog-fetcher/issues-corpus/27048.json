@@ -1,0 +1,35 @@
+{
+  "number": 27048,
+  "title": "[BUG] Prompt Cache Invalidation on Session Resume: Tool-Use Content Not Cached, Plugin State Changes Cause Full User Content Rewrite",
+  "body": "# Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n# What's Wrong?\n\n## Summary\nClaude Code's prompt caching implementation fails to cache tool-use content (Read operations) across session resumes, and plugin state changes during active sessions trigger complete rewriting of cached user content. This particularly impacts users employing context-window optimization strategies (frequent plugin enable/disable to manage token costs).\n\n## Testing Environment\n- **All tests conducted within 5-minute cache TTL window**\n- **Operations:** C+C to exit session → `claude --resume \"sessionid\"` → Read tool invocations\n- **Resume intervals:** 5 seconds to 3 minutes (no variance in behavior)\n\n## Observed Behavior\n\n### Tool-Use Content Caching Failure\n\nCache metrics across various transcript compositions (within 5min TTL):\n\n| Transcript Composition | Tool Reads | Before Resume | After Resume | Delta | Hit Rate Change |\n|---|---|---|---|---|---|\n| Baseline | 0 | Cache: 60K | Write: 2-3K, Read: 60K | +2-3K | 99% → 96% |\n| Minimal reads | 2-3 | Cache: 65K | Write: 2K, Read: 65K | +2K | 99% → 96% |\n| Moderate reads | 5-7 | Cache: 70K | Write: 4-5K, Read: 60K | +4-5K | 99% → 92% |\n| Heavy reads | 20+ | Cache: 117K | Write: 91K, Read: 19K | **+91K** | **99% → 17%** |\n\n**Critical observation:** Cache reads decrease while writes increase. In heavy-read sessions, 98K of previously-cached content is not retrieved; instead, 91K of new tokens are written to cache, indicating complete re-evaluation/rewriting of tool-use content section.\n\n### Plugin State Changes Trigger Full User Content Cache Rewrite\n\nWhen plugin state changed mid-session (enable/disable via `/plugin` command), systematic cache invalidation was observed across multiple test cycles:\n\n#### Plugin Enable (Disable → Enable)\n\n| Test | Initial Cache Read | Final Cache Read | Cache Write | Invalidated | Preserved |\n|---|---|---|---|---|---|\n| Enable Test 1 | 113K | 0K | 115K | 113K | 0K |\n| Enable Test 2 | 123K | 19K | 105K | 104K | 19K |\n\n**Pattern:** Enable operations wipe cache (sometimes completely to 0K, sometimes to 19K baseline), then rewrite 100-115K of user content.\n\n#### Plugin Disable (Enable → Disable)\n\n| Test | Initial Cache Read | Final Cache Read | Cache Write | Invalidated | Preserved |\n|---|---|---|---|---|---|\n| Disable Test 1 | 115K | 19K | 97K | 96K | 19K |\n| Disable Test 2 | 122K | 19K | 103K | 103K | 19K |\n\n**Pattern:** Disable operations consistently preserve 19K (system context only) and rewrite 96-103K of user content.\n\n#### Critical Finding: System Context Preservation\n**19K preserved = System Prompt (3.6K) + System Tools (~15.3K)** — only system context survives plugin state changes; all user content and tool-use is rewritten.\n\n#### System Tools Size Change Does Not Correlate\n- **Plugins disabled:** System tools: 17K\n- **Plugins enabled:** System tools: 16.4K (smaller, yet cache still invalidated)\n\n**Implication:** Cache invalidation is not driven by system tools size changes; the issue involves content differences or cache validation key changes in plugin definitions, not simple size deltas.\n\n#### Asymmetric Behavior Confirms Bug\nEnable and disable handle cache invalidation differently, with enable showing more aggressive cache wiping, indicating a bug in cache validation logic during plugin state transitions.\n\n## Technical Analysis\n\n### What Remains Stable (Not Invalidating Cache)\n- System prompt hash\n- System tools definitions\n- Session duration between closes (5s to 3min: identical behavior)\n- Memory files (insufficient test data, but statistically stable)\n\n### What Invalidates Cache\n1. **Tool-use content sections** (Read tool outputs) — proportional to read count\n2. **Plugin state changes** — complete user content cache rewrite\n3. **System prompt regeneration** — affe",
+  "labels": ["bug", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-20T03:59:37Z",
+  "updated_at": "2026-05-22T11:09:32Z",
+  "closed_at": "2026-05-22T11:09:32Z",
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "thoeltig",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24121\n2. https://github.com/anthropics/claude-code/issues/26330\n3. https://github.com/anthropics/claude-code/issues/22107\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-20T04:03:15Z"
+    },
+    {
+      "author": "thoeltig",
+      "author_association": "NONE",
+      "body": "The problem still occurs in Claude Code 2.1.71",
+      "created_at": "2026-03-07T01:14:27Z"
+    },
+    {
+      "author": "thoeltig",
+      "author_association": "NONE",
+      "body": "The problem still occurs in Claude Code 2.1.81",
+      "created_at": "2026-03-24T16:33:49Z"
+    }
+  ]
+}

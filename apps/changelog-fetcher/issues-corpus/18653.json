@@ -1,0 +1,35 @@
+{
+  "number": 18653,
+  "title": "[FEATURE]  Tool result transform hook for content sanitization",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n### The Architectural Gap\n\nClaude Code's hook system provides `PreToolUse` (before tool execution) and `PostToolUse` (after successful completion) hooks. However, there is a critical gap: **no hook can intercept and transform tool results before they enter Claude's context window**.\n\nThis matters because prompt injection attacks via external content are a documented, exploited vulnerability class affecting all major AI assistants:\n\n| Product | Vulnerability | Disclosure Date | Source |\n|---------|--------------|-----------------|--------|\n| Claude Cowork | Data exfiltration via Anthropic API | Jan 2026 | PromptArmor / Embrace The Red |\n| Microsoft Copilot | Reprompt attack (P2P injection) | Jan 2026 | Varonis Threat Labs |\n| Slack AI | Private channel exfiltration | Aug 2024 | PromptArmor |\n| Notion AI | Pre-approval data exfiltration | Jan 2026 | PromptArmor |\n| Google Antigravity | Credential theft via browser agent | Dec 2025 | PromptArmor |\n\nThe common pattern: **external content (web pages, documents, API responses) contains hidden instructions that the model processes as commands**.\n\n### Current Limitations\n\n**`PreToolUse` hooks** can block tool execution but cannot see the result—they run *before* the tool executes.\n\n**`PostToolUse` hooks** run *after* the tool completes but:\n1. Cannot modify the tool result (confirmed in #4544, closed as duplicate)\n2. By the time they execute, the content has already entered Claude's context\n3. Any injection payload has already had opportunity to influence the model\n\n**The fundamental problem:** There is no interception point where external content can be scanned, sanitized, or blocked *before* Claude processes it.\n\n### Attack Scenario\n\n```\n1. User asks Claude to fetch a URL or read a document\n2. Tool (WebFetch, Read, MCP tool) retrieves content\n3. Content contains hidden prompt injection:\n   - White-on-white text in documents\n   - Microscopic font sizes (1-2pt)\n   - HTML comments or invisible Unicode\n   - Contextually-plausible \"instructions to AI assistants\"\n4. Content enters Claude's context window\n5. Injection influences Claude's subsequent behavior\n6. Potential outcomes: data exfiltration, unauthorized actions, session hijacking\n```\n\nNo current hook can intervene between steps 2 and 4.\n\n\n### Proposed Solution\n\n### New Hook Type: `ToolResultTransform`\n\nAdd a hook that executes **after a tool returns its result** but **before that result enters Claude's context window**, with the ability to:\n\n1. **Inspect** the raw tool result\n2. **Transform** the content (sanitize, redact, annotate)\n3. **Block** the result entirely with a reason\n4. **Pass through** unmodified\n\n### Hook Specification\n\n#### Trigger Point\n\n```\nTool Invoked → Tool Executes → Tool Returns Result\n                                        ↓\n                              [ToolResultTransform Hook] ← NEW\n                                        ↓\n                              Result Enters Context Window\n                                        ↓\n                              Claude Processes Result\n```\n\n#### Configuration\n\n```json\n{\n  \"hooks\": {\n    \"ToolResultTransform\": [\n      {\n        \"matcher\": \"WebFetch|WebSearch|Read|mcp__*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"~/.claude/hooks/content-scanner.py\",\n            \"timeout\": 30\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n#### Input (stdin JSON)\n\n```json\n{\n  \"tool_name\": \"WebFetch\",\n  \"tool_input\": {\n    \"url\": \"https://example.com/document\"\n  },\n  \"tool_result\": {\n    \"content\": \"... raw content returned by tool ...\",\n    \"content_type\": \"text/html\",\n    \"status_code\": 200\n  },\n  \"session_id\": \"abc123\",\n  \"timestamp\": \"2026-01-16T12:00:00Z\"\n}\n```\n\n#### Output (stdout JSON)\n\n**Pass through (no modification):**\n```json\n{\n  \"act",
+  "labels": ["enhancement", "area:tools", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-16T19:07:24Z",
+  "updated_at": "2026-05-16T03:22:59Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 24,
+  "author": "evilfurryone",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/9539\n2. https://github.com/anthropics/claude-code/issues/18594\n3. https://github.com/anthropics/claude-code/issues/4544\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-16T19:11:16Z"
+    },
+    {
+      "author": "evilfurryone",
+      "author_association": "NONE",
+      "body": "Re: Duplicate detection\nThis issue addresses a fundamentally different concern than #9539 (closed as not planned).\n#9539 was framed as a cost optimization feature—reducing token usage when MCP tools return large payloads like base64 images.\nThis issue is about security—specifically, defense against prompt injection attacks via external content. This is not theoretical:\n\nClaude Cowork was exploited via this vector (January 2026, PromptArmor)\nMicrosoft Copilot's Reprompt vulnerability (January 202",
+      "created_at": "2026-01-16T19:17:28Z"
+    },
+    {
+      "author": "extemporalgenome",
+      "author_association": "NONE",
+      "body": "> This issue addresses a fundamentally different concern than https://github.com/anthropics/claude-code/issues/9539 (closed as not planned).\n\nI don't see anything in that issue that suggests it was intentionally categorized as \"not planned\" (e.g. rejected by a human with authority): it merely was auto-closed due to inactivity. Thus that other tickets' use-case(s), as well as any kind of auto-formatting/cleanup use-cases could lend weight to *this* ticket as well.",
+      "created_at": "2026-01-18T06:47:50Z"
+    }
+  ]
+}

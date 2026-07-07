@@ -1,0 +1,35 @@
+{
+  "number": 4110,
+  "title": "Dynamic MCP resources not discovered in claude code",
+  "body": "## Description\nClaude Code can list static MCP resources and MCP tools, but not dynamic MCP resources.\n\nTo be more specific:\n\n```\nfrom mcp.server.fastmcp import FastMCP\n\n# Create an MCP server\nmcp = FastMCP(\"Demo\")\n\n# Add an addition tool\n@mcp.tool() <<<<<<<<<<<<<< This works. Can be discovered in Claude Code.\ndef add(a: int, b: int) -> int:\n    \"\"\"Add two numbers\"\"\"\n    return a + b\n\n\n# Add a dynamic greeting resource\n@mcp.resource(\"greeting://{name}\")  <<<<<<<<<<<<<<< This doesn't.\ndef get_greeting(name: str) -> str:\n    \"\"\"Get a personalized greeting\"\"\"\n    return f\"Hello, {name}!\"\n```\n\nSame issue was surfaced in the Claude Deskop as well: https://github.com/modelcontextprotocol/python-sdk/issues/263\n\nSee this comment https://github.com/modelcontextprotocol/python-sdk/issues/263#issuecomment-2729617662 which seems to be the reason.\n\nI was using https://www.npmjs.com/package/@anthropic-ai/claude-code `v1.0.56`.\n\nThis makes Claude Code less useful since dynamic MCP resources are very important to build production MCP servers.",
+  "labels": ["bug", "has repro", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-22T00:00:29Z",
+  "updated_at": "2026-01-23T14:13:57Z",
+  "closed_at": "2026-01-11T10:12:01Z",
+  "reactions_total": 14,
+  "comments_count": 13,
+  "author": "shouhengyi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "dacz",
+      "author_association": "NONE",
+      "body": "I have the same problem, but from yesterday it escalated that I cannot even use dynamically registered tool.\n\nDescribed in #4526 \n",
+      "created_at": "2025-07-27T08:47:08Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/3326\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-15T21:39:56Z"
+    },
+    {
+      "author": "RobbieMcKinstry",
+      "author_association": "NONE",
+      "body": "I'm having the same issue. I have one tool enabled by default, and calling that tool enables a second tool. But despite the call to `.enable()`, Claude Code is unable to detect the change to the tools list. It seems like Claude Code is not picking up the `listChanged` notification ([related docs here](https://github.com/modelcontextprotocol/typescript-sdk?tab=readme-ov-file#dynamic-servers)).",
+      "created_at": "2025-08-16T20:07:27Z"
+    }
+  ]
+}

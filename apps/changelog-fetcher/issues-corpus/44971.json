@@ -1,0 +1,16 @@
+{
+  "number": 44971,
+  "title": "SubagentStop hook does not fire when team agents terminate via shutdown protocol",
+  "body": "## Summary\n\nWhen a team agent (teammate) terminates via the `shutdown_request` → `shutdown_approved` protocol, the `SubagentStop` hook does not fire. This leaves external systems that track agent lifecycle via hooks with phantom agent counts that never decrement.\n\n## Reproduction\n\n1. Enable agent teams: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`\n2. Register a `SubagentStop` hook that logs to a JSONL file (or any observable side effect)\n3. Create a team and spawn teammates\n4. Send `shutdown_request` to teammates\n5. Observe that `shutdown_approved` is received, `teammate_terminated` system message appears, but `SubagentStop` hook never fires\n\n## Evidence\n\nJSONL event log showing 6 team agents with `agent.start` events and no matching `agent.stop`:\n\n```\n# Team 1: resilience-architect and test-architect\n{\"ts\":\"2026-04-08T01:54:13Z\",\"event\":\"agent.start\",\"agent_id\":\"aacd2d977d5b10367\",\"agent_type\":\"resilience-architect\"}\n{\"ts\":\"2026-04-08T01:54:26Z\",\"event\":\"agent.start\",\"agent_id\":\"ad43c61987f3d60bd\",\"agent_type\":\"test-architect\"}\n# Both received shutdown_approved — no agent.stop events ever appeared\n\n# Team 2: three review agents\n{\"ts\":\"2026-04-08T02:09:22Z\",\"event\":\"agent.start\",\"agent_id\":\"a712f607506a003a7\",\"agent_type\":\"reuse-reviewer\"}\n{\"ts\":\"2026-04-08T02:09:22Z\",\"event\":\"agent.start\",\"agent_id\":\"a912c5cfbfc5e9ae4\",\"agent_type\":\"quality-reviewer\"}\n{\"ts\":\"2026-04-08T02:09:23Z\",\"event\":\"agent.start\",\"agent_id\":\"ab21e0518d3daf119\",\"agent_type\":\"efficiency-reviewer\"}\n# All three received shutdown_approved — no agent.stop events\n```\n\nMeanwhile, regular subagents (non-team) and team agents that go through idle→wake cycles (via `SendMessage`) DO correctly fire `SubagentStop`. The issue is specifically the `shutdown_request` → `shutdown_approved` termination path.\n\n## Expected behavior\n\n`SubagentStop` should fire for every agent that triggered `SubagentStart`, regardless of how the agent terminates (normal completion, shutdown protocol, or error).\n\n## Impact\n\nAny plugin or hook that tracks agent count via `SubagentStart`/`SubagentStop` pairs will show permanently inflated counts after team sessions. This affects resource management tools that gate behavior on active agent count.\n\n## Environment\n\n- Claude Code v2.1.94\n- macOS Darwin 25.3.0\n- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`\n\n## Context\n\nDiscovered while building [coolant](https://github.com/todd-w-shaffer/coolant), a resource management plugin that tracks agent lifecycle via hooks to drive a thermal monitoring dashboard. The breathing agent icons stay lit indefinitely after team agent shutdown because the stop events never arrive.",
+  "labels": ["bug", "has repro", "platform:macos", "area:hooks", "area:agents"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-08T02:23:55Z",
+  "updated_at": "2026-05-01T14:42:23Z",
+  "closed_at": "2026-04-18T04:19:11Z",
+  "reactions_total": 0,
+  "comments_count": 12,
+  "author": "todd-w-shaffer",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,35 @@
+{
+  "number": 821,
+  "title": "Claude Code only processes one prompt per session, then times out until restart (WSL)",
+  "body": "## Environment  \n- Platform (select one):  \n  - [x ] Anthropic API  \n  - [ ] AWS Bedrock  \n  - [ ] Google Vertex AI  \n- Claude CLI version: `0.2.74 (Claude Code)`  \n- Operating System: Ubuntu 22.04.5 LTS (under Windows Subsystem for Linux)  \n- Terminal:  WSL\n\n## Bug Description  \nThis started 2 days ago all of a sudden.\nhttps://status.anthropic.com/ reports \"All Systems Operational\" during this whole time.\nAfter starting Claude, I can send one prompt successfully. However, all subsequent prompts fail with a timeout error. The system enters a retry loop such as:  \n\n```\nAPI Error (Request timed out.) · Retrying in 1 seconds… (attempt 1/10)\n```  \n\nEventually, it fails entirely or says Claude is offline. Restarting the session allows one more prompt to go through before the issue occurs again.  \n\n## Steps to Reproduce  \n1. Start Claude CLI inside WSL.  \n2. Send a prompt — works as expected.  \n3. Send another prompt — fails with timeout.  \n4. Restart Claude — issue resets and repeats.  \n\n## Expected Behavior  \nClaude should continue to process multiple prompts in a session without timing out after the first one.  \n\n## Actual Behavior  \nOnly the first prompt works. Every subsequent prompt times out and enters a retry loop, making it unusable without restarting each time.  \n\n## Additional Context  \n- Consistently reproducible.  \n- No network issues observed on the host system.  \n- Running inside Windows 11 using WSL (Windows Subsystem for Linux).  \n- Happy to provide logs or additional environment details if needed.\n",
+  "labels": ["bug", "has repro", "platform:windows"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-04-19T09:48:26Z",
+  "updated_at": "2025-07-29T16:14:21Z",
+  "closed_at": "2025-05-08T17:54:04Z",
+  "reactions_total": 7,
+  "comments_count": 12,
+  "author": "tomazbc",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "dasrfp",
+      "author_association": "NONE",
+      "body": "rampant speculation: possible interference from endpoint security software?",
+      "created_at": "2025-04-24T18:43:40Z"
+    },
+    {
+      "author": "tomazbc",
+      "author_association": "NONE",
+      "body": "Figured it out.\nAddguard decided one day that https://statsig.anthropic.com/ should be blocked. \nAllowing it fixed the issue.",
+      "created_at": "2025-04-25T13:46:18Z"
+    },
+    {
+      "author": "jnz86",
+      "author_association": "NONE",
+      "body": "For me this was that my VPN was connected and AI companies hate VPNs.",
+      "created_at": "2025-06-09T22:16:52Z"
+    }
+  ]
+}

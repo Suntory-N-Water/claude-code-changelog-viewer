@@ -1,0 +1,35 @@
+{
+  "number": 15521,
+  "title": "LSP plugins not registering servers - LSP Manager initializes before plugins load",
+  "body": "## Bug Description\n\nLSP servers from plugins are not being registered. The LSP Manager initializes with 0 servers before the plugins are loaded, so the `.lsp.json` configurations from LSP plugins are never picked up.\n\n## Environment\n\n- **Claude Code Version:** 2.0.76\n- **OS:** macOS (Darwin 24.6.0)\n- **Plugin:** `vtsls@claude-code-lsps` from `boostvolt/claude-code-lsps` marketplace\n\n## Steps to Reproduce\n\n1. Install vtsls globally: `npm install -g vtsls`\n2. Add the claude-code-lsps marketplace to settings.json:\n   ```json\n   \"extraKnownMarketplaces\": {\n     \"claude-code-lsps\": {\n       \"source\": {\n         \"source\": \"github\",\n         \"repo\": \"boostvolt/claude-code-lsps\"\n       }\n     }\n   }\n   ```\n3. Enable the plugin: `\"vtsls@claude-code-lsps\": true` in `enabledPlugins`\n4. Restart Claude Code\n5. Try using the LSP tool on a TypeScript file\n\n## Expected Behavior\n\nThe LSP tool should work with TypeScript files using the vtsls language server.\n\n## Actual Behavior\n\nLSP tool returns: `No LSP server available for file type: .ts`\n\n## Debug Log Evidence\n\nThe debug log shows the timing issue:\n\n```\n2025-12-27T16:09:35.099Z [DEBUG] [LSP MANAGER] Starting async initialization (generation 1)\n2025-12-27T16:09:35.104Z [DEBUG] LSP server manager initialized successfully\n2025-12-27T16:09:35.104Z [DEBUG] LSP notification handlers registered successfully for all 0 server(s)\n2025-12-27T16:09:35.110Z [DEBUG] Plugin vtsls@claude-code-lsps version 1.0.0 already cached\n2025-12-27T16:09:35.110Z [DEBUG] Loaded hooks from standard location for plugin vtsls\n```\n\nThe LSP Manager completes initialization with **0 servers** at `16:09:35.104`, but the vtsls plugin doesn't finish loading until `16:09:35.110`.\n\n## Plugin Configuration\n\nThe plugin's `.lsp.json` file at `~/.claude/plugins/cache/claude-code-lsps/vtsls/1.0.0/.lsp.json`:\n\n```json\n{\n  \"typescript\": {\n    \"command\": \"vtsls\",\n    \"args\": [\"--stdio\"],\n    \"extensionToLanguage\": {\n      \".ts\": \"typescript\",\n      \".tsx\": \"typescriptreact\",\n      \".js\": \"javascript\",\n      \".jsx\": \"javascriptreact\"\n    }\n  }\n}\n```\n\n## Additional Context\n\n- Plugin validates successfully: `claude plugin validate` returns \"✔ Validation passed\"\n- vtsls binary is installed and accessible: `/usr/local/bin/vtsls` (v0.3.0)\n- Multiple restarts of Claude Code don't resolve the issue\n- The same issue occurs with `pyright@claude-code-lsps`\n\n## Suggested Fix\n\nThe LSP Manager should either:\n1. Wait for plugins to load before initializing\n2. Re-scan for LSP configurations after plugins finish loading\n3. Support lazy initialization of LSP servers when first needed",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-27T17:43:25Z",
+  "updated_at": "2026-03-22T14:18:01Z",
+  "closed_at": "2026-03-12T21:59:01Z",
+  "reactions_total": 10,
+  "comments_count": 8,
+  "author": "byosamah",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13952\n2. https://github.com/anthropics/claude-code/issues/15202\n3. https://github.com/anthropics/claude-code/issues/15413\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-27T17:47:19Z"
+    },
+    {
+      "author": "dancehands",
+      "author_association": "NONE",
+      "body": "Having same issue using the Intelephense plugin for PHP. ",
+      "created_at": "2025-12-29T22:29:47Z"
+    },
+    {
+      "author": "pdebuitlear",
+      "author_association": "NONE",
+      "body": "Any update on fixing this issue please?",
+      "created_at": "2026-01-22T22:48:25Z"
+    }
+  ]
+}

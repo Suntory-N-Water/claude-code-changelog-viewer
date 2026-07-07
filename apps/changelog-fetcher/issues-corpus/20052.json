@@ -1,0 +1,35 @@
+{
+  "number": 20052,
+  "title": "[BUG] Claude Desktop incorrectly reads tags <Name> and </Name> as <n> and </n> from files",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Note:** This is a Claude Desktop issue, not Claude Code. \nFiling here because no Claude Desktop issue tracker exists.\n\n## Environment\n- Claude Desktop on Windows 11\n- Using desktop-commander MCP server for file operations\n- Also affects built-in Linux container tools\n\n\n## Expected Behavior\nXML tags should be preserved exactly as they appear in the file/input:\n`<Name>SomeValue</Name>`\n\n## Actual Behavior\nTags are corrupted/transformed at the client level:\n`<n>SomeValue</n>`\n\n## Impact\n- Claude cannot correctly parse or generate XML files with <Name> tags\n- Affects ALL file reading methods (MCP servers, built-in tools, direct paste)\n- Workaround required: manually instructing Claude to interpret `<n>` as `<Name>`\n\n## Root Cause Hypothesis\nThe corruption appears to happen in Claude Desktop's input processing layer, suggesting possible overly aggressive HTML/XML sanitization or tag normalization that incorrectly transforms `<Name>` → `<n>`.\n\n\n### What Should Happen?\n\n## Expected Behavior\nXML tags should be preserved exactly as they appear in the file/input:\n`<Name>SomeValue</Name>`\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n### Scenario 1: Reading files via MCP\n1. Create a file containing XML with `<Name>` and `</Name>` tags\n2. Read the file using desktop-commander MCP server\n3. Observe that Claude receives `<n>` and `</n>` instead\n\n### Scenario 2: Pasting XML content directly in chat\n1. Copy XML content containing `<Name>` tags\n2. Paste it directly into Claude Desktop chat\n3. Use the built-in `view` tool (Linux container) to read the pasted content\n4. **The `view` tool also returns corrupted tags** (`<n>` instead of `<Name>`)\n\nThis indicates the corruption happens at the Claude Desktop client level, before content reaches any backend tools.\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nit's in Claude Desktop and judging by the other similar reports in Claude CLI version: 0.2.45 (Claude Code), Claude CLI version: claude/v1.5.0\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:windows", "area:ide", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-22T11:57:14Z",
+  "updated_at": "2026-06-25T16:09:34Z",
+  "closed_at": "2026-06-25T11:04:47Z",
+  "reactions_total": 0,
+  "comments_count": 16,
+  "author": "XJanuszCH",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/525\n2. https://github.com/anthropics/claude-code/issues/866\n3. https://github.com/anthropics/claude-code/issues/1150\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-22T12:02:53Z"
+    },
+    {
+      "author": "XJanuszCH",
+      "author_association": "NONE",
+      "body": "All the other threads were auto-closed without any actual fix.",
+      "created_at": "2026-01-22T13:41:11Z"
+    },
+    {
+      "author": "XJanuszCH",
+      "author_association": "NONE",
+      "body": "I'm sorry for calling out directly to @bcherny, @hackyon-anthropic, @fvolcic but this bug was reported many times and never got any attention and I hope that this way maybe someone besides github-actions will notice and this can be fixed :)",
+      "created_at": "2026-01-23T06:09:02Z"
+    }
+  ]
+}

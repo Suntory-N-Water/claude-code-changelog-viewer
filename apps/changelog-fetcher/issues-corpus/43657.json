@@ -1,0 +1,35 @@
+{
+  "number": 43657,
+  "title": "[BUG] Resume/continue cache invalidation",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using `--resume` to continue a session, the prompt cache is broken on every turn. Content that should be a cache hit is re-created instead, leading to massively increased session usage.\n\nIn particular, the cause is twofold:\n\n## Issue 1: Skill listing block migrates between messages on resume\n\nA `<system-reminder>` block listing available skills (~1501 chars) is injected into the first user message on each turn. This block is **not persisted** in the session JSONL. On the initial turn it appears in `messages[0]`. On resume, the persisted messages are replayed *without* it, and a fresh copy is injected into the *new* user message instead.\n\nThis changes the block structure of `messages[0]`, which invalidates the cache prefix for everything after it.\n\n**Observed in proxy dump — Turn 1 `messages[0]`** (4 content blocks):\n```\nblock[0]: 533 chars  — companion system-reminder\nblock[1]: 1501 chars — skill listing system-reminder  ← PRESENT HERE\nblock[2]: 7801 chars — project context system-reminder\nblock[3]: 4 chars    — user text (\"test\"), cache_control: ephemeral 1h\n```\n\n**Observed in proxy dump — Turn 2 `messages[0]`** (3 content blocks):\n```\nblock[0]: 534 chars  — companion system-reminder (also 1 byte longer, see Issue 2)\nblock[1]: 7801 chars — project context system-reminder\nblock[2]: 4 chars    — user text (\"test\"), NO cache_control\n```\n\n**Turn 2 `messages[2]`** (new user message, 2 content blocks):\n```\nblock[0]: 1501 chars — skill listing system-reminder  ← MOVED HERE\nblock[1]: 10 chars   — user text (\"test again\"), cache_control: ephemeral 1h\n```\n\nThe skill listing block moved from `messages[0]` (turn 1) to `messages[2]` (turn 2). Since the API caches by exact prefix match, this structural difference at the start of the messages array means the session-specific content can never be a cache hit on resume.\n\n## Issue 2: Extra newline appended to text blocks on re-normalization\n\nWhen replayed messages are re-normalized on resume, an extra `\\n` is appended to certain text blocks at merge boundaries. This is visible in the companion block:\n\n```\nTurn 1: 533 chars, ends with \"</system-reminder>\"\nTurn 2: 534 chars, ends with \"</system-reminder>\\n\"\n```\n\nThis 1-byte difference independently invalidates the prefix cache, even if Issue 1 were fixed. The extra newline accumulates on each resume — a third resume would add another `\\n`.\n\n## Expected behavior\n\nBoth issues are independently sufficient to break the cache. When both are corrected, resumed turns achieve ~100% cache hit:\n\n```\nturn  hit%  cached   new_cache  uncached  total   ctx%  message\n----  ----  -------  ---------  --------  ------  ----  -------\n   1    68%    11271       5277         3   16551    2%  test\n   2   100%    16548         45         3   16596    2%  test again\n   3   100%    16593         44         3   16640    2%  one more test\n   4   100%    16637         39         3   16679    2%  test\n\nHEALTHY: steady-state avg hit=100%, avg new cache=43\n```\n\nNew cache creation drops from ~2850 to ~43 tokens/turn (just the new user message content).\n\n\n### What Should Happen?\n\n`claude --resume -p` with a provided session, used within the cache time limit, should not invalidate prior session cache, nor introduce new tokens. In other words, `--resume` should be idempotent and `--resume -p` should be functionally identical to sending a new interactive turn, i.e. not generating unnecessary caching burden.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nFirst, initialize a local HTTP reverse proxy intercepting API requests to `api.anthropic.com`, capturing full request payloads across a 4-turn `--resume` sequence.\n\n```bash\n# Turn 1: start session\nclaude -p --output-format stream-json <",
+  "labels": ["bug", "has repro", "area:cost", "area:core", "regression"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-04T20:38:43Z",
+  "updated_at": "2026-06-11T12:48:18Z",
+  "closed_at": "2026-06-11T11:42:03Z",
+  "reactions_total": 8,
+  "comments_count": 14,
+  "author": "simpolism",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34039\n2. https://github.com/anthropics/claude-code/issues/42338\n3. https://github.com/anthropics/claude-code/issues/34629\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-04T20:42:24Z"
+    },
+    {
+      "author": "simpolism",
+      "author_association": "NONE",
+      "body": "Fixed in 2.1.97!",
+      "created_at": "2026-04-09T18:14:36Z"
+    },
+    {
+      "author": "cnighswonger",
+      "author_association": "NONE",
+      "body": "Our automated cache behavior tests on v2.1.97 show that resume block scatter is still present — system-level blocks (skills, plugins) get relocated outside `messages[0]` on `--resume`, breaking the prefix cache.\n\nTest data: with the interceptor disabled on v2.1.97, `cache_read_input_tokens` drops to near-zero on resumed sessions. With the interceptor re-enabled, cache hit rate returns to ~98%.\n\nFull test report: [v2.1.97-cache-test-report.md](https://github.com/cnighswonger/claude-code-cache-fix",
+      "created_at": "2026-04-09T21:52:06Z"
+    }
+  ]
+}

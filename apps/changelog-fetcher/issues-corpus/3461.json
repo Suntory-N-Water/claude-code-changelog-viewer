@@ -1,0 +1,35 @@
+{
+  "number": 3461,
+  "title": "[BUG] CLI fails on Windows with Git Bash: \"No suitable shell found\"",
+  "body": "### Bug Description\n\nThe Claude Code CLI fails to initialize when run within the Git Bash environment on Windows. It reports that \"No suitable shell found,\" even though the `SHELL` environment variable is correctly set and the system is a standard Git for Windows installation.\n\nThis issue occurs with a local (project-level) installation of the package. This prevents users on Windows who cannot use WSL (due to corporate policy, etc.) from using the CLI tool.\n\n### To Reproduce\n\n1.  On a Windows machine, install Git for Windows to get the Git Bash terminal.\n2.  Open the Git Bash terminal.\n3.  Create a new directory for a project: `mkdir test-claude-cli && cd test-claude-cli`\n4.  Install Claude Code locally in the project: `npm install @anthropic-ai/claude-code@latest`\n5.  Attempt to run the CLI using `npx`: `npx claude`\n6.  The error \"No suitable shell found\" is displayed immediately.\n\n### Expected Behavior\n\nThe CLI should successfully detect the Posix-compliant shell provided by Git Bash and start normally, proceeding to the authentication/project setup steps.\n\n### Actual Behavior\n\nThe CLI exits immediately with the following error message:\n```\nError: No suitable shell found. Claude CLI requires a Posix shell environment. Please ensure you have a valid shell installed and the SHELL environment variable set.\n```\n\n### Environment Details\n\n-   **OS:** Windows 11 Pro\n-   **Terminal:** Git Bash (MINGW64)\n-   **Node.js Version:** v22.17.0\n-   **`@anthropic-ai/claude-code` Version:** 1.0.51\n\n### Diagnostic Information\n\nThe Git Bash environment appears to be correctly configured:\n\n```\n$ echo $SHELL\n/usr/bin/bash\n\n$ which bash\n/usr/bin/bash\n```\n\nThe issue also persists even when explicitly setting the SHELL variable before running the command:\n\n```\n$ SHELL=/usr/bin/bash npx claude\n# Same \"No suitable shell found\" error occurs\n```",
+  "labels": ["bug", "has repro", "platform:windows", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-14T00:35:16Z",
+  "updated_at": "2025-07-29T16:33:22Z",
+  "closed_at": "2025-07-19T00:20:12Z",
+  "reactions_total": 15,
+  "comments_count": 23,
+  "author": "0x46y",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Hey folks, sorry for the confusion here. Here's a summary of where we're at:\n- There is a code defect preventing Claude Code from finding git's `bash.exe` on some environments. We have issued a patch for this in v1.0.56 (note this is not tagged as `latest` yet at the time of writing).\n- With that patch, either `bash.exe` will be found correctly - or you will get a (more) helpful error message about setting the environment variable:\n- In the meantime, if you're running into this issue, set enviro",
+      "created_at": "2025-07-18T18:59:35Z"
+    },
+    {
+      "author": "Sallvainian",
+      "author_association": "NONE",
+      "body": "Use PowerShell, not bash, you just need git-bash installed. Also, make sure node. is installed in its normal global location (and there's nothing in your path pointing to a different location like a dedicated npm directory)",
+      "created_at": "2025-07-14T00:47:36Z"
+    },
+    {
+      "author": "0x46y",
+      "author_association": "NONE",
+      "body": "Thank you for the quick and helpful response!\n\nYour advice solved the problem. I was able to run it successfully from **PowerShell** within the project directory.\n\nThe \"No suitable shell found\" error was a bit misleading, as it made me focus entirely on Git Bash. I appreciate you pointing me in the right direction.\n\nThanks again for your help!",
+      "created_at": "2025-07-14T01:28:32Z"
+    }
+  ]
+}

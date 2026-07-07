@@ -1,0 +1,35 @@
+{
+  "number": 27407,
+  "title": "[BUG] Wrong command is reported in \"don't ask again for\" in \"This command requires approval\"",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen executing bash with a pipe, where the first pipe argument should be auto-allowed, but the second isn't, like this:\n\n```\nBash command                                                                                                                                                                \n                                                                                                                                                                             \n   hyprctl clients -j | python3 -c \"import sys,json; [print(f'at=({c[\\\"at\\\"][0]},{c[\\\"at\\\"][1]})') for c in json.loads(sys.stdin.read()) if 'popup' in c.get('title','')]\"   \n   Check popup position after manual move                                                                                                                                    \n                                                               \n Do you want to proceed?\n ❯ 1. Yes                    \n   2. Yes, and don’t ask again for: hyprctl clients:*\n   3. No\n\n Esc to cancel · Tab to amend\n```\n\nIt asks to allow `hyprctl clients:*`, even though `hyprctl clients:*` is allowed:\n\n```\n> \\cat .claude/settings.local.json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"mcp__web-search-prime__webSearchPrime\",\n      \"mcp__web-reader__webReader\",\n      \"Bash(head:*)\",\n      \"Bash(tail:*)\",\n      \"Bash(tail *)\",\n      \"Bash(flutter pub get)\",\n      \"Bash(flutter build linux --release)\",\n      \"Bash(grep:*)\",\n      \"Bash(grep *)\",\n      \"Bash(flutter build:*)\",\n      \"Read(//home/username/.pub-cache/hosted/pub.dev/**)\",\n      \"Bash(flutter clean)\",\n      \"Bash(cmake *)\",\n      \"Bash(dart analyze *)\",\n      \"Bash(hyprctl clients:*)\",\n      \"Bash(hyprctl monitors:*)\"\n    ]\n  }\n}\n```\n\nPython is not allowed, so the Bash tool call is probably blocked because of python, not because of hyprctl clients.\n\n### What Should Happen?\n\nTUI should display the correct prompt:\n\n```\n Bash command\n\n   hyprctl clients -j | python3 -c \"import sys,json; [print(f'at=({c[\\\"at\\\"][0]},{c[\\\"at\\\"][1]})') for c in json.loads(sys.stdin.read()) if 'popup' in\n   c.get('title','')]\"\n   Check popup position after manual move\n\n Do you want to proceed?\n ❯ 1. Yes\n   2. Yes, and don’t ask again for: python3:*\n   3. No\n\n Esc to cancel · Tab to amend\n```\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Start in a new project\n2. Ask it to run a piped command of your liking, where both parts will not be allowed\n3. Allow the first one\n4. Ask it to rerun this command\n5. The first command will still be there, even though it is allowed.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.50 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nOS: Arch Linux, EndeavourOS flavor, super custom but I don't think that it should matter.\nTerminal: kitty\nDefault shell: zsh\nSorry if it's a dupe, I searched but couldn't find the similar issue.",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-21T12:20:20Z",
+  "updated_at": "2026-04-01T14:50:58Z",
+  "closed_at": "2026-03-25T10:25:10Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "SivkovSavely",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/11007\n2. https://github.com/anthropics/claude-code/issues/16180\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-21T12:23:23Z"
+    },
+    {
+      "author": "SivkovSavely",
+      "author_association": "NONE",
+      "body": "Possible duplicates are not relevant. The second command is not executed and the first one seems related but is closed.",
+      "created_at": "2026-02-21T13:13:33Z"
+    },
+    {
+      "author": "jamesarosen",
+      "author_association": "NONE",
+      "body": "There's also an inconsistency about spaces vs colons that happens in these cases.\n\nI have `Bash(git log *)` in my `allow` list. Claude has no trouble with simple `git log ...` commands.\n\nBut if Claude tries to do\n\n```\ngit log main..HEAD --format=\"%H %s\" | while read hash msg; do … git diff-tree … done\n```\n\nit raises this permissions check:\n\n```\ngit log main..HEAD --format=\"%H %s\" | while read hash msg; do echo \"=== $hash $msg ===\"; git diff-tree --no-commit-id -r --stat $hash; echo; done\n   Show",
+      "created_at": "2026-02-23T05:34:34Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 12084,
+  "title": "[BUG]  Claude Code 2.0.43+ exits immediately after rendering welcome screen on RHEL8",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nStarting with version 2.0.43, Claude Code's interactive TUI renders the welcome screen but immediately exits with code 0. Non-interactive mode (claude -p) works perfectly.\n\nDebug observations:\n- Shell snapshot creation completes successfully\n- All initialization completes without errors\n- TUI renders correctly\n- stdin/stdout/stderr are all TTYs\n- `claude -p \"test\"` works perfectly\n- Issue is specific to interactive TUI event loop\n\nTerminal capabilities confirmed working:\n- TERM=xterm-256color\n- All terminfo entries present\n- stdin/stdout are TTYs\n- No environment variable issues\n\n\n### What Should Happen?\n\nTUI should remain interactive and wait for user input.\n\n### Error Messages/Logs\n\n```shell\nNone, it fails silently.\n```\n\n### Steps to Reproduce\n\n\n1. Install Claude Code 2.0.43 or later on RHEL 8\n2. Run `claude` in any directory\n3. Welcome screen appears briefly then process exits immediately\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.0.42\n\n### Claude Code Version\n\n2.0.43, 2.0.49 (latest as of this ticket)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:linux", "area:tui", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-21T15:39:56Z",
+  "updated_at": "2026-03-27T14:35:17Z",
+  "closed_at": "2026-03-16T05:40:52Z",
+  "reactions_total": 26,
+  "comments_count": 29,
+  "author": "tmclean-feith",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Does this reproduce on the npm installation?\n\nWould be really helpful if you could check if strace / perf trace / nttrace yields anything of note",
+      "created_at": "2026-02-05T03:54:04Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Should no longer be occurring in Claude Code 2.1.76.",
+      "created_at": "2026-03-16T05:40:52Z"
+    },
+    {
+      "author": "bcjonescbt",
+      "author_association": "NONE",
+      "body": "detailed similar issue in https://github.com/anthropics/claude-code/issues/12266\n",
+      "created_at": "2025-11-24T16:46:36Z"
+    }
+  ]
+}

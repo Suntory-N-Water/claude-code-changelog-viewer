@@ -1,0 +1,16 @@
+{
+  "number": 6305,
+  "title": "Post/PreToolUse Hooks Not Executing in Claude Code",
+  "body": "Bug Report for Anthropic - Claude Code Hook System\n\n  Issue: PreToolUse and PostToolUse Hooks Not Executing\n\n  Environment:\n  - Claude Code Version: claude-sonnet-4-20250514\n  - Platform: macOS Darwin 24.6.0\n  - Configuration: .claude/settings.local.json\n\n  Problem:\n  PreToolUse and PostToolUse hooks are configured correctly but never execute, while other hook types work perfectly.\n\n  Evidence:\n\n  ✅ WORKING HOOKS:\n  - Stop hooks execute consistently (proven by debug logs showing 50+ executions)\n  - SubagentStop hooks work (sound notifications trigger)\n  - UserPromptSubmit hooks work (manual /aw command functions)\n\n  ❌ BROKEN HOOKS:\n  - PreToolUse hooks never execute despite proper configuration\n  - PostToolUse hooks never execute despite proper configuration\n\n  Configuration Tested:\n  {\n    \"hooks\": {\n      \"PreToolUse\": [\n        {\n          \"matcher\": \"Bash\",\n          \"hooks\": [\n            {\n              \"type\": \"command\",\n              \"command\": \"echo 'PreToolUse triggered' >> /tmp/pretool-test.log\"\n            }\n          ]\n        }\n      ],\n      \"PostToolUse\": [\n        {\n          \"matcher\": \"Bash\",\n          \"hooks\": [\n            {\n              \"type\": \"command\",\n              \"command\": \"cat /Users/greg/codebase/stayinpattaya/.claude/commands/aw.md\"\n            }\n          ]\n        }\n      ]\n    }\n  }\n\n  Testing Performed:\n  1. Verified hook scripts execute correctly when run manually\n  2. Tested multiple matchers: \"*\", \"Bash\", \"Task\", \"Write\", \"Edit\"\n  3. Tested both simple commands and complex scripts\n  4. Confirmed proper JSON input handling with jq parsing\n  5. Verified file permissions and absolute paths\n  6. Cleared logs and performed fresh tests\n  7. Compared working Stop hook configuration (identical format)\n\n  Expected Behavior:\n  PreToolUse and PostToolUse hooks should execute before/after tool usage and show output or create logs.\n\n  Actual Behavior:\n  Tool-related hooks never execute. No output displayed, no log files created, no evidence of execution.\n\n  Conclusion:\n  PreToolUse and PostToolUse hook events are not being fired by Claude Code, despite proper configuration following official documentation. Other hook types (Stop, SubagentStop,\n  UserPromptSubmit) function correctly using identical configuration patterns.\n\n  This appears to be a selective hook system failure affecting only tool-related events.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-22T04:15:44Z",
+  "updated_at": "2026-06-16T13:55:13Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 32,
+  "author": "fwends",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

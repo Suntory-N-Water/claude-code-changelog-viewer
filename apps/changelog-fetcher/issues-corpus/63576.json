@@ -1,0 +1,35 @@
+{
+  "number": 63576,
+  "title": "[Bug] Parallel tool calls trigger persistent \"Cancelled\" errors",
+  "body": "**Bug Description**\n\"Cancelled: parallel tool call\" errors kill the ongoing session. Once the error happens, it will happen for all following tool calls effectively killing the session. Restarting claude to resume the session fresh also doesn't seem to be showing the tool calls which had repeatedely errored out.\n\n**Environment Info**\n- Platform: linux\n- Terminal: kitty\n- Version: 2.1.156\n- Feedback ID: 3cd02669-4c81-4283-9f78-9d9a266bef71\n\n**Terminal transcript when the error happens**\n```\n● Bash(cd /home/antoine/stuff/*snip*; python3 localresearch/crosscheck.py 2>&1 | tail -20)\n  ⎿  # crosscheck rows=842 mismatches=0\n\n● Bash(cd /home/antoine/stuff/*snip*; python3 localresearch/crosscheck.py; echo \"EXIT=$?\")\n  ⎿  # crosscheck rows=842 mismatches=0\n     EXIT=0\n\n● Bash(cd /home/antoine/stuff/*snip*\n      python3 - <<'PY'…)\n  ⎿  R2 OK: clean ValueError -> tmpo0z06u49.xml: endpoint type='internal_speaker' operating_mode='normal' has no <p\n     rofile>\n\n● Bash(cd /home/antoine/stuff/*snip*\n      cat > /tmp/r2test.py <<'PY'…)\n  ⎿  Error: Exit code 1\n     Traceback (most recent call last):\n       File \"/tmp/r2test.py\", line 4, in <module>\n         import dolby_to_easyeffects as d\n     ModuleNotFoundError: No module named 'dolby_to_easyeffects'\n\n● Bash(python3 /tmp/r2test.py > /tmp/r2out.txt 2>&1; echo \"exit=$?\")\n  ⎿  Cancelled: parallel tool call Bash(cd /home/antoine/stuff/*snip*\n     cat > /tmp/…) errored\n\n  Read 1 file (ctrl+o to expand)\n\n● Bash(echo alive; cd /home/antoine/stuff/atmos; pwd)\n  ⎿  Cancelled: parallel tool call Bash(cd /home/antoine/stuff/*snip*\n     cat > /tmp/…) errored\n\n● Bash(python3 /tmp/r2test.py 2>&1)\n  ⎿  Cancelled: parallel tool call Bash(cd /home/antoine/stuff/*snip*\n     cat > /tmp/…) errored\n\n  Read 1 file (ctrl+o to expand)\n\n● Update(tests/test_decoders.py)\n  ⎿  Error editing file\n\n● Bash(python3 -m pytest tests/test_decoders.py -q 2>&1 | tail -4)\n  ⎿  Cancelled: parallel tool call Bash(cd /home/antoine/stuff/*snip*\n     cat > /tmp/…) errored\n\n● Bash(python3 -m pytest tests/test_decoders.py::TestIntAttr -q 2>&1 | tail -5)\n  ⎿  Cancelled: parallel tool call Bash(cd /home/antoine/stuff/*snip*\n     cat > /tmp/…) errored\n\n● Bash(git log --oneline -3 > /tmp/g1.txt 2>&1; git status --short >> /tmp/g1.txt 2>&1; cat /tmp/g1.txt)\n  ⎿  Cancelled: parallel tool call Bash(cd /home/antoine/stuff/*snip*\n     cat > /tmp/…) errored\n```",
+  "labels": ["bug", "duplicate", "platform:linux", "area:tools", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-29T08:45:43Z",
+  "updated_at": "2026-06-03T09:53:47Z",
+  "closed_at": null,
+  "reactions_total": 19,
+  "comments_count": 8,
+  "author": "antoinecellerier",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/63192\n2. https://github.com/anthropics/claude-code/issues/47931\n3. https://github.com/anthropics/claude-code/issues/22264\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-29T08:50:20Z"
+    },
+    {
+      "author": "antoinecellerier",
+      "author_association": "NONE",
+      "body": "The symptoms seem to be different from those 3 candidate duplicate issues.",
+      "created_at": "2026-05-29T08:55:55Z"
+    },
+    {
+      "author": "gherkins",
+      "author_association": "NONE",
+      "body": "Also reproducible on macOS — the cascade is cross-platform (this is currently tagged platform:linux).\n\n  Environment\n  - macOS (Darwin 25.5.0), Apple Silicon\n  - Claude Code: <run: claude --version>\n  - Model: Opus 4.8 (claude-opus-4-8, 1M context)\n\n  Mechanism (reproduced 3× in a single session)\n  When the model emits several tool calls in one turn (a parallel batch), if any one call exits non-zero / throws, every other still-pending call in that same batch is cancelled,\n  regardless of whether",
+      "created_at": "2026-05-30T11:30:55Z"
+    }
+  ]
+}

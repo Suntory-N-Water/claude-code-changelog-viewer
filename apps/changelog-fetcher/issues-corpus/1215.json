@@ -1,0 +1,35 @@
+{
+  "number": 1215,
+  "title": "[BUG] Claude Code no longer respecting ANTHROPIC_MODEL variables",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [x] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: <!-- output of `claude --version` -->\n- Operating System: <!-- e.g. macOS 14.3, Windows 11, Ubuntu 22.04 -->\n- Terminal:  <!-- e.g. iTerm2, Terminal App -->\n\n## Bug Description\n- In the past 24-48 hours, we've seen many engineers run into this issue upon starting Claude Code and entering a prompt:\n\n```\nAPI Error: 403 {\"Message\":\"User: xxx is not authorized to perform: bedrock:InvokeModel on resource:\n     arn:aws:bedrock:us-east-1:xxx:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0 because no session policy allows the bedrock:InvokeModel action\"}\n```\n\nThis is the _default_ Bedrock inference profile/model ID.\n\nIn our setup, we only allow per-user access to their own profiles/model IDs, which we configure via the combination of `ANTHROPIC_MODEL`, `ANTHROPIC_SMALL_FAST_MODEL`, and `CLAUDE_CODE_USE_BEDROCK` environment variables.\n\nBut, at the top of Claude Code, it still seems to show the environment variable _correctly_:\n\n```\n╭───────────────────────────────────────────────────╮\n│ ✻ Welcome to Claude Code research preview!        │\n│                                                   │\n│   /help for help, /status for your current setup  │\n│                                                   │\n│   cwd: /Users/callsopp/xxx               │\n│                                                   │\n│   ─────────────────────────────────────────────── │\n│                                                   │\n│   Overrides (via env):                            │\n│                                                   │\n│   • Model: arn:aws:bedrock:us-east-1:xxx │\n│   :application-inference-profile%xxx  │\n╰───────────────────────────────────────────────────╯\n```\n\nSo I think a recent release has regressed respecting these environment variables at some level of abstraction.\n\n## Steps to Reproduce\n1. <!-- First step -->\n2. <!-- Second step -->\n3. <!-- And so on... -->\n\n## Expected Behavior\n<!-- What you expected to happen -->\n\n## Actual Behavior\n<!-- What actually happened -->\n\n## Additional Context\n<!-- Add any other context about the problem here, such as screenshots, logs, etc. -->",
+  "labels": ["bug", "api:bedrock", "area:core", "area:api"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-05-21T18:57:02Z",
+  "updated_at": "2025-08-13T14:07:00Z",
+  "closed_at": "2025-06-04T16:33:03Z",
+  "reactions_total": 0,
+  "comments_count": 17,
+  "author": "clayallsopp",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "@clayallsopp in your ANTHROPIC_MODEL env var, can you replace the escaped slash (`%2F`) with a slash (`/`)? There were some recent changes to how Claude Code expects ARNs.",
+      "created_at": "2025-05-21T21:35:36Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "@clayallsopp would you mind providing some more information about the environment to aid in debugging this? Thanks!\n\n- How are you specifying the env vars (global or project-level settings.json, etc)?\n- Any network / permissions limitations that would prevent listing Bedrock inference profiles?\n- Can you confirm the above info about un-escaping slashes + running from another directory than `~` do not resolve this?",
+      "created_at": "2025-05-22T05:01:58Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Struggling to get repro on this one - @szihs @alatom10 can you share some of the information listed above ^^, as well as confirm this is working in v0.2.124, broken in v0.2.125 through v1.0.1?\n\n> What purpose listing inference profiles serve,\n\nThis may be used in some flows to confirm model access, but likely isn't the issue.\n\n> Can it be overridden by the MODEL env variable like before.\n\nThe intention is that the `ANTHROPIC_MODEL` and `ANTHROPIC_SMALL_FAST_MODEL` flag allow passing model name o",
+      "created_at": "2025-05-22T20:04:39Z"
+    }
+  ]
+}

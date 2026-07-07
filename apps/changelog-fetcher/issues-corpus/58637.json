@@ -1,0 +1,41 @@
+{
+  "number": 58637,
+  "title": "Bug Report: Background subagent state sync — zombie 'running' agents cause stop hook infinite loop after all subagents have terminated",
+  "body": "## Summary\n\nWhen spawning multiple background subagents (≥6) in a single turn, the session registry fails to update subagent status from \"running\" to \"completed\" after all subagents have actually terminated. This causes the stop hook to block turn completion indefinitely, creating an infinite loop that consumes context until forced compaction.\n\n## Environment\n\n- Claude Code version: 2.1.131\n- Session type: compacted continuation (but original spawning occurred before compaction)\n\n## Steps to Reproduce\n\n1. In a single turn, spawn 6+ background subagents using the Agent tool with `run_in_background: true`\n2. Wait for all subagents to complete (files written to disk, processes exited)\n3. Main agent attempts to end turn\n\n## Expected Behavior\n\nStop hook recognizes all subagents have terminated, allows turn to end cleanly.\n\n## Actual Behavior\n\nStop hook repeatedly blocks turn ending with:\n```\nStop hook feedback:\nBackground subagents are still running.\nUse TaskOutput task_id=\"...\" block=true to wait for their results before ending your turn.\n```\n\nThis repeats indefinitely even after:\n- All subagent processes have exited\n- All output files have been written\n- Subagent metadata files exist on disk\n\n## Evidence from Affected Session\n\n- **Subagents spawned**: 9 (confirmed by 9 `agent-*.meta.json` files in session subagent directory)\n- **Stop hook blocks**: 154 occurrences over ~4.5 hours (first at line 265, last at line 1199 of the JSONL transcript)\n- **Time window**: 2026-05-13T05:07:07 → 2026-05-13T09:27:04 UTC\n- **Result**: Context exhaustion → forced `/compact`, session lost mid-task context\n\n## Analysis\n\nThe root cause appears to be in the subagent lifecycle management:\n\n1. Subagent processes terminate correctly (files written, no zombie processes)\n2. The session registry's in-memory state table does not receive (or drops) the \"completed\" status update for one or more subagent entries\n3. Stop hook reads the stale registry state, sees entries still marked \"running\"\n4. Main agent cannot force-clear or override the stale entries\n5. Loop continues until external intervention\n\n## Additional Impact\n\nAfter compaction, the stale \"running\" entries persist into the continued session, causing the same stop hook to fire even in the new session where no background agents were spawned.\n\n## Suggested Fix\n\n1. Add a timeout mechanism — if a registered background subagent has not produced output for N seconds, auto-mark as completed/stale\n2. Allow main agent to acknowledge-and-dismiss stale entries via `TaskOutput` or a new `TaskStop` variant\n3. Ensure subagent termination events are synchronously propagated to the session registry before the subagent process exits",
+  "labels": [
+    "bug",
+    "has repro",
+    "area:hooks",
+    "area:agents",
+    "area:agent-view"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-13T09:27:55Z",
+  "updated_at": "2026-05-28T01:09:30Z",
+  "closed_at": "2026-05-27T03:57:39Z",
+  "reactions_total": 0,
+  "comments_count": 14,
+  "author": "battlesym",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "bogini",
+      "author_association": "COLLABORATOR",
+      "body": "Fixed in v2.1.143 — consecutive Stop-hook blocks are now capped to prevent runaway loops. Please reopen if you still see this on a current version.",
+      "created_at": "2026-05-27T03:57:38Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/48470\n2. https://github.com/anthropics/claude-code/issues/58457\n3. https://github.com/anthropics/claude-code/issues/55893\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-13T09:33:49Z"
+    },
+    {
+      "author": "battlesym",
+      "author_association": "NONE",
+      "body": "Thanks for the duplicate detection. I've reviewed all three referenced issues carefully, and while they share surface-level symptoms with what I reported, I believe #58637 captures a distinct and more severe variant that warrants separate tracking.\n\n## Similarities acknowledged\n\n| Issue | Shared symptom |\n|-------|---------------|\n| #48470 | Stale subagent IDs block session end |\n| #58457 | Background agent tasks remain 'running' after completion |\n| #55893 | Stuck tasks survive across session b",
+      "created_at": "2026-05-13T10:08:26Z"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "number": 11932,
+  "title": "[Bug] Auto-approve patterns don't match multiline commands (heredocs)",
+  "body": "## Description\n\nAuto-approve patterns in `settings.json` and agent `auto_approve_patterns` frontmatter fail to match multiline commands containing heredocs or newlines.\n\n## Reproduction\n\n1. Add pattern to settings.json:\n```json\n\"permissions\": {\n  \"allow\": [\n    \"Bash(echo '\"\n  ]\n}\n```\n\n2. Run a command that starts with that prefix but contains newlines:\n```bash\necho 'chore: Update files\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>' > /tmp/file.txt\n```\n\n3. **Expected:** Command auto-approves (prefix matches)\n4. **Actual:** Prompts for approval\n\n## Patterns Tested (all failed)\n\n- `Bash(echo '` - pure prefix\n- `Bash(echo:*)` - colon wildcard\n- `Bash(echo *)` - space wildcard  \n- `Bash(cat > /tmp/*)` - with redirect\n- Agent frontmatter `auto_approve_patterns`\n\n## Impact\n\n- Cannot auto-approve git commit workflows that use multiline messages\n- Subagents always prompt for heredoc commands\n- Breaks autonomous agent workflows\n\n## Environment\n\n- Claude Code v2.0.30\n- macOS\n- Pattern location: `~/.claude/settings.json` and agent frontmatter\n\n## Suggested Fix\n\nEither:\n1. Match patterns against first line only (before first newline)\n2. Document that multiline commands cannot be auto-approved\n3. Add a flag for multiline pattern matching",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-19T09:11:18Z",
+  "updated_at": "2026-04-30T15:04:17Z",
+  "closed_at": "2026-04-19T16:34:45Z",
+  "reactions_total": 54,
+  "comments_count": 38,
+  "author": "michaelgrafwebdev",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

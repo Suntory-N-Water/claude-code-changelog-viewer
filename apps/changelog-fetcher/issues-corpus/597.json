@@ -1,0 +1,35 @@
+{
+  "number": 597,
+  "title": "Claude Code does not handle new OAuth after archiving workspace",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: `v0.3.6` <!-- 使用 `claude --version` 获取最新的实际版本号 -->\n- Operating System: macOS 14.3\n- Terminal: Terminal App (zsh)\n\n## Bug Description\nI've successfully completed OAuth authentication for Claude Code CLI, and the Anthropic website confirmed my setup with the message:\n> \"You’re all set up for Claude Code. You can now close this window.\"\n\nHowever, when I attempt to use the Claude Code CLI (`claude`), it immediately returns the following error:\n\n```\nAPI Error: 403 {\"error\":{\"type\":\"forbidden\",\"message\":\"Request not allowed\"}}\n```\n\nMy Anthropic console shows newly generated API keys in the Claude Code workspace, but the CLI still cannot authenticate successfully.\n\n## Steps to Reproduce\n1. Install Claude Code CLI globally via npm (`npm install -g @anthropic-ai/claude-code`)\n2. Run the OAuth authentication (`claude auth login`)\n3. Complete OAuth successfully (confirmed by webpage)\n4. Run `claude` command in the terminal\n5. Encounter the 403 forbidden error above.\n\n## Expected Behavior\nClaude Code CLI should authenticate successfully after OAuth, and I should be able to interact normally with the CLI.\n\n## Actual Behavior\nClaude Code CLI immediately returns a 403 forbidden error (\"Request not allowed\") every time it is launched.\n\n## Additional Context\n- My Anthropic account billing is active, with sufficient funds.\n- Network proxy and connectivity have been verified as working correctly.\n- My Anthropic account email is `bobbyding.dy@gmail.com`.\n\n\nAdditionally, I observed unexpected behavior in the Anthropic API key management page:\n\n- The API keys associated with Claude Code workspace never show as successfully created (they remain stuck in a pending state without workspace details).\n- When attempting to delete these seemingly unsuccessful keys, I consistently receive a `\"Not found\"` error, and the keys remain undeleted.\n\nThis might indicate a backend issue on Anthropic’s side causing the keys to remain unrecognized or improperly provisioned.\n\n**Screenshots:**\n\n1. API keys stuck without workspace information:  \n<img width=\"969\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/f27f1c38-321b-4e0a-9e68-c8565382250b\" />\n\n2. Error (`\"Not found\"`) when attempting to delete these keys:  \n\n<img width=\"972\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/bef9f4bf-b17a-49ed-b3d4-f9dd3df6f096\" />\n\n---\n\n",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-03-22T19:22:21Z",
+  "updated_at": "2026-06-18T16:42:54Z",
+  "closed_at": "2025-03-25T18:11:55Z",
+  "reactions_total": 1,
+  "comments_count": 15,
+  "author": "alin-ap",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "seems like this was an issue with auth against a closed workspace? perhaps I misunderstood. if you want to reopen, please explain the repro steps, what you expected to happen, and what actually happened",
+      "created_at": "2025-03-26T16:29:27Z"
+    },
+    {
+      "author": "alin-ap",
+      "author_association": "NONE",
+      "body": "UPDATE (Potential Root Cause Identified)\n\nI believe I have identified the root cause of this issue:\n\nWhen Claude Code CLI first completed the OAuth authentication, it automatically created a default workspace for storing API keys. However, I mistakenly archived this default workspace. As a result, subsequent OAuth attempts cannot successfully create or associate new API keys.\n\nThis explains why the newly created keys remain stuck without workspace details and why attempting to delete these keys ",
+      "created_at": "2025-03-22T19:40:23Z"
+    },
+    {
+      "author": "alin-ap",
+      "author_association": "NONE",
+      "body": "Sorry why close this issue ?",
+      "created_at": "2025-03-26T16:27:29Z"
+    }
+  ]
+}

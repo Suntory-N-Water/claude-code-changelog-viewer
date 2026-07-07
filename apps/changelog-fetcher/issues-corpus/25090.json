@@ -1,0 +1,35 @@
+{
+  "number": 25090,
+  "title": "[BUG] Renamed session works on first resume but the name disappears after the second exit",
+  "body": "### Preflight Checklist\n\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen I rename a session using `/rename`, it works perfectly fine the first time I resume it. But after I continue chatting in that resumed session and exit again, the name I gave it just vanishes. The session goes back to some auto generated name and I can no longer find it using the custom name I set.\n\nSo basically the rename only sticks for one round. After the second exit, the system seems to replace my custom name with its own auto generated title. This is confusing because the first time it works, so you think everything is fine, but then it silently breaks on the next attempt.\n\nThis is not the same as rename failing to persist at all (like #24065 or #23422). In my case the rename does persist and the first resume works. The problem is that the auto naming kicks in during the second session save and overwrites whatever I named it.\n\n### What Should Happen?\n\nOnce I rename a session, that name should stay permanently. It should not matter how many times I exit and come back to it. If I named it \"my-project\", it should always show up as \"my-project\" in the resume list every single time.\n\n### Error Messages/Logs\n\n```\nNo specific error message. The session just does not show up under the custom name\nin the resume picker on the second attempt. It is still there somewhere but under\na random auto generated slug that I cannot identify.\n```\n\n### Steps to Reproduce\n\n1. Start a new session with `claude`\n2. Send a few messages to have some conversation going\n3. Rename the session using `/rename my-project`\n4. Confirm it shows the success message\n5. Exit the session using `/exit`\n6. Resume it with `claude --resume my-project` and it works perfectly fine\n7. Send a few more messages in the resumed session\n8. Exit again using `/exit`\n9. Now try `claude --resume my-project` again\n10. This time it cannot find the session. The custom name is gone.\n\n### Claude Model\n\nOpus 4.6\n\n### Environment\n\n- Claude Code version: 2.1.39\n- Platform: Windows 11 Pro (10.0.26200)\n- Terminal: Windows Terminal\n\n### Additional Context\n\nThis is reproducible 100% of the time. Every session I rename goes through the same pattern. First resume works, second one loses the name. It looks like the auto titling logic runs again when a resumed session gets saved and it does not check if the user has already given it a custom name.",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-11T20:30:55Z",
+  "updated_at": "2026-06-18T14:15:05Z",
+  "closed_at": null,
+  "reactions_total": 29,
+  "comments_count": 31,
+  "author": "ascender1729",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23610\n2. https://github.com/anthropics/claude-code/issues/22994\n3. https://github.com/anthropics/claude-code/issues/23422\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-11T20:34:39Z"
+    },
+    {
+      "author": "ascender1729",
+      "author_association": "NONE",
+      "body": "I looked at all three flagged issues and here is why this is not a duplicate of any of them.\n\n**#23610** is on macOS (v2.1.33) and talks about the rename being overwritten in a general sense. My issue is specifically about the rename working fine for the first resume cycle and then failing on the second one. That two step inconsistency is the core of what I am reporting. Also I am on Windows 11 and the behavior might have a different cause on this platform since session handling has had Windows ",
+      "created_at": "2026-02-11T20:36:25Z"
+    },
+    {
+      "author": "downspot",
+      "author_association": "NONE",
+      "body": "  I'm experiencing this on macOS with version 2.1.39. Session rename works during\n  the session but reverts to the first message after exit. This started happening\n  after updating - worked fine in previous versions.",
+      "created_at": "2026-02-12T04:05:53Z"
+    }
+  ]
+}

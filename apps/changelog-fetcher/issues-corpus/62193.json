@@ -1,0 +1,35 @@
+{
+  "number": 62193,
+  "title": "[BUG] Claude Code spawned ~3,000 parallel bash processes in 17 seconds, causing OOM crash and hard reboot.",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code spawns thousands of bash subprocesses in parallel within seconds, exhausting all system memory and triggering the kernel OOM killer. This has occurred multiple times.\n\n~3,079 bash processes were spawned between PID 21300 and PID 24379 in approximately 17 seconds (12:38:41–12:38:58 local time). All processes were owned by UID 1000, all carried oom_score_adj:100 (set by Claude Code). The code process itself reached ~1.4 TB virtual memory allocation. Usually this results in a total lock up of the host and requires a full reboot.\n\n### What Should Happen?\n\nBash subprocesses are spawned sequentially or with a reasonable concurrency limit that respects system memory.\n\n### Error Messages/Logs\n\n```shell\nKernel OOM log evidence (journalctl -b -1 -k --no-pager | grep -A 50 \"Out of memory\"):\nMai 25 12:38:41 <hostname> kernel: Out of memory: Killed process 5301 (code) total-vm:1463373852kB, anon-rss:200640kB, file-rss:2916kB, shmem-rss:2076kB, UID:1000 pgtables:2096kB oom_score_adj:300\nMai 25 12:38:57 <hostname> kernel: [  21300]  1000 21300    61965     2732     2285      447         0    90112     1824           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21301]  1000 21301    61313     2468     2023      445         0    77824     1408           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21303]  1000 21303    61967     2673     2226      447         0    90112     1888           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21304]  1000 21304    61313     2475     2030      445         0    77824     1376           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21305]  1000 21305    61967     2705     2258      447         0    90112     1824           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21306]  1000 21306    61314     2444     1999      445         0    77824     1408           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21307]  1000 21307    61314     2477     2032      445         0    77824     1376           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21308]  1000 21308    62001     2646     2199      447         0    90112     1888           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21309]  1000 21309    61315     2445     2000      445         0    77824     1408           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21310]  1000 21310    62001     2710     2263      447         0    90112     1824           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21311]  1000 21311    61315     2513     2036      477         0    77824     1376           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21312]  1000 21312    61316     2482     2037      445         0    77824     1408           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21313]  1000 21313    62002     2654     2207      447         0    90112     1888           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21314]  1000 21314    61316     2485     2040      445         0    77824     1376           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21315]  1000 21315    62002     2718     2271      447         0    90112     1824           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21316]  1000 21316    61317     2454     2009      445         0    77824     1408           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21317]  1000 21317    61318     2490     2045      445         0    77824     1376           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21318]  1000 21318    62003     2687     2240      447         0    90112     1888           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21319]  1000 21319    61319     2458     2013      445         0    77824     1408           100 bash\nMai 25 12:38:57 <hostname> kernel: [  21320]  1000 21320    62003     2751     2304     ",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-25T10:30:22Z",
+  "updated_at": "2026-06-01T16:21:49Z",
+  "closed_at": "2026-06-01T16:21:49Z",
+  "reactions_total": 3,
+  "comments_count": 11,
+  "author": "fdpr-H",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Frad70",
+      "author_association": "NONE",
+      "body": "lol",
+      "created_at": "2026-05-25T10:31:11Z"
+    },
+    {
+      "author": "harris1111",
+      "author_association": "NONE",
+      "body": "This is not a repo contains claude-code source code",
+      "created_at": "2026-05-25T10:32:16Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/50191\n2. https://github.com/anthropics/claude-code/issues/37490\n3. https://github.com/anthropics/claude-code/issues/56660\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-25T10:35:38Z"
+    }
+  ]
+}

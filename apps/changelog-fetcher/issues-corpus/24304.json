@@ -1,0 +1,41 @@
+{
+  "number": 24304,
+  "title": "Conversation history missing on resume (except last message)",
+  "body": "## Description\n\nAfter upgrading from Claude Code v2.1.15 to v2.1.24+ (and later 2.1.34), some sessions only show the last message when resumed, with all prior conversation history missing. The history is present in the JSONL file but not loaded by Claude Code.\n\n**Note:** Downgrading back to v2.1.15 does NOT fix the issue, indicating the corruption happened at write time, not at read time.\n\n**_Update: I'm still getting this occasionally (so it wasn't version-switch related)_**\n\n## Symptoms\n\n- Resume a session → only see the last message\n- Full conversation history exists in the `.jsonl` file\n- Affects some sessions but not others (no clear version pattern)\n\n## Investigation\n\nHad Claude analyze a working session vs. a broken session. Found two corruption issues in the broken session's JSONL file:\n\n### 1. Snapshot `messageId` Collision\n`file-history-snapshot` entries have `messageId` values that collide with the immediately following message's `uuid`, creating ID ambiguity:\n- Line 53: snapshot with `messageId: \"5c1312fa-...\"`\n- Line 54: user message with `uuid: \"5c1312fa-...\"` (same ID!)\n\n### 2. Broken Parent Chain Reference ⚠️ **This is the critical bug**\nAn entry references a parent UUID that doesn't exist in the file, breaking conversation chain traversal:\n- Line 50: `progress` entry with `parentUuid: \"1b366c02-...\"` \n- No entry in the file has `uuid: \"1b366c02-...\"`\n- Should point to the previous entry: `uuid: \"97fdd911-...\"`\n\nThis broken link prevents Claude Code from traversing the conversation history backwards when loading the session. When traced back from the last message, the chain stops at this broken reference after only 6 entries instead of going back through all 26 entries in the conversation.\n\n## Root Cause\n\nUnknown what causes the corruption during writing. Possibly related to:\n- Sessions being open during version upgrade\n- Specific timing/race conditions\n- Not all sessions affected (sporadic issue)\n\n## Workaround\n\nCreated a Nushell script that detects and fixes both issues:\n- Sets snapshot `messageId` to `null` (removes collision)\n- Fixes broken parent references to point to correct preceding entries\n- Creates timestamped backups (non-destructive)\n\n**Fix script:** https://gist.github.com/tennox/90ef5c803ec4b64c9fbba0f71ca1ae2e\n\n```bash\nnu fix-cc-session.nu ~/.config/claude/projects/YOUR-PROJECT/SESSION-ID.jsonl\n```\n\n## Environment\n\n- **Upgraded from:** v2.1.15\n- **Upgraded to:** v2.1.24, then v2.1.34\n- **OS:** Linux (NixOS)\n- **Pattern:** Some sessions affected, others not (no clear correlation with version)\n\n## Expected Behavior\n\nResuming a session should load the full conversation history, regardless of which version created the session.\n\n## Actual Behavior\n\nOnly the last message is displayed; all prior history is invisible despite being present in the JSONL file.\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "high-priority"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-09T01:30:48Z",
+  "updated_at": "2026-04-27T10:36:29Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 14,
+  "author": "tennox",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/21617\n2. https://github.com/anthropics/claude-code/issues/22107\n3. https://github.com/anthropics/claude-code/issues/22030\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-09T01:34:01Z"
+    },
+    {
+      "author": "alexeigs",
+      "author_association": "NONE",
+      "body": "Very annoying indeed, you simply get one entry in /resume, not matter if there are previous messages in the current conversation or the conversation already being multiple compacted conversation long. \n\n<img width=\"994\" height=\"340\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/716c057c-a6c8-488b-b5ac-092f6879bf46\" />\n\n16.6 MB but one single checkpoint without the item being expandable.",
+      "created_at": "2026-02-09T09:09:44Z"
+    },
+    {
+      "author": "clarym-star",
+      "author_association": "NONE",
+      "body": "Seeing the same issue on v2.1.38, macOS (Darwin 25.2.0).                                                           \n                                                                                                                     \nInvestigated the root cause — sessions-index.json is out of sync with actual session files on disk:\n  - 215 .jsonl session files exist in the project directory\n  - 120 entries in sessions-index.json\n  - 95 sessions (~44%) missing from the index and invisible to /res",
+      "created_at": "2026-02-10T14:29:04Z"
+    }
+  ]
+}

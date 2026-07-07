@@ -1,0 +1,35 @@
+{
+  "number": 13425,
+  "title": "[Feature Request] Add support for fish shell integration",
+  "body": "**Title:** Fish shell support via `CLAUDE_CODE_SHELL_PREFIX` incompatible with zsh shell snapshots\n\n**Description:**\n\nWhen using `CLAUDE_CODE_SHELL_PREFIX` to run commands in fish shell, all commands fail with syntax errors because Claude Code sources zsh-format shell snapshots that are incompatible with fish syntax.\n\n**Steps to Reproduce:**\n\n1. Set fish as system default shell: `chsh -s /usr/local/bin/fish` (or `/opt/homebrew/bin/fish` on ARM Mac)\n2. Add to `~/.claude/settings.json`:\n   ```json\n   {\n     \"env\": {\n       \"CLAUDE_CODE_SHELL_PREFIX\": \"/usr/local/bin/fish -c\"\n     }\n   }\n   ```\n3. Start Claude Code\n4. Run any Bash command (e.g., `ls`, `echo \"test\"`)\n\n**Expected Behavior:**\n\nCommands should execute cleanly in fish shell without errors.\n\n**Actual Behavior:**\n\nEvery command fails with syntax errors:\n```\n~/.claude/shell-snapshots/snapshot-zsh-*.sh (line 183): Unexpected '}' found, expecting ')'\nsource: Error while reading file '~/.claude/shell-snapshots/snapshot-zsh-*.sh'\nfish: Unknown command: /var/folders/.../claude-*-cwd\n```\n\nCommands still execute and produce output after the errors, but the error messages make the output noisy and unusable.\n\n**Root Cause:**\n\nClaude Code creates and sources shell snapshot files in zsh/bash syntax (stored in `~/.claude/shell-snapshots/`) before each command execution. These snapshots preserve shell state (functions, aliases, environment variables) across commands.\n\nWhen `CLAUDE_CODE_SHELL_PREFIX` is set to fish, the infrastructure still attempts to source existing zsh-format snapshots, causing fish to fail on zsh-specific syntax like:\n- `emulate -L zsh`\n- `setopt extendedglob`\n- `local -a` arrays\n- Bash-style function definitions\n\n**Impact:**\n\n`CLAUDE_CODE_SHELL_PREFIX` is completely unusable for fish shell users, forcing them to use zsh/bash instead. Every command produces error output before the actual results, making the tool difficult to use.\n\n**Suggested Fix:**\n\nOne or more of the following:\n\n1. **Shell-aware snapshots**: Detect the target shell via `CLAUDE_CODE_SHELL_PREFIX` and generate shell-specific snapshot formats (fish syntax for fish, zsh syntax for zsh, etc.)\n\n2. **Skip snapshots for fish**: Don't source snapshots when using fish shell, or create a minimal fish-compatible snapshot format\n\n3. **Document limitations**: Clearly document that only bash/zsh are fully supported, and that `CLAUDE_CODE_SHELL_PREFIX` should not be used with fish\n\n4. **Native shell setting**: Add a first-class `shell` configuration option in `settings.json` with proper multi-shell support, rather than relying on the `CLAUDE_CODE_SHELL_PREFIX` environment variable workaround\n\n**Environment:**\n- OS: macOS\n- Default shell: fish\n- Claude Code version: 2.0.62\n",
+  "labels": ["enhancement", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-09T02:43:37Z",
+  "updated_at": "2026-02-19T14:32:32Z",
+  "closed_at": "2026-02-11T10:26:51Z",
+  "reactions_total": 19,
+  "comments_count": 8,
+  "author": "seahyc",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13144\n2. https://github.com/anthropics/claude-code/issues/7490\n3. https://github.com/anthropics/claude-code/issues/11475\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-09T02:52:39Z"
+    },
+    {
+      "author": "AbdelrahmanHafez",
+      "author_association": "NONE",
+      "body": "**Edit**: turns out this doesn't work for `fish`, tested and works for `bash` and `zsh`\nAs a temporary workaround, add this to your fish.config\n```fish\nfunction claude\n  SHELL=\"/opt/homebrew/bin/fish\" command claude $argv\nend\n```",
+      "created_at": "2025-12-11T10:55:42Z"
+    },
+    {
+      "author": "gastonmorixe",
+      "author_association": "NONE",
+      "body": "> ~/.claude/CLAUDE.md\n\n````\n# AGENTS.md — Global Agent Context & Guidelines\n\n---\n\n## ⚠️ MANDATORY: Fish Shell for ALL Commands\n\n> **CRITICAL RULE — READ BEFORE ANY COMMAND EXECUTION**\n\nThe Bash tool executes in zsh/bash. Your environment (fnm, pyenv, bun, etc.) exists ONLY in fish.\n\n### 🐟 THE RULE: ALWAYS use `fish -c \"command\"`\n\n**EVERY command. No exceptions. No thinking required.**\n\n```bash\n# Pattern\nfish -c \"your command here\"\n\n# Examples\nfish -c \"node -v\"\nfish -c \"pnpm install\"\nfish -c \"bu",
+      "created_at": "2025-12-12T06:05:32Z"
+    }
+  ]
+}

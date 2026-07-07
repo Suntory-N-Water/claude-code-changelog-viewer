@@ -1,0 +1,35 @@
+{
+  "number": 4775,
+  "title": "[BUG][Typescript SDK] `canUseTool` callback in the Claude Code SDK is not working",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.63 (Claude Code)\n- Operating System: Ubuntu 24.04\n- Terminal:  via Typescript SDK\n\n## Bug Description\n\nThe `canUseTool` callback in the Claude Code SDK hangs indefinitely. The callback is invoked correctly and returns the proper response format, but Claude Code never proceeds.\n\n## Steps to Reproduce\n1. Use the SDK with `canUseTool` callback:\n\n```ts\n  const { query } = require('@anthropic-ai/claude-code');\n\n  const stream = query({\n      prompt: (async function* () {\n          yield { type: 'user', message: { role: 'user', content: 'What is 2+2?' } };\n      })(),\n      options: {\n          canUseTool: (toolName, toolInput) => {\n              return { behavior: \"allow\", updatedInput: toolInput };\n          }\n      }\n  });\n\n  for await (const message of stream) {\n      if (message.type === 'result') break;\n  }\n```\n\n2. Run the script\n3. Observe that the callback is called but the script hangs indefinitely\n\n## Expected Behavior\n\nTool execution should proceed after canUseTool returns `{ behavior: \"allow\", updatedInput: toolInput }`\n\n## Actual Behavior\n\nThe process hangs indefinitely after the callback is invoked. Claude Code never proceeds.\n\n##   Potential Fix\n\nI found a potential fix that seem to work for me after patching my local node_modules. Modify `streamToStdin` to keep the `stdin` stream open when `canUseTool` is used:\n\nIn `node_modules/@anthropic-ai/claude-code/sdk.mjs`:\n\n1. Change line ~374:\n\n```ts\n  // FROM:\n  async function streamToStdin(stream, stdin, abortController) {\n    // ... existing code ...\n    stdin.end();\n  }\n\n  // TO:\n  async function streamToStdin(stream, stdin, abortController, keepOpen = false) {\n    // ... existing code ...\n    if (!keepOpen) {\n      stdin.end();\n    }\n  }\n```\n\n2. Change line ~198:\n\n```ts\n// FROM:\nstreamToStdin(prompt, child.stdin, abortController);\n\n// TO:\nstreamToStdin(prompt, child.stdin, abortController, !!canUseTool);\n```",
+  "labels": ["bug", "has repro", "platform:linux", "area:api", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-30T14:24:45Z",
+  "updated_at": "2026-01-17T14:13:01Z",
+  "closed_at": "2026-01-10T10:10:43Z",
+  "reactions_total": 3,
+  "comments_count": 11,
+  "author": "planger",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "blois",
+      "author_association": "COLLABORATOR",
+      "body": "Looking at a fix, the issue is that the input stream used to communicate the tool permission response is being closed when the prompt is being closed.\n\nWorkaround:\n\n```\nlet done\nlet receivedResult = new Promise(resolve => {\n    done = resolve;\n})\nconst stream = query({\n    prompt: (async function* () {\n        yield { type: 'user', message: { role: 'user', content: 'echo \"test\" into test.txt' } };\n        await receivedResult\n    })(),\n    options: {\n        canUseTool: async (toolName, toolInpu",
+      "created_at": "2025-07-31T19:25:20Z"
+    },
+    {
+      "author": "blois",
+      "author_association": "COLLABORATOR",
+      "body": "Another fix will be arriving soon where Claude Code will not hang when this occurs and instead will reject the tool call (not desirable, but we need this to be reliable across all SDK surfaces).",
+      "created_at": "2025-08-04T20:36:15Z"
+    },
+    {
+      "author": "planger",
+      "author_association": "NONE",
+      "body": "Thanks @blois! I can confirm that the workaround works (and is better than my very specific patch :-)).",
+      "created_at": "2025-08-01T12:42:12Z"
+    }
+  ]
+}

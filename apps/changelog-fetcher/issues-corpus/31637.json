@@ -1,0 +1,35 @@
+{
+  "number": 31637,
+  "title": "[BUG] /api/oauth/usage endpoint aggressively rate limits, making usage monitoring unusable",
+  "body": "## Summary\n\nThe `https://api.anthropic.com/api/oauth/usage` endpoint returns `rate_limit_error` (HTTP 429) so aggressively that it makes it effectively impossible to poll usage data — even at very low intervals.\n\n## Steps to reproduce\n\n1. Authenticate via OAuth (standard Claude Code credentials in `~/.claude/.credentials.json`)\n2. Call `GET https://api.anthropic.com/api/oauth/usage` with a valid `Bearer` token and `anthropic-beta: oauth-2025-04-20`\n3. Repeat the call periodically (e.g. every 30–60 seconds)\n\nAfter a short burst, subsequent calls return:\n\n```json\n{\"error\":{\"message\":\"Rate limited. Please try again later.\",\"type\":\"rate_limit_error\"}}\n```\n\nThe rate limiting then **persists indefinitely** — retrying every 5 minutes (after full exponential backoff) continues to hit 429s for hours on end.\n\n## Observed behavior\n\n- Rate limiting kicks in quickly and does not recover\n- Retries at 30s → 60s → 120s → 240s → 300s intervals all return 429\n- Once stuck at the 300s cap, the endpoint continues returning 429 for the entire session (observed for 30+ minutes continuously)\n- There is no `Retry-After` header or any indication of when the limit resets\n\nDiagnostic log showing the progression:\n```\n[claude-usage] rate limited, backing off 30s\n[claude-usage] rate limited, backing off 60s\n[claude-usage] rate limited, backing off 120s\n[claude-usage] rate limited, backing off 240s\n[claude-usage] rate limited, backing off 300s\n[claude-usage] rate limited, backing off 300s   ← stuck here indefinitely\n[claude-usage] rate limited, backing off 300s\n[claude-usage] rate limited, backing off 300s\n```\n\n## Expected behavior\n\nThe usage endpoint should:\n1. Support reasonable polling intervals (30–60 seconds) without triggering 429s — usage data only changes every few hours at most\n2. Return a `Retry-After` header when rate limiting so clients can back off intelligently\n3. Apply a **much** higher rate limit ceiling — this is a read-only stats endpoint, not an inference endpoint\n\n## Impact\n\nThis breaks any tool that displays live Claude usage (quota bars in tmux statuslines, dashboard widgets, IDE plugins, etc.). Claude Code itself exposes usage in its statusline via this endpoint — users building on that same API get frozen/stale data and cannot reliably monitor their quota.\n\n## Environment\n\n- Claude Code version: latest\n- OS: macOS (Darwin 25.2.0)\n- Auth: OAuth via `~/.claude/.credentials.json`\n\n## Request\n\nPlease either raise the rate limit significantly for this endpoint, add a `Retry-After` header, or document the intended polling interval so client developers can comply.",
+  "labels": ["invalid", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-06T23:16:35Z",
+  "updated_at": "2026-06-01T22:50:14Z",
+  "closed_at": "2026-06-01T22:50:14Z",
+  "reactions_total": 14,
+  "comments_count": 8,
+  "author": "ibehnam",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/30930\n2. https://github.com/anthropics/claude-code/issues/31021\n3. https://github.com/anthropics/claude-code/issues/31055\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-06T23:20:49Z"
+    },
+    {
+      "author": "prakersh",
+      "author_association": "NONE",
+      "body": "## Root Cause Found + Workaround\n\nAfter investigating, we discovered that **rate limits are per-access-token, not per-account**. Each new OAuth access token gets a fresh rate limit window (~5 requests before 429).\n\n### How to bypass:\n\nWhen you hit 429, refresh your token:\n\n```bash\ncurl -X POST https://console.anthropic.com/v1/oauth/token \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"grant_type\": \"refresh_token\", \n    \"refresh_token\": \"YOUR_REFRESH_TOKEN\",\n    \"client_id\": \"9d1c250a-e61b",
+      "created_at": "2026-03-07T05:31:00Z"
+    },
+    {
+      "author": "GiGurra",
+      "author_association": "NONE",
+      "body": "I tried using the workaround, but unfortunately it breaks claude code's own refreshing, and forces me to re-login every few minutes :(",
+      "created_at": "2026-03-07T13:41:54Z"
+    }
+  ]
+}

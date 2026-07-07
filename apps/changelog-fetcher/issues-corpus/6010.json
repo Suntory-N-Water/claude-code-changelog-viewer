@@ -1,0 +1,35 @@
+{
+  "number": 6010,
+  "title": "Feature Request: Add wildcard support for MCP tool permissions",
+  "body": "### **Title: Feature Request: Add wildcard support for MCP tool permissions**\n\n**Labels:** `enhancement`, `feature-request`, `mcp`, `permissions`\n\n### Is your feature request related to a problem? Please describe.\n\nConfiguring permissions for Model Context Protocol (MCP) tools is currently inflexible and does not scale well for MCP servers that expose a large number of tools (e.g., Jira, GitHub, Sentry).\n\nAccording to the current [Identity and Access Management documentation](/en/docs/claude-code/iam), MCP permissions do not support wildcards. Administrators have two options:\n1.  Allow an entire server by its name (e.g., `mcp__github`).\n2.  Explicitly list every single tool individually (e.g., `mcp__github__get_issue`, `mcp__github__list_issues`).\n\nThis \"all or nothing\" approach for a given server creates a significant administrative burden. For example, to allow all read-only actions (like `get_*`, `list_*`, `search_*`) from a server, an administrator must manually list dozens of tools. If the MCP server adds a new read-only tool, the policy must be manually updated. This process is tedious, error-prone, and difficult to maintain.\n\n### Describe the solution you'd like\n\nI propose adding support for wildcards (`*`) in MCP permission rules within the `permissions` section of `settings.json` and the `--allowedTools`/`--disallowedTools` CLI flags.\n\nThis would bring MCP permission handling in line with other tools like `Bash`, which already supports wildcard matching (e.g., `Bash(npm run test:*)`).\n\n**Example Use Cases:**\n\n*   **Allow all tools from a specific server:**\n    *   `mcp__github__*`\n    *   This would be an intuitive, consistent alternative to the current `mcp__github` syntax.\n\n*   **Allow a subset of tools based on a prefix:**\n    *   `mcp__jira__get_*`\n    *   This would allow tools like `get_issue`, `get_sprint`, `get_project`, etc., without needing to list each one. This is perfect for granting broad read-only access.\n\n*   **Allow tools with a common action across all servers:**\n    *   `mcp__*__list_*`\n    *   This would allow `list_issues` from Jira, `list_prs` from GitHub, `list_files` from a filesystem server, etc. This enables the creation of powerful, role-based policies (e.g., an \"auditor\" role that can list resources but not modify them).\n\n### Describe alternatives you've considered\n\nThe only current alternative is to manually maintain an exhaustive list of every allowed MCP tool. This is not a scalable solution for enterprise environments where new tools are frequently added to MCP servers. While allowing the entire server (e.g., `mcp__github`) is an option, it often grants more permissions than necessary, which is contrary to the principle of least privilege.\n\n### Additional context\n\nImplementing wildcard support for MCP tools would provide several key benefits:\n*   **Simplified Administration:** Drastically reduces the complexity of managing permissions for feature-rich MCP servers.\n*   **Improved Security:** Allows for the creation of more granular, pattern-based rules that are safer than allowing an entire server.\n*   **Consistency:** Aligns the behavior of MCP permissions with the existing wildcard support for other tools, making the entire permission system more predictable and easier to learn.",
+  "labels": ["enhancement", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-18T03:05:01Z",
+  "updated_at": "2026-02-20T14:25:40Z",
+  "closed_at": "2026-02-12T10:24:35Z",
+  "reactions_total": 10,
+  "comments_count": 6,
+  "author": "coygeek",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mpalpha",
+      "author_association": "NONE",
+      "body": "Workaround: Use claude cli to discover and add the tools with this prompt.\n`claude -p \"List all MCP tools as mcp__<server>__<tool>, then add and or update them explicitly without wildcards to .claude/settings.local.json permissions.allow array\"`\n\nDon't forget to reload your IDE if needed.",
+      "created_at": "2025-10-23T20:09:54Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-11T10:11:11Z"
+    },
+    {
+      "author": "hxt365",
+      "author_association": "NONE",
+      "body": "We'd like wildcard for the tool params as well",
+      "created_at": "2026-01-12T11:09:16Z"
+    }
+  ]
+}

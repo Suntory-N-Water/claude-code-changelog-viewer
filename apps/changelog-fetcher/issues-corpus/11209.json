@@ -1,0 +1,16 @@
+{
+  "number": 11209,
+  "title": "The word \"harder\" creates invalid thinking budget configuration",
+  "body": "## Bug Description\n\nThe word \"harder\" in user messages triggers a conversation-level thinking budget (`budget:thinking_budget: 10000`) **regardless of what other thinking settings are active**. This creates mathematically invalid configurations whenever the per-turn limit exceeds 10000 tokens.\n\n## Root Cause\n\n\"harder\" is a text trigger that always sets `budget:thinking_budget: 10000`, independent of:\n- Whether \"ultrathink\" (60000 per-turn) is active\n- Whether tab-complete thinking mode (31999 per-turn) is active\n- Any other per-turn limit settings\n\n## Broken Configurations\n\nAny message containing \"harder\" + any high thinking limit setting:\n- \"ultrathink\" (60k per-turn) + \"harder\" anywhere → 10k budget (6x exceeded in one turn)\n- Tab-complete thinking mode (32k per-turn) + \"harder\" anywhere → 10k budget (3x exceeded in one turn)\n\n## Steps to Reproduce\n\n1. Enable ultrathink (sets 60000 per-turn limit)\n2. In a later message, type \"harder\" (even without \"think\")\n3. Observe system prompt has both `thinking_length_limit: 60000` AND `budget:thinking_budget: 10000`\n\n## Expected Behavior\n\nEither:\n- \"harder\" should scale the budget based on per-turn limits\n- \"harder\" should be rejected when per-turn limits exceed the budget\n- Text triggers shouldn't control budget configuration at all\n\n## Actual Behavior\n\nThe word \"harder\" creates a hardcoded 10000-token conversation budget that conflicts with any high per-turn setting.\n\n## Impact\n\nUsers cannot discuss things being \"harder\" while using extended thinking modes without creating broken configurations.",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-07T18:49:16Z",
+  "updated_at": "2025-11-15T14:06:09Z",
+  "closed_at": "2025-11-07T20:14:53Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "bukzor",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,35 @@
+{
+  "number": 16424,
+  "title": "[FEATURE] Expose Agent Context in Hook Event Payloads for Multi-Agent Observability",
+  "body": "## Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue+label%3Aenhancement) and found related issues (#7881, #14859)\n- [x] This is a single, focused feature request with a concrete implementation proposal\n- [x] This proposal addresses gaps in existing issues with a minimal, backward-compatible solution\n\n## Problem Statement\n\n### The Core Issue\n\nWhen hook scripts execute for events like `PreToolUse`, `PostToolUse`, `Notification`, `SubagentStop`, or `PreCompact`, there is **no way to determine which agent (main or subagent) triggered the event**. All events share the same `session_id` regardless of their origin, making it impossible to build reliable observability, debugging, or orchestration tooling for multi-agent workflows.\n\n### Why Existing Workarounds Fail\n\n| Approach | Why It Fails |\n|----------|--------------|\n| **Process/Environment differentiation** | Main agent and subagents run asynchronously in the **same process**. No PID, PPID, or environment variable distinguishes them. |\n| **Parsing `transcript_path` JSONL** | Unreliable: (1) requires complex async file parsing, (2) transcript structure is undocumented and subject to change, (3) race conditions with concurrent subagents, (4) significant performance overhead. |\n| **Session-to-agent mapping** | Breaks immediately with parallel subagents—mapping gets overwritten and produces incorrect attribution (detailed in #7881). |\n| **Using `tool_use_id` correlation** | Only works for `PreToolUse`↔`PostToolUse` pairs; doesn't help identify the originating agent for other events. |\n\n### Affected Events\n\nThe following hook events can be triggered by subagents but provide no agent identification:\n\n| Event | Can Fire from Subagent | Agent Info Available |\n|-------|------------------------|---------------------|\n| `PreToolUse` | ✅ Yes | ❌ No |\n| `PostToolUse` | ✅ Yes | ❌ No |\n| `PostToolUseFailure` | ✅ Yes | ❌ No |\n| `Notification` | ✅ Yes | ❌ No |\n| `SubagentStart` | N/A (announces subagent) | ⚠️ Partial* |\n| `SubagentStop` | N/A (announces subagent) | ⚠️ Partial* |\n| `PreCompact` | ✅ Yes | ❌ No |\n\n*`SubagentStart` and `SubagentStop` events exist but currently lack consistent agent identification fields in their payloads.\n\n## Proposed Solution\n\n### Design Principles\n\n1. **Minimal Surface Area**: Add only the essential fields needed for agent identification\n2. **Consistency**: Use the same field names across all affected events\n3. **Backward Compatibility**: New fields are additive; existing integrations continue to work\n4. **Leverage Existing Data**: Fields should mirror what's already available in `SubagentStart`/`SubagentStop` internal handling\n\n### Specification\n\nAdd the following **three fields** to the stdin JSON payload **only for events triggered by subagents**:\n\n```typescript\ninterface SubagentContext {\n  /** Unique identifier for this subagent instance (e.g., \"a1b2c3d4\") */\n  agent_id: string;\n  \n  /** \n   * Subagent type identifier from agent definition\n   * (e.g., \"code-reviewer\", \"frontend-developer\", \"ui-designer\")\n   */\n  agent_type: string;\n  \n  /** \n   * Path to this subagent's transcript file\n   * (e.g., \"/home/user/.claude/projects/.../agent-{agent_id}.jsonl\")\n   */\n  agent_transcript_path: string;\n}\n```\n\n**For main agent events**: These fields are **omitted** (not present in the payload). Only subagents require explicit identification—the main agent is implicitly identified by the absence of these fields.\n\n### Example Payloads\n\n#### Main Agent Event (Unchanged)\n\nFor main agent events, **no new fields are added**. The absence of agent fields implicitly indicates the main agent:\n\n```json\n{\n  \"session_id\": \"abc-123\",\n  \"hook_event_name\": \"PostToolUse\",\n  \"tool_name\": \"Write\",\n  \"tool_input\": { \"file_path\": \"/app/component.tsx\", \"content\": \"...\" },\n  \"tool_response\": { \"success\": true },\n  \"transcript_path\": \"/home/user/.claude/projects/.../abc-123.jsonl\"\n}\n```\n\n#### Subagent Event (New Fields Added)\n\nFor subagent events, the three identification fields a",
+  "labels": ["enhancement", "has repro", "area:tools"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-06T05:27:27Z",
+  "updated_at": "2026-03-12T14:35:14Z",
+  "closed_at": "2026-03-05T08:00:47Z",
+  "reactions_total": 17,
+  "comments_count": 20,
+  "author": "odoldotol",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16126\n2. https://github.com/anthropics/claude-code/issues/7881\n3. https://github.com/anthropics/claude-code/issues/6885\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-06T05:31:00Z"
+    },
+    {
+      "author": "odoldotol",
+      "author_association": "NONE",
+      "body": "This proposal addresses gaps in existing issues with a minimal, backward-compatible solution.",
+      "created_at": "2026-01-06T05:35:24Z"
+    },
+    {
+      "author": "odoldotol",
+      "author_association": "NONE",
+      "body": "### This issue is still needed for global hook agent identification\n\nAfter reviewing recent changelog updates (particularly v2.1.0), I wanted to provide some context on the current state.\n\n#### What v2.1.0 improved\n\nv2.1.0 introduced **hooks support in agent frontmatter**, allowing hooks to be scoped to specific agents. This is a useful addition—you can now attach monitoring or policy hooks directly to individual agent definitions as a workaround for some scenarios.\n\n#### Why this issue is still",
+      "created_at": "2026-01-24T01:25:04Z"
+    }
+  ]
+}

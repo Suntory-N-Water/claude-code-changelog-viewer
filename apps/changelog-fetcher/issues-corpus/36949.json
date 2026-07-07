@@ -1,0 +1,35 @@
+{
+  "number": 36949,
+  "title": "Add claudeCode.workingDirectory VS Code setting for multi-root workspaces",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nIn a multi-root VS Code workspace, the extension always uses the first folder as the working directory. There is no way to override this.\n\nMy workspace has 40+ repos under a shared parent directory (`~/Development/MyProject/`), with shared Claude context (CLAUDE.md, `.claude/`, memory) in that parent directory. The `.code-workspace` file lives there too. But the extension always starts in the first listed folder, so:\n\n- Sessions created from the CLI in the parent directory don't appear in `/resume`\n- Project-level memory is scoped to the wrong directory\n- CLAUDE.md discovery starts from the wrong root\n\n### Attempted workarounds (all failed)\n\n1. **`claudeCode.claudeProcessWrapper`** with a script that `cd`s to the parent before `exec`ing claude — the wrapper runs and `cd` succeeds (verified via logging), but the extension sends the working directory over the JSON stream protocol after spawn, overriding it\n2. **Adding `\".\"` as the first workspace folder** — causes VS Code to scan all subdirectories, discover every nested git repo, duplicate folders in the explorer, and slow everything down significantly\n3. **Opening the parent folder directly** instead of using a workspace file — breaks git behavior in sub-repos\n\n### Proposed Solution\n\nAdd a `claudeCode.workingDirectory` VS Code extension setting:\n\n```json\n{\n  \"settings\": {\n    \"claudeCode.workingDirectory\": \"/Users/me/Development/MyProject\"\n  }\n}\n```\n\nThis would let users explicitly set the working directory independent of the workspace folder list.\n\nAlternatively, respecting `terminal.integrated.cwd` from the workspace file would also solve this (as suggested in #24739).\n\n### Related issues\n\n- #12808 — OP wants active-file-based folder selection (different ask, but same underlying inflexibility)\n- #24739 — requested respecting `terminal.integrated.cwd` (closed as duplicate of #12808)\n- #29825 — multi-root workspace support\n\n### Priority\n\nHigh - This is a blocker for my workflow\n\n### Feature Category\n\nIDE Integration\n\n### Use Case Example\n\nMultiple independent repos (40+) under a shared parent directory, each in its own git repo, managed via a `.code-workspace` file. Shared Claude context (CLAUDE.md, `.claude/`, memory) lives in the parent directory alongside the workspace file.\n\n### Additional Context\n\nClaude Code v2.1.81, macOS, VS Code multi-root workspace",
+  "labels": ["enhancement", "area:ide", "platform:vscode"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-21T04:49:51Z",
+  "updated_at": "2026-05-22T10:50:16Z",
+  "closed_at": null,
+  "reactions_total": 36,
+  "comments_count": 4,
+  "author": "ffjeremy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12808\n2. https://github.com/anthropics/claude-code/issues/24739\n3. https://github.com/anthropics/claude-code/issues/18814\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-21T04:54:37Z"
+    },
+    {
+      "author": "ffjeremy",
+      "author_association": "NONE",
+      "body": "**Workaround found** — adding the parent directory as the first workspace folder, with a `.vscode/settings.json` at the parent root to hide subdirectories:\n\n**`.code-workspace`:**\n```json\n{\n  \"folders\": [\n    {\n      \"name\": \"MyProject\",\n      \"path\": \".\"\n    },\n    { \"path\": \"repo-a\" },\n    { \"path\": \"repo-b\" }\n  ],\n  \"settings\": {\n    \"git.autoRepositoryDetection\": false,\n    \"git.repositoryScanMaxDepth\": 1\n  }\n}\n```\n\n**`<parent-dir>/.vscode/settings.json`:**\n```json\n{\n  \"files.exclude\": {\n   ",
+      "created_at": "2026-03-21T17:38:59Z"
+    },
+    {
+      "author": "vheathen",
+      "author_association": "NONE",
+      "body": "I vote for this: making a parent directory first breaks other tools in my case, so I would really ask to support this option. ",
+      "created_at": "2026-04-15T16:03:56Z"
+    }
+  ]
+}

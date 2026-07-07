@@ -1,0 +1,41 @@
+{
+  "number": 38984,
+  "title": "[BUG] Cowork — \"Additional allowed domains\" allowlist non-functional",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Description**:\nThe \"Additional allowed domains\" field under Organization Settings → Capabilities → Code execution with \"Domain allowlist\" set to \"Package managers only\" appears to have no effect. All custom domain entries are silently ignored by the sandbox proxy. Network egress to allowed domains is \n\n**What we tried:**\nAdded every variation: `*.docs.google.com`, `docs.google.com`, `*.google.com`, `google.com` — none worked\nStarted fresh Cowork sessions after each change\n\"Allow all domains\" works correctly (immediately after setting and restarting Claude Cowork, so it's also not a caching issue), confirming the infrastructure is fine\n\n_Working:_\ncurl https://pypi.org/ → 200\ncurl https://github.com/ → 200\n\n_Blocked (403 from proxy / no response):_\ncurl https://docs.google.com/ → blocked\ncurl https://google.com/ → blocked\ncurl https://www.google.com/ → blocked\n\nAgain, all of these blocked `curl`s work as soon as \"All domains\" are allowed, so it's not an infra issue.\n\n\n**Conclusion**:\nThe \"Package managers only + additional domains\" mode works for the baseline, but custom entries added via the UI are never applied. The field appears broken.\n\n### What Should Happen?\n\nNetwork egress is allowed to allowed domains in whitelist\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. In Admin Settings → Capabilities → Code execution, set domain allowlist to \"Package managers only\" and add one or more custom domains (e.g. google.com, *.google.com, docs.google.com)\n2. Start a new Cowork session\n3. Run the following curl commands:\n```\nThese work (package manager baseline):\ncurl https://pypi.org/       # → 200\ncurl https://github.com/     # → 200\n\n# These are blocked despite being in the allowlist:\ncurl https://google.com/             # → blocked\ncurl https://www.google.com/         # → blocked\ncurl https://docs.google.com/        # → blocked\n```\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude 1.1.8629 (befdfc) 2026-03-24T22:13:01.000Z\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nClaude Cowork",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:cowork",
+    "area:networking"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-25T21:27:28Z",
+  "updated_at": "2026-06-02T08:13:03Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 5,
+  "author": "knub",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/30112\n2. https://github.com/anthropics/claude-code/issues/37970\n3. https://github.com/anthropics/claude-code/issues/30861\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-25T21:30:49Z"
+    },
+    {
+      "author": "knub",
+      "author_association": "NONE",
+      "body": "It's not the same as #30112. That one talks about \"All domains\" failing, which works here.\nIt's not the same as #37970, as that talks about local JSON settings while here's it's about organisation-wide settings (and again, with \"All domains\" it works).\nIt's not the same as #30861 because again that talks about local settings, not organisation settings.\n",
+      "created_at": "2026-03-25T21:42:31Z"
+    },
+    {
+      "author": "aryan-think",
+      "author_association": "NONE",
+      "body": "> work as soon as \"All domains\" are allowed\n\nI tested this the egress only works for the `owner` of the org, a standard `user` is still not able to access even if the org wide setting is \"All domains\" allowed. \n\n@knub can you please try and replicate my findings ?",
+      "created_at": "2026-04-23T08:53:34Z"
+    }
+  ]
+}

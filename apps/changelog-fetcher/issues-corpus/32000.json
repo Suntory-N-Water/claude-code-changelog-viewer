@@ -1,0 +1,29 @@
+{
+  "number": 32000,
+  "title": "Scheduled tasks cannot access HTTP MCP servers — missing user:mcp_servers scope",
+  "body": "## Description\n\nClaude Desktop scheduled tasks cannot connect to HTTP-type MCP servers configured in `~/.claude/mcp.json`. The same MCP tools work perfectly in interactive Claude Code sessions (via cloud connectors).\n\n## Setup\n\n- macOS (Darwin 24.3.0), Claude Desktop with scheduled tasks enabled (`ccdScheduledTasksEnabled: true`)\n- Custom Zoho MCP server (HTTP type) configured in `~/.claude/mcp.json`:\n\n```json\n{\n  \"zoho\": {\n    \"type\": \"http\",\n    \"url\": \"https://[redacted].zohomcp.com/mcp/message?key=[redacted]\"\n  }\n}\n```\n\n- The same Zoho MCP server works perfectly as a cloud connector in interactive Claude Code / Claude Desktop sessions (all 4 services: Zoho Mail, CRM, Books, Cliq)\n\n## What happens\n\n1. Scheduled task sessions launch successfully on their cron schedule\n2. The `~/.claude/mcp.json` file IS discovered — the session attempts to connect to the HTTP MCP server\n3. Connection fails with: `[claudeai-mcp] Missing user:mcp_servers scope (scopes=user:inference)`\n4. After logout/login of Claude Desktop, the MCP tools aren't discovered at all in subsequent scheduled runs\n5. Interactive sessions continue to work fine via cloud connectors\n\n## Expected behavior\n\nScheduled task sessions should have the `user:mcp_servers` scope so they can connect to HTTP MCP servers configured in `~/.claude/mcp.json`, the same way interactive sessions can use cloud connectors.\n\n## Impact\n\nThis blocks any automated workflow that depends on external MCP tools running on a schedule. In my case, a Zoho Mail/CRM inbox processing system that needs to run every 20 minutes via scheduled tasks.\n\n## Steps to reproduce\n\n1. Configure an HTTP MCP server in `~/.claude/mcp.json`\n2. Verify the MCP tools work in an interactive Claude Code session\n3. Create a scheduled task that calls those MCP tools\n4. Observe that the scheduled task fails with the scope error above\n\n## Environment\n\n- macOS 14.x (Darwin 24.3.0)\n- Claude Desktop with `ccdScheduledTasksEnabled: true`\n- Claude Code (Opus 4.6)",
+  "labels": ["bug", "platform:macos", "area:auth", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-08T02:16:23Z",
+  "updated_at": "2026-04-07T07:13:40Z",
+  "closed_at": null,
+  "reactions_total": 19,
+  "comments_count": 2,
+  "author": "PhilipJamesRealty",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ParvenuDev",
+      "author_association": "NONE",
+      "body": "I also have this issue. It's not fixed 3 weeks later",
+      "created_at": "2026-04-04T21:25:40Z"
+    },
+    {
+      "author": "Umairnoor2398",
+      "author_association": "NONE",
+      "body": "Hitting this too. Scheduled triggers provisioned with only `user:ccr_inference` scope — `user:mcp_servers` missing even when `mcp_connections` are explicitly configured on the trigger.",
+      "created_at": "2026-04-07T07:13:40Z"
+    }
+  ]
+}

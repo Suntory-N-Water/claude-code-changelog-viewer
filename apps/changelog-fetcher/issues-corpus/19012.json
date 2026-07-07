@@ -1,0 +1,35 @@
+{
+  "number": 19012,
+  "title": "Windows: Hook commands cause brief console window flash",
+  "body": "## Problem\n\nOn Windows, hook commands (both `SessionStart` and `statusLine`) cause a brief console window flash when they spawn Node.js or other console applications.\n\nThis happens because the child process is spawned without the `windowsHide` option.\n\n## Expected Behavior\n\nHook commands should run invisibly without any visible window flash.\n\n## Suggested Fix\n\nWhen spawning hook commands on Windows, use the `windowsHide: true` option in Node.js `spawn`/`exec`:\n\n```js\nconst { spawn } = require('child_process');\n\nspawn(command, args, {\n  windowsHide: true,  // Hides the console window on Windows, ignored on other platforms\n  // ... other options\n});\n```\n\nThis option is cross-platform safe - it's ignored on macOS/Linux.\n\n## Current Workarounds\n\n1. **VBS wrapper** (for hooks that don't need stdout):\n   ```vbs\n   Set WshShell = CreateObject(\"WScript.Shell\")\n   WshShell.Run \"node script.js\", 0, False\n   ```\n\n2. **Using .cmd files** - reduces but doesn't eliminate the flash\n\nNeither workaround fully solves the problem for `statusLine` which requires stdout capture.\n\n## Environment\n\n- OS: Windows 11\n- Claude Code version: v2.1.12\n- Shell: PowerShell\n\n## Related\n\nThis affects any Windows user with custom hooks that run console applications (Node.js, Python, etc.).",
+  "labels": ["bug", "has repro", "platform:windows", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-18T12:10:49Z",
+  "updated_at": "2026-03-09T14:36:25Z",
+  "closed_at": "2026-02-28T22:11:49Z",
+  "reactions_total": 3,
+  "comments_count": 11,
+  "author": "gsa9",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14828\n2. https://github.com/anthropics/claude-code/issues/15572\n3. https://github.com/anthropics/claude-code/issues/17230\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-18T12:14:02Z"
+    },
+    {
+      "author": "gsa9",
+      "author_association": "NONE",
+      "body": "## Update: Findings from Testing\n\nAfter testing various approaches, discovered that different hook types behave differently:\n\n### Key Finding\n\n| Hook Type | Spawn Behavior | `node -e` Flash? |\n|-----------|---------------|------------------|\n| **statusLine** | stdin/stdout piped | No flash ✓ |\n| **SessionStart** | Detached spawn | Flash on Windows ✗ |\n\n### Working Workarounds\n\n**For statusLine** - `node -e` works without flash:\n```json\n\"command\": \"node -e \\\"require(require('os').homedir() + '/.c",
+      "created_at": "2026-01-18T12:31:15Z"
+    },
+    {
+      "author": "topemalheiro",
+      "author_association": "NONE",
+      "body": "Anthropic please fix this, it's really annoying and we want to use claude-mem.",
+      "created_at": "2026-01-19T18:41:10Z"
+    }
+  ]
+}

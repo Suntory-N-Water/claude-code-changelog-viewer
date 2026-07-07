@@ -1,0 +1,42 @@
+{
+  "number": 7916,
+  "title": "[BUG] Claude Code not automatically loading .claude/settings.json during startup despite documentation indicating this should happen",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n  - Problem: Claude Code not automatically loading .claude/settings.json during startup despite documentation\n  indicating this should happen\n  - Evidence: Assistant had to use Read tool to discover project hooks instead of having them available from\n  initialization\n  - Documentation Reference: https://docs.claude.com/en/docs/claude-code/settings shows automatic hierarchical\n  settings loading\n  - Impact: Assistant lacks awareness of project-specific hooks and operational constraints during startup\n\n### What Should Happen?\n\nClaude should automatically load .claude/settings.json during startup and be aware of project-specific hooks/settings without needing to use file access tools to discover them.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n  Steps to Reproduce:\n  1. Create a new Claude Code session in a project directory containing .claude/settings.json\n  2. Observe that Claude does not automatically report or acknowledge project-specific settings during\n  initialization\n  3. Ask Claude \"What hooks do we have?\"\n  4. Observe that Claude searches git hooks, pre-commit configs, and global settings but misses the project-specific\n   .claude/settings.json\n  5. Point Claude to the .claude/settings.json file\n  6. Observe that Claude must use the Read tool to discover the settings, proving they weren't loaded during startup\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Code Version: 1.0.120\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWSL (Windows Subsystem for Linux)\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "api:bedrock",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-20T00:21:53Z",
+  "updated_at": "2026-04-02T14:41:50Z",
+  "closed_at": "2026-03-25T22:16:41Z",
+  "reactions_total": 6,
+  "comments_count": 10,
+  "author": "dfellman-godaddy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yukiman76",
+      "author_association": "NONE",
+      "body": "I am seeing this as well ",
+      "created_at": "2025-09-26T13:48:56Z"
+    },
+    {
+      "author": "aiguy110",
+      "author_association": "NONE",
+      "body": "I seem to be seeing the same thing with `Claude Code v2.0.15` except it's a project-specific MCP server it's not seeing.\n\nEDIT: Sorry, seems like my issue was actually that I needed to put my MCP settings in `.mcp.json` instead of `.claude/settings.json` ",
+      "created_at": "2025-10-15T15:04:30Z"
+    },
+    {
+      "author": "kantmichel",
+      "author_association": "NONE",
+      "body": "same problem here. Super annoying. always overwrite what i have. closing session, then resume doesn't help. Never seems to load the local settings. Same with adding it to  ~/.claude/settings.json ",
+      "created_at": "2025-10-16T21:12:36Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 1178,
+  "title": "[BUG] Claude Code MCP Server OAuth authentication doesn't work in SSH remote sessions",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [X] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version:  0.2.122 <!-- output of `claude --version` -->\n- Operating System: macOS 15.4.1 <!-- e.g. macOS 14.3, Windows 11, Ubuntu 22.04 -->\n- Terminal: Iterm2  <!-- e.g. iTerm2, Terminal App -->\n\n## Bug Description\nClaude Code MCP authentication doesn't work in SSH remote sessions. \n\nI was testing linear MCP, and the authentication worked locally. However, when I joined through an SSH session to my Remote Development Environment using SSH, the authentication process didn't work as there was no way to access a browser remotely.\n\n```markdown\nlinear:\n  Scope: Local (private to you in this project)\n  Type: stdio\n  Command: npx -y mcp-remote https://mcp.linear.app/sse\n  Args:\n  Environment:\n```\n\nThese are the mcp-logs:\n```\n[\n  {\n    \"error\": \"Connection failed: spawn npx -y mcp-remote https://mcp.linear.app/sse ENOENT\",\n    \"timestamp\": \"2025-05-19T19:43:39.452Z\",\n    \"sessionId\": \"2ef38d86-08ff-4331-b58c-91b977b6d207\",\n    \"cwd\": \"/home/owner/src/...\"\n  }\n]\n```\n\nWhen I try to connect using SSE instead of stdio, it returns 401.\n\nThe same setup worked in Cursor and the Claude desktop, since they are all local.\n\n<!-- A clear and concise description of the bug -->\n\n## Steps to Reproduce\n1. Connect to a remote server using ssh <!-- First step -->\n2. Add an MCP that requires OAuth Authentication<!-- Second step -->\n3. Run claude<!-- And so on... -->\n\n## Expected Behavior\n\nI expect a prompt similar to AWS auth, which tries to open locally, but since it's an SSH connection, it also allows me to add the authorization token\n<!-- What you expected to happen -->\n\n## Actual Behavior\nIt returned 401\n<!-- What actually happened -->\n\n## Additional Context\n<!-- Add any other context about the problem here, such as screenshots, logs, etc. -->",
+  "labels": ["bug", "platform:macos", "area:auth", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-05-19T19:56:36Z",
+  "updated_at": "2026-02-19T14:29:51Z",
+  "closed_at": "2026-02-09T10:32:10Z",
+  "reactions_total": 18,
+  "comments_count": 13,
+  "author": "herculesggimenes",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "denisyilmaz",
+      "author_association": "NONE",
+      "body": "I'm running into similar issues setting up Linear in Cursor, and as you wrote it was working for you in Cursor, how did you set it up? I followed their instructions but get these errors as well:\n\nconfig\n```json\n{\n  \"mcpServers\": {\n    \"linear\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"mcp-remote\", \"https://mcp.linear.app/sse\"]\n    }\n}\n```\n\nerrors\n```bash\n[info] near: Starting new stdio process with command: npx -y mcp-remote https://mcp.linear.app/sse\n[info] near: Client closed for comman",
+      "created_at": "2025-05-22T06:03:04Z"
+    },
+    {
+      "author": "jmatser-reputable",
+      "author_association": "NONE",
+      "body": "I am having the same issue running Claude Code on Windows 11 in WSL on a snapdragon X-Elite laptop.",
+      "created_at": "2025-06-02T23:01:48Z"
+    },
+    {
+      "author": "linuxlewis",
+      "author_association": "NONE",
+      "body": "I have a workaround for this issue with the following\n\n1. `npm install -g mcp-remote`\n2. `mcp-remote https://mcp.linear.app/sse` go through the auth process so it can be cached\n3.  Setup mcp in claude `claude mcp add linear mcp-remote https://mcp.linear.app/sse`\n4. Start `claude --debug` code up and should see success logs",
+      "created_at": "2025-06-13T20:38:52Z"
+    }
+  ]
+}

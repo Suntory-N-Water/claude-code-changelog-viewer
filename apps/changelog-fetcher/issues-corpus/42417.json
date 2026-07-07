@@ -1,0 +1,16 @@
+{
+  "number": 42417,
+  "title": "New renderer (CLAUDE_CODE_NO_FLICKER=1): Japanese text clipboard copy garbled on Windows (UTF-8 → CP932 mojibake via OSC 52)",
+  "body": "## Bug Description\n\nWhen the new fullscreen renderer is enabled (`CLAUDE_CODE_NO_FLICKER=1`), copying Japanese (CJK) text from the terminal results in mojibake in the clipboard. UTF-8 byte sequences are interpreted as CP932 (Shift-JIS), the default Windows ANSI code page for Japanese locale.\n\nExamples:\n- `これで` → `縺薙ｌ縺ｧ`\n- `—` (em dash, U+2014) → `ﾂｷ`\n\n## Environment\n\n- **OS:** Windows 11 Home (10.0.26200)\n- **Terminal:** Windows Terminal\n- **Shell:** PowerShell 5.1 / Git Bash\n- **System code page:** 932 (Shift-JIS)\n- **Claude Code:** latest channel\n\n## Reproduction Steps\n\n1. Launch Claude Code with `CLAUDE_CODE_NO_FLICKER=1 claude`\n2. Generate any output containing Japanese text\n3. Select text by mouse drag → status bar shows \"sent N chars via OSC 52\"\n4. Paste into Notepad or any editor → garbled text\n\n## Diagnosis\n\nConfirmed through systematic testing:\n\n| Test | Result | Conclusion |\n|------|--------|------------|\n| Copy with new renderer (drag / Ctrl+C) | Garbled (mojibake) | OSC 52 path is broken |\n| Copy with Shift+drag (bypasses mouse capture) | Normal | Native terminal selection works |\n| Manual OSC 52 send from Git Bash (`printf '\\e]52;c;...\\a'`) | Normal | Windows Terminal OSC 52 implementation is correct |\n| `chcp 65001` before launching Claude Code | Still garbled | Console code page does not affect OSC 52 path |\n\n**Conclusion:** The bug is in how the new renderer constructs or sends the OSC 52 clipboard payload. Windows Terminal correctly handles OSC 52 with UTF-8 base64 payloads (verified independently). The issue likely occurs when the text passes through Node.js stdout → ConPTY, where byte sequences may be converted from UTF-8 to CP932 before reaching Windows Terminal's VT parser.\n\n## Workaround\n\n- **Shift+drag** to select text (bypasses application mouse capture, uses terminal native selection)\n\n## Expected Behavior\n\nJapanese text should be correctly copied to clipboard via OSC 52, regardless of system ANSI code page.",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-02T06:06:18Z",
+  "updated_at": "2026-06-17T03:04:41Z",
+  "closed_at": "2026-05-26T22:41:24Z",
+  "reactions_total": 9,
+  "comments_count": 9,
+  "author": "NakayoshiUsagi",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

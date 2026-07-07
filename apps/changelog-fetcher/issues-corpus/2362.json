@@ -1,0 +1,35 @@
+{
+  "number": 2362,
+  "title": "[BUG] Error: kill EPERM",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [X] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.30 (Claude Code)\n- Operating System: `Linux ubuntu 5.15.148-tegra #1 SMP PREEMPT Tue Jan 7 17:14:38 PST 2025 aarch64 aarch64 aarch64 GNU/Linux`\n- Terminal:  putty\n\n## Bug Description\nclaude get killed with \n\n\n```\nError: kill EPERM\n    at process.kill (node:internal/process/per_thread:277:13)\n    at XZ0 (file:///home/alessandro/.nvm/versions/node/v24.2.0/lib/node_modules/\n    at file:///home/alessandro/.nvm/versions/node/v24.2.0/lib/node_modules/@anth\n    at Array.forEach (<anonymous>)\n    at file:///home/alessandro/.nvm/versions/node/v24.2.0/lib/node_modules/@anth\n    at Array.forEach (<anonymous>)\n    at FZ0 (file:///home/alessandro/.nvm/versions/node/v24.2.0/lib/node_modules/\n    at file:///home/alessandro/.nvm/versions/node/v24.2.0/lib/node_modules/@anth\n    at ChildProcess.Y (file:///home/alessandro/.nvm/versions/node/v24.2.0/lib/no\n    at ChildProcess.emit (node:events:507:28) {\n  errno: -1,\n  code: 'EPERM',\n  syscall: 'kill'\n}\n```\n\n\n## Additional Context\n```\n\n● Bash(echo \"pippo\" | INSTALL_K3S_EXEC=\"--disable=servicelb --write-kubeconfig-mode 644\" sudo -S ./install.sh)\n  ⎿  Error: Command timed out after 2m 0.0s [sudo] password for alessandro:\n     [INFO]  Finding release for channel stable\n\n✶ Scrubbing… (120s · ↑ 316 tokens · esc to interrupt)\n\n╭───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ >                                                                                                                                                                                         │\n╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n  ? for shortcuts\n\n\n\nTotal cost:            $0.2096\nTotal duration (API):  6m 50.9s\nTotal duration (wall): 6m 33.3s\nTotal code changes:    0 lines added, 0 lines removed\nToken usage by model:\n    claude-3-5-haiku:  33.3k input, 1.1k output, 0 cache read, 0 cache write\n       claude-sonnet:  98 input, 2.3k output, 320.8k cache read, 12.7k cache write\nfile:///home/alessandro/.nvm/versions/node/v24.2.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:229\n`)},\"stackTraceWarning\"),fa={warn:console.warn},HO4=[\"Sun\",\"Mon\",\"Tue\",\"Wed\",\"Thu\",\"Fri\",\"Sat\"],_x1=[\"Jan\",\"Feb\",\"Mar\",\"Apr\",\"May\",\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\",\"Nov\",\"Dec\"];function pB0(A){let B=A.getUTCFullYear(),Q=A.getUTCMonth(),I=A.getUTCDay(),G=A.getUTCDate(),Z=A.getUTCHours(),D=A.getUTCMinutes(),Y=A.getUTCSeconds(),W=G<10?`0${G}`:`${G}`,J=Z<10?`0${Z}`:`${Z}`,F=D<10?`0${D}`:`${D}`,X=Y<10?`0${Y}`:`${Y}`;return`${HO4[I]}, ${W} ${_x1[Q]} ${B} ${J}:${F}:${X} GMT`}B2(pB0,\"dateToUtcString\");var zO4=new RegExp(/^(\\d{4})-(\\d{2})-(\\d{2})[tT](\\d{2}):(\\d{2}):(\\d{2})(?:\\.(\\d+))?[zZ]$/),wO4=B2((A)=>{if(A===null||A===void 0)return;if(typeof A!==\"string\")throw new TypeError(\"RFC-3339 date-times must be expressed as strings\");let B=zO4.exec(A);if(!B)throw new TypeError(\"Invalid RFC-3339 date-time value\");let[Q,I,G,Z,D\n...\n...\n...\n...\nsync('ioreg -rd1 -c \"I",
+  "labels": ["bug", "has repro", "api:vertex", "platform:linux", "area:tools"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-20T10:57:19Z",
+  "updated_at": "2026-01-27T14:17:45Z",
+  "closed_at": "2026-01-19T10:13:46Z",
+  "reactions_total": 5,
+  "comments_count": 12,
+  "author": "asiletto",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mheiber",
+      "author_association": "NONE",
+      "body": "I saw EPERM  when running Claude Code in another project",
+      "created_at": "2025-07-30T10:52:33Z"
+    },
+    {
+      "author": "LuisVDataIntelligence",
+      "author_association": "NONE",
+      "body": "I ran into a similar crash while migrating a linux http server to HTTPS:\n\nError: kill EPERM\n    at process.kill (node:internal/process/per_thread:235:13)\n    at Wq2 (file:///home/luisvillegas/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:414:8088)\n    at file:///home/luisvillegas/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:414:7961\n    at Array.forEach (<anonymous>)\n    at file:///home/luisvillegas/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:414:7932",
+      "created_at": "2025-08-03T21:35:35Z"
+    },
+    {
+      "author": "kulinacs",
+      "author_association": "NONE",
+      "body": "This happened to me when Claude Code was running a Bash tool call with sudo that timed out. When claud code decides to kill the tool call, it throws the EPERM code and crashes.",
+      "created_at": "2025-08-04T15:23:27Z"
+    }
+  ]
+}

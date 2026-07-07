@@ -1,0 +1,35 @@
+{
+  "number": 59033,
+  "title": "[BUG] Unhandled Case [object Object]",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nUsing Claude Code V.S. code extension, and conversation window. This has been occurring regularly since the extension update yesterday. Yes, this is informative. Here's what the log says happened:\n\nTimestamp\tEvent\tWhat it means\n06:48:17.166\tRequest sent to /v1/messages\tClient → Anthropic API\n06:48:20.733\tFirst chunk received\tStream opened, ~3.5s — normal\n06:48:35.748\tstream_idle_partial warning, 15s idle, 650 bytes total\tServer stopped sending mid-response\n06:48:50.792\tsdk_stream_ended_no_result with had_error: true\tStream terminated without completing\n06:49:02.742\tAnother stall warning, 686 bytes total\tReconnect/retry on a still-stale stream\nRoot cause: server-side stream stall. The Anthropic API accepted the request, started streaming a response (~650 bytes in — that's only a sentence or two of output), then stopped sending data and eventually closed the stream with an error flag. This is not a tool execution issue, not a problem with our conversation, and not the VSCode extension crashing. It's the API-side stream completing partially then erroring.\n\nLikely upstream causes (in rough order of likelihood):\n\nTransient API incident — check status.anthropic.com for 2026-05-14 ~06:48-06:49 PT (the log is in UTC offset: those are local 06:48 entries; the UTC equivalents are 10:48 UTC per the [DEBUG] lines). Capacity hiccups or partial outages produce exactly this signature.\nMid-generation internal error — the model started a response, hit some inference-side issue (e.g., a serving worker failure), and the upstream terminated the stream without a clean error code, just a connection close.\nNetwork blip — less likely given the SDK's had_error: true flag rather than a clean disconnect.\nWhat this means for our work: nothing's broken. Tool calls execute on the server before the response streams back to you — so when I do an Edit/Write/Bash, the action lands regardless of whether the response that describes the action makes it to you intact. That's why the files were always correct when you checked them, even after each red box.\n\nPractical workaround: if it keeps happening, status page first. If status is green, try Cmd/Ctrl+Shift+P → Developer: Reload Window to reset the extension's state — sometimes a stuck stream reference fouls the next request.\n\n\n### What Should Happen?\n\nit shouldnt error, and I shouldn't have to type anything to continue the process that was running\n\n### Error Messages/Logs\n\n```shell\nOutgoing log_event\n\n2026-05-14 06:48:17.169 [info] From claude: 2026-05-14T10:48:17.159Z [DEBUG] [API:auth] OAuth token check complete\n\n2026-05-14 06:48:17.176 [info] From claude: 2026-05-14T10:48:17.166Z [DEBUG] [API REQUEST] /v1/messages x-client-request-id=f8d36613-8588-4ef0-8e26-23a6c8dbd993 source=sdk\n\n2026-05-14 06:48:17.184 [info] From claude: 2026-05-14T10:48:17.174Z [DEBUG] FileHistory: Added snapshot for a0ba0dc7-3ba1-43af-b5a7-138d7b5f42d7, tracking 3 files\n\n2026-05-14 06:48:20.744 [info] From claude: 2026-05-14T10:48:20.733Z [DEBUG] Stream started - received first chunk\n\n2026-05-14 06:48:35.759 [info] From claude: 2026-05-14T10:48:35.748Z [WARN] [Stall] stream_idle_partial lastChunkAgeMs=15015 bytesTotal=650 idleDeadlineMs=300000\n\n2026-05-14 06:48:50.792 [info] Received message from webview: {\"type\":\"request\",\"channelId\":\"3jwirxwgs3c\",\"requestId\":\"tukwuml1op\",\"request\":{\"type\":\"log_event\",\"eventName\":\"sdk_stream_ended_no_result\",\"eventData\":{\"had_error\":true,\"subagent_count\":0,\"message_count\":243}}}\n2026-05-14 06:48:50.792 [info] Received message from webview: {\"type\":\"request\",\"requestId\":\"faf0ylilwxo\",\"request\":{\"type\":\"update_session_state\",\"sessionId\":\"d60c918b-b01d-4648-b043-da1fc6a52f35\",\"state\":\"idle\",\"title\":\"Review handoff documentation and resume work",
+  "labels": ["bug", "duplicate", "platform:windows", "platform:vscode"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-05-14T12:03:15Z",
+  "updated_at": "2026-05-18T00:09:22Z",
+  "closed_at": "2026-05-15T04:20:07Z",
+  "reactions_total": 85,
+  "comments_count": 69,
+  "author": "danakowalski-vvet",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks, we are aware of this issue and should have a fix out with today's release!\n",
+      "created_at": "2026-05-14T16:03:06Z"
+    },
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "For those who are seeing it, can you please update to the latest version 2.1.142 and then restart VSCode to make sure the update has been applied?",
+      "created_at": "2026-05-16T07:06:56Z"
+    },
+    {
+      "author": "danakowalski-vvet",
+      "author_association": "NONE",
+      "body": "<img width=\"807\" height=\"72\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/7fe83fc0-3723-46e2-9f00-83ebb7249441\" />",
+      "created_at": "2026-05-14T12:04:17Z"
+    }
+  ]
+}

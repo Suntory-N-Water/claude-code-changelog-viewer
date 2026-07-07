@@ -1,0 +1,35 @@
+{
+  "number": 17351,
+  "title": "[BUG] Nested skills dont return to invoking skill context on finishing but to main context",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen invoking a skill from another skill the workflow execution from the invoking (main) skill is discontinued.\n\nI have experimented with this behavior and used the new `context: fork` and `agent: ` with the nested skill to define a different model (Haiku) for the invoked skill. The main skill was invoked with a command  and a different model (Sonnet). After the skill finished, the session returned to the main context (Opus). This also happens without the context forking.\n\nA skill with a workflow that delegates a task to another skill (forked or not) cannot continue the workflow. Manually asking to continue it shows that Opus is used (Strg + O/E).\n\nThe invoked skill did not contain directives to finish or create a report or something similar.\n\n### What Should Happen?\n\nThe execution should return to the skill and not the main session. If the behavior is intended, the limitations of context nesting should be documented.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Create a skill that invokes another skill explicitly (`Skill(...)`).\n2. Create a command with a different model than the main session that invokes the main skill explicitly.\n3. Run the command and observe the used model in the session transcript\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.3\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-10T17:07:43Z",
+  "updated_at": "2026-05-20T23:09:21Z",
+  "closed_at": null,
+  "reactions_total": 30,
+  "comments_count": 5,
+  "author": "SpiGAndromeda",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "corticalstack",
+      "author_association": "NONE",
+      "body": "Indeed, this is breaking attempts to create a custom ralph wiggum implementation, where after execution of a skill, control is returning to human interaction and so breaks my ralph's autonomous loop.",
+      "created_at": "2026-01-14T15:23:30Z"
+    },
+    {
+      "author": "him0",
+      "author_association": "NONE",
+      "body": "I experienced the same issue.\n\nMy `/git-pull-request` skill calls `/git-commit --push` as a pre-processing step before creating a PR. After `/git-commit` completed successfully (committed and pushed), the workflow stopped and returned to the main session instead of continuing with the PR creation.\n\nClaude even said \"Commit and push completed. I'll create the PR.\" but didn't actually proceed to call the next tool. I had to manually prompt it to continue.\n\nThis confirms the behavior described in t",
+      "created_at": "2026-01-16T05:58:07Z"
+    },
+    {
+      "author": "virhdr",
+      "author_association": "NONE",
+      "body": "I also experienced exactly the same issue (#21672 )\n\nThis is a bit unfortunate, because working with sub-skills is really powerful for bigger tasks.\n\nPlatform is Windows in my case. Also doesnt matter if its in VS Code plugin or the CLI.",
+      "created_at": "2026-01-29T12:17:52Z"
+    }
+  ]
+}

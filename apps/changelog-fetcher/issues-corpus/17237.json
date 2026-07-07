@@ -1,0 +1,35 @@
+{
+  "number": 17237,
+  "title": "Feature Request: Add PreCompact and PostCompact hooks for custom context management",
+  "body": "## Description\n\nI'd like to request hooks that fire before and after Claude Code's autocompact process, allowing users to run custom logic when context is being summarized.\n\n## Use Case\n\nWhen building systems that need long-term memory across sessions (personal knowledge bases, project documentation, ops tooling), valuable structured data gets lost during autocompact summarization. Things like:\n\n- Key decisions made during the session\n- IP addresses, device info, or other structured data discovered\n- Code snippets worth preserving\n- Conclusions and root causes identified\n\nCurrently there's no way to extract or preserve this data before it gets summarized into prose.\n\n## Proposed Solution\n\nAdd `PreCompact` and `PostCompact` hooks similar to existing `PreToolUse`/`PostToolUse` hooks:\n\n```json\n{\n  \"hooks\": {\n    \"PreCompact\": [\n      {\n        \"command\": \"/path/to/extract-before-compact.sh\"\n      }\n    ],\n    \"PostCompact\": [\n      {\n        \"command\": \"/path/to/after-compact.sh\"\n      }\n    ]\n  }\n}\n```\n\n**PreCompact hook input** (JSON via stdin):\n```json\n{\n  \"messages_to_compact\": [...],\n  \"current_summary\": \"...\",\n  \"session_id\": \"...\",\n  \"cwd\": \"...\"\n}\n```\n\n**PreCompact hook output** (optional, via stdout):\n```json\n{\n  \"inject_into_summary\": \"Additional context to preserve: ...\",\n  \"extracted_data\": {...}\n}\n```\n\n## Benefits\n\n1. Users can extract structured data before summarization loses it\n2. Enables integration with external memory/knowledge systems\n3. Allows project-specific context preservation (security ops extracts IPs/MACs, dev projects extract function signatures)\n4. Gives users control over what context survives compaction\n5. Consistent with existing hook architecture\n\n## Workaround\n\nCurrently using SessionEnd hooks to parse transcripts after the fact, but this misses data already lost to earlier autocompacts during long sessions.",
+  "labels": ["enhancement", "has repro", "area:core", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-10T02:23:11Z",
+  "updated_at": "2026-04-02T10:06:08Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 9,
+  "author": "RedhatEnt",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "robtaylor",
+      "author_association": "NONE",
+      "body": "What i think would be really helpful would be to have a CompactPrompt hook, for injecting content into the compacted context..",
+      "created_at": "2026-01-11T23:26:41Z"
+    },
+    {
+      "author": "ediril",
+      "author_association": "NONE",
+      "body": "We actually need a more general version of this request, a way to see and manage the contents of the context window.. not just at the point of compaction, but at any point in time. \n\nSee my request: https://github.com/anthropics/claude-code/issues/20652",
+      "created_at": "2026-01-24T21:08:37Z"
+    },
+    {
+      "author": "mark-hubers",
+      "author_association": "NONE",
+      "body": "Building a persistent memory system for Claude Code. Compaction destroys structured data before I can extract it.\n\nCurrent workaround: SessionStart:compact hook re-injects context AFTER - but too late, data's already gone.\n\nPreCompact would let me save what matters before summarization.\n\n(This comment drafted with Claude Code - yes, I use it to manage my own GitHub issues 🙂)",
+      "created_at": "2026-02-02T00:38:23Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 8674,
+  "title": "[BUG]Claude Code VS Code Extension Fails to Detect Git Bash on Windows Despite Correct Configuration",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# [BUG] Claude Code VS Code Extension Fails to Detect Git Bash on Windows Despite Correct Configuration\n\n## Environment\n- **Platform**: Anthropic API\n- **Claude Code Extension Version**: 2.0.2 (released 2025-10-01)\n- **Operating System**: Windows 11\n- **VS Code Version**: [Please fill in your version from Help → About]\n- **Terminal**: PowerShell 5.x with Python virtual environment\n- **Git Version**: 2.50.0.windows.2\n\n## Bug Description\n\nThe Claude Code VS Code extension consistently fails to detect Git Bash installation on Windows, displaying the error:\n\n```\nError: Claude Code on Windows requires git-bash (https://git-scm.com/downloads/win). If installed but not in PATH, set environment variable pointing to your bash.exe, similar to: CLAUDE_CODE_GIT_BASH_PATH=C:\\Program Files\\Git\\bin\\bash.exe\n```\n\nThis occurs despite:\n1. Git Bash being properly installed and functional\n2. Correct environment variable configuration\n3. Bash executable being accessible and working\n4. Multiple troubleshooting attempts including path modifications\n\n## Steps to Reproduce\n\n1. Install Git for Windows with Git Bash\n2. Install Claude Code VS Code extension (version 2.0.2)\n3. Verify Git Bash works: `& \"C:\\Program Files\\Git\\bin\\bash.exe\" --version`\n4. Set environment variable: `$env:CLAUDE_CODE_GIT_BASH_PATH = \"C:\\Program Files\\Git\\bin\\bash.exe\"`\n5. Attempt to use Claude Code extension in VS Code\n6. Observe the git-bash error despite correct configuration\n\n## Expected Behavior\n\nThe extension should detect Git Bash either through:\n- Automatic detection from system PATH\n- Environment variable `CLAUDE_CODE_GIT_BASH_PATH`\n- VS Code terminal environment settings\n\n## Actual Behavior\n\nExtension displays git-bash error and refuses to function, blocking all productivity workflows.\n\n## Troubleshooting Attempts Made\n\n### Environment Variable Configuration\n- Set both user and system environment variables\n- Tried both `C:\\Program Files\\Git\\bin\\bash.exe` and space-free symbolic link `C:\\GitBash\\bin\\bash.exe`\n- Verified variables are visible in VS Code terminal sessions\n- Added to VS Code settings.json `terminal.integrated.env.windows`\n\n### PATH Configuration  \n- Added `C:\\Program Files\\Git\\bin` to system PATH\n- Added `C:\\Program Files\\Git\\cmd` to system PATH  \n- Verified `git --version` works (showing PATH is functional)\n- Created symbolic link without spaces: `C:\\GitBash` → `C:\\Program Files\\Git`\n\n### Extension Troubleshooting\n- Downgraded from version 2.0.2 to 2.0.1 (same error)\n- Completely uninstalled and reinstalled extension\n- Reloaded VS Code window multiple times\n- Restarted VS Code completely\n- Cleared VS Code settings and reconfigured\n\n### Terminal Configuration\n- Tested with PowerShell, Command Prompt, and Git Bash terminals\n- Changed VS Code default terminal profile\n- Verified bash works in all terminal types\n\n## Verification Commands That Work\n\nAll of these commands execute successfully, proving the installation is correct:\n\n```powershell\n# Direct execution\n& \"C:\\Program Files\\Git\\bin\\bash.exe\" --version\n# Output: GNU bash, version 5.2.37(1)-release (x86_64-pc-msys)\n\n# Environment variable execution  \n& $env:CLAUDE_CODE_GIT_BASH_PATH --version\n# Output: GNU bash, version 5.2.37(1)-release (x86_64-pc-msys)\n\n# Git command works\ngit --version\n# Output: git version 2.50.0.windows.2\n\n# Environment variable is set\necho $env:CLAUDE_CODE_GIT_BASH_PATH  \n# Output: C:\\Program Files\\Git\\bin\\bash.exe\n```\n\n## Related Issues\n\nThis appears related to known issues with Git Bash path detection:\n- Issue #4507: Git Bash path with spaces in \"Program Files\"\n- Issue #3461: CLI fails with \"No suitable shell found\"\n- Issue #2602: Git Bash path conversion issues\n\n## Impact\n\nThis bug completely blocks the use of Claude Code VS Code ",
+  "labels": ["bug", "has repro", "platform:windows", "area:ide", "oncall"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-10-01T17:41:52Z",
+  "updated_at": "2026-04-17T14:44:50Z",
+  "closed_at": "2026-04-08T20:50:49Z",
+  "reactions_total": 39,
+  "comments_count": 68,
+  "author": "GoldKingai",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7420\n2. https://github.com/anthropics/claude-code/issues/5887\n3. https://github.com/anthropics/claude-code/issues/7470\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-01T17:50:16Z"
+    },
+    {
+      "author": "silviapolizzi",
+      "author_association": "NONE",
+      "body": "I have the same error",
+      "created_at": "2025-10-02T13:21:08Z"
+    },
+    {
+      "author": "Luminlight",
+      "author_association": "NONE",
+      "body": "Same issue here.\nI checked my environment variables, and there were quite a few no longer present.\n- System32\\WindowsPowerShell\\V1.0\\\n- Git\\cmd\\\n- Git\\bin\\\n- etc\n\nA Windows update may have modified these, but not sure.\n\nI added the system environment variables and restarted. The Claude extension still displays the error, and any prompts made through the extension indefinitely hang. The Claude CLI works fine, however.\n\nThe Claude extension has been updated twice since discovering this bug report:",
+      "created_at": "2025-10-02T18:00:14Z"
+    }
+  ]
+}

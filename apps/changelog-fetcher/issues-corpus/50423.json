@@ -1,0 +1,42 @@
+{
+  "number": 50423,
+  "title": "[BUG] VS Code extension doesn't load Chrome browser tools in chat panel despite docs stating @browser should work (Linux)",
+  "body": "## Preflight Checklist\n- [x] I have searched existing issues and this hasn't been reported as a standalone bug\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n## What's Wrong?\n\nThe [VS Code extension documentation](https://code.claude.com/docs/en/vs-code#automate-browser-tasks-with-chrome) \nexplicitly states that `@browser` should work in the chat panel:\n\n> Type `@browser` in the prompt box followed by what you want Claude to do:\n> `@browser go to localhost:3000 and check the console for errors`\n\nHowever, in the VS Code extension chat panel, browser tools never load into \nthe Claude process. `@browser` is not recognized as a mention, `/mcp` does \nnot show `claude-in-chrome`, and Claude responds that it has no browser \nautomation tool available.\n\nThe same setup works correctly when using `claude --chrome` from the terminal.\n\n## Environment\n\n- **OS:** Ubuntu 24.04 (Wayland, kernel HWE 6.17, x86_64)\n- **VS Code:** latest stable\n- **Claude Code CLI:** 2.1.114 (`~/.local/bin/claude`)\n- **Claude Code VS Code extension:** 2.1.114\n- **Google Chrome:** latest stable 147.0.7727.55\n- **Claude in Chrome extension:** 1.0.68\n- **Plan:** Claude Pro (direct Anthropic billing, not third-party provider)\n- **Shell:** bash, nvm-managed Node\n\n## Reproduction Steps\n\n1. Install Claude in Chrome extension (v1.0.68) from Chrome Web Store, \n   sign in with the same Anthropic account as Claude Code\n2. Install Claude Code VS Code extension (v2.1.114)\n3. Open VS Code, open Claude Code chat panel\n4. Type: `@browser go to localhost:3000 and check the console for errors`\n\n## Expected Behavior\n\nPer [official docs](https://code.claude.com/docs/en/vs-code#automate-browser-tasks-with-chrome):\nBrowser tools should be available, Claude should open a Chrome tab and \ninspect the page.\n\n## Actual Behavior\n\nClaude responds:\n> \"I don't have a browser automation tool available in this session. \n> The available MCP servers are Atlassian, Bitbucket, Jenkins, Gmail, \n> Calendar, and Drive — none provide browser control.\"\n\n`/mcp` output shows only user MCP servers (atlassian, bitbucket, jenkins) \nand claude.ai connectors (Gmail, Calendar, Drive). `claude-in-chrome` \nis not registered.\n\nVS Code Output panel (\"Claude Code\") shows:\n\n<img width=\"1350\" height=\"1005\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/9fdd0839-554d-4262-80bb-71e1eb1fa574\" />",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "platform:vscode",
+    "area:browser-extension",
+    "area:chrome"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-18T15:28:45Z",
+  "updated_at": "2026-06-30T01:58:45Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 16,
+  "author": "mirao",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mirao",
+      "author_association": "NONE",
+      "body": "Follow-up with additional context and observations.\n\n## Observation: VS Code extension spawns Claude with `--no-chrome` flag\n\nRunning `ps -ef | grep -E \"claude.*--(no-)?chrome\" | grep -v grep` while the Claude Code chat panel is active in VS Code shows that the VS Code extension spawns the Claude binary with the `--no-chrome` flag:\n\n    /home/mirao/.vscode/extensions/anthropic.claude-code-2.1.114-linux-x64/resources/native-binary/claude --output-format stream-json --verbose --input-format stream",
+      "created_at": "2026-04-18T15:34:12Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23939\n2. https://github.com/anthropics/claude-code/issues/23490\n3. https://github.com/anthropics/claude-code/issues/11448\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-18T15:37:36Z"
+    },
+    {
+      "author": "mirao",
+      "author_association": "NONE",
+      "body": "Thanks @github-actions for flagging potential duplicates. I've reviewed all three and believe this issue is distinct:\n\n- **#23939** — targets Windows 11 with a different root cause (`MCP error -32601: Method not found`). My case is Linux and the logs show no such MCP error. That issue was also closed as not planned.\n- **#23490** — describes user-configured MCP servers (Slack, Clickup, etc.) that connect successfully but are hidden by the `tengu_tst_kx7` tool search experiment. In my case, `claud",
+      "created_at": "2026-04-18T15:43:13Z"
+    }
+  ]
+}

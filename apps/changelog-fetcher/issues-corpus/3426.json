@@ -1,0 +1,35 @@
+{
+  "number": 3426,
+  "title": "[BUG] Claude Code fails to expose MCP tools to AI sessions when running a local Playwright MCP server",
+  "body": "\n\nClaude Code version 1.0.43 has a critical bug preventing MCP (Model Context Protocol) tools from being exposed to AI sessions, specifically affecting local Playwright MCP server integration. This issue has been reproduced consistently across multiple Claude Code sessions and affects both stdio and SSE transport mechanisms.\n\n## Environment Details\n\n### System Information\n- **OS**: Linux 6.6.87.2-microsoft-standard-WSL2 (Windows Subsystem for Linux)\n- **Platform**: WSL2 on Windows\n- **Node.js**: v20.19.3\n- **NPM**: 10.8.2\n- **Claude Code Version**: 1.0.43\n- **Working Directory**: /mnt/f/PlayWrightMCP\n\n### MCP Server Details\n- **Package**: @playwright/mcp@0.0.29\n- **Protocol Version**: 2024-11-05\n- **MCP SDK**: @modelcontextprotocol/sdk@^1.15.1\n\n## Bug Description\n\n### Primary Issue\nClaude Code successfully starts MCP servers but fails to expose MCP tools to AI sessions. The `browser_navigate`, `browser_take_screenshot`, and other Playwright tools are not available despite proper MCP server configuration and successful server startup.\n\n### Error Manifestations\n1. **Tool Availability**: `Error: No such tool available: browser_navigate`\n2. **Timeout Errors**: `\"Failed to get tool list\", \"error\": \"Request timeout (30s)\"`\n3. **Protocol Communication**: MCP server starts but Claude Code cannot communicate with it properly\n4. **Cross-Session Persistence**: New Claude Code sessions cannot see configured MCP servers\n\n## Reproduction Steps\n\n### Configuration Attempted (All Failed)\n\n#### 1. Manual JSON Configuration\n```json\n// /home/user/.config/claude/mcp-settings.json\n{\n  \"mcpServers\": {\n    \"playwright\": {\n      \"command\": \"npx\",\n      \"args\": [\"@playwright/mcp\"],\n      \"env\": {\n        \"HEADLESS\": \"true\"\n      }\n    }\n  }\n}\n```\n**Result**: Tools not exposed, server not recognized\n\n#### 2. Claude MCP Add Command (Stdio)\n```bash\nclaude mcp add playwright -- npx @playwright/mcp@latest --headless --user-data-dir ~/.cache/claude-playwright\n```\n**Result**: Server configured but tools not exposed\n\n#### 3. WSL Shell Wrapper\n```bash\nclaude mcp add playwright-wsl /bin/sh -c \"npx @playwright/mcp@latest --headless\"\n```\n**Result**: Same issue - server starts but tools unavailable\n\n#### 4. SSE Transport (HTTP)\n```bash\n# Start server on port 3001\nnpx @playwright/mcp@latest --port 3001\n\n# Configure SSE transport\n{\n  \"mcpServers\": {\n    \"playwright\": {\n      \"url\": \"http://localhost:3001/sse\"\n    }\n  }\n}\n```\n**Result**: Server accessible via HTTP but tools still not exposed to Claude Code\n\n### Verification of MCP Server Functionality\n\n#### Direct Server Communication Test\n```bash\n# Test direct communication with MCP server\necho '{\"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"tools/list\"}' | npx @playwright/mcp@latest\n```\n**Result**: ✅ Server responds correctly with full tool list (26 tools available)\n\n#### Process Verification\n```bash\nps aux | grep -i playwright\n# Shows: MCP server process running successfully (PID 12751)\n\nclaude mcp list\n# Shows: playwright: npx @playwright/mcp@latest --headless --user-data-dir /home/user/.cache/claude-playwright\n```\n\n## Expected vs Actual Behavior\n\n### Expected Behavior\nAfter configuring MCP server, Claude Code should:\n1. Successfully communicate with the MCP server\n2. Retrieve the tool list via `tools/list` request\n3. Expose tools like `browser_navigate`, `browser_take_screenshot`, etc.\n4. Allow AI sessions to use these tools directly\n\n### Actual Behavior\nClaude Code:\n1. ✅ Recognizes MCP server configuration\n2. ✅ Starts MCP server process successfully  \n3. ❌ Fails to retrieve tool list (30s timeout)\n4. ❌ Does not expose any MCP tools to AI sessions\n5. ❌ Cannot use tools across different Claude Code sessions\n\n## Error Logs and Evidence\n\n### MCP Security Log Entries\n```json\n{\"timestamp\":\"2025-07-13T01:21:16.145Z\",\"level\":\"error\",\"message\":\"Failed to get tool list\",\"data\":{\"error\":\"Request timeout (30s)\"}}\n{\"timestamp\":\"2025-07-13T01:21:16.149Z\",\"level\":\"info\",\"message\":\"🔧 Tool call received\",\"data\":{\"toolName\":\"browser_navigate\",\"args\":{\"url\":\"https://google.com\"}}}\n```\n\n### Claude Code Debug Informatio",
+  "labels": ["bug", "has repro", "platform:linux", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-07-13T03:55:47Z",
+  "updated_at": "2026-03-24T22:21:50Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 19,
+  "author": "FlavorFlav25",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "stevemarksd",
+      "author_association": "NONE",
+      "body": "Config might need a \"type\":\n\n```\n{\n  \"mcpServers\": {\n    \"playwright\": {\n      \"type\": \"sse\",\n      \"url\": \"http://host.docker.internal:8931/sse\"\n    }\n  }\n}\n```\n\nbut I dont think would fix your issue as your MCP is recognized even without it.\n",
+      "created_at": "2025-07-18T11:56:53Z"
+    },
+    {
+      "author": "samuelhurni",
+      "author_association": "NONE",
+      "body": "I have the same error with the new connectors from Claude.ai with paid pro plan. It could be the same issue in their backend. I tried several things, but after successful oauth to the remote mcp server exposed in a cloud, the connecotr is connected in their console but the available tools will not be shown because Claude never starts tools/list request.\n\nAccording to MCP Specs:\n\"To discover available tools, clients send a tools/list request. This operation supports [pagination](https://modelcont",
+      "created_at": "2025-07-25T14:37:31Z"
+    },
+    {
+      "author": "AnshumanSharma23",
+      "author_association": "NONE",
+      "body": "I'm also facing this issue in a reproducible and consistent manner.\nAfter successful OAuth authentication with a remote MCP server, Claude establishes the connection, but never initiates the tools/list call, making all tools inaccessible within Claude.\nI've validated this using multiple working test scripts and confirmed through logs that the issue is not related to configuration errors. The problem persists across different environments and appears to be systemic in how Claude handles MCP integ",
+      "created_at": "2025-07-27T07:27:00Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 37192,
+  "title": "[BUG] Claude Code desktop ignores permission configurations for WSL projects, requiring approval for every file operation despite proper settings",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nIssue: Claude Code desktop ignores permission configurations for WSL projects, requiring approval for every file operation despite proper settings\nDetails tested:\n- .claude/settings.local.json with bypass permissions mode doesn't work\n- Specific WSL path permissions (//wsl.localhost/Ubuntu/home/nykwil/**) ignored\n- Desktop app settings file at C:\\Users\\admin\\AppData\\Local\\ClaudeCodeExtension\\claudecode-settings.json only contains UI preferences\n- Both simplified and detailed permission configurations fail\n- Issue affects Windows/WSL development workflows\nImpact: Makes WSL development frustrating since every command requires manual approval\n\n### What Should Happen?\n\nPermissions settings should be loaded on wsl projects\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nOpen a project on a the wsl drive. Enable bypass permissions, do something that requires file read or write, allow prompt shows up.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nVersion 1.1.7714 (3bd6f6)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nClaude Desktop for windows",
+  "labels": [
+    "bug",
+    "platform:windows",
+    "platform:wsl",
+    "area:permissions",
+    "area:desktop",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-21T18:41:08Z",
+  "updated_at": "2026-05-26T22:44:25Z",
+  "closed_at": "2026-05-26T22:44:25Z",
+  "reactions_total": 3,
+  "comments_count": 12,
+  "author": "nykwil",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/29574\n2. https://github.com/anthropics/claude-code/issues/36192\n3. https://github.com/anthropics/claude-code/issues/37181\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-21T18:45:24Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "I run Claude Code on WSL2 daily and can share what works:\n**Root cause:** Claude Desktop on Windows accesses WSL paths via `\\\\wsl$\\` mount. The permission system likely doesn't resolve WSL paths correctly, so glob patterns in settings.json never match.\n**Workaround — use CLI instead of Desktop:**\n```bash\nnpm install -g @anthropic-ai/claude-code\nclaude --dangerously-skip-permissions\n```\nThe CLI version runs natively in WSL and resolves paths correctly. Permission settings in `~/.claude/settings.j",
+      "created_at": "2026-03-21T19:40:16Z"
+    },
+    {
+      "author": "nykwil",
+      "author_association": "NONE",
+      "body": "This bug is specifically about Claude code desktop, there are reasons to\nuse Claude code desktop over the cli.\n\nOn Sat, Mar 21, 2026, 12:40 p.m. ゆる草 ***@***.***> wrote:\n\n> *yurukusa* left a comment (anthropics/claude-code#37192)\n> <https://github.com/anthropics/claude-code/issues/37192#issuecomment-4104124132>\n>\n> I run Claude Code on WSL2 daily and can share what works:\n> *Root cause:* Claude Desktop on Windows accesses WSL paths via \\\\wsl$\\\n> mount. The permission system likely doesn't resolve",
+      "created_at": "2026-03-21T21:54:16Z"
+    }
+  ]
+}

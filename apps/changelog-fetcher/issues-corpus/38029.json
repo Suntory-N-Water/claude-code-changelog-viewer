@@ -1,0 +1,35 @@
+{
+  "number": 38029,
+  "title": "[BUG] Abnormal Usage Consumption on Claude Code Session Resume — Possible Bug",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nHi Anthropic Support,\n\nI'm reporting what appears to be a bug related to Claude Code session resumption that caused abnormal usage limit consumption.\n\nAccount: Max plan ($100/month)\nDate of incident: March 23–24, 2026\nPlatform: Claude Code via Dispatch (macOS)\n\nIssue:\nWhen resuming a large Claude Code session (project: claude-business, containing multiple CLAUDE.md files and Notion cache layer implementation in progress), my usage limit reached 80% with NO user input — simply by launching the session. Within 45 minutes of minimal interaction, usage hit 100%.\n\nEvidence from ccusage:\nI ran `npx ccusage@latest session --since 20260323 --breakdown` and found the following:\n\n- Session: claude-bu... (claude-business project)\n- Model: opus-4-6\n- Input tokens: 27,169\n- Output tokens: 652,069\n- Estimated cost: $342.74\n- This single session consumed 97% of all token usage across all sessions\n\nThe 652,069 output tokens were generated without corresponding user prompts. I did not instruct Claude to produce this volume of output. It appears the session resume process triggered excessive, unintended token generation.\n\nRelevant update:\nI noticed that a Claude Code update released on the same day includes the fix: \"Improved memory usage and startup time when resuming large sessions.\" This strongly suggests that the behavior I experienced was a known issue that has since been patched.\n\nRequest:\nCould you please investigate whether this was indeed a bug in the session resume logic prior to the fix? If confirmed, I would appreciate a restoration of the usage credits consumed by this unintended behavior.\n\nI have screenshots of the ccusage breakdown report available if needed.\n\nThank you for your time.\n\nBest regards,\nYuki Kokemizawa\nSeiyokoke-en (西予苔園)\n\n![Image](https://github.com/user-attachments/assets/73cc7463-6572-4066-9394-854aec942043)\n![Image](https://github.com/user-attachments/assets/a6e723bb-1c79-4c84-865e-574a4844d1e6)\n\n### What Should Happen?\n\nSession resume should not generate output tokens without user input. Expected behavior: launching a session consumes only the tokens needed to load context (CLAUDE.md, project files), not 652k output tokens.\n\n### Error Messages/Logs\n\n```shell\nccusage output (session --since 20260323 --breakdown):\nSession: claude-bu... (claude-business)\nModel: opus-4-6\nInput: 27,169 tokens\nOutput: 652,069 tokens\nCost: $342.74\nAll other sessions combined: $9.94\n```\n\n### Steps to Reproduce\n\n1. Have a large Claude Code project with multiple CLAUDE.md files and active MCP connections\n2. Run a session with Opus model, perform substantial work (Notion cache layer implementation)\n3. End session\n4. Resume/relaunch the same session\n5. Usage limit immediately jumps to 80%+ with no user input\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.81\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nSame-day Claude Code update includes fix: \"Improved memory usage and startup time when resuming large sessions\" - this strongly suggests the behavior was a known bug. \n\nAttaching ccusage breakdown screenshots.\n\nI would appreciate restoration of usage credits consumed by this unintended behavior.\n\n![Image](https://github.com/user-attachments/assets/94799dcb-7e58-4ef3-8d5e-c37c3c1377e1)\n\n![Image](https://github.com/user-attachments/assets/41907bda-1987-4c3d-b2f6-95cfe0468cd3)",
+  "labels": ["bug", "platform:macos", "area:cost", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-24T00:54:22Z",
+  "updated_at": "2026-05-26T08:07:22Z",
+  "closed_at": null,
+  "reactions_total": 38,
+  "comments_count": 22,
+  "author": "kokemizawa",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/27869\n2. https://github.com/anthropics/claude-code/issues/36539\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-24T00:59:17Z"
+    },
+    {
+      "author": "kokemizawa",
+      "author_association": "NONE",
+      "body": "This is related but not a direct duplicate. My case involves Notion MCP cache layer + multiple CLAUDE.md files (not Chrome MCP screenshots). The root cause may be the same — accumulated MCP context causing token drain on session resume — but the reproduction path is different. Keeping this open as an additional data point for the engineering team.",
+      "created_at": "2026-03-24T01:07:13Z"
+    },
+    {
+      "author": "gex581990",
+      "author_association": "NONE",
+      "body": "I've been dealing with the same thing for 3 days on multiple accounts on multiple platforms. Claude code has been useless. Just has been in a failure loop racking up usage. My one account used its weekly amount just from one message from me, the rest was Claude code failing over and over again, timing out, and trying again. I haven't gotten a legit reply. It's seriously crazy we are paying for their failed connections like it's some kind of usage on the user end we have control of. Why do we get",
+      "created_at": "2026-03-24T03:52:07Z"
+    }
+  ]
+}

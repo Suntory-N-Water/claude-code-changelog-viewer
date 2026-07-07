@@ -1,0 +1,23 @@
+{
+  "number": 1565,
+  "title": "Using the Proxy results in a 404",
+  "body": "Any help being able to see the request Claude uses as I am getting a 404 and i would like to see the url and api request claude is using to access my AWS Bedrock claude model.\n\nNote my url and request works in curl and postman.  for example:\n\n```\ncurl --request POST \\\n  --url https://my-company-url-api-endpoint/bedrock/us.anthropic.claude-3-7-sonnet-20250219-v1:0 \\\n  --header 'Authorization: Bearer {{BearerToken}}' \\\n  --header 'content-type: application/json' \\\n  --data '{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"text\": \"Give me joke\"\n        }\n      ]\n    }\n  ],\n  \"system\": [\n    {\n      \"text\": \"You are a helpful assistant.\"\n    }\n  ]\n}'\n```\n\nI have a get_proxy_token.sh file which successfully gets a Bearer token ok.  For example I can run:\n\n`~/.claude/get_proxy_token.sh`\n\nand it echos the token and sets the ACCESS_TOKEN env variable.\n\nIn my Claude settings.json (/Users/me/.claude/settings.json) I have the following settings:\n\n```\n{\n  \"env\": {\n    \"CLAUDE_CODE_USE_BEDROCK\": \"1\",\n    \"ANTHROPIC_BEDROCK_BASE_URL\": \"https://my-company-url-api-endpoint/bedrock/\",\n    \"CLAUDE_CODE_SKIP_BEDROCK_AUTH\": \"1\",\n    \"ANTHROPIC_MODEL\": \"us.anthropic.claude-3-7-sonnet-20250219-v1:0\"\n  },\n  \"apiKeyHelper\": \"/Users/me/.claude/get_proxy_token.sh\",\n  \"CLAUDE_CODE_API_KEY_HELPER_TTL_MS\": 3600000\n}\n\n```\n\nClaude output in terminal:\n\n```\n> summarise this project\n  ⎿  API Error: 404 Resource not found\n```\n\nI have tried adding --verbose and --debug flags when running claude code but i cannot see the output anywhere.\n\nAny ideas why this might not be working and how I can debug it?\n\n\n**EDIT:**\n\n2 things.  Claude code is adding _/invoke_ or _/invoke-with-stream_ to the url path at the end.  I had to account for this in my api gateway as it was giving a 404.\n\nHowever:\n\nI added the following line to my shell script which gets the token:\n\n`echo \"Script called at $(date)\" >> /tmp/proxy_token_called.log`\n\nI can tell that claude code is **not** calling my apiKeyHelper file as the log is out output to the tmp file.  It does output when I manually run the .sh file.  The path is correct and it the script is executable.\n\nAny ideas why claude is not running this file?",
+  "labels": [
+    "bug",
+    "api:bedrock",
+    "platform:macos",
+    "area:auth",
+    "area:api",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-04T10:22:58Z",
+  "updated_at": "2025-12-07T14:08:54Z",
+  "closed_at": "2025-11-30T03:11:13Z",
+  "reactions_total": 3,
+  "comments_count": 12,
+  "author": "sterankin",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

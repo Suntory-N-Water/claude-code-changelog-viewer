@@ -1,0 +1,35 @@
+{
+  "number": 1736,
+  "title": "How to avoid re-authenticating in docker container?",
+  "body": "The suggested approach to use `--dangerously-skip-permissions` is to setup docker.\n\nThe https://docs.anthropic.com/en/docs/claude-code/security talks about usage with VSCode. But for those of us that do not use VSCode (IntelliJ user here) I would like to use CLI on claude in Docker and mount a directory to be seen from both my host and docker.\n\nThe mounting worked fine and I am able to start `claude` code in docker. However, each time I restart the container I have to re-auth with claude. \n\nIs there a way to share the authentication from my host machine to Docker? I have been looking for some sort of auth file but have not found it. \n\nThe question would apply to how to do it on both MacOS and Linux as hosts. ",
+  "labels": ["question", "platform:macos", "platform:linux", "area:auth"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-07T01:19:24Z",
+  "updated_at": "2025-08-31T14:05:15Z",
+  "closed_at": "2025-08-22T19:22:35Z",
+  "reactions_total": 9,
+  "comments_count": 17,
+  "author": "nickolay-kondratyev",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "danieldeusing",
+      "author_association": "NONE",
+      "body": "Great question, I struggled with this too. \n\nMaking `~/.claude.json` persist on host also did not do the trick for me. It stored auth, when I restart/rebuild container, it mounts it, but it still requires re-login.",
+      "created_at": "2025-06-07T14:21:13Z"
+    },
+    {
+      "author": "markrmiller",
+      "author_association": "NONE",
+      "body": "I made a personal clone of Codex using Claude Code, and the way that I ended up solving this was:\n\n* I mount ~/.claude and ~/.claude.json into the containers. (you want  \"bypassPermissionsModeAccepted\": true in .claude.json if you want to use --dangerously-skip-permissions in headless mode)\n* In my container startup script, I copy settings.json, .credentials.json, and .claude.json from the mounted volumes into place in the container and update their file permissions.\n\nI do the same type of thing",
+      "created_at": "2025-06-07T17:44:30Z"
+    },
+    {
+      "author": "max-sixty",
+      "author_association": "NONE",
+      "body": "possibly this relates to https://github.com/anthropics/claude-code/issues/1414 — so _only_ using containers is possible, but mixing linux containers & mac causes deletions...",
+      "created_at": "2025-06-08T22:16:11Z"
+    }
+  ]
+}

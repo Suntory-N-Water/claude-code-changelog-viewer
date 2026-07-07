@@ -1,0 +1,16 @@
+{
+  "number": 16675,
+  "title": "CLI crashes with 'Invalid Version' when parsing changelog with date in parentheses",
+  "body": "## Description\n\nClaude Code CLI v2.1.0 crashes on startup with \"Invalid Version: 2.1.0 (2026-01-07)\" error when parsing the changelog.\n\n## Error\n\n```\nERROR  Invalid Version: 2.1.0 (2026-01-07)\n\nfile:///Users/.../node_modules/@anthropic-ai/claude-code/cli.js:869:8900\n\n- iT (file:///.../cli.js:869:8900)\n- SJ8 (file:///.../cli.js:869:14028)\n- Object.dJ8 (file:///.../cli.js:869:14584)\n-  (file:///.../cli.js:3091:4240)\n-    at Array.sort (<anonymous>)\n```\n\n## Root Cause\n\nThe changelog at `~/.claude/cache/changelog.md` contains version headers in the format:\n\n```markdown\n## 2.1.0 (2026-01-07)\n```\n\nThe changelog parsing function `eH1` extracts versions using:\n\n```javascript\nlet J = Y.split(\" - \")[0]?.trim() || \"\";\n```\n\nThis only handles the `VERSION - DATE` format, but the actual changelog uses `VERSION (DATE)` format with parentheses. When semver tries to parse \"2.1.0 (2026-01-07)\", it fails because the parenthetical date makes it an invalid semver string.\n\n## Workaround\n\nPatch the CLI to also strip parenthetical dates:\n\n```bash\nsed -i.bak 's/Y\\.split(\" - \")\\[0\\]?\\.trim()||\"\"/Y.split(\" - \")[0]?.trim().split(\" (\")[0]?.trim()||\"\"/g' ~/.bun/install/global/node_modules/@anthropic-ai/claude-code/cli.js\n```\n\n## Suggested Fix\n\nUpdate the version extraction to handle both formats:\n\n```javascript\nlet J = Y.split(\" - \")[0]?.trim().split(\" (\")[0]?.trim() || \"\";\n```\n\n## Environment\n\n- Claude Code version: 2.1.0\n- Install method: bun install -g @anthropic-ai/claude-code\n- OS: macOS (Darwin 24.6.0)",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-07T20:20:30Z",
+  "updated_at": "2026-01-17T14:07:37Z",
+  "closed_at": "2026-01-07T20:38:19Z",
+  "reactions_total": 30,
+  "comments_count": 17,
+  "author": "omryn",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

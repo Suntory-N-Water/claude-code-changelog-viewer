@@ -1,0 +1,41 @@
+{
+  "number": 53041,
+  "title": "Resume crashes with \"g9H is not a function\" — REPL onSessionRestored undefined in 2.1.120",
+  "body": "### Summary\n\nOn 2.1.120, opening a prior session interactively via `claude -r <session-id>` (or `--resume`) crashes on mount with:\n\n```\nERROR  g9H is not a function. (In 'g9H(K)', 'g9H' is undefined)\n /$bunfs/root/src/entrypoints/cli.js:9251:5663\n```\n\nPrint mode (`claude -p --resume <id> \"…\"`) works fine against the same session file, so the session data is healthy — the bug is purely in the interactive REPL mount path.\n\n### Environment\n\n- Claude Code 2.1.120 (installed at `~/.local/share/claude/versions/2.1.120`)\n- macOS (Darwin 25.3.0)\n- Session was written progressively by 2.1.108 → 2.1.112 → 2.1.113; crash appears only after upgrading to 2.1.120\n\n### Repro\n\n```\nclaude -r <any-session-id-with-messages>\n# also:\nclaude --dangerously-skip-permissions -r <same-id>\n```\n\nReproduces with and without `--channels` plugin flags, so plugins are not the trigger.\n\n### Diagnosis from the minified bundle\n\nInside the REPL component `Ub8`, which receives `initialMessages` as `K`:\n\n```js\nlet S = s_.useMemo(() => !1, []);        // hardcoded false\nlet { onBeforeQuery: F9H,\n      onTurnComplete: ZLH,\n      onSessionRestored: g9H,            // <- undefined\n      render: aM_,\n      ownsInput: LLH }\n    = FXK({ enabled: S, setMessages: F7, ... });\n\ns_.useEffect(() => {\n  if (K && K.length > 0) {\n    HP_(K, K8()),\n    hY8({ abortController: new AbortController, taskRegistry: YH }),\n    tC8(K), UQ(K),\n    sYH.current.current = xz_(K, g8),\n    g9H(K);                              // <- TypeError here\n  }\n}, []);\n```\n\n`FXK({enabled: false, ...})` returns an object that does not include `onSessionRestored`; destructuring yields `undefined`; the mount effect invokes it unconditionally whenever the resumed session has any messages. Appears to fire on every interactive resume of a non-empty session.\n\n### Workaround\n\n`claude -p --resume <id> \"…\"` works — print mode does not mount the REPL, so the broken effect never runs.\n\n### Suggested fix\n\nEither:\n\n- `FXK`'s `enabled: false` branch should return a no-op `onSessionRestored`, **or**\n- The mount effect should guard the call: `g9H?.(K)`.\n\n### Adjacent issue (lower priority)\n\nIf `g9H` is bypassed (e.g. by truncating the session so `initialMessages` is empty), a different mount effect fires and prints:\n\n```\nError: sandbox required but unavailable: <reason>\n  + sandbox.failIfUnavailable is set — refusing to start without a working sandbox.\n```\n\n`sandbox.failIfUnavailable` is not set in any of my settings files (user, user-local, project, project-local). It looks like `--dangerously-skip-permissions` implicitly sets `isSandboxRequired()` to true. That may be intentional defense-in-depth, but the error message blames a user setting that the user didn't set, which is misleading.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "platform:linux",
+    "area:tui"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-24T22:51:39Z",
+  "updated_at": "2026-05-02T14:38:45Z",
+  "closed_at": "2026-04-25T03:17:18Z",
+  "reactions_total": 19,
+  "comments_count": 14,
+  "author": "Jolley71717",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "Sorry about this!!! Please roll back to 2.1.119. We are moving our pointer back.",
+      "created_at": "2026-04-25T01:27:38Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "Autoupdater should have done its thing by now. Please let us know if you are still having problems",
+      "created_at": "2026-04-25T03:17:18Z"
+    },
+    {
+      "author": "lucasygu",
+      "author_association": "NONE",
+      "body": "Confirming the regression range and that this is REPL-internal rather than terminal-emulator-specific:\n\n- **2.1.119 is the last known good version.** Pinning the symlink to `~/.local/share/claude/versions/2.1.119` resolves the crash; pinning to 2.1.120 reproduces it. The auto-updater eagerly re-points to 2.1.120 within minutes, so users wanting to stay on 2.1.119 also have to delete the 2.1.120 binary on disk — re-pointing the symlink alone gets reverted before the next launch (verified twice wi",
+      "created_at": "2026-04-24T23:27:34Z"
+    }
+  ]
+}

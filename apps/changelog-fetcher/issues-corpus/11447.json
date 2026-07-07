@@ -1,0 +1,35 @@
+{
+  "number": 11447,
+  "title": "[BUG] Claude can't edit files that use tabs for indentation",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nFor some reason https://github.com/anthropics/claude-code/issues/9163 was closed with no resolution.\n\nThis is affecting me. Claude fails to edit files indented with tabs. PHP code in my case. It falls back to running ridiculous and fragile sed commands. See below.\n\n### What Should Happen?\n\nThe Update tool should be able to make changes to files that use tabs for indentation.\n\n```bash\n$ file application/views/user/layout/service-note-modal.php\napplication/views/user/layout/service-note-modal.php: HTML document, ASCII text, with very long lines (318)\n```\n\n### Error Messages/Logs\n\n```shell\n● Read(application/views/user/layout/service-note-modal.php)\n  ⎿  Read 25 lines\n\n● Update(application/views/user/layout/service-note-modal.php)\n  ⎿  Error editing file\n\n● Bash(sed -i '88,109s/^\\t\\t\\t\\t\\t\\t/\\t\\t\\t\\t\\t\\t\\t/' /home/anon/apps/portal/application/views/user/layout/service-note-modal.php && sed -i '109a\\\\t\\t\\t\\t\\t\\t</div>' /h…)\n  ⎿  Running…\n```\n\n### Steps to Reproduce\n\nHave a file with tabs.\nAsk for an edit.\nWatch Claude flail.\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.37 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:linux", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-11T23:00:16Z",
+  "updated_at": "2026-06-17T11:42:13Z",
+  "closed_at": null,
+  "reactions_total": 57,
+  "comments_count": 61,
+  "author": "d5ve",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/9163\n2. https://github.com/anthropics/claude-code/issues/10332\n3. https://github.com/anthropics/claude-code/issues/753\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-11T23:05:06Z"
+    },
+    {
+      "author": "d5ve",
+      "author_association": "NONE",
+      "body": "It is a duplicate with https://github.com/anthropics/claude-code/issues/9163 **BUT that was closed with no resolution**. So it's still an active bug.\n\nIt is probably a duplicate with https://github.com/anthropics/claude-code/issues/10332 **BUT that was closed as a duplicate for the other one**. So it's still an active bug.\n\nIt is probably a duplicate with https://github.com/anthropics/claude-code/issues/753 **BUT that was closed mentioning a fix applied months ago**. I am still seeing the issue ",
+      "created_at": "2025-11-11T23:13:59Z"
+    },
+    {
+      "author": "d5ve",
+      "author_association": "NONE",
+      "body": "This is ridiculous!\n\n```bash\n● Update(application/views/user/service-logs.php)\n  ⎿  Error editing file\n\n● Let me check the exact whitespace in that section:\n\n● Bash(sed -n '137,157p' /home/anon/apps/portal/application/views/user/service-logs.php | cat -A)\n  ⎿  ^I^I^I^I^I<div class=\"card-body scroll-y overflow-hidden p-0 d-none\">$\n     ^I^I^I^I^I^I<div class=\"p-4 p-xl-6 text-editor\">$\n     ^I^I^I^I^I^I^I<h5>Service notes</h5>$\n     … +18 lines (ctrl+o to expand)\n\n● Now I can see the exact whitesp",
+      "created_at": "2025-11-12T02:20:24Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 22345,
+  "title": "Plugin skills don't support `disable-model-invocation` like user skills do",
+  "body": "## Summary\n\nUser-defined skills support `disable-model-invocation: true` in YAML frontmatter to hide them from the model's auto-detection. Plugin-defined skills lack this capability, forcing all plugin skills into context regardless of relevance.\n\n## Environment\n\n- **Claude Code version**: 2.1.29\n- **OS**: Arch Linux 6.18.3\n\n## The Problem\n\n### User Skills (works)\n\n```yaml\n# ~/.claude/skills/my-skill/SKILL.md\n---\nname: my-skill\ndescription: Does something specific\ndisable-model-invocation: true\n---\n```\n\nResult: Skill hidden from model, only invokable via `/my-skill`\n\n### Plugin Skills (doesn't work)\n\n```yaml\n# ~/.claude/plugins/my-plugin/skills/my-skill/SKILL.md\n---\nname: my-skill\ndescription: Does something specific\ndisable-model-invocation: true  # ← Ignored\n---\n```\n\nResult: Skill still appears in context, `disable-model-invocation` has no effect\n\n## Context Overhead\n\nFrom `/context` command with several plugins installed:\n\n| Source | Tokens |\n|--------|--------|\n| Plugin skills | ~2,000 |\n| Plugin agents | ~2,400 |\n| **Total plugin overhead** | **~4,400** |\n\nThis overhead is included in every request, with no way to reduce it short of disabling entire plugins.\n\n## Impact\n\n- Can't create \"manual-only\" plugin skills (invoked via `/skill-name` only)\n- Plugin authors can't optimize context usage for their users\n- Users must choose between plugin functionality and context efficiency\n\n## Expected Behavior\n\n`disable-model-invocation: true` should work identically for:\n- User skills in `~/.claude/skills/`\n- Plugin skills in `~/.claude/plugins/*/skills/`\n\n## Proposed Solution\n\n1. Parse `disable-model-invocation` from plugin skill frontmatter\n2. Exclude matching skills from model context\n3. Keep skills invokable via `/plugin:skill-name` syntax\n\n## Workaround\n\nCurrently none. Users must either:\n- Accept the context overhead, or\n- Disable the entire plugin\n\n### Skill Index Pattern (partial workaround)\n\nCreate one auto-detect skill that lists all others:\n- 1 skill in context (~26 tokens) vs 20+ skills (~2K tokens)\n- Other skills invoked manually via `/skill-name`\n\nThis requires plugin authors to restructure their plugins.\n\n---\n\n## Token Impact\n\n### Per-Request Overhead\n\nThis overhead is included in **every request**, not just when using plugins:\n\n| Requests/Session | Plugin Overhead | With `disable-model-invocation`* |\n|-----------------|-----------------|----------------------------------|\n| 10 | 44K tokens | ~11K tokens |\n| 50 | 220K tokens | ~55K tokens |\n| 100 | 440K tokens | ~110K tokens |\n\n*Assuming 75% of plugin skills marked as manual-only\n\n### Monthly Cost at Scale\n\n| Sessions/Month | Current Overhead | Optimized | Savings |\n|----------------|------------------|-----------|---------|\n| 100 | ~$66 | ~$17 | **$49** |\n| 500 | ~$330 | ~$83 | **$247** |\n| 1000 | ~$660 | ~$165 | **$495** |\n\n(Based on Sonnet input pricing: $3/1M tokens)\n\n---\n\n## Related Issues\n\n- #22335 - LSP plugins spawn eagerly regardless of file types\n- #22344 - Subagent system prompt bloat\n- #13605 - Custom plugin subagents cannot access MCP tools",
+  "labels": ["bug", "has repro", "platform:linux", "area:cost", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-01T09:27:18Z",
+  "updated_at": "2026-05-24T13:08:02Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 11,
+  "author": "johnzfitch",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17688\n2. https://github.com/anthropics/claude-code/issues/21679\n3. https://github.com/anthropics/claude-code/issues/22063\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-01T09:31:25Z"
+    },
+    {
+      "author": "johnzfitch",
+      "author_association": "NONE",
+      "body": "**Not a duplicate.** The suggested issues are different:\n\n| Issue | About | This issue |\n|-------|-------|------------|\n| #17688 | Skill-scoped **hooks** not triggered in plugins | `disable-model-invocation` frontmatter |\n| #21679 | `model:` field not working | `disable-model-invocation` field |\n| #22063 | Plugin prefix lost with `name` in frontmatter | `disable-model-invocation` behavior |\n\nThis issue is specifically about `disable-model-invocation: true` working for user skills but not plugin ",
+      "created_at": "2026-02-01T09:36:16Z"
+    },
+    {
+      "author": "turlockmike",
+      "author_association": "NONE",
+      "body": "This bug consumes a lot of tokens. ",
+      "created_at": "2026-02-20T20:06:08Z"
+    }
+  ]
+}

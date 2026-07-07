@@ -1,0 +1,16 @@
+{
+  "number": 26229,
+  "title": "[BUG]  Bash(foo *) wildcard does not match bare command with no arguments, contrary to docs",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n\n\n  The docs at https://code.claude.com/docs/en/permissions#wildcard-patterns state that Bash(ls *) with a space before * \"enforces a word boundary, requiring the prefix to be followed by a space or end-of-string.\" This implies Bash(git stash *) should match both git stash list (space) and bare git stash\n  (end-of-string). In practice, it does not match the bare command — the user is prompted for permission.\n\n  The deprecated :* syntax (Bash(git stash:*)) does correctly match both cases.\n\n### What Should Happen?\n\n  Bash(foo *) should match foo (bare, no arguments) in addition to foo <args>, as documented.\n\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n\n  1. Add \"Bash(git stash *)\" to .claude/settings.json allow list (no bare \"Bash(git stash)\" entry)\n  2. Start a Claude Code session\n  3. Have Claude run git stash (bare, no arguments)\n  4. Observe: user is prompted for permission (should be auto-allowed)\n  5. Now replace with \"Bash(git stash:*)\" (deprecated colon syntax)\n  6. Repeat step 3\n  7. Observe: command runs without prompting (correct behavior)\n\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.44\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n\nThe workaround is to use the deprecated :* syntax, which handles both cases. Alternatively, users can double every entry with both Bash(foo *) and Bash(foo), but this is verbose. The docs should either be corrected to note that  * requires at least one argument, or the behavior should be fixed to  match the documented \"end-of-string\" semantics.",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-17T03:24:09Z",
+  "updated_at": "2026-04-26T14:31:31Z",
+  "closed_at": "2026-04-18T04:15:38Z",
+  "reactions_total": 5,
+  "comments_count": 6,
+  "author": "ucwillg",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

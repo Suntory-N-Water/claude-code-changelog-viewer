@@ -1,0 +1,42 @@
+{
+  "number": 23828,
+  "title": "Claude-in-Chrome Windows & WSL working fixes",
+  "body": "## Bug Description\n\nClaude-in-Chrome is completely broken on Windows due to two independent bugs:\n\n1. **Bun stdin crash**: `claude.exe --chrome-native-host` crashes with `panic: Internal assertion failure` (Bun v1.3.5 standalone can't handle stdin in native messaging mode)\n2. **Socket path discovery bug**: `getSocketPaths()` (minified as `Gc4` in v2.1.34) never includes Windows named pipe paths — only returns `os.tmpdir()` filesystem paths that can't connect to named pipes\n\nEven after fixing bug #1 (using Node.js instead of Bun for the native host), bug #2 prevents the MCP server from finding the native host's socket because Windows named pipes (`\\.\\pipe\\NAME`) and filesystem paths (`C:\\Users\\...\\AppData\\Local\\Temp\\NAME`) are in completely separate OS namespaces.\n\n## Root Cause Analysis\n\n### Bug 1: Bun stdin crash\n\n`claude.exe` is a Bun v1.3.5 standalone binary. When invoked as `--chrome-native-host`, it panics on stdin initialization:\n\n```\npanic(main thread): Internal assertion failure\noh no: Bun has crashed. This indicates a bug in Bun, not your code.\n```\n\n### Bug 2: Socket discovery (the deeper issue)\n\nThe `getSocketPaths()` function returns:\n```\nC:\\Users\\...\\AppData\\Local\\Temp\\claude-mcp-browser-bridge-{user}  ← filesystem path\n/tmp/claude-mcp-browser-bridge-{user}                              ← Unix path\n```\n\nThe native host listens on:\n```\n\\.\\pipe\\claude-mcp-browser-bridge-{user}  ← Windows named pipe\n```\n\nThese are different Windows namespaces:\n- **Filesystem paths** → NTFS, accessed via `CreateFileW` in the filesystem namespace\n- **Named pipes** → Object Manager, accessed via `CreateFileW` in the `\\.\\pipe\\` namespace\n\n`net.createConnection(tmpdir_path)` calls libuv's `uv_pipe_connect` → `CreateFileW` → looks in NTFS → **ENOENT** (pipe not found in filesystem).\n\nThe `getSocketPath()` (singular, `uW6` in v2.1.34) correctly returns `\\.\\pipe\\...` on Windows, but the bridge connector (`Qzq`) prefers `getSocketPaths()` (plural, `Gc4`) over `socketPath`, so the correct path is never tried.\n\n### Why `.mcp.json` override doesn't work\n\nWe tried overriding the built-in `claude-in-chrome` MCP via `.mcp.json` to use `node.exe + patched cli.js`:\n\n```json\n{\n  \"mcpServers\": {\n    \"claude-in-chrome\": {\n      \"command\": \"node.exe\",\n      \"args\": [\"path/to/patched/cli.js\", \"--claude-in-chrome-mcp\"]\n    }\n  }\n}\n```\n\nResult: **Name is reserved** — `claude mcp add` rejects it, and the `.mcp.json` entry is silently ignored at runtime. The built-in always spawns `claude.exe` (unpatched Bun binary). Adding a different name (e.g., `chrome-browser`) causes tool name deduplication — its tools are hidden.\n\n## Working Fix (verified)\n\nWe have a complete working fix, but it can only be applied to the native host — not to the MCP server process:\n\n### 1. Native host: Node.js instead of Bun\n\nReplace `chrome-native-host.bat` to use `node.exe + cli.js` from an isolated npm install:\n\n```bat\n@echo off\n\"path\\to\\node.exe\" \"path\\to\\node_host\\node_modules\\@anthropic-ai\\claude-code\\cli.js\" --chrome-native-host\n```\n\n### 2. Patch `getSocketPaths()` in cli.js\n\nAdd Windows named pipe to discovery before `return`:\n\n```javascript\n// In the getSocketPaths function (Gc4 in minified v2.1.34), before 'return A}':\nif (process.platform === \"win32\") {\n  const pipePath = `\\\\.\\pipe\\${baseName}`;\n  if (!paths.includes(pipePath)) paths.push(pipePath);\n}\n```\n\n### 3. Self-healing hook\n\nA Python hook that runs on session start:\n- Rewrites `.bat` if Claude Code overwrites it to use `claude.exe`\n- Syncs cli.js version when `claude.exe` updates\n- Re-applies the Gc4 patch after version syncs\n\n### Verification\n\nManual test spawning the MCP server via `node.exe + patched cli.js`:\n\n```\n$ node cli.js --claude-in-chrome-mcp\n# Send initialize → OK (server name: \"Claude in Chrome\")\n# Send tools/call tabs_context_mcp → \"No MCP tab groups found\" (SUCCESS - bridge connected!)\n```\n\nThe fix works. But the built-in MCP server still uses `claude.exe` with unpatched `getSocketPaths()`, so the actual `mcp__claude-in-chrome__*` tools remain broken.\n\n## Suggested Fix (f",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:mcp",
+    "area:ide",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-06T23:17:17Z",
+  "updated_at": "2026-05-22T22:31:47Z",
+  "closed_at": "2026-05-22T22:31:47Z",
+  "reactions_total": 6,
+  "comments_count": 25,
+  "author": "bosmadev",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23526\n2. https://github.com/anthropics/claude-code/issues/23466\n3. https://github.com/anthropics/claude-code/issues/21337\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-06T23:20:03Z"
+    },
+    {
+      "author": "qzark-com",
+      "author_association": "NONE",
+      "body": "this github-actions won't let anyone help!",
+      "created_at": "2026-02-06T23:48:20Z"
+    },
+    {
+      "author": "bosmadev",
+      "author_association": "NONE",
+      "body": "## Update: Complete User-Side Fix Found (including VS Code IDE)\n\nWe discovered `claudeCode.claudeProcessWrapper` — a VS Code setting in the extension's `package.json` that overrides the executable used to launch Claude processes. This enables a complete fix for **both Terminal CLI and VS Code IDE** contexts.\n\n### Fix Architecture\n\n| Context | Solution |\n|---------|----------|\n| **Native Host** | `.bat` wrapper uses `node.exe + patched cli.js` instead of `claude.exe` |\n| **Terminal CLI** | `npm i",
+      "created_at": "2026-02-07T00:00:11Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 2342,
+  "title": "Feature Request: Roslyn Integration for 99% Token Reduction in Refactoring",
+  "body": "# Feature Request: IDE-Native Roslyn Refactoring Integration for Claude Code\n\n## Executive Summary\nIntegrate Microsoft Roslyn refactoring APIs directly into Claude Code and the Rider plugin to achieve 99.5% token reduction and professional-grade refactoring accuracy.\n\n## Current Problem\n- **Inefficient Token Usage**: Simple refactoring operations (e.g., renaming a property) consume 5,000-8,000 tokens due to manual file reading, searching, and editing\n- **Error-Prone Manual Approach**: Search-and-replace operations miss edge cases, break references, and can cause compilation errors\n- **Poor User Experience**: Multiple roundtrips for operations that IDEs handle in milliseconds\n- **Accuracy Issues**: Manual refactoring cannot match the semantic analysis of compiler-grade tools\n\n## Proposed Solution: Roslyn-Powered Refactoring\n\n### Core Implementation\nReplace manual file manipulation with direct integration to Microsoft.CodeAnalysis.Workspaces APIs:\n\n```csharp\n// Instead of: Read files → Search → Edit → Verify (5,000+ tokens)\n// Use: Direct Roslyn refactoring (25 tokens)\n\nvar result = await Renamer.RenameSymbolAsync(\n    solution, symbol, newName, options, cancellationToken);\n```\n\n### Command Interface\n```json\n{\n  \"action\": \"refactor_rename\",\n  \"symbol_location\": \"Models/UserModel.cs:42:18\",\n  \"new_name\": \"EmailAddress\",\n  \"scope\": \"solution\"\n}\n```\n\n### Expected Response\n```\n✅ Renamed UserEmail to EmailAddress in 23 locations across 12 files\n```\n\n## Measurable Benefits\n\n### Token Efficiency\n- **Current**: 5,000-8,000 tokens per refactoring operation\n- **Proposed**: 25 tokens per operation\n- **Savings**: 99.5% token reduction\n\n### Performance Improvement\n- **Speed**: 80%+ faster than current manual approach\n- **Accuracy**: 99%+ success rate using battle-tested Roslyn engine\n- **Reliability**: Zero compilation errors from incomplete refactoring\n\n### Supported Operations\n1. **Symbol Renaming** (properties, methods, classes, variables)\n2. **Method Signature Changes** (parameters, return types, access modifiers)\n3. **Type Refactoring** (interface extraction, inheritance changes)\n4. **Code Generation** (constructors, property generation, interface implementation)\n\n## Technical Architecture\n\n### Rider Plugin Integration\n- Leverage existing `Microsoft.CodeAnalysis.Workspaces` APIs\n- Integrate with Rider's solution workspace\n- Provide progress feedback and error handling\n- Support background operations with cancellation\n\n### Claude Code Enhancement\n- Add refactoring command protocol\n- Implement semantic symbol resolution\n- Support cross-project and cross-solution operations\n- Maintain compatibility with existing workflows\n\n## Implementation Roadmap\n\n### Phase 1: Core Renaming (4 weeks)\n- Basic symbol renaming across solution\n- Property, method, and class support\n- Conflict detection and resolution\n\n### Phase 2: Advanced Refactoring (8 weeks)\n- Method signature changes\n- Interface extraction\n- Code generation operations\n\n### Phase 3: AI Integration (4 weeks)\n- Command protocol optimization\n- Intelligent operation suggestions\n- Batch refactoring capabilities\n\n## Business Impact\n\n### Cost Reduction\n- **Token Costs**: 99.5% reduction in refactoring-related token usage\n- **Development Time**: Significant reduction in AI-assisted refactoring time\n- **Error Costs**: Elimination of manual refactoring errors\n\n### Competitive Advantage\n- **Professional Integration**: True IDE-native capabilities vs. workaround approaches\n- **Developer Trust**: Reliable, accurate refactoring operations\n- **Market Position**: Leading AI development assistant with compiler-grade accuracy\n\n## Technical Requirements\n\n### Dependencies\n- `Microsoft.CodeAnalysis.Workspaces.Common`\n- `Microsoft.CodeAnalysis.CSharp.Workspaces`\n- `Microsoft.CodeAnalysis.Features`\n\n### Platform Support\n- Primary: JetBrains Rider plugin\n- Future: Visual Studio, VS Code extensions\n\n## Success Metrics\n\n### Quantitative\n- 90%+ reduction in tokens used for refactoring operations\n- 80%+ improvement in refactoring operation speed\n- 99%+ accuracy rate for refactoring operations\n- Support ",
+  "labels": [
+    "enhancement",
+    "area:cost",
+    "area:tools",
+    "area:ide",
+    "perf:memory",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-19T23:31:09Z",
+  "updated_at": "2026-01-13T14:10:32Z",
+  "closed_at": "2026-01-04T10:12:30Z",
+  "reactions_total": 12,
+  "comments_count": 6,
+  "author": "b-straub",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "JobaDiniz",
+      "author_association": "NONE",
+      "body": "We can **kinda** (explanation later) add support for this using MCP - I've done it.\n\nThe issue with adding MCP, is that Claude **does not** use it to rename symbols, find symbols/references etc. Even when I explicity add to `CLAUDE.md`, it falls back to using `grep`, `search` tools. Sometimes it uses the MCP, sometimes it does not.\n\n-----\n\n## OmniSharp + MCP Language Server\n\nThis guide walks you through installing and configuring OmniSharp (C# LSP) with the `mcp-language-server` proxy so you can",
+      "created_at": "2025-06-27T19:13:41Z"
+    },
+    {
+      "author": "b-straub",
+      "author_association": "NONE",
+      "body": "This approach might work, when you’re using OmniSharp as C# LSP, like VS Code before the C# DEV kit introduction. I tried Roslynator together with Claude, but refactoring a mid sized solution was unbelievably slow. An IDE provider like Jetbrains should provide a MCP that interacts with the IDE directly. Not sure if this not already exists, but didn’t investigate further. The reason is that Roslyn already has the entire solution and syntax tree in memory and can use the Roslyn build in refactorin",
+      "created_at": "2025-06-27T20:32:15Z"
+    },
+    {
+      "author": "Coldaine",
+      "author_association": "NONE",
+      "body": "So I use claude Code with SerenaMCP, and editing by symbol and searching by symbol work great. The problem is the way that you get them to use the tools, is that serenaMCP dumps a huge prompt into claude, which is a bit of a waste of tokens. So definitely something you want to avoid unless you are actually going to make edits. But yes, I've had a ton of luck using the LSPs that serena integrated for python and C#. Rosalyn, and... I can't rembemr the pyhton one. ",
+      "created_at": "2025-07-22T05:22:50Z"
+    }
+  ]
+}

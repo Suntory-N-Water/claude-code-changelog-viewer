@@ -1,0 +1,16 @@
+{
+  "number": 67,
+  "title": "Not running: exec: -S: invalid option",
+  "body": "```\nandrey@ZUEN37938 MSYS ~\n$ claude\n/c/Users/andrey/AppData/Roaming/npm/claude: line 11: exec: -S: invalid option\nexec: usage: exec [-cl] [-a name] [command [argument ...]] [redirection ...]\n```\nChanging claude shell script fixes the issue (removing -S, suggested by Claude itself :-D):\n\n```\nif [ -x \"$basedir/-S\" ]; then\n  exec \"$basedir/-S\" node --no-warnings=ExperimentalWarning --enable-source-maps \"$basedir/node_modules/@anthropic-ai/claude-code/cli.mjs\" \"$@\"\nelse \n  exec -S node --no-warnings=ExperimentalWarning --enable-source-maps \"$basedir/node_modules/@anthropic-ai/claude-code/cli.mjs\" \"$@\"\nfi\n```\nto\n```\nif [ -x \"$basedir/node\" ]; then\n  exec \"$basedir/node\" --no-warnings=ExperimentalWarning --enable-source-maps \"$basedir/node_modules/@anthropic-ai/claude-code/cli.mjs\" \"$@\"\nelse \n  exec node --no-warnings=ExperimentalWarning --enable-source-maps \"$basedir/node_modules/@anthropic-ai/claude-code/cli.mjs\" \"$@\"\nfi\n```",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-02-25T11:16:44Z",
+  "updated_at": "2025-08-14T14:05:27Z",
+  "closed_at": "2025-06-20T20:33:31Z",
+  "reactions_total": 9,
+  "comments_count": 7,
+  "author": "AndreyDodonov-EH",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,41 @@
+{
+  "number": 20553,
+  "title": "[BUG] OAuth credentials shared across CLAUDE_CONFIG_DIR profiles causing data isolation failure (compliance risk)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code uses the same macOS Keychain service name (Claude Code-credentials) for all profiles, regardless of CLAUDE_CONFIG_DIR setting. This causes OAuth token conflicts when using multiple accounts.\n\nWhen two profiles with different OAuth accounts are used:\n\n* Profile A logs in → stores tokens in Claude Code-credentials\n* Profile B logs in → *overwrites* the same entry with different account's tokens\n* Profile A tries to refresh → uses Profile B's refresh token → fails (wrong account)\n\nBoth profiles eventually require re-login\n\n### What Should Happen?\n\nKeychain entries should be namespaced by config directory or account UUID to allow multiple OAuth accounts to coexist:\n\n```\nClaude Code-credentials-{md5(CLAUDE_CONFIG_DIR)[:8]}\n# or\nClaude Code-credentials-{accountUuid[:8]}\n```\n\n**Why profile separation matters (business/security case):**\n\n- **Work profile**: Access to company systems, customer PII, proprietary code, strategic documents - subject to enterprise data retention and compliance policies\n- **Personal profile**: Access to personal health information, family data, private projects - should not flow through work-governed systems\n\n**This is a compliance issue, not just an inconvenience.** When OAuth tokens collide, users cannot guarantee which account processed which data. Personal health information or family data may inadvertently flow through a work account subject to enterprise audit/retention, or vice versa. For users handling sensitive data under GDPR, HIPAA, or SOC2 requirements, this lack of isolation creates real compliance risk.\n\n### Error Messages/Logs\n\n```shell\nWhen one profile's tokens are overwritten by another:\n\n2026-01-22T23:50:57.658Z [ERROR] e3T: e3T: Invalid refresh token\n2026-01-23T00:10:02.518Z [ERROR] e3T: e3T: Invalid refresh token\n\n\nFollowed by token expiration:\n\n2026-01-23T22:40:06.814Z [ERROR] Error: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"OAuth token has expired. Please obtain a new token or refresh your existing token.\"}}\n```\n\n### Steps to Reproduce\n\n1. Set up two profiles with different `CLAUDE_CONFIG_DIR` values pointing to different directories\n2. Login to Profile A with OAuth Account A (`/login`)\n3. Login to Profile B with OAuth Account B (`/login`)\n4. Use Profile A for a few hours\n5. Observe \"Invalid refresh token\" errors in debug logs (`~/.claude-work/debug/`)\n6. Eventually both profiles require `/login` again (~8 hours)\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.19\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n**Related Issues:**\n- #19456 - OAuth token refresh fails due to Keychain permission errors (my earlier report - the ACL issue is separate but compounds this problem)\n- #15670 - CLAUDE_CONFIG_DIR doesn't completely isolate installations (same class of isolation bugs)\n- #16103 - Cannot resume sessions when using CLAUDE_CONFIG_DIR\n- #3833 - CLAUDE_CONFIG_DIR behavior unclear\n\n**Workaround:**\nUse API key authentication for one profile to avoid OAuth collision:\n\n```bash\naclaude() {\n    export ANTHROPIC_API_KEY=$(cat ~/.secrets/anthropic-api-key)\n    CLAUDE_CONFIG_DIR=~/.claude-work command claude \"$@\"\n    unset ANTHROPIC_API_KEY\n}\n```\n\nThis is not a viable workaround for me though as we have an Enterprise subscription to Claude Code and I have a Claude Code subscription. API key access just significantly increases cost/wastage.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:auth",
+    "area:security"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-24T09:24:16Z",
+  "updated_at": "2026-02-26T20:14:19Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 6,
+  "author": "mattheworiordan",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "stormychel",
+      "author_association": "NONE",
+      "body": "+1\n\nI have a Personal and Team plan, I want to use them on the same machine so I created a small helper tool for macOS - [Claude-Identity-Manager](https://github.com/stormychel/Claude-Identity-Manager) - but stumbled upon this limitation so for now I'm stuck and can't complete the tool.",
+      "created_at": "2026-02-01T02:20:19Z"
+    },
+    {
+      "author": "devondragon",
+      "author_association": "NONE",
+      "body": "+1\nSame situation as above. Personal Max 20x subscription and now I've gotten my company to purchase a corporate Anthropic account. I want to use Claude Code with the appropriate account based on which project I am, and planned to use direnv to manage that, but this bug makes it impossible. ",
+      "created_at": "2026-02-19T16:45:37Z"
+    },
+    {
+      "author": "nicholasjconn",
+      "author_association": "NONE",
+      "body": "+1\nAllowing per `CLAUDE_CONFIG_DIR` authentication is a really important feature, especially as Claude becomes used more in the workplace. It's the only way we can use effectively use our personal Claude accounts as well as our work accounts.\n\nThis works already for Codex without issue (`CODEX_HOME`).",
+      "created_at": "2026-02-25T14:06:37Z"
+    }
+  ]
+}

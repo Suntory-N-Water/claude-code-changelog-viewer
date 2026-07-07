@@ -1,0 +1,35 @@
+{
+  "number": 40207,
+  "title": "[BUG] Claude Code sends SIGTERM to all healthy stdio MCP servers after 10-60s — root cause analysis with strace evidence",
+  "body": "## Bug Description\n\nClaude Code sends SIGTERM to **all** stdio-based MCP servers simultaneously, 10–60 seconds after successful connection and handshake. No errors precede the kill — servers are healthy and actively responding to tool calls. The timeout interval shrinks over the session lifetime (60s → 30s → 10s). The only recovery is manual `/mcp` reconnection, which itself gets killed again.\n\nThis is a systemic issue affecting every stdio MCP server configured in the session. Cloud-hosted MCPs (Gmail, Google Calendar via claude.ai) are unaffected because they use a different transport.\n\n## Root Cause Analysis\n\nI deployed three layers of instrumentation to trace the root cause:\n\n### 1. strace on Claude Code's process tree\n\n```\nsudo strace -p <claude_pid> -e kill,tgkill -f -t\n```\n\nCaptured:\n\n```\n1480540 21:57:45 kill(1501128, SIGINT)  = 0   # Main Claude PID kills one MCP\n1501518 21:57:57 kill(1501129, SIGTERM) = 0   # Child wrapper kills another MCP\n1480540 21:58:02 kill(1501627, SIGINT)  = 0   # Main Claude PID kills another\n```\n\n**PID 1501518** is a short-lived Claude child process (MCP lifecycle wrapper). It spawns around each MCP server, and deliberately sends SIGTERM to kill it.\n\n### 2. Watchdog process monitor\n\nA polling script that tracks MCP child processes by PID, logs when they appear/disappear:\n\n```\n[21:40:25] NEW: PID=1480580 (chrome-devtools-mcp) fd0=socket fd1=/dev/null\n[21:40:25] NEW: PID=1480584 (typst-mcp) fd0=socket fd1=socket\n[21:40:25] NEW: PID=1480766 (fli-mcp) fd0=socket fd1=socket\n[21:40:25] NEW: PID=1480803 (mcp-stdio-proxy.sh) fd0=socket fd1=socket\n[21:40:25] NEW: PID=1480840 (outlook-owa) fd0=socket fd1=socket\n\n[21:41:05] GONE: PID=1480584 (typst-mcp) — exit code: 127\n[21:41:05] GONE: PID=1480580 (chrome-devtools-mcp) — exit code: 127\n[21:41:05] GONE: PID=1480766 (fli-mcp) — exit code: 127\n[21:41:05] GONE: PID=1480803 (mcp-stdio-proxy.sh) — exit code: 127\n[21:41:05] GONE: PID=1480840 (outlook-owa) — exit code: 127\n```\n\nAll 5 MCP servers killed at the exact same second, 40 seconds after startup.\n\n### 3. JSON-RPC stdio proxy\n\nA transparent bidirectional proxy that logs all JSON-RPC messages between Claude Code and an MCP server:\n\n```\n[21:40:20] C->S: initialize request\n[21:40:20] S->C: initialize response (success, 16 tools listed)\n[21:40:20] C->S: notifications/initialized\n[21:40:20] C->S: tools/list\n[21:40:20] S->C: tools/list response (success)\n[21:41:01] PROXY: SIGTERM received\n[21:41:01] PROXY: Server died with signal TERM (143)\n```\n\nNo errors, no failed requests, no compaction event. Clean SIGTERM 41 seconds after a successful handshake.\n\n## Hypotheses Ruled Out\n\n| Hypothesis | Evidence | Verdict |\n|---|---|---|\n| Context compaction | No PostCompact hook fired; happens too early in session | ❌ Eliminated |\n| Individual MCP crashes | All 5 die simultaneously with same exit code | ❌ Eliminated |\n| MCP server idle timeout | Called tools right after reconnect — still killed 10s later | ❌ Eliminated |\n| Hooks killing MCPs | Audited all hooks in `~/.claude/hooks/` — none target MCPs | ❌ Eliminated |\n| External process (cron/reaper) | Only systemd timer runs at 2am, only targets orphans (PPID=1) | ❌ Eliminated |\n\n## Conclusion\n\n**Claude Code has an internal stdio timeout/lifecycle mechanism that kills healthy MCP servers.** Evidence:\n1. strace confirms CC spawns a wrapper process per MCP that sends SIGTERM\n2. CC changelog mentions a fix for \"MCP stdio server timeout not killing child process\" — confirming this timeout exists by design\n3. `MCP_TIMEOUT` env var exists to configure it, but the default appears too aggressive\n4. The timeout fires even when MCPs are healthy and actively responding\n\n## Impact\n\nThis effectively breaks the MCP extensibility model for power users. Anyone running multiple stdio MCPs (browser automation, email, calendars, databases, custom tools) loses their entire tool surface repeatedly throughout a session. The failure is **silent** — no error message, no warning. Tools simply stop being available.\n\nPrior issues reporting this symptom we",
+  "labels": ["bug", "has repro", "platform:linux", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-28T11:32:03Z",
+  "updated_at": "2026-06-12T02:21:43Z",
+  "closed_at": null,
+  "reactions_total": 4,
+  "comments_count": 10,
+  "author": "ignaciomella",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Partial fix shipped: the false-positive teardown in the headless/SDK `mcp_set_servers` reconcile path is fixed. Config comparison now normalizes `args: undefined` vs `[]`, implicit `type: 'stdio'`, and metadata fields before comparing. That covers the SDK reproduction in this thread.\n\nNot addressed: the interactive SSE-drop → SIGINT-all-stdio cascade (@prodan-s's `--debug-file` log) and the OP's shrinking 60s/30s/10s interval. Those are two separate mechanisms from the headless reconcile path. L",
+      "created_at": "2026-06-07T17:28:38Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/36786\n2. https://github.com/anthropics/claude-code/issues/37482\n3. https://github.com/anthropics/claude-code/issues/36841\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-28T11:36:41Z"
+    },
+    {
+      "author": "marlvinvu",
+      "author_association": "NONE",
+      "body": "Your debugging skill is extremely impressive — 3 layers of instrumentation to trace a root cause that 5 previous issues couldn't identify. My Claude says the prior issues #15758, #24350, #38395 were all auto-closed or locked without resolution. Your strace evidence and root cause analysis deserve serious attention from Anthropic.",
+      "created_at": "2026-04-01T06:34:25Z"
+    }
+  ]
+}

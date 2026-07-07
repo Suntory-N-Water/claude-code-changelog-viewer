@@ -1,0 +1,35 @@
+{
+  "number": 12748,
+  "title": "[FEATURE] Add cwd parameter to Task tool for setting subagent working directory (to support Git worktrees)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nUse case: Launching parallel agents in different Git worktrees or JJ workspaces, where each agent should work in its dedicated workspace directory throughout its execution.\n\nWhen launching subagents with the Task tool, it would be useful to specify a working directory. Currently, subagents inherit the parent's PWD and need to prefix every Bash command with cd /path &&, which is verbose and error-prone.\n\n### Proposed Solution\n\n```\n  Task(\n    subagent_type=\"general-purpose\",\n    description=\"Complete Feature A\",\n    prompt=\"...\",\n    cwd=\"/path/to/workspace-a\"  # ← new parameter\n  )\n```\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nDeveloper tools/SDK\n\n### Use Case Example\n\nI use a top-level agent to devise a graph of tasks (with JJ), and start sub-agents to work on each of them, possibly several in parallel when tasks do not depend on each other (see https://github.com/YPares/agent-skills/tree/master/jj-todo-workflow).\n\nUsing subagents in parallel means that each one should have its own folder (worktree), and asking them to prefix each command by `cd .../project-worktreeXXX` is cumbersome and error-prone.",
+  "labels": ["enhancement", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-30T20:57:39Z",
+  "updated_at": "2026-06-29T12:55:34Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 11,
+  "author": "YPares",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "AwolDes",
+      "author_association": "NONE",
+      "body": "@YPares this is similar to something I was going to request - are you also having issues with subagents writing in worktree directories? I have a prompt like the following:\n\n```\nReview @ux_changes.md - I want to have several subagents spin up separate git worktrees and execute these different tasks. The results should be committed in draft pull requests that can be reviewed.\n```\n\nI attempted updating `settings.json` with the following:\n\n```\n{\n  \"permissions\": {\n    \"additionalDirectories\": [\n   ",
+      "created_at": "2025-12-30T11:29:20Z"
+    },
+    {
+      "author": "YPares",
+      "author_association": "NONE",
+      "body": "@AwolDes Indeed you can work around by adding your other worktrees as additionally allowed directories, but my proposal was indeed to add a new `cwd` param that the top-level agent could use to streamline this (notably if the top-level agent creates worktrees dynamically to span several sub-agents in parallel to work on different tasks which you want to be committed separately).\n\nHaving just a `cwd` param instead of a deeper git worktree integration would fix the biggest part of the problem, and",
+      "created_at": "2025-12-30T12:43:07Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-31T10:28:27Z"
+    }
+  ]
+}

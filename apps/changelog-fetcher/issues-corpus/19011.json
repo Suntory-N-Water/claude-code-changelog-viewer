@@ -1,0 +1,35 @@
+{
+  "number": 19011,
+  "title": "[BUG] VSCode extension ignores ANTHROPIC_MODEL environment variable when using Bedrock",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using Bedrock with the VSCode extension, the ANTHROPIC_MODEL environment variable is set correctly but ignored.\n\n**Configuration:**\n- claudeCode.environmentVariables in settings.json includes:\n  - CLAUDE_CODE_USE_BEDROCK=1\n  - AWS_REGION=us-east-1\n  - ANTHROPIC_MODEL=us.anthropic.claude-opus-4-5-20251101-v1:0\n\n**Verified:**\n- Environment variables are correctly set in the Claude Code process (confirmed via Bash tool)\n- The Opus model is available and accessible in Bedrock us-east-1\n- The extension always uses Sonnet 4.5 regardless of the ANTHROPIC_MODEL setting\n\n**Expected:** Extension should use the model specified in ANTHROPIC_MODEL\n**Actual:** Extension uses claude-sonnet-4-5-20250929 by default\n\n**VSCode version:** [your version]\n**Claude Code extension version:** 2.1.11 (from session logs)\n\n### What Should Happen?\n\n**Expected:** Extension should use the model specified in ANTHROPIC_MODEL\n**Actual:** Extension uses claude-sonnet-4-5-20250929 by default\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nConfigure VSCode settings - Add to settings.json (User settings or Workspace settings):\n\n\n{\n  \"claudeCode.environmentVariables\": [\n    {\"name\": \"AWS_PROFILE\", \"value\": \"default\"},\n    {\"name\": \"CLAUDE_CODE_USE_BEDROCK\", \"value\": \"1\"},\n    {\"name\": \"AWS_REGION\", \"value\": \"us-east-1\"},\n    {\"name\": \"ANTHROPIC_MODEL\", \"value\": \"us.anthropic.claude-opus-4-5-20251101-v1:0\"}\n  ]\n}\nVerify model access - Confirm you have access to the Opus model in Bedrock:\n\n\naws bedrock get-inference-profile --region us-east-1 \\\n  --inference-profile-identifier \"us.anthropic.claude-opus-4-5-20251101-v1:0\"\nShould return status \"ACTIVE\"\n\nRestart VSCode completely - Quit VSCode entirely (Cmd+Q on Mac) and reopen\n\nStart a new Claude Code chat - Open a new chat session (not continuing an existing one)\n\nAsk which model is running:\n\n\nwhich model are you?\nVerify environment variables are set - In the chat, run:\n\n\nenv | grep -E \"(ANTHROPIC_MODEL|CLAUDE_CODE_USE_BEDROCK|AWS_REGION)\"\nExpected Result:\n\nClaude should respond that it's Claude Opus 4.5 with model ID us.anthropic.claude-opus-4-5-20251101-v1:0\nActual Result:\n\nClaude responds that it's Claude Sonnet 4.5 with model ID us.anthropic.claude-sonnet-4-5-20250929-v1:0\nEnvironment variable shows ANTHROPIC_MODEL=us.anthropic.claude-opus-4-5-20251101-v1:0 (correctly set)\nExtension is setting the env var but not using it for model selection\nThis confirms the VSCode extension reads and sets the environment variable but doesn't use it when initializing the model.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.11\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:ide", "regression"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-18T12:08:19Z",
+  "updated_at": "2026-03-13T10:41:50Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 13,
+  "author": "elsegev",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16982\n2. https://github.com/anthropics/claude-code/issues/17760\n3. https://github.com/anthropics/claude-code/issues/18025\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-18T12:13:21Z"
+    },
+    {
+      "author": "elsegev",
+      "author_association": "NONE",
+      "body": "It’s not the same because I can change it in the terminal. The issue is only in VS Code.\nAnd I tested it using the Bedrock API key, not as a direct Claude user.",
+      "created_at": "2026-01-18T12:19:58Z"
+    },
+    {
+      "author": "Will-So",
+      "author_association": "NONE",
+      "body": "I am also having this issue:\n\n<img width=\"344\" height=\"452\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/ac8333f3-e03b-4f6d-950a-5e7000790d49\" />\n \n\nI have tried:\n\n1. Updating it in settings\n\n<img width=\"416\" height=\"115\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/25d2a67e-5790-4454-93dc-7714a6f9a749\" />\n\n<img width=\"466\" height=\"109\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/933ecb10-829b-403a-93cf-5a549c815e5a\" />\n\n2. Updating it in Environment",
+      "created_at": "2026-01-26T19:30:41Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 6220,
+  "title": "Allow TodoWrite tool for PreToolUse hook",
+  "body": "I was trying to create a hook that would trigger on TodoWrite tool calls to verify that the Todo List are correct and not incorrectly changed, however looking at docs and from my testing it doesn't seem like TodoWrite is available in the hook.",
+  "labels": ["enhancement", "area:tools", "area:core", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-20T23:43:20Z",
+  "updated_at": "2026-01-15T14:12:57Z",
+  "closed_at": "2026-01-07T10:10:56Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "Vistyy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Hey, that's a great question. I took a look through the docs and did some digging myself, and I think you're right.\n\nLooking at the [Hooks reference documentation](https://docs.anthropic.com/en/docs/claude-code/hooks#pretooluse), the list of common matchers for `PreToolUse` and `PostToolUse` includes things like `Bash`, `Read`, `Write`, `WebFetch`, etc., but `TodoWrite` isn't on that list.\n\nMy guess, just as another user, is that `TodoWrite` might be considered a more internal, state-management ",
+      "created_at": "2025-08-21T00:30:20Z"
+    },
+    {
+      "author": "TikkanadityaSiddartha",
+      "author_association": "NONE",
+      "body": "Although, it's not explicitly mentioned in the Anthropic Documentation, we can use **_TodoWrite_** as a pattern matcher for **_PreToolUse_** hook and it indeed works. Pasting the raw logs from hooks execution. Feel free to ask questions.\n\nHere's the settings.json with a simple hook command.\n\n```\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {   \n        \"matcher\": \"TodoWrite\",\n        \"hooks\": [\n          {   \n            \"type\": \"command\",\n            \"command\": \"jq -r '.' >> test.txt\"\n          }  ",
+      "created_at": "2025-08-21T18:00:49Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Wow, amazing find @TikkanadityaSiddartha\n\nI can't believe this isn't documented by Anthropic on their [hooks page](https://docs.anthropic.com/en/docs/claude-code/hooks).\n\nThey need to fix this ASAP!",
+      "created_at": "2025-08-22T03:57:43Z"
+    }
+  ]
+}

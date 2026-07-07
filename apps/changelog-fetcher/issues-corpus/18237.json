@@ -1,0 +1,35 @@
+{
+  "number": 18237,
+  "title": "[BUG] Windows Update KB5074109 Breaks Claude Code",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI have been using CC native install on Windows 11 (ARM) for many months.\n\nYesterday, Windows Update ran KB5074109. After this update was installed, claude code would not start and would say \"Segmentation fault\" whenever invoked.\n\nThinking that maybe my CC installation was corrupted, I completely uninstalled CC and then tried reinstalling using the PowerShell script for Windows native install. The script would complete successfully but the binary would not get written to the .local\\bin directory. (Similar to #18183)\n\nI manually uninstalled Windows update KB5074109, after which, CC was able to install and run fine.\n\nI believe this may be related to x64 emulation on ARM64 Windows, as I do not have this issue on my native x64 machine.\n\nKB5074109 is labeled by Microsoft as a required security update, so my corporate AD-joined computer doesn't have the ability to uninstall this update, and I imagine many other users will have this update installed automatically in the coming days.\n\n### What Should Happen?\n\nClaude Code should install and/or run normally as it did prior to the installation of KB5074109.\n\n### Error Messages/Logs\n\n```shell\nChecking installation status...\nExit code: -1073741819 (Access violation)\n```\n```shell\nAzureAD+RedactedUser@DEV-PC CLANGARM64 /c/LocalRepositories/RedactedPath\n$ claude\nSegmentation fault\n```\n\n### Steps to Reproduce\n\nRun windows update KB5074109 and then try to install or run CC on Windows 11 ARM.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.7\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-14T23:11:20Z",
+  "updated_at": "2026-04-03T14:28:59Z",
+  "closed_at": "2026-03-26T10:27:25Z",
+  "reactions_total": 6,
+  "comments_count": 22,
+  "author": "rfmsanz-ethan",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Claude Code (the CLI) is now available for Windows ARM64 via install.ps1, install.cmd, and winget - see https://code.claude.com/docs/en/quickstart#step-1-install-claude-code (starting with version 2.1.41 for installer scripts, 2.1.42 for winget)\n\nBringing local sessions to Claude Code on desktop for Windows ARM64 - we're working on this!",
+      "created_at": "2026-02-17T21:18:56Z"
+    },
+    {
+      "author": "YoavCodes",
+      "author_association": "NONE",
+      "body": "ran into this all day working on [electrobun](https://github.com/blackboardsh/electrobun), i thought I was losing my mind. Claude code doesn't open, but also the electrobun cli (which is a bun sfe) also exits with code 5.\n\nI just reported this over at https://github.com/oven-sh/bun/issues/26150 before I found this issue \n\nI'm in a windows ARM vm on a macbook m4 host, so windows x64 isn't an option.\n\nI ran this in a powershell and restarted, and then reinstalled bun and then claude and bun/electr",
+      "created_at": "2026-01-15T23:51:08Z"
+    },
+    {
+      "author": "rfmsanz-ethan",
+      "author_association": "NONE",
+      "body": "> I'm in a windows ARM vm on a macbook m4 host, so windows x64 isn't an option.\n\nSame. Glad to see I'm not alone out there. My colleagues and I also use Windows 11 in Parallels on M4 Pro Mac Minis. ",
+      "created_at": "2026-01-16T00:26:21Z"
+    }
+  ]
+}

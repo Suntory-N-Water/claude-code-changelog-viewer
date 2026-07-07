@@ -1,0 +1,35 @@
+{
+  "number": 20699,
+  "title": "Multiple bugs: thinking block ordering, settings schema validation, agent frontmatter",
+  "body": "## Bug Report — Multiple Issues\n\n### Environment\n\n- **Model:** Claude Opus 4.5 (`claude-opus-4-5-20251101`)\n- **Platform:** macOS (Darwin 25.3.0)\n- **Date:** 2025-01-25\n\n---\n\n### Bug 1: Thinking Block Ordering Error\n\n**Error:**\n```json\n{\n  \"type\": \"invalid_request_error\",\n  \"message\": \"messages.29.content.0: If an assistant message contains any thinking blocks, the first block must be thinking or redacted_thinking. Found text.\"\n}\n```\n\n**Request ID:** `req_011CXTCAWtq7XQ1St7ovhfN8`\n\n**Description:** During a normal CLI session, the API returns this error. An assistant message is being constructed where a text block precedes a thinking block. The user has no control over message payload ordering — this appears to be an internal issue in how Claude Code constructs API requests.\n\n**Impact:** Session becomes unusable. Only workaround is starting a new conversation.\n\n---\n\n### Bug 2: Settings Schema Validation Rejects Valid Files\n\n**Error:**\n```\nSettings Error\n.claude/settings.json\n  └ $schema: Invalid value. Expected one of: \"https://json.schemastore.org/claude-code-settings.json\"\n\nFiles with errors are skipped entirely, not just the invalid settings.\n```\n\n**Description:** Claude Code's settings validator only accepts `$schema: \"https://json.schemastore.org/claude-code-settings.json\"`. However, if settings.json was generated with a different but valid JSON schema URI (e.g., `http://json-schema.org/draft-07/schema#`), the **entire file is skipped** instead of just ignoring the `$schema` field.\n\n**Expected behavior:**\n- The `$schema` field should either be optional/ignored, or\n- Claude Code should not skip the entire settings file over a metadata field\n- If Claude Code itself generates settings files, it should use the correct schema value\n\n---\n\n### Bug 3: Agent Files Created Without Required Frontmatter\n\n**Error:**\n```\nAgent Parse Errors\n└ Failed to parse agent file(s):\n  └ example-agent.md: Missing required \"name\" field in frontmatter\n```\n\n**Description:** Multiple agent `.md` files fail to parse because they lack the required YAML frontmatter with a `name` field. If these files were generated or scaffolded by Claude Code (or by Claude in a session), the tool should include the required frontmatter automatically.\n\n**Expected format:**\n```markdown\n---\nname: Agent Name\n---\n\n# Agent content here...\n```\n\n**Current behavior:** Agent files are created without frontmatter, then Claude Code rejects them on startup.\n\n---\n\n### Summary\n\n| Bug | Severity | Workaround |\n|-----|----------|------------|\n| Thinking block ordering | High | Start new conversation |\n| Settings schema validation | Medium | Manually fix `$schema` value |\n| Agent frontmatter missing | Low | Manually add `name` frontmatter |\n\nAll three issues point to Claude Code generating content that it later rejects during validation.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-25T01:03:11Z",
+  "updated_at": "2026-04-28T16:41:05Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 12,
+  "author": "emregurhan",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/20692\n2. https://github.com/anthropics/claude-code/issues/20691\n3. https://github.com/anthropics/claude-code/issues/20698\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-25T01:06:08Z"
+    },
+    {
+      "author": "mattolson",
+      "author_association": "NONE",
+      "body": "I'm getting the same very consistently now, it just started in the last 10 minutes or so.\n\n```\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.17.content.0.type: Expected `thinking` or `redacted_thinking`, but found `text`. When\n     `thinking` is enabled, a final `assistant` message must start with a thinking block (preceeding the lastmost set of `tool_use` and `tool_result` blocks). We recommend you include\n     thinking blocks from previous turns. To",
+      "created_at": "2026-01-25T01:11:53Z"
+    },
+    {
+      "author": "slarkvan",
+      "author_association": "NONE",
+      "body": "opps same error\n\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"me\n    ssage\":\"messages.5.content.0: If an assistant message contains any\n    thinking blocks, the first block must be `thinking` or\n    `redacted_thinking`. Found\n    `text`.\"},\"request_id\":\"req_011CXTDJgmF3vTsxLLEUWeVP\"}",
+      "created_at": "2026-01-25T01:17:42Z"
+    }
+  ]
+}

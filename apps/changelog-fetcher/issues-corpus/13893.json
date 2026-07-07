@@ -1,0 +1,35 @@
+{
+  "number": 13893,
+  "title": "[BUG] Slash commands only load first file on ExFAT filesystems due to JavaScript Number precision loss",
+  "body": "## Summary\n\nClaude Code v2.0.69 only discovers **one slash command** from `.claude/commands/` on ExFAT-formatted drives, despite multiple `.md` files being present. This is a **silent failure** - no error messages, remaining commands simply don't load.\n\n## Root Cause\n\nJavaScript `Number` type cannot represent ExFAT's 64-bit inodes precisely (53-bit precision limit). All inodes round to the same value, causing inode-based deduplication to treat distinct files as duplicates.\n\n**Debug logs show:**\n```\n[DEBUG] Skipping duplicate file 'second.md' (same inode already loaded)\n[DEBUG] Skipping duplicate file 'third.md' (same inode already loaded)\n```\n\n**Actual inode values:**\n```bash\n$ stat -f \"%N: inode %i\" /Volumes/LaCie/.claude/commands/*.md\nfirst.md:  inode 18446744073709450884\nsecond.md: inode 18446744073709450881  # DIFFERENT\nthird.md:  inode 18446744073709450878  # DIFFERENT\n```\n\n**Node.js without BigInt (broken):**\n```javascript\nconst stats = fs.statSync('first.md');\nconsole.log(stats.ino);  // 18446744073709451000\n\nconst stats2 = fs.statSync('second.md');\nconsole.log(stats2.ino); // 18446744073709451000 (SAME - precision lost!)\n```\n\nAll inodes > 2^53 round to the same `Number` value.\n\n## The Fix\n\nAdd `{ bigint: true }` to all `fs.statSync()` calls in file loading code:\n\n```javascript\n// BEFORE (broken):\nconst stats = fs.statSync(filePath);\nconst inode = stats.ino;\n\n// AFTER (fixed):\nconst stats = fs.statSync(filePath, { bigint: true });\nconst inode = stats.ino.toString();  // BigInt preserves precision\n```\n\n**Affected areas:**\n- Slash command loading (`.claude/commands/`)\n- Agent loading (`.claude/agents/`)\n- Skill loading (`.claude/skills/`)\n- Any file discovery using `stats.ino` for deduplication\n\n## Reproduction Steps\n\n**Prerequisites:** ExFAT-formatted external drive\n\n```bash\n# 1. Create test directory on ExFAT drive\nmkdir -p /Volumes/YOUR_EXFAT_DRIVE/.claude/commands\n\n# 2. Create multiple command files\nprintf '%s\\n' '---' 'description: First' '---' '# First' > /Volumes/YOUR_EXFAT_DRIVE/.claude/commands/first.md\nprintf '%s\\n' '---' 'description: Second' '---' '# Second' > /Volumes/YOUR_EXFAT_DRIVE/.claude/commands/second.md\nprintf '%s\\n' '---' 'description: Third' '---' '# Third' > /Volumes/YOUR_EXFAT_DRIVE/.claude/commands/third.md\n\n# 3. Start Claude Code\ncd /Volumes/YOUR_EXFAT_DRIVE\nclaude\n\n# 4. Check commands\n/help  # Only shows /first - /second and /third missing!\n```\n\n**Expected:** All 3 commands appear\n**Actual:** Only first command appears, others silently skipped\n\n## Impact\n\n**Severity:** CRITICAL\n\n**Affected systems:**\n- ✅ **ExFAT** (external drives, USB sticks) - **CONFIRMED on macOS**\n- ⚠️ **FAT32** - Likely affected (same inode behavior)\n- ❓ **NTFS** - Unknown (64-bit inodes, needs testing)\n- ✅ **APFS/HFS+/ext4** - NOT affected (inodes < 2^53)\n\n**Cross-platform:** Likely affects **Windows and Linux** (Node.js behavior is consistent)\n\n**Affected features:**\n- Multiple slash commands\n- Multiple agents\n- Multiple skills\n- Any multi-file discovery using inode deduplication\n\n## Workaround\n\n**Option 1:** Move project to APFS/internal drive (Mac)\n```bash\ncp -R /Volumes/ExFATDrive/project ~/Desktop/project\ncd ~/Desktop/project\nclaude\n```\n\n**Option 2:** Use subdirectories (works despite bug)\n```bash\nmkdir -p .claude/commands/db\nmv .claude/commands/*.md .claude/commands/db/\n# Commands become namespaced (e.g., /db:command-name)\n```\n\n## Environment\n\n- **Claude Code:** v2.0.69\n- **OS:** macOS Sequoia 15.5 (24F74)\n- **Filesystem:** ExFAT (external drive)\n- **Node.js:** v25.2.1 (bundled)\n- **Mount:** fskit, noatime, noowners\n\n## Additional Notes\n\n- Node.js 10.5.0+ required for `{ bigint: true }` option (already met by Claude Code v2.0.69)\n- BigInt returns **signed** values (may appear negative for high inodes) - this is correct, values remain unique\n- macOS Sequoia moved ExFAT to user-space (fskit), which may contribute to high inode values\n- No related issues found mentioning ExFAT or inode precision\n\n---\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-13T16:21:01Z",
+  "updated_at": "2026-03-12T14:32:27Z",
+  "closed_at": "2026-02-27T10:22:02Z",
+  "reactions_total": 5,
+  "comments_count": 17,
+  "author": "leonardkore",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Valriz",
+      "author_association": "NONE",
+      "body": "This is a (pretty bloody big) problem in windows as well; I'm getting Skill load failures specifically:\n\n\"Skipping duplicate skill 'X' from projectSettings (same inode already loaded from projectSettings)\" - even though the files have unique NTFS file IDs.\n\nThe issue is caused by JavaScript floating-point precision loss when `fs.statSync()` returns inode values as regular numbers instead of BigInts.\n\nClaude generated report details follow:\n\n## Environment\n\n- **OS**: Windows 11\n- **Node.js**: v24",
+      "created_at": "2025-12-17T02:29:26Z"
+    },
+    {
+      "author": "jreisch02",
+      "author_association": "NONE",
+      "body": "Bumping this thread to say we're seeing the exact same issue across multiple users on our Alma Linux 9 based machines with home directories that are on NFS mounts. The symptoms are the same as described here by @Valriz  and @leonardkore: the debug log shows incorrectly that multiple skills and/or slashcommands have the same inode, and have been deduplicated. As a result they do not load and are not available in the Claude Code session. Based on the two previous reports, this issue seems to affec",
+      "created_at": "2025-12-26T14:24:28Z"
+    },
+    {
+      "author": "jreisch02",
+      "author_association": "NONE",
+      "body": "Additional debugging with Claude Code found that as a workaround symlinking the skills and commands directory to a filesystem (in my case /tmp) which has less that the overflow number of inodes gets around the issue, but not in a sustainable way that we can roll out across the company.  \n\nFurther analysis from Claude below largely echoes what the previous authors already mentioned:\n\n# Claude Code Skill Deduplication Bug on NFS with 64-bit Inodes\n\n**Date:** 2025-12-28\n**Claude Code Version:** 2.0",
+      "created_at": "2025-12-28T20:08:57Z"
+    }
+  ]
+}

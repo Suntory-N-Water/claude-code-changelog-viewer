@@ -1,0 +1,35 @@
+{
+  "number": 28348,
+  "title": "[BUG] GitHub Issue: Bash tool EINVAL on Windows",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# GitHub Issue: Bash tool EINVAL on Windows\n\n## Title\n\nBash tool fails with EINVAL on Windows 11 (all commands, non-ASCII username)\n\n## Body\n\n### Bug report\n\n**Environment:**\n- OS: Windows 11 Pro 10.0.26200\n- Claude Code version: 2.1.53 (also tested after `npm update -g`)\n- Shell: Git Bash (MSYS2)\n- Node.js: v22.18.0\n- Username: Contains Japanese characters (`XX拓人`)\n\n### Description\n\nEvery Bash tool invocation fails with `EINVAL: invalid argument` when trying to open the output file. This affects **all commands** — even `echo test`. Other tools (Read, Write, Edit, Glob, Grep, MCP tools) work perfectly fine.\n\n### Error message\n\n```\nError: EINVAL: invalid argument, open 'C:\\Users\\XX拓人\\AppData\\Local\\Temp\\claude\\C---TokiumLocalWork\\tasks\\bdge56opr.output'\n```\n\nThe task output path pattern is:\n```\nC:\\Users\\{username}\\AppData\\Local\\Temp\\claude\\{workspace-slug}\\tasks\\{random-id}.output\n```\n\n### Reproduction steps\n\n1. On Windows 11 with a non-ASCII (Japanese) username\n2. Open Claude Code in any working directory\n3. Run any Bash command (e.g., `echo test`)\n4. → EINVAL error on the `.output` file\n\n### What I've tried\n\n| Attempt | Result |\n|---------|--------|\n| Changed `TEMP`/`TMP` to `C:\\Temp` (ASCII-only path) | Same EINVAL — output path became `C:\\Temp\\claude\\C--Users-----\\tasks\\...` but still failed |\n| Different commands (`echo`, `ls`, `pwd`, `git status`) | All fail with same error |\n| `npm update -g @anthropic-ai/claude-code` | Updated (2 packages changed), but same session still fails. Haven't restarted yet |\n\n### What still works\n\n- `Read` tool — reads files normally (including PDFs, images)\n- `Write` / `Edit` tools — creates and edits files normally\n- `Glob` / `Grep` tools — file search works\n- MCP tools (Linear, JIRA, Notion, Slack, Playwright) — all work\n- Only `Bash` tool is broken\n\n### Analysis\n\nThe error occurs at Node.js `fs.open()` on the output file path. Since changing TEMP to an ASCII-clean path didn't help, **the non-ASCII username in the path is likely not the direct cause** — it seems to be a deeper issue with how the Bash tool creates its output files on Windows.\n\n### Possibly related issues\n\n- #21915 — Windows: 0-byte output files from Bash tool (same `tasks/` path pattern)\n- #26545 — Git Bash exit code 1 with no output (v2.1.45+)\n- #26505 — WSL bash + Git Bash coexistence issues\n\n\n### What Should Happen?\n\n\n### Expected behavior\n\nBash tool should execute commands and return output on Windows, as it did in earlier versions.\n\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n\n### Reproduction steps\n\n1. On Windows 11 with a non-ASCII (Japanese) username\n2. Open Claude Code in any working directory\n3. Run any Bash command (e.g., `echo test`)\n4. → EINVAL error on the `.output` file\n\n### What I've tried\n\n| Attempt | Result |\n|---------|--------|\n| Changed `TEMP`/`TMP` to `C:\\Temp` (ASCII-only path) | Same EINVAL — output path became `C:\\Temp\\claude\\C--Users-----\\tasks\\...` but still failed |\n| Different commands (`echo`, `ls`, `pwd`, `git status`) | All fail with same error |\n| `npm update -g @anthropic-ai/claude-code` | Updated (2 packages changed), but same session still fails. Haven't restarted yet |\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.53\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "duplicate", "platform:windows", "area:bash"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-25T01:19:14Z",
+  "updated_at": "2026-03-04T14:29:16Z",
+  "closed_at": "2026-02-25T03:41:26Z",
+  "reactions_total": 9,
+  "comments_count": 16,
+  "author": "TakutoAshida",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28343\n2. https://github.com/anthropics/claude-code/issues/28333\n3. https://github.com/anthropics/claude-code/issues/28344\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-25T01:23:11Z"
+    },
+    {
+      "author": "HerbertLins",
+      "author_association": "NONE",
+      "body": "Mesmo problema aqui com a versão 2.1.53",
+      "created_at": "2026-02-25T01:38:11Z"
+    },
+    {
+      "author": "pumanitro",
+      "author_association": "NONE",
+      "body": "+1, Probably some bug introduced in 2.1.53 - because approximately it is not working for me for 1h (as the release timing). But I could be wrong. Let me check. Hmm.. Yes, downgrading to \"npm install -g @anthropic-ai/claude-code@2.1.52\" solves it.",
+      "created_at": "2026-02-25T01:38:15Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 30703,
+  "title": "Custom agent definitions (.claude/agents/) are silently ignored for team agents",
+  "body": "## Summary\n\nWhen a custom agent definition (`.claude/agents/<name>.md`) is used to spawn a **team agent** (via the Agent tool with `team_name` parameter), all frontmatter fields and the markdown body (system prompt) are silently ignored. Only `model` and `agent_type` (in SubagentStart/SubagentStop hooks) work correctly.\n\nThe same custom agent definitions work fully when spawned as **pure subagents** (without `team_name`).\n\n## Reproduction\n\n1. Create `.claude/agents/my-agent.md`:\n```markdown\n---\nname: my-agent\ndescription: Test agent with baked-in identity.\nmodel: opus\nhooks:\n  PreToolUse:\n    - matcher: \"\"\n      hooks:\n        - type: command\n          command: echo \"hook fired\"\nskills:\n  - my-skill\ndisallowedTools: Write, Edit\n---\n\n# You are: My Agent\n\nYou have a specific identity and instructions baked in.\n```\n\n2. Spawn as **pure subagent** (works correctly):\n```\nAgent(subagent_type=\"my-agent\", prompt=\"What is your role?\")\n```\n→ Agent receives the markdown body as system prompt, hooks fire, model is applied.\n\n3. Spawn as **team agent** (broken):\n```\nAgent(subagent_type=\"my-agent\", team_name=\"my-team\", name=\"team-agent\" prompt=\"What is your role?\")\n```\n→ Agent has NO custom system prompt. Only project-wide rules (`.claude/rules/`) and `CLAUDE.md` files are loaded. Agent cannot identify itself.\n\n## What is silently ignored for team agents\n\n| Feature | Pure subagent | Team agent |\n|---|---|---|\n| System prompt (markdown body) | ✅ Works | ✅ Works |\n| `skills` frontmatter | ✅ Works | ❌ Silently ignored (known: #29441 / #24780) |\n| `disallowedTools` frontmatter | ✅ Works | ✅ Works |\n| Frontmatter `hooks` | ✅ Works | ❌ **Silently ignored** |\n| `model` frontmatter | ✅ Works | ✅ Works |\n| `agent_type` in SubagentStart/Stop | ✅ Works | ✅ Works |\n\n## Impact\n\nThis makes custom agent definitions nearly useless for team-based workflows. Teams cannot:\n- Bake role identity into agents (must use spawn prompt instead)\n- Enforce tool restrictions via `disallowedTools`\n- Attach lifecycle hooks to specific agent types\n- Preload skills into team agents\n\nThe silent failure is particularly problematic — there are no warnings or errors. Users may believe their agent definitions are being applied when they are not.\n\n## Environment\n\n- Claude Code version: 2.1.68\n- Platform: macOS (Darwin 24.5.0, arm64)\n- Agent teams enabled via `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`\n\n## Related issues\n\n- #29441 / #24780: `skills` field silently ignored for team agents (subset of this bug)\n- #14859: Feature request for agent hierarchy fields in all hook events",
+  "labels": ["bug", "has repro", "area:agents"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-04T12:08:59Z",
+  "updated_at": "2026-06-11T08:41:07Z",
+  "closed_at": "2026-05-24T10:39:50Z",
+  "reactions_total": 6,
+  "comments_count": 11,
+  "author": "marcoabreu",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24780\n2. https://github.com/anthropics/claude-code/issues/25608\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-04T12:13:08Z"
+    },
+    {
+      "author": "marcoabreu",
+      "author_association": "NONE",
+      "body": "Update: It seems like the system prompt and the disallowed tools work in 2.1.69. skills frontmatter and hooks still are broken.",
+      "created_at": "2026-03-05T21:18:46Z"
+    },
+    {
+      "author": "paulodearaujo",
+      "author_association": "NONE",
+      "body": "## Regression on v2.1.81 — system prompt still not loaded for team agents\n\nThe author's update mentioned system prompt working in v2.1.69, but on **v2.1.81** (macOS Darwin 25.4.0, arm64) the system prompt body from custom agent `.md` files is **still not injected** for team agents.\n\n### Reproduction\n\n**1. Plugin agent (plugin `agents/` directory):**\n\n```\nAgent(\n  subagent_type=\"content-maker:analyst-maker\",\n  team_name=\"my-team\",\n  name=\"analyst\",\n  prompt=\"What are your instructions? List all s",
+      "created_at": "2026-04-01T20:52:52Z"
+    }
+  ]
+}

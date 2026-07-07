@@ -1,0 +1,35 @@
+{
+  "number": 27897,
+  "title": "[BUG] [Desktop App] Cowork VM completely broken on Windows 11 Insider (MSIX) - Unresolved EXDEV rename bug in v1.1.4010",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI am on Windows 11 Insider Build 26200 using the Claude Desktop App v1.1.4010 (MSIX package).\n\nIn the 1.1.4010 update, you fixed the yukonSilver hardware check, but the Cowork VM STILL crashes instantly during setup.\n\nThe issue is a basic Node.js file-handling bug. Your code downloads the 9GB rootfs.vhdx to the system Temp folder and attempts to move it to the virtualized Roaming folder using fs.rename().\n\nBecause Windows 11 Insider strictly enforces MSIX sandbox boundaries, it treats these folders as separate devices. fs.rename() immediately throws an EXDEV error and fails.\n\nFatal error from my cowork_vm_node.log today:\nEXDEV: cross-device link not permitted, rename 'C:\\Users\\User\\AppData\\Local\\Temp\\wvm-AJ5yO5\\rootfs.vhdx' -> 'C:\\Users\\User\\AppData\\Roaming\\Claude\\vm_bundles\\claudevm.bundle\\rootfs.vhdx'\nat async Object.rename (node:internal/fs/promises:782:10)\n\n### What Should Happen?\n\nInstead of relying on fs.rename() which ALWAYS fails across sandbox boundaries or different drives in MSIX containers, the app MUST implement a copyFile() followed by unlink() fallback whenever an EXDEV error is caught. The Cowork VM should successfully extract the bundle and start the service instead of deleting the download and entering an infinite loop.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nInstall Claude v1.1.4010 (MSIX version) on Windows 11 Insider Preview Build 26200.\n\nOpen the app and click \"Set up workspace\".\n\nWait for the 9GB bundle download to reach 100%.\n\nWatch the app fail to move the file out of the Temp folder, throw a \"VM service not running\" error in the UI, delete the temp file, and loop forever.\n\nCheck cowork_vm_node.log to see the EXDEV rename crash.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.19 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-23T14:10:57Z",
+  "updated_at": "2026-06-09T01:58:36Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 35,
+  "author": "JuergenEwen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25911\n2. https://github.com/anthropics/claude-code/issues/25476\n3. https://github.com/anthropics/claude-code/issues/25814\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-23T14:15:04Z"
+    },
+    {
+      "author": "JuergenEwen",
+      "author_association": "NONE",
+      "body": "This is NOT a duplicate that should be closed.\n\nWhile the root cause (EXDEV) is the same as in #25911 and #25476, this specific issue documents that the Desktop Engineering team failed to fix the EXDEV crash in today's v1.1.4010 update.\n\nThe update patched the yukonSilver hardware check, but the fs.rename() bug in the MSIX container was completely ignored.\n\nPlease keep this issue open and route it to the desktop team. The installer needs a copyFile() + unlink() fallback for Windows Insider build",
+      "created_at": "2026-02-23T14:24:29Z"
+    },
+    {
+      "author": "LucaPiovano",
+      "author_association": "NONE",
+      "body": "I have the same issue.",
+      "created_at": "2026-02-25T19:52:26Z"
+    }
+  ]
+}

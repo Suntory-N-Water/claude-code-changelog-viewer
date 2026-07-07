@@ -1,0 +1,23 @@
+{
+  "number": 2423,
+  "title": "Claude Code: Session-Destroying Failures from Compaction Timeouts",
+  "body": "\n\n## 🐞 Critical Bug Report: Claude Code Unusable Due to Compaction Lockups & `tool_use` 400 Crashes\n\n### Environment\n\n* Platform:\n\n  * [x] Claude CLI (Claude Code)\n* Claude CLI version: <!-- output of `claude --version` -->\n* OS: Windows 11 (via WSL)\n* Terminal: VS Code Integrated Terminal\n\n---\n\n### ❗ Summary\n\nClaude Code is currently **unusable** for long-form or agent-based work due to **two severe, session-breaking bugs**:\n\n---\n\n### 🚫 1. Compaction Lockup (Unrecoverable Timeout)\n\n* When sessions exceed \\~2,400 tokens, Claude triggers automatic compaction.\n* This process **retries up to 10 times** with:\n\n  ```\n  API Error (Request timed out.) · Retrying in X seconds… (attempt 1/10 to 10/10)\n  ```\n* After the 10th retry, the session **completely freezes**.\n* Manually clearing the session results in:\n\n  ```\n  404: conversation not found\n  ```\n* All progress is lost. The user must **restart the conversation from scratch**, breaking all continuity and flow.\n\n---\n\n### ❌ 2. `tool_use` → `tool_result` Desync (400 Error Crash)\n\n* In active coding sessions, Claude may invoke a tool:\n\n  ```\n  tool_use: toolu_01RF5sCUUx9nbB3zCTHNqvCm\n  ```\n* This fails with a **400 invalid\\_request\\_error**:\n\n  ```\n  \"messages.135: `tool_use` ids were found without `tool_result` blocks immediately after\"\n  ```\n* Once this error occurs, the session is **permanently broken**. Claude cannot continue, and user interaction is blocked.\n* **The only solution is to clear and restart the entire session**, losing all context and history.\n\n---\n\n### Steps to Reproduce\n\n#### Compaction Issue:\n\n1. Start session and interact until token count \\~2,400\n2. Wait for auto-compaction\n3. Observe retry loop (10 attempts)\n4. Session becomes unresponsive\n5. Clearing shows 404, session dead\n\n#### `tool_use` Error:\n\n1. Claude triggers a tool (e.g., from UI interaction)\n2. Fails to follow with `tool_result`\n3. CLI returns 400 error\n4. Session must be cleared and restarted\n\n---\n\n### Expected Behavior\n\n* Compaction should run smoothly or recover gracefully\n* Every `tool_use` must be immediately followed by a `tool_result`\n* Session context must be preserved — crashes should never require wiping everything\n\n---\n\n### Actual Behavior\n\n* Compaction stalls → session freezes → unrecoverable 404\n* `tool_use` desyncs → 400 error → session permanently crashes\n* Both require full restart, breaking continuity\n* Makes Claude Code impossible to use for sustained or structured development\n\n---\n\n### Severity\n\n**🔥 Critical — Full Session Loss**\nThese bugs completely prevent serious usage. They:\n\n* Break long sessions\n* Block agent workflows\n* Destroy continuity\n* Force manual restarts multiple times per day\n\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:core",
+    "area:api",
+    "high-priority"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-21T21:48:57Z",
+  "updated_at": "2025-09-05T14:06:14Z",
+  "closed_at": "2025-08-22T18:29:35Z",
+  "reactions_total": 2,
+  "comments_count": 8,
+  "author": "vanman2024",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

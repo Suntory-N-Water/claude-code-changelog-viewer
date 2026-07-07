@@ -1,0 +1,35 @@
+{
+  "number": 12507,
+  "title": "[BUG] Claude Code exits immediately on HPC interactive sessions - stdin consumed by shell detection subprocesses",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Environment\n\n| Component | Value |\n|-----------|-------|\n| Claude Code version | v2.0.54 |\n| OS | Rocky Linux 8 (RHEL-based HPC cluster) |\n| Shell | bash |\n| Node | Not in PATH (Claude Code bundles its own) |\n| HPC System | SLURM-managed compute node (USC CARC) |\n| Terminal | `/dev/pts/1`, confirmed TTY |\n\n## Description\n\nClaude Code launches, displays the interactive prompt, then immediately exits with code 0. No user input is accepted.\n\n## Root Cause (diagnosed via strace)\n\nClaude Code spawns child processes for shell environment detection (aliases, shopts, etc.) that **inherit stdin** and consume it, causing the main process to receive EOF.\n\n`strace` evidence:\n```\n1752275 read(0, \"alias dbcheck='~/check_sync.sh'\\n\"..., 4096) = 477\n1752275 read(0, \"\", 4096) = 0\n```\n\nChild processes are reading shell configuration data from fd 0 instead of using a separate mechanism. When these processes exhaust stdin, the interactive prompt receives EOF and exits cleanly.\n\n## Reproduction\n\n\n## Diagnostic outputs\n\n**TTY confirmed:**\n```bash\n$ tty\n/dev/pts/1\n\n$ test -t 0 && echo \"stdin is tty\" || echo \"stdin not tty\"\nstdin is tty\n\n$ ls -la /proc/$$/fd/0\nlrwx------ 1 ssharma9 ssharma9 64 Nov 26 14:03 /proc/1718597/fd/0 -> /dev/pts/1\n```\n\n**stty settings (normal):**\n```\nspeed 38400 baud; rows 45; columns 225; line = 0;\nintr = ^C; quit = ^\\; erase = ^?; kill = ^U; eof = ^D; ...\n```\n\n**No `$TMOUT` set, no problematic bashrc entries.**\n\n## Attempted workarounds (all failed)\n\n- [x] `script -q /dev/null -c \"claude --dangerously-skip-permissions\"`\n- [x] `claude --dangerously-skip-permissions < /dev/tty`\n- [x] `bash --norc --noprofile -c \"claude ...\"`\n- [x] `SHELL=/bin/sh claude ...`\n- [x] `trap '' TSTP TTIN TTOU` before launch\n- [x] `setsid bash -c \"claude ... </dev/tty\" </dev/tty`\n- [x] Disabling conda environment\n- [x] `script -q -c \"claude ...\" /dev/null </dev/tty`\n\n## Expected behavior\n\nShell detection subprocesses should not inherit stdin from the parent process. They should either:\n\n1. Have stdin redirected to `/dev/null`\n2. Use a separate mechanism (environment inspection, sourcing to temp file, etc.)\n3. Open a new file descriptor for the TTY explicitly\n\n## Suggested fix\n\nWhen spawning subprocesses for shell introspection, use:\n```javascript\nspawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] })\n// or\nspawn(cmd, args, { stdio: [fs.openSync('/dev/null', 'r'), 'pipe', 'pipe'] })\n```\n\ninstead of inheriting stdin.\n\n## Impact\n\nClaude Code is unusable in interactive mode on HPC systems. Only `claude -p \"prompt\"` non-interactive mode works.\n\n### What Should Happen?\n\nClaude Code should remain in interactive mode waiting for user input. Shell detection subprocesses should not consume the parent process's stdin. The interactive prompt should accept keyboard input normally until the user explicitly exits.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. SSH into an HPC compute node via SLURM interactive session (`salloc` + `srun --pty bash`)\n2. Run `claude --dangerously-skip-permissions`\n3. Observe: banner displays, prompt appears, immediate exit\n\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.0.45\n\n### Claude Code Version\n\n2.0.54\n\n### Platform\n\nOther\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:linux", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-26T22:19:48Z",
+  "updated_at": "2026-03-23T14:39:13Z",
+  "closed_at": "2026-03-16T05:38:51Z",
+  "reactions_total": 7,
+  "comments_count": 20,
+  "author": "sankalpsharmaa",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "You should no longer see this premature exit on Claude Code 2.1.76.",
+      "created_at": "2026-03-16T05:38:51Z"
+    },
+    {
+      "author": "hrdkbhatnagar",
+      "author_association": "NONE",
+      "body": "I am facing the same issue on my HPC as well ",
+      "created_at": "2025-11-29T23:18:26Z"
+    },
+    {
+      "author": "hrdkbhatnagar",
+      "author_association": "NONE",
+      "body": "Downgrading to 2.0.25 worked for me \n\nFor the native install on Linux I did \n `curl -fsSL https://claude.ai/install.sh | bash -s 2.0.25`",
+      "created_at": "2025-12-01T08:08:04Z"
+    }
+  ]
+}

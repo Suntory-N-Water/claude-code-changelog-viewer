@@ -1,0 +1,29 @@
+{
+  "number": 58543,
+  "title": "[FEATURE] Per-repository default cloud environment for Claude Code on the web",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWhen a Claude Code session starts on the web — whether from claude.ai/code, --remote, the mobile app, or the Slack bot — there is no way to bind a specific cloud environment to a specific repository. The session uses whatever environment the user has currently selected, which is workable for accounts with a single environment but breaks down quickly when an account has multiple environments and multiple repos.\n\nThe Slack-triggered case is where this hurts most. When @Claude is mentioned in a thread and routed to Claude Code on the web, the bot auto-selects the repository from conversation context, but there is no surface for the user to indicate which environment that repo should run in, and no visibility into which environment was chosen.\n\n\n### Proposed Solution\n\nAllow a default cloud environment to be associated with a repository, declared in the repo's .claude/settings.json so it is version-controlled and shared across the team:\n```json\n{\n  \"cloudEnvironment\": {\n    \"default\": \"backend-services\"\n  }\n}\n```\n\nThe environment name would be matched against environments configured on the user's claude.ai/code account. Resolution order when a session starts for the repo (Slack, `--remote`, web, mobile):\n\nIf `.claude/settings.json` declares a default that exists in the user's environments → use it.\nIf declared but no environment of that name exists for the user → fall back to the user's account default, and surface a message indicating the configured environment was unavailable.\nIf not declared → current behavior (user's account default).\n\nAdditionally:\n\nSurface the chosen environment when the session starts (\"Starting session for `org/repo` in `backend-services` environment\") so the user knows what they got. This is especially valuable in Slack, where the user isn't looking at the environment selector.\nAllow override at session start — e.g., a Slack action button to pick a different environment, or a flag for `--remote`.\n\n\n\n### Alternative Solutions\n\n1. Account-level per-repo mapping in claude.ai/code settings\nRather than .claude/settings.json, surface a UI at claude.ai/code that lets each user map repos to environments (a table of repo → environment). Pros: no schema change, no commit required, works for repos the user can't push to. Cons: per-user drift across a team, no version control, doesn't travel with the repo.\n2. Environment-level repo allowlist (inverse mapping)\nInstead of repos pointing at environments, each environment declares which repos it applies to. When a session starts for a repo, the system finds the environment whose allowlist contains it. Pros: fits the existing \"manage environments\" UI naturally. Cons: ambiguous when multiple environments claim the same repo; less intuitive than repo → env.\n3. Branch-aware environment selection\nExtend whatever solution lands so the binding can vary by branch pattern (e.g., main → production-like, feature/* → dev). Pros: useful for repos where different branches need different toolchains or secrets. Cons: probably overkill for v1; better as a follow-up.\n4. Interactive picker at session start\nRather than a default, prompt the user to choose an environment every time a session starts. In Slack, this would be a dropdown in the bot's first message; in the web UI, a modal. Pros: zero config, full visibility. Cons: friction on every task, defeats the async value of the Slack flow (\"fire and forget\"), bad UX for routine work.\n5. Naming convention auto-match\nIf an environment's name matches the repo name (or a prefix of it), auto-select it. Pros: zero config for users who follow the convention. Cons: magic behavior, breaks silently when names drift, doesn't help users who name environments by purpose (\"debugging\", \"infra\") rather than by repo.\n6. Slack-specific configuration\nAdd a ",
+  "labels": ["enhancement", "area:claude-code-web", "platform:web"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-13T00:17:17Z",
+  "updated_at": "2026-05-13T16:16:32Z",
+  "closed_at": null,
+  "reactions_total": 26,
+  "comments_count": 2,
+  "author": "davidandrewrice",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24379\n2. https://github.com/anthropics/claude-code/issues/30200\n3. https://github.com/anthropics/claude-code/issues/33036\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-13T00:22:34Z"
+    },
+    {
+      "author": "davidandrewrice",
+      "author_association": "NONE",
+      "body": "> Found 3 possible duplicate issues:\n\nThe linked duplicates were all auto-resolved as will not do. This is enough of a usability improvement that I think it warrants additional thought.",
+      "created_at": "2026-05-13T04:25:31Z"
+    }
+  ]
+}

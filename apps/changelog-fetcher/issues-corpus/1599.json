@@ -1,0 +1,35 @@
+{
+  "number": 1599,
+  "title": "[BUG] Claude clobbers correct typographic marks and can't be told otherwise",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.11\n- Operating System: macOS 15.3.1\n- Terminal:  ghostty\n\n## Bug Description\nWhen suggesting significant edits to files, Claude will decide to \"fix\" already-correct typographic marks (and thus making them incorrect).\n\nFor example, I have a user-facing string in my code that says `I’m`, and Claude (when editing unrelated code) does a drive-by that replaces it with `I'm`. I've tried adding custom instructions in `CLAUDE.md` asking it to do the exact opposite (because I generally *want* to use the correct typographic marks!), but even though Claude can *identify* that it isn't following the rules, when trying to fix the issue, it justs spit out a bunch of the same error:\n\n`Error: No changes to make: old_string and new_string are exactly the same.`\n\n## Steps to Reproduce\n1. Ask Claude to make significant changes to a file that has Unicode typographical marks in it (proper apostrophes/curly quotes)\n2. Claude will reduce a single apostrophe to a foot mark ('), and curly quotes to inch marks (\").\n\n## Expected Behavior\nClaude should not try to change the unrelated strings and leave them as they are. Ideally it would do the *opposite* in my case -- finding instances of user-facing text or comments that use the incorrect versions and update them accordingly.\n\n## Actual Behavior\nClaude clobbers the correct code, forcing me to address the diff before committing the code.",
+  "labels": ["bug", "has repro", "platform:macos", "area:model", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-06-04T21:45:12Z",
+  "updated_at": "2026-06-17T10:09:38Z",
+  "closed_at": null,
+  "reactions_total": 61,
+  "comments_count": 18,
+  "author": "aardvarkk",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "JacobSyndeo",
+      "author_association": "NONE",
+      "body": "I'm definitely also seeing this. When editing part of my code that had a curly apostrophe, it edited it to be straight apostrophe:\n<img width=\"739\" height=\"135\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/c7291aef-6477-40f3-81f0-04a3e1de1e45\" />\n\nIn this case, the _intended_ diff was simply adding `.name-of-God` to the two spans, but the apostrophes in the regex got caught up in the edit too.\n\nA key insight is that ***I really don't think this was the Claude model's fault**, rath",
+      "created_at": "2025-08-10T20:19:24Z"
+    },
+    {
+      "author": "dtinth",
+      "author_association": "NONE",
+      "body": "When Claude is explicitly told to replace straight quotes with curly quotes, it goes into an edit error loop:\n\n<img width=\"934\" height=\"640\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/21a805d4-b9f0-409e-923a-077bc591e28d\" />",
+      "created_at": "2025-09-04T09:48:25Z"
+    },
+    {
+      "author": "noppel",
+      "author_association": "NONE",
+      "body": "## Confirming on Linux + Critical Impact in Perl\n\nI can confirm this bug also affects **Linux** (Fedora 42), not just macOS. The impact in our Perl codebase was severe:\n\n### Impact\n- **502 lines** of multi-language UI text corrupted in one file alone\n- **Critical**: In Perl, converting `'` (U+2019) to `'` (U+0027) **breaks string literals**:\n\n```perl\n# Before (works):\n$text = \"Nom d'hôte\";  # Single string with U+2019\n\n# After Edit tool (syntax error):\n$text = \"Nom d'hôte\";  # Interpreted as: \"N",
+      "created_at": "2025-11-12T20:21:02Z"
+    }
+  ]
+}

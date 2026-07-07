@@ -1,0 +1,16 @@
+{
+  "number": 39044,
+  "title": "claude -p produces empty output despite model responding (v2.1.83)",
+  "body": "## Bug Description\n\n`claude -p` (print/non-interactive mode) produces no output. The model responds correctly (visible in streaming output), but the final `result` field is empty, so nothing gets printed to stdout.\n\n## Steps to Reproduce\n\n```bash\nclaude -p \"say hello\"\n# No output, exit code 0\n\nclaude -p \"say hello\" --output-format json\n# result field is empty: \"result\":\"\"\n```\n\n## Expected Behavior\n\nThe model's response should be printed to stdout.\n\n## Actual Behavior\n\nNo output. Exit code 0. The JSON output shows `\"result\":\"\"` with 13 output tokens consumed.\n\n## Diagnosis\n\nUsing `--output-format stream-json --verbose` reveals the model IS responding:\n\n```json\n{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"text\",\"text\":\"\\n\\nHello! How can I help you today?\"}]}}\n```\n\nBut the final result object has an empty result field:\n\n```json\n{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"result\":\"\",\"stop_reason\":\"end_turn\",...}\n```\n\nThe response exists in the stream but is not captured into the `result` field.\n\n## Additional details\n\n- Tested with both Opus and Sonnet, same behavior\n- Tested from different directories (`~/.claude`, `/tmp`), same behavior\n- Tested with `--output-format text` and `--output-format json`, same behavior\n- Exit code is always 0\n\n## Environment\n\n- Claude Code version: 2.1.83 (latest as of 2026-03-26)\n- Platform: macOS (Darwin 24.6.0)\n- Shell: zsh\n- Plugins installed: oh-my-claude-sisyphus, frontend-design, claude-notifications-go (disabled)",
+  "labels": ["bug", "has repro", "platform:macos", "area:cli"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-25T23:48:57Z",
+  "updated_at": "2026-04-26T14:34:37Z",
+  "closed_at": "2026-04-19T00:44:46Z",
+  "reactions_total": 1,
+  "comments_count": 3,
+  "author": "vp275",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

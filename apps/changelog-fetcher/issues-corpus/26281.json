@@ -1,0 +1,35 @@
+{
+  "number": 26281,
+  "title": "[BUG] MCP OAuth tokens without expires_in and refresh_token silently expires",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen an MCP server's OAuth token exchange endpoint `/oauth/token` returns only an `access_token` without `expires_in` or `refresh_token` (e.g. GitHub OAuth tokens), Claude Code silently expires the credential after some time (more than 30 minutes but less than 24 hours) and requires re-authentication.\n\nAfter the token expires, Claude Code attempts the MCP `initialize` request **without the Authorization header**, which fails. The user must then manually re-authenticate via `/mcp`.\n\nThe token response from the OAuth server looks like this:\n\n```json\n{\n  \"access_token\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\n  \"scope\": \"scopes\",\n  \"token_type\": \"bearer\"\n}\n```\n\nThis is a valid OAuth 2.0 response — `expires_in` and `refresh_token` are optional per the spec. The access token itself is long-lived (does not expire on the server side), yet Claude Code stops using it after a certain period.\n\nTwo distinct issues here:\n1. **Claude Code appears to impose an internal TTL on tokens that have no `expires_in`**, causing valid long-lived tokens to be discarded prematurely.\n2. **After the token is discarded, the MCP init request is sent without the auth header** instead of prompting the user to re-authenticate before retrying.\n\n\n### What Should Happen?\n\n- If the OAuth token response does not include `expires_in`, Claude Code should treat the token as non-expiring and continue using it until the server rejects it with a `401`.\n- If the token is rejected with `401`, Claude Code should prompt the user to re-authenticate **before** retrying the MCP init request, rather than sending an unauthenticated request.\n\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n\n1. Configure an MCP server that uses OAuth and does not have refresh token or expiration date for token (e.g. a GitHub-based MCP server)\n2. Add MPC to claude code with `claude mcp add --transport http local-mcp http://localhost:8081/mcp`\n3. Open Claude Code and authenticate via the OAuth flow — the server returns a token without `expires_in` or `refresh_token`\n4. Use Claude Code normally with MCP tools working\n5. Close cCaude Code\n6. Reopen after some period (observed: between 30 min and 24 hours)\n7. Navigate to /mcp and check that mcp shows \"error\" in authentication \n9. Observe that the MCP init request is sent without the Authorization header\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.44 \n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-17T10:49:28Z",
+  "updated_at": "2026-06-02T22:52:59Z",
+  "closed_at": null,
+  "reactions_total": 32,
+  "comments_count": 17,
+  "author": "DenisPalnitsky",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/9017\n2. https://github.com/anthropics/claude-code/issues/21333\n3. https://github.com/anthropics/claude-code/issues/12447\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-17T10:53:29Z"
+    },
+    {
+      "author": "DocX",
+      "author_association": "NONE",
+      "body": "Related to https://github.com/anthropics/claude-code/issues/9017 - However we believe it is not just documentation issue, but actual usability bug",
+      "created_at": "2026-02-17T11:12:49Z"
+    },
+    {
+      "author": "yp-talia",
+      "author_association": "NONE",
+      "body": "Adding another reproduction case for this bug, specifically via Claude Cowork (not Claude Code CLI).\n\n**Setup:** Todoist MCP connector authenticated via OAuth in Claude Cowork, used by a scheduled task that fires daily at 9am and 5pm.\n\n**What happens:** The tool call (find-tasks-by-date) returns HTTP 401: Unauthorized. A second retry also fails. Manually re-authenticating via Settings > Connectors fixes it immediately.\n\n**Confirmed with Todoist:** Todoist's OAuth tokens do not expire server-side",
+      "created_at": "2026-03-12T11:04:36Z"
+    }
+  ]
+}

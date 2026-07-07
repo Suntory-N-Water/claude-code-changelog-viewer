@@ -1,0 +1,42 @@
+{
+  "number": 20756,
+  "title": "OAuth Authentication Broken in WSL2 - Cannot Login or Use API",
+  "body": "## Description\n\nClaude Code 2.1.19 **cannot authenticate in WSL2 environments**. The `/login` command fails immediately with \"OAuth error:\" and provides no details. This prevents both initial authentication and token refresh, causing **all API requests to fail** with connection timeouts.\n\n**Root Cause**: OAuth browser-based authentication flow is broken in WSL2.\n\nNetwork connectivity is confirmed working (ping, HTTPS all successful), but the OAuth authentication system itself fails.\n\n## Environment\n\n- **Claude Code Version**: 2.1.19\n- **OS**: WSL2 (Ubuntu) on Windows\n- **Kernel**: 6.6.87.2-microsoft-standard-WSL2\n- **Network**: Working (verified with ping to api.anthropic.com)\n- **OAuth Account**: Configured and active (jyongchul@gmail.com)\n- **System Resources**: Healthy (117GB RAM available, <100 processes)\n\n## Steps to Reproduce\n\n1. Start Claude Code session in WSL2 environment\n2. Submit any prompt (tested with both Korean text and `/init` command)\n3. UserPromptSubmit hook executes successfully\n4. API request times out after 10 retry attempts\n5. Error displayed: \"API Error: Connection error\"\n\n**CRITICAL DISCOVERY**: Authentication itself is broken:\n\n6. Attempt to re-authenticate with `claude login` or `/login`\n7. OAuth flow fails with error: \"OAuth error:\"\n8. Unable to complete authentication process\n\n## Expected Behavior\n\nAPI requests should complete successfully given:\n- Network connectivity confirmed (0% packet loss to api.anthropic.com)\n- OAuth authentication configured correctly\n- System resources healthy\n\n## Actual Behavior\n\nAll API requests fail with connection timeout:\n\n```\n✻ Baked for 7m 48s\n\n❯ 너가 ultrathink 해서 알아서 잘 진행해줘.\n  ⎿  UserPromptSubmit hook succeeded: Success\n  ⎿  API Error: Connection error.\n\n✻ Baked for 3m 34s\n\n❯ /init\n  ⎿  UserPromptSubmit hook succeeded: Success\n  ⎿  API Error: Connection error.\n```\n\nFinal error message:\n```\nRequest timed out. Check your internet connection and proxy settings\nRetrying in 33 seconds… (attempt 10/10)\n```\n\n**CRITICAL**: Re-authentication also fails:\n\n```\n❯ /login\n\n OAuth error:\n\n\n Press Enter to retry.\n```\n\nThe OAuth authentication flow itself is broken. This suggests the root cause is **OAuth system failure**, not just API timeout.\n\n## Diagnostic Information\n\n### Network Connectivity ✅\n\n**ICMP Test**:\n```bash\n$ ping -c 3 api.anthropic.com\nPING api.anthropic.com (160.79.104.10) 56(84) bytes of data.\n64 bytes from 160.79.104.10: icmp_seq=1 ttl=52 time=121 ms\n3 packets transmitted, 3 received, 0% packet loss\n```\n\n**HTTPS/TLS Test**:\n```bash\n$ curl -v https://api.anthropic.com\n* Connected to api.anthropic.com (160.79.104.10) port 443\n* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384\n* TLS handshake: SUCCESS\n```\n\n✅ **Network, DNS, and TLS all working** → Issue isolated to API client layer\n\n**Sustained Connection Test** (60 seconds):\n```\nTests: 6\nSuccess: 6 (100%)\nFailed: 0\nAvg Connect Time: 0.17s\nAvg Total Time: 0.64s\n```\n\n✅ **No intermittent issues** → Network is completely stable\n\n### System Resources ✅\n```\nMemory: 117GB available (out of 125GB)\nProcess Count: 74 total, 13 Claude/MCP processes\n```\n\n### Configuration ✅\n```json\n{\n  \"oauthAccount\": {\n    \"accountUuid\": \"6889edc5-ee0a-41bb-9d40-37c598a2798d\",\n    \"emailAddress\": \"jyongchul@gmail.com\",\n    \"organizationUuid\": \"a5440dea-dc63-4aad-8afb-d940f152abca\",\n    \"hasExtraUsageEnabled\": false,\n    \"displayName\": \"Charles\",\n    \"organizationRole\": \"admin\"\n  }\n}\n```\n\nNo proxy settings configured (`env | grep -i proxy` returns empty)\n\n## Impact\n\n**Severity**: CRITICAL\n**Impact**: Complete inability to use Claude Code\n\nAll operations blocked due to API connectivity failure. This is not a local network issue (ping confirms connectivity) or a service outage (no announcements from Anthropic), but appears to be an OAuth authentication system failure specific to WSL2 environments.\n\n## Possible Root Causes\n\n**PRIMARY SUSPECT** (based on new finding):\n\n1. **OAuth Authentication System Failure**\n   - OAuth login flow completely broken (`/login` fails with \"OAuth err",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:auth",
+    "area:api",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-25T07:28:32Z",
+  "updated_at": "2026-03-09T14:41:37Z",
+  "closed_at": "2026-03-01T22:09:15Z",
+  "reactions_total": 0,
+  "comments_count": 12,
+  "author": "jyongchul",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18186\n2. https://github.com/anthropics/claude-code/issues/13448\n3. https://github.com/anthropics/claude-code/issues/20091\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-25T07:32:17Z"
+    },
+    {
+      "author": "jyongchul",
+      "author_association": "NONE",
+      "body": "This is **NOT a duplicate** of the suggested issues. Here's why:\n\n## Comparison with Suggested Issues\n\n### Issue #18186 - OAuth 400 Error\n- **Their issue**: Specific HTTP 400 error code during OAuth\n- **Our issue**: No error code, just generic \"OAuth error:\" message\n- **Key difference**: They get a server response (400), we don't even reach the server\n\n### Issue #20091 - OAuth 500 Error\n- **Their issue**: Server-side error (HTTP 500)\n- **Our issue**: Client-side OAuth flow failure before server ",
+      "created_at": "2026-01-25T07:40:57Z"
+    },
+    {
+      "author": "jyongchul",
+      "author_association": "NONE",
+      "body": "## ⚠️ CRITICAL: Complete Service Outage in WSL2\n\nThis issue is **blocking all Claude Code usage in WSL2 environments**.\n\n### Severity: P0 (Critical)\n\n**Impact:**\n- ❌ Cannot authenticate (`/login` fails immediately)\n- ❌ Cannot use any API features\n- ❌ Cannot access existing projects\n- ❌ Complete service outage for WSL2 users\n\n**Affected Users:**\n- All WSL2 users (substantial portion of developer base)\n- No workaround available\n- Issue persists across clean installs\n\n### Business Impact\n\nThis is n",
+      "created_at": "2026-01-25T09:16:25Z"
+    }
+  ]
+}

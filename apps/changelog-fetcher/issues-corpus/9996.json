@@ -1,0 +1,35 @@
+{
+  "number": 9996,
+  "title": "[BUG] Plugin marketplace UI shows plugins as disabled but their tools remain available",
+  "body": "### Preflight Checklist\n\n- [x] I have searched existing issues\n- [x] I am filing a single bug report\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe `/plugin` command UI shows plugins as disabled (◯) but their tools and skills remain available in the session. Tools prefixed with `mcp__plugin_<name>_` and skills prefixed with `<plugin-name>:` are accessible despite their parent plugins being shown as disabled in the `/plugin` interface.\n\n**Note: Claude Code was restarted after disabling these plugins, but their tools still remain available to the agent.**\n\n### What Should Happen?\n\nWhen a plugin is shown as disabled in the `/plugin` UI (◯), its associated tools and skills should not be available in the Claude Code session. Only enabled plugins (◉) should have their functionality accessible. Restarting Claude Code should respect the disabled state and remove those tools from the session context.\n\n### Steps to Reproduce\n\n1. Install plugins from a marketplace\n2. Enable some plugins via the `/plugin` UI\n3. Restart Claude Code completely\n4. Disable those same plugins via the plugin UI (they should show as ◯)\n5. Restart Claude Code completely\n6. Run `/plugin` command - verify plugins show as disabled (◯)\n7. Ask Claude to list available tools or check which tools are available\n8. Observe that tools prefixed with `mcp__plugin_<disabled-plugin-name>_` are still available\n9. These tools are functional despite their parent plugins being shown as disabled\n\n### Claude Model\n\nSonnet 4.5 (claude-sonnet-4-5-20250929)\n\n### Is This a Regression?\n\nUnknown - not sure if this ever worked correctly\n\n### Claude Code Version\n\n```\n2.0.24 (Claude Code)\n```\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nLinux (Fedora 41 - Linux 6.16.7-100.fc41.x86_64)\n\n### Terminal/Shell\n\nbash (/usr/bin/bash)\n\n### Error Messages/Logs\n\nN/A - No error messages, the tools simply remain available despite UI showing plugins as disabled.\n\n### Additional Information\n\nThis issue affects plugin marketplace installations. The plugin UI state (enabled ◉ vs disabled ◯) does not match the actual runtime availability of plugin tools and skills.\n\nTool naming confirms they come from the plugins (e.g., `mcp__plugin_<name>_*` pattern for MCP tools, `<plugin-name>:<skill>` pattern for skills).\n\nThis appears related to issue #6320 (Denied MCP tools have their tool prompt in the context) and #8888 (MCP server disabled config not being respected), but specifically affects the plugin marketplace UI state vs. runtime state.",
+  "labels": ["bug", "has repro", "platform:linux", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-20T19:28:27Z",
+  "updated_at": "2026-02-14T14:16:53Z",
+  "closed_at": "2026-02-07T10:11:45Z",
+  "reactions_total": 4,
+  "comments_count": 10,
+  "author": "hdemers",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/8888\n2. https://github.com/anthropics/claude-code/issues/6320\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-20T19:32:30Z"
+    },
+    {
+      "author": "rawveg",
+      "author_association": "NONE",
+      "body": "I've encountered this problem too, but it's not related to MCP servers. I've also found that with this same issue it affects the uninstall of plugins too. So you uninstall a plugin, interface tells you too apply, and then restart CC to complete the uninstall, but then when you do that and return, the plugin is still there. Worse still, is that if an update to the plugin is subsequently published, you can't install the update either.",
+      "created_at": "2025-10-20T20:03:44Z"
+    },
+    {
+      "author": "kylesnowschwartz",
+      "author_association": "NONE",
+      "body": "I believe the reason is that uninstalling or disabling the plugin is not removing it from your user .claude/settings.json file. I've noticed this as well - requires manual deletion from the plugins section.\n\nI've noticed a similar problem too. I've configured a Marketplace with a single plugin that should only be loading the 'skills' directory - but it's loading all the commands and namespacing it under the skills plugin. In other words, it's loading too much. ",
+      "created_at": "2025-10-22T05:16:36Z"
+    }
+  ]
+}

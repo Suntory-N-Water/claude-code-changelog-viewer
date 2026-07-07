@@ -1,0 +1,35 @@
+{
+  "number": 16729,
+  "title": "[BUG] (lsp): Malformed file:// URI Generation (v2.1.1+) [RFC-8089]",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Product**: Claude Code CLI\n**Affected Versions**: 2.1.1, 2.1.0, 2.0.67\n**Platform**: Multiple/all, incl. Windows 11 (native installation and via npm install @anthropic-ai/claude-code@2.1.1)\n**Component**: LSP integration code in `@anthropic-ai/claude-code/cli.js` (affects at least clangd-lsp)\n**Severity**: High - Prevents clangd LSP functionality\n**Status**: Locally patched and verified 2026-01-07 17:29 EST\n\n## Relationship to Previous Versions\n\nThe bug persists across versions with different minified symbol names but identical root cause.\n\n## Problem Statement\n\nThe clangd-lsp plugin generates file URIs that violate [RFC 8089](https://www.rfc-editor.org/rfc/rfc8089.html) (The \"file\" URI Scheme) on Windows. This results in malformed URIs being sent to clangd via the Language Server Protocol, causing the error:\n\n```\nLSP request 'textDocument/documentSymbol' failed for server 'plugin:clangd-lsp:clangd': trying to get AST for non-added document\n```\n\n### Technical Root Cause\n\nThe plugin uses JavaScript template literal string interpolation to construct file URIs instead of Node.js's built-in `url.pathToFileURL()` function.\n\n**Malformed output**: `file://F:\\Projects\\path\\file.cpp`\n**Correct output**: `file:///F:/Projects/path/file.cpp`\n\n## Technical Analysis (v2.1.1)\n\n### Minified Symbol Cross-Reference\n\n| Minified Symbol | Real Symbol | Module |\n|-----------------|-------------|--------|\n| `cB7`, `v37`, `zG7` | `pathToFileURL` | `url` |\n\nMultiple aliases exist for `pathToFileURL` in v2.1.1. Use whichever is in scope for the code section being patched.\n\n### Affected Code Patterns (Minified cli.js)\n\n| Minified Line | Pattern (BROKEN) | Fix |\n|---------------|------------------|-----|\n| 866 | `` `file://${aCB()}/` `` | `cB7(aCB()).href + \"/\"` |\n| 2191 | `` `file://${OQ()}` `` | `cB7(OQ()).href` |\n| 2199 | `` `file://${A}` `` | `cB7(A).href` |\n| 2312 | `` `file://${E}` `` | `cB7(E).href` |\n| 2340 | `` `file://${J}` `` | `cB7(J).href` |\n| 2340 | `` `file://${K}` `` | `cB7(K).href` |\n\n## Fix Implementation (v2.1.1)\n\n### Direct Minified Patching\n\nNo unminification required. Search and replace directly in `cli.js`:\n\n```bash\n# Find all occurrences\ngrep -oE \".{0,30}file://\\\\\\$\\{[^}]+\\}.{0,30}\" cli.js\n```\n\n### Replacement Patterns\n\n| Find | Replace |\n|------|---------|\n| `` `file://${aCB()}/` `` | `cB7(aCB()).href + \"/\"` |\n| `` `file://${OQ()}` `` | `cB7(OQ()).href` |\n| `` `file://${A}` `` | `cB7(A).href` |\n| `` `file://${E}` `` | `cB7(E).href` |\n| `` `file://${J}` `` | `cB7(J).href` |\n| `` `file://${K}` `` | `cB7(K).href` |\n| `GW1(`file://${J}`)` | `GW1(cB7(J).href)` |\n| `GW1(`file://${K}`)` | `GW1(cB7(K).href)` |\n\n### Verification\n\nAfter restarting Claude Code:\n```\nLSP documentSymbol returned 95 symbols from [redacted].cpp\n```\n\n## Installation Path Note (fnm users)\n\nFor users with fnm (Fast Node Manager), the shell-specific paths like:\n```\nC:\\Users\\<user>\\AppData\\Local\\fnm_multishells\\<pid>_<timestamp>\\\n```\n\nAre junctions pointing to:\n```\nC:\\Users\\<user>\\AppData\\Roaming\\fnm\\node-versions\\v<version>\\installation\\\n```\n\nPatch the file at the real path, not the junction.\n\n## Files Referenced\n\n- `clangd-wrapper.go` - Go wrapper for logging LSP messages\n\n## clangd-wrapper.go Usage\n\n1. Close Claude Code\n2. Rename C:\\Program Files\\LLVM\\bin\\clangd.exe to C:\\Program Files\\LLVM\\bin\\clangd-real.exe\n3. Drop clangd-wrapper.exe as C:\\Program Files\\LLVM\\bin\\clangd.exe\n4. Launch Claude Code\n5. Execute LSP on a C++ target\n6. Examine C:\\Users\\<user>\\.claude\\debug\\clangd-messages.log to confirm actual uris passed to clangd\n7. Ensure they are well formatted\n\n## Recommendations for Upstream Fix\n\n1. **Search source code** for all instances of `` `file://${`` pattern\n2. **Replace** with `pathToFileURL(...).href` from",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-07T22:47:54Z",
+  "updated_at": "2026-07-01T18:49:56Z",
+  "closed_at": "2026-05-16T10:37:28Z",
+  "reactions_total": 6,
+  "comments_count": 11,
+  "author": "justcfx2u",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/3381\n2. https://github.com/anthropics/claude-code/issues/1522\n3. https://github.com/anthropics/claude-code/issues/15914\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-07T22:53:42Z"
+    },
+    {
+      "author": "dlprentice",
+      "author_association": "NONE",
+      "body": "### Alternative Workaround: External URI-fixing Wrappers\n\nFound the same root cause independently. Here's an alternative approach that doesn't require patching cli.js (survives Claude Code updates):\n\n**Approach:** Node.js wrapper scripts that sit between Claude Code and the LSP servers, intercepting JSON-RPC messages and fixing malformed URIs before forwarding.\n\n**How it works:**\n1. Wrapper receives LSP messages from Claude Code\n2. Recursively finds URI fields (`uri`, `rootUri`, `documentUri`, e",
+      "created_at": "2026-01-10T05:11:56Z"
+    },
+    {
+      "author": "pedropaulovc",
+      "author_association": "NONE",
+      "body": "Confirming that workaround is good and 2.1.3 still impacted.",
+      "created_at": "2026-01-10T17:49:45Z"
+    }
+  ]
+}

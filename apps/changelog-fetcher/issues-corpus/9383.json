@@ -1,0 +1,41 @@
+{
+  "number": 9383,
+  "title": "[BUG] Permission approval UI not displayed - operations immediately rejected without user interaction",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen Claude Code attempts to perform operations that require user approval (file writes, git commands, etc.),\nthe approval UI is not displayed to the user.\n\nInstead, operations are immediately rejected with an error message like \"Claude requested permissions to write to [file], but you haven't granted it yet.\" \nThe system behaves as if the user has denied permission, but no approval prompt ever appears, making it impossible for users to grant permission for legitimate operations. \n\nThis affects:\n\n- Write tool (file creation)\n- Edit tool (file modification)\n- Bash tool (git commands and other operations not in the allow list)\n\nThe issue occurs even though permissionMode is set to \"default\", which should prompt for approval.\n\n### What Should Happen?\n\nWhen Claude Code needs to perform an operation requiring approval:\n\n1. Claude executes a tool (e.g., Write, Bash with git command)\n2. System detects approval is needed\n3. Approval UI is displayed to the user (button/dialog to approve/deny)\n4. System waits for user response\n5. \n6. Operation proceeds or is cancelled based on user decision\nInstead, the current behavior skips steps 3-4 entirely and immediately returns an error.\n\n### Error Messages/Logs\n\n```shell\nClaude requested permissions to write to c:\\Users\\chatii\\work\\workdir\\permission_test.txt, but you haven't granted it yet.\n\n\nVSCode Output Panel log (relevant excerpt):\n\n2025-10-12 01:46:31.918 [info] Spawning Claude with SDK query function - cwd: c:\\Users\\chatii\\work\\work-dir, permission mode: default, version: 2.0.14, c:\\Users\\chatii\\.vscode\\extensions\\anthropic.claude-code-2.0.14\\resources\\claude-code\\cli.js, resume: undefined\n2025-10-12 01:46:31.918 [info] From claude: Spawning Claude Code process: node c:\\Users\\chatii\\.vscode\\extensions\\anthropic.claude-code-2.0.14\\resources\\claude-code\\cli.js --output-format stream-json --verbose --input-format stream-json --append-system-prompt ... --permission-prompt-tool stdio --permission-mode default --debug\n\n\nDevTools Console log (filtered by \"permission\"):\n\n{\n    \"type\": \"system\",\n    \"subtype\": \"init\",\n    \"permissionMode\": \"default\",\n    ...\n}\n\n{\n    \"type\": \"assistant\",\n    \"message\": {\n        \"content\": [\n            {\n                \"type\": \"tool_use\",\n                \"id\": \"toolu_01W5vpZXN9t1hHW9WgfaqKVz\",\n                \"name\": \"Write\",\n                \"input\": {\n                    \"file_path\": \"c:\\\\Users\\\\chatii\\\\work\\\\work-dir\\\\permission_test.txt\",\n                    \"content\": \"Permission test file created at 2025-10-12\\nThis file is for testing Claude Code's permission system.\\n\"\n                }\n            }\n        ]\n    }\n}\n\n{\n    \"type\": \"user\",\n    \"message\": {\n        \"role\": \"user\",\n        \"content\": [\n            {\n                \"type\": \"tool_result\",\n                \"content\": \"Claude requested permissions to write to c:\\\\Users\\\\chatii\\\\work\\\\work-dir\\\\permission_test.txt, but you haven't granted it yet.\",\n                \"is_error\": true,\n                \"tool_use_id\": \"toolu_01W5vpZXN9t1hHW9WgfaqKVz\"\n            }\n        ]\n    }\n}\n\n\nNote: There are no log entries showing an approval prompt being displayed or any user interaction request.\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code VSCode extension version 2.0.14 on Windows\n2. Open any project folder in VSCode\n3. Ensure `.claude/settings.local.json` has default permissions (not allowing all operations):\n```\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(sqlite3:*)\"\n    ],\n    \"deny\": [],\n    \"ask\": []\n  }\n}\n```\n4. Open VSCode Developer Tools (Ctrl+Shift+I) and go to Console tab\n5. Start a Claude Code conversation\n6. Ask Claude to create a new file, for example: \"Create a test file named test.txt with some content\"\n7. Open the DevTools Console and",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:security",
+    "area:ide"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-11T17:31:06Z",
+  "updated_at": "2026-02-13T14:28:38Z",
+  "closed_at": "2026-02-06T10:22:44Z",
+  "reactions_total": 3,
+  "comments_count": 11,
+  "author": "chatii",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/8460\n2. https://github.com/anthropics/claude-code/issues/5749\n3. https://github.com/anthropics/claude-code/issues/9189\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-11T17:34:48Z"
+    },
+    {
+      "author": "Noxillio",
+      "author_association": "NONE",
+      "body": "I too am having this issue. I can't tell from the linked issues above if they are relevant to this as I'm very new to this utility.\n\nEven with auto-edit enabled, Claude Code cannot use Web Fetch or WebSearch because permission to do so is never requested in the first place. It's automatically rejected. I see no way to force it to be enabled so this issue is very disruptive to my workflow.",
+      "created_at": "2025-10-14T14:35:23Z"
+    },
+    {
+      "author": "minamikik",
+      "author_association": "NONE",
+      "body": "Confirming Same Issue on Windows\n\n### Environment\n\n- **Platform**: Windows 11 (Build 22631)\n- **Claude Code**: 2.0.25 (VSCode extension)\n- **Shell**: Git Bash (MINGW64_NT-10.0-22631, Msys 3.4.10)\n\n### Symptoms\n\nIdentical to original report.\n\n1. Claude states: `\"This command requires approval\"`\n2. **No approval UI/prompt appears** in the Claude Code window\n3. Claude then says: `\"Please approve this command\"` and waits indefinitely\n4. User has no way to approve or deny the command\n5. Session becom",
+      "created_at": "2025-10-22T02:24:42Z"
+    }
+  ]
+}

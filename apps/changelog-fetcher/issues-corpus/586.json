@@ -1,0 +1,35 @@
+{
+  "number": 586,
+  "title": "[BUG] JSON schema is invalid. It must match JSON Schema draft 2020-12",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 0.2.52\n- Operating System: NixOS 25.05.20250201.3a22805 (Warbler)\n- Terminal: ZSH\n\n## Bug Description\nClaude Code chokes on a simple MCP server with tuples (also happens with some other Zod syntaxes).\n\n## Steps to Reproduce\n1. Have this tool in your MCP server:\n```ts\n    server.tool(\n      \"someTool\",\n      \"some description\",\n      {\n         document: z\n          .object({\n            section: z.string(),\n          }) ,\n      },\n      async () => {\n          return {\n            content: [{ type: \"text\", text: \"response\" }],\n        }\n      }\n    );\n```\n\n2. Give any prompt to Claude, it works 🎉 \n3. Replace the MCP server tool with (the only difference is that `z.string()` becomes `z.tuple([z.string(), z.string()])`):\n```ts\n    server.tool(\n      \"someTool\",\n      \"some description\",\n      {\n         document: z\n          .object({\n            section: z.tuple([z.string(), z.string()]),\n          }) ,\n      },\n      async () => {\n          return {\n            content: [{ type: \"text\", text: \"response\" }],\n        }\n      }\n    );\n```\n\n4. Give any prompt to Claude, it breaks with `API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tools.12.custom.input_schema: JSON schema is invalid. It must match JSON Schema draft 2020-12 (https://json-schema.org/draft/2020-12). Learn more about tool use at https://docs.anthropic.com/en/docs/tool-use.\"}}`\n\nNote: run `claude` and type the prompt inside. If you run `claude test` then it will succeed, I assume because the MCP server is not started yet?\n\n## Expected Behavior\nI have given a Zod schema, not a JSON schema, so it should work.\nOR, I would be happy to pass a JSON schema directly instead of a Zod schema (we originally have a JSON schema and convert it to Zod using https://www.npmjs.com/package/json-schema-to-zod, so if then Claude Code converts this Zod schema back to JSON Schema, I would love todirectly pass a JSON schema instead...).\n\n## Actual Behavior\nIt breaks on any prompt, even `\"test\"`.\n\n## Additional Context\nUsing Zod tuples is not the only Zod syntax that breaks, but it's one of the simplest examples I have pinpointed.",
+  "labels": ["bug", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-03-21T12:29:34Z",
+  "updated_at": "2026-01-14T14:11:19Z",
+  "closed_at": "2026-01-05T10:16:45Z",
+  "reactions_total": 0,
+  "comments_count": 14,
+  "author": "sir4ur0n",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jeffrey-l-turner",
+      "author_association": "NONE",
+      "body": "I see the same thing b/c of a bad mcp server -- specifically I tried using https://github.com/sylphxltd/pdf-reader-mcp. You may want to check your `~/.claude.json` or `.mcp.json` configurations",
+      "created_at": "2025-05-06T23:53:59Z"
+    },
+    {
+      "author": "sir4ur0n",
+      "author_association": "NONE",
+      "body": "See the \"Steps to Reproduce\" section of my original message: the MCP server originally works fine.\nIt only breaks after changing the Zod schema.\nSo I don't see how it can be related to a bad MCP server configuration in the Claude settings.\n",
+      "created_at": "2025-05-07T11:02:10Z"
+    },
+    {
+      "author": "Lucheti",
+      "author_association": "NONE",
+      "body": "Thank god i found this, i was getting mad crazy with it. That's 100% the cause of that error. @sir4ur0n mvp!",
+      "created_at": "2025-05-10T21:28:06Z"
+    }
+  ]
+}

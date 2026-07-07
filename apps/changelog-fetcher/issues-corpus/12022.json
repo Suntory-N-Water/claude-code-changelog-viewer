@@ -1,0 +1,35 @@
+{
+  "number": 12022,
+  "title": "[BUG] Claude Code VS Code extension keeps showing “requires git-bash” on Windows even though Git Bash + env var are correctly set",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n– OS: Windows 10/11 (64-bit)\n– Git Bash installed at C:\\Program Files\\Git\\bin\\bash.exe\n– Windows environment variable CLAUDE_CODE_GIT_BASH_PATH is set at System level to that exact path\n– In a fresh VS Code terminal I can run:\n\ngit --version → git version 2.51.2.windows.1\nbash --version → GNU bash, version 5.2.37(1)\necho $env:CLAUDE_CODE_GIT_BASH_PATH → C:\\Program Files\\Git\\bin\\bash.exe\n\nclaude --version → 2.0.47 (Claude Code)\n– I fully removed the extension (.vscode/extensions + Code/User/globalStorage entries) and reinstalled it.\n– I also tested with a fresh VS Code profile (renamed %APPDATA%\\Code and let VS Code recreate it).\n– Despite all this, the Claude Code panel still shows:\n“Error: Claude Code on Windows requires git-bash… If installed but not in PATH, set environment variable CLAUDE_CODE_GIT_BASH_PATH=C:\\Program Files\\Git\\bin\\bash.exe”\n– On another PC with the same Git + env var config, the extension works fine.\n\nIt looks like the extension’s Git Bash detection is failing on this Windows install even when CLAUDE_CODE_GIT_BASH_PATH is correct and Git Bash is executable from the VS Code terminal. Happy to share logs from View → Output → Claude Code if that helps.\n\n### What Should Happen?\n\nIt should start accepting prompts\n\n### Error Messages/Logs\n\n```shell\nError: Claude Code on Windows requires git-bash (https://git-scm.com/downloads/win). If installed but not in PATH, set environment variable pointing to your bash.exe, similar to: CLAUDE_CODE_GIT_BASH_PATH=C:\\Program Files\\Git\\bin\\bash.exe\n```\n\n### Steps to Reproduce\n\n1. Open VSCode\n2. Open Claude Extension dialog\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.47 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:windows", "area:ide", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-20T12:29:06Z",
+  "updated_at": "2026-02-27T14:24:19Z",
+  "closed_at": "2026-02-14T22:10:11Z",
+  "reactions_total": 2,
+  "comments_count": 11,
+  "author": "lenouar-uae",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/8674\n2. https://github.com/anthropics/claude-code/issues/11496\n3. https://github.com/anthropics/claude-code/issues/9883\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-20T12:33:11Z"
+    },
+    {
+      "author": "lenouar-uae",
+      "author_association": "NONE",
+      "body": "Adding C:\\Windows\\System32\\ to the system PATH has resolved my issue.\nThanks",
+      "created_at": "2025-11-21T06:36:17Z"
+    },
+    {
+      "author": "zeng-gq",
+      "author_association": "NONE",
+      "body": "@lenouar-uae  太不可思议了，这种方式竟然解决了。我真的等了好多天，用了很长一段时间的终端模式，直到不知道什么原因终端模式也无法使用，我再次来到这里蹲一个解决方案。",
+      "created_at": "2025-11-26T14:41:40Z"
+    }
+  ]
+}

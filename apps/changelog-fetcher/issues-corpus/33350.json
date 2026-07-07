@@ -1,0 +1,23 @@
+{
+  "number": 33350,
+  "title": "[BUG] v2.1.73 causes terminal freeze with yellow search bar in tmux sessions - memory leak related",
+  "body": "## Bug Description\n\nClaude Code v2.1.73 causes terminal to freeze with a yellow \"(search down)\" / \"(repeat)\" / \"(jump to forward)\" bar at the bottom, blocking all input. This happens in tmux sessions on Ubuntu 24.04 server.\n\n## Environment\n- **OS**: Ubuntu 24.04.4 LTS (server, 8 cores, 24GB RAM)\n- **Claude Code**: v2.1.73 (auto-updated from v2.1.52)\n- **Terminal**: tmux 3.4\n- **Plan**: Claude Max\n\n## Steps to Reproduce\n1. Run Claude Code in tmux sessions (6 concurrent sessions)\n2. Sessions auto-update from v2.1.52 to v2.1.73\n3. After ~10-20 minutes, yellow bar appears at bottom blocking all input\n4. Cannot type, Escape sometimes works temporarily but it comes back\n5. Sessions on v2.1.52 (not auto-updated) work perfectly fine\n\n## Expected Behavior\nTerminal should remain responsive and accept input normally.\n\n## Actual Behavior\nYellow bar appears with text like \"(search down)\", \"(repeat 2)\", or \"(jump to forward)\" blocking the input line. The session becomes completely unresponsive. Only fix is killing and restarting the session.\n\n## Workaround\n- Set `CLAUDE_CODE_DISABLE_AUTOUPDATE=1` to stay on v2.1.52\n- Sessions on v2.1.52 do NOT exhibit this behavior\n\n## Likely Related\nThis is probably related to the memory leak issues reported today:\n- #33342 (30GB/hour memory leak v2.1.73)\n- #33320 (2.92GB ArrayBuffers in 34 min v2.1.72)\n- #33337 (ArrayBuffers grow 980MB/hour)\n\nThe terminal freeze likely occurs when the memory leak causes the terminal renderer to malfunction, activating search/scroll mode unintentionally.\n\n## Impact\nRunning 6 concurrent architect sessions for multi-project management. v2.1.73 makes this workflow unusable - sessions freeze every 10-20 minutes requiring constant manual intervention.",
+  "labels": ["bug", "has repro", "platform:linux", "area:tui", "perf:memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-11T20:39:31Z",
+  "updated_at": "2026-03-15T08:28:12Z",
+  "closed_at": null,
+  "reactions_total": 27,
+  "comments_count": 1,
+  "author": "CarlosHuyghusrl",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yotamsVIM",
+      "author_association": "NONE",
+      "body": "I also experienced a leak, left an idle Claude swarm session with two 'team members' over the weekend and saw that both the lead and both members had high memory allocations (10gb,13gb,18gb), it seems they keep going up and down a few gigs every few minutes.\n\nClaude 2.1.72\nMacbook m1 pro + 32gb\nterminal: ITerm2 + tmux",
+      "created_at": "2026-03-15T08:28:12Z"
+    }
+  ]
+}

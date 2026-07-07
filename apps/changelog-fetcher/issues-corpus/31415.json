@@ -1,0 +1,35 @@
+{
+  "number": 31415,
+  "title": "Include effort level in statusLine hook input",
+  "body": "## Problem\n\nThe `statusLine` hook receives a JSON object with session metadata (model, context window, cost, etc.), but it does not include the current reasoning effort level.\n\nThe effort level is tracked internally (`effortLevel` in settings, `effortValue` in state) and displayed in the SDK's built-in `▪▪▪ High` indicator, but it's not passed to custom statusLine hooks.\n\n## Current workaround\n\nWe set a `CLAUDE_EFFORT` env var at launch time and read it in the statusLine hook. This is stale if the user changes effort mid-session via `Shift+Tab` or `/model`.\n\n## Requested change\n\nAdd an `effort` field to the statusLine hook input JSON:\n\n```json\n{\n  \"session_id\": \"...\",\n  \"model\": { \"id\": \"claude-opus-4-6\", \"display_name\": \"Opus 4.6\" },\n  \"effort\": { \"level\": \"high\", \"display_name\": \"High\" },\n  \"context_window\": { ... },\n  ...\n}\n```\n\nThis would let custom statusLine hooks display effort alongside the model, with live updates when it changes mid-session — same as model already works today.\n\n## Context\n\nThe statusLine input is constructed in `CBz` (cli.js). The effort value is already available via `h88()` / `effortLevel` in settings — it just needs to be included in the output object.",
+  "labels": ["enhancement", "area:hooks", "area:statusline"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-03-06T09:36:40Z",
+  "updated_at": "2026-05-01T14:50:04Z",
+  "closed_at": "2026-04-24T13:34:00Z",
+  "reactions_total": 21,
+  "comments_count": 6,
+  "author": "oria-ai",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "tomarshall",
+      "author_association": "NONE",
+      "body": "Adding a comment to bump this up. Small improvement but super relevant. All else being equal, effort level tends to have a bigger impact on response time more than model, so it's good to know at a glance what effort level you're at.\n\nCurrently, effort level *is* shown on the far right of the statusline, underneath the text input box. But it tends to appear and disappear unpredictably, so it's not particularly helpful. Not being able to see effort level at a glance means you have to stop what you",
+      "created_at": "2026-03-14T16:54:26Z"
+    },
+    {
+      "author": "AinGerI",
+      "author_association": "NONE",
+      "body": "Found a workaround for anyone who needs this now — you can actually track effort changes mid-session by parsing the transcript.\nThe `statusLine` hook receives `transcript_path`, and the transcript JSONL logs `/model` and `/effort` command output in `local-command-stdout` entries. The idea is to scan for the latest entry, strip ANSI codes, and regex-match the effort level. Priority chain: `CLAUDE_CODE_EFFORT_LEVEL` env var → stdin JSON → transcript parsing → `settings.json` fallback.\nIt works, bu",
+      "created_at": "2026-03-24T12:22:25Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Workaround: track effort level changes via UserPromptSubmit and expose to statusLine:\n```bash\nPROMPT=$(cat | jq -r '.userPrompt // empty' 2>/dev/null)\nif echo \"$PROMPT\" | grep -qiE '(/effort|set effort)\\s+(low|medium|high|max)'; then\n    EFFORT=$(echo \"$PROMPT\" | grep -oiE '(low|medium|high|max)' | head -1)\n    echo \"$EFFORT\" > /tmp/cc-effort-level\nfi\nexit 0\n```\nStatusLine script reads it:\n```bash\nINPUT=$(cat)\nEFFORT=$(cat /tmp/cc-effort-level 2>/dev/null || echo \"?\")\nCTX=$(echo \"$INPUT\" | jq -r",
+      "created_at": "2026-03-29T12:17:40Z"
+    }
+  ]
+}

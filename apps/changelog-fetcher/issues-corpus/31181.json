@@ -1,0 +1,35 @@
+{
+  "number": 31181,
+  "title": "[BUG] Claude Code hangs silently after trust dialog on Windows — regression in 2.1.59–2.1.69 (2.1.58 stable works)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# [BUG] Claude Code hangs silently after trust dialog on Windows — regression in 2.1.59–2.1.69 (2.1.58 stable works)\n\n## Preflight Checklist\n\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n## Environment\n\n- **Platform:** Anthropic API (native installer)\n- **Claude CLI version:** 2.1.69 (also reproduced on 2.1.68)\n- **Operating System:** Windows (<domain> domain-joined)\n- **Terminal:** PowerShell\n- **Install method:** Native (`C:\\Users\\<user>\\.local\\bin\\claude.exe`)\n\n## Bug Description\n\nClaude Code hangs silently and indefinitely after the trust dialog is accepted. Zero output, zero error messages. No new process spawns after trust acceptance — the hang occurs during initialization, after trust is accepted but before the main TUI loads. `--debug` produces no additional output. Ctrl+C cannot interrupt the hang; only closing the terminal ends the process.\n\n**Confirmed working:** Downgrade to 2.1.58 (current stable) completely resolves the issue. The regression was introduced somewhere in the 2.1.59–2.1.69 range.\n\n## Reproduction Steps\n\n1. Install Claude Code 2.1.69 (native installer) on Windows\n2. Open PowerShell\n3. Run `claude` in any directory (including brand new empty directories)\n4. Accept the trust dialog (\"Yes, I trust this folder\")\n5. **Result:** CLI hangs indefinitely — no TUI, no output, no error\n\n## Expected Behavior\n\nClaude Code should load the TUI and be ready to accept input after trust dialog acceptance.\n\n## Key Diagnostic Findings\n\n### The hang is NOT caused by any of these (all ruled out):\n\n| Theory | Test | Result |\n|--------|------|--------|\n| `.claude/settings.local.json` corruption | Wiped to `{}` | Still hangs |\n| CLAUDE.md or .mcp.json files | Recursive search — none found | Ruled out |\n| `hasTrustDialogAccepted` in `.claude.json` | Set to `false` — trust dialog reappears, but hang returns after re-accepting | Partially confirmed hang is post-trust |\n| Corrupt `.claude.json` projects section | Removed entire projects block | Still hangs |\n| Network/auth issue | `api.anthropic.com` reachable, auth token valid | Ruled out |\n| Process not spawning | Confirmed via process list — no child process after trust | Hang is in initialization |\n| Renamed `.claude.json` entirely | Printed \"config not found\" in a loop, still hung | Can't start without it |\n| Outdated version | Updated from 2.1.68 → 2.1.69 | Still hangs |\n| statusLine hook in settings.json | Removed entirely | Still hangs |\n| MCP subsystem | Set `CLAUDE_CODE_DISABLE_MCP=1` | Still hangs |\n| All optional features | Set `CLAUDE_CODE_SIMPLE=1` + `CLAUDE_CODE_DISABLE_MCP=1` | Still hangs |\n| `.claude.json` file permissions | Checked — full control, not read-only (`IsReadOnly: False`) | Ruled out |\n| Duplicate installations (npm conflict) | `where.exe claude` shows single path; `npm` not even on PATH | Ruled out |\n| Stale lock files | Lock files exist in `~/.claude/tasks/` but are from old sessions | Not the cause |\n| `.bashrc` / `.bash_profile` hanging Git Bash | No user `.bashrc` or `.bash_profile` exists | Ruled out |\n| Node.js installation conflict | Node.js recently installed but `claude doctor` shows clean native install, no npm copy | Ruled out |\n\n### `claude doctor` output (on 2.1.69):\n\n```\nDiagnostics\n└ Currently running: native (2.1.69)\n└ Path: C:\\Users\\mstoner\\.local\\bin\\claude.exe\n└ Invoked: C:\\Users\\mstoner\\.local\\bin\\claude.exe\n└ Config install method: native\n└ Search: OK (bundled)\nUpdates\n└ Auto-updates: enabled\n└ Auto-update channel: latest\n└ Stable version: 2.1.58\n└ Latest version: 2.1.69\nVersion Locks\n└ No active version locks\n```\n\n### Resolution:\n\n",
+  "labels": ["bug", "has repro", "platform:windows", "regression"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-05T18:17:34Z",
+  "updated_at": "2026-03-18T14:49:30Z",
+  "closed_at": "2026-03-06T17:03:07Z",
+  "reactions_total": 15,
+  "comments_count": 5,
+  "author": "mstoner-rr",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "blois",
+      "author_association": "COLLABORATOR",
+      "body": "This should be fixed in `2.1.70`.",
+      "created_at": "2026-03-06T17:03:07Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/30932\n2. https://github.com/anthropics/claude-code/issues/31128\n3. https://github.com/anthropics/claude-code/issues/30960\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-05T18:28:35Z"
+    },
+    {
+      "author": "ceberttylertech",
+      "author_association": "NONE",
+      "body": "This defect is quite impactful ",
+      "created_at": "2026-03-05T19:25:18Z"
+    }
+  ]
+}

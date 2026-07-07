@@ -1,0 +1,35 @@
+{
+  "number": 14613,
+  "title": "Scroll region rendering broken in SwiftTerm after recent flickering fix",
+  "body": "## Description\n\nAfter the recent flickering fix (mentioned as fixed ~Dec 18-19, 2025), Claude Code's TUI has broken scroll region behavior when viewed through SwiftTerm-based terminal emulators (iOS).\n\n## Symptoms\n\n- The bottom part of the terminal (status bar, prompt area) stays correctly in place\n- The top part (main content area) scrolls up one line on **each terminal update**\n- Content gets pushed off the top of the screen progressively\n- The scroll region (DECSTBM) seems to be set correctly, but something causes an extra scroll on each output\n\n## Visual\n\nThe terminal looks like Claude Code has set scroll regions correctly (status bar fixed at bottom), but every time new output arrives, the top region scrolls up one extra line, pushing content off screen.\n\n## Environment\n\n- **Terminal emulator**: SwiftTerm (iOS)\n- **App**: Xtro (iOS terminal client connecting to Mac)\n- **Issue started**: Around Dec 18-19, 2025 (coinciding with flickering fix)\n\n## Notes\n\n- Other TUI apps (vim, htop, etc.) work correctly - only Claude Code exhibits this behavior\n- Rotating the device (forcing terminal resize/redraw) used to fix the issue temporarily, but no longer does\n- The issue exists across multiple commits of our app, suggesting the change is on Claude Code's side\n\n## Workaround attempts\n\n- Terminal resize (SIGWINCH) - no longer fixes it\n- Different terminal sizes - same issue\n\n## Request\n\nCould you check if the recent flickering fix changed how scroll regions (DECSTBM - `ESC[top;bottomr`) are being set or how the screen is being refreshed? Something in that change appears incompatible with SwiftTerm's scroll region handling.",
+  "labels": ["bug", "has repro", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-19T06:46:20Z",
+  "updated_at": "2026-03-09T14:31:18Z",
+  "closed_at": "2026-02-27T22:14:12Z",
+  "reactions_total": 2,
+  "comments_count": 10,
+  "author": "mihneadevries",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "arkaitz-dev",
+      "author_association": "NONE",
+      "body": "Just the same issue when working remotely using SSH Android client (Termius).",
+      "created_at": "2025-12-19T06:57:26Z"
+    },
+    {
+      "author": "mihneadevries",
+      "author_association": "NONE",
+      "body": "Closing - the issue resolved after restarting. Apologies for the noise.",
+      "created_at": "2025-12-19T07:04:51Z"
+    },
+    {
+      "author": "mihneadevries",
+      "author_association": "NONE",
+      "body": "Reopening - other users have reported similar scroll region issues. The bug may be intermittent or environment-specific. A restart temporarily resolved it on my end but the underlying issue may still exist.",
+      "created_at": "2025-12-19T07:06:23Z"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "number": 29206,
+  "title": "statusLine hook output: leading whitespace stripped, preventing right-aligned content",
+  "body": "## Summary\n\nThe `statusLine` hook strips leading whitespace from script output, making it impossible to right-align content in the status bar. Users who want to place statusline content in the bottom-right corner (e.g. cwd, model name) cannot do so.\n\n## Environment\n\n- Claude Code: v2.1.62\n- OS: macOS 15.3 (Darwin 25.3.0)\n- Terminal: iTerm2\n- Shell: zsh\n\n## Steps to Reproduce\n\n1. Configure a `statusLine` hook in `~/.claude/settings.json`:\n\n\\`\\`\\`json\n{\n  \"statusLine\": \"~/.claude/statusline-command.sh\"\n}\n\\`\\`\\`\n\n2. Create `~/.claude/statusline-command.sh`:\n\n\\`\\`\\`bash\n#!/usr/bin/env bash\ninput=$(cat)\ntext=\"hello world\"\n# Attempt 1: printf with fixed-width field (leading spaces)\nprintf \"%100s\" \"$text\"\n\\`\\`\\`\n\n3. Launch `claude` in any directory.\n\n**Expected:** Status bar shows `hello world` pushed ~100 chars to the right with leading spaces.\n**Actual:** Status bar shows `hello world` with no leading spaces — they are stripped.\n\n## Additional Reproduction Cases\n\n**Attempt 2: Explicit space padding**\n\\`\\`\\`bash\nprintf \"%80s%s\" \"\" \"$text\"   # leading spaces stripped\n\\`\\`\\`\n\n**Attempt 3: Dynamic terminal width**\n\\`\\`\\`bash\n# Neither $COLUMNS nor tput cols is available in the hook subprocess env\nwidth=\"${COLUMNS:-$(tput cols 2>/dev/null)}\"\n# width is empty — falls back gracefully but can't right-align\n\\`\\`\\`\n\n**Attempt 4: Hardcoded terminal width (178 cols)**\n\\`\\`\\`bash\nwidth=178\nlen=${#text}\npad=$(( width - len ))\nprintf \"%${pad}s%s\" \"\" \"$text\"   # leading spaces still stripped\n\\`\\`\\`\n\nAll four approaches produce identical left-aligned output. Leading whitespace is removed regardless of how it is generated.\n\n## Root Cause Hypothesis\n\nThe statusline renderer appears to call `.trim()` or equivalent on the hook's stdout before rendering, discarding all leading whitespace. Additionally, `$COLUMNS` is not passed to the hook subprocess environment and `tput cols` has no TTY to query, so scripts cannot self-calculate terminal width even as a workaround.\n\n## Feature Request\n\nOne or more of:\n1. **Preserve leading whitespace** in statusline hook output so scripts can manually pad\n2. **Expose terminal width** in the JSON piped to the hook (e.g. `terminal.cols`)\n3. **Add native right-align support** — e.g. a JSON output format like `{\"left\": \"...\", \"right\": \"...\"}` or a separator token like `%=` in vim's statusline\n\nOption 3 would be the most ergonomic and consistent with how status bars work in tools like vim/neovim.\n\n## Use Case\n\nPower users running multiple Claude Code sessions simultaneously need a way to identify which session is which at a glance. The cwd is the natural differentiator and the bottom-right of the status bar is the natural place for it — analogous to how vim shows file position bottom-right.",
+  "labels": [
+    "bug",
+    "enhancement",
+    "has repro",
+    "platform:macos",
+    "area:hooks",
+    "area:statusline"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-27T03:21:38Z",
+  "updated_at": "2026-03-22T14:17:59Z",
+  "closed_at": "2026-03-08T18:07:22Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "deepthawtz",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

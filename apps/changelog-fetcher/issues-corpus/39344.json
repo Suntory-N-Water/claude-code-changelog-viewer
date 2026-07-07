@@ -1,0 +1,22 @@
+{
+  "number": 39344,
+  "title": "PreToolUse hook permissionDecision 'ask' silently overrides permissions.deny rules",
+  "body": "## Summary\n\nA `PreToolUse` hook returning `permissionDecision: \"ask\"` silently disables `permissions.deny` rules in `settings.json`, allowing denied commands to execute without any prompt. This is a security bypass — deny rules should always take precedence over hook \"ask\" decisions.\n\n## Severity\n\n**Critical** — a hook can silently override security deny rules. Any PreToolUse hook that returns `\"ask\"` for a command that matches a deny rule will cause the deny rule to be ignored entirely. The command executes without even prompting the user.\n\n## Reproduction\n\n### Prerequisites\n- Claude Code v2.1.84\n- A `settings.json` with a deny rule and a PreToolUse hook\n\n### Step 1: Baseline — deny rule only (no hook)\n\n**settings.json:**\n```json\n{\n  \"permissions\": {\n    \"deny\": [\"Bash(printf REPRO42*)\"]\n  }\n}\n```\n\nStart a new session, ask Claude to run `printf REPRO42`.\n\n**Result: DENIED** ✅ — deny rule works correctly.\n\n### Step 2: Bug — deny rule + hook returning \"ask\"\n\nAdd a PreToolUse hook that returns `permissionDecision: \"ask\"` for the same command:\n\n**Hook script (`/tmp/repro-hook.sh`):**\n```bash\n#!/bin/bash\nINPUT=$(cat)\nTOOL_NAME=$(echo \"$INPUT\" | jq -r '.tool_name // empty')\n[ \"$TOOL_NAME\" != \"Bash\" ] && exit 0\nCMD=$(echo \"$INPUT\" | jq -r '.tool_input.command // empty')\ncase \"$CMD\" in\n  printf\\ REPRO42*)\n    echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"repro test\"}}'\n    exit 0\n    ;;\nesac\nexit 0\n```\n\n**settings.json:**\n```json\n{\n  \"permissions\": {\n    \"deny\": [\"Bash(printf REPRO42*)\"]\n  },\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Bash\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"bash /tmp/repro-hook.sh\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\nStart a new session, ask Claude to run `printf REPRO42`.\n\n**Result: EXECUTED** ❌ — prints `REPRO42`. The deny rule is completely bypassed.\n\n### Step 3: Control — hook returning \"deny\" works\n\nChange the hook to return `\"deny\"` instead of `\"ask\"`.\n\n**Result: DENIED** ✅ — confirms the hook is running and `\"deny\"` works.\n\n## Expected behavior\n\nWhen a command matches a `permissions.deny` rule, it should **always** be denied regardless of what any hook returns. The evaluation order should be:\n\n1. Check `permissions.deny` — if matched, **deny** (non-overridable)\n2. Run hooks — apply hook decisions\n3. Check `permissions.allow` / `permissions.ask`\n\nA hook returning `\"ask\"` should only be able to escalate an otherwise-allowed command to prompt — it should never be able to downgrade a denied command.\n\n## Actual behavior\n\nHook `permissionDecision: \"ask\"` overrides the deny rule entirely. The command executes without any prompt or denial.\n\n## Environment\n\n- Claude Code v2.1.84\n- macOS Darwin 25.2.0\n- Model: claude-opus-4-6 (1M context)\n\n## Related\n\n- #18312, #22018, #36059, #37420",
+  "labels": [
+    "bug",
+    "has repro",
+    "area:security",
+    "area:hooks",
+    "area:permissions"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-26T12:47:18Z",
+  "updated_at": "2026-04-25T14:35:30Z",
+  "closed_at": "2026-04-18T04:17:40Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "barak-84",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

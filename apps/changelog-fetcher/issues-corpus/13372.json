@@ -1,0 +1,35 @@
+{
+  "number": 13372,
+  "title": "[BUG] Maven/Gradle builds fail in Claude Code Web cloud environment - DNS resolution failure for repo.maven.apache.org",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nMaven and Gradle builds fail in Claude Code Web's cloud environment when attempting to download dependencies from Maven Central. The build fails with a DNS resolution error for repo.maven.apache.org, despite the documentation explicitly listing \"JVM: Maven Central, Gradle services\" as allowed domains under the package managers allowlist.\n\nThis completely blocks Java/Maven development in Claude Code Web.\n\n### What Should Happen?\n\nMaven should be able to download dependencies from repo.maven.apache.org (Maven Central) as documented in the allowlist at https://code.claude.com/docs/en/claude-code-on-the-web\n\n### Error Messages/Logs\n\n```shell\nDownloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-parent/3.4.11/spring-boot-starter-parent-3.4.11.pom\n[FATAL] Non-resolvable parent POM for com.template:spring-boot-rest-api-template:1.0.0-SNAPSHOT:\nThe following artifacts could not be resolved: org.springframework.boot:spring-boot-starter-parent:pom:3.4.11 (absent):\nCould not transfer artifact org.springframework.boot:spring-boot-starter-parent:pom:3.4.11 from/to central (https://repo.maven.apache.org/maven2):\nrepo.maven.apache.org: Temporary failure in name resolution\n```\n\n### Steps to Reproduce\n\n1. Open any Java/Maven project in Claude Code Web (cloud sandbox)\n2. Run `./mvnw test` or `./mvnw compile`\n3. Observe DNS resolution failure for repo.maven.apache.org\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Code Web\n\n### Platform\n\nOther\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n## Similar Issue - Now Fixed\n\nThis is similar to #10307 where crates.io (Rust) was blocked despite being documented as allowed. That issue was fixed by adding domains to the NO_PROXY environment variable.\n\n## Potential Solution\n\nAdd Maven Central domains to NO_PROXY (similar to crates.io fix): repo.maven.apache.org, *.maven.apache.org, repo1.maven.org\n\n## Affected Package Managers\n\n- Java: Maven, Gradle\n- Potentially other JVM languages (Kotlin, Scala) using Maven Central\n\n## References\n\n- Reddit thread with other affected users: https://www.reddit.com/r/ClaudeAI/comments/1oqvajp/claude_code_for_web_cannot_pull_in_dependencies/\n- LinkedIn post with root cause analysis: https://www.linkedin.com/pulse/fixing-maven-build-issues-claude-code-web-ccw-tarun-lalwani-8n7oc\n- Similar Rust/crates.io issue (fixed): #10307",
+  "labels": ["bug", "has repro", "external", "area:core", "area:packaging"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-08T10:51:53Z",
+  "updated_at": "2026-05-17T09:28:34Z",
+  "closed_at": null,
+  "reactions_total": 26,
+  "comments_count": 12,
+  "author": "axel-nyman",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12752\n2. https://github.com/anthropics/claude-code/issues/12087\n3. https://github.com/anthropics/claude-code/issues/10307\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-08T11:00:30Z"
+    },
+    {
+      "author": "axel-nyman",
+      "author_association": "NONE",
+      "body": "The suggested duplicates don't make this issue obsolete:\n\n- **#12752 (Gradle)** - Closed as duplicate, unresolved\n- **#12087 (.NET/NuGet)** - Closed as duplicate, unresolved  \n- **#10307 (crates.io)** - Marked as \"fixed\" but only for Rust/crates.io specifically\n\nThere doesn't appear to be an open issue actually tracking this problem. These issues keep getting closed as duplicates of each other in a circular pattern, but the underlying issue remains unresolved for JVM tools (Maven/Gradle), .NET (",
+      "created_at": "2025-12-08T11:06:41Z"
+    },
+    {
+      "author": "rickihastings",
+      "author_association": "NONE",
+      "body": "Agreed, this is definitely broken.\n\nI've not tried this on Maven yet, but this may be a possible workaround. https://www.linkedin.com/pulse/fixing-maven-build-issues-claude-code-web-ccw-tarun-lalwani-8n7oc\n\nHowever, a similar approach on Gradle does not work, it gets stuck on a 401 error due to `plugins.gradle.org` not being an allowed domain. Explicitly setting it in allowed hosts doesn't seem to work for me either.",
+      "created_at": "2025-12-14T20:51:01Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 14002,
+  "title": "[BUG] /rewind shows \"Restore code\" option intermittently or fails to restore files",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using /rewind to restore code to a previous checkpoint, the feature behaves inconsistently:\n\n\"Restore code\" option is sometimes missing from the rewind menu\nPartial restoration: Only some modified files are restored, not all of them\nDebug logs show 0 files tracked at snapshot creation, even though file modifications occur afterward\n\n### What Should Happen?\n\nThe \"Restore code\" option should always appear when code changes exist\nAll file modifications made through Claude's editing tools should be restored to their previous state\n\n### Error Messages/Logs\n\n```shell\nUsing claude -d2e 2> >(grep -i FileHistory > rewind.log):\n\n2025-12-15T01:51:09.338Z [DEBUG] FileHistory: Added snapshot for 0c4e296c-c89b-43c6-a8d2-993aedc862d5, tracking 0 files\n2025-12-15T01:51:27.357Z [DEBUG] FileHistory: Tracked file modification for /Users/xxx/Code/src/app/[locale]/page.tsx\n```\n\n### Steps to Reproduce\n\n1. Ask Claude to modify a file (e.g., \"Change the title color to blue in page.tsx\")\n2. Wait for Claude to complete the modification using its file editing tools\n3. Run /rewind to view checkpoints\n4. Observed: \"Restore code\" option is missing, or selecting it only restores some files\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.69 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nCheckpoints setting: Verified enabled in /config → \"Rewind code (checkpoints)\" is set to true\nEdit method: Claude used its native file editing tools (not bash commands)",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-15T02:24:06Z",
+  "updated_at": "2026-06-30T23:35:20Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 4,
+  "author": "SachaMarino",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rajinsyed",
+      "author_association": "NONE",
+      "body": "still happening with 2.0.76.",
+      "created_at": "2025-12-25T18:53:32Z"
+    },
+    {
+      "author": "Jbmanllr",
+      "author_association": "NONE",
+      "body": "Same issue",
+      "created_at": "2026-01-15T03:41:31Z"
+    },
+    {
+      "author": "ajwrigley",
+      "author_association": "NONE",
+      "body": "@claude This is still happening. A large chunk of users are unable to use the revert code feature for several weeks now.",
+      "created_at": "2026-01-21T08:38:33Z"
+    }
+  ]
+}

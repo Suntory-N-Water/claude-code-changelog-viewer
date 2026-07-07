@@ -1,0 +1,42 @@
+{
+  "number": 50466,
+  "title": "[BUG] 2.1.113 crashes with SIGILL \"illegal hardware instruction\" on Ivy Bridge (AVX2-less) Intel Macs — regression from 2.1.112",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code 2.1.113 crashes at startup with `zsh: illegal hardware instruction` on an Intel CPU that lacks AVX2 support. The binary aborts (SIGILL) before producing any output — `claude --version` doesn't even print a version number.\n\nThe same machine, same shell session, same Node version runs 2.1.112 without any issue. Downgrading back to 2.1.112 via `npm install -g @anthropic-ai/claude-code@2.1.112` immediately fixes the crash. Reinstalling 2.1.113 immediately brings it back. The regression is cleanly reproducible between these two versions.\n\nThe CPU (Intel Core i5-3470S, Ivy Bridge, 2012) supports AVX but not AVX2 / BMI2 / FMA. This suggests 2.1.113 introduced AVX2 (or newer) instructions in a startup code path — most likely through an updated bundled runtime (Bun) or a recompiled native dependency.\n\n### What Should Happen?\n\n2.1.113 should launch on x86-64 CPUs without AVX2, the same way 2.1.112 did. At minimum, the baseline build (or the bundled Bun build) should avoid AVX2/BMI2/FMA in any code path reached before the CLI prints `--version`, so that users on older Intel hardware can continue to run Claude Code as they did on the immediately previous release.\n\n### Error Messages/Logs\n\n```shell\n$ claude --version\nzsh: illegal hardware instruction  claude --version\n```\n\n### Steps to Reproduce\n\nOn an Intel Mac whose CPU lacks AVX2 (confirm with `sysctl hw.optional.avx2_0` → returns 0):\n\n1. Install 2.1.112 and confirm it works:\n   npm install -g @anthropic-ai/claude-code@2.1.112\n   hash -r\n   claude --version\n   → prints \"2.1.112 (Claude Code)\" ✅\n\n2. Uninstall and install 2.1.113:\n   npm -g uninstall @anthropic-ai/claude-code\n   npm install -g @anthropic-ai/claude-code@2.1.113\n   hash -r\n   claude --version\n   → \"zsh: illegal hardware instruction  claude --version\" ❌ (SIGILL at startup)\n\n3. Reinstall 2.1.112 — crash goes away.\n4. Reinstall 2.1.113 — crash comes back.\n\nThe install is via `npm install -g` under nvm, but per the docs the npm package pulls in the same native binary (@anthropic-ai/claude-code-darwin-x64) as the standalone installer, so this is not nvm-specific.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.112\n\n### Claude Code Version\n\n2.1.113 (crashes with SIGILL, so the version string is only obtainable from the npm install output, not from `claude --version`)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n### Hardware\n- iMac 27\" late 2012\n- CPU: Intel Core i5-3470S @ 2.90 GHz (Ivy Bridge, released Q2 2012)\n- `sysctl -n machdep.cpu.brand_string` → Intel(R) Core(TM) i5-3470S CPU @ 2.90GHz\n- `sysctl hw.optional.avx1_0` → 1\n- `sysctl hw.optional.avx2_0` → 0\n- AVX-512: not present (`hw.optional.avx512f_0` is unknown oid)\n\n### Binary layout\n- `which claude` → /Users/sky/.nvm/versions/node/v22.22.0/bin/claude\n- Symlink target → ../lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe\n- `file` → Mach-O 64-bit executable x86_64\n\nSo this is definitely the bundled native binary being exercised, not anything routed through Node.\n\n### Likely cause\nBetween 2.1.112 and 2.1.113, either the bundled Bun runtime was bumped to a version whose JavaScriptCore JIT emits AVX2 instructions unconditionally, or a native optional dependency (sharp / tree-sitter / similar) was recompiled with a more aggressive `-march` target. Rebuilding with `-march=x86-64-v2` (or equivalent RUSTFLAGS=\"-C target-cpu=x86-64\" for Rust deps) would restore compatibility.\n\n### Related issues\nSame class of bug as #5864, #10408, #19967, #21018, #41575 — but this report isolates the exact regression window (2.1.112 → 2.1.113) ",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:packaging",
+    "regression"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-18T17:54:18Z",
+  "updated_at": "2026-06-24T09:57:39Z",
+  "closed_at": "2026-04-23T23:23:23Z",
+  "reactions_total": 7,
+  "comments_count": 19,
+  "author": "matieu",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Claude Code 2.1.113 has switched to a native executable (after npm deprecation was announced in January), which drops support for some platforms. Unfortunately we don't have plans to support pre-AVX2 Macs going forward. You can pin to the last JS bundle release https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.112 to continue using Claude Code for now.",
+      "created_at": "2026-04-23T23:23:23Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/50384\n2. https://github.com/anthropics/claude-code/issues/50190\n3. https://github.com/anthropics/claude-code/issues/37277\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-18T17:58:11Z"
+    },
+    {
+      "author": "johan--",
+      "author_association": "NONE",
+      "body": "Adding hard data from testing every version between 2.1.107 and 2.1.114 on a MacBook Pro Mid-2012 (i7-3520M, Ivy Bridge — has AVX1 but **no AVX2/BMI2**):\n\n| Version | `cli.js` in npm tarball | Runs under Node.js |\n|---------|------------------------|--------------------|\n| 2.1.108 | Yes | Yes |\n| 2.1.109 | Yes | Yes |\n| 2.1.110 | Yes | Yes |\n| 2.1.111 | Yes | Yes |\n| 2.1.112 | Yes | Yes |\n| 2.1.113 | **No** | **SIGILL** |\n| 2.1.114 | **No** | **SIGILL** |\n\n**2.1.112 is the last usable version.**",
+      "created_at": "2026-04-19T08:46:44Z"
+    }
+  ]
+}

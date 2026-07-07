@@ -1,0 +1,41 @@
+{
+  "number": 63604,
+  "title": "[BUG] Opus 4.8 repeatedly emits malformed tool_use blocks, entire response discarded (4.7 works fine)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nOn Opus 4.8 (claude-opus-4-8[1m]), when the assistant attempts to call an MCP tool, the generated tool_use JSON is frequently malformed (unterminated strings / missing braces / truncated arguments). The harness rejects the whole turn with \"Your tool call was malformed and could not be parsed. Please retry.\"\n\nBecause text blocks and tool_use blocks are emitted in a single response, the malformed tool_use causes the accompanying text block to be discarded as well. From the user's side, the assistant appears to \"go silent\" — no text reaches the user even when the user explicitly says \"don't use tools, just talk to me,\" because the model still tries to call a tool out of habit and the whole response gets thrown away again.\n\nThis blocked an active conversation for ~30 minutes across many retries. Switching the model to Opus 4.7 (claude-opus-4-7[1m]) immediately restored normal behavior with the exact same system prompt, MCP set, and conversation history.\n\n### What Should Happen?\n\nTool calls should either be well-formed, or — if generation fails — the accompanying text block should still be delivered to the user so the model can at least communicate.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Use Opus 4.8 with a long-ish system prompt and multiple MCP servers attached (in my case: plugin:telegram, several claude.ai connectors).\n2. Hold an active conversation where most turns require calling an MCP tool (e.g. replying through a Telegram bridge).\n3. Within ~5–10 turns the model starts emitting malformed tool_use blocks repeatedly; \"retry\" does not converge.\n4. Switching to Opus 4.7 in the same session resolves immediately.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.156\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows 11\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n- Multiple MCP servers connected, including plugin:telegram and a handful of claude.ai-hosted connectors\n- Long system prompt (~several KB of project-level CLAUDE.md)\n- Issue is intermittent on the first few turns and then becomes near-deterministic\n- Not a network/SSE hang — tokens are flowing, the response is generated and then rejected by the parser\n",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:windows",
+    "area:model",
+    "api:anthropic"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-29T10:29:19Z",
+  "updated_at": "2026-06-27T10:17:48Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 12,
+  "author": "Neige-Neige",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Neige-Neige",
+      "author_association": "NONE",
+      "body": "Correction on environment info: the actual operating system is **Windows 11 (10.0.26200)**, not Linux. The repro was on native PowerShell / Windows Terminal, not WSL. The \"Ubuntu/Debian Linux\" selection in the form was a mistake on my side.\n\nFor completeness:\n- OS: Windows 11 Pro 10.0.26200\n- Shell: PowerShell 5.1\n- Claude Code: 2.1.156\n- Model: claude-opus-4-8[1m] (broken) vs claude-opus-4-7[1m] (works)\n- MCP servers active during repro: plugin:telegram, plus several claude.ai connectors (Notio",
+      "created_at": "2026-05-29T10:34:47Z"
+    },
+    {
+      "author": "nevermore31",
+      "author_association": "NONE",
+      "body": "我的macos上面也会出现这样的问题 并且我还有一台windows也会出现  现在我认为是模型层的问题  他不会固定发生 而是偶尔就会发生,伴随的症状就是简单的任务长时间思考  并且任务无法确定是否会完成",
+      "created_at": "2026-05-29T12:58:36Z"
+    },
+    {
+      "author": "nashigatachannel",
+      "author_association": "NONE",
+      "body": "Adding observations from a heavy-MCP environment (Figma / Gmail / Calendar /\nDrive / Playwright-CDP / Android, plus ~10 custom skills) that may extend\nthe failure mode described above.\n\nRepro context:\n- Model: claude-opus-4-8\n- Claude Code: 2.1.158, Windows 11\n- ~15 MCP tools active, ~6k token system/skill stack\n- Failure becomes near-deterministic after 5-10 turns, matches OP\n\nWhat I observe in the broken responses (split into two patterns):\n\n**Pattern A (~70% of failures): raw XML in text bloc",
+      "created_at": "2026-06-04T17:33:00Z"
+    }
+  ]
+}

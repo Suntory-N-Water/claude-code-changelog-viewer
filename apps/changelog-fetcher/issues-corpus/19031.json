@@ -1,0 +1,35 @@
+{
+  "number": 19031,
+  "title": "Corrupted image in context causes persistent API 400 errors, breaking the entire chat session",
+  "body": "## Bug Description\n\nWhen Claude Code reads a corrupted/invalid image file (e.g., a `.jpg` file that actually contains HTML text), the invalid image data remains in the conversation context and causes persistent API 400 errors (`\"Could not process image\"`) for **all subsequent messages**, making the entire chat session unusable.\n\n## Steps to Reproduce\n\n1. Have a file with `.jpg` extension that contains invalid data (e.g., `<html><body>404</body></html>` - a 404 error page saved as .jpg)\n2. Ask Claude Code to read/analyze this image file\n3. Claude attempts to read it, receives API error 400\n4. **Every subsequent message** in that chat session fails with the same error, even unrelated messages\n\n## Example\n\n```\n⏺ Read(path/to/corrupted.jpg)\n  ⎿  Read image (29 bytes)\n  ⎿  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Could not process image\"}}\n\n❯ hello  (completely unrelated message)\n  ⎿  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Could not process image\"}}\n```\n\n## Expected Behavior\n\n- The error should be handled gracefully without corrupting the conversation context\n- Invalid image data should be validated/sanitized before being added to the context\n- Or at minimum, the user should be able to continue the conversation after an image processing error\n\n## Actual Behavior\n\nThe chat session becomes completely unusable. The only workaround is to start a new session, losing all conversation history.\n\n## Environment\n\n- Claude Code CLI\n- macOS (Darwin 24.6.0)\n\n## Additional Context\n\nThe corrupted file in this case was 29 bytes containing `<html><body>404</body></html>` - likely a failed download that saved the error page instead of the actual image. This is a common scenario when downloading images from URLs that no longer exist.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "area:api"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-18T15:05:45Z",
+  "updated_at": "2026-05-19T04:23:27Z",
+  "closed_at": "2026-05-19T04:23:27Z",
+  "reactions_total": 30,
+  "comments_count": 22,
+  "author": "erold90",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4083\n2. https://github.com/anthropics/claude-code/issues/18528\n3. https://github.com/anthropics/claude-code/issues/17452\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-18T15:09:40Z"
+    },
+    {
+      "author": "muriloime",
+      "author_association": "NONE",
+      "body": "same here. each time I paste an image to Claude code, on linux (pop-os 24, wayland)\n",
+      "created_at": "2026-01-27T10:04:13Z"
+    },
+    {
+      "author": "NathanR-85",
+      "author_association": "NONE",
+      "body": "Same here, see this issue https://github.com/anthropics/claude-code/issues/22230",
+      "created_at": "2026-01-31T19:22:56Z"
+    }
+  ]
+}

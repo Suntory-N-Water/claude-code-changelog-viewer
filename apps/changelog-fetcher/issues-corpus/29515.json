@@ -1,0 +1,40 @@
+{
+  "number": 29515,
+  "title": "[FEATURE] Docker support in Claude Code web environment",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWhen using Claude Code in the web (cloud) environment, Docker is not available as an executable tool. This is a significant limitation for projects that rely on Docker to manage services, run integration tests, or replicate production-like environments locally.\n\nFor example, in projects that use `docker-compose` to orchestrate services — such as databases (PostgreSQL), message brokers (Kafka), CDC connectors (Debezium), schema registries, and stream processors — there is no way to start, stop, rebuild, or inspect those services from within a Claude Code web session. This means Claude Code cannot:\n\n- Run my test suit of integration tests after adding or modifying the source code of my project\n- Start dependent services before running integration tests\n- Verify that container definitions (`docker-compose.yml`, `Dockerfile`) are correct\n- Inspect running containers to diagnose infrastructure issues\n- Rebuild images after dependency or configuration changes\n\nThe current workaround requires the developers to manually manage Docker on their local machine in a separate terminal, context-switching away from the Claude Code session and breaking the integrated development flow.\n\n\n### Proposed Solution\n\nMake the `docker` and `docker compose` CLI tools available and executable within the Claude Code web environment. Specifically:\n\n- The `docker` CLI should be accessible from `Bash` tool calls so Claude can run commands such as `docker compose up`, `docker compose down`, `docker ps`, `docker logs <container>`, and `docker compose up --build`.\n- Container networking should be accessible so that services started via Docker are reachable by the backend under test (e.g., a PostgreSQL container on port 5432).\n- Session-scoped lifecycle: containers started during a session should be cleaned up automatically when the session ends, to avoid resource leaks.\n\nThe ideal user experience:\n1. Claude Code web session starts\n2. Claude runs `docker compose up -d` to bring up backing services\n3. Claude runs the project's test suite against those live services\n4. Claude interprets results and makes changes\n5. On session end, containers are stopped and removed automatically\n\n### Alternative Solutions\n\n- **Local Claude Code CLI** — running Claude Code locally gives full access to the host Docker daemon. This works but loses the convenience and accessibility of the web interface.\n- **Manual coordination** — the developer keeps services running in a separate terminal and tells Claude to assume they are available. Error-prone and breaks the self-contained nature of a session.\n- **testcontainers managed by pytest** — some test frameworks can spin up Docker containers programmatically within tests. This partially mitigates the problem for integration tests but still requires Docker to be present in the execution environment.\n\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n1. I open a Claude Code web session on a project that uses Docker Compose to run PostgreSQL, Kafka, Debezium, and a Kafka Streams processor.\n2. I ask Claude to add a new domain feature and run the full test suite including integration tests.\n3. Claude attempts `docker compose up -d` — the command fails because Docker is not available in the web environment.\n4. Integration tests that rely on a live database and Kafka broker cannot run.\n5. Claude is unable to verify the implementation end-to-end and must ask the developer to manually start services and re-run tests.\n\nWith Docker available, Claude could complete the entire workflow autonomously: start services, run tests, observe failures, fix code, and confirm correctness — all within a single uninterrupted session.\n\n\n### Additional Context\n\nThis limitation was identified whi",
+  "labels": [
+    "enhancement",
+    "area:claude-code-web",
+    "platform:web",
+    "area:sandbox"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-28T05:05:26Z",
+  "updated_at": "2026-04-07T14:46:56Z",
+  "closed_at": "2026-03-29T04:34:11Z",
+  "reactions_total": 18,
+  "comments_count": 5,
+  "author": "juanluiscr27",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ja-ka",
+      "author_association": "NONE",
+      "body": "With the help of Claude Code we got it working. Claude Code generated some instructions how to set it up:\n\n# Docker & Testcontainers in Constrained Environments\n \n## Problem\n \nClaude Code web sessions (and similar constrained CI environments) run on Linux kernel 4.4.0 in a containerized environment where Docker is not pre-installed. This makes it impossible to use [Testcontainers](https://testcontainers.com/) for integration testing (MongoDB, Redis, etc.) without manual setup.\n \n## Key Constrain",
+      "created_at": "2026-03-10T07:46:28Z"
+    },
+    {
+      "author": "ja-ka",
+      "author_association": "NONE",
+      "body": "Here is what Claude Code added to `session-start.sh`:\n\n```bash\n# ─── Docker Setup for Claude Code Web Sessions ───────────────────────────\n# In web/containerized environments (kernel < 4.11), Docker may not be running.\n# Start dockerd with vfs storage driver (no overlay needed) and launch\n# MongoDB + Redis containers with host networking for Testcontainers tests.\nif command -v dockerd &>/dev/null && ! docker info &>/dev/null 2>&1; then\n    log_info \"Docker not running — starting dockerd (vfs sto",
+      "created_at": "2026-03-10T09:16:56Z"
+    },
+    {
+      "author": "kolodkin",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-03-14T14:59:17Z"
+    }
+  ]
+}

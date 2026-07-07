@@ -1,0 +1,35 @@
+{
+  "number": 19669,
+  "title": "[BUG] context_window metrics not updated after /compact until next API interaction",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter running `/compact`, the `context_window` object in the status line JSON retains pre-compaction values until the next API interaction. This affects any status line configuration that displays context usage.\n\n### What Should Happen?\n\nAfter `/compact` completes, the `context_window` metrics should immediately reflect the new (reduced) context state.\n\n### Steps to Reproduce\n\n1. Have a conversation with some context built up\n2. Run `/compact`\n3. Observe: `context_window.used_percentage` still shows pre-compaction value\n4. Send any message\n5. Observe: value now reflects actual post-compaction state\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Claude Code Version\n\n2.1.14 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nEntire `context_window` object is stale after `/compact`, not just `used_percentage`. Manual calculation from `cache_read_input_tokens + input_tokens` shows the same stale behavior—confirming the issue is that the context_window object isn't refreshed after compaction until the next API round-trip.",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-21T07:39:32Z",
+  "updated_at": "2026-05-07T15:22:26Z",
+  "closed_at": "2026-04-29T22:25:56Z",
+  "reactions_total": 4,
+  "comments_count": 11,
+  "author": "villeodell",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17624\n2. https://github.com/anthropics/claude-code/issues/15008\n3. https://github.com/anthropics/claude-code/issues/14303\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-21T07:44:38Z"
+    },
+    {
+      "author": "villeodell",
+      "author_association": "NONE",
+      "body": "As far as I can tell there is no duplicate issue for this that is current and open.\n\n1. This issue *is* a duplicate of #15008, but 15008 was closed by the submitter as a duplicate of #13765 and is now locked.\n2. 13765 original issue was about \"/clear\" not \"/compact\" -- the submitter of 15008 added a comment to 13765 to note that the same issue impacted \"/compact\" also\n3. 13765 was later closed as \"completed\" and is now locked.\n4. It appears the issue was fixed for \"/clear\" but the issue persists",
+      "created_at": "2026-01-22T16:28:58Z"
+    },
+    {
+      "author": "YoanWai",
+      "author_association": "NONE",
+      "body": "Confirming this issue on Linux (WSL2) with a custom statusline hook.\n\n**My setup:**\n- Custom statusLine command in settings.json that reads context_window.remaining_percentage from stdin\n- - The statusline script displays a visual progress bar of context usage\n**Observed behavior:**\nAfter running /compact or /clear, the context_window data passed to my statusline hook is stale. The context bar continues showing the old percentage until I send the next message.\n\n**Expected behavior:**\nThe statusl",
+      "created_at": "2026-02-01T13:59:19Z"
+    }
+  ]
+}

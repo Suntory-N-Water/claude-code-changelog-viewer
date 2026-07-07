@@ -1,0 +1,42 @@
+{
+  "number": 21377,
+  "title": "Remote session fails with 'Claude GitHub app must be installed' despite app being installed",
+  "body": "## Description\n\nRemote/background task execution fails with the error:\n\n```\nCannot launch remote Claude Code session.\n\nThe Claude GitHub app must be installed on this repository first.\nhttps://github.com/apps/claude/installations/new\n```\n\nHowever, the Claude GitHub app **is** installed and configured correctly.\n\n## Environment\n\n- Claude Code CLI (latest)\n- macOS (Darwin 25.3.0)\n- Repository: private repo with SSH remote (`git@github.com:owner/repo.git`)\n\n## Configuration verified\n\n1. Claude GitHub app installed 25+ minutes ago\n2. Repository access set to \"All repositories\"\n3. Permissions include:\n   - Read access to actions, checks, and metadata\n   - Read and write access to code, discussions, issues, pull requests, and workflows\n4. Git remote correctly points to GitHub\n\n## Screenshot\n\nApp installation settings show:\n- \"All repositories\" selected\n- Installed 25 minutes prior to error\n\n## Expected behavior\n\nRemote session should launch successfully since the app is installed with proper permissions.\n\n## Actual behavior\n\nCLI reports the app is not installed despite it being configured correctly.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:auth",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-28T03:39:50Z",
+  "updated_at": "2026-04-19T14:25:13Z",
+  "closed_at": "2026-04-09T10:34:17Z",
+  "reactions_total": 5,
+  "comments_count": 13,
+  "author": "anners",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16256\n2. https://github.com/anthropics/claude-code/issues/18409\n3. https://github.com/anthropics/claude-code/issues/16831\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-28T03:44:14Z"
+    },
+    {
+      "author": "anners",
+      "author_association": "NONE",
+      "body": "## Update: Partial resolution + additional finding\n\nThe remote feature **now works** when invoked directly from the terminal:\n```bash\nclaude --remote \"do something\"  # ✓ works\n```\n\nHowever, it **still fails** when attempting to launch a remote session from **within** an active Claude Code session:\n```\nCannot launch remote Claude Code session.\n\nThe Claude GitHub app must be installed on this repository first.\nhttps://github.com/apps/claude/installations/new\n```\n\nThis suggests:\n1. The original iss",
+      "created_at": "2026-01-28T03:48:52Z"
+    },
+    {
+      "author": "cding91",
+      "author_association": "NONE",
+      "body": "Same problem here on Windows. \n\n* Delegating to web using `&` command in Claude Code CLI report error \"Cannot launch remote Claude Code session.\" despite claude github app has already been installed on the repo\n* `claude --remote` works\n* Directly prompting on Claude Code web works.",
+      "created_at": "2026-02-02T16:36:08Z"
+    }
+  ]
+}

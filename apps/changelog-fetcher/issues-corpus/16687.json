@@ -1,0 +1,16 @@
+{
+  "number": 16687,
+  "title": "Invalid Version error on startup: semver parsing fails on changelog header '2.1.0 (2026-01-07)'",
+  "body": "## Description\n\nAfter Claude Code auto-updated to 2.1.0, all new sessions fail to start with the error:\n\n```\nERROR  Invalid Version: 2.1.0 (2026-01-07)\n```\n\nThe error occurs during startup before any interactive session begins.\n\n## Root Cause\n\nThe changelog fetched from Anthropic's servers contains version headers in the format:\n```\n## 2.1.0 (2026-01-07)\n```\n\nSomewhere in the startup code, this string is being parsed as a semver version. The semver library cannot parse version strings with date suffixes in parentheses, causing the `Invalid Version` error.\n\n## Evidence\n\n1. The `cachedChangelog` field in `~/.claude.json` contains the problematic string\n2. Removing `cachedChangelog` doesn't fix it because it's re-fetched on startup\n3. Rolling back to 2.0.76 doesn't fix it because older versions also fetch and parse the new changelog\n4. Setting `DISABLE_AUTOUPDATER=1` environment variable **does** fix it by skipping the changelog fetch\n\n## Workaround\n\n```bash\nexport DISABLE_AUTOUPDATER=1\nclaude\n```\n\n## Environment\n\n- OS: Debian 12 (Linux 6.1.0-40-amd64)\n- Claude Code version: 2.1.0 (also affects 2.0.76 when fetching new changelog)\n- Installation: Native binary (`~/.local/share/claude/versions/`)\n\n## Expected Behavior\n\nThe changelog header format `## VERSION (DATE)` should not be parsed as a semver version string. The version comparison logic should extract only the version number (e.g., `2.1.0`) before parsing.\n\n## Stack Trace (partial)\n\n```\n/$bunfs/root/claude:810:8909\n```\n\n(The minified code makes it difficult to identify the exact function, but it occurs during startup initialization)",
+  "labels": ["bug", "duplicate", "has repro", "platform:linux"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-07T20:32:05Z",
+  "updated_at": "2026-01-16T14:10:59Z",
+  "closed_at": "2026-01-07T20:36:55Z",
+  "reactions_total": 11,
+  "comments_count": 8,
+  "author": "graemejross",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

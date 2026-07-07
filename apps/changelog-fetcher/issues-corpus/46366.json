@@ -1,0 +1,35 @@
+{
+  "number": 46366,
+  "title": "[Model regression] Opus 4.5 → 4.6: Implicit constraint reasoning failure",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Amodel) for similar behavior reports\n- [x] This report does NOT contain sensitive information (API keys, passwords, etc.)\n\n### Type of Behavior Issue\n\nOther unexpected behavior\n\n### What You Asked Claude to Do\n\nSingle question, no context: \"I want to wash my car. The car wash is 50m away. Should I drive or walk?\"\n\n### What Claude Actually Did\n\nAll 4.6 models answered \"walk\" — pattern-matching on the short distance without\n  processing the implicit constraint that the car must be present at the car wash.\n\n  Tested models (all answered \"walk\"):\n  - Opus 4.6 — max effort, Claude Code\n  - Opus 4.6 — extended thinking on, claude.ai\n  - Opus 4.6 — extended thinking off, claude.ai\n  - Sonnet 4.6 — extended thinking on, claude.ai\n  - Sonnet 4.6 — extended thinking off, claude.ai\n  - Haiku 4.5 — extended thinking on, claude.ai\n  - Haiku 4.5 — extended thinking off, claude.ai\n\n  Opus 4.5 (high effort, Claude Code) answered \"drive\" immediately.\n\n\n### Expected Behavior\n\n\"Drive\" — washing your car requires the car to be at the car wash. The 50m distance\n  is irrelevant because you're not transporting yourself, you're transporting the car.\n\n### Files Affected\n\n```shell\nN/A — reasoning test, no file operations\n```\n\n### Permission Mode\n\nI don't know / Not sure\n\n### Can You Reproduce This?\n\nYes, every time with the same prompt\n\n### Steps to Reproduce\n\n 1. Open any Claude interface (Claude Code, claude.ai, API)\n  2. Fresh conversation, no system prompt or context\n  3. Ask: \"I want to wash my car. The car wash is 50m away. Should I drive or walk?\"\n  4. Observe answer\n  5. Repeat across model variants\n\n### Claude Model\n\nOpus\n\n### Relevant Conversation\n\n```markdown\nUser: I want to wash my car. The car wash is 50m away. Should I drive or walk?\n\nOpus 4.6: [answers \"walk\" — reasoning about distance, health, environment]\n\nOpus 4.5: Drive. You need the car at the car wash to wash it.\n```\n\n### Impact\n\nLow - Minor inconvenience\n\n### Claude Code Version\n\n 2.1.100 (but also reproducible on claude.ai with no CLI involved)\n\n### Platform\n\nOther\n\n### Additional Context\n\nSource: Circulating on Reddit as a model comparison test.\n                                                                                                                                                                                 \n  Why this matters:                                                                                                                                                              \n  - Minimal reproduction: single question, no setup, anyone can verify in 30 seconds\n  - Extended thinking doesn't help: the framing error happens before reasoning depth                                                                                             \n  - Clean A/B between model generations: same question, different results                                                                                                        \n  - Suggests surface pattern-matching (\"short distance → walk\") overrides constraint                                                                                             \n    analysis (\"car must be present\") at the commitment/framing stage                                                                                                             \n                                                                                                                                                                                 \n  Related pattern: #46002 documents a similar phenomenon where \"local coherence\"                                                                                                 \n  (the next logical step) overrides \"distant constraints\" (explicit rules). The car                                                                                              \n  wash test is a minimal case of the same failure mode — the model commits to an   \n  answer path bef",
+  "labels": ["bug", "area:model", "model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-10T18:30:09Z",
+  "updated_at": "2026-05-24T10:42:57Z",
+  "closed_at": "2026-05-24T10:42:57Z",
+  "reactions_total": 7,
+  "comments_count": 19,
+  "author": "MegaSlick",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/46002\n2. https://github.com/anthropics/claude-code/issues/30027\n3. https://github.com/anthropics/claude-code/issues/46239\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-10T18:34:32Z"
+    },
+    {
+      "author": "MegaSlick",
+      "author_association": "NONE",
+      "body": "Not a duplicate of any of the three cited issues:\n\n#46002 is my own issue — it documents execution discipline failures (partial approval, decorative questions, rule violation during code gen). Different failure mode.\n#30027 documents confident-wrong analysis across complex sessions. This issue is a single-question reasoning test with no analysis involved.\n#46239 documents speed-over-correctness during task execution. This issue involves no task execution — it's a bare reasoning question with zer",
+      "created_at": "2026-04-10T18:40:48Z"
+    },
+    {
+      "author": "MegaSlick",
+      "author_association": "NONE",
+      "body": "***This was disproven please look at newer comments for the details***\n\nUpdate: disabling adaptive thinking fixes it on Opus 4.6\nSame question, same model (Opus 4.6), same effort (high), same CLI (2.1.101):\n\nAdaptive thinking ON: \"Walk\" — wrong\nAdaptive thinking OFF (CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1, MAX_THINKING_TOKENS=32000): \"Drive. You need the car at the car wash.\" — correct\n\nThis confirms the failure is in adaptive thinking's allocation decision, not the model's reasoning capability",
+      "created_at": "2026-04-10T19:07:59Z"
+    }
+  ]
+}

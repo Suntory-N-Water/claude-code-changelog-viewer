@@ -1,0 +1,35 @@
+{
+  "number": 67609,
+  "title": "Advisor tool returns \"unavailable\" on claude-fable-5 whenever transcript exceeds ~100K tokens",
+  "body": "## Summary\n\nThe server-side advisor tool returns `advisor_tool_result_error` with `error_code: \"unavailable\"` whenever the request model is `claude-fable-5` and the conversation transcript exceeds roughly 100K tokens. Below that size the same configuration works. The result is that the advisor effectively never works in real sessions on Fable 5, since any session with a normal system prompt plus a few tool calls crosses the threshold quickly.\n\nThis is distinct from #66742 (the 400 when `advisorModel` is a lower-ranked model than the request model). Here the configuration is valid — both the request model and the advisor are Fable 5 — and the failure is a runtime `unavailable` from the server, not a 400.\n\n## Environment\n\n- Claude Code 2.1.173 (also reproduced on 2.1.170 and 2.1.172)\n- macOS (darwin 24.6.0, arm64)\n- settings.json: `\"model\": \"claude-fable-5[1m]\"`, `\"advisorModel\": \"fable\"`\n- Max subscription auth\n\n## Evidence\n\n- Bisected headless: advisor succeeds at ~40K and ~75K context, fails at ~122K and above. Same settings, same model, only context size varies.\n- 17 failed advisor calls across interactive sessions Jun 9–11, all on `claude-fable-5`, at contexts ranging 118K–267K tokens. Every one returned `error_code: \"unavailable\"`.\n- First failure was 2026-06-09 23:13Z, a few hours after switching the session model from Opus 4.8 to Fable 5. Before the switch, advisor calls on `claude-opus-4-8` succeeded routinely, including at 296K context — so the cap appears specific to Fable 5 as the request model, not a general transcript limit.\n- Setting `advisorModel` to `\"fable[1m]\"` does not help; same `unavailable` at large context.\n- The failed tool call is retried (three API requests observed for one advisor invocation) before surfacing the error.\n\n## Repro\n\n```bash\n# make ~100K+ tokens of filler\npython3 -c \"\nimport random; random.seed(7)\nw=open('/usr/share/dict/words').read().split()\nfor i in range(2):\n    open(f'/tmp/ctx{i}.txt','w').writelines(' '.join(random.choices(w,k=30))+'\\n' for _ in range(1900))\n\"\n\n# fails: advisor unavailable\nclaude --model 'claude-fable-5[1m]' -p 'Read /tmp/ctx0.txt in full, then /tmp/ctx1.txt in full, then call the advisor tool once and reply with ADVISOR_OK or the exact error text.'\n\n# succeeds: ADVISOR_OK (small context, identical config)\nclaude --model 'claude-fable-5[1m]' -p 'Call the advisor tool once and reply with ADVISOR_OK or the exact error text.'\n```\n\n## Expected\n\nEither the advisor handles transcripts up to the advisor model's context window (200K for `claude-fable-5`, as it did when the request model was Opus 4.8), or the error tells the user the transcript is too large instead of a bare \"Advisor unavailable (unavailable)\".\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:model", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-11T17:57:47Z",
+  "updated_at": "2026-07-06T08:38:16Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 11,
+  "author": "mikeberlinworkshop",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "cub71",
+      "author_association": "NONE",
+      "body": "Confirming repro. Claude Code 2.1.173, macOS (darwin 25.5.0, arm64), main model `claude-fable-5`, `\"advisorModel\": \"fable\"` in settings.json.\n\n`advisor()` called in an interactive session on a project with a large baseline context (big CLAUDE.md + auto-memory + several MCP servers — well past 100K before the first user message) returned `The advisor tool is unavailable. Do not try to use it again.` / UI `Advisor unavailable (unavailable)`. User-visible effect: the red \"Advisor unavailable\" line ",
+      "created_at": "2026-06-11T18:52:20Z"
+    },
+    {
+      "author": "JamesY023",
+      "author_association": "NONE",
+      "body": "Independent repro on Linux (WSL2), `claude-fable-5`, Claude Code 2.1.17x, headless `-p` probes with identical flags — only context size varied: ~256KB and ~512KB of filler read before the `advisor()` call both return `ADVISOR_OK`; ~1.2MB of filler returns `Advisor unavailable (unavailable)`. Consistent with the ~100–122K-token boundary you bisected.\n\nOne addition worth tracking with this: once the call fails, the client latches the session — every later `advisor()` call returns \"The advisor tool",
+      "created_at": "2026-06-13T00:29:15Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "The session-size threshold you've bisected — ~100–122K input tokens — is surprisingly easy to hit in practice, and the gap between Fable-5 and Opus 4.8 behavior at the same context size is the frustrating part. Your bisect confirms it's server-side and specific to Fable-5 as the request model; that needs Anthropic to fix.\n\nOn the triggering side though: the reason \"any session with a normal system prompt plus a few tool calls crosses the threshold quickly\" (as the second commenter also saw, with",
+      "created_at": "2026-06-15T07:07:57Z"
+    }
+  ]
+}

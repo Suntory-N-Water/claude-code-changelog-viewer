@@ -1,0 +1,35 @@
+{
+  "number": 58588,
+  "title": "[FEATURE] Allow /rename and /color to be set programmatically at session start",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n**note**: related issues #35378, #40393, #44245 exist but are stale or partial — this consolidates the use case\n\nI run 10+ Claude Code sessions in parallel, each launched from its own Windows Terminal profile in WSL2. Every profile runs claude '/start-session' and opens a fresh, unnamed, uncoloured session. To make the sessions distinguishable I have to manually type /rename <project> and /color <colour> in every tab, every time.\n\nThe tab-title side of this is already a known WSL2 limitation — escape sequences from Claude Code subprocesses don't reach Windows Terminal, so the in-Claude session name is the only reliable identifier I can rely on. And I can't automate it.\n\nThere is currently no way to set the session name or colour from:\n\n- project config (.claude/settings.json)\n- a CLI flag\n- a SessionStart hook\n- a skill\n- the initial prompt (claude '<prompt>' only dispatches one slash command — chaining /rename and /color after /start-session doesn't work; the second command gets consumed as text)\n\n### Proposed Solution\n\nAny one of these would solve it. Listed in order of preference:\n\n1. Project config in .claude/settings.json:\n`{ \"session\": { \"name\": \"manager\", \"color\": \"grey\" } }`\n\nCleanest, because the name and colour travel with the repo.\n\n2. CLI flags:\n`claude --session-name manager --session-color grey '/start-session'`\n \n \n3. SessionStart hook output — let a hook emit a JSON directive that Claude Code applies (similar to how some hooks inject context).\n\n### Alternative Solutions\n\nTried and ruled out:\n\n- SessionStart hook running shell commands — can't drive client-side UI commands like /rename.\n- Custom skill (/start-session) — skills produce model tool calls; no tool can invoke /rename or /color.\n- Chained slash commands in initial prompt — claude '/rename foo /color grey' treats everything after the first command as text. Confirmed by direct test.\n- Manual /rename + /color after launch — current workflow, doesn't scale to 10+ tabs.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n1. I have Windows Terminal profiles for each of my projects: manager, oksitmgt, phoenix, flexilife, salesending, etc.\n2. Each profile launches claude '/start-session' in the project directory.\n3. I open 5–10 tabs at once at the start of the day.\n4. With this feature, each tab would already be named after its project and colour-coded by category (work = grey, personal = green, etc.) the moment it opens.\n5. Today I have to manually /rename and /color in every tab — ~30 seconds of friction per tab, every launch.\n\n### Additional Context\n\nRelated existing issues (mostly stale or partial — none cover the combined name + colour + project-config angle):\n- #35378 — /rename settable via --name flag or hooks (stale)\n- #40393 — --color CLI flag for session color\n- #44245 — statusline scripts setting color and name via JSON control messages\n- #47332, #44618, #36928 — project-level session colour config (duplicate / stale)\n\n**Environment**: Claude Code CLI on WSL2 (Ubuntu 24.04) inside Windows Terminal, multi-project workflow.",
+  "labels": ["enhancement", "area:tui", "platform:wsl", "area:cli"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-13T06:11:14Z",
+  "updated_at": "2026-06-05T01:55:26Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 9,
+  "author": "SueSingh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/58578\n2. https://github.com/anthropics/claude-code/issues/40393\n3. https://github.com/anthropics/claude-code/issues/35378\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-13T06:15:21Z"
+    },
+    {
+      "author": "agsonsmith",
+      "author_association": "NONE",
+      "body": "+1 on this — adding a use case the current proposal doesn't quite cover.\n\nI also run multiple Claude Code sessions on the **same repo** concurrently (different worktrees, parallel agents, etc.). Solution 1 as written (`{ \"session\": { \"color\": \"grey\" } }`) gives every tab on that repo the same colour, which puts me back where I started.\n\nTwo small extensions that would close this gap:\n\n- **Solution 1 enhancement**: accept a palette/family value. e.g. `\"color\": \"random:grey\"` or `\"color\": [\"grey-1",
+      "created_at": "2026-05-14T00:12:34Z"
+    },
+    {
+      "author": "SueSingh",
+      "author_association": "NONE",
+      "body": "**Author here**. \nKeeping this open - the 3 flagged \"duplicates\" each cover one slice; this issue is the consolidation, and the slices don't overlap enough to fold into any single one.\n\nCoverage gap:\n- #58578 - settings.json defaults for name/colour; no CLI flags, no hooks, no worktree story.\n- #40393 - --color / --title CLI flags only; no project config, no hooks.\n- #35378 - --name or hooks for the banner name; no colour at all.\n\nThis issue asks for all three surfaces (project config + CLI flag",
+      "created_at": "2026-05-14T06:00:05Z"
+    }
+  ]
+}

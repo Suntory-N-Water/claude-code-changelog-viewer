@@ -1,0 +1,35 @@
+{
+  "number": 25805,
+  "title": "Rate limit errors show 'API Error' without distinguishing usage vs throughput limits",
+  "body": "## Problem\n\nUsers on paid plans (including Pro Max $200/month) are encountering `API Error: Rate limit reached` messages when their usage dashboard shows they haven't hit their limits. This creates confusion and disrupts workflow because the error message doesn't clarify **what** limit was reached.\n\n## Current Behavior\n\n1. User at 32% session usage, 98% weekly usage sends a message\n2. Claude Code returns: `⎿ API Error: Rate limit reached`\n3. Usage dashboard shows limits not at 100%\n4. User is confused - what limit? Why now?\n\n## Root Cause\n\nThere are **two types of rate limits**, but only one is visible:\n\n| Limit Type | Visible in Dashboard? | What it controls |\n|------------|----------------------|------------------|\n| **Usage limits** (weekly/session) | ✅ Yes | Total tokens/requests allowed |\n| **Throughput limits** (requests/min) | ❌ No | How fast you can make requests |\n\nThe error message conflates these. Users hit the **burst/throughput limit** (requests per minute cap) but the message makes it sound like they've exhausted their usage quota.\n\n## Impact\n\n- **Flow disruption**: Users stop working, thinking they're out of quota\n- **Support burden**: Users file complaints about \"hitting limits at 32%\"\n- **Plan confusion**: \"I'm paying $200/month, why am I throttled?\"\n- **No actionable guidance**: Message doesn't explain the fix (wait 60s vs stop for the week)\n\n## Proposed Solutions\n\n### Option 1: Distinguish error messages\n```\nCurrent:  API Error: Rate limit reached\nBetter:   Rate limit: Too many requests per minute. Retry in 60s.\nvs\nBetter:   Usage limit: Weekly quota exhausted. Resets Sun 5:59 PM.\n```\n\n### Option 2: Show throughput limits in dashboard\nAdd a \"Requests/min\" meter to the Usage page so users can see both types of limits.\n\n### Option 3: Auto-retry with backoff\nWhen Claude Code hits throughput limits, automatically retry after 60s instead of surfacing the error.\n\n## Reproduction\n\n1. Send several messages in quick succession on Opus (tool-heavy tasks)\n2. Observe `API Error: Rate limit reached` despite dashboard showing <100% usage\n3. Wait 60 seconds, retry → works fine\n\n## Environment\n\n- Plan: Pro Max ($200/month)\n- Model: Opus 4.6\n- Usage at time of error: 32% session, 98% weekly\n- Platform: macOS, Claude Code CLI v2.1.42\n\n## User Quote\n\n> \"I pay $200 pro max 20% extra plan. Now this is not fair. It's really bugging my workflow. I understand if I reached usage 100% yes you hit a usage limit but I'm not using any API keys here why I'm receiving this API error rate limit reached that needs to be fixed.\"\n\n## Expected Outcome\n\nError messages should be **specific and actionable**:\n- Tell users which limit they hit (usage vs throughput)\n- Provide clear next steps (wait vs upgrade vs use Sonnet)\n- Show all relevant limits in the dashboard",
+  "labels": ["enhancement", "platform:macos", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-14T20:25:15Z",
+  "updated_at": "2026-06-04T11:10:59Z",
+  "closed_at": "2026-06-04T11:10:59Z",
+  "reactions_total": 7,
+  "comments_count": 31,
+  "author": "techbantu",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22876\n2. https://github.com/anthropics/claude-code/issues/23030\n3. https://github.com/anthropics/claude-code/issues/25733\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-14T20:29:25Z"
+    },
+    {
+      "author": "lmee",
+      "author_association": "NONE",
+      "body": "I went through \"Rate limit errors show 'API Error' without distinguishing usage vs throughput limits\" plus the discussion thread and mapped the failing path.\n\nProblem I see: Users on paid plans (including Pro Max $200/month) are encountering API Error: Rate limit reached messages when their usage dashboard shows they haven't hit their limits. This creates confusion and disrupts workflow because the error message doesn't clarify what limit was reached.\nRoot-cause hypothesis: an auth/session state",
+      "created_at": "2026-02-14T21:21:42Z"
+    },
+    {
+      "author": "joeydangelo",
+      "author_association": "NONE",
+      "body": "I am also hitting \"API Error: Rate limit reached\" and my usage dashboard is way below limits.",
+      "created_at": "2026-02-19T01:58:46Z"
+    }
+  ]
+}

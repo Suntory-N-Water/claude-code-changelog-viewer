@@ -1,0 +1,35 @@
+{
+  "number": 23176,
+  "title": "[BUG] CLAUDE.md/memory file edits show \"Writing memory\" without diff - cannot see what changed",
+  "body": "## Environment\n- Claude CLI version: 2.1.31\n- Platform: macOS\n- Terminal: Ghostty\n\n## Bug Description\n\nWhen Claude edits CLAUDE.md files (memory files), the UI shows \"Writing memory\" or \"Wrote memory\" instead of displaying the actual diff like it does for other files. Even using Ctrl+O to expand verbose output does not reveal what changes were made.\n\nThis is a significant transparency issue - users cannot see what Claude is writing to their memory/instruction files without separately opening the file and checking git diff.\n\n## Steps to Reproduce\n1. Ask Claude to add something to CLAUDE.md (e.g., \"add a note about X to my CLAUDE.md\")\n2. Observe that the edit shows \"Writing memory\" instead of the old/new diff\n3. Press Ctrl+O to expand - still no diff visible\n\n## Expected Behavior\nCLAUDE.md edits should show the same diff preview as any other file edit, showing:\n- The old content being replaced\n- The new content being written\n- Line numbers and context\n\n## Actual Behavior\nShows only \"Writing memory\" / \"Wrote memory\" with no visibility into actual changes.\n\n## Why This Matters\nMemory files contain instructions that affect all future Claude interactions. Users need to:\n- Verify Claude understood their intent correctly\n- Catch any unwanted additions or modifications\n- Maintain control over what instructions they're giving Claude\n\nThe diff visibility for regular code files exists for good reason - the same reasoning applies even more strongly to memory/instruction files.\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "memory"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-04T20:22:20Z",
+  "updated_at": "2026-02-25T14:31:47Z",
+  "closed_at": "2026-02-17T20:06:24Z",
+  "reactions_total": 12,
+  "comments_count": 12,
+  "author": "TweedBeetle",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "TweedBeetle",
+      "author_association": "NONE",
+      "body": "## Additional Corroboration from Twitter/X\n\nDid some searching and found others noticing similar changes today (Feb 4, 2026):\n\n**\"Writing memory\" feature noticed:**\n- [@0xChemistt](https://x.com/i/status/2018933961561641169) reported Claude Code now writes to memory files - appears to be a stealth rollout without official announcement\n\n**Diff rendering issues:**\n- [@jeetizee](https://x.com/i/status/2018696038312300563) (Feb 3) reported broken diff rendering with \"ghost artifacts\"\n- [@SlavaVishny",
+      "created_at": "2026-02-04T20:48:07Z"
+    },
+    {
+      "author": "casepot",
+      "author_association": "NONE",
+      "body": "I also find this to be a huge regression. There is no way to tell what is being written to or read from CLAUDE.md, even hitting Ctrl+O and Ctrl+E doesn't show any more information. You have to manually go look at the file to see what changed.\n\nEven more frustrating is the model seems to assume that the user can see it, so even when explicitly told to say what it just wrote to CLAUDE.md, it does things like this:\n\n```\n⏺ You're right, I keep editing the file without you being able to see the resul",
+      "created_at": "2026-02-04T22:17:16Z"
+    },
+    {
+      "author": "milobird",
+      "author_association": "NONE",
+      "body": "@TweedBeetle Are you sure it was writing to CLAUDE.md?\n\nI noticed Claude just started doing this, looked into and it seems it is writing to `~/.claude/projects/{project}/memory/`. This seems to be a new memory feature (or the one which claude.ai has had for a while has now been enabled in Claude Code).\n\nFor now there appears to be no way to disable this feature, though you can block edits with permission rules.\n\nMore info here: https://gist.github.com/milobird/a1f256829ac75553c1a3bd64a5839eb4",
+      "created_at": "2026-02-05T10:17:27Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 11761,
+  "title": "[BUG] Terminal input stutters during streaming responses - Array.flatMap() blocks event loop (62% CPU hotspot)",
+  "body": "# [BUG] Terminal input stutters during streaming responses - Array.flatMap() blocks event loop (62% CPU hotspot)\n\n## Environment\n- **OS**: macOS 26.1 (25B78)\n- **Terminal**: Ghostty.app (production build)\n- **Claude Code Version**: 2.0.42 **(UPDATE: Still reproducible in 2.0.47)** **(UPDATE: Still reproducible in 2.0.50)**\n- **Node Version**: Latest (bundled with Claude Code)\n- **Session Duration**: 13+ hours when symptoms most severe\n\n## Problem Summary\n\nTerminal input becomes **sluggish and intermittently unresponsive** while Claude processes streaming API responses. User experiences stuttering pattern: keystrokes work briefly → freeze 100-500ms → work → freeze → repeat. Issue affects normal prompt/response workflow, not edge cases.\n\n## Reproduction Steps\n\n1. Start fresh Claude Code session in terminal\n2. Send any prompt that triggers Claude API streaming response\n3. **While Claude is responding**, try to type in terminal\n4. Observe input lag/dropped keystrokes with periodic brief \"gaps\" where typing works\n5. After response completes, input becomes responsive again\n6. **Severity increases** with longer session duration (12+ hours)\n\n**Reproduction rate:** 100% - happens on every prompt during active response processing.\n\n## Root Cause Analysis\n\nUsed macOS `sample` tool to capture 10-second process trace during active stuttering (PID 43387, 8069 samples):\n\n### Hotspot Identified\n**5000+ out of 8069 samples (62%)** spent in synchronous JavaScript array operations:\n\n```\nCall Stack:\nTLSWrap::OnStreamRead (network I/O callback)\n  → node::StreamBase::CallJSOnreadMethod\n    → Promise microtask (PromiseFulfillReactionJob)\n      → Builtins_AsyncFunctionAwaitResolveClosure\n        → [JIT compiled JavaScript]\n          → Builtins_ArrayPrototypeFlatMap  ← 62% OF SAMPLES HERE\n            → Builtins_FlattenIntoArrayWithMapFn\n              → LoadIC_Megamorphic (slow V8 property lookups)\n```\n\n### Why This Blocks Input\n\n1. **Node.js is single-threaded** - main event loop handles both API responses AND terminal input\n2. **Streaming chunks trigger callbacks** - each SSE chunk invokes JavaScript\n3. **`.flatMap()` executes synchronously** - no yielding to event loop\n4. **100-500ms block per chunk** - during this time, input events queued but not processed\n5. **Pattern: chunk → block → gap → chunk → block** - creates stuttering effect\n\n### Evidence Files\n\nOriginal process sample from v2.0.42: `claude-active-task-43387.txt` (904KB, 10-second trace)\n\nKey metrics from samples:\n- **ArrayPrototypeFlatMap**: 4653 samples\n- **LoadIC_Megamorphic**: 168 samples\n- **GC activity**: 314 samples (secondary issue - memory accumulation)\n- **Memory**: 1GB RSS, peak 1.4GB after 13h session\n\n## Visual Timeline\n\n```\nDuring streaming response processing:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nTime:   0ms   100ms  200ms  300ms  400ms  500ms  600ms\n\nChunk:  ┬──────┘      ┬─────┘      ┬──────┘      ┬─\nCPU:    ████▓░░░░░░░░░████▓░░░░░░░░████▓░░░░░░░░░████▓\n        ^^^^           ^^^^          ^^^^          ^^^^\n        flatMap()      flatMap()     flatMap()     flatMap()\n        blocks         blocks        blocks        blocks\n\nInput:  ✗✗✗✗✓✓✓✓✓✓✓✓✓✗✗✗✗✓✓✓✓✓✓✓✓✓✗✗✗✗✓✓✓✓✓✓✓✓✓✗✗✗✗\n        frozen ok      frozen ok     frozen ok     frozen\n\nLegend: ████ = 100% CPU  ░ = idle  ✗ = input dropped  ✓ = responsive\n```\n\n## Proposed Fix\n\n**Current code pattern (hypothetical - blocks event loop):**\n```javascript\n// Somewhere in streaming response handler\nconst processed = responseChunks.flatMap(chunk => {\n  return chunk.data.property1.property2.property3; // megamorphic access\n});\n```\n\n**Fixed pattern (yields to event loop):**\n```javascript\n// Option 1: Chunked async processing\nasync function",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "perf:memory"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-17T00:15:58Z",
+  "updated_at": "2025-12-06T14:06:23Z",
+  "closed_at": "2025-11-25T23:22:44Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "kuzmeech",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/10881\n2. https://github.com/anthropics/claude-code/issues/1497\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-17T00:21:20Z"
+    },
+    {
+      "author": "kuzmeech",
+      "author_association": "NONE",
+      "body": "**This is not a duplicate of #10881 or #1497**\n\nThese are distinct issues with different root causes and symptoms:\n\n**This issue (#11761) - Version 2.0.42 (Nov 17, 2025):**\n- ✅ **Specific problem**: Real-time input stuttering **during streaming responses** (100-500ms freezes)\n- ✅ **Root cause identified**: `Array.flatMap()` blocking event loop (62% CPU hotspot confirmed via macOS `sample` profiling)\n- ✅ **Timing**: Happens synchronously while processing each streaming chunk\n- ✅ **Reproduction**:",
+      "created_at": "2025-11-17T18:22:25Z"
+    },
+    {
+      "author": "LeonardMH",
+      "author_association": "NONE",
+      "body": "I haven't profiled in depth but I believe I'm hitting this issue on 2.0.42. 2.0.47 is unusable for me due to #11881.\n\nI am also on macOS, using iTerm 2 rather than Ghostty.\n",
+      "created_at": "2025-11-21T05:56:09Z"
+    }
+  ]
+}

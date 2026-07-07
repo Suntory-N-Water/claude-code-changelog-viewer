@@ -1,0 +1,35 @@
+{
+  "number": 32546,
+  "title": "[BUG] Claude Code memory leak causing repeated crashes with Opus 4.6 ",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n### To Reproduce: \n\n(version 2.1.71 - 2.1.74 have all done the same)\n\n1.  Open 4 Opus/Sonnet chats and use them for 2-3 hours swapping between them.\n2.  Track the memory usage by these processes (track the PID)\n3.  The memory usage will continue to grow until either the Claude (engine) crashes for all 4 at once or the system crashes.\n\n\n\n### Bug Description\nI use largely Claude Code. Recently (last 3 weeks or so), I have started heavy use of Opus 4.6 (medium). It keeps crashing from a memory leak filling up available memory. It is leaving zombie processes that slowly eat up virtual and RAM memory it needs. I have written a prompt to clean it, but I have taken to rebooting often and documenting progress and logs in notepad because Claude is unstable and loses its progress when it crashes. It has crashed about 15 times in last 5 days, even with reboots, resets, memory cleans. here is recent good output from a cleanup command: ---\nCLEANUP REPORT\nClaude:\nStatus: normal\nPrivate: 1748 MB / 4096 MB (ok)\nHandles: 1417 (ok)\nAction: none\nZombies: 0 found\nDocker:\nStatus: not running (skipped)\nContainers: n/a\nImages: n/a\nVolumes: n/a\nTemp files: none (venv caches only, left intact)\nClaude logs: 19.7 MB (under 20 MB threshold, no trim)\nMemory: 17.2 GB free / 31.7 GB total (committed: 21.3 GB)\nDisk recovered: 0 GB (system already clean)\nEverything looks healthy. Run /cleanup again anytime.\n\nEnvironment Info\n\nPlatform: win32\nTerminal: windows-terminal\nVersion: 2.1.71\nFeedback ID: 0e8459c7-44de-4ca2-8558-bcd6fb6edbf5\n\n\n=========== Actual command used for /cleanup\n\n# System & Claude Cleanup\n##NOTE: username actual replaced with [UserName]\n\nClean up Docker resources, zombie processes, Claude memory leaks, and reclaim disk/memory.\n\n## Windows PowerShell Command Pattern\n\n**CRITICAL:** Never pass multi-line PowerShell via `-Command \"...\"` — bash will expand `$variables`\nbefore PowerShell sees them, corrupting the script. Always use this pattern:\n\n1. Write the script to a temp `.ps1` file using the Write tool\n2. Execute with: `powershell.exe -ExecutionPolicy Bypass -NoProfile -File \"C:\\...\\script.ps1\"`\n\nAll multi-line PowerShell steps below must use this pattern.\n\n## Instructions\n\nRun the following cleanup steps in order. Report results after each step.\n\n### Step 1: Claude Desktop Memory Leak Check\n\nWrite this script to `C:\\Users\\[UserName]\\AppData\\Local\\Temp\\check_claude.ps1` then execute it:\n\n```powershell\n$procs = Get-Process -Name 'claude' -ErrorAction SilentlyContinue\nif ($procs) {\n    $main = $procs | Sort-Object PrivateMemorySize64 -Descending | Select-Object -First 1\n    $mainPrivMB = [math]::Round($main.PrivateMemorySize64 / 1MB)\n    $totalPrivMB = [math]::Round(($procs | Measure-Object PrivateMemorySize64 -Sum).Sum / 1MB)\n    $totalHandles = ($procs | Measure-Object HandleCount -Sum).Sum\n    Write-Host \"CLAUDE MEMORY STATUS\"\n    Write-Host \"  Processes:     $($procs.Count)\"\n    Write-Host \"  Main Private:  $mainPrivMB MB $(if($mainPrivMB -gt 4096){'!! LEAKED'}else{'(ok)'})\"\n    Write-Host \"  Total Private: $totalPrivMB MB\"\n    Write-Host \"  Handles:       $totalHandles $(if($totalHandles -gt 3000){'!! HANDLE LEAK'}else{'(ok)'})\"\n    $procs | Sort-Object PrivateMemorySize64 -Descending |\n        Select-Object Id,\n            @{N='RAM_MB';E={[math]::Round($_.WorkingSet64/1MB)}},\n            @{N='Priv_MB';E={[math]::Round($_.PrivateMemorySize64/1MB)}},\n            HandleCount, Responding |\n        Format-Table -AutoSize\n} else {\n    Write-Host \"Claude not running\"\n}\n```\n\nExecute with:\n```bash\npowershell.exe -ExecutionPolicy Bypass -NoProfile -File \"C:\\Users\\[UserName]\\AppData\\Local\\Temp\\check_claude.ps1\"\n```\n\nIf main process private bytes > 4096 MB OR handles > 3000, tell the user:\n- **Memory le",
+  "labels": ["bug", "duplicate", "platform:windows", "perf:memory"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-09T17:21:18Z",
+  "updated_at": "2026-04-12T14:26:54Z",
+  "closed_at": "2026-04-04T10:03:32Z",
+  "reactions_total": 1,
+  "comments_count": 12,
+  "author": "meckdahl",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24827\n2. https://github.com/anthropics/claude-code/issues/18405\n3. https://github.com/anthropics/claude-code/issues/32304\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-09T17:26:15Z"
+    },
+    {
+      "author": "chris-servantium",
+      "author_association": "NONE",
+      "body": "Running into the same issue on MacOS. Claude put a background clean-up process in place. Here's its summary of the situation on my end.\n------------------\nmacOS, same issue — zombie Python processes from Firebase emulator functions-framework workers\n\nEnvironment: macOS 26.2 (Sequoia), Apple Silicon, Claude Code via Claude Desktop, Python 3.13.12 (Homebrew)\n\nI'm seeing the exact same memory leak pattern. In my case, Claude Desktop spawns Firebase emulator sessions that use Python functions-framew",
+      "created_at": "2026-03-09T18:17:48Z"
+    },
+    {
+      "author": "meckdahl",
+      "author_association": "NONE",
+      "body": "thanks @chris-servantium I also have a cleanup script running, and I tried using Sonnet instead of Opus, that did not resolve.  I just had 3 parallel chats all crash at the same time, when otherwise the system was not bogging down (that happens at times with this.)  It really just seems to be less stable, much less stable, unfortunately.  Thanks for your feedback, hopefully this will get identified and fixed soon.",
+      "created_at": "2026-03-11T17:53:50Z"
+    }
+  ]
+}

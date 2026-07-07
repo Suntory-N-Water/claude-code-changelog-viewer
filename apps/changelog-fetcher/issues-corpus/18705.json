@@ -1,0 +1,42 @@
+{
+  "number": 18705,
+  "title": "[BUG] Token Limit Hard-Stop Without Warning or Auto-Compaction",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code reaches the 200k token limit and abruptly stops mid-conversation without any proactive warnings or automatic compaction. The conversation hits a hard-stop displaying \"Context limit reached · /compact or /clear to continue\" with no prior indication that the limit was approaching.\n\n**Current problematic behavior:**\n\n1. **No proactive warnings** - Users receive no notification when approaching the token limit (e.g., at 80%, 90%, or 95% usage)\n2. **No automatic compaction** - The conversation does not auto-compact to preserve recent context and continue working\n3. **Hard-stop mid-task** - Work stops immediately, potentially in the middle of complex multi-step operations\n4. **Poor visibility** - Token usage appears only in `<system_warning>` tags within tool results, not in user-facing output\n5. **Data loss risk** - Users may not know to `/export` before the limit is reached\n6. **Workflow disruption** - Requires manual intervention (`/compact` or `/clear`) to continue, losing momentum on active development tasks\n\nThis is a serious bug in Claude Code CLI's token management system that breaks the user experience during extended development sessions.\n\n\n### What Should Happen?\n\nClaude Code should implement graceful degradation with progressive warnings and automatic compaction:\n\n### Progressive Warning System\n\n**At 80% token usage (160k/200k):**\n```\n⚠️  Token usage: 160000/200000 (80%)\nConsider running /compact to free up context, or save your work soon.\n```\n\n**At 95% token usage (190k/200k):**\n```\n⚠️  Token usage: 190000/200000 (95%) - Approaching limit!\nPlease run /compact now to continue working, or conversation will auto-compact in 30 seconds.\n```\n\n### Automatic Compaction\n\n**At 98% token usage (196k/200k):**\n- Automatically compact the conversation to preserve recent context\n- Display progress: \"Auto-compacting conversation to free up tokens...\"\n- Continue working seamlessly without user intervention\n- Preserve:\n  - Current task details\n  - Recent tool outputs\n  - User's original request\n  - Active file contents\n\n### Never Hard-Stop Mid-Conversation\n\nThe current hard-stop behavior should only occur as an absolute last resort, and if necessary, should happen gracefully at a task boundary (not mid-operation).\n\n### User Control\n\nProvide settings to:\n- Configure warning thresholds (default: 80%, 95%)\n- Enable/disable auto-compaction (default: enabled)\n- Set auto-compaction trigger point (default: 98%)\n\n\n### Error Messages/Logs\n\n```shell\n### Current Hard-Stop Message\n\n\n⎿  Context limit reached · /compact or /clear to continue\n\n✻ Cogitated for 33m 34s\n\n\n### Token Usage in System Warnings (not visible to users in normal output)\n\n\n<system_warning>Token usage: 48278/200000; 151722 remaining</system_warning>\n[... many interactions later ...]\n⎿  Context limit reached · /compact or /clear to continue\n\n\n**Key issue:** Token usage warnings appear only in XML tags within tool results, not in user-facing conversational output. Users have no visibility into approaching limits.\n\n### No Error Logs\n\nThe hard-stop does not generate error logs or stack traces - it simply displays the \"Context limit reached\" message and halts all interaction.\n```\n\n### Steps to Reproduce\n\n1. **Start a long development session** with Claude Code CLI in any project:\n   ```bash\n   claude-code\n   ```\n\n2. **Engage in extended multi-step work** that generates high token usage:\n   - Complex debugging sessions with multiple file reads\n   - Multi-file refactoring tasks\n   - Test generation workflows (multiple test files)\n   - Long implementation plans with review cycles\n\n3. **Continue working without manually checking token usage** - rely on the tool to warn you\n\n4. **Observe:** No warnings appear as token",
+  "labels": [
+    "bug",
+    "enhancement",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "area:core"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-17T00:07:04Z",
+  "updated_at": "2026-04-03T16:58:53Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 15,
+  "author": "smartwatermelon",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "barrowes",
+      "author_association": "NONE",
+      "body": "Also, as of like version 2.1.6 you could use all of the tokens up to 200k, where as of 2.1.7, you are now locked out of using the remaining 25k-ish tokens, because of this new \"Context limit reached\" behavior.  I have autocompact off, and understand I assume the risk of context exhaustion, but I'd rather have access to those 25k tokens to finish a package of work.",
+      "created_at": "2026-01-17T00:10:48Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18211\n2. https://github.com/anthropics/claude-code/issues/14274\n3. https://github.com/anthropics/claude-code/issues/16349\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-17T00:12:17Z"
+    },
+    {
+      "author": "solangerainha",
+      "author_association": "NONE",
+      "body": "Auto compaction isn't working in Claude.ai either since yesterday.",
+      "created_at": "2026-01-17T00:13:04Z"
+    }
+  ]
+}

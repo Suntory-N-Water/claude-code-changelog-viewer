@@ -1,0 +1,35 @@
+{
+  "number": 528,
+  "title": "[BUG] Claude is not adhering to CLAUDE.md when it should",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 0.2.45 (Claude Code)\n- Operating System: Fedora 41\n- Terminal:  Konsole\n\n## Bug Description\nClaude fails to consistently follow the instructions provided in the `CLAUDE.md` file, regardless of its length or conciseness. Additionally, it appears to forget or disregard updates to the file during a session. A specific issue is that rules related to comments are ignored. For example, if a rule states that no comments should be included in the code, Claude still adds them, often \"discussing with itself\" throughout the code base.\n\n## Steps to Reproduce\n1. Run claude in any code base\n2. Create a CLAUDE.md file containing the following content (this is python specific):\n```xml\nBefore each task, YOU MUST follow the 9 rules below. Repeat them to yourself before you do any task the user gives you.\n<base-instructions>\n    <rule id=\"1\" name=\"No Hardcoding\">Use configuration files or environment variables. Enums are allowed.</rule>\n    <rule id=\"2\" name=\"Fix Root Causes\">No workarounds; address issues properly.</rule>\n    <rule id=\"3\" name=\"Remove Legacy Code\">Delete old code when replacing it; no shims or compatibility layers.</rule>\n    <rule id=\"4\" name=\"Minimal Comments\">Code must be self-explanatory; use comments only when necessary.</rule>\n    <rule id=\"5\" name=\"Avoid Circular Dependencies\">Keep modules loosely coupled.</rule>\n    <rule id=\"6\" name=\"Use Logging\">Always use logging facilities; no print statements.</rule>\n    <rule id=\"7\" name=\"Mandatory Testing\">Ensure 100% test coverage, including edge cases. No artificial test data.</rule>\n    <rule id=\"8\" name=\"No Unused Imports\">Remove any imports that are not in use.</rule>\n    <rule id=\"9\" name=\"Follow Documentation\">Verify implementation against relevant documentation (docs/vendors/).</rule>\n</base-instructions>\n```\n3. Observe that Claude fails to adhere to these rules in code generation.\n4. Update the `CLAUDE.md` file and rerun Claude, noting that it sometimes still references older versions.\n\n## Expected Behavior\nClaude should strictly adhere to the rules defined in `CLAUDE.md`, ensuring consistent code quality, proper test implementation, and adherence to project-specific guidelines. The model should also respect updates to the file and apply them when the user request it.\n\n## Actual Behavior\n- Claude does not consistently follow the defined rules.\n- It does not reprocess `CLAUDE.md` for each task or session.\n- Rules are sometimes outright ignored, especially those related to comments.\n- In some cases, the model seems to do the opposite of what is instructed.\n- Updating `CLAUDE.md` does not always take effect, leading to confusion and inconsistent behavior.\n- Attempts to enforce adherence through manual reminders have proven ineffective.\n\n\n## Additional Context\n<!-- Add any other context about the problem here, such as screenshots, logs, etc. -->",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-03-16T09:17:24Z",
+  "updated_at": "2026-01-14T14:19:47Z",
+  "closed_at": "2026-01-07T10:21:23Z",
+  "reactions_total": 14,
+  "comments_count": 12,
+  "author": "Swoy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "bluecoconut",
+      "author_association": "NONE",
+      "body": "I don't know if this is real, but it seems like in the last ~48 hours, this has gotten a lot worse for me. \nI now have to start every chat by directly asking it to \"read in claude.md directly\" and then it behaves much better (might just be repeating the message helps.. i dunno). A few days ago, it seemed like it was behaving naturally -- update claude.md, behavior adjusted accordingly in new conversations -- \nHowever, it now feels like there's been a silent regression where somehow the claude.md",
+      "created_at": "2025-03-17T11:47:43Z"
+    },
+    {
+      "author": "Swoy",
+      "author_association": "NONE",
+      "body": "I concur, now with auto compacting, it's a complete mess:\n\nClaude can:\n- manipulate tests to make them pass instead of fixing core issues. Claude is very good at using skip here too.\n- _pretend_ to read documentation when it is stuck (I've added entire languages of documentation to the repo, it simply doesn't use it unless I constantly ask it to).\n- It is more prone to implement hard coded things to _make stuff build_ instead of focusing on fixing underlying issues. This is quite obvious when wo",
+      "created_at": "2025-03-18T14:38:05Z"
+    },
+    {
+      "author": "sjmiller609",
+      "author_association": "NONE",
+      "body": "In my case, Claude Code will sometimes start trying to guess the right way to build the application when the build command is at the top of CLAUDE.md, and my CLAUDE.md is only 82 lines.",
+      "created_at": "2025-03-22T17:02:38Z"
+    }
+  ]
+}

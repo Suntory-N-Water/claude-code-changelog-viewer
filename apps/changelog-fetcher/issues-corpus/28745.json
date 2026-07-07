@@ -1,0 +1,35 @@
+{
+  "number": 28745,
+  "title": "Allow resuming conversations from different directories",
+  "body": "## Problem\n\nConversations are tied to the directory where they were started. If the original directory no longer exists (e.g., deleted git worktree, moved/renamed directory), there's no way to resume that conversation.\n\nThe current behavior shows:\n```\nThis conversation is from a different directory.\n\nTo resume, run:\n  cd /original/path && claude --resume <session-id>\n```\n\nBut if `/original/path` no longer exists, this is impossible without manually recreating the directory structure.\n\n## Use Cases\n\n1. **Git worktrees**: Developers often create temporary worktrees for PRs/features, then delete them after merging. Conversations from those worktrees become inaccessible.\n\n2. **Directory reorganization**: Moving or renaming project directories orphans all associated conversations.\n\n3. **Disk cleanup**: Removing old project directories loses conversation history even if you want to reference it later.\n\n## Proposed Solution\n\nAdd a `--force` flag (or similar) to allow resuming a conversation regardless of directory mismatch:\n\n```bash\nclaude --resume <session-id> --force\n```\n\nOr allow specifying a session ID without directory validation:\n\n```bash\nclaude --resume <session-id> --ignore-directory\n```\n\n## Current Workarounds\n\n- Manually recreate the original directory path (empty directory works)\n- Symlink current location to the old path\n\nBoth are cumbersome and shouldn't be necessary.",
+  "labels": ["enhancement", "area:cli"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-25T21:29:52Z",
+  "updated_at": "2026-04-22T11:34:09Z",
+  "closed_at": null,
+  "reactions_total": 60,
+  "comments_count": 8,
+  "author": "butlersrepos",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5768\n2. https://github.com/anthropics/claude-code/issues/28314\n3. https://github.com/anthropics/claude-code/issues/19747\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-25T21:34:31Z"
+    },
+    {
+      "author": "kopyl",
+      "author_association": "NONE",
+      "body": "Need this ASAP.\nIt's so bad that I haveto remember the directory to be able to continue a conversation.\n\nWhen it's done, please ping me somebody ❤️ \n",
+      "created_at": "2026-02-28T18:11:19Z"
+    },
+    {
+      "author": "zaz",
+      "author_association": "NONE",
+      "body": "Could I also suggest you generate UUIDs within each project's `.claude/` directory so that if the developer manually moves or renames the directory, it is possible to automatically fix `~/.claude/projects/` to match?",
+      "created_at": "2026-03-08T12:40:29Z"
+    }
+  ]
+}

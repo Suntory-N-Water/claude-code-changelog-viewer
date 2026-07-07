@@ -1,0 +1,43 @@
+{
+  "number": 7991,
+  "title": "[Bug] Anthropic API Error: Tool Use IDs Without Tool Result Blocks When Parsing PDFs",
+  "body": "**Bug Description**\nAPI Error 400 \"tool_use ids were found without tool_Result blocks immediately errors when attempting to analse PDF files in a windows IDE for creation of a sumarization document\n\n**Environment Info**\n- Platform: win32\n- Terminal: null\n- Version: 1.0.120\n- Feedback ID: 57e586e3-fdcb-420b-b92e-15fd5495f7e6\n\n**Errors**\n```json\n[{\"error\":\"Error: 400 {\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"messages.10: `tool_use` ids were found without `tool_result` blocks immediately after: toolu_01HcWybrYujVLaMNFXM6JCo7, toolu_01JDfBqH7sCBodTu1VievAxP, toolu_01S5e8P8Kq3qiwMfnSJE4FEF, toolu_01US4KCbz6fwwBNaKxPSKRLJ. Each `tool_use` block must have a corresponding `tool_result` block in the next message.\\\"},\\\"request_id\\\":\\\"req_011CTNUX7yyvLat8TJE4uHKn\\\"}\\n    at new B5 (unknown:1:28)\\n    at new OY (B:/~BUN/root/claude.exe:841:1962)\\n    at new RG0 (unknown:1:28)\\n    at generate (B:/~BUN/root/claude.exe:841:2419)\\n    at makeRequest (B:/~BUN/root/claude.exe:858:5359)\\n    at processTicksAndRejections (native:7:39)\",\"timestamp\":\"2025-09-22T00:15:13.308Z\"}]\n```\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tools",
+    "area:core",
+    "area:api",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-22T00:16:32Z",
+  "updated_at": "2026-01-21T14:16:49Z",
+  "closed_at": "2026-01-13T10:10:54Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "count23all",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "gorkem-bwl",
+      "author_association": "NONE",
+      "body": "Similar error just happened with me, and CC is stuck. Quitting and restarting with `claude --continue` has no effect.\n\n```\n  ⎿  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.163: `tool_use` ids were found without `tool_result` blocks immediately after: \n     toolu_01TUjDhhWY8rkKPB2RcuZS4r, toolu_01YYZdWcU8h7wDAKzGGEka56. Each `tool_use` block must have a corresponding `tool_result` block in the next \n     message.\"},\"request_id\":\"req_011CTNWUJuhnW6muo",
+      "created_at": "2025-09-22T00:42:15Z"
+    },
+    {
+      "author": "Notum",
+      "author_association": "NONE",
+      "body": "I confirm this error exists, when trying to parse PDF:\n\n`Read(docs/145.25-04 audit report.pdf)\n  ⎿  Read PDF (12.5MB)\n\n● Search(pattern: \"**/organizations*\")\n  ⎿  Found 1 file (ctrl+o to expand)\n\n● Search(pattern: \"key_account|account_manager\")\n  ⎿  Found 9 files (ctrl+o to expand)\n  ⎿  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.2: `tool_use` ids were found without `tool_result` blocks immediately after: toolu_01LjFUpXgG38BMjSbN3mvBBp, toolu_01Mkxi",
+      "created_at": "2025-10-02T10:14:52Z"
+    },
+    {
+      "author": "jacobomadsen",
+      "author_association": "NONE",
+      "body": "I confirm this problem as well. Seems to happen when Code is asked to read multiple PDF files in my case. Version 2.0.5 doesn't fix the problem.",
+      "created_at": "2025-10-03T07:22:34Z"
+    }
+  ]
+}

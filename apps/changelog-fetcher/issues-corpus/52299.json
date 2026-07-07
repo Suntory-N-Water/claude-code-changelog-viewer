@@ -1,0 +1,16 @@
+{
+  "number": 52299,
+  "title": "[BUG] <Box> can't be nested inside <Text> crash when permission dialog renders in tmux split-pane spawned agent",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen a sub-agent is spawned via CLAUDE_CODE_SPAWN_BACKEND=tmux with teammateMode: splitPane and permissions are set to ask, the agent crashes immediately with an Ink rendering error when it tries to show the permission prompt dialog.\n\n### What Should Happen?\n\nPermission dialog renders and waits for user input.\n\n### Error Messages/Logs\n\n```shell\nAgent crashes with:\n\nERROR  <Box> can't be nested inside <Text> component\n/$bunfs/root/src/entrypoints/cli.js:496:249\n```\n\n### Steps to Reproduce\n\nSet CLAUDE_CODE_SPAWN_BACKEND=tmux and teammateMode: splitPane in settings\nSet any permission to ask (e.g. Bash(*), Read(*))\nSpawn a sub-agent via agent teams — e.g.:\n\nenv CLAUDECODE=1 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude \\\n  --agent-id backend-dev@my-team \\\n  --agent-name backend-dev \\\n  --team-name my-team \\\n  --agent-color green \\\n  --parent-session-id <id> \\\n  --model sonnet\n\nAgent triggers any tool that requires the permission prompt\n\nWorkaround\nChanging \"ask\" to \"allow\" in permissions prevents the crash — the permission dialog is never rendered so the Ink error is not triggered.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nv2.1.118\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nWarp\n\n### Additional Information\n\n_No response_",
+  "labels": ["duplicate", "platform:macos", "area:tui", "area:agents"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-23T07:26:33Z",
+  "updated_at": "2026-06-19T15:05:42Z",
+  "closed_at": "2026-04-23T20:39:01Z",
+  "reactions_total": 5,
+  "comments_count": 7,
+  "author": "RoslanHristov",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

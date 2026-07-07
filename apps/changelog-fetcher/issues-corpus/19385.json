@@ -1,0 +1,35 @@
+{
+  "number": 19385,
+  "title": "Feature Request: Expose rate limit data in statusline JSON input",
+  "body": "# Feature Request: Expose rate limit data in statusline JSON input\n\n## Problem\n\nClaude Code displays rate limit information in the `/usage` command (5-hour session usage %, weekly all-models %, weekly Sonnet-only %), but this data is not accessible programmatically for custom statusline scripts.\n\nCurrently, the statusline JSON input includes:\n- `context_window.used_percentage` - context window usage\n- `cost` - session cost data\n- `workspace`, `model`, etc.\n\nBut it does **not** include the account-level rate limits that appear in `/usage`:\n- Current 5-hour session usage %\n- Weekly all-models usage %\n- Weekly Sonnet-only usage %\n- Reset times for each\n\n## Current Workaround\n\nThe only way to get this data is to scrape the claude.ai/settings/usage webpage via browser automation (Safari/AppleScript on macOS). This is:\n- Heavy (requires keeping a browser tab open)\n- Platform-specific (macOS only with Safari)\n- Fragile (breaks if UI changes)\n- Slow (requires page refresh cycles)\n\n## Proposed Solution\n\nExpose rate limit data in the statusline JSON input. The data already exists - it comes from `anthropic-ratelimit-unified-*` response headers that the API returns with every request:\n- `anthropic-ratelimit-unified-status`\n- `anthropic-ratelimit-unified-reset`\n- `anthropic-ratelimit-unified-representative-claim`\n\n### Suggested schema addition:\n\n```json\n{\n  \"rate_limits\": {\n    \"session\": {\n      \"used_percentage\": 23,\n      \"resets_at\": \"2026-01-20T12:00:00Z\",\n      \"resets_in_seconds\": 14400\n    },\n    \"weekly_all_models\": {\n      \"used_percentage\": 16,\n      \"resets_at\": \"2026-01-26T07:00:00Z\"\n    },\n    \"weekly_sonnet\": {\n      \"used_percentage\": 2,\n      \"resets_at\": \"2026-01-26T16:00:00Z\"\n    }\n  }\n}\n```\n\n## Alternative: Hook access\n\nAlternatively, expose this data via a hook (e.g., `Stop` hook or new `PostResponse` hook) so users can capture and cache it themselves.\n\n## Use Case\n\nMany users want to monitor their usage limits in real-time without leaving the terminal. A custom statusline showing:\n\n```\nmain #123 · 🟢 23% 4h · 🟢 16% 5d · 🟢 2% S\n```\n\n...is much more useful than having to run `/usage` or check the web UI.\n\n## Environment\n\n- Claude Code version: 2.1.12\n- Platform: macOS (but this would benefit all platforms)\n",
+  "labels": ["duplicate", "enhancement", "area:hooks"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-20T01:28:47Z",
+  "updated_at": "2026-05-04T15:03:29Z",
+  "closed_at": "2026-04-25T22:38:43Z",
+  "reactions_total": 15,
+  "comments_count": 8,
+  "author": "marty-at-propwiz",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19374\n2. https://github.com/anthropics/claude-code/issues/18162\n3. https://github.com/anthropics/claude-code/issues/18121\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-20T01:32:28Z"
+    },
+    {
+      "author": "tiagodocouto",
+      "author_association": "NONE",
+      "body": "I would love that!",
+      "created_at": "2026-01-20T17:47:14Z"
+    },
+    {
+      "author": "nsanden",
+      "author_association": "NONE",
+      "body": "A workaround i built today https://github.com/nsanden/claude-rate-monitor",
+      "created_at": "2026-01-29T18:17:54Z"
+    }
+  ]
+}

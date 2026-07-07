@@ -1,0 +1,35 @@
+{
+  "number": 27305,
+  "title": "Custom statusline compressed to 1 char/line when notification banners are active",
+  "body": "## Bug description\n\nWhen a UI notification banner is active (e.g., `npm-deprecation-warning`, `programdata-deprecation-warning`), custom statusline output is compressed vertically — each character renders on its own line, making the statusline completely unreadable.\n\nThis happens because the footer layout uses flex with different shrink behaviors:\n- **Statusline container** (`H6`): `flexShrink: 1` — shrinks to accommodate notifications\n- **Notifications container** (`Y6`): `flexShrink: 0` — never shrinks\n\nWhen a multi-line notification banner appears, the statusline area shrinks to near-zero height, causing the text to wrap character-by-character.\n\n## Steps to reproduce\n\n1. Install Claude Code via npm (triggers `npm-deprecation-warning` banner on startup)\n2. Configure a custom statusline in `~/.claude/settings.json`:\n   ```json\n   {\n     \"statusLine\": {\n       \"type\": \"command\",\n       \"command\": \"bash ~/.claude/statusline.sh\"\n     }\n   }\n   ```\n3. Start a new Claude Code session\n4. Observe the statusline is compressed/unreadable while the notification banner is visible (~15s)\n5. After the banner auto-dismisses, the statusline renders correctly\n\n## Expected behavior\n\nThe statusline should remain readable when notification banners are active. Either:\n- Both containers should share available space proportionally\n- The statusline should have `flexShrink: 0` (or a minimum height)\n- Users should have a way to disable/suppress specific startup banners\n\n## Actual behavior\n\nThe statusline text wraps to 1 character per line, becoming completely unreadable. This persists for the duration of the notification banner (typically 15 seconds for startup banners).\n\n![Image](https://github.com/user-attachments/assets/0d33ed2e-966a-437a-a304-d00034db649b)\n\n\n## Environment\n\n- **Claude Code version**: 2.1.49\n- **Platform**: Windows 11 (Git Bash)\n- **Terminal**: Windows Terminal\n- **Install method**: npm\n\n## Additional context\n\n- The `addNotification` system that displays these banners does NOT go through the `Notification` hook system, so there's no way to detect or suppress them from the statusline script\n- Identified ~20 notification types that can trigger this, most impactful being startup banners with 15s timeout\n- The `statusLine.padding` setting only adds horizontal spacing and does not help\n- No existing setting to disable specific notification banners\n- Related issues: #21867, #22222, #23623 (all involve statusline layout compression in different scenarios)\n\n",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-21T02:19:16Z",
+  "updated_at": "2026-04-10T14:39:08Z",
+  "closed_at": "2026-03-30T22:18:44Z",
+  "reactions_total": 4,
+  "comments_count": 10,
+  "author": "AmaralVini",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25466\n2. https://github.com/anthropics/claude-code/issues/27158\n3. https://github.com/anthropics/claude-code/issues/27291\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-21T02:23:08Z"
+    },
+    {
+      "author": "AmaralVini",
+      "author_association": "NONE",
+      "body": "## Not a duplicate — different root cause\n\nThe issues flagged as duplicates (#25466, #27158, #27291) all share the same **symptom** (statusline rendered 1 char per line), but have a **different root cause**:\n\n| Issue | Root Cause | Duration | Trigger |\n|-------|-----------|----------|---------|\n| #25466 | `stdout.columns` returns 1 in WezTerm split panes | ~2s (self-corrects) | Split pane initialization |\n| #27158 | `stdout.columns` returns 1 during welcome→REPL transition in tmux | ~2s (self-co",
+      "created_at": "2026-02-21T22:36:29Z"
+    },
+    {
+      "author": "Budgulick",
+      "author_association": "NONE",
+      "body": "## Workaround\n\nThe root cause is the notification banner (e.g., npm-to-native nag) stealing all statusline space due to `flexShrink: 0` vs `flexShrink: 1`.\n\nYou can suppress the banner entirely with an undocumented env var. Add to `~/.claude/settings.json`:\n\n```json\n{\n  \"env\": {\n    \"DISABLE_INSTALLATION_CHECKS\": \"1\"\n  }\n}\n```\n\nNo banner = no flex layout conflict = statusline renders normally.\n\nFound by reading the minified source — the notification check has an early return on `process.env.DISA",
+      "created_at": "2026-02-23T03:00:15Z"
+    }
+  ]
+}

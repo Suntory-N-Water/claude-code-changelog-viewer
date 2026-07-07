@@ -1,0 +1,35 @@
+{
+  "number": 10447,
+  "title": "Feature Request: CLI Commands for MCP Server Enable/Disable (Hook Automation Support)",
+  "body": "## Feature Request: CLI Commands for MCP Server Enable/Disable (Hook Automation Support)\n\n### Problem Statement\n\nClaude Code v2.0.10 introduced the ability to enable/disable MCP servers within a session via the `@` UI menu. This is excellent for manual control, but there's currently no way to **programmatically** toggle MCP servers via CLI commands. This prevents automation through hooks and scripts.\n\n**Current Limitations:**\n1. The `claude mcp` CLI only supports `add`, `remove`, `list`, and `get` - no `enable`/`disable`/`toggle`\n2. MCP servers consume context window even when not actively needed\n3. No way to automate MCP lifecycle based on project context, skills, or workflows\n4. The `@` menu toggle is UI-only with no programmatic equivalent\n\n### Use Case: Skill-Based MCP Management\n\nI have several Claude Code skills that require specific MCP servers, but only occasionally:\n\n**Example Skills:**\n- `accessibility-compliance-expert` skill → Needs Playwright MCP for visual testing\n- `library-documentation` research → Needs Context7 MCP for API docs  \n- `database-analysis` tasks → Needs database MCP tools\n\n**Current Problem:**\n- All MCP servers load at session start, consuming 15-20% of context window\n- Playwright MCP alone: ~8-10k tokens, but only needed for visual testing tasks\n- Context7 MCP: ~5k tokens, but only needed for documentation lookup\n- These servers sit idle 90% of the time, wasting valuable context\n\n**Desired Workflow:**\n```bash\n# SessionStart hook - enable only baseline MCPs\nclaude mcp disable playwright\nclaude mcp disable context7\n\n# PreToolUse hook - enable when specific skill triggers\nif [[ \"$context\" =~ \"accessibility-compliance-expert\" ]]; then\n  claude mcp enable playwright\nfi\n\n# Stop hook - disable when skill completes to free context\nclaude mcp disable playwright\n```\n\n### Proposed CLI Commands\n\nAdd these commands to the `claude mcp` CLI:\n\n```bash\n# Enable an MCP server in current session (doesn't modify config files)\nclaude mcp enable <server-name>\n\n# Disable an MCP server in current session (doesn't modify config files)  \nclaude mcp disable <server-name>\n\n# Toggle an MCP server's state\nclaude mcp toggle <server-name>\n\n# Show current enabled/disabled state of all servers\nclaude mcp status\n```\n\n**Example Usage:**\n```bash\n$ claude mcp status\n✓ pieces-mcp          enabled   (3.2k tokens)\n✗ playwright          disabled  \n✓ sequential-thinking enabled   (1.8k tokens)\n✗ context7            disabled\n✓ stripe              enabled   (4.1k tokens)\n\nTotal active: 3/5 servers (9.1k tokens)\n\n$ claude mcp disable stripe\n✓ Disabled stripe (freed 4.1k tokens)\n\n$ claude mcp enable playwright  \n✓ Enabled playwright (loaded 8.3k tokens)\n```\n\n### Hook Integration Example\n\n**SessionStart Hook** (`.claude/hooks/session-start.sh`):\n```bash\n#!/bin/bash\n# Disable rarely-used MCPs at session start\n\nclaude mcp disable playwright\nclaude mcp disable context7\n\n# Enable based on project type\nif [[ -f \"package.json\" ]] && grep -q \"@playwright/test\" package.json; then\n  claude mcp enable playwright\n  echo \"📊 Enabled Playwright MCP for testing project\"\nfi\n```\n\n**PreToolUse Hook** (`.claude/hooks/pre-tool-use.sh`):\n```bash\n#!/bin/bash\n# Enable MCP when specific skill triggers\n\n# Read context from environment\ncontext=\"$CLAUDE_CONTEXT\"\n\nif [[ \"$context\" =~ \"accessibility-compliance-expert\" ]]; then\n  # Enable Playwright only when accessibility skill is active\n  claude mcp enable playwright\nfi\n```\n\n**SubagentStop Hook** (`.claude/hooks/subagent-stop.sh`):\n```bash\n#!/bin/bash\n# Free up context when specialized subagent completes\n\nsubagent_name=\"$CLAUDE_SUBAGENT_NAME\"\n\nif [[ \"$subagent_name\" == \"accessibility-compliance-expert\" ]]; then\n  claude mcp disable playwright\n  echo \"♻️ Freed context: disabled Playwright MCP\"\nfi\n```\n\n### Benefits\n\n1. **Context Window Optimization**\n   - Load MCP servers on-demand instead of all-at-once\n   - Free context by disabling servers when done\n   - Optimize for long development sessions with varying needs\n\n2. **Skill-Based Automation**  \n   - Skills can automatically enable their r",
+  "labels": ["enhancement", "has repro", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-27T17:01:13Z",
+  "updated_at": "2026-05-13T15:13:54Z",
+  "closed_at": null,
+  "reactions_total": 54,
+  "comments_count": 15,
+  "author": "learnwithcc",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/6309\n2. https://github.com/anthropics/claude-code/issues/6638\n3. https://github.com/anthropics/claude-code/issues/7172\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-27T17:04:55Z"
+    },
+    {
+      "author": "mtrefilek",
+      "author_association": "NONE",
+      "body": "@claude \n\n> Found 3 possible duplicate issues:\n> https://github.com/anthropics/claude-code/issues/6309\n\nI don't think this fully encapsulates this issue which would allow for running in hooks",
+      "created_at": "2025-10-27T17:50:01Z"
+    },
+    {
+      "author": "dlecan",
+      "author_association": "NONE",
+      "body": "That's exactly what I'm looking for",
+      "created_at": "2025-11-17T20:14:50Z"
+    }
+  ]
+}

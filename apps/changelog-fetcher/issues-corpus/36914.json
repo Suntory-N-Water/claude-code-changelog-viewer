@@ -1,0 +1,42 @@
+{
+  "number": 36914,
+  "title": "[BUG] Local stdio MCP server tools never registered as deferred tools despite successful connection (v2.1.81)",
+  "body": "## Description\n\nLocal stdio MCP servers connect successfully and are visible internally to Claude Code, but their tools are **never registered as deferred tools** and cannot be discovered or called by the model. Cloud MCP servers (claude.ai Gmail, Vercel, Notion, etc.) work perfectly in the same session.\n\nThis is **not** specific to any one MCP server — I've reproduced it with both `@modelcontextprotocol/server-filesystem@0.6.2` and `@modelcontextprotocol/server-memory`. No local stdio MCP server registers tools.\n\n## Environment\n\n- **Claude Code version:** 2.1.81 (latest on npm as of 2026-03-20)\n- **Platform:** macOS (Darwin 25.3.0, Apple Silicon)\n- **Shell:** zsh\n- **Node.js:** v22.x (npx 11.12.0)\n- **MCP server tested:** `@modelcontextprotocol/server-filesystem@0.6.2` (also `@modelcontextprotocol/server-memory`)\n\n## Steps to Reproduce\n\n1. Add a local stdio MCP server to `.mcp.json` in the project root:\n   ```json\n   {\n     \"mcpServers\": {\n       \"obsidian-full-vault\": {\n         \"type\": \"stdio\",\n         \"command\": \"npx\",\n         \"args\": [\"-y\", \"@modelcontextprotocol/server-filesystem@0.6.2\", \"/path/to/directory\"]\n       }\n     }\n   }\n   ```\n\n2. Ensure `.claude/settings.local.json` has:\n   ```json\n   {\n     \"enableAllProjectMcpServers\": true,\n     \"enabledMcpjsonServers\": [\"obsidian-full-vault\"]\n   }\n   ```\n\n3. Start Claude Code (`claude`).\n\n4. Run `claude mcp list` — server shows `✓ Connected`.\n\n5. In the session, use `ToolSearch` to look for `mcp__obsidian` — **returns nothing**.\n\n6. Try `ListMcpResourcesTool(server: \"obsidian-full-vault\")` — **succeeds**, proving Claude Code sees the server internally.\n\n7. No `mcp__obsidian-full-vault__*` tools are available to the model.\n\n## Expected Behavior\n\nThe server's 9 tools should appear as deferred tools discoverable via `ToolSearch`, with names like `mcp__obsidian-full-vault__read_file`, `mcp__obsidian-full-vault__list_allowed_directories`, etc.\n\n## Actual Behavior\n\n- `claude mcp list` → `✓ Connected`\n- `claude mcp get obsidian-full-vault` → shows correct config, scope \"Project config (shared via .mcp.json)\"\n- `ListMcpResourcesTool(server: \"obsidian-full-vault\")` → succeeds (returns empty resources, which is correct for filesystem server)\n- `ToolSearch(\"mcp__obsidian\")` → **no results**\n- The model cannot call any tool from the server\n\n## Key Evidence: This Affects ALL Local Stdio Servers\n\nTo rule out a server-specific issue, I added `@modelcontextprotocol/server-memory` as a second test server:\n```bash\nclaude mcp add -s project test-memory -- npx -y @modelcontextprotocol/server-memory\n```\n- `claude mcp list` → `✓ Connected`\n- `ToolSearch(\"mcp__test-memory\")` → **no results**\n\nMeanwhile, cloud MCP servers work fine in the same session:\n- `ToolSearch(\"mcp__claude_ai_Gmail\")` → returns tools, can fetch schemas, can call them\n\n## Server Verification\n\nDirect stdio test confirms the server returns all 9 tools correctly:\n```bash\nprintf '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"test\",\"version\":\"1.0\"}}}\\n{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}\\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}\\n' | npx -y @modelcontextprotocol/server-filesystem@0.6.2 /path/to/directory\n```\nReturns: `read_file`, `read_multiple_files`, `write_file`, `create_directory`, `list_directory`, `move_file`, `search_files`, `get_file_info`, `list_allowed_directories`\n\n## What I've Tried (All Failed)\n\n| Attempt | Result |\n|---------|--------|\n| Server in `.mcp.json` (project scope) + `enableAllProjectMcpServers: true` | Connected, tools NOT registered |\n| Server added via `claude mcp add -s user` (user scope) | Connected, tools NOT registered |\n| Server added via `claude mcp add -s local` (local scope) | Connected, tools NOT registered |\n| `enabledMcpjsonServers` in both `settings.local.json` and `~/.claude.json` project entry | No effect |\n| `hasTrustDialogAccepted: true` in `~/.claude.json` project entry | No effect |\n| Pre-adding permissions (`mcp__obsidian-full-vault__",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:mcp"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-21T02:46:07Z",
+  "updated_at": "2026-04-06T14:35:24Z",
+  "closed_at": "2026-03-30T05:00:07Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "mmayasaurus",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5241\n2. https://github.com/anthropics/claude-code/issues/29443\n3. https://github.com/anthropics/claude-code/issues/2682\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-21T02:49:17Z"
+    },
+    {
+      "author": "mmayasaurus",
+      "author_association": "NONE",
+      "body": "## Update: Plugin-based MCP server delivery also fails\n\nTested the `--plugin-dir` approach as suggested in issue #16371 (which noted plugin-provided MCP servers use a different registration path `mcp__plugin_*`).\n\n### What was tested\n\nCreated a plugin at `obsidian-vault-plugin/` with this structure:\n\n```\nobsidian-vault-plugin/\n├── .claude-plugin/\n│   └── plugin.json          # name: \"obsidian-vault\", version: \"1.0.0\"\n└── .mcp.json                # server-filesystem@0.6.2 pointed at vault root\n``",
+      "created_at": "2026-03-21T03:02:30Z"
+    },
+    {
+      "author": "mmayasaurus",
+      "author_association": "NONE",
+      "body": "## Update: SSE transport via supergateway also fails\n\nTested wrapping the stdio server in an HTTP/SSE layer using supergateway, since cloud MCP servers (which use HTTP) register tools fine.\n\n### Setup\n\n1. Started supergateway proxying `server-filesystem@0.6.2` over SSE on `http://localhost:8100/sse`\n2. Updated `.mcp.json` to use SSE transport:\n```json\n{\n  \"mcpServers\": {\n    \"obsidian-full-vault\": {\n      \"type\": \"sse\",\n      \"url\": \"http://localhost:8100/sse\"\n    }\n  }\n}\n```\n3. Verified superga",
+      "created_at": "2026-03-21T03:15:50Z"
+    }
+  ]
+}

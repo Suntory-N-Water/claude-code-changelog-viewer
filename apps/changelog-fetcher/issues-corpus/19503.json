@@ -1,0 +1,35 @@
+{
+  "number": 19503,
+  "title": "Cowork 'Failed to create bridge sockets' error on session resume (allowedDomains=0)",
+  "body": "## Description\n\nWhen using Claude Desktop's Cowork feature on macOS, tasks fail at the **confirmation step** with the error:\n\n```\nCLI output was not valid JSON. This may indicate an error during startup. \nOutput: Error: Failed to create bridge sockets after 5 attempts\n```\n\n## Reproduction Pattern (Updated Jan 20)\n\nThe failure occurs specifically when:\n1. Cowork task starts successfully\n2. Task explores/analyzes (reads files, creates plans) - **works**\n3. Task pauses for user confirmation (\"Should I proceed?\")\n4. User confirms (\"yes\")\n5. **Task fails immediately** with bridge sockets error\n\n### Real Example\n- User asks: \"Organize and tidy up [folder]\"\n- Cowork reads 204 files across 25 folders - ✅ works\n- Cowork analyzes duplicates, creates reorganization plan - ✅ works\n- Cowork asks \"Should I proceed with this plan?\" \n- User says \"yes\"\n- **Fails with: \"Failed to create bridge sockets after 5 attempts\"** ❌\n\nThis means any task requiring user confirmation will fail at the execution step.\n\n## Root Cause Analysis\n\nAfter extensive debugging, **the issue is NOT missing `socat`** (socat is installed and working). The actual root cause is:\n\n1. **Resume/continuation sessions have `allowedDomains=0`** - no network access allowed\n2. **Initial task start has `allowedDomains=1`** - network access permitted\n3. The CLI sandbox bridge creation (`VEB` function in claude-agent-sdk) attempts to create socat bridges to HTTP/SOCKS proxy ports\n4. With `allowedDomains=0`, the bridge sockets cannot connect to the proxy endpoints, causing the failure\n\n### Evidence from Logs\n\n**Working new session** (`isResume=false, allowedDomains=1`):\n```\n[Spawn:config] Creating spawn function for process=stoic-kind-gauss, isResume=false, mounts=4, allowedDomains=1\n[Process] Exited, code=0, duration=90000ms  # Runs successfully for ~90 seconds\n```\n\n**Failing resume session** (`isResume=true, allowedDomains=0`):\n```\n[Spawn:config] Creating spawn function for process=amazing-dazzling-fermi, isResume=true, mounts=4, allowedDomains=0\n[Process] Exited, code=0, duration=1207ms  # Exits in ~1 second with bridge socket error\n```\n\nAll resume/continuation sessions exit in ~1 second with the bridge socket error, while initial task starts run successfully.\n\n## Environment\n\n- **OS:** macOS 15.3 (Darwin 25.3.0)\n- **Architecture:** arm64 (Apple Silicon)\n- **Claude Desktop:** 1.1.381\n- **Claude Code SDK:** 2.1.8\n- **socat:** 1.8.1.0 (installed via Homebrew at /opt/homebrew/bin/socat)\n\n## Steps to Reproduce\n\n1. Have socat installed (`brew install socat`)\n2. Open Claude Desktop\n3. Start a Cowork task that requires confirmation (e.g., \"organize these files\")\n4. Let Cowork analyze and propose a plan\n5. When asked for confirmation, say \"yes\"\n6. **Fails with bridge sockets error**\n\n## Expected Behavior\n\nTask should continue after user confirmation.\n\n## Actual Behavior\n\n- Initial task analysis: Works correctly\n- After user confirmation to proceed: Fails immediately with \"Failed to create bridge sockets after 5 attempts\"\n\n## Technical Details\n\nThe bridge socket creation code in `claude-agent-sdk/cli.js` (function `VEB`) does:\n```javascript\n// Creates socat bridges from Unix sockets to TCP proxy ports\nsocat UNIX-LISTEN:/tmp/claude-http-xxx.sock,fork TCP:localhost:{httpProxyPort}\nsocat UNIX-LISTEN:/tmp/claude-socks-xxx.sock,fork TCP:localhost:{socksProxyPort}\n```\n\nWhen `allowedDomains=0`, the proxy ports either don't exist or aren't accessible, causing socat to fail to connect, and the socket files never get created in `/tmp`.\n\n## Suggested Fix\n\n1. Don't require bridge sockets for resume/continuation sessions if network access isn't needed\n2. Or: Grant `allowedDomains=1` to resume sessions the same as new sessions\n3. Or: Skip sandbox network bridge setup when `allowedDomains=0`\n4. Better error message explaining the actual cause (network permissions vs socat)\n\n## Workaround\n\n**Current workaround:** Use one-shot tasks that don't require confirmation. Unfortunately, most useful tasks (file organization, code changes) require confirmation, making Cowork largely unusable on macOS.\n\n**",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "oncall"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-20T13:52:48Z",
+  "updated_at": "2026-03-01T14:14:59Z",
+  "closed_at": "2026-02-22T10:12:16Z",
+  "reactions_total": 5,
+  "comments_count": 12,
+  "author": "dizhaky",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12515\n2. https://github.com/anthropics/claude-code/issues/11079\n3. https://github.com/anthropics/claude-code/issues/14725\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-20T13:59:58Z"
+    },
+    {
+      "author": "dizhaky",
+      "author_association": "NONE",
+      "body": "**This is NOT a duplicate of the suggested issues:**\n\n- **#12515** (missing socat) - My system HAS socat installed (`socat 1.8.1.0` via Homebrew)\n- **#11079** (TMPDIR non-writable) - My TMPDIR is valid and writable\n- **#14725** (xclip on Linux) - I'm on macOS, completely different issue\n\n**This issue is unique:** The root cause is that **Cowork resume/confirmation sessions get `allowedDomains=0`** while initial sessions get `allowedDomains=1`. The bridge socket creation fails because it can't co",
+      "created_at": "2026-01-20T14:17:03Z"
+    },
+    {
+      "author": "MarshallOfSound",
+      "author_association": "NONE",
+      "body": "@dizhaky Can you share this bug report via the \"bug\" button in the bottom left of the Claude Desktop app. Make sure you include logs and reference either my github username or this github issue url in the feedback so I can find it. Ping me once that's submitted and I'll take a look.",
+      "created_at": "2026-01-24T02:31:49Z"
+    }
+  ]
+}

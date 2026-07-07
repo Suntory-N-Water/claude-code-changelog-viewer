@@ -1,0 +1,35 @@
+{
+  "number": 10071,
+  "title": "[FEATURE] Claude can reconnect to a broken MCP in a manner similar to how it performs other actions",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nI have an MCP (Atlassian) that frequently loses its connection. It's easy enough to reconnect but it would be easier and more natural if Claude could do it in his usual inimitable style. I asked him to write it up and as always, he did a fine job:\n\n Problem\n\n  When MCP connections (e.g., Atlassian) drop due to authentication timeout, Claude currently:\n  1. Detects the failure\n  2. Tells the user \"Could you reconnect with /mcp?\"\n  3. Waits for user to manually type /mcp, navigate menus, and reconnect\n\n  This breaks conversational flow and is inconsistent with how Claude handles other operations requiring\n  permission.\n\n  Current Behavior\n\n  Claude: [tries to fetch wiki page]\n  Error: Authentication failed\n  Claude: \"The connection dropped. Could you type /mcp to reconnect?\"\n  User: [types /mcp, selects service, chooses reconnect]\n  User: \"ok, try again\"\n  Claude: [retries operation]\n\n  This happens 5-10+ times per session with unstable MCP connections.\n\n  Proposed Behavior\n\n  Claude should be able to request reconnection directly, similar to other permission prompts:\n\n  Claude: [tries to fetch wiki page]\n  Error: Authentication failed\n  Claude: \"The Atlassian MCP connection failed. Should I:\n    1) Reconnect and retry\n    2) Reconnect and don't ask again this session\n    3) Skip this operation\"\n  User: [selects option 1]\n  Claude: [triggers reconnection, retries operation]\n\n  Benefits\n\n  1. Consistency - Claude already asks permission for file operations, commits, destructive actions, etc. MCP\n  reconnection should follow the same pattern\n  2. Reduced friction - One click vs. typing command + navigating menus\n  3. Better flow - Claude can bundle reconnection with retry logic automatically\n  4. Session continuity - Option 2 (\"don't ask again\") lets power users avoid repeated prompts\n\n  Implementation Notes\n\n  - Should only apply within an active session (not across sessions - that would be a security concern)\n  - User authorization is still required, just with a better UX\n  - Could be limited to same-session reconnections for services already authorized\n\n  Related Issues\n\n  The underlying issue is MCP connection stability (frequent auth timeouts), but better reconnection UX would\n  significantly improve the experience while that's being addressed.\n\n### Proposed Solution\n\nSee above.\n\n### Alternative Solutions\n\n_No response_\n\n### Priority\n\nCritical - Blocking my work\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n_No response_\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-21T22:00:47Z",
+  "updated_at": "2026-06-26T16:08:23Z",
+  "closed_at": null,
+  "reactions_total": 41,
+  "comments_count": 25,
+  "author": "GoluxHat",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Morriz",
+      "author_association": "NONE",
+      "body": "bump",
+      "created_at": "2025-11-27T03:27:05Z"
+    },
+    {
+      "author": "Ctariy",
+      "author_association": "NONE",
+      "body": "+1 for this feature. I'm developing an MCP server and experiencing the same issue. When I restart the Docker container running my MCP server, Claude Code loses the connection and requires manual reconnection via /mcp.\n\nThe current SSE transport stores sessions in memory, so any server restart invalidates all existing session IDs. Claude Code then fails with \"Could not find session\" but doesn't offer to reconnect automatically. Auto-reconnect would significantly improve the developer experience, ",
+      "created_at": "2025-11-27T18:18:53Z"
+    },
+    {
+      "author": "kas-kad",
+      "author_association": "NONE",
+      "body": "Voting for this one. I use headless mode only. No chat, just comprehensive context, MCPs and permission setup. I’m getting low quality results for my prompts because turned out the MCP servers require reconnections from time to time. Would be great if Claude could take care of reconnecting and never spend tokens if MCPs aren’t connected.",
+      "created_at": "2025-11-27T20:47:51Z"
+    }
+  ]
+}

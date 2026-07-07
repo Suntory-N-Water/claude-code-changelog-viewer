@@ -1,0 +1,22 @@
+{
+  "number": 39993,
+  "title": "Plugin installer strips execute permissions from .sh files",
+  "body": "## Summary\n\nWhen Claude Code downloads plugins from GitHub marketplaces, all files lose their git file mode — scripts committed as `100755` (executable) are installed as `100644` (not executable). This causes `Permission denied` errors for any hook that directly executes a `.sh` script.\n\n## Reproduction\n\n```bash\n# Check git mode in the repo — correctly 100755:\ngh api \"repos/anthropics/claude-plugins-official/git/trees/HEAD?recursive=1\" \\\n  | jq '.tree[] | select(.path | contains(\"stop-hook\")) | {path, mode}'\n# {\"path\": \"plugins/ralph-loop/hooks/stop-hook.sh\", \"mode\": \"100755\"}\n\n# Check installed file — stripped to 644:\nls -la ~/.claude/plugins/marketplaces/claude-plugins-official/plugins/ralph-loop/hooks/stop-hook.sh\n# -rw-r--r-- ... stop-hook.sh\n\n# Result on Stop hook:\n# Stop hook error: Permission denied\n```\n\n## Impact\n\n15 `.sh` files across `claude-plugins-official` are affected:\n\n- `ralph-loop/hooks/stop-hook.sh` — **actively breaks Stop hook**\n- `learning-output-style/hooks-handlers/session-start.sh` — breaks SessionStart hook\n- `explanatory-output-style/hooks-handlers/session-start.sh` — breaks SessionStart hook\n- 12 more in `plugin-dev/` and `math-olympiad/` skills\n\n## Suggested Fix\n\nAfter downloading/extracting plugin files, restore execute permissions for files that had `100755` mode in the git tree. Alternatively, `chmod +x` any `.sh` files in hook directories.\n\n## Workaround\n\nPlugin authors can work around this by invoking scripts via `bash \"$script\"` instead of executing directly in their `hooks.json` commands.\n\n## Environment\n\n- Claude Code 2.1.85\n- macOS Darwin 25.3.0 (arm64)\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:hooks",
+    "area:plugins"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-27T19:57:25Z",
+  "updated_at": "2026-04-25T14:35:45Z",
+  "closed_at": "2026-04-18T04:18:04Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "nimesh-kumar-sh",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

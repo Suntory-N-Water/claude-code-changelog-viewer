@@ -1,0 +1,41 @@
+{
+  "number": 32450,
+  "title": "Google Drive claude.ai connector not loading in VS Code extension despite being connected in claude.ai",
+  "body": "## Description\n\nThe Google Drive connector is connected and authorized in claude.ai (Settings → Connectors), but it does not load as an available MCP tool in the Claude Code VS Code extension. Gmail and Google Calendar connectors work correctly in the same session.\n\n## Environment\n- **Platform:** Windows 11 Pro\n- **Claude Code:** VS Code Extension\n- **claude.ai connectors configured:** Gmail ✅, Google Calendar ✅, Google Drive ❌ (not loading), Mermaid Chart ✅\n\n## Steps to Reproduce\n1. Connect Google Drive in claude.ai → Settings → Connectors\n2. Open Claude Code in VS Code and start a new session\n3. Search for Google Drive tools — none are available\n4. Gmail and Google Calendar tools load fine in the same session\n\n## Expected Behavior\nGoogle Drive tools (e.g. `mcp__claude_ai_Google_Drive__*`) should load as deferred tools at session start, alongside Gmail and Google Calendar.\n\n## Actual Behavior\nNo Google Drive tools appear. Tool search returns no results for \"Google Drive\".\n\n## Investigation\n- Checked `~/.claude.json` — found `claudeAiMcpEverConnected` array only contained Gmail, Google Calendar, and Mermaid Chart. Google Drive was missing despite being connected in claude.ai.\n- Manually added `\"claude.ai Google Drive\"` to the array and restarted VS Code — issue persists.\n- `claudeAiMcpEverConnected` appears to be a history/tracking field rather than the active configuration controlling which connectors load.\n\n## Workaround\nNone found. Google Drive requires per-conversation opt-in in the claude.ai web interface, but there is no equivalent mechanism in Claude Code VS Code extension.\n\n## Additional Context\nThis may be related to how the VS Code extension syncs connector state from claude.ai. A connector added after initial setup may not get picked up unless there is an explicit sync mechanism. Other connectors (Gmail, Google Calendar) added earlier work fine — only connectors added later seem affected.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:mcp",
+    "platform:vscode"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-09T12:12:47Z",
+  "updated_at": "2026-05-23T07:01:51Z",
+  "closed_at": "2026-05-23T07:01:51Z",
+  "reactions_total": 20,
+  "comments_count": 25,
+  "author": "ankithemonki",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for the report. The Google Drive connector passthrough was enabled for all users in mid-April. Please retry on a current version; the Drive connector should appear alongside Gmail and Calendar.",
+      "created_at": "2026-05-23T07:01:51Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/20412\n2. https://github.com/anthropics/claude-code/issues/31838\n3. https://github.com/anthropics/claude-code/issues/21874\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-09T12:17:44Z"
+    },
+    {
+      "author": "ankithemonki",
+      "author_association": "NONE",
+      "body": "This issue is **not a duplicate** of the flagged issues. Key difference:\n\n- `tengu_claudeai_mcp_connectors` is already `true` in our `~/.claude.json`\n- `claudeAiMcpEverConnected` includes `claude.ai Google Drive`\n- **Gmail and Google Calendar load correctly** in the same session\n- Only **Google Drive** fails to load\n\nThe workaround in #21874 (setting the flag via SessionStart hook) does not apply here since the flag is already true. This appears to be a connector-specific issue with Google Drive",
+      "created_at": "2026-03-10T11:13:54Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 43713,
+  "title": "[BUG] autoAllowBashIfSandboxed bypassed for commands containing shell expansions and several other constructs",
+  "body": "**Summary**\n\nWith `autoAllowBashIfSandboxed: true` and sandboxing enabled, commands containing certain shell constructs prompt for permission despite the setting, with reasons like `Contains simple_expansion` or `Unhandled node type: string`. Syntactically-simple commands (literal argv, pipes, `&&`, `;`, `||`, control flow, `[[ ]]`, `<<<`) auto-approve as expected.\n\n**Repro**\n\n1. `~/.claude/settings.json`:\n   ```json\n   { \"sandbox\": { \"enabled\": true, \"autoAllowBashIfSandboxed\": true } }\n   ```\n2. Start a Claude Code session.\n3. Ask Claude to run `echo $USER`.\n4. Observe: permission prompt, reason: `Contains simple_expansion`.\n5. Ask Claude to run `echo \"user is $USER\"`.\n6. Observe: auto-approved.\n7. Ask Claude to run `echo \"$HOME\"`.\n8. Observe: permission prompt, reason: `Unhandled node type: string`.\n\n**Observed behavior matrix (v2.1.92, macOS)**\n\nAuto-approved ✓:\n- `ls /tmp`, `cat /etc/hosts`, `date; uptime | tail -1`\n- `if true; then echo y; fi`\n- `[[ -f /etc/hosts ]] && echo yes`\n- `cat <<< \"hello\"`\n- `echo \"user is $USER\"`, `echo \"$HOME/x\"`, `echo \"h=$HOME\"` (string with literal content + expansion)\n\nPrompts ✗:\n\n| Command | Reason shown |\n|---|---|\n| `echo $USER`, `ls $HOME` | Contains simple_expansion |\n| `echo \"$HOME\"`, `echo \"$USER\"` | Unhandled node type: string |\n| `echo $(date)` | Contains command_substitution |\n| `echo $'hello world'` | Contains ansi_c_string |\n| `echo {a,b,c}` | Contains brace_expression |\n\n**Expected**\n\nWhen `autoAllowBashIfSandboxed: true` and sandboxing is enabled, commands that would run inside the sandbox should auto-approve regardless of whether a static analyzer can prove them safe. The sandbox *is* the security boundary — that's the documented purpose of the setting. Failure to statically analyze a command shouldn't weaken the sandbox trust model.\n\n**Impact — this is severe for automated workflows**\n\n`autoAllowBashIfSandboxed` is the standard configuration for running Claude with meaningful autonomy while keeping a real security boundary. It's what lets an agent run an edit → test → fix loop unattended. Shell variables and command substitutions appear in practically every realistic test/build command (`go test -coverprofile=\\$TMPDIR/x.cov`, `python -m pytest --basetemp=\\$(mktemp -d)`, `cargo test --target-dir \\\"\\$CARGO_TARGET_DIR\\\"`, etc.), so in practice this bug means:\n\n- **Every edit+test loop now hits a prompt per iteration.** Unattended runs stall.\n- **The only remaining way to run unattended is `--dangerously-skip-permissions`**, which disables the entire permission system — a massive security regression compared to \\\"sandbox contains everything.\\\"\n- The documented safe middle ground (sandbox + auto-allow) no longer exists in practice.\n\nUsers have to choose between constant prompts or dropping all security. That's a significant workflow regression.\n\nPartial source-level workarounds:\n- Quote the variable AND ensure the string has literal content (`\\\"\\$TMPDIR/file\\\"` works; `\\\"\\$TMPDIR\\\"` alone prompts).\n- No workaround for `\\$(...)`, brace expansion, ANSI-C strings, heredoc bodies, etc.\n\n**Suggested fix**\n\nWhen sandboxing is enabled and `autoAllowBashIfSandboxed: true`, check sandbox auto-allow before returning \\\"ask\\\" for commands the static analyzer can't handle. The sandbox contains the blast radius regardless of what the parser couldn't prove.\n\n**Environment**\n\n- Claude Code CLI v2.1.92 (macOS, Apple Silicon)\n- `sandbox.enabled: true`, `autoAllowBashIfSandboxed: true`",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:bash",
+    "area:permissions",
+    "area:sandbox"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-05T00:50:24Z",
+  "updated_at": "2026-06-30T13:20:10Z",
+  "closed_at": null,
+  "reactions_total": 70,
+  "comments_count": 35,
+  "author": "sgrankin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "sgrankin",
+      "author_association": "NONE",
+      "body": "Forgot to mention in the original report — this worked as expected about a week ago. I noticed prompts appearing for commands that previously auto-approved. Flagging in case this helps narrow down which change introduced it.",
+      "created_at": "2026-04-05T00:55:34Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/31373\n2. https://github.com/anthropics/claude-code/issues/31191\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-05T00:55:41Z"
+    },
+    {
+      "author": "diogofernandesc",
+      "author_association": "NONE",
+      "body": "+1 seeing similar behaviour with same settings flags, was working as of 2.1.90 afaik ",
+      "created_at": "2026-04-05T17:26:37Z"
+    }
+  ]
+}

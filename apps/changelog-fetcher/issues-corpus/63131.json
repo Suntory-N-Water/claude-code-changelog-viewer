@@ -1,0 +1,16 @@
+{
+  "number": 63131,
+  "title": "Claude Code leaks pty handles — exhausts pseudo-terminals on macOS after long session",
+  "body": "## Summary\n\nAfter a long Claude Code session with many Bash tool calls, the Claude process accumulates hundreds of open pseudo-terminal (pty) handles without releasing them. This eventually exhausts the macOS pty pool, causing all new terminal windows/tabs to fail with:\n\n```\n[forkpty: Device not configured]\n[Could not create a new process and open a pseudo-tty.]\n```\n\n## Reproduction\n\nRun a long Claude Code session with many Bash tool calls, then:\n\n```bash\nlsof | grep ptmx | awk '{print $1}' | sort | uniq -c | sort -rn | head -10\n```\n\nOutput showed **511 pty handles held by the Claude process** — enough to prevent any new terminal from opening.\n\n## Environment\n\n- macOS 26.5 (Build 25F71, Darwin 25.5.0)\n- Claude Code desktop app\n\n## Expected behaviour\n\nPty handles should be released after each Bash tool call completes.\n\n## Actual behaviour\n\nHandles accumulate across the session until the pty pool is exhausted.\n\n## Workaround\n\nQuit and relaunch Claude Code — this releases all handles.",
+  "labels": ["duplicate", "platform:macos", "area:bash", "area:desktop"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-28T13:18:42Z",
+  "updated_at": "2026-06-23T09:55:19Z",
+  "closed_at": "2026-06-23T09:55:19Z",
+  "reactions_total": 4,
+  "comments_count": 2,
+  "author": "Blakefolgado",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

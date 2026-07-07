@@ -1,0 +1,35 @@
+{
+  "number": 27390,
+  "title": "Claude Desktop: MCP servers fail with Protocol instance reuse error",
+  "body": "## Bug Description\n\nClaude Desktop v1.1.3918 on macOS shows error toasts on every launch:\n\n- \"Could not connect to MCP server mcp-registry\"\n- \"Could not connect to MCP server Claude in Chrome\"\n\n## Root Cause\n\nThe actual error from `claude.ai-web.log` is identical for both servers:\n\n```\n[MCP] Could not connect to MCP server mcp-registry Error: Error invoking remote method 'connect-to-mcp-server': Error: Already connected to a transport. Call close() before connecting to a new transport, or use a separate Protocol instance per connection.\n```\n\n```\n[MCP] Could not connect to MCP server Claude in Chrome Error: Error invoking remote method 'connect-to-mcp-server': Error: Already connected to a transport. Call close() before connecting to a new transport, or use a separate Protocol instance per connection.\n```\n\nThe app connects three MCP servers on startup (Filesystem, mcp-registry, Claude in Chrome). The Filesystem extension connects successfully, but the other two fail because the Protocol instance is being reused instead of creating separate instances per connection.\n\nThis is a race condition — all three connection requests fire at the same timestamp, and the shared Protocol instance can only handle one.\n\n## Steps to Reproduce\n\n1. Install Claude Desktop v1.1.3918 on macOS\n2. Have the Filesystem extension installed (from the extension registry)\n3. Launch the app\n4. Observe error toasts for mcp-registry and Claude in Chrome\n\n## Environment\n\n- **App version**: 1.1.3918 (commit a4b368d308b05c425b74c1c19ed47a572d3a90f6)\n- **Platform**: macOS (darwin arm64, Apple M2)\n- **OS**: Darwin 25.2.0\n\n## Notes\n\n- The errors are **not** caused by misconfiguration — `mcpServers` in `claude_desktop_config.json` is empty. Both mcp-registry and Claude in Chrome are built-in servers.\n- Disabling the Chrome extension in settings and removing the `chromeExtension` pairing data from config does not fix it.\n- The Filesystem MCP server works correctly despite the errors.\n- The errors reproduce on every single launch and on every new conversation.",
+  "labels": ["oncall"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-21T11:20:00Z",
+  "updated_at": "2026-03-05T14:31:01Z",
+  "closed_at": "2026-02-24T01:32:08Z",
+  "reactions_total": 59,
+  "comments_count": 22,
+  "author": "cpinto",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "kutzki",
+      "author_association": "NONE",
+      "body": "FYI happening on Windows as welllll. Getting it everywhere",
+      "created_at": "2026-02-22T21:59:09Z"
+    },
+    {
+      "author": "savvymonkeyfoo",
+      "author_association": "NONE",
+      "body": "Another here with it on MacOS",
+      "created_at": "2026-02-22T22:12:57Z"
+    },
+    {
+      "author": "itskevinb",
+      "author_association": "NONE",
+      "body": "ditto on mac",
+      "created_at": "2026-02-23T02:16:22Z"
+    }
+  ]
+}

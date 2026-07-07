@@ -1,0 +1,35 @@
+{
+  "number": 52586,
+  "title": "Routines in Claude Code can't use Claude.ai Connectors (e.g., Composio, Gmail, LinkedIn)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nI configured the Composio connector in my Claude.ai account (Settings → Connectors), with LinkedIn enabled. It works perfectly in claude.ai chat — I can say \"post this to LinkedIn via Composio\" and it executes end-to-end.\n\nHowever, when I try to do the same thing inside a Routine running in Claude Code on the web, Composio is not reachable:\n- `/mcp` returns \"isn't available in this environment\"\n- Adding a project-level `.mcp.json` pointing at https://connect.composio.dev/mcp has no effect in the web-hosted Claude Code runtime\n- There appears to be no workspace/scope toggle in the Connectors UI to expose a connector to Claude Code\n\nThis means Routines can't automate any workflow that depends on my personal integrations — which is exactly the kind of automation Routines seem designed for. A Routine that drafts a LinkedIn post from current news, for example, has to stop at the draft; a human then has to copy/paste into claude.ai chat to actually publish.\n\n**Environment:** Claude Code on the web, workspace: MySkillPersonal, model: Opus 4.7.\n\n### Proposed Solution\n\nPlease bridge Claude.ai Connectors into Claude Code's Routine runtime, or add a per-connector \"enable for Claude Code workspaces\" toggle. Either would unlock a large class of useful Routines that depend on personal integrations like Composio, Gmail, LinkedIn, etc.\n\n### Alternative Solutions\n\nCurrently there is no known workaround — the user must manually switch to claude.ai chat to execute any action that requires a Connector, defeating the purpose of Routines automation.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nMCP server integration\n\n### Use Case Example\n\nA Routine set up to: (1) fetch today's top tech news, (2) draft a LinkedIn post summarizing it, (3) publish it via the Composio LinkedIn connector. Steps 1 and 2 work. Step 3 fails because the Composio connector configured in claude.ai Settings → Connectors is not accessible inside Claude Code's Routine runtime. The user must manually copy the draft into claude.ai chat and re-invoke Composio there.\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:mcp", "platform:web", "area:routines"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-23T23:00:09Z",
+  "updated_at": "2026-06-24T16:25:25Z",
+  "closed_at": null,
+  "reactions_total": 9,
+  "comments_count": 12,
+  "author": "drprasad30",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/51189\n2. https://github.com/anthropics/claude-code/issues/44796\n3. https://github.com/anthropics/claude-code/issues/41044\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-23T23:04:00Z"
+    },
+    {
+      "author": "drprasad30",
+      "author_association": "NONE",
+      "body": "This issue is related but not a duplicate of #51189, #44796, or #41044.\n\n- **#51189** assumes MCP servers are already attached to the routine and focuses on `allowed_tools` UI/plumbing. Here, the problem is that Claude.ai **Connectors** (e.g. Composio/LinkedIn configured in claude.ai Settings → Connectors) are not exposed to the Claude Code Routine runtime at all, even though they work in claude.ai chat.\n- **#44796** is about MCP connectors not loading in **remote trigger** environments; this is",
+      "created_at": "2026-04-23T23:20:37Z"
+    },
+    {
+      "author": "mchirino89",
+      "author_association": "NONE",
+      "body": "Confirming this still affects the `/schedule` skill as of 2026-04-27, and adding a more specific data point that may help narrow the root cause.\n\n**Environment:** Claude Code CLI (Mac), Max subscription, via the `/schedule` skill which fetches the connector list from the routines API.\n\n**Observed behaviour:**\n- Two connectors are active in `claude.ai/customize/connectors`: **Amplitude** and **Sentry**\n- Both appear in interactive Claude Code sessions as MCP tools (e.g. `mcp__sentry__*` tools are",
+      "created_at": "2026-04-27T00:19:24Z"
+    }
+  ]
+}

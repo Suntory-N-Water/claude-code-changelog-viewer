@@ -1,0 +1,35 @@
+{
+  "number": 34773,
+  "title": "Sonnet 4.6 1M context unavailable on Max 20x plan - only Opus 1M appears in /model",
+  "body": "## What's wrong\n\nOn Claude Max 20x plan ($200/month), `/model` only shows **Opus 4.6 (1M context)** as the default model. There is **no option to select Sonnet 4.6 with 1M context**. This forces Max users to consume expensive Opus tokens for all work, even when Sonnet would be sufficient.\n\nPer the [1M context GA blog post](https://claude.com/blog/1m-context-ga) (March 13, 2026), both Opus 4.6 and Sonnet 4.6 should have 1M context available on Max plans at standard pricing.\n\n## Environment\n\n- **Claude Code**: v2.1.76 (latest)\n- **Plan**: Claude Max 20x ($200/month)\n- **OS**: macOS (Darwin 25.1.0)\n- **Shell**: zsh\n\n## Steps to reproduce\n\n1. Start a fresh Claude Code session: `claude`\n2. Run `/model` - only shows \"Opus 4.6 (1M context) (default)\", no Sonnet 1M option\n3. Run `/login` to re-authenticate - no change\n4. Switch to Haiku via `/model`, then `/model` again - Sonnet 1M still does not appear\n\n## What I tried (all failed)\n\n- `/login` to refresh auth tokens\n- Toggling through models via `/model` (Haiku workaround from #34143)\n- `claude --model sonnet` - launches but without 1M context\n- Verified **none** of the known blocking env vars are set:\n  - `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` - not set\n  - `DISABLE_TELEMETRY` - not set\n  - `DISABLE_ERROR_REPORTING` - not set\n  - `DISABLE_NON_ESSENTIAL_MODEL_CALLS` - not set\n\n## Expected behavior\n\n`/model` should offer Sonnet 4.6 (1M context) as a selectable option on Max 20x plans, alongside Opus 4.6 (1M context).\n\n## Impact\n\nMax 20x users are forced to use Opus for everything, which costs ~5x more tokens than Sonnet. This is a significant cost issue for heavy Claude Code users.\n\n## Related issues\n\n- #34143 - Opus 1M shows 200K on Max plan\n- #31640 - /model does not switch context window size\n- #26428 - Sonnet 1M disappeared after update\n- #15057 - Sonnet 1M unavailable on Max 20x",
+  "labels": ["bug", "has repro", "platform:macos", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-15T22:40:15Z",
+  "updated_at": "2026-06-29T18:26:05Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 25,
+  "author": "thomassauve26",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/26557\n2. https://github.com/anthropics/claude-code/issues/15057\n3. https://github.com/anthropics/claude-code/issues/26428\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-15T22:43:11Z"
+    },
+    {
+      "author": "Sagargupta16",
+      "author_association": "NONE",
+      "body": "Worth noting: when 1M context does become available for Sonnet, be aware that crossing the 200K input threshold triggers premium pricing where all tokens (not just those over 200K) get billed at 2x input / 1.5x output rates.\n\nFor most coding tasks, staying under 200K with context optimization is cheaper and often produces better results since Claude has less noise to process.\n\nDetailed breakdown of 1M context pricing mechanics: https://github.com/Sagargupta16/claude-cost-optimizer/blob/main/guid",
+      "created_at": "2026-03-16T02:20:17Z"
+    },
+    {
+      "author": "thomassauve26",
+      "author_association": "NONE",
+      "body": "I am confused because it is written everywhere that Sonnet 4.6 should have [1M available already](https://claude.com/blog/1m-context-ga) and it still block at 200k for me. And it seems to create this issues where I can only use Opus and Haiku for now. I mainly do non coding task that requires context! (marketing etc)\n\nBut thanks a lot for your answer and all the ressources in your repo. I starred it and will defintely use it to learn how to optimize my usage+ + get better at token management ! @",
+      "created_at": "2026-03-16T14:12:15Z"
+    }
+  ]
+}

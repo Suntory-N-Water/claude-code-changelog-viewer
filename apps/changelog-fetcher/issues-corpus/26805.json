@@ -1,0 +1,35 @@
+{
+  "number": 26805,
+  "title": "[BUG] Cowork UI: Responses not rendering until user types; \"working through complex response\" hangs indefinitely",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nIn Claude Cowork (desktop app), two related UI issues make the app nearly unusable during longer sessions:\n\n**Issue 1: Responses don't render until the user types something**\nClaude's response completes processing but the UI does not display it. The response only appears after the user types a new message. This means the user cannot read Claude's output and cannot know what to do next — they only discover responses retroactively after sending a follow-up message.\n\n**Issue 2: \"Working through a complex response\" spinner hangs indefinitely**\nDuring sessions with multiple tool calls or background processing (file reads, Bash commands, agent tasks), the UI shows \"Working through a complex response...\" and hangs for several minutes with no progress. The response may have completed on the backend but the UI never updates.\n\n**Combined effect:**\nThe user cannot have a functional conversation. They cannot see responses, cannot answer questions Claude asks, and lose typed input when the UI is stuck. This occurred repeatedly in a single session today (2026-02-19) causing significant workflow disruption and lost context.\n\n**Environment:**\n- App: Claude Cowork (desktop, macOS)\n- - Session type: Long session with multiple tool calls (Bash, file reads, Notion MCP, Task agents)\n- - - Vault: Obsidian vault mounted as working directory\n\n### What Should Happen?\n\nResponses should render immediately when Claude finishes generating them, without requiring user input to trigger display. The \"Working through a complex response\" state should either resolve in a reasonable time or surface an error — it should never hang indefinitely with no feedback or recovery option.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Open Claude Cowork (macOS desktop app)\n2. 2. Mount an Obsidian vault as the working directory\n3. 3. Start a long session involving multiple tool calls (Bash commands, file reads/writes, Notion MCP calls, Task agent spawning)\n4. 4. Claude completes a response after tool use\n5. 5. **Bug 1:** The response does not appear in the UI. The chat window shows no new message. Type anything in the input box — the response appears only after sending the new message.\n6. 6. For Bug 2: During a session with heavy processing (multiple sequential tool calls), observe the UI display \"Working through a complex response...\" and wait. The spinner persists for 3-5+ minutes with no resolution and no error message. The UI provides no way to cancel or recover.\n**Notes:**\n- Both bugs appear more frequently as session length increases (longer context window)\n- - Bug 1 appears to be a rendering/state update issue — the response exists but the UI doesn't reflect it\n- - - Bug 2 may be related to the UI losing sync with the backend during long processing chains\n- - - - Reloading the app clears the session context, so there is no viable recovery path\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.45 (Claude Code) — running via Claude Cowork desktop app\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "oncall"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-19T06:40:27Z",
+  "updated_at": "2026-03-04T14:27:48Z",
+  "closed_at": "2026-02-25T01:07:19Z",
+  "reactions_total": 24,
+  "comments_count": 45,
+  "author": "joshnava",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "felixrieseberg",
+      "author_association": "MEMBER",
+      "body": "Sorry for the trouble everyone, this was a brief incident - we have now fixed this!",
+      "created_at": "2026-02-25T01:07:19Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25068\n2. https://github.com/anthropics/claude-code/issues/19569\n3. https://github.com/anthropics/claude-code/issues/26157\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-19T06:45:01Z"
+    },
+    {
+      "author": "kasnikoo",
+      "author_association": "NONE",
+      "body": "also just started having this issue",
+      "created_at": "2026-02-19T09:59:36Z"
+    }
+  ]
+}

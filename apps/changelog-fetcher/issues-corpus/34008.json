@@ -1,0 +1,42 @@
+{
+  "number": 34008,
+  "title": "[BUG] MCP server with SSE/HTTP transport fails with OAuth discovery error — no way to disable OAuth",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen adding an MCP server using SSE or HTTP transport via claude mcp add --transport sse|http, Claude Code automatically attempts OAuth discovery by hitting /.well-known/oauth-authorization-server on the server's origin. If the MCP server doesn't implement OAuth (and many don't), the endpoint returns a non-JSON response (e.g., HTML 404 page or empty body), causing a JSON parse failure. There is no flag or configuration option to skip OAuth discovery.\n\nThe same MCP server works correctly in Cursor, which does not force OAuth discovery.\n\n### What Should Happen?\n\nClaude Code should gracefully handle non-JSON or missing responses from OAuth discovery endpoints without failing the connection.\nIdeally, provide a flag to opt out of OAuth entirely, e.g.:\nclaude mcp add --transport http --no-auth my-server http://localhost:64342/sse\n\nIf OAuth discovery fails, Claude Code should fall back to connecting without authentication instead of erroring out.\n\n### Error Messages/Logs\n\n```shell\nHTTP 404: Invalid OAuth error response: SyntaxError: JSON Parse error: Unexpected EOF. Raw body:\n```\n\n### Steps to Reproduce\n\nRun any MCP server that uses SSE or HTTP transport but does not implement OAuth (no /.well-known/oauth-authorization-server endpoint).\nAdd it to Claude Code:\nclaude mcp add --transport http my-server http://localhost:64342/sse\n\nClaude Code attempts to connect and hits http://localhost:64342/.well-known/oauth-authorization-server.\nThe server returns a 404 with a non-JSON body (or empty body).\nConnection fails with the JSON parse error above.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.74\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:windows",
+    "area:auth",
+    "area:mcp",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-13T14:13:54Z",
+  "updated_at": "2026-07-05T14:35:09Z",
+  "closed_at": "2026-05-15T10:57:31Z",
+  "reactions_total": 6,
+  "comments_count": 10,
+  "author": "azatsh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Donovan-Eral",
+      "author_association": "NONE",
+      "body": "**Workaround: Clear stale OAuth cache in `.credentials.json`**\n\nI ran into this with a local Streamable HTTP MCP server (no OAuth). After hitting \"Authenticate\" once and having it fail (server doesn't implement OAuth), Claude Code caches the failed state and never recovers — even across restarts.\n\n**Root cause:** Claude Code caches OAuth discovery state in `~/.claude/.credentials.json` under `mcpOAuth`. When auth fails, it stores an entry with `\"accessToken\": \"\"` and `\"expiresAt\": 0`. On subsequ",
+      "created_at": "2026-03-26T04:03:13Z"
+    },
+    {
+      "author": "jxnnyo",
+      "author_association": "NONE",
+      "body": "Experiencing same issue, however I do not have a `~/.claude/.credentials.json` file to remove stale entries from. This is when using the Figma Desktop MCP.",
+      "created_at": "2026-03-30T01:58:25Z"
+    },
+    {
+      "author": "rickchristie",
+      "author_association": "NONE",
+      "body": "I am experiencing this issue, and the workaround works for me. Thank you for submitting this issue!",
+      "created_at": "2026-03-31T04:18:08Z"
+    }
+  ]
+}

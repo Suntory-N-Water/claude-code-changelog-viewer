@@ -1,0 +1,42 @@
+{
+  "number": 18346,
+  "title": "[BUG] Claude Code does not respect agent model definition, uses wrong model.",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI've setup agents like this: \n\n```\n---\nname: code-implementer\ndescription: ---- redacted ----- \nmodel: opus\ncolor: red\n---\n```\n\n\nbut when claude calls this model it uses sonnet: \n\n```\ncode-implementer(job) resuming af473b5 Sonnet 4.5\n```\n\nThis bug greatly reduces code quality, reasoning quality and other tasks quality. (planning, reviewing, etc.) \n\n### What Should Happen?\n\nClaude should use opus for subagent because it's defined as opus. \n\n### Error Messages/Logs\n\n```shell\nno error. it just uses other models, without any reason.\n```\n\n### Steps to Reproduce\n\n1. Create an agent as opus.\n2. Tell claude to delegate work to said agent. \n3. Agent uses other model. \n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.?\n\n### Claude Code Version\n\n2.1.7\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:model",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-15T14:14:59Z",
+  "updated_at": "2026-06-11T22:41:43Z",
+  "closed_at": "2026-06-11T22:41:43Z",
+  "reactions_total": 6,
+  "comments_count": 13,
+  "author": "cheeselemon",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17562\n2. https://github.com/anthropics/claude-code/issues/13434\n3. https://github.com/anthropics/claude-code/issues/16594\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-15T14:19:20Z"
+    },
+    {
+      "author": "cheeselemon",
+      "author_association": "NONE",
+      "body": "anyone? ",
+      "created_at": "2026-01-18T06:48:23Z"
+    },
+    {
+      "author": "mriffault",
+      "author_association": "NONE",
+      "body": "Same issue here with **team agents** (TeamCreate + Task tool). Running Claude Code 2.1.37 on Linux WSL2 with parent model Opus 4.6. When spawning a teammate with `model: \"sonnet\"`, the agent silently runs under Opus 4.6 instead. No error, no 404 — just silently ignored. See #24429 for full reproduction steps.",
+      "created_at": "2026-02-09T14:10:47Z"
+    }
+  ]
+}

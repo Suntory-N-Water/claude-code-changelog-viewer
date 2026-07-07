@@ -1,0 +1,16 @@
+{
+  "number": 59829,
+  "title": "[BUG/FEATURE] PreToolUse hook resolving path",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe PreToolUse file_path tool input data is being resolved/normalised to an absolute path, making it impossible to get the original path information that was passed to the tool call. This wasn't the case in earlier versions of Claude Code.\n\n### What Should Happen?\n\nIn PreToolUse the actual tool input should be passed as the file_path value or at the very least add a property that preserves it.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n`Read(\"./p1-child-dir/../src/file.ts\")`\n\nPreToolUse receives:\n```\n{\n  \"tool_input\": { \"file_path\": \"/home/claude/projects/p1/src/file.ts\" }\n}\n```\n❌ original path is GONE\n\nPostToolUse receives:\n```\n{\n  \"tool_input\": {  \"file_path\": \"/home/claude/projects/p1/src/file.ts\"},\n  \"tool_response\": { \"file\": { \"filePath\": \"./p1-child-dir/../src/file.ts\" }\n}\n```\n✅ original path is PRESERVED\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.143\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:linux", "area:hooks"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-05-16T21:56:10Z",
+  "updated_at": "2026-05-17T09:19:18Z",
+  "closed_at": "2026-05-17T09:19:18Z",
+  "reactions_total": 0,
+  "comments_count": 2,
+  "author": "poof86",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,35 @@
+{
+  "number": 49358,
+  "title": "[BUG] Cowork \"Failed to create bridge sockets after 5 attempts\" after update to 1.3036.0 (cf521c) — macOS Sonoma 14.6.1",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nVersion: 1.3036.0 (cf521c)\nOS: macOS Sonoma 14.6.1, Apple Silicon\nsocat: 1.8.1.1 installed via Homebrew, symlinked to /usr/local/bin/socat\nVM bundle: fresh re-download, same result\n\nError: vm-stderr: Error: Failed to create bridge sockets after 5 attempts\nEvery task exits code=1 in ~900ms after update. Was working before update.\n\n\n\n### What Should Happen?\n\nCo-Work should work instead of instantly kicking back a code 1 error\n\n### Error Messages/Logs\n\n```shell\nError: vm-stderr: Error: Failed to create bridge sockets after 5 attempts\nEvery task exits code=1 in ~900ms after update. Was working before update.\n\n\n\nLast login: Thu Apr 16 13:13:35 on ttys000\nsjr@Samuels-MBP ~ % osascript -e 'quit app \"Claude\"'\nsleep 3\nopen -a Claude\nsleep 5\ncat ~/Library/Logs/Claude/cowork_vm_node.log | tail -15\n2026-04-16 13:28:03 [info] [Process:920fcaeb-d3c9-4eb9-a37c-c83e6567878c] Created, name=admiring-modest-albattani, total active=1\n2026-04-16 13:28:03 [info] [Process:920fcaeb-d3c9-4eb9-a37c-c83e6567878c] Buffering stdin (spawn not yet confirmed): 51445 bytes\n2026-04-16 13:28:03 [info] [Process:920fcaeb-d3c9-4eb9-a37c-c83e6567878c] Buffering stdin (spawn not yet confirmed): 630 bytes\n2026-04-16 13:28:03 [info] [Spawn:vm] id=920fcaeb-d3c9-4eb9-a37c-c83e6567878c OAuth token approved with MITM proxy\n2026-04-16 13:28:03 [info] [Process:920fcaeb-d3c9-4eb9-a37c-c83e6567878c] Spawn confirmed, flushing 2 buffered stdin chunks\n2026-04-16 13:28:03 [info] [Spawn:vm] id=920fcaeb-d3c9-4eb9-a37c-c83e6567878c Spawn succeeded in 50ms\n2026-04-16 13:28:03 [warn] [vm-stderr 920fcaeb] Error: Failed to create bridge sockets after 5 attempts\n2026-04-16 13:28:03 [info] [Process:920fcaeb-d3c9-4eb9-a37c-c83e6567878c] Exited, code=1, signal=null, duration=922ms, oom=false\n2026-04-16 13:28:03 [info] [Process:920fcaeb-d3c9-4eb9-a37c-c83e6567878c] Cleaned up, remaining active=0\n2026-04-16 13:29:02 [info] [VM:shutdown] App quit, stopping VM (instance: 979083b1-b199-4170-ace2-f681aeaa7673)...\n2026-04-16 13:29:02 [info] [Keepalive] Stopping\n2026-04-16 13:29:02 [info] [VM] Guest connection changed: false\n2026-04-16 13:29:02 [info] [VM] Guest disconnected during graceful quit, cleanly exiting 0 active processes\n2026-04-16 13:29:05 [warn] [VM] VM stopped\n2026-04-16 13:29:05 [info] [VM:shutdown] Completed in 3411ms\nsjr@Samuels-MBP ~ % osascript -e 'quit app \"Claude\"'\nsleep 3\nrm -rf ~/Library/Application\\ Support/Claude/vm_bundles\nrm -rf ~/Library/Application\\ Support/Claude/claude-code-vm\nsjr@Samuels-MBP ~ % ls -la ~/Library/Application\\ Support/Claude/vm_bundles/\nls -la ~/Library/Application\\ Support/Claude/claude-code-vm/ 2>/dev/null || echo \"no claude-code-vm dir\"\ncat ~/Library/Logs/Claude/cowork_vm_node.log | tail -20\ntotal 0\ndrwx------@  3 sjr  staff    96 Apr 16 13:30 .\ndrwx------@ 42 sjr  staff  1344 Apr 16 13:32 ..\ndrwx------@ 11 sjr  staff   352 Apr 16 13:32 claudevm.bundle\ntotal 8\ndrwx------@  4 sjr  staff   128 Apr 16 13:31 .\ndrwx------@ 42 sjr  staff  1344 Apr 16 13:32 ..\n-rw-------@  1 sjr  staff     7 Apr 16 13:31 .sdk-version\ndrwx------@  4 sjr  staff   128 Apr 16 13:31 2.1.111\n2026-04-16 13:32:23 [info] [Spawn:vm] id=091ccb0f-3849-4a90-bf54-3dc5707de020 OAuth token approved with MITM proxy\n2026-04-16 13:32:23 [info] [Process:091ccb0f-3849-4a90-bf54-3dc5707de020] Spawn confirmed, flushing 2 buffered stdin chunks\n2026-04-16 13:32:23 [info] [Spawn:vm] id=091ccb0f-3849-4a90-bf54-3dc5707de020 Spawn succeeded in 105ms\n2026-04-16 13:32:24 [warn] [vm-stderr 091ccb0f] Error: Failed to create bridge sockets after 5 attempts\n2026-04-16 13:32:25 [info] [Process:091ccb0f-3849-4a90-bf54-3dc5707de020] Exited, code=1, signal=null, duration=1123ms, oom=false\n2026-04-16 13:32:25 [info] [Process:091ccb0f-3849-4a90-bf54-3dc5707de020] Clean",
+  "labels": ["duplicate", "platform:macos", "area:cowork"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-16T18:39:49Z",
+  "updated_at": "2026-05-03T14:31:37Z",
+  "closed_at": "2026-04-16T21:30:23Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "opaseesack",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "edreanernst",
+      "author_association": "NONE",
+      "body": "Confirming this on Windows 11 Pro (build 26100), Claude Desktop 1.3036.0, SDK 2.1.111. Identical error —\"Failed to create bridge sockets after 5 attempts\" — with sessions exiting code=1 at ~1.5–2.7s. 10/10 session attempts fail. Also worked before updating. Since the OP is on macOS, this rules out a platform-specific cause and points to a regression in 1.3036.0 itself. Happy to share full logs if useful.",
+      "created_at": "2026-04-16T18:43:12Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/49341\n2. https://github.com/anthropics/claude-code/issues/49349\n3. https://github.com/anthropics/claude-code/issues/49342\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-16T18:44:16Z"
+    },
+    {
+      "author": "louisgelinas",
+      "author_association": "NONE",
+      "body": "Same here\n\nVersion : 1.3036.0 (cf521c)\nmacOS version : ProductName: macOS / ProductVersion: 26.4.1 / BuildVersion: 25E253\nError message : \"Failed to create bridge sockets after 5 attempts\"\nTrigger: After an update Claude",
+      "created_at": "2026-04-16T18:45:47Z"
+    }
+  ]
+}

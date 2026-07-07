@@ -1,0 +1,35 @@
+{
+  "number": 532,
+  "title": "[BUG] VPN conflict",
+  "body": "## Environment\n- Platform (select one): Anthropic API\n- Claude CLI version: 0.2.45\n- Operating System: Ubuntu 24.04.2\n- Terminal:  Konsole\n\n## Bug Description\nDespite PIA VPN IPs not being blocked for general purpose API usage, the Anthropic Console prompt workbench, or claude.ai, trying to use Claude Code while connected to PIA (PrivateInternetAccess) VPN results in connection errors.\n\n## Steps to Reproduce\n1. Connect to any PIA VPN node\n2. Attempt to use Claude Code\n\n## Expected Behavior\nI expected that the API would work.\n\n## Actual Behavior\nThe API did not work.\n\n## Additional Context\n> hello claude\n  ⎿  API Error (Connection error.) · Retrying in 1 seconds… (attempt 1/2)\n  ⎿  API Error (Connection error.) · Retrying in 1 seconds… (attempt 1/10)\n  ⎿  API Error (Connection error.) · Retrying in 1 seconds… (attempt 1/10)\n  ⎿  API Error (Connection error.) · Retrying in 1 seconds… (attempt 2/2)\n  ⎿  API Error (Connection error.) · Retrying in 1 seconds… (attempt 2/10)\n  ⎿  API Error (Connection error.) · Retrying in 1 seconds… (attempt 2/10)\n  ⎿  API Error (Connection error.) · Retrying in 2 seconds… (attempt 3/10)\n  ⎿  API Error (Connection error.) · Retrying in 2 seconds… (attempt 3/10)\n",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-03-16T17:26:00Z",
+  "updated_at": "2025-08-31T14:05:04Z",
+  "closed_at": "2025-08-22T18:34:56Z",
+  "reactions_total": 0,
+  "comments_count": 16,
+  "author": "trentmkelly",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "8enmann",
+      "author_association": "COLLABORATOR",
+      "body": "We depend on the following domains being allowed:\nhttps://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh#L55-L59\n\nCan you try allowing all those and let us know if it works?",
+      "created_at": "2025-03-17T23:06:40Z"
+    },
+    {
+      "author": "MPeli",
+      "author_association": "NONE",
+      "body": "Hi,\n\nI am experiencing the same issue. Is it possible to extract more details about the error from Claude Code? I tried various options, but nothing provided me with more details.\n\n```\nOptions:\n  -d, --debug                     Enable debug mode\n  --verbose                       Override verbose mode setting from config\n  -p, --print                     Print response and exit (useful for pipes)\n  --json                          Output JSON in the shape {cost_usd: number, duration_ms: number, du",
+      "created_at": "2025-04-09T11:40:00Z"
+    },
+    {
+      "author": "MPeli",
+      "author_association": "NONE",
+      "body": "I managed to find some logs in `~/.npm/_logs/`.\n\n```\nroot@CZLTDJ9TTT3:~/.npm/_logs# cat /root/.npm/_logs/2025-04-09T11_46_48_816Z-debug-0.log\n0 verbose cli /root/.nvm/versions/node/v23.11.0/bin/node /root/.nvm/versions/node/v23.11.0/bin/npm\n1 info using npm@10.9.2\n2 info using node@v23.11.0\n3 silly config load:file:/root/.nvm/versions/node/v23.11.0/lib/node_modules/npm/npmrc\n4 silly config load:file:/root/.npm/_logs/.npmrc\n5 silly config load:file:/root/.npmrc\n6 silly config load:file:/root/.nvm",
+      "created_at": "2025-04-10T06:01:48Z"
+    }
+  ]
+}

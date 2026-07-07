@@ -1,0 +1,42 @@
+{
+  "number": 16982,
+  "title": "[BUG] opusplan setting doesn't switch to Opus during plan mode",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n When using \"model\": \"opusplan\" in settings, Claude Code does not switch to the Opus model during plan mode. The model remains on Sonnet throughout the planning session.\n\n  Expected Behavior\n\n  Claude should report running on Opus 4.5 during plan mode.\n\n  Additional Context\n\n  - Manual switching works: /model opus and /model sonnet correctly switch to the respective Bedrock ARNs\n  - Using AWS Bedrock inference profiles (not direct Anthropic API)\n  - Claude Code version: 2.1.2\n\n  Question\n\n  Is opusplan supported when using custom Bedrock ARNs via ANTHROPIC_DEFAULT_OPUS_MODEL? If not, please document this limitation.\n\n\n\n### What Should Happen?\n\nClaude reports running on Sonnet 4.5 even while in plan mode. The automatic model switch isn't happening.\n\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n  Steps to Reproduce\n\n  1. Set \"model\": \"opusplan\" in settings\n  2. Enter plan mode (/plan or start a planning task)\n  3. Ask Claude which model it's running on or run /status\n  1. Set \"model\": \"opusplan\" in settings\n  2. Enter plan mode (/plan or start a planning task)\n  3. Ask Claude which model it's running on or run /status\n\n### Claude Model\n\nOther\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.2\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nConfiguration\n\n  ~/.claude/settings.json:\n  {\n    \"env\": {\n      \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"arn:aws:bedrock:us-east-1:...:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\",\n      \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"arn:aws:bedrock:us-east-1:...:inference-profile/global.anthropic.claude-opus-4-5-20251101-v1:0\"\n    },\n    \"model\": \"opusplan\"\n  }",
+  "labels": [
+    "bug",
+    "has repro",
+    "api:bedrock",
+    "platform:macos",
+    "area:model",
+    "area:core"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-09T00:41:15Z",
+  "updated_at": "2026-04-15T16:14:34Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 11,
+  "author": "PhilMcDon",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16183\n2. https://github.com/anthropics/claude-code/issues/13242\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-09T00:50:04Z"
+    },
+    {
+      "author": "win20",
+      "author_association": "NONE",
+      "body": "Hi, trying to test out `opusplan` and have the same issue, only switching manually works, i switched to opusplan by doing `/model opusplan` and it \"adds\" the opusplan as a separate model.\n\nMaybe I've missed an update or a doc entry, but this seems so contrived, why not just add an option so we can tell it what to use in plan mode and what to use in execution. I guess sub agents might be able to do the trick but it feels like a workaround for something that should have been simple.\n\nAnd it doesn'",
+      "created_at": "2026-01-16T01:14:26Z"
+    },
+    {
+      "author": "vananden",
+      "author_association": "NONE",
+      "body": "yep, same experience here",
+      "created_at": "2026-01-18T12:51:01Z"
+    }
+  ]
+}

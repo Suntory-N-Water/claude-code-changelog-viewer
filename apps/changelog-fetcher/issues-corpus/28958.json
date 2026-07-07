@@ -1,0 +1,35 @@
+{
+  "number": 28958,
+  "title": "[FEATURE] Worktree creation should sync from remote default branch, not local",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWhen creating a Git worktree via the Claude Code Desktop App, the worktree is initialized from the local `main` branch rather than the remote one (or whichever branch is configured as the default).\n\nThis means that if the local `main` branch is behind the remote, the new worktree starts from a stale state. Unless I explicitly remember to instruct Claude to run `git pull` beforehand, I end up working on outdated code without any warning.\n\n### Proposed Solution\n\nWhen creating a worktree, Claude Code should automatically fetch and sync from the remote default branch before initializing the worktree. This could be implemented in one of two ways:\n\n1. **Default behavior:** Always pull from the remote default branch when creating a worktree (safest option, ensures freshness).\n2. 2. **Opt-in setting:** Add a configuration option (e.g., in Claude Code settings) to enable automatic remote sync on worktree creation, for users who prefer explicit control.\n\n### Alternative Solutions\n\nCurrently, I work around this by manually instructing Claude to run `git pull from main` on the worktree branch. However, this is a manual step that is easy to forget, and there is no prompt or warning from Claude Code to remind me to do it. A built-in sync step would eliminate this friction entirely.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n1. A colleague merges several pull requests into `main` on the remote.\n2. 2. My local `main` branch is now behind the remote by several commits.\n3. 3. I open Claude Code Desktop and ask it to create a new worktree to work on a new feature.\n4. 4. Claude Code creates the worktree from my stale local `main` — without warning me.\n5. 5. I spend time working on code that is missing recent changes, potentially causing merge conflicts or duplicated work later.\nWith this feature, Claude Code would automatically pull the latest changes from the remote before creating the worktree, ensuring I always start from an up-to-date state.\n\n### Additional Context\n\nThis issue is particularly relevant for teams where `main` moves quickly (e.g., CI/CD environments with frequent merges). Starting from a stale branch is a common source of unnecessary merge conflicts and wasted effort.\n\nA similar pattern exists in other tools: for example, `git worktree add` itself does not auto-pull, but many IDE integrations (e.g., JetBrains, VS Code Git extensions) prompt or auto-fetch before branching. Claude Code could follow the same convention to provide a safer default experience.",
+  "labels": ["enhancement", "area:cli"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-26T11:31:18Z",
+  "updated_at": "2026-05-24T01:49:30Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 10,
+  "author": "subotic",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28495\n2. https://github.com/anthropics/claude-code/issues/18437\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-26T11:37:48Z"
+    },
+    {
+      "author": "webbertakken",
+      "author_association": "NONE",
+      "body": "That would be great. \n\nIt would also prevent some of the issues we're having now where agents are not always committing the right files from worktrees to the PRs, ultimately causing loss of complete fixes and features.",
+      "created_at": "2026-02-26T21:18:19Z"
+    },
+    {
+      "author": "henrikra",
+      "author_association": "NONE",
+      "body": "Hitting this too. We want new worktrees to always start from a fresh remote main, but haven't found a clean solution. Would love to see this handled natively.",
+      "created_at": "2026-03-04T12:17:15Z"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "number": 12987,
+  "title": "[BUG] Linux Native x64 build - unbounded memory leak even with clean session",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nBug Report: Memory Leak in Claude Code v2.0.56 (Native Binary)\n\n  Title\n\n  Severe memory leak in Claude Code native binary - consumes all available RAM from startup\n\n  Environment\n\n  | Component           | Value                                                   |\n  |---------------------|---------------------------------------------------------|\n  | Claude Code Version | 2.0.56                                                  |\n  | Installation Method | Native binary (ELF x86-64)                              |\n  | Binary Path         | /home/worker/.local/share/claude/versions/2.0.56        |\n  | Binary MD5          | 0e1cf4775d5e2da4a4768436a23d9804                        |\n  | Build ID            | 3f1c142d4ee369512790723d9eb81539dcfdf9dd                |\n  | OS                  | Ubuntu 22.04.5 LTS (Jammy Jellyfish)                    |\n  | Kernel              | 6.8.0-87-generic #88~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC |\n  | Architecture        | x86_64                                                  |\n  | CPU                 | Intel Core i7-8650U @ 1.90GHz (8 cores, 2 threads/core) |\n  | Total RAM           | 32 GB                                                   |\n  | Swap                | 2 GB                                                    |\n\n  Shared Libraries\n\n  linux-vdso.so.1\n  libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6\n  /lib64/ld-linux-x86-64.so.2\n  libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0\n  libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2\n  libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6\n\n  Description\n\n  Starting Claude Code initiates a continuous memory leak that steadily consumes RAM regardless of conversation activity. The process will eventually exhaust all physical memory if left running.\n\n  Observed Behavior\n\n  After ~4 minutes of runtime with minimal conversation:\n\n  | Metric                  | Value                   |\n  |-------------------------|-------------------------|\n  | RSS (Resident Set Size) | 14.5 GB (and growing)   |\n  | Virtual Memory Size     | 74.7 GB                 |\n  | Peak Virtual Memory     | 135.5 GB                |\n  | VmData (heap/data)      | 69.9 GB                 |\n  | Anonymous Memory        | 15.3 GB                 |\n  | Private Dirty Pages     | 15.3 GB                 |\n  | CPU Usage               | 89-93%                  |\n  | Threads                 | 19                      |\n  | Memory Mappings         | 4,173 anonymous regions |\n\n  Key Observations\n\n  1. Leak starts immediately - Memory begins growing from process start, not triggered by specific actions\n  2. Steady growth - Memory consumption increases continuously over time\n  3. Minimal activity - Leak occurs even with no significant conversation history or tool usage\n  4. Anonymous memory dominant - 4,173 anonymous memory mappings indicate runaway heap allocations\n  5. High CPU correlates - Process consumes 90%+ CPU alongside memory growth\n\n  Expected Behavior\n\n  Memory usage should remain relatively stable during idle periods or scale modestly with conversation context size.\n\n  Actual Behavior\n\n  Memory grows continuously from ~500MB at startup to multiple gigabytes within minutes, eventually consuming all available RAM.\n\n  Impact\n\n  - Severity: Critical\n  - System becomes unresponsive as memory is exhausted\n  - Requires manual process termination\n  - Makes Claude Code unusable for extended sessions\n\n  Additional Context\n\n  The 4,173 anonymous memory mappings (vs 6 mappings each for shared libraries) strongly suggests unbounded heap allocation - possibly a loop creating objects without cleanup, or a growing data\n  structure that's never freed.\n\n### What Should Happen?\n\nClaude should stabilize it's VRAM allocation after a few minutes, and definitely ",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "memory",
+    "perf:memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-03T17:29:50Z",
+  "updated_at": "2026-04-04T14:23:03Z",
+  "closed_at": "2026-03-27T10:21:56Z",
+  "reactions_total": 6,
+  "comments_count": 14,
+  "author": "Hyohko",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/11315\n2. https://github.com/anthropics/claude-code/issues/4953\n3. https://github.com/anthropics/claude-code/issues/12327\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-03T17:33:50Z"
+    },
+    {
+      "author": "Hyohko",
+      "author_association": "NONE",
+      "body": "It's not just Claude Code by itself - even running `claude update` without entering the interactive console prompts this leak. After one minute here's `htop`:\n\n<img width=\"1897\" height=\"798\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/e600029e-65b0-473a-9bf0-6aad2e98095a\" />",
+      "created_at": "2025-12-03T17:56:02Z"
+    },
+    {
+      "author": "Hyohko",
+      "author_association": "NONE",
+      "body": "What's now more distressing is that I got a brand new copy of the Claude Code Native installer fresh from the claude website today, started running it, and I'm getting the exact same memory leak:\n\n<img width=\"2094\" height=\"706\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/f8799106-8ad4-4b98-99bb-0231b7725f65\" />",
+      "created_at": "2025-12-03T18:26:06Z"
+    }
+  ]
+}

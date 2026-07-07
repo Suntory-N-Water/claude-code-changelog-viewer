@@ -1,0 +1,35 @@
+{
+  "number": 32733,
+  "title": "[FEATURE] Secure secrets injection for Claude Code on the web",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nClaude Code on the web (claude.ai/code) has no way to securely provide secrets to async cloud sessions.\n\nThe environment variables field in the environment settings dialog explicitly warns: \"don't add secrets or credentials.\"\n\nThis blocks any workflow that requires authentication in a web session:\n- Installing packages from private registries (npm, PyPI, etc.): the proxy strips user-provided auth headers (#11078) and the auto-injected GitHub credential lacks read:packages scope\n- Cross-repo private dependencies via Cargo, pip, Go modules (#11056)\n- Calling external APIs that require keys (Stripe, AWS, database URLs, etc.) during build/test/runtime\n- Authenticating HTTP-based MCP servers that need Bearer tokens (#28942)\n- Setup scripts that need to pull from private infrastructure\n\nDevin, OpenAI Codex, and Cursor background agents all provide a dedicated encrypted secrets store for their cloud/async agent environments. Claude Code on the web has nothing.\n\nFor teams using custom/private packages (which is most professional teams), Claude Code on the web is literally unusable.\n\n### Proposed Solution\n\nAdd per-user and per-org encrypted secrets store in the environment settings, separate from the existing environment variables field.\n\nSecrets should:\n- Be stored encrypted and only decrypted inside the user's own sandbox at session start\n- Never appear in conversation transcripts or model context\n- Be injected as environment variables at the process level, available to setup scripts, npm install, pip install, and other CLI tools\n- Be scoped per-environment so users can manage different credentials for different repos\n\nThe UX could be as simple as a separate \"Secrets\" section in the environment settings dialog with key-value pairs, visually distinct from the shared env vars, with a note that these are encrypted.\n\n### Alternative Solutions\n\n- Put secrets in the shared environment variables field: explicitly warned against in the UI; visible to all environment users\n- Paste secrets into chat: persisted in conversation history, massive security risk\n- Use --remote from CLI instead of the web: works but loses the async fire-and-forget benefit entirely\n\nNone of these are adequate.\n\n### Priority\n\nCritical - Blocking my work\n\n### Feature Category\n\nOther\n\n### Use Case Example\n\nOur team uses private images on ECR. We literally cannot pull anything to run our code. I am just going and using Devin instead. Codex and cursor agents support this as well.\n\nThis same pattern applies to any team using private PyPI, Cargo, Maven, or Go module registries, or any project that needs API keys or database credentials during development.\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:security", "area:claude-code-web"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-10T05:48:54Z",
+  "updated_at": "2026-06-30T12:43:45Z",
+  "closed_at": null,
+  "reactions_total": 147,
+  "comments_count": 6,
+  "author": "lieblius",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "CatsMiaow",
+      "author_association": "NONE",
+      "body": "When you assign work in Slack by mentioning `@claude` through the Claude app, the connectors configured for Claude—such as Atlassian, Slack, and GitHub—are not integrated at all with the Claude Code Cloud environment (`claude.ai/code`), which makes the work quite limited.\n\nSince the workflow checks out the configured GitHub repository and proceeds from there, it may be possible to run MCP if the repository contains a `.mcp.json` file. However, this is not very useful either, because secret keys ",
+      "created_at": "2026-03-20T09:17:00Z"
+    },
+    {
+      "author": "AltanAlpay",
+      "author_association": "NONE",
+      "body": "+1 from our team (mlops platform, 17-agent workflow). \n\nCurrent blocker: our repo policy requires all GitHub automation to go through an in-repo gh api wrapper. In Claude Code on the web cloud sessions, we can’t plumb GH_TOKEN through env vars safely — warn about plaintext storage is a non-starter for any PAT that can write to our repo. Workaround today is a fine-grained, short-lived PAT in the env-var field with manual rotation. A real secrets store (encrypted at rest, injected at session start",
+      "created_at": "2026-04-20T13:26:17Z"
+    },
+    {
+      "author": "kno-raziel",
+      "author_association": "NONE",
+      "body": " Guess who has it  🫣\n\n<img width=\"785\" height=\"575\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/f62b8a0d-2686-41f6-b029-49b0322c32ad\" />",
+      "created_at": "2026-06-18T05:29:23Z"
+    }
+  ]
+}

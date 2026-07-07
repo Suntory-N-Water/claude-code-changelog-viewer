@@ -1,0 +1,42 @@
+{
+  "number": 22277,
+  "title": "JANUARY 20th: Claude Code Web/Mobile: \"Repository or branches not found\" — persistent 404 on git_proxy endpoint",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code Web (claude.ai/code) and iOS app consistently fail with \"An error occurred while executing Claude Code\" on every session. This has been happening for 11 days straight.\n\nThe browser console shows:\n- 404 errors on `/v1/session_ingress/…/git_proxy/compare` endpoint\n- `[REACT_QUERY_CLIENT] QueryClient error: Repository or branches not found` — repeated 19+ times on page load alone\n- These errors appear immediately on page load before any user interaction\n\n**Key details:**\n- CLI (`claude` command) works perfectly — account, permissions, and API access are all fine\n- Issue is isolated to web and mobile container/git proxy infrastructure\n- Affects: Claude Code Web (claude.ai/code), iOS app, mobile Safari\n- Tested across: Chrome, Safari, iPhone (iOS app + mobile browser)\n- Troubleshooting attempted: cleared cache/cookies, new sessions, different browsers/devices, disconnected & reconnected GitHub, uninstalled & reinstalled GitHub app via claude.ai/code, removed API environment variables, logged out and back in\n- Subscription: Max5\n- Support ticket has been open for 11 days with no resolution\n\n### What Should Happen?\n\nClaude Code Web sessions should load and execute normally, just as they do via the CLI. The git_proxy endpoint should successfully resolve repositories and branches.\n\n### Error Messages/Logs\n\n```shell\n// Console errors on page load (repeated 19+ times):\n[REACT_QUERY_CLIENT] QueryClient error: a: Repository or branches not found\n    at i (https://claude.ai/_next/static/chunks/64328-4c5e11db1e609c9b.js:1:16387)\n    at queryFn (https://claude.ai/_next/static/chunks/17421-dd74836abff36950.js:1:22236)\n\n// Network tab shows:\n404 on /v1/session_ingress/.../git_proxy/compare\n\n// UI error:\n\"An error occurred while executing Claude Code. You can try again by sending a new message or starting a new session.\"\n```\n\n### Steps to Reproduce\n\n1. Log into claude.ai with a Max5 subscription account (with GitHub connector enabled)\n2. Navigate to claude.ai/code\n3. Start a new Claude Code session\n4. Send any message/request\n5. Session immediately fails with \"An error occurred while executing Claude Code\"\n6. Open browser developer console (Cmd + Option + J) to see 19+ \"Repository or branches not found\" errors and 404s on the git_proxy endpoint\n7. This happens 100% of the time across all browsers, devices, and new sessions\n8. CLI (`claude` command in terminal) works fine with the same account\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nLatest (issue is on web/mobile, not CLI)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nThis issue has been reported to Anthropic support for 11 days (since Jan 20) with no resolution. Support ticket is open but standard troubleshooting (clear cache, remove API env vars, reinstall GitHub app, etc.) has not helped because the issue is server-side.\n\nThe errors occur on Anthropic's git proxy infrastructure — the `/v1/session_ingress/.../git_proxy/compare` endpoint returns 404, causing the React Query client to throw \"Repository or branches not found\" errors repeatedly. This happens before any user interaction, immediately on page load.\n\nCLI access works perfectly, confirming the issue is specific to the web/mobile container execution environment and not account permissions or API access.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "external",
+    "area:api",
+    "area:claude-code-web"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-01T00:10:50Z",
+  "updated_at": "2026-03-22T14:21:55Z",
+  "closed_at": "2026-03-12T18:36:47Z",
+  "reactions_total": 7,
+  "comments_count": 44,
+  "author": "ChrispyKreme86",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "igorkofman",
+      "author_association": "COLLABORATOR",
+      "body": "Hey folks - thanks for flagging - we are taking a look now.",
+      "created_at": "2026-02-07T22:52:24Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19621\n2. https://github.com/anthropics/claude-code/issues/17888\n3. https://github.com/anthropics/claude-code/issues/17290\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-01T00:16:02Z"
+    },
+    {
+      "author": "ChrispyKreme86",
+      "author_association": "NONE",
+      "body": "**Update (Feb 1):** Additional debugging confirms this is a backend repo-mapping issue, not a general proxy failure:\n\n1. **Repo-specific** — Other repos connect and work fine. Only this specific repo fails.\n2. **Old sessions still work** — A session from early January connected to this same repo still functions and can push. Only *new* sessions fail.\n3. **Rename didn't help** — Renamed the repo on GitHub; new sessions picked up the new name but still fail with the same 404. This rules out name-b",
+      "created_at": "2026-02-01T17:39:30Z"
+    }
+  ]
+}

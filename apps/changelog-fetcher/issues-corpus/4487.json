@@ -1,0 +1,35 @@
+{
+  "number": 4487,
+  "title": "Critical: Claude Code context amnesia causes silent code deletion",
+  "body": "## Environment\n- Platform: Claude Code CLI\n- Claude CLI version: 1.0.61\n- Operating System: macOS 15.5 (Build 24F74)\n- Terminal: Terminal App\n\n## Bug Description\n**Critical amnesia issue**:\nClaude Code reads codebase initially but loses ALL context after few messages, causing code loss and trash additions. After 1 month testing both Claude Code CLI and Claude 4 in Cursor, consistent pattern shows Claude 4 performs worse than Claude 3.5 despite marketing claims.\n\n## Steps to Reproduce\n1. Claude Code reads 1,684-line file initially ✅\n2. Request: \"split that files into modular folder\"\n3. **Result: 225 lines lost (13% of code disappeared)**\n4. Continue conversation 5-10 messages\n5. **Claude forgets everything** - requires \"read conversation as context\"\n6. Test on simple REST API - adds unnecessary boilerplate during \"optimization\"\n\n## Expected Behavior\n- Maintain codebase context throughout session\n- Preserve 100% code integrity during refactoring\n- Focus on requested changes only\n\n## Actual Behavior\n**Amnesia Pattern:**\n- ✅ Reads codebase initially\n- ❌ **Loses ALL context after few steps**\n- ❌ Lost 225 lines during modularization\n- ❌ Adds trash code during optimization\n- ❌ Requires constant reminders to read context\n\n**Model Comparison (1 Month Testing):**\n- **Claude 3.5**: Better focus, similar amnesia but less severe\n- **Claude 4**: Worse performance, more verbose, adds unnecessary complexity\n- **Regression confirmed** across Claude Code CLI and Cursor IDE\n\n## Additional Context\n**Production Impact (30 Days Usage):**\n- Constant context resets needed\n- More time fixing Claude's mistakes than original work\n- **Standard workflow broken**: Must remind Claude to read codebase every few messages\n\n**Key Issues:**\n1. **Amnesia**: Forgets codebase context mid-conversation\n2. **Code Loss**: Silent deletion of functional code\n3. **Trash Addition**: Adds unnecessary complexity during optimization\n4. **Model Regression**: Claude 4 worse than Claude 3.5\n5. **Overclaiming**: Marketing doesn't match reality\n\n**Evidence:**\n- Original: 1,684 lines → Modular: 1,459 lines = **225 lines missing**\n- Missing methods: `getBaseProcessesForNodeType()`, `getMemoryUtilizationFactor()`, etc.\n- Same issues across Claude Code CLI and Cursor IDE\n- Claude 3.5 performs better in semantic reasoning\n\n**Bottom Line:**\nClaude Code has severe amnesia - reads codebase then forgets everything, causing data loss and requiring constant context reminders.\n\n---\n\n## Conversation History\n\n<img width=\"897\" height=\"1032\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/89eec256-28a2-4276-8aa0-61c72009f50e\" />\n<img width=\"897\" height=\"1032\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/b50506f3-7f8c-4911-ae0d-eef740a53677\" />\n<img width=\"897\" height=\"1032\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/53a96ae3-b326-4679-977e-4f5c0a6a909d\" />\n<img width=\"897\" height=\"1032\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/c31b3f7a-34a7-4bdc-9271-30bb7284e955\" />\n<img width=\"897\" height=\"1032\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/290db352-4f45-4285-b19e-6381dcdc7f65\" />\n<img width=\"897\" height=\"1032\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/5c8893e8-51d5-4bce-a3da-320ae5be7c8d\" />\n\n--\n\n## Proof of Usage in Cursor IDE\n\n<img width=\"3600\" height=\"1920\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/87500392-7478-4a1c-852b-8c6b52cc6ba7\" />",
+  "labels": ["duplicate"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-07-26T11:09:54Z",
+  "updated_at": "2025-08-25T14:07:03Z",
+  "closed_at": "2025-08-15T18:31:55Z",
+  "reactions_total": 24,
+  "comments_count": 21,
+  "author": "NeaByteLab",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "NeaByteLab",
+      "author_association": "NONE",
+      "body": "I shared a GitHub URL (https://github.com/anthropics/claude-code/issues/4487) and Claude immediately assumed it was a successfully posted issue, responding with detailed analysis about the submission without actually checking the URL first.\n\nWhen am asked Claude to \"read the opening issues and read some issue\" from the repository, Claude finally fetched the URL and discovered issue #4487 doesn't exist. This sequence perfectly demonstrates Claude Code's core amnesia problem - it makes confident a",
+      "created_at": "2025-07-26T11:36:50Z"
+    },
+    {
+      "author": "heyagent",
+      "author_association": "NONE",
+      "body": "@NeaByteLab I believe you are experiencing this issue because parsing a website consumes a lot of tokens, and Anthropic is trying to minimize the usage. So instead of the bot checking what is really going on the website, it's just giving you an assumption which most of the times is wrong. The same thing happens when it is checking the files. Previously, it was much more prone to reading files, and now it is much more prone to just writing. \n\nThis is just an observation. I don't have any factual ",
+      "created_at": "2025-07-26T12:01:22Z"
+    },
+    {
+      "author": "NeaByteLab",
+      "author_association": "NONE",
+      "body": "> [@NeaByteLab](https://github.com/NeaByteLab) I believe you are experiencing this issue because parsing a website consumes a lot of tokens, and Anthropic is trying to minimize the usage. So instead of the bot checking what is really going on the website, it's just giving you an assumption which most of the times is wrong. The same thing happens when it is checking the files. Previously, it was much more prone to reading files, and now it is much more prone to just writing.\n> \n> This is just an ",
+      "created_at": "2025-07-26T12:18:02Z"
+    }
+  ]
+}

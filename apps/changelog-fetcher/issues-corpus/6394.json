@@ -1,0 +1,42 @@
+{
+  "number": 6394,
+  "title": "Critical: .claude.json bloat severely impacting user experience - consolidated community feedback",
+  "body": "## Summary\nThis issue consolidates widespread user frustration about .claude.json file bloat from storing unbounded conversation history in what should be a configuration file.\n\n## Impact Scale\n- Multiple reports of files growing to **65MB+**\n- Affecting numerous users across issues #5024, #1449, #2539, #6181, #2593, #3117\n- Causing real operational failures, not just inconvenience\n\n## Critical Problems Reported by Users\n\n### 1. Performance Degradation\n- Slow Claude Code startup times\n- MCP server initialization failures\n- System resource exhaustion\n- 72+ duplicate MCP processes spawning (reported by @vincentortegajr)\n\n### 2. Data Loss & Corruption\n- File corruption during concurrent sessions (#3117)\n- Configuration loss when manually cleaning history\n- Truncation issues leading to invalid JSON (#2593)\n\n### 3. Developer Workflow Disruption\n- Version control pollution - constant dirty state\n- Cannot safely version control configurations\n- Privacy concerns with sensitive conversations in config files\n- Manual cleanup required repeatedly\n\n## Community Sentiment (Direct Quotes)\n- \"This is nuts to do this in this manner\" - @nonrev76\n- \"IT MAKES THE ENTIRE claude.json COMPLETELY UNUSABLE\" - @cosier  \n- \"Totally unacceptable to be storing mutable data in a config file\" - @rebuyengine\n- \"Storing unbounded conversation history in a config file doesn't make sense\" - @dimension-zero\n\n## Proposed Solutions from Community\n1. **Short-term**: Automatic rotation after size/age limits\n2. **Long-term**: Separate history from configuration entirely\n   -  for settings\n   -  for per-project history\n   - Use proper cache directories for ephemeral data\n\n## Current Workarounds Are Insufficient\n- No built-in cleanup mechanism\n- Manual editing risks breaking MCP configurations\n- Users resorting to backup/restore cycles\n\n## Request\nPlease prioritize this issue. It's not just a minor inconvenience - it's causing:\n- Operational failures\n- Data loss\n- Significant user frustration\n- Trust erosion in the tool\n\nThe community needs at minimum:\n1. An immediate hotfix for cleanup\n2. A roadmap for proper separation of concerns\n3. Clear communication about timeline\n\nThank you for your attention to this critical issue affecting daily workflows.\n\n## Related Issues\n- #5024 (main tracking issue)\n- #1449 (closed but unresolved)\n- #2539 (separation proposal)\n- #6181, #2593, #3117 (corruption reports)\n\n---\n*Submitted on behalf of affected users who have been reporting this issue for months*",
+  "labels": [
+    "bug",
+    "duplicate",
+    "area:core",
+    "area:security",
+    "memory",
+    "perf:memory"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-23T08:28:00Z",
+  "updated_at": "2026-01-18T14:12:08Z",
+  "closed_at": "2026-01-11T10:11:56Z",
+  "reactions_total": 21,
+  "comments_count": 31,
+  "author": "Jahonny",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5024\n2. https://github.com/anthropics/claude-code/issues/6181\n3. https://github.com/anthropics/claude-code/issues/2539\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-23T08:33:50Z"
+    },
+    {
+      "author": "tobalsan",
+      "author_association": "NONE",
+      "body": "+1000 for this.\n\nMCP management is particulary frustrating. \nMuch better experiencer to have a user-level `.mcp.json`, or at the very least, add an `mcpServers` key to `~/.claude/settings.json`. We are a lot to want to be able to:\n1. Add MCP servers manually via JSON file update, and\n2. Be able to sync the MCP server config without having to sync the bloated `~/.claude.json` file.\n\nSee also #3321.",
+      "created_at": "2025-08-23T16:29:28Z"
+    },
+    {
+      "author": "jeffstone30",
+      "author_association": "NONE",
+      "body": "+10000 for this.\n\nThis is pretty crazy. I didn't realize copy + pasting images into Claude Code on my Mac Air was storing those images' binary data into the ~/.claude.json file!!! \n\nI have been having issue over the past few days with Claude Code. Thought it was a degradation of the service. I went in and cleaned this 50MB file back down to about 25KB, and now Claude Code is working again....that is until I paste some more images into it. Pasted about 5 images and my .claude.json file is back up",
+      "created_at": "2025-08-24T19:34:08Z"
+    }
+  ]
+}

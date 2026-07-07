@@ -1,0 +1,35 @@
+{
+  "number": 59665,
+  "title": "[BUG] /remote-control fails on fresh Windows 11 install — bridge webview cannot authenticate (bridge_state: failed — /login)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe /remote-control feature fails to connect on a freshly installed Windows 11 machine. The error shown is:\n\"Remote Control failed to connect: /login\"\n\nThis occurs immediately after logging into Claude Desktop — the bridge webview cannot authenticate at all.\n\nDiagnostic evidence from %APPDATA%\\Claude\\logs\\main.log:\n- topFrameUrl: 'https://claude.ai/login?from=logout&returnTo=%2Fepitaxy'\n- Failed to check allowlist status: Organization API returned status 403\n- [remote-control] bridge_state: failed — /login\n\nDiagnostic evidence from %APPDATA%\\Claude\\logs\\claude.ai-web.log:\n- Uncaught (in promise) UnknownError: Internal error opening backing store for indexedDB.open\n- [bootstrap] Eager fetch failed: Failed to fetch\n- Eager bootstrap returned no data (logged out)\n\nKey finding: On this broken machine, the IndexedDB storage for the bridge webview (https_claude.ai_0.indexeddb.leveldb) is essentially empty (~142 KB). On working machines (other Windows 11 PC, MacBook, iPhone), the same IndexedDB is ~965 KB and contains authentication tokens for the bridge.\n\nThe bridge webview uses an isolated Chromium context separate from the main chat webview. On this machine, the bridge webview's initial authentication handshake fails silently — it cannot reach claude.ai/epitaxy at all (\"Failed to fetch\"), leaving IndexedDB empty of bridge tokens.\n\nAll other devices on the same account work correctly. Only this one fresh Windows 11 install is affected.\n\n### What Should Happen?\n\nAfter logging into Claude Desktop, /remote-control should successfully establish the bridge connection and allow cross-device session access. The bridge webview should authenticate against claude.ai/epitaxy and populate its IndexedDB with the required tokens.\n\n### Error Messages/Logs\n\n```shell\nFrom %APPDATA%\\Claude\\logs\\main.log:\n[remote-control] bridge_state: failed — /login\ntopFrameUrl: 'https://claude.ai/login?from=logout&returnTo=%2Fepitaxy'\nFailed to check allowlist status: Organization API returned status 403\n\nFrom %APPDATA%\\Claude\\logs\\claude.ai-web.log:\nUncaught (in promise) UnknownError: Internal error opening backing store for indexedDB.open\n[bootstrap] Eager fetch failed: Failed to fetch\nEager bootstrap returned no data (logged out)\n```\n\n### Steps to Reproduce\n\n1. Perform a fresh install of Windows 11\n2. Install Claude Desktop (latest version: 1.7196.1 abcd65)\n3. Sign in via Google OAuth\n4. Open Claude Desktop — login completes normally\n5. Try /remote-control from any device on the same account\n\nResult: Fails immediately with \"Remote Control failed to connect: /login\"\n\nNote: NOT reproducible on the same account on other devices (another Windows 11 PC, MacBook, iPhone). Specific to this fresh Windows 11 install only.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n1.7196.1 (abcd65) — Claude Desktop app\n\n### Claude Code Version\n\n1.7196.1 (abcd65) — Claude Desktop app\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nEnvironment:\n- Claude Desktop Version: 1.7196.1 (abcd65)\n- OS: Windows 11 (fresh install)\n- Authentication: Google OAuth (SSO)\n- Same account works on 3 other devices\n\nAffected device: 1x Windows 11 (fresh install) — /remote-control fails\nWorking devices: 1x Windows 11 (older install), 1x MacBook, 1x iPhone — all work\n\nTroubleshooting already attempted (none resolved the issue):\n1. Re-login (logout + login again)\n2. Full Windows 11 reinstall (bug survived a clean OS reinstall)\n3. Windows Time Service sync (W32tm /resync)\n4. Changed Windows Firewall network profile from Public to Private\n5. Disabled Windows Defender Controlled Folder Access\n6. Cleared In",
+  "labels": ["bug", "platform:windows", "area:auth"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-16T10:15:11Z",
+  "updated_at": "2026-06-07T21:20:26Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 7,
+  "author": "ethanrainhello",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "PokemasterDG",
+      "author_association": "NONE",
+      "body": "Confirming the same bug on **macOS 26.5 (25F71)** with **Claude Desktop 1.8089.0** on Apple M2 Max — symptom and bridge-webview state are identical to the Windows repro here:\n\n- Error toast: \"Remote Control failed to connect: /login\"\n- `main.log`: `[remote-control] bridge_state: failed — /login`\n- `claude.ai-web.log`: `topFrameUrl: 'https://claude.ai/login?from=logout'`, `Eager bootstrap returned no data (logged out)`, `[\"account_profile\"] data is undefined`, `Internal error opening backing stor",
+      "created_at": "2026-05-19T17:09:36Z"
+    },
+    {
+      "author": "MrEldritch",
+      "author_association": "NONE",
+      "body": "Having the exact same bug and behavior on a Windows 10 machine.\n",
+      "created_at": "2026-05-23T15:00:24Z"
+    },
+    {
+      "author": "kavin-rc",
+      "author_association": "NONE",
+      "body": "Same issue its driving me nuts! Codex does it way better. Please adapt from their solution. Best!",
+      "created_at": "2026-05-26T09:10:27Z"
+    }
+  ]
+}

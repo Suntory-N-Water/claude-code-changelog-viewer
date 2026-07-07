@@ -1,0 +1,35 @@
+{
+  "number": 43056,
+  "title": "Accumulated inline image base64 in session history causes 'Request too large (max 20MB)' — blocks all messages including /feedback",
+  "body": "## Bug Description\n\nGetting \\`Request too large (max 20MB). Double press esc to go back and try with a smaller file.\\` error on **text-only follow-up messages** after prior inline screenshots have accumulated in the conversation history. The error also blocks submitting \\`/feedback\\`, making it difficult to report the issue when it occurs.\n\n**Suspected regression, reproduced on v2.1.91.** The error was not observed between 2026-03-07 and 2026-04-03 across dozens of sessions on this machine. Historical search across all local Claude Code sessions shows only 3 affected sessions: one on 2026-03-07 and two on 2026-04-03. Note: absence from the changelog between v2.1.73–v2.1.91 does not prove no regression shipped — it only means none was documented.\n\n## Probable Root Cause (Session Forensics — Not Confirmed by Anthropic)\n\nInline image blocks (pasted/attached screenshots) are persisted as base64 in conversation history and **re-sent with every subsequent API call**. Once enough images accumulate, the serialized request exceeds the 20MB per-request cap — then **every future message fails**, even pure text ones with zero images.\n\n**Key forensic evidence (from independent Codex CLI audit of the affected session JSONL):**\n- First \\`Request too large\\` error occurred at JSONL line 356\n- First screenshot \\`Read\\` call did not occur until JSONL line 390 — **the \\`Read\\` tool was NOT the initial trigger**\n- At first failure: 14 inline image blocks with ~35.8M base64 characters already in history\n- Total session: 25 inline image blocks with ~55.2M base64 characters\n- Local image cache: 31 files totaling 52.6MB\n\n**Additional behavioral observations:**\n- Even after \\`/rewind\\`, the base64 from previously-sent images persists in conversation state — text-only prompts still carry the accumulated image payload\n- Initially, providing **file paths** (which triggers the \\`Read\\` tool) caused the error, while providing **file URLs** did not — but eventually even URLs stopped working\n- The error compounds: each \\`/rewind\\` gives temporary relief but the underlying payload remains\n- The user was on a **1M-context model** (Opus 4.6) at only **41% utilization** (~409K tokens) — the 20MB wire-size cap is hit long before the semantic token limit\n\n## Prior Image-Related Fixes (Release Notes)\n\n| Version | Release Date | Change |\n|---------|-------------|--------|\n| v1.0.28 | Pre-2026 | \"Resizes images before upload to prevent API size limit errors\" |\n| v2.1.37 | Feb 7, 2026 | \"Stripping images before sending to the compaction API\" (#26188) |\n| v2.1.43 | ~Feb 2026 | \"Fixed image dimension limit errors to suggest /compact\" |\n| v2.1.71 | Mar 7, 2026 | \"Fixed the Read tool putting oversized images into context when image processing failed\" |\n| v2.1.72 | Mar 10, 2026 | \"Fixed oversized and truncated images from Bash data-URL output\" |\n\nThe v2.1.71/v2.1.72 fixes addressed specific edge cases (Read tool failure path + Bash data-URL), but did **not** implement a general 20MB pre-flight payload size check or image pruning from accumulated conversation history.\n\n## Steps to Reproduce\n\n1. Start a Claude Code session (v2.1.91, Opus 4.6 1M context, Max subscription 20x)\n2. Paste or attach several screenshots/images during the conversation (inline, not necessarily via \\`Read\\` tool)\n3. Continue working — the base64 of each image persists in conversation history\n4. After enough images accumulate (~14+ Retina screenshots = ~35MB base64), the serialized request exceeds 20MB\n5. Every subsequent message — including pure text with no images — fails with \\`Request too large (max 20MB)\\`\n6. \\`/feedback\\` was not a reliable escape hatch during the failure state\n7. \\`/rewind\\` gives temporary relief but the error recurs since image data remains in history\n8. Providing file paths (\\`Read\\` tool) vs file URLs behave differently initially, but both eventually fail\n\n## Expected Behavior\n\n- Inline image data should be pruned, cached by reference, or excluded from re-serialization after initial processing\n- If re-sending is necessary, auto-compact should trig",
+  "labels": ["bug", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-03T11:21:21Z",
+  "updated_at": "2026-06-21T11:05:39Z",
+  "closed_at": null,
+  "reactions_total": 6,
+  "comments_count": 15,
+  "author": "nikkundra",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34751\n2. https://github.com/anthropics/claude-code/issues/42084\n3. https://github.com/anthropics/claude-code/issues/26019\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-03T11:24:28Z"
+    },
+    {
+      "author": "nikkundra",
+      "author_association": "NONE",
+      "body": "## Update — Comprehensive Root Cause Analysis Added\n\nThis issue has been significantly updated since initial filing with forensic evidence from two independent sessions (Claude Code + Codex CLI audit):\n\n**Key findings:**\n- The initial trigger is **inline pasted/attached images** accumulating as base64 in conversation history — NOT the `Read` tool (corrected from earlier version)\n- 14 inline image blocks (~35.8M base64 chars) were in history before the first failure\n- Even after `/rewind`, the ba",
+      "created_at": "2026-04-03T15:24:55Z"
+    },
+    {
+      "author": "nikkundra",
+      "author_association": "NONE",
+      "body": "## Update — Issue Body Revised Based on Independent Forensic Review\n\nThe issue body has been significantly revised based on two independent code reviews by Codex CLI (GPT-5), which audited both the affected session JSONL and this follow-up session's work.\n\n### Changes made:\n\n1. **Title updated** — Now accurately reflects the root cause (accumulated inline image base64) rather than just one symptom (text-only messages)\n2. **Root cause corrected** — Earlier versions incorrectly blamed the `Read` t",
+      "created_at": "2026-04-03T15:43:40Z"
+    }
+  ]
+}

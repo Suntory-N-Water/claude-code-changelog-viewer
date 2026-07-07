@@ -1,0 +1,35 @@
+{
+  "number": 2794,
+  "title": "Feature Request: Scheduled Actions in Claude Code",
+  "body": "## Summary\n\nIn learning about Claude Code I have been asking it what it can do regarding scheduling, and asking it to add features related to OWASP top-10 or ISO 27001 compliance, and not finding anything like this, so, I'd like to request the feature of scheduling recurring tasks and actions within Claude Code, enabling automated security checks, dependency reviews, and other periodic maintenance tasks. Of course, I asked it to summarize what we discussed, into a document for this request, and then edited it. \n\n## Problem Statement\n\nCurrently, Claude Code operates in a reactive mode - it only performs actions when explicitly requested by the user. This means important maintenance and compliance tasks like security audits, dependency updates, and compliance checks must be manually initiated each time. For development teams following security best practices (OWASP, ISO 27001, NIST), this creates several challenges:\n\n1. **Human Memory Dependency**: Critical security checks rely on developers remembering to request them\n2. **Inconsistent Timing**: Reviews happen irregularly, potentially missing time-sensitive vulnerabilities\n3. **Repetitive Requests**: Users must repeatedly type similar requests for routine checks\n4. **Compliance Gaps**: Regular audits required for compliance frameworks may be missed\n\n## Proposed Solution\n\nImplement a scheduled actions feature that allows Claude Code to proactively perform configured tasks at specified intervals.\n\n### Core Features\n\n1. **Schedule Configuration**\n   - Cron-style scheduling (e.g., \"0 9 * * MON\" for weekly Monday 9am)\n   - Human-readable intervals (e.g., \"daily\", \"weekly\", \"monthly\")\n   - Time zone support for global teams\n\n2. **Action Types**\n   - Security audits (OWASP Top 10 compliance checks)\n   - Dependency vulnerability scans\n   - Code quality reports\n   - License compliance checks\n   - Custom user-defined actions\n\n3. **Notification System**\n   - Desktop notifications when scheduled tasks complete\n   - Summary reports of findings\n   - Option to auto-create GitHub issues for problems found\n\n4. **Configuration Storage**\n   - Project-level `.claude/scheduled-actions.json`\n   - User-level defaults in Claude settings\n   - Team-shared configurations (for Claude Team users)\n\n## Use Cases\n\n### 1. Weekly Security Audit\n\n```json\n{\n  \"name\": \"OWASP Security Check\",\n  \"schedule\": \"0 9 * * MON\",\n  \"action\": \"security:owasp-audit\",\n  \"options\": {\n    \"severity\": \"medium\",\n    \"autoFix\": false,\n    \"createIssues\": true\n  }\n}\n```\n\n### 2. Daily Dependency Check\n\n```json\n{\n  \"name\": \"Dependency Vulnerabilities\",\n  \"schedule\": \"daily at 10:00\",\n  \"action\": \"dependencies:check-vulnerabilities\",\n  \"options\": {\n    \"ecosystems\": [\"npm\", \"deno\", \"cargo\"],\n    \"ignoreDev\": false\n  }\n}\n```\n\n### 3. Monthly Compliance Report\n\n```json\n{\n  \"name\": \"ISO 27001 Compliance\",\n  \"schedule\": \"0 0 1 * *\",\n  \"action\": \"compliance:iso27001-report\",\n  \"options\": {\n    \"outputPath\": \"./reports/compliance/\",\n    \"emailTo\": \"security@company.com\"\n  }\n}\n```\n\n### 4. Custom Action for Dependabot PRs\n\n```json\n{\n  \"name\": \"Review Dependabot PRs\",\n  \"schedule\": \"every 3 days\",\n  \"action\": \"custom\",\n  \"command\": \"Review all open Dependabot PRs, check for breaking changes, run tests, and provide a summary with recommendations\",\n  \"options\": {\n    \"autoMerge\": \"patch-only\",\n    \"requireTests\": true\n  }\n}\n```\n\n## Implementation Considerations\n\n### User Interface\n\n1. **Command Palette Commands**\n   - `Claude: Schedule New Action`\n   - `Claude: View Scheduled Actions`\n   - `Claude: Run Scheduled Action Now`\n   - `Claude: Disable/Enable Schedule`\n\n2. **Status Bar Integration**\n   - Icon showing next scheduled action\n   - Click to view all schedules\n   - Visual indicator when action is running\n\n3. **Settings UI**\n   - Dedicated section for scheduled actions\n   - Visual schedule builder (not just JSON)\n   - Test/preview functionality\n\n### Technical Requirements\n\n1. **Background Execution**\n   - Actions run even when Claude Code UI is minimized\n   - Efficient resource usage during idle times\n   - Respect system sleep/wake cycles",
+  "labels": ["enhancement", "area:core", "area:security", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-01T12:12:29Z",
+  "updated_at": "2026-01-20T14:17:45Z",
+  "closed_at": "2026-01-12T10:14:19Z",
+  "reactions_total": 39,
+  "comments_count": 5,
+  "author": "RickCogley",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "CoreyKaylor",
+      "author_association": "NONE",
+      "body": "This would be incredibly useful. I can see so many applications for this and keeps things 'simple' and local to claude code environment.",
+      "created_at": "2025-08-18T18:59:08Z"
+    },
+    {
+      "author": "themightychris",
+      "author_association": "NONE",
+      "body": "This doesn't make sense to implement inside Claude Code. It would require that Claude Code add an entire background process daemon and place to manage schedules which would be a big departure from its current operating model. There are already really robust systems for running commands on schedules and Claude Code already lets you pass prompts/commands in when you invoke it so nothing is stopping you today from using the cron service already on your system to invoke Claude Code commands and you ",
+      "created_at": "2025-11-05T19:27:19Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-12T10:10:13Z"
+    }
+  ]
+}

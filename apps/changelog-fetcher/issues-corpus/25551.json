@@ -1,0 +1,35 @@
+{
+  "number": 25551,
+  "title": "Claude --chrome connects to wrong browser when multiple Chrome instances on LAN",
+  "body": "## Description\n\nWhen running `claude --chrome` on a machine with multiple Chrome instances on the same LAN (each with the Claude extension installed), the connection can go to the wrong browser. There's no way to specify which Chrome instance to connect to.\n\n## Environment\n\n- Ubuntu host (n100) running Claude Code with `--chrome` for automated token renewal via systemd timer\n- Windows gaming PC (BIGRIG) on the same LAN, also running Chrome with the Claude extension\n- Both machines logged into the same claude.ai account\n\n## Behavior\n\n- `claude --chrome` connects to whichever Chrome extension responds first\n- The automated renewal script on the Ubuntu host connected to BIGRIG's Chrome instead of the local one\n- `switch_browser` exists but requires manual user interaction (clicking \"Connect\"), making it unsuitable for unattended/automated use\n- No way to specify a target browser by name, hostname, or ID programmatically\n\n## Workaround\n\nAdded a `navigator.platform` check after connecting to detect if the browser is on the expected OS (Linux vs Win32) and log a warning. The OAuth flow works regardless of which browser handles it, so we proceed with a warning rather than failing.\n\n## Feature Request\n\nIt would be useful to have:\n1. A way to target a specific named browser in `--chrome` mode (e.g., `--chrome-browser \"n100\"`)\n2. Or auto-prefer the local machine's Chrome over remote ones\n3. Or a non-interactive `switch_browser` that can specify a target by name\n\nThis would make `--chrome` reliable for unattended automation on multi-machine setups.",
+  "labels": ["enhancement", "platform:linux", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-13T15:17:28Z",
+  "updated_at": "2026-04-30T14:59:27Z",
+  "closed_at": "2026-04-17T22:19:56Z",
+  "reactions_total": 5,
+  "comments_count": 10,
+  "author": "wstock",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "aeghnnsw",
+      "author_association": "NONE",
+      "body": "Same issue — two machines, connects to the wrong browser regularly. Local-first priority would fix it for me. switch_browser requiring manual confirmation every time is too disruptive.",
+      "created_at": "2026-02-22T01:44:16Z"
+    },
+    {
+      "author": "spiveym",
+      "author_association": "NONE",
+      "body": "claude code should obviously default to the browser located on the machine in use by default. There should absolutely be no reason why it should connect to another browser instance on a local network.",
+      "created_at": "2026-02-26T00:32:55Z"
+    },
+    {
+      "author": "zirinisp",
+      "author_association": "NONE",
+      "body": "Same issue. Actually, it took me a while to understand what was going on because it was losing the connection and was asking to connect again, and basically it was jumping from one machine to the other. It's going to be nice to be able to connect its machine to one browser or even make this some kind of feature, and then my MacBook can run the browser on my Mac Mini, my desktop; even that would be nice, but I think that we need some control. Otherwise, it is a mess. ",
+      "created_at": "2026-02-28T06:53:21Z"
+    }
+  ]
+}

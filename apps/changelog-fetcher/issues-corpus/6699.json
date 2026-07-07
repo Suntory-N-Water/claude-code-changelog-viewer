@@ -1,0 +1,35 @@
+{
+  "number": 6699,
+  "title": "Critical Security Bug: `deny` permissions in `settings.json` are not enforced**",
+  "body": "**Title: Critical Security Bug: `deny` permissions in `settings.json` are not enforced**\n\n**Labels:** `bug`, `security`, `critical`\n\n### Description\n\nAs of version **1.0.93**, the `deny` permission system configured in `settings.json` files is completely non-functional. All tested deny rules are ignored, allowing Claude Code unrestricted access to files and tools that should be blocked. This presents a significant security risk for users who rely on this documented feature to protect sensitive data and prevent dangerous operations.\n\nBased on extensive testing (see attached test results summary), the following deny rules failed to work:\n*   **File Access:** `Read`, `Edit`, `Write` rules for specific files, patterns (`*.env`), and recursive directories (`secrets/**`) were all ignored.\n*   **Tool Access:** Denying entire tools like `WebFetch` was ineffective.\n*   **Command Access:** Denying specific `Bash` commands (e.g., `rm:*`) had no effect.\n*   **Default Blocks:** Even default-denied commands like `curl` were executable.\n\nThe current behavior completely contradicts the official documentation, which details a robust system for restricting agent capabilities.\n\n### Steps to Reproduce\n\n1.  In a project directory, create a `.claude/settings.json` file with the following content:\n    ```json\n    {\n      \"permissions\": {\n        \"deny\": [\n          \"Read(./.env)\"\n        ]\n      }\n    }\n    ```\n2.  Create a file named `.env` in the same directory with some content (e.g., `SECRET=123`).\n3.  Start `claude` in the terminal.\n4.  Ask Claude to: `read the .env file`.\n\n**Expected Behavior:**\nClaude should be blocked from reading the file, stating that the permission is denied by the configuration.\n\n**Actual Behavior:**\nClaude successfully reads and displays the contents of the `.env` file, completely ignoring the `deny` rule.\n\n### Community Workaround: Using `PreToolUse` Hooks\n\nUntil the core `deny` functionality is fixed, the only reliable way to protect sensitive files is by using a `PreToolUse` hook. This solution intercepts tool calls before execution and can block them based on custom logic.\n\nI am sharing my implementation below to help other users secure their environments and to provide the team with a clear example of the expected behavior.\n\n#### 1. Create the Hook Script (`.claude/hooks/protect_sensitive_files.py`)\n\nThis Python script checks the `file_path` of any `Read` or `Edit` operation against a list of sensitive patterns. If a match is found, it exits with code `2`, which blocks the tool and feeds the `stderr` message back to Claude.\n\n```python\n#!/usr/bin/env python3\nimport sys\nimport json\nfrom pathlib import Path\n\n# A list of file extensions and exact filenames considered sensitive.\nSENSITIVE_PATTERNS = {\n    '.env', '.pem', '.key', '.credential', '.token', 'credentials.json',\n    'google-credentials.json', 'service-account.json', 'package-lock.json',\n    'poetry.lock', 'yarn.lock'\n}\n\ndef main():\n    \"\"\"\n    Main function to process the hook input and check for sensitive file access.\n    \"\"\"\n    try:\n        # Read the JSON data passed from Claude Code via stdin\n        data = json.load(sys.stdin)\n        tool_input = data.get('tool_input', {})\n        file_path_str = tool_input.get('file_path')\n\n        if not file_path_str:\n            # If no file path is involved, the hook doesn't need to act.\n            sys.exit(0)\n\n        file_path = Path(file_path_str)\n        file_name = file_path.name\n        file_extension = file_path.suffix.lower()\n\n        # Check if the file name or extension matches our sensitive patterns\n        if file_name in SENSITIVE_PATTERNS or file_extension in SENSITIVE_PATTERNS:\n            # Construct a clear, educational error message for the LLM\n            error_message = (\n                f\"SECURITY_POLICY_VIOLATION: Access to the sensitive file '{file_name}' is blocked by a hook.\\n\"\n                f\"Reason: Files like '{file_name}' often contain credentials, private keys, or locked dependencies and should not be accessed or modified by the AI.\\n\"\n                \"Action: Please use envi",
+  "labels": ["bug", "has repro", "area:security"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-08-28T01:22:28Z",
+  "updated_at": "2025-09-10T14:06:35Z",
+  "closed_at": "2025-09-02T14:28:18Z",
+  "reactions_total": 7,
+  "comments_count": 10,
+  "author": "coygeek",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "bogini",
+      "author_association": "COLLABORATOR",
+      "body": "Thank you for the detailed report and the helpful hook workaround! I've investigated this issue and found that the deny rules are likely not working due to a common but understandable confusion about pattern syntax. The pattern `Read(./.env)` in your example is interpreted as **relative to the current working directory** where you run `claude`, not relative to your project or settings file location. This is why the deny rule isn't matching. \n\nSee https://docs.anthropic.com/en/docs/claude-code/ia",
+      "created_at": "2025-09-01T21:49:27Z"
+    },
+    {
+      "author": "jamescook",
+      "author_association": "NONE",
+      "body": "Another earlier report: https://github.com/anthropics/claude-code/issues/6631",
+      "created_at": "2025-08-28T12:33:11Z"
+    },
+    {
+      "author": "paulsutherland",
+      "author_association": "NONE",
+      "body": "If you're implementing this security fix at the home directory level (rather than per-project), you need to update the path in `~/.claude/settings.json`:\n\n```json\n\"hooks\": {\n  \"PreToolUse\": [\n    {\n      \"matcher\": \"Read|Edit|MultiEdit|Write\",\n      \"hooks\": [\n        {\n          \"type\": \"command\",\n          \"command\": \"~/.claude/hooks/protect_sensitive_files.py\"\n        }\n      ]\n    }\n  ]\n}\n```\n\n**Important notes:**\n- Use `~/.claude/hooks/protect_sensitive_files.py` (tilde notation works)\n- Do",
+      "created_at": "2025-08-29T17:04:26Z"
+    }
+  ]
+}

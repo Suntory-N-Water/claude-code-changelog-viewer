@@ -1,0 +1,35 @@
+{
+  "number": 34247,
+  "title": "[Bug] Unicode characters render as mojibake on Windows terminals",
+  "body": "**Bug Description**\n---                                                                    \n  Title: Unicode characters in UI rendering are garbled (mojibake) on      Windows terminals\n                                                                         \n  Description:    \n                                                                         \n  Claude Code's terminal UI elements (progress bars, spinners,\n  box-drawing characters, bullets, em dashes, ellipses) display as       \n  mojibake on Windows. This affects all terminal environments on Windows:\n   VS Code integrated terminal, Windows Terminal, PowerShell, and Command\n   Prompt.\n\n  Environment:\n  - Claude Code version: 2.1.76\n  - OS: Windows 11 Home 10.0.26200\n  - Node.js: v22.21.0\n  - Shell: Git Bash (bash) within VS Code terminal\n  - TERM: xterm-256color\n\n  UTF-8 configuration (all confirmed correct):\n  - System codepage (ACP/OEMCP): 65001 (UTF-8)\n  - Windows Beta UTF-8 support: Enabled\n  - Console OutputEncoding/InputEncoding: UTF-8\n  - System locale: ja-JP\n  - LANG: en_US.UTF-8\n\n  Symptoms:\n  - Unicode characters used in the TUI (━, ·, …, →, ─, █, etc.) are      \n  displayed as sequences like â€\", â€¢, â€¦, Â· — this is the classic    \n  pattern of UTF-8 bytes being decoded as Windows-1252/Latin-1\n  - Affected areas: agent status bars, progress indicators\n  (\"Wrangling…\"), thinking duration display, tool call headers, all      \n  decorative UI elements\n  - Actual text content (code, responses, English/Japanese text) renders \n  correctly\n  - The issue occurs consistently, not intermittently\n\n  Steps to reproduce:\n  1. Install Claude Code on Windows 11 (with UTF-8 beta enabled)\n  2. Run claude in any terminal\n  3. Ask a question that triggers extended thinking (e.g., use a model   \n  with thinking enabled)\n  4. Observe the UI chrome around tool calls and status indicators       \n\n  Expected behavior:\n  UI elements should render Unicode characters correctly (progress bars, \n  spinners, box-drawing characters).\n\n  Actual behavior:\n  All multi-byte Unicode characters in UI elements are corrupted,        \n  displaying as mojibake (UTF-8 bytes misinterpreted as CP1252).\n\n  Workaround:\n  Running Claude Code inside WSL avoids the issue entirely, confirming   \n  the problem is specific to the Windows native terminal rendering       \n  pipeline in Claude Code.\n\n  Possibly related issues: #9723, #6094, #29699, #31295\n\n  ---\n\n**Environment Info**\n- Platform: win32\n- Terminal: vscode\n- Version: 2.1.76\n- Feedback ID: cbf5d0e2-d372-475a-b31f-f0f7edc68f8e\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-14T04:01:20Z",
+  "updated_at": "2026-07-04T14:36:23Z",
+  "closed_at": "2026-04-28T05:58:00Z",
+  "reactions_total": 0,
+  "comments_count": 15,
+  "author": "seira04220325-byte",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ochocinco0601",
+      "author_association": "NONE",
+      "body": "Seeing the same class of issue on v2.1.81 (Windows 11 Home 10.0.26220, VS Code integrated terminal, Git Bash).\n\n**Additional observations that may help narrow the cause:**\n\n1. **Intermittent onset** — not every session is affected. Some sessions render cleanly, others garble. Anecdotally, it seems to correlate with longer sessions (rough estimate: 200k+ tokens of 1M context), but I can't confirm causation — it may just be that longer sessions have more opportunities to trigger whatever encoding ",
+      "created_at": "2026-03-22T12:11:07Z"
+    },
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "## Concrete Reproduction: Box-Drawing Table Corruption on Paste (v2.1.89, Windows)\n\nStill occurring on v2.1.89. Here's exactly what happens:\n\n**Step 1:** Claude Code generates a table with box-drawing characters in Window A:\n```\n┌──────┬────────────────────────┬────────┬──────────────┐\n│ Rank │        Feature         │   d    │     Type     │\n├──────┼────────────────────────┼────────┼──────────────┤\n│ 1    │ pnl_pct_of_peak        │ +1.276 │ Position     │\n└──────┴────────────────────────┴──────",
+      "created_at": "2026-04-01T19:44:27Z"
+    },
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "Still broken on v2.1.90 (April 2, 2026). No encoding/Unicode fixes in the v2.1.90 changelog. Box-drawing characters (─│├┤┌┐└┘), em dashes (—), en dashes (–), and ≥ symbols still corrupted to CP1252 mojibake (ΓöÇ, Γöé, ΓÇö, ΓëÑ) when pasting between Claude Code windows on Windows.",
+      "created_at": "2026-04-02T15:20:06Z"
+    }
+  ]
+}

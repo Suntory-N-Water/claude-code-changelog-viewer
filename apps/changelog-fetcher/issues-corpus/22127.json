@@ -1,0 +1,35 @@
+{
+  "number": 22127,
+  "title": "[BUG] Claude Desktop MCP tool calls hang until user clicks/expands panel",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Desktop UI does not render MCP tool results until user manually clicks/expands the \"Used [MCP Server] integration\" panel. \n\nThe MCP server completes execution immediately (~75ms verified via logs), but the UI appears frozen indefinitely. Conversation cannot proceed until user interacts with the collapsed tool panel.\n\nTested on both macOS and Windows with multiple MCP servers (Desktop Commander, Playwright, Memory) - all affected.\n\n### What Should Happen?\n\nMCP tool results should render automatically when the server returns response. UI should update without requiring user interaction. Claude should continue its response immediately after receiving tool results.\n\n### Error Messages/Logs\n\n```shell\nNo error messages - UI simply freezes/waits.\n\nServer logs confirm immediate completion:\n2026-01-31T09:20:24.384Z [Desktop Commander] Tool call started\n2026-01-31T09:20:24.459Z [Desktop Commander] Message from server: {\"result\":{\"content\":[...]}}\n\nExecution time: ~75ms\nUser waited: 20+ seconds (no update)\nAfter clicking panel: Result appeared immediately\n```\n\n### Steps to Reproduce\n\n1. Start Claude Desktop with any MCP server configured\n2. Ask Claude to perform any MCP operation (e.g., \"list my desktop files\")\n3. UI shows \"Used [MCP Server] integration\" in collapsed state\n4. Do NOT click on the panel - just wait\n5. Observe: UI appears stuck indefinitely (tested 30+ seconds)\n6. Click/expand the \"Used [MCP Server] integration\" panel\n7. Observe: Result appears almost immediately, conversation continues\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n29.01.2026\n\n### Claude Code Version\n\n N/A - This is Claude Desktop bug, not Claude Code\n\n### Platform\n\nOther\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n- 100% reproducible on both macOS (Apple Silicon) and Windows 11\n- Affects ALL MCP servers, not specific to one\n- Issue appeared around January 30, 2026\n- Same MCP servers work correctly in Claude Code CLI (no freeze)\n- This is a Claude Desktop UI issue, not MCP server issue",
+  "labels": ["bug", "invalid", "has repro", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-31T08:33:54Z",
+  "updated_at": "2026-02-20T14:27:28Z",
+  "closed_at": "2026-02-12T22:20:59Z",
+  "reactions_total": 5,
+  "comments_count": 22,
+  "author": "Rangard78",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "massdo",
+      "author_association": "NONE",
+      "body": "Same problem with Claude 1.1.1520 (48ced7) 2026-01-30T03:29:40.000Z",
+      "created_at": "2026-01-31T18:34:32Z"
+    },
+    {
+      "author": "David9067",
+      "author_association": "NONE",
+      "body": "Can confirm this issue on Windows 11 with Claude Desktop v1.1.1520 (48ced7).\n\nAdditional findings from my testing:\n\n**Pattern discovered:** The *first* MCP tool call in a new chat works fine. All subsequent calls hang until manually expanding the panel. This is 100% reproducible.\n\n**Affected (local stdio-based):**\n- Desktop Commander\n- Windows-MCP  \n- Claude in Chrome\n\n**Not affected (remote HTTP-based):**\n- Todoist\n- Google Calendar\n\nThis suggests the bug is specific to local stdio transport, n",
+      "created_at": "2026-01-31T22:17:51Z"
+    },
+    {
+      "author": "claude-dev-monwoo",
+      "author_association": "NONE",
+      "body": "## Additional diagnostic data — confirming server-side regression\n\n**Environment:** macOS 15.5, Intel i7-1060NG7, 16GB RAM, non-admin user account (custom Homebrew in ~/brew)\n**MCP Extensions:** Desktop Commander, Control Chrome, Control your Mac, PDF Tools (all via UtilityProcess/built-in Node)\n\n### Key finding: NOT a client-side bug\n\n**Downgraded from v1.1.1520 → v1.1.1200** (last version before the regression). Same blocking behavior persists. This confirms the issue is **server-side** (API/b",
+      "created_at": "2026-02-01T09:07:20Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 7479,
+  "title": "[BUG] Phantom bash session notifications persist after process completion",
+  "body": "# [BUG] Phantom bash session notifications persist after process completion\n\n## Preflight Checklist\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report \n- [x] I am using the latest version of Claude Code\n\n## Environment Information\n- **Platform**: darwin (macOS)\n- **OS**: Darwin 24.6.0 (macOS Sequoia)\n- **Architecture**: ARM64 (Apple Silicon)\n- **Terminal**: Claude Code CLI\n- **Bash Version**: GNU bash 5.2.37(1)-release (aarch64-apple-darwin24.2.0)\n- **Claude Code Version**: 1.0.111\n- **Date**: 2025-09-11\n\n## Bug Description\n\nBackground bash sessions continue generating \"new output available\" system reminders even after the spawned processes have completed successfully. The sessions show `status: running` in notifications but return `status: completed` when accessed via `KillBash` tool.\n\n## Reproduction Steps\n\n1. Launch multiple background bash processes using `Bash` tool with `run_in_background: true`\n2. Processes complete successfully (spawning external Claude instances)\n3. Check session status with `KillBash` - returns `status: completed`\n4. System continues generating notifications: `Background Bash [ID] (status: running) Has new output available`\n5. No corresponding OS processes exist for the session IDs\n\n## Specific Session IDs Affected\n- 99f7b2, b23195, a08f32 (first batch - failed spawns)\n- b8196b, 37b623, b91aed (second batch - successful spawns)\n\n## Error Behavior\n\n**System Reminders (continuous):**\n```\nBackground Bash 99f7b2 (command: .ai/.orchestrator/spawn_phase_agent.sh .ai/ai-agent-stories/wave_04/tasks/TASK_PLATFORM_ADMIN_USER_STORIES.xml 1) (status: running) Has new output available. You can check its output using the BashOutput tool.\n```\n\n**KillBash Response:**\n```\nShell 99f7b2 is not running, so cannot be killed (status: completed)\n```\n\n**Process Check:**\n```bash\nps aux | grep -E \"(99f7b2|b23195|a08f32)\" \n# Returns no results - processes don't exist\n```\n\n## Expected Behavior\n- Background bash sessions should clean up properly after process completion\n- No phantom notifications for completed sessions\n- `KillBash` should successfully terminate session tracking\n\n## Actual Behavior\n- Sessions remain in internal tracking as \"running\"\n- Continuous notification spam every few seconds\n- Session cleanup mechanism appears broken\n- Creates significant UX noise during orchestration workflows\n\n## Impact\n- **High notification noise** - makes Claude Code unusable for complex orchestration\n- **Memory/resource tracking pollution** - orphaned session references\n- **User experience degradation** - constant interruptions\n- **Scalability issues** - affects multi-agent orchestration systems\n\n## Additional Context\n\nThis issue is related to existing problems:\n- Issue #7069: Native Background Task Management System\n- Issue #6854: Non-blocking tasks / notification system\n- Issue #2550: Background bash commands\n\nThe sessions were used for spawning independent Claude processes via shell scripts. The spawner scripts completed successfully but the internal bash session manager didn't recognize completion.\n\n## Workaround Attempted\n- `KillBash` tool - ineffective (sessions already completed)\n- Process termination - no corresponding OS processes\n- Session cleanup - no available mechanism\n\n## Log Sample\n\n**BashOutput for phantom session 99f7b2:**\n```\n<status>completed</status>\n<exit_code>0</exit_code>\n<stdout>\nLaunching Phase 1 of platform_admin_user_stories\n[... successful spawn output ...]\n</stdout>\n<timestamp>2025-09-11T23:37:00.424Z</timestamp>\n```\n\n**Note**: Timestamp is from hours ago but notifications are current.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-11T23:42:57Z",
+  "updated_at": "2026-03-08T14:14:57Z",
+  "closed_at": "2026-02-27T10:22:18Z",
+  "reactions_total": 9,
+  "comments_count": 19,
+  "author": "jahendricks",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jahendricks",
+      "author_association": "NONE",
+      "body": "## Workaround Discovery\n\nDuring further testing, we discovered a **partial workaround** that prevents creating NEW phantom sessions:\n\n### Clean Approach (No New Phantoms)\n✅ **Task tool subprocess execution:**\n```\nTask tool → claude -p \"command\" --output-format stream-json --verbose\n```\n\n### Problematic Approach (Creates Phantoms)  \n❌ **Direct Bash tool with background:**\n```\nBash tool → run_in_background: true\n```\n\n### Test Results\n- Executed 3 parallel Task tool subprocesses successfully\n- **Ze",
+      "created_at": "2025-09-12T00:02:22Z"
+    },
+    {
+      "author": "EdanStarfire",
+      "author_association": "NONE",
+      "body": "I'm seeing the same exact thing. It also persists across `/clear` even after the background tasks have ended.\n\n```\n> /clear \n  ⎿  (no content)\n\n> are there any background tasks still running (either via status or via system reminders)?\n\n● Yes, there are 4 background bash tasks still running based on the system reminders:\n\n● BashOutput(Reading shell output)\n  ⎿  The Boston Bruins' first preseason game for the 2024-25 NHL season was:\n\n     **Date:** Sunday, September 22, 2024\n     … +5 lines (ctrl",
+      "created_at": "2025-09-12T03:49:08Z"
+    },
+    {
+      "author": "atelierdesdonnees",
+      "author_association": "NONE",
+      "body": "I can confirm this issue is still present. After using KillShell successfully (receiving \"Successfully killed shell: XXXXX\" message), the system reminders continue showing the shell as \"(status: running)\" with \"Has new output available\". This makes it very difficult to track which background processes are actually active.\n\nEnvironment:\n- Platform: macOS (Darwin 25.0.0)\n- Claude Code: Latest version (2025-09-30)",
+      "created_at": "2025-09-30T07:38:31Z"
+    }
+  ]
+}

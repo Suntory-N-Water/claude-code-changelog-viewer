@@ -1,0 +1,35 @@
+{
+  "number": 29885,
+  "title": "[FEATURE] GitHub MCP Connector for claude.ai web (OAuth-based PR Reviews)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n## Problem\n\nClaude Code CLI has full GitHub OAuth integration — read, write, push, PR comments — via `gh auth`. But claude.ai web has **no GitHub connector**, despite MCP infrastructure already being in place (Gmail, Google Calendar, etc.).\n\nThis forces developers to either:\n- **Paste fine-grained PATs into chat** (token in conversation history, security concern)\n- **Switch to Claude Code CLI** just to post PR review comments\n- **Copy-paste review output manually** from claude.ai to GitHub\n\nThere is no way to use delegated OAuth for GitHub in claude.ai web today.\n\n## Why This Matters\n\nPR review is one of the highest-value developer workflows for LLMs. The current claude.ai web experience is excellent for **analyzing** diffs (paste + discuss), but the last mile — **posting the review back to GitHub** — requires leaving the product or compromising on security.\n\nClaude Code CLI solves this, but many developers prefer the web UI for review work (better rendering, file uploads, project context, persistent chat history).\n\n### Proposed Solution\n\nAdd a **GitHub MCP connector** to the claude.ai integrations catalog, using GitHub's OAuth App or GitHub App flow — same auth delegation pattern as the existing Gmail/Calendar connectors.\n\n### Minimum viable scopes\n\n| Scope | Use case |\n|---|---|\n| `pull_requests:read` | Fetch PR diffs, metadata, existing comments |\n| `pull_requests:write` | Post review comments, approve/request changes |\n| `issues:read` | Context from linked issues |\n| `contents:read` | Read repo files for review context |\n\nScoped per-repo (fine-grained), not org-wide.\n\n### Optional follow-up scopes\n\n- `issues:write` — create/update issues from chat\n- `actions:read` — check CI status during review\n- `contents:write` — commit suggestions directly\n\n### Alternative Solutions\n\nPaste fine-grained PATs into chat. But the agents flags this as clear security problem, too!\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nMCP server integration\n\n### Use Case Example\n\n_No response_\n\n### Additional Context\n\n## Context\n\n- MCP connector infrastructure already exists in claude.ai (Gmail, Google Calendar ship today)\n- Claude Code CLI already implements GitHub OAuth via `gh auth` — the integration pattern is proven\n- GitHub supports fine-grained PATs and GitHub Apps with granular repo-level permissions\n- Competitors (Cursor, Copilot) have native GitHub integration in their web/IDE surfaces",
+  "labels": ["invalid"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-01T18:38:59Z",
+  "updated_at": "2026-04-01T14:47:23Z",
+  "closed_at": "2026-03-24T12:04:45Z",
+  "reactions_total": 22,
+  "comments_count": 6,
+  "author": "haalfi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "haalfi",
+      "author_association": "NONE",
+      "body": "Dear @claude, which one is the best matching repo for that feature request?",
+      "created_at": "2026-03-02T12:07:49Z"
+    },
+    {
+      "author": "ThePlenkov",
+      "author_association": "NONE",
+      "body": "I agree - this is embarassing to have Github connector enabled and see how Claude is struggling to connect to Github searching for gh cli every  time!",
+      "created_at": "2026-03-02T17:08:05Z"
+    },
+    {
+      "author": "haalfi",
+      "author_association": "NONE",
+      "body": "At least there is a workaround to have gh cli installed and get rid of the search:\n\n1. In project/user `.claude` folder place a file named `setup-gh.sh` with content\n    ```bash\n    #!/bin/bash\n    set -e\n    \n    # Install GitHub CLI if not present (Linux containers only — skips on macOS/Windows)\n    if ! command -v gh &>/dev/null; then\n      if [ \"$(uname -s)\" = \"Linux\" ]; then\n        echo \"Installing GitHub CLI...\"\n        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.",
+      "created_at": "2026-03-02T19:27:42Z"
+    }
+  ]
+}

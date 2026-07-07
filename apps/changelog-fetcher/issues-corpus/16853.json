@@ -1,0 +1,35 @@
+{
+  "number": 16853,
+  "title": "[BUG] Path-scoped rules in `.claude/rules/` not automatically loaded when working with matching files",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nRules with `paths:` frontmatter in `.claude/rules/` subdirectories are never automatically loaded into context when reading or editing files that match the specified glob patterns.\n\n**Setup:**\n- Global rules in `.claude/rules/general/` (no `paths:` frontmatter) load correctly\n- Path-scoped rules in other subdirectories like `.claude/rules/api/`, `.claude/rules/services/` have `paths:` frontmatter but never load\n\n**Example rule file at `.claude/rules/api/api-rules.md`:**\n```yaml\n---\npaths: src/api/**, lib/api/**\n---\n\n# API Rules\n\n- Always validate request parameters\n- Use structured error responses\n```\n\n**Observation:**\nWhen running `/context`, only the general rules appear under \"Memory files\":\n```\nMemory files\n└ .claude/CLAUDE.md: 3.8k tokens\n└ .claude/rules/general/architecture.md: 2.5k tokens\n└ .claude/rules/general/coding-standards.md: 535 tokens\n```\n\nThe path-scoped rules (e.g., `.claude/rules/api/api-rules.md`) don't appear at all - not even as \"available but not loaded.\"\n\nWhen I then read a file that matches the path pattern (e.g., `src/api/routes.ts`), the path-scoped rule is still not injected into context.\n\n### What Should Happen?\n\nWhen I read or edit a file matching a rule's `paths:` glob pattern, that rule should automatically be loaded into context. For example:\n- Reading `src/api/routes.ts` should load `.claude/rules/api/api-rules.md` (matches `src/api/**`)\n- The `/context` command should show path-scoped rules as available (perhaps with their path patterns)\n\n### Error Messages/Logs\n\n```shell\nNo error messages. The rules are silently not loaded.\n```\n\n### Steps to Reproduce\n\n1. Create a project with Claude Code initialized\n\n2. Create a global rule (works correctly):\n   ```bash\n   mkdir -p .claude/rules/general\n   echo \"# Global Rules\\n\\n- Always use TypeScript\" > .claude/rules/general/global.md\n   ```\n\n3. Create a path-scoped rule:\n   ```bash\n   mkdir -p .claude/rules/api\n   cat > .claude/rules/api/api-rules.md << 'EOF'\n   ---\n   paths: src/api/**\n   ---\n\n   # API Rules\n\n   - Always validate input parameters\n   - Return structured JSON errors\n   EOF\n   ```\n\n4. Create a matching source file:\n   ```bash\n   mkdir -p src/api\n   echo \"export function handler() { return 'hello'; }\" > src/api/routes.ts\n   ```\n\n5. Start Claude Code: `claude`\n\n6. Run `/context` - observe that only the global rule appears under \"Memory files\", not the path-scoped rule\n\n7. Ask Claude to read the matching file: \"Read src/api/routes.ts\"\n\n8. **Expected:** The api-rules.md content should now be in context\n   **Actual:** The rule is still not loaded; Claude has no awareness of the API rules\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nv2.1.1\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nThis also does not work in the standard macOS terminal.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-08T12:13:41Z",
+  "updated_at": "2026-03-09T13:42:40Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 10,
+  "author": "BlondeLegion",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/16171\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-08T12:16:49Z"
+    },
+    {
+      "author": "rosskevin",
+      "author_association": "NONE",
+      "body": "I can confirm the same behavior (failing to load rules based on frontmatter paths) in the vscode plugin `2.1.3`.  When I asked cc to reflect on it and the conversation (this has happened repeatedly in many sessions), it responded with:\n\n```\nMy Mistakes\nI did NOT read .claude/rules/deprecation.md before starting this work, even though:\n\nIt has paths: \"**/*.{ts,tsx}\" which should apply to all the files I was editing\nIt explicitly lists the deprecation patterns I was trying to fix\nIt would have giv",
+      "created_at": "2026-01-09T19:40:07Z"
+    },
+    {
+      "author": "ynamiki-mediee",
+      "author_association": "NONE",
+      "body": "I can confirm this issue. Here's additional data from my testing:\n\n**Environment:**\n- Claude Code: v2.1.7\n- Platform: Linux (VS Code dev container)\n\n**Test Results:**\n\n| Rule File (.claude/rules) | `paths:` Pattern | File Read | Loaded? |\n|-----------|------------------|-----------|---------|\n| `config/environment.md` | `src/config/**/*.ts` | `src/config/env.ts` | Yes |\n| `database/drizzle.md` | `db/**/*.ts` | `db/schema/users.ts` | No |\n| `database/drizzle.md` | `src/repositories/**/*.ts` | `sr",
+      "created_at": "2026-01-15T16:57:54Z"
+    }
+  ]
+}

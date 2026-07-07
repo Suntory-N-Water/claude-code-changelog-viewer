@@ -1,0 +1,35 @@
+{
+  "number": 4993,
+  "title": "Feature Request: Enable Agent-to-Agent Communication for Collaborative Workflows",
+  "body": "### **Title: Feature Request: Enable Agent-to-Agent Communication for Collaborative Workflows**\n\n**Is your feature request related to a problem? Please describe.**\n\nYes. The current subagent architecture in Claude Code is excellent for *delegation*—handing off a self-contained task to a specialist and getting a result. However, it falls short for tasks that require true *collaboration* and iterative feedback between agents. This creates two primary problems:\n\n1.  **Lack of Iterative Feedback Loops:** Complex software development is rarely a linear process. For example, a common workflow is a dev-test-fix cycle. Currently, if I have a \"Developer Agent\" and a \"Tester Agent,\" the workflow is cumbersome:\n    *   The Developer Agent writes code.\n    *   The user (me) must manually instruct the Tester Agent to test it.\n    *   If tests fail, the Tester Agent reports back to *me*.\n    *   I then have to copy the failure details, re-engage the Developer Agent, and provide the context for the fix.\n    This manual intervention breaks the autonomy of the system and makes it impossible to assign a high-level goal like \"Implement and test feature X until it passes all acceptance criteria.\"\n\n2.  **Destructive Interference in Parallel Work:** When tackling a large epic, the natural approach is to use multiple agents in parallel. However, these agents are unaware of each other's existence or work-in-progress.\n    *   **Scenario:** I assign Agent A to build an API endpoint and Agent B to build a related frontend component. Both are working in the same codebase.\n    *   Agent A adds `api/new-endpoint.ts`.\n    *   Agent B, when attempting to build or test its own work, sees `api/new-endpoint.ts` as an unexpected file not relevant to its immediate task.\n    *   To \"fix\" its local build environment, Agent B might decide to run `rm api/new-endpoint.ts`, destroying Agent A's work.\n    This forces users into complex workarounds like Git Worktrees, which provide isolation but prevent true collaboration on a shared context.\n\nIn short, agents currently operate as isolated contractors. We need them to operate as a cohesive, communicative team.\n\n**Describe the solution you'd like**\n\nI propose introducing a first-class system for agent-to-agent communication. This could be implemented in layers, from a simple messaging API to a more advanced collaborative framework.\n\n**Level 1: A Core Messaging Bus**\nAn internal API that allows a running agent (or subagent) to send a message to another named agent.\n\n*   **API:** A new tool or internal function like `sendMessage(targetAgent: string, message: object)`.\n*   **Example:** A `tester-agent` could execute `sendMessage('developer-agent-1', { type: 'TEST_FAILURE', file: 'auth.ts', line: 42, error: 'NullPointerException' })`.\n*   The `developer-agent-1` would receive this message in its context and could be prompted to act on it.\n\n**Level 2: A Shared Dynamic State (or \"Whiteboard\")**\nA transient, shared key-value store or context space that is accessible to all agents within a single \"team\" or session. This would solve the parallel work problem.\n\n*   **How it works:** Agents could post their status or discoveries to the whiteboard.\n*   **Example:**\n    *   Agent A: `sharedState.add('files_in_progress', 'api/new-endpoint.ts')`\n    *   Agent B: `const inProgress = sharedState.get('files_in_progress');` Before cleaning up its directory, Agent B would know to ignore files that other agents are actively working on.\n\n**Level 3: A \"Team\" or \"Squad\" Abstraction**\nA higher-level construct to formalize agent groups. When initiating a task, a user could assign it to a pre-configured team of agents.\n\n*   **Configuration:** A user could define a `frontend-team` consisting of a `react-developer` agent, a `css-stylist` agent, and a `cypress-tester` agent.\n*   **Invocation:** `claude --team=frontend-team \"Build a new settings page with these form fields.\"`\n*   The team would then autonomously coordinate using the messaging bus and shared state to complete the task.\n\n**Describe alternatives you've considered**\n\nI am aware of ",
+  "labels": ["enhancement", "area:tools", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-02T17:31:03Z",
+  "updated_at": "2026-02-13T14:28:32Z",
+  "closed_at": "2026-02-06T10:21:50Z",
+  "reactions_total": 11,
+  "comments_count": 9,
+  "author": "coygeek",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4942\n2. https://github.com/anthropics/claude-code/issues/1770\n3. https://github.com/anthropics/claude-code/issues/3013\n\nIf your issue is a duplicate, please close it and 👍 the existing issue instead.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-02T17:34:29Z"
+    },
+    {
+      "author": "mapedersen",
+      "author_association": "NONE",
+      "body": "Would love this as well 💯👍",
+      "created_at": "2025-08-03T21:27:08Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-06T10:08:06Z"
+    }
+  ]
+}

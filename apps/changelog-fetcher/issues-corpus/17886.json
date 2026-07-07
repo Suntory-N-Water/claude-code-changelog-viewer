@@ -1,0 +1,35 @@
+{
+  "number": 17886,
+  "title": "Files named 'nul' created on Windows instead of using NUL device",
+  "body": "## Description\n\nClaude Code is creating actual files named `nul` in various directories on Windows. This appears to be a bug where code intended to write to the Windows NUL device (equivalent to /dev/null) instead creates a real file.\n\n## Evidence\n\nFound **9 files named `nul`** scattered across project directories after a couple days of irregular usage:\n\n```\n./ProjectA/nul\n./ProjectB/SubfolderApi/nul\n./ProjectB/nul\n./ProjectB/WebApp/nul\n./ProjectC/AdminWeb/nul\n./ProjectD/nul\n./ProjectE/ERP/nul\n./nul\n```\n\n## Probable cause\n\nWhen running in a bash environment on Windows (Git Bash, WSL, etc.), writing to `NUL` or `nul` creates an actual file instead of discarding output as intended. The code should use `/dev/null` when in a bash context, or properly detect the environment.\n\n## Expected behavior\n\nOutput intended to be discarded should not create files.\n\n## Environment\n\n- Platform: Windows 11\n- Claude Code CLI (running in bash environment)\n\n## Workaround\n\nManual cleanup with: `find . -name \"nul\" -type f -delete`",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-13T08:46:45Z",
+  "updated_at": "2026-02-21T14:14:49Z",
+  "closed_at": "2026-02-13T23:50:03Z",
+  "reactions_total": 17,
+  "comments_count": 10,
+  "author": "Rsrsys",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Consolidating issues",
+      "created_at": "2026-02-13T23:50:03Z"
+    },
+    {
+      "author": "pablos1rvent",
+      "author_association": "NONE",
+      "body": "it happened to me, so, +1",
+      "created_at": "2026-01-13T10:49:14Z"
+    },
+    {
+      "author": "ruzrobert",
+      "author_association": "NONE",
+      "body": "Happens all the time for long time :) Have to open VS Code to delete those.",
+      "created_at": "2026-01-21T10:12:58Z"
+    }
+  ]
+}

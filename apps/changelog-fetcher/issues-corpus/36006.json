@@ -1,0 +1,35 @@
+{
+  "number": 36006,
+  "title": "Show extended thinking in CLI output (collapsed by default, toggle to expand)",
+  "body": "## Summary\n\nDeepSeek-R1 and Qwen expose their chain-of-thought reasoning (`<think>` blocks) directly in user-facing output. Claude's extended thinking is equally rich but invisible in Claude Code — the thinking tokens are discarded before rendering.\n\nIt would be great to have a way to see Claude's thinking process in the CLI, collapsed or truncated by default (e.g. first 2-3 lines with a \"thinking...\" indicator), with a keybinding like **Ctrl-O** to expand/collapse the full thinking block.\n\n## Motivation\n\n- **Trust & transparency** — seeing the reasoning helps users catch errors in logic before they propagate into code changes\n- **Educational value** — watching Claude reason through a problem is genuinely useful for learning\n- **Competitive parity** — DeepSeek and Qwen make thinking visible by default; Claude's thinking is arguably better but users can't see it in the CLI\n- **Debugging** — when Claude makes a surprising decision, being able to peek at the reasoning would save a lot of \"why did you do that?\" back-and-forth\n\n## Proposed UX\n\n1. **Default (collapsed):** Show a brief indicator when thinking occurred, e.g.:\n   ```\n   ⟐ Thinking (1.2s, 340 tokens)  [Ctrl-O to expand]\n   ```\n2. **Expanded (Ctrl-O toggle):** Render the full thinking block inline, perhaps dimmed or in a distinct color to visually separate it from the response\n3. **Config option:** A setting like `\"showThinking\": \"collapsed\" | \"expanded\" | \"hidden\"` in `settings.json` to control the default behavior\n\n## Prior art\n\n- **DeepSeek-R1** — shows `<think>` blocks by default in all interfaces\n- **Qwen (QwQ, QwQ-32B)** — similarly exposes chain-of-thought reasoning in output\n- Both have found that visible thinking significantly increases user trust and engagement",
+  "labels": ["duplicate", "enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-19T00:28:40Z",
+  "updated_at": "2026-05-21T15:28:56Z",
+  "closed_at": null,
+  "reactions_total": 33,
+  "comments_count": 6,
+  "author": "RaggedR",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Ryce",
+      "author_association": "NONE",
+      "body": "This is a solid feature request — being able to watch Claude's reasoning unfold in real time would make debugging surprising decisions much faster.\n\nOne thing to keep in mind regardless: the extended thinking is stored in the session's memory state, which lives in RAM. If Claude Code crashes, restarts, or you close the terminal mid-session — the thinking history for that session is gone along with it.\n\n[Keep My Claw](https://keepmyclaw.com) snapshots the full session state including thinking con",
+      "created_at": "2026-03-19T01:42:47Z"
+    },
+    {
+      "author": "MaxCaspar",
+      "author_association": "NONE",
+      "body": "It's possible to display the CoT by mirroring it's output in another Terminal, but that's impractical and not integrated.\nStrong vote to add this feature into the CLI.",
+      "created_at": "2026-03-23T15:16:27Z"
+    },
+    {
+      "author": "intellia1",
+      "author_association": "NONE",
+      "body": "This framing is actually missing a key point: this is not just a \"missing feature\".\n\nClaude Code already had visible thinking. It was working up to v2.1.68.\n\nWhat changed is not capability, it's exposure.\n\nSince v2.1.69:\n- `thinking` often comes back as an empty string\n- `signature` is still present\n\nWhich clearly indicates:\n→ The model is still doing extended reasoning  \n→ The readable thinking is being deliberately stripped before rendering\n\nSo this is not:\n\"we need to add thinking to the CLI\"",
+      "created_at": "2026-03-27T21:03:10Z"
+    }
+  ]
+}

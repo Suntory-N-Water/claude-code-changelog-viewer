@@ -1,0 +1,35 @@
+{
+  "number": 53093,
+  "title": "[BUG] [BUG] claude --resume crashes with \"FKH is not a function\" on 2.1.120 (Windows, native installer)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nOn Windows, running `claude --resume <session-name>` crashes immediately with:\n\n  ERROR  FKH is not a function. (In 'FKH(K)', 'FKH' is undefined)\n  B:/~BUN/root/src/entrypoints/cli.js:9273:5663\n\nThe crash fires before the session UI loads. It happens for every session\nthat has prior messages — the session name and project don't matter.\n\nTwo related issues:\n\n1. The crashing version is 2.1.120, which is being delivered by the\n   in-binary auto-updater. It is NOT available on either public channel:\n     - npm `latest` tag = 2.1.118\n     - GitHub Releases latest = 2.1.119\n   So the auto-updater is shipping a build that isn't published anywhere\n   users can install from directly.\n\n2. The auto-updater ignores every documented disable mechanism. I have\n   set ALL of the following and it still re-pulls 2.1.120 between launches:\n     - Windows User env var DISABLE_AUTOUPDATER=1\n     - Windows User env var DISABLE_UPDATES=1\n     - \"env\": { \"DISABLE_AUTOUPDATER\": \"1\", \"DISABLE_UPDATES\": \"1\" } in\n       ~/.claude/settings.json\n     - \"autoUpdates\": false in ~/.claude/settings.json\n   Reproducible: install 2.1.118 via `npm i -g @anthropic-ai/claude-code@2.1.118`,\n   confirm `claude --version` says 2.1.118, run a session, exit, run\n   `claude --version` again — it now says 2.1.120.\n\nWorkarounds that DO work (suggesting the bug is in the resume init path,\nnot session data):\n  - `claude --continue`  works\n  - `claude` then `/resume` from inside the session  works\n  - Only `claude --resume <name>` and `claude --resume` (with picker) crash\n\nRelated prior issues for the auto-updater bypass: #14985, #11263, #10764, #5753.\n\n### What Should Happen?\n\nThe session should resume normally, restoring the conversation history.\n`claude --resume <name>` should behave identically to launching `claude`\nand using `/resume` from inside (which works fine on the same version).\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Be on Windows with claude installed via npm\n2. `claude --version`  →  2.1.120 (forced by auto-updater)\n3. `cd` into any project that has a prior named session\n4. `claude --resume \"<session-name>\"`\n5. Crash: \"FKH is not a function\"\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.120 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "duplicate", "has repro", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-04-25T01:21:44Z",
+  "updated_at": "2026-05-07T15:18:15Z",
+  "closed_at": "2026-04-28T17:32:48Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "ron1236",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ron1236",
+      "author_association": "NONE",
+      "body": " Diagnostics\n  ├ Currently running: npm-global (2.1.120)\n  ├ Commit: 080f07fb4224\n  ├ Platform: win32-x64\n  ├ Path: C:\\Users\\Ron\\AppData\\Roaming\\npm\\node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe\n  ├ Config install method: global\n  └ Search: OK (bundled)\n\n  Updates\n  ├ Auto-updates: disabled (set by env: DISABLE_UPDATES)\n  ├ Update permissions: Yes\n  ├ Auto-update channel: latest\n  ├ Stable version: 2.1.112\n  └ Latest version: 2.1.120",
+      "created_at": "2026-04-25T01:23:29Z"
+    },
+    {
+      "author": "alasjuntos",
+      "author_association": "NONE",
+      "body": "Apparently, related issue with --resume on macos:\n\n```ERROR  g9H is not a function. (In 'g9H(K)', 'g9H' is undefined)```\n\n```\n9252: Error: sandbox required but unavailable: ${f_}\n 9253: `+`  sandbox.failIfUnavailable is set \\u2014 refusing to start without a working sandbox.\n 9254:\n\n - <anonymous> (/$bunfs/root/src/entrypoints/cli.js:9251:5663)\n - WC (/$bunfs/root/src/entrypoints/cli.js:492:63749)\n - pj (/$bunfs/root/src/entrypoints/cli.js:492:76948)\n - fT (/$bunfs/root/src/entrypoints/cli.js:49",
+      "created_at": "2026-04-25T01:25:07Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/53041\n2. https://github.com/anthropics/claude-code/issues/53086\n3. https://github.com/anthropics/claude-code/issues/53067\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-25T01:26:02Z"
+    }
+  ]
+}

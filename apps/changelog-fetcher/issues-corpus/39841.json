@@ -1,0 +1,35 @@
+{
+  "number": 39841,
+  "title": "Opus 1M context on Max plan requires extra usage despite docs saying 'included with subscription'",
+  "body": "# Opus 1M context on Max plan requires extra usage despite docs saying \"included with subscription\"\n\n## Summary\n\nOn a Max 5x plan, `opus[1m]` is blocked unless extra usage is enabled, and when enabled it says \"Billed as extra usage.\" The [official docs](https://code.claude.com/docs/en/model-config#extended-context) explicitly state Opus 1M on Max plans is \"Included with subscription.\"\n\n## Environment\n\n- Claude Code version: 2.1.85\n- Plan: Max 5x ($100/mo)\n- OS: Windows 11 Pro\n- Model: opus (default), attempting opus[1m]\n\n## Steps to Reproduce\n\n1. Have a Max 5x subscription with **extra usage disabled** (a valid configuration to prevent surprise charges)\n2. Run `/model opus[1m]`\n3. Observe: \"Opus 4.6 with 1M context is not available for your account\"\n\n## Expected Behavior\n\nPer the [model config docs](https://code.claude.com/docs/en/model-config#extended-context):\n\n> On Max, Team, and Enterprise plans, Opus is automatically upgraded to 1M context with no additional configuration.\n\n| Plan | Opus 4.6 with 1M context |\n|------|--------------------------|\n| **Max, Team, and Enterprise** | **Included with subscription** |\n\nOpus 1M should work on Max plans regardless of extra usage settings, since it's \"included with subscription.\"\n\n## Actual Behavior\n\n1. **With extra usage disabled:** `/model opus[1m]` returns \"not available for your account\"\n2. **With extra usage enabled ($0 cap):** Still blocked — `cachedExtraUsageDisabledReason` changes from `org_level_disabled` to `org_level_disabled_until`, access still denied\n3. **With extra usage enabled ($1 cap):** Model selection works, but displays \"Billed as extra usage\" — contradicting the \"included with subscription\" documentation\n4. **Context window feature flag unchanged:** Even after selecting opus[1m], the cached GrowthBook feature `tengu_hawthorn_window` remains `200000` instead of updating to `1000000`, suggesting the actual context window may not change even when the model is accepted\n\n## Additional Details from `.claude.json`\n\n- `cachedGrowthBookFeatures.tengu_hawthorn_window: 200000` — context window locked at 200K regardless of model selection\n- `cachedExtraUsageDisabledReason` cycles through: `org_level_disabled` -> `org_level_disabled_until` -> `out_of_credits` depending on extra usage configuration\n- `oauthAccount.hasExtraUsageEnabled: true` contradicts `cachedExtraUsageDisabledReason` values\n- `lastModelUsage` shows `claude-opus-4-6[1m]` has been used before, suggesting this may be a regression\n\n## Impact\n\nMax plan users who responsibly disable extra usage to prevent surprise charges are denied a feature that is documented as included with their subscription. This effectively forces users to enable extra usage billing to access something they've already paid for.\n\n## Suggested Fix\n\nThe 1M context access check should distinguish between:\n- **Opus 1M on Max/Team/Enterprise** — included with subscription, should NOT require extra usage\n- **Sonnet 1M on Max** — correctly requires extra usage per docs\n\nAdditionally, when opus[1m] is selected, `tengu_hawthorn_window` should update to `1000000` to ensure compaction uses the correct context window size.\n",
+  "labels": ["bug", "platform:windows", "area:cost", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-27T13:00:55Z",
+  "updated_at": "2026-06-12T13:54:40Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 24,
+  "author": "andersonaggie05",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34333\n2. https://github.com/anthropics/claude-code/issues/34585\n3. https://github.com/anthropics/claude-code/issues/39482\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-27T13:05:27Z"
+    },
+    {
+      "author": "canucklehead2001",
+      "author_association": "NONE",
+      "body": "I changed my usage limit to $1 to test this and had zero change, not even the false positive of the 1M above\n",
+      "created_at": "2026-03-27T14:38:24Z"
+    },
+    {
+      "author": "marlvinvu",
+      "author_association": "NONE",
+      "body": "My Claude says your issue appears to be similar to issues #39482, #39000, #39107. Please keep updating. I also want to know whether this has been fixed yet.",
+      "created_at": "2026-03-31T07:53:21Z"
+    }
+  ]
+}

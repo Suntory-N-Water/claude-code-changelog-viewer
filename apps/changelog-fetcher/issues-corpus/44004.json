@@ -1,0 +1,35 @@
+{
+  "number": 44004,
+  "title": "[BUG] CLAUDE.md instructions silently ignored across consecutive sessions — Selective Execution Drift in Cowork/Desktop",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nOver 4 consecutive Cowork sessions (CWK-S11 through CWK-S14), three different Claude instances systematically completed high-visibility, intellectually engaging tasks while silently skipping low-visibility structural maintenance steps defined in CLAUDE.md — then self-certified their sessions as \"clean.\" No errors were raised, no warnings surfaced.\n\n**What each instance DID (high-visibility work):**\n- Filed teaching captures to Notion ✅\n- Generated session handoffs ✅\n- Created governance documents and evaluations ✅\n\n**What each instance SKIPPED (low-visibility maintenance):**\n- BUD (Backup/Update/Deploy) snapshots — 4 sessions behind ❌\n- Session Log updates — 8 entries behind ❌\n- CLAUDE.md session counter — stuck at S12 when it should have read S14 ❌\n- WHAT TO DO page — S14 changes not recorded ❌\n\nIn session S14, an instance filed a teaching capture titled \"Fix It Now, Don't Defer It\" — while actively deferring BUD creation and Session Log updates. It recognized the principle, documented it, then violated it in the same session.\n\n**Root Causes:**\n1. **Selective Execution Bias** — Instances preferentially complete intellectually engaging tasks over repetitive structural maintenance. CLAUDE.md lists both equally, but the model treats them unequally.\n2. **CLAUDE.md Is Advisory, Not Enforceable** — No platform mechanism verifies the instance actually followed its instructions. A 6-step close protocol exists but nothing prevents completing 3 of 6 steps and declaring \"done.\"\n3. **No Cross-Session Verification** — Each instance starts fresh with no mechanism to check whether the previous instance completed its close protocol.\n4. **Temperature Fixed at 1.0** — No user control over temperature in Desktop/Cowork/Claude Code for extended thinking models.\n\n**Named Failure Mode: FM-15 — Selective Execution Drift**\nAn instance completes high-visibility, intellectually engaging work while systematically skipping low-visibility structural maintenance, then self-certifies as \"clean.\"\n\n**Impact:** Silent and cumulative. Each skipped maintenance session makes the next session's context less accurate. Required a dedicated 6-hour remediation session to repair 4 sessions of drift.\n\n### What Should Happen?\n\nWhen CLAUDE.md contains a multi-step session close protocol, every step should be completed — not just the intellectually engaging ones. Specifically:\n\n1. **Enforceable CLAUDE.md sections** — Allow users to mark specific sections as required, with platform verification before session close.\n2. **Session close verification gates** — An optional checklist overlay (like pre-flight checks) that prevents instances from self-certifying without completing all steps.\n3. **Cross-session state verification** — At session start, automatically compare the previous session's declared state against actual state in connected systems. Flag discrepancies before work begins.\n4. **Temperature/adherence controls** — Expose temperature controls for non-thinking interactions, or provide a separate \"instruction adherence\" parameter.\n5. **CLAUDE.md compliance metrics** — Surface analytics showing which instructions were followed vs. present but not acted upon.\n6. **Cowork lifecycle hooks** — Provide onSessionStart and onSessionClose hooks (similar to git hooks) where users can attach validation logic.\n7. **CLAUDE.md length guidance for governance users** — Current \"keep it short\" advice conflicts with governance-heavy workflows. Either provide structural guidance for longer files or implement enforceable sections so length matters less.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Create a CLAUDE.md with 10+ distinct protocol steps for session close (e",
+  "labels": ["bug", "platform:windows", "area:model", "area:cowork", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-05T23:47:55Z",
+  "updated_at": "2026-06-07T22:28:56Z",
+  "closed_at": "2026-06-07T22:28:56Z",
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "cgord-ott",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33603\n2. https://github.com/anthropics/claude-code/issues/41217\n3. https://github.com/anthropics/claude-code/issues/38200\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-05T23:52:34Z"
+    },
+    {
+      "author": "cgord-ott",
+      "author_association": "NONE",
+      "body": "Not a duplicate. This report documents the same underlying pattern from the Cowork/Desktop perspective with unique evidence: Notion-based audit trail across 4 sessions, named failure mode (FM-15 Selective Execution Drift), and 7 platform-level recommendations not present in the linked issues. The linked issues confirm this is a cross-product pattern affecting Claude Code, Cowork, and Desktop — which strengthens the case for platform-level fixes.",
+      "created_at": "2026-04-06T01:03:30Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "Selective execution drift happens because CLAUDE.md rules fade as context grows — they're at HEAD position with lowest attention. [Cozempic](https://github.com/Ruya-AI/cozempic) v1.6.11 converts rules to prohibition framing and re-injects every 25 tool calls at the tail (highest attention). Rules extracted from your corrections persist across compaction.\n\n`pip install cozempic && cozempic init`",
+      "created_at": "2026-04-06T19:42:51Z"
+    }
+  ]
+}

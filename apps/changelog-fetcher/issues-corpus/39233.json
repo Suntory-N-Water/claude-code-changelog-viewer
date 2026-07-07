@@ -1,0 +1,35 @@
+{
+  "number": 39233,
+  "title": "Auto mode should be available on Pro/Max plans (not just Team/Enterprise)",
+  "body": "## Problem\n\nAuto mode (`--enable-auto-mode`) is currently restricted to Team and Enterprise plans. It's not available on Pro or Max plans.\n\nThis creates a gap for heavy individual users who:\n- Need auto mode to reduce hundreds of permission prompts per session\n- Can't use a Team plan because there's no Team equivalent of Max 20x rate limits\n- Use Claude Code heavily enough to require multiple Max 20x subscriptions just to cover usage\n\n## Use Case\n\nAs a power user running 2x Max 20x plans to keep up with daily Claude Code usage, I'd benefit enormously from auto mode but have no path to access it. The Team plan doesn't offer the rate limits I need, and the Max plan doesn't offer auto mode.\n\n## Suggestion\n\nEither:\n1. Make auto mode available on Max plans (especially Max 20x), or\n2. Offer a Team plan tier with Max 20x-equivalent rate limits (and a much bigger plan! e.g Max 50X!)\n\n## Current Workarounds\n\n1. **Manual allow rules**: Configuring extensive `permissions.allow` rules in `settings.local.json` — functional but tedious to maintain and doesn't cover edge cases the way auto mode's classifier would.\n2. **`--dangerously-skip-permissions`**: Eliminates all prompts but has introduced unwanted behaviour in the past (e.g. destructive actions, overly aggressive changes) that requires careful management and monitoring. The lack of any safety classifier means you trade permission fatigue for risk of unintended side effects.",
+  "labels": ["enhancement", "area:permissions"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-26T07:57:59Z",
+  "updated_at": "2026-03-31T19:44:01Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 3,
+  "author": "benpalmer1",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "felixbuenemann",
+      "author_association": "NONE",
+      "body": "I would add that it males no sense to gate this feature for team/enterprise users and exclude pro/max. I'm also using too much tokens to use Team plan.",
+      "created_at": "2026-03-27T09:56:54Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "While auto mode isn't available on your plan, you can approximate it using `permissions.allow` in settings:\n```json\n// ~/.claude/settings.json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Read\", \"Glob\", \"Grep\",\n      \"Edit\", \"Write\",\n      \"Bash(git *)\", \"Bash(npm *)\", \"Bash(npx *)\",\n      \"Bash(node *)\", \"Bash(python *)\",\n      \"Bash(ls *)\", \"Bash(cat *)\", \"Bash(mkdir *)\",\n      \"WebFetch(*)\"\n    ]\n  }\n}\n```\nThis auto-approves matching operations without prompting. You'll still get prompted for c",
+      "created_at": "2026-03-30T06:32:16Z"
+    },
+    {
+      "author": "jmb275",
+      "author_association": "NONE",
+      "body": "I second this issue. Max user here. Permission fatigue is frustrating at best, but worse, it really reduces the value of using claude remote-control since it's constantly asking for permission. I really have to be glued to the terminal. Worst of all, for reasons I understand, sub-agents requests for permission don't surface to the interface properly so, at least for me, they get blocked on virtually everything. This kills any would-be benefit of agentic AI. I hope they push this feature to Max/P",
+      "created_at": "2026-03-31T19:44:01Z"
+    }
+  ]
+}

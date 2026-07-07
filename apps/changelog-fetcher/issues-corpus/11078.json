@@ -1,0 +1,42 @@
+{
+  "number": 11078,
+  "title": "[BUG] Claude Code Proxy Issue: Private NPM Package Authentication Failure",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# Claude Code Proxy Issue: Private NPM Package Authentication Failure\n\n**Date**: 2025-11-05\n**Environment**: Claude Code on the Web\n**Issue**: Cannot authenticate with GitHub Packages npm registry for private packages\n**Status**: Blocking development workflow\n\nThe Claude Code proxy's scoped credential system successfully injects GitHub authentication for git operations but **does not provide the necessary `read:packages` scope** for accessing private npm packages from GitHub Packages registry. Additionally, when users attempt to provide their own authentication token via `.npmrc`, **the proxy strips the Authorization header**, preventing any workaround.\n\n**Impact**: Users cannot install private npm packages from GitHub Packages, blocking dependency installation for projects that rely on private organizational packages.\n\n### What Should Happen?\n\n## Executive Summary\n\nThe Claude Code proxy's scoped credential system successfully injects GitHub authentication for git operations but **does not provide the necessary `read:packages` scope** for accessing private npm packages from GitHub Packages registry. Additionally, when users attempt to provide their own authentication token via `.npmrc`, **the proxy strips the Authorization header**, preventing any workaround.\n\n**Impact**: Users cannot install private npm packages from GitHub Packages, blocking dependency installation for projects that rely on private organizational packages.\n\n---\n\n## Technical Details\n\n### Environment\n\n- **Platform**: Claude Code on the Web\n- **Proxy**: Claude Code HTTPS security proxy (as documented)\n- **Registry**: `npm.pkg.github.com` (GitHub Packages npm registry)\n- **Package Type**: Private scoped npm packages (`@organization/package-name`)\n- **Authentication Method Attempted**: Personal Access Token (classic) with `read:packages` scope\n\n### The Problem\n\nClaude Code's proxy implements a scoped credential system that automatically injects GitHub authentication for `*.github.com` domains. However:\n\n1. **The injected credential lacks `read:packages` scope** needed for GitHub Packages npm registry\n2. **User-provided authentication tokens are stripped** by the proxy\n3. **No documented workaround exists** for private package registry authentication\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n## Reproduction Steps\n\n### Setup\n\n1. Create a private npm package published to GitHub Packages:\n   - Organization: `<your-org>`\n   - Package: `@<your-org>/<package-name>`\n   - Version: `1.0.0-<hash>`\n   - Published to: `https://npm.pkg.github.com/<your-org>`\n\n2. Create repository with read access:\n   - Repository: `<your-org>/<your-repo>`\n   - Grant repository **read access** to the package in GitHub Packages settings\n\n3. Create Personal Access Token (classic):\n   - Scope: `read:packages`\n   - Verify it works locally on developer machine\n\n### Test Case 1: Using `.npmrc` with Authentication Token\n\n**Configuration:**\n```ini\n# .npmrc in project root\nregistry=https://npm.pkg.github.com/<your-org>\n//npm.pkg.github.com/:_authToken=ghp_[40-character-token]\n```\n\n**Command:**\n```bash\nnpm install @<your-org>/<package-name>@<version>\n```\n\n**Expected Result:**\nPackage installs successfully (this works on local machine with identical configuration)\n\n**Actual Result:**\n```\nnpm error code E401\nnpm error Unable to authenticate, your authentication token seems to be invalid.\n```\n\n**Evidence:**\n```\n17 http fetch GET 401 https://npm.pkg.github.com/<your-org>/@<your-org>%2f<package-name> 26ms (cache skip)\n23 verbose stack HttpErrorAuthUnknown: Unable to authenticate, need: Bearer realm=\"\", error=\"invalid_token\"\n```\n\n**Analysis:**\n- Error code **401 Unauthorized** means no authentication was received by GitHub\n- The same `.npmrc",
+  "labels": [
+    "bug",
+    "has repro",
+    "external",
+    "area:auth",
+    "area:core",
+    "area:claude-code-web"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-05T21:27:46Z",
+  "updated_at": "2026-01-30T14:19:43Z",
+  "closed_at": "2026-01-22T18:46:02Z",
+  "reactions_total": 14,
+  "comments_count": 6,
+  "author": "ejkani",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "sethships",
+      "author_association": "NONE",
+      "body": "I'm running into this a lot... I've managed to work around almost every other CCW issue, but this one is beyond my ability to work around.",
+      "created_at": "2025-11-18T07:13:21Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-18T10:10:17Z"
+    },
+    {
+      "author": "haikov",
+      "author_association": "NONE",
+      "body": "Experiencing the same issue and it's a major blocker. Surprisingly, it works with `bun install` (if executed in the \"Full\" network mode), but not with yarn or npm, probably since bun doesn't use the http proxy inside the container.",
+      "created_at": "2025-12-23T09:37:42Z"
+    }
+  ]
+}

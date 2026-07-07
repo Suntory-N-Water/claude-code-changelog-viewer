@@ -1,0 +1,35 @@
+{
+  "number": 1536,
+  "title": "[BUG] API Timeout Issues (#1513) persist in 1.0.9",
+  "body": "I can't re-open https://github.com/anthropics/claude-code/issues/1513 so I'm creating this new bug report. #1513 was for Claude never retrying in 1.0.8. Now in 1.0.9 it retries a couple of times and then gives up. For example:\n```\n  ⎿  API Error (Request timed out.) · Retrying in 1 seconds… (attempt 1/10)\n  ⎿  API Error (Request timed out.) · Retrying in 1 seconds… (attempt 2/10)\n  ⎿  API Error: Request timed out.\n\n>\n```\n\nSee additional comments at the end of #1513 for other people experiencing the same problem\n\nTagging @bcherny and @ant-kurt who investigated #1513 \n",
+  "labels": ["bug", "has repro", "area:api"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-06-03T16:58:39Z",
+  "updated_at": "2025-08-04T14:09:10Z",
+  "closed_at": "2025-07-27T21:19:28Z",
+  "reactions_total": 20,
+  "comments_count": 45,
+  "author": "thomasj02",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "@thomasj02 sorry to hear you're still running into retry issues.\n\nWere you able to try setting some of the  debug flags `ANTHROPIC_LOG=debug DEBUG=1` or `--debug --verbose`, to see if there's anything strange like a `x-should-retry` header being set to false?",
+      "created_at": "2025-06-03T17:57:57Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "@thomasj02 we're still looking into this, and may push an updated version with some additional logging. The logs you shared are really interesting, in that they don't show any failure. I'm guessing this is related to the streaming being interrupted, since the initial response looks OK.",
+      "created_at": "2025-06-05T01:48:52Z"
+    },
+    {
+      "author": "thomasj02",
+      "author_association": "NONE",
+      "body": "Even with `--debug --verbose` no additional info is printed.\n\n```\n> Let's make it static\n  ⎿  API Error (Request timed out.) · Retrying in 1 seconds… (attempt 1/10)\n  ⎿  API Error: Request timed out.\n\n╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ >                                                                                                    ",
+      "created_at": "2025-06-03T20:27:47Z"
+    }
+  ]
+}

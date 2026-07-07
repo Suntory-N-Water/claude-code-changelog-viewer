@@ -1,0 +1,35 @@
+{
+  "number": 28256,
+  "title": "MCP OAuth token refresh not persisting for Notion MCP server",
+  "body": "## Description\n\nThe Notion MCP server (installed via the official marketplace plugin) requires re-authentication on nearly every session start, despite having a valid refresh token stored in `~/.claude/.credentials.json`. The expected behavior is that Claude Code automatically uses the refresh token to obtain a new access token when the current one expires.\n\n## Steps to reproduce\n\n1. Install the Notion MCP plugin from the official marketplace\n2. Authenticate via OAuth (browser flow completes successfully)\n3. Use Notion MCP tools in a session — works fine\n4. Start a new session (or wait for the access token to expire, ~1 hour)\n5. Notion MCP shows `△ needs authentication` and requires manual re-auth via `/mcp`\n\n## Expected behavior\n\nClaude Code should detect the expired access token, use the stored refresh token to obtain a new access token, update `.credentials.json` with the new tokens, and connect to the MCP server without user intervention.\n\n## Actual behavior\n\nThe MCP server shows `needs authentication` on every new session (or after token expiry within a session). The user must manually run `/mcp` to re-authenticate each time.\n\n## Environment\n\n- **OS**: macOS (Darwin 25.3.0)\n- **Claude Code**: latest stable channel\n- **MCP server**: Notion (`https://mcp.notion.com/mcp`) via official marketplace plugin\n- **Credential storage**: `~/.claude/.credentials.json` contains both `accessToken` and `refreshToken` under `mcpOAuth.notion|*`\n\n## Additional context\n\n- The access token appears to have a short TTL (~1 hour based on `expiresAt` timestamps)\n- The refresh token IS present in the credentials file after each successful auth\n- This may also affect other OAuth-based MCP servers (Atlassian appears to work more reliably, possibly due to longer token TTLs)\n- Running multiple concurrent Claude Code sessions may exacerbate the issue if refresh token rotation causes one session to invalidate the other's stored token",
+  "labels": ["bug", "platform:macos", "area:auth", "area:mcp", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-24T17:58:13Z",
+  "updated_at": "2026-05-22T22:25:15Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 8,
+  "author": "wcampbellgalaxy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5706\n2. https://github.com/anthropics/claude-code/issues/19481\n3. https://github.com/anthropics/claude-code/issues/12447\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-24T18:02:43Z"
+    },
+    {
+      "author": "jean-humann",
+      "author_association": "NONE",
+      "body": "Linked to cf. https://github.com/anthropics/claude-code/issues/28541",
+      "created_at": "2026-02-25T16:25:08Z"
+    },
+    {
+      "author": "rohitmusti",
+      "author_association": "NONE",
+      "body": "I'm observing the same issue with the Read AI MCP server. ChatGPT is having no issues managing the refresh token. \n",
+      "created_at": "2026-03-07T16:51:39Z"
+    }
+  ]
+}

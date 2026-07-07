@@ -1,0 +1,16 @@
+{
+  "number": 3983,
+  "title": "[BUG] PostToolUse hook JSON output not processed by Claude Code",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: \n- Claude CLI version: 1.0.56 (Claude Code)\n- Operating System: macOS 15.5 (Darwin 24.5.0)\n- Terminal: Ghostty.app\n\n## Bug Description\nPostToolUse hooks that output JSON in the documented format are not being processed by Claude Code. The hook correctly outputs JSON with exit code 0, but Claude Code does not make this data available to the AI assistant as documented.\n\n## Steps to Reproduce\n1. Create a PostToolUse hook that outputs JSON in the documented format:\n   ```json\n   {\"reason\": \"Hook feedback message\"}\n   ```\n2. Configure the hook in `.claude/settings.local.json`:\n   ```json\n   {\n     \"hooks\": {\n       \"postToolUse\": {\n         \"Bash\": \"python3 /path/to/hook_script.py\"\n       }\n     }\n   }\n   ```\n3. Execute a Bash command that triggers the hook (e.g., `ls`)\n4. Hook executes successfully with exit code 0 and outputs the JSON\n5. Claude Code does not receive/process the JSON output\n\n## Expected Behavior\nAccording to the [hooks documentation](https://docs.anthropic.com/en/docs/claude-code/hooks), when a PostToolUse hook returns exit code 0 with JSON output, Claude Code should process that JSON. The AI assistant should have access to the hook's output data.\n\n## Actual Behavior\n- Hook executes correctly (verified via diagnostic logging)\n- Hook outputs proper JSON format (verified by capturing stdout)\n- Hook exits with code 0 (success)\n- Claude Code does not process the JSON output\n- The AI assistant never receives the hook data\n\n## Additional Context\nThis issue has been present since at least version 1.0.44. The hook implementation follows the documented specification exactly:\n\n```python\n# Hook outputs JSON and exits with code 0\noutput = {\"reason\": \"[KSI ⚡3]\"}\nprint(json.dumps(output), flush=True)\nsys.exit(0)\n```\n\nDiagnostic logs confirm the hook is working:\n```\n2025-07-19T10:30:59.565767 - JSON feedback output: [KSI ⚡3]\n```\n\nBut Claude Code is not processing this output as documented. This prevents hooks from providing feedback to the AI assistant during tool execution.\n\n**Related Issues:**\n- #2814 documents other hook system issues\n- Hook output visibility is only one part of the broader hooks implementation problems\n\n**Workaround:**\nCurrently forced to write diagnostic data to external log files since the documented JSON communication method doesn't work.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-19T14:36:25Z",
+  "updated_at": "2026-01-14T14:13:44Z",
+  "closed_at": "2026-01-06T10:15:10Z",
+  "reactions_total": 1,
+  "comments_count": 12,
+  "author": "durapensa",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

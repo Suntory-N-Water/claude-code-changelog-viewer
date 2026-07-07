@@ -1,0 +1,35 @@
+{
+  "number": 59163,
+  "title": "[BUG] TUI character corruption after long sessions in VS Code integrated terminal (macOS, v2.1.141)",
+  "body": "## What's wrong?\n\nAfter a long session in the VS Code integrated terminal on macOS, the Claude Code TUI starts rendering most characters as garbled glyphs. The corruption is screen-wide rather than localized: ANSI colors, column alignment, and indentation are all preserved, but the glyphs themselves are wrong — they look like random box-drawing/punctuation characters in the right color slots. A few stripes of the buffer (typically blocks that were rendered recently) still show correct text, so the result is a mix of readable patches interleaved with garbled lines.\n\nScreenshot of the corrupted state will be attached as a follow-up comment.\n\n## What should happen?\n\nText should keep rendering correctly for the duration of the session, regardless of how long it has been running.\n\n## Steps to reproduce\n\nReproduction is currently imprecise — I don't have a deterministic trigger:\n\n1. Open Claude Code in the VS Code integrated terminal on macOS.\n2. Use it normally for an extended period (multiple hours / many tool calls / a long conversation).\n3. At some point during the session, the TUI starts rendering most characters as garbled glyphs as described above.\n\nNo specific action (paste, resize, slash command, hook event, tool result) consistently triggers it that I've been able to identify. It just degrades over time.\n\n## Recovery\n\n**Only quitting and relaunching `claude` restores correct rendering.** None of the following help:\n\n- Scrolling up/down inside the VS Code terminal panel.\n- Resizing the VS Code terminal panel.\n- `clear` / Ctrl-L.\n- Switching to another VS Code terminal tab and back.\n\nThat nothing on the terminal side fixes it suggests Claude Code's internal screen model has been corrupted and Claude Code keeps writing the bad glyphs — it's not the terminal emulator's own back-buffer that's wrong.\n\n## Environment\n\n- **Claude Code version:** `2.1.141`\n- **OS:** macOS (Darwin 25.5.0)\n- **Terminal:** VS Code integrated terminal\n- **Shell:** zsh\n\n## Related issues\n\n- #58094 — VS Code integrated terminal on **Windows**, triggered by `/compact`, with stale content appearing as bitmap residue. Likely the same mechanism family (Claude-Code-internal screen state going bad in a way the terminal can't recover), but a different platform and a more specific trigger.\n- #52527 — macOS but Apple Terminal (not VS Code), and the corruption there is per-character random swaps rather than screen-wide glyph replacement.\n- #50314 — macOS + VS Code, but specifically about colors making text invisible rather than glyph corruption.\n\nThis case looks distinct from those, hence a new report. If anyone has a deterministic trigger or a tighter time-to-failure, please drop it in the comments.\n",
+  "labels": ["bug", "platform:macos", "area:tui", "platform:vscode"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-14T18:12:12Z",
+  "updated_at": "2026-06-08T14:09:38Z",
+  "closed_at": "2026-05-20T18:07:08Z",
+  "reactions_total": 17,
+  "comments_count": 23,
+  "author": "Faithfinder",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "diana-ant",
+      "author_association": "COLLABORATOR",
+      "body": "Hello, this issue should have been fixed in v2.1.144. Could you please try to update and confirm if it hasn't? Thanks!",
+      "created_at": "2026-05-18T23:20:41Z"
+    },
+    {
+      "author": "diana-ant",
+      "author_association": "COLLABORATOR",
+      "body": "Could you please set this in VSCode settings and try again? `\"terminal.integrated.gpuAcceleration\": \"off\"`\n\nWe think this may be an upstream issue, not a Claude Code bug. Thank you in advance!",
+      "created_at": "2026-05-19T18:13:15Z"
+    },
+    {
+      "author": "diana-ant",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for confirming. I'll close this out as it's a non-Claude Code related issue but have noted it internally.",
+      "created_at": "2026-05-20T18:07:08Z"
+    }
+  ]
+}

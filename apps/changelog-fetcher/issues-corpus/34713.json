@@ -1,0 +1,42 @@
+{
+  "number": 34713,
+  "title": "[BUG] False \"Hook Error\" labels cause Claude to prematurely end turns (exit 0, no stderr, valid JSON)",
+  "body": "# [BUG] False \"Hook Error\" labels cause Claude to prematurely end turns (exit 0, no stderr, valid JSON)\n\n## Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue+state%3Aopen+label%3Abug) and found related reports (#10936, #10463, #27886, #12671, #17088)\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n## What's Wrong?\n\nClaude Code displays \"hook error\" in the transcript for **every** hook execution, regardless of whether the hook succeeded. This affects all hook events (PreToolUse, PostToolUse, UserPromptSubmit, etc.) and all matchers.\n\nThe hooks:\n- Exit with code 0\n- Produce valid JSON on stdout (with `hookSpecificOutput`)\n- Produce zero bytes on stderr (fd 2 is redirected to `/dev/null` before any code runs)\n- Complete in <40ms (well under any timeout)\n\n### This is NOT just cosmetic — it causes premature turn termination\n\nIn plugin-heavy setups (e.g., magic-claude with ~15 hooks + context-mode with ~10 hooks), **every single tool call shows 2-4 \"hook error\" lines**. These false error labels are visible in the transcript and appear to be fed back into the model's context. The model interprets this accumulation of \"error\" signals as an indication that something is wrong and **prematurely ends its turn**, especially after Bash tool calls where multiple hooks fire (PreToolUse + PostToolUse from both plugins).\n\n**Observed behavior**: After a Bash command completes successfully (exit 0, correct output), Claude stops responding mid-task. The transcript shows:\n\n```\n● Bash(echo \"hello\")\n  ⎿  PreToolUse:Bash hook error      ← false error (hook exited 0)\n  ⎿  hello\n  ⎿  PostToolUse:Bash hook error     ← false error (hook exited 0)\n```\n\nClaude sees 2+ \"error\" labels per tool call. After several tool calls, the accumulated \"error\" signals cause Claude to abandon its plan and end the turn, even though everything worked correctly.\n\n**Impact escalation**:\n1. **Functional**: Turns terminate prematurely — Claude abandons multi-step tasks\n2. **Alarm fatigue**: Users can't distinguish real errors from false ones\n3. **Trust erosion**: Users blame their plugins for \"errors\" that don't exist\n4. **Plugin ecosystem**: Discourages hook-based plugins — more hooks = more false errors = worse UX\n\n## Version\n\nClaude Code latest (as of 2026-03-15), Linux (WSL2)\n\n## Steps to Reproduce\n\n### Minimal reproduction\n\n1. Add a trivial hook to `~/.claude/settings.json`:\n\n```json\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Read\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"cat > /dev/null && echo '{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\"}}'\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n2. Run any session that uses the Read tool\n3. Observe: `PreToolUse:Read hook error` in the transcript\n\n### Real-world reproduction (plugin ecosystem)\n\n1. Install [magic-claude](https://github.com/doublefx/magic-claude) plugin (~15 hooks across all events)\n2. Install [context-mode](https://github.com/doublefx/context-mode) plugin (~10 hooks)\n3. Run any session\n4. Every tool call shows multiple \"hook error\" lines:\n\n```\n● Read 2 files (ctrl+o to expand)\n  ⎿  PreToolUse:Read hook error\n  ⎿  PostToolUse:Read hook error\n  ⎿  PreToolUse:Read hook error\n  ⎿  PostToolUse:Read hook error\n```\n\n```\n● plugin:context-mode — ctx_batch_execute (MCP)\n  ⎿  PreToolUse:mcp__plugin_context-mode_context-mode__ctx_batch_execute hook error\n  ⎿  PostToolUse:mcp__plugin_context-mode_context-mode__ctx_batch_execute hook error\n```\n\n## Investigation Details\n\n### Hooks verified working correctly\n\nAll hooks were tested manually outside Claude Code and produce correct results:\n\n```bash\n# context-mode PreToolUse — exits 0, valid JSON, 0 bytes stderr\n$ echo '{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"/tmp/test.txt\"}}' | \\\n  node ~/.claude/plugins/cache/context-mode/context-mode/1.0.26/hooks/pretooluse.mjs 2>/tmp/stderr.txt\n{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalC",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "area:tui",
+    "area:hooks",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-15T18:35:34Z",
+  "updated_at": "2026-05-31T22:28:19Z",
+  "closed_at": "2026-05-31T22:28:19Z",
+  "reactions_total": 6,
+  "comments_count": 10,
+  "author": "doublefx",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/10936\n2. https://github.com/anthropics/claude-code/issues/17088\n3. https://github.com/anthropics/claude-code/issues/27886\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-15T18:38:27Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "I can confirm this pattern exists and the behavioral impact is real.\n\nI run 10+ hooks across PreToolUse, PostToolUse, and UserPromptSubmit. Even when all hooks exit 0 with valid JSON, the \"hook error\" label appears in the transcript. With multiple hooks firing per tool call, the model accumulates dozens of false error signals per session.\n\nThe premature turn termination is the critical part. I've seen the model explicitly reference \"errors encountered\" in its reasoning when deciding to stop — ci",
+      "created_at": "2026-03-15T19:25:52Z"
+    },
+    {
+      "author": "doublefx",
+      "author_association": "NONE",
+      "body": "This issue is **not a duplicate** of #10936, #17088, or #27886. Those issues report the cosmetic mislabeling. This issue documents a **functional impact** that none of the others cover:\n\n### What's new here\n\n1. **Premature turn termination** — The false \"hook error\" labels are fed into the model's context. The model interprets accumulated error signals as real failures and stops mid-task. This is confirmed by @yurukusa above who sees the model explicitly citing \"errors encountered\" in its stop r",
+      "created_at": "2026-03-15T19:35:00Z"
+    }
+  ]
+}

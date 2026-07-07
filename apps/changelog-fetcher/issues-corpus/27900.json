@@ -1,0 +1,35 @@
+{
+  "number": 27900,
+  "title": "[BUG] Interactive Mode Ignores ANTHROPIC_API_KEY — Requires /login Despite Valid Auth",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nTitle\nclaude interactive mode says \"Not logged in\" despite ANTHROPIC_API_KEY being set and claude -p working correctly\n\nDescription\nClaude Code interactive mode refuses to use ANTHROPIC_API_KEY environment variable for authentication, always requiring /login (OAuth flow). However, claude -p (print mode) works perfectly with the same API key.\nEnvironment\n\nClaude Code version: 2.1.50\nOS: Ubuntu 22.04 (GCP VM, headless/SSH)\nShell: bash\nInstallation method: curl -fsSL https://claude.ai/install.sh | bash\n\n\n\nWorkaround\nclaude -p \"message\" works for non-interactive use, but loses the interactive features (multi-turn conversation context, tool approval UI, etc.).\nSuggested Fix\nInteractive mode should work with ANTHROPIC_API_KEY alone, without requiring a prior OAuth /login. The behavior should match claude -p, which already works correctly with just the API key.\n\n### What Should Happen?\n\nExpected Behavior\nInteractive mode should use ANTHROPIC_API_KEY for API calls, just like claude -p does. claude auth status confirms the key is recognized and valid.\nActual Behavior\nInteractive mode blocks all messages with Not logged in · Please run /login, even though:\n\nclaude auth status shows \"loggedIn\": true\nclaude -p works perfectly with the same API key\nThe API key is confirmed valid via direct curl calls\n\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nSteps to Reproduce\n\nSet ANTHROPIC_API_KEY in environment or in ~/.claude/settings.json:\n\nbashCopyexport ANTHROPIC_API_KEY=\"sk-ant-api03-...\"\njsonCopy// ~/.claude/settings.json\n{\n  \"env\": {\n    \"ANTHROPIC_API_KEY\": \"sk-ant-api03-...\"\n  },\n  \"model\": \"opus\"\n}\n\nVerify auth status:\n\nbashCopy$ claude auth status\n{\n  \"loggedIn\": true,\n  \"authMethod\": \"api_key\",\n  \"apiProvider\": \"firstParty\",\n  \"apiKeySource\": \"ANTHROPIC_API_KEY\"\n}\n\nVerify API key works via print mode:\n\nbashCopy$ claude -p \"hello\"\nHello! How can I help you today?    # ✅ Works\n\nVerify API key works via curl:\n\nbashCopy$ curl https://api.anthropic.com/v1/messages \\\n  -H \"x-api-key: $ANTHROPIC_API_KEY\" \\\n  -H \"content-type: application/json\" \\\n  -H \"anthropic-version: 2023-06-01\" \\\n  -d '{\"model\": \"claude-sonnet-4-20250514\", \"max_tokens\": 50, \"messages\": [{\"role\": \"user\", \"content\": \"say hi\"}]}'\n# ✅ Returns valid response\n\nRun interactive mode:\n\nbashCopy$ claude\n\nType any message:\n\nCopy❯ hi\n  ⎿  Not logged in · Please run /login\n\nAdditional Context\n\nRunning /login inside interactive mode forces an OAuth flow that connects to a different workspace/organization — one that may have different billing/limits than the workspace the API key belongs to.\nOn a macOS laptop with the same API key AND a prior OAuth login (authMethod: \"claude.ai\"), interactive mode works — it shows \"Auth conflict: Using ANTHROPIC_API_KEY instead of Anthropic Console key\" and uses the API key. This suggests interactive mode requires an OAuth login to exist first, then optionally overrides it with ANTHROPIC_API_KEY.\nOn a headless Linux VM without a prior OAuth login, there is no way to make interactive mode work with just an API key.\nThe OAuth token is stored in the system keyring (secret-service/gnome-keyring), not in ~/.claude/ files, making it difficult to manage on headless servers.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.50\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-23T14:27:25Z",
+  "updated_at": "2026-06-21T14:55:23Z",
+  "closed_at": "2026-05-02T22:19:35Z",
+  "reactions_total": 3,
+  "comments_count": 11,
+  "author": "prathamk-tw",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25069\n2. https://github.com/anthropics/claude-code/issues/5167\n3. https://github.com/anthropics/claude-code/issues/23753\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-23T14:31:35Z"
+    },
+    {
+      "author": "sstklen",
+      "author_association": "NONE",
+      "body": "Hey! I ran into a similar pattern in our bug knowledge base and thought this might help.\n\n**What's happening:** Interactive mode auth check prioritizes OAuth session lookup over ANTHROPIC_API_KEY env var. On headless systems without a browser-based OAuth session, it reports 'Not logged in' even when the env var is set. Print mode (-p) has a separate code path that correctly falls back to the env var.\n\n**What worked for us:**\n\nPass the API key explicitly via CLI flag to bypass the OAuth-first aut",
+      "created_at": "2026-02-24T13:49:09Z"
+    },
+    {
+      "author": "BMR59920",
+      "author_association": "NONE",
+      "body": "Hey. Hi. Not trying to hijack this or simply chime in me too... but I guess I'm going both.\n\n> ```\n> # Option 1: Explicit flag (per-session)\n> claude --api-key \"$ANTHROPIC_API_KEY\"\n> \n> # Option 2: Persist to config (permanent fix)\n> claude config set apiKey \"$ANTHROPIC_API_KEY\"\n> \n> # Then just run normally:\n> claude\n> ```\n> \n> Hope this helps! Let me know if it doesn't match your case — happy to dig deeper. 🦞\n\n```\n:~$ claude --api-key \"$ANTHROPIC_API_KEY\"\nerror: unknown option '--api-key'\n\n:~",
+      "created_at": "2026-02-27T03:19:10Z"
+    }
+  ]
+}

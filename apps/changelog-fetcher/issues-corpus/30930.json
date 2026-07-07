@@ -1,0 +1,35 @@
+{
+  "number": 30930,
+  "title": "[BUG] /api/oauth/usage endpoint returns persistent 429 for Claude Max users (retry-after: 0)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue+state%3Aopen+label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe `/api/oauth/usage` endpoint returns HTTP 429 (Rate Limited) **persistently** for Claude Max ($200/month) users, with `retry-after: 0`. Despite the header suggesting immediate retry is possible, the endpoint continues returning 429 indefinitely (tested over 5+ minutes with various intervals).\n\nThis endpoint is used by third-party status line tools (oh-my-claudecode HUD, claude-code-statusline, etc.) to display 5-hour and weekly usage percentages. The persistent 429 makes it impossible to show usage data.\n\n### Evidence\n\n```\n$ curl -s -w \"\\nHTTP: %{http_code}\" \\\n  -H \"Authorization: Bearer <valid_token>\" \\\n  -H \"anthropic-beta: oauth-2025-04-20\" \\\n  \"https://api.anthropic.com/api/oauth/usage\"\n\n{\"error\":{\"message\":\"Rate limited. Please try again later.\",\"type\":\"rate_limit_error\"}}\nHTTP: 429\n```\n\nVerbose headers show:\n```\n< HTTP/2 429\n< retry-after: 0\n```\n\n- OAuth token is valid (4+ hours remaining, verified via Keychain)\n- Token has correct scopes (`user:inference`, `user:profile`)\n- Same token works for normal Claude Code API calls\n- Tested with 30s, 60s, 120s intervals — always 429\n\n### What Should Happen?\n\nThe endpoint should return usage data (5-hour utilization, weekly utilization, reset times) or return a meaningful `retry-after` value greater than 0.\n\n### Relationship to Existing Issues\n\n- **#25805** — Reports rate limit errors without distinguishing usage vs throughput limits. This issue is specifically about the `/api/oauth/usage` **metadata endpoint** being rate limited, not the inference API.\n- **#29579** — Reports API errors at 16% usage. Same underlying problem — the usage query endpoint itself is throttled.\n- **#29604** — Requests exposing rate limit data in statusline JSON stdin. If this were implemented, third-party tools wouldn't need to call `/api/oauth/usage` at all — solving this issue at the root.\n\n### Impact\n\nThird-party status line tools that poll this endpoint (typically every 30-60s) trigger the rate limit quickly, then get stuck in a permanent 429 loop. This affects the entire ecosystem of custom statuslines built around this endpoint.\n\n### Proposed Fix\n\nAny of these would help:\n1. **Increase rate limit** for `/api/oauth/usage` (it's a lightweight metadata query, not inference)\n2. **Return proper `retry-after`** header (currently returns 0, which is misleading)\n3. **Include usage data in statusline JSON** (#29604) — eliminates the need for separate API calls entirely\n\n### Claude Code Version\n\nv2.1.69\n\n### Claude Model\n\nOpus 4.6\n\n### Is this a regression?\n\nI don't know\n\n### Platform\n\nAnthropic API (Claude Max $200/month)\n\n### Operating System\n\nmacOS (Darwin 25.3.0, Apple Silicon)\n\n### Terminal/Shell\n\nzsh",
+  "labels": ["bug", "area:api", "area:statusline"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-05T04:00:25Z",
+  "updated_at": "2026-03-29T06:21:55Z",
+  "closed_at": null,
+  "reactions_total": 38,
+  "comments_count": 10,
+  "author": "DevAutoFarm",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/30616\n2. https://github.com/anthropics/claude-code/issues/29650\n3. https://github.com/anthropics/claude-code/issues/29579\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-05T04:04:09Z"
+    },
+    {
+      "author": "kturung",
+      "author_association": "NONE",
+      "body": "same problem +1",
+      "created_at": "2026-03-05T08:22:00Z"
+    },
+    {
+      "author": "prakersh",
+      "author_association": "NONE",
+      "body": "## Root Cause Found + Workaround\n\nAfter investigating, we discovered that **rate limits are per-access-token, not per-account**. Each new OAuth access token gets a fresh rate limit window (~5 requests before 429).\n\n### How to bypass:\n\nWhen you hit 429, refresh your token:\n\n```bash\ncurl -X POST https://console.anthropic.com/v1/oauth/token \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"grant_type\": \"refresh_token\", \n    \"refresh_token\": \"YOUR_REFRESH_TOKEN\",\n    \"client_id\": \"9d1c250a-e61b",
+      "created_at": "2026-03-06T09:24:03Z"
+    }
+  ]
+}

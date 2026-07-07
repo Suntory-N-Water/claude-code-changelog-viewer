@@ -1,0 +1,35 @@
+{
+  "number": 18075,
+  "title": "feat: Add env var for custom Chromium browser path",
+  "body": "## Problem\n\nThe `/chrome` feature only detects Google Chrome. Users with alternative Chromium-based browsers can't use browser control even with the Claude extension installed and working.\n\n## Use Case\n\nI use Helium (lightweight Chromium browser) as my daily driver. The Claude extension works perfectly there. Claude Code just doesn't detect it.\n\nThis affects users of Arc, Brave, Vivaldi, Edge, Chromium, and other Chromium-based browsers.\n\n## Proposal\n\nAdd `CLAUDE_CODE_CHROME_PATH` env var to specify a custom Chromium browser path.\n\nConfiguration via `settings.json`:\n\n```json\n{\n  \"env\": {\n    \"CLAUDE_CODE_CHROME_PATH\": \"/Applications/Helium.app/Contents/MacOS/Helium\"\n  }\n}\n```\n\nOr via shell:\n\n```bash\nexport CLAUDE_CODE_CHROME_PATH=\"/Applications/Helium.app/Contents/MacOS/Helium\"\n```\n\n## Implementation\n\n1. Check `CLAUDE_CODE_CHROME_PATH` first\n2. Fall back to current Chrome detection if unset\n\nThis follows the existing pattern of other Claude Code env vars like `CLAUDE_CODE_SHELL` and `CLAUDE_CODE_TMPDIR`.\n\n## Related Issues\n\nThis would address multiple open issues:\n\n- #14370 - Detect Claude Chrome extension in other Chromium-based browsers\n- #14391 - Native messaging host not installed for Chromium/Brave (Linux)\n- #14536 - Allow browser selection instead of opening default browser\n- #14616 - Chrome integration doesn't detect extension in Brave (macOS)\n- #14981 - Add browser selection option for Chrome extension (support non-default browsers)\n- #17337 - Arc browser incompatibility (macOS)\n- #17866 - Add --chrome-path flag to specify custom Chrome browser location",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-14T04:41:36Z",
+  "updated_at": "2026-05-29T21:10:34Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 4,
+  "author": "ramonclaudio",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "stolot0mt0m",
+      "author_association": "NONE",
+      "body": "While waiting for the `CLAUDE_CODE_CHROME_PATH` env var, I created a workaround that configures Native Messaging Host for alternative browsers:\n\n🔗 **https://github.com/stolot0mt0m/claude-chromium-native-messaging**\n\nThis enables Claude Desktop and Claude Code integration with Brave, Arc, Vivaldi, Edge, Genspark, and other Chromium-based browsers by creating the necessary manifest files.\n\nWorks on macOS and Linux. The script auto-detects installed browsers and lets you choose which ones to confi",
+      "created_at": "2026-01-28T17:07:47Z"
+    },
+    {
+      "author": "stolot0mt0m",
+      "author_association": "NONE",
+      "body": "Heads up — we analyzed the `/chrome` architecture and found that `CLAUDE_CODE_CHROME_PATH` alone wouldn't fix the problem.\n\nThe MCP integration doesn't use local sockets for tool calls. It communicates entirely through `wss://bridge.claudeusercontent.com`. The extension connects to this bridge, Claude Code's MCP server connects to the same bridge, and they're matched by user account. The catch: the extension only opens the bridge WebSocket when a server-side feature flag (`chrome_ext_bridge_enab",
+      "created_at": "2026-03-14T13:33:09Z"
+    },
+    {
+      "author": "daiver18",
+      "author_association": "NONE",
+      "body": "+1 on this. I'm using Helium (ungoogled-chromium based) as my daily browser on macOS. The Claude extension works perfectly in Helium, and I've already set up the native messaging host manifest manually in `~/Library/Application Support/net.imput.helium/NativeMessagingHosts/`, but Claude Code's `/chrome` command still tries to launch Google Chrome instead of detecting Helium.\n\nEven though Helium is my system default browser (`net.imput.helium` is registered as the `http` handler), Claude Code doe",
+      "created_at": "2026-03-15T22:08:43Z"
+    }
+  ]
+}

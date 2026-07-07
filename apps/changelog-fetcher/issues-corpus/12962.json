@@ -1,0 +1,35 @@
+{
+  "number": 12962,
+  "title": "[FEATURE] Settings.json parent directory traversal for monorepos",
+  "body": "## Problem\n\nWhen working in a monorepo subdirectory (e.g., `/repo/packages/app/`), Claude Code only looks for `.claude/settings.json` in the current working directory. It does not traverse parent directories to find shared settings at the repo root.\n\nThis means you either need to:\n- Duplicate settings in every subdirectory\n- Always launch Claude Code from the repo root\n- Use global user settings (`~/.claude/settings.json`) which apply to all projects\n\n## Proposed Solution\n\nClaude Code should traverse parent directories (up to the git root or filesystem root) looking for `.claude/settings.json` files, similar to how many tools handle config files (e.g., `.gitignore`, `tsconfig.json`, `.eslintrc`).\n\nSettings could be merged with deeper directories taking precedence, or the first found settings file could be used.\n\n## Use Case\n\nIn a monorepo with multiple packages/services, you want shared settings (allowed tools, MCP servers, permissions) defined once at the repo root, while still being able to work from within subdirectories.\n\n## Related Issues\n\n- #2365 - Better Monorepo Support (MCP and commands)\n- #374 - MCP repo scope\n- #705 - Nested CLAUDE.md context\n- #3146 - Configure additional directories via settings files\n\nThis issue focuses specifically on `settings.json` lookup behavior, complementing the related requests for MCP, commands, and CLAUDE.md parent directory support.",
+  "labels": ["enhancement", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-03T10:06:22Z",
+  "updated_at": "2026-06-18T12:02:22Z",
+  "closed_at": null,
+  "reactions_total": 63,
+  "comments_count": 19,
+  "author": "skorfmann",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "skorfmann",
+      "author_association": "NONE",
+      "body": "## Workaround: Using Mise for per-project environment variables\n\nWhile waiting for native parent directory traversal, you can use [Mise](https://mise.jdx.dev) to manage per-project environment variables that Claude Code will pick up.\n\n### Setup\n\n1. Install mise and activate it in your shell:\n   ```bash\n   # Install (macOS)\n   brew install mise\n   \n   # Add to ~/.zshrc or ~/.bashrc\n   eval \"$(mise activate zsh)\"\n   ```\n\n2. Add a `.mise.toml` at your repo root:\n   ```toml\n   [env]\n   _.file = \".en",
+      "created_at": "2025-12-03T10:22:13Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-03T10:13:53Z"
+    },
+    {
+      "author": "madhermit",
+      "author_association": "NONE",
+      "body": "I'm still interested in this addition ",
+      "created_at": "2026-01-03T16:15:46Z"
+    }
+  ]
+}

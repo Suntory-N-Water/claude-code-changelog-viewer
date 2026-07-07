@@ -1,0 +1,35 @@
+{
+  "number": 4908,
+  "title": "Feature Request: Scoped Context Passing for Subagents",
+  "body": "### **Title: Feature Request: Scoped Context Passing for Subagents**\n\n### Body\n\n**Is your feature request related to a problem? Please describe.**\n\nThe subagent feature, introduced in `v1.0.60` and detailed in the official documentation, is a powerful mechanism for creating specialized AI assistants. The key benefit of a subagent having its own context window is that it prevents the main conversation from getting polluted with task-specific details.\n\nHowever, the current implementation of this context isolation is \"all or nothing.\" When a task is delegated, the subagent starts with a completely clean slate. This forces the subagent to perform redundant context-gathering steps that the parent agent may have already completed (e.g., analyzing a `git diff`, reading relevant files, or understanding the user's high-level goal).\n\nThis leads to a few key inefficiencies:\n*   **Increased Latency & Token Cost:** The subagent consumes time and tokens re-discovering information that was already available in the parent context.\n*   **Loss of High-Level Context:** The subagent might miss the strategic goal or important constraints known to the parent agent, leading to solutions that are technically correct but not perfectly aligned with the user's original intent.\n*   **Limited Workflow Complexity:** It's difficult to build truly hierarchical agent workflows where a primary agent can effectively delegate well-scoped sub-tasks.\n\n**Describe the solution you'd like**\n\nI propose an enhancement to allow for **scoped context passing** from the parent agent to a subagent. This would provide a middle ground between complete context isolation and full context inheritance, enabling more efficient and effective delegation.\n\nHere are a couple of potential implementation approaches this could take:\n\n**1. Explicit Context Passing via Prompt**\n\nAllow the user to pass a summary, file reference, or other context directly in the invocation prompt. This gives the user fine-grained, on-the-fly control.\n\n**2. Declarative Context Scoping via Frontmatter**\n\nIntroduce a new optional field in the subagent's markdown definition file (e.g., in `.claude/agents/my-agent.md`) to specify what context should be automatically inherited from the parent.\n\n**Example `code-reviewer.md` frontmatter:**\n```yaml\n---\nname: code-reviewer\ndescription: An expert code reviewer that checks for quality, style, and bugs.\ntools: Read, Grep, Glob\ninherit_context: [summary, git_diff, user_prompt] \n---\n\nYou are a senior code reviewer. Your task is to analyze the provided code changes...\n```\n\nThe `inherit_context` array could accept predefined keys that the system knows how to populate, such as: `summary`, `git_diff`, `relevant_files`, `user_prompt`, etc.\n\n### Expanded Usage Examples\n\nHere is how this feature would improve common development workflows:\n\n**Scenario 1: Targeted Debugging**\n\nThe parent agent identifies a bug from a log file and needs to delegate the fix.\n\n> **User Prompt:**\n> ```\n> I found an error in @logs/app-error.log. Use the debugger subagent to find the root cause in @src/payment/processor.ts and suggest a fix.\n> ```\nWith scoped context, the `debugger` subagent would immediately receive the contents of both `app-error.log` and `processor.ts`, allowing it to start analyzing the problem without having to be re-told which files to read.\n\n**Scenario 2: Test-Driven Development (TDD) Chain**\n\nA user wants to add a new feature using a two-step TDD process involving two different subagents.\n\n> **Step 1 - Write Tests:**\n> ```\n> Use the test-writer subagent to create Jest tests for the new user profile feature described in @specs/user-profile.md.\n> ```\nThe `test-writer` subagent receives the feature spec and creates `user-profile.test.js`.\n\n> **Step 2 - Implement Code:**\n> ```\n> Now, use the implementer subagent to write the code in @src/user-profile.js that makes the tests in @tests/user-profile.test.js pass.\n> ```\nThe `implementer` subagent receives both the original feature spec and the newly created test file, giving it a clear target and constraints for implementation.\n\n**",
+  "labels": ["enhancement", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-01T05:45:29Z",
+  "updated_at": "2026-01-19T14:15:35Z",
+  "closed_at": "2026-01-11T10:10:37Z",
+  "reactions_total": 10,
+  "comments_count": 7,
+  "author": "coygeek",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "nitsanavni",
+      "author_association": "NONE",
+      "body": "I suggest to also be able, as an additional option, to start the sub agent with **full context** from original session, this will allow to 1. preserve context 2. leverage context caching.\n\nThis will make the sub agent behave like a dedicated fork of the thread.",
+      "created_at": "2025-08-02T09:02:05Z"
+    },
+    {
+      "author": "mrsions",
+      "author_association": "NONE",
+      "body": "To make this feature more intuitive and consistent, I’d like to propose a configuration syntax similar to how `tools:` is defined. For example:\n\n```yaml\ntools: Read, Write, Bash\nincludes: System, User, Project, Subagent\n```\n\n**Descriptions:**\n\n* **System**: Inherit the parent agent’s system prompt (mandatory if core logic requires it)\n* **User**: Include user-level memory (personal context/history)\n* **Project**: Include project-level memory (project history and context)\n* **Subagent**: Use inde",
+      "created_at": "2025-08-29T17:12:52Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-05T10:15:51Z"
+    }
+  ]
+}

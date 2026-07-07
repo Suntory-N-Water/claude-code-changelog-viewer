@@ -1,0 +1,35 @@
+{
+  "number": 55053,
+  "title": "Sudden 5-hour session window squeeze starting Apr 29, 2026 evening",
+  "body": "## Summary\n\nSince the **evening of April 29, 2026**, the 5-hour session window depletes 5–10× faster than before for the same kind of work. A typical light editing session (a few `scp`, `Read`, small patches via `Edit`) burns ~20–25% of the session window in well under an hour. Sonnet sub-agents launched via `Agent` repeatedly hit \"You've hit your limit\" within **15–30 minutes** of work — they used to run for hours.\n\nThe frustrating part is that the **weekly quota is barely touched** — `W` shows ~59% remaining with **23+ hours of headroom** — yet the **session-window cap blocks me from using that headroom**. I have plenty of weekly budget, but the 5-hour window won't let me spend it.\n\n## Context\n\nI'm aware of the [April 23, 2026 post-mortem](https://www.anthropic.com/engineering/april-23-postmortem) about restoring `high` reasoning effort and reverting the verbosity prompt. Those changes do explain *some* token-cost increase per turn. They do **not** explain the disproportionate ratio between session-window depletion and weekly-quota consumption that started on **April 29 specifically** — i.e. several days *after* the April 23 fix.\n\n## Reproduction signals\n\n- `S` (5-hour session window) hits 20%+ within 30–60 minutes of light tool use.\n- `W` (weekly) shows large remainder + many real-time hours of headroom.\n- Multiple parallel `Agent` (Sonnet sub-agent) launches all hit limit within minutes — burning quota seemingly faster than total work would suggest.\n- Started: **2026-04-29 evening** (Europe/Kaliningrad timezone). Confirmed by independent users referencing the same date.\n\n## Ask\n\n1. Please confirm whether anything changed in the **session-window accounting on April 29 (UTC evening)**.\n2. Either widen the session window proportionally to the new per-turn cost, or document the new ratio so users can plan around it.\n\n## Impact\n\nRight now Claude Code, for which I subscribe primarily on Max tier, is significantly less usable than it was a week ago — not because of model quality (which is good), but because the cadence of forced waits has gone from \"rare and predictable\" to \"every hour or so, no matter how lightly I work.\"\n\nI do want this to keep working — that's why I'm reporting.\n\n---\n\n*Mitigations I've applied so far:*\n- Lowered `effortLevel` from `high` to `medium` in `~/.claude/settings.json` (~1.5× longer windows but at quality cost).\n- Stopped launching Sonnet sub-agents in parallel (they cannibalize each other's quota).\n- Splitting big tasks into ~30-minute Sonnet chunks instead of 90.\n\nThese help, but they're workarounds, not solutions.\n",
+  "labels": ["bug", "area:cost"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-30T16:08:58Z",
+  "updated_at": "2026-06-10T04:23:54Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 36,
+  "author": "DEF29",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "WhitleyStriber",
+      "author_association": "NONE",
+      "body": "+1. Few bug reports are opening now that see the same issue. I've also experienced this as well.",
+      "created_at": "2026-04-30T16:12:37Z"
+    },
+    {
+      "author": "alessandroavenali",
+      "author_association": "NONE",
+      "body": "Looks like many people are reporting this kind of issue today. The shrinking is simply too much and makes the Max plan unusable. +1\n",
+      "created_at": "2026-04-30T16:12:49Z"
+    },
+    {
+      "author": "AizenvoltPrime",
+      "author_association": "NONE",
+      "body": "I leave this here, this happened yesterday 29/04/2026 :\n\n<img width=\"1368\" height=\"754\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/aaa03efe-b162-481a-b079-504570cbffe7\" />\n\nx20 plan the 5 hour limit reached in 20 minutes with one session running that had 5 subagents running in parallel. This has never happened before. It was outside of peak hours.",
+      "created_at": "2026-04-30T16:13:21Z"
+    }
+  ]
+}

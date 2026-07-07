@@ -1,0 +1,35 @@
+{
+  "number": 65982,
+  "title": "[FEATURE] A \"fact-check gate\" at response-commit time: verify a verification action ran before the model asserts facts",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nLLM output is, structurally, a stringification of sampled tokens. There is no built-in guarantee that an assertion in the assistant's text (e.g. \"X is not installed\", \"the test passed\", \"it works\") is backed by an actual verification action (a tool call such as a shell command, a file Read, or an existence check). In practice the model frequently asserts facts from memory/recollection, and the user only discovers the mistake by challenging it afterward.\n\nFor users who build deterministic, auditable AI operations, this \"assert from memory\" failure mode is the single biggest reliability risk. The model cannot reliably observe its own lapses, so self-checking does not solve it — a machine-enforced check is needed.\n\n### Proposed Solution\n\nAdd a \"fact-check gate\" at the response-commit moment.\n\nKey structural findings from real operation:\n1. The assistant's utterance is a stringification of variables (tokens); its factual backing is not structurally guaranteed. A guard must therefore check, not the content phrasing, but whether a verification action actually happened.\n2. Generation and display are separate (effectively asynchronous) stages. Hook output injected at display time (e.g. via MessageDisplay displayContent) is shown on screen but does NOT appear in the transcript. This is observable: a footer injected by a MessageDisplay hook shows on screen every turn yet leaves zero trace in the transcript's assistant content.\n3. The moment a response is \"decided\" is well-defined: when the response is assigned to the display variable (e.g. the delta field in a MessageDisplay hook). That is the natural, deterministic point at which a hook can inspect \"did a verification action occur just before this?\" and act.\n4. We confirmed in real operation that a MessageDisplay hook can prepend a note to the assistant's response at that commit moment (verified on screen). So injection/overwrite at response-commit time already works.\n\nRequest: at the response-commit moment, allow a hook to (a) read whether a verification tool was used in the immediately preceding steps (transcript lookup), and (b) gate the response on it — not merely annotate (\"please verify\"), but block / send back when no verification action preceded a factual assertion, forcing the model to verify and re-report.\n\nConceptually a checkSafetyBehavior(input)-style gate: judge purely on data-structure facts (a flag set when a verification tool ran; or a transcript scan for preceding tool_use), with no reliance on the model's self-report.\n\nToday the pieces are almost there: PreToolUse can block tool calls before execution, Stop can send back with decision: block after the turn, and MessageDisplay can change the displayed text (display-only, not recorded). What's missing is a clean, recorded, response-commit-time gate that (a) is observable in the transcript/audit log and (b) can hard-gate (not just annotate) based on whether a verification action preceded an assertion.\n\n### Alternative Solutions\n\nWe built a workaround using hooks: a MessageDisplay hook that scans the response for assertive phrasing and prepends a \"did you actually verify this?\" note at display time. This works (the note appears on screen), but it only annotates — it cannot force the model to actually verify, and the injected note is not recorded in the transcript, so there is no audit trace of whether the check fired.\n\nOther partial workarounds: PreToolUse blocking (only covers tool calls, not text assertions), and Stop with decision: block (fires after the turn, and the model still has to re-derive what to verify). None of these provide a clean, recorded, response-commit-time gate keyed on \"was a verification action actually performed before this assertion\".\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Cate",
+  "labels": ["enhancement", "area:hooks"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-07T04:36:49Z",
+  "updated_at": "2026-06-25T12:37:20Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "FactrySabot",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "This is a sharp framing, and your three structural findings (utterance ≠ verified, generation/display are separate stages, MessageDisplay injects but isn't recorded) match what's observable. Two things that can get you most of the way *today*, plus an honest line around the part that genuinely doesn't exist yet.\n\n**1. Narrow the gate from \"facts\" to \"tool-checkable state claims\" — that subset is mechanically tractable.** Detecting \"this sentence is an assertion\" from phrasing is brittle (your Me",
+      "created_at": "2026-06-07T04:51:07Z"
+    },
+    {
+      "author": "FactrySabot",
+      "author_association": "NONE",
+      "body": "Thank you — this is incredibly helpful, and it reframes the whole thing more cleanly than I had it.\n\nYou're right on all three points. Scoping the gate to tool-checkable state/environment claims (rather than \"facts\" in general) is exactly the move that makes it tractable — judging \"did a verification tool run this turn?\" instead of parsing the claim's truth. And Stop + decision:block with a reason that carries the specific claim + the exact command to run is clearly the right primitive: it's rec",
+      "created_at": "2026-06-07T05:25:13Z"
+    },
+    {
+      "author": "hyde0395",
+      "author_association": "NONE",
+      "body": "Cosigning this, with one implementation note from having built the action-side of this gate as a Claude Code plugin, [grounded](https://github.com/hyde0395/grounded): PostToolUse records each verification action into a session ledger (e.g., files read, URLs liveness-checked, package existence), and PreToolUse consults that ledger to hard-block ungrounded actions — such as editing a file that was never read, installing a hallucinated package, or citing a dead link. This addresses exactly the fail",
+      "created_at": "2026-06-12T12:42:28Z"
+    }
+  ]
+}

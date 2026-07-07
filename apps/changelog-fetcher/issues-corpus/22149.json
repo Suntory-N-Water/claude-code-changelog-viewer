@@ -1,0 +1,25 @@
+{
+  "number": 22149,
+  "title": "Session resume freezes with 100% CPU due to redundant progress events in session files",
+  "body": "## Describe the bug\n\nClaude Code freezes with 100% CPU when attempting to resume conversations. The UI becomes unresponsive and the process must be killed.\n\n## Root Cause Analysis\n\nInvestigation revealed that session `.jsonl` files grow to hundreds of megabytes due to `progress` events storing the **entire conversation history** in `normalizedMessages` on every event.\n\n**Evidence from a 193MB session file:**\n- 500 lines total\n- 426 `progress` events = 191.6 MB (99.9% of file)\n- Actual conversation (user/assistant/system) = 0.16 MB\n- Each progress event contains full `normalizedMessages` array (2264 messages in longest case)\n- Individual lines up to 1.4 MB each\n\n**The duplication pattern:**\n```\nEarly events:   progress with ~140 messages  → 0.72 MB\nMiddle events:  progress with ~500 messages  → 0.85 MB  \nLate events:    progress with ~2264 messages → 1.44 MB\n```\n\nEvery `progress` event duplicates the entire conversation history up to that point.\n\n## Impact\n\n- Session files grow to 100MB-400MB for long conversations\n- Resume picker must parse all these files → 100% CPU freeze\n- Storage waste: 99.9% of session files is redundant data\n\n## Expected behavior\n\n`progress` events should either:\n1. Not include `normalizedMessages` (it's redundant - the conversation is already stored in user/assistant events)\n2. Store only a delta/reference\n3. Be excluded from session files entirely (they're only needed for live streaming UI)\n\n## Workaround\n\nStrip progress events from session files:\n```python\nimport json\n\ndef clean_session(filepath):\n    with open(filepath) as f:\n        lines = [l for l in f if json.loads(l).get('type') != 'progress']\n    with open(filepath, 'w') as f:\n        f.writelines(lines)\n```\n\n## Environment\n\n- Claude Code version: 2.1.27\n- OS: Linux",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "memory",
+    "perf:memory",
+    "oncall",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-31T11:34:24Z",
+  "updated_at": "2026-03-19T14:31:49Z",
+  "closed_at": "2026-03-11T22:11:46Z",
+  "reactions_total": 2,
+  "comments_count": 9,
+  "author": "asem89",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

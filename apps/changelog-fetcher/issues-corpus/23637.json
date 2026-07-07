@@ -1,0 +1,42 @@
+{
+  "number": 23637,
+  "title": "[BUG] Claude Desktop shows black/blank window on restore (Windows) - React #418 still occurring on v1.1.2156  Body:",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Description\n\nClaude Desktop frequently shows a completely black/blank window when clicking the app \nfrom the taskbar or restoring it after it's been in the background. The only reliable way \nto get the UI to render is to launch the app fresh from the .exe file.\n\nThis has been happening consistently for weeks across multiple versions, and is still \npresent on the latest version (1.1.2156).\n\n## Environment\n\n- **App version:** 1.1.2156 (also occurred on 1.1.1200 / 1.1.351)\n- **OS:** Windows 11 (build 26200)\n- **CPU:** AMD Ryzen 9 9950X3D\n- **RAM:** 128GB\n- **Claude Code version:** 2.1.32\n\n## Steps to Reproduce\n\n1. Open Claude Desktop normally\n2. Use the app for a while, or minimize / switch to another window\n3. Click the Claude icon on the taskbar to restore the window\n4. Window appears completely black — no UI renders\n\nRe-launching from the .exe creates a fresh window that works fine, confirming \nthe issue is with window restoration, not the app failing to start.\n\n## Root Cause (from logs)\n\nThe `unknown-window.log` shows a **React hydration error (#418)** firing on \nnearly every app restore/wake, followed immediately by an **EventEmitter memory leak** \non the AutoUpdater state store. These errors have been occurring daily since at \nleast January 18, 2026:\n\n\n\n\n\n\n### What Should Happen?\n\nWhen clicking the Claude Desktop icon on the taskbar or restoring the window \nfrom the background, the app should render the UI immediately without a \nblack/blank screen. The window should reliably restore to its previous state \nwith the conversation visible, regardless of how long the app has been \nminimized or in the background.   \n\nWhat actually happens The window restores but shows a completely black/blank screen. The app process \nis running but no UI renders. The only workaround is to fully quit and relaunch \nfrom the .exe file. This happens on the majority of restore attempts, \nparticularly after the app has been running for a while.\n\n\n\n### Error Messages/Logs\n\n```shell\n# From unknown-window.log (recurring on every restore/wake):\n\n[error] Uncaught Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n\n[warn] MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 $eipc_message$_..._$_claude.web_$_AutoUpdater_$_updaterState_$store$_update listeners added. Use emitter.setMaxListeners() to increase limit\n\n[error] Refused to connect to 'https://a-api.anthropic.com/v1/m' because it violates the following Content Security Policy directive: \"connect-src 'self' https://api.segment.io https://*.segment.io https://*.segment.com https://a-cdn.anthropic.com https://*.google.com https://*.facebook.com https://*.facebook.net https://*.doubleclick.net\".\n\n[error] Fetch API cannot load https://a-api.anthropic.com/v1/m. Refused to connect because it violates the document's Content Security Policy.\n\n[error] Error sending segment performance metrics TypeError: Failed to fetch\n\n# From main.log (on fresh launch after cache clear, errors returned within minutes):\n\n[error] [REACT_QUERY_CLIENT] QueryClient error: Error: [\"account_profile\"] data is undefined\n[error] ERROR [Statsig] Failed to parse EvaluationResponse\n\n# Timeline showing the error occurs on nearly every startup/restore:\n# 2026-01-19, 01-22, 01-23, 01-24, 01-25 (x2), 01-27, 01-28, 01-29, 01-30,\n# 02-04, 02-05 (x4), 02-06 (x2) — all React #418 + memory leak warnings\n```\n\n### Steps to Reproduce\n\n1. Open Claude Desktop on Windows (v1.1.2156)\n2. Use the app normally for any period of time (even a few minutes is enough)\n3. Switch to another application, or minimize Claude to the taskbar\n4. Clic",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:ide",
+    "perf:memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-06T09:41:12Z",
+  "updated_at": "2026-05-27T22:41:13Z",
+  "closed_at": "2026-05-27T22:41:13Z",
+  "reactions_total": 1,
+  "comments_count": 16,
+  "author": "garethsquance-ux",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jaried",
+      "author_association": "NONE",
+      "body": "Additional info: The black screen issue was **NOT present** in version **2.1.32**, but it **returned** in version **2.1.33**. This confirms it's a regression introduced between these two versions.",
+      "created_at": "2026-02-06T13:44:12Z"
+    },
+    {
+      "author": "pedroreis81",
+      "author_association": "NONE",
+      "body": "Sames issue here",
+      "created_at": "2026-02-10T21:35:43Z"
+    },
+    {
+      "author": "tpabla",
+      "author_association": "NONE",
+      "body": "this also happens on mac, and has been an ongoing issue for me for a while, when restarting or updating the page will be blank until resize.",
+      "created_at": "2026-02-12T23:50:10Z"
+    }
+  ]
+}

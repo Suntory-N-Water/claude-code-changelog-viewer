@@ -1,0 +1,16 @@
+{
+  "number": 34718,
+  "title": "Context compaction clears terminal scrollback history",
+  "body": "## Problem\n\nWhen Claude Code compacts context during a long session, it clears the terminal screen. This destroys the terminal scrollback buffer, making it impossible to scroll back and review earlier output (command results, test output, build logs, etc.).\n\n## Expected Behavior\n\nContext compaction should preserve terminal scrollback history. The compaction is an internal operation — it shouldn't affect the user's ability to review their terminal history.\n\n## Current Behavior\n\nDuring compaction, the terminal is cleared (likely via ANSI clear-screen escape sequences). After compaction completes, scrolling up shows nothing before the compaction point. All prior command output, test results, and conversation history is gone from the terminal buffer.\n\n## Impact\n\nThis is particularly painful during long development sessions where you need to:\n- Reference earlier test output or build errors\n- Compare before/after results across multiple runs\n- Review a sequence of changes that were made earlier in the session\n\n## Suggested Fix\n\nEither:\n1. Don't emit terminal-clearing escape sequences during compaction\n2. Use an approach that preserves scrollback (e.g., just continue output below without clearing)\n3. Add a configuration option to disable screen clearing during compaction\n\n## Environment\n\n- macOS (iTerm2 terminal)\n- Claude Code CLI",
+  "labels": ["bug", "platform:macos", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-15T18:50:51Z",
+  "updated_at": "2026-04-25T14:35:08Z",
+  "closed_at": "2026-04-18T04:16:32Z",
+  "reactions_total": 3,
+  "comments_count": 4,
+  "author": "bigloudjeff",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

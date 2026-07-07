@@ -1,0 +1,35 @@
+{
+  "number": 22973,
+  "title": "[BUG] Claude Code SDK crashes with exit code 1 in GitHub Actions (v2.1.31)",
+  "body": "## Description\n\nClaude Code crashes during SDK initialization when running via GitHub Actions with the `claude-code-action@v1`. The process exits with code 1 before any actual work can be performed, outputting minified JavaScript code in the error message.\n\n## Error Output\n\n```\nSDK execution error: 14 |     depsCount: ${Q},\n15 |     deps: ${$}}`};var Zj={keyword:\"dependencies\",type:\"object\",schemaType:\"object\",error:EB.error,code(X){let[Q,$]=Cj(X);RB(X,Q),IB(X,$)}};function Cj({schema:X}){let Q={},$={};for(let Y in X){if(Y===\"__proto__\")continue;let W=Array.isArray(X[Y])?Q:$;W[Y]=X[Y]}return[Q,$]}function RB(X,Q=X.schema){let{gen:$,data:Y,it:W}=X;if(Object.keys(Q).length===0)return;let J=$.let(\"missing\");for(let G in Q){let H=Q[G];if(H.length===0)continue;let B=(0,W4.propertyInData)($,Y,G,W.opts.ownProperties);if(X.setParams({property:G,depsCount:H.length,deps:H.join(\", \")}),W.allErrors)$.if(B,()=>{for(let z of H)(0,W4.checkReportMissingProp)(X,z)});else $.if(fY._\\`${B} && (${(0,W4.checkMissingProp)(X,H,J)})\\`),(0,W4.reportMissingProp)(X,J),$.else()}}EB.validatePropertyDeps=RB;function IB(X,Q=X.schema){let{gen:$,data:Y,keyword:W,it:J}=X,G=$.name(\"valid\");for(let H in Q){if((0,Sj.alwaysValidSchema)(J,Q[H]))continue;$.if((0,W4.propertyInData)($,Y,H,J.opts.ownProperties),()=>{let B=X.subschema({keyword:W,schemaProp:H},G);X.mergeValidEvalu\n[... more minified code ...]\n\nerror: Claude Code process exited with code 1\n      at $ (/home/runner/work/_actions/anthropics/claude-code-action/v1/base-action/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs:19:7785)\n      at emit (node:events:98:22)\n      at #handleOnExit (node:child_process:520:14)\n```\n\n## Environment\n\n- **Claude Code Version**: 2.1.31\n- **SDK Version**: @anthropic-ai/claude-agent-sdk@0.2.31\n- **Runner**: ubuntu-latest (GitHub Actions)\n- **Model**: claude-sonnet-4-5-20250929\n- **Max Turns**: 30\n- **Duration Before Crash**: ~468ms\n\n## Workflow Configuration\n\n<details>\n<summary>Click to expand workflow YAML</summary>\n\n```yaml\nname: Scheduled - Dependency Audit (Claude)\non:\n  schedule:\n    - cron: '0 17 * * 0'\n  workflow_dispatch:\n\nconcurrency:\n  group: ${{ github.workflow }}-${{ github.ref }}\n  cancel-in-progress: true\n\npermissions:\n  contents: write\n  pull-requests: write\n  id-token: write\n\njobs:\n  dependency-audit:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout repository\n        uses: actions/checkout@v6\n        with:\n          fetch-depth: 0\n\n      - name: Setup Node.js & install deps\n        uses: ./.github/actions/common-node-setup\n        with:\n          github_token: ${{ secrets.BOT_PAT }}\n          skip_documentation_site: 'true'\n\n      - name: Claude Dependency Analysis & Update\n        uses: anthropics/claude-code-action@v1\n        env:\n          GH_TOKEN: ${{ secrets.BOT_PAT }}\n        with:\n          anthropic_api_key: ${{ secrets.MOBILE_DEPENDENCY_AUDIT_ANTHROPIC_API_KEY }}\n          claude_args: |\n            --model claude-sonnet-4-5-20250929\n            --max-turns 30\n          prompt: |\n            # Weekly Dependency Audit - React Native Project\n            [... large prompt for dependency updates ...]\n```\n\n</details>\n\n## Reproduction\n\nThis occurred in a scheduled workflow run:\n- **Run**: https://github.com/AgoraSystems/mobile/actions/runs/21656755102/job/62433011027\n- **Trigger**: workflow_dispatch\n- **Time**: 2026-02-04T03:04:25Z\n\nThe crash happens very early during SDK initialization, before Claude can process any prompts or execute any tools.\n\n## Expected Behavior\n\nClaude Code should initialize successfully and begin processing the provided prompt.\n\n## Actual Behavior\n\nThe process crashes immediately with exit code 1, outputting what appears to be minified JSON schema validator code in the error message.\n\n## Additional Context\n\nThe minified code in the error message suggests the crash is happening in a JSON schema validation library (possibly ajv based on the patterns visible). The crash occurs in the SDK's bundled dependencies before reaching the main Claude Code logic.\n\n## Impact\n\nThis completely blocks the GitHub Actions workflow",
+  "labels": ["bug", "has repro", "platform:linux", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-04T03:10:30Z",
+  "updated_at": "2026-04-01T14:46:56Z",
+  "closed_at": "2026-03-24T10:26:30Z",
+  "reactions_total": 0,
+  "comments_count": 12,
+  "author": "ChrisWiles",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/20752\n2. https://github.com/anthropics/claude-code/issues/11701\n3. https://github.com/anthropics/claude-code/issues/17373\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-04T03:15:10Z"
+    },
+    {
+      "author": "DEM1TASSE",
+      "author_association": "NONE",
+      "body": "same issue here",
+      "created_at": "2026-02-06T09:04:12Z"
+    },
+    {
+      "author": "Andrew-Tierno",
+      "author_association": "NONE",
+      "body": "Also hitting this issue on v2.1.31\n```\n2026-02-09T20:54:40.8668244Z Installing Claude Code v2.1.31...\n2026-02-09T20:54:40.8670003Z Installation attempt 1...\n2026-02-09T20:54:42.2747760Z Setting up Claude Code...\n2026-02-09T20:54:42.7692755Z \u001b[?2026h\n2026-02-09T20:54:42.7693910Z Checking\u001b[1Cinstallation\u001b[1Cstatus...\n2026-02-09T20:54:42.8728499Z \u001b[?2026l\u001b[?2026h\n2026-02-09T20:54:42.8729474Z \u001b[1AInstalling Cl\u001b[1Cude C\u001b[1Cde n\u001b[2Cive build\u001b[1C2.1.31...\n2026-02-09T20:54:45.9080144Z \u001b[?2026l\u001b[?2026h\n2",
+      "created_at": "2026-02-09T20:56:27Z"
+    }
+  ]
+}

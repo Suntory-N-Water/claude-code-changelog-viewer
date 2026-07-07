@@ -1,0 +1,35 @@
+{
+  "number": 2156,
+  "title": "[BUG] Claude Code CLI Isn't Detecting Project Scoped MCP Server",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n\n- Claude CLI version: 1.0.24 (Claude Code)\n- Operating System: Ubuntu 22.04 (WSL)\n- Terminal:  Windows Terminal App (WSL)\n\n## Bug Description\nProject scoped MCPs are no longer being detected when starting Claude in my project folder. I have had this working previously in other projects. I have tried creating the .mcp.json file myself in the project's root folder and I've also used the 'claude mcp add -s project -- xxx' command which successfully creates the .mcp.json file and returns a success message. When starting Claude, it does not show any MCP servers when using /mcp.\n\n## Steps to Reproduce\n1. Created .mcp.json and used:\n```\n{\n  \"mcpServers\": {\n    \"supabase\": {\n      \"type\": \"stdio\",\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"@supabase/mcp-server-supabase@latest\",\n        \"--access-token=xxx\"\n      ],\n      \"env\": {}\n    }\n  }\n}\n```\n2. Started Claude and checked /mcp. No servers detected. \n4. Deleted .mcp.json\n5. Used command claude mcp add supabase -s project -- npx -y @supabase/mcp-server-supabase@latest --access-token=xxx\n6. Started Claude, used /mcp. No mcp servers detected.\n7. 'Claude mcp list' also shows no mcp servers.\n\n## Actual Behavior\nNo MCP servers detected in Claude Code despite .mcp.json file being correctly created by command in step 5 above.\n\n## Additional Context\n",
+  "labels": ["bug", "platform:linux", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-16T16:11:49Z",
+  "updated_at": "2025-08-14T14:07:34Z",
+  "closed_at": "2025-08-06T11:24:26Z",
+  "reactions_total": 13,
+  "comments_count": 9,
+  "author": "ceponatia",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jcavalieri",
+      "author_association": "NONE",
+      "body": "This is also a bug on macOS 15.5.",
+      "created_at": "2025-06-23T16:01:31Z"
+    },
+    {
+      "author": "dargue3",
+      "author_association": "NONE",
+      "body": "I had this issue but I just realized that in my project's `.claude/settings.local.json` I had my mcp server listed under `disabledMcpjsonServers`. Delete it out of there, relaunch claude, and you'll get another opportunity to okay it. Once I did that it was working",
+      "created_at": "2025-06-25T22:21:04Z"
+    },
+    {
+      "author": "paulozoom",
+      "author_association": "NONE",
+      "body": "I had the same issue and @dargue3’s note fixed it for me. I don’t quite know how my server had found itself to `disabledMcpjsonServers`. Perhaps `claude mcp list` should report which servers are explicitly disabled by the user.",
+      "created_at": "2025-07-07T09:55:18Z"
+    }
+  ]
+}

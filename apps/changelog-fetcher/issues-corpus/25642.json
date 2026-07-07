@@ -1,0 +1,35 @@
+{
+  "number": 25642,
+  "title": "Feature: Expose session ID as $CLAUDE_SESSION_ID environment variable",
+  "body": "## Problem\n\nClaude Code agents have no way to programmatically determine their own session ID. This matters when:\n\n1. **Session mining** — An agent wants to query its own session history (e.g., via a SQLite index of sessions) but doesn't know which session ID to filter by\n2. **Parallel sessions** — Multiple Claude Code sessions can run simultaneously in the same project directory, so heuristics like \"most recently modified JSONL file\" are non-deterministic\n3. **Resumed sessions** — When a session resumes after context loss (e.g., failed compaction), the agent needs to recover its own history\n\n### What we tried (all failed)\n\n| Approach | Why it fails |\n|---|---|\n| `ls -lt ~/.claude/projects/*/*.jsonl \\| head -1` | Race condition with parallel sessions |\n| `lsof -p $PPID \\| grep jsonl` | Claude Code uses open/append/close — no persistent file handle |\n| `$CLAUDE_SESSION_ID` env var | Doesn't exist |\n| Scanning conversation text for a session ID | Could be ANY session ID, not necessarily the current one |\n\n### Current workaround\n\nAsk the user to run `/status` and paste the session ID. Works, but breaks autonomous workflows.\n\n## Proposed Solution\n\nExpose the session ID as an environment variable available to all child processes (Bash tool, MCP servers, etc.):\n\n```bash\necho $CLAUDE_SESSION_ID\n# → 4721a313-bd20-426e-b9c5-24ebcb598a52\n```\n\nThis would be analogous to how `CLAUDECODE=1` and `CLAUDE_CODE_ENTRYPOINT=cli` are already exposed.",
+  "labels": ["duplicate"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-13T22:39:12Z",
+  "updated_at": "2026-06-24T15:05:15Z",
+  "closed_at": "2026-05-05T15:38:38Z",
+  "reactions_total": 15,
+  "comments_count": 7,
+  "author": "praveenaki",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/20132\n2. https://github.com/anthropics/claude-code/issues/17188\n3. https://github.com/anthropics/claude-code/issues/18629\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-13T22:42:13Z"
+    },
+    {
+      "author": "praveenaki",
+      "author_association": "NONE",
+      "body": "Adds new use cases for the need so love to keep it open and merged by the team.",
+      "created_at": "2026-02-14T21:39:40Z"
+    },
+    {
+      "author": "techjoec",
+      "author_association": "NONE",
+      "body": "### Workaround: Get your session ID via a SessionStart hook\n\nClaude Code hooks receive `session_id` in their stdin JSON — you just need to feed it back. This gives you `$CLAUDE_CODE_SESSION_ID` in both the conversation context and the shell environment.\n\n---\n\n#### Setup (2 files)\n\n**Step 1 — Create the hook script**\n\nSave this as `~/.local/bin/claude-session-id-hook` (or anywhere on your PATH):\n\n```bash\n#!/usr/bin/env bash\nINPUT=$(cat)\nSESSION_ID=$(echo \"$INPUT\" | jq -r '.session_id // empty')\n\n",
+      "created_at": "2026-02-15T00:00:34Z"
+    }
+  ]
+}

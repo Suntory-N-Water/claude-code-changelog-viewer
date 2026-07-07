@@ -1,0 +1,35 @@
+{
+  "number": 12164,
+  "title": "[BUG] MCP servers connect successfully but tools are not exposed to assistant",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nMCP servers are connecting successfully and reporting available tools in the debug logs, but these tools never become available to the Claude Code assistant. This issue affects all MCP servers (both user-level and project-level configurations) and persists across complete reinstalls of Claude Code.\n\n### What Should Happen?\n\nWhen an MCP server is configured and connects successfully, its tools should be available to the assistant for use during conversations.\n\n### Error Messages/Logs\n\n```shell\nFrom ~/.claude/debug/latest:\n  2025-11-22T22:42:34.165Z [DEBUG] MCP server \"notion\": Starting connection with timeout of 30000ms\n  2025-11-22T22:42:34.692Z [DEBUG] MCP server \"notion\": Successfully connected to stdio server in\n  529ms\n  2025-11-22T22:42:34.693Z [DEBUG] MCP server \"notion\": Connection established with capabilities:\n  {\"hasTools\":true,\"hasPrompts\":false,\"hasResources\":false,\"serverVersion\":{\"name\":\"Notion\n  API\",\"version\":\"1.0.0\"}}\n```\n\n### Steps to Reproduce\n\n1. Configure any MCP server (tested with Notion MCP server):\n  claude mcp add --transport stdio notion --env NOTION_API_KEY=<key> -- /opt/homebrew/bin/npx -y\n  @notionhq/notion-mcp-server\n2. Verify connection: claude mcp list shows \"✓ Connected\"\n3. Start a Claude Code conversation\n4. Observe that no mcp__notion__* tools are available to the assistant\n5. Check debug logs - they show successful connection\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.50\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-22T23:20:46Z",
+  "updated_at": "2026-06-27T10:41:54Z",
+  "closed_at": null,
+  "reactions_total": 4,
+  "comments_count": 14,
+  "author": "inmanduyser",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/2682\n2. https://github.com/anthropics/claude-code/issues/9133  \n3. https://github.com/anthropics/claude-code/issues/11175\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-22T23:25:44Z"
+    },
+    {
+      "author": "isiahw1",
+      "author_association": "NONE",
+      "body": "## Additional Test Case: Docker MCP Gateway\n\nI can confirm this issue affects **Docker MCP Gateway** as well. After extensive testing, I've verified that the problem is **not specific to individual MCP servers** but affects how Claude Code handles MCP tool exposure generally.\n\n### Environment\n- **Claude Code Version**: 2.0.50 (latest)\n- **OS**: macOS (Darwin 24.5.0)\n- **MCP Server**: Docker MCP Gateway (patched with PR #263)\n- **Servers Tested**: `github-official`, `cloudflare-docs`\n- **Configur",
+      "created_at": "2025-12-02T21:38:20Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-02T10:09:53Z"
+    }
+  ]
+}

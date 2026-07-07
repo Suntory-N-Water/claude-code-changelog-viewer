@@ -1,0 +1,35 @@
+{
+  "number": 26254,
+  "title": "[BUG] User and Organization Skills — Metadata Registered in System Prompt but SKILL.md Files Not Mounted in Container",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n\n## Environment\n\n- **Surface**: Claude.ai (web chat interface, Claude Code and Cowork, Opus 4.6)\n- **Plan**: Team/Enterprise\n- **Date**: February 16, 2026\n- **Platform**: macOS (Mac Studio M4) — though this is a server-side container issue\n\n## Summary\n\nUser-uploaded skills and organization-provisioned skills are correctly registered in the system prompt's `<available_skills>` block (with names, descriptions, and file paths), but the corresponding `SKILL.md` files are **not mounted** in the container's filesystem at runtime. The `/mnt/skills/user/` directory does not exist at all. Three of four organization skills are also missing from disk despite being declared.\n\nThis means Claude is instructed to use skills that literally don't exist on the filesystem, causing silent failures when Claude attempts to `view` the SKILL.md files as instructed.\n\n## Skills Declared vs. Actually Present\n\n### User Skills (declared in `<available_skills>`)\n\n| Skill Name | Declared Path | Filesystem Status |\n|---|---|---|\n| `hello-world` | `/mnt/skills/user/hello-world/SKILL.md` | ❌ **MISSING** — `/mnt/skills/user/` does not exist |\n| `ld-employee-profiles` | `/mnt/skills/user/ld-employee-profiles/SKILL.md` | ❌ **MISSING** — `/mnt/skills/user/` does not exist |\n\n### Organization Skills (declared in `<available_skills>`)\n\n| Skill Name | Declared Path | Filesystem Status |\n|---|---|---|\n| `ld-employee-profiles` | `/mnt/skills/organization/ld-employee-profiles/SKILL.md` | ❌ **MISSING** |\n| `ld-vault-update` | `/mnt/skills/organization/ld-vault-update/SKILL.md` | ❌ **MISSING** |\n| `ld-vault-read` | `/mnt/skills/organization/ld-vault-read/SKILL.md` | ❌ **MISSING** |\n| `people-lookup` | `/mnt/skills/organization/people-lookup/SKILL.md` | ✅ Present |\n\n### Public/Example Skills (Anthropic-provided — for comparison)\n\nAll 6 public skills and 11 example skills are correctly mounted and readable. This is not a general mount failure — it is specific to user and (most) organization skills.\n\n## Steps to Reproduce\n\n1. Upload custom skills via Settings > Capabilities (ZIP files with valid SKILL.md)\n2. Confirm skills appear in the Settings > Capabilities UI as enabled\n3. Start a new conversation in Claude.ai\n4. Ask Claude to use one of the custom skills (e.g., \"hello world\" to trigger the hello-world skill)\n5. Claude's system prompt contains the skill metadata in `<available_skills>` and instructs Claude to `view` the SKILL.md file\n6. Claude attempts to read the file — **file not found**\n\n## Diagnostic Evidence\n\n```\n$ ls -la /mnt/skills/\ntotal 12\ndrwxr-xr-x 5 root root   4096 Feb 17 07:26 .\ndrwxr-xr-x 1  999 ubuntu 4096 Feb 17 07:26 ..\ndr-xr-xr-x 1  999 root      0 Jan  1  2000 examples\ndrwxr-xr-x 3 root root   4096 Feb 17 07:26 organization\ndr-xr-xr-x 1  999 root      0 Jan  1  2000 public\n\n$ ls -la /mnt/skills/user/\nls: cannot access '/mnt/skills/user/': No such file or directory\n\n$ find /mnt/skills/organization/ -type f\n/mnt/skills/organization/people-lookup/SKILL.md\n/mnt/skills/organization/people-lookup/scripts/people_lookup.py\n(only 1 of 4 declared org skills present)\n\n$ find /mnt/skills/public/ -name \"SKILL.md\" -type f\n/mnt/skills/public/docx/SKILL.md\n/mnt/skills/public/frontend-design/SKILL.md\n/mnt/skills/public/pdf/SKILL.md\n/mnt/skills/public/pptx/SKILL.md\n/mnt/skills/public/product-self-knowledge/SKILL.md\n/mnt/skills/public/xlsx/SKILL.md\n(all public skills present — confirms mount mechanism works)\n```\n\n## Expected Behavior\n\nAll skills registered in `<available_skills>` should have their corresponding SKILL.md files (and any bundled scripts/resources) mounted in the container filesystem at the declared paths. If a skill is enabled and its metadata is injected into the system prompt, the fi",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-17T07:40:31Z",
+  "updated_at": "2026-06-20T05:48:44Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 11,
+  "author": "danrparsons",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/26131\n2. https://github.com/anthropics/claude-code/issues/24453\n3. https://github.com/anthropics/claude-code/issues/26172\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-17T07:43:56Z"
+    },
+    {
+      "author": "hdjebar",
+      "author_association": "NONE",
+      "body": "Hi Anthropic Support,\nI'm unable to upload custom skills in Claude.ai Settings. Every upload attempt returns an \"Internal server error\" — including a minimal test file.\nEnvironment:\n- Product: Claude.ai (web interface)\n- Feature: Custom skill upload (Settings)\n- Date: February 17, 2026\n- Location: Luxembourg\nSteps to reproduce:\n1. Go to Claude.ai → Settings → Skills\n2. Upload any .zip file containing a valid SKILL.md\n3. Click upload/save\n4. Result: \"Internal server error\"\nTroubleshooting already",
+      "created_at": "2026-02-17T10:11:02Z"
+    },
+    {
+      "author": "jespey",
+      "author_association": "NONE",
+      "body": "We are seeing very similar behavior that appears to have been introduced a day or two earlier and has gotten worse with upgrades.  In our case we first saw problems deleting skills (but could still add net new sills, even if all we did was change the name of the skill).   Now we can't delete or add new skills.  They show up in the UI still but can't be accessed and are not on the local file system.",
+      "created_at": "2026-02-18T14:39:01Z"
+    }
+  ]
+}

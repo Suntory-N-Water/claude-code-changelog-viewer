@@ -1,0 +1,35 @@
+{
+  "number": 53459,
+  "title": "Opus 4.7 quality regression. Same pattern as 4.6 launch week degradation.",
+  "body": "## Summary\n\nOpus 4.7 launched at a noticeably higher reasoning quality than what is being served now, roughly one week in. This mirrors the exact pattern reported widely for 4.6: strong launch, silent degradation within days, model now performing closer to Sonnet 4 than to the launch week Opus.\n\n## Observed behavior\n\nLaunch week (first 7 days): sharp architectural reasoning, held context across long sessions, pushed back on bad proposals with substantive alternatives, caught second order implications without prompting.\n\nNow: reverts to surface level pattern matching, throws options instead of thinking, walks back proposals on the next turn without integrating the user's objection, fails to identify the actual constraint when the user explicitly names it. Behavior is closer to Sonnet 4 than to the model that shipped on day one.\n\n## Why this matters\n\n1. Users pay Opus pricing for Opus capability. Silent quality reductions break the pricing contract.\n2. The 4.6 cycle established a pattern: launch week benchmarks reflect a configuration that is not sustained in production. If this is now happening to 4.7 on the same timeline, it is a systemic issue, not a one off.\n3. \"Model card says claude opus 4.7\" and \"the served weights and config behave like 4.7\" are not the same claim. Users can only observe the second.\n\n## Asks\n\n1. Confirm whether any serving side changes (quantization, routing, speculative decoding aggressiveness, system prompt changes, context handling defaults) have been applied to Opus 4.7 since launch.\n2. If yes: publish what changed and when, and provide an opt out or a \"launch config\" tier for paying users.\n3. If no: share the eval data showing 4.7 quality is stable post launch, since the user reported signal strongly disagrees.\n4. Going forward: commit to a public changelog for any post launch serving changes that affect model behavior.\n\n## Repro\n\nHard to repro on a single prompt. Degradation shows up across multi turn architectural conversations. Specifically: ability to integrate a user's objection across turns rather than restating variants of the rejected proposal. Launch week 4.7 did this reliably. Current 4.7 does not.\n\n## Concrete evidence\n\n**Failure mode 1: `CLAUDE.md` rules are silently dropped.**\n\nRules loaded into every turn via `CLAUDE.md` (project or user level, always in the system prompt) are violated across multi paragraph outputs, including outputs explicitly about instruction following. Launch week 4.7 honored `CLAUDE.md` rules at near zero violation rate. Current 4.7 violates them routinely, and continues violating them across multiple correction rounds in the same conversation, including immediately after the violation is named.\n\n**Failure mode 2: most recent user instruction is not prioritized.**\n\nA direct prohibition issued in turn N is violated in turn N+1, in the same logical action the prohibition was meant to govern. This is not a long context recall problem. The instruction is in the immediately prior user message, the highest recency and highest specificity slot in the context window. Launch week 4.7 weighted recent explicit user constraints above pattern continuation from earlier in the conversation. Current 4.7 does not.\n\n**Failure mode 3: correction does not propagate.**\n\nWhen failure mode 1 or 2 is corrected, the model commits the same class of violation again, through a different surface form, in the very next turn. The same simple task fails across three or more consecutive turns of escalating, increasingly explicit user correction. The user is forced to issue the same instruction repeatedly. Each repetition lands in the highest priority slot in the context window. Each repetition is violated.\n\n**What this rules out.** It is not a context window issue (the instruction is in the most recent user message). It is not a single token sampling fluke (the failure repeats across many tokens, many turns, many correction cycles). It is not the user being unclear (the rules are one sentence each). The model is failing the simplest possible test of instruction following: \"do not do X.\" Re",
+  "labels": ["bug", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-26T07:16:17Z",
+  "updated_at": "2026-05-13T13:46:06Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 8,
+  "author": "ilanoh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/51434\n2. https://github.com/anthropics/claude-code/issues/50623\n3. https://github.com/anthropics/claude-code/issues/52368\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-26T07:22:59Z"
+    },
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "What makes this report serious is that it is describing **behavioral drift over time under the same model label**, not just subjective preference.\n\nThe strongest signal here is the combination of two regressions moving together:\n- weaker multi-turn architectural reasoning\n- weaker adherence to recent explicit user constraints\n\nThose often show up together when the served configuration changes in a way that reduces effective inference quality, even if the public model name stays the same. From a ",
+      "created_at": "2026-04-26T07:40:45Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "The \"behavioral drift over time under the same model label\" framing in @0xbrainkid's comment is the key observation, and the timeline you describe (sharp launch week → degradation by day ~7) lines up with the public 2026-04-23 Anthropic postmortem.\n- **2026-04-23 Anthropic postmortem** (covered in the 2026-04-24 Fortune piece \"Anthropic admits monthlong Claude Code decline driven by 3 engineering missteps\") publicly acknowledges three serving-side missteps that affected output behavior. Two of t",
+      "created_at": "2026-04-26T17:30:15Z"
+    }
+  ]
+}

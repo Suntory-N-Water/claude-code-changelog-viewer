@@ -1,0 +1,41 @@
+{
+  "number": 18567,
+  "title": "[BUG] Bun v1.3.5 crashes on Windows with \"integer does not fit in destination type\" - prevents installation and startup",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code crashes immediately on startup and during installation on Windows 11 with a Bun runtime panic: `integer does not fit in destination type`. This affects both running Claude Code and attempting fresh installs via the PowerShell installer script.\n\nThe crash occurs in the bundled Bun v1.3.5 runtime. This specific bug was fixed in [Bun v1.3.6](https://bun.com/blog/bun-v1.3.6) (released January 13, 2026), which includes a fix for this exact error when reading files on Windows systems with limited memory or on network drives.\n\n### What Should Happen?\n\nClaude Code should start normally and installation should complete without Bun crashes.\n\n### Error Messages/Logs\n\n```\nBun v1.3.5 (1e86cebd) Windows x64 (baseline)\nWindows v.win11_dt\nCPU: sse42 avx avx2\nArgs: \"C:\\Users\\foo\\.local\\bin\\claude.exe\"\nFeatures: Bun.stderr(2) Bun.stdin(2) Bun.stdout(2) fetch(33) jsc spawn(20) standalone_executable process_dlopen\nBuiltins: \"bun:main\" \"node:assert\" \"node:async_hooks\" \"node:buffer\" \"node:child_process\" \"node:constants\" \"node:crypto\" \"node:domain\" \"node:events\" \"node:fs\" \"node:fs/promises\" \"node:http\" \"node:https\" \"node:module\" \"node:net\" \"node:os\" \"node:path\" \"node:path/posix\" \"node:path/win32\" \"node:perf_hooks\" \"node:process\" \"node:querystring\" \"node:stream\" \"node:timers/promises\" \"node:tls\" \"node:tty\" \"node:url\" \"node:util\" \"node:zlib\" \"node:worker_threads\" \"undici\" \"ws\" \"node-fetch\" \"node:inspector\" \"node:http2\" \"node:diagnostics_channel\"\nElapsed: 5272ms | User: 2390ms | Sys: 3390ms\nRSS: 3.21GB | Peak: 3.22GB | Commit: 3.30GB | Faults: 797032 | Machine: 16.60GB\n\npanic(thread 1552): integer does not fit in destination type\noh no: Bun has crashed. This indicates a bug in Bun, not your code.\n```\n\n### Steps to Reproduce\n\n1. Run Claude Code on Windows 11: `claude` or attempt fresh install `irm https://claude.ai/install.ps1 | iex`\n2. Observe crash with Bun\n\n### Claude Model\n\nOther\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.9\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n- Bundled Bun Version: 1.3.5 (needs to be upgraded from Claude Code itself)\n- Machine RAM: 16.60GB",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:packaging",
+    "oncall"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-16T12:36:16Z",
+  "updated_at": "2026-05-09T16:40:35Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 41,
+  "author": "Dyl-M",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Workaround: temporarily switch back to the npm installation of Claude Code\n\nWe're planning to update the included version of bun to include this fix ASAP, but need to address a few blockers first.",
+      "created_at": "2026-01-22T22:04:09Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/16691\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-16T12:40:37Z"
+    },
+    {
+      "author": "Dyl-M",
+      "author_association": "NONE",
+      "body": "Not the same issue at all.",
+      "created_at": "2026-01-16T12:42:44Z"
+    }
+  ]
+}

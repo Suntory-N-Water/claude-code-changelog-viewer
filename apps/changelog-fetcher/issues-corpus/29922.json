@@ -1,0 +1,35 @@
+{
+  "number": 29922,
+  "title": "[BUG] Session name lost after context compaction",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen a session is renamed via `/rename`, the name is lost after context compaction occurs. The session name gets overridden with the original value instead of using the renamed value.\n\n\n### What Should Happen?\n\nThe custom session name should persist after compaction.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n* Start a Claude Code session and send a message so that the session gets an automatic name.\n* Note the name it was given.\n* Rename it with `/rename foo`\n* Continue working until the conversation hits the context limit and compaction triggers.\n* Observe the session name in the session picker has changed to the original name.\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.63 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nThis is a duplicate of issue #26121. That issue was closed and locked as it was supposedly fixed in version [2.1.47](https://github.com/anthropics/claude-code/commit/b757fc9ecdf77e450442e3ca9f9093a9da35952b). This is false as I am running 2.1.63 and the issue is still present.",
+  "labels": ["bug", "has repro", "platform:linux", "regression"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-01T22:08:53Z",
+  "updated_at": "2026-05-25T04:22:34Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 11,
+  "author": "phemmer",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "gjain-7",
+      "author_association": "NONE",
+      "body": "+1, facing the same issue\n\nrelated:\n  - #27195 — /rename sessions can't be found via claude -r <session-name> — session lookup is unreliable\n  - #30377 — /rename loses conversation history before the rename point\n  - #26134 — rename does not persist, --resume <name> never finds it (marked duplicate)",
+      "created_at": "2026-03-06T10:51:55Z"
+    },
+    {
+      "author": "AbdoKnbGit",
+      "author_association": "NONE",
+      "body": "cc-memory addresses this with a different approach that's already working.\n\nInstead of improving compaction, it moves context outside the window entirely:\n\n- Full conversation turns stored in SQLite + ChromaDB (summarized, \n  just moved out)\n- Semantic retrieval injects only relevant prior context back when needed\n- Tiered injection: pinned decisions always included, past context \n  scored by relevance\n- Cerebras compresses history for free before hitting Anthropic — \n  no token cost from your s",
+      "created_at": "2026-03-18T13:01:08Z"
+    },
+    {
+      "author": "phemmer",
+      "author_association": "NONE",
+      "body": "Please go away with the sales pitch spam.",
+      "created_at": "2026-03-18T13:06:46Z"
+    }
+  ]
+}

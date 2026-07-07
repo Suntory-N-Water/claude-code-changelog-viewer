@@ -1,0 +1,35 @@
+{
+  "number": 12361,
+  "title": "[BUG] VS Code extension ignores third-party provider environment variables during authentication check",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe AuthManager checks for authentication before reading environment variables from .claude/settings.json or claudeCode.environmentVariables. When using Microsoft Foundry with CLAUDE_CODE_USE_FOUNDRY=1 and related variables, the extension still prompts for login. The terminal version works correctly with the same configuration.\n\n### What Should Happen?\n\nExtension should check for third-party provider environment variables before requiring authentication\n\n### Error Messages/Logs\n\n```shell\nExtension reports \"No authentication found\" and blocks usage\n```\n\n### Steps to Reproduce\n\nCreate setting in the .claude/settings.json\n{\n  \"env\": {\n    \"CLAUDE_CODE_USE_FOUNDRY\": \"1\",\n    \"CLAUDE_CODE_SKIP_AUTH_LOGIN\": \"1\",\n    \"ANTHROPIC_FOUNDRY_RESOURCE\": \"xxxx\",\n    \"ANTHROPIC_FOUNDRY_API_KEY\": \"yyyyy\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\":\"claude-sonnet-4-5\",\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\":\"claude-haiku-4-5\"\n  }\n}\nLaunch the extension\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nextension version 2.0.53\n\n### Platform\n\nOther\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nWSL (Windows Subsystem for Linux)\n\n### Additional Information\n\nThis works if you launch vs code with a script:\n\n#!/bin/bash\nexport CLAUDE_CODE_USE_FOUNDRY=1\nexport CLAUDE_CODE_SKIP_AUTH_LOGIN=1\nexport ANTHROPIC_FOUNDRY_RESOURCE=xxxx\nexport ANTHROPIC_FOUNDRY_API_KEY=yyyy\nexport ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-4-5\nexport ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-haiku-4-5\n\ncode \"$@\"\nEOF",
+  "labels": ["bug", "has repro", "platform:linux", "area:auth", "area:ide"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-25T14:09:15Z",
+  "updated_at": "2026-02-20T14:23:56Z",
+  "closed_at": "2026-02-07T10:10:57Z",
+  "reactions_total": 5,
+  "comments_count": 12,
+  "author": "andy26nash",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/11937\n2. https://github.com/anthropics/claude-code/issues/9136\n3. https://github.com/anthropics/claude-code/issues/11027\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-25T14:15:03Z"
+    },
+    {
+      "author": "sheldonhull",
+      "author_association": "NONE",
+      "body": "Might be related, as I know the #11937 post I shared, indicated I got it working with CLI locally, but not in Azure Pipelines/CI, so following in case there's some related issue that in different tooling or environment is causing it to fail. ",
+      "created_at": "2025-11-25T22:07:53Z"
+    },
+    {
+      "author": "Gui-FernandesBR",
+      "author_association": "NONE",
+      "body": "hello, any updates on this?",
+      "created_at": "2025-11-26T16:19:05Z"
+    }
+  ]
+}

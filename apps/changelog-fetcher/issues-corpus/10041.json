@@ -1,0 +1,35 @@
+{
+  "number": 10041,
+  "title": "[BUG] Claude Code with Bedrock API often hits 4096 max output token limit on moderate complex tasks",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code often hits the Bedrock API's max_token limit and doesn't retry/continue the task, it keeps breaking at \"_API Error: Claude's response exceeded the 4096 output token maximum. To configure this behavior, set the CLAUDE_CODE_MAX_OUTPUT_TOKENS environment variable._\". This is very evident on moderate to large tasks. The situation doesn't get any better even with multiple sub-agents configured breaking down the task into smaller ones with each agent having it's own context.\n\n### What Should Happen?\n\nClaude Code should continue retrying even when it hits the Bedrock API limit without breaking out with the error\n\n### Error Messages/Logs\n\n```shell\n⎿ API Error: Claude's response exceeded the 4096 output token maximum. To configure this behavior, set the CLAUDE_CODE_MAX_OUTPUT_TOKENS environment \n    variable.\n```\n\n### Steps to Reproduce\n\n1. Ask Claude to perform any medium complex task, like - refactor this Python FastAPI codebase while using Bedrock API\n2. Claude will attempt understanding context, then the output tokens start coming through.\n3. Terminal shows the error, although parts of the refactor are completed\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.24 (Claude Code)\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nWarp\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "api:bedrock", "platform:macos", "area:api"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-21T10:46:01Z",
+  "updated_at": "2026-01-29T14:23:29Z",
+  "closed_at": "2026-01-17T10:10:59Z",
+  "reactions_total": 10,
+  "comments_count": 13,
+  "author": "amruthvvkp",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7927\n2. https://github.com/anthropics/claude-code/issues/7869\n3. https://github.com/anthropics/claude-code/issues/9365\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-21T10:53:43Z"
+    },
+    {
+      "author": "rahanar",
+      "author_association": "NONE",
+      "body": "I am hitting the same issue too. I am on 2.0.24 and there is no easy way to bypass that.",
+      "created_at": "2025-10-21T22:35:27Z"
+    },
+    {
+      "author": "david-murray-ugle",
+      "author_association": "NONE",
+      "body": "I have the same issue regularly.  I will tell Claude to break the task down into smaller pieces of work and achieve it incrementally by maintaining a checklist of subtasks.\n\nThat works, but even if I add this to my Claude.md it always results a system halt with no recovery based on my instruction the next time CLAUDE_CODE_MAX_OUTPUT_TOKENS is hit.",
+      "created_at": "2025-10-24T11:57:08Z"
+    }
+  ]
+}

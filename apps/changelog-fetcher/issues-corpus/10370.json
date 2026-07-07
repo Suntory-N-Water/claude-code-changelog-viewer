@@ -1,0 +1,35 @@
+{
+  "number": 10370,
+  "title": "Chat Branching: Spawn side-chain conversations with selective merging back to main",
+  "body": "### Problem\n\nClaude Code conversations can become bloated and lose focus when handling tangential tasks or exploratory work within a single chat. Current limitations:\n\n- **Context pollution** - Side tasks add irrelevant tokens to the main conversation\n- **Loss of focus** - Main chat becomes cluttered with debugging, research, or experimental work\n- **No isolation** - Can't explore alternatives without affecting main chat history\n- **Expensive compaction** - Compacting loses useful side-task details that might be needed later\n- **No selective merging** - All-or-nothing approach: keep everything or compact everything\n\n**Example scenarios where this hurts:**\n- Main chat: \"Design user authentication system\"\n  - Side task: \"Debug why bcrypt isn't working\" (20 messages of troubleshooting)\n  - Main chat now has 20 irrelevant debugging messages cluttering context\n- Main chat: \"Implement API endpoints\"\n  - Side task: \"Research which rate-limiting library to use\" (exploratory)\n  - Don't want exploration bloating main chat, just want the conclusion\n\n### Proposed Solution\n\nAdd \"chat branching\" - spawn side-chain conversations that inherit context from main but execute independently, then selectively merge results back.\n\n**Key capabilities:**\n\n1. **Spawn side-chain** - Create new chat that inherits parent's context\n2. **Independent execution** - Side-chain doesn't affect parent's context/history\n3. **Selective merge** - Choose what to bring back to main chat\n4. **Context linking** - Side-chains reference their parent for full traceability\n\n**Proposed commands:**\n\n```bash\n# In main chat, spawn a side-chain\n/branch \"Debug bcrypt issue\"\n# Opens new chat with inherited context, focused on specific task\n\n# In side-chain, when done - merge summary back to main\n/merge-to-main\n# Adds compact summary to parent chat\n\n# Or custom merge with specific instructions\n/merge \"Tell main chat: bcrypt works with these settings: [details]\"\n\n# Or just close without merging\n/close-branch\n# Keeps side-chain for reference but doesn't affect main\n```\n\n**Workflow example:**\n\n```\nMain Chat: \"Design authentication system\"\n├─ You discuss high-level architecture\n├─ Agent suggests bcrypt for passwords\n├─ [/branch \"Debug bcrypt configuration\"]\n│  │\n│  └─ Side Chain: \"Debug bcrypt configuration\"\n│     ├─ 20 messages of debugging\n│     ├─ Figure out the issue\n│     └─ [/merge \"bcrypt configured: rounds=12, need to install @types/bcrypt\"]\n│\n├─ Main chat receives: \"Completed side task: bcrypt configured successfully. \n│  Key findings: rounds=12, need @types/bcrypt package.\"\n├─ Continue with high-level design (no debugging clutter)\n└─ Done\n```\n\n**Visual representation in UI:**\n```\nMain Chat\n├─ Message 1: \"Design auth system\"\n├─ Message 2: \"Let's use bcrypt...\"\n├─ 🔀 Branch: \"Debug bcrypt\" [click to view]\n│   └─ Merged back: \"bcrypt configured: rounds=12...\"\n├─ Message 3: \"Great! Now let's design the API...\"\n└─ 🔀 Branch: \"Research rate-limiting libraries\" [click to view]\n    └─ No merge (exploratory only)\n```\n\n### Use Cases\n\n**1. Debugging without clutter:**\n```\nMain: Implementing feature X\n├─ Branch: \"Debug weird TypeScript error\" \n│  └─ Merge: \"Fixed by updating tsconfig.json\"\n└─ Continue implementing feature (clean context)\n```\n\n**2. Research without bloat:**\n```\nMain: Design data pipeline\n├─ Branch: \"Compare Apache Kafka vs RabbitMQ\"\n│  └─ Merge: \"Recommendation: Use Kafka because [3 key reasons]\"\n└─ Continue with Kafka implementation\n```\n\n**3. Parallel task exploration:**\n```\nMain: Refactor authentication\n├─ Branch A: \"Explore JWT approach\"\n├─ Branch B: \"Explore session-based approach\"\n└─ Compare branches, merge winner back to main\n```\n\n**4. Preserve detailed work without bloating main:**\n```\nMain: Build API\n├─ Branch: \"Configure ESLint rules\" (50 messages fine-tuning)\n│  └─ Merge: \"ESLint configured, see branch for details\"\n└─ Main chat stays focused, but detailed work preserved\n```\n\n**5. Team collaboration (combined with #",
+  "labels": ["enhancement", "area:tui", "area:core", "memory"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-26T11:13:49Z",
+  "updated_at": "2026-02-13T14:26:01Z",
+  "closed_at": "2026-02-04T10:21:11Z",
+  "reactions_total": 19,
+  "comments_count": 10,
+  "author": "AlexZan",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4443\n2. https://github.com/anthropics/claude-code/issues/8527\n3. https://github.com/anthropics/claude-code/issues/1417\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-26T11:17:35Z"
+    },
+    {
+      "author": "AlexZan",
+      "author_association": "NONE",
+      "body": "This is related to #4443 but proposes a different feature:\n- #4443: Save/resume named checkpoints for context-switching\n- This issue: Parent-child branches with selective merging to keep main chat focused\n\nKey difference: #4443 switches between conversations; this keeps one main conversation clean by spawning temporary side-chains that merge results back.\n\nHappy to consolidate if maintainers prefer.",
+      "created_at": "2025-10-26T11:42:03Z"
+    },
+    {
+      "author": "asheshgoplani",
+      "author_association": "NONE",
+      "body": "## +1 for Session Branching\n\nI'd love this feature! My specific use case:\n\n**Scenario**: I'm in the middle of a productive session (e.g., at message 50), and I want to:\n- Try an alternative approach without losing my current progress\n- Experiment with a different solution path\n- Keep the original session running and clean\n- Be able to delete the experimental branch if it doesn't work out\n\n**Desired workflow**:\n```\nCurrent Session (at message 50)\n    ├─ Continue here → messages 51, 52, 53... (mai",
+      "created_at": "2025-11-14T16:45:48Z"
+    }
+  ]
+}

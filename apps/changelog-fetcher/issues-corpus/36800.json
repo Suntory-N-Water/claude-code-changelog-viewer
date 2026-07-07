@@ -1,0 +1,35 @@
+{
+  "number": 36800,
+  "title": "[BUG] Claude Code spawns duplicate channel plugin instances mid-session, causing 409 Conflict and tool loss",
+  "body": "### TL;DR\n\nClaude Code spawns a second Telegram channel plugin process ~3 minutes into a healthy session, with no crash or error preceding it. This triggers a cascade:\n\n1. **Harness bug (this repo)**: Duplicate spawn with no apparent trigger. Tools not re-registered after the lifecycle churn. No debug logging.\n2. **Plugin-side damage (claude-plugins-official)**: 409 Conflict, zombie process, silent notification failures. PRs [#812](https://github.com/anthropics/claude-plugins-official/pull/812), [#813](https://github.com/anthropics/claude-plugins-official/pull/813), [#814](https://github.com/anthropics/claude-plugins-official/pull/814) mitigate these but don't address the harness trigger.\n\n**What needs investigation here**: Why does the harness spawn a duplicate plugin process when the existing one is healthy? And why aren't tools re-registered after the process lifecycle churn?\n\n---\n\n### Instrumented Diagnostic Log\n\nWe added lifecycle logging to the plugin to capture the exact failure sequence. The plugin was healthy for ~3 minutes (10 successful tool calls, 8 successful notifications, zero errors) before the harness spawned a second instance:\n\n```\n[19:51:24.204] PID=62665 starting up\n[19:51:24.206] PID=62665 MCP connected\n[19:51:47.405] PID=62665 delivering notification from myusername in chat XXXXXXXXXX\n[19:51:47.405] PID=62665 notification delivered OK for chat XXXXXXXXXX\n[19:51:47.636] PID=62665 tool call: reply\n[19:51:59.543] PID=62665 tool call: reply\n[19:52:32.195] PID=62665 delivering notification from myusername in chat XXXXXXXXXX\n[19:52:32.196] PID=62665 notification delivered OK for chat XXXXXXXXXX\n[19:52:36.444] PID=62665 tool call: reply\n[19:52:42.173] PID=62665 delivering notification from myusername in chat XXXXXXXXXX\n[19:52:42.173] PID=62665 notification delivered OK for chat XXXXXXXXXX\n[19:52:53.014] PID=62665 delivering notification from myusername in chat XXXXXXXXXX\n[19:52:53.014] PID=62665 notification delivered OK for chat XXXXXXXXXX\n[19:52:53.293] PID=62665 tool call: reply\n[19:52:57.878] PID=62665 tool call: reply\n[19:53:03.031] PID=62665 delivering notification from myusername in chat XXXXXXXXXX\n[19:53:03.031] PID=62665 notification delivered OK for chat XXXXXXXXXX\n[19:53:08.931] PID=62665 tool call: reply\n[19:53:19.631] PID=62665 tool call: reply\n[19:53:37.686] PID=62665 delivering notification from myusername in chat XXXXXXXXXX\n[19:53:37.686] PID=62665 notification delivered OK for chat XXXXXXXXXX\n[19:53:42.061] PID=62665 tool call: reply\n[19:53:47.657] PID=62665 delivering notification from myusername in chat XXXXXXXXXX\n[19:53:47.657] PID=62665 notification delivered OK for chat XXXXXXXXXX\n[19:54:00.217] PID=62665 delivering notification from myusername in chat XXXXXXXXXX\n[19:54:00.218] PID=62665 notification delivered OK for chat XXXXXXXXXX\n[19:54:09.444] PID=62665 tool call: reply\n[19:54:21.395] PID=69445 starting up                    <-- SECOND INSTANCE SPAWNED\n[19:54:21.397] PID=69445 MCP connected                  <-- new instance connects MCP\n[19:54:21.959] PID=62665 UNHANDLED REJECTION: GrammyError: Call to 'getUpdates'\n               failed! (409: Conflict: terminated by other getUpdates request;\n               make sure that only one bot instance is running)\n[19:54:24.436] PID=69445 delivering notification from myusername in chat XXXXXXXXXX\n[19:54:24.436] PID=69445 notification delivered OK for chat XXXXXXXXXX\n[19:54:34.906] PID=62665 tool call: reply                <-- old instance still gets tool calls\n[19:54:36.947] PID=69445 stdin END event                 <-- harness kills new instance\n[19:54:36.948] PID=69445 stdin CLOSE event\n[19:54:37.084] PID=69445 beforeExit code=0\n[19:54:37.084] PID=69445 exit code=0                     <-- new instance exits cleanly\n```\n\nInstrumentation added to `server.ts`: `process.stdin` end/close/error handlers, `process.stdout` error handler, `process.on('uncaughtException'/'unhandledRejection')`, `transport.onerror` on `StdioServerTransport`, and logging on every tool call and notification delivery with success/failure.\n\n### The Cascade\n\n1. Claude C",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-20T20:11:38Z",
+  "updated_at": "2026-06-14T22:31:41Z",
+  "closed_at": "2026-06-14T22:31:41Z",
+  "reactions_total": 6,
+  "comments_count": 15,
+  "author": "greghughespdx",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/36786\n2. https://github.com/anthropics/claude-code/issues/36652\n3. https://github.com/anthropics/claude-code/issues/36477\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-20T20:15:47Z"
+    },
+    {
+      "author": "greghughespdx",
+      "author_association": "NONE",
+      "body": "Not a duplicate of the suggested issues. Here's why:\n\n- **#36786**: Describes process reparenting to systemd on Linux, triggered by long Bash commands or `mcp list`. Our issue is macOS, and the trigger is the harness spontaneously spawning a duplicate instance with no preceding event or error.\n- **#36652**: Plugin crashes on first inbound notification (server exits on stdout write). Different failure mode entirely.\n- **#36477**: Messages stop processing after first response (stuck at prompt). Di",
+      "created_at": "2026-03-20T20:19:32Z"
+    },
+    {
+      "author": "Alienfader",
+      "author_association": "NONE",
+      "body": "Same stdin-close behavior here, but from a different trigger: `/mcp` reconnect (not duplicate spawning).\n\nWe're running a non-channel MCP server (Continuity — 46 tools, stdio transport, configured via `.mcp.json`). The server works perfectly on fresh session start, but every `/mcp` mid-session reconnect kills it immediately:\n\n```log\n--- MCP server started PID=21482 PPID=21476 at 2026-03-21T16:59:46.429Z ---\n[MCP] stdin closed — starting 5s grace period\n[MCP] Grace period expired — shutting down\n",
+      "created_at": "2026-03-21T17:49:53Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 13914,
+  "title": "[Bug] VSCode Extension: User-level rules (~/.claude/rules/) not loading into context",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe VSCode extension does not load user-level rules from `~/.claude/rules/` into the context window, despite this feature working correctly in the CLI version.\n\n**Investigation findings:**\n- Rules placed in `~/.claude/rules/` (including symlinked directories and top-level `.md` files) are NOT being loaded into the agent context when using the VSCode extension\n- The same rules ARE loaded correctly when using Claude Code CLI in the terminal\n- Stop hook output is also not visible in the VSCode extension (works in CLI)\n\n**Key discovery:**\nThis was confirmed by testing with a simple `~/.claude/rules/test-rule.md` file:\n- CLI: ✅ Rule loaded and visible in context\n- VSCode Extension: ❌ Rule NOT loaded\n\n**Documentation reference:**\nAccording to the official docs at https://code.claude.com/docs/en/memory:\n- `~/.claude/rules/` (user-level) is \"Fully supported\"\n- Symlinks are supported for sharing rules across projects\n- Subdirectories should be discovered recursively\n- No special configuration needed—they work automatically\n\nThis discrepancy between documented behavior and actual VSCode extension behavior is blocking users who rely on user-level rules for consistent behavior across projects.\n\n### What Should Happen?\n\nThe VSCode extension should load user-level rules from `~/.claude/rules/` into the agent context, matching the behavior of the CLI version.\n\n**Expected behavior (per documentation):**\n1. All `.md` files in `~/.claude/rules/` should be discovered recursively\n2. Symlinks should be followed for shared rules across projects\n3. User-level rules should load before project rules (with project rules having higher priority)\n4. No special configuration should be needed—rules should work automatically\n\n**Comparison table:**\n\n| Feature | CLI | VSCode Extension |\n|---------|-----|-----------------|\n| `~/.claude/rules/` loading | ✅ Works | ❌ Broken |\n| Plugin bundled rules | ✅ Works | ❌ Broken |\n| Stop hook output | ✅ Visible | ❌ Hidden |\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Create a test rule file at `~/.claude/rules/test-rule.md` with any content:\n   ```markdown\n   # Test Rule\n   This is a test rule that should appear in the context.\n   ```\n\n2. Open VSCode with the Claude Code extension installed\n\n3. Start a new Claude Code session in VSCode\n\n4. Ask Claude to describe what rules are currently loaded in context (or use introspection if available)\n\n5. Observe that the test rule is NOT present in the context\n\n6. Now, open a terminal and run `claude` CLI in the same directory\n\n7. Ask the same question about loaded rules\n\n8. Observe that the test rule IS present in the CLI context\n\n**Alternative reproduction with symlinked directories:**\n1. Create a rules directory: `mkdir -p ~/my-rules`\n2. Add rule files to it\n3. Symlink to Claude rules: `ln -sf ~/my-rules ~/.claude/rules/my-rules`\n4. Test in VSCode extension vs CLI - CLI will see the rules, VSCode won't\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nLatest (as of 2025-12-13)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n## Environment Details\n\n- **Testing directory**: `/home/yuye/workspace/cc-projects/claude-composition`\n- **Symlink structure tested**:\n  ```\n  ~/.claude/rules/\n  └── alaska/  ← Symlink to plugin rules (subdirectory)\n      ├── directory-guidelines.md\n      └── commit-workflow.md\n  ```\n\n## Root Cause Hypothesis\n\nThe VSCode extension may not be:\n1. Following symlinks correctly\n2. Scanning subdirectories recursively\n3. Loading user-level rules at all (only project-",
+  "labels": ["bug", "has repro", "platform:linux", "area:core", "area:ide"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-13T20:53:22Z",
+  "updated_at": "2026-04-16T16:38:46Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 6,
+  "author": "IndieDevYulin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "dbruning",
+      "author_association": "NONE",
+      "body": "Issue affects Windows too (#13983 closed as dup)",
+      "created_at": "2025-12-14T22:45:35Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-15T10:10:34Z"
+    },
+    {
+      "author": "kndantes",
+      "author_association": "NONE",
+      "body": "I'm experiencing the same issue with **project-level rules** (`.claude/rules/`) in the VSCode extension.\n\n**My setup:**\n- macOS (Darwin 25.2.0)\n- Project-level rules at `.claude/rules/frontend.md` with path-specific frontmatter:\n\n\n---\npaths:\n  - \"frontend/**/*\"\n---\nTest results:\n\nEnvironment\tProject-level .claude/rules/\nCLI\t✅ Rules loaded correctly\nVSCode Extension\t❌ Rules NOT loaded\n\nReproduction:\n\nCreated .claude/rules/frontend.md with a test phrase in the content\nUsed Read/Edit tools on files",
+      "created_at": "2026-01-29T06:45:13Z"
+    }
+  ]
+}

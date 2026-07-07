@@ -1,0 +1,35 @@
+{
+  "number": 38581,
+  "title": "Caps Lock keypress leaks '[57358u' into input when using VS Code integrated terminal",
+  "body": "## Bug Report\n\n**Environment:**\n- Claude Code in VS Code integrated terminal\n- VS Code has `terminal.integrated.enableKittyProtocol` enabled (default since VS Code 1.86)\n- macOS\n\n## Description\n\nEvery time Caps Lock is pressed, the literal string `[57358u` appears in the Claude Code input field. This does not happen in other terminals (iTerm2, Terminal.app, etc.).\n\n## Root Cause\n\nVS Code's integrated terminal advertises Kitty keyboard protocol support and sends modifier-only key events (e.g. Caps Lock = keycode 57358). Claude Code receives the raw escape sequence `\\e[57358u` but does not filter/discard modifier-only key events that produce no printable character, causing them to leak into the input as literal text.\n\n## Expected Behavior\n\nModifier-only key events (Caps Lock, Shift, Ctrl, Alt, etc.) should be silently ignored by Claude Code and never appear as text in the input.\n\n## Workaround\n\nDisabling `terminal.integrated.enableKittyProtocol` in VS Code fixes the noise, but breaks Shift+Enter (newline in Claude Code input) since the terminal can no longer distinguish Shift+Enter from Enter without the Kitty protocol.\n\n## Suggested Fix\n\nClaude Code should filter out modifier-only key events (keycodes with no associated printable character) received via the Kitty keyboard protocol before passing them to the input handler.",
+  "labels": ["bug", "platform:macos", "area:tui", "platform:vscode"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-25T06:52:41Z",
+  "updated_at": "2026-04-09T14:50:11Z",
+  "closed_at": "2026-03-25T19:21:32Z",
+  "reactions_total": 21,
+  "comments_count": 5,
+  "author": "Yoon0717",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16843\n2. https://github.com/anthropics/claude-code/issues/28518\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-25T06:57:05Z"
+    },
+    {
+      "author": "sanghyeoklee-cell",
+      "author_association": "NONE",
+      "body": "## Additional context from a macOS Korean user\n\nThis issue is **especially impactful for Korean (한국어) users** on macOS because Caps Lock is remapped to the **Korean/English IME toggle key (한영키)** by default. Korean users press this key dozens of times per minute while typing mixed Korean/English text, making `[57358u` appear constantly in the input field.\n\n### Reproduction\n- **Environment:** macOS Sequoia 15.4, VS Code 1.112+, Claude Code v2.1.83\n- **Steps:** Open Claude Code in VS Code integrat",
+      "created_at": "2026-03-25T13:18:13Z"
+    },
+    {
+      "author": "nicholasjconn",
+      "author_association": "NONE",
+      "body": "**+1** — Potentially the same root cause, different keycode.\n\nI use F19 as a keybind for voice dictation on macOS. Since upgrading to v2.1.83, holding F19 floods the input with `[57382u` (F19 in the Kitty keyboard protocol). This only happens in Claude Code — no other terminal application is affected.\n\n**Confirmed regression:** v2.1.81 does not exhibit this behavior. v2.1.83 does.\n\nThis seems consistent with the suggested fix in this thread — Claude Code should discard CSI u sequences for keycod",
+      "created_at": "2026-03-25T17:58:52Z"
+    }
+  ]
+}

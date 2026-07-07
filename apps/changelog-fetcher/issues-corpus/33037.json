@@ -1,0 +1,35 @@
+{
+  "number": 33037,
+  "title": "[Bug] Plan Mode constraint bypass allows Edit tool execution without user approval",
+  "body": "**Bug Description**\nBug Report: Plan Mode Bypass — Edit Tool Executed Despite Plan Mode Being Active                                                       \n  Environment                                                                                                                         \n                                                                                                                                        - Tool: Claude Code (CLI)                                                                                                           \n  - Model: claude-opus-4-6                                                                                                            \n  - Platform: Windows 11 (Git Bash)\n  - Date: 2026-03-11\n\n  Description\n\n  While Plan Mode was active, Claude directly used the Edit tool to modify a source file (StoreCheckInLocationRequest.php), violating \n  the core Plan Mode constraint. The system prompt clearly states:\n\n  \"Plan mode is active. The user indicated that they do not want you to execute yet -- you MUST NOT make any edits (with the exception\n   of the plan file mentioned below), run any non-readonly tools, or otherwise make any changes to the system.\"\n\n  Despite this, the Edit tool was called and executed successfully, modifying the user's codebase without approval.\n\n  Steps to Reproduce\n\n  1. Enter Plan Mode (via /plan or equivalent)\n  2. Provide a task that involves an obvious, simple bug fix (e.g., paste an error message with a curl command that clearly points to \n  a one-line fix)\n  3. Claude launches an Explore agent, which returns a complete analysis with a suggested fix\n  4. Claude calls the Read tool on the target file (allowed in Plan Mode)\n  5. Claude immediately calls the Edit tool on the same file (should be blocked, but executes successfully)\n  6. The system reminder \"Plan mode still active\" appears after the edit has already been applied\n\n  Expected Behavior\n\n  - The Edit tool call should be rejected/blocked before execution when Plan Mode is active\n  - Claude should instead write a plan to the designated plan file and call ExitPlanMode\n  - No changes to the codebase should occur until the user approves the plan and exits Plan Mode\n\n  Actual Behavior\n\n  - The Edit tool was called and executed successfully, modifying the file\n  - The system only reminded Claude that Plan Mode was still active in the tool result, after the edit was already applied\n  - The file change was irreversible at that point (the user's codebase was modified without consent)\n\n  Root Cause Analysis\n\n  Based on self-analysis of the model's behavior, multiple contributing factors were identified:\n\n  1. Task Simplicity Bias\n\n  The bug was trivial — the error message directly pointed to the problematic line, and the fix was obvious. This caused the model to \n  skip the \"check current mode constraints\" step and jump straight to the \"fix\" action. Simple tasks are more likely to trigger this  \n  bypass because the model perceives no need for a planning phase.\n\n  2. Context Switch After Agent Return\n\n  The Explore agent returned a complete analysis with the exact file path, line number, and suggested fix. When processing the agent's\n   return value, the model's attention shifted entirely to the \"confirm → read → fix\" workflow, losing awareness of the Plan Mode     \n  constraint.\n\n  3. Read Tool as a Slippery Slope\n\n  The Read tool is legitimately allowed in Plan Mode. Calling Read on the target file created a cognitive momentum — the model was    \n  \"already working with this file\" — which reduced the constraint awareness for the subsequent Edit call. The transition from a       \n  permitted action (Read) to a prohibited action (Edit) on the same file was too smooth.\n\n  4. Post-Execution Reminder (Too Late)\n\n  The system reminder \"Plan mode still active\" was injected into the Edit tool's return result, meaning it appeared only after the    \n  edit was already applied. This is a reactive notification, not a preventive control. By the time the model sees the reminder, the   \n  damage is d",
+  "labels": ["bug", "duplicate", "platform:windows", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-11T02:13:01Z",
+  "updated_at": "2026-04-13T15:16:07Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 4,
+  "author": "flowerwOw0316",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "JhonHawk",
+      "author_association": "NONE",
+      "body": "**Update / Cross-reference:** This appears to be the same regression reported in detail in [#39713](https://github.com/anthropics/claude-code/issues/39713).\n\n**Root cause identified:**\nThe bypass became prominent and consistent after two specific CLI prompt changes:\n\n- **2.1.83** — Added explicit Skill catalog to the system prompt + moved deferred-tool availability logic into `<system-reminder>` (the same low-priority bucket used by Plan Mode).\n- **2.1.84** — Removed the top-level “Avoid over-en",
+      "created_at": "2026-03-27T06:35:05Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "A PreToolUse hook can enforce plan mode constraints that the built-in system doesn't:\n```bash\nINPUT=$(cat)\nTOOL=$(echo \"$INPUT\" | jq -r '.tool_name // empty' 2>/dev/null)\nPLAN_MODE=\"$HOME/.claude/.plan-mode-active\"\n[ ! -f \"$PLAN_MODE\" ] && exit 0\ncase \"$TOOL\" in\n    Edit|Write|NotebookEdit)\n        echo \"BLOCKED: Plan mode is active. File modifications are not allowed.\" >&2\n        echo \"Use ExitPlanMode or say 'execute plan' to allow edits.\" >&2\n        exit 2\n        ;;\n    Bash)\n        COMMA",
+      "created_at": "2026-03-29T16:36:32Z"
+    },
+    {
+      "author": "rickwilson",
+      "author_association": "NONE",
+      "body": "Same here. I'm on v2.1.90 and made sure my CLI is fully up to date. I'm using Opus 4.6 with high effort in dangerous mode on Mac. Mine will actually make a plan in plan mode the first time, but once I approve the plan the mode indicator at the bottom of the terminal never changes out of plan mode. After that is does not plan any more, it just goes straight to build on every prompt. When I ask Claude about this it says that it signaled to exit plan mode when I approved the plan and it can confirm",
+      "created_at": "2026-04-02T14:29:41Z"
+    }
+  ]
+}

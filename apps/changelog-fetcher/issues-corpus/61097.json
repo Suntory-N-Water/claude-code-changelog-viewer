@@ -1,0 +1,42 @@
+{
+  "number": 61097,
+  "title": "[BUG] Remote Routine — MCP connector calls blocked by 'approval required' despite Always Allow (Team plan, macOS)",
+  "body": "## Environment\n\n- Plan: Team\n- Surface: Claude Desktop (macOS) → Routines sidebar → New routine → Remote\n- Connector: Gmail (Google Workspace, org-managed)\n- Connector UI: read-only Gmail tools (search_threads, get_thread, list_labels) all set to \"Always allow\"\n- Reproduces on both manual \"Run now\" and scheduled triggers\n\n## Repro\n\n1. Create a Remote Routine via the Desktop sidebar with the Gmail connector attached\n2. Routine prompt asks Claude to search Gmail (natural-language phrasing — no explicit MCP tool name in the prompt)\n3. Trigger the routine\n\n## Observed\n\n```\nGmail: search threads\npageSize: 30\nquery: newer_than:1d (category:promotions OR category:updates)\nStreamable HTTP error: Error POSTing to endpoint: MCP tool call requires approval\n```\n\nThe routine environment has no UI channel to surface an approval prompt, so the call fails permanently. Reproduces on every run.\n\n## Expected\n\nPer https://code.claude.com/docs/en/routines :\n> Routines run autonomously as full Claude Code cloud sessions: there is no permission-mode picker and no approval prompts during a run.\n\n## Notable\n\n- Custom remote MCP server tools (user-registered via Settings → Connectors → Custom MCP) **succeed in the same routine** without approval — the bug is scoped to the Anthropic-hosted Gmail / Workspace connector path, not to user-registered remote MCP servers\n- Prompt format does not matter — both explicit tool naming (`mcp__Gmail__search_threads`) and natural-language phrasing hit the same block, so this is not a prompting issue\n- The \"Always allow\" toggle in the connector UI does not change behavior — the cloud routine path appears to ignore it\n- Same symptom reported by another user on 2026-05-21 across Gmail, Google Calendar, and Notion connectors: https://github.com/anthropics/claude-code/issues/56757#issuecomment-4505529362\n\n## Impact\n\nRemote Routines with any Anthropic-hosted connector (Gmail, Google Workspace, Notion per the linked comment) are effectively unusable for affected accounts. The product's documented core value (autonomous cloud execution with connectors) does not hold.\n\n## Related\n\n- #56757 — closed as `invalid` on 2026-05-09 but the same symptom was reported in a 2026-05-21 comment by a separate user\n- #56954 — different root cause (Desktop Electron IndexedDB on Windows); not applicable to macOS Remote Routine cloud path\n\n## Request\n\n1. Confirm whether this is a known issue\n2. ETA for a fix or a supported workaround\n3. Whether this issue should be triaged here or in another channel (since #56757 was closed as \"not about Claude Code\")\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:mcp",
+    "area:permissions",
+    "area:routines"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-21T08:47:22Z",
+  "updated_at": "2026-06-22T03:09:00Z",
+  "closed_at": "2026-05-21T19:56:00Z",
+  "reactions_total": 6,
+  "comments_count": 12,
+  "author": "JeongHeonK",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/61027\n2. https://github.com/anthropics/claude-code/issues/61077\n3. https://github.com/anthropics/claude-code/issues/61044\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-21T08:50:22Z"
+    },
+    {
+      "author": "jshaofa-ui",
+      "author_association": "NONE",
+      "body": "## Proposed Solution: Remote Routine Inherits Connector Allowlists\n\n### Root Cause\nRemote Routines create a new permission context that doesn't inherit connector-level \"Always allow\" settings. The MCP approval gate checks the session permission context (empty) rather than the connector configuration (allowlisted), causing approval prompts in a headless environment where no one can approve.\n\n### Fix\n```typescript\nasync function shouldApproveMcpTool(toolName: string, ctx: RoutineContext): Promise<",
+      "created_at": "2026-05-21T10:12:06Z"
+    },
+    {
+      "author": "jshaofa-ui",
+      "author_association": "NONE",
+      "body": "## Technical Solution for Remote Routine MCP Approval Block\n\n### Root Cause\nThe CCR (Cloud Compute Runtime) proxy layer that mediates MCP calls for Anthropic-hosted connectors maintains its own approval gate that:\n- Does not respect the routine's autonomous execution context\n- Does not propagate the \"Always Allow\" connector setting to the proxy\n- Does not honor `permissions.allow` from `settings.json`\n- Custom/user-registered MCP servers work because they use a different code path\n\nThe error `MC",
+      "created_at": "2026-05-21T10:39:16Z"
+    }
+  ]
+}

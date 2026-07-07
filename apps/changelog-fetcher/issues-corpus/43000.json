@@ -1,0 +1,35 @@
+{
+  "number": 43000,
+  "title": "[BUG] MCP OAuth with multiple terminals open causes re-auth",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## What's wrong?\n\nWhen running multiple Claude Code instances simultaneously (multiple terminals, same machine),\neach new instance fails to find the stored MCP OAuth token and triggers a new browser\nauthentication flow — even when tokens have days or weeks of TTL remaining.\n\n### Root cause\n\nAfter OAuth completes, Claude Code stores MCP tokens in the macOS Keychain (or\n`~/.claude/.credentials.json` on Linux) under the service name `Claude Code-credentials`,\nwithin an `mcpOAuth` object. The storage key for each server entry is:serverName|base64(callbackUrl)\n\nFor example, after authenticating against an MCP server named `my-server`:\n```json{\n\"claudeAiOauth\": { \"...\": \"...\" },\n\"mcpOAuth\": {\n\"my-server|aHR0cDovL2xvY2FsaG9zdDo1MjQ4NS9jYWxsYmFjaw\": {\n\"serverName\": \"my-server\",\n\"serverUrl\": \"https://my-mcp-server.example.com/mcp\",\n\"accessToken\": \"ey...\",\n\"refreshToken\": \"...\",\n\"expiresAt\": 1775807773583,\n\"clientId\": \"aHR0cDovL2xvY2FsaG9zdDo1MjQ4NS9jYWxsYmFjaw\"\n}\n}\n}\n```\n\nThe `clientId` value decodes from base64 to:http://localhost:52485/callback\n\n**Port `52485` is ephemeral.** Claude Code picks a random available localhost port for the\nOAuth callback listener on every startup. The next instance might use port `61203`, producing\na different base64 string, a different storage key, and a complete miss on lookup. The valid\ntoken is never found, a new OAuth flow is triggered, and yet another orphaned entry accumulates\nin the Keychain.\n\nThis is confirmed by the key structure visible in related issue #28262\n(`\"atlassian|<hash>\"`, `\"notion|<hash>\"`), which exhibits the same key format on Linux via\n`~/.claude/.credentials.json` — confirming the issue is platform-independent.\n\n---\n\n## What happens\n\n- Terminal A authenticates successfully against the MCP server. Tools work.\n- Terminal B starts. It generates a different callback port, constructs a different storage key,\n  finds no token, and immediately prompts for re-authentication.\n- After re-authenticating in terminal B, terminal A may now also lose its session if the\n  server invalidates the previous DCR client registration.\n- Inspecting the credential store after two auth cycles shows two orphaned entries under\n  different keys, both pointing to the same server URL.\n\n### What Should Happen?\n\nClaude should use the token for the specific MCP server instead of asking to authenticate.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n## Steps to reproduce\n\n1. Add an HTTP MCP server with OAuth:\nclaude mcp add --transport http my-server https://my-mcp-server.example.com/mcp\n2. Open Claude Code in **terminal A**, run `/mcp`, complete the browser OAuth flow.\n3. Verify tools are available and working.\n4. Inspect the credential store:\n```bash\n   # macOS\n   security find-generic-password -s \"Claude Code-credentials\" -w | python3 -m json.tool\n\n   # Linux\n   cat ~/.claude/.credentials.json | python3 -m json.tool\n```\n   Observe the `mcpOAuth` key — note the base64 segment. Decode it:\n```bash\n   echo \"aHR0cDovL2xvY2FsaG9zdDo1MjQ4NS9jYWxsYmFjaw\" | base64 -d\n   # → http://localhost:52485/callback   ← ephemeral port\n```\n5. Open Claude Code in **terminal B** (new terminal, same machine).\n6. Observe: terminal B immediately asks for re-authentication despite the token having a\n   TTL of days or weeks.\n7. Re-inspect the credential store after authenticating in terminal B — a second `mcpOAuth`\n   entry now exists under a different key with a different port in the base64 value.\n\n---\n\n## Why `clientId` should not be part of the storage key\n\nThe `clientId` (derived from the callback URL) serves a legitimate purpose **during the DCR\nOAuth flow**: it identifies the dynamically registered client to the authorization server for\nthat specific session",
+  "labels": ["bug", "has repro", "area:auth", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-03T08:19:08Z",
+  "updated_at": "2026-06-13T11:11:18Z",
+  "closed_at": null,
+  "reactions_total": 9,
+  "comments_count": 10,
+  "author": "tpjg",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24317\n2. https://github.com/anthropics/claude-code/issues/35740\n3. https://github.com/anthropics/claude-code/issues/42922\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-03T08:24:32Z"
+    },
+    {
+      "author": "tpjg",
+      "author_association": "NONE",
+      "body": "Number 2 (https://github.com/anthropics/claude-code/issues/35740) is similar, actually my guess is that if you solve this bug it'll also resolve that one. This bug has a more generic problem statement and proposed fix that could also benefit 35740.",
+      "created_at": "2026-04-03T08:37:07Z"
+    },
+    {
+      "author": "shigechika",
+      "author_association": "NONE",
+      "body": "Great root-cause analysis — the `serverName|base64(ephemeral_callback_url)` key structure explains a lot of the \"why does it randomly re-prompt\" reports.\n\nUntil this is fixed upstream, [mcp-stdio](https://pypi.org/project/mcp-stdio/) sidesteps the bug by design. It's a stdio ↔ Streamable-HTTP bridge with its own OAuth 2.1 client, and its token store keys tokens by **server URL only** — not by the ephemeral callback port:\n\n- Storage: `~/.config/mcp-stdio/tokens.json`, mode `0o600`, one entry per ",
+      "created_at": "2026-04-05T02:57:13Z"
+    }
+  ]
+}

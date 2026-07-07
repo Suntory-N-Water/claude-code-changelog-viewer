@@ -1,0 +1,35 @@
+{
+  "number": 39471,
+  "title": "Cowork OTLP monitoring not emitting events despite correct configuration",
+  "body": "## Description\n\nCowork's OTLP monitoring (configured via Admin settings > Cowork > Monitoring) does not emit any events to the configured endpoint. We have verified this with multiple endpoints and protocols — zero HTTP requests are sent by the Cowork VM's OTel exporter.\n\n## Environment\n\n- Claude Desktop app (latest version, March 2026)\n- macOS (Apple Silicon)\n- PicnicHealth org (Team plan)\n- Cowork enabled with Dispatch\n\n## Configuration\n\nConfigured via Admin settings > Cowork > Monitoring:\n- **OTLP endpoint**: `https://otlp.us5.datadoghq.com` (Datadog US5)\n- **OTLP protocol**: Tried both `http/protobuf` and `http/json`\n- **OTLP headers**: `dd-api-key=<valid-key>`\n- **Network egress**: \"All domains\" enabled in Admin settings > Capabilities\n\n## Reproduction Steps\n\n1. Configure OTLP in Admin settings > Cowork with any valid endpoint\n2. Save configuration\n3. Start a new Cowork session (fully quit and reopen)\n4. Perform any task in Cowork\n5. Check the OTLP endpoint for received events → **nothing arrives**\n\n## Debugging Performed\n\n1. **Verified endpoint is reachable from Cowork VM** — ran `curl -v https://otlp.us5.datadoghq.com/v1/logs` from within a Cowork session, got HTTP 202\n2. **Verified endpoint works from host Mac** — same curl from terminal returns HTTP 202\n3. **Tried webhook.site as endpoint** — zero requests received, confirming the exporter is not sending anything at all (not a Datadog-specific issue)\n4. **Tried both `http/protobuf` and `http/json` protocols** — neither produces any outbound requests\n5. **Verified config is saved correctly** — re-opened admin settings, values persisted\n6. **Started fresh sessions after each config change** — aware settings only load at session start\n7. **Checked Datadog Logs Explorer** with broad queries (`service:cowork`, `service:claude*`, wildcard `*`) — zero events\n\n## Root Cause Analysis\n\nThis appears to be one of three correlated issues preventing Cowork OTLP from functioning:\n\n1. **The OTLP exporter may not be initializing inside the Cowork VM** — despite the admin UI accepting configuration, the exporter appears to never send HTTP requests (confirmed via webhook.site receiving zero requests)\n\n2. **Cowork egress proxy may be silently dropping OTLP traffic** — related to #30112, #30861, #11897 where the domain allowlist is non-functional. The JWT contains ~23 hardcoded domains regardless of \"All domains\" UI setting. However, `curl` from within the VM *can* reach the endpoint, so this may not be the blocker.\n\n3. **Underlying OTLP SDK bugs** — #32699 reports that v2.1.72+ sends JSON instead of protobuf. Non-interactive mode issues (#35105) may also affect how the exporter initializes in the Cowork VM context.\n\n## Related Issues\n\n- #30112 — Cowork network egress allowlist not working (would block OTLP endpoints)\n- #30861 — MITM proxy blocks all non-API domains regardless of settings\n- #32699 — OTLP sends JSON instead of protobuf after v2.1.72\n- #35105 — OTLP not working in non-interactive/pipe mode\n- #32364 — Feature request for OTel in Claude Code on Web\n- #11897 — Egress allowlist ignored (original report)\n\n## Impact\n\nOrganizations cannot monitor Cowork usage, costs, or tool activity despite the monitoring configuration UI being present and documented. This is the only observability path for Cowork — sessions are not captured in Audit Logs, Compliance API, or Data Exports per the docs.\n\n## Expected Behavior\n\nAfter configuring OTLP endpoint, protocol, and headers in Admin settings > Cowork, new Cowork sessions should emit `user_prompt`, `api_request`, `api_error`, `tool_result`, and `tool_decision` events to the configured endpoint, as documented at https://claude.com/docs/cowork/monitoring.",
+  "labels": ["bug", "has repro", "platform:macos", "area:cowork"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-26T17:44:42Z",
+  "updated_at": "2026-07-02T12:52:57Z",
+  "closed_at": "2026-06-30T11:08:13Z",
+  "reactions_total": 13,
+  "comments_count": 20,
+  "author": "trevhud",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "myrison",
+      "author_association": "NONE",
+      "body": "**Confirming this issue — independent reproduction with extensive debugging.**\n\nWe stood up a simple OTLP-compatible HTTP receiver and verified the exact same behavior:\n\n- OTLP endpoint, protocol (`http/json` and `http/protobuf`), and headers all configured correctly in Admin > Cowork > Monitoring\n- Receiver confirmed working via direct `curl` — requests process successfully\n- Started multiple fresh Cowork sessions after config changes and full app restarts\n- **Zero HTTP requests received from C",
+      "created_at": "2026-03-31T04:42:19Z"
+    },
+    {
+      "author": "rivabpineau",
+      "author_association": "NONE",
+      "body": " Confirming this issue — independent reproduction with custom ADOT collector backend.\n\n  We deployed a standalone AWS ADOT (OpenTelemetry) collector on ECS Fargate behind CloudFront + ALB specifically to receive Cowork OTLP events. The collector is healthy, receiving traces from other\n  services, and correctly exporting to X-Ray. However, zero events arrive from Cowork.\n\n  Environment:\n  - Claude Desktop 1.2.234 (2d1855), macOS Apple Silicon\n  - Team plan, Cowork enabled with Dispatch\n  - Networ",
+      "created_at": "2026-04-02T03:35:30Z"
+    },
+    {
+      "author": "EmmettJayhart",
+      "author_association": "NONE",
+      "body": "Confirming this issue with Azure Application Insights as the OTLP endpoint.\n\nEnvironment:\n- Claude Desktop 1.569.0.0, Windows\n- Enterprise plan\n- Network egress: Endpoint enabled\n\nConfiguration (Admin > Cowork > Monitoring):\n- OTLP endpoint: https://[azure region].in.applicationinsights.azure.com/v2.1/track\n- OTLP protocol: http/protobuf\n- OTLP headers: Authorization=Bearer [instrumentation key]\n\nEvidence:\n- Endpoint is reachable and working — curl returns HTTP 405 (expected for GET)\n- Claude De",
+      "created_at": "2026-04-03T08:32:15Z"
+    }
+  ]
+}

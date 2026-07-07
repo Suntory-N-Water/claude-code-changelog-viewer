@@ -1,0 +1,42 @@
+{
+  "number": 15920,
+  "title": "[Bug] Edit tool corrupts Unicode typographic characters in non-ASCII text",
+  "body": "**Bug Description**\n  Subject: Critical Issue - Claude Code Corrupts French Typography (Apostrophes) Even When Copy-Pasting\n\n  Problem:\n  Claude Code systematically corrupts French typographic apostrophes ' (U+2019 RIGHT SINGLE QUOTATION MARK) by replacing them with straight apostrophes ' (U+0027 APOSTROPHE) when using the Edit tool. This happens even when explicitly copy-pasting text from the Read tool.\n\n  Critical Detail:\n  The correct characters are already in the user's files. It's Claude Code that removes them and replaces them with the wrong characters during the Edit operation.\n\n  Impact:\n  - Every single Edit operation on French code corrupts the typography\n  - Makes code reviews extremely painful - developers must manually check every French string for corruption\n  - Breaks professional French typography standards (U+2019 is the correct apostrophe in French)\n  - Slows down development significantly - every commit requires manual verification and correction\n  - Creates frustration and makes Claude Code unreliable for non-English codebases\n\nExamples:\n\"Tourner l’image vers la gauche\" turn into \"Tourner l'image vers la gauche\" and that is not desirable.\n\n  Attempted Workaround - FAILED:\n  We tried having Claude:\n  1. Use Read tool to see the original text with correct apostrophes\n  2. Copy-paste the exact text (including French strings) into Edit tool\n  3. Only modify the code logic, not the French strings\n\n  Result: The workaround doesn't work. Even when Claude copy-pastes text from Read into Edit, the Edit tool call automatically converts ’ (U+2019) to ' (U+0027) before sending it to the system.\n\n  Root Cause:\n  The Edit tool appears to normalize/sanitize text input, converting Unicode typographic characters to ASCII equivalents. This is destructive for languages that use proper typography.\n\n  Reproduction:\n  1. Create a file with French text: altinaeTooltip=\"Tourner l'image vers la gauche\" (note the ' is U+2019)\n  2. Use Read tool - Claude sees the correct apostrophe\n  3. Copy-paste that exact line into Edit tool to change nearby code: [disabled]=\"!loaded\" → [disabled]=\"!loaded()\"\n  4. Result: The apostrophe in l'image is silently converted from U+2019 to U+0027\n\n  Suggested Solutions:\n\n  Option 1 (Preferred): Add a setting/flag to preserve Unicode characters in Edit operations:\n  - preserveUnicode: true - Never normalize typographic characters\n  - Should be opt-in or per-workspace configurable\n\n  Option 2: Detect quoted strings and preserve their exact Unicode characters:\n  - Don't normalize text inside \"...\" or '...' strings\n  - Only normalize code/whitespace\n\n  Option 3: Provide character-level diff information to user:\n  - Show when Edit would change Unicode characters\n  - Let user approve/reject character normalization\n\n  Affected Languages:\n  This likely affects all languages with proper typography:\n  - French: ' (apostrophe), «» (guillemets)\n Not tested :\n  - Spanish: ¿¡\n  - German: „\" (quotes)\n  - And many others\n\n  Current Status:\n  We've had to document this as \"Rule #1\" in our codebase guidelines, but Claude Code cannot follow the rule due to this technical limitation. The workaround is impossible to implement.\n\n  Frequency: This happens on literally every Edit operation involving French text (dozens of times per day in active development).\n\n\n\n**Environment Info**\n- Platform: darwin\n- Terminal: iTerm.app\n- Version: 2.0.76\n- Feedback ID: \n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-31T18:11:19Z",
+  "updated_at": "2026-04-11T14:24:43Z",
+  "closed_at": "2026-04-03T22:16:29Z",
+  "reactions_total": 2,
+  "comments_count": 14,
+  "author": "Rafarel",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-02-01T10:10:40Z"
+    },
+    {
+      "author": "rsslldnphy",
+      "author_association": "NONE",
+      "body": "This is still happening for me – not just French, but any text with proper curly quotation marks.",
+      "created_at": "2026-02-04T15:36:03Z"
+    },
+    {
+      "author": "Rafarel",
+      "author_association": "NONE",
+      "body": "In the meantime I made a script to hunt quotes with a --fix option so that any time claude make this mistake (it happens all day long) it calls the script. This is the only workaround I have for now",
+      "created_at": "2026-02-04T17:41:02Z"
+    }
+  ]
+}

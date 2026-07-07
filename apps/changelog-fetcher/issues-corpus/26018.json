@@ -1,0 +1,35 @@
+{
+  "number": 26018,
+  "title": "Read tool sends requests exceeding 20MB API limit without pre-checking payload size",
+  "body": "## Bug Description\n\nWhen using the Read tool to read multiple PDF files in a single turn (4 PDFs), Claude Code sends the request without checking whether the cumulative payload exceeds the 20MB API limit. The request fails with:\n\n```\nRequest too large (max 20MB). Double press esc to go back and try with a smaller file.\n```\n\n## Expected Behavior\n\nClaude Code should validate the cumulative payload size **before** making the API call. Options:\n- Pre-check file sizes before reading and refuse/split if total would exceed the limit\n- Read files incrementally and stop before hitting the limit\n- At minimum, gracefully handle the error by retrying with fewer files automatically\n\n## Steps to Reproduce\n\n1. Have multiple large PDF files in the project (4 PDFs totaling >20MB)\n2. Claude Code attempts to read all 4 files in a single turn via the Read tool\n3. The API request exceeds 20MB and fails\n\n## Actual Behavior\n\nThe Read tool blindly attempts to send all file contents without checking cumulative size, hitting the 20MB wall and failing.\n\n## Environment\n\n- Claude Code version: 2.1.42\n- OS: macOS (Darwin 25.2.0 arm64)\n- Node.js: v25.4.0\n- Model: Claude Opus 4.6\n\n## Additional Context\n\nThis bug is compounded by a related issue where the resulting error crashes the conversation with no recovery path (filed separately).",
+  "labels": ["bug", "platform:macos"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-16T03:45:39Z",
+  "updated_at": "2026-04-08T20:19:36Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 30,
+  "author": "tonimelisma",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13823\n2. https://github.com/anthropics/claude-code/issues/22699\n3. https://github.com/anthropics/claude-code/issues/8092\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-16T03:49:30Z"
+    },
+    {
+      "author": "Eshtrik",
+      "author_association": "NONE",
+      "body": "i also have this error.",
+      "created_at": "2026-02-24T02:46:14Z"
+    },
+    {
+      "author": "Trangle",
+      "author_association": "NONE",
+      "body": "me too",
+      "created_at": "2026-03-05T10:08:12Z"
+    }
+  ]
+}

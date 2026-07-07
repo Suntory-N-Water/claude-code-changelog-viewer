@@ -1,0 +1,35 @@
+{
+  "number": 15705,
+  "title": "[BUG] Korean input characters disappear on iOS mobile SSH",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Summary\n\nWhen connecting via **Termius on iOS** and running **Claude Code** over SSH,  \nKorean input characters **disappear at the moment a consonant and vowel are combined**.\n\n- Consonant only: works\n- Vowel only: works\n- Consonant + vowel (e.g. `ㄱ` + `ㅏ` → `가`): character disappears\n\n⚠️ In the same Termius environment:\n- ✅ Android: works correctly\n- ❌ iOS: issue occurs\n\nOther CLI/TUI tools such as **Gemini CLI** and **Codex CLI** work correctly even on iOS.\n\n## Screen Recording\n\nhttps://github.com/user-attachments/assets/5d2d9796-7ecd-435e-8eb1-0abf334a9f7c\n\n## Environment\n\n- Client\n  - ❌ iOS + Termius (issue occurs)\n  - ✅ Android + Termius (works)\n- Server\n  - MacOS (SSH)\n- Affected application\n  - Claude Code\n- Not affected\n  - MacOS Terminal / iTerm2\n  - Gemini CLI\n  - Codex CLI\n\n## Actual Behavior\n\n- During Korean jamo composition, the input buffer deletes the character and the final composed character is not rendered\n\n## Technical Analysis (Important)\n\n### iOS Termius input behavior\n\nWhen typing the Korean character `가` on iOS Termius, the actual byte stream received by the server (logged in raw TTY mode) is:\n\ne3 84 b1 7f ea b0 80\n\nInterpretation:\n- e3 84 b1 → `ㄱ` (U+3131)\n- 7f → DEL (backspace)\n- ea b0 80 → `가` (U+AC00)\n\nThis means **iOS Termius does not send IME preedit composition to the server**.  \nInstead, it emulates composition using a **delete + re-insert sequence**:\n`ㄱ` → delete → `가`.\n\nClaude Code appears to mis-handle this sequence:\n1. Receives `ㄱ` → inserts into buffer\n2. Receives DEL → deletes `ㄱ`\n3. Receives final character `가` → insertion is dropped due to internal input state or cursor calculation\n\nAs a result, no character remains on screen.\n\n### Why this does not occur on Android\n\nOn Android Termius:\n- Korean IME composition is completed **on the client side**\n- SSH sends only the **final composed UTF-8 characters**\n\nThis matches the behavior of macOS terminals, so Claude Code never receives the delete + re-insert sequence and works correctly.\n\n## Why this does not occur on macOS\n- macOS Terminal / iTerm2 complete IME composition locally\n- SSH transmits only finalized UTF-8 characters\n- Claude Code never encounters the problematic delete + insert sequence\n\n## Additional Notes\n- Changing Termius backspace transmission from DEL (0x7f) to Ctrl-H (0x08):\n  - Does not fully resolve the issue in Claude Code\n  - Can introduce input issues in other terminal applications\n\n## Conclusion\n- This is not a locale, UTF-8, or font configuration issue\n- The issue reproduces **only on iOS**, while Android and macOS work correctly\n- Claude Code’s raw TUI input handling does not correctly process\n  the **delete + re-insert based IME composition sequence** used by iOS Termius\n- To support iOS mobile SSH environments, Claude Code needs:\n  - Safe handling of IME composition or delete + insert sequences\n  - Or an alternative line-based / IME-safe input mode\n\n## Impact\n- Korean (and likely other CJK) input is effectively unusable in Claude Code on iOS\n- Copy/paste is the only practical workaround\n\n\n### What Should Happen?\n\n## Expected Behavior\n\n- Korean input should be composed and rendered correctly (`가`, `나`, `다`, etc.)\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n\n## Steps to Reproduce (100% on iOS)\n\n1. Connect to a Linux server via SSH using Termius on iOS\n2. Run `claude code`\n3. Try to input Korean text in the prompt\n4. Example: input `가`\n   - Type `ㄱ` → briefly appears\n   - Type `ㅏ` → the character disappears\n\n## Test for checking text input\n\n```shell\n$ cat > /tmp/ttylog.py <<'PY'\nimport sys, tty, termios\n\nfd = sys.stdin.fileno()\nif not sys.stdin.isatty():\n    print(\"stdin is not a TT",
+  "labels": ["bug", "has repro", "area:tui", "platform:ios"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-29T16:37:17Z",
+  "updated_at": "2026-04-09T14:49:47Z",
+  "closed_at": "2026-03-27T10:22:52Z",
+  "reactions_total": 11,
+  "comments_count": 13,
+  "author": "wplong11",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "wplong11",
+      "author_association": "NONE",
+      "body": "# Analysis Report: Why Codex CLI Does Not Experience Korean Input Issues on iOS Termius\n\n## Executive Summary\n\nThis report analyzes how Codex CLI successfully handles the \"delete + re-insert\" Korean input sequence from iOS Termius, while Claude Code fails to do so. The analysis is intended to serve as a reference for improving Claude Code's input handling.\n\n---\n\n## Problem Context\n\n### iOS Termius Korean Input Behavior\n\nWhen typing Korean character `가` (ga) on iOS Termius, the following byte seq",
+      "created_at": "2025-12-30T01:22:38Z"
+    },
+    {
+      "author": "wplong11",
+      "author_association": "NONE",
+      "body": "# Analysis Report: Why gemini-cli Does Not Experience Korean Input Issues on iOS Termius\n\n## Executive Summary\n\nThis report analyzes how gemini-cli handles the \"delete + reinsert\" sequence sent by iOS Termius during Korean (Hangul) character composition, and why it does not experience the character loss bug that affects Claude Code.\n\n---\n\n## Problem Context\n\n### iOS Termius Korean Input Behavior\n\nWhen typing the Korean character `가` (ga) on iOS Termius, the following byte sequence is sent to the",
+      "created_at": "2025-12-30T01:23:38Z"
+    },
+    {
+      "author": "DreamHouseKSH",
+      "author_association": "NONE",
+      "body": "### Additional reproduction case\n\n**Environment:**\n- iPad + Termius (SSH)\n- LXC Container (Ubuntu 24.04, Proxmox)\n- Locale: `ko_KR.UTF-8`\n- Claude Code version: latest\n\n**Confirmed:**\n- ❌ Claude Code: Korean input broken\n- ✅ Gemini CLI: Works fine\n- ✅ Codex CLI: Works fine\n\nSame issue on LXC container environment. This affects more users than just macOS servers.\n\nHoping for a fix soon - Korean input is currently unusable on iOS.",
+      "created_at": "2026-01-08T19:59:41Z"
+    }
+  ]
+}

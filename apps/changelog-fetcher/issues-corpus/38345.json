@@ -1,0 +1,42 @@
+{
+  "number": 38345,
+  "title": "[BUG] Abnormal rate limit consumption — 1-2 prompts exhausting 5-hour window",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nStarting around March 23-24, 2026, my 5-hour rate limit is being exhausted \nafter only 1-2 prompts/interactions. Previously I could have extended sessions\nwith dozens of interactions before hitting limits.\n\nEnvironment:\n- Claude Code version: 2.1.79 (VS Code extension)\n- Model: claude-opus-4-6[1m] (1M context)\n- Plan: [5x]\n- Platform: macOS Darwin 24.6.0\n\nReproduction:\n1. Start a new conversation\n2. Send 1-2 prompts (even simple ones)\n3. Rate limit hit with \"resets at X PM\" message\n\nExpected: Dozens of interactions before hitting the 5-hour limit\nActual: 1-2 interactions consume the entire limit\n\nThis appears to be a widespread issue — multiple users across platforms \nare reporting the same behavior around the same timeframe.\n\nAdditional context:\n- Using subagents (Agent tool) for parallel work — these may be \n  consuming disproportionate rate limit tokens\n- Long conversation context (1M window) may be contributing\n- The issue started suddenly, not gradually\n\n### What Should Happen?\n\nRate limits should not be hit after a few prompts. This is abnormal for a tier that cost $100/month\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nUse claude code extension in VS studio. Submit a few prompts. Watch usage spike abnormally and then get locked out for 5 hours until the reset happens. \n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n 2.1.79 (VS Code extension)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:macos",
+    "area:cost",
+    "platform:vscode",
+    "api:anthropic"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-24T17:35:08Z",
+  "updated_at": "2026-07-01T19:56:57Z",
+  "closed_at": null,
+  "reactions_total": 26,
+  "comments_count": 25,
+  "author": "eburgagni89",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yuu-takigawa",
+      "author_association": "NONE",
+      "body": "I encountered the same problem; I used up my 5-hour limit on the Max 5X Plan after only two rounds of conversations. It's unbelievable.",
+      "created_at": "2026-03-24T17:51:02Z"
+    },
+    {
+      "author": "moonipulate",
+      "author_association": "NONE",
+      "body": "Same issue here. Does it have anything to do with CLI version or model related?",
+      "created_at": "2026-03-25T16:00:26Z"
+    },
+    {
+      "author": "sophiaashi",
+      "author_association": "NONE",
+      "body": "1-2 prompts exhausting the limit sounds like the cache_creation bug others have reported in #38350. The token accounting seems broken.\n\nWhile waiting for a fix, multi-model routing helped me — send the simple stuff through GPT-4o/Gemini so your Anthropic quota lasts the full session. I went from hitting limits daily to not hitting them at all.\n\nSetup and details here if useful: https://dev.to/sophiaashi/claude-code-rate-limit-on-max-plan-the-workaround-developers-are-actually-using-in-2026-16g2\n",
+      "created_at": "2026-03-25T18:03:05Z"
+    }
+  ]
+}

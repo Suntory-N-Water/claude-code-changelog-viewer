@@ -1,0 +1,35 @@
+{
+  "number": 33969,
+  "title": "[BUG] Per-Turn Tool Call Limit Regression Breaks Agentic MCP/SSH Workflows in Claude Desktop",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe per-turn tool call limit in Claude Desktop has been significantly reduced without announcement. Sessions that previously ran 60–80+ tool calls autonomously over 45+ minutes now hit \"Claude reached its tool-use limit for this turn\" after approximately 20 tool calls, requiring a manual \"Continue\" click to resume. This breaks agentic MCP/SSH workflows where Claude is given a well-specified task and expected to execute autonomously.\nThis is not a rate limit or usage cap issue — it's a per-turn ceiling on tool calls within a single response. I am on the Max plan.\n\nExample Session (March 13, 2026)\nTask: Fix multiple issues in a HubSpot API integration (company name resolution via two-hop engagement→contact→company, future-dated item filtering, email volume caps, activity type filter UI).\nClaude chained approximately 20+ tool calls (RunRemoteCommand and Used mcp-ssh integration) across:\n\nDebugging a toObjectId string/number type mismatch in v4 batch API responses\nAdding company associations via v4 batch\nFiltering future-dated meetings/tasks\nAdjusting per-type fetch limits\nAdding a type filter dropdown to the Activity tab UI\nFixing prop destructuring\n\nSession was interrupted at the final commit step with: \"Claude reached its tool-use limit for this turn.\"\n\n### What Should Happen?\n\nClaude should be able to execute extended multi-step tool call chains (60–80+) without interruption, as it did previously. At minimum, Max plan users paying $100–$200/month should have a significantly higher or configurable per-turn limit. An \"auto-continue\" option should exist so sessions resume without manual intervention.\nSuggested Improvements\n\nRestore previous behavior: The per-turn tool call limit should return to its previous level, or be removed for Max plan subscribers\nConfigurable per-turn limit: Let users set their own threshold (or \"unlimited\") in Claude Desktop settings\nAuto-continue option: If a limit must exist, offer an \"auto-continue\" toggle so the session resumes without manual intervention\nPlan-tiered limits: Scale the per-turn cap based on plan tier (e.g., Free: 10, Pro: 30, Max 5x: 100, Max 20x: unlimited)\nAnnounce changes: Any modification to tool call limits should be communicated via changelog or support docs\n\n### Error Messages/Logs\n\n```shell\nNo error in the traditional sense — a UI banner appears:\n\n\"Claude reached its tool-use limit for this turn\"\n\nWith a \"Continue\" button. The underlying API mechanism is stop_reason=\"pause_turn\" when the server-side sampling loop hits its iteration limit (documented default: 10 iterations).\n```\n\n### Steps to Reproduce\n\nOpen claude.ai with MCP SSH tools connected\nGive Claude a multi-step coding task (e.g., debug and fix multiple issues in an API integration)\nLet Claude work autonomously — it chains RunRemoteCommand and SSH tool calls\nAfter ~20 tool calls, session pauses with \"Claude reached its tool-use limit for this turn\"\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nN/A — this bug is in Claude Desktop (latest) interface, not Claude Code CLI.\n\n### Platform\n\nOther\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nPrevious behavior: Identical workflows (multi-step code builds via MCP SSH) ran 60–80+ tool calls over 45+ minutes without this interruption. This was consistent and repeatable across many sessions over several months.\nCurrent behavior: The limit is hit at approximately 20 tool calls per turn. The \"Continue\" button resumes the session but breaks flow, momentum, and sometimes causes Claude to lose context on what it was doing.\nSetup: Claude Desktop on macOS, MCP SSH integration",
+  "labels": ["invalid"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-13T12:04:30Z",
+  "updated_at": "2026-05-11T19:11:54Z",
+  "closed_at": null,
+  "reactions_total": 44,
+  "comments_count": 47,
+  "author": "ncb0606",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16211\n2. https://github.com/anthropics/claude-code/issues/10065\n3. https://github.com/anthropics/claude-code/issues/22293\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-13T12:09:43Z"
+    },
+    {
+      "author": "ncb0606",
+      "author_association": "NONE",
+      "body": "From what I read on #10065, that was a precursor to the issue I describe above.  Possible that the \"continue\" button was made as a \"fix\" for issue #10065, but was not announced.  The \"continue\" problem I am having is a new issue and, coincidentally or intentionally, the #10065 problems have not appeared since.",
+      "created_at": "2026-03-13T14:11:52Z"
+    },
+    {
+      "author": "ncb0606",
+      "author_association": "NONE",
+      "body": "Understood this isn't a Claude Code issue. Is there a public repo or feedback channel for Claude Desktop bugs? Happy to refile in the correct location.",
+      "created_at": "2026-03-13T18:24:41Z"
+    }
+  ]
+}

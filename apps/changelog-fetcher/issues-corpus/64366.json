@@ -1,0 +1,43 @@
+{
+  "number": 64366,
+  "title": "[BUG] Unbounded MCP server fan-out across Cowork/agent sessions exhausts RAM and kernel-panics macOS (4 panics + forced power-off on M2 Max / 32 GB)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWith only **11 configured MCP servers**, Claude Desktop (which hosts Claude Code sessions) spawns **~300 MCP server processes** and pins **~24 GB of swap for 5+ hours**, repeatedly driving a 32 GB M2 Max into total memory starvation — **four kernel panics in four days plus a hard freeze requiring a 10-second forced power-off** (login screen unresponsive, password rejected, Touch ID dead).\n\n`~300 procs ÷ 11 servers ≈ 27×`, which indicates the full MCP set is instantiated **per concurrent Cowork/worktree/agent session and never reaped on session close**. There is no concurrency cap, no dedup, and no memory backpressure.\n\nThis is **Claude Code surface area**, not merely the Electron shell: the failure is driven by Claude Code's **MCP server lifecycle** and its **Cowork/agent/worktree session management** — the same MCP fan-out that runs under `claude` sessions. (Filing fresh because the closest report, #40249, was closed `invalid`/\"not related to Claude Code\"; on macOS this escalates from \"high RAM\" to repeated kernel panics, so I'm reporting with full kernel-level evidence.)\n\n**Environment**\n- Claude Desktop **1.9659.2** (hosting Claude Code sessions)\n- macOS 26.5 (25F71)\n- MacBook Pro 14\" (Mac14,5), **Apple M2 Max, 32 GB RAM**\n- Configured MCP servers: **11 total** — 2 in `claude_desktop_config.json` (pulumi, mempalace) + 9 Desktop Extensions (chrome-control, filesystem, imessage, notes, ms_office word/excel/powerpoint, macos-mcp, desktopcommander)\n\n**Why this is a defect, not a misconfiguration**\n1. The config is already minimized to 11 servers; the freeze persists regardless.\n2. The failure scales with **session count** (app-controlled), not configured-server count (user-controlled) — it is **O(sessions × servers) with no upper bound.** More RAM only delays the freeze.\n3. Stale session/VM dirs (`vm_bundles/`, `claude-code-sessions/`, `local-agent-mode-sessions/`, `Partitions/cowork-*`) co-present with 300 live procs ⇒ **MCP servers from closed sessions are not reaped.**\n4. **No concurrency cap and no memory backpressure** — the app marched 230 → 304 servers while the system was already >90 % memory pressure and thrashing swap.\n\n**Decisive control:** with Claude **quit**, the machine sits at swap 0, ~14 GB available, 88 % memory-free, load ~2, indefinitely. Reopening it is the only thing that reproduces the climb. Hardware is clean: SSD SMART = Verified; no machine-check / DRAM-ECC / SError / GPU-reset signatures; no thermal events. This is not hardware and not macOS — it is the app.\n\n---\n\n_A note on priorities:_ Anthropic has been increasingly strict about users running anything other than the official harness — fine, but then the official harness has to be engineered to a standard that doesn't take down the host OS. Shipping the client on Electron with no MCP-process reaping, no concurrency cap, and no memory backpressure is what's kernel-panicking a 32 GB M2 Max multiple times a day. A first-party app should not be capable of hard-locking the machine it runs on. I've used Macs for 20+ years and have never had a single application cause repeated kernel panics and forced power-offs like this — and it's entirely reproducible by quitting vs. launching this one app.\n\n\n### What Should Happen?\n\nA minimal, fixed set of configured MCP servers should result in a bounded, roughly constant number of MCP processes — regardless of how many Cowork/worktree/agent sessions are opened over time. The app should never be able to exhaust system RAM or destabilize the host OS. Specifically:\n\n- **Reap a session's MCP servers when its session / worktree / Cowork VM closes** (no orphaned servers from closed sessions).\n- **Deduplicate / pool** identical MCP servers across concu",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:mcp",
+    "perf:memory",
+    "area:agents",
+    "area:cowork"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-01T01:32:36Z",
+  "updated_at": "2026-06-24T12:32:02Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 17,
+  "author": "ygbr",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "abhinas90",
+      "author_association": "NONE",
+      "body": "This sounds like a process lifecycle / session management failure, not just a one-off memory bug.\n\nHere's a diagnostic matrix to narrow it down:\n\n**1. Check if it's single-session vs. cross-session accumulation**\n```\nps aux | grep claude | awk '{print $2, $4, $6}' >> /tmp/claude-mem.log\n# Run your workload, then check if RSS grows linearly per task or exponentially over sessions\n```\n\n**2. Identify zombie processes (most common cause of phantom memory growth)**\n```\nps aux | grep defunct\n# If you ",
+      "created_at": "2026-06-01T03:07:00Z"
+    },
+    {
+      "author": "ygbr",
+      "author_association": "NONE",
+      "body": "Thanks @abhinas90 — agreed it's a lifecycle/session-management failure. One key clarification so the matrix points the right way: **this is the Claude Desktop app, not the `claude` CLI.** The fan-out happens per Cowork/worktree/agent session inside Desktop and isn't reaped on session close — so the `claude --print` loop (#3) tests the wrong surface and won't reproduce it. The clean control is Desktop-level: **quit Claude Desktop → swap drains to 0, ~14 GB free, load ~2 indefinitely; relaunch is ",
+      "created_at": "2026-06-01T13:01:10Z"
+    },
+    {
+      "author": "ygbr",
+      "author_association": "NONE",
+      "body": "**Follow-up with a live per-server breakdown — caught the duplication in the act at small scale.**\n\nReopened Desktop and inspected the fleet while running what I believed was a **single** Cowork session. Found **52 real MCP server processes** for ~15 distinct configured servers — i.e. **3–4× duplication**, with some servers far higher:\n\n| Server | Live copies |\n|---|---|\n| prisma mcp | **8** |\n| mempalace-pg | 4 |\n| macos-mcp | 4 |\n| context7 | 4 |\n| aws-iac | 4 |\n| aws-pricing | 4 |\n| aws-proxy",
+      "created_at": "2026-06-01T13:19:23Z"
+    }
+  ]
+}

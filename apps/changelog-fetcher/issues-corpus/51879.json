@@ -1,0 +1,35 @@
+{
+  "number": 51879,
+  "title": "[Bug] Sonnet 4.6 sessions: auto mode not available via any entry path (UI, flag, settings), while Opus 4.7 in same install works",
+  "body": "## Bug Description\n\nIn the same Claude Code install, auto mode is available on **Opus 4.7** sessions but **completely unreachable** on **Sonnet 4.6** sessions — not just missing from the Shift+Tab cycle, but also ignored when passed via `--permission-mode auto` or set via `permissions.defaultMode: \"auto\"` in settings.json.\n\nPer docs (https://code.claude.com/docs/en/permission-modes) auto mode isn't formally supported on Pro/Max. However issue #49653 confirms Max accounts *do* receive auto mode through the startup path on Opus. This report is about the model-specific gap: the same Max path that works on Opus does not work on Sonnet.\n\n## Environment\n\n- Claude Code: **2.1.117**\n- OS: macOS 26.1 (Darwin 25.1.0)\n- Shell: zsh\n- Plan: **Max** (auto mode working on Opus 4.7 sessions in this install)\n- Relevant settings:\n  ```json\n  {\n    \"permissions\": { \"defaultMode\": \"auto\" },\n    \"skipAutoPermissionPrompt\": true,\n    \"effortLevel\": \"xhigh\"\n  }\n  ```\n\n## Steps to Reproduce\n\n**A. Model switch mid-session (Opus → Sonnet)**\n1. Start session: `claude` (Opus 4.7, auto mode active ✅)\n2. `/model sonnet` → system emits `## Exited Auto Mode`\n3. Shift+Tab cycle: auto option is gone\n\n**B. Fresh Sonnet session via CLI flag**\n1. `claude --model sonnet --permission-mode auto`\n2. Auto mode is not in Shift+Tab cycle and indicator does not show \"auto mode on\" (silently downgrades, same symptom as #42648's Haiku case)\n\n**C. Fresh Sonnet session via settings**\n1. With `permissions.defaultMode: \"auto\"` in `~/.claude/settings.json`\n2. `claude --model sonnet`\n3. Auto mode does not activate on startup (whereas identical config activates it on Opus)\n\nAll three paths fail. Restart back to Opus → auto mode returns.\n\n## Expected\n\nEither:\n- **A**: Auto mode should work on Sonnet 4.6 in the same paths that succeed on Opus 4.7 (symmetry across supported models per #42648 which states \"Sonnet 4.6, Opus 4.6+\" as supported).\n- **B**: If Sonnet is intentionally excluded on Max, surface a clear message at startup (\"auto mode requires Opus on Max plan\" or similar) — current silent downgrade is identical to the UX issue filed in #42648.\n\n## Actual\n\nSilent downgrade with no indication of why. User-facing signal is only \"auto is missing from Shift+Tab cycle\" + one-shot `## Exited Auto Mode` message on model switch.\n\n## Related\n\n- #49653 — Shift+Tab auto disappears after plan-approval on Opus (similar end-state, different trigger)\n- #42648 / #43235 — Auto mode silently unavailable on Haiku (claims Sonnet 4.6 is supported, contradicting this report)\n- #46616 — Max plan auto mode gating inconsistency\n- #49273 — `defaultMode:\"auto\"` not activating at session start (Max + Opus 4.7)\n\n## Additional Context\n\nThe contradiction with #42648 (which states Sonnet 4.6 is a supported model for auto mode) suggests either (a) a regression on Sonnet 4.6 in recent versions, or (b) Max-plan-specific model gating that's not documented.",
+  "labels": ["bug", "platform:macos", "area:permissions"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-22T07:45:58Z",
+  "updated_at": "2026-06-15T16:15:55Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 12,
+  "author": "ohamma8253",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/44101\n2. https://github.com/anthropics/claude-code/issues/49273\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-22T07:49:04Z"
+    },
+    {
+      "author": "ohamma8253",
+      "author_association": "NONE",
+      "body": "Not a duplicate of either suggested issue — distinct symptom and cause.\n\n**vs #49273** (Max + Opus 4.7, defaultMode not activating at startup): different model and different symptom. This report is specifically about Sonnet 4.6 being absent from Shift+Tab cycling entirely, while Opus 4.7 in the *same install* works correctly. It's a model-specific gap, not a startup config issue.\n\n**vs #44101** (Team + Sonnet 4.6, UI modal revert): different plan, different symptom (modal click revert vs Shift+T",
+      "created_at": "2026-04-22T07:52:53Z"
+    },
+    {
+      "author": "AnhQuanTrl",
+      "author_association": "NONE",
+      "body": "From the doc of auto mode https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode it says sonnet 4.6 is available but then in the CLI it is not. I think this is a bug",
+      "created_at": "2026-04-28T01:38:15Z"
+    }
+  ]
+}

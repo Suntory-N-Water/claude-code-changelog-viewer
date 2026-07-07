@@ -1,0 +1,43 @@
+{
+  "number": 21322,
+  "title": "100% CPU usage while idle awaiting user input",
+  "body": "## Description\n\nClaude CLI consumes 100%+ CPU while idle waiting for user input at the prompt. The process should be sleeping/blocked on stdin read, but instead is actively running.\n\n## System Information\n\n- **Platform**: Raspberry Pi 5 (ARM64)\n- **OS**: Linux (Debian-based)\n- **Claude CLI Version**: Latest from npm\n\n## Diagnostic Output\n\n### top output\n```\nPID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND\n8175 jferraro  20   0   71.6g 959712  52480 R 114.0   5.9  22:28 claude\n```\n\nNote: Process is in `R` (running) state, not `S` (sleeping).\n\n### strace analysis\n\nRunning `strace -p <pid> -f` reveals three issues:\n\n**Issue 1: Busy-polling /proc stats**\n```\n[pid  8175] pread64(10, \"18762362 239712 13120 13620 0 16\"..., 256, 0) = 41\n[pid  8175] pread64(10, \"18762362 239712 13120 13620 0 16\"..., 256, 0) = 41\n[pid  8175] pread64(10, \"18762362 239712 13120 13620 0 16\"..., 256, 0) = 41\n```\nThe main thread is reading `/proc/self/stat` (process statistics) in a tight loop with no sleep between reads. This appears to be resource monitoring code (likely for status bar memory display) without any rate limiting.\n\n**Issue 2: Spinlock contention**\n```\n[pid  8550] sched_yield()\n[pid  8551] sched_yield()\n[pid  8552] sched_yield()\n```\nThree worker threads are in tight `sched_yield()` loops - classic spinlock starvation pattern. They yield CPU but immediately retry, burning cycles.\n\n**Issue 3: 16ms timer (60 Hz)**\n```\ntimerfd_settime(7, ..., {it_value={tv_sec=0, tv_nsec=16000000}}, ...)\n```\nA 60Hz timer is running (reasonable for UI), but combined with busy polling creates excessive load.\n\n## Expected Behavior\n\nWhen idle at the input prompt, the process should:\n1. Block on stdin read (sleeping state)\n2. Poll resource stats at most once per second, not continuously\n3. Worker threads should be sleeping on condition variables, not spinning\n\n## Impact\n\n- Drains battery on laptops\n- Causes thermal throttling on low-power devices (Pi)\n- Wastes significant CPU resources\n- Makes the system less responsive for other tasks\n\n## Suggested Fix\n\nReplace the busy-poll resource monitoring with a timer-based approach (e.g., poll `/proc/self/stat` once per second). Review worker thread synchronization to use proper blocking primitives instead of spinlocks.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tui",
+    "area:core",
+    "perf:memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-27T20:39:03Z",
+  "updated_at": "2026-03-12T14:36:45Z",
+  "closed_at": "2026-03-05T10:19:45Z",
+  "reactions_total": 5,
+  "comments_count": 12,
+  "author": "CodeYozh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "CodeYozh",
+      "author_association": "NONE",
+      "body": "Additional system information:\n\n```\n$ echo $TERM\nxterm-256color\n\n$ echo $SHELL\n/bin/bash\n\n$ claude --version\n2.1.20 (Claude Code)\n```",
+      "created_at": "2026-01-27T20:39:19Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17142\n2. https://github.com/anthropics/claude-code/issues/19393\n3. https://github.com/anthropics/claude-code/issues/17148\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-27T20:43:50Z"
+    },
+    {
+      "author": "infactai",
+      "author_association": "NONE",
+      "body": "100% CPU is a bug. 100% :)",
+      "created_at": "2026-01-29T03:10:35Z"
+    }
+  ]
+}

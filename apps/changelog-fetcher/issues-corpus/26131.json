@@ -1,0 +1,35 @@
+{
+  "number": 26131,
+  "title": "cowork skils bug",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n[Bug-Report-Skills-Not-Loading.md](https://github.com/user-attachments/files/25345641/Bug-Report-Skills-Not-Loading.md)\n\n# Bug Report: User-Created Skills Not Loading in Cowork Mode\n\n## Summary\n36 user-created skills are registered in the `.skills/manifest.json` with valid `skillId` entries and `\"enabled\": true`, but none appear in the runtime available skills list, the Settings > Capabilities UI, or are invocable by name in any session. Only plugin skills (finance, legal, sales, productivity) and built-in skills load. The upload endpoint also returns HTTP 500 when attempting to add new skills through the UI.\n\n## Environment\n- **Platform:** Windows\n- **App Version:** Claude Desktop (Cowork mode)\n- **Plan:** Paid (Pro/Team)\n- **Number of affected skills:** 36 user-created skills\n- **Date first noticed:** February 16, 2026\n\n## Steps to Reproduce\n1. Open Claude Desktop in Cowork mode with a mounted workspace folder\n2. Go to Settings > Capabilities > Skills\n3. Observe \"No skills yet. Add a skill to get started.\" despite 36 registered skills\n4. Attempt to invoke any user-created skill by name (e.g., \"run cb-monday-audit\") — skill is not found\n5. Attempt to upload a new .skill file via the \"Add a skill\" button — returns \"Internal server error\"\n\n## Expected Behavior\n- All 36 skills in `manifest.json` should appear in Settings > Capabilities\n- All skills should be invocable by name in any session\n- The upload endpoint should accept valid .skill files\n\n## Actual Behavior\n1. **Settings > Capabilities shows \"No skills yet\"** — despite 36 skills in manifest\n2. **Runtime skill list omits all user-created skills** — only plugin skills and built-ins appear\n3. **Skills not invocable by name** — requesting \"run cb-monday-audit\" returns skill not found\n4. **Upload endpoint returns 500** — attempting to add a new .skill file fails with Internal Server Error\n5. **`.skills/skills/` directory intermittently empty** — directory contents disappear mid-session (mount instability), though they were present at session start\n\n## Manifest Evidence\nThe `manifest.json` contains all 36 skills with valid entries, for example:\n\n```json\n{\n  \"skillId\": \"skill_01K6hdnxciQch9Nv3nhcRy6E\",\n  \"name\": \"cb-ltc-activity-codes\",\n  \"description\": \"LTC activity codes audit...\",\n  \"creatorType\": \"user\",\n  \"updatedAt\": \"2026-02-16T12:27:22.924266Z\",\n  \"enabled\": true\n}\n```\n\nAll 36 entries follow this pattern with unique skillIds, `\"creatorType\": \"user\"`, and `\"enabled\": true`.\n\n## Session Evidence\n- At session start: `ls .skills/skills/` showed 10 skill folders on disk\n- Mid-session: same directory returned empty (only `.` and `..`)\n- Manifest was readable early in session, then `FileNotFoundError` later\n- Plugin skills (finance, legal, sales, etc.) load and function normally throughout\n\n## Possibly Related Issues\n- **#24859** — Cowork Windows path resolution bug for plugin skills (wrong directory traversal)\n- **#14733** — User-provided skills not appearing in /skills command output\n- **#25548** — Claude agent unable to discover skills in .claude/skills/ directory\n- **#9716** — Claude Code skills not recognised in .claude/skills/\n\n## Impact\nThis is a **complete failure of the user skills system in Cowork mode on Windows.** No user-created skills can be discovered, loaded, or executed through the normal skill invocation pathway. The only workaround is manually reading SKILL.md files from disk during a conversation — which also fails when the mount becomes unstable mid-session.\n\nThe user has invested significant time building 36 custom operations skills for daily business use. The skills pipeline regression makes the entire custom skills feature non-functional.\n\n## Workaround\nNone reliable. Reading SKILL.md ",
+  "labels": ["invalid", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-16T16:23:00Z",
+  "updated_at": "2026-03-29T14:22:52Z",
+  "closed_at": "2026-03-21T22:09:24Z",
+  "reactions_total": 10,
+  "comments_count": 10,
+  "author": "cruth123-art",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25797\n2. https://github.com/anthropics/claude-code/issues/25072\n3. https://github.com/anthropics/claude-code/issues/20576\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-16T16:26:55Z"
+    },
+    {
+      "author": "francisco-perez-sorrosal",
+      "author_association": "NONE",
+      "body": "I have the same problem in Claude Desktop. Trying to upload (for update purposes) a couple of zipped skills that I could upload without problems and were working minutes before, now show the behavior described in `4. Upload endpoint returns 500 — attempting to add a new .skill file fails with Internal Server Error`",
+      "created_at": "2026-02-17T04:20:55Z"
+    },
+    {
+      "author": "raidhosn",
+      "author_association": "NONE",
+      "body": "I get the following error when trying to upload a Claude skill.\n\nUpload skill\n\nx\n\n4\n\nInternal server error\n\n+\n\nDrag and drop or click to upload\n\nFile requirements\n. .md file must contain skill name and description formatted in YAML\n. .zip or .skill file must include a SKILL.md file\n\nRead more about creating skills or see an example",
+      "created_at": "2026-02-17T15:45:27Z"
+    }
+  ]
+}

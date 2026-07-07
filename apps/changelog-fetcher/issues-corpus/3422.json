@@ -1,0 +1,35 @@
+{
+  "number": 3422,
+  "title": "[BUG] Command permission system doesn't recognize pytest variations as the same   operation",
+  "body": "  ## Description\n\n  The Claude Code permission system requires separate permission grants for pytest commands\n   with different arguments or environment variables, even when choosing \"Yes, and don't\n  ask again for similar commands in [directory]\". This creates friction in development\n  workflows where pytest needs to be run with various configurations.\n\n  ## Steps to Reproduce\n\n  1. Run a pytest command with specific arguments/env vars:\n     ```bash\n     NODE_ENV=test pytest tests/unit/test_example.py\n\n  2. When prompted, select \"Yes, and don't ask again for similar commands in /path/to/repo\"\n  3. Run a different pytest command with different arguments/env vars:\n  DEBUG=1 pytest tests/integration/test_other.py -v\n  4. Permission prompt appears again\n\n  Expected Behavior\n\n  After granting permission for pytest commands in a directory, all variations of pytest\n  (with different arguments, environment variables, test files, flags) should be\n  automatically approved without requiring separate permissions.\n\n  Actual Behavior\n\n  Each variation of pytest command requires a separate permission grant, treating them as\n  different operations rather than variations of the same testing tool.\n\n  Environment\n\n  - Claude Code version: 1.0.51 (based on local package.json)\n  - OS: macOS (Darwin 24.4.0)\n  - Shell: bash/zsh\n  - Directory: /Users/user/repos/myproject\n\n  Impact\n\n  This significantly impacts development velocity when running tests with different\n  configurations, as developers need to manually approve each pytest variation. Testing\n  workflows commonly require:\n\n  - Different environment variables (mocking flags, test databases)\n  - Different test file paths\n  - Different pytest flags (-v, -s, --tb=short, etc.)\n  - Different test selection patterns\n\n  Example Commands That Each Require Separate Permission\n\n  # Each of these requires a separate permission grant:\n  pytest tests/unit/\n  NODE_ENV=test pytest tests/integration/\n  DEBUG=1 MOCK_API=1 pytest tests/integration/test_api.py -v\n  pytest tests/unit/test_models.py::TestUser::test_creation\n  make test-unit\n  make test-integration\n\n  Suggested Fix\n\n  The permission system should recognize that pytest commands are fundamentally the same\n  operation regardless of:\n\n  - Command line arguments\n  - Environment variables\n  - Test file paths\n  - Pytest flags\n  - Make targets that run pytest\n\n  Possible solutions:\n\n  1. Pattern-based matching: Use regex patterns like .*pytest.* instead of exact string\n  matches\n  2. Command classification: Recognize common development tools (pytest, npm test, cargo\n  test, etc.) and group their variations\n  3. Configurable tool whitelist: Allow users to specify trusted commands in settings\n\n  Current Workaround\n\n  Using hooks configuration in ~/.claude/settings.json, but this shouldn't be necessary for\n   such a common development tool:\n\n  {\n    \"hooks\": {\n      \"PreToolUse\": [\n        {\n          \"matcher\": \"Bash\",\n          \"hooks\": [\n            {\n              \"type\": \"command\",\n              \"command\": \"echo \\\"$TOOL_INPUT\\\" | grep -q 'pytest' && echo '{\\\"decision\\\": \n  \\\"approve\\\"}'\"\n            }\n          ]\n        }\n      ]\n    }\n  }\n\n  Related Issues\n\n  This likely affects other common development commands:\n  - npm test vs npm run test:unit vs npm run test:e2e\n  - cargo test vs cargo test --release vs cargo test package_name\n  - go test vs go test -v vs go test ./...\n\n  Additional Context\n\n  The permission was initially granted in the project repository context, but subsequent\n  pytest commands with different arguments/environment variables still trigger permission\n  prompts, suggesting the permission matching is too strict for practical development\n  workflows.\n",
+  "labels": ["bug", "platform:macos", "area:security", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-13T00:17:41Z",
+  "updated_at": "2026-01-12T14:16:32Z",
+  "closed_at": "2026-01-05T10:19:45Z",
+  "reactions_total": 3,
+  "comments_count": 11,
+  "author": "AshKash",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rboyce-ant",
+      "author_association": "CONTRIBUTOR",
+      "body": "Env vars do change the behavior of scripts & programs, so we don't automatically approve commands that include setting an env var. For now, you can manually a rule for each of the env var prefixes (e.g. `Bash(NODE_ENV=test pytest:*)`) or use a hook like you suggested. For permission rules, we want to err on the side of giving users explicit control rather than making unsafe assumptions about which commands the user might have intended to allow. With that said, this is definitely an area that we ",
+      "created_at": "2025-07-13T01:16:37Z"
+    },
+    {
+      "author": "Maxiao118",
+      "author_association": "NONE",
+      "body": "AFAD-1493-BD39-FEFE-93F4",
+      "created_at": "2025-07-13T15:22:22Z"
+    },
+    {
+      "author": "the-vampiire",
+      "author_association": "NONE",
+      "body": "i can see how env vars should be treated with scrutiny. i came to this issue because every variant of `python -m pytest ...` was being treated uniquely (flags, args, different paths etc). \n\nif you are using `uv` (if you arent what are you doing with your life...) then the fix has been to whitelist `Bash(uv run:*)` then in your claude memories instruct it to \n\n- always run tests using `uv run pytest ...`\n- always run one-off python commands (debugging, testing imports etc) using `uv run python ..",
+      "created_at": "2025-07-24T19:06:01Z"
+    }
+  ]
+}

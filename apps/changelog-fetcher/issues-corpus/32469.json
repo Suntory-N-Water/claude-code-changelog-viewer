@@ -1,0 +1,29 @@
+{
+  "number": 32469,
+  "title": "Support cursor shape changes for vim mode (beam in insert, block in normal)",
+  "body": "## Feature Request\n\nWhen vim mode is enabled (via `/vim` or `/config`), the cursor shape should change based on the current mode:\n\n- **Insert mode**: thin/beam cursor (`\\e[5 q` or `\\e[6 q`)\n- **Normal mode**: block cursor (`\\e[1 q` or `\\e[2 q`)\n\n## Current Behavior\n\nThe cursor appearance stays the same regardless of vim mode. The only visual indicator is the `NORMAL`/`INSERT` text in the prompt.\n\n## Expected Behavior\n\nClaude Code should emit DECSCUSR escape sequences when switching between vim modes, similar to how shells with vi mode (zsh vi-mode, bash vi-mode) and terminal editors (neovim, vim) change the cursor shape.\n\nMost modern terminals support this (iTerm2, WezTerm, Ghostty, Kitty, Alacritty, Windows Terminal, etc.), so this would provide a natural and familiar visual cue for vim mode users.",
+  "labels": ["enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-09T12:56:24Z",
+  "updated_at": "2026-05-13T17:15:06Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 2,
+  "author": "halvorlinder",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Until native DECSCUSR support is added, you can approximate this with terminal-level vim mode cursor shape changes.\nIf you use zsh with vi-mode, the terminal cursor shape already changes — Claude Code inherits the terminal settings. Add to ~/.zshrc:\n```bash\nfunction zle-keymap-select {\n  if [[ $KEYMAP == vicmd ]] || [[ $1 == 'block' ]]; then\n    echo -ne '\\e[1 q'  # block cursor\n  else\n    echo -ne '\\e[5 q'  # beam cursor\n  fi\n}\nzle -N zle-keymap-select\necho -ne '\\e[5 q'  # default beam\n```\nNote",
+      "created_at": "2026-03-30T22:10:09Z"
+    },
+    {
+      "author": "unrelentingfox",
+      "author_association": "NONE",
+      "body": "Emitting the DECSCUSR shape escape sequences should be a pretty quick fix. Bumping this again for visibility. ",
+      "created_at": "2026-05-13T17:15:06Z"
+    }
+  ]
+}

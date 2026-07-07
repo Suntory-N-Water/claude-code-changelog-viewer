@@ -1,0 +1,35 @@
+{
+  "number": 27171,
+  "title": "[BUG] Glob and Grep tools silently return empty results for valid queries",
+  "body": "## Problem\n\nThe Glob and Grep tools intermittently return \"No files found\" or \"No matches found\" when matches demonstrably exist. This is distinct from the timeout issues in #22379 and #16043 — it occurs on small directories where timeout is not a factor, and the equivalent `find` or `rg` command in Bash succeeds immediately.\n\n## Reproduction\n\nThis is intermittent, which makes it hard to provide a deterministic repro. The pattern observed:\n\n1. Run `Glob(pattern=\"**/*.md\", path=\"/some/project\")` → \"No files found\"\n2. Run `find /some/project -name \"*.md\"` via Bash → lists files correctly\n3. Re-run the same Glob call → sometimes works on retry\n\nSimilarly with Grep:\n1. `Grep(pattern=\"some_function\", path=\"/some/project\")` → \"No matches found\"\n2. `grep -r \"some_function\" /some/project` via Bash → finds matches\n3. Narrowing to a specific file path first sometimes makes it work\n\n## Workarounds\n\n- Fall back to Bash `grep`/`find` when Glob/Grep returns suspiciously empty results\n- Narrow the search path to a specific file or directory before trusting a broad \"no results\"\n\n## Environment\n\n- Platform: Linux (WSL2)\n- Observed consistently over ~5 weeks of daily use\n- Not correlated with repo size (happens in projects with <100 files)\n\n## Impact\n\nThis silently produces incorrect results — the model proceeds as if the file/pattern doesn't exist, leading to wrong conclusions or unnecessary recreation of existing files. It's particularly insidious because there's no error signal; the tool reports success with empty results.",
+  "labels": ["stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-20T15:49:08Z",
+  "updated_at": "2026-04-16T14:55:50Z",
+  "closed_at": "2026-04-08T22:20:27Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "Kenoubi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Kenoubi",
+      "author_association": "NONE",
+      "body": "**Naming clarification:** In the Claude Code UI, the user sees a tool called \"Search\" — but in Claude's tool definitions, this maps to two separate tools: **Glob** (file path matching) and **Grep** (content search via ripgrep). Both exhibit this issue. If you're reading this as a user and have never seen \"Glob\" or \"Grep\" in your terminal, that's why — they're the internal names for what you see as \"Search.\"",
+      "created_at": "2026-02-20T15:50:38Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7344\n2. https://github.com/anthropics/claude-code/issues/16936\n3. https://github.com/anthropics/claude-code/issues/5256\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-20T15:53:32Z"
+    },
+    {
+      "author": "denysvitali",
+      "author_association": "NONE",
+      "body": "Yes. Same here. And since these are internal tools, Claude will blindly trust them and steer away from the solution.\n\nI'll try to patch the binary and add the patch to my [claude-code-patches](https://github.com/denysvitali/claude-code-patches)",
+      "created_at": "2026-02-23T07:59:40Z"
+    }
+  ]
+}

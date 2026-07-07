@@ -1,0 +1,35 @@
+{
+  "number": 13803,
+  "title": "[BUG] Monitoring(OpenTelemetry) is broken since 2.64, still not working in 2.67 (latest version)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code Opentelemetry feature is broken.\nBroken means it does not produce any logs / metrics.\nIt does not produce metrics / logs even after we configure that.\n\n### What Should Happen?\n\nAfter we configure the telemetry setting, the claude code should produce metrics / logs.\n\n### Error Messages/Logs\n\n```shell\nNo error messages found.\n```\n\n### Steps to Reproduce\n\n~/.claude/settings.json\n```\n{\n  \"env\": {\n    \"AWS_PROFILE\": \"<AWS ROLE>\",\n    \"AWS_REGION\": \"<AWS REGION>\",\n    \"NODE_TLS_REJECT_UNAUTHORIZED\": 0,\n    \"ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION\": \"<AWS REGION>\",\n    \"CLAUDE_CODE_USE_BEDROCK\": 1,\n    \"ANTHROPIC_MODEL\": \"<Model Inference Profile ID>\",\n    \"ANTHROPIC_SMALL_FAST_MODEL\": \"<Model Inference Profile ID>\",\n    \"ANTHROPIC_CUSTOM_HEADERS\": \"X-Amzn-Bedrock-GuardrailIdentifier: <GuardrailID>\\nX-Amzn-Bedrock-GuardrailVersion: <GuardrailVersion>\",\n    \"CLAUDE_CODE_ENABLE_TELEMETRY\": 1,\n    \"OTEL_METRICS_EXPORTER\": \"console\",\n    \"OTEL_METRIC_EXPORT_INTERVAL\": 1000,\n    \"OTEL_METRICS_INCLUDE_SESSION_ID\": false,\n    \"OTEL_RESOURCE_ATTRIBUTES\": \"user.name=testuser\"\n  }\n}\n```\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.0.64\n\n### Claude Code Version\n\n2.0.67\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\nWe have a dashboard that monitors usage.\nIn the `claude_code_active_time_seconds_total` metric, the last version we are seeing is `2.0.64`.",
+  "labels": ["bug", "has repro", "api:bedrock", "platform:macos"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-12T14:46:46Z",
+  "updated_at": "2025-12-27T14:07:13Z",
+  "closed_at": "2025-12-19T18:18:42Z",
+  "reactions_total": 7,
+  "comments_count": 11,
+  "author": "FutureGadget",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "igorkofman",
+      "author_association": "COLLABORATOR",
+      "body": "Hey folks, I can confirm this is broken. \nA fix was merged and we'll get it to you asap (on Monday afternoon at the latest).",
+      "created_at": "2025-12-13T18:09:36Z"
+    },
+    {
+      "author": "igorkofman",
+      "author_association": "COLLABORATOR",
+      "body": "As a workaround, you can set the otel env-vars in you shell instead of in settings.json for now.",
+      "created_at": "2025-12-13T18:21:50Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/13771\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-12T14:50:04Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 12114,
+  "title": "[Critical Bug] Session history lost after auto-update from 2.0.44 to 2.0.49",
+  "body": "## Bug Description\n\nAfter auto-update from Claude Code version **2.0.44** to **2.0.49**, most session history disappeared from `/resume` command.\n\n## Environment\n\n- **OS:** Linux (Debian-based VPS)\n- **Previous Version:** 2.0.44 (installed: 2025-11-18)\n- **Current Version:** 2.0.49 (auto-updated: 2025-11-21)\n- **Editor:** Cursor (VS Code fork)\n- **Extension Path:** `~/.cursor-server/extensions/anthropic.claude-code-*`\n\n## Expected Behavior\n\nAll previous sessions should be available in `/resume` after update.\n\n## Actual Behavior\n\nOnly 2 most recent sessions are visible in `/resume` (created after 2025-11-18).\n\n## Root Cause Analysis\n\nThe new version (2.0.49) introduced a new session tracking system using `sessionId` fields in `history.jsonl`. However, old entries don't have this field and are therefore not displayed in `/resume`.\n\n### Data Analysis\n\n**File:** `~/.claude/history.jsonl` (2.4 MB, 4515 entries)\n\n- ✅ **4515 total entries** - file is intact\n- ❌ **4511 entries WITHOUT sessionId** (old format) - not visible in `/resume`\n- ✅ **5 entries WITH sessionId** (new format, since 2025-11-18) - visible in `/resume`\n\n**Directory:** `~/.claude/session-env/`\n- Only 2 session directories exist (matching the 2 sessionIds)\n- Sessions correspond to entries from 2025-11-18 onwards\n\n### Session Loss\n\nUsing time-gap analysis (gaps > 1 hour = new session), I identified **18 distinct sessions** in the data:\n\n- **11 sessions** from October 2025\n- **5 sessions** from November 2025 (before auto-update)\n- **2 sessions** visible after update\n\nThis means **16 sessions** (4511 messages) are now inaccessible via `/resume`.\n\n## Impact\n\n- **Critical:** Users lose access to entire session history after auto-update\n- **Data Loss:** While `history.jsonl` contains all data, it's not accessible through UI\n- **User Experience:** No warning about incompatible format migration\n\n## Reproduction\n\n1. Have Claude Code 2.0.44 with extensive session history\n2. Let auto-update happen to 2.0.49\n3. Try `/resume` - only recent sessions (with sessionId) appear\n\n## Suggested Fixes\n\n### Short-term (Migration)\n1. Add migration script that backfills `sessionId` for old entries\n2. Group old entries by time gaps (e.g., > 1h pause = new session)\n3. Generate UUIDs for each identified session\n4. Create corresponding `session-env/` directories\n\n### Long-term (Backward Compatibility)\n1. Ensure format changes include automatic migration\n2. Add version field to history entries\n3. Display warning before breaking changes\n4. Provide manual recovery tools\n\n## Workaround\n\nCreated backup at: `~/.claude/backups/20251121_230137_pre_update_2.0.49/`\n\nContains:\n- Full `history.jsonl` backup\n- Session analysis with 18 identified sessions\n- Recovery documentation\n\n## Additional Context\n\nThe user reported: \"Before update, all sessions were visible. After `/resume` during auto-update, only one session remained visible.\"\n\n## Files Affected\n\n- `~/.claude/history.jsonl` - read but not properly parsed\n- `~/.claude/session-env/` - empty directories for old sessions\n- Extension code that reads session data for `/resume`\n\n---\n\n**Priority:** Critical - affects all users with pre-2.0.49 history  \n**Category:** Data Migration, Breaking Change  \n**Regression:** Introduced in 2.0.49",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-21T23:23:49Z",
+  "updated_at": "2026-03-29T14:22:56Z",
+  "closed_at": "2026-03-21T22:09:29Z",
+  "reactions_total": 8,
+  "comments_count": 17,
+  "author": "drw1337",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yash2code",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2025-11-23T13:36:19Z"
+    },
+    {
+      "author": "stephenwbeam-collab",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2025-11-29T03:49:22Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-29T10:10:55Z"
+    }
+  ]
+}

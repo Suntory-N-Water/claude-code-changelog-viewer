@@ -1,0 +1,43 @@
+{
+  "number": 24292,
+  "title": "teammateMode: \"tmux\" does not create iTerm2 split panes despite all prerequisites met",
+  "body": "## Bug Description\n\n`teammateMode: \"tmux\"` in `settings.json` does not trigger iTerm2 split panes when spawning agent teammates. All agents fall back to `in-process` mode (confirmed via `backendType: \"in-process\"` in shutdown messages).\n\n## Environment\n\n- **Claude Code version:** 2.1.32\n- **OS:** macOS (Darwin 25.1.0)\n- **Terminal:** iTerm2 (`TERM_PROGRAM=iTerm.app`)\n- **tmux:** installed (`/opt/homebrew/bin/tmux`, v3.6a)\n- **it2 CLI:** installed (`/Users/<user>/.local/bin/it2`, v0.2.3)\n- **iTerm2 Python API:** Enabled (Settings → General → Magic → Enable Python API)\n- **Not running inside tmux** (`$TMUX` is empty)\n\n## Settings\n\n```json\n{\n  \"env\": {\n    \"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\"\n  },\n  \"model\": \"claude-opus-4-6[1m]\",\n  \"alwaysThinkingEnabled\": true,\n  \"fastMode\": true,\n  \"teammateMode\": \"tmux\"\n}\n```\n\n## Steps to Reproduce\n\n1. Open iTerm2 (not inside a tmux session)\n2. Ensure `it2` CLI is installed and working (`it2 --version` returns `0.2.3`)\n3. Ensure iTerm2 Python API is enabled\n4. Set `\"teammateMode\": \"tmux\"` in `~/.claude/settings.json`\n5. Set `\"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\"` in settings env\n6. Launch `claude`\n7. Ask Claude to create an agent team and spawn teammates (without `run_in_background`)\n8. Teammates spawn successfully but all run in **in-process mode** — no iTerm2 split panes are created\n\n## Expected Behavior\n\nPer the [documentation](https://docs.claude.com/en/agent-teams#choose-a-display-mode):\n\n> The `\"tmux\"` setting enables split-pane mode and auto-detects whether to use tmux or iTerm2 based on your terminal.\n\nSince iTerm2 is the active terminal with `it2` CLI installed and Python API enabled, teammates should spawn as iTerm2 split panes.\n\n## Actual Behavior\n\nAll teammates spawn in `in-process` mode. The shutdown confirmation messages show `\"backendType\": \"in-process\"`, confirming no split panes were created. The `it2` CLI is functional (`it2 session split` works manually) but Claude Code does not invoke it.\n\n## Workaround\n\nRunning Claude Code inside a tmux session (`tmux new -s claude && claude`) causes `teammateMode: \"auto\"` to detect tmux and use native tmux split panes. But the `\"tmux\"` setting should handle this automatically per the docs, especially for iTerm2.\n\n## Additional Context\n\n- Tested with 5 teammates spawned simultaneously\n- `it2 --help` shows `split` command is available and functional\n- `it2 session split --vertical` works when run manually from the terminal\n- The issue persists across multiple team creation attempts",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-02-09T00:42:12Z",
+  "updated_at": "2026-05-03T14:34:44Z",
+  "closed_at": "2026-04-25T20:02:02Z",
+  "reactions_total": 7,
+  "comments_count": 10,
+  "author": "sankeerthrao",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23815\n2. https://github.com/anthropics/claude-code/issues/23572\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-09T00:44:46Z"
+    },
+    {
+      "author": "dyross",
+      "author_association": "NONE",
+      "body": "I'm running into something similar, and I think it might have to do with `settings.json` specifically. When I run `claude --teammate-mode tmux`, it does what I expect.\n\n@sankeerthrao can you try that?",
+      "created_at": "2026-02-10T23:16:03Z"
+    },
+    {
+      "author": "anonhostpi",
+      "author_association": "NONE",
+      "body": "I believe this impacting all version, not just IT2. tmux isn't working either for me. I believe the issue is that cli.js ends up parsing teammateMode as undefined regardless of which file its defined in:\n- https://github.com/anthropics/claude-code/issues/23815#issuecomment-3884632511",
+      "created_at": "2026-02-11T14:05:24Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 34859,
+  "title": "[BUG] Hook error messages shown on every tool call even when hooks exit 0",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAll three hook types (PreToolUse, PostToolUse, UserPromptSubmit) display \"hook error\" messages in the transcript on every tool call, even when the hook scripts exit 0 for non-matching commands. The hooks function correctly — they format files, validate commits, and block bad inputs — but Claude Code reports them as errors anyway.\n\nThe message is just \"PreToolUse:Bash hook error\" with no further detail. It appears twice per Bash call (once per registered hook) and once per Edit call.\n\n### What Should Happen?\n\nHooks that exit 0 should be silent. \"hook error\" should only appear for non-zero, non-2 exit codes (per the documentation). Exit 0 = allow, exit 2 = block.\n\n### Error Messages/Logs\n\n```\n● Bash(git status -u)\n  ⎿  PreToolUse:Bash hook error\n  ⎿  PreToolUse:Bash hook error\n  ⎿  On branch feat/playground-design-sandbox\n     Your branch is up to date with 'origin/feat/playground-design-sandbox'.\n     ...\n\n● Update(~/Work/projects/workout/.claude/hooks/session-audit.sh)\n  ⎿  Removed 1 line\n  ⎿  PostToolUse:Edit hook error\n\n❯ Did you check the files...\n  ⎿  UserPromptSubmit hook error\n```\n\n### Steps to Reproduce\n\n1. Create `.claude/settings.json` with hook configuration:\n   ```json\n   {\n     \"hooks\": {\n       \"PreToolUse\": [\n         {\n           \"matcher\": \"Bash\",\n           \"hooks\": [\n             { \"type\": \"command\", \"command\": \"bash .claude/hooks/validate-commit.sh\" }\n           ]\n         }\n       ]\n     }\n   }\n   ```\n\n2. Create `.claude/hooks/validate-commit.sh`:\n   ```bash\n   #!/usr/bin/env bash\n   INPUT=$(cat)\n   COMMAND=$(echo \"$INPUT\" | jq -r '.tool_input.command // empty')\n   echo \"$COMMAND\" | grep -qE '^git commit' || exit 0\n   if ! echo \"$COMMAND\" | grep -qP '#\\d+'; then\n     echo \"Commit message must include issue reference (#NN).\" >&2\n     exit 2\n   fi\n   exit 0\n   ```\n\n3. Run any Bash command via Claude Code (e.g., ask it to run `git status`)\n4. Observe \"PreToolUse:Bash hook error\" in transcript even though the hook exits 0\n\n**Note:** The hook correctly blocks `git commit` without `#NN` (exit 2) and allows all other commands (exit 0). Manual testing confirms exit 0:\n```bash\necho '{\"tool_input\":{\"command\":\"git status\"}}' | bash .claude/hooks/validate-commit.sh; echo $?\n# outputs: 0\n```\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Claude Code Version\n\n2.1.76 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nWSL (Windows Subsystem for Linux)\n\n### Additional Information\n\n- The error appears on **every** tool call, not just mismatched ones\n- Actions still proceed (hooks are non-blocking when they exit 0) — the error label is cosmetic but noisy\n- All hooks follow the same pattern: early `exit 0` for non-matching commands, `exit 2` to block\n- `jq` is installed and functional (tested), though `jq --version` prints just `jq-` (no version number) — possibly relevant\n- Removing `set -euo pipefail` from hooks did not fix the issue\n- Adding explicit `exit 0` at end of all scripts did not fix the issue",
+  "labels": ["bug", "has repro", "area:hooks", "platform:wsl", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-16T07:29:23Z",
+  "updated_at": "2026-05-16T10:37:00Z",
+  "closed_at": "2026-05-16T10:37:00Z",
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "noether-current",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "I run 12+ hooks on WSL and hit this exact pattern. The \"hook error\" label appears even with exit 0 because **Claude Code treats any stderr output from hooks as an error indicator**, regardless of exit code.\n\nTwo likely culprits in your setup:\n\n### 1. `jq` stderr leaking\n\nYour `jq --version` printing just `jq-` (no version number) suggests a broken or unusual jq build. It may emit warnings to stderr during normal operation. Fix:\n\n```bash\nCOMMAND=$(echo \"$INPUT\" | jq -r '.tool_input.command // emp",
+      "created_at": "2026-03-16T07:33:13Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "The stderr explanation above covers the most common cause. Adding one more WSL-specific pattern I've seen produce the same symptom:\n\n### CRLF line ending corruption\n\nIf your hook scripts were created or edited on Windows (VS Code with CRLF line endings), the `\\r` carriage return causes subtle failures. The shell interprets `exit 0\\r` as `exit \"0\\r\"` which is non-zero. This can be invisible in manual testing because WSL terminals handle `\\r` silently in some contexts.\n\nCheck:\n\n```bash\nfile .claud",
+      "created_at": "2026-03-16T08:19:30Z"
+    },
+    {
+      "author": "noether-current",
+      "author_association": "NONE",
+      "body": "Thanks for the suggestions. Ran the full diagnostic:\n\n**Stderr check — all hooks clean:**\n```bash\necho '{\"tool_input\":{\"command\":\"git status\"}}' | bash .claude/hooks/validate-commit.sh 2>/tmp/stderr\n# exit=0, stderr bytes: 0\n\necho '{\"tool_input\":{\"command\":\"git status\"}}' | bash .claude/hooks/validate-issue.sh 2>/tmp/stderr\n# exit=0, stderr bytes: 0\n\necho '{\"is_first_prompt\":\"false\",\"cwd\":\"/...\"}' | bash .claude/hooks/session-audit.sh 2>/tmp/stderr\n# exit=0, stderr bytes: 0\n```\n\n**Line endings:*",
+      "created_at": "2026-03-17T02:01:10Z"
+    }
+  ]
+}

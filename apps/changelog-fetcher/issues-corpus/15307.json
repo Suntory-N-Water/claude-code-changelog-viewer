@@ -1,0 +1,42 @@
+{
+  "number": 15307,
+  "title": "CLI crashes with React error #185 during voice dictation (infinite render loop)",
+  "body": "# Claude Code Crash During Voice Dictation - React Error #185\n\n**Reported:** December 24, 2025\n**Claude Code Version:** 2.0.76\n**Platform:** Linux (Fedora 42, kernel 6.15.9-201.fc42.x86_64)\n\n## Bug Description\n\nClaude Code crashes with React error #185 (Maximum Update Depth Exceeded) when receiving continuous text input from voice dictation software. The CLI terminates completely, losing all dictated content.\n\n## Error Message\n\n```\nError: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at UQ (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:252:16256)\n    at Y1 (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:252:15769)\n    at _7 (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:252:31880)\n    at Z9 (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:252:31479)\n    at file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:2625:2046\n    at xA (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:4674:620)\n    at onInput (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:2587:10737)\n    at Object.wrappedOnInput [as current] (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:2587:7595)\n    at file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:379:2516\n    at _i.J (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:379:3364)\n```\n\n## Steps to Reproduce\n\n1. Set up voice dictation software (I use `nerd-dictation` with Vosk speech recognition)\n2. Launch Claude Code CLI\n3. Start voice dictation (`dictate-start` or `nerd-dictation begin`)\n4. Dictate continuously for 30-60 seconds (rapid continuous text input stream)\n5. CLI crashes with React error #185\n\n## What React Error #185 Means\n\nPer React docs: **Maximum Update Depth Exceeded**\n- Indicates infinite rendering loop\n- Component repeatedly calling setState\n- React terminates to prevent browser/system crash\n\n## Root Cause (Suspected)\n\nThe continuous stream of text from voice dictation triggers rapid input events that cause the CLI's display components to enter an infinite re-render loop. The input handling code likely updates state on every character/word without proper debouncing or conditional guards.\n\n## Frequency\n\nThis has occurred **3 times** during dictation sessions. It appears to be deterministic when dictating for extended periods (30+ seconds of continuous input).\n\n## Impact\n\n- **Severity:** High - Complete CLI crash, data loss\n- **User Experience:** Cannot use voice dictation reliably with Claude Code\n- **Workarounds:**\n  - Dictate in short bursts (<30 seconds)\n  - Dictate to text editor first, then paste\n  - Type instead of dictate (defeats accessibility purpose)\n\n## Expected Behavior\n\nCLI should handle rapid continuous text input without crashing, similar to how it handles fast typing or pasted content.\n\n## Additional Context\n\n- Voice dictation is critical for accessibility and for users who process thoughts better verbally than through typing\n- This bug makes Claude Code unusable for voice-based workflows\n- The minified error message makes debugging difficult - development build would help identify exact component\n\n## Suggested Fix\n\n1. Add debouncing to input handling\n2. Add conditional guards in component lifecycle methods (componentDidUpdate, etc.)\n3. Use proper dependency arrays if using React hooks\n4. Provide development build for better error messages during debugging\n\n## Environment\n\n- **OS:** Fedora Linux 42\n- **Kernel:** 6.15.9-201.fc42.x86_64\n- **Claude Code:** 2.0.76\n- **Voice Dictation:** nerd-dictation with vosk-model-small-en-us-0.15\n- **Terminal:** Gnome Terminal (default)\n\n---\n\n**User Impact Statement:**\nI rely on voice dictation for processing complex thoughts and trauma work. Having Claude Code crash mid-session interrupts critical therapeutic/creative work and creates data loss. This bug makes the tool unusable for its most valuable use case for me.\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tui",
+    "area:a11y",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-24T19:36:31Z",
+  "updated_at": "2026-03-10T14:27:21Z",
+  "closed_at": "2026-02-27T10:25:46Z",
+  "reactions_total": 2,
+  "comments_count": 19,
+  "author": "Mamangel",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13921\n2. https://github.com/anthropics/claude-code/issues/14961\n3. https://github.com/anthropics/claude-code/issues/13183\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-24T19:40:46Z"
+    },
+    {
+      "author": "Mamangel",
+      "author_association": "NONE",
+      "body": "This is **not a duplicate** of #13183. Related root cause (voice-to-text input handling), but distinct symptoms:\n\n## #13183 (Bracketed Paste Hang)\n- CLI **hangs** and becomes unresponsive\n- Requires `kill -9` to terminate\n- Literal `[201~` escape codes appear in prompt\n- Process blocks in `kevent64` kernel call\n\n## #15307 (This Issue - React Error #185)\n- CLI **crashes** with React error #185 (Maximum Update Depth Exceeded)\n- Complete process termination (no hang)\n- Stack trace shows React compo",
+      "created_at": "2025-12-24T19:51:22Z"
+    },
+    {
+      "author": "zinglax",
+      "author_association": "NONE",
+      "body": "I am having this issue also using STT. My guess is that it has something to do with how fast the input is going into the text area. It could be related to fixes for #4851, I am not sure if this was an issue a few months ago. @Mamangel have you been using Claude-Code + STT/Diction for over a few months? ",
+      "created_at": "2025-12-29T02:31:10Z"
+    }
+  ]
+}

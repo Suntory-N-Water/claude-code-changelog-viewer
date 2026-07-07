@@ -1,0 +1,35 @@
+{
+  "number": 5418,
+  "title": "[BUG] API Error (403 The security token included in the request is invalid.) · Retrying in 1 seconds… (attempt 1/10)",
+  "body": "I am aware of https://github.com/anthropics/claude-code/issues/2260, and attempted all of those steps - still not resolved. \n\nI have ran `claude update`, running the latest version. when I tried to pass my API key to it, it said it was a different profile. \n\nwondering how: 1) I just determine what account claude code is attempting to access the model from, 2) log that one out & 2) log back in...I think this would resolve my issue - but dont see anything like that in the docs or / command help. `/config` didnt work, `/doctor` didnt report any issues. \n\nso how can I figure out what account claude code is trying to use, log that account out and then log it back in?? ",
+  "labels": ["bug", "area:auth", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-08T19:40:41Z",
+  "updated_at": "2026-01-19T14:18:34Z",
+  "closed_at": "2026-01-12T10:14:31Z",
+  "reactions_total": 0,
+  "comments_count": 16,
+  "author": "cachatj",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Are you passing `AWS_PROFILE` env var (or in your Claude Code settings.json)?",
+      "created_at": "2025-08-08T20:00:01Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Setting `CLAUDE_CODE_USE_BEDROCK` should be all you need - `/logout` or `/login` shouldn't be necessary. You can confirm that Bedrock is being used via `/status`.\n\nClaude Code doesn't execute its own AWS auth unless you have set `awsAuthHelper` or `awsCredentialExport`. The security token should be located at its typical location, usually `~/.aws`.\n\nDouble-check that your `AWS_PROFILE` and `AWS_REGION` are set if needed. Can you also try issuing a call via the AWS CLI to Bedrock, to confirm thos",
+      "created_at": "2025-08-11T16:13:14Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4229\n2. https://github.com/anthropics/claude-code/issues/4505\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-08T19:44:51Z"
+    }
+  ]
+}

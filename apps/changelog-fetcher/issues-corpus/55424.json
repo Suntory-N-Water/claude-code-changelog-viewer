@@ -1,0 +1,43 @@
+{
+  "number": 55424,
+  "title": "[Bug] v2.1.121 Windows: Claude Code REPL silently exits inside PowerShell host during long-running agent + dense Bash subprocess chain",
+  "body": "**Summary:** Claude Code REPL silently exits inside an active Windows PowerShell window. The parent PowerShell process remains alive — user is dropped to a bare PowerShell prompt with whatever they were typing at the moment of crash stranded at the cursor. No error message, no traceback, no recovery banner — the REPL just vanishes mid-session.\n\n**Version:** v2.1.121 on Windows. Not yet tested on v2.1.123 / v2.1.124 / v2.1.126 — filing first to capture the repeat pattern; upgrading next.\n\n**Steps to reproduce (best inference from 3 crashes observed same morning):**\n1. Open Claude Code in a Windows Terminal tab running PowerShell\n2. Dispatch a long-running sub-agent (Task tool); observed crashes happened at agent runtimes of 10-30 minutes\n3. Agent runs a dense sequence of Bash subprocess invocations — observed pattern: `cd <path> && python <script>.py 2>&1 | grep -E \"...\"` — bash-style `&&` chaining, multiple back-to-back invocations\n4. After ~50+ Bash tool uses inside the agent, the parent Claude Code REPL silently exits\n\n**Expected:** Long-running agents with many Bash subprocess invocations remain stable — no silent process exit.\n\n**Actual:** Claude Code REPL process disappears. The parent PowerShell tab survives. Whatever the user was typing at the moment of crash stays stranded at the bare PS prompt as orphan characters. Session work in progress is lost. Recovery requires `claude --resume <uuid>` and only works if the JSONL was flushed before the crash.\n\n**Pattern across 3 morning crashes:**\n- All in long-running agent sessions (10+ min runtime)\n- All preceded by dense sequences of Bash subprocess invocations\n- All left the same visible artifact: stranded characters at a bare PS prompt\n- All silent: no error dialog observed; user was remote-desktop and could not capture moment-of-crash state from Application event log\n\n**Workaround attempt:** v2.1.126 release notes describe significant rework of the Windows PowerShell host code path (PowerShell promoted to primary Windows shell + bare-`--` mis-flagging fix). Upgrading from v2.1.121 → v2.1.126 may incidentally resolve this — will report back after testing.\n\n**Platform:** Windows 11, Claude Code v2.1.121, Bash as primary shell (default in v2.1.121 on Windows), agents dispatched via Task tool.\n\n**Related:** Same pattern of silent failure on Windows as the cron-loss-on-compact bug (#55033) and the Opus → Sonnet silent downgrade (#54426) — three distinct silent-failure modes for active sessions on Windows in the v2.1.121 timeframe.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:bash",
+    "area:agents",
+    "regression",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-05-01T19:51:27Z",
+  "updated_at": "2026-06-10T22:43:10Z",
+  "closed_at": "2026-06-10T22:43:10Z",
+  "reactions_total": 0,
+  "comments_count": 13,
+  "author": "ThatDragonOverThere",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "**4th instance same morning (~3 hours after filing) — pattern accelerating**\n\nTwo new data points from the latest crash:\n\n**1. Stranded-characters-at-bare-PS-prompt theory eliminated as slash-command parse trigger.**\n\nPrior 3 crashes all left the same stranded chars (`[t`) at the bare PS prompt, which I theorized might mean a slash-command parse path was the trigger. The 4th crash left **different** stranded chars (`pt`) — so the artifact is just whatever the user happened to be typing at the mo",
+      "created_at": "2026-05-01T19:56:53Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/54415\n2. https://github.com/anthropics/claude-code/issues/51620\n3. https://github.com/anthropics/claude-code/issues/47931\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-01T19:56:59Z"
+    },
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "**5th instance same day (~6 hours after filing) — bug now hits the parent dispatcher window, not just sub-agents**\n\nCritical new data point: this crash hit the **Opus dispatcher window** (the parent that dispatches sub-agents), not a sub-agent itself.\n\nBackground: Earlier today I had a working mitigation theory for a different but related bug (#54426 silent model downgrade) — keep the Opus parent in non-agent dispatcher mode where it accumulates very little context, so it never hits the context ",
+      "created_at": "2026-05-01T22:14:53Z"
+    }
+  ]
+}

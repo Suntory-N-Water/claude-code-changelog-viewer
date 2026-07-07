@@ -1,0 +1,35 @@
+{
+  "number": 42338,
+  "title": "Session resume (--continue) invalidates entire prompt cache, causes massive rate limit consumption",
+  "body": "## Summary\n\nResuming a session with `--continue` or `/resume` completely invalidates the prompt cache, even when re-entering within seconds. On a long session with a large prompt, this forces a full `cache_creation` of 400-500k tokens each time — silently burning through rate limits.\n\n## What happened\n\nOn a 1M context Opus 4.6 session with ~500k prompt, I exited and re-entered with `--continue` a few times. Each time, `cache_read` dropped to **0** and the entire prompt was re-cached from scratch — even though the re-entry happened within 2-3 seconds (well within 5-minute cache TTL).\n\nAdditionally, the prompt size barely changed after re-entry, meaning whatever restructuring happened during reload provided no benefit — it just destroyed the cache.\n\n## All resume methods affected (controlled tests)\n\nTested with the same session, varying only the resume method and flags:\n\n```\nTest 1: --continue --dangerously-skip-permissions (12s gap)\n  Before: cr: 172,301  cc: 1,344\n  After:  cr:       0  cc: 174,210  ← full re-cache\n\nTest 2: --continue only (20s gap)\n  Before: cr: 176,193  cc:     0\n  After:  cr:       0  cc: 176,730  ← full re-cache\n\nTest 3: /resume (interactive resume, ~2.5h gap)\n  Before: cr: 160,149  cc:   314\n  After:  cr:       0  cc: 156,682  ← full re-cache\n```\n\nAll three: `cache_read: 0`, full re-cache. The `--dangerously-skip-permissions` flag is irrelevant — it's the resume/continue mechanism itself.\n\n## Raw Data (deduplicated by msg_id, from JSONL session log)\n\n### Spike 1: session resume after ~4h sleep (expected)\n```\n04:18:37  cr: 389,000  cc:     210  out:   640  stop:end_turn     ← last turn before sleep\n         ... ~4 hours gap (cache TTL expired — this one is expected)\n08:08:09  cr:       0  cc:       0  out:     0  stop:stop_sequence ← session resume\n08:09:47  cr:       0  cc: 367,175  out:   822  stop:tool_use      ← 367k full re-cache (expected)\n```\n\n### Spike 2: /exit → --continue, 2 seconds apart\n```\n09:04:15  cr: 499,517  cc:     486  out:   521  stop:end_turn      ← last turn before /exit\n         ... /exit at 09:04:29, --continue at 09:04:31 (2 SECONDS)\n09:04:31  cr:       0  cc:       0  out:     0  stop:stop_sequence ← session reload\n09:05:13  cr:  26,691  cc: 470,381  out: 1,352  stop:tool_use      ← 470k re-cache! (WHY?)\n```\n\n### Spike 3: /exit → --continue, 3 seconds apart\n```\n09:40:19  cr: 561,082  cc:     987  out:   289  stop:end_turn      ← last turn before /exit\n         ... /exit at 09:40:21, --continue at 09:40:24 (3 SECONDS)\n09:40:24  cr:       0  cc:       0  out:     0  stop:stop_sequence ← session reload\n09:42:59  cr:  26,691  cc: 511,847  out: 1,649  stop:tool_use      ← 512k re-cache! (WHY?)\n```\n\n### Messages in JSONL right before each spike\n```\nSpike 2 context:\n  /exit command logged\n  file-history-snapshot\n  custom-title\n  agent-name\n  file-history-snapshot\n  → stop_sequence \"No response requested.\"\n  → cr:0 cc:470,381\n\nSpike 3 context:\n  /exit command logged\n  file-history-snapshot\n  custom-title\n  agent-name\n  file-history-snapshot\n  → stop_sequence \"No response requested.\"\n  → cr:0 cc:511,847\n```\n\n### Before/after comparison\n\n```\nBefore /exit  → After --continue (first turn)\nprompt: 500k  → 497k (-0.6%)    cache_create: 470,381 (entire prompt re-cached)\nprompt: 561k  → 538k (-4%)      cache_create: 511,847 (entire prompt re-cached)\n```\n\n## Impact\n\nIn a 2.6-hour morning window:\n- **3 session resumes consumed ~1.43M cache_creation tokens**\n- Actual useful output during same period: ~155k tokens\n- cache_creation was **9x** the actual output\n- Hourly rate limit cost: **920k/hr** vs normal **412k/hr** (2.2x increase)\n\n## Root Cause\n\nPer @ArkNill's analysis: the `deferred_tools_delta` feature introduced in v2.1.69 reorders tool results when reconstructing the conversation for resume, which breaks the cache prefix and forces a full re-cache. See #34629 and https://github.com/ArkNill/claude-code-cache-analysis.\n\n## Environment\n\n- Model: claude-opus-4-6 (1M context)\n- Platform: macOS\n- Multiple plugins/skills (~40k system prompt t",
+  "labels": ["bug", "has repro", "platform:macos", "area:cost", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-02T01:50:40Z",
+  "updated_at": "2026-04-11T14:25:00Z",
+  "closed_at": "2026-04-03T20:51:52Z",
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "taekim34",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ArkNill",
+      "author_association": "NONE",
+      "body": "Your JSONL analysis confirms exactly what I've been tracking across multiple reports. The root cause is the `deferred_tools_delta` feature introduced in v2.1.69 — it reorders tool results when reconstructing the conversation for resume, which breaks the cache prefix and forces a full re-cache. This is the same mechanism behind #34629.\n\nYour Spike 2 and Spike 3 data (2-3 second exit→resume gaps with 470-512K re-cache) are particularly damning evidence, since the 5-minute cache TTL should have tri",
+      "created_at": "2026-04-02T02:09:47Z"
+    },
+    {
+      "author": "taekim34",
+      "author_association": "NONE",
+      "body": "Thanks @ArkNill for the `deferred_tools_delta` root cause analysis and the link to your cache analysis repo. Very helpful!\n\nI've updated the issue body with additional test results confirming `/resume` also triggers the same cache invalidation.",
+      "created_at": "2026-04-02T04:42:13Z"
+    },
+    {
+      "author": "ArkNill",
+      "author_association": "NONE",
+      "body": "**Update (April 2):** v2.1.90 fixes the main cache regression but this specific issue (`--resume` / session replay) remains. Avoid `--resume` entirely — fresh sessions with a structured CLAUDE.md are the workaround.\n\nFor non-resume usage, v2.1.90 now achieves 95-99% cache read on both npm and standalone. Details: [https://github.com/ArkNill/claude-code-cache-analysis](https://github.com/ArkNill/claude-code-cache-analysis)",
+      "created_at": "2026-04-02T05:04:17Z"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "number": 35942,
+  "title": "[Feature Request] Add setting to skip protected directory prompts when bypassPermissions is enabled",
+  "body": "## Problem\n\nv2.1.78 introduced prompts for writes to protected directories (`.git/`, `.claude/`, `.vscode/`, `.idea/`) even when `bypassPermissions` mode is enabled. While this is a reasonable security default, users who have explicitly opted into `bypassPermissions` mode have already accepted full trust — prompting them for every edit to these directories adds friction without security benefit.\n\nThis is especially painful in VS Code where each prompt requires a mouse click on a dialog, and typical sessions involve many edits to `.claude/settings.json`, `.claude/rules/`, `.vscode/settings.json`, and occasionally `.git/config`.\n\n## Attempted Workarounds (all failed)\n\n1. **`permissions.allow` patterns** (e.g. `Edit(.claude/**)`) — do not override the protected directory prompt\n2. **`PermissionRequest` hook** returning `{\"hookSpecificOutput\": {\"hookEventName\": \"PermissionRequest\", \"decision\": {\"behavior\": \"allow\"}}}` — **does not fire in VS Code extension** (see #13203, #12176)\n3. **`PreToolUse` hook** returning `permissionDecision: \"allow\"` — does not override protected directory checks (v2.1.77 change)\n4. **No CLI flag or env var** exists for this\n\n## Proposed Solution\n\nAdd a `skipProtectedDirectoryPrompts` setting (boolean, default `false`) that, **only when `bypassPermissions` is already enabled**, skips the protected directory write prompt:\n\n```json\n{\n  \"permissions\": {\n    \"defaultMode\": \"bypassPermissions\"\n  },\n  \"skipProtectedDirectoryPrompts\": true\n}\n```\n\nThis preserves the security improvement for users in `default` or `acceptEdits` modes while respecting the explicit trust decision of `bypassPermissions` users.\n\n## Additional Context\n\n- The `PermissionRequest` hook not firing in VS Code (#13203) means there is currently **no workaround** for VS Code users\n- `skipDangerousModePermissionPrompt` already exists as precedent for skipping prompts that bypass-mode users find redundant\n- `permissions.deny` rules would still block even with this setting (deny always wins), so users retain granular control\n\n## Environment\n\n- Claude Code v2.1.78\n- VS Code extension\n- Windows 11\n- `bypassPermissions` mode enabled via `~/.claude/settings.json`\n",
+  "labels": [
+    "enhancement",
+    "platform:windows",
+    "platform:vscode",
+    "area:permissions",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-18T20:29:36Z",
+  "updated_at": "2026-05-08T14:58:32Z",
+  "closed_at": "2026-05-01T10:38:28Z",
+  "reactions_total": 5,
+  "comments_count": 11,
+  "author": "voyagi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/35646\n2. https://github.com/anthropics/claude-code/issues/35718\n3. https://github.com/anthropics/claude-code/issues/35626\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-18T20:34:55Z"
+    },
+    {
+      "author": "voyagi",
+      "author_association": "NONE",
+      "body": "## Update: Working Workaround Found (VS Code Extension Patch)\n\nWhile a proper setting is still the ideal solution, I found a working workaround by patching the VS Code extension directly.\n\n### What we tried (all failed)\n\nAs documented in the issue body, plus one additional finding:\n\n- **`PermissionRequest` hook**: Actually does fire in VS Code now (issue #13203 was fixed around v2.1.30), but **protected directory prompts use a separate code path** that doesn't go through the `PermissionRequest` ",
+      "created_at": "2026-03-18T21:30:10Z"
+    },
+    {
+      "author": "xlurie",
+      "author_association": "NONE",
+      "body": "Thanks @voyagi — your workaround saved my day. I independently hit the same wall \n(v2.1.78 broke our DevContainer workflow where Claude edits `.claude/` files constantly) \nand went through the exact same failed attempts: `permissions.allow` patterns, \n`PermissionRequest` hook, `PreToolUse` hook — nothing worked.\n\nFound your issue and applied the `extension.js` patch. Works perfectly.\n\nAdditional notes from my setup (VS Code DevContainer, Linux, v2.1.79):\n\n1. **Anchor string is stable between v2.",
+      "created_at": "2026-03-19T15:04:31Z"
+    }
+  ]
+}

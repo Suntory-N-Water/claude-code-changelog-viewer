@@ -1,0 +1,41 @@
+{
+  "number": 49865,
+  "title": "[BUG] Team leader crashes with \"getAppState is not a function\" when teammate requests tool permission",
+  "body": "### Preflight Checklist\n\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n### Workflow Context\n\nMy primary use of agent teams is **talking directly with individual teammates** — treating each teammate as its own full Claude Code session, as the docs describe (\"Each teammate is a full, independent Claude Code session\"). I want to be able to direct a teammate, converse with it, paste things into it, hand it nuanced context, and let it ask me for permission when it needs to. That direct teammate-as-collaborator workflow is the main value I get out of teams vs. plain subagents. This bug blocks that workflow end-to-end, because the teammate can't run any permission-gated tool without crashing the lead.\n\n### What's Wrong?\n\n**This has happened to me twice today (2026-04-17), so it's reproducible rather than a one-off.**\n\nWhen a teammate (spawned via `TeamCreate` + `Agent` with `team_name`) requests permission for a tool use, the team leader's UI crashes with an unhandled error instead of showing the permission prompt.\n\nThe teammate's side shows the expected \"Waiting for team lead approval\" panel, but on the team-leader side the error below is thrown when attempting to render the permission request. The team leader never sees the approval prompt, so the teammate is blocked indefinitely.\n\nTeammate UI (as seen):\n```\nUpdate(~/.claude/agents/companion.md)\n  ⎿  Waiting for permission…\n╭───────────────────────────────────────────────────────╮\n│ ✻  Waiting for team lead approval                     │\n│                                                       │\n│ ⏺ @companion-v2                                       │\n│                                                       │\n│ Tool: Edit                                            │\n│ Action: A tool for editing files                      │\n│                                                       │\n│ Permission request sent to team \"weave\" leader        │\n╰───────────────────────────────────────────────────────╯\n```\n\n### What Should Happen?\n\nThe team leader should see the teammate's tool-use permission request and be able to approve or deny it.\n\n### Error Messages/Logs\n\nStack trace:\n\n```\nERROR H.toolUseContext.getAppState is not a function. (In 'H.toolUseContext.getAppState()',\n     'H.toolUseContext.getAppState' is undefined)\n\n/$bunfs/root/src/entrypoints/cli.js:8231:15642\n\n- <anonymous> (/$bunfs/root/src/entrypoints/cli.js:8231:15642)\n- qX (/$bunfs/root/src/entrypoints/cli.js:477:63169)\n- sPH (/$bunfs/root/src/entrypoints/cli.js:477:76220)\n- ov (/$bunfs/root/src/entrypoints/cli.js:477:76101)\n- sPH (/$bunfs/root/src/entrypoints/cli.js:477:76199)\n- ov (/$bunfs/root/src/entrypoints/cli.js:477:76101)\n- sPH (/$bunfs/root/src/entrypoints/cli.js:477:76199)\n- ov (/$bunfs/root/src/entrypoints/cli.js:477:76101)\n- sPH (/$bunfs/root/src/entrypoints/cli.js:477:76199)\n- ov (/$bunfs/root/src/entrypoints/cli.js:477:76101)\n```\n\n<details>\n<summary>Full raw terminal output (including minified source context around line 8231)</summary>\n\n```\n  ERROR H.toolUseContext.getAppState is not a function. (In 'H.toolUseContext.getAppState()',\n       'H.toolUseContext.getAppState' is undefined)\n\n /$bunfs/root/src/entrypoints/cli.js:8231:15642\n\n 8228: ${w.map((uH)=>{let yH=TH[uH.question];if(yH)return`- \"${uH.question}\"\n 8229:   Answer: ${yH}`;return`- \"${uH.question}\"\n 8230:   (No answer provided)`}).join(`\n 8231 `)}`;if(G)Q(\"tengu_ask_user_question_finish_plan_interview\",{source:G,questionCount:w.length,isInPlanMode:n,inter\n :   viewPhaseEnabled:n&&cY()});let oH=await xf8(g,i);K(),q.onReject(P_,oH&&oH.length>0?oH:void\n     0)},_[44]=g,_[45]=TH,_[46]=i,_[47]=n,_[48]=G,_[49]=K,_[50]=w,_[51]=q,_[52]=vH;else vH=_[52];let\n     GH=vH,NH;if(_[53]!==g||_[5",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:agents",
+    "area:permissions"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-17T10:34:00Z",
+  "updated_at": "2026-04-26T14:30:35Z",
+  "closed_at": "2026-04-17T21:19:25Z",
+  "reactions_total": 8,
+  "comments_count": 16,
+  "author": "jonleung",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/49812\n2. https://github.com/anthropics/claude-code/issues/49381\n3. https://github.com/anthropics/claude-code/issues/49763\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-17T10:39:38Z"
+    },
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "Team leader crashing with \"getAppState is not a function\" when a teammate requests tool permission — twice in one day, so reproducible — is a multi-agent session state management bug where the permission request renderer assumes application state that is not present in the team leader's current context.\n\nFrom an agent team identity and authorization perspective, this crash completely breaks the team authorization model: the teammate correctly enters the \"waiting for team lead approval\" state, bu",
+      "created_at": "2026-04-17T10:41:09Z"
+    },
+    {
+      "author": "hadrien",
+      "author_association": "NONE",
+      "body": "Exact same symptoms here! Occurred twice in less than 2 hours.\n\n### Claude Model\nOpus 4.7\n\n### Is this a regression?\nI don't know\n\n### Claude Code Version\n2.1.112 (Claude Code)\n\n### Platform\nAnthropic API\n\n### Operating System\nmacOS (Darwin Kernel Version 25.4.0: Thu Mar 19 19:32:59 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T8122 arm64 arm Darwin)\n\n### Terminal/Shell\niTerm2\n\n### Output\n\n<details>\n<summary>Raw output on team lead session when it occurs</summary>\n\n```\n Do you want to make th",
+      "created_at": "2026-04-17T11:37:47Z"
+    }
+  ]
+}

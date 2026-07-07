@@ -1,0 +1,16 @@
+{
+  "number": 3091,
+  "title": "[BUG] hooks don't seem to work per-project",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.43\n- Operating System: Ubuntu in WSL\n- Terminal:  VS Code Terminal\n\n## Bug Description\n\nhttps://docs.anthropic.com/en/docs/claude-code/hooks#configuration describes hooks as being per-project, but claude code does not seem to pick up this config.\n\n## Steps to Reproduce\n\nbut I have this in my `.claude/settings.json`:\n\n```json\n{\n  \"hooks\": [\n    {\n      \"matcher\": {\n        \"tool\": [\"Edit\", \"MultiEdit\", \"Write\"],\n        \"pathGlob\": \"**/*.rs\"\n      },\n      \"events\": {\n        \"PostToolUse\": \"cargo +nightly fmt\"\n      }\n    },\n```\n\n## Expected Behavior\n\nI expect the hook to run/\n\n\n## Actual Behavior\n\n\nyet `claude --debug` shows:\n\n```\n● Update(foo.rs)\n  ⎿  Updated foo.rs with 1 addition and 1 removal    \n       36    /// Request to foo a bar\n       37    #[derive(Clone)]\n       38    pub struct Foo {\n       39 -      pub role: String,\n       39 +      pub role: String,pub timestamp:Option<String>,\n       40    }\n       41    \n       42    /// Request to baz a bar\n[DEBUG] Executing hooks for PostToolUse:Edit\n[DEBUG] Getting matching hook commands for PostToolUse with query: Edit\n[DEBUG] Found 0 hook matchers in settings\n[DEBUG] Matched 0 hooks for query \"Edit\"\n[DEBUG] Found 0 hook commands to execute\n```\n\n\n## Additional Context\n\nThis is my first time using hooks so I may have just made a very basic mistake here.",
+  "labels": ["bug", "has repro", "platform:linux", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-06T22:27:17Z",
+  "updated_at": "2025-08-10T14:10:23Z",
+  "closed_at": "2025-07-07T16:00:17Z",
+  "reactions_total": 0,
+  "comments_count": 6,
+  "author": "steveklabnik",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

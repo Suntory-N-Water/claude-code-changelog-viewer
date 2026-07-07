@@ -1,0 +1,35 @@
+{
+  "number": 17042,
+  "title": "Ctrl+V clipboard paste fails on macOS - sandbox-exec blocks hiservices XPC service",
+  "body": "**Description:**\n\nPressing Ctrl+V to paste an image from clipboard fails with \"No image found in clipboard\" even when an image is present. The issue is that Claude Code's `sandbox-exec` profile blocks access to `com.apple.hiservices-xpcservice`, which is required for clipboard operations.\n\n**Environment:**\n- macOS 26.2 (25C56, tested on multiple terminals: WezTerm, Terminal.app)\n- Claude Code version: 2.1.2\n- `claude doctor` reports all checks pass\n\n**Reproduction steps:**\n1. Take a screenshot with Cmd+Shift+4 (or Cmd+Ctrl+Shift+4)\n2. Verify clipboard has image: `osascript -e 'clipboard info'` shows `«class PNGf»`\n3. In Claude Code, press Ctrl+V\n4. Error: \"No image found in clipboard\"\n\n**Root cause analysis:**\n\nRunning `osascript -e 'clipboard info'` from within Claude Code fails with:\n```\nConnection Invalid error for service com.apple.hiservices-xpcservice\nError received in message reply handler: Connection invalid\n```\n\nThe same command works perfectly in a regular terminal outside Claude Code.\n\nInvestigation revealed:\n1. Claude Code sets `SANDBOX_RUNTIME=1` environment variable for all child processes\n2. Commands are wrapped with `sandbox-exec -p <profile> bash -c <command>`\n3. The sandbox profile does not allow mach-lookup for `com.apple.hiservices-xpcservice`\n4. This blocks all clipboard access via osascript from sandboxed processes\n\nRelevant code found in binary strings:\n```javascript\nlet A=[\"SANDBOX_RUNTIME=1\",\"TMPDIR=/tmp/claude\"];\n// ...\nlet z=h9_.default.quote([\"env\",...Z,\"sandbox-exec\",\"-p\",Q,F,\"-c\",R]);\n```\n\nClaude Code uses these osascript commands for clipboard access (from binary strings):\n```\nosascript -e 'the clipboard as «class PNGf»'\nosascript -e 'set png_data to (the clipboard as «class PNGf»)'\n```\n\n**Manually verified:**\n- `osascript -e 'clipboard info'` returns valid PNG data (`«class PNGf», 109696, ...`) when run outside Claude Code\n- The same command fails with the XPC connection error when run from within Claude Code\n- Clipboard paste worked briefly after switching from npm to brew installation, then stopped working (subsequent brew reinstalls did not fix it)\n\n**What doesn't help:**\n- Setting `\"sandbox\": { \"enabled\": false }` in `~/.claude/settings.json` - the sandbox-exec wrapping is hardcoded\n- Granting terminal apps Accessibility/Automation permissions in System Settings\n- Reinstalling Claude Code via brew\n- Different terminal emulators\n\n**Suggested fix:**\n\nAdd clipboard XPC service access to the sandbox profile:\n```\n(allow mach-lookup (global-name \"com.apple.hiservices-xpcservice\"))\n```\n\nOr exclude clipboard-related osascript commands from sandboxing.\n\n**Workaround:**\n\nUse an MCP server or skill that accesses the clipboard outside of Claude Code's sandboxed bash context (e.g., pngpaste via a custom tool).\n\n---\n\n**Note:** This bug report was created with assistance from Claude Code itself. The root cause analysis (sandbox-exec blocking XPC services, binary string extraction, tracing the `SANDBOX_RUNTIME=1` environment variable) was performed by Claude Code. The osascript command results and the intermittent behavior after switching package managers were manually verified by the reporter.\n",
+  "labels": ["bug", "platform:macos", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-09T07:15:34Z",
+  "updated_at": "2026-05-24T10:44:19Z",
+  "closed_at": "2026-05-24T10:44:19Z",
+  "reactions_total": 6,
+  "comments_count": 10,
+  "author": "silasg",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16753\n2. https://github.com/anthropics/claude-code/issues/16610\n3. https://github.com/anthropics/claude-code/issues/7975\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-09T07:19:35Z"
+    },
+    {
+      "author": "silasg",
+      "author_association": "NONE",
+      "body": "The issue seems not (or at least not only) related to my local environment since both, opencode and codex can get images pasted via ctrl v.",
+      "created_at": "2026-01-09T10:06:38Z"
+    },
+    {
+      "author": "silasg",
+      "author_association": "NONE",
+      "body": "<img width=\"592\" height=\"248\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/e610833e-5e9f-4600-9504-682b7db4726a\" />\n\nInteresting thing is, that disabling sandbox via command or settings file does _not_ restore ctrl v image pasting capability.",
+      "created_at": "2026-01-09T18:05:34Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 5963,
+  "title": "Project scope MCP servers not displayed in claude mcp list command",
+  "body": "# [BUG] Project scope MCP servers not displayed in claude mcp list command\n\n## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.83 (Claude Code)\n- Operating System: macOS 14.3 (Darwin 24.3.0)\n- Terminal: iTerm2 <!-- e.g. iTerm2, Terminal App -->\n\n## Bug Description\nMCP servers added with project scope (`-s project`) work correctly during Claude Code execution and prompt for approval when starting sessions, but do not appear in `claude mcp list` output. This creates confusing user experience where servers are functional but invisible in the CLI listing.\n\n## Steps to Reproduce\n1. Navigate to any project directory\n2. Run `claude mcp add -s project test-server echo \"test\"`\n3. Verify server was added: `claude mcp get test-server` (this works)\n4. Start Claude Code in the project: observe approval prompt for \"test-server\" appears\n5. Run `claude mcp list` to see configured servers\n6. Observe that the project scope server does not appear in the list, despite being functional\n\n## Expected Behavior\nProject scope servers added to `.mcp.json` should appear in `claude mcp list` output alongside user and local scope servers for consistency and transparency.\n\n## Actual Behavior\n- ✅ Project scope servers work correctly (prompt for approval, can be used during sessions)\n- ✅ Project scope servers can be managed via `claude mcp get/remove` commands\n- ❌ Project scope servers are invisible in `claude mcp list` output\n- ❌ `/mcp` slash command reports \"No MCP servers configured\" when only project scope servers exist\n\nThis creates confusing UX where functional servers appear \"missing\" in the primary listing command.\n\n## Additional Context\n- Project scope servers are correctly written to `.mcp.json` with proper JSON structure\n- Claude Code runtime successfully loads and prompts for approval of project scope servers\n- `claude mcp get <name>` successfully reads project scope servers and shows \"Scope: Project config (shared via .mcp.json)\"\n- `claude mcp remove <name> -s project` successfully removes project scope servers\n- Only user scope (`-s user`) and local scope (default) servers appear in `claude mcp list`\n- This appears to be a CLI reporting issue rather than a functional problem\n- Severity: Minor (confusing UX but servers work correctly)\n- Related issues: #1955 and #2156 (closed) reported similar behavior but focused on approval workflow\n- This report focuses specifically on the `list` command display issue that persists\n\n---\n\n*Submitted via Claude Code*\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-17T09:28:10Z",
+  "updated_at": "2026-03-19T14:31:30Z",
+  "closed_at": "2026-03-11T10:20:43Z",
+  "reactions_total": 6,
+  "comments_count": 18,
+  "author": "WarrenZhu050413",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/1955\n2. https://github.com/anthropics/claude-code/issues/3826\n3. https://github.com/anthropics/claude-code/issues/2156\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-17T09:32:16Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Hey there,\n\nJust another user here, but wanted to chime in and say this is a really well-documented bug report. It's definitely confusing when the servers are clearly working (based on the approval prompt and in-session usage) but don't show up in the main list command.\n\nIt really does seem like a reporting bug in both `claude mcp list` and the `/mcp` slash command, rather than a functional issue. I was digging through the docs and the changelog, and everything confirms that project-scoped serve",
+      "created_at": "2025-08-17T17:00:07Z"
+    },
+    {
+      "author": "Nikoms",
+      "author_association": "NONE",
+      "body": "same problem here: `.mcp.json` is not read anymore. What is happening?\n\nEDIT: I ran `claude --debug` and saw an error with my `permissions.allow` config/array (in `settings.local.json`). This is the line that was the cause of not loading mcp's: `\"Bash(find *)\"`. The error was:\n\n```\n[DEBUG] Invalid settings in localSettings source - key: permissions.allow.9, error: [\n  {\n    \"code\": \"custom\",\n    \"message\": \"Use \\\":*\\\" for prefix matching, not just \\\"*\\\". Change to \\\"Bash(find :*)\\\" for prefix ma",
+      "created_at": "2025-09-01T18:17:58Z"
+    }
+  ]
+}

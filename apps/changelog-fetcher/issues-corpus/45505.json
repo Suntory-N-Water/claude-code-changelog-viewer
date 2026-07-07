@@ -1,0 +1,16 @@
+{
+  "number": 45505,
+  "title": "Plugin 'Update now' fails when CWD differs from original install workspace",
+  "body": "## Bug\n\nWhen a project-scoped plugin is installed from a local marketplace source, `~/.claude/plugins/installed_plugins.json` records `projectPath` as the CWD at install time. The \"Update now\" action validates the current CWD against this stored `projectPath`, failing from any other workspace — even the workspace that contains the marketplace source.\n\n## Steps to reproduce\n\n1. Define a custom marketplace with a local plugin source (`\"source\": \"./claude-plugin\"` in `.claude-plugin/marketplace.json`)\n2. Register the marketplace in global settings via `extraKnownMarketplaces`\n3. Open Claude Code in **workspace A** and install the plugin — `installed_plugins.json` records `\"projectPath\": \"/path/to/workspace-A\"`\n4. Open Claude Code in **workspace B** (where the marketplace source actually lives)\n5. Navigate to Plugins > [plugin] > \"Update now\"\n\n## Expected\n\nUpdate succeeds — the plugin is enabled and the source is resolvable.\n\n## Actual\n\n```\nFailed to update: Plugin \"X\" is not installed at scope project (/path/to/workspace-B)\n```\n\nThe error names the current CWD, not the registered `projectPath`. The update fails because CWD ≠ stored `projectPath`.\n\n## Root cause\n\nIn `installed_plugins.json`, the `projectPath` field for project-scoped plugins is set to the CWD at install time:\n\n```json\n\"my-plugin@my-marketplace\": [{\n  \"scope\": \"project\",\n  \"projectPath\": \"/path/to/workspace-A\",\n  ...\n}]\n```\n\nThe \"Update now\" validation checks `projectPath` against the current CWD and rejects the update if they differ.\n\n## Suggested fix\n\nOne or more of:\n- Set `projectPath` to the directory containing the marketplace source (`.claude-plugin/marketplace.json`), not the CWD at install time\n- Allow \"Update now\" from any workspace where the plugin is enabled in `enabledPlugins`\n- If the plugin is also enabled at `user` scope in global settings, allow the update regardless of CWD\n\n## Workaround\n\nManually edit `~/.claude/plugins/installed_plugins.json` and change `projectPath` to the directory you want to update from.\n\n## Environment\n\n- Claude Code v2.1.96\n- macOS (Darwin 25.3.0)",
+  "labels": ["bug", "has repro", "platform:macos", "area:plugins"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-09T00:11:28Z",
+  "updated_at": "2026-04-25T14:35:53Z",
+  "closed_at": "2026-04-18T04:19:19Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "ensell-yes",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

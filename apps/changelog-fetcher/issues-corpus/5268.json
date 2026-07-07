@@ -1,0 +1,16 @@
+{
+  "number": 5268,
+  "title": "Documentation missing for `/security-review` slash command and its git dependency",
+  "body": "### **Title: Documentation missing for `/security-review` slash command and its git dependency**\n\n**Body:**\n\n#### **Description**\n\nHello Claude Code team,\n\nI've discovered a built-in slash command, `/security-review`, which appears to be a very useful feature. However, it is not documented in the official [Slash commands documentation](https://docs.anthropic.com/en/docs/claude-code/slash-commands).\n\nFurthermore, this command has a hidden dependency: it only works if Claude Code is running inside a directory that is a `git` repository. If run in a non-git directory, it fails with a low-level git error.\n\nThis undocumented dependency can be confusing for users. I believe adding this command to the documentation, along with its prerequisites, would greatly improve the user experience.\n\n#### **Steps to Reproduce**\n\n**Scenario 1: Command fails in a non-git repository**\n\n1.  Create and navigate to a new directory that is not a git repository.\n    ```bash\n    mkdir test-project && cd test-project\n    ```\n2.  Start Claude Code.\n    ```bash\n    claude\n    ```\n3.  Run the `/security-review` command.\n4.  **Observe the error:** The command fails with a git error.\n    ```\n    > /security-review \n      ⎿  Error: Bash command failed for pattern \"!`git status`\": [stderr]\n         fatal: not a git repository (or any of the parent directories): .git\n    ```\n\n**Scenario 2: Command succeeds in a git repository**\n\n1.  Navigate to a directory that is an initialized git repository.\n    ```bash\n    cd /path/to/my/git-repo\n    ```\n2.  Start Claude Code.\n    ```bash\n    claude\n    ```\n3.  Run the `/security-review` command.\n4.  **Observe the success:** The command executes as expected and begins analyzing code changes.\n    ```\n    > /security-review is analyzing code changes for security risks… \n    \n    ⏺ I'll perform a security-focused code review of the changes...\n    ```\n\n#### **Expected Behavior**\n\n1.  The `/security-review` command should be officially documented in the `en/docs/claude-code/slash-commands.md` file.\n2.  The documentation should clearly state that the command must be run within a git repository.\n3.  Ideally, if the command is run outside a git repository, it should return a user-friendly message (e.g., \"Error: /security-review must be run inside a git repository.\") instead of the raw `fatal` error.\n\n#### **Suggested Documentation Updates**\n\nPlease update the documentation to include:\n*   A description of what the `/security-review` command does.\n*   Its requirement to be run inside a git repository.\n*   The `allowed-tools` it needs (e.g., `Bash(git status:*)`, `Bash(git diff:*)`, etc.), as it appears to execute `git` commands under the hood.\n\nThank you for creating such a powerful tool",
+  "labels": ["documentation", "area:security"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-08-06T19:10:22Z",
+  "updated_at": "2025-12-07T14:09:55Z",
+  "closed_at": "2025-11-30T02:10:11Z",
+  "reactions_total": 1,
+  "comments_count": 7,
+  "author": "coygeek",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

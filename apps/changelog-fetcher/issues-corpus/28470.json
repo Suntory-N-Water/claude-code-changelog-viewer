@@ -1,0 +1,35 @@
+{
+  "number": 28470,
+  "title": "[BUG] Claude Desktop 1.1.4173 crashes on startup on Windows (Squirrel install, sv-SE locale)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Bug description\n  Claude Desktop v1.1.4173 silently crashes on startup on Windows when installed via the Squirrel installer (not\n  MSIX/Windows Store). The app process starts but no window is ever shown.\n\n  ## Root cause (already diagnosed)\n  The main process throws an unhandled promise rejection before the window is created:\n\n  Error: [@formatjs/intl] An id must be provided to format a message.\n      at nZe (.vite/build/index.js:83)\n      at Sae (.vite/build/index.js:83)\n      at WOt (.vite/build/index.js:705)\n\n  In `WOt()` (the Cowork/yukonSilver VM support check), the branch for Windows + non-MSIX installs calls\n  `Ue.formatMessage({ defaultMessage: \"Cowork requires Claude Desktop be installed with our modern installer\" })`\n  **without an `id` field**, which `@formatjs/intl` requires. This missing `id` throws and prevents window creation.\n\n  The same bug exists for all other `formatMessage` calls in `WOt()`, but this is the only branch triggered for this\n  configuration.\n\n  ## Environment\n  - OS: Windows 11 Home 10.0.26200\n  - Claude Desktop version: 1.1.4173\n  - Install method: Squirrel (not MSIX/Windows Store)\n  - System locale: sv-SE (Swedish)\n  - CPU: Intel Core i9-14900KF\n\n  ## Steps to reproduce\n  1. Install Claude Desktop via the standard Windows installer (Squirrel)\n  2. Set Windows system locale to sv-SE (or possibly any locale without a bundled .json file)\n  3. Upgrade to v1.1.4173\n  4. Launch Claude Desktop → no window appears\n\n  ## Fix\n  Add an `id` field to all `formatMessage()` calls in `WOt()` in the main process bundle, e.g.:\n  `Ue.formatMessage({ id: \"cowork.msix_required\", defaultMessage: \"Cowork requires Claude Desktop be installed with our\n  modern installer\" })`\n\n### What Should Happen?\n\n  Claude Desktop should launch normally and display the main window. The Cowork/yukonSilver feature being unsupported on\n   non-MSIX Windows installs should be handled gracefully (returning the unsupported status silently) rather than\n  throwing an unhandled exception that prevents the entire app from starting.\n\n### Error Messages/Logs\n\n```shell\nClaude Desktop should launch normally and display the main window. The Cowork/yukonSilver feature being unsupported on\n   non-MSIX Windows installs should be handled gracefully (returning the unsupported status silently) rather than\n  throwing an unhandled exception that prevents the entire app from starting.\n```\n\n### Steps to Reproduce\n\n1. Install Claude Desktop via the standard Windows installer (Squirrel, not MSIX/Windows Store)\n  2. Set Windows system locale to sv-SE (or any locale without a bundled translation file)\n  3. Upgrade to v1.1.4173\n  4. Launch Claude Desktop — no window appears, app runs silently in background with 4 processes but is completely\n  unusable\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n 1.1.4173\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n[main.log](https://github.com/user-attachments/files/25540530/main.log)",
+  "labels": ["invalid", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-25T08:44:45Z",
+  "updated_at": "2026-04-09T14:53:30Z",
+  "closed_at": "2026-04-01T22:18:29Z",
+  "reactions_total": 4,
+  "comments_count": 12,
+  "author": "Henningeri",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28271\n2. https://github.com/anthropics/claude-code/issues/28353\n3. https://github.com/anthropics/claude-code/issues/28304\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-25T08:47:50Z"
+    },
+    {
+      "author": "MAHTISONNI",
+      "author_association": "NONE",
+      "body": "I also have the same issue. Claude desktop broke on my Surface Laptop 7 / ARM64 architecture. When i run Claude.exe it will start 4 processes to taskmgr but no UI is present. I've done every debugging i can with Claude Opus including the locale changes, fresh installs, nuke everything Claude related > reinstall. Still nothing!\n\nOS: Windows 11 Enterprise 10.0.26200\nClaude Desktop version: 1.1.4173\nInstall method: Squirrel (not MSIX/Windows Store, not even found in Windows Store)\nSystem locale: fi",
+      "created_at": "2026-02-25T12:56:50Z"
+    },
+    {
+      "author": "yoyoithink",
+      "author_association": "NONE",
+      "body": "<img width=\"1755\" height=\"580\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/49d24850-a64d-4e85-a2c4-cd25d0c400e5\" />\n\n### Windows 11 – Same Symptom (No Window / No UI Render)\n\nI am experiencing a similar failure mode on Windows.\n\n**Environment**\n\n- Claude Desktop: 1.1.4173  \n- OS: Windows 11 Pro for Workstations 25H2  \n- OS Build: 26200.7840  \n\n**Behavior**\n\n- Clicking the Claude Desktop icon results in **no window rendering**.\n- No loading spinner, no error dialog.\n- In some case",
+      "created_at": "2026-02-25T13:05:09Z"
+    }
+  ]
+}

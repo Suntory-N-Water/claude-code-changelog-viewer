@@ -1,0 +1,35 @@
+{
+  "number": 36483,
+  "title": "[BUG] Auto mode temporarily unavailable on macOS - persists across restarts (v2.1.80)",
+  "body": "## Summary\n\nAuto mode shows \"temporarily unavailable\" persistently. Cannot enter auto mode via `Shift+Tab` cycling or via `defaultMode: \"auto\"` in settings.json.\n\n## Environment\n\n- **Claude Code version**: 2.1.80\n- **Install method**: native (`~/.local/share/claude/versions/2.1.80`)\n- **OS**: macOS Darwin 25.3.0\n- **Shell**: zsh\n- **Model**: claude-opus-4-6 (1M context)\n- **`/doctor` output**: All checks pass (auto-updates enabled, latest version confirmed)\n\n## Behavior\n\n1. Status bar shows `auto mode temporarily unavailable`\n2. `Shift+Tab` cycles through Ask → Plan modes only — auto mode is skipped\n3. Setting `defaultMode: \"auto\"` in `~/.claude/settings.json` has no effect\n4. Persists across multiple restarts and relaunches\n\n## Steps to Reproduce\n\n1. Launch Claude Code v2.1.80 on macOS\n2. Observe status bar: `auto mode temporarily unavailable`\n3. Try `Shift+Tab` to cycle modes — auto mode is not reachable\n\n## What I've Tried\n\n- Restarted Claude Code multiple times\n- Ran `/doctor` — all checks pass\n- Ran `claude update` — already on latest (2.1.80)\n- Contacted Anthropic Support — received troubleshooting steps, none resolved the issue\n\n## Related Issues\n\nThis appears to be the same issue as #33587.\n\n## Expected Behavior\n\nAuto mode should be available and selectable via `Shift+Tab` or `defaultMode: \"auto\"` setting.",
+  "labels": ["bug", "duplicate", "platform:macos", "area:permissions"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-03-20T05:36:24Z",
+  "updated_at": "2026-04-25T14:31:52Z",
+  "closed_at": "2026-04-17T07:31:32Z",
+  "reactions_total": 25,
+  "comments_count": 5,
+  "author": "rahulmadan9",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "drice",
+      "author_association": "NONE",
+      "body": "This seems to work in 2.1.71:\n\nYou can downgrade using:\n\n`curl -fsSL https://claude.ai/install.sh | sh -s -- 2.1.71`\n\nThen link using ` ln -sf ~/.local/share/claude/versions/2.1.71 ~/.local/bin/claude`\n\nEdit: You may also want to remove any newer versions in `~/.local/share/claude/versions` and disable auto-update",
+      "created_at": "2026-03-23T18:28:38Z"
+    },
+    {
+      "author": "Paul-Ollivier",
+      "author_association": "NONE",
+      "body": "I don't want to downgrade though",
+      "created_at": "2026-03-28T16:04:52Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "While waiting for the auto mode fix, you can reduce permission prompts significantly using the `permissions.allow` list in `settings.json`:\n```json\n// ~/.claude/settings.json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(git *)\",\n      \"Bash(npm *)\",\n      \"Bash(npx *)\",\n      \"Bash(node *)\",\n      \"Bash(ls *)\",\n      \"Bash(cat *)\",\n      \"Bash(mkdir *)\",\n      \"Bash(cp *)\",\n      \"Bash(mv *)\",\n      \"Read\",\n      \"Write\",\n      \"Edit\",\n      \"Glob\",\n      \"Grep\",\n      \"WebFetch(*)\"\n    ]\n  }",
+      "created_at": "2026-03-30T05:46:42Z"
+    }
+  ]
+}

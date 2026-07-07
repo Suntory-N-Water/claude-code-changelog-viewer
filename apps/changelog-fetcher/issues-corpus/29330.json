@@ -1,0 +1,35 @@
+{
+  "number": 29330,
+  "title": "[BUG] Opus 1M context window suddenly returns \"Rate limit reached\" on both Max and Team plans (200K works fine)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# Opus 1M context window suddenly returns \"Rate limit reached\" on both Max and Team plans (200K works fine)\n\n## Bug description\n\nThe Opus model with 1M context window was working fine until this afternoon, but now it consistently returns a \"Rate limit reached\" error and is completely unusable. The standard 200K context window works normally.\n\n## Environment\n\n- **Claude Code version:** 2.1.62\n- **Model:** opus[1m] (`claude-opus-4-6[1m]`)\n- **Plans tested:** Max ($200/month) and Team (Premium)\n- **OS:** macOS Tahoe 26.3\n- **Key config:**\n  - Auto-compact: true\n  - Thinking mode: true\n  - Verbose output: true\n  - Default permission mode: Default\n  - Auto-update channel: latest\n\n## Expected behavior\n\nOpus 1M context window should be available as advertised on both Max and Team plans without hitting rate limits under normal usage.\n\n## Error log analysis\n\nThe JSONL session log (attached) contains this critical event:\n```json\n{\n  \"type\": \"rate_limit_event\",\n  \"rate_limit_info\": {\n    \"status\": \"rejected\",\n    \"overageDisabledReason\": \"org_level_disabled\",\n    \"isUsingOverage\": false\n  }\n}\n```\n\nThe assistant response object confirms zero token usage and an immediate synthetic error:\n```json\n{\n  \"model\": \"<synthetic>\",\n  \"usage\": { \"input_tokens\": 0, \"output_tokens\": 0 },\n  \"content\": [{ \"type\": \"text\", \"text\": \"API Error: Rate limit reached\" }],\n  \"error\": \"rate_limit\"\n}\n```\n\n## Questions for the team\n\n1. Is there a separate rate limit quota for `opus[1m]` that differs from standard `opus`?\n2. Does `overageDisabledReason: \"org_level_disabled\"` indicate an intentional policy change for 1M context, or is this a bug?\n3. Why would a Max ($200/month) personal account be subject to `org_level_disabled` overage restrictions?\n\n\n\n### What Should Happen?\n\n1. Start a Claude Code session with model set to `opus[1m]`\n2. Attempt any operation that utilizes the 1M extended context\n3. Receive \"Rate limit reached\" error immediately\n\n### Error Messages/Logs\n\n```shell\n{\"type\":\"system\",\"subtype\":\"hook_started\",\"hook_id\":\"7c24ca8a-e2da-429d-ad2f-720312a5018e\",\"hook_name\":\"SessionStart:startup\",\"hook_event\":\"SessionStart\",\"uuid\":\"0146eed4-8dcc-4827-989b-f6c857663be8\",\"session_id\":\"119ea4da-9b47-46b0-8cd3-3ab1f2e64f57\"}\n{\"type\":\"system\",\"subtype\":\"hook_response\",\"hook_id\":\"7c24ca8a-e2da-429d-ad2f-720312a5018e\",\"hook_name\":\"SessionStart:startup\",\"hook_event\":\"SessionStart\",\"output\":\"{\\n  \\\"additional_context\\\": \\\"<EXTREMELY_IMPORTANT>\\\\nYou have superpowers.\\\\n\\\\n**Below is the full content of your 'superpowers:using-superpowers' skill - your introduction to using skills. For all other skills, use the 'Skill' tool:**\\\\n\\\\n---\\\\nname: using-superpowers\\\\ndescription: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions\\\\n---\\\\n\\\\n<EXTREMELY-IMPORTANT>\\\\nIf you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.\\\\n\\\\nIF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.\\\\n\\\\nThis is not negotiable. This is not optional. You cannot rationalize your way out of this.\\\\n</EXTREMELY-IMPORTANT>\\\\n\\\\n## How to Access Skills\\\\n\\\\n**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.\\\\n\\\\n**In other environments:** Check your platform's documentation for how skills are loaded.\\\\n\\\\n# Using Skills\\\\n\\\\n## The Rule\\\\n\\\\n**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the ",
+  "labels": ["bug", "platform:macos", "area:api", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-27T13:46:43Z",
+  "updated_at": "2026-05-04T15:01:53Z",
+  "closed_at": "2026-04-25T10:20:36Z",
+  "reactions_total": 7,
+  "comments_count": 14,
+  "author": "sado13th",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28975\n2. https://github.com/anthropics/claude-code/issues/27535\n3. https://github.com/anthropics/claude-code/issues/27336\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-27T13:53:33Z"
+    },
+    {
+      "author": "sado13th",
+      "author_association": "NONE",
+      "body": "This issue is **not an API-level problem** — it's a **subscription/billing problem**.\n\nI'm seeing this on **two separate paid subscription plans**: Max ($200/month) and Team (Premium). Neither account uses the API directly. Both are consumer subscription plans accessed exclusively through Claude Code CLI.\n\nThe JSONL session log reveals the root cause:\n```json\n{\n  \"type\": \"rate_limit_event\",\n  \"rate_limit_info\": {\n    \"status\": \"rejected\",\n    \"overageDisabledReason\": \"org_level_disabled\",\n    \"i",
+      "created_at": "2026-02-27T20:48:25Z"
+    },
+    {
+      "author": "TheMrZZ",
+      "author_association": "NONE",
+      "body": "Having the same issue here. Did it get resolved for you after a few days? The 1M context models just appeared for me.",
+      "created_at": "2026-03-03T10:57:15Z"
+    }
+  ]
+}

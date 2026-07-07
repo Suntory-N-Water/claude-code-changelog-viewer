@@ -1,0 +1,35 @@
+{
+  "number": 14133,
+  "title": "[BUG] Rust panic on Korean (UTF-8) input: \"byte index is not a char boundary\" when processing '필터 적용'",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code CLI crashes with a Rust panic when handling Korean (UTF-8 multibyte) text, and the process aborts immediately.\n\nThe key error is:\n- byte index 13 is not a char boundary\n- it is inside '용' (bytes 11..14) of '필터 적용'\n\nThis strongly suggests the CLI is performing byte-index string slicing (or similar substring operations) and attempts to cut a UTF-8 string at a position that is not a valid character boundary, which causes a panic and abort.\n\nSteps to Reproduce\n1.Run claude --dangerously-skip-permissions\n2.Ensure Korean text appears in the input/output/prompt (e.g., 필터 적용)\n3.Observe the panic and immediate abort\n\nActual Result\n-Rust panic occurs and the CLI aborts, making the tool unusable in this scenario.\n\nExpected Result\n-The CLI should handle Korean/Unicode input safely without crashing.\n-At minimum, it should gracefully report an error and continue running.\n\nEnvironment\n-Claude Code: 2.0.70\n-Binary path:.local/bin/claude\n-OS: macOS (add version if available)\n\n\n### What Should Happen?\n\nEven when Korean (UTF-8 multibyte) text appears in the input/output/prompt, the CLI should continue to work normally and must not crash due to a panic.\n\n### Error Messages/Logs\n\n```shell\nthread '<unnamed>' (1031632) panicked at /rustc/ed61e7d7e242494fb7057f2657300d9e77bb4fcb/library/core/src/str/mod.rs:833:21:\nbyte index 13 is not a char boundary; it is inside '용' (bytes 11..14) of\n`'필터 적용'}`\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\nfatal runtime error: failed to initiate panic, error 5, aborting\n[1]    75263 abort      claude --dangerously-skip-permissions\n```\n\n### Steps to Reproduce\n\n1.Open a terminal on macOS.\n2.Run: claude --dangerously-skip-permissions\n3.Trigger any flow where Korean (UTF-8 multibyte) text appears in the input/output/prompt (e.g., 필터 적용).\n4.The CLI crashes with a Rust panic and aborts, showing byte index ... is not a char boundary.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nv2.0.70\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "oncall"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-16T07:30:09Z",
+  "updated_at": "2026-01-20T14:18:15Z",
+  "closed_at": "2026-01-12T05:10:32Z",
+  "reactions_total": 31,
+  "comments_count": 21,
+  "author": "kimyoungwopo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "---\n\nFound 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14119\n2. https://github.com/anthropics/claude-code/issues/14104\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\n---",
+      "created_at": "2025-12-16T07:34:39Z"
+    },
+    {
+      "author": "kimyoungwopo",
+      "author_association": "NONE",
+      "body": " 👎",
+      "created_at": "2025-12-16T07:36:17Z"
+    },
+    {
+      "author": "hojongs",
+      "author_association": "NONE",
+      "body": "Same issues\nhttps://github.com/anthropics/claude-code/issues/14272\nhttps://github.com/anthropics/claude-code/issues/14287\nhttps://github.com/anthropics/claude-code/issues/14435\n",
+      "created_at": "2025-12-18T13:36:17Z"
+    }
+  ]
+}

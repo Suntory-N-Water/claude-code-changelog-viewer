@@ -1,0 +1,35 @@
+{
+  "number": 29072,
+  "title": "[FEATURE] Support URL imports in CLAUDE.md (`@https://...`)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nTeams working across multiple repositories often want to share a common set of CLAUDE.md instructions (coding standards, security rules, workflow conventions). The current options all have significant drawbacks:\n\n  - **User-level config** (`~/.claude/CLAUDE.md`, `~/.claude/rules/`): Per-machine, requires each collaborator to set up their workstation, and applies to all repos rather than a specific set.\n  - **Organization-managed policy** (`/etc/claude-code/CLAUDE.md`): Too broad — applies to everything, not a targeted set of repos.\n  - **Git submodules**: Adds operational complexity (submodule init/update), and many teams avoid submodules for good reason.\n  - **Copy + CI sync**: Fragile, adds maintenance burden, and the copies can drift.\n  - **Symlinks**: Requires local filesystem assumptions, doesn't work across collaborators.\n\n  None of these provide a simple \"define once, reference everywhere, works for any collaborator on clone\" solution.\n\n### Proposed Solution\n\nAllow the existing `@` import syntax to resolve URLs:\n\n  ```markdown\n  # Project-specific rules\n  - Use TypeScript strict mode\n\n  # Shared team standards\n  @https://raw.github.com/our-org/shared-claude-rules/main/code-style.md\n  @https://raw.github.com/our-org/shared-claude-rules/main/security.md\n```\n\n#### Caching\n\n  To avoid fetching on every session start, the resolved content should be cached locally (e.g., with a TTL or ETag-based revalidation). A manual cache-bust mechanism (like a CLI flag or command) would cover cases where the user\n  wants to pick up changes immediately.\n\n#### Context usage\n\n  URL imports would consume exactly the same context as inlining the same content directly in CLAUDE.md — this is not additional overhead, just a different storage location for the same instructions.\n\n#### Benefits\n\n  - Zero local setup: works for any collaborator immediately on clone.\n  - Scoped: only applies to repos whose CLAUDE.md references the URL, not globally.\n  - Single source of truth: update one file, all referencing repos pick it up (on cache expiry).\n  - Natural extension: the @ import syntax already exists for local paths — URLs are a logical next step.\n\n### Alternative Solutions\n\n- [Organization-wide Claude.md](https://github.com/anthropics/claude-code/issues/14467) - needs specific git/github integration\n- Ensure similar guarantees for any URL requested in natural text in Claude.md. Avoids the \"markdown-scope\"-caveat of an import.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nConfiguration and settings\n\n### Use Case Example\n\nMy team are developing a set of systems across a few different technologies and domains. Most of these systems shares a few aspect with the others, but not all. Using git submodules would be possible, but cumbersome & easy to miss an update.\n\n### Additional Context\n\nURL-dereferencing would enable community-driven opinionated or tech-specific common context to be developed & referenced. (I.E. common Claude guidelines for building React, Media-processing, or accessibility-enabled tech). While security and supply-chain attacks are clearly a possible concern with such approach, they can somewhat be mitigated by making the URL reference specific revisions.",
+  "labels": ["enhancement", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-26T17:28:55Z",
+  "updated_at": "2026-05-29T22:42:08Z",
+  "closed_at": "2026-05-29T22:42:08Z",
+  "reactions_total": 11,
+  "comments_count": 5,
+  "author": "rawler",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rawler",
+      "author_association": "NONE",
+      "body": "Noting that this is a related but distinct proposal to #14467.",
+      "created_at": "2026-02-26T17:31:43Z"
+    },
+    {
+      "author": "825i",
+      "author_association": "NONE",
+      "body": "This absolutely needs to happen asap.\n\nIn the meantime I've spent considerable time working on a two-step Hyrbid approach...\n\nFIrst, a Github Action that:\n\n1. defines a single-source-of-truth for our organisation-wide `Claude.md` principles\n2. merges with any existing Claude.md files we may have in some repos (about 20 or so)\n3. propagates that across every single repo we have (over 100).\n\nWhilst trying to then run on a weekly basis to account for slight drift. It's a time-consuming process and ",
+      "created_at": "2026-03-09T04:21:20Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "/tmp/issue-29072-comment.md",
+      "created_at": "2026-03-29T18:17:58Z"
+    }
+  ]
+}

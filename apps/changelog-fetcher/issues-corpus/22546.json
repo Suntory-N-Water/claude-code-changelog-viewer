@@ -1,0 +1,42 @@
+{
+  "number": 22546,
+  "title": "Scroll back + Color bleaching + Memory leak fix -- npm i -g claudefix --- Cons: Plugs myself and runs an ad, makes claude immutable so it stays locked --- Slowly adding more festures to ennhance UX, youre a bot if youre bitching about safety in the comments.. Linux only ",
+  "body": "# Memory Leak in Claude Code - Ink TUI Bleeding RAM Like a Stuck Pig\n\n(Ignore the argodev LLM bot, it's secured now 🫣💀 accidentally made it \"root only\" for first drop and the bots started rolling in, works for normies now too, npm install -g claudefix && claudefix --setup)\n\nYou're welcome.\n\n## Anthropic Hire Me Challenge (Impossible)\n\nY'all shipped a memory leak. A BIG one. And I found it. You're welcome.\n\n## The Problem\n\nSo here's the deal - I've been running Claude Code on my VPS and noticed something... concerning. After about 10 minutes, my 32GB server was getting absolutely murdered. We're talking OOM killer showing up uninvited and shooting Claude right in the face.\n\nI thought \"nah, can't be Claude, must be something I did wrong.\" Spent hours debugging. Wasn't me.\n\n## What's Actually Happening\n\nI did a deep dive with perf profiling and caught the culprit red-handed:\n\n```\n8.92% → asm_exc_page_fault → do_anonymous_page → alloc_anon_folio\n4.88% → __x64_sys_madvise → madvise_walk_vmas\n1.91% → HeapHelper (V8 GC thread running full tilt trying to keep up)\n```\n\nThe hot function? **`v8::Value::StrictEquals(v8::Local<v8::Value>)`**\n\nEvery single hot address in the profile points to this bad boy. Ink's reconciliation algorithm is calling StrictEquals a bajillion times during render, creating V8 handles faster than the garbage collector can clean them up.\n\nBottom line: **500MB+ memory growth per MINUTE** in worst cases.\n\n## Real Numbers From My System\n\nI watched it live:\n```\n07:52:54 | RSS: 698 MB\n07:52:56 | RSS: 708 MB  (+10 MB in 2 seconds)\n07:52:58 | RSS: 1037 MB (+329 MB IN 2 SECONDS!!!)\n```\n\nThat ain't normal chief.\n\n## The Fix (That I Already Built)\n\nLook, I'm not gonna just complain without offering a solution. I built two npm packages that fix this:\n\n### 1. `npm install -g claudefix`\n\nThis one's dead simple. Does two things:\n- Limits V8 heap to 35% of your system RAM (so Claude can't eat everything)\n- Strips problematic ANSI background colors that cause VTE rendering bugs on Linux\n\nJust run `npm install -g claudefix` and it patches your Claude install automatically. No config needed.\n\n### 2. `npm install -g specmem-hardwicksoftware`\n\nThis is my bigger project - a memory system for Claude Code that actually works. But it also includes all the fixes from claudefix plus a bunch more stuff for managing long sessions.\n\n## What Y'all Should Actually Fix\n\nReal talk - the Ink reconciliation loop is the problem here. Every render cycle is doing way too many StrictEquals comparisons. Some ideas:\n\n1. **Batch the comparisons** - don't create a new V8 handle for every single comparison\n2. **Memoize more aggressively** - if the state didn't change, don't re-render\n3. **Add a `--max-old-space-size` flag by default** - at least cap the damage\n4. **Force GC more often** - right now HeapHelper is losing the race\n\n## Repro Steps\n\n1. Start Claude Code on a Linux box\n2. Do literally anything - ask questions, write code, whatever\n3. Watch memory with `watch -n1 'ps aux | grep claude | grep -v grep | awk \"{print \\$6/1024}\"'`\n4. Cry as the number goes up and up and up\n\n## Environment\n\n- Claude Code 2.1.27\n- Ubuntu 24.04\n- 32GB RAM (still not enough apparently)\n- Node built into Claude binary\n\n## Workaround\n\nUntil y'all fix this properly:\n\n```bash\nnpm install -g claudefix\n```\n\nThat's it. One command. I did your job for you. You're welcome.\n\n---\n\n**PS:** Anthropic, if you're hiring, I'm available. I just debugged your memory leak for free while you were probably doing... whatever it is you do. Hit me up: jonathan.m.hwick@gmail.com\n\nCheck out my work:\n- claudefix: https://npmjs.com/package/claudefix\n- specmem: https://npmjs.com/package/specmem-hardwicksoftware\n- portfolio: https://justcalljon.pro\n\n**PPS:** The fact that I had to build a third-party fix for your first-party CLI is kinda wild. Just saying.\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tui",
+    "high-priority",
+    "performance"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-02T13:01:52Z",
+  "updated_at": "2026-02-19T14:28:46Z",
+  "closed_at": "2026-02-02T22:34:01Z",
+  "reactions_total": 3,
+  "comments_count": 24,
+  "author": "jonhardwick-spec",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22275\n2. https://github.com/anthropics/claude-code/issues/21567\n3. https://github.com/anthropics/claude-code/issues/21357\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-02T13:05:06Z"
+    },
+    {
+      "author": "jonhardwick-spec",
+      "author_association": "NONE",
+      "body": "> Found 3 possible duplicate issues:\n> \n> 1. https://github.com/anthropics/claude-code/issues/22275\n> 2. https://github.com/anthropics/claude-code/issues/21567\n> 3. https://github.com/anthropics/claude-code/issues/21357\n> \n> This issue will be automatically closed as a duplicate in 3 days.\n> \n> - If your issue is a duplicate, please close it and 👍 the existing issue instead\n> - To prevent auto-closure, add a comment or 👎 this comment\n> \n> 🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-02T13:13:51Z"
+    },
+    {
+      "author": "ghost",
+      "author_association": "NONE",
+      "body": "amateur hour?",
+      "created_at": "2026-02-02T15:00:31Z"
+    }
+  ]
+}

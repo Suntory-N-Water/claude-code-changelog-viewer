@@ -1,0 +1,35 @@
+{
+  "number": 28942,
+  "title": "[FEATURE] Support `envFile` in `.mcp.json` for loading secrets before env var expansion",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nTeams using HTTP-based MCP servers in `.mcp.json` have no clean way to manage per-developer secrets. The config file needs to be committed to the repo so the whole team shares the same MCP server setup, but HTTP servers require auth tokens in headers — putting developers in an impossible position: commit secrets or don't share the config.\n\nFor `stdio` servers, the community workaround is wrapping commands with `dotenv-cli` to load secrets from a gitignored env file. This works because there's a command to wrap. HTTP servers have no command — just a URL and headers — so there's no place to inject the env file loading.\n\nThe current alternatives are all fragile or awkward:\n- Export vars in `~/.zshrc` (not project-scoped, leaks across projects)\n- Launch with `dotenv -e path/to/.env -- claude` (easy to forget, breaks if someone just runs `claude`)\n- SessionStart hook writing to `$CLAUDE_ENV_FILE` (timing issues — MCP servers may init before the hook completes; also unreliable per #15840)\n- Hardcode tokens in `.mcp.json` (security risk, different per developer, flagged in #23852)\n\nThis is a daily friction point for any team using HTTP MCP servers with auth.\n\n> [!Note] \n> This applies specifically to HTTP MCP servers using static Bearer tokens (API keys) — the common pattern for internal and private MCP servers. Servers that support OAuth don't have this problem since Claude Code handles the auth flow interactively. For these internal servers, implementing a full OAuth flow is overkill; they just need a simple way to inject a token without hardcoding it.\n\n### Proposed Solution\n\nAdd an `envFile` field to `.mcp.json` that loads environment variables before any `${VAR}` expansion happens:\n\n```json\n{\n  \"envFile\": \"path/to/.env\",\n  \"mcpServers\": {\n    \"amazing-software-api\": {\n      \"type\": \"http\",\n      \"url\": \"http://some-amazing-software.domain/mcp/\",\n      \"headers\": {\n        \"Authorization\": \"Bearer ${API_TOKEN}\"\n      }\n    },\n    \"amazing-software-service\": {\n      \"type\": \"stdio\",\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@some/mcp-server\"],\n      \"env\": {\n        \"SECRET_KEY\": \"${SECRET_KEY}\"\n      }\n    }\n  }\n}\n```\n\nThe `path/to/.env` file (gitignored) contains the actual secrets in standard dotenv format:\n\n```\nAPI_TOKEN=sk-abc123\nSECRET_KEY=my-secret\n```\n\nThe developer experience becomes:\n1. Team commits `.mcp.json` with `${VAR}` references — no secrets, fully shareable\n2. Each developer creates their own `path/to/.env` with their tokens\n3. Claude Code loads the env file synchronously at startup, before resolving `${VAR}` in URLs, headers, args, and env fields\n4. MCP servers connect with the resolved values\n\nThis also eliminates the `dotenv-cli` wrapper hack for `stdio` servers, giving both transport types a single, consistent way to handle secrets.\n\n### Alternative Solutions\n\n**1. `dotenv-cli` wrapper (stdio only)**\n\nWorks for stdio servers by wrapping the command: `npx dotenv-cli -e path/to/.env -- npx @some/server`. Not applicable to HTTP servers since there's no command to wrap. Also makes stdio configs verbose and hard to read.\n\n**2. Shell profile exports (`~/.zshrc`)**\n\nEach developer adds `export API_TOKEN=...` to their shell profile. Works reliably but isn't project-scoped — tokens leak across unrelated projects. New developers have to manually figure out which vars to set. Nothing ties the required vars to the project.\n\n**3. Launcher wrapper (`dotenv -e path/to/.env -- claude`)**\n\nWorks for both server types since the vars are in the process environment before Claude Code starts. But it's fragile — if anyone runs `claude` directly, all HTTP MCP servers fail silently. Can't be enforced across a team.\n\n**4. SessionStart hook with `$CLAUDE_ENV_FILE`**\n\nA hook that appends `path/to/.env` contents to `$CLAUDE_ENV_FILE` a",
+  "labels": ["enhancement", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-26T10:32:06Z",
+  "updated_at": "2026-06-22T16:02:06Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 6,
+  "author": "deepank-atlas",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "EmilioEsposito",
+      "author_association": "NONE",
+      "body": "We ran into this too. Seems like a workaround is to use a script to wrap it:\n\nhttps://www.reddit.com/r/ClaudeCode/comments/1mx3vjp/mcp_configuration_is_a_sh1tsh0w_but_heres_how_i/",
+      "created_at": "2026-03-17T21:38:33Z"
+    },
+    {
+      "author": "pint-drinker",
+      "author_association": "NONE",
+      "body": "Definitely want this",
+      "created_at": "2026-03-23T18:51:53Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "/tmp/issue-28942-comment.md",
+      "created_at": "2026-03-29T18:21:15Z"
+    }
+  ]
+}

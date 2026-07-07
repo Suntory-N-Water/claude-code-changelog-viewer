@@ -1,0 +1,35 @@
+{
+  "number": 11712,
+  "title": "[BUG] Subagent Resume Missing All User Prompts",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe subagent resume functionality is broken because agent transcript files do not store the user prompts that initiated or resumed the agent. This causes resumed agents to lack critical context, making the resume feature unusable for its intended purpose.\n\nThis manifests in three symptoms.\n\n### Symptom 1: Agent IDs Not Displayed\n\nWhen an agent completes, the agent ID is **not displayed** to the user in either:\n- The CLI output/UI\n- The tool result returned to the main agent\n\n**Evidence:**\n- Dispatched multiple test agents\n- Agents completed successfully\n- No agent ID was shown in UI or `<function_results>` blocks\n- Agent IDs only discoverable by manually inspecting transcript files in `~/.claude/projects/`\n\n### Symptom 2: Transcripts Missing ALL User Prompts\n\nAgent transcript files (`agent-{agentId}.jsonl`) contain:\n- ✅ Assistant responses (text and tool calls)\n- ✅ Tool results (as \"user\" role messages)\n- ❌ **NO user prompts** (both initial dispatch and all resume prompts)\n\n**Critical Finding:** This affects EVERY user prompt, not just the first one. No user instructions are ever saved to the transcript.\n\n**Evidence:**\n\nExtended test case with multiple resumes:\n```\n1. Dispatch agent: \"Remember BANANA-123, read bug_report.md, standby\"\n   Agent responds: \"I'll remember BANANA-123\" + reads file + \"standing by\"\n   Agent ID: 32203431\n\n2. Resume agent 32203431: \"What was the code and first word of the file?\"\n   Agent responds: \"BANANA-123\" and \"Bug\" ✅ (inferred from its previous response + tool result)\n\n3. Resume agent 32203431: \"Also remember PEAR-666, standby\"\n   Agent responds: \"I'll remember PEAR-666, standing by\" ✅\n\n4. Resume agent 32203431: \"Tell me both codes\"\n   Agent responds: \"APPLE-123 and PEAR-666\" ❌ (BANANA hallucinated as APPLE)\n```\n\n**Transcript inspection** of `agent-32203431.jsonl`:\n- 6 assistant messages (responses, tool calls)\n- 1 user message (tool_result from Read)\n- **0 user messages containing ANY of the 4 prompts sent**\n- `input_tokens` field shows only 3-6 tokens per message (impossible to include prompts)\n\n### Symptom 3: Context Reconstruction Causes Hallucination\n\nResume DOES partially work, but agents must reconstruct context by reading their own previous responses rather than seeing the actual prompts. This leads to:\n\n**Lossy context reconstruction:**\n- ✅ Agent can infer some context from its own assertions (\"I'll remember BANANA-123\" → knows about BANANA-123)\n- ✅ Tool results are preserved (file contents from Read tool were remembered)\n- ❌ Agent lacks the original framing/instructions from user prompts\n- ❌ Multiple inference steps cause drift and hallucination (BANANA-123 → APPLE-123)\n\n**Why this happens:**\nThe agent sees: `\"I'll remember the code **BANANA-123**\"` and `\"I'll remember the second code: **PEAR-666**\"` but doesn't see WHY it said those things. When asked to recall both codes, it must infer what the user originally asked for, leading to hallucinated \"corrections\" like changing BANANA to APPLE.\n\n### What Should Happen?\n\nAccording to the documentation at https://code.claude.com/docs/en/sub-agents:\n\n1. \"Each subagent execution is assigned a unique `agentId`\"\n2. \"Claude Code displays the agent ID when a subagent completes its work\"\n3. \"You can resume a previous agent by providing its `agentId` via the `resume` parameter\"\n4. Resumed agents should have full context from their previous conversation\n\nExample from docs:\n```\n> Use the code-analyzer agent to start reviewing the authentication module\n[Agent completes initial analysis and returns agentId: \"abc123\"]\n\n> Resume agent abc123 and now analyze the authorization logic as well\n[Agent continues with full context from previous conversation]\n```\n\n### Error Messages/Logs\n\n```shell\n",
+  "labels": ["bug", "has repro", "area:core", "memory"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-15T22:38:26Z",
+  "updated_at": "2025-12-17T14:09:08Z",
+  "closed_at": "2025-12-08T23:24:26Z",
+  "reactions_total": 5,
+  "comments_count": 11,
+  "author": "0x1355",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "0x1355",
+      "author_association": "NONE",
+      "body": "# Additional Finding: Main Sessions Store Prompts Correctly, Subagents Don't\n\nClaude Code already has working code to store user prompts in transcripts** - but this functionality is **only active for main agent sessions, not for subagents.\n\n## Evidence\n\n### Main Agent Session Transcripts (Working Correctly)\n\n```bash\n$ cat 7569b584-e6e9-4e44-9e2d-xxxx.jsonl | jq -r '.message.role' | sort | uniq -c\n    195 assistant\n    137 user        # ← Contains actual user prompts!\n      3 null\n```\n\nSample use",
+      "created_at": "2025-11-16T09:29:55Z"
+    },
+    {
+      "author": "0x1355",
+      "author_association": "NONE",
+      "body": "While we wait for the official fix, [I made this workaround](https://github.com/0x1355/claude-subagent-resume-workaround). ",
+      "created_at": "2025-11-16T10:31:35Z"
+    },
+    {
+      "author": "lescientifik",
+      "author_association": "NONE",
+      "body": "+1 on Windows 11:\n- Was trying to reuse subagent for better context management, and ran into Symptom 1: Agent IDs Not Displayed.\n- Ended up doing the same hack with additionnal context in postToolHook, with python script\n\nwas not aware of symptom 2 and 3 unfortunately!",
+      "created_at": "2025-11-16T15:55:11Z"
+    }
+  ]
+}

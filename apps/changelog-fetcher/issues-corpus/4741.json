@@ -1,0 +1,35 @@
+{
+  "number": 4741,
+  "title": "[BUG] Ripgrep breaks _everything_",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: \n- Claude CLI version: v1.0.63\n- Operating System: Ubuntu 22.04\n- Terminal:  bash\n\n## Bug Description\nWhen you have `rg` (RipGrep) installed on your system, Claude will try to use it. However, there's something wrong with Claude's usage of it, it will always return \"(no content)\" (or similar).\n\nIf you tell Claude to execute `Bash(rg something)` .. it will return a blank. Even `Bash(rg --version)` will return an empty result.\n\nHowever, if you tell Claude to pipe output to cat, e.g. `Bash(rg --version | cat)` ... then it will work. Ripgrep is basically detecting that Claude is not running in an interactive terminal (or some other jazz that I don't understand) and it won't output. I've seen this with other CLI tools, too, but `rg` is the most significant.\n\nI'm not sure if this only applies to a certain version, or what, but calls to `rg` will always fail.\n\nSo, this was breaking my `Search()` tool and lots of other things. Slash commands were not being detected, agent files were not being detected, etc. \n\n\n## Steps to Reproduce\n1. Be me, or someone working on my Ubuntu VM (sorry, idk what's special about my env)\n2. Use the claude Search tool, or try to use slash commands, or agents\n\n## Expected Behavior\nThey should all work.\n\n## Actual Behavior\nThey don't work.\n\n## Additional Context\nAs a workaround, adding this to your `settings.json` will fix everything:\n```\n{\n  \"env\": {\n    \"USE_BUILTIN_RIPGREP\": 1\n  },\n```\n\nHere's my `rg` info:\n```\n$ rg --version\nripgrep 12.1.0 (rev 1980630f17)\n-SIMD -AVX (compiled)\n+SIMD +AVX (runtime)\n```",
+  "labels": ["bug", "has repro", "platform:linux", "area:tools"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-30T02:16:15Z",
+  "updated_at": "2025-09-03T14:06:19Z",
+  "closed_at": "2025-08-20T06:49:17Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "vmadman",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "We shipped some improvements in 1.0.84 that should help diagnose / mitigate this:\n\n- claude /doctor now shows the status of Search related functionality (which includes custom slash command discovery)\n- Claude Code now prefers built-in rg over system-installed rg (see https://docs.anthropic.com/en/docs/claude-code/troubleshooting#search-and-discovery-issues)\n- You can also run with --debug to see if there are rg related errors\n\nSee the above troubleshooting link if you're still having issues.",
+      "created_at": "2025-08-20T06:49:17Z"
+    },
+    {
+      "author": "commandodev",
+      "author_association": "NONE",
+      "body": "I found a rg config issue which was messing my up : #4946 ",
+      "created_at": "2025-08-03T13:43:53Z"
+    },
+    {
+      "author": "GitMurf",
+      "author_association": "NONE",
+      "body": "Ok I figured it out! Like a few different variations of issues have mentioned, the issue is with ripgrep!\n\nThe issue specifically is having a ripgrep config file (`~/.config/.ripgreprc`) set on my system. I am on Windows using Claude Code through WSL2 (arch) and using zsh (if any of that matters).\n\nThe solution for me was to add to the Claude Code `settings.json` file the `RIPGREP_CONFIG_PATH` environment variable setting it to a \"dummy\" value (so it does not load a custom ripgrep config in clau",
+      "created_at": "2025-08-12T07:05:02Z"
+    }
+  ]
+}

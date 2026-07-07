@@ -1,0 +1,35 @@
+{
+  "number": 37627,
+  "title": "[Bug] Terminal auto-scrolls to bottom while Claude Code is working, preventing manual scroll",
+  "body": "**Bug Description**\nWhen using Claude Code, I used to be able to scroll up in the terminal to review the plan while work was still in progress. Now, as Claude Code continues working, the terminal automatically jumps to the bottom, making it impossible to read earlier output without being pulled back down. Could you please fix this so the terminal stays in place when I've scrolled up?\n\n**Environment Info**\n- Platform: darwin\n- Terminal: Superset\n- Version: 2.1.81\n- Feedback ID: c629074f-30bd-4b49-843c-068cc4a8bf7f\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": ["bug", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-23T01:57:24Z",
+  "updated_at": "2026-05-28T10:30:58Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 7,
+  "author": "truetrev",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/35512\n2. https://github.com/anthropics/claude-code/issues/36128\n3. https://github.com/anthropics/claude-code/issues/37366\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-23T02:00:44Z"
+    },
+    {
+      "author": "evolsb",
+      "author_association": "NONE",
+      "body": "+1 — same behavior on Ghostty (macOS). This is a duplicate of #33814 which has the most traction. The root cause is Ink's cursor-repositioning escape sequences on every TUI redraw. Terminal-side scroll settings can't fix it.\n\nWorkarounds: [claude-chill](https://github.com/davidbeesley/claude-chill) (Rust PTY proxy with a lookback mode toggle) or running inside tmux.",
+      "created_at": "2026-03-23T13:40:26Z"
+    },
+    {
+      "author": "sstraus",
+      "author_association": "NONE",
+      "body": "👍 We're experiencing the same issue embedding xterm.js 6.0.0 in a Tauri app. The scroll position jumps when Claude Code redraws its TUI while the user is scrolled up. Confirmed root cause: cursor-up sequences exceeding viewport height + ESC[2J/ESC[3J.",
+      "created_at": "2026-03-24T15:04:07Z"
+    }
+  ]
+}

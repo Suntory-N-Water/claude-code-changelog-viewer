@@ -1,0 +1,35 @@
+{
+  "number": 11359,
+  "title": "[BUG] Claude Code is submitting MCP requests as strings when using an SSE server",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen connecting claude code the my MCP server via SSE, it submits the requests for endpoint that has a nested structure as stringified JSON.\n\n```\n  2025-11-10T15:41:34.505916Z  WARN rmcp::service: response error, id: 10, error: ErrorData { code: ErrorCode(-32602), message: \"failed to deserialize parameters: invalid type: string \\\"{\\\\\\\"schedulePatternType\\\\\\\": {\\\\\\\"weekly\\\\\\\": {\\\\\\\"mon\\\\\\\": {\\\\\\\"shift\\\\\\\": {\\\\\\\"shiftType\\\\\\\": {\\\\\\\"regular\\\\\\\": {\\\\\\\"isRegular\\\\\\\": true}}, \\\\\\\"shiftTemplate\\\\\\\": {\\\\\\\"startTime\\\\\\\": {\\\\\\\"time\\\\\\\": \\\\\\\"09:00:00\\\\\\\"}, \\\\\\\"duration\\\\\\\": {\\\\\\\"seconds\\\\\\\": 28800}, \\\\\\\"breakTemplates\\\\\\\": []}}, \\\\\\\"venueId\\\\\\\": \\\\\\\"019a6e6c-db70-7308-bb4d-eaaad7e049c4\\\\\\\", \\\\\\\"roleId\\\\\\\": \\\\\\\"019a6e6c-dbd3-7c61-b32e-df0bc823d243\\\\\\\"}, \\\\\\\"tues\\\\\\\": {\\\\\\\"shift\\\\\\\": {\\\\\\\"shiftType\\\\\\\": {\\\\\\\"regular\\\\\\\": {\\\\\\\"isRegular\\\\\\\": true}}, \\\\\\\"shiftTemplate\\\\\\\": {\\\\\\\"startTime\\\\\\\": {\\\\\\\"time\\\\\\\": \\\\\\\"09:00:00\\\\\\\"}, \\\\\\\"duration\\\\\\\": {\\\\\\\"seconds\\\\\\\": 28800}, \\\\\\\"breakTemplates\\\\\\\": []}}, \\\\\\\"venueId\\\\\\\": \\\\\\\"019a6e6c-db70-7308-bb4d-eaaad7e049c4\\\\\\\", \\\\\\\"roleId\\\\\\\": \\\\\\\"019a6e6c-dbd3-7c61-b32e-df0bc823d243\\\\\\\"}, \\\\\\\"weds\\\\\\\": {\\\\\\\"shift\\\\\\\": {\\\\\\\"shiftType\\\\\\\": {\\\\\\\"regular\\\\\\\": {\\\\\\\"isRegular\\\\\\\": true}}, \\\\\\\"shiftTemplate\\\\\\\": {\\\\\\\"startTime\\\\\\\": {\\\\\\\"time\\\\\\\": \\\\\\\"09:00:00\\\\\\\"}, \\\\\\\"duration\\\\\\\": {\\\\\\\"seconds\\\\\\\": 28800}, \\\\\\\"breakTemplates\\\\\\\": []}}, \\\\\\\"venueId\\\\\\\": \\\\\\\"019a6e6c-db70-7308-bb4d-eaaad7e049c4\\\\\\\", \\\\\\\"roleId\\\\\\\": \\\\\\\"019a6e6c-dbd3-7c61-b32e-df0bc823d243\\\\\\\"}, \\\\\\\"thurs\\\\\\\": {\\\\\\\"shift\\\\\\\": {\\\\\\\"shiftType\\\\\\\": {\\\\\\\"regular\\\\\\\": {\\\\\\\"isRegular\\\\\\\": true}}, \\\\\\\"shiftTemplate\\\\\\\": {\\\\\\\"startTime\\\\\\\": {\\\\\\\"time\\\\\\\": \\\\\\\"09:00:00\\\\\\\"}, \\\\\\\"duration\\\\\\\": {\\\\\\\"seconds\\\\\\\": 28800}, \\\\\\\"breakTemplates\\\\\\\": []}}, \\\\\\\"venueId\\\\\\\": \\\\\\\"019a6e6c-db70-7308-bb4d-eaaad7e049c4\\\\\\\", \\\\\\\"roleId\\\\\\\": \\\\\\\"019a6e6c-dbd3-7c61-b32e-df0bc823d243\\\\\\\"}, \\\\\\\"fri\\\\\\\": {\\\\\\\"shift\\\\\\\": {\\\\\\\"shiftType\\\\\\\": {\\\\\\\"regular\\\\\\\": {\\\\\\\"isRegular\\\\\\\": true}}, \\\\\\\"shiftTemplate\\\\\\\": {\\\\\\\"startTime\\\\\\\": {\\\\\\\"time\\\\\\\": \\\\\\\"09:00:00\\\\\\\"}, \\\\\\\"duration\\\\\\\": {\\\\\\\"seconds\\\\\\\": 28800}, \\\\\\\"breakTemplates\\\\\\\": []}}, \\\\\\\"venueId\\\\\\\": \\\\\\\"019a6e6c-db70-7308-bb4d-eaaad7e049c4\\\\\\\", \\\\\\\"roleId\\\\\\\": \\\\\\\"019a6e6c-dbd3-7c61-b32e-df0bc823d243\\\\\\\"}}}}\\\", expected struct SchedulePattern\", data: None }\n```\n\nI notice this for other types as well... where sometimes a field is optional and it will pass in the string \"null\" (instead of the null value).\n\nThis issue does NOT happen on Claude Desktop for the same MCP server.\n\nThe issue does happen for stdio server as well, and for a workaround, we have a bridge that is intercepting the requests and converting them into proper JSON objects.\n\n### What Should Happen?\n\nJSON RPC requests should be submitted as proper JSON objects\n\n### Error Messages/Logs\n\n```shell\n2025-11-10T15:41:34.505916Z  WARN rmcp::service: response error, id: 10, error: ErrorData { code: ErrorCode(-32602), message: \"failed to deserialize parameters: invalid type: string \\\"{\\\\\\\"schedulePatternType\\\\\\\": {\\\\\\\"weekly\\\\\\\": {\\\\\\\"mon\\\\\\\": {\\\\\\\"shift\\\\\\\": {\\\\\\\"shiftType\\\\\\\": {\\\\\\\"regular\\\\\\\": {\\\\\\\"isRegular\\\\\\\": true}}, \\\\\\\"shiftTemplate\\\\\\\": {\\\\\\\"startTime\\\\\\\": {\\\\\\\"time\\\\\\\": \\\\\\\"09:00:00\\\\\\\"}, \\\\\\\"duration\\\\\\\": {\\\\\\\"seconds\\\\\\\": 28800}, \\\\\\\"breakTemplates\\\\\\\": []}}, \\\\\\\"venueId\\\\\\\": \\\\\\\"019a6e6c-db70-7308-bb4d-eaaad7e049c4\\\\\\\", \\\\\\\"roleId\\\\\\\": \\\\\\\"019a6e6c-dbd3-7c61-b32e-df0bc823d243\\\\\\\"}, \\\\\\\"tues\\\\\\\": {\\\\\\\"shift\\\\\\\": {\\\\\\\"shiftType\\\\\\\": {\\\\\\\"regular\\\\\\\": {\\\\\\\"isRegular\\\\\\\": true}}, \\\\\\\"shiftTemplate\\\\\\\": {\\\\\\\"startTime\\\\\\\": {\\\\\\\"time\\\\\\\": \\\\\\\"09:00:00\\\\\\\"}, \\\\\\\"duration\\\\\\\": {\\\\\\\"seconds\\\\\\\": 28800}, \\\\\\\"breakTemplates\\\\\\\": []}}, \\\\\\\"venueId\\\\\\\": \\\\\\\"019a6e6c-db70-7308-bb4d-eaaad7e049c4\\\\\\\", \\\\\\\"roleId\\\\\\\": \\\\\\\"019a6e6c-d",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-10T15:49:52Z",
+  "updated_at": "2026-02-03T14:25:17Z",
+  "closed_at": "2026-01-26T10:12:30Z",
+  "reactions_total": 4,
+  "comments_count": 12,
+  "author": "rconnol",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "domdomegg",
+      "author_association": "MEMBER",
+      "body": "Thanks for the feedback! Are you able to share an example MCP server that has this property? Or describe the shape of the tool a little more?\n\nKeen to be able to reproduce this so we can fix it :)",
+      "created_at": "2025-11-11T11:31:34Z"
+    },
+    {
+      "author": "domdomegg",
+      "author_association": "MEMBER",
+      "body": "Thanks again for the MRE and your patience here. After more investigation I think this is a bug with the fine-grained tool streaming beta.\n\nIf you start Claude Code with: `CLAUDE_CODE_DISABLE_FINE_GRAINED_TOOL_STREAMING=true claude` this _should_ fix things as a temporary solution. I will also be escalating with the relevant teams at Anthropic to make sure this gets fixed properly, and we may disable this beta for Claude Code until this is fixed.",
+      "created_at": "2025-11-20T16:05:32Z"
+    },
+    {
+      "author": "domdomegg",
+      "author_association": "MEMBER",
+      "body": "Thanks, continuing to investigate.\n\nI can repro the issue with echo_one_of. echo and echo_optional seem to consistently work fine for me with fine-grained tool streaming disabled.\n\nI've raised https://github.com/rconnol/claude-code-11359-mre/pull/1 to use stateless streamable http, as this makes things a lot easier to debug (e.g. can hit the server with curl)\n\n@ollie-anthropic might you be able to look into why `echo_one_of` doesn't work as expected?",
+      "created_at": "2025-11-24T20:42:32Z"
+    }
+  ]
+}

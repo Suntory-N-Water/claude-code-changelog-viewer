@@ -1,0 +1,35 @@
+{
+  "number": 34143,
+  "title": "Opus 4.6 shows 200K context instead of 1M on Claude Max plan (v2.1.75)",
+  "body": "## Description\n\nv2.1.75 release notes state:\n> Added 1M context window for Opus 4.6 by default for Max, Team, and Enterprise plans (previously required extra usage)\n\nHowever, `/context` consistently shows `14k/200k tokens (7%)` — the context window remains at 200K.\n\n## Environment\n\n- Claude Code: v2.1.75\n- Model: claude-opus-4-6 (medium effort)\n- Plan: Claude Max ($200/month)\n- Extra usage: enabled (€0.00 spent)\n- OS: macOS (Darwin 25.3.0)\n- No `CLAUDE_CODE_DISABLE_1M_CONTEXT` env var set\n- No model overrides in settings\n\n## Steps to reproduce\n\n1. Start a new Claude Code session: `claude`\n2. Run `/context`\n3. Observe `200k` context window instead of expected `1M`\n\n## What I tried\n\n- Starting multiple new sessions\n- Enabling extra usage on claude.ai\n- Verifying no env vars or settings override the context window\n- Confirmed plan shows \"Claude Max\" in the header\n\n## Expected behavior\n\n`/context` should show `1M` context window as described in v2.1.75 release notes.",
+  "labels": ["bug", "has repro", "platform:macos"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-13T21:12:17Z",
+  "updated_at": "2026-05-23T14:56:03Z",
+  "closed_at": null,
+  "reactions_total": 20,
+  "comments_count": 17,
+  "author": "kirillgreen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Hoernchen",
+      "author_association": "NONE",
+      "body": "Appears to be caused by setting CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC to 0 or 1 or setting DISABLE_TELEMETRY=1 so apparently you only get 1m context if they get telemetry? Unsetting that makes 1m work for me.",
+      "created_at": "2026-03-13T22:43:28Z"
+    },
+    {
+      "author": "chrisgagne",
+      "author_association": "NONE",
+      "body": "For what it's worth, I've found at the moment that I am able to use the 1M context window (confirmed with /context) even with extra usage entirely disabled (both $0 monthly max and turned off). Further, I've found that after several minutes of doing so, I no longer see separate options for either Sonnet or Opus with 1M contexts in the /model dialog. Perhaps things have evolved in just the last few hours. :)",
+      "created_at": "2026-03-14T03:44:35Z"
+    },
+    {
+      "author": "ManufactoryOfCode",
+      "author_association": "NONE",
+      "body": " Workaround for Opus 4.6 stuck on 200K context despite Max plan\n\n  Root cause (likely): When Opus 4.6 was updated to default to 1M context, the CLI did not automatically migrate existing model selections. If you had Opus 4.6 selected before the 1M rollout (v2.1.50), your\n  session continued to route to the 200K variant internally — even though the startup message says \"Opus now defaults to 1M context\" and /model shows \"Opus 4.6\".\n\n  How to verify: Run /context — if it shows xxk/200k tokens, you'",
+      "created_at": "2026-03-14T10:35:48Z"
+    }
+  ]
+}

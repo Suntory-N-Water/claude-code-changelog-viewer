@@ -1,0 +1,23 @@
+{
+  "number": 3274,
+  "title": "[BUG] [`Critical`] Compact issue block the normal use of Claude code",
+  "body": "## Environment\nCursor - Claude code extension\nClaude code MAX $200 subscription\n\nFeedback ID: e41178db-99dc-468f-8ffb-7e1f07fb4d94 \n\n\n## Video for the bug\n[https://drive.google.com/file/d/1grdDK3BRbUCP0XjOxJqGbGg2Cx9tbY0e/view?usp=drive_link](https://drive.google.com/file/d/1grdDK3BRbUCP0XjOxJqGbGg2Cx9tbY0e/view?usp=drive_link)\n\n## Bug Description\n\n### Initial Trigger\nWhile working on a codebase refactor with long context requirements, the `/compact` setting was initially set to \"auto\". During this work, auto-compaction failed with the following error:\n\n```\nInput length and max_tokens exceed context limit: 175272 + 32000 > 200000\n```\n\n### Current Broken Behavior\nAfter encountering this compaction failure, Claude Code's context management became permanently corrupted and exhibits the following behavior:\n\n**With Auto-compact Enabled:**\n- Context consistently shows \"102%\"  (**Note it's more than 100%**)\" regardless of actual conversation length\n- Even minimal inputs like \"hi\" trigger several minutes of auto-compaction\n- Using `/clear` or `/compact` commands only reduces context to 100%\n- Any subsequent input, even a simple \"hi\", immediately pushes context above 100% again\n- Every single interaction now requires waiting through compaction before receiving a response, during executing, it keep on running compacting multiple times, leading to a simple task may take 1 more hours to completed, in which **90%+ of time are compacting**\n\n**With Auto-compact Disabled:**\n- Persistent red warning displays: \"Context low (102% remaining) · Run /compact to compact & continue\"\n- `/clear` or `/compact` commands temporarily reduce context to 100%\n- Any input, including single words, immediately pushes context back to 102%\n- Tool becomes unusable around 5% context remaining with API response failures (when It reach ~105%, it will unable to use, and starting API fails unless I manually run `/compact` again)\n- After 10 failed retries, the tool stops working entirely. It force me to waiting 5+mins for all 10 attempts, no way to force them stop!!!\n- Using `/clear` resets to 100%, but the cycle repeats **indefinitely**\n\n## Critical Impact\nThis issue makes Claude Code completely unusable. The majority of time is spent waiting for compaction processes rather than productive work. The tool is stuck in a perpetual compaction loop.\n\n### Failed Resolution Attempts\nExtensive troubleshooting was performed without success:\n\n- Uninstalled Cursor extension\n- Removed global npm installation: `npm uninstall -g @anthropic-ai/claude-code`\n- Deleted all cache files:\n  - `rm -rf ~/.config/claude-code/auth.json`\n  - `rm -rf ~/.claude/`\n- Complete reinstallation after clearing all data\n- Tried downgrade the Claude code version, after downgrade, the application not works, it force me to upgrade.\n\n**Result:** \nThe context remains stuck at 100% even after complete reinstallation, suggesting this is a persistent state corruption issue that survives cache clearing and reinstallation.\n\n\n## Steps to Reproduce\nMaybe long context code base will see it.\n\n## Expected Behavior\n<!-- What you expected to happen -->\n\n## Actual Behavior\n<!-- What actually happened -->\n\n## Additional Context\n<!-- Add any other context about the problem here, such as screenshots, logs, etc. -->",
+  "labels": [
+    "bug",
+    "has repro",
+    "area:core",
+    "area:ide",
+    "memory",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-10T06:11:25Z",
+  "updated_at": "2025-12-09T14:08:41Z",
+  "closed_at": "2025-11-30T04:07:32Z",
+  "reactions_total": 4,
+  "comments_count": 12,
+  "author": "xianjun-zhang",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

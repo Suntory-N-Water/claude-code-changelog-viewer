@@ -1,0 +1,23 @@
+{
+  "number": 30355,
+  "title": "Feature Request: Global option to disable skill auto-triggering at project level",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nSkills (slash commands) can be automatically triggered by Claude based on context-defined trigger conditions injected at the system level. There is no official way to globally disable this auto-triggering behavior at the project level.\n\nThe only available option is per-skill frontmatter (`disable-model-invocation: true`), but this requires modifying each skill individually and does not work for built-in/system-provided skills.\n\n### Proposed Solution\n\nAdd a project-level configuration option in `.claude/settings.json` to globally disable skill auto-triggering:\n\n```json\n{\n  \"skills\": {\n    \"autoTrigger\": false\n  }\n}\n```\n\nWhen set to `false`, skills should only be invocable by the user explicitly typing `/skill-name`, and Claude should not automatically trigger any skill based on context.\n\n### Alternative Solutions\n\n1. Adding instructions in CLAUDE.md to tell Claude not to auto-trigger skills — this is a soft constraint and not reliably enforced at the system level.\n\n2. Adding disable-model-invocation: true to each skill's frontmatter — only works per-skill, not globally, and cannot be applied to built-in/system-provided skills.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nConfiguration and settings\n\n### Use Case Example\n\nA team wants strict control over skill usage in their project. They add {\"skills\": {\"autoTrigger\": false}} to .claude/settings.json. After this, Claude no longer auto-invokes skills based on context (e.g., it won't auto-trigger the \"claude-developer-platform\" skill when it sees an anthropic import). Skills can still be used by manually typing /skill-name.\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:skills", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-03T10:30:47Z",
+  "updated_at": "2026-04-16T10:32:46Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 1,
+  "author": "xuxinpeng",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "A `PreToolUse` hook on Skill can block auto-triggered skills:\n```bash\nINPUT=$(cat)\nSKILL=$(echo \"$INPUT\" | jq -r '.tool_input.skill // empty')\nUSER_INVOKED=\"/tmp/cc-user-invoked-skill\"\nif grep -qF \"$SKILL\" \"$USER_INVOKED\" 2>/dev/null; then\n    sed -i \"/$SKILL/d\" \"$USER_INVOKED\"\n    exit 0\nfi\necho \"BLOCKED: Skill '$SKILL' was auto-triggered. Use /$SKILL to invoke explicitly.\" >&2\nexit 2\n```\nTrack user invocations:\n```bash\nPROMPT=$(cat | jq -r '.userPrompt // empty' 2>/dev/null)\nif echo \"$PROMPT\" ",
+      "created_at": "2026-03-29T13:04:59Z"
+    }
+  ]
+}

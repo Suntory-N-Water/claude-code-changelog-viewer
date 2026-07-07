@@ -1,0 +1,43 @@
+{
+  "number": 22632,
+  "title": "Bun segfault crash after extended session",
+  "body": "## Description\n\nClaude Code crashes with a Bun segmentation fault after extended sessions (~18 minutes of usage).\n\n## Environment\n\n- **Claude Code version:** 2.1.29\n- **Bun version (bundled):** 1.3.5 (1e86cebd)\n- **OS:** Linux x64 (Ubuntu, glibc v2.42)\n- **Kernel:** 6.17.0\n- **CPU features:** sse42 popcnt avx avx2\n\n## Crash Details\n\n```\nBun v1.3.5 (1e86cebd) Linux x64 (baseline)\nLinux Kernel v6.17.0 | glibc v2.42\nCPU: sse42 popcnt avx avx2\nArgs: \"claude\" \"--dangerously-skip-permissions\"\nFeatures: Bun.stderr(2) Bun.stdin(2) Bun.stdout(2) abort_signal(130) fetch(469) jsc spawn(188) standalone_executable process_dlopen \nBuiltins: \"bun:main\" \"node:assert\" \"node:async_hooks\" \"node:buffer\" \"node:child_process\" \"node:constants\" \"node:crypto\" \"node:events\" \"node:fs\" \"node:fs/promises\" \"node:http\" \"node:https\" \"node:module\" \"node:net\" \"node:os\" \"node:path\" \"node:path/posix\" \"node:path/win32\" \"node:perf_hooks\" \"node:process\" \"node:querystring\" \"node:stream\" \"node:timers/promises\" \"node:tls\" \"node:tty\" \"node:url\" \"node:util\" \"node:zlib\" \"node:worker_threads\" \"undici\" \"ws\" \"node-fetch\" \"node:http2\" \nElapsed: 1097622ms | User: 356186ms | Sys: 59734ms\nRSS: 0.02ZB | Peak: 1.20GB | Commit: 0.02ZB | Faults: 0 | Machine: 0.13TB\n\npanic(main thread): Segmentation fault at address 0x7508D628F148\noh no: Bun has crashed. This indicates a bug in Bun, not your code.\n```\n\n## Bun Crash Report Link\n\nhttps://bun.report/1.3.5/B_11e86cebmgEuhogCk0iruE+1vR2q1+lF__________0rsk/Dqli3jFstpglEyjgy/Cogy97C6s3xgEwq1l7CA2ww6Bxrn86pB\n\n## Steps to Reproduce\n\n1. Run `claude --dangerously-skip-permissions`\n2. Use Claude Code for an extended session (~18+ minutes)\n3. Perform various operations (file reads, subagent spawns, etc.)\n4. Eventually crashes with segfault\n\n## Notes\n\n- Peak memory was 1.20GB before crash\n- The RSS reporting shows clearly incorrect values (0.02ZB) suggesting memory tracking issues\n- This appears to be an upstream Bun bug, but reporting here since Bun is bundled with Claude Code\n\n## Possible Workaround\n\nRestarting Claude Code sessions periodically before crashes occur.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "platform:linux",
+    "area:core",
+    "area:packaging",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-02T23:00:25Z",
+  "updated_at": "2026-06-13T22:32:21Z",
+  "closed_at": "2026-06-13T22:32:21Z",
+  "reactions_total": 7,
+  "comments_count": 16,
+  "author": "andrewcostello",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "andrewcostello",
+      "author_association": "NONE",
+      "body": "Immediately after posting this I experienced the crash evoking Claude without --dangerously-skip-permissions",
+      "created_at": "2026-02-02T23:02:25Z"
+    },
+    {
+      "author": "cafe24-mcpark",
+      "author_association": "NONE",
+      "body": "## Same issue here — macOS (Apple Silicon)\n\nExperiencing frequent crashes/disconnections on **macOS Darwin 25.2.0 (arm64)**.\n\n### Environment\n- **Claude Code version**: Latest (Opus 4.5)\n- **OS**: macOS 15.x (Apple Silicon, M-series)\n- **Terminal**: iTerm2\n- **Shell**: zsh\n\n### Investigation Summary\n\nWe spent significant time investigating this. Here's what we ruled out:\n\n| Suspected Cause | Result |\n|-----------------|--------|\n| `--dangerously-skip-permissions` flag | ❌ Crashes with AND withou",
+      "created_at": "2026-02-05T12:45:17Z"
+    },
+    {
+      "author": "TerminatedProcess",
+      "author_association": "NONE",
+      "body": "Is this related? Now let me check the pipeline to make sure the local classifier results will be accepted.\n\n──────────────────────────────────────────────────────────────────\n-- INSERT -- ⏵⏵ bypass permissions on (shift+tab to cycle)                                            Context left until auto-compact: 2%\n============================================================\nBun v1.3.5 (1e86cebd) Linux x64 (baseline)\nLinux Kernel v6.17.10 | glibc v2.42\nCPU: sse42 popcnt avx avx2\nArgs: \"claude\" \"--co",
+      "created_at": "2026-02-05T15:16:24Z"
+    }
+  ]
+}

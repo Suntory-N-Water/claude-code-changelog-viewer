@@ -1,0 +1,35 @@
+{
+  "number": 37273,
+  "title": "Cowork: Context compaction permanently removes scrollable conversation history from UI",
+  "body": "## Bug Description\n\nWhen a Cowork session's context window fills up, context compaction replaces the full conversation history with a summary. This is irreversible — all prior messages disappear from the scrollable chat interface. The user loses the ability to scroll back and review what was discussed, what decisions were made, and what the AI actually said.\n\nThe full transcript is preserved in a JSONL file on disk, so the data isn't lost — it's just no longer rendered in the UI. The rendered chat history is coupled to the model's context window when it should be independent.\n\n## Why This Matters\n\nFor long, multi-step technical sessions — architecture discussions, code reviews, debugging workflows — the conversation **is** the working document. Users refer back to earlier exchanges to recall exact wording, revisit rejected approaches, or confirm what was agreed. Losing that history mid-session breaks the user's ability to work effectively.\n\nThe user-facing contract of a chat interface is that you can scroll back through what was said. Violating that silently, with no warning and no opt-out, is unexpected behavior.\n\n## Current Workaround Limitations\n\nThe raw transcript is preserved in a JSONL file on disk, but:\n- It's a machine-format log buried in an internal path — not a readable conversation the user can scroll through\n- The AI can parse and re-present it, but that produces a reconstruction, not the original thread\n- Re-presenting the transcript costs additional context tokens\n\n## Expected Behavior\n\nThe full scrollable conversation history should be preserved in the UI even when context compaction occurs. The rendered chat history should be retained independently of the model's context window.\n\n## Suggested Approach\n\nDecouple the UI's rendered message history from the model's context window. Compaction should only affect what the model sees, not what the user can scroll through.\n\n## Environment\n\n- Product: Cowork (research preview)\n- Platform: Desktop app",
+  "labels": ["bug", "area:cowork"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-21T23:24:23Z",
+  "updated_at": "2026-06-03T19:03:28Z",
+  "closed_at": null,
+  "reactions_total": 19,
+  "comments_count": 13,
+  "author": "omotayo-giwa",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/27242\n2. https://github.com/anthropics/claude-code/issues/7502\n3. https://github.com/anthropics/claude-code/issues/18204\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-21T23:28:04Z"
+    },
+    {
+      "author": "omotayo-giwa",
+      "author_association": "NONE",
+      "body": "## Update: Broader regression — affects all previous sessions, not just compaction\n\nThis is more severe than initially reported. Going back through **all** previous Cowork sessions, the conversation history is truncated. This is not limited to sessions where context compaction was triggered — it appears to be a general regression in how the UI renders stored conversation history.\n\n### Revised assessment\n\n- **Previously reported**: Compaction removes scrollable history mid-session\n- **Actual scop",
+      "created_at": "2026-03-21T23:30:43Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "We open-sourced [cozempic](https://github.com/Ruya-AI/cozempic) which prevents this — it fires a checkpoint right before compaction (PreCompact hook) saving full team state, then re-injects it after (PostCompact hook) so the session recovers context. Would love to know if it helps.",
+      "created_at": "2026-03-22T21:28:47Z"
+    }
+  ]
+}

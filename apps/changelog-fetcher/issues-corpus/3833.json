@@ -1,0 +1,35 @@
+{
+  "number": 3833,
+  "title": "[BUG]  CLAUDE_CONFIG_DIR environment variable behavior unclear - still creates local .claude/ directories",
+  "body": "### Environment\n\n  - Platform (select one):\n    - Anthropic API\n    - AWS Bedrock\n    - Google Vertex AI\n    - Other:\n  - Claude CLI version: Latest\n  - Operating System: Linux\n  - Terminal: bash\n\n ### Bug Description\n\n  **I have the CLAUDE_CONFIG_DIR environment variable set to centralize Claude Code configuration, but Claude Code still creates local .claude/ directories in individual workspaces. The purpose and expected behavior of CLAUDE_CONFIG_DIR is unclear since it's not documented in the official documentation.**\n\n###  Steps to Reproduce\n\n  1. Set CLAUDE_CONFIG_DIR=/path/to/global/claude/config environment variable\n  2. Start Claude Code session in a workspace directory\n  3. Use Claude Code tools that require permissions (e.g., Bash commands)\n  4. Observe that a local .claude/settings.local.json file is created in the workspace\n\n ### Expected Behavior\n\n  It's unclear what the expected behavior should be since CLAUDE_CONFIG_DIR is not documented. Possible expectations:\n  - All configuration centralized: CLAUDE_CONFIG_DIR should prevent any local .claude/ directories from being created\n  - Hybrid approach: Global config in CLAUDE_CONFIG_DIR, workspace-specific settings still stored locally\n  - Different purpose: CLAUDE_CONFIG_DIR serves a different purpose than local settings\n\n ### Actual Behavior\n\n  Despite having CLAUDE_CONFIG_DIR set, Claude Code creates both:\n  1. Global configuration in $CLAUDE_CONFIG_DIR/:\n  /mnt/bn/xxx/.claude/\n  ├── .claude.json\n  ├── .claude.json.backup\n  ├── .credentials.json\n  ├── projects/\n  ├── shell-snapshots/\n  ├── statsig/\n  └── todos/\n  2. Local workspace configuration:\n  /opt/tiger/aiic_verl/.claude/\n  └── settings.local.json\n\n ### Additional Context\n\n  - The CLAUDE_CONFIG_DIR environment variable is not mentioned in the official documentation:\n    - https://docs.anthropic.com/en/docs/claude-code/settings\n    - https://docs.anthropic.com/en/docs/claude-code/cli-reference\n  - This makes it impossible to determine if the current behavior is a bug or intended functionality\n  - Would appreciate clarification on the purpose of this environment variable and whether it should be documented\n\n  **Request: Could you please document the purpose and behavior of CLAUDE_CONFIG_DIR and clarify whether creating both global and local config directories is the intended behavior?**\n",
+  "labels": ["bug", "documentation", "platform:linux", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-17T12:09:30Z",
+  "updated_at": "2026-02-05T14:28:17Z",
+  "closed_at": "2026-01-29T10:18:52Z",
+  "reactions_total": 22,
+  "comments_count": 7,
+  "author": "szrlee",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "christopher-buss",
+      "author_association": "NONE",
+      "body": "CLAUDE_CONFIG_DIR seems to work for me in all cases, aside from with the vscode ide. I'm getting the .claude/ide folder created regardless of whether this is set.",
+      "created_at": "2025-07-29T23:02:21Z"
+    },
+    {
+      "author": "graelo",
+      "author_association": "NONE",
+      "body": "Hi, the current behavior of Claude Code with `CLAUDE_CONFIG_DIR` actually works quite well for XDG Base Directory compliance, but I believe the naming and documentation could be clarified. Here's what I'd propose:\n\n## Current Behavior (which I think is mostly correct!)\n\n- **User configuration files** (skills, agents, commands) remain in `~/.config/claude-code/` - this is the correct location per XDG spec and allows version control\n- **State/runtime files** (currently in `~/.claude/`) can be relo",
+      "created_at": "2025-11-25T13:11:51Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-26T10:09:37Z"
+    }
+  ]
+}

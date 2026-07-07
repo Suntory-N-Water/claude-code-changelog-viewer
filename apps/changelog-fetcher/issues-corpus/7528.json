@@ -1,0 +1,35 @@
+{
+  "number": 7528,
+  "title": "[BUG]   Critical Bug - Claude Code forces non-existent cygpath on Windows, ignoring available shells",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n  Environment:\n\n  - Claude Code Version: 1.0.112 (installed via npm)\n  - Platform: Windows 10/11 (win32)\n  - Node Version: v22.18.0\n  - Available Shells: WSL (installed), Git Bash (installed), PowerShell, CMD\n  - Cygwin: NOT installed\n  - Working Directory: C:\\Users\\13581432\n\n  Issue Description:\n\n  Claude Code v1.0.112 fails to execute ANY commands on Windows, forcing the use of cygpath (a Cygwin utility) even when:\n  1. Cygwin is NOT installed on the system\n  2. WSL is installed and available\n  3. Git Bash/MSYS is installed and available\n  4. Running FROM within Git Bash terminal\n  5. The same setup worked 3 days ago (before update)\n\n  Error Messages:\n\n  1. When trying to run any bash command:\n  Error: No suitable shell found. Claude CLI requires a Posix shell environment. Please ensure you have a valid shell installed and the SHELL environment variable set.\n\n  2. When using file tools (Glob, etc.):\n  Error: Command failed: cygpath -u 'C:\\Users\\13581432'\n      at genericNodeError (node:internal/errors:983:15)\n      at wrappedFn (node:internal/errors:537:14)\n      at checkExecSyncError (node:child_process:915:11)\n      at execSync (node:child_process:987:15)\n      at Tk (file:///C:/Users/13581432/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/cli.js:755:1044)\n      ...\n    status: 4294967295,\n    signal: null,\n    pid: 29168,\n    stdout: <Buffer 49 00 6e 00 76 00 61 00 6c 00 69 00 64 00...>\n\n  Steps to Reproduce:\n\n  1. Install Claude Code on Windows: npm install -g @anthropic-ai/claude-code\n  2. Run claude from PowerShell, CMD, or Git Bash\n  3. Try any command like dir, ls, or use file tools\n  4. Observe cygpath error even though cygwin is not installed\n\n  Attempted Solutions (All Failed):\n\n  1. ✗ Running from PowerShell\n  2. ✗ Running from Git Bash terminal\n  3. ✗ Running from WSL terminal\n  4. ✗ Setting environment variables:\n    - $env:SHELL = \"C:\\Windows\\System32\\wsl.exe\"\n    - $env:SHELL = \"/usr/bin/bash\"\n    - $env:MSYS_NO_PATHCONV = 1\n    - $env:WSL_DISTRO_NAME = \"Ubuntu\"\n  5. ✗ Running with wsl claude\n  6. ✗ Using Git Bash's MSYS environment\n  7. ✗ Creating fake cygpath.bat (causes path mangling: C:\\Users becomes C:\\c\\Users)\n\n  Root Cause:\n\n  Claude Code v1.0.112 has hardcoded dependency on cygpath for Windows path conversion without:\n  - Checking if cygpath/Cygwin exists\n  - Falling back to WSL's wslpath\n  - Using Git Bash's MSYS path handling\n  - Supporting native Windows paths\n\n  Comparison:\n\n  - Work laptop: Fails with cygpath error (no Cygwin installed)\n  - Personal laptop: Works (possibly has different version or Cygwin remnants)\n  - 3 days ago: Worked on same work laptop (before update)\n\n  Expected Behavior:\n\n  Claude Code should:\n  1. Detect available shells (WSL, Git Bash, PowerShell)\n  2. Use appropriate path conversion for detected environment\n  3. NOT require Cygwin/cygpath when other shells are available\n  4. Fall back gracefully when cygpath doesn't exist\n\n  Impact:\n\n  Claude Code is completely unusable on Windows systems without Cygwin, making it a showstopper bug for Windows users.\n\n\n### What Should Happen?\n\n  Expected Behavior:\n\n  Claude Code should:\n  1. Detect available shells (WSL, Git Bash, PowerShell)\n  2. Use appropriate path conversion for detected environment\n  3. NOT require Cygwin/cygpath when other shells are available\n  4. Fall back gracefully when cygpath doesn't exist\n\n### Error Messages/Logs\n\n```shell\ndows PowerShell\nCopyright (C) Microsoft Corporation. All rights reserved.\n\nInstall the latest PowerShell for new features and improvements! https://aka.ms/PSWindows\n\nPS C:\\Users\\13581432>  export CLAUDE_SHELL=\"/mnt/c/Windows/System32/wsl.exe\"\nexport : The term 'export' is not recognized as the name of a cmdlet, functio",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-12T16:42:41Z",
+  "updated_at": "2026-02-19T14:29:53Z",
+  "closed_at": "2026-01-30T10:16:51Z",
+  "reactions_total": 0,
+  "comments_count": 12,
+  "author": "whatcher1074",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7480\n2. https://github.com/anthropics/claude-code/issues/7470\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-09-12T16:47:30Z"
+    },
+    {
+      "author": "whatcher1074",
+      "author_association": "NONE",
+      "body": "I did all of those things and this doesnt resolve the issue it is a bug\r\nplease test reproduce and confirm.\r\n\r\nOn Fri, Sep 12, 2025 at 12:47 PM github-actions[bot] <\r\n***@***.***> wrote:\r\n\r\n> *github-actions[bot]* left a comment (anthropics/claude-code#7528)\r\n> <https://github.com/anthropics/claude-code/issues/7528#issuecomment-3286039142>\r\n>\r\n> Found 2 possible duplicate issues:\r\n>\r\n>    1. #7480 <https://github.com/anthropics/claude-code/issues/7480>\r\n>    2. #7470 <https://github.com/anthropi",
+      "created_at": "2025-09-12T17:56:19Z"
+    },
+    {
+      "author": "dimension-zero",
+      "author_association": "NONE",
+      "body": "# SOLUTION FOUND\n\n**DIAGNOSIS**\n* Claude Code on Windows uses C:\\Program Files\\Git\\usr\\bin\\cygpath.exe (hardcoded) to translate Windows<->Unix paths\n* This is part of Cygwin (too big to install) and also part of Git Bash\n* Git can be installed in TWO places on Windows C:\\Program Files\\Git (as above) and %USERDIR%\\AppData\\Local\\Git\n* Default (either by Git installer or winget) is to install to %USERDIR\\Git\n* Hence Claude Code can't find and complains / fails / crashes\n\n**SOLUTION**\n* Check where ",
+      "created_at": "2025-10-09T09:54:49Z"
+    }
+  ]
+}

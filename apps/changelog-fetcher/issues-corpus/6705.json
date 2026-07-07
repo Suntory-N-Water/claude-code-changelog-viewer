@@ -1,0 +1,42 @@
+{
+  "number": 6705,
+  "title": "[BUG] claude doctor hangs indefinitely, uses 100% CPU, and soft locks terminal session",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.95\n- Operating System: Windows 11 and Ubuntu WSL\n- Terminal:  PowerShell and bash\n\n## Bug Description\nRunning 1.0.93 from a fresh terminal window, running the command `claude doctor` worked successfully. Once Claude is updated to 1.0.95, the same command soft locks your computer. As your CPU is 100% utilized, the terminal will not respond to anything, and the command seems to hang indefinitely, as if it's in a recursive loop. \n\nIf you run it while inside Claude using the /command, it appears to work. It's only when you run it outside a running Claude session. \n\nCan reproduce in both WSL and Windows, and node 20 and 22.\n\n## Steps to Reproduce\n1. Update to 1.0.95\n2. Run `claude doctor`\n\n## Expected Behavior\nIt to return the results of doctor.\n\n## Actual Behavior\nHangs forever, CPU jumps to 100%, terminal soft locks.\n\n## Additional Context\nCan confirm it was fine with 93 as it ran correctly on 93, right before I updated to 95.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "platform:linux",
+    "area:core",
+    "perf:memory"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-08-28T03:11:46Z",
+  "updated_at": "2025-09-11T14:07:02Z",
+  "closed_at": "2025-08-29T22:09:26Z",
+  "reactions_total": 11,
+  "comments_count": 20,
+  "author": "marty0678",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "This should be resolved in 1.0.98, released today.",
+      "created_at": "2025-08-29T22:09:26Z"
+    },
+    {
+      "author": "kotot",
+      "author_association": "NONE",
+      "body": "I have the same problem, and the command fails：\nLast login: Thu Aug 28 11:29:37 on ttys002\n/etc/zprofile:7: fork failed: resource temporarily unavailable\n/Users/bytedance/.zprofile:2: fork failed: resource temporarily unavailable\n/etc/zshrc:7: fork failed: resource temporarily unavailable\n/Users/bytedance/.oh-my-zsh/oh-my-zsh.sh:43: fork failed: resource temporarily unavailable\nnvm_auto:13: fork failed: resource temporarily unavailable\ncompdef:95: fork failed: resource temporarily unavailable\n/U",
+      "created_at": "2025-08-28T03:42:22Z"
+    },
+    {
+      "author": "etsraphael",
+      "author_association": "NONE",
+      "body": "I'm currently experiencing the same issues, and it will crash my entire computer due to insufficient memory. \nThe quick escape right now is: `pkill -f claude` (from another tab, as the first one will be busy), hopefully we're getting a fix soon ",
+      "created_at": "2025-08-28T05:59:02Z"
+    }
+  ]
+}

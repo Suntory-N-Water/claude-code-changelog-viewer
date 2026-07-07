@@ -1,0 +1,35 @@
+{
+  "number": 28112,
+  "title": "[BUG] Windows: clicking Claude icon gives \"command 'claude-vscode.editor.openLast' not found\" - reinstalling VS Code and extension doesn't fix it",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Environment:**\n- OS: Windows 11\n- VS Code version: latest\n- Claude Code CLI version: 2.1.51\n\n**Bug Description:**\nClicking the Claude icon in the VS Code activity bar gives error: `command 'claude-vscode.editor.openLast' not found`. The extension shows \"Activating...\" forever and never loads.\n\n**Root Cause Found:**\nIn Developer Tools console, this error appears:\n`Activating extension 'Anthropic.claude-code' failed: The argument 'filename' must be a file URL object, file URL string, or absolute path string. Received 'file:///home/runner/work/claude-cli-internal/claude-cli-internal/build-agent-sdk/sdk.mjs'`\n\nThe extension has a hardcoded Linux path (`/home/runner/work/...`) baked into it which doesn't resolve on Windows.\n\n**Steps to Reproduce:**\n1. Install Claude Code CLI on Windows\n2. Open VS Code\n3. Click the Claude icon in the activity bar\n\n**Expected:** Claude Code panel opens\n**Actual:** Error: `command 'claude-vscode.editor.openLast' not found`\n\n**Note:** CLI works fine in terminal (`claude` command works). Only the visual panel is broken.\n\n### What Should Happen?\n\nClicking the Claude icon in the VS Code activity bar should open the Claude Code visual panel successfully without any errors.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code CLI on Windows: npm install -g @anthropic-ai/claude-code\n2. Open VS Code\n3. Run \"claude\" in VS Code terminal (auto-installs the extension)\n4. Click the Claude icon in the VS Code activity bar (top left)\n5. Error appears: \"command 'claude-vscode.editor.openLast' not found\"\n6. Open Developer Tools (Ctrl+Shift+P → \"Developer: Toggle Developer Tools\")\n7. Check Console tab — shows the real error: extension activation failed due to hardcoded Linux path\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.51 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nThe root cause is a hardcoded Linux path in the extension package:\n\nfile:///home/runner/work/claude-cli-internal/claude-cli-internal/build-agent-sdk/sdk.mjs\n\nThis path does not exist on Windows, causing the extension to fail activation entirely.\n\nWorkaround: Claude CLI works fine in the terminal (\"claude\" command). Only the visual panel is broken.\n\nTried to fix by:\n\n<img width=\"1433\" height=\"942\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/385a3ec5-65de-4221-91cc-3c0833d5abe8\" />\n\n- Uninstalling and reinstalling Claude Code CLI\n- Uninstalling and reinstalling VS Code completely (including deleting all AppData folders)\n- Updating Claude Code CLI to latest version (2.1.51)\n- Nothing worked — this appears to be a packaging bug on Anthropic's side",
+  "labels": ["bug", "duplicate", "platform:windows", "platform:vscode"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-24T06:11:20Z",
+  "updated_at": "2026-03-05T14:31:07Z",
+  "closed_at": "2026-02-24T07:08:38Z",
+  "reactions_total": 1,
+  "comments_count": 15,
+  "author": "swaroop-dot",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28073\n2. https://github.com/anthropics/claude-code/issues/28081\n3. https://github.com/anthropics/claude-code/issues/28082\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-24T06:14:45Z"
+    },
+    {
+      "author": "shawnm-anthropic",
+      "author_association": "NONE",
+      "body": "Hi, sorry about the disruption. We just published v2.1.52 which should hopefully work better.",
+      "created_at": "2026-02-24T07:08:38Z"
+    },
+    {
+      "author": "37Stars",
+      "author_association": "NONE",
+      "body": "Version 2.1.53 and its still borked.",
+      "created_at": "2026-02-25T00:37:47Z"
+    }
+  ]
+}

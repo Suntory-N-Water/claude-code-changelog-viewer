@@ -1,0 +1,16 @@
+{
+  "number": 34414,
+  "title": "Voice mode fails with 'Voice connection failed' — Cloudflare challenge blocks WebSocket to claude.ai",
+  "body": "## Environment\n\n- **OS**: Windows 10/11 (x64)\n- **Node.js**: v20.18.1\n- **Claude Code**: 2.1.76\n- **Auth**: claude.ai OAuth, subscription: max\n- **Region**: Romania (Bucharest), ISP: DIGI ROMANIA S.A. (AS8708)\n\n## Bug Description\n\n`/voice` enables successfully (\"Voice mode enabled. Hold Space to record.\"), but after recording and releasing Space, it always fails with:\n\n> Voice connection failed. Check your network and try again.\n\n## Root Cause Analysis\n\nThe voice stream WebSocket (`wss://claude.ai/api/ws/speech_to_text/voice_stream`) never connects because **Cloudflare blocks all programmatic requests to `claude.ai`** from this IP/region with a JavaScript challenge.\n\nAny HTTP request to `claude.ai` returns:\n```\nHTTP 403\ncf-mitigated: challenge\nserver: cloudflare\n```\n\nThis challenge cannot be solved by a CLI/Node.js WebSocket client, so the connection never establishes. The `finishRecording()` function sees `wsConnected=false` and `transcriptChars=0`, triggering the \"Voice connection failed\" error.\n\n## What Works\n\n| Component | Status |\n|-----------|--------|\n| Native audio module (`audio-capture.node` x64-win32) | Loads OK, 7 exports |\n| OAuth authentication | `loggedIn: true` |\n| `api.anthropic.com` (main API) | Works fine (no Cloudflare challenge) |\n| Microphone / audio devices | 4 devices, all status OK |\n| Windows Firewall | Claude rules: Allow in/out |\n| DNS resolution for `claude.ai` | Resolves to `160.79.104.10` |\n| TLS to `claude.ai` | TLSv1.3, certificate valid |\n\n## What Fails\n\n- ANY programmatic request from Node.js to `claude.ai` → 403 with `cf-mitigated: challenge`\n- WebSocket upgrade to `wss://claude.ai/...` → blocked by Cloudflare before reaching server\n\n## Reproduction\n\n```bash\n# This returns 403 with cf-mitigated: challenge\ncurl -s -o /dev/null -w \"%{http_code}\" https://claude.ai\n# Returns: 403\n\n# This works fine\ncurl -s -o /dev/null -w \"%{http_code}\" https://api.anthropic.com\n# Returns: 404 (expected, no auth)\n```\n\n## Expected Behavior\n\nVoice WebSocket should connect to `claude.ai` without being blocked by Cloudflare challenge, similar to how `api.anthropic.com` handles CLI connections.\n\n## Workaround\n\nUsing a VPN changes the IP and bypasses the Cloudflare challenge, making voice mode work. This confirms the issue is IP/region-based Cloudflare challenge policy.\n\n## Suggested Fix\n\nConsider one of:\n1. Exempting the `/api/ws/speech_to_text/voice_stream` endpoint from Cloudflare JavaScript challenges (requests include valid OAuth Bearer tokens)\n2. Using a separate non-challenge-protected domain for the voice stream (similar to `api.anthropic.com`)\n3. Adding a Cloudflare bypass token/header for authenticated CLI clients",
+  "labels": ["bug", "has repro", "platform:windows", "area:networking"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-14T17:37:00Z",
+  "updated_at": "2026-04-25T14:35:05Z",
+  "closed_at": "2026-04-18T04:16:26Z",
+  "reactions_total": 2,
+  "comments_count": 6,
+  "author": "DmitriyChumak",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

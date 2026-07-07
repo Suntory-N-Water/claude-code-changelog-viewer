@@ -1,0 +1,35 @@
+{
+  "number": 52502,
+  "title": "[Bug] Session/weekly token limits deplete disproportionately fast with Opus orchestrator + Haiku subagents",
+  "body": "**Bug Description**\nSubject: Max 20x — session + weekly limits drain disproportionately fast when Opus is used as pure orchestrator with Haiku subagents\n\nPlan: Max 20x ($200/month)\nClient: Claude Code CLI (latest)\n\nSetup:\n- Main model: Opus 4.7 — used STRICTLY as an orchestrator. It does not write code, does not read large files, does not do heavy implementation work.\n- All custom subagents: explicitly pinned to `model: haiku` via frontmatter. They do 100% of the actual work (file reads, code edits, searches, tool calls).\n- Opus's job in my workflow is limited to: receive the user request, delegate to the right Haiku subagent, review the returned summary, delegate the next step.\n\nIssue:\nAfter ~40 minutes of this workflow, the 5-hour session window shows 22% consumption. The weekly limit depletes at a rate that would exhaust it in 2-3 days of normal work, not 7. This is consistent with the behavior reported in GitHub issues #8449 and #26271, which remain unresolved.\n\nWhy this is wrong:\nWith Opus acting purely as a router — short delegation prompts in, short summaries out — the Opus token consumption per turn should be minimal. The bulk of tokens (file contents, grep results, code generation) lives in the Haiku subagents' isolated context windows and should be billed at Haiku rates. If the numbers are correct, then either:\n\n(a) Opus orchestration is being billed as if it were doing the full work of the subagents, or\n(b) Haiku subagent invocations are silently being routed to a more expensive model, or\n(c) There is a bug in how session/weekly consumption is calculated, as already reported in #8449 and #26271.\n\nThere is no way for me to tell which, because the usage dashboard shows a single aggregate number with no per-model breakdown.\n\n**Environment Info**\n- Platform: darwin\n- Terminal: iTerm.app\n- Version: 2.1.118\n- Feedback ID: 326a7987-ee3d-4cee-8822-3205ffefa92c\n\n**Errors**\n```json\n[{\"error\":\"Error: NON-FATAL: Lock acquisition failed for /Users/lohonyaigyozo/.local/share/claude/versions/2.1.118 (expected in multi-process scenarios)\\n    at ai_ (/$bunfs/root/src/entrypoints/cli.js:2756:2177)\\n    at IK8 (/$bunfs/root/src/entrypoints/cli.js:2756:1257)\\n    at processTicksAndRejections (native:7:39)\",\"timestamp\":\"2026-04-23T18:17:38.431Z\"}]\n```\n",
+  "labels": ["bug", "platform:macos", "area:cost", "area:agents", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-23T18:39:42Z",
+  "updated_at": "2026-05-29T22:40:22Z",
+  "closed_at": "2026-05-29T22:40:22Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "LohiSoftsro",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/51609\n2. https://github.com/anthropics/claude-code/issues/52135\n3. https://github.com/anthropics/claude-code/issues/45756\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-23T18:44:49Z"
+    },
+    {
+      "author": "LohiSoftsro",
+      "author_association": "NONE",
+      "body": "**Not a duplicate — please do not auto-close.**\n\nThe three issues flagged by the bot (#51609, #52135, #45756) describe related symptoms but none covers the specific setup reported here:\n\n- **#51609** is about Opus *refusing to delegate*. My issue is the opposite: Opus *does* delegate correctly to subagents, and quota still drains at an Opus-consistent rate.\n- **#52135** reports aggregate weekly depletion without describing the agent topology that triggers it.\n- **#45756** is a different plan (Pr",
+      "created_at": "2026-04-23T18:54:54Z"
+    },
+    {
+      "author": "LohiSoftsro",
+      "author_association": "NONE",
+      "body": "**Update — fresh data from continued reproduction, burn rate is getting worse.**\n\nNew data point from the same session, ~1 hour after the original report:\n\n- **Session consumption: 35% of the 5-hour window after ~1 hour of active use.**\n- **Only two subagent types invoked in this hour: `cpp-pro` and `typescript-pro`.**\n- Both have `model: haiku` explicitly in the frontmatter. No other agent type was used.\n- Main Opus 4.7 remained strictly an orchestrator — short delegation prompts in, short summ",
+      "created_at": "2026-04-23T18:57:46Z"
+    }
+  ]
+}

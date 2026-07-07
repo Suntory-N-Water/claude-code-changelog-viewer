@@ -1,0 +1,35 @@
+{
+  "number": 5812,
+  "title": "Feature Request: Allow Hooks to Bridge Context Between Sub-Agents and Parent Agents",
+  "body": "### **Title: Feature Request: Allow Hooks to Bridge Context Between Sub-Agents and Parent Agents**\n\n**Labels:** `enhancement`, `feature-request`, `hooks`, `sub-agents`\n\n#### Is your feature request related to a problem? Please describe.\n\nThere is currently a significant context isolation problem between a parent agent and its sub-agents. When a sub-agent performs an action that creates new information (e.g., writing a file), the parent agent remains unaware of that information. This breaks many common agentic workflows, leading to an anti-pattern we can call the \"Implementer Model.\"\n\n**Concrete Example (The Anti-Pattern):**\n\n1.  A parent agent is tasked with creating a new React component and integrating it into the main application.\n2.  The parent agent delegates the component creation to a specialized `frontend-dev` sub-agent.\n3.  The sub-agent successfully uses the `Write` tool to create a new file, `src/components/NewComponent.tsx`.\n4.  The sub-agent's task is complete, and control returns to the parent agent.\n5.  **The problem:** The parent agent has no knowledge of the *contents* of `NewComponent.tsx`. It knows a task was completed, but it cannot proceed with the next step (e.g., adding `import NewComponent from './components/NewComponent'` to `App.tsx`) because the new file's content is not in its context window.\n\nThe current hook system does not offer a clean solution. Based on a synthesis of the documentation and potential workarounds:\n\n*   **Limited Feedback Loop:** Hooks like `PostToolUse` send feedback (via `stderr` or JSON output) back to the *same agent that ran the tool* (the sub-agent), not propagated up to the parent.\n*   **Clunky Workarounds:** Developers are forced to implement multi-step workarounds, such as having a `SubagentStop` hook write changes to a temporary state file, and then a separate `UserPromptSubmit` hook read that file to inject context. This is indirect, fragile, and relies on managing external state.\n*   **Side-Effect Reliance:** Another workaround involves using hooks to commit changes to Git, forcing the parent agent to re-discover the state by running `git status` or `ls`. This is inefficient and still doesn't place the file's *content* directly into the parent's context.\n\nThese methods are complex and unintuitive for users. A first-class mechanism for inter-agent context passing is needed.\n\n#### Describe the solution you'd like\n\nI propose enhancing the hook system to allow for direct communication from a sub-agent's lifecycle back to its parent. This would enable sub-agents to pass critical information back into the parent's context window, effectively acting as functions with a \"return value.\"\n\nThe ideal candidate for this enhancement is the **`SubagentStop` hook**.\n\nWhen a `SubagentStop` hook command executes, it should be able to return structured JSON output with a new, optional field like `additionalParentContext`.\n\n**Example `SubagentStop` Hook Logic:**\n\nA hook script could be written to inspect the sub-agent's final state (e.g., by parsing its transcript or checking git status for new files), read the content of any new files, and format it for the parent.\n\n**Example JSON Output from Hook:**\n\n```json\n{\n  \"hookSpecificOutput\": {\n    \"hookEventName\": \"SubagentStop\",\n    \"additionalParentContext\": \"A new file was created at 'src/components/NewComponent.tsx' with the following content:\\n\\n```tsx\\nimport React from 'react';\\n\\nconst NewComponent = () => {\\n  return <div>New Component</div>;\\n};\\n\\nexport default NewComponent;\\n```\"\n  }\n}\n```\n\nWhen the Claude Code runtime receives this JSON from the `SubagentStop` hook, it would inject the content of `additionalParentContext` into the context of the **parent agent** for its next turn. This would make the parent immediately aware of the sub-agent's output, allowing it to continue the workflow seamlessly without extra steps.\n\n#### Describe alternatives you've considered\n\n1.  **Using `PostToolUse` to commit to git:** A hook could commit the new file, and the parent could be prompted to run `git status`. This is inefficient, relies ",
+  "labels": ["enhancement", "area:tools", "area:core", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-15T02:40:05Z",
+  "updated_at": "2026-01-16T14:10:19Z",
+  "closed_at": "2026-01-07T10:12:56Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "coygeek",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4908\n2. https://github.com/anthropics/claude-code/issues/4462\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-15T02:43:47Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "# Current Solutions\n\nBased on the provided official documentation and an analysis of the developer discussions, here are all the possible workflows for solving the sub-agent context isolation problem using the current, documented functionality of Claude Code hooks.\n\nThe core challenge is to make a parent agent (or a subsequent sub-agent) aware of the specific outputs (like new file paths and their content) from a completed sub-agent's isolated session. The documentation provides two primary mech",
+      "created_at": "2025-08-15T03:01:18Z"
+    },
+    {
+      "author": "TikkanadityaSiddartha",
+      "author_association": "NONE",
+      "body": "@coygeek Your post is very informative and touches upon a lot of similar pain points I had, when using Sub-Agents. I really liked the concept (Roo had it before, and I really liked their orchestration), but the lack of transparency between Sub-Agents and Parent agent was really a deal breaker to me.\n\nI've created my own session timer for Claude Code (30 min after the start of session, Claude Code won't be able to execute any tools), and I code with that in conjunction with a change log generator",
+      "created_at": "2025-08-15T20:57:16Z"
+    }
+  ]
+}

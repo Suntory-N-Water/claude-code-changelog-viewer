@@ -1,0 +1,35 @@
+{
+  "number": 7618,
+  "title": "[BUG] VS Code terminal steals focus even when running Claude Code externally with /ide (terminal not open)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using Claude Code in an external terminal, while connected to VS Code with the `/ide` command, VS Code opens the integrated terminal and steals focus upon prompt submission in the external terminal. \n\n### What Should Happen?\n\nWith CLI running externally, VS Code should not reveal/focus the integrated terminal unless I explicitly open it.\n\n### Error Messages/Logs\n\n```shell\n2025-09-14 21:36:07.286 [info] Unregistered diagnostic client: client_5\n2025-09-14 21:44:18.197 [info] New WS connection from: /\n2025-09-14 21:44:18.198 [info] MCP server connected to transport\n2025-09-14 21:44:18.198 [info] [DiagnosticStreamManager] Started streaming diagnostics\n2025-09-14 21:44:18.198 [info] Registered diagnostic client: client_6\n2025-09-14 21:44:19.296 [info] Closing all diff tabs in the editor...\n2025-09-14 21:44:19.297 [info] Closed 0 diff tabs.\n2025-09-14 21:44:19.871 [info] [DiagnosticStreamManager] Notifying 1 clients about diagnostics change for 1 files\n2025-09-14 21:44:21.963 [info] WS client disconnected\n2025-09-14 21:44:21.964 [info] [DiagnosticStreamManager] Unregistered client client_6. Total clients: 0\n2025-09-14 21:44:21.964 [info] [DiagnosticStreamManager] Stopped streaming diagnostics\n2025-09-14 21:44:21.964 [info] Unregistered diagnostic client: client_6\n2025-09-14 21:45:02.704 [info] New WS connection from: /\n2025-09-14 21:45:02.704 [info] MCP server connected to transport\n2025-09-14 21:45:02.704 [info] [DiagnosticStreamManager] Started streaming diagnostics\n2025-09-14 21:45:02.704 [info] Registered diagnostic client: client_7\n2025-09-14 21:45:10.698 [info] Closing all diff tabs in the editor...\n2025-09-14 21:45:10.698 [info] Closed 0 diff tabs.\n2025-09-14 21:45:11.272 [info] [DiagnosticStreamManager] Notifying 1 clients about diagnostics change for 1 files\n```\n\n### Steps to Reproduce\n\n1. Open VS Code with a workspace.\n2. Ensure the integrated terminal is closed.\n3. In an external terminal, run claude from the workspace root and connect with `/ide`.\n4. Type a prompt and press Enter.\n5. Tab back to VS Code and observe that the integrated terminal is now open.\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nUnsure\n\n### Claude Code Version\n\n1.0.113\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nAttached logs are from the CC extension in VS code. \n\nGhostTTY Version Info:\n```\nVersion: 1.1.3\nBuild: 9438\nCommit: 889478f3\n```\n\nVS Code Version Info:\n```\nVersion: 1.104.0 (Universal)\nCommit: f220831ea2d946c0dcb0f3eaa480eb435a2c1260\nDate: 2025-09-10T06:46:18.035Z\nElectron: 37.3.1\nElectronBuildId: 12342881\nChromium: 138.0.7204.235\nNode.js: 22.18.0\nV8: 13.8.258.31-electron.0\nOS: Darwin arm64 24.6.0\n```",
+  "labels": ["bug", "has repro", "platform:macos", "area:ide"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-09-15T04:46:08Z",
+  "updated_at": "2026-06-29T12:32:10Z",
+  "closed_at": null,
+  "reactions_total": 40,
+  "comments_count": 20,
+  "author": "openclosure",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/1591\n2. https://github.com/anthropics/claude-code/issues/3419\n3. https://github.com/anthropics/claude-code/issues/6919\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-09-15T04:52:11Z"
+    },
+    {
+      "author": "openclosure",
+      "author_association": "NONE",
+      "body": "Not a duplicate. There are several references to this bug in JetBrains products but I haven't seen a report of this for VS Code/Cursor. ",
+      "created_at": "2025-09-15T06:35:48Z"
+    },
+    {
+      "author": "dzhlobo",
+      "author_association": "NONE",
+      "body": "I can confirm the bug report, I observe the same behaviour.\n\nI use latest Ghostty from main branch (version 0c63946bd, build 12105).\n\nClaude Code version 1.0.112 (Claude Code).\n\nVSCode version info:\n```\nVersion: 1.104.0\nCommit: f220831ea2d946c0dcb0f3eaa480eb435a2c1260\nDate: 2025-09-10T06:46:18.035Z (5 days ago)\nElectron: 37.3.1\nElectronBuildId: 12342881\nChromium: 138.0.7204.235\nNode.js: 22.18.0\nV8: 13.8.258.31-electron.0\nOS: Darwin arm64 24.6.0\n```",
+      "created_at": "2025-09-15T08:43:23Z"
+    }
+  ]
+}

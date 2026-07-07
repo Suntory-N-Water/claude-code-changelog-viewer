@@ -1,0 +1,35 @@
+{
+  "number": 1222,
+  "title": "Authentication UI Warning Persists After Successful Login",
+  "body": "**Bug Description**\n  Title: Claude Code CLI shows \"Missing API key · Run /login\" despite functional authentication\n\n  Description:\n  While using Claude Code via SSH, I'm seeing a persistent message \"Missing API key · Run /login\" in the UI next to where I type messages. However, Claude\n  Code is fully functional and responds to my queries correctly, suggesting that authentication is actually working properly.\n\n  Steps to reproduce:\n  1. Start Claude Code via SSH\n  2. Successfully authenticate via browser flow (copy URL to Safari, copy response code back)\n  3. Successfully interact with Claude (messages are sent/received correctly)\n  4. Notice the \"Missing API key · Run /login\" message remains visible in the UI\n\n  Expected behavior:\n  Once successfully authenticated, the warning message should disappear.\n\n  Actual behavior:\n  The warning message persists despite successful authentication and fully functional operation.\n\n  Environment details:\n  - Claude Code CLI: Latest version\n  - Operating system: macOS latest version\n  - Connection method: SSH from Prompt 3 on iPad to Mac via local WiFi tunnel\n  - Authentication method: Browser flow authentication (copy URL to Safari, copy response code back)\n  - Subscription: Claude Max plan\n\n  Additional information:\n  - Using Prompt 3 app on iPad to connect to Mac\n  - Both devices on same local WiFi network\n  - SSH tunnel established between iPad and Mac\n  - Fully functional despite the persistent error message\n  - The authentication flow completed successfully\n\n\n**Environment Info**\n- Platform: macos\n- Terminal: ssh-session\n- Version: 0.2.124\n- Feedback ID: a5c6a2a6-3ec1-4d1b-a669-179a71cecdc5\n\n**Errors**\n```json\n[{\"error\":\"Error: Command failed: security find-generic-password -a $USER -w -s \\\"Claude Code\\\"\\nsecurity: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.\\n\\n    at genericNodeError (node:internal/errors:983:15)\\n    at wrappedFn (node:internal/errors:537:14)\\n    at checkExecSyncError (node:child_process:882:11)\\n    at execSync (node:child_process:954:15)\\n    at KW (file:///Users/ben/.nvm/versions/node/v22.12.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:605:3513)\\n    at file:///Users/ben/.nvm/versions/node/v22.12.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:535:15359\\n    at D (file:///Users/ben/.nvm/versions/node/v22.12.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:493:13295)\\n    at aN1 (file:///Users/ben/.nvm/versions/node/v22.12.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:535:14608)\\n    at qB (file:///Users/ben/.nvm/versions/node/v22.12.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:535:14225)\\n    at $J1 (file:///Users/ben/.nvm/versions/node/v22.12.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:1460:1005)\",\"timestamp\":\"2025-05-21T11:52:14.944Z\"},{\"error\":\"Error: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the \\\"X-Api-Key\\\" or \\\"Authorization\\\" headers to be explicitly omitted\\n    at file:///Users/ben/.nvm/versions/node/v22.12.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:675:22923\",\"timestamp\":\"2025-05-21T11:52:15.088Z\"},{\"error\":\"RangeError [ERR_CHILD_PROCESS_STDIO_MAXBUFFER]: stdout maxBuffer length exceeded\\n    at Socket.onChildStdout (node:child_process:481:14)\\n    at Socket.emit (node:events:524:28)\\n    at Socket.emit (node:domain:489:12)\\n    at addChunk (node:internal/streams/readable:561:12)\\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\\n    at Readable.push (node:internal/streams/readable:392:5)\\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)\",\"timestamp\":\"2025-05-21T11:52:15.790Z\"},{\"error\":\"Error: Command failed: security delete-generic-password -a $USER -s \\\"Claude Code\\\"\\nsecurity: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.\\n\\n    at genericNodeError (node:internal/errors:983:15)\\n    at wrappedFn (node:internal/errors:537:14)\\n    at checkExecSyncError (node:child_process:882:11)\\n    at execSync (node:child_process:954:",
+  "labels": ["bug", "platform:macos", "area:auth"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-05-22T14:16:03Z",
+  "updated_at": "2026-01-30T14:20:28Z",
+  "closed_at": "2026-01-23T10:11:42Z",
+  "reactions_total": 17,
+  "comments_count": 18,
+  "author": "bjcoombs",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "lijianwei89",
+      "author_association": "NONE",
+      "body": "\n\nHi there,\n\nThank you for the detailed and well-documented bug report\\! Your description of the issue is perfectly clear.\n\nThis is a known behavior when using applications that rely on the macOS Keychain over an SSH session. You are correct that the application is fully functional because you've successfully authenticated through the browser flow. The persistent \"Missing API key\" message is a UI bug stemming from how SSH sessions interact with the Keychain.\n\n### The Root Cause\n\nWhen you log int",
+      "created_at": "2025-06-27T15:27:05Z"
+    },
+    {
+      "author": "lijianwei89",
+      "author_association": "NONE",
+      "body": "Updata：if [ -n \"$SSH_CONNECTION\" ]; then\n  security unlock-keychain ~/Library/Keychains/login.keychain-db\nfi will import a new claude code bug\n",
+      "created_at": "2025-06-27T15:39:18Z"
+    },
+    {
+      "author": "cwc",
+      "author_association": "NONE",
+      "body": ">     2. Add the following lines to the end of the file. This script checks if you are in an SSH session and, if so, runs the unlock command.\n>        if [ -n \"$SSH_CONNECTION\" ]; then\n>          security unlock-keychain ~/Library/Keychains/login.keychain-db\n>        fi\n\nI use zsh. I added the above script to my `.zprofile`, so that it will only run in login shells.\n\nUpon running Claude CLI I found that it is actually creating a *login* shell itself, which caused this to display:\n\n<img width=\"13",
+      "created_at": "2025-08-07T14:46:21Z"
+    }
+  ]
+}

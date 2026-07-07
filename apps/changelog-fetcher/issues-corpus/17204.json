@@ -1,0 +1,35 @@
+{
+  "number": 17204,
+  "title": "Documentation: .claude/rules/ frontmatter format incorrect - globs works, paths with quotes/YAML list does not",
+  "body": "## Summary\n\nThe documentation for `.claude/rules/` frontmatter is incorrect or incomplete. After extensive testing, the documented `paths:` format does not work in several configurations, while the undocumented `globs:` format works reliably.\n\n## Environment\n\n- Claude Code CLI\n- WSL2 (Linux on Windows)\n- Project with `.claude/rules/` directory containing multiple rule files\n\n## Testing Methodology\n\nCreated multiple test files with different frontmatter formats and checked `/memory` output:\n\n| Format | Loads? |\n|--------|--------|\n| No frontmatter (unconditional) | YES |\n| `globs: \"**/*.cs\"` | YES |\n| `paths: **/*.cs` (unquoted) | YES |\n| `paths: \"**/*.cs\"` (quoted) | NO |\n| `paths:` + YAML list | NO |\n\n## Expected Behavior\n\nBased on documentation and GitHub issues, this should work:\n```yaml\n---\npaths:\n  - \"**/*.cs\"\n  - \"**/Controllers/**\"\n---\n```\n\n## Actual Behavior\n\nOnly these formats work:\n```yaml\n---\nglobs: **/*.cs, **/Controllers/**\n---\n```\n\n## Impact\n\nUsers following the documentation will have non-functional path-scoped rules with **no error messages** indicating why rules are not loading. This is a silent failure that is very difficult to debug.\n\n## Suggested Fix\n\n1. Update documentation to show the working format (`globs:`)\n2. Or fix the parser to support the documented `paths:` formats\n\n## Workaround\n\nUse `globs:` with comma-separated unquoted patterns:\n```yaml\n---\nglobs: pattern1, pattern2, pattern3\n---\n```",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-09T22:32:50Z",
+  "updated_at": "2026-06-03T19:01:29Z",
+  "closed_at": "2026-05-16T10:37:54Z",
+  "reactions_total": 10,
+  "comments_count": 10,
+  "author": "dheeraj5612",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16038\n2. https://github.com/anthropics/claude-code/issues/13905\n3. https://github.com/anthropics/claude-code/issues/16853\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-09T22:39:59Z"
+    },
+    {
+      "author": "tazbytes2019",
+      "author_association": "NONE",
+      "body": "Tried workaround using globs: with comma-separated unquoted patterns:  \nUnfortunately all rules files `.claude/rules/` are loaded into the system prompt at conversation start, regardless of whether the user is working with files matching those patterns.\nClaude CLI in windows env",
+      "created_at": "2026-01-12T21:31:04Z"
+    },
+    {
+      "author": "amondnet",
+      "author_association": "NONE",
+      "body": "https://github.com/amondnet/claude-memory-test?tab=readme-ov-file#test-results\n\n> | File | Format | Example | Loaded |\n> |------|--------|---------|--------|\n> | `api-paths-quoted-csv.md` | Quoted CSV | `paths: \"src/api/**/*,src/services/**/*\"` | ✅ |\n> | `api-paths-unquoted-csv.md` | Unquoted CSV | `paths: src/api/**/*,src/services/**/*` | ✅ |\n> | `api-paths-yaml-array.md` | YAML Array | `paths:`<br>`  - \"src/api/**/*\"` | ❌ |",
+      "created_at": "2026-01-23T08:04:58Z"
+    }
+  ]
+}

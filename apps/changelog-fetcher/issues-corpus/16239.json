@@ -1,0 +1,35 @@
+{
+  "number": 16239,
+  "title": "[BUG] Screenshot and JavaScript tools fail with \"Cannot access a chrome-extension:// URL of different extension\"",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nBug: Screenshot and JavaScript tools fail with \"Cannot access a chrome-extension:// URL of different extension\"\n\n  Environment\n\n  - Platform: macOS Darwin 24.6.0\n  - Claude Code: (run claude --version to confirm)\n  - Chrome Extension: Claude in Chrome (verify version in chrome://extensions)\n\n  Issue\n\n  The screenshot and javascript_tool MCP tools consistently fail with:\n  Error capturing screenshot: Cannot access a chrome-extension:// URL of different extension\n\n  Meanwhile, read_page, navigate, wait, and find tools work correctly.\n\n \n  What Works vs. What Fails\n\n  | Tool            | Uses                | Status   |\n  |-----------------|---------------------|----------|\n  | read_page       | Accessibility tree  | ✅ Works |\n  | navigate        | Chrome tabs API     | ✅ Works |\n  | wait            | Timer               | ✅ Works |\n  | find            | Accessibility tree  | ✅ Works |\n  | screenshot      | chrome.debugger API | ❌ Fails |\n  | javascript_tool | chrome.debugger API | ❌ Fails |\n\n  Troubleshooting Attempted\n\n  1. ❌ Closed Next.js debugger/DevTools - no change\n  2. ❌ Full Chrome restart (Cmd+Q) - no change\n  3. ❌ Created fresh tabs - no change\n  4. ❌ Tried deployed HTTPS URL instead of localhost - no change\n\n### What Should Happen?\n\nChrome extension should be able to take screenshots and execute js\n\n### Error Messages/Logs\n\n```shell\nThe screenshot and javascript_tool MCP tools consistently fail with:\n  \nError capturing screenshot: Cannot access a chrome-extension:// URL of different extension\n```\n\n### Steps to Reproduce\n\n Steps to Reproduce\n\n  1. Start Claude Code with claude\n  2. Verify Chrome extension connected via /mcp\n  3. Navigate to any URL (tested both localhost:3001 and https://pockla-app-team-beta.vercel.app)\n  4. Attempt screenshot or javascript_tool action\n  5. Error occurs regardless of URL\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.76\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-04T11:05:51Z",
+  "updated_at": "2026-05-06T22:08:15Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 15,
+  "author": "h-projects7364",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "cottom",
+      "author_association": "NONE",
+      "body": "same error\n```\nGood, tab 1232384027 is working. Let me fill and test the sign-up form:\n  ⎿  Error: Failed to execute JavaScript: Cannot access a chrome-extension:// URL of different extension\n```",
+      "created_at": "2026-01-05T04:19:15Z"
+    },
+    {
+      "author": "Colmea",
+      "author_association": "NONE",
+      "body": "I had the same issue and it (looks like) it was caused by a Chrome extension (password manager in my case).\nTry to disable all your extensions and see if it's working",
+      "created_at": "2026-01-05T13:14:26Z"
+    },
+    {
+      "author": "alexriftagentic",
+      "author_association": "NONE",
+      "body": "I fixed this:\n\n  1. Chrome → View → Developer → Allow JavaScript from Apple Events\n  2. Refresh/re-navigate any tabs that were open before enabling the setting - old tabs don't pick up the permission change",
+      "created_at": "2026-01-06T09:31:46Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 26638,
+  "title": "[Bug] Claude Code desktop application crashes with unresponsive processes after startup",
+  "body": "**Bug Description**\n1YCZHOG claude code on desktop opens and then shows this error code after a few seconds.  once the error shows I can only kill the claude.exe(s) (8 of them) and then restart.  been going on since evening of 17/02/2026\n\n**Environment Info**\n- Platform: win32\n- Terminal: null\n- Version: 2.1.37\n- Feedback ID: 4806c090-f876-4565-bd16-465f5beb9399\n\n**Errors**\n```json\n[{\"error\":\"AbortError: The operation was aborted.\\n    at unknown\\n    at abortChildProcess (node:child_process:947:42)\\n    at onAbortListener2 (node:child_process:35:24)\\n    at abort (unknown)\\n    at <anonymous> (B:/~BUN/root/claude.exe:3458:209)\",\"timestamp\":\"2026-02-18T16:30:11.276Z\"}]\n```\ntried all standard troubleshooting and reinstall, still the same issue.",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-18T16:54:13Z",
+  "updated_at": "2026-03-04T14:27:44Z",
+  "closed_at": "2026-02-25T00:57:57Z",
+  "reactions_total": 31,
+  "comments_count": 15,
+  "author": "stijn-hoorelbeke",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "pumpCurry",
+      "author_association": "NONE",
+      "body": "I had the same 1YCZHOG crash and found the root cause + workaround.\n\n**Root cause**: A Code session's metadata JSON still has `\"isArchived\": false` (left in \"active/running\" state after an unexpected exit). When you click the session, the app tries to reconnect to the dead CLI process → React fatal error (#185) → crash screen.\n\n**Fix**:\n\n1. Navigate to `%APPDATA%\\Claude\\claude-code-sessions\\`\n   - For Microsoft Store/UWP installs: `%LOCALAPPDATA%\\Packages\\Claude_{id}\\LocalCache\\Roaming\\Claude\\cl",
+      "created_at": "2026-02-19T09:05:49Z"
+    },
+    {
+      "author": "pumpCurry",
+      "author_association": "NONE",
+      "body": "**Additional technical details from investigation:**\n\n**Crash sequence** (from `main.log` and `claude.ai-web.log`):\n```\nLocalSessions.setFocusedSession: sessionId=local_67b96e49...\nLocalSessions.getGitDiff: cwd=...\\worktrees\\zealous-babbage, base=main\n[warn] Claude projects directory not found\nLocalSessions.setFocusedSession: sessionId=null\n```\n```\n[error] Error: Minified React error #185\n[error] [BOOTSTRAP] Fatal error boundary triggered [object Object]\n[error] Uncaught Error: Minified React er",
+      "created_at": "2026-02-19T09:09:37Z"
+    },
+    {
+      "author": "stijn-hoorelbeke",
+      "author_association": "NONE",
+      "body": "Just some feedback, I've tried the suggested workaround putting all sessions to true, unfortunately no success. Also tried removing the .git folder as mentioned in the linked issues and that did not work either.  If there is any more info I can provide, do let me know.  But as I'm not very technical, please be as precise as you can with the questions.  Many thanks!",
+      "created_at": "2026-02-19T14:36:51Z"
+    }
+  ]
+}

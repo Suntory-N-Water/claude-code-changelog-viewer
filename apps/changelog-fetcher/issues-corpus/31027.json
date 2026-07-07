@@ -1,0 +1,35 @@
+{
+  "number": 31027,
+  "title": "Agent tool missing 'model' parameter for team agent model selection",
+  "body": "## Bug Report: Agent tool schema missing `model` parameter\n\n### Summary\nThe Agent tool does not expose a `model` parameter in its JSON schema (`additionalProperties: false`), making it impossible to specify which Claude model (opus, sonnet, haiku) a spawned team agent should use. This prevents proper model selection for team workflows where different roles need different model tiers.\n\n### Expected Behavior\nThe Agent tool should accept a `model` parameter (e.g., `\"opus\"`, `\"sonnet\"`, `\"haiku\"`) so that team leads can control which model each spawned teammate uses. For example:\n- Architects and implementers → opus (complex reasoning)\n- Assistants/verifiers → sonnet (verification work)\n- Utility/ephemeral agents → haiku (lightweight tasks)\n\n### Current Behavior\n- The Agent tool schema has `additionalProperties: false` and does not include `model` in its properties\n- Passing `model` as a parameter is silently stripped by schema validation\n- PreToolUse hooks that read `.tool_input.model` always see an empty value\n- All spawned agents inherit the parent's model with no override mechanism\n\n### Impact\n- Teams that need mixed-model agents (opus for complex work, sonnet for verification) cannot enforce model selection\n- PreToolUse guard hooks cannot validate model requirements because the parameter never reaches them\n- No alternative mechanism exists to control teammate model selection\n\n### Reproduction\n1. Create a PreToolUse hook on Agent that reads `.tool_input.model`:\n   ```bash\n   MODEL=$(echo \"$INPUT\" | jq -r '.tool_input.model // empty')\n   echo \"Model: '$MODEL'\"  # Always empty\n   ```\n2. Spawn an agent with `model` parameter:\n   ```\n   Agent(name=\"test\", subagent_type=\"general-purpose\", model=\"opus\", team_name=\"my-team\", prompt=\"hello\")\n   ```\n3. The hook receives `MODEL=\"\"` because the schema strips the unknown property\n\n### Proposed Fix\nAdd `model` to the Agent tool's JSON schema:\n```json\n{\n  \"model\": {\n    \"description\": \"The Claude model to use for this agent (e.g., 'opus', 'sonnet', 'haiku'). If omitted, inherits the parent model.\",\n    \"type\": \"string\"\n  }\n}\n```\n\n### Comparison\nFor comparison, here's what 2.1.66 returned:\n\n|Parameter|Type|Required|Description|\n|:-|:-|:-|:-|\n|subagent\\_type|string|Yes|The type of specialized agent to use|\n|prompt|string|Yes|The task for the agent to perform|\n|description|string|Yes|A short (3-5 word) description of the task|\n|name|string|No|Name for the spawned agent|\n|team\\_name|string|No|Team name for spawning; uses current team context if omitted|\n|resume|string|No|Agent ID to resume from a previous execution|\n|run\\_in\\_background|boolean|No|Run agent in background; you'll be notified when it completes|\n|mode|enum|No|Permission mode: \"acceptEdits\", \"bypassPermissions\", \"default\", \"dontAsk\", \"plan\"|\n|**model**|**enum**|**No**|**Model override: \"sonnet\", \"opus\", \"haiku\"**|\n|isolation|enum|No|Set to \"worktree\" to run in an isolated git worktree|\n|max\\_turns|integer|No|Max agentic turns before stopping (internal use)|\n\nAnd here's what 2.1.69 returns:\n\n|Parameter|Type|Required|Description|\n|:-|:-|:-|:-|\n|description|string|Yes|Short (3-5 word) description of the task|\n|prompt|string|Yes|The task for the agent to perform|\n|subagent\\_type|string|Yes|The type of specialized agent to use|\n|name|string|No|Name for the spawned agent|\n|mode|string|No|Permission mode: acceptEdits, bypassPermissions, default, dontAsk, plan|\n|isolation|string|No|Set to \"worktree\" to run in an isolated git worktree|\n|resume|string|No|Agent ID to resume a previous execution|\n|run\\_in\\_background|boolean|No|Run agent in background (returns output file path)|\n|team\\_name|string|No|Team name for spawning; uses current team context if omitted|\n\nThe \\`model\\` parameter is missing from the schema.\n\n### Environment\n- Claude Code CLI (agent teams feature enabled)\n- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`\n- macOS, March 2026",
+  "labels": ["enhancement", "area:tools", "area:agents"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-05T10:25:47Z",
+  "updated_at": "2026-03-18T14:46:01Z",
+  "closed_at": "2026-03-10T17:38:12Z",
+  "reactions_total": 22,
+  "comments_count": 10,
+  "author": "marcoabreu",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "Ok thanks for this report. The intention was to use custom subagent definitions that specify the model in the front-matter. I understand this is inconvenient with the general subagent (since you'd need a few different ones) but it didn't seem insurmountable. For those of you relying on this for teammates, can you say how this works?",
+      "created_at": "2026-03-06T17:35:05Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "We're going to put back this param, thanks again for the feedback. I was hoping to have this in today's release but it missed the cut. I'll make sure it goes out with 2.1.72",
+      "created_at": "2026-03-06T23:15:36Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "yes, the break on model param in agent front matter is a separate issue. sorry about that! this field is back in the SDK as of 2.1.72\n\nlet's chase down the issue with agent front matter in #32415",
+      "created_at": "2026-03-10T17:38:02Z"
+    }
+  ]
+}

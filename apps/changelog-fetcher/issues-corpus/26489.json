@@ -1,0 +1,35 @@
+{
+  "number": 26489,
+  "title": "[FEATURE] skills/, agents/, commands/ should traverse parent directories like CLAUDE.md does",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n# [Feature Request] Consistent Parent Directory Traversal for Skills, Agents, and Commands\n\n## Summary\nCLAUDE.md and settings.json correctly traverse parent directories when Claude Code is launched from a subdirectory. However, skills/, agents/, and commands/ do not—they currently only resolve from the immediate project's .claude/ folder. This asymmetry forces manual symlinking or duplication in monorepo and devcontainer patterns.\n\n## Use Case: Centralized Pipeline\nI maintain a centralized Claude Code pipeline for a devcontainer with multiple repositories under a shared root. The intent is to define logic once at /src/.claude/ and have all child repos inherit them automatically.\n\n### Workspace Structure\n```text\n/src/                           ← non-git workspace root\n├── .claude/\n│   ├── settings.json           ← hooks, permissions (shared)\n│   ├── skills/                 ← writing-plans, codex-review\n│   ├── agents/                 ← explore, bash\n│   └── commands/               ← retro, plan-close\n├── my-app/                     ← git repo A\n│   └── .claude/skillbook/            ← localskillbook + retros\n└── my-service/                 ← git repo B\n    └── .claude/skillbook/            ← local skillbook + retros\n```\n\n## Current Capability Matrix\n\n| Component | Traverses to Parent? | Notes |\n| :--- | :---: | :--- |\n| **CLAUDE.md / rules/** | ✅ Yes | Documented; works correctly |\n| **settings.json** | ✅ Yes | Merges additively with local |\n| **hooks/** | ✅ Yes | Inherited via settings.json |\n| **skills/** | ❌ No | Only resolves from immediate project |\n| **agents/** | ❌ No | Only resolves from immediate project |\n| **commands/** | ❌ No | Only resolves from immediate project |\n\n**The Issue:** When a session opens at `/src/my-app`, Claude finds the parent `settings.json` but fails to find `Skill: writing-plans` because it only searches `/src/my-app/.claude/skills/`.\n\n## Current Workaround (and its problems)\nI currently force inheritance using symlinks:\n```bash\nln -s /src/.claude/skills   /src/my-app/.claude/skills\nln -s /src/.claude/agents   /src/my-app/.claude/agents\nln -s /src/.claude/commands /src/my-app/.claude/commands\n```\n\n**Pain Points:**\n* Requires custom setup scripts to manage links.\n* Breaks if the parent path changes or during container rebuilds.\n* Introduces circular-symlink risks if the pipeline root is misconfigured.\n\n## Expected Behavior\nThe **Skill tool**, **Task subagent resolver**, and **slash-command resolver** should walk up the directory tree exactly as `CLAUDE.md` does, stopping at the home directory or filesystem root. \n\n* **Precedence:** Deeper directories (local) should take precedence over parent directories (global/shared), matching the existing override logic for rules.\n\n## Related Issues\n* **#12962** — Settings.json parent directory traversal (open)\n* **#10061** — Sub-agents load skills from global dir instead of project dir (closed)\n* **#10145, #10443** — Skills not loading from project/git root\n\n### Proposed Solution\n\nProposed Solution                                                                                                                                                                                                                                                                                                                                      \n                                                                                                                                                                                                                                                                                                                                                         \n  Extend the same pa",
+  "labels": ["enhancement"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-18T04:36:04Z",
+  "updated_at": "2026-04-18T18:05:58Z",
+  "closed_at": null,
+  "reactions_total": 44,
+  "comments_count": 15,
+  "author": "brendan-sherrin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jbossac",
+      "author_association": "NONE",
+      "body": "this is weird, it was working exactly as described in the feature request. Even it's documented here: \n\n<img width=\"836\" height=\"485\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/8c835e63-99a6-44a4-813a-2c263c8d2d7f\" />\n\nclaudelog.com/faqs/what-is-nested-skills-discovery-in-claude-code/ (you dont have to access the link, image shows documented example) \n\nI have a whole folder that just stopped working as it used to be, with several projects inside, all of them were able to access ",
+      "created_at": "2026-02-18T14:58:43Z"
+    },
+    {
+      "author": "w3geekery",
+      "author_association": "NONE",
+      "body": "+1 — hitting this exact issue in a monorepo with multiple apps under one git root.\n\nI have a project-level skill in `package/w3geekery/sme-mart-angular/.claude/skills/sme-mart-angular-architect.md` that's scoped to one Angular app in the monorepo. It has proper frontmatter (`name`, `description`, `tools`) but Claude Code never discovers it because skill resolution only checks the git root's `.claude/skills/`.\n\nMoving it to the root would be wrong — the skill is specific to one package and irrele",
+      "created_at": "2026-02-20T00:43:31Z"
+    },
+    {
+      "author": "jbossac",
+      "author_association": "NONE",
+      "body": "today is working again as before, can you check OP, is this what are you looking for ?\n\n<img width=\"3054\" height=\"1322\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/126f41dd-178d-43ca-a76c-07b02fb0bcaf\" />",
+      "created_at": "2026-02-20T10:45:06Z"
+    }
+  ]
+}

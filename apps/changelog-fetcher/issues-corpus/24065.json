@@ -1,0 +1,35 @@
+{
+  "number": 24065,
+  "title": "[Bug] /rename session title not persisted - renamed sessions don't appear in resume list",
+  "body": "## Description\nAfter renaming a session with `/rename`, the custom title is not saved to the session index. When trying to resume later, the renamed session doesn't appear in the resume list and cannot be found by searching the custom name.\n\n## Steps to Reproduce\n1. Start a Claude Code session\n2. Run `/rename my-custom-name`\n3. Confirm rename succeeds (stdout: `Session renamed to: my-custom-name`)\n4. Exit the session (`/exit`)\n5. Run `claude` and open the resume picker\n6. Search for \"my-custom-name\" → **not found**\n7. The session appears with its first message or slug instead of the custom name\n\n## Expected Behavior\n- Renamed sessions should appear with their custom title in the resume list\n- Searching by the custom name should find the session\n- `claude --resume \"my-custom-name\"` should work\n\n## Actual Behavior\n- The `/rename` command reports success\n- The rename is recorded in `~/.claude/history.jsonl`\n- But the session metadata/index is NOT updated with the new title\n- The session still appears with its auto-generated slug (`fluffy-yawning-tome`) or first message\n- The session can only be resumed by its UUID: `claude --resume <session-id>`\n\n## Investigation\n- Session file exists: `~/.claude/projects/.../c8052f02-...jsonl`\n- History shows the rename command was executed with correct sessionId\n- Session transcript shows `slug: \"fluffy-yawning-tome\"` — no custom title field found\n- The rename metadata was never written to the session index\n\n## Environment\n- Claude Code version: 2.1.37\n- OS: macOS (Darwin 25.2.0, arm64)\n- Terminal: Ghostty\n- Installation: Native binary (`~/.local/bin/claude`)",
+  "labels": ["bug", "has repro", "platform:macos", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-08T01:02:22Z",
+  "updated_at": "2026-03-18T14:43:09Z",
+  "closed_at": "2026-03-09T10:23:11Z",
+  "reactions_total": 10,
+  "comments_count": 4,
+  "author": "tobedoit",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23964\n2. https://github.com/anthropics/claude-code/issues/23274\n3. https://github.com/anthropics/claude-code/issues/23366\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-08T01:05:25Z"
+    },
+    {
+      "author": "KainingYing",
+      "author_association": "NONE",
+      "body": "The same problem occurs every time after I rename it; it doesn't work the next time I use it, as if it only ever takes effect on the right side of the dialog box.\n\n",
+      "created_at": "2026-02-08T15:50:56Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Closing for now — inactive for too long. Please [open a new issue](https://github.com/anthropics/claude-code/issues/new/choose) if this is still relevant.",
+      "created_at": "2026-03-09T10:23:11Z"
+    }
+  ]
+}

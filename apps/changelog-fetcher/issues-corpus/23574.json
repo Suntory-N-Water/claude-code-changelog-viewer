@@ -1,0 +1,35 @@
+{
+  "number": 23574,
+  "title": "[FEATURE] Add WezTerm as a split-pane backend for agent teams (teammateMode)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWezTerm users cannot use split-pane mode for agent teams. The current `teammateMode: \"tmux\"` setting only supports tmux and iTerm2 as backends. WezTerm is a popular GPU-accelerated, cross-platform terminal emulator with a **full CLI for programmatic pane management** — making it a natural fit as a third split-pane backend.\n\nCurrently, WezTerm users are forced to either:\n1. Run tmux *inside* WezTerm (redundant — WezTerm is already a multiplexer)\n2. Use in-process mode (no visual split panes)\n\n### Proposed Solution\n\nAdd a **WezTerm backend** for `teammateMode` that uses WezTerm's CLI to spawn teammates in native split panes.\n\nWezTerm's CLI provides direct equivalents to every tmux command Claude Code needs:\n\n| Operation | tmux | WezTerm CLI |\n|-----------|------|-------------|\n| Split horizontally | `tmux split-window -h -- cmd` | `wezterm cli split-pane --right -- cmd` |\n| Split vertically | `tmux split-window -v -- cmd` | `wezterm cli split-pane --bottom -- cmd` |\n| List panes | `tmux list-panes` | `wezterm cli list` |\n| Focus a pane | `tmux select-pane -t N` | `wezterm cli activate-pane --pane-id N` |\n| Get pane info | `tmux display -p '#{pane_id}'` | `WEZTERM_PANE` env var (auto-set per pane) |\n| Top-level split | N/A | `wezterm cli split-pane --top-level --bottom -- cmd` |\n\n**Detection** is straightforward — WezTerm sets `TERM_PROGRAM=WezTerm` in the environment.\n\n**Key implementation detail:** `wezterm cli split-pane` returns the new pane ID on success, and each spawned pane automatically receives a `WEZTERM_PANE` environment variable. This makes tracking and targeting teammate panes trivial.\n\n**Suggested behavior:**\n- When `teammateMode` is `\"tmux\"` or `\"auto\"`, check for `TERM_PROGRAM=WezTerm` alongside existing tmux/iTerm2 detection\n- Or add `\"wezterm\"` as an explicit `teammateMode` value\n\n### Alternative Solutions\n\n- Running tmux inside WezTerm works but is redundant since WezTerm is itself a multiplexer with full pane management\n- In-process mode works but lacks the visual benefit of seeing all teammates simultaneously\n\n### Priority\n\nMedium - Significant impact on productivity\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n```bash\n# WezTerm CLI pane management works out of the box:\n$ wezterm cli split-pane --right -- echo \"hello from new pane\"\n3    # returns new pane ID\n\n$ wezterm cli split-pane --bottom -- bash -l\n5    # returns new pane ID\n\n$ wezterm cli list\nWINID TABID PANEID WORKSPACE SIZE   TITLE      CWD\n0     0     0      default   120x40 zsh        /Users/me\n0     0     3      default   60x40  zsh        /Users/me\n0     0     5      default   120x20 zsh        /Users/me\n\n$ wezterm cli activate-pane --pane-id 3\n# focuses the specified pane\n```\n\nAgent teams would use this the same way they use tmux:\n\n```bash\n# Claude Code spawns teammates in native WezTerm panes:\nwezterm cli split-pane --right -- claude --resume <session-id> --teammate\nwezterm cli split-pane --bottom -- claude --resume <session-id> --teammate\n```\n\n### Additional Context\n\n**Environment:**\n- Claude Code version: 2.1.33\n- OS: macOS Darwin 25.3.0 (arm64)\n- Terminal: WezTerm 20240203-110809-5046fc22\n- `TERM_PROGRAM=WezTerm` is set automatically\n\n**References:**\n- WezTerm CLI split-pane docs: https://wezfurlong.org/wezterm/cli/cli/split-pane.html\n- WezTerm CLI list docs: https://wezfurlong.org/wezterm/cli/cli/list.html\n- Related: #19555 (built-in multiplexer vision), #23572 (tmux/iTerm2 silent fallback bug)\n- WezTerm is written in Rust, GPU-accelerated, supports macOS/Linux/Windows\n- WezTerm has a growing user base and is commonly used by developers who prefer it over iTerm2",
+  "labels": ["enhancement", "area:tui", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-06T04:32:41Z",
+  "updated_at": "2026-03-31T03:33:43Z",
+  "closed_at": null,
+  "reactions_total": 48,
+  "comments_count": 3,
+  "author": "mertkaradayi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "SalzerRefinedLeads",
+      "author_association": "NONE",
+      "body": "Please add this.",
+      "created_at": "2026-02-06T12:23:26Z"
+    },
+    {
+      "author": "zendevio",
+      "author_association": "NONE",
+      "body": "I’ve moved to WezTerm as my main terminal. I find it works more effectively than relying on tmux, so I'm wondering if anyone has started work on an integration for this.",
+      "created_at": "2026-02-08T08:30:39Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Until WezTerm is officially supported as a split-pane backend, here are alternatives:\n**Workaround 1 — Use tmux as the backend (works inside WezTerm):**\n```jsonc\n// settings.json\n{\n  \"teammateMode\": \"tmux\"\n}\n```\ntmux runs inside any terminal including WezTerm. Start your Claude Code session inside a tmux session, and agent teams will use tmux splits.\n**Workaround 2 — WezTerm's native splits + multiple Claude instances:**\nWezTerm supports splits natively. You can simulate agent teams manually:\n``",
+      "created_at": "2026-03-31T03:33:42Z"
+    }
+  ]
+}

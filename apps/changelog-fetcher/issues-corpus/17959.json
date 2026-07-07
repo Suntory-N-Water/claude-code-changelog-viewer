@@ -1,0 +1,35 @@
+{
+  "number": 17959,
+  "title": "context_window.used_percentage doesn't match internal context warning calculation",
+  "body": "## Description\n\nThe `used_percentage` and `remaining_percentage` fields added in v2.1.6 for status line input don't include system overhead (tool definitions, CLAUDE.md files, MCP server configs, system prompt). This causes a significant discrepancy between the reported percentage and Claude Code's internal \"Context low\" warning.\n\n## Steps to Reproduce\n\n1. Use Claude Code 2.1.6 with a custom status line that reads `context_window.used_percentage`\n2. Use the session until context gets high\n3. Compare `used_percentage` value with Claude's \"Context low (X% remaining)\" warning\n\n## Expected Behavior\n\n`used_percentage` should match the percentage used in Claude Code's internal warning, so users can accurately track context usage.\n\n## Actual Behavior\n\n| Source | Value |\n|--------|-------|\n| `context_window.used_percentage` | 75% |\n| Claude Code warning | \"Context low (6% remaining)\" = 94% used |\n\n**19% discrepancy** - the system overhead is not included in `used_percentage`.\n\n## Debug Data\n\n```json\n{\n  \"total_input_tokens\": 78446,\n  \"total_output_tokens\": 28311,\n  \"context_window_size\": 200000,\n  \"current_usage\": {\n    \"input_tokens\": 0,\n    \"output_tokens\": 115,\n    \"cache_creation_input_tokens\": 1793,\n    \"cache_read_input_tokens\": 147730\n  },\n  \"used_percentage\": 75,\n  \"remaining_percentage\": 25\n}\n```\n\n`current_usage` total: 149,638 tokens = 74.8% ≈ matches `used_percentage: 75`\n\nBut Claude's warning says 6% remaining (94% used), meaning ~38,000 tokens of system overhead aren't accounted for.\n\n## Suggested Fix\n\nEither:\n1. Include system overhead in `used_percentage` to match internal warning calculation\n2. Add a separate `system_tokens` field so status lines can calculate the true total\n3. Add a `total_used_percentage` field that includes everything\n\n## Environment\n\n- Claude Code version: 2.1.6\n- OS: macOS",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-13T15:27:32Z",
+  "updated_at": "2026-05-21T15:50:45Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 5,
+  "author": "tomerbr1",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "samjetski",
+      "author_association": "NONE",
+      "body": "Could this be due to the Autocompact buffer? I.e. the `remaining` reported is correct in terms of the total unused context (`100 - 100 * used / 200k`), but the warning is showing percent until auto-compact (`100 - 100 * used / (200k - 33k)` in my case), not until the context is completely \"full\"?\n\n<img width=\"499\" height=\"219\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/3bb76ab0-fbb7-455c-a7d6-48c77852dd43\" />\n\nIf this is the case, the solution could be:\n- Expose the `autocompact",
+      "created_at": "2026-02-18T03:03:29Z"
+    },
+    {
+      "author": "jucor",
+      "author_association": "NONE",
+      "body": "I keep being bitten by that issue. Would be really nice to have clarity, and ideally a fix :) ",
+      "created_at": "2026-03-13T15:53:03Z"
+    },
+    {
+      "author": "ramonmazinga",
+      "author_association": "NONE",
+      "body": "Definitely not ideal. Keeps happening to me too. Would love a fix.",
+      "created_at": "2026-03-15T22:36:25Z"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "number": 29953,
+  "title": "CPU 100% when loading session files with saved_hook_context",
+  "body": "## Environment\n- Claude Code version: 2.1.27\n- OS: macOS 26.3 (Darwin 25.3.0)\n- Platform: darwin arm64\n\n## Description\nClaude Code becomes unresponsive (CPU 100%) when starting a new session in a project directory that contains previous session files with `saved_hook_context` entries.\n\n## Steps to Reproduce\n1. Use claude-mem plugin (which injects context via hooks)\n2. Start a session in a project directory, have a conversation, then exit\n3. Start a second session in the same directory\n4. CPU usage spikes to 100% during \"Calculating...\" phase\n\n## Investigation Results\n- Session file size: ~67KB (20 lines)\n- Contains 8 `saved_hook_context` entries (~7KB each)\n- Total `saved_hook_context` data: ~56KB\n- When session directory is empty: works normally\n- When session file with `saved_hook_context` exists: CPU 100%\n\n## Memory footprint observed\n- Physical footprint: 2.3GB\n- Physical footprint (peak): 9.0GB\n\n## Workaround\nDeleting session files from `~/.claude/projects/{project}/` resolves the issue temporarily, but it recurs after a new session is created.\n\n## Expected Behavior\nA 67KB JSONL file should load in milliseconds without causing CPU spike.\n\n## Actual Behavior\nLoading the session file causes CPU 100% usage and the application becomes unresponsive.",
+  "labels": ["duplicate"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-03-02T02:17:11Z",
+  "updated_at": "2026-03-16T14:40:49Z",
+  "closed_at": "2026-03-05T09:17:02Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "syomakudo",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

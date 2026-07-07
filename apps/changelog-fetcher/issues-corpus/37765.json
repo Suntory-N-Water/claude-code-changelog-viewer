@@ -1,0 +1,35 @@
+{
+  "number": 37765,
+  "title": "[BUG] --dangerously-skip-permissions does not bypass \"edit its own settings\" prompt for .claude/ directory writes",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n When running Claude Code with `--dangerously-skip-permissions`, writes to files inside `~/.claude/` still trigger a permission prompt:\n\n  Do you want to make this edit to .md?\n  1. Yes\n   ❯ 2. Yes, and allow Claude to edit its own settings for this session\n  2. No\n\n  This happens every new session, defeating the purpose of the flag.\n\n  ## Steps to Reproduce\n\n  1. Configure `settings.json` with `\"defaultMode\": \"bypassPermissions\"` and `\"skipDangerousModePermissionPrompt\": true`\n  2. Launch with `claude --dangerously-skip-permissions`\n  3. Use any skill that writes files to `~/.claude/` (e.g., session-handoff, save-plan, or auto-memory)\n  4. The \"edit its own settings\" prompt appears despite the flag\n\n  ## Expected Behavior\n\n  `--dangerously-skip-permissions` should bypass ALL permission prompts, including writes to `.claude/` directory. The flag name itself implies full bypass.\n\n  ## Actual Behavior\n\n  A hardcoded \"protected directory\" check for `.claude/` overrides the `--dangerously-skip-permissions` flag. The user must manually approve once per session\n  (option 2).\n\n  ## Environment\n\n  - Claude Code version: 2.1.81\n  - OS: Windows 11 Pro\n  - Settings: `defaultMode: \"bypassPermissions\"`, `skipDangerousModePermissionPrompt: true`\n  - Multiple plugins/skills enabled that write to `~/.claude/`\n\n  ## Impact\n\n  This breaks autonomous workflows and CI/CD usage where no human is present to approve. It also creates friction for power users who have explicitly opted into\n  full bypass mode.\n\n### What Should Happen?\n\nWhen `--dangerously-skip-permissions` flag is active, ALL permission prompts should be bypassed — including writes to the `.claude/` directory. The flag name    \n  explicitly says \"dangerously skip permissions\", so no permission check should override it. Currently a hardcoded \"protected directory\" check for `.claude/` still\n   triggers the \"edit its own settings\" prompt every session, which defeats the purpose of the flag and breaks autonomous/unattended workflows. \n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Set `\"defaultMode\": \"bypassPermissions\"` and `\"skipDangerousModePermissionPrompt\": true` in `~/.claude/settings.json`                                         \n  2. Launch Claude Code with `claude --dangerously-skip-permissions`                                                                                               \n  3. Trigger any action that writes a file inside `~/.claude/` (e.g., a plugin skill writing a .md file, auto-memory saving to `~/.claude/projects/*/memory/`, or  \n  session-handoff creating a handoff file)                                                                                                                         \n  4. A permission prompt appears: \"Do you want to make this edit to <file>.md? 1. Yes / 2. Yes, and allow Claude to edit its own settings for this session / 3. No\"\n  5. This happens on every new session, regardless of the flag  \n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.81 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:windows", "area:permissions"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-23T10:10:22Z",
+  "updated_at": "2026-06-29T15:19:49Z",
+  "closed_at": "2026-04-24T20:22:47Z",
+  "reactions_total": 12,
+  "comments_count": 13,
+  "author": "adelfino69",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/37029\n2. https://github.com/anthropics/claude-code/issues/35718\n3. https://github.com/anthropics/claude-code/issues/36923\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-23T10:15:02Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Same as #37253 and #37157 — \\`~/.claude/\\` is a hardcoded protected directory that even \\`--dangerously-skip-permissions\\` won't bypass. This is by design to prevent the model from modifying its own hooks and settings.\nWorkaround — a PreToolUse hook that auto-approves writes to specific \\`.claude/\\` subdirectories:\n\\`\\`\\`bash\nINPUT=\\$(cat)\nTOOL=\\$(echo \"\\$INPUT\" | jq -r '.tool_name // empty' 2>/dev/null)\nFILE=\\$(echo \"\\$INPUT\" | jq -r '.tool_input.file_path // empty' 2>/dev/null)\n[[ \"\\$TOOL\" != ",
+      "created_at": "2026-03-23T11:06:12Z"
+    },
+    {
+      "author": "adelfino69",
+      "author_association": "NONE",
+      "body": "## Additional findings — PreToolUse hooks also cannot bypass this\n\nAfter investigating the workaround suggested in the comments (PreToolUse hook with `permissionDecision: \"allow\"`), I confirmed that **it does not work either**.\n\n### What I tried\n\n1. Created a `PreToolUse` command hook that returns:\n```json\n{\n  \"hookSpecificOutput\": {\n    \"permissionDecision\": \"allow\",\n    \"permissionDecisionReason\": \".claude subdirectory auto-approved\"\n  }\n}\n```\n\n2. Hook was correctly configured in `settings.jso",
+      "created_at": "2026-03-23T12:43:46Z"
+    }
+  ]
+}

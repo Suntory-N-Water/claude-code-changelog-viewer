@@ -1,0 +1,35 @@
+{
+  "number": 17727,
+  "title": "[BUG] Linux sandbox broken - bad bwrap calls and no allow permissions",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen sandboxing is enabled on Linux, `claude` uses `bwrap` but passes the wrong flags for various reasons. The result is:\n- Unable to allow writing to extra directories.\n- Extra 0-length files created in the directory.\n- If deny rules for directories are used (depending on syntax?) all sandboxed bash calls fail due to invalid `bwrap` arguments.\n\nCC ignores all `allow` `Edit(...)` rules and only handles `deny` rules. This makes it impossible to make useful directories like `/tmp`, `.cache` and `.m2` writeable when using the sandbox.\n\nCC doesn't check whether a file exists before trying to mask it by mounting `/dev/null` to the path of the file or directory. That results in a zero-byte file being created with that name, so the directory gets trashed with lots of files, both the default `.profile` etc CC chooses to hide plus any custom `deny` rules.\n\nCC doesn't handle directories properly. If I'm not mistaken, for `foo/**` if `foo` doesn't exist, it first mounts `/dev/null` to it, create a 0 length file. On the subsequent invocations, it realises the file is there and instead mounts `/dev/null` to `foo/**` (_with_ the asterisks which is bad bwrap syntax, causing an error). It should probably use `--tmpfs` for directories.\n\n```\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Edit(testallow)\",\n      \"Edit(testallowdir/**)\",\n      \"Edit(./testallowdot)\",\n      \"Edit(./testallowdotdir/**)\",\n      \"Edit(~/testallowtilde)\",\n      \"Edit(~/testallowtildedir/**)\",\n      \"Edit(//tmp/testallow)\",\n      \"Edit(//tmp/testallowdir/**)\"\n    ],\n    \"deny\": [\n      \"Edit(testdeny)\",\n      \"Edit(testdenydir/**)\",\n      \"Edit(./testdenydot)\",\n      \"Edit(./testdenydotdir/**)\",\n      \"Edit(~/testdenytilde)\",\n      \"Edit(~/testdenytildedir/**)\",\n      \"Edit(//tmp/claude/testdeny)\",\n      \"Edit(//tmp/claude/testdenydir/**)\"\n    ]\n  }\n}\n```\n\n(First call, before 0-length files are created)\n```\n--ro-bind          /                                                              <same>\n--bind             /tmp/claude                                                    <same>\n--bind             /home/abcde/.npm/_logs                                         <same>\n--bind             /home/abcde/.claude/debug                                      <same>\n--bind             /home/abcde/dev/bwrap-claude-test                              <same>\n--ro-bind          /home/abcde/dev/bwrap-claude-test/.claude/settings.json        <same>\n--ro-bind          /home/abcde/dev/bwrap-claude-test/.claude/settings.local.json  <same>\n--ro-bind          /dev/null                                                      /home/abcde/dev/bwrap-claude-test/testdeny\n--ro-bind          /dev/null                                                      /home/abcde/dev/bwrap-claude-test/testdenydir\n--ro-bind          /dev/null                                                      /home/abcde/dev/bwrap-claude-test/testdenydot\n--ro-bind          /dev/null                                                      /home/abcde/dev/bwrap-claude-test/testdenydotdir\n--ro-bind          /dev/null                                                      /tmp/claude/testdeny\n--ro-bind          /dev/null                                                      /tmp/claude/testdenydir\n--ro-bind          /dev/null                                                      /home/abcde/dev/bwrap-claude-test/.gitconfig\n--ro-bind          /dev/null                                                      /home/abcde/dev/bwrap-claude-test/.gitmodules\n--ro-bind          /dev/null                                                      /home/abcde/dev/bwrap-claude-test/.bashrc\n--ro-bind          /dev/null                                                      /home/abcde/dev/bwrap-claude-test/.bash_profile\n--r",
+  "labels": ["bug", "has repro", "platform:linux", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-12T16:26:42Z",
+  "updated_at": "2026-06-24T14:05:21Z",
+  "closed_at": null,
+  "reactions_total": 20,
+  "comments_count": 17,
+  "author": "jancellor",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17087\n2. https://github.com/anthropics/claude-code/issues/17258\n3. https://github.com/anthropics/claude-code/issues/16626\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-12T16:35:12Z"
+    },
+    {
+      "author": "jancellor",
+      "author_association": "NONE",
+      "body": "I'm giving a thumbs down for \"not a duplicate\" though those bugs are related to this one. This report is broader and covers the configuration of `bwrap` more generally, which doesn't respect `allow` rules, or check file existence, or handle directories properly. ",
+      "created_at": "2026-01-13T17:40:56Z"
+    },
+    {
+      "author": "qte77",
+      "author_association": "NONE",
+      "body": "Still reproducing on Claude Code 2.1.47 — additional findings\n\n  Environment: Claude Code 2.1.47, GitHub Codespaces devcontainer, Linux 6.8.0-1030-azure x86_64, sandbox enabled (bwrap)\n\n  The phantom file creation is still happening. Bumping this since it was marked stale.\n\n  Reproduction\n\n  Fresh session in a devcontainer. After any Bash tool call, git status shows these untracked files that did not exist before:\n\n  ?? .bash_profile\n  ?? .bashrc\n  ?? .profile\n  ?? .zprofile\n  ?? .zshrc\n  ?? .gi",
+      "created_at": "2026-02-21T12:51:46Z"
+    }
+  ]
+}

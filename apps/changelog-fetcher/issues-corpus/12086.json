@@ -1,0 +1,35 @@
+{
+  "number": 12086,
+  "title": "[BUG] External MCP Servers Not Loading in Claude Code",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n  # Bug Report: External MCP Servers Not Loading in Claude Code\n\n  ## Summary\n  Custom MCP servers configured in VS Code settings are not being loaded by\n  Claude Code extension, even after multiple VS Code restarts. The MCP server\n  itself works correctly when tested manually.\n\n  ## Environment\n\n  - **OS**: Ubuntu 24.04.3 LTS (Linux 6.8.0-87-generic x86_64)\n  - **VS Code Version**: 1.106.2 (commit: \n  1e3c50d64110be466c0b4a45222e81d2c9352888)\n  - **Claude Code Extension**: v2.0.49-linux-x64\n  - **Node.js Version**: v20.11.0\n  - **MCP Server**: claude-appsscript-pro v3.1.0\n  -   ## Configuration\n\n  **VS Code Settings** (`~/.config/Code/User/settings.json`):\n  ```json\n  \"claude-code.mcpServers\": {\n    \"claude-appsscript-pro\": {\n      \"command\": \"node\",\n      \"args\": [\"/home/jean-louis/claude-appsscript-pro/server.js\"]\n    }\n  },\n  \"claudeCode.environmentVariables\": []\n\n[claude-code-mcp-bug-report.md](https://github.com/user-attachments/files/23680358/claude-code-mcp-bug-report.md)\n\n### What Should Happen?\n\n Expected Behavior\n\n  The 61 tools provided by the claude-appsscript-pro MCP server should be\n  available in Claude Code with the prefix mcp__claude-appsscript-pro__*.\n Actual Behavior\n\n  - Only 2 MCP tools are available: mcp__ide__getDiagnostics and\n  mcp__ide__executeCode (built-in IDE tools)\n  - None of the external MCP server tools are loaded\n  - No error messages are shown to the user\n  - No logs mentioning MCP or the server name in VS Code logs\n\n  Steps to Reproduce\n\n  1. Add custom MCP server configuration to VS Code settings.json\n  2. Restart VS Code completely (tested 3+ times)\n  3. Open Claude Code\n  4. Check available tools - only built-in IDE tools are present\n\n  Verification Steps Performed\n\n  ✅ Configuration is Correct\n\n  - Settings.json contains proper MCP server configuration\n  - Server file exists at specified path\n  - Node.js is installed and accessible\n\n  ✅ MCP Server Works Independently\n\n  Manual test of the server:\n  cd /home/jean-louis/claude-appsscript-pro && node server.js\n  # Server starts successfully with no errors\n\n  ❌ No Loading Attempts in Logs\n\n  # No MCP mentions in VS Code logs\n  grep -r \"mcp\" ~/.config/Code/logs/20251121T163550/\n  # No results\n\n  # No server name mentions\n  grep -r \"claude-appsscript-pro\" ~/.config/Code/logs/20251121T163550/\n  # No results\n\n  Impact\n\n  - High: Users cannot use custom MCP servers despite correct configuration\n  - Workaround exists: Using native CLI tools (like clasp for Apps Script), but\n   defeats the purpose of MCP integration\n  - Silent failure: No error messages make debugging extremely difficult\n\n  Additional Context\n\n  - The configuration format matches the expected schema for\n  claude-code.mcpServers\n  - Built-in MCP tools (mcp__ide__*) work correctly\n  - This issue persists across multiple VS Code restarts\n  - The problem appears to be specific to external/custom MCP servers\n\n  Suggested Investigation\n\n  1. Check if Claude Code is attempting to spawn the MCP server process\n  2. Verify if there's additional configuration or setup required for external\n  MCP servers\n  3. Add logging/error messages when MCP servers fail to load\n  4. Confirm if external MCP servers are fully supported in Claude Code v2.0.49\n\n  Logs Available\n\n  VS Code logs location: ~/.config/Code/logs/20251121T163550/\n  - No MCP-related errors found in logs\n  - No indication that Claude Code attempted to load the external server\n\n\n### Error Messages/Logs\n\n```shell\n2025-11-21 16:35:50.278 [info] CLI main {\"_\":[],\"diff\":false,\"merge\":false,\"add\":false,\"remove\":false,\"goto\":false,\"new-window\":false,\"reuse-window\":false,\"wait\":false,\"help\":false,\"list-extensions\":true,\"show-versions\":true,\"pre-release\":false,\"update-extensions\":false,\"versi",
+  "labels": ["bug", "has repro", "platform:linux", "area:mcp", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-21T16:41:05Z",
+  "updated_at": "2026-02-04T14:25:30Z",
+  "closed_at": "2026-01-28T10:14:23Z",
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "Barjea",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Barjea",
+      "author_association": "NONE",
+      "body": "I cost me thousands of tokens at each session to try to fix-it",
+      "created_at": "2025-11-21T16:43:01Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5037\n2. https://github.com/anthropics/claude-code/issues/9913\n3. https://github.com/anthropics/claude-code/issues/3321\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-21T16:45:45Z"
+    },
+    {
+      "author": "Barjea",
+      "author_association": "NONE",
+      "body": "to help solve this issue  : Prévision session reports :\n\n[Vérif outils mcp dans claude.md](https://github.com/user-attachments/files/23680765/Verif.outils.mcp.dans.claude.md)\n\n[Claude session report.md](https://github.com/user-attachments/files/23680799/Claude.session.report.md)",
+      "created_at": "2025-11-21T16:58:25Z"
+    }
+  ]
+}

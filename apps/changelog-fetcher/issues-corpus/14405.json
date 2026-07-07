@@ -1,0 +1,16 @@
+{
+  "number": 14405,
+  "title": "[Bug] Panic on UTF-8 multibyte character boundary in Japanese text",
+  "body": "## Description\n\nClaude Code CLI panics when processing Japanese text that contains multibyte characters. The panic occurs when the code attempts to slice a string at a byte index that falls in the middle of a multibyte UTF-8 character.\n\n## Error Message\n\n```\nthread '<unnamed>' (2356591) panicked at /rustc/ed61e7d7e242494fb7057f2657300d9e77bb4fcb/library/core/src/str/mod.rs:833:21:\nbyte index 23 is not a char boundary; it is inside 'ィ' (bytes 21..24) of `情報セキュリティ`\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\nfatal runtime error: failed to initiate panic, error 5, aborting\n[1]    78853 abort      claude\n```\n\n## Analysis\n\nThe panic occurs because:\n1. Rust encodes strings in UTF-8\n2. The Japanese character 'ィ' spans 3 bytes (21-24)\n3. The code attempts to slice the string at byte index 23, which is in the middle of the character\n4. This causes an invalid slice operation and triggers a panic\n\n## Environment\n\n- macOS Darwin 25.0.0\n- Claude Code CLI (latest version)\n\n## Expected Behavior\n\nThe CLI should properly handle multibyte UTF-8 characters (Japanese, Chinese, emoji, etc.) and not crash when processing them.\n\n## Suggested Fix\n\nUse character-aware string operations like `char_indices()` instead of direct byte indexing when slicing strings that may contain multibyte characters.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "oncall"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-18T04:34:54Z",
+  "updated_at": "2026-04-26T14:31:20Z",
+  "closed_at": "2026-04-18T04:14:54Z",
+  "reactions_total": 28,
+  "comments_count": 14,
+  "author": "Kubbo0308",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

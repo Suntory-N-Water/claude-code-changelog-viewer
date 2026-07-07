@@ -1,0 +1,35 @@
+{
+  "number": 19057,
+  "title": "Presence of ~/.bashrc (even empty) triggers full shell state capture with `set -o onecmd`, breaking npm/subprocess stdout on Windows/Git Bash",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nOn Windows with Git Bash, the mere **presence** of a `~/.bashrc` file (even if completely empty) causes Claude Code to create bloated shell snapshots (~2254 bytes) that include `set -o onecmd`. This breaks all subprocess stdout, causing npm and other bash wrapper scripts to return no output.\n\nWhen `~/.bashrc` does NOT exist, Claude Code creates minimal snapshots (~282 bytes) that work correctly.\n\n**Root Cause:** The `onecmd` shell option (equivalent to `bash -t`) causes bash to exit after executing one command, breaking subprocess stdout handling.\n\n**Minimal snapshot (282 bytes, works):**\n```bash\n# Snapshot file\nunalias -a 2>/dev/null || true\nshopt -s expand_aliases\nif ! command -v rg >/dev/null 2>&1; then\n  alias rg='...'\nfi\nexport PATH=$PATH\n```\n\n**Bloated snapshot (2254 bytes, broken):**\n```bash\n# Snapshot file\nunalias -a 2>/dev/null || true\n# Functions\neval \"$(echo '...' | base64 -d)\" > /dev/null 2>&1\n# Shell Options\nshopt -u autocd\n... (50+ shopt lines)\nset -o braceexpand\nset -o hashall\nset -o interactive-comments\nset -o monitor\nset -o onecmd    # <-- THIS BREAKS EVERYTHING\n...\n```\n\n### What Should Happen?\n\n1. `npm --version` and other bash wrapper scripts should return output correctly regardless of whether `~/.bashrc` exists\n2. Shell snapshots should NOT include `set -o onecmd` as this breaks subprocess stdout\n3. Claude Code should either:\n   - NOT capture `set -o onecmd` in shell snapshots\n   - Explicitly disable it (`set +o onecmd`) in all snapshots\n   - Use the same minimal snapshot logic regardless of whether `.bashrc` exists\n\n### Error Messages/Logs\n\n```shell\nExpected output (when ~/.bashrc does NOT exist):\n$ npm --version\n11.6.2\n\nActual output (when ~/.bashrc IS present):\n$ npm --version\n⎿  no content\n(Tool ran without output or errors)\n\n$ npm install\n⎿  no content\n(Tool ran without output or errors)\n\nThe command appears to succeed (no error code) but stdout is completely empty. This makes the bug extremely difficult to diagnose since there's no error message - just silent failure.\n```\n\n### Steps to Reproduce\n\n1. On Windows with Git Bash, ensure `~/.bashrc` does NOT exist\n2. Delete existing shell snapshots: `rm -rf ~/.claude/shell-snapshots/*`\n3. Launch Claude Code and run `npm --version` → **Works correctly, returns version (e.g., 11.6.2)**\n4. Check snapshot size: `ls -la ~/.claude/shell-snapshots/` → **~282 bytes**\n5. Create an empty .bashrc: `touch ~/.bashrc`\n6. Delete snapshots again: `rm -rf ~/.claude/shell-snapshots/*`\n7. Launch Claude Code and run any command to trigger new snapshot creation\n8. Run `npm --version` → **Returns nothing (broken)**\n9. Check snapshot size: `ls -la ~/.claude/shell-snapshots/` → **~2254 bytes**\n10. Check snapshot contents: `cat ~/.claude/shell-snapshots/*.sh | grep onecmd` → **Contains `set -o onecmd`**\n\n**Reproducibility:** Confirmed on TWO separate Windows machines with identical results. Both machines produce identical 2254-byte bloated snapshots containing `set -o onecmd` when an empty `.bashrc` exists.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.12 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n**Important:** While the `.bashrc` file is a Git Bash configuration file, the bug affects npm in ALL terminals (PowerShell, CMD, Git Bash) because Claude Code's internal shell snapshot mechanism uses Git Bash regardless of the user's terminal.\n\n**Environment Details:**\n- Git for Windows: 2.52.0\n- Node.js: 24.13.0\n- npm: 11.6.2\n- Tested terminals: PowerShell, CMD, Git Bash - all affected\n\n**Workaround:** Remove `~/.bashrc` and `~/.bash_profile`. Move any",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-18T18:01:00Z",
+  "updated_at": "2026-05-23T22:31:30Z",
+  "closed_at": "2026-05-23T22:31:30Z",
+  "reactions_total": 8,
+  "comments_count": 17,
+  "author": "MannyFigs",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18775\n2. https://github.com/anthropics/claude-code/issues/18856\n3. https://github.com/anthropics/claude-code/issues/18670\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-18T18:08:14Z"
+    },
+    {
+      "author": "KuceraJanSupport",
+      "author_association": "NONE",
+      "body": "Subscribing - experiencing the same issue on Windows 11 with Git Bash. Workaround: `set +o onecmd; npm run build 2>&1`",
+      "created_at": "2026-01-19T13:22:10Z"
+    },
+    {
+      "author": "ardove",
+      "author_association": "NONE",
+      "body": "Yep also happening to me too. Tried updated claude code and no luck. ",
+      "created_at": "2026-01-23T20:51:01Z"
+    }
+  ]
+}

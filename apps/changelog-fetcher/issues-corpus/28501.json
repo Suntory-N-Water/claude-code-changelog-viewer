@@ -1,0 +1,42 @@
+{
+  "number": 28501,
+  "title": "Claude API\" displayed instead of \"Max\" plan, and Remote Control unavailable on Max subscription",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Description\n\nOn Claude Code v2.1.56 (native build), the startup screen shows \"Claude API\" instead of \"Max\" even after logging in with Max plan subscription (oauth_token). Additionally, `claude remote-control` returns an error saying the feature is not enabled.\n\n## Steps to Reproduce\n\n1. Install Claude Code native build (`~/.local/bin/claude`)\n2. Login via `/login` with Max plan subscription\n3. Launch Claude Code → shows \"Claude API\" instead of \"Max\"\n4. Run `claude remote-control` → error occurs\n\n## Actual Behavior\n\n- Startup screen shows: `Opus 4.6 · Claude API`\n- Running `claude remote-control` returns:\n  `Error: Remote Control is not enabled for your account. Contact your administrator.`\n\n## Auth Status Output\n```json\n{\n  \"loggedIn\": true,\n  \"authMethod\": \"oauth_token\",\n  \"apiProvider\": \"firstParty\"\n}\n```\n\n## Environment\n\n- Claude Code version: v2.1.56\n- OS: macOS (Apple Silicon)\n- Plan: Max subscription\n- Installation: native build (~/.local/bin/claude)\n\n### What Should Happen?\n\n- Startup screen should show \"Max\" plan instead of \"Claude API\"\n- `claude remote-control` should work as documented for Max plan users\n\n### Error Messages/Logs\n\n```shell\nError: Remote Control is not enabled for your account. Contact your administrator.\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code native build (~/.local/bin/claude)\n2. Login via `/login` with Max plan subscription (oauth_token)\n3. Launch Claude Code\n4. Observe startup screen shows \"Opus 4.6 · Claude API\" instead of \"Max\"\n5. Run `claude remote-control` in terminal\n6. Error appears: \"Remote Control is not enabled for your account\"\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n2.1.56\n\n### Claude Code Version\n\n2.1.56\n\n### Platform\n\nOther\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n- Auth status confirms oauth_token authentication\n- Other Max plan users on Twitter/X are successfully using Remote Control\n- This may be a Japan region-specific rollout issue",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:macos",
+    "area:auth",
+    "area:cli",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-25T11:36:56Z",
+  "updated_at": "2026-06-24T15:04:24Z",
+  "closed_at": "2026-05-05T10:41:20Z",
+  "reactions_total": 5,
+  "comments_count": 10,
+  "author": "papayota",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28278\n2. https://github.com/anthropics/claude-code/issues/28098\n3. https://github.com/anthropics/claude-code/issues/20976\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-25T11:40:11Z"
+    },
+    {
+      "author": "papayota",
+      "author_association": "NONE",
+      "body": "Additional info: /status shows \"Auth token: CLAUDE_CODE_OAUTH_TOKEN\" confirming proper OAuth authentication, but the startup screen still displays \"Claude API\" instead of \"Max\". This confirms the issue is purely a display bug, not an authentication problem.\n\nAlso tried: deleted Statsig cache files (~/.claude/statsig/statsig.cached.evaluations.* etc.) and re-authenticated, but remote-control still returns the same error.",
+      "created_at": "2026-02-26T08:23:31Z"
+    },
+    {
+      "author": "MartinLoeper",
+      "author_association": "NONE",
+      "body": "Is this because they are blocking openclaw-like usage with oauth tokens?\nI ran into this today with a legitimate usecase, running claude remote-control from inside a vm where oauth token login was necessary.",
+      "created_at": "2026-03-03T11:59:10Z"
+    }
+  ]
+}

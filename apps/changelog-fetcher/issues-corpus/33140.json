@@ -1,0 +1,35 @@
+{
+  "number": 33140,
+  "title": "VS Code extension can't find sessions on mapped network drives (realpath resolves to UNC)",
+  "body": "## Problem\n\nOn Windows, when the project lives on a mapped network drive (e.g. `U:\\projects\\my-app`), the VS Code extension's `listSessions()` returns no results because:\n\n1. The CLI creates session `.jsonl` files in `~/.claude/projects/u--projects-my-app/` (encoded from the drive letter path)\n2. The VS Code extension calls `fs.realpath()` which resolves the mapped drive to its UNC path (`\\fileserver.example.com\\share\\projects\\my-app`)\n3. The UNC path encodes to a completely different directory name (`--fileserver-example-com-share-projects-my-app`)\n4. No sessions are found ÔÇö the sidebar is empty after every restart\n\n## Impact\n\n- All sessions created in VS Code disappear on restart\n- Sessions created in the terminal CLI are never visible in VS Code\n- Affects any Windows user whose workspace is on a mapped network drive (common in studios/enterprises with DFS/SMB shares)\n\n## Workaround\n\nCreate a symlink between the two directory names in `~/.claude/projects/`:\n\n```\nmklink /D \"%USERPROFILE%\\.claude\\projects\\--fileserver-example-com-share-projects-my-app\" \"%USERPROFILE%\\.claude\\projects\\u--projects-my-app\"\n```\n\n## Suggested fix\n\nEither skip `realpath()` on Windows mapped drives, or normalize both the CLI and extension to use the same path before encoding the project directory name.\n\n## Environment\n\n- Windows 10/11, Claude Code 2.1.72\n- Mapped network drive (DFS/SMB)\n",
+  "labels": ["bug", "platform:windows", "platform:vscode", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-11T09:30:31Z",
+  "updated_at": "2026-05-08T14:55:48Z",
+  "closed_at": "2026-04-30T22:26:40Z",
+  "reactions_total": 4,
+  "comments_count": 12,
+  "author": "wjwilson",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/31219\n2. https://github.com/anthropics/claude-code/issues/14088\n3. https://github.com/anthropics/claude-code/issues/31535\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-11T09:34:56Z"
+    },
+    {
+      "author": "BenNewman100",
+      "author_association": "NONE",
+      "body": "Yes, I have the same issue and I tested and confirmed this myself manually (not having Claude do it). I just used Claude to write the below report. Also these are the real paths I tests. I didn't redact them.\n\n----\n\n**Title:** VS Code Extension does not show resume session list for sessions on SMB mapped network drives\n\n**Body:**\n\n## Summary\n\nThe VS Code Claude Code Extension fails to list previous sessions in the \"Resume Session\" picker when the working directory is on an SMB network share mapp",
+      "created_at": "2026-03-11T18:32:03Z"
+    },
+    {
+      "author": "ROC2024-REAL",
+      "author_association": "NONE",
+      "body": "Root cause: fs.realpathSync() / fs.realpath() resolve a mapped drive letter (e.g. I:\\) to its UNC path (\\\\server\\share\\...). Sessions are saved under the drive-letter slug (I--Projects-...) but looked up under the UNC slug (--server-share-Projects-...), so they're never found.\n\nFix (tested on VS Code extension 2.1.73, Windows 11, workspace on mapped network drive):\n\nIn FS() and all realpathSync() calls — if the resolved path starts with \\\\ but the input started with a drive letter, return the or",
+      "created_at": "2026-03-12T08:09:43Z"
+    }
+  ]
+}

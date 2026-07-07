@@ -1,0 +1,35 @@
+{
+  "number": 8830,
+  "title": "[BUG] Claude Desktop MCP prompts fail account-wide: \"Failed to attach prompt\"",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Environment:**\n- Platform: Claude Desktop (Windows)\n- Claude Version: [check Help → About]\n- MCP Server: BigQuery-Assets (npx q1x3nl4g)\n\n**Bug Description:**\nMCP prompts suddenly stopped working on [today's date] for my account only. 4 other test accounts work fine with identical configuration.\n\n**Symptoms:**\n- Error: \"Failed to attach prompt. You can try again.\"\n- MCP tools: ✅ Working perfectly\n- MCP prompts: ❌ Failing\n- MCP resources: ❌ Failing \n- Tested on multiple computers: Same result\n- Worked yesterday, broke today\n- No code or config changes\n\n\n### What Should Happen?\n\n**Expected Behavior:**\nPrompts should attach and generate messages like they do for other accounts.\n\n**Actual Behavior:**\nPrompt attachment fails with generic error. Backend appears to be rejecting prompt requests for this specific account.\n\n**Additional Context:**\nThis appears to be an account-level backend state corruption issue, as:\n- Same MCP server works for other accounts\n- Same computer works for other accounts\n- Multiple computers fail for this account\n\n### Error Messages/Logs\n\n```shell\n- Failed to attach prompt. You can try again.\n- Failed to attach resources. You can try again.\n\nand here in Claude > logs > window:\n\n2025-10-03 17:33:41 [error] Potential permissions policy violation: payment is not allowed in this document.\n2025-10-03 17:33:43 [error] Potential permissions policy violation: payment is not allowed in this document.\n```\n\n### Steps to Reproduce\n\n1. Publish my MCP server to npm.\n2. Called it in claude_desktop_config.\n{\n  \"mcpServers\": {\n    \"BigQuery-Assets\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"server-name\"\n      ],\n      \"env\": {\n        \"BIGQUERY_PROJECT\": \"My biguquery project\",\n        \"BIGQUERY_KEY_FILE\": \"path to service account key\"\n      }\n    }\n  }\n\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nclaude desktop latest version\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:windows", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-10-03T10:28:07Z",
+  "updated_at": "2025-10-11T14:05:49Z",
+  "closed_at": "2025-10-04T03:56:23Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "nvvjwss",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ns-amurugesan",
+      "author_association": "NONE",
+      "body": "I am having the same issue \"Failed to attach prompt. You can try again.\".\nOS: Mac\nClaude Desktop.\n\nRegression:\nYes, this is a regression.\n\nThis was working day before yesterday. \nYesterday, it worked intermittently and towards the end of the all my MCP server prompts stopped loading with the above error.\nTools work fine.\n\nI see the below error in the MCP server log:\n[5758] [Remote→Local] 6\n[2025-10-03T15:12:19.909Z][5758] [Remote→Local] 6\n[2025-10-03T15:12:19.910Z][5758] Remote → Local message {",
+      "created_at": "2025-10-03T15:18:35Z"
+    },
+    {
+      "author": "chrisfriedline-benchling",
+      "author_association": "NONE",
+      "body": "Same happening with me, as well, with multiple MCP servers that provide prompts, including `everything`. Was working yesterday, not today. Claude Desktop on Mac 0.13.37, Sonnet 4.5. Also see the prompt returning in the logs. \n\nCould it be related to the latest outage, I wonder?",
+      "created_at": "2025-10-03T15:22:20Z"
+    },
+    {
+      "author": "ns-amurugesan",
+      "author_association": "NONE",
+      "body": "https://status.claude.com/ status shows green now.",
+      "created_at": "2025-10-03T15:28:42Z"
+    }
+  ]
+}

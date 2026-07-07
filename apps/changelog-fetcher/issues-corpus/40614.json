@@ -1,0 +1,35 @@
+{
+  "number": 40614,
+  "title": "[FEATURE] Hierarchical memory to prevent silent loss at 200-line MEMORY.md limit",
+  "body": "### Preflight Checklist\n\n- [x] I have searched existing requests and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nClaude Code's auto memory stores entries in a flat `MEMORY.md` index capped\nat 200 lines / 25KB. When a power user accumulates enough memories, entries\nat the bottom of the index are silently truncated on reload. The topic files\nstill exist on disk but become orphaned — Claude can't find them because their\npointers are gone.\n\nAuto Dream consolidates entries but maintains the flat structure. It doesn't\ncreate hierarchy or push detail into sub-indices. For users with complex,\nlong-running projects, the flat model hits its ceiling and memories are\nquietly lost.\n\n### Proposed Solution\n\nReplace the flat index with a self-balancing tree. When `MEMORY.md` exceeds\na threshold (e.g. 150 lines), entries are grouped by memory type and pushed\ninto category index files in an `_index/` subdirectory. Each category pointer\nin `MEMORY.md` becomes a single line with a count and summary. If a category\nindex also overflows, it splits further by topic keyword. The tree grows in\ndepth, not width — same discipline at every level.\n\nI built this as an external tool that runs via hooks:\n**https://github.com/j-p-c/alzheimer**\n\nIt works today with all Claude Code models (Opus, Sonnet, Haiku) and requires\nno dependencies beyond Python 3.6+ stdlib. Installation is one sentence to\nClaude: \"Install the alzheimer memory rebalancer from github.com/j-p-c/alzheimer.\"\n\nKey design points:\n- Root stays small: MEMORY.md never exceeds 150 lines (headroom below the 200-line cap)\n- Detail pushes down, summaries push up — Claude gets enough context from the\n  summary line to decide whether to read deeper\n- Self-balancing via PostToolUse, SessionStart, and PreCompact hooks\n- Compatible with Auto Dream (rebuilds if Dream flattens the tree)\n- Configurable limits via `.alzheimer.conf` for forward-compatibility\n- 50 tests, MIT-0 license\n\n### Why This Matters\n\nThe 200-line limit means Claude Code's memory system has a hard ceiling on\ncomplexity. Users who rely on memory for project context, preferences, and\nworkflow instructions hit this wall and lose information without warning.\nA hierarchical approach lifts this ceiling without requiring changes to\nClaude Code itself.\n\nThe tool is MIT-0 (no attribution required) — happy for the ideas or code\nto be adopted natively if useful.",
+  "labels": ["enhancement", "memory", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-29T15:06:23Z",
+  "updated_at": "2026-07-01T15:03:37Z",
+  "closed_at": "2026-05-11T22:34:56Z",
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "j-p-c",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/40210\n2. https://github.com/anthropics/claude-code/issues/40245\n3. https://github.com/anthropics/claude-code/issues/27298\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-29T15:09:59Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "You can work around the 200-line MEMORY.md limit with a UserPromptSubmit hook that loads memory from a larger index:\n```bash\nINPUT=$(cat)\nPROMPT=$(echo \"$INPUT\" | jq -r '.user_prompt // empty' 2>/dev/null)\nMEMORY_DIR=\".claude/memory\"\n[ ! -d \"$MEMORY_DIR\" ] && exit 0\nTOTAL=$(find \"$MEMORY_DIR\" -name \"*.md\" -not -name \"MEMORY.md\" | wc -l)\nRELEVANT=\"\"\nif [ -n \"$PROMPT\" ]; then\n    TERMS=$(echo \"$PROMPT\" | tr ' ' '\\n' | grep -E '^[a-zA-Z]{3,}' | head -5)\n    for term in $TERMS; do\n        MATCHES=$(",
+      "created_at": "2026-03-29T15:25:32Z"
+    },
+    {
+      "author": "j-p-c",
+      "author_association": "NONE",
+      "body": "Thanks for flagging these. I've reviewed all three — this issue is related but not a duplicate of any of them.\n\n**#40210** reports the same underlying problem (bottom-truncation losing newest memories) but is a bug report without a solution. This issue provides a working solution.\n\n**#40245** proposes a fundamentally different architecture — merging memory and CLAUDE.md into hierarchical `summary.md` files inside the project folder. That's a much larger redesign of how memory works. Alzheimer wo",
+      "created_at": "2026-03-29T16:10:10Z"
+    }
+  ]
+}

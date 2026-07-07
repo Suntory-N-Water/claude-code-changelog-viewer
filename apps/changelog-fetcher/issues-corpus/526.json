@@ -1,0 +1,16 @@
+{
+  "number": 526,
+  "title": "[BUG] mcp add incorrectly escapes command line arguments",
+  "body": "## Environment\n- Platform (select one): Anthropic API\n- Claude CLI version: 0.2.45\n- Operating System: macOS 15.3.2\n- Terminal:  iTerm2\n\n## Bug Description\nUnable to provide command line arguments with spaces/parens\n\n## Steps to Reproduce\n1. `claude mcp add`\n\n```\nName: fetch                                                                                                               │\n│   Scope: global                                                                                                             │\n│   Command: uvx                                                                                                              │\n│   Arguments: mcp-server-fetch --user-agent \"Test\"\n```\n2. `claude`\n```\n> /mcp\n  ⎿  MCP Server Status\n\n     • fetch: connected\n```\n\n3. `claude mcp add`\n```\nName: fetch                                                                                                               │\n│   Scope: global                                                                                                             │\n│   Command: uvx                                                                                                              │\n│   Arguments: mcp-server-fetch --user-agent \"Test Test\"\n```\n\n4. `claude --mcp-debug`\n```\nMCP server \"fetch\" Connection failed: MCP error -32000: Connection closed\n\n╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ > Try \"how does src/App.tsx work?\"                                                                                          │\n╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯\n  1 MCP server failed to connect (see /mcp for info)\n```\n\n## Expected Behavior\nCmdline args with spaces to work\n\n## Actual Behavior\nThey are being incorrectly passed to mcp server\n\n## Additional Context\nCan confirm that `npx @modelcontextprotocol/inspector` has the same issue, but that it can be fixed by proper escaping",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-03-16T02:41:16Z",
+  "updated_at": "2025-08-09T14:06:48Z",
+  "closed_at": "2025-03-17T22:46:17Z",
+  "reactions_total": 0,
+  "comments_count": 2,
+  "author": "raghavsethi",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

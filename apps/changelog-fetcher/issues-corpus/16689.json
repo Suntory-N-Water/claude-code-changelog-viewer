@@ -1,0 +1,16 @@
+{
+  "number": 16689,
+  "title": "Semver parser fails on cache/changelog.md heading format",
+  "body": "## Summary\n\nClaude Code 2.1.0 fails to start due to semver parsing error on its own changelog cache file.\n\n## Environment\n\n- **Claude Code version**: 2.1.0\n- **Platform**: macOS Darwin 24.6.0\n- **Shell**: zsh\n\n## Error\n\n```\nERROR  Invalid Version: 2.1.0 (2026-01-07)\n```\n\n## Stack Trace\n\n```\n/$bunfs/root/claude:813:8909\n...\n- Pw (/$bunfs/root/claude:813:8909)\n- CfD (/$bunfs/root/claude:813:14035)\n```\n\n## Root Cause\n\nThe file `~/.claude/cache/changelog.md` line 3 contains:\n\n```markdown\n## 2.1.0 (2026-01-07)\n```\n\nThe semver parser receives `2.1.0 (2026-01-07)` (with date annotation) instead of strict semver `2.1.0`.\n\n## Reproduction\n\n1. Use Claude Code 2.1.0\n2. Have `~/.claude/cache/changelog.md` present with version heading containing date\n3. Start Claude Code with skills enabled\n4. Observe startup failure\n\n## Workaround\n\n```bash\nmv ~/.claude/cache/changelog.md ~/.claude/cache/changelog.md.backup\n```\n\n## Suggested Fix\n\n1. Validate version strings are strict semver before parsing\n2. Skip changelog files in version extraction\n3. Or sanitize heading format: extract only semver portion\n\n## Additional Context\n\nDiscovered during fleet management operations. Multiple agents affected until cache file was renamed.\n\n---\n*Filed by private-work-supervisor-AGET v3.2.1*\n",
+  "labels": ["bug", "duplicate", "has repro", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-07T20:34:16Z",
+  "updated_at": "2026-01-17T14:07:36Z",
+  "closed_at": "2026-01-07T20:36:47Z",
+  "reactions_total": 0,
+  "comments_count": 3,
+  "author": "gmelli",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

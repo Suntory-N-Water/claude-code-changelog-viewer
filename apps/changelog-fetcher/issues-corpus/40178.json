@@ -1,0 +1,35 @@
+{
+  "number": 40178,
+  "title": "[BUG] Dispatch: messages marked as read but responses never appear in UI (desktop or mobile)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nDescription:\n\nDispatch receives and processes messages correctly (marked as \"✓ Lettura / Read\") but responses are never delivered to the chat thread — neither on the desktop app nor on the Claude mobile app.\n\nEnvironment:\n\nOS: Windows 10 Pro 10.0.19045\nClaude Desktop version: 1.1.9310\nAccount: Pro\nWhat happens:\n\nUser sends a message in the Dispatch tab\nMessage is marked as \"✓ Read\" (the desktop agent receives it)\nNo response ever appears in the Dispatch thread — on desktop or mobile\nWhat the logs show:\nThe agent processes the message and generates a correct response (visible in audit.jsonl), but the response is never delivered to the UI. Example from logs:\n\n\nresult: \"Tutto funziona! Sono qui e pronto. Dimmi pure cosa posso fare per te.\"\nThis text never appears in Dispatch.\n\nIn a previous session, ToolSearch for SendUserMessage returned \"No matching deferred tools found\" — suggesting the response delivery mechanism is broken.\n\nAdditional notes:\n\nThe Cowork VM starts correctly\nNormal Chat and Cowork sessions work fine\nThe issue is isolated to Dispatch response delivery\nReinstalling the app did not fix the issue\n\n### What Should Happen?\n\nDispatch receives and processes messages correctly (marked as \"✓ Read\") but responses are never delivered to the chat thread — neither on the desktop app nor on the Claude mobile app.\n\nSteps to reproduce:\n\nOpen Claude Desktop (Windows 10, v1.1.9310)\nGo to Cowork → Dispatch tab\nSend any message (e.g. \"test\")\nMessage is marked \"✓ Read\"\nWait — no response ever appears\nExpected: Response appears in the Dispatch chat thread.\n\nActual: Message is processed internally (response visible in audit.jsonl), but never delivered to the UI. Example response generated but not shown: \"Tutto funziona! Sono qui e pronto.\" — confirmed on mobile app too, no responses appear there either.\n\nAdditional context:\n\nToolSearch for SendUserMessage returns \"No matching deferred tools found\" — response delivery mechanism appears broken\nVM starts correctly, normal Chat and Cowork work fine\nReinstalling did not fix the issue\n\n### Error Messages/Logs\n\n```shell\nRelevant log excerpts (cowork_vm_node.log):\n\n\n[VM:start] Windows VM service configured\n[VM:start] Startup complete, total time: 11304ms\n[Spawn:vm] Spawn succeeded in 56ms\n[CoworkVMProcess] kill called with signal: SIGTERM\n[Process] Exited, code=0, duration=6440ms\nFrom audit.jsonl (agent session):\n\n\n{\"type\":\"result\",\"subtype\":\"success\",\"result\":\"Tutto funziona! Sono qui e pronto. Dimmi pure cosa posso fare per te.\"}\nResponse is generated successfully but never reaches the UI.\n\nFrom audit.jsonl (dispatch agent — previous session):\n\n\n{\"type\":\"user\",\"content\":[{\"type\":\"tool_result\",\"content\":\"No matching deferred tools found\"}]}\nToolSearch for SendUserMessage fails — this appears to be the root cause: the agent cannot find the tool needed to deliver responses back to the Dispatch thread.\n\nLog paths (Windows):\n\nC:\\Users\\...\\AppData\\Local\\Packages\\Claude_pzs8sxrjxfjjc\\LocalCache\\Roaming\\Claude\\logs\\cowork_vm_node.log\nC:\\Users\\...\\AppData\\Local\\Packages\\Claude_pzs8sxrjxfjjc\\LocalCache\\Roaming\\Claude\\local-agent-mode-sessions\\...\\agent\\...\\audit.jsonl\n```\n\n### Steps to Reproduce\n\nOpen Claude Desktop (Windows 10, v1.1.9310)\nGo to Cowork → Dispatch tab\nSend any message (e.g. \"test\")\nMessage is marked \"✓ Read\" / \"Lettura\"\nWait — no response ever appears\nExpected Behavior:\nClaude processes the message and a response appears in the Dispatch chat thread (on desktop and/or mobile app).\n\nActual Behavior:\nThe message is received and processed internally (response visible in audit.jsonl log), but never delivered to the UI. Example response generated but not shown: \"Tutto funziona! Sono qui e pronto.\" — also conf",
+  "labels": ["invalid"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-28T10:06:29Z",
+  "updated_at": "2026-04-06T14:37:28Z",
+  "closed_at": "2026-03-29T04:45:35Z",
+  "reactions_total": 27,
+  "comments_count": 40,
+  "author": "korner1977",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "CannibalKush",
+      "author_association": "NONE",
+      "body": "I was getting this error. I implored Claude to call the tool exactly by name, and it did. It gets an error, but the message actually does deliver.",
+      "created_at": "2026-03-28T16:17:02Z"
+    },
+    {
+      "author": "driiiiiiip",
+      "author_association": "NONE",
+      "body": "Yes, thank you for bringing this issue up!  It has totally messed up my workflow since it appeared.  It's basically made dispatch on mobile non-functional.  And I just upgraded to $200 a month so I can use this.  I can see Claude's responses if I go on my desktop app and click \"See Background Tasks\", but they never reach the chat.  Here's what Claude said about it: The search for SendUserMessage returning \"No matching deferred tools found\" is the smoking gun — it's the same error I hit earlier i",
+      "created_at": "2026-03-28T17:07:34Z"
+    },
+    {
+      "author": "support326",
+      "author_association": "NONE",
+      "body": "Experiencing the same issue. Sounds like its a bug and it's in Anthropic's hands to fix.",
+      "created_at": "2026-03-28T17:08:24Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 25947,
+  "title": "Feature request: Store project memory files in project-local .claude folder",
+  "body": "## Current Behavior\n\nProject-specific memory files are stored in a global path:\n```\n~/.claude/projects/<encoded-project-path>/memory/MEMORY.md\n```\n\n## Desired Behavior\n\nStore memory files inside the project's own `.claude/memory/` folder, e.g.:\n```\n<project-root>/.claude/memory/MEMORY.md\n```\n\nThis is more intuitive — when working on multiple projects with separate sessions, users naturally expect each project's memory to live within that project's directory, not in a centralized global location.\n\n## Concern: Accidental Git Commits\n\nMemory files contain personal session history and should **never** be committed to version control. To address this:\n\n- If memory files are created in a project-local `.claude/` folder (whether by user request or via a future feature/option), Claude Code should **automatically ensure** `.claude/memory/` is listed in `.gitignore` **before any git commit**.\n- If `.gitignore` doesn't exist, create it with the entry.\n- If `.gitignore` exists but doesn't include the path, append it.\n\nThis would make the feature safe by default while keeping the project structure clean and self-contained.\n\n## Additional Context\n\nThe project-level `.claude/` folder already exists for shared settings like `CLAUDE.md`. Adding a `memory/` subfolder there (with proper `.gitignore` protection) would be a natural extension of the existing structure.",
+  "labels": ["enhancement"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-15T17:58:46Z",
+  "updated_at": "2026-07-04T03:35:39Z",
+  "closed_at": null,
+  "reactions_total": 29,
+  "comments_count": 5,
+  "author": "arsmap",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "andybrandt",
+      "author_association": "NONE",
+      "body": "I support this. The way currently memories are stored is fragile - it would break if any of the directories along the path to the project on users' disk is renamed or the project directory is moved. And it indeed makes it difficult to share across machines and share with team. This is simply a bad design. \n\nTemporary workaround: I did put instructions in ~/.claude/CLAUDE.md to override this (and store those memories in <project>/CLAUDE_NOTES.md. ",
+      "created_at": "2026-02-26T21:34:58Z"
+    },
+    {
+      "author": "butmasaru",
+      "author_association": "NONE",
+      "body": "## Idea: Allow relative paths in autoMemoryDirectory from project settings\n\nI've been running into the same fragmentation issues described here and in related issues (#25947, #24382, #25739, #24789, #30668).\n\nWhile exploring workarounds, I realized that many of these issues might be addressed by a relatively small change: allowing `autoMemoryDirectory` to accept relative paths from project-level `.claude/settings.json`.\n\n### Example: Per-project isolated memory\n```json\n// .claude/settings.json (",
+      "created_at": "2026-03-17T11:02:45Z"
+    },
+    {
+      "author": "D1no",
+      "author_association": "NONE",
+      "body": "Need this as well. Relative paths to the memory folder in a repo is broken in `settings.local.json`. Always requires an absolute path.",
+      "created_at": "2026-04-05T08:04:02Z"
+    }
+  ]
+}

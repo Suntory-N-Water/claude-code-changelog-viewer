@@ -1,0 +1,23 @@
+{
+  "number": 36587,
+  "title": "claude.ai managed MCP servers unavailable in --print mode since v2.1.79",
+  "body": "## Description\n\n`claude.ai` managed MCP servers (Slack, Atlassian, Gmail, Google Calendar, Figma, etc.) stopped being available in headless `--print` mode starting from version **2.1.79**. They work correctly in interactive mode and in `--print` mode on version **2.1.78**.\n\n## Steps to reproduce\n\n1. Configure claude.ai managed MCP servers (e.g., Slack, Atlassian) via https://claude.ai/settings/connectors\n2. Verify they are connected: `claude mcp list` → shows `✓ Connected`\n3. Run in headless mode:\n   ```bash\n   claude --print -p \"List all tool names containing 'slack' or 'atlassian'\" --output-format json --max-turns 1\n   ```\n4. No MCP tools are available in the output\n\n## Expected behavior\n\n`claude.ai` managed MCP servers should be available in `--print` mode, as they were in v2.1.78.\n\n## Actual behavior\n\nOnly built-in tools (Bash, Read, Edit, Glob, Grep, etc.) and deferred tools are available. No `mcp__claude_ai_*` tools appear.\n\n## Environment\n\n- **Working version:** 2.1.78 (installed 2026-03-18)\n- **Broken version:** 2.1.79 (installed 2026-03-19), also broken in 2.1.80\n- **OS:** macOS (Darwin 25.3.0)\n- **Auth:** claude.ai account (Team subscription), `claude auth status` shows `loggedIn: true`\n- **Install method:** native\n\n## Workaround\n\nPin to version 2.1.78:\n```bash\nln -sf ~/.local/share/claude/versions/2.1.78 ~/.local/bin/claude\n```\n\n## Impact\n\nBreaks any automation relying on `claude --print` with cloud-hosted MCP integrations (Slack, Atlassian/Jira, etc.).",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:mcp",
+    "regression",
+    "area:cli"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-20T10:37:00Z",
+  "updated_at": "2026-04-25T14:35:10Z",
+  "closed_at": "2026-04-18T04:16:48Z",
+  "reactions_total": 0,
+  "comments_count": 2,
+  "author": "tt0y",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

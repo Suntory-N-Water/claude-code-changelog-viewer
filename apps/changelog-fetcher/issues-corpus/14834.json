@@ -1,0 +1,35 @@
+{
+  "number": 14834,
+  "title": "[BUG] /context command shows full skill tokens instead of loaded metadata tokens",
+  "body": "### What went wrong?\n\nThe `/context` command displays the absolute token count for skills (the full SKILL.md content), not the minimal amount of tokens they actually consume at startup (only `name` and `description` from the YAML frontmatter).\n\nThis confuses users because it appears as though all skill tokens are loaded into context, when in fact skills use progressive disclosure—only their metadata (~100 tokens per skill) is loaded initially, with full content loaded on-demand when triggered.\n\n### What should happen?\n\nThe `/context` command should either:\n1. Display the actual tokens consumed (just name + description metadata), or\n2. Clearly indicate that the displayed token count is the \"potential maximum\" vs \"currently loaded\" amount, or\n3. Show both values (e.g., \"50 / 2,500 tokens\" meaning 50 loaded, 2,500 if fully activated)\n\n<img width=\"300\" src=\"https://github.com/user-attachments/assets/1694c99a-0b62-4950-aef3-22f7d269601a\" />\n\n<img width=\"300\" src=\"https://github.com/user-attachments/assets/29e7c515-fdb0-4783-b608-168e9cb60dbf\" />\n\n### Steps to reproduce\n\n1. Install several skills (user or project level)\n2. Run `/context` command\n3. Observe that skills show their full token counts\n4. Compare to actual context usage—skills aren't fully loaded until triggered\n\n### Environment\n\n- **Version**: 2.0.74 (Claude Code)\n- **OS**: macOS 26.2 (Tahoe)\n- **Terminal**: Warp v0.2025.12.17.17.17.stable_02\n\n### Is this a regression?\n\nDon't know - this may have always been the behavior, but it's misleading given the progressive disclosure architecture.",
+  "labels": ["bug", "platform:macos", "area:tools"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-20T06:39:42Z",
+  "updated_at": "2026-01-15T14:20:32Z",
+  "closed_at": "2026-01-08T13:34:44Z",
+  "reactions_total": 11,
+  "comments_count": 15,
+  "author": "PaulRBerg",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/9425\n2. https://github.com/anthropics/claude-code/issues/14785\n3. https://github.com/anthropics/claude-code/issues/12841\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-20T06:42:55Z"
+    },
+    {
+      "author": "PaulRBerg",
+      "author_association": "NONE",
+      "body": "And I think this bug applies to slash commands and plugins, too.",
+      "created_at": "2025-12-20T06:46:38Z"
+    },
+    {
+      "author": "leuquim",
+      "author_association": "NONE",
+      "body": "Hope they get to this soon. It's been several days of increased token usage and degraded experience as a result. This should be close to top priority / urgent. Each passing day is probably causing millions of wasted tokens for both users and Claude. I've also felt a decrease in quality due to the large amount of mixed context loaded into conversations.",
+      "created_at": "2025-12-24T15:19:33Z"
+    }
+  ]
+}

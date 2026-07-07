@@ -1,0 +1,35 @@
+{
+  "number": 26725,
+  "title": "Stale worktrees are never cleaned up",
+  "body": "## Problem\n\nClaude Code creates git worktrees under `~/.claude-worktrees/` for parallel task execution but has no mechanism to clean them up if a session ends without proper cleanup (crash, interruption, or bug in teardown). There is also no garbage collection on subsequent session starts — each session is completely unaware of what previous sessions left behind.\n\nThis leaves behind:\n1. Full repo copies on disk (wasting space)\n2. Git branches that **cannot be deleted** even with `git branch -D` because git refuses to delete a branch checked out in any worktree\n3. Worktree refs in `.git/worktrees/` that persist indefinitely\n\nThe only way a user discovers these is by stumbling into the `cannot delete branch` error, at which point they have to manually `git worktree remove` or `rm -rf` the directory, then `git worktree prune` to clean up refs.\n\n## Reproduction\n\n1. Use Claude Code on a project where it creates a worktree (parallel task execution)\n2. End the session (or have it crash/interrupt)\n3. Observe that `~/.claude-worktrees/<project>/<worktree-name>` persists\n4. Try to delete the branch: `git branch -D <worktree-name>` → fails with `error: cannot delete branch used by worktree`\n\n## Expected behavior\n\n- Claude Code should clean up worktrees on session exit\n- On session start, Claude Code should scan for and prune stale worktrees from previous sessions\n- At minimum, a `claude --cleanup` command or similar should exist\n\n## Environment\n\n- macOS (Darwin 25.2.0)\n- Claude Code (CLI)\n- Found a stale worktree from January 15, 2026 that was never cleaned up across dozens of subsequent sessions",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-18T23:25:30Z",
+  "updated_at": "2026-06-23T10:19:55Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 7,
+  "author": "atrimble-synmax",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "karan-dhir",
+      "author_association": "NONE",
+      "body": "Same issue here. Had 15 orphaned agent worktrees from a single session where sub-agents were launched with `isolation: \"worktree\"`. All nested under a parent session worktree, none cleaned up on exit. Had to manually `git worktree remove --force` each one + delete the branches + `git worktree prune`.\n\n+1 for either automatic cleanup on session exit or a `claude --cleanup` command.",
+      "created_at": "2026-02-26T18:01:18Z"
+    },
+    {
+      "author": "asportnoy",
+      "author_association": "NONE",
+      "body": "Same issue. Once or twice I _did_ get a prompt when exiting Claude for \"Do you want to delete this worktree?\" but for some reason it's not showing up the vast majority of the time. Not sure why.",
+      "created_at": "2026-03-02T18:02:08Z"
+    },
+    {
+      "author": "Celtiore",
+      "author_association": "NONE",
+      "body": "<img width=\"616\" height=\"864\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/3d1462e8-250c-43f4-a2df-062d5d83b781\" />\n\n## Reproduction with Agent tool + `isolation: \"worktree\"`\n\nSame issue here — using the `Agent` tool with `isolation: \"worktree\"` to spawn parallel Dev agents during a planning/execution workflow (VBW plugin). A single session created **7 nested worktrees** under `.claude/worktrees/`, none cleaned up on agent completion.\n\n### What happened\n\n- Spawned 6 Dev agents (2 ",
+      "created_at": "2026-03-09T09:36:37Z"
+    }
+  ]
+}

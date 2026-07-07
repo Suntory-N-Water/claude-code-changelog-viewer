@@ -1,0 +1,35 @@
+{
+  "number": 5621,
+  "title": "StatusLine should expose API usage/quota information in JSON input",
+  "body": "Issue Type: Feature Request / Enhancement\n\n  Description:\n  The Claude Code CLI internally tracks API usage limits and displays warnings like \"Approaching usage limit •\n  resets at 7pm\" in the terminal interface. However, this usage information is not exposed through the statusLine\n   JSON input, preventing users from displaying quota information in custom status lines.\n\n  Current Behavior:\n  - Claude Code tracks usage internally and shows warnings when limits are approached\n  - StatusLine scripts receive JSON input with workspace information but no usage data\n  - Users cannot display remaining quota or reset times in their custom status lines\n\n  Expected Behavior:\n  The JSON input passed to statusLine scripts should include usage information such as:\n  {\n    \"workspace\": { ... },\n    \"usage\": {\n      \"requests_remaining\": 150,\n      \"total_requests\": 1000,\n      \"percentage_used\": 85,\n      \"reset_time\": \"2024-08-12T19:00:00Z\",\n      \"next_reset_human\": \"7pm\"\n    }\n  }\n\n  Use Case:\n  I want to create a custom statusLine that displays:\n  - Remaining token/request quota\n  - Time until quota reset\n  - Current working directory\n  - Git branch name\n\n  Currently, I can display the directory and git info, but not the usage data that Claude Code clearly has access\n   to internally.\n\n  Current StatusLine Configuration:\n  # ~/.claude/statusline-command.sh shows:\n  Quota: N/A | Reset: N/A | [main] project-folder\n\n  Environment:\n  - Platform: macOS (Darwin 24.6.0)\n  - Claude Code version: [current version]\n\n  Additional Context:\n  Since Claude Code already tracks and displays this usage information in its own interface, exposing it through\n  the statusLine API would allow users to create more informative and useful custom status displays without\n  requiring separate API calls or workarounds.\n\n\n",
+  "labels": ["enhancement", "platform:macos", "area:tui", "area:api"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-12T14:48:20Z",
+  "updated_at": "2026-02-13T14:26:09Z",
+  "closed_at": "2026-02-05T10:21:49Z",
+  "reactions_total": 71,
+  "comments_count": 13,
+  "author": "FutureAtoms",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "TylerGallenbeck",
+      "author_association": "NONE",
+      "body": "You can use this in the meantime → https://github.com/TylerGallenbeck/claude-code-limit-tracker\n\nObviously won't be as accurate as native support, but should get you pretty close.\n\n<img width=\"758\" height=\"82\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/470c001d-e9b8-4b82-a345-68d090f22fc3\" />",
+      "created_at": "2025-08-19T07:59:24Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Hey, this is a great feature request!\n\nJust wanted to add a bit of context from the latest docs and changelog for anyone else following this issue.\n\nIt looks like the team added session cost tracking to the `statusLine` input in version `1.0.85`. According to the documentation ([Status line configuration](https://docs.anthropic.com/en/docs/claude-code/statusline)), the JSON input now includes a `cost` object:\n\n```json\n{\n  \"hook_event_name\": \"Status\",\n  ...\n  \"cost\": {\n    \"total_cost_usd\": 0.012",
+      "created_at": "2025-08-21T01:37:32Z"
+    },
+    {
+      "author": "TylerGallenbeck",
+      "author_association": "NONE",
+      "body": "> \"hook_event_name\": \"Status\",\n>   ...\n>   \"cost\": {\n>     \"total_cost_usd\": 0.01234,\n>     \"total_duration_ms\": 45000,\n>     \"total_api_duration_ms\": 2300,\n>     \"total_lines_added\": 156,\n>     \"total_lines_removed\": 23\n\nSweet - I didn't know some of these things existed",
+      "created_at": "2025-08-21T02:26:44Z"
+    }
+  ]
+}

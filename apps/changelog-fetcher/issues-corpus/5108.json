@@ -1,0 +1,35 @@
+{
+  "number": 5108,
+  "title": "[BUG] Claude Code changes model identifier mid-conversation on AWS Bedrock (eu to us region)",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [x] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: LiteLLM\n- Claude CLI version: 1.0.67 (Claude Code)\n- Operating System: macOS 15.6\n- Terminal:  Terminal / oh-my-zsh\n\n## Bug Description\n\nI have a very odd bug where Claude Code switches the model used in a long conversation. I am using the eu sonnet model via Bedrock, proxied through a LiteLLM proxy. (Computer => LiteLLM => Bedrock)\n\nThe model used is `eu.anthropic.claude-sonnet-4-20250514-v1:0`\n\nAfter conversing with the model for a while, suddenly this message appears:\n\n```\n  ⎿  API Error (500 {\"error\":{\"message\":\"{\\\"message\\\":\\\"The provided model identifier is invalid.\\\"}. Received Model Group=us.anthropic.claude-sonnet-4-20250514-v1:0\\nAvailable Model Group Fallbacks=None\\nError doing the fallback: list index out of range\",\"type\":\"None\",\"param\":\"None\",\"code\":\"500\"}}) · Retrying in 1 seconds… (attempt 1/10)\n```\n\nNote the model identifier *us.anthropic.claude-sonnet-4-20250514* with the *us* prefix, not *eu*. We can see from LiteLLM logs that the wrong model identifier is in fact being sent from Claude Code.\n\nClosing CC and then using `--resume` allows the conversation to continue for a short while before the issue reappears.\n\n## Steps to Reproduce\n1. Run Claude Code with: `AWS_REGION=eu-west-1 AWS_DEFAULT_REGION=eu-west-1 ANTHROPIC_MODEL=eu.anthropic.claude-sonnet-4-20250514-v1:0 ANTHROPIC_AUTH_TOKEN=REDACTED ANTHROPIC_BEDROCK_BASE_URL=https://litellm.REDACTED/bedrock CLAUDE_CODE_SKIP_BEDROCK_AUTH=1 CLAUDE_CODE_USE_BEDROCK=1 claude`\n2. Ask CC to do something that requires a couple of minutes of agentic work\n3. The issue appears.\n\n## Expected Behavior\nAlways use the configured model from ANTHROPIC_MODEL.\n\n## Actual Behavior\nChanges model randomly.\n\n## Additional Context\n-",
+  "labels": ["bug", "has repro", "api:bedrock", "platform:macos", "area:model"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-04T19:22:14Z",
+  "updated_at": "2026-01-15T14:13:22Z",
+  "closed_at": "2026-01-07T10:11:42Z",
+  "reactions_total": 7,
+  "comments_count": 13,
+  "author": "khromov",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "dimohammed328",
+      "author_association": "NONE",
+      "body": "I think I am encountering a similar bug on Linux for bedrock as well. I think the issue specifically is that the model for the `Task` tool subagent doesn't respect the model set in the settings. Can you confirm if this is what you are seeing as well?",
+      "created_at": "2025-08-04T23:14:10Z"
+    },
+    {
+      "author": "khromov",
+      "author_association": "NONE",
+      "body": "@dimohammed328 it totally makes sense that this would be caused by a subagent as that would explain the ability to resume the conversation with `--resume`. How can I verify that the Task tool causes the issue? ",
+      "created_at": "2025-08-04T23:23:42Z"
+    },
+    {
+      "author": "dimohammed328",
+      "author_association": "NONE",
+      "body": "Unsure, if you're running into the issue, you can check if the last thing claude did was call a `Task` tool. I think you can also ask claude to do something as a subagent task so that would work as well.",
+      "created_at": "2025-08-05T00:06:13Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 24784,
+  "title": "Claude in Chrome MCP server fails to connect to native host bridge socket",
+  "body": "\n  ## Bug Description\n\n  The Claude in Chrome MCP server (`--claude-in-chrome-mcp`) fails to connect to\n   the native host's Unix socket, resulting in \"Browser extension is not\n  connected\" error on every tool call.\n\n  ## Environment\n\n  - **Claude Code**: 2.1.38\n  - **OS**: macOS 15 (Darwin 24.6.0)\n  - **Chrome**: 144.0.7559.133\n  - **Claude Chrome Extension**: 1.0.47 (ID: fcoeoabgfenejglbffodgkkbkcdhcgfn)\n  - **Node**: v22.22.0\n\n  ## Steps to Reproduce\n\n  1. Install Claude Chrome extension from Chrome Web Store\n  2. Log into claude.ai in Chrome\n  3. Run `claude` in terminal (starts with `--claude-in-chrome-mcp`)\n  4. Attempt any browser automation tool (e.g., `tabs_context_mcp`)\n\n  ## Expected Behavior\n\n  MCP server should connect to the Chrome extension via the native host bridge\n  socket.\n\n  ## Actual Behavior\n\n  Every browser tool call returns: \"Browser extension is not connected.\"\n\n  ## Diagnosis\n\n  Both processes start correctly:\n  - MCP server: `2.1.38 --claude-in-chrome-mcp` (PID A)\n  - Native host: `2.1.38 --chrome-native-host` (PID B)\n\n  The native host creates a Unix socket at\n  `/tmp/claude-mcp-browser-bridge-<user>/<PID>.sock` and listens on it. However,\n   the MCP server process never connects to this socket.\n\n  `lsof` output confirms:\n  - **Native host** has the socket open:\n  `/tmp/claude-mcp-browser-bridge-<user>/<PID>.sock`\n  - **MCP server** has zero connections to any local Unix socket in that\n  directory\n\n  ### Additional complication\n\n  The Claude Desktop app (`/Applications/Claude.app`) registers a competing\n  native messaging host (`com.anthropic.claude_browser_extension`) for the same\n  extension ID. When both are present, Chrome preferentially launches the\n  Desktop app's native host instead of Claude Code's\n  (`com.anthropic.claude_code_browser_extension`). Even after removing the\n  Desktop app's native messaging host config, the MCP server still does not\n  connect to the bridge socket.\n\n  ## Workarounds Attempted (all failed)\n\n  - Restarting Chrome\n  - Restarting Claude Code\n  - Toggling extension off/on\n  - Killing stale native host processes\n  - Removing Claude Desktop app's native messaging host config\n  - Verifying same account on claude.ai and Claude Code\n\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-10T19:21:16Z",
+  "updated_at": "2026-04-24T14:52:36Z",
+  "closed_at": "2026-04-16T10:36:35Z",
+  "reactions_total": 5,
+  "comments_count": 10,
+  "author": "zephyr0815",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "liminalcommons",
+      "author_association": "NONE",
+      "body": "is nobody working on this?",
+      "created_at": "2026-02-10T22:14:57Z"
+    },
+    {
+      "author": "hamza5645",
+      "author_association": "NONE",
+      "body": "I have the same issue",
+      "created_at": "2026-02-11T07:44:03Z"
+    },
+    {
+      "author": "DigiRift-frontend",
+      "author_association": "NONE",
+      "body": "same issue ",
+      "created_at": "2026-02-13T00:38:11Z"
+    }
+  ]
+}

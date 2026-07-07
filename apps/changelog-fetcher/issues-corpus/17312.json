@@ -1,0 +1,35 @@
+{
+  "number": 17312,
+  "title": "[BUG] Claude Code - LSP Tool Returns Empty Results Despite Server Responding Correctly (Windows)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n\nTwo issues with LSP Tool on Windows:\n\n**Issue #1 - ENOENT Error:** Claude Code cannot spawn LSP servers because Node.js `spawn()` without `shell: true` cannot find `.cmd` or `.ps1` files on Windows. Error: `spawn typescript-language-server ENOENT`\n\n**Issue #2 - Empty Results Bug:** After creating `.exe` shims to fix Issue #1, the LSP tool returns \"No symbols found\", \"No hover information\", etc. for ALL document-level operations, even though the LSP server responds correctly with valid data. Only `workspaceSymbol` works.\n\nThis affects ALL tested LSP servers including the official `typescript-lsp@claude-plugins-official` plugin.\n\n\n### What Should Happen?\n\n1. LSP servers should spawn correctly on Windows (find `.cmd` files or use `shell: true`)\n2. Document-level operations (`documentSymbol`, `hover`, `findReferences`, `goToDefinition`, etc.) should return the data that the LSP server provides\n\n**Direct test results (same file, same LSP server):**\n| Operation | Direct Test | Claude Code |\n|-----------|------------|-------------|\n| documentSymbol | ✅ 6 items | ❌ \"No symbols found\" |\n| hover | ✅ \"class UserService\" | ❌ \"No hover info\" |\n| references | ✅ 7 items | ❌ \"No references\" |\n| workspaceSymbol | ✅ 256 items | ✅ 13 items |\n\n### Error Messages/Logs\n\n```shell\n**Issue #1 - ENOENT (before .exe shim fix):**\n\n[ERROR] LSP server plugin:typescript-lsp:typescript failed to start: spawn typescript-language-server ENOENT\n[ERROR] LSP server plugin:vtsls:typescript failed to start: spawn vtsls ENOENT\n\n\n**Issue #2 - Server responds but Claude Code shows empty results:**\n\n[DEBUG] [LSP PROTOCOL plugin:vtsls:typescript] Sending notification 'textDocument/didOpen'.\n[DEBUG] LSP: Sent didOpen for C:\\...\\test-lsp.ts (languageId: typescript)\n[DEBUG] [LSP PROTOCOL plugin:vtsls:typescript] Sending request 'textDocument/hover - (1)'.\n[DEBUG] [LSP PROTOCOL plugin:vtsls:typescript] Received response 'textDocument/hover - (1)' in 4ms. ✅\n[DEBUG] [LSP PROTOCOL plugin:vtsls:typescript] Sending request 'textDocument/documentSymbol - (2)'.\n[DEBUG] [LSP PROTOCOL plugin:vtsls:typescript] Received response 'textDocument/documentSymbol - (2)' in 32ms. ✅\n[DEBUG] [LSP PROTOCOL plugin:vtsls:typescript] Sending request 'textDocument/references - (3)'.\n[DEBUG] [LSP PROTOCOL plugin:vtsls:typescript] Received response 'textDocument/references - (3)' in 61ms. ✅\n\n\n**User sees:** \"No symbols found\", \"No hover information available\", \"No references found\"\n```\n\n### Steps to Reproduce\n\n\n### Issue #1 (ENOENT):\n1. Fresh Windows 10/11 install\n2. Install Node.js and run: `npm install -g typescript-language-server typescript`\n3. In Claude Code settings, add: `\"env\": { \"ENABLE_LSP_TOOL\": \"1\" }`\n4. Enable `typescript-lsp@claude-plugins-official` plugin\n5. Restart Claude Code\n6. Check debug logs at `~/.claude/debug/*.txt`\n7. Observe: `spawn typescript-language-server ENOENT`\n\n### Issue #2 (Empty Results - after fixing Issue #1):\n1. Create `.exe` shims for LSP servers using PowerShell:\n```powershell\n$code = @\"\nusing System;\nusing System.Diagnostics;\npublic class Shim {\n    public static int Main(string[] args) {\n        ProcessStartInfo info = new ProcessStartInfo();\n        info.FileName = \"cmd.exe\";\n        info.Arguments = \"/c typescript-language-server.cmd \" + string.Join(\" \", args);\n        info.UseShellExecute = false;\n        Process p = Process.Start(info);\n        p.WaitForExit();\n        return p.ExitCode;\n    }\n}\n\"@\nAdd-Type -TypeDefinition $code -OutputAssembly \"C:\\Users\\USERNAME\\AppData\\Roaming\\npm\\typescript-language-server.exe\" -OutputType ConsoleApplication\n```\n\n2. Create test file `test-lsp.ts`:\n```typescript\ninterface User {\n  id: number;\n  name: string;\n}\n\nclass UserService {\n  private users: User[",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-10T13:36:51Z",
+  "updated_at": "2026-06-03T11:21:13Z",
+  "closed_at": "2026-05-10T08:53:34Z",
+  "reactions_total": 9,
+  "comments_count": 14,
+  "author": "ChanghoSong",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ChanghoSong",
+      "author_association": "NONE",
+      "body": "## Additional Findings (Windows + npm installation)\n\n  ### Working vs Non-Working LSP Methods\n\n  After further testing on **Windows with npm-installed Claude Code**, I found that only specific LSP methods are working:\n\n  | Method | Type | Status |\n  |--------|------|--------|\n  | `workspace/symbol` | Request/Response | ✅ Working |\n  | `textDocument/publishDiagnostics` | Server → Client Push | ✅ Working |\n  | `textDocument/hover` | Request/Response | ❌ Not working |\n  | `textDocument/references` ",
+      "created_at": "2026-01-11T12:42:11Z"
+    },
+    {
+      "author": "AsysKevin",
+      "author_association": "NONE",
+      "body": "I can confirm this issue on Windows 11 (Build 10.0.26200.7628) with Claude Code 2.1.31.\n\n**Test Results:**\n\n| Operation | macOS | Windows |\n|-----------|-------|---------|\n| `workspaceSymbol` | ✅ Works | ✅ Works |\n| `documentSymbol` | ✅ Works | ❌ No symbols found |\n| `goToDefinition` | ✅ Works | ❌ No definition found |\n| `hover` | ✅ Works | ⚠️ No output |\n| `findReferences` | ✅ Works | ❌ No references found |\n| `goToImplementation` | ✅ Works | ❌ No definition found |\n| `incomingCalls` | ✅ Works ",
+      "created_at": "2026-02-04T09:43:58Z"
+    },
+    {
+      "author": "pdebuitlear",
+      "author_association": "NONE",
+      "body": "Still reproduces as of 2.1.45",
+      "created_at": "2026-02-18T11:25:42Z"
+    }
+  ]
+}

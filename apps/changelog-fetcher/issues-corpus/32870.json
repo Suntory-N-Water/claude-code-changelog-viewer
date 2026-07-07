@@ -1,0 +1,35 @@
+{
+  "number": 32870,
+  "title": "[BUG] claude.exe triggers Windows BSOD via Wof.sys during directory listing (NtQueryDirectoryFileEx)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n`claude.exe` (Claude Code CLI) triggers a Windows kernel BSOD (Blue Screen of Death) by performing heavy `NtQueryDirectoryFileEx` syscalls (standard directory listing). The crash occurs in `Wof.sys` (Windows Overlay Filter) at `WofPreDirectoryControlCallback+0x695` — a CFG (Control Flow Guard) indirect-call guard violation.\n\n**This is not an external Windows kernel bug in Wof.sys, but a Claude Code bug**, due to Claude Code's intensive directory scanning, no delay in the same instant makes it a reliable trigger. Filing here so Anthropic is aware that Claude Code can crash Windows systems with this specific Wof.sys version, as well as wsl hypervisor.\n\n## Crash Statistics (all triggered by claude.exe)\n\n| Date | BSODs | Bugcheck codes |\n|------|-------|----------------|\n| 2026-03-06 | 7 | 0x139, 0x3B, 0x50, 0x10E, 0x1E, 0x14F |\n| 2026-03-09 | 1 | 0x139 |\n| 2026-03-10 | 5 | 0x139 (x2), 0x3B (x2), 0x1E (x1) |\n| 2026-03-11 | 1 | 0x50 |\n| **Total** | **14** | **4 distinct types at same Wof.sys +0x695 offset** |\n\nAll March 9-11 crashes have identical call stack:\n```\nNtQueryDirectoryFileEx → FLTMGR → Wof!WofPreDirectoryControlCallback+0x695 → CFG guard violation\n```\n\n**4 manifestations of the same bug** — the corrupted indirect call target lands in different memory regions:\n1. **0x139** — CFG guard catches invalid target before execution\n2. **0x3B** (`c0000005`) — pointer escapes CFG, hits unmapped memory → access violation\n3. **0x1E** (`c0000005`) — same access violation via different exception path\n4. **0x3B** (`c000001d`) — pointer lands on non-code bytes → illegal instruction\n5. **0x50** — pointer references invalid page in nonpaged pool\n\n## Affected Configuration\n- **Wof.sys**: 10.0.26100.5074 (ships with Windows 11 25H2 build 26200)\n- **Compact OS**: Enabled increases crash frequency, but crashes also occur with CompactOS disabled\n- **WOF minifilter**: Attached at altitude 40700, intercepts every NTFS directory IRP\n\n## Microsoft Bug Report\nFiled on Microsoft Q&A: https://learn.microsoft.com/en-us/answers/questions/5814272/wof-sys-bsod-0x139-kernel-security-check-failure-i\n\n## Potential Mitigation\nCould Claude Code reduce the frequency/intensity of `NtQueryDirectoryFileEx` calls, or batch directory listings differently? This wouldn't fix the kernel bug, but might reduce the trigger rate on affected systems.\n\n### What Should Happen?\n\nClaude Code should be able to perform directory listings without triggering a Windows BSOD. On systems with Wof.sys 10.0.26100.5074, the high volume of `NtQueryDirectoryFileEx` calls from claude.exe reliably crashes the kernel.\n\nIdeally:\n1. Claude Code could throttle or batch directory enumeration on Windows to reduce the frequency of `NtQueryDirectoryFileEx` calls\n2. Or detect the vulnerable Wof.sys version and warn the user to disable Compact OS (`compact /CompactOS:never`)\n\n### Error Messages/Logs\n\n```shell\nWinDbg !analyze -v output (abbreviated):\n\nKERNEL_SECURITY_CHECK_FAILURE (139)\n  Arg1: 000000000000000a — indirect call guard check detected invalid control transfer\nFAILURE_BUCKET_ID: 0x139_a_GUARD_ICALL_CHECK_FAILURE_Wof!WofPreDirectoryControlCallback+0x695\nFAILURE_ID_HASH: {78ac0991-5393-0281-b23b-ce115373dc6d}\n\nSTACK_TEXT:\n  nt!KeBugCheckEx\n  nt!guard_icall_handler+0x1e\n  nt!KscpCfgDispatchUserCallTargetEsSmep+0x11\n  Ntfs!FindNextIndexEntry2+0x675\n  Ntfs!NtfsContinueIndexEnumeration+0x10e\n  Ntfs!NtfsQueryDirectory+0xd32\n  FLTMGR!FltpLegacyProcessingAfterPreCallbacksCompleted+0x3fe\n  FLTMGR!FltPerformSynchronousIo+0x443\n  Wof!WofPreDirectoryControlCallback+0x695    <-- CRASH\n  FLTMGR!FltpPerformPreCallbacksWorker+0x58f\n  nt!NtQueryDirectoryFileEx+0xd8\n\nPROCESS_NAME: claude.exe\nMODULE_NAME: Wof\nIMAGE_VERSION: 10.0.26100.5074",
+  "labels": ["bug", "has repro", "platform:windows", "external", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-10T15:45:47Z",
+  "updated_at": "2026-05-09T22:18:01Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 24,
+  "author": "VRDate",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "VRDate",
+      "author_association": "NONE",
+      "body": "**Related**: #30137 reports the same BSODs (0x139, 0x1E, 0x50) on Windows 11 build 26200 — 5 BSODs in 2 days. Another user in that thread reports 15 BSODs in one day. Same root cause: Wof.sys CFG guard bug triggered by claude.exe directory enumeration.",
+      "created_at": "2026-03-10T15:49:27Z"
+    },
+    {
+      "author": "VRDate",
+      "author_association": "NONE",
+      "body": "## Related Issues (for context)\n\nClaude Code has a pattern of causing OS-level crashes across platforms. The Wof.sys BSOD is a **separate kernel driver bug**, but these show the broader stability picture:\n\n**Same Wof.sys BSOD (kernel-mode, fix owner: Microsoft):**\n- #30137 — 5 BSODs in 2 days, another user reports 15 BSODs in one day. Same bugcheck codes (0x139, 0x1E, 0x50), same Windows build 26200.\n\n**Separate Bun/memory issues (user-mode, fix owner: Anthropic/Oven):**\n- #21875 — 78 Bun segfau",
+      "created_at": "2026-03-10T16:00:28Z"
+    },
+    {
+      "author": "VRDate",
+      "author_association": "NONE",
+      "body": "## Update: 14 BSODs, 4th bugcheck type (0x50)\n\n**New crash** — 2026-03-11 04:18 UTC:\n\n| Bugcheck | Params | Dump |\n|----------|--------|------|\n| `0x00000050` PAGE_FAULT_IN_NONPAGED_AREA | `0xffffbb0e0760f040, 0x2, 0xfffff8040d352e58, 0x2` | `031126-30703-01.dmp` |\n\n**Running total**: 7 (Mar 6) + 1 (Mar 9) + 5 (Mar 10) + 1 (Mar 11) = **14 BSODs in 6 days**.\n\n**4th bugcheck type**: 0x50 joins 0x139, 0x3B, 0x1E. All are different manifestations of the same Wof.sys +0x695 indirect call corruption —",
+      "created_at": "2026-03-11T02:23:02Z"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "number": 40179,
+  "title": "[BUG] Dispatch responses generated but never delivered to clients (desktop Cowork & mobile)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nDispatch sessions process user messages and generate responses correctly on the desktop backend, but **responses are never displayed on any client** — neither desktop Cowork UI nor the mobile Android app.\n\nThe user only sees a \"read receipt\" indicator with no response text. The backend logs confirm `Turn succeeded` and `reportDelivery status=processed`, but no response is rendered on any client. This persists across app restarts, local data deletion, and brand-new session creation.\n\nThis has been ongoing for multiple days (since ~2025-03-25 based on log timestamps).\n\n### What Should Happen?\n\nWhen a user sends a message in Dispatch, the response should be displayed in the Cowork UI (desktop) and/or the mobile app. The backend generates the response correctly — it just never reaches the user's screen.\n\n### Error Messages/Logs\n\n```shell\n## Error Messages/Logs\n\n\n# Backend receives message and processes successfully:\n[18:43:58] [sessions-bridge] Received user message for session cse_01Q121n7ShZt7qQkMd9pTXzu: \"안녕\"\n[18:43:58] [transport:ccr] reportState idle -> running\n[18:44:09] [Result] Turn succeeded for session local_ditto_3ae9b1e6-1ea1-4564-add1-b42ced1c8ac6\n[18:44:09] [transport:ccr] reportDelivery event_id=18a33232 status=processed\n[18:44:09] [transport:ccr] reportState running -> idle\n[18:44:09] [sessions-bridge] Query completed for session cse_01Q121n7ShZt7qQkMd9pTXzu (pendingTurns=0, isError=false)\n[18:44:09] [sessions-bridge] Session cse_01Q121n7ShZt7qQkMd9pTXzu turn completed, keeping transport open for follow-ups\n\n# Response confirmed in local JSONL:\nUSER: 안녕\nASSISTANT: 안녕하세요, 성요님! 오늘 뭘 도와드릴까요?\n\n# Earlier sessions also show intermittent rate_limit errors that may have initiated the issue:\n[APIError] Intermediate SDK error \"rate_limit\" for session local_ditto_3ae9b1e6-1ea1-4564-add1-b42ced1c8ac6 — continuing to read stream\n[Result] Turn failed for session local_ditto_3ae9b1e6-1ea1-4564-add1-b42ced1c8ac6: subtype=error_during_execution, is_error=true\n```\n\n### Steps to Reproduce\n\n\n1. Open Dispatch in desktop Cowork (or via mobile Claude app)\n2. Send any message (e.g., \"안녕\")\n3. Observe: loading indicator appears, then read receipt shows, but **no response text is rendered**\n4. Check logs — `Turn succeeded`, `reportDelivery status=processed`, response exists in local JSONL\n5. Check mobile app — same result, no response displayed\n6. Restart app, delete local session data, delete `bridge-state.json` to force new session — same issue with brand-new `remoteSessionId`\n\n**Remediation attempts (all failed):**\n- Deleted `local-agent-mode-sessions/[accountId]/` directory\n- Deleted `bridge-state.json` (confirmed new `environmentId` and `remoteSessionId` were generated)\n- Full app restart with `killall -9 Claude` (multiple times)\n- Deleted conversation from mobile app\n- Tested with brand-new clean session — Turn succeeded, response generated, still not displayed\n\n---\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n Unknown exact version — the issue appeared while using the current version after extended session usage.\n\n### Claude Code Version\n\n2.1.85 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n**Key finding from log analysis:**\n\nThe desktop backend works perfectly — responses are generated, logged to local JSONL, and reported as `processed` via `transport:ccr`. The Cowork VM boots correctly (4 CPU, 4GB RAM, network CONNECTED, API REACHABLE). SSE transport is healthy with normal heartbeats.\n\nThe issue appears to be in the **cloud relay layer** between the desktop'",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:cowork",
+    "area:desktop"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-28T10:09:09Z",
+  "updated_at": "2026-07-02T21:55:18Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 26,
+  "author": "windruuner-design",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "phuryn",
+      "author_association": "NONE",
+      "body": "Similar issue?\n\nDispatch receives the task but crashes before the session starts.\nConsole logs show the sequence: task arrives → app navigates to /task/new → /cowork/agent → crash.\n**Root cause:** ANSI escape code in model config request.\nThe app requests /api/organizations/.../model_configs/claude-opus-4-6[1m] — note the [1m] suffix (a terminal bold escape code). This returns 404, which causes Cannot read properties of undefined (reading 'includes') in streamInput, killing the session before it",
+      "created_at": "2026-03-28T10:12:33Z"
+    },
+    {
+      "author": "Modo3337",
+      "author_association": "NONE",
+      "body": "Same issue on macOS (Mac Mini M4). Messages marked as Read but no response displayed on either desktop or mobile. Persists across restarts, new sessions, clear background tasks, and clear memory. Started today 2026-03-28.",
+      "created_at": "2026-03-28T14:15:38Z"
+    },
+    {
+      "author": "phuryn",
+      "author_association": "NONE",
+      "body": "Dev Tools. Looks like an issue unrelated to our hosts. Many errors. CSP, scripts not found, 404:\n<img width=\"3840\" height=\"2280\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/8344e802-f86f-4f6c-a6a6-f212562500d7\" />\n",
+      "created_at": "2026-03-28T14:35:37Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 22685,
+  "title": "Claude Desktop App stuck in login loop with 'Invalid authorization' error",
+  "body": "## Bug Description\n\nClaude Desktop App (v1.1.1520) on macOS is unable to authenticate. Every launch immediately produces `Invalid authorization` errors from the `REACT_QUERY_CLIENT`. Login via magic link fails repeatedly. The app is completely unusable.\n\n## Environment\n\n- **App version:** 1.1.1520\n- **Platform:** macOS (darwin, arm64)\n- **Node version:** 22.21.1\n- **CCD version:** 2.1.22\n\n## Error Logs\n\nFrom `~/Library/Logs/Claude/claude.ai-web.log`:\n\n```\n2026-02-02 18:32:42 [error] [REACT_QUERY_CLIENT] QueryClient error: Error: Invalid authorization\n2026-02-02 18:33:16 [error] [REACT_QUERY_CLIENT] QueryClient error: TypeError: Failed to fetch (claude.ai)\n2026-02-02 18:33:16 [error] [REACT_QUERY_CLIENT] QueryClient error: Error: Invalid authorization\n2026-02-02 19:03:43 [error] [REACT_QUERY_CLIENT] QueryClient error: Error: login_link_not_found\n2026-02-02 19:38:50 [error] [REACT_QUERY_CLIENT] QueryClient error: Error: login_link_already_used\n2026-02-02 20:37:40 [error] Refused to connect to 'https://a-api.anthropic.com/v1/m' because it violates the following Content Security Policy directive: \"connect-src 'self' https://api.segment.io https://*.segment.io https://*.segment.com https://a-cdn.anthropic.com https://*.google.com https://*.facebook.com https://*.facebook.net https://*.doubleclick.net\".\n2026-02-02 20:37:40 [error] Fetch API cannot load https://a-api.anthropic.com/v1/m. Refused to connect because it violates the document's Content Security Policy.\n2026-02-02 20:48:56 [error] [REACT_QUERY_CLIENT] QueryClient error: Error: [\"account_profile\"] data is undefined\n```\n\nThese errors repeat on every app launch. The app was restarted 10+ times over ~3.5 hours with the same result every time.\n\n## Symptoms\n\n1. App launches and immediately gets `Invalid authorization` on every API query\n2. `account_profile` data is undefined — profile cannot be fetched\n3. `Failed to fetch (claude.ai)` — network requests to claude.ai fail\n4. Magic link login returns `login_link_not_found` or `login_link_already_used`\n5. CSP violation blocks requests to `https://a-api.anthropic.com/v1/m`\n6. Cookies DB shows a `pendingLogin` cookie but **no session/auth cookie** is ever created\n7. The app gets stuck on the login page (`https://claude.ai/login?returnTo=%2Fmagic-link`)\n\n## Steps to Reproduce\n\n1. Open Claude Desktop App on macOS\n2. App shows login screen\n3. Enter email, receive magic link\n4. Click magic link — app briefly loads then falls back to `Invalid authorization`\n5. All subsequent API calls fail\n\n## Troubleshooting Already Attempted (all failed)\n\n- Full quit and relaunch (10+ times)\n- Complete deletion of `~/Library/Application Support/Claude/` (cookies, local storage, session storage, config, caches, network state)\n- Deletion of `~/Library/Caches/Claude/`\n- Deletion of `~/Library/Preferences/com.anthropic.claudefordesktop.plist`\n- Deletion of `~/Library/Saved Application State/com.anthropic.claudefordesktop.savedState`\n- Deletion of `~/Library/WebKit/` and `~/Library/HTTPStorages/` for Claude\n- `defaults delete com.anthropic.claudefordesktop`\n- Checked macOS Keychain — no Claude/Anthropic entries found\n- Tried logging in via browser first, then opening desktop app\n- Tried older versions of the app\n- No VPN or DNS filter active\n\n## Possibly Related Issues\n\n- #20016 (Cowork tab stuck / Invalid authorization)\n- #18474 (Claude Cowork stuck on 'sending request')\n- #10503 (Invalid bearer token persists after login)\n\n## Expected Behavior\n\nApp should authenticate successfully after clicking the magic link and display the main chat interface.\n\n## Actual Behavior\n\nApp is stuck in an infinite login loop. Auth token is never persisted. All API calls return `Invalid authorization`.",
+  "labels": ["bug", "has repro", "platform:macos", "area:auth"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-03T06:44:53Z",
+  "updated_at": "2026-06-21T13:42:59Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 29,
+  "author": "SingCheung",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18474\n2. https://github.com/anthropics/claude-code/issues/20136\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-03T06:49:00Z"
+    },
+    {
+      "author": "Jbarata98",
+      "author_association": "NONE",
+      "body": "Also having the same issue with the Desktop App. Browser and Code work fine",
+      "created_at": "2026-02-03T10:07:18Z"
+    },
+    {
+      "author": "Arvindh-Mojo",
+      "author_association": "NONE",
+      "body": "+1 - Having issues with desktop app. ",
+      "created_at": "2026-02-03T13:54:39Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 6237,
+  "title": "[BUG]  Freezes terminal most of the time when trying to access anything remotely related to tty devices.",
+  "body": "● Bash(stty -F /dev/ttyACM0 -a 2>/dev/null | head -5)\n  ⎿  speed 9600 baud; rows 0; columns 0; line = 0;                                 \n     intr = ^C; quit = ^\\; erase = ^?; kill = ^U; eof = ^D; eol = <undef>;\n     eol2 = <undef>; swtch = <undef>; start = ^Q; stop = ^S; susp = ^Z; rprnt = ^R;\n\n-> freeze...\n\n● Bash(sudo screen -L -Logfile c6_serial.log /dev/ttyACM0 115200 &)...\n\n-> freeze... \n\n> ok that also freezes you. try just to access any tty device and see if you freeze\n\n● Let me test with a simpler TTY device to confirm the issue:\n\n● Bash(ls -la /dev/tty /dev/tty0 /dev/pts/0 2>/dev/null | head -3)\n  ⎿  crw------- 1 kim  tty 136, 0 Aug 20 12:24 /dev/pts/0\n     crw-rw-rw- 1 root tty   5, 0 Aug 21 11:18 /dev/tty\n     crw------- 1 root tty   4, 0 Aug 20 12:23 /dev/tty0\n\n✶ Whisking… (esc to interrupt)\n\n-> freeze...\n\n\n",
+  "labels": ["bug", "has repro", "platform:linux", "area:tools"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-21T08:44:22Z",
+  "updated_at": "2026-03-12T14:32:21Z",
+  "closed_at": "2026-03-03T22:11:15Z",
+  "reactions_total": 3,
+  "comments_count": 24,
+  "author": "kimasplund",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/3964\n2. https://github.com/anthropics/claude-code/issues/5010\n3. https://github.com/anthropics/claude-code/issues/1742\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-21T08:48:54Z"
+    },
+    {
+      "author": "andrewleech",
+      "author_association": "NONE",
+      "body": "\nI just raised a new issue that does look like a variant of this one, so I'll close mine and add the details here\n\n---\n## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.92\n- Operating System: 24.04.2 LTS\n- Terminal:  tmux/ssh -> Windows Terminal\n\n## Bug Description\nWhile using the Bash tool to run tests that interact with hardware, both the hardware and Claude Code lock up and nee t",
+      "created_at": "2025-08-26T04:08:23Z"
+    },
+    {
+      "author": "dotdioscorea",
+      "author_association": "NONE",
+      "body": "I have also been running into what sounds like the exact same issue. I am trying to get claude code to write a serial driver for a nordic development board, and python pytests to test its functionality.\n\nRegardless of whether I am using the board's Jlink serial port or a separate FTDI cable, claude code will invariably freeze up within one or two interactions of the serial port device. Interestingly it seems to happen even if claude is not directly interacting with the port, eg running a python ",
+      "created_at": "2025-08-26T13:38:17Z"
+    }
+  ]
+}

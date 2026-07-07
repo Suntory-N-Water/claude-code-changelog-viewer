@@ -1,0 +1,35 @@
+{
+  "number": 4010,
+  "title": "TypeError in settings validation: Cannot assign to read only property '0' of object '[object String]'",
+  "body": "  ## Bug Description\n  Claude Code throws a TypeError when validating settings.json with hook configuration.\n\n  ## Error Output\n  TypeError: Cannot assign to read only property '0' of object '[object String]'\n      at KOB (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:609:6891)\n      at UOB (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:609:7092)\n      at YyB (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:609:31595)\n      at LyB (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:609:32717)\n      at file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:1806:87\n      at Array.forEach ()\n      at Sl6 (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:1806:38)\n      at file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:1806:593\n      at Array.map ()\n      at iJB (file:///usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js:1806:444)\n\n  ## Settings Configuration\n  ```json\n  {\n    \"hooks\": {\n      \"tool-use-submit\": [\n        {\n          \"command\": \"if [[ \\\"$CLAUDE_TOOL_NAME\\\" == \\\"Bash\\\" && (\\\"$CLAUDE_COMMAND\\\" == \\\"mvn test\\\" || \\\"$CLAUDE_COMMAND\\\" == \\\"mvn clean test\\\") ]]; then exit 0; else exit 1; fi\",\n          \"description\": \"Auto-approve Maven test commands\"\n        }\n      ]\n    }\n  }\n```\n\n## Steps to Reproduce\n\n  1. Create ~/.claude/settings.json with the above content\n  2. Run claude /doctor\n  3. Error occurs during settings validation\n\n  Environment\n\n  - OS: macOS (Darwin 24.5.0)\n  - claude --version: 1.0.56 (Claude Code)\n\n---\nClaude wrote almost all of this bug report after i fed it the output of \"claude /doctor\".  I fixed the formatting a tiny bit & I added the claude version number at the end.  Please let me know if you need something else.",
+  "labels": ["bug", "has repro", "platform:macos"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-20T05:42:12Z",
+  "updated_at": "2026-01-29T14:21:41Z",
+  "closed_at": "2026-01-20T10:13:09Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "certainmagic",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Nschumi",
+      "author_association": "NONE",
+      "body": "I am also getting this. And due to that, i cant use hooks ( as far as ive tested )",
+      "created_at": "2025-07-20T15:59:23Z"
+    },
+    {
+      "author": "certainmagic",
+      "author_association": "NONE",
+      "body": "fwiw, Claude wrote that version of the settings file for me.\n\nhere's an even simpler ~/.claude/settings.json that also causes `TypeError: Cannot assign to read only property '0' of object '[object String]'` when I run `claude /doctor`:\n\n```json\n{\n  \"hooks\": {\n    \"tool-use-submit\": [\n      {\n        \"command\": \"exit 1\"\n      }\n    ]\n  }\n}\n```\n\n(and, as i'm reading the actual docs, i'm not convinced these are valid.  i would still hope they wouldn't crash and hang /doctor, but it could be at leas",
+      "created_at": "2025-07-20T18:37:53Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5560\n2. https://github.com/anthropics/claude-code/issues/5886\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-16T03:57:51Z"
+    }
+  ]
+}

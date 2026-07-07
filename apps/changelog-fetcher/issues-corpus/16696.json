@@ -1,0 +1,42 @@
+{
+  "number": 16696,
+  "title": "[BUG] Invalid Version: 2.1.0 (2026-01-07)   /$bunfs/root/claude:810:8909",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nTitle: Invalid Version error when running Claude Code in Windsurf IDE\nDescription:\nRunning Claude Code inside Windsurf IDE throws a semver parsing error on startup.\nError:\nERROR  Invalid Version: 2.1.0 (2026-01-07)\nRoot Cause:\nThe version string 2.1.0 (2026-01-07) is being passed to the semver library, but the date suffix in parentheses makes it invalid. Semver expects the format X.Y.Z without additional text.\nEnvironment:\n\nClaude Code version: 2.1.0\nIDE: Windsurf\nOS: Windows with WSL2\n\nStack trace excerpt:\nRO (/$bunfs/root/claude:810:8909)\nAq0 (/$bunfs/root/claude:810:14035)\nJq0 (/$bunfs/root/claude:810:14587)\nThe error originates in the SemVer constructor when parsing the version string.\nExpected behavior:\nClaude Code should either strip the date suffix before parsing, or use a version string without the date appended.\n\n### What Should Happen?\n\nWhen Claude Code reads or constructs its version string, it should pass only the semver-compliant portion (2.1.0) to the semver library for parsing/comparison operations.\nThe date suffix (2026-01-07) can be retained for display purposes (e.g., in --version output or logs), but must be stripped before any semver operations like:\n\nVersion comparison\nVersion validation\nRange checking\n\nPossible fixes:\n\nStrip the date before parsing - Use a regex like /^(\\d+\\.\\d+\\.\\d+)/.exec(versionString)[1] to extract just the semver portion before passing to the semver library\nStore separately - Keep the version (2.1.0) and build date (2026-01-07) as separate values, only combining them for display\nUse semver build metadata - If the date needs to be part of the version string, use the semver-compliant format: 2.1.0+20260107 (build metadata after + is ignored in comparisons)\n\n### Error Messages/Logs\n\n```shell\nERROR  Invalid Version: 2.1.0 (2026-01-07)\n\n/$bunfs/root/claude:810:8909\n\nStack trace:\n - RO (/$bunfs/root/claude:810:8909)\n - Aq0 (/$bunfs/root/claude:810:14035)\n - Jq0 (/$bunfs/root/claude:810:14587)\n - <anonymous> (/$bunfs/root/claude:3022:4324)\n -     at sort (unknown)\n - tYD (/$bunfs/root/claude:3022:4310)\n - P6D (/$bunfs/root/claude:3022:13859)\n - _4 (/$bunfs/root/claude:690:20692)\n - Qf (/$bunfs/root/claude:690:39063)\n - ms (/$bunfs/root/claude:690:49670)\n\nError occurs in SemVer constructor when parsing version string:\n\nclass RO{constructor(H,$){\n  // ...\n  if(!A)throw TypeError(`Invalid Version: ${H}`);\n  // ...\n}}\n\nThe semver library expects format \"X.Y.Z\" but receives \"2.1.0 (2026-01-07)\" which fails the regex validation against the FULL or LOOSE semver patterns.\n```\n\n### Steps to Reproduce\n\n1. Install Windsurf IDE\n2. Install Claude Code CLI (`npm install -g @anthropic-ai/claude-code` or via the recommended installation method)\n3. Open Windsurf IDE\n4. Open the integrated terminal within Windsurf\n5. Run `claude` to start Claude Code\n6. Error immediately appears on startup before the interactive prompt loads\n\nNote: The issue appears to be specific to running Claude Code within Windsurf's integrated terminal environment. Claude Code may work correctly when run directly from a standalone WSL2/terminal session outside of Windsurf.\n\n### Claude Model\n\nOther\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.0 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nWSL (Windows Subsystem for Linux)\n\n### Additional Information\n\n[windsurf-diagnostics_abbreviated.txt](https://github.com/user-attachments/files/24482739/windsurf-diagnostics_abbreviated.txt)",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:core",
+    "area:ide",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-07T20:44:05Z",
+  "updated_at": "2026-03-01T14:13:53Z",
+  "closed_at": "2026-02-21T22:09:43Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "joesalvati68",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "willemveerman",
+      "author_association": "NONE",
+      "body": "I'm seeing this in OSX as well, just in the shell",
+      "created_at": "2026-01-07T20:46:40Z"
+    },
+    {
+      "author": "georgemolodoi",
+      "author_association": "NONE",
+      "body": "Happens to me in WSL in Windows also. ",
+      "created_at": "2026-01-07T20:46:54Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16693\n2. https://github.com/anthropics/claude-code/issues/16671\n3. https://github.com/anthropics/claude-code/issues/16682\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-07T20:48:00Z"
+    }
+  ]
+}

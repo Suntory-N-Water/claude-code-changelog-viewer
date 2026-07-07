@@ -1,0 +1,35 @@
+{
+  "number": 21576,
+  "title": "CLI: Task execution escapes to PowerShell, becomes unresponsive",
+  "body": "## Description\n\nWhile executing a task, Claude Code somehow escapes/drops to PowerShell and becomes unresponsive. The task starts but control transfers to the underlying shell.\n\n## Environment\n\n- **Platform:** Claude Code CLI (latest version)\n- **OS:** Windows 10/11\n- **Shell:** PowerShell\n- **Date observed:** January 28, 2026\n\n## Behavior\n\n1. Start a task in Claude Code\n2. Task begins execution\n3. Somehow \"escapes\" to PowerShell\n4. Claude Code becomes unresponsive\n5. Cannot continue working - requires restart\n\n## Related\n\nThis may be related to #21266 (input focus lost to PowerShell after gh commands), but this occurs during general task execution, not specifically after gh commands.\n\n## Expected Behavior\n\nTask should execute within Claude Code without losing control to the underlying shell.\n\n## Actual Behavior\n\nControl transfers to PowerShell mid-task, leaving Claude Code in an unresponsive state.",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-29T00:12:24Z",
+  "updated_at": "2026-04-09T14:53:43Z",
+  "closed_at": "2026-04-01T22:18:45Z",
+  "reactions_total": 1,
+  "comments_count": 44,
+  "author": "ThatDragonOverThere",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "Closing as duplicate of #21266 (input focus lost to PowerShell). Same root cause - control escaping to underlying shell.",
+      "created_at": "2026-01-29T00:13:41Z"
+    },
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "Reopening - this is a distinct issue from #21266. Focus loss is a different symptom than the app escaping to PowerShell and becoming completely unresponsive during task execution.",
+      "created_at": "2026-01-29T00:20:33Z"
+    },
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "## Detailed Reproduction - Long-Running Task on Windows\n\n**Environment:**\n- Claude Code on Windows\n- PowerShell terminal\n\n### What Was Happening\n\n- Claude Code actively running a simulation task (**54m 6s elapsed**, 1.6k tokens)\n- Agent was mid-workflow: \"Re-run simulation and collect comparison numbers\"\n- Multiple sub-tasks were completed (shown with strikethrough)\n- **6 files with pending edits** (+351 -124 lines) awaiting acceptance\n\n### The Bug\n\nClaude Code unexpectedly dropped out of the ag",
+      "created_at": "2026-01-30T16:03:30Z"
+    }
+  ]
+}

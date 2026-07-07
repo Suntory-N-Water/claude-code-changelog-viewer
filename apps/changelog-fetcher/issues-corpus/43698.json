@@ -1,0 +1,35 @@
+{
+  "number": 43698,
+  "title": "[FEATURE] Multi-device Cowork: Allow concurrent Cowork agents on multiple machines under a single account",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nCowork currently enforces a single-device lock per account. If a Cowork agent is running on Machine A, attempting to start Cowork on Machine B (same account) presents:\n\n> **\"Another device is connected\"**\n> A Cowork agent is already running on [Machine A]. Quit the Claude app on that device, then restart this one to take over.\n\nThe only option is \"Disconnect all and retry\" — a destructive action that kills the session on Machine A.\n\nThis is a hard blocker for users who operate across a stationary workstation and a portable laptop — a common setup for remote-first professionals, consultants, and anyone doing substantive knowledge work.\n\n**My setup:** I run an AI consulting practice and have built an agentic operating system on top of Claude's ecosystem (Claude Code, Cowork, Dispatch, MCP connectors). My infrastructure spans two machines:\n\n- **Cynapse4eva** (home workstation, always-on) — runs Cowork as the primary command center with Dispatch, scheduled tasks, and full MCP connector access.\n- - **CynapsePro** (Surface Pro laptop, travel/on-the-go) — currently locked out of Cowork entirely because the workstation holds the agent lock.\nThe workstation is the right home for Dispatch and scheduled tasks. But when I'm traveling or working from a client site, I have zero access to Cowork's agentic capabilities on my laptop. I'm forced back to standard Chat mode — no file system access, no autonomous multi-step execution, no connectors. The delta between Chat and Cowork is massive, and losing it on the road is a real productivity hit.\n\n### Proposed Solution\n\nAllow multiple Cowork agents to run concurrently on different devices under the same account, with each agent operating independently against its own local file system and session state.\n\n**Key design points:**\n\n1. **Independent agents, shared account.** Each device runs its own Cowork VM with its own folder access, session history, and task queue. No cross-device sync is required (and per Anthropic's own docs, this isn't currently supported anyway). The agents simply need to coexist.\n2. **Dispatch binds to one device.** Dispatch (mobile → desktop) should remain single-target. Let the user designate which machine receives Dispatch tasks — most likely the always-on workstation. This avoids routing ambiguity.\n3. **Usage limits are shared.** Both agents draw from the same account's token budget. This is already the implicit contract — the user is paying for a plan, not a per-device allocation. Anthropic can throttle or flag abuse if concurrent usage exceeds reasonable thresholds.\n4. **MCP connectors are per-device.** Each Cowork instance configures its own connectors independently. This is already how it would work given that connector auth is stored locally.\n**Possible implementation approaches:**\n\n1. **Remove the device lock, keep sessions independent.** The simplest path. Each Claude Desktop install registers its own Cowork agent. No sync, no shared state — just lift the mutex. Dispatch remains pinned to one device via a user setting.\n2. **Device registry with role assignment.** The account maintains a registry of authorized devices. Each device is assigned a role (e.g., \"Primary — receives Dispatch\" vs. \"Secondary — local Cowork only\"). This gives users explicit control and prevents accidental Dispatch routing.\n3. **Session handoff (less preferred).** Allow a Cowork session to be \"transferred\" between devices without killing it. This is more complex and less useful than true concurrency, but could be a stepping stone.\n\n### Alternative Solutions\n\n- **\"Disconnect all and retry\":** The current escape hatch. Destructive — it kills the workstation session, cancels any running tasks, and breaks scheduled task continuity. Not viable for a setup where the workstation needs to stay ",
+  "labels": ["enhancement", "area:cowork"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-05T00:13:39Z",
+  "updated_at": "2026-06-29T09:58:09Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 6,
+  "author": "cnapz",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "AppFzx",
+      "author_association": "NONE",
+      "body": "This is my exact scenario and the proposed solutions solves it. I don't want anything shared between the laptop and my always on desktop. I demo Claude Cowork for clients and it's a bad look when I have to explain this issue.",
+      "created_at": "2026-04-20T21:32:49Z"
+    },
+    {
+      "author": "mauserbow",
+      "author_association": "NONE",
+      "body": "I'm very similar, still looking at how I can have my always on PC perfoming functional tasks regularly using cowork while having the freedom to do other or related tasks on my laptop. Mobility is key, but so is being able to schedule and trust background execution on the pc while I am mobile. ",
+      "created_at": "2026-05-11T08:26:25Z"
+    },
+    {
+      "author": "drmathbelanger",
+      "author_association": "NONE",
+      "body": "Cowork's single-device lock fails silently across multiple installs. No warning that another machine already holds the lock, no way to transfer it, no UI signal that I'm on the wrong machine — the wrong machine just sits there blocking everything. The task isolation between devices already exists in the code (new tasks on machine A don't appear on machine B and vice versa), so just let the agents run independently. Until multi-device ships, at the very minimum show users which machine holds the ",
+      "created_at": "2026-05-23T02:16:24Z"
+    }
+  ]
+}

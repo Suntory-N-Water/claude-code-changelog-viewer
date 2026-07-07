@@ -1,0 +1,35 @@
+{
+  "number": 14185,
+  "title": "Project-scoped plugins: install command fails for new projects, Discovery tab incorrectly hides plugin",
+  "body": "## Description\n\nWhen a plugin is installed with `scope: \"project\"` for one project, attempting to install it in a different project fails silently. The Discovery tab also incorrectly hides the plugin (showing it as already installed) even though it's not installed for the current project.\n\n## Steps to Reproduce\n\n1. Install a plugin with project scope in Project A\n2. Open Claude Code in Project B (where plugin is NOT installed)\n3. Run `/plugin` → Discovery tab does NOT list the plugin\n4. Browse marketplace → plugin shows as \"installed\" \n5. Attempt to install the plugin → command completes without error\n6. Run `/plugin` → plugin still not in Installed list\n7. Plugin commands/agents/MCP server not available\n\n## Expected Behavior\n\n- Discovery tab should show plugin as available (not installed for this project)\n- Install command should create all required configuration for the new project\n- Plugin should become functional after install\n\n## Actual Behavior\n\n- Discovery tab hides the plugin (checks global install status, not per-project)\n- Install command is a no-op (doesn't add project to existing plugin entry)\n- No local project configuration is created\n\n## Root Cause Analysis\n\nThe install command checks if the plugin ID exists in `installed_plugins.json` globally, but doesn't check if the **current project path** is in the installations array for project-scoped plugins.\n\n## Workaround\n\nManually create all required configuration:\n\n### 1. Add entry to `~/.claude/plugins/installed_plugins.json`:\n```json\n{\n  \"scope\": \"project\",\n  \"projectPath\": \"/path/to/new/project\",\n  \"installPath\": \"/home/user/.claude/plugins/cache/marketplace-name/plugin-name/version\",\n  \"version\": \"x.x.x\",\n  \"installedAt\": \"2025-12-16T00:00:00.000Z\",\n  \"lastUpdated\": \"2025-12-16T00:00:00.000Z\",\n  \"isLocal\": true\n}\n```\n\n### 2. Create `.mcp.json` at project root (if plugin has MCP server):\n```json\n{\n  \"mcpServers\": {\n    \"server-name\": {\n      \"command\": \"...\",\n      \"args\": [\"...\"]\n    }\n  }\n}\n```\n\n### 3. Update `.claude/settings.local.json`:\n```json\n{\n  \"enableAllProjectMcpServers\": true,\n  \"enabledMcpjsonServers\": [\"server-name\"]\n}\n```\n\n### 4. Create `.claude/settings.json` (THIS IS THE KEY MISSING PIECE):\n```json\n{\n  \"enabledPlugins\": {\n    \"plugin-name@marketplace-name\": true\n  }\n}\n```\n\n**Note:** Steps 1-3 alone only enable the MCP server. Step 4 is required for plugin commands/agents/hooks to load.\n\n## Environment\n\n- Claude Code version: 2.0.70\n- OS: Linux (WSL2)\n\n## Suggested Fix\n\n1. Discovery tab should check if current `projectPath` exists in the plugin's installation array (for project-scoped plugins)\n2. Install command should append new project entry to existing plugin array\n3. Install command should create `.claude/settings.json` with `enabledPlugins`\n4. Install command should create `.mcp.json` if plugin defines MCP servers\n5. Install command should update `.claude/settings.local.json` with MCP settings",
+  "labels": ["bug", "has repro", "platform:linux", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-16T15:31:39Z",
+  "updated_at": "2026-02-14T17:08:20Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 5,
+  "author": "9swampy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "kaldown",
+      "author_association": "NONE",
+      "body": "As side solution I have a project that will allow you to enable installed plugins in other local directories and also track plugins from one place: https://github.com/kaldown/ccpm",
+      "created_at": "2026-01-02T17:08:10Z"
+    },
+    {
+      "author": "sy-st-jp",
+      "author_association": "NONE",
+      "body": "This appears to be the same issue as #14202, which includes a detailed root cause analysis and has an ongoing discussion.",
+      "created_at": "2026-01-11T06:56:17Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-02-11T10:26:54Z"
+    }
+  ]
+}

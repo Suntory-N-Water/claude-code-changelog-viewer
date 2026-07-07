@@ -1,0 +1,35 @@
+{
+  "number": 14367,
+  "title": "[FEATURE] Support Claude in Chrome for WSL environments",
+  "body": "## Problem Statement\n\nWhen running Claude Code in WSL (Windows Subsystem for Linux), the \"Claude in Chrome\" feature fails with the error:\n\n```\nError: Claude in Chrome Native Host not supported on this platform\n```\n\nWSL is a popular development environment, especially for web developers who use Linux tooling but work on Windows machines. Currently, WSL users cannot use the Claude in Chrome feature to control their Windows Chrome browser, forcing them to either:\n- Switch to Windows-native Claude Code for browser automation tasks\n- Use separate MCP servers (Playwright/Puppeteer) which launch isolated browser instances without user session data\n\n## Proposed Solution\n\nAdd support for WSL environments to connect to Windows Chrome via Native Host. This could be achieved by:\n\n1. **WSL-Windows Bridge**: Create a Windows-side relay process that WSL Claude Code can communicate with\n2. **WebSocket Alternative**: Use WebSocket connection instead of Native Messaging when running in WSL\n3. **Cross-platform Detection**: Detect when running in WSL and automatically use the appropriate connection method\n\n## Alternative Solutions\n\nCurrent workarounds:\n- Use Claude Code from Windows PowerShell/cmd.exe (works but loses WSL dev environment)\n- Use Playwright/Puppeteer MCP servers (works but creates isolated browser without user session)\n\n## Priority\n\nMedium - Would be very helpful\n\n## Feature Category\n\nMCP server integration\n\n## Use Case Example\n\n1. Developer works in WSL with their preferred Linux tooling (vim, bash, etc.)\n2. They want to automate testing on their actual Chrome browser with logged-in state\n3. With this feature, they could use Claude in Chrome directly from WSL\n4. This would allow seamless browser automation while staying in the WSL environment\n\n## Additional Context\n\n- Tested on Claude Code v2.0.71\n- Windows 11 with WSL2 (Ubuntu)\n- Chrome extension is installed and working on Windows side\n- `claude --chrome` works correctly when run from Windows PowerShell",
+  "labels": ["enhancement", "platform:windows", "area:ide"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-17T20:34:29Z",
+  "updated_at": "2026-03-05T14:28:08Z",
+  "closed_at": "2026-01-05T19:43:26Z",
+  "reactions_total": 67,
+  "comments_count": 56,
+  "author": "shostako",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "orenmizr",
+      "author_association": "NONE",
+      "body": "i use claude via ubuntu linux. everything dev is in linux but the terminal (windows terminal with ubuntu bash). \nubuntu has it own chrome that can run in windows, i thought the chrome linux would work.  \n\nworkarounds anyone ? (still using playwright mcp)",
+      "created_at": "2025-12-18T18:40:56Z"
+    },
+    {
+      "author": "stubborncoder",
+      "author_association": "NONE",
+      "body": "After installing and failling to this, I cannot run again claude in WSL, I have only the option to remove the extension??",
+      "created_at": "2025-12-18T21:51:44Z"
+    },
+    {
+      "author": "orenmizr",
+      "author_association": "NONE",
+      "body": "run claude with --no-chrome option and disable it. until it is fixed.",
+      "created_at": "2025-12-19T04:50:34Z"
+    }
+  ]
+}

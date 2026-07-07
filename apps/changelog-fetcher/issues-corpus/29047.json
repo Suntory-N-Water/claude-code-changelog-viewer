@@ -1,0 +1,35 @@
+{
+  "number": 29047,
+  "title": "[BUG] Plugins not loading",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe Cowork plugin marketplace UI fails to load on Windows — all tabs (By Anthropic & Partners, Personal) remain stuck on skeleton/placeholder tiles indefinitely and never display plugin content.\n\nRoot cause confirmed via DNS lookup: `plugins.claude.ai` does not resolve.\n\n```\nnslookup plugins.claude.ai\nServer: UnKnown\nAddress: 192.168.101.1\n*** UnKnown can't find plugins.claude.ai: Non-existent domain\n```\n\nWhile `claude.ai` and `api.anthropic.com` both resolve correctly, `plugins.claude.ai` returns Non-existent domain, preventing the marketplace from loading.\n\nPlugins installed via CLI (`claude plugin install sales@knowledge-work-plugins`) report successful installation (scope: user), but slash commands do not appear in Cowork conversations, suggesting the VM cannot reach `plugins.claude.ai` to activate installed plugins either.\n\n**Steps to reproduce:**\n1. Open Claude Desktop on Windows\n2. Open Cowork and click Browse Plugins\n3. Observe all tabs stuck on skeleton loaders\n4. Run `nslookup plugins.claude.ai` — returns Non-existent domain\n\n**Expected behavior:** Marketplace loads and displays available plugins. Installed plugins activate slash commands in Cowork conversations.\n\n**Actual behavior:** Marketplace never loads. Slash commands do not appear even after successful CLI installation.\n\n**Environment:**\n- OS: Windows\n- Claude Desktop with Cowork\n- Related open issues: #26951, #26450\n\n### What Should Happen?\n\nHere's the expected behavior section:\n\n---\n\n**The Cowork plugin marketplace should load successfully and display available plugins in all tabs (By Anthropic & Partners, Personal, Your Organization).**\n\nSpecifically:\n- `plugins.claude.ai` should resolve via DNS so the marketplace UI can fetch and display plugin content\n- Plugins installed via CLI (`claude plugin install sales@knowledge-work-plugins`) should appear in the Personal tab and be active in Cowork conversations\n- Slash commands (e.g. `/sales:call-prep`) should be available after successful plugin installation\n- The marketplace should not remain stuck on skeleton/placeholder tiles indefinitely\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nHere's the steps to reproduce section:\n\n---\n\n1. Install Claude Desktop on Windows and open Cowork\n2. Click **Browse Plugins** — observe all tabs stuck on skeleton/placeholder tiles indefinitely\n3. Run the following DNS lookup in PowerShell to confirm root cause:\n```powershell\nnslookup plugins.claude.ai\n```\nResult:\n```\nServer:  UnKnown\nAddress:  192.168.101.1\n*** UnKnown can't find plugins.claude.ai: Non-existent domain\n```\n4. Confirm other Anthropic domains resolve correctly:\n```powershell\nnslookup claude.ai\nnslookup api.anthropic.com\n```\nBoth return valid IP addresses (e.g. `160.79.104.10`), confirming the issue is specific to `plugins.claude.ai`\n\n5. Install a plugin via CLI to confirm installation succeeds but plugins remain inactive:\n```powershell\n& \"C:\\Users\\<username>\\AppData\\Roaming\\Claude\\claude-code\\2.1.51\\claude.exe\" plugin marketplace add anthropics/knowledge-work-plugins\n& \"C:\\Users\\<username>\\AppData\\Roaming\\Claude\\claude-code\\2.1.51\\claude.exe\" plugin install sales@knowledge-work-plugins\n```\n6. Open a Cowork conversation and type `/` — slash commands (e.g. `/sales:call-prep`) do not appear despite successful installation\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.51 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "duplicate", "invalid"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-26T16:32:22Z",
+  "updated_at": "2026-05-25T07:25:41Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 7,
+  "author": "QJacobs01",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "skriloffn",
+      "author_association": "NONE",
+      "body": "Also, when you add a github personal plugin link to \nhttps://github.com/ccplugins/awesome-claude-code-plugins or \nccplugins/awesome-claude-code-plugins\nThe standard plugins disappear",
+      "created_at": "2026-02-27T21:33:18Z"
+    },
+    {
+      "author": "GeorgyDesign",
+      "author_association": "NONE",
+      "body": "This is also the case for me, but it actually gives me another error which might be related a completely different issue:\n\n```\nFailed to load marketplaces\nError invoking remote method '$eipc_message$_8da60cf1-ffca-4300-be84-6af2f603bd1c_$_claude.web_$_CustomPlugins_$_listMarketplaces': Error: VM service not running. The service failed to start.\nRestarting Claude or your computer sometimes resolves this. If it persists, you can reinstall the workspace or share your debug logs to help us improve.\n",
+      "created_at": "2026-02-27T21:42:58Z"
+    },
+    {
+      "author": "greenjarrod-dev",
+      "author_association": "NONE",
+      "body": "This is happening to me as well. Just paid for Pro to use Claude Cowork specifically to build workflows using plugins, and now can't browse the plugins. ",
+      "created_at": "2026-03-04T10:51:56Z"
+    }
+  ]
+}

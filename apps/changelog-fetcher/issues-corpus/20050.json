@@ -1,0 +1,42 @@
+{
+  "number": 20050,
+  "title": "[BUG] LSP plugins not working with native/standalone binary installation",
+  "body": "### Preflight Checklist\n- [x] I have searched existing issues and this is not a duplicate\n- [x] I am filing a single bug report (will file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code (v2.1.15)\n\n### What's Wrong?\nThe `typescript-lsp@claude-plugins-official` plugin does not work when Claude Code is installed via the native/standalone binary. After enabling the plugin and restarting, no LSP tools are exposed to the assistant.\n\nThe plugin appears installed in `~/.claude/plugins/installed_plugins.json` but the LSP tools (`lsp_get_diagnostics`, `lsp_go_to_definition`, `lsp_find_references`, etc.) are not available.\n\nThe workaround gist (https://gist.github.com/Zamua/f7ca58ce5dd9ba61279ea195a01b190c) explicitly states: \"npm or bun-based installation (NOT the official standalone binary)\", suggesting native binary installs are not supported.\n\n### What Should Happen?\nAfter enabling the `typescript-lsp` plugin and restarting Claude Code, LSP tools should be available regardless of installation method (npm or native binary).\n\n### Error Messages/Logs\n```\nNo explicit error - LSP tools simply don't appear in the available toolset.\nPlugin shows as installed:\n{\n  \"typescript-lsp@claude-plugins-official\": [{\n    \"scope\": \"user\",\n    \"installPath\": \"~/.claude/plugins/cache/claude-plugins-official/typescript-lsp/1.0.0\",\n    \"version\": \"1.0.0\",\n    \"installedAt\": \"2026-01-22T11:33:54.897Z\"\n  }]\n}\n```\n\n### Steps to Reproduce\n1. Install Claude Code via native binary (not npm)\n2. Install typescript-language-server globally: `npm install -g typescript-language-server typescript`\n3. Enable plugin: `/plugin install typescript-lsp@claude-plugins-official`\n4. Restart Claude Code\n5. Observe that no LSP tools are available\n\n### Claude Model\nOpus 4.5\n\n### Is this a Regression?\nDon't know\n\n### Claude Code Version\n2.1.15 (Claude Code)\n\n### Operating System\nmacOS\n\n### Terminal/Shell\niTerm2\n\n### Additional Information\n- `typescript-language-server` version: 5.1.3\n- `~/.claude.json` shows `\"installMethod\": \"native\"`\n- Related issue: #16291 (proposed fix appears to only apply to npm/bun installs)\n- Marketplace config in `~/.claude/plugins/marketplaces/claude-plugins-official/.claude-plugin/marketplace.json` shows correct `lspServers` configuration",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:packaging",
+    "stale"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-22T11:54:03Z",
+  "updated_at": "2026-02-26T22:10:46Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 6,
+  "author": "mlz11",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16291\n2. https://github.com/anthropics/claude-code/issues/15168\n3. https://github.com/anthropics/claude-code/issues/18125\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-22T11:58:39Z"
+    },
+    {
+      "author": "andre-menutole",
+      "author_association": "NONE",
+      "body": "Same here after changed to native/standalone binary",
+      "created_at": "2026-01-24T14:39:15Z"
+    },
+    {
+      "author": "SebasScript",
+      "author_association": "NONE",
+      "body": "same here on version 2.1.19 running on wsl2",
+      "created_at": "2026-01-25T09:03:41Z"
+    }
+  ]
+}

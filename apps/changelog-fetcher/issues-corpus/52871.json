@@ -1,0 +1,35 @@
+{
+  "number": 52871,
+  "title": "[BUG] MCP OAuth appends trailing slash to `resource` parameter, breaking Entra ID auth (AADSTS9010010)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code's MCP OAuth client appends a trailing `/` to the `resource` parameter on both the `/authorize` redirect and the `/token` exchange. When the MCP server's `.well-known/oauth-protected-resource` metadata declares the resource URI **without** a trailing slash, the `resource` parameter no longer matches the implicit resource of the requested `scope`. Microsoft Entra ID rejects the request with `AADSTS9010010: The resource parameter provided in the request doesn't match with the requested scopes.`\n\nThis makes Claude Code unable to connect to **any** Entra-ID-protected MCP server whose metadata uses an un-slashed resource URI — including Microsoft's official Business Central MCP server (`https://mcp.businesscentral.dynamics.com`).\n\nConcrete example. The server advertises:\n\n```json\n{\n  \"resource\": \"https://mcp.businesscentral.dynamics.com\",\n  \"scopes_supported\": [\"https://mcp.businesscentral.dynamics.com/user_impersonation\"]\n}\n```\n\nClaude Code constructs the authorize URL with:\n\n- `scope=https%3A%2F%2Fmcp.businesscentral.dynamics.com%2Fuser_impersonation+offline_access`\n- `resource=https%3A%2F%2Fmcp.businesscentral.dynamics.com%2F` ← extra trailing slash\n\nEntra string-compares `resource` against the scope-prefix. `…com/` ≠ `…com` → mismatch → `AADSTS9010010`.\n\nLikely root cause: a `new URL(resource).toString()` (or equivalent) somewhere between parsing the MCP metadata and emitting the OAuth requests. The WHATWG URL spec normalizes host-only URLs to include a trailing slash, which silently corrupts the resource identifier.\n\n### What Should Happen?\n\nThe `resource` parameter emitted on `/authorize` and `/token` should match the `resource` string returned by the MCP server's `/.well-known/oauth-protected-resource` metadata verbatim — including the absence of a trailing slash. Entra should accept the auth request and return an authorization code, and the subsequent token exchange should succeed.\n\n### Error Messages/Logs\n\n```shell\nReturned to the OAuth callback by Entra during `/authorize`:\n\n\ninvalid_target\nAADSTS9010010: The resource parameter provided in the request doesn't match with the requested scopes.\nTrace ID: 2de814e5-5da2-4367-b65f-826dbb7a7200\nCorrelation ID: ab1daa86-30d0-4c41-a52f-af76ed61cc13\n\n\nThe same `AADSTS9010010` is returned by the token endpoint when the authorize step is manually rewritten to strip the slash — confirming the same bug exists in the token-exchange code path.\n\nAuthorize URL Claude Code actually emits (captured via a `BROWSER` wrapper logging the URL passed to `open(1)`):\n\n\nhttps://login.microsoftonline.com/common/oauth2/v2.0/authorize\n  ?response_type=code\n  &client_id=<redacted>\n  &code_challenge=<pkce>\n  &code_challenge_method=S256\n  &redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fcallback\n  &state=<state>\n  &scope=https%3A%2F%2Fmcp.businesscentral.dynamics.com%2Fuser_impersonation+offline_access\n  &resource=https%3A%2F%2Fmcp.businesscentral.dynamics.com%2F\n```\n\n### Steps to Reproduce\n\n1. Register a single-tenant Web app in Microsoft Entra ID with redirect URI `http://localhost:8080/callback` and a delegated `user_impersonation` permission for the Business Central MCP Server resource (`https://mcp.businesscentral.dynamics.com`). Create a client secret.\n\n2. Configure `.mcp.json`:\n   ```json\n   {\n     \"mcpServers\": {\n       \"bc-mcp\": {\n         \"type\": \"http\",\n         \"url\": \"https://mcp.businesscentral.dynamics.com\",\n         \"headers\": {\n           \"TenantId\": \"<tenant-id>\",\n           \"EnvironmentName\": \"Production\",\n           \"Company\": \"<company>\",\n           \"ConfigurationName\": \"MCP Server\"\n         },\n         \"oauth\": {\n           \"clientId\": \"<entra-app-client-id>\",\n           \"callbackPort\": 8080\n         }\n       }\n  ",
+  "labels": ["bug", "has repro", "platform:macos", "area:auth", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-24T13:45:51Z",
+  "updated_at": "2026-07-06T08:30:21Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 31,
+  "author": "danielvos1998",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "daankuhlmann-SH",
+      "author_association": "NONE",
+      "body": "I also found this bug and it would be very nice if it can be solved asap.",
+      "created_at": "2026-04-30T08:43:39Z"
+    },
+    {
+      "author": "CrazyICT",
+      "author_association": "NONE",
+      "body": "I've issues with this aswel",
+      "created_at": "2026-04-30T08:57:32Z"
+    },
+    {
+      "author": "reidwatersbhm",
+      "author_association": "NONE",
+      "body": "Confirming this on Claude.ai web (Team workspace) Custom Connector with Microsoft Entra ID.\n\nSetup: MCP server on Azure Functions at https://<app>.azurewebsites.net/mcp behind App Service Authentication (Easy Auth) configured for Microsoft Entra. Single-tenant Entra app with App ID URI api://<client-id>. I can't add the actual MCP URL as a second App ID URI because Entra requires identifier URIs to be on a verified domain of the tenant, and azurewebsites.net is owned by Microsoft, not us. The /.",
+      "created_at": "2026-04-30T23:13:22Z"
+    }
+  ]
+}

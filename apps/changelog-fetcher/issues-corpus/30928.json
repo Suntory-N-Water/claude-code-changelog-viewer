@@ -1,0 +1,41 @@
+{
+  "number": 30928,
+  "title": "Write/Edit tools fail with EEXIST on OneDrive directories (v2.1.69 regression)",
+  "body": "## Description\n\nStarting with v2.1.69, the `Write` and `Edit` tools fail with `EEXIST: file already exists, mkdir` on any file whose parent directory is a OneDrive sync directory. This was working correctly in prior versions.\n\n## Environment\n\n- **Claude Code version:** 2.1.69\n- **OS:** Windows 11 Pro 10.0.26100\n- **Shell:** bash (Git Bash)\n- **Working directory:** OneDrive-synced folder (`C:\\Users\\<user>\\OneDrive - <org>`)\n- **Previous working version:** 2.1.68 (or earlier — the issue appeared on the day 2.1.69 was installed)\n\n## Reproduction\n\n1. Have a working directory inside a OneDrive-synced folder\n2. Read any file using the `Read` tool (succeeds)\n3. Attempt to `Edit` or `Write` to that same file\n\n**Example:**\n```\nEdit file: C:\\Users\\User\\OneDrive - Org\\.ai\\GAPS.md\nold_string: \"last-updated: 2026-03-02\"\nnew_string: \"last-updated: 2026-03-04\"\n\nError: EEXIST: file already exists, mkdir 'C:\\Users\\User\\OneDrive - Org\\.ai'\n```\n\nThe error occurs for every subdirectory level — `.ai/`, `.claude/hooks/`, `.claude/skills/self-improve/briefs/`, and even the root OneDrive folder itself.\n\n## Root Cause\n\nOneDrive Files On-Demand marks all directories with the `ReparsePoint` attribute (used for cloud file placeholders). PowerShell confirms:\n\n```\n.claude/hooks:       ReparsePoint=True  Attrs=ReadOnly, Directory, Archive, ReparsePoint\n.ai/context:         ReparsePoint=True  Attrs=ReadOnly, Directory, Archive, ReparsePoint\n```\n\nThe Write/Edit tools appear to run `mkdir` on parent directories before writing. When the parent directory exists but is a reparse point, `mkdir` throws `EEXIST` instead of recognizing the directory as already present.\n\n## Workaround\n\nWriting files via Python through the Bash tool works correctly:\n```python\npython -c \"open(r'path\\to\\file.md', 'w').write(content)\"\n```\n\nThe filesystem itself is healthy — only the tool's directory-creation logic is affected.\n\n## Expected Behavior\n\nWrite/Edit should succeed on files in OneDrive-synced directories, as they did in v2.1.68 and earlier. The `mkdir` call should use `mkdir -p` equivalent logic (e.g., `fs.mkdir(path, { recursive: true })` in Node.js) or check for directory existence before attempting creation.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tools",
+    "regression"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-05T03:56:08Z",
+  "updated_at": "2026-03-16T14:38:40Z",
+  "closed_at": "2026-03-05T17:45:15Z",
+  "reactions_total": 10,
+  "comments_count": 8,
+  "author": "BarnesM1",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/30903\n2. https://github.com/anthropics/claude-code/issues/30923\n3. https://github.com/anthropics/claude-code/issues/30924\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-05T03:59:40Z"
+    },
+    {
+      "author": "ReignOfComputer",
+      "author_association": "NONE",
+      "body": "+1, can confirm, specifically on OneDrive folders too.\n\nI fixed this on Windows by rolling back to 2.1.68:\n\nPWSH> & ([scriptblock]::Create((irm https://claude.ai/install.ps1))) 2.1.68\n\nAnd added `\"DISABLE_AUTOUPDATER\": \"1\",` to the env block in Claude's settings.json.",
+      "created_at": "2026-03-05T04:02:47Z"
+    },
+    {
+      "author": "ttokttokttok",
+      "author_association": "NONE",
+      "body": "This worked, thank you!",
+      "created_at": "2026-03-05T07:55:08Z"
+    }
+  ]
+}

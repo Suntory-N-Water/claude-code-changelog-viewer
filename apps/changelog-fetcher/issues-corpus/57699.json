@@ -1,0 +1,35 @@
+{
+  "number": 57699,
+  "title": "Weekly limit depletes disproportionately to 5h-session limit on Max 20x — quantified telemetry shows ~5x drift vs historical baseline",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWeekly usage limit on Max 20x is depleting 2-5x faster relative to actual token consumption than my historical baseline, even after extensive client-side mitigation. The 5h-session and weekly buckets appear miscalibrated relative to each other since the May 6 5h-doubling rollout.\n\nQuantified observations:\n\n1. **Statusline drift (real-time):** I run a custom statusline tracking delta-to-linear-consumption-curve for both buckets. At a single moment: 5h window shows -43% (well below expected linear burn), weekly shows +21% (well above expected linear burn).\n\n2. **Drift accumulates with usage, not time:** Within the same 5h window, 13 minutes apart, a 1pp 5h-burn produced a 1pp weekly-drift increase. The weekly bucket should mathematically be ~33x larger than a single 5h slot, so 1pp 5h ≈ 0.03pp weekly would be expected. Observed ratio is roughly 33x off.\n\n3. **Day-to-day token comparison via ccusage:**\n\nApril 24, 2026 (pre 5h-doubling, 5 parallel projects, intensive terminal switching):\n- Cost: $242.30\n- Total tokens: 322,501,893\n- Cache creates: 10,887,933\n- Cache reads: 310,808,556\n- Output: 802,419\n\nMay 9, 2026 (post 5h-doubling, 1 project, 1 session, subjectively less intensive):\n- Cost: $627.52\n- Total tokens: 1,042,274,342\n- Cache creates: 10,763,960\n- Cache reads: 1,029,659,911\n- Output: 1,844,324\n\nCache-create counts are nearly identical (10.9M vs 10.8M), implying comparable distinct-context volume. But cache-reads are 3.3x higher and total cost 2.6x higher despite a *less* intensive workload. The shape of consumption changed, not the workload.\n\n4. **Historical baseline:** Peak week pre-May 6 consumed ~$3,800 in API-equivalent cost = ~70% weekly limit. May 9 alone consumed ~$627 = ~25% weekly limit in 13h. Per-dollar weekly burn rate is roughly 5x the historical rate.\n\n### What Should Happen?\n\nWeekly limit consumption should remain proportional to actual token throughput, with the weekly bucket sized to accommodate many full 5h sessions — not roughly two, which is what the current 1pp:1pp drift ratio implies.\n\nAfter the May 6 5h-limit doubling, either the weekly limit should have been doubled commensurately, or the per-token weekly cost should be unchanged. Currently neither appears to hold: the same workload pattern that previously consumed ~$3,800 for 70% weekly should not now consume ~25% weekly in a single day for ~$627.\n\n### Error Messages/Logs\n\n```shell\nNo CLI errors. The issue is silent — visible only in usage telemetry, not in error logs.\n\nccusage outputs are included in the \"What's Wrong?\" section above.\n\nStatusline screenshots showing the -43% / +21% drift at two timestamps 13 minutes apart in the same 5h window are available on request (cannot embed in this form). Happy to share via DM or attached comment.\n```\n\n### Steps to Reproduce\n\nThis is a usage-pattern observation, not a deterministic CLI failure. To reproduce or verify the discrepancy:\n\n1. Use Claude Code on a Max 20x plan with substantial Opus consumption (multiple sessions per day, 100M+ tokens per day).\n2. Pull daily totals from ccusage for a pre-May-6 day and a post-May-6 day with comparable workload character.\n3. Compare per-dollar and per-token consumption against weekly-limit progress in /usage.\n4. Observe that the same per-token cost generates more weekly-bucket consumption than before May 6.\n\nConfiguration during my observations:\n- CLI: 2.1.138 (latest)\n- Models: Opus 4.6 (manually pinned to avoid Opus 4.7 tokenizer + 1M-context default)\n- Auto Mode: off\n- /compact: triggered manually at 40% context\n- DISABLE_TELEMETRY: not set (cache-TTL fallback bug from earlier versions does not apply)\n- Cache hit ratio: ~96:1 read-to-write (healthy, no client-side caching pathology)\n\nDespite all of the abov",
+  "labels": ["bug", "duplicate", "platform:macos", "area:cost"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-09T22:34:48Z",
+  "updated_at": "2026-06-11T14:47:41Z",
+  "closed_at": null,
+  "reactions_total": 1,
+  "comments_count": 14,
+  "author": "Frisch12",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "k33bs",
+      "author_association": "NONE",
+      "body": "https://usage.report — look at the data table. the system prompt size DOUBLED after .119",
+      "created_at": "2026-05-09T22:52:11Z"
+    },
+    {
+      "author": "m13v",
+      "author_association": "NONE",
+      "body": "this is the local-log vs server-truth gap. ccusage reads transcripts and computes API-equivalent cost; /usage reads a separate accounting plane the server uses for actual enforcement. the two were never identical, May 6 just amplified the spread. hypothesis #2 (cache-reads weighted differently in the weekly bucket vs API-credit accounting) is the likely culprit given your 96:1 read:write plus 3.3x cache-read inflation with cache-creates flat. only /usage telemetry pulled from the same endpoint s",
+      "created_at": "2026-05-10T00:41:54Z"
+    },
+    {
+      "author": "k33bs",
+      "author_association": "NONE",
+      "body": "its not using /usage — its consistent half on .119 against .121+",
+      "created_at": "2026-05-10T01:21:02Z"
+    }
+  ]
+}

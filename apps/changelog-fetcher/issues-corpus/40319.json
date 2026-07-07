@@ -1,0 +1,35 @@
+{
+  "number": 40319,
+  "title": "[BUG] Session resume loads zero conversation history — silently drops all context",
+  "body": "> **UPDATE 2026-03-28:** Root cause identified — progress entry elision bug introduced in 2.1.85. See [root cause comment](https://github.com/anthropics/claude-code/issues/40319#issuecomment-IC_kwDON91aY873SACe) for full details, binary regression proof, and workaround scripts.\n\n## Bug Summary\n\nResuming long-running sessions with `--continue` loads only system-overhead tokens (~32k) into the context window, silently dropping 300k–430k tokens of conversation history. The JSONL session log confirms the UUID chain is unbroken (session correctly identified), but `cache_read_input_tokens` drops from 348k–434k to near-zero between the last turn of the previous session and the first turn after resume. No compaction event, no summary event, no error — the history is silently absent.\n\nThis has been reproduced across **two independent projects** on the same machine.\n\n## Evidence from session JSONL logs\n\n### Session 1 — nah project\n\n```\n# Last assistant turn before exit (Mar 27, 16:17 UTC):\ncache_read_input_tokens: 348,388\ncache_creation_input_tokens: 225\n\n# First assistant turn after resume (Mar 28, 17:16 UTC):\nmodel: <synthetic>  (for /exit response)\ninput_tokens: 0, cache_read_input_tokens: 0\n\n# First real model call after resume (17:18 UTC):\ninput_tokens: 3, cache_read_input_tokens: 31,727\n# (31k = system prompt + CLAUDE.md + memory + skills only — no conversation history)\n```\n\n### Session 2 — MCN WordPress project\n\n```\n# Last assistant turn before exit (Mar 25, 23:21 UTC):\ncache_read_input_tokens: 434,086\n\n# First turn after resume (Mar 28, 17:11 UTC):\nmodel: <synthetic>\ncache_read_input_tokens: 0\n\n# First real model call:\ncache_read_input_tokens: 0\n```\n\n### Comparison\n\n| | nah project | MCN WordPress project |\n|---|---|---|\n| Last turn before exit | 348,613 tokens | 434,086 tokens |\n| First turn after resume | 0 tokens | 0 tokens |\n| Session JSONL size | 17MB, 6,932 lines | 12MB, 7,408 lines |\n| Summary events in log | 0 | 0 |\n| Gap between sessions | ~25 hours | ~3 days |\n\nIn both cases, the UUID parent chain is unbroken across the session boundary — the resume correctly identified and connected to the previous session. But zero conversation content was loaded. No `summary` type events exist in either log.\n\n## Steps to Reproduce\n\n1. Work in a session over multiple days until context accumulates to 300k+ tokens (large JSONL, many log entries, background agents active)\n2. Exit with `/exit`\n3. Resume later with `--continue` or `--resume`\n4. Context usage shows ~3-4% (system overhead only) — previous conversation completely absent\n5. No compaction notification shown, no summary generated\n\n## Expected Behavior\n\nPer documentation: \"Your full conversation history is restored\" on resume. The conversation history should have been loaded (or compacted into a summary and loaded).\n\n## Actual Behavior\n\nZero conversation history loaded. No summary generated. No error or warning. No compaction notification. Context starts fresh with only system overhead (~32k tokens). The user receives no indication that their conversation was not restored.\n\n## Environment\n\n- Claude Code: 2.1.86\n- Model: Opus 4.6 (1M context)\n- Platform: Linux 6.17.0-14-generic\n- Both sessions: long-running (multiple days), large JSONL files (12-17MB), 7000+ log entries, background agents active during sessions\n\n## Related Issues\n\n- #3138 — similar symptom but triggered by usage limit hit\n- #36751 — resume interfering with auto-compact on Opus 4.6 1M context\n- #32861 — context lost after session resume\n\n---\n*This issue was written by Claude Code.*\n\n",
+  "labels": ["bug", "has repro", "platform:linux", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-28T17:42:49Z",
+  "updated_at": "2026-05-24T10:40:29Z",
+  "closed_at": "2026-05-24T10:40:29Z",
+  "reactions_total": 2,
+  "comments_count": 11,
+  "author": "0reo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22107\n2. https://github.com/anthropics/claude-code/issues/28577\n3. https://github.com/anthropics/claude-code/issues/24304\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-28T17:48:22Z"
+    },
+    {
+      "author": "0reo",
+      "author_association": "NONE",
+      "body": "Closing as duplicate of #24304 — same root cause (broken parentUuid chain from subagent entries). Added forensic evidence from two sessions there.",
+      "created_at": "2026-03-28T17:56:05Z"
+    },
+    {
+      "author": "0reo",
+      "author_association": "NONE",
+      "body": "Reopening — further investigation shows this is **NOT the same root cause** as #24304.\n\n## Parent chain is fully intact\n\nWalked the main chain backwards from the last entry to root: **3,308 entries, zero breaks**, spanning the full session (2026-03-18 → 2026-03-28).\n\n```\nChain spans: 2026-03-18T23:25:30Z -> 2026-03-28T17:57:54Z\nChain length: 3,308 entries (unbroken)\nTypes on main chain: 1,425 assistant, 985 user, 531 progress, 367 system\n```\n\nThe 635 orphaned `parentUuid` references are all on *",
+      "created_at": "2026-03-28T17:58:54Z"
+    }
+  ]
+}

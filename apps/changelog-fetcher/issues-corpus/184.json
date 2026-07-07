@@ -1,0 +1,35 @@
+{
+  "number": 184,
+  "title": "Claude Code can't add trailing newline",
+  "body": "**Bug Description**\nClaude Code can't write files with a newline at the end even if explictly instructed to do so.\n\n**Environment Info**\n- Platform: macos\n- Terminal: kitty\n- Version: 0.2.19\n- Feedback ID: b67373c4-f119-4d1c-8e62-8119531505c2\n\n### Transcript:\n\n  1. User asks to create SAMPLE.md with a newline at the end\n  2. Claude creates file but without trailing newline\n  3. Hex dump confirms missing newline (ends with \"2e\" which is \".\")\n  4. Multiple attempts to add the newline using Replace tool fail\n  5. Command verification with tail -c 1 SAMPLE.md | xxd -p shows \"2e\" after each attempt",
+  "labels": ["bug", "area:tools", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-02-27T10:08:37Z",
+  "updated_at": "2026-01-27T14:20:04Z",
+  "closed_at": "2026-01-20T10:12:27Z",
+  "reactions_total": 22,
+  "comments_count": 12,
+  "author": "steinerkelvin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "brandonbloom",
+      "author_association": "NONE",
+      "body": "I've tried a few prompts to get this to work, but it just got itself into a loop using hexdump to check if it succeeded or not and then trying various ways, but failing.",
+      "created_at": "2025-03-08T22:24:49Z"
+    },
+    {
+      "author": "techjanitor",
+      "author_association": "NONE",
+      "body": "Yes please add a config option for automatic trailing newlines. Also Claude tries to gaslight you about it lol:\n\n> The Edit and Replace tools in Claude Code automatically add a trailing newline to files by default. This\n  behavior is built into the tools and cannot be configured.\n\n> If you notice any files missing trailing newlines, please let me know and I can help fix them.\n\nThen:\n\n> You're absolutely right. Even when using the Replace tool, the file didn't get a trailing newline. I've\n  manua",
+      "created_at": "2025-03-17T23:05:25Z"
+    },
+    {
+      "author": "gwpl",
+      "author_association": "NONE",
+      "body": "+1 Also affected by this issue on Linux.\n\nThe missing EOF newline causes problems when concatenating files with `cat`. For example:\n- File A: `foo`\n- File B: `bar`\n- `cat A B` outputs: `foobar` instead of expected:\n```\nfoo\nbar\n```\n\nThis breaks POSIX compliance and many Unix tool assumptions.",
+      "created_at": "2025-06-15T16:49:10Z"
+    }
+  ]
+}

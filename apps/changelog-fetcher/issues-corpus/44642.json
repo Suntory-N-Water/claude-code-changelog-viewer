@@ -1,0 +1,23 @@
+{
+  "number": 44642,
+  "title": "[BUG] disableBypassPermissionsMode in managed-settings.json has no effect (v2.1.92)",
+  "body": "## Bug Description\n\n`permissions.disableBypassPermissionsMode` set to `\"disable\"` in managed-settings.json does not prevent `--dangerously-skip-permissions` from being used.\n\n## Steps to Reproduce\n\n1. Set managed-settings.json at `/Library/Application Support/ClaudeCode/managed-settings.json` (root-owned):\n```json\n{\n  \"permissions\": {\n    \"disableBypassPermissionsMode\": \"disable\"\n  }\n}\n```\n\n2. Verify the setting exists:\n```bash\njq '.permissions.disableBypassPermissionsMode' \"/Library/Application Support/ClaudeCode/managed-settings.json\"\n# Output: \"disable\"\n```\n\n3. Run Claude Code with the bypass flag:\n```bash\nclaude --dangerously-skip-permissions -p \"echo test\"\n```\n\n**Expected**: Session rejected or error message indicating bypass mode is disabled.\n**Actual**: Session starts normally in bypass mode.\n\n## Environment\n\n- Claude Code version: 2.1.92 (installed via `brew install claude-code@latest`)\n- macOS (Apple Silicon)\n- Managed settings file ownership: root:admin\n- Other managed settings (sandbox, deny rules) ARE being read and enforced from the same file\n\n## Impact\n\nThis setting is documented as the way to prevent bypass mode in enterprise/managed environments. Without it, `--dangerously-skip-permissions` can bypass all deny rules, allowing unrestricted file access including credential files.\n\n## Workaround\n\nDeny rules for `Bash(claude *)` prevent Claude from spawning itself with bypass flags. Physical terminal access is still required for exploitation.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:security",
+    "area:permissions",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-07T11:04:47Z",
+  "updated_at": "2026-05-27T22:42:12Z",
+  "closed_at": "2026-05-27T22:42:11Z",
+  "reactions_total": 3,
+  "comments_count": 5,
+  "author": "muros029biz",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

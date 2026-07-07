@@ -1,0 +1,35 @@
+{
+  "number": 34845,
+  "title": "Terminal randomly scrolls to top and auto-scrolls to bottom during output, breaking scrollback navigation",
+  "body": "## Problem\n\nTwo related scrolling issues in the Claude Code terminal:\n\n### 1. Viewport jumps to the TOP randomly, even when idle\nThe terminal spontaneously scrolls to the very top of the scrollback history, even when Claude is **not** generating output. This happens unpredictably and forces the user to scroll all the way back down to where they were reading.\n\n### 2. Auto-scroll during output generation overrides manual scrolling\nWhen Claude is actively generating output (streaming tokens or running tools), the terminal automatically scrolls to follow the latest output. This overrides any manual scrolling the user is doing.\n\n## Steps to Reproduce\n\n**Random scroll-to-top (Issue 1):**\n1. Have a conversation with substantial history\n2. Scroll up to read previous output (while Claude is idle / not generating)\n3. The viewport randomly jumps to the very top of the history\n\n**Auto-scroll override (Issue 2):**\n1. Start a conversation that produces long output\n2. While output is still streaming, try to scroll up to read earlier content\n3. The viewport snaps back to the bottom as new content renders\n\n## Expected Behavior\n\n- The viewport should never jump to the top on its own\n- Users should be able to scroll freely through history without the position being reset\n- Auto-scroll should pause when the user manually scrolls away from the bottom, and resume only when the user scrolls back to the bottom\n\n## Impact\n\nThis is a significant usability pain point. The random scroll-to-top is especially disruptive — it makes reading through conversation history unreliable and frustrating. Users lose their place constantly.\n\n## Environment\n\n- Platform: Linux (Manjaro)\n- Terminal: standard terminal emulator\n- Claude Code: latest version\n\n## Suggested Solution\n\nImplement scroll position preservation:\n- Never programmatically scroll to the top\n- If the user scrolls up, lock the viewport at that position\n- Resume auto-scroll only when the user scrolls back to the bottom",
+  "labels": ["enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-16T05:54:54Z",
+  "updated_at": "2026-04-10T06:30:43Z",
+  "closed_at": null,
+  "reactions_total": 48,
+  "comments_count": 18,
+  "author": "r4d10n",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34794\n2. https://github.com/anthropics/claude-code/issues/826\n3. https://github.com/anthropics/claude-code/issues/34765\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-16T05:59:29Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Both issues are related to how Claude Code manages the terminal viewport via ANSI escape sequences (specifically CSI sequences for cursor positioning).\n\n**Issue 1 (random scroll-to-top):** This typically happens when Claude Code emits a \"save cursor position\" (`\\e[s`) without a matching restore, or when the status line refresh triggers a full-screen redraw via `\\e[H` (cursor home). The idle-state UI refresh cycle can cause this even when no output is being generated.\n\n**Issue 2 (auto-scroll over",
+      "created_at": "2026-03-16T07:56:16Z"
+    },
+    {
+      "author": "kjyv",
+      "author_association": "NONE",
+      "body": "> iTerm2: Enable \"Scroll to bottom on output\" = OFF in Preferences → Profiles → Terminal\n\nThis doesn't seem to exist. Is this a claude generated answer or what?",
+      "created_at": "2026-03-16T15:24:08Z"
+    }
+  ]
+}

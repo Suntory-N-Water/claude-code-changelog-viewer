@@ -1,0 +1,42 @@
+{
+  "number": 16037,
+  "title": "ralph-wiggum plugin: Bash command permission check fails on multi-line scripts with newlines",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Description\nI'm encountering a permission check error when using the ralph-wiggum plugin from claude-plugins-official. The plugin's bash command contains newlines, which triggers Claude Code's security safeguards.\n\n## Error Message\n```\nError: Bash command permission check failed for pattern \"```!\n\"/Users/rmart/.claude/plugins/cache/claude-plugins-official/ralph-wiggum/6d3752c000e2/scripts/setup-ralph-loop.sh\" \"write 1+1 in a file\" --max-iterations 25\n# Extract and display completion promise if set\nif [ -f .claude/ralph-loop.local.md ]; then\n  PROMISE=$(grep '^completion_promise:' .claude/ralph-loop.local.md | sed 's/completion_promise: *//' | sed 's/^\"\\(.*\\)\"$/\\1/')\n...\n```\": Command contains newlines that could separate multiple commands\n```\n\n## Steps to Reproduce\n1. Install the ralph-wiggum plugin from the official Claude plugins repository\n2. Run a task like: \"write 1+1 in a file\"\n3. Observe the permission check error\n\n## Expected Behavior\nThe plugin should be able to execute its bash scripts without triggering newline-based command separation security checks.\n\n## Root Cause\nThe ralph-wiggum plugin is attempting to run a multi-line bash script (setup-ralph-loop.sh) via the Bash tool. Claude Code's security checks prevent executing commands containing newlines because newlines could potentially be used to chain multiple commands together. This is a legitimate security concern, but it conflicts with the plugin's implementation approach.\n\n## Suggested Solution\nThe plugin maintainers should refactor the script to:\n1. Write the script to a temporary file first, then execute that file instead of embedding multi-line commands\n2. Or encode/structure the command to avoid passing raw newlines to the Bash execution layer\n\n## Environment\n- System: macOS\n- Plugin: ralph-wiggum (claude-plugins-official)\n- Claude Code: Latest version\n\n### What Should Happen?\n\nThe ralph-wiggum plugin should be able to execute its bash scripts without triggering newline-based command separation security checks. The plugin's multi-line setup script should run successfully and return proper completion promises without permission errors.\n\n### Error Messages/Logs\n\n```shell\nError: Bash command permission check failed for pattern \"!\n\"/Users/rmart/.claude/plugins/cache/claude-plugins-official/ralph-wiggum/6d3752c000e2/scripts/setup-ralph-loop.sh\" \"write 1+1 in a file\" --max-iterations 25\n# Extract and display completion promise if set\nif [ -f .claude/ralph-loop.local.md ]; then\n  PROMISE=$(grep '^completion_promise:' .claude/ralph-loop.local.md | sed 's/completion_promise: *//' | sed 's/^\"\\(.*\\)\"$/\\1/')\n  if [ -n \"$PROMISE\" ] && [ \"$PROMISE\" != \"null\" ]; then\n    echo \"\"\n    echo \"═══════════════════════════════════════════════════════════\"\n    echo \"CRITICAL - Ralph Loop Completion Promise\"\n    echo \"═══════════════════════════════════════════════════════════\"\n...\n\": Command contains newlines that could separate multiple commands\n```\n\n### Steps to Reproduce\n\n1. Install the ralph-wiggum plugin from claude-plugins-official\n2. Run a task with the plugin, e.g., \"write 1+1 in a file\"\n3. Observe that the plugin attempts to execute its setup-ralph-loop.sh bash script\n4. The bash command permission check fails with the error message about newlines\n5. The task does not complete because the script cannot be executed\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nLatest\n\n### Platform\n\nAnthropic API\n\n##",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:security"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-02T04:20:26Z",
+  "updated_at": "2026-02-20T14:04:46Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 7,
+  "author": "Pochetes",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16028\n2. https://github.com/anthropics/claude-code/issues/15708\n3. https://github.com/anthropics/claude-code/issues/12170\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-02T04:24:15Z"
+    },
+    {
+      "author": "lenichols",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-01-04T09:02:52Z"
+    },
+    {
+      "author": "taigfs",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-01-05T12:38:02Z"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "number": 17249,
+  "title": "[BUG] Prompt hooks cause exponential payload growth and infinite retry loop, generating 800MB+ debug logs",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using a `type: \"prompt\"` hook in `UserPromptSubmit`, Claude Code enters an infinite retry loop that generates 800MB+ debug logs within minutes. The hook's ARGUMENTS payload grows exponentially because each retry includes the previous invocation's full payload nested inside it.\n\nA single user message triggers this sequence:\n1. Main API request fails with 413 \"Request too large\" (context exceeded limit)\n2. `UserPromptSubmit` prompt hook fires and calls Haiku API\n3. Hook's API call fails/gets aborted\n4. Hook retries immediately (no backoff, no max retry limit)\n5. Each retry logs the full ARGUMENTS, which now includes the previous ARGUMENTS\n6. Payload doubles each time: 1KB → 2KB → 4KB → ... → 453MB per log line\n\nDebug log analysis showed:\n- Only 920 lines in the debug file\n- But single lines contained **453 million characters** (453MB)\n- 15 nested `ARGUMENTS:` blocks within a single log line\n- Retries happening every 4-6 milliseconds\n\n### What Should Happen?\n\n1. Hook retries should have exponential backoff\n2. Hook retries should have a maximum retry limit\n3. Hook ARGUMENTS should not be recursively included in subsequent invocations\n4. Debug logging should not log the full payload on each retry (or should truncate)\n\n### Error Messages/Logs\n\nInitial error triggering the cascade:\n```\n2026-01-10T03:17:11.898Z [ERROR] Error streaming, falling back to non-streaming mode: 413 {\"error\":{\"type\":\"request_too_large\",\"message\":\"Request exceeds the maximum size\"}}\n```\n\nRetry loop pattern (happening every 4-6ms):\n```\n2026-01-10T03:19:34.716Z [ERROR] Error: Error: Request was aborted.\n    at U4R (/$bunfs/root/claude:1003:97493)\n    at ynB (/$bunfs/root/claude:4288:1368)\n    at processTicksAndRejections (native:7:39)\n2026-01-10T03:19:34.717Z [DEBUG] Hooks: Querying model with 1 messages\n2026-01-10T03:19:34.717Z [DEBUG] Tool search disabled for model 'claude-haiku-4-5-20251001': model does not support tool_reference blocks.\n2026-01-10T03:19:34.722Z [ERROR] Error in non-streaming fallback: Request was aborted.\n2026-01-10T03:19:34.722Z [ERROR] Error: Error: Request was aborted.\n... (repeating hundreds of times)\n```\n\nEvidence of recursive nesting (single log line analysis):\n```bash\n$ awk 'length > 1000000' debug.txt | grep -o 'ARGUMENTS:' | wc -l\n15   # 15 nested ARGUMENTS blocks in one line!\n\n$ awk '{print length}' debug.txt | sort -rn | head -3\n453012793   # 453MB single line\n226519121   # 226MB single line  \n113271657   # 113MB single line\n```\n\n### Steps to Reproduce\n\n1. Create a `type: \"prompt\"` hook in `settings.json`:\n```json\n{\n  \"hooks\": {\n    \"UserPromptSubmit\": [\n      {\n        \"hooks\": [\n          {\n            \"type\": \"prompt\",\n            \"prompt\": \"Any prompt text here - content doesn't matter\",\n            \"timeout\": 15000\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n2. Have a long conversation until context approaches API limits (or manually create a large context)\n\n3. Send a user message that triggers a 413 \"Request too large\" error\n\n4. Observe debug log growing rapidly:\n```bash\nwatch -n 1 'du -sh ~/.claude/debug/*'\n```\n\n5. Within minutes, debug folder will exceed 800MB+ and continue growing until process is killed\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.3 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nCursor\n\n### Additional Information\n\n**Additional model info:**\n- Sonnet for main conversation\n- Haiku (claude-haiku-4-5-20251001) for prompt hooks\n\n**Root cause analysis:**\n\nThe bug appears to be in how prompt hook invocations are logged and/or how the ARGUMENTS are constructed for retries. Each retry seems to include the ",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "area:api",
+    "memory",
+    "perf:memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-10T03:33:25Z",
+  "updated_at": "2026-03-08T14:20:21Z",
+  "closed_at": "2026-02-28T22:08:47Z",
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "brennenawana",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "brennenawana",
+      "author_association": "NONE",
+      "body": "**Related issue:** #16093 also reports massive debug log growth, but from a different root cause (slow I/O triggering recursive \"SLOW OPERATION DETECTED\" logging). \n\nThis issue (#17249) is distinct because:\n- **Trigger**: Prompt hook API call failure after 413 error\n- **Root cause**: ARGUMENTS payload is recursively nested in each retry invocation\n- **Pattern**: Exponentially growing nested `ARGUMENTS:` blocks (15+ levels deep)\n\nBoth issues point to a need for:\n1. Debug log size limits / rotatio",
+      "created_at": "2026-01-10T03:36:20Z"
+    },
+    {
+      "author": "brennenawana",
+      "author_association": "NONE",
+      "body": "@EthanJStark does any of this sound valid to you?",
+      "created_at": "2026-01-10T03:37:48Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/11453\n2. https://github.com/anthropics/claude-code/issues/16641\n3. https://github.com/anthropics/claude-code/issues/16093\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-10T03:39:18Z"
+    }
+  ]
+}

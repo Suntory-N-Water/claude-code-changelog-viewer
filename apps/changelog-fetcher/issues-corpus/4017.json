@@ -1,0 +1,35 @@
+{
+  "number": 4017,
+  "title": "[BUG] /compact causes Claude Code to ignore CLAUDE.md",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [x] Other: claude code\n- Claude CLI version: all versions\n- Operating System: Ubuntu 22.04 LTS\n- Terminal: <!-- e.g. iTerm2, Terminal App, GNOME Terminal -->\n\n## Bug Description\nAfter using `/compact` (or when auto-compress triggers), Claude Code stops respecting the instructions in CLAUDE.md and begins to behave unpredictably.\n\n## Steps to Reproduce\n1. Create or update a CLAUDE.md file with custom instructions.\n2. Start a conversation and ensure Claude Code follows the instructions.\n3. Use `/compact` or let auto-compress trigger.\n4. Continue the conversation and observe that Claude Code no longer adheres to CLAUDE.md.\n\n## Expected Behavior\nClaude Code should continue to follow the rules and instructions defined in CLAUDE.md even after the conversation is compacted.\n\n## Actual Behavior\nAfter compaction, Claude Code ignores CLAUDE.md and generates responses that do not align with the specified guidelines.\n\n",
+  "labels": ["bug", "has repro", "platform:linux", "area:core", "memory"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-20T10:44:43Z",
+  "updated_at": "2026-01-28T14:19:21Z",
+  "closed_at": "2026-01-21T10:12:31Z",
+  "reactions_total": 20,
+  "comments_count": 18,
+  "author": "jaried",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "hesreallyhim",
+      "author_association": "NONE",
+      "body": "@jaried you/i should check the logfiles in `~/.claude/projects` to confirm, but I think the CLAUDE.md basically gets loaded into context at the beginning, and then I imagine what's happening is that it's part of the history that's being compacted/summarized during `compact`. Would be interesting to confirm that. But in any case, just because a bug \"makes sense\" doesn't make it not a bug.",
+      "created_at": "2025-07-21T16:34:55Z"
+    },
+    {
+      "author": "alexx-ftw",
+      "author_association": "NONE",
+      "body": "I believe a quick and easy solution for this is to have an PostCompact hook that forcefully re-reads both global and local CLAUDE.md files to the model",
+      "created_at": "2025-07-26T17:07:50Z"
+    },
+    {
+      "author": "JulianCrespi",
+      "author_association": "NONE",
+      "body": "> I believe a quick and easy solution for this is to have an PostCompact hook that forcefully re-reads both global and local CLAUDE.md files to the model\n\nBut Compact only has Precompact hook I think)? \n\nI haven't find a way to trigger an action post compact (that isn't done via the preHook).\n\nIt seems very useful though, like monitoring auto compacts in a session or triggering custom context procedures beyond Claude.md ",
+      "created_at": "2025-07-26T17:11:55Z"
+    }
+  ]
+}

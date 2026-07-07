@@ -1,0 +1,35 @@
+{
+  "number": 17017,
+  "title": "Project-level permissions replace global permissions instead of merging",
+  "body": "## Description\n\nWhen a project has a local `.claude/settings.local.json` file with a `permissions` block, it appears to **replace** the global permissions from `~/.claude/settings.local.json` rather than **merging** with them.\n\n## Expected Behavior\n\nGlobal and local permissions should merge:\n- Global allow: `[\"mcp__Ref__ref_search_documentation\", \"mcp__Ref__ref_read_url\", \"WebSearch\", ...]`\n- Local allow: `[\"mcp__expo-mcp__search_documentation\"]`\n- **Effective allow**: Union of both lists\n\n## Actual Behavior\n\nLocal permissions replace global:\n- Tools allowed globally (e.g., `mcp__Ref__ref_read_url`) still prompt for permission when a local `permissions` block exists but doesn't include them\n- Users must duplicate all global permissions in every project's local settings\n\n## Steps to Reproduce\n\n1. Add `\"mcp__Ref__ref_read_url\"` to global `~/.claude/settings.local.json` permissions allow list\n2. Create a project with `.claude/settings.local.json` that has a `permissions` block but doesn't include that tool\n3. Try to use the Ref tool - it will prompt for permission despite being globally allowed\n\n## Impact\n\nThis defeats the purpose of global settings. Users expect global permissions to apply everywhere unless explicitly overridden locally.\n\n## Suggested Fix\n\nMerge permission arrays (union for `allow`, union for `deny`) rather than replacing them entirely when local settings exist.\n\n---\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+  "labels": ["bug", "has repro", "area:core", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-09T05:40:20Z",
+  "updated_at": "2026-05-01T13:31:54Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 13,
+  "author": "gregoramon",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5140\n2. https://github.com/anthropics/claude-code/issues/16728\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-09T05:47:30Z"
+    },
+    {
+      "author": "jwalls89",
+      "author_association": "NONE",
+      "body": "I'm finding the same issue",
+      "created_at": "2026-01-10T19:01:46Z"
+    },
+    {
+      "author": "anderewrey",
+      "author_association": "NONE",
+      "body": "same here.\n\nOfficial Claude Code documentation mentions there's \"merge\" of the settings. \nhttps://code.claude.com/docs/en/settings\n> Precedence: Higher-level configurations (Managed) override lower-level ones (User/Project)\nInheritance: Settings are merged, with more specific settings adding to or overriding broader ones\n\nSo the documentation must be adjusted or allowing it correctly!\n\n",
+      "created_at": "2026-01-23T18:38:14Z"
+    }
+  ]
+}

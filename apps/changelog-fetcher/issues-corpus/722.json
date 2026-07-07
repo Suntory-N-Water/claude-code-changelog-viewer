@@ -1,0 +1,35 @@
+{
+  "number": 722,
+  "title": "[DOC] CLAUDE.md discovery - documentation is inconsistent",
+  "body": "## Description\n\nThere is conflicting information on the docs website about how/where Claude Code can find CLAUDE.md files in the directory tree. (This is an issue that has come up in a few Issues lately.)\n\n[Here](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview#how-claude-looks-up-memories) it says: \n\n> How Claude looks up memories\nClaude Code reads memories recursively: starting in the cwd, Claude Code recurses up to / and reads any CLAUDE.md or CLAUDE.local.md files it finds. This is especially convenient when working in large repositories where you run Claude Code in foo/bar/, and have memories in both foo/CLAUDE.md and foo/bar/CLAUDE.md.\n\n**TL/DR:** Claude recurses *up* the directory tree starting from where you open your session\n\n(No mention is made of a boundary point.)\n\n[Here](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/tutorials#set-up-project-memory)\n\n> You can add CLAUDE.md files to any of:\nThe folder you run Claude in: Automatically added to conversations you start in that folder\nChild directories: Claude pulls these in on demand\n~/.claude/CLAUDE.md: User-specific preferences that you don’t want to check into source control\n\nSo one source says Claude traverses up (the entire directory tree?? I kind of doubt it(?)) and the other source says it can look down and also at $HOME.\n\n* What's the fact of the matter?\n* What happens with conflicting information? Is there a precedence order?\n* Does Claude really traverse the directory tree all the way from CWD to $HOME?\n* When are memories \"loaded\" up? It says some are on launch, some are \"on demand\"?\n* Does Claude notice manual changes to CLAUDE.md files(?). If so, is it only in a new session?\n* What's the difference between `CLAUDE.local.md` and `.claude/CLAUDE.md`? Docs suggest they're both for personal, non-checked-in memories. I figured `.claude/` was for storing docs and commands and stuff, but then I don't see the distinction between these two alternative CLAUDE files. (EDIT: Come to think of it, if `.claude/commands` holds slash-commands that might be team-wide, e.g. part of CI/CD or something, then it's not right to think of `claude/` as a User-preference thing.)\n* I think there's an implicit assumption that a Claude Code workspace is supposed to correspond to a git repo. That's reasonable, but wasn't obvious to me, and isn't documented. And what about monorepos, etc.? Should I put a CLAUDE.md file in every sub-module, for example?\n* Can Claude access \"cousin\" directories? If i'm in `foo/bar` for the `bar` module in the `foo` repo, will it read `foo/baz/CLAUDE.md` if I ask it about `foo/baz`? (Is it even allowed to look there?)\n* Does `claude -p` also respect CLAUDE.md files or no? Does it follow the same rules?\n\nToo much guesswork going on here, IMO! I hope as the team moves out of beta, these rules will become more documented and codified. I love this tool, I hope it continues to improve, and I'd love more transparency/observability about these aspects, otherwise I don't see how it can be incorporated into a production workflow, CI/CD, etc.",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-04-06T07:04:00Z",
+  "updated_at": "2026-06-18T16:42:56Z",
+  "closed_at": "2025-04-08T18:25:22Z",
+  "reactions_total": 2,
+  "comments_count": 11,
+  "author": "hesreallyhim",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "hesreallyhim",
+      "author_association": "NONE",
+      "body": "Linked to:\n#707 \n#705 ",
+      "created_at": "2025-04-07T17:54:48Z"
+    },
+    {
+      "author": "ChristopherA",
+      "author_association": "NONE",
+      "body": "I regularly put multiple repositories in a directory with a CLAUDE.md that has a simple rule to list the repositories in the current directory, ask which one to load, and then load a context there. That context can be named anything. \n\nSee also https://github.com/ChristopherA/Claude-Code-CLI-Toolkit which has a different context for every branch of a repo.",
+      "created_at": "2025-04-07T21:17:30Z"
+    },
+    {
+      "author": "hesreallyhim",
+      "author_association": "NONE",
+      "body": "@ChristopherA Nice! I'll definitely check it out. Still, it's a custom toolkit, doesn't answer/resolve the questions/issues about Claude Code itself",
+      "created_at": "2025-04-07T21:24:30Z"
+    }
+  ]
+}

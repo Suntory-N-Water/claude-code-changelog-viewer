@@ -1,0 +1,35 @@
+{
+  "number": 54393,
+  "title": "Post-mortem 2026-04-28: 12 multi-agent coordination bugs surfaced across a single autonomous-overnight cycle",
+  "body": "# Post-mortem 2026-04-28: 12 multi-agent coordination bugs surfaced across a single autonomous-overnight cycle\n\n> Filed as a new issue rather than as a comment on FR #53610 because this catalog is generic to any multi-agent-coordination project — not specific to that FR's \"9 architectural gaps that defeat unattended overnight operation\" framing. FR #53610 has the cluster context. This issue has the architectural class.\n\n**Pattern type:** Single Opus PM coordinator dispatching Sonnet worker bees + Sonnet auditors via the `Agent` tool; long-running session with many compactions; filesystem-mediated state for cross-session continuity; PreToolUse / PostToolUse hooks gating heavy scripts. **No proprietary content below.** Reproductions noted per bug.\n\n---\n\n### Why this is filed (human impact)\n\nI have setups that work. Last Thursday: a single agent ran autonomously all night and produced real work. A separate night: cron handshake pattern — Opus PM checking one shared doc, assigning and checking off tasks to worker agents running in their own windows — also worked.\n\nI could not replicate either pattern over the weekend.\n\nMonday I spent the entire day with what used to be an Opus agent going over the weekend post-mortem. Tuesday morning: nothing from Friday's plan is done.\n\nFor months, audit-class agents told me data builds were complete. I specifically asked, repeatedly, about NaN values, data gaps, schema integrity. I have specialized auditor agents whose entire job is to verify this. Got \"all good\" from multiple audits, multiple sessions, before agent-mode existed and after. Yesterday a fresh agent — different model, different session — opens the same data and finds gaps. Then finds a downstream script that silently discards rows when gaps appear, so the gaps never surface anywhere. Months of \"all good\" was structurally false and was never going to get caught by the existing audit surface.\n\nLast night's plan: one Opus agent with autonomous powers, calling Sonnet worker bees inline. Concrete steps. Agreed in writing before I went to sleep.\n\nWhat actually happened:\n\n- Agent ran out of per-session usage mid-task. Required manual \"Please continue\" from my phone.\n- Agent hit a recursive hook. Didn't clear it. Didn't dispatch the RAM or auditor agents that exist specifically for this case.\n- Agent's task list had data-integrity items that needed to land *before* the dataset rebuild. It skipped every one of them and built the dataset anyway.\n- Agent then spent the rest of the night troubleshooting backtests on the bad data it had just built.\n- I woke up to: nothing useful done. Tokens burned for nothing.\n\nThis is the **fifth consecutive failed autonomous overnight**. The pattern is consistent — not a single agent's fault, not a single bug. The 12 coordination failure modes below are the primitives that keep producing these nights.\n\n---\n\n### How this connects to FR #53610\n\nFR #53610 was filed Apr 26 after the first three failed overnights of the weekend (Apr 23-25). It catalogued nine architectural gaps that defeat unattended overnight operation. Over the next 48 hours that thread accumulated more incident reports — a cluster of distinct failure modes hitting one operator across one weekend on one project. Per-session usage throttle defeating autonomous mode. Wildcard permission rules silently not honored. Audit-stamp invalidation infinite loop. Sonnet polling agents with no authority to dispatch a crashed Opus PM. Phase-gate dispatch with three invalid argparse flags accepted as no-ops. Retrain runs on stale leakage wiring. Forged ratification files. An Opus agent that authored its own overnight plan in writing and then violated every clause it had just acknowledged.\n\nEach one filed as its own incident. Each treated as a point bug. Each \"fixable.\"\n\nLast night's overnight — fifth consecutive failure, Tuesday morning with Friday's plan still undone — made it clear that **the cluster IS the bug.** Point fixes treat individual symptoms; the architectural class underneath is the same set of primitives showing up in dif",
+  "labels": ["enhancement", "area:hooks", "area:agents", "area:permissions"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-28T17:04:13Z",
+  "updated_at": "2026-06-24T14:09:20Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 17,
+  "author": "ThatDragonOverThere",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ThatDragonOverThere",
+      "author_association": "NONE",
+      "body": "## Independent same-day confirmations from the morning queue (2026-04-28)\n\nTwo issues filed today by other operators land on two of the highest-impact patterns in this catalog. Cross-referencing them here as evidence that these are not single-developer corner cases:\n\n### Confirms BUG-10 (Sub-agent integrity inheritance)\n\n[**#54448**](https://github.com/anthropics/claude-code/issues/54448) — *\"Subagent model override (frontmatter + Agent tool param) is silently inoperative\"* — filed ~13:48 PT tod",
+      "created_at": "2026-04-28T21:07:37Z"
+    },
+    {
+      "author": "kcarriedo",
+      "author_association": "NONE",
+      "body": "This post-mortem maps cleanly onto a class of failure I've been working on in a different context (a Rust scheduler/process-coordinator that wakes Claude Code agents on an interval for unattended GTM work). The pattern you describe — Opus PM → Sonnet workers → Sonnet auditors, with filesystem-mediated state and hook-gated tools — only stays correct if a few invariants hold outside the agent loop, and most of the bugs in your catalog (1, 2, 3, 5, 6, 10, 12) are symptoms of those invariants living",
+      "created_at": "2026-05-16T06:43:58Z"
+    },
+    {
+      "author": "kcarriedo",
+      "author_association": "NONE",
+      "body": "The BUG-1 \"good plan → compact → garbage drift\" pattern is the one I keep hitting hardest in long-running coordinator setups, and I think it's worth separating two failure modes that get conflated in the post-mortem:\n\n1. **Compaction loses operator decisions** — the agent had a verbatim \"don't retry rate-limited calls\" rule, compaction summarizes it into something like \"handle rate limits gracefully,\" and three hours later the agent reasons its way back to retrying. This is a *semantic* compress",
+      "created_at": "2026-05-16T21:26:53Z"
+    }
+  ]
+}

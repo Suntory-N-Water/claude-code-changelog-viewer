@@ -1,0 +1,35 @@
+{
+  "number": 6855,
+  "title": "[BUG] v1.0.98 is not reading project .mcp.json and rewriting .claude/settings.local.json",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [x] Other: Claude Code\n- Claude CLI version: 1.0.98\n- Operating System: WIndows 11\n- Terminal:  <!-- e.g. iTerm2, Terminal App -->\n\n## Bug Description\nVersion 1.0.98 only loads the gloablly configured MCP servers and ignores the local .mcp.json file. Also when a global MCP server is used it completely rewrites permissions already set in .claude/settings.local.json from scratch.\n\n## Steps to Reproduce\n1. 1.0.98 installed\n2. claude mcp list -> only globally configured MCPs are shown\n3. revert to 1.0.96 -> all MCPs are shown again\n\n## Expected Behavior\nAll MCP servers should be shown as usual.\n\n## Actual Behavior\nWhile Claude is auto updating when asked to use an MCP server, it even sees the server and then after the auto-update in the same session the MCPs are gone.\n\n```\nThinking…\n\n  Let me check the available playwright tools from my list. Looking at my available tools, I can see these playwright related tools:\n\n  - mcp__playwright__browser_navigate\n  - mcp__playwright__browser_take_screenshot\n  ....\n  - mcp__playwright__browser_hover\n  - mcp__playwright__browser_console_messages\n\n  Wait, it seems like these tools might not be enabled or available.\n```",
+  "labels": ["bug", "has repro", "platform:windows", "area:mcp", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-30T05:55:03Z",
+  "updated_at": "2026-01-17T14:09:04Z",
+  "closed_at": "2026-01-08T10:19:32Z",
+  "reactions_total": 11,
+  "comments_count": 5,
+  "author": "mathiaswillburger",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mathiaswillburger",
+      "author_association": "NONE",
+      "body": "Further information on how I was able to fix it:\n\nFor some reason the MCP configuration was not accepted anymore after the upgrade.\nWhat worked before perfectly fine:\n```\n\"permissions\": {\n    \"allow\": [\n         \"mcp__sse-server__someserver-execute-query(!query:*INSERT*,!query:*DELETE*,!query:*ALTER*,!query:*DROP*,!query:*CREATE*,!query:*TRUNCATE*)\",\n         \"Bash(git --no-pager diff *)\",\n    ....\n```\nhad to be changed to\n```\n\"permissions\": {\n    \"allow\": [\n         \"mcp__sse-server__someserver",
+      "created_at": "2025-09-02T04:40:18Z"
+    },
+    {
+      "author": "Frank-Codes",
+      "author_association": "NONE",
+      "body": "Hey Team, I believe I am also experiencing a similiar issue on Mac. When using Claude Code 2.0 VS Extension, I am unable to authenticate with the Atlassian MCP server. When using Claude Code in the terminal, I can. The mcp configuration is global.",
+      "created_at": "2025-10-21T19:11:06Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-08T10:17:58Z"
+    }
+  ]
+}

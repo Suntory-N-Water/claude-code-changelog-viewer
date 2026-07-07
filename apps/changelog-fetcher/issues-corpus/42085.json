@@ -1,0 +1,35 @@
+{
+  "number": 42085,
+  "title": "[BUG]  \"Unhandled node type: string\" on Bash tool confirmation prompt (regression in 2.1.89)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n  ## Description\n\n  When a Bash tool call containing `$()` command substitution or backticks is presented in the confirmation prompt, the CLI displays `Unhandled node type: string` error message.\n\n\n\n\n### What Should Happen?\n\n  This is a regression — version **2.1.83** correctly displays `Command contains $() command substitution`, while **2.1.89** shows the error.\n\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n  ## Reproduction\n\n  Any Bash command with `$()` triggers this. Minimal example:\n\n  result=$(echo hello); echo \"$result\"\n\n  ### 2.1.83 (correct behavior)\n   Bash command\n\n     result=$(echo hello); echo \"$result\"\n     Echo hello via variable\n\n   Command contains $() command substitution\n\n   Do you want to proceed?\n\n  ### 2.1.89 (broken)\n   Bash command\n\n     result=$(echo hello); echo \"$result\"\n     Echo hello via variable\n\n   Unhandled node type: string\n\n   Do you want to proceed?\n\n  ## Impact\n\n  - The error message is cosmetic — selecting \"Yes\" still executes the command correctly.\n  - Affects **every** Bash command containing `$()` or backticks.\n  - Confirmed on **two separate machines**, both running 2.1.89 on Linux.\n\n  ## Environment\n\n  - **Affected version**: 2.1.89\n  - **Working version**: 2.1.83\n  - **OS**: Linux (Ubuntu 24.04, kernel 6.8.0-90-generic)\n  - **Node.js**: v22\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.83\n\n### Claude Code Version\n\n2.1.89\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-01T15:27:43Z",
+  "updated_at": "2026-05-17T20:34:00Z",
+  "closed_at": "2026-05-17T20:34:00Z",
+  "reactions_total": 39,
+  "comments_count": 4,
+  "author": "nathanw2046",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "darrenmothersele",
+      "author_association": "NONE",
+      "body": "I'm experiencing this in 2.1.107 Claude Code too",
+      "created_at": "2026-04-14T12:30:47Z"
+    },
+    {
+      "author": "insanityinside",
+      "author_association": "NONE",
+      "body": "Also occurs on 2.1.97 on FreeBSD (installed via npm, no native installer).",
+      "created_at": "2026-04-20T11:45:24Z"
+    },
+    {
+      "author": "toby-dbv",
+      "author_association": "NONE",
+      "body": "Using 2.1.117 on Linux, I get:\n\n```\n───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n Bash command\n\n   gofmt -w internal/service/agentsvc/agentsvc.go && go test -count=1 -run=^$ ./internal/service/agentsvc/... 2>&1 | tail -10\n   Compile check agentsvc\n\n Unhandled node type: $\n\n Do you want to proceed?\n ❯ 1. Yes\n   2. No\n```\n\nThis is *not* cosmetic because it means that it can't proceed ",
+      "created_at": "2026-04-22T02:20:23Z"
+    }
+  ]
+}

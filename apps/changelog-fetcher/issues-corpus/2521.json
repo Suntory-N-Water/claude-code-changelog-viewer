@@ -1,0 +1,42 @@
+{
+  "number": 2521,
+  "title": "[BUG] Atlassian MCP Sign In does not work",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n- Claude CLI version: 1.0.33 (Claude Code)\n- Operating System: Windows, WSL Ubuntu 24.04.2 LTS\n- Terminal:  Bash in VS Code connected to WSL\n\n## Bug Description\nAuthentication with Atlassian fails when clicking the link to sign in with this message:\n>The redirect URI is not allowed, the URL is not part of Atlassian whitelisted domains for registered MCP Clients. Redirect URI\n\n## Steps to Reproduce\n1. `claude mcp add --transport sse atlassian https://mcp.atlassian.com/v1/sse`\n2. `claude`\n3. `/mcp`\n4. Select atlassian, hit enter\n5. Click link to open browser: `https://mcp.atlassian.com/v1/authorize?response_type=code&client_id=1ecEWU0Qn6LC8mAO&code_challenge=REDACTED&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A60953%2Fcallback&state=REDACTED`\n6. Blank website states:\n    >The redirect URI is not allowed, the URL is not part of Atlassian whitelisted domains for registered MCP Clients. Redirect URI\n\n## Expected Behavior\nAuthentication works\n\n## Actual Behavior\nAuthentication fails\n",
+  "labels": [
+    "bug",
+    "platform:windows",
+    "external",
+    "area:auth",
+    "area:mcp",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-24T09:11:22Z",
+  "updated_at": "2026-01-17T14:08:54Z",
+  "closed_at": "2026-01-08T10:19:17Z",
+  "reactions_total": 2,
+  "comments_count": 11,
+  "author": "prodigy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "prodigy",
+      "author_association": "NONE",
+      "body": "Okay I figured out the issue. The problem is, when clicking the link, it only opens a partial link without the redirect uri in the browser. When copy pasting the link it works just fine. Seems to be an issue with the windows console window / terminal I guess, as the link is printed over multiple lines.",
+      "created_at": "2025-06-27T10:23:10Z"
+    },
+    {
+      "author": "secustor",
+      "author_association": "NONE",
+      "body": "Where do you got the link from 🤔 \n\nFor me it shows in Claude Code and logs only `https://mcp.atlassian.com/v1/sse` and the site does not redirect to an auth flow. ",
+      "created_at": "2025-07-01T23:38:09Z"
+    },
+    {
+      "author": "prodigy",
+      "author_association": "NONE",
+      "body": "You do `claude mcp add --transport sse atlassian https://mcp.atlassian.com/v1/sse`. Then after launching `claude`, type `/mcp`. Then hit enter on atlassian. Then there is a link to sign in. 😊",
+      "created_at": "2025-07-04T15:07:30Z"
+    }
+  ]
+}

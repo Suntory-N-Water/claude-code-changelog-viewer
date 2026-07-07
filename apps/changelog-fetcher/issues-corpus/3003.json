@@ -1,0 +1,42 @@
+{
+  "number": 3003,
+  "title": "[BUG] Interrupting session during tool calls permanently corrupts conversation with tool_use/tool_result API errors",
+  "body": "### Description\nWhen a Claude Code session is interrupted (escape or Ctrl+C) while tools are actively being called, it causes API synchronization errors that make the conversation permanently unusable. The conversation cannot be resumed or recovered, effectively losing all context and requiring a new conversation to be started.\n\n### Steps to Reproduce\n1. Start a Claude Code session: `claude`\n2. Run commands that trigger multiple tool calls (e.g., multiple file reads, edits, or bash commands in parallel)\n3. Interrupt the session with Ctrl+C while tools are actively being called (timing is critical - must be during tool execution)\n4. Attempt to resume the conversation with `claude --resume` or by selecting from the conversation list\n5. Try to interact with Claude in the resumed conversation\n6. Observe API errors that prevent any further interaction\n\n### Expected Behavior\n- Conversations should gracefully handle interruptions during tool calls\n- If a tool call is interrupted, the conversation should be able to recover or rollback to a working state\n- At minimum, there should be a way to repair or clean corrupted conversation state\n\n### Actual Behavior\nThe conversation becomes permanently corrupted with API errors such as:\n```\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.29: `tool_use` ids were found without `tool_result` blocks immediately after: toolu_013ckU2JwQXpVxFdvi3xKT6T. Each `tool_use` block must have a corresponding `tool_result` block in the next message.\"}}\n```\n\nOr:\n```\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.6.content.0: unexpected `tool_use_id` found in `tool_result` blocks: toolu_012UKNLZsKcnA6fXh1k8qWop. Each `tool_result` block must have a corresponding `tool_use` block in the previous message.\"}}\n```\n\nOnce these errors occur, the conversation is completely unusable and cannot send any new messages.\n\n### Environment\n- **Claude Code Version**: 1.0.43\n- **Operating System**: Debian GNU/Linux 12 (bookworm) x86_64 \n- **Shell**: bash 5.2.15\n\n### Additional Context\nThis issue is distinct from #2971 and #2967 because:\n1. It's specifically triggered by interrupting active tool calls\n2. It results in permanent conversation corruption (not intermittent errors)\n3. There's no recovery mechanism - the conversation is lost\n\n### Workaround\nCurrently, the only workaround is to start a new conversation and lose all context from the corrupted one.\n\n### Possible Solutions\n1. Implement proper cleanup of pending tool calls when session is interrupted\n2. Add a conversation repair mechanism to fix tool_use/tool_result mismatches\n3. Implement checkpointing before tool calls to allow rollback\n4. Provide a `--force-cleanup` flag to reset conversation state\n\n### Error Log Examples\n```\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.9: `tool_use` ids were found without `tool_result` blocks immediately after: toolu_0159A3WFTNviEbqP5udwQEjV, toolu_01V6BgQw5nXvM93fDkouSxqe. Each `tool_use` block must have a corresponding `tool_result` block in the next message.\"}}\n```\n\n### Impact\nHigh - Results in complete loss of conversation context and work, requiring users to start over from scratch.\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "area:core",
+    "area:api"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-07-04T22:58:35Z",
+  "updated_at": "2025-09-26T14:06:45Z",
+  "closed_at": "2025-09-18T20:40:22Z",
+  "reactions_total": 11,
+  "comments_count": 8,
+  "author": "bachittle",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jfaithedu",
+      "author_association": "NONE",
+      "body": "until this is fixed, there are a few solutions you can try:\n\n1. you can always manually edit your jsonl file of the given conversation to remove the messages of the tool call - and then resume the conversation using --resume\n2. sometimes, forking the conversation by hitting escape, clicking up to the message before the tool call works.\n\nI've had this issue, in addition to an issue where an improperly sized image was sent - and it essentially locked the conversation (even with fork attempt) - unt",
+      "created_at": "2025-07-05T00:30:33Z"
+    },
+    {
+      "author": "bachittle",
+      "author_association": "NONE",
+      "body": "I just tried option 1 and it worked! Option 2 did not work. Using claude -r with the specific ID of the jsonl file is key here. ",
+      "created_at": "2025-07-05T02:13:27Z"
+    },
+    {
+      "author": "TomasHubelbauer",
+      "author_association": "NONE",
+      "body": "This doesn't just happen when the session is interrupted by the user. I just had Claude Code break itself without any interaction with me:\n\n```\n⏺ The issue seems to be deeper in the type system. Let me look at how the filters work in the actual usage:\n\n⏺ Read(src/…)\n  ⎿  Read 32 lines (ctrl+r to expand)\n  ⎿  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.…: `tool_use` ids were found without `tool_result` blocks immediately after: \n     toolu_…. Each `t",
+      "created_at": "2025-07-05T10:43:28Z"
+    }
+  ]
+}

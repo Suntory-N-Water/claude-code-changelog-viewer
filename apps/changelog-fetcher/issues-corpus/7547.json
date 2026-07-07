@@ -1,0 +1,35 @@
+{
+  "number": 7547,
+  "title": "[BUG] Claude code CLI binary installer silently deletes itself after installation",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# 🐞 BUG: Claude Code  CLI binary silently deletes itself after installation\n\n## Summary\nAfter installing Claude Code using the official script (https://install.anthropic.com/code), the binary located at ~/.local/bin/claude is silently deleted by a background node process within minutes, making the CLI unusable. This occurs without user interaction.\n\n##  Steps to Reproduce\n```bash\n# 1. Install Claude\ncurl -sS https://install.anthropic.com/code | sh\n\n# 2. Verify it's installed\nwhich claude        # -> ~/.local/bin/claude\nclaude --version    # -> 1.0.112\n\n# 3. Wait a few minutes, then try again\nwhich claude        # -> not found\n```\n\n---\n\t\n## Root Cause Evidence\n\nUsing `fs_usage`, I captured this **exact unlink event**:\n\n```\n02:56:20.477495  unlink  /Users/apathi/.local/bin/claude  node.7897450\n```\nSo `node` unlinked the binary silently, with no user input.\n\nThe process ran silently in the background and removed the claude binary after it had been successfully installed and verified. The process is node, likely from the package: @anthropic-ai/claude-code@1.0.44. No confirmation or fallback install happens. Leaves CLI completely unusable until reinstalled.\n\n## 📦 Related Context\n\n```bash\nnpm list -g --depth=1 | grep claude\n├─┬ @anthropic-ai/claude-code@1.0.44\n```\n\n- The binary is installed to: ~/.local/bin/claude\n- There’s no ~/.local/lib/node_modules/claude/ directory (suggesting cleanup or postinstall deletion or a faulty updater )\n- .npm/_logs shows high activity around the deletion time\n\n---\n\n## 📅 Timeline Summary\n\n| Time (PDT) | Event |\n|-----------:|:------|\n| 02:43 AM   | Ran install script |\n| 02:44 AM   | Verified CLI works |\n| 02:56 AM   | `claude` binary deleted by `node` |\n| 02:58 AM   | Confirmed missing CLI in shell |\n\n---\n\n### What Should Happen?\n\n\n## 💥 Expected Behavior\n- The CLI should not delete its own binary silently.\n- Any updates or postinstall actions should verify success before unlinking anything.\n- Binaries should not be unlinked unless rollback/replace is guaranteed.\n- Silent self-deletion without user interaction breaks CLI workflows and trust.\n\n---\n\n## 🧠 System Info\n\n- **macOS**: 14.x (Apple Silicon, MacBook Air M3)\n- **Claude Code  Version**: `1.0.112`\n- **Node Version**: `node -v` = `v v24.3.0` \n- **npm Version**: `npm -v` = `11.4.2`\n- **Install Script Used**: `https://install.anthropic.com/code`\n\n---\n\n### Error Messages/Logs\n\n```shell\n## 📎 Supporting Logs\n\n**Attached:**\n\n- `fs_usage.log` ← confirms deletion timestamp\n- `dtruss_claude.log` ← shows launch-to-deletion flow\n- `opensnoop_launcher.log` / `opensnoop_share.log` ← traces I/O ops\n- `.npm/_logs/*.log` ← shows background npm/node activity at exact time\n\n---\n```\n\n### Steps to Reproduce\n\n##  Steps to Reproduce\n```bash\n# 1. Install Claude\ncurl -sS https://install.anthropic.com/code | sh\n\n# 2. Verify it's installed\nwhich claude        # -> ~/.local/bin/claude\nclaude --version    # -> 1.0.112\n\n# 3. Wait a few minutes, then try again\nwhich claude        # -> not found\n```\n\n---\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n1.0.98\n\n### Claude Code Version\n\n1.0.112\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n## 📎 Supporting Logs\n\n**Attached:**\n\n- `fs_usage.log` ← confirms deletion timestamp\n- `dtruss_claude.log` ← shows launch-to-deletion flow\n- `opensnoop_launcher.log` / `opensnoop_share.log` ← traces I/O ops\n- `.npm/_logs/*.log` ← shows background npm/node activity at exact time\n- `watch-claude.sh` - The Script to reproduce and live-monitor the deletion we created . This script \t\n        •      Installs Cla",
+  "labels": ["bug", "has repro", "platform:macos", "area:packaging"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-09-13T07:29:48Z",
+  "updated_at": "2026-02-28T08:44:41Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 19,
+  "author": "apathi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "psihonavt",
+      "author_association": "NONE",
+      "body": "Just wanted to +1 this issue – it has happened to me at least two times (OS X, claude installed using `npm -g`).",
+      "created_at": "2025-09-13T19:35:29Z"
+    },
+    {
+      "author": "apathi",
+      "author_association": "NONE",
+      "body": "Update for anyone following this issue — the problem no longer occurs when installing Claude using the new binary installer released today Sept 15 2025:\n\n✅ New install (working):\ncurl -fsSL https://claude.ai/install.sh | bash\n\n❌ Old install :\ncurl -sS https://install.anthropic.com/code | sh\n\nAfter testing on the same system for several hours, the issue thus far appears to be resolved when using the new install script. Happy to share logs or more details if helpful.",
+      "created_at": "2025-09-16T06:14:54Z"
+    },
+    {
+      "author": "apathi",
+      "author_association": "NONE",
+      "body": "Without any user action or interference on my part, the installed path and version of claude changed unexpectedly. Additionally, I’m now receiving a warning about multiple installations when running /doctor.\n\n### Earlier – September 09, 2025 at 03:32 PM\n\n`which claude\n/Users/[username]/.local/bin/claude`\n`claude --version\n1.0.115 (Claude Code)`\n\n### Now – September 09, 2025 at 11:49 PM\n\n`which claude\n/opt/homebrew/bin/claude`\n`claude --version\n1.0.117 (Claude Code) `\n\n\n### Current Behavior : Whe",
+      "created_at": "2025-09-17T06:59:01Z"
+    }
+  ]
+}

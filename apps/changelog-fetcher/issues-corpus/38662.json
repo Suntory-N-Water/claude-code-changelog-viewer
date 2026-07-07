@@ -1,0 +1,41 @@
+{
+  "number": 38662,
+  "title": "Desktop app ignores bypassPermissions on macOS — every tool call prompts, every session, for months",
+  "body": "## Environment\n\n- Claude Code desktop app on macOS (Sequoia 15.3)\n- Claude Opus 4.6 (1M context)\n- Non-developer user (business owner using Claude Code for email triage, project management, database queries)\n\n## The problem\n\n`bypassPermissions` is set at all three levels and has been for months:\n\n**~/.claude/settings.json:**\n```json\n{\n  \"permissions\": {\n    \"defaultMode\": \"bypassPermissions\"\n  }\n}\n```\n\n**Project .claude/settings.local.json:**\n```json\n{\n  \"permissions\": {\n    \"defaultMode\": \"bypassPermissions\",\n    \"deny\": [\"Bash(rm -rf *)\", \"Bash(sudo *)\"]\n  }\n}\n```\n\n**Worktree .claude/settings.local.json:** Same as above.\n\nEvery Bash command, every Edit, every Write, every WebSearch prompts for permission. Every single session. There is no \"sometimes works\" -- it never works.\n\n## Impact\n\nMy typical morning routine involves ~30+ tool calls (database queries, email API calls, file writes, script execution). Each one prompts. That turns a 5-minute automated process into 20+ minutes of clicking \"Allow\". This has been happening for months across dozens of sessions.\n\nI am not a developer. I use Claude Code as a business tool via the desktop app. I cannot switch to Terminal -- it is not a usable interface for my workflow. The desktop app is the only viable option, and it is broken.\n\n## What I have tried\n\n- Set `bypassPermissions` in `~/.claude/settings.json` (user level)\n- Set `bypassPermissions` in `.claude/settings.local.json` (project level)\n- Set `bypassPermissions` in worktree `.claude/settings.local.json`\n- Verified all three files are correctly formatted JSON\n- Revisited this issue 20+ times across sessions -- settings are always correct, app always ignores them\n- The `--dangerously-skip-permissions` CLI flag works from Terminal but cannot be passed to the desktop app\n\n## Expected behaviour\n\nPermission prompts should not appear when `defaultMode` is set to `bypassPermissions`, except for writes to protected directories (.git, .claude, .vscode, .idea) as documented.\n\n## Actual behaviour\n\nEvery tool call prompts regardless of settings. Bash, Edit, Write, WebSearch -- all prompt. Settings files are confirmed present and correctly formatted but have zero effect.\n\n## Related issues\n\n#29026, #29214, #30953, #33336, #33993, #34923, #12604, #20536, #25503, #37029\n",
+  "labels": [
+    "bug",
+    "platform:macos",
+    "area:permissions",
+    "area:desktop",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-25T09:53:48Z",
+  "updated_at": "2026-05-24T10:45:11Z",
+  "closed_at": "2026-05-24T10:45:11Z",
+  "reactions_total": 2,
+  "comments_count": 16,
+  "author": "houserooms",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/29026\n2. https://github.com/anthropics/claude-code/issues/38148\n3. https://github.com/anthropics/claude-code/issues/34923\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-25T09:57:40Z"
+    },
+    {
+      "author": "houserooms",
+      "author_association": "NONE",
+      "body": "This is NOT a duplicate. The linked issues describe the CLI. This is the Desktop app (Conductor), which has a different permissions pathway.\n\nAdditional impact not covered in those issues: background agents launched via the Agent tool also cannot get Bash permissions, even when the parent session has bypassPermissions set. This means any long-running background task (database migrations, code generation, file processing) fails silently because the agent cannot execute commands.\n\nToday's session:",
+      "created_at": "2026-03-25T17:06:13Z"
+    },
+    {
+      "author": "houserooms",
+      "author_association": "NONE",
+      "body": "Not a duplicate. This report includes specific diagnostic detail not present in the linked issues: the bug is worse in the desktop app than CLI, parallel tool calls bypass permissions while sequential calls do not, and the 4.6 update introduced new permission prompts (WebSearch) that were previously silent. These are distinct observations that may help pinpoint the root cause.",
+      "created_at": "2026-03-25T17:22:56Z"
+    }
+  ]
+}

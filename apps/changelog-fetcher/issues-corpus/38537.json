@@ -1,0 +1,35 @@
+{
+  "number": 38537,
+  "title": "[BUG] Auto mode safety classifier uses claude-sonnet-4-6[1m] when Opus 4.6 1M is selected, causing Bash to fail when Sonnet 1M is unavailable",
+  "body": "## Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n## What's Wrong?\n\nWhen using **Opus 4.6 with 1M context** (`claude-opus-4-6[1m]`) as the selected model, enabling **auto mode** causes all Bash tool calls to fail immediately with the following error:\n\n```\nError: claude-sonnet-4-6[1m] is temporarily unavailable, so auto mode cannot determine the safety of Bash right now. Wait briefly and then try this action again. If it keeps failing, continue with other tasks that don't require this action and come back to it later. Note: reading files, searching code, and other read-only operations do not require the classifier and can still be used. (hasExtraBody=false)\n```\n\nThe error message reveals that the auto mode safety classifier is attempting to use `claude-sonnet-4-6[1m]` (Sonnet with 1M context) rather than the user-selected model. The bug appears to be that the classifier switches from Opus to Sonnet **but incorrectly inherits the `[1m]` context suffix**. When `claude-sonnet-4-6[1m]` is unavailable (even though `claude-opus-4-6[1m]` is available), every Bash command fails.\n\nSwitching the active model from Opus 4.6 1M to **Sonnet 4.6** (without the 1M suffix) resolves the issue, which confirms the root cause is the classifier receiving an unavailable model ID.\n\n## What Should Happen?\n\nAuto mode's safety classifier should either:\n1. Use the user-selected model (`claude-opus-4-6[1m]`) for classification, or\n2. Use a standard Sonnet model **without** inheriting the `[1m]` context suffix (e.g., `claude-sonnet-4-6` instead of `claude-sonnet-4-6[1m]`)\n\nBash tool calls in auto mode should succeed as long as the user's selected model is available.\n\n## Error Messages/Logs\n\n```\nError: claude-sonnet-4-6[1m] is temporarily unavailable, so auto mode cannot determine the safety of Bash right now. Wait briefly and then try this action again. If it keeps failing, continue with other tasks that don't require this action and come back to it later. Note: reading files, searching code, and other read-only operations do not require the classifier and can still be used. (hasExtraBody=false)\n```\n\n## Steps to Reproduce\n\n1. Set the model to Opus 4.6 with 1M context: `/model` → select `claude-opus-4-6[1m]`\n2. Enable auto mode (Shift+Tab or `defaultMode: \"auto\"` in settings)\n3. Attempt any task that requires a Bash tool call (e.g., run a shell command)\n4. Observe the error — auto mode classifier tries `claude-sonnet-4-6[1m]` which is unavailable\n\n**Workaround**: Switch to Sonnet 4.6 (non-1M) via `/model`, which allows the classifier to function correctly.\n\n## Claude Model\n\nOpus (with 1M context)\n\n## Is this a regression?\n\nI don't know\n\n## Claude Code Version\n\n2.1.81 (Claude Code)\n\n## Platform\n\nAnthropic API\n\n## Operating System\n\nOther Linux\n\n## Terminal/Shell\n\nVS Code integrated terminal\n\n## Additional Information\n\n- The `~/.claude.json` config shows `twoStageClassifier: true`, confirming a two-stage classifier is in use\n- The classifier appears to copy the context suffix (`[1m]`) from the user-selected model when switching to Sonnet, resulting in an invalid/unavailable model ID\n- Read-only operations (file reads, code search) are unaffected, as stated in the error message — only Bash execution is blocked\n- Related issues: #33587, #36483 (auto mode unavailable, different root cause)",
+  "labels": ["bug", "has repro", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-25T04:36:26Z",
+  "updated_at": "2026-04-24T14:55:42Z",
+  "closed_at": "2026-04-16T21:22:14Z",
+  "reactions_total": 66,
+  "comments_count": 13,
+  "author": "pkohei",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Nice root cause analysis. The `[1m]` suffix being passed through to the classifier model ID is clearly the bug — the classifier should strip context-window variants before selecting its model.\n**Additional workaround** if you want to keep using Opus 4.6 1M without auto mode:\nSwitch to `default` permission mode and use PreToolUse hooks for safety instead of the auto-mode classifier:\n```bash\n\"defaultMode\": \"default\"\n```\nThen add hooks to auto-approve commands you trust:\n```json\n{\n  \"hooks\": {\n    ",
+      "created_at": "2026-03-25T23:34:02Z"
+    },
+    {
+      "author": "Maxymvs",
+      "author_association": "NONE",
+      "body": "100% having the same issues and been unable to use auto mode bcause of this",
+      "created_at": "2026-03-26T05:29:34Z"
+    },
+    {
+      "author": "mr13tech",
+      "author_association": "NONE",
+      "body": "Also got the same issue;",
+      "created_at": "2026-03-26T11:52:36Z"
+    }
+  ]
+}

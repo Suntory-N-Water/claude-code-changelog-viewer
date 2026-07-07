@@ -1,0 +1,42 @@
+{
+  "number": 24964,
+  "title": "[BUG] Cowork: Folder picker rejects folders outside home directory, symlinks/junctions also blocked",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Bug Description\n\nCowork on Windows rejects any folder outside the user's home directory (`C:\\Users\\<username>`). The folder picker uses `fs.realpath()` to resolve paths before validation, which means **symlinks and NTFS junctions are also rejected** since they resolve back to the real path outside the home directory.\n\nThis is a significant limitation for Windows users who commonly keep project files on separate drives or outside their home folder (e.g., `C:\\Projects\\`, `D:\\Dev\\`).\n\n### Previous related issues\n\n- #20382 (closed)\n- #20550 (closed)\n\nBoth were closed but the underlying issue persists on the latest Windows version of Claude Desktop.\n\n## Steps to Reproduce\n\n1. Open Cowork on Windows\n2. Click to select a folder\n3. Browse to any folder outside `C:\\Users\\<username>` (e.g., `C:\\Projects\\MyProject`)\n4. Get error: **\"Invalid Folder Selection - The selected folder is outside your home directory. Only folders within your home directory can be used.\"**\n\n### Symlink/Junction workaround also fails:\n\n1. Create a junction inside home directory pointing to the external folder:\n   ```powershell\n   New-Item -ItemType Junction -Path \"C:\\Users\\<username>\\CoworkProjects\\MyProject\" -Target \"C:\\Projects\\MyProject\"\n   ```\n2. Try to select the junction in Cowork → **Same error**, because `fs.realpath()` resolves it back to the original path\n\n## Expected Behavior\n\nUsers should be able to select any folder they have OS-level permissions to access. The home-directory-only restriction is a UI limitation that doesn't reflect actual security needs — Claude's sandbox/VM can access these paths once a session starts.\n\nAt minimum, symlinks and junctions pointing to external folders should be accepted as a valid workaround.\n\n## Environment\n\n- **Platform:** Windows 11\n- **Claude Desktop:** Latest version (February 2026)\n- **Cowork:** Research preview\n\n### What Should Happen?\n\nUsers should be able to select any folder they have OS-level permissions to access, including folders on other drives or outside the home directory. At minimum, symlinks/junctions pointing to external folders should be accepted as a valid workaround, since the folder picker could skip `fs.realpath()` resolution or accept the resolved path regardless of its location.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Open Cowork on Windows\n2. Click to select a folder\n3. Browse to any folder outside `C:\\Users\\<username>` (e.g., `C:\\Projects\\MyProject`)\n4. Get error: **\"Invalid Folder Selection - The selected folder is outside your home directory. Only folders within your home directory can be used.\"**\n\n### Symlink/Junction workaround also fails:\n\n1. Create a junction inside home directory pointing to the external folder:\n   ```powershell\n   New-Item -ItemType Junction -Path \"C:\\Users\\<username>\\CoworkProjects\\MyProject\" -Target \"C:\\Projects\\MyProject\"\n   ```\n2. Try to select the junction in Cowork → **Same error**, because `fs.realpath()` resolves it back to the original path\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nVersion 1.1.2685 (f39a62)\n\n### Platform\n\nOther\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n_No response_\n\n<img width=\"644\" height=\"241\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/6befb2ed-521c-4185-99ec-35dc49cc532c\" />",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "platform:macos",
+    "area:ide",
+    "oncall"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-11T11:37:32Z",
+  "updated_at": "2026-04-19T14:30:51Z",
+  "closed_at": "2026-04-07T18:50:27Z",
+  "reactions_total": 190,
+  "comments_count": 157,
+  "author": "aviy009",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/24927\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-11T11:40:20Z"
+    },
+    {
+      "author": "MarvinFS",
+      "author_association": "NONE",
+      "body": "This is honestly very unsmart to limit that. It must be fixed ASAP it is not usable right now. User must control where AI has access not the other way around.",
+      "created_at": "2026-02-12T22:29:26Z"
+    },
+    {
+      "author": "Tjeef",
+      "author_association": "NONE",
+      "body": "### Additional impact: Windows Known Folder Redirection (not just project folders)\n\nThis restriction also breaks access to **standard user folders** (Documents, Desktop, Downloads) for anyone using Windows' built-in **Known Folder Redirection** — a core Windows feature since Vista that allows relocating shell folders to any drive.\n\n**This is not an OneDrive-specific feature.** Known Folder Redirection has three independent mechanisms:\n\n1. **Manual** — Right-click Documents → Properties → Locatio",
+      "created_at": "2026-02-13T05:43:36Z"
+    }
+  ]
+}

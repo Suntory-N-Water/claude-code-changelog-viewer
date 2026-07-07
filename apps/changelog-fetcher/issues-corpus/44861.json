@@ -1,0 +1,16 @@
+{
+  "number": 44861,
+  "title": "Scheduled triggers: MCP connectors fail to load in remote sessions",
+  "body": "## Problem\n\nMCP connectors configured on a scheduled trigger's `mcp_connections` field are not loaded in the remote session. The agent reports tools as unavailable despite the connectors being properly configured in the user's account and specified in the trigger config.\n\n## Setup\n\n**Connectors configured** (all showing as connected/configured in claude.ai/settings):\n- Linear (`mcp.linear.app/mcp`)\n- Slack (`mcp.slack.com/mcp`)\n\n**Trigger config** includes `mcp_connections` with correct connector UUIDs and URLs:\n```json\n\"mcp_connections\": [\n  {\"connector_uuid\": \"38f1d967-...\", \"name\": \"Linear\", \"url\": \"https://mcp.linear.app/mcp\"},\n  {\"connector_uuid\": \"806a7f77-...\", \"name\": \"Slack\", \"url\": \"https://mcp.slack.com/mcp\"}\n]\n```\n\nThe update API returns 200 OK and the GET confirms the connections are stored.\n\n## Observed behavior\n\nWhen the trigger runs, the remote agent reports:\n- \"Linear MCP tools unavailable in this environment\"\n- \"Slack MCP tools unavailable in this environment\"\n\nThis happens consistently across:\n- Default environment (`env_01AwxuhsJSy6RpaTqnUY3Fim`)\n- Full environment (`env_01CM4LBvPDii49zkDFbo4nDZ`)\n- Multiple runs over several hours\n- After re-adding connectors in the Customize page\n\nThe `gh` CLI is also unavailable in both environments, despite GitHub Integration being connected.\n\n## Expected behavior\n\nMCP tools from configured connectors should be available to the remote agent, same as they are in interactive claude.ai conversations.\n\n## Workaround\n\nNone currently. The agent's prompt includes graceful fallbacks (skip Linear/Slack steps if unavailable), but the core integrations don't work.\n\n## Additional context\n\n- The same connectors work fine in interactive claude.ai conversations\n- The trigger's `allowed_tools` field correctly specifies `Bash`, `Read`, `Write`, etc. and those work\n- Git operations work correctly in the remote session\n- Related issue: #44771 (permission prompts in remote sessions)",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-07T20:20:22Z",
+  "updated_at": "2026-04-18T14:28:49Z",
+  "closed_at": "2026-04-10T19:44:56Z",
+  "reactions_total": 1,
+  "comments_count": 3,
+  "author": "pelmered",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

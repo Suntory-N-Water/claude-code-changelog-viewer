@@ -1,0 +1,16 @@
+{
+  "number": 22077,
+  "title": "/plugin command causes 100% CPU freeze (v2.1.27)",
+  "body": "## Environment\n- **Claude Code version:** 2.1.27\n- **OS:** macOS Darwin 25.2.0 (arm64, Apple Silicon)\n- **Shell:** zsh\n\n## Bug Description\nTyping `/plugin` in Claude Code causes the process to immediately spike to 100% CPU and freeze indefinitely. The process must be killed with `kill -9`.\n\n## Steps to Reproduce\n1. Start Claude Code: `claude --dangerously-skip-permissions`\n2. Type `/plugin` and press Enter\n3. Process immediately goes to 100% CPU and becomes unresponsive\n\n## Expected Behavior\nThe plugin menu should appear showing installed/available plugins.\n\n## Actual Behavior\n- Process spikes to 100% CPU\n- UI becomes completely frozen\n- No output is displayed\n- Must force kill with `kill -9 <PID>`\n\n## Diagnostic Steps Taken\n1. **Tested with all plugins enabled (7 plugins):** Freezes\n2. **Tested with some plugins disabled:** Freezes\n3. **Tested with ALL plugins disabled:** Still freezes\n\nThis confirms the issue is in Claude Code itself, not in any plugin.\n\n## Plugin Configuration Tested\n```json\n{\n  \"enabledPlugins\": {\n    \"ciq@secondbrain\": false,\n    \"eng@secondbrain\": false,\n    \"saga@secondbrain\": false,\n    \"setup@secondbrain\": false,\n    \"superpowers@claude-plugins-official\": false,\n    \"superpowers@superpowers-marketplace\": false,\n    \"code-review@claude-plugins-official\": false\n  }\n}\n```\nEven with this configuration (all plugins disabled), `/plugin` causes 100% CPU freeze.\n\n## Process Information During Freeze\n```\ntonygiamboy  9153  99.1%  1.2  508934272  451728  ??  R+  claude --dangerously-skip-permissions\n```\n\n## Workaround\nAvoid using the `/plugin` command. Skills can still be invoked via `Skill()` tool or `/skillname` syntax.\n\n## Additional Context\n- Multiple concurrent frozen sessions were observed (3 sessions at 99-100% CPU simultaneously)\n- The freeze appears to be an infinite loop (100% CPU, not I/O wait)\n- Other slash commands may work fine; specifically `/plugin` triggers this",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-31T01:46:21Z",
+  "updated_at": "2026-03-10T14:33:29Z",
+  "closed_at": "2026-03-02T22:11:46Z",
+  "reactions_total": 2,
+  "comments_count": 10,
+  "author": "TPG24",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

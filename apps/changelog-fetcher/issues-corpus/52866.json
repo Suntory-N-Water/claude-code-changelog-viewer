@@ -1,0 +1,35 @@
+{
+  "number": 52866,
+  "title": "[BUG] Terminal re-renders entire conversation output repeatedly during sequential tool calls",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhat's Wrong:                                                                                                                                                                         \n  When Claude Code executes multiple sequential tool calls in one response (e.g. 4–5 file edits in a row), the terminal re-renders the entire previous conversation output from scratch \n  on each new chunk/result instead of appending. This causes every previous response block to appear repeated many times in the terminal scroll history.                                \n                                                                                                                                                                                        \n  Observed twice in the same session:                                                                                                                                                   \n  1. First response of the session (a markdown table) rendered ~20 times before the next prompt appeared.                                                                               \n  2. During a sequence of 5 Edit tool calls to the same file, the full diff output block was re-rendered after each call — resulting in the same content repeated 5+ times.\n                                                                                                                                                                                        \n  The duplicates are visible in the scroll history (not just a visual flicker). The content below the duplicates is correct — it appears to be a rendering/repaint issue, not actual    \n  duplicate API responses.                                                                                                                                                              \n                                                                                                                                                                                        \n  Environment (there will likely be a section for this below the fold):                                                                                                                 \n  - Claude Code version: 2.1.119                                                                                                                                                        \n  - OS: macOS (Darwin 25.4.0)   \n  - Terminal: macOS Terminal.app (not iTerm2)                                                                                                                                           \n  - Shell: zsh                                                                                                                                                                          \n  - Terminal dimensions: 184×173                    \n\n### What Should Happen?\n\n  Each response should render once and append below the previous one.                                                                                               \n  New tool results should add to the bottom of the output, not cause                                                                                                \n  the entire conversation to re-render from the top. \n\n### Error Messages/Logs\n\n```shell\nNo error messages. The bug is purely visual — no crash, no error output.\n```\n\n### Steps to Reproduce\n\n1. Start a Claude Code session in macOS Terminal.app                                                                                                              \n  2. Give Claude a task that requires multiple sequential file edits                                                                                                \n     in a single res",
+  "labels": ["bug", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-24T13:35:28Z",
+  "updated_at": "2026-06-29T05:02:04Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 8,
+  "author": "designertriescoding",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/51418\n2. https://github.com/anthropics/claude-code/issues/49985\n3. https://github.com/anthropics/claude-code/issues/46775\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-24T13:40:54Z"
+    },
+    {
+      "author": "cutuer",
+      "author_association": "NONE",
+      "body": "+1 reproducing on **Windows 11 Pro 26200** + Git Bash, Claude Code 2.1.119, /think low.\n\nConfirmed today: during a sequence of Bash + Read + Edit + curl tool calls, the entire prior conversation block (assistant message + earlier tool outputs) re-rendered in the scrollback. Closely related to (or same root cause as) #52924 — the redraw is triggered specifically by sequential tool-call streaming, not just by long session length.\n\nHappy to share an anonymized transcript.",
+      "created_at": "2026-04-25T15:55:43Z"
+    },
+    {
+      "author": "jackstine",
+      "author_association": "NONE",
+      "body": "Please fix this. This is absurd.\nBeen happening for at least three weeks.\nClaude Code v2.1.123\nMacOs Tahoe 26.2 ",
+      "created_at": "2026-04-29T15:31:46Z"
+    }
+  ]
+}

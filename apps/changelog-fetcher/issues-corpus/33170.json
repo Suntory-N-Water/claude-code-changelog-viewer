@@ -1,0 +1,35 @@
+{
+  "number": 33170,
+  "title": "Voice: Add language configuration for speech-to-text transcription",
+  "body": "## Feature Request\n\nThe voice feature currently appears to default to English for speech-to-text transcription. There is no way to configure the transcription language, which makes it difficult to use for non-English speakers.\n\n## Problem\n\nWhen speaking German (or other non-English languages) into the microphone, the transcription does not recognize the language correctly. It seems to only work reliably with English input.\n\n## Proposed Solution\n\nAdd a configurable language setting for voice transcription. Options could include:\n\n1. **Auto-detection** (preferred): Automatically detect the spoken language (Whisper supports this natively)\n2. **Explicit setting**: Allow users to set a preferred transcription language, e.g.:\n   - Environment variable: `CLAUDE_VOICE_LANGUAGE=de`\n   - Or in `settings.json`: `\"voiceLanguage\": \"de\"`\n   - Or support a list for multilingual users: `\"voiceLanguages\": [\"en\", \"de\"]`\n\n## Use Case\n\nI'm a German speaker using Claude Code daily. I frequently switch between English and German when communicating with Claude. The voice feature would be much more useful if it could handle both languages.\n\n## Environment\n\n- Platform: Linux (WSL2)\n- Claude Code version: 2.x",
+  "labels": ["enhancement", "area:tui", "platform:wsl"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-11T11:56:32Z",
+  "updated_at": "2026-04-08T21:10:10Z",
+  "closed_at": null,
+  "reactions_total": 40,
+  "comments_count": 3,
+  "author": "Rieman90",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Rafikooo",
+      "author_association": "NONE",
+      "body": "I have a similar use case - I regularly switch between Polish and English when working with Claude Code.\n\nMy ideal solution would be **separate keyboard shortcuts per language**, e.g.:\n- `Space` - push-to-talk in primary language\n- `Ctrl+Space` - push-to-talk in secondary language\n\nCurrently switching requires going through `/config` each time, which breaks the flow. A keybinding-based approach (or at minimum a `voice:cycleLanguage` action bindable in `keybindings.json`) would make voice mode mu",
+      "created_at": "2026-03-17T09:48:12Z"
+    },
+    {
+      "author": "dg-hellotwin",
+      "author_association": "NONE",
+      "body": "**Workaround found: `language` setting in settings.json**\n\n  The voice STT language can be configured via the `language` setting in `~/.claude/settings.json`:\n\n  ```json\n  {\n    \"language\": \"russian\"\n  }\n```\n  After adding this manually, /voice correctly shows Dictation language: ru and Russian speech recognition works.\n\n  Note: I initially tried setting the language to Russian via the /config UI, and voice mode did not pick it up. I'm not sure if the issue was the capitalization or if /config d",
+      "created_at": "2026-03-17T18:09:31Z"
+    },
+    {
+      "author": "Gchapolin",
+      "author_association": "NONE",
+      "body": "## Portuguese (pt-BR) voice recognition is essentially non-functional\n\n**Environment:** macOS, Claude Code CLI, /voice mode\n\n**Steps to reproduce:**\n1. Enable voice mode with `/voice`\n2. Change dictation language to `pt` via `/config`\n3. Speak in Portuguese\n\n**Expected:** Transcription of Portuguese speech\n**Actual:** Either garbled English text or nothing recognizable. Examples of what was transcribed when speaking Portuguese:\n- \"The cloud g u leave\"\n- \"Genova, Claude,\"\n\nThe transcription compl",
+      "created_at": "2026-04-08T21:10:10Z"
+    }
+  ]
+}

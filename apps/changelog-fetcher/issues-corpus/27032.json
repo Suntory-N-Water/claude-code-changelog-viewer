@@ -1,0 +1,35 @@
+{
+  "number": 27032,
+  "title": "Model ignores CLAUDE.md instructions despite reading them at session start",
+  "body": "## Description\n\nDuring a session, Claude Code violated two explicit rules defined in the user's CLAUDE.md files, despite having read and acknowledged those files at the start of the session.\n\n## Violations\n\n### 1. Launched parallel agents without permission\n\n**CLAUDE.md rule:**\n> - **NEVER** launch multiple agents in parallel without asking permission first\n> - Always state what you plan to launch, the estimated cost, and wait for approval\n\n**What happened:** When entering plan mode, the model launched 3 Task agents simultaneously in a single message without asking. The user rejected 2 of the 3, but all 3 had already started executing, consuming ~27k tokens total.\n\n### 2. Wrote plan file outside the repository\n\n**CLAUDE.md rule:**\n> - **NEVER** create plan files outside the repository\n> - All plan files go in `docs/plans/` within the current repo\n> - Do NOT use `~/.claude/plans/` or any other external location\n\n**What happened:** Plan mode's system prompt suggested writing to `~/.claude/plans/indexed-brewing-sedgewick.md`. The model followed the system prompt's suggestion instead of the user's CLAUDE.md override, writing the plan file to `~/.claude/plans/` rather than `docs/plans/` in the repo.\n\n## Root Cause Analysis\n\nBoth violations share a common pattern: the model's built-in system prompts (plan mode instructions, agent launching defaults) took precedence over user-defined CLAUDE.md instructions, even though the CLAUDE.md was read first and its rules are supposed to override defaults.\n\nThe second violation is particularly concerning because the plan mode system prompt explicitly tells the model where to write the plan file (`/Users/.../.claude/plans/indexed-brewing-sedgewick.md`), and the model followed that directive instead of the user's CLAUDE.md which says to never use that location.\n\n## Expected Behavior\n\n- CLAUDE.md instructions should reliably override default system prompt behaviors\n- The model should check CLAUDE.md rules before taking actions that those rules explicitly govern (agent launching, file creation locations)\n\n## Environment\n\n- Claude Code CLI\n- Model: claude-opus-4-6",
+  "labels": ["stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-20T00:19:12Z",
+  "updated_at": "2026-05-16T22:25:14Z",
+  "closed_at": "2026-05-16T22:25:14Z",
+  "reactions_total": 2,
+  "comments_count": 16,
+  "author": "chrispicht",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/26226\n2. https://github.com/anthropics/claude-code/issues/26160\n3. https://github.com/anthropics/claude-code/issues/18596\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-20T00:23:50Z"
+    },
+    {
+      "author": "ForkyTheBot",
+      "author_association": "NONE",
+      "body": "The two violations you're describing share a root cause but need different fixes.\n\n**Violation #1 (parallel agent launch):** This is a hard trust boundary issue. The model is resolving a conflict between its built-in plan mode behavior (\"launch agents autonomously\") and your CLAUDE.md rule (\"ask first\"). When those compete, the more specific in-context system prompt wins — which is the wrong priority ordering for user safety rules.\n\nThe enforcement gap here is that \"ask permission first\" in a CL",
+      "created_at": "2026-02-20T00:24:02Z"
+    },
+    {
+      "author": "mr-lodco",
+      "author_association": "NONE",
+      "body": "Nice find, @chrispicht. Your root cause analysis nails it — this is the same pattern documented in #26390. The system prompt forms the model's baseline assumptions, and CLAUDE.md instructions are a second-pass correction that the model applies inconsistently.\n\nI maintain a ~80-line Terminal Formatting Protocol in my CLAUDE.md that maps out exactly which GFM features the renderer breaks and defines replacement characters (shared in full here: https://github.com/anthropics/claude-code/issues/26390",
+      "created_at": "2026-02-21T01:17:23Z"
+    }
+  ]
+}

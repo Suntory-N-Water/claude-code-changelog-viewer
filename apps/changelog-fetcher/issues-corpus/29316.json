@@ -1,0 +1,35 @@
+{
+  "number": 29316,
+  "title": "/sandbox creates empty stub files in project root when using git worktrees",
+  "body": "## Description\n\nWhen using `/sandbox` in a repository that is a git worktree (where `.git` is a file pointer rather than a directory), a set of empty stub files are created in the project root and show up as untracked files in `git status`.\n\n## Affected files\n\nThe following empty (0-byte), read-only files are created in the project root:\n\n**Shell dotfiles** (sandbox home dir mapping):\n``.bash_profile`, `.bashrc`, `.gitconfig`, `.gitmodules`, `.idea`, `.mcp.json`, `.profile`, `.ripgreprc`, `.zprofile`, `.zshrc``\n\n**Git internals** (normally live inside `.git/` directory):\n`HEAD`, `config`, `hooks`, `objects`, `refs`\n\n## Root cause hypothesis\n\nIn a normal repo, `.git` is a directory that already contains `HEAD`, `config`, `hooks`, `objects`, `refs` — so any sandbox stubs landing inside `.git/` would be invisible to `git status`. In a worktree, `.git` is a file (e.g. `gitdir: /path/to/worktrees/branch`), so the sandbox writes the stubs to the project root instead, where git picks them up as untracked.\n\n## Reproduction steps\n\n1. Create or use a git worktree: `git worktree add ../my-branch my-branch`\n2. `cd` into the worktree directory (where `.git` is a file, not a directory)\n3. Run `/sandbox connect` in Claude Code\n4. Run `git status` — observe empty stub files listed as untracked\n\n## Expected behavior\n\nNo untracked files should be created in the project directory as a side effect of connecting to a sandbox.\n\n## Workaround\n\nAdd the affected filenames to `.gitignore`.",
+  "labels": ["bug", "has repro", "area:sandbox"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-27T12:25:54Z",
+  "updated_at": "2026-05-18T13:35:38Z",
+  "closed_at": "2026-05-18T13:35:38Z",
+  "reactions_total": 22,
+  "comments_count": 10,
+  "author": "baelter",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25896\n2. https://github.com/anthropics/claude-code/issues/26722\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-27T12:32:20Z"
+    },
+    {
+      "author": "qte77",
+      "author_association": "NONE",
+      "body": "Confirming this also affects the EnterWorktree tool in Claude Code v2.1.52 (Feb 2026). Same root cause as #17374 — .git is a file in worktrees, so bwrap writes stubs to the project root. The .gitignore workaround hides the cosmetic issue but doesn't fix the write-blocking that makes worktree git operations fail.\n\n 🤖 Generated with Claude noreply@anthropic.com",
+      "created_at": "2026-02-28T19:11:11Z"
+    },
+    {
+      "author": "Suor",
+      "author_association": "NONE",
+      "body": "This is incredibly annoying, disabled sandbox for now.",
+      "created_at": "2026-03-01T16:40:56Z"
+    }
+  ]
+}

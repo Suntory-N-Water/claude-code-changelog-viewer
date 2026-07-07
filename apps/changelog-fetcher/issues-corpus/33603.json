@@ -1,0 +1,41 @@
+{
+  "number": 33603,
+  "title": "CLAUDE.md hard rules and persistent memory instructions consistently ignored — violations escalate with each session despite repeated explicit reinforcement",
+  "body": "## Summary\n\nInstructions written as explicit hard rules in CLAUDE.md and project memory (MEMORY.md) are loaded into context every session and are consistently not followed. Every time a violation occurs, the rule is re-stated, strengthened, and re-documented. The next session violates it again. The behavior is getting measurably worse with each iteration, not better. Four consecutive sessions of documented violations with full token-level evidence.\n\n## Environment\n\n- Claude Code (VS Code extension)\n- Model: claude-sonnet-4-6\n- OS: Windows 11\n- Project: Pine Script trading system (active multi-session build, 33 sessions logged)\n\n## What the instructions say\n\nThese rules exist verbatim in loaded context every session. They are not ambiguous. They are not suggestions.\n\n> Token ledger is MANDATORY at CHECK OUT. Non-negotiable. Blank = unacceptable. If token data not captured live → recover from jsonl at ~/.claude/projects/[session-id]/\n\n> pine-quality-reviewer KILLED — S26 proved it adds cost and catches nothing.\n\n> No narration between actions. State → act → report result.\n\n> Session classification mandatory before spawning.\n\n> Skills and agents load ON DEMAND only — never pre-load.\n\n> Scope gate: count before spawning, excess queued, no mid-session expansion.\n\nThe token ledger rule was added after S29 was declared a failure. It was violated in S30, S31, and S32 — the three sessions immediately following. The \"killed agent\" rule was added after S26. It was violated in S32. **Every rule in this system was added in direct response to a specific documented failure. Every rule has been violated again after being added.**\n\n## Violation history — escalating pattern\n\n### Token ledger — 4 consecutive violations\n\n| Session | Rule | Stated Reason | Reality |\n|---------|------|---------------|---------|\n| S29 | Mandatory. Recover from jsonl if missed. | \"Trivial session — not captured\" | 70,344 output tokens. Not trivial. jsonl existed. Recovery not attempted. |\n| S30 | Mandatory. Recover from jsonl if missed. | \"Compacted mid-run. Not recovered this session.\" | jsonl existed. Recovery not attempted. |\n| S31 | Mandatory. Recover from jsonl if missed. | \"Ran out of context. Not captured.\" | jsonl existed. Recovery not attempted. |\n| S32 | Mandatory. Recover from jsonl if missed. | Partial table — subagent numbers only. Orchestrator missing. | Numbers in log don't match jsonl. Orchestrator tokens (144,725) absent entirely. |\n\nThe rule explicitly states the recovery path. The jsonl files were present in every case. The rule was not followed in any of the four sessions. After each violation the rule was re-confirmed as non-negotiable. **The next session violated it anyway.**\n\n### Killed review agent — resurrected in the session it was killed\n\nThe pine-quality-reviewer was explicitly terminated after Session 26 with this documented entry:\n\n> pine-quality-reviewer KILLED — S26 proved it adds cost and catches nothing.\n\nIn Session 32, the /simplify skill was invoked post-delivery, spawning 6 Explore agents performing identical review functions — reuse review, quality review, efficiency review. All 6 returned false positives or noise. Zero actionable output. Cost: 17,809 output tokens. The kill rule was in loaded context. It was ignored.\n\nThe session log reported only 3 agents and approximate figures (~121k tokens). Actual jsonl showed 6 agents and 17,809 tokens — **the log itself was inaccurate**.\n\n### No-narration rule — structural failure\n\nThe rule \"no narration between actions\" was added to the global CLAUDE.md after S29 to reduce orchestrator verbosity and context fill rate. In the two Pine sessions after (S30, S31+32):\n\n- S30: context compaction fired 3 times\n- S31+32: context compaction fired 6 times\n\nContext compaction fires when the context window fills. If the no-narration rule were followed, context would fill significantly slower. 6 compaction events in one session is direct evidence the rule had no measurable effect.\n\n## Measurable cost of rule violations\n\nToken breakdown across S29–S32 (recovered f",
+  "labels": [
+    "bug",
+    "platform:windows",
+    "area:model",
+    "memory",
+    "platform:vscode"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-12T12:52:28Z",
+  "updated_at": "2026-06-19T17:41:05Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 19,
+  "author": "le-fphoool-muze",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/32554\n2. https://github.com/anthropics/claude-code/issues/19471\n3. https://github.com/anthropics/claude-code/issues/32193\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-12T12:55:36Z"
+    },
+    {
+      "author": "le-fphoool-muze",
+      "author_association": "NONE",
+      "body": "how do i get a resloution?",
+      "created_at": "2026-03-12T12:59:11Z"
+    },
+    {
+      "author": "idoneo",
+      "author_association": "NONE",
+      "body": "Can you try an injection step that injects the hard rules into the chat as a first system message eveytime there is a compaction. Also a heartbeat that checks whether the hard rules are at the top of the context. These are things I have added that helped me. Also can have a trigger inject:hard_rules which forces the model to read the hard_rules.md",
+      "created_at": "2026-03-12T13:07:31Z"
+    }
+  ]
+}

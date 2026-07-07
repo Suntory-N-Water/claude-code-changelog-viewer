@@ -1,0 +1,42 @@
+{
+  "number": 8968,
+  "title": "[BUG] exceptional memory usage since v2.0.8",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\neach instance of claude code is using anywhere from 2.5-3GB to 8GB of RAM, on a MacBook Pro M4 Pro with built-in GPU.  nothing has changed on my macbook other than claude code auto-update, whenever that happened.  See this:\n\n<img width=\"861\" height=\"686\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/96ebda64-1956-4653-b63c-d26cedaec3e8\" />\n\n### What Should Happen?\n\nif 1 claude code terminal takes up on an average 4-5 GB of Memory, MacBooks are not just running out of battery but there's not much we can do with claude code in 1 terminal !\n\n### Error Messages/Logs\n\n```shell\nprovided from activity monitor all details.\n```\n\n### Steps to Reproduce\n\njust launch claude code in macos terminal or warp terminal, then watch activity monitor.\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.0.8\n\n### Claude Code Version\n\n2.0.8 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "perf:memory",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-05T14:55:30Z",
+  "updated_at": "2026-01-20T14:17:48Z",
+  "closed_at": "2026-01-12T10:14:21Z",
+  "reactions_total": 0,
+  "comments_count": 12,
+  "author": "usorama",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/8542\n2. https://github.com/anthropics/claude-code/issues/8836\n3. https://github.com/anthropics/claude-code/issues/8737\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-05T14:59:46Z"
+    },
+    {
+      "author": "saynth-ai",
+      "author_association": "NONE",
+      "body": "<--- Last few GCs --->\n\n[2184614:0x33dc9000] 694035870 ms: Mark-Compact 4081.4 (4111.3) -> 4064.5 (4121.4) MB, pooled: 0 MB, 122.74 / 0.09 ms  (average mu = 0.397, current mu = 0.416) allocation failure; scavenge might not succeed\n[2184614:0x33dc9000] 694036016 ms: Mark-Compact (reduce) 4081.5 (4125.0) -> 4073.0 (4095.0) MB, pooled: 0 MB, 28.58 / 0.01 ms  (+ 62.3 ms in 217 steps since start of marking, biggest step 5.2 ms, walltime since start of marking 134 ms) (average mu = 0.390\nFATAL ERROR: ",
+      "created_at": "2025-10-06T07:21:49Z"
+    },
+    {
+      "author": "ariccio",
+      "author_association": "NONE",
+      "body": "Yeah, wow, mine dumped core too:\n```\n<--- Last few GCs --->\n\n[18225:0x128008000]  4254158 ms: Scavenge (reduce) 3728.9 (3760.7) -> 3727.9 (3760.7) MB, 0.96 / 0.00 ms  (average mu = 0.935, current mu = 0.952) allocation failure; \n[18225:0x128008000]  4254793 ms: Mark-Compact (reduce) 4439.1 (4471.0) -> 4230.8 (4387.7) MB, 105.25 / 0.04 ms  (average mu = 0.941, current mu = 0.950) allocation failure; scavenge might not succeed\n\n\n<--- JS stacktrace --->\n\nFATAL ERROR: Reached heap limit Allocation f",
+      "created_at": "2025-10-08T19:29:17Z"
+    }
+  ]
+}

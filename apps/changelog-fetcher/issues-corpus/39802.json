@@ -1,0 +1,16 @@
+{
+  "number": 39802,
+  "title": "Plugin hook scripts lose execute permission in 'unknown' cache path",
+  "body": "## Description\n\nPlugin hook scripts (shell scripts) lose their execute permission when cached via the `unknown` version path, causing `Permission denied` errors at runtime.\n\n## Steps to reproduce\n\n1. Have a plugin with a hook script (e.g., `ralph-loop` with `stop-hook.sh`)\n2. Wait for the plugin cache to sync — the `unknown` version path writes the file without the executable bit\n3. When the marketplace directory syncs from this cache, the hook script is no longer executable\n4. Hook invocation fails with: `/bin/sh: .../stop-hook.sh: Permission denied`\n\n## Evidence\n\nThree cache versions of the same file show the issue:\n\n```\n# Versioned caches — correct (+x)\n-rwxr-xr-x  stop-hook.sh   (cache/.../d53f6ca4cdb0/hooks/)\n-rwxr-xr-x  stop-hook.sh   (cache/.../b10b583de281/hooks/)\n\n# 'unknown' cache — missing +x\n-rw-r--r--  stop-hook.sh   (cache/.../unknown/hooks/)\n```\n\nThe marketplace copy inherits the broken permissions from the `unknown` cache:\n```\n-rw-r--r--  .../marketplaces/claude-plugins-official/plugins/ralph-loop/hooks/stop-hook.sh\n```\n\n## Workaround\n\n```bash\nchmod +x ~/.claude/plugins/marketplaces/claude-plugins-official/plugins/ralph-loop/hooks/stop-hook.sh\n```\n\nRecurs on next plugin update that goes through the `unknown` path.\n\n## Expected behavior\n\nThe plugin cache should preserve file permissions (specifically the executable bit) when writing to the `unknown` version path, matching the behavior of the versioned cache paths.\n\n## Environment\n\n- macOS (Darwin 25.3.0)\n- Claude Code (latest as of 2026-03-27)",
+  "labels": ["bug", "has repro", "platform:macos", "area:plugins"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-27T10:48:43Z",
+  "updated_at": "2026-04-25T14:35:41Z",
+  "closed_at": "2026-04-18T04:17:58Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "jamiemunro",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,35 @@
+{
+  "number": 30166,
+  "title": "[BUG] Gmail OAuth Flow Hangs at Final Redirect in Claude Desktop",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n<html><head></head><body><h1>Bug Report: Gmail OAuth Flow Hangs at Final Redirect in Claude Desktop</h1>\n<h2>Environment</h2>\n<ul>\n<li><strong>Claude Desktop Version</strong>: 1.1.4498 (24f768) — Build 2026-02-26T19:47:09.000Z</li>\n<li><strong>OS</strong>: macOS</li>\n<li><strong>Account</strong>: Hiren Madan — Max plan</li>\n<li><strong>Gmail Account</strong>: hirenmadan@gmail.com</li>\n</ul>\n<h2>Related Issues</h2>\n<ul>\n<li><strong>GitHub Issue #22698</strong> — \"Gmail integration fails to reconnect after disconnect\" (exact same symptoms)</li>\n<li><strong>GitHub Issue #27492</strong> — \"Claude Cowork MCP Issue continues\" (MCP connection failures post-update)</li>\n</ul>\n<h2>Summary</h2>\n<p>Gmail OAuth flow completes all Google-side authentication steps successfully but <strong>hangs indefinitely at the final redirect back to Claude Desktop</strong>. The browser shows a blue loading progress bar that never completes. Google Drive connector works perfectly using the same Google account — only Gmail is affected.</p>\n<p><strong>Critically, the Gmail MCP works correctly via claude.ai web chat</strong> — the OAuth token is valid and functional. The failure is specifically in Claude Desktop's ability to receive and process the OAuth callback.</p>\n\n\n\n\n### What Should Happen?\n\n<h2>Expected Behavior</h2>\n<p>After Step 9, the browser should redirect back to Claude Desktop, Gmail should show <strong>\"Connected\"</strong> (green) in Connectors, and Gmail MCP tools should be available in Chat and Cowork.</p>\n\n### Error Messages/Logs\n\n```shell\n<h2>Actual Behavior</h2>\n<ul>\n<li>The OAuth consent page hangs with a loading indicator after clicking Continue</li>\n<li>The redirect/callback to Claude Desktop never fires</li>\n<li>Returning to Claude Desktop, Gmail sometimes shows \"Configure\" (partially registered) but MCP tools do not work</li>\n<li>The \"...\" menu shows Disconnect option, suggesting partial state was saved, but the token exchange was incomplete</li>\n</ul>\n<h2>Troubleshooting Already Attempted (All Failed)</h2>\n\nStep | Result\n-- | --\nRevoked \"Claude for Gmail\" access from myaccount.google.com/connections, then reconnected | Same hang at final redirect\nUsed incognito/private browser window | Same hang\nCleared all Chrome cookies (all time) | Same hang\nDisconnected and reconnected Gmail multiple times | Same hang\nAttempted connection from claude.ai web Settings → Connectors | Got MCP error\nVerified no VPN or firewall blocking | Not applicable\nRestarted Claude Desktop completely | No change\n```\n\n### Steps to Reproduce\n\n<h2>Steps to Reproduce</h2>\n<ol>\n<li>Open Claude Desktop → Settings → Connectors</li>\n<li>Click \"...\" next to Gmail → Disconnect (if previously attempted)</li>\n<li>Gmail moves to \"Desktop app\" section, shows \"Connect\" button</li>\n<li>Click \"Connect\" on Gmail</li>\n<li>Browser opens to <code>gmail.mcp.claude.com/google/install?metadata=...</code></li>\n<li>\"Connect Claude to Gmail\" page → Click <strong>Continue</strong></li>\n<li>Google account chooser → Select <strong>hirenmadan@gmail.com</strong></li>\n<li>\"You're signing back in to Claude for Gmail\" → Click <strong>Continue</strong></li>\n<li>\"Claude for Gmail wants access to your Google Account\" (shows \"already has access to 4 services\") → Click <strong>Continue</strong></li>\n<li><strong>BUG</strong>: Page greys out, blue loading bar appears at top, <strong>spins indefinitely</strong> — redirect to Claude Desktop never completes</li>\n</ol>\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Code v2.1.63.\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Ad",
+  "labels": ["invalid", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-02T19:31:10Z",
+  "updated_at": "2026-05-25T22:33:39Z",
+  "closed_at": "2026-05-25T22:33:39Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "agentneo16",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "agentneo16",
+      "author_association": "NONE",
+      "body": "Thanks for the triage. I understand this isn't a Claude Code issue — it's a Claude Desktop / Connectors problem.\nHowever, there's no public repo for Claude Desktop bugs. Could you point me to the correct channel for reporting this? The issue is reproducible and well-documented:\n\nGmail OAuth flow hangs at final redirect in Claude Desktop (v1.1.4498, macOS)\nGoogle Drive connects fine using the same account\nGmail MCP works correctly via claude.ai web chat — confirming the OAuth token is valid\nAll u",
+      "created_at": "2026-03-04T18:40:49Z"
+    },
+    {
+      "author": "ChrisWhiteSr",
+      "author_association": "NONE",
+      "body": "Same problem, Claude Code Cowork will not connect to Google Drive, Windows 11, thanks!",
+      "created_at": "2026-03-10T15:40:34Z"
+    },
+    {
+      "author": "mitchallen",
+      "author_association": "NONE",
+      "body": "Similar problem on Mac.  I want to schedule Claude Cowork to check my spam folder, and the Claude for Gmail auth screen just hangs with the page grayed out and the animated progress bar streaming across the screen.",
+      "created_at": "2026-03-12T14:41:05Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 45921,
+  "title": "[BUG] Claude Desktop VM leaks ~13 GB/hr of kernel memory (NonPaged Pool) via temp file churn",
+  "body": "### Preflight Checklist\r\n\r\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\r\n- [x] This is a single bug report (please file separate reports for different bugs)\r\n- [x] I am using the latest version of Claude Code\r\n\r\n### What's Wrong?\r\n\r\nI attempted to report this via In-App Chat but the agent asked me to report it here, I apologize in advance if this isn't the right channel. **Note: This is a Claude Desktop (not Claude Code) issue — filing here per Claude Desktop in-app support direction.** **Note: This is a Claude Desktop (not Claude Code) issue — filing here per Claude Desktop in-app support direction.** I asked Claude Code to write this draft after thoroughly investigating the issue:\r\n\r\n Claude Desktop for Windows causes a critical kernel memory leak that crashes the system within 2-3\r\n  hours. The embedded VM (claudevm.bundle) creates ~27,000 temporary files per second with unique\r\n  names (.wvm-tmp-XXXXXX). Each unique filename generates an NTFS File Control Block (FCB) cached in\r\n  NonPaged Pool, which is never reclaimed while the app runs.\r\n\r\n Environment\r\n\r\n  - Product: Claude Desktop for Windows\r\n  - Version: Claude 1.1062.0 (b81bcd) 2026-04-06T21:20:28.000Z\r\n  - OS: Windows 11 Pro 10.0.26200\r\n  - RAM: 32 GB\r\n  - Install drive: NTFS volume\r\n\r\n  Root Cause Analysis\r\n\r\n  The claudevm.bundle VM creates and immediately deletes temporary files at ~27,000 files/sec. File\r\n  paths follow the pattern:\r\n\r\n  %APPDATA%\\Claude\\vm_bundles\\claudevm.bundle\\.wvm-tmp-XXXXXX\r\n\r\n  Each unique filename causes NTFS to allocate a File Control Block (FCB) in NonPaged Pool (pool tag\r\n  NtFC, ~130 bytes each). NTFS caches these FCBs and does not reclaim them for rapidly churned unique\r\n  filenames. The math matches exactly:\r\n\r\n  ▎ 27,000 files/sec × 130 bytes × 3,600 sec = 12.6 GB/hr\r\n  ▎ Measured rate: 12–13 GB/hr\r\n\r\n  NonPaged Pool is unswappable kernel memory. When it fills physical RAM, Windows crashes.\r\n\r\n  Evidence\r\n\r\n  - ETW file I/O trace: 91% of all file operations originate from claude.exe\r\n  - Pool tag breakdown: NtFC accounts for 98% of NonPaged Pool growth (178.6M outstanding allocations\r\n  observed)\r\n  - Handle count mismatch: Only ~7,000 open file handles vs. 169M+ outstanding FCB allocations —\r\n  confirms files are created/deleted but FCBs are retained\r\n  - Process behavior: 12 claude.exe processes spawn on launch; 7 survive after closing the app window\r\n  (require taskkill)\r\n  - Reproduction confirmed across reboots (2026-04-07, 2026-04-08, 2026-04-09)\r\n\r\n  Impact\r\n\r\n  - Severity: Critical — causes system crash within 2-3 hours of normal use\r\n  - Scope: May affect other Windows NTFS installations running Claude Desktop\r\n  - No user workaround other than closing the app and rebooting (NonPaged Pool is only freed on\r\n  reboot)\r\n\r\n### What Should Happen?\r\n\r\nClaude desktop VM should not create and immediately delete temporary files at ~27,000 files/sec\r\n\r\n### Error Messages/Logs\r\n\r\n```shell\r\n=== Claude Desktop NonPaged Pool Leak - Log Evidence ===\r\nDate: 2026-04-08\r\nOS: Windows 11 Pro 10.0.26200, 32 GB RAM\r\nTool: ETW (Event Tracing for Windows) - Microsoft-Windows-Kernel-File provider\r\n\r\n--- ETW Trace Summary (5-second capture) ---\r\nFiles Processed:\r\n\tM:\\diag_tmp\\fileio_trace_000001.etl\r\nTotal Buffers Processed 133\r\nTotal Events  Processed 543226\r\nTotal Events  Lost      0\r\nStart Time              Wednesday, April 8, 2026\r\nEnd Time                Wednesday, April 8, 2026\r\nElapsed Time            5 sec\r\n+-------------------------------------------------------------------------------------------------------------------------+\r\n|Event Count   Event Name           Task            Opcode          Version         Guid                                  |\r\n+-------------------------------------------------------------------------------------------------------------------------+\r\n|          1   EventTrace           0               PartitionInfoExtension 2               {68fdd900-4a3e-11d1-84f4-0000f8046",
+  "labels": ["bug", "invalid"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-09T20:35:17Z",
+  "updated_at": "2026-06-13T13:15:30Z",
+  "closed_at": null,
+  "reactions_total": 3,
+  "comments_count": 17,
+  "author": "lizergic",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/45889\n2. https://github.com/anthropics/claude-code/issues/43548\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-09T20:38:33Z"
+    },
+    {
+      "author": "lizergic",
+      "author_association": "NONE",
+      "body": "**Related issues — same root cause (claudevm.bundle temp file churn → NTFS NonPaged Pool leak):**\n\n- #45889 — Claude Desktop (Electron) causes NTFS NonPaged Pool kernel memory leak on Windows (~0.5GB/min)\n- #43548 — Claude Desktop App (Windows): Extreme \"Other\" I/O rate causes kernel nonpaged pool exhaustion\n\nAll three reports independently identify the same mechanism: `claudevm.bundle` creating ~27K unique `.wvm-tmp-*` files/sec, exhausting NonPaged Pool via cached NTFS FCBs. This issue include",
+      "created_at": "2026-04-09T20:42:10Z"
+    },
+    {
+      "author": "CallMarcus",
+      "author_association": "NONE",
+      "body": "Been hunting the same first as a WSL, then Cowork and then MCP issue. I have extensive logs supporting your findings. So frustrated, I have a dedicated project in Claude just to hunt what made my laptop unusable, including monitoring scripts launching at boot.\n\nSo far, conclusion is that we have two bugs in Claude Desktop: zombie processes after Quit, plus NtFC kernel pool leak. Both reproducible. Both Anthropic’s. ",
+      "created_at": "2026-05-02T21:05:59Z"
+    }
+  ]
+}

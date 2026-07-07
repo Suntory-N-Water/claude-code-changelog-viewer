@@ -1,0 +1,41 @@
+{
+  "number": 7100,
+  "title": "feat(docs, auth): Document Headless/Remote Authentication and Support CI/CD",
+  "body": "### **Title: feat(docs, auth): Document Headless/Remote Authentication and Support CI/CD**\n\n**Labels:** `documentation`, `feature-request`, `enhancement`, `authentication`, `onboarding`, `cli`, `security`\n\n### 1. Problem Statement\n\nThe current authentication flow for Claude Code, initiated via `claude /login`, relies on an OAuth process that requires opening a local web browser. This presents a significant setup blocker for two distinct but related groups of professional developers:\n\n1.  **Developers in Interactive Headless Environments:** Those working on a remote server via SSH, inside a Docker container, or using cloud-based IDEs (e.g., GitHub Codespaces, Gitpod) where a local GUI browser is not available.\n2.  **Automation in Non-Interactive Environments:** Automated systems like CI/CD pipelines (e.g., GitHub Actions, Jenkins) that need to authenticate programmatically without human intervention.\n\nThe standard login flow only addresses local GUI-based development, creating friction that forces users to find complex workarounds, abandon the tool, or bypass it in automated workflows.\n\n### 2. Proposed Solutions\n\nWe propose creating a dedicated documentation page (e.g., \"Authentication for Advanced Environments\") that provides clear, step-by-step instructions for these scenarios. This guide should detail two documented workarounds for interactive sessions and propose a new feature for non-interactive automation.\n\n---\n\n#### **Method 1: Interactive Login via SSH Port Forwarding**\n\nThis method allows a user connected via SSH to securely forward the CLI's authentication port from the remote machine to their local machine.\n\n**Suggested Documentation Steps:**\n\n1.  On your **local machine**, connect to your remote server using `ssh -L` to forward the port. The CLI will inform you of the correct port when you run the login command.\n    ```bash\n    # On your local machine, replace 8080 with the port number\n    # printed by the `claude /login` command on the remote server.\n    ssh -L 8080:localhost:8080 user@remote-server.com\n    ```\n2.  In the remote SSH session, run `clade /login`. Look for output from the CLI indicating it has started a local web server, such as:\n    `Please open this URL in your browser to complete authentication: http://localhost:8080/...`\n3.  Copy the full `http://localhost:8080/...` URL and paste it into the browser on your **local machine**.\n4.  Complete the authentication flow. The token will be securely transmitted back to the `claude` instance running on your remote machine.\n\n> **Important Considerations:** This method may not work if your corporate firewall or the remote server's SSH configuration (`AllowTcpForwarding no`) explicitly blocks TCP port forwarding.\n\n---\n\n#### **Method 2: Interactive Login via Secure Credential Transfer**\n\nThis method involves authenticating on a local machine and then securely transferring the resulting credential file to the remote environment.\n\n> **Prerequisite:** This method assumes the authentication token in `auth.json` is a self-contained bearer token that is not bound to a specific machine or IP address.\n\n**Suggested Documentation Steps:**\n\n1.  On your **local machine** (where you have a browser), install and run `claude /login`.\n2.  This will create a credential file at `~/.config/claude-code/auth.json`.\n3.  Securely transfer this file to the corresponding directory on your remote machine or container.\n\n    **Example for a remote SSH server:**\n    ```bash\n    # From your local machine:\n    # 1. Ensure the target directory exists on the remote machine\n    ssh user@remote-server.com \"mkdir -p ~/.config/claude-code\"\n    \n    # 2. Securely copy the credential file\n    scp ~/.config/claude-code/auth.json user@remote-server.com:~/.config/claude-code/auth.json\n    ```\n    **Example for a Docker container (Recommended Practice):**\n    For reproducible environments, mount the credential file as a read-only volume.\n    ```bash\n    # Run your container with the auth file mounted\n    docker run -v ~/.config/claude-code/auth.json:/root/.config/claude-code/auth.json:ro -it my-dev",
+  "labels": [
+    "documentation",
+    "enhancement",
+    "area:auth",
+    "area:core",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-04T02:03:04Z",
+  "updated_at": "2026-01-21T14:17:33Z",
+  "closed_at": "2026-01-07T10:14:40Z",
+  "reactions_total": 12,
+  "comments_count": 7,
+  "author": "coygeek",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Based on the provided official documentation, there is partial coverage of these topics, but with very significant gaps. The rewritten GitHub issue is highly relevant and addresses real deficiencies in the existing docs.\n\nHere is a detailed breakdown of what the official documentation **does and does not** have regarding the proposed solutions:\n\n### **Method 1: SSH Port Forwarding**\n\n**Verdict: Not Documented.**\n\nThere is **no mention anywhere** in the provided documentation of using SSH port fo",
+      "created_at": "2025-09-04T02:03:37Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-06T10:11:15Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been automatically closed due to 60 days of inactivity. If you're still experiencing this issue, please open a new issue with updated information.",
+      "created_at": "2026-01-07T10:14:40Z"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "number": 23416,
+  "title": "[BUG] macOS sandbox blocks Security.framework TLS verification, breaking Go binaries (gh, terraform, etc.)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n### Bug Description\nWhen sandbox mode is enabled via managed-settings.json, any Go-based CLI tool (gh, terraform, kubectl, aws-cli, etc.) fails with:\n`tls: failed to verify certificate: x509: OSStatus -26276`\n### Root Cause\nGo on macOS uses cgo to call Security.framework for TLS certificate verification. The sandbox blocks these syscalls. Python (which uses OpenSSL) works fine in the same sandbox.\n\n### Evidence\n- gh api user inside sandbox → x509 error\n- python3 urllib.request.urlopen('https://api.github.com') inside sandbox → works\n- gh api user outside sandbox → works\n- Disabling sandbox → gh works\n- Setting SSL_CERT_FILE, GIT_SSL_CAINFO, copying certs locally → still fails\n- Using GH_TOKEN env var (bypassing keyring) → still fails\n- Zscaler disabled → still fails\n- Removing network settings from managed-settings.json → still fails\n\n### What Should Happen?\n\nGo binaries should be able to verify TLS certificates when making HTTPS requests to allowed domains.\n\n### Error Messages/Logs\n\n```shell\nError: Exit code 1\n     Get \"https://api.github.com/user\": tls: failed to verify certificate: x509: OSStatus -26276\n```\n\n### Steps to Reproduce\n\nReproduction Steps\n\n1. Enable sandbox in managed-settings.json with \"enabled\": true\n2. Add api.github.com to allowedDomains\n3. Run gh api user inside Claude Code\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.31 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n### Suggested Fix\nEither allowlist Security.framework syscalls for TLS verification in the sandbox profile, or automatically set SSL_CERT_FILE to a bundled/accessible cert store for sandboxed processes.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:security"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-05T19:10:24Z",
+  "updated_at": "2026-03-17T12:41:35Z",
+  "closed_at": null,
+  "reactions_total": 63,
+  "comments_count": 8,
+  "author": "connorjbeatty",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "stekern",
+      "author_association": "NONE",
+      "body": "Seems like there's a fix on the way here: https://github.com/anthropic-experimental/sandbox-runtime/pull/120",
+      "created_at": "2026-02-06T07:59:41Z"
+    },
+    {
+      "author": "ehsan",
+      "author_association": "NONE",
+      "body": "FWIW I asked Claude to write this script that patches the locally installed Claude Code to work around this bug: https://gist.github.com/ehsan/8c1bc6570c1c924f6ac4f8e1e58158ba\n\nYou would need to rerun this script every time Claude Code updates to re-apply the patch but it might help someone in the meantime.",
+      "created_at": "2026-02-09T19:52:14Z"
+    },
+    {
+      "author": "jamestelfer",
+      "author_association": "NONE",
+      "body": "I'm looking forward for the fix to merge. I do find it odd that (considering the blast radius) that the fix would be disabled by default.",
+      "created_at": "2026-02-16T05:14:33Z"
+    }
+  ]
+}

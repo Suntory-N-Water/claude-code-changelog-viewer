@@ -1,0 +1,35 @@
+{
+  "number": 25032,
+  "title": "sessions-index.json not updated, causing `claude --resume` to show stale/missing sessions",
+  "body": "## Bug Description\n\n`claude --resume` only shows a random smattering of old sessions (from ~2 weeks ago), despite having run many sessions recently. The session data itself is being saved correctly — the `.jsonl` files are all present on disk — but they don't appear in the resume picker.\n\n## Root Cause (identified with Claude's help)\n\nThe `sessions-index.json` files in `~/.claude/projects/` are either:\n\n1. **Missing entirely** for many active project directories\n2. **Stale** — not being updated when new sessions are created\n\nFor example, on my system (v2.1.39, macOS):\n\n- **11 out of 18** project directories have **no `sessions-index.json`** at all, including directories with very recent session activity\n- The index files that **do** exist haven't been updated since late January, despite session `.jsonl` files being written as recently as today\n\n```\nHAS INDEX: -Users-...-dev-ozzydb (Feb  4)   ← stale, sessions exist from Feb 10\nNO INDEX:  -Users-...-dev-rileyviewer        ← no index, 20MB+ session from Feb 10\nNO INDEX:  -Users-...-dev                    ← no index, sessions from Feb 10\nNO INDEX:  -Users-...-hard-saptest1          ← no index, sessions from Feb 10\n```\n\nThe session `.jsonl` files are all intact — data is not being lost. But since `--resume` appears to read from `sessions-index.json`, these sessions are invisible to the resume picker (both CLI and VS Code extension).\n\n## Steps to Reproduce\n\n1. Run several Claude Code sessions across different project directories\n2. Close them (I typically just close the terminal)\n3. Run `claude --resume` — only old sessions appear\n4. Check `~/.claude/projects/*/sessions-index.json` — many are missing or stale\n5. Check for `.jsonl` files — they exist and are recent\n\n## Expected Behavior\n\n`claude --resume` should list all recent sessions, and `sessions-index.json` should be updated whenever a session is created or modified.\n\n## Environment\n\n- Claude Code version: 2.1.39\n- OS: macOS (Darwin 25.1.0)\n- Sessions are closed by closing the terminal (no explicit exit command)\n\n## Notes\n\nI found this bug myself; Claude helped identify the specific root cause (the stale/missing index files) by examining the session storage on disk.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-11T16:24:25Z",
+  "updated_at": "2026-04-23T13:15:49Z",
+  "closed_at": null,
+  "reactions_total": 17,
+  "comments_count": 14,
+  "author": "RileyLeff",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "RileyLeff",
+      "author_association": "NONE",
+      "body": "**Additional finding:** The local usage tracking at `~/.claude/usage-data/` appears to have the same problem. Both the `report.html` and per-session facet JSONs stopped being updated on Feb 4, despite active sessions running through Feb 10-11. This suggests it may be a broader issue with local metadata/index writes, not just `sessions-index.json`.",
+      "created_at": "2026-02-11T16:26:25Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22462\n2. https://github.com/anthropics/claude-code/issues/23614\n3. https://github.com/anthropics/claude-code/issues/24729\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-11T16:28:00Z"
+    },
+    {
+      "author": "genesiscz",
+      "author_association": "NONE",
+      "body": "## Confirmed: Same issue here (macOS)\n\nCan confirm this bug on **macOS** with similar findings:\n\n### Environment\n- **OS**: macOS (Darwin 25.2.0)\n- **Claude Code**: 2.1.39+\n- **8 project directories** checked\n\n### Findings\n\n**Session indexing completely stopped on: February 4, 2026 at 00:33 UTC**\n\n- All 8 project directories have `sessions-index.json` files\n- **Last indexed session across all projects**: Feb 4, 2026, 00:33:54 UTC\n- **Total session files on disk**: 3,080+ `.jsonl` files\n- **Latest",
+      "created_at": "2026-02-12T17:41:38Z"
+    }
+  ]
+}

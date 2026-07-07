@@ -1,0 +1,35 @@
+{
+  "number": 18974,
+  "title": "[BUG] Claude Desktop Cowork hangs on \"Sending request...\" - path.conversation_uuid invalid UUID error",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Desktop Cowork mode hangs indefinitely on \"Sending request...\" even though the backend VM spawns processes successfully.\n\n  The web log shows this error every time a Cowork task starts:\n  [REACT_QUERY_CLIENT] QueryClient error: Error: path.conversation_uuid: Input should be a valid UUID, invalid character: expected an optional prefix of urn:uuid: followed by [0-9a-fA-F-], found l at 1\n\n  Additionally, the log shows:\n  [LOCAL_SESSION] unknown sdk message type: stream_event\n\n  The backend works (processes spawn, VM connects, mounts succeed), but the frontend never displays the response.\n\n  **Tried and failed:**\n  - Fresh reinstall of Claude Desktop\n  - Clearing all app data (Application Support/Claude)\n  - Clearing Local Storage, IndexedDB, Cookies\n  - Fresh login\n  - Different folders (Dropbox, Desktop, with/without spaces in names)\n\n  Regular Chat mode works fine. Only Cowork is affected.\n\n  Claude Code Version:\n  Claude Desktop 1.1.351\n\n  Operating System:\n  macOS (Darwin 25.2.0)\n\n\n\n### What Should Happen?\n\n  Cowork should display Claude's response instead of hanging on \"Sending request...\"\n\n\n\n\n\n\n### Error Messages/Logs\n\n```shell\n2026-01-18 14:17:23 [error] [REACT_QUERY_CLIENT] QueryClient error: Error: path.conversation_uuid: Input should be a valid UUID, invalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `l` at 1\n\n  2026-01-18 14:11:51 [warn] [LOCAL_SESSION] unknown sdk message type: stream_event\n```\n\n### Steps to Reproduce\n\n  1. Open Claude Desktop\n  2. Go to Cowork tab\n  3. Create new task\n  4. Select any folder\n  5. Send any message (e.g., \"hi\")\n  6. Observe: UI stays on \"Sending request...\" forever\n  7. Check ~/Library/Logs/Claude/claude.ai-web.log - shows UUID error\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Desktop 1.1.351 / Cowork VM SDK 2.1.8\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-18T06:29:02Z",
+  "updated_at": "2026-02-04T14:24:39Z",
+  "closed_at": "2026-01-18T06:38:34Z",
+  "reactions_total": 6,
+  "comments_count": 11,
+  "author": "ryanbadger",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/18644\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-18T06:32:36Z"
+    },
+    {
+      "author": "goslingmanagment",
+      "author_association": "NONE",
+      "body": "Same on Claude 1.1.381\n\n",
+      "created_at": "2026-01-22T21:56:56Z"
+    },
+    {
+      "author": "EMTurano",
+      "author_association": "NONE",
+      "body": "Still happening on Claude 1.1.762 (35ba62)",
+      "created_at": "2026-01-23T19:33:50Z"
+    }
+  ]
+}

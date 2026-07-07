@@ -1,0 +1,35 @@
+{
+  "number": 7075,
+  "title": "Feature request: Claude Code profiles with isolated memory, commands, hooks, and settings",
+  "body": "## Problem\n\nThe Claude Code ecosystem has grown at breakneck speed. There are now dozens of batteries-included frameworks that enhance Claude with powerful context and subagent libraries, e.g.\n\n- https://github.com/SuperClaude-Org/SuperClaude_Framework\n- https://github.com/wshobson/commands and https://github.com/wshobson/agents\n- https://github.com/wcygan/dotfiles\n- https://github.com/carlrannaberg/claudekit\n\nAnd many others listed here: https://github.com/hesreallyhim/awesome-claude-code\n\n> [!NOTE]\n> These frameworks are incompatible with each other, but users may want to use all of them - different frameworks for different projects.\n\n## Solution\n\nIntroduce a new profiling feature into Claude Code that lets users configure a specific profile.\n\nA new `profiles` directory would be added to `.claude`.\n\n```tree\n.claude\n└── profiles\n    ├── claudekit\n    │   ├── settings.json\n    │   ├── commands/\n    │   ├── context/\n    │   └── hooks/\n    └── superclaude\n        ├── settings.json\n        ├── agents/\n        └── commands/\n```\n\nThen, users would do something like this:\n\n### Profile Management Commands\n\n```bash\n# Set active profile - only commands and hooks from this profile are loaded in Claude Code\nclaude profile use <profile-name>\n\n# List available profiles\nclaude profile list\n\n# Create new profile\nclaude profile create <profile-name>\n\n# Show current profile\nclaude profile current\n\n# Delete profile\nclaude profile delete <profile-name>\n```\n\n### Profile Structure\n\nEach profile would contain:\n\n- `CLAUDE.md` - Profile-specific CLAUDE.md file\n- `settings.json` - Profile-specific configuration overrides\n- `agents/` - Custom agents for this profile\n- `commands/` - Custom slash commands\n- `hooks/` - Profile-specific hook configurations\n\nAll of these profile features will completely override the global features in the root `.claude` directory, except for\nthe `settings.json` file.\n\n#### Settings Hierarchy\n\nProfiles would inherit from global settings but override specific configurations, following Claude Code's existing\nsettings hierarchy:\n\n1. Command line arguments (highest precedence)\n2. **Active profile settings** ← New layer\n3. Project-local settings (`.claude/settings.local.json`)\n4. Shared project settings (`.claude/settings.json`)\n5. User settings (`~/.claude/settings.json`) (lowest precedence)\n\nThis allows users to seamlessly switch between framework configurations while maintaining project-specific overrides.\n",
+  "labels": ["enhancement", "area:core", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-09-03T16:31:20Z",
+  "updated_at": "2026-06-02T17:07:41Z",
+  "closed_at": null,
+  "reactions_total": 56,
+  "comments_count": 29,
+  "author": "PaulRBerg",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/630\n2. https://github.com/anthropics/claude-code/issues/1985\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-09-03T16:35:55Z"
+    },
+    {
+      "author": "christophercolumbusdog",
+      "author_association": "NONE",
+      "body": "I think this, in combination with https://github.com/anthropics/claude-code/issues/6915, will be important to properly scope different tasks while maintaining maximum context availability.",
+      "created_at": "2025-10-10T16:27:38Z"
+    },
+    {
+      "author": "stanska",
+      "author_association": "NONE",
+      "body": "This will helps us have more than different marketplaces for different projects(using different profiles)",
+      "created_at": "2025-11-14T08:27:05Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 24918,
+  "title": "[BUG] Cowork Windows - Cannot connect to Claude API from workspace (Windows 11 Home)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter Cowork Windows launch (Feb 10, 2026), Cowork consistently fails to connect to the Claude API on Windows 11 Home.\n\nThe workspace attempts to start but always ends with \"ワークスペースからClaude APIに接続できません\" (Cannot connect to Claude API from workspace).\n\nRegular Chat mode works perfectly. Only Cowork is affected.\n\nEnvironment:\n- OS: Windows 11 Home (latest updates)\n- Claude Desktop: Latest version (downloaded Feb 11, 2026)\n- WSL2: Installed (Ubuntu)\n- Windows Features: Virtual Machine Platform ✅, Windows Hypervisor Platform ✅, Hyper-V ❌ (not available on Home)\n- VPN: None\n- Firewall: Windows Defender — Claude allowed on both Private and Public\n- Antivirus: AhnLab Safe Transaction installed but not running during tests\n\n### What Should Happen?\n\nCowork workspace should start successfully and connect to the Claude API, allowing task execution — the same way regular Chat mode works without issues.\n\n### Error Messages/Logs\n\n```shell\nError messages appear in this order:\n\n1. \"申し訳ございません。Claude APIへの接続に時間がかかっています...\"\n   (Taking longer than expected to connect to Claude API)\n\n2. \"Claude のワークスペースの起動に失敗しました - ワークスペースからClaude APIに接続できません\"\n   (Failed to start workspace - Cannot connect to Claude API from workspace)\n\nPreviously also saw (before installing WSL2):\n- \"お使いのコンピュータがClaudeのワークスペースへのネットワーク接続を提供していません\"\n  (Computer is not providing network connection to workspace)\n\nNote: After installing WSL2, the error changed from \"network not provided\" to \"cannot connect to API\", suggesting the VM can now get network access but something still blocks the API connection.\n```\n\n### Steps to Reproduce\n\n1. Install Claude Desktop on Windows 11 Home (latest version, Feb 2026)\n2. Open Claude Desktop\n3. Switch to Cowork tab\n4. Attempt to start any task\n5. Wait ~60 seconds\n6. Observe: \"Claude APIに接続できません\" error appears\n\nTroubleshooting steps attempted (all failed):\n- Reinstalled Claude Desktop twice (complete uninstall + fresh install)\n- Deleted VM bundles and cache folders\n- Verified Windows Defender Firewall allows Claude (Private + Public)\n- Installed WSL2 via \"wsl --install\"\n- Ran Claude Desktop as Administrator\n- Reset network (netsh winsock reset, netsh int ip reset, ipconfig /flushdns)\n- Disabled AhnLab Safe Transaction\n- Multiple reboots\n\nPossibly related: #18854, #18006, #24070, #17868 (all macOS, same API connection symptoms)\n\nThis is a Day 1 Windows launch issue. Would appreciate clarification on whether Windows 11 Home is officially supported or if Hyper-V (Pro/Enterprise) is required.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Desktop latest version (Windows, downloaded Feb 11, 2026). This is Cowork on Claude Desktop, not Claude Code CLI.\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n- This is a Cowork issue on Claude Desktop, not Claude Code CLI\n- Windows 11 Home does NOT have Hyper-V — only Virtual Machine Platform + Windows Hypervisor Platform are available\n- Cowork for Windows was released Feb 10, 2026 — this is a Day 1 issue\n- Regular Chat mode works perfectly in the same app\n- It's unclear if Cowork Windows officially supports Windows 11 Home or requires Pro/Enterprise for Hyper-V\n- Would appreciate clarification on minimum Windows edition requirements",
+  "labels": ["bug", "has repro", "platform:windows", "area:api", "oncall"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-11T08:05:47Z",
+  "updated_at": "2026-03-28T14:20:08Z",
+  "closed_at": "2026-02-20T01:27:45Z",
+  "reactions_total": 51,
+  "comments_count": 107,
+  "author": "Amumuman",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "papunoko",
+      "author_association": "NONE",
+      "body": "  I had the same issue on Windows 11, and changing DNS solved it for me.\n\n  Symptoms:\n  - Chat worked\n  - Claude Code worked\n  - Only Cowork failed with “Cannot connect to Claude API from workspace”\n\n  What fixed it:\n  - Changed adapter DNS from local/ISP DNS to public DNS\n    - Primary: 1.1.1.1\n    - Secondary: 8.8.8.8\n  - Restarted Claude Desktop / Cowork VM\n\n  After this, Cowork started normally. This might be DNS path/resolution related.",
+      "created_at": "2026-02-11T12:51:24Z"
+    },
+    {
+      "author": "Amumuman",
+      "author_association": "NONE",
+      "body": "> I had the same issue on Windows 11, and changing DNS solved it for me.\n> \n> Symptoms:\n> \n> * Chat worked\n> * Claude Code worked\n> * Only Cowork failed with “Cannot connect to Claude API from workspace”\n> \n> What fixed it:\n> \n> * Changed adapter DNS from local/ISP DNS to public DNS\n>   \n>   * Primary: 1.1.1.1\n>   * Secondary: 8.8.8.8\n> * Restarted Claude Desktop / Cowork VM\n> \n> After this, Cowork started normally. This might be DNS path/resolution related.\n\nThanks for sharing! I tried changing",
+      "created_at": "2026-02-11T13:01:50Z"
+    },
+    {
+      "author": "Dadebr2",
+      "author_association": "NONE",
+      "body": "I'm experiencing the same problem on Windows 11 Home. Cowork consistently fails to connect to the Claude API from workspace, while regular Chat mode works perfectly.",
+      "created_at": "2026-02-11T13:43:58Z"
+    }
+  ]
+}

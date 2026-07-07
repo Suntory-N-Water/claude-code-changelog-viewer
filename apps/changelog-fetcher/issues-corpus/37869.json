@@ -1,0 +1,35 @@
+{
+  "number": 37869,
+  "title": "CLAUDE.md rules are not enforced at session start — repeated violations despite documented rules",
+  "body": "## Problem\n\nI have a detailed CLAUDE.md file with 25+ documented lessons learned, mandatory checklists, and explicit session-start workflows. Despite Claude Code reading CLAUDE.md at session start and acknowledging all rules, it repeatedly violates the most fundamental rule: **getting user approval before starting work**.\n\n## Reproduction\n\n1. Create a CLAUDE.md with a mandatory approval workflow (e.g., \"Before starting any task, present the plan to the user and wait for explicit 'yes' approval\")\n2. Start a new session and give Claude a task\n3. Claude reads CLAUDE.md, acknowledges the rules, then **immediately starts working without requesting approval**\n\nThis has happened across many sessions despite:\n- 25+ failure lessons documented in CLAUDE.md\n- A dedicated checklist file (`sp_action_checklist.md`) that Claude is required to read before any work\n- Explicit \"Action Control Rules\" section in CLAUDE.md\n- Multiple iterations of adding stronger language and more explicit instructions\n\n## Expected Behavior\n\nWhen CLAUDE.md defines mandatory pre-work steps (like user approval), Claude should **always** execute those steps before starting any task, regardless of context.\n\n## Actual Behavior\n\nClaude reads CLAUDE.md, sometimes even reports \"checklist confirmed\", then skips the mandatory approval step and begins work autonomously. The failure-record-and-repeat cycle continues indefinitely:\n\n**Record lesson → Violate → Apologize → Record again → Violate again**\n\n## Feature Request\n\nPlease consider implementing one or more of the following:\n\n1. **Mandatory hooks/triggers in CLAUDE.md**: A way to define steps that are _enforced_ by the system, not just \"suggested\" to the model. For example, a `session_start_hook` that blocks all tool calls until specified steps are completed.\n\n2. **Priority/enforcement levels for CLAUDE.md rules**: Allow users to mark certain rules as `[ENFORCED]` or `[BLOCKING]` so the system treats them differently from general guidance.\n\n3. **Pre-action gate**: A system-level mechanism that checks CLAUDE.md-defined preconditions before allowing tool execution (similar to how permission modes work, but user-configurable).\n\n## Environment\n\n- Claude Code on Windows 11\n- Model: Claude Opus 4.6 (1M context)\n- CLAUDE.md size: ~500 lines with detailed rules, lessons, and checklists\n\n## Impact\n\nThis is a critical usability issue for users who rely on CLAUDE.md to define workflows. If documented rules are not reliably followed, the entire CLAUDE.md system becomes unreliable documentation rather than an enforceable configuration.",
+  "labels": ["enhancement", "platform:windows", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-23T15:25:59Z",
+  "updated_at": "2026-05-07T15:12:12Z",
+  "closed_at": "2026-04-26T22:18:13Z",
+  "reactions_total": 0,
+  "comments_count": 12,
+  "author": "iimon-lab",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Same pattern as #37314, #37550, #37847. CLAUDE.md rules degrade as context grows.\nThe reliable solution: encode must-follow rules as PreToolUse hooks with \\`exit 2\\`:\n\\`\\`\\`bash\nCMD=\\$(cat | jq -r '.tool_input.command // empty' 2>/dev/null)\n[[ -z \"\\$CMD\" ]] && exit 0\nif echo \"\\$CMD\" | grep -qE '^\\\\s*pip\\\\s+install' && ! echo \"\\$CMD\" | grep -qE 'venv|\\.venv|virtualenv'; then\n    echo \"BLOCKED: Use virtual environment for pip install\" >&2\n    exit 2\nfi\nexit 0\n\\`\\`\\`\nThe model can ignore CLAUDE.md.",
+      "created_at": "2026-03-23T15:28:35Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/32163\n2. https://github.com/anthropics/claude-code/issues/32193\n3. https://github.com/anthropics/claude-code/issues/27032\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-23T15:29:27Z"
+    },
+    {
+      "author": "MahoneyContextProtocol",
+      "author_association": "NONE",
+      "body": "About three days ago, I had my Claude MD down to 14 lines, and it was working flawlessly. I haven't changed a thing. It does not follow a single rule anymore. ",
+      "created_at": "2026-03-23T15:40:37Z"
+    }
+  ]
+}

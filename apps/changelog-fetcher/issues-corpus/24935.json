@@ -1,0 +1,42 @@
+{
+  "number": 24935,
+  "title": "Claude in Chrome: 'Browser extension is not connected' despite correct setup (v2.1.39 + ext v1.0.47)",
+  "body": "## Description\n\nThe `mcp__claude-in-chrome__tabs_context_mcp` tool consistently returns \"Browser extension is not connected\" despite all infrastructure being correctly configured.\n\n## Environment\n\n- **Claude Code**: v2.1.39\n- **Chrome Extension**: Claude in Chrome (Beta) v1.0.47 (ID: `fcoeoabgfenejglbffodgkkbkcdhcgfn`)\n- **macOS**: Darwin 25.2.0 (Apple Silicon)\n- **Chrome**: Latest stable, Developer mode ON\n\n## Setup verified\n\n1. **Native messaging hosts** exist at `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/`:\n   - `com.anthropic.claude_code_browser_extension.json` → `~/.claude/chrome/chrome-native-host`\n   - `com.anthropic.claude_browser_extension.json` → `/Applications/Claude.app/Contents/Helpers/chrome-native-host`\n   \n2. **Socket file** exists: `/tmp/claude-mcp-browser-bridge-daniel/<pid>.sock`\n\n3. **Native host script** at `~/.claude/chrome/chrome-native-host` correctly points to `~/.local/share/claude/versions/2.1.39 --chrome-native-host`\n\n4. **Extension** is enabled, has \"On all sites\" access, \"Communicate with cooperating native applications\" permission, pinned to toolbar, sidepanel shows \"Opus 4.6\"\n\n## Extension errors (from chrome://extensions errors page)\n\n```\nUncaught (in promise) Error: Could not establish connection. Receiving end does not exist.\n\nError: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received\n```\n\nPlus CSP violations for inline scripts in options.html and blocked Segment analytics scripts (likely cosmetic).\n\n## Steps to reproduce\n\n1. Start Claude Code v2.1.39 in terminal\n2. Claude in Chrome extension v1.0.47 installed and enabled\n3. Call `mcp__claude-in-chrome__tabs_context_mcp` with `createIfEmpty: true`\n4. Returns \"Browser extension is not connected\"\n\n## What was tried (all failed)\n\n- Restarting Chrome (Cmd+Q, reopen)\n- Toggling extension OFF/ON\n- Removing and reinstalling extension from Chrome Web Store\n- Closing Claude Desktop app (to avoid native host conflict)\n- Running `/chrome` command in Claude Code\n- Multiple attempts across ~30 minutes\n\n## Possible contributing factors\n\n- Claude Desktop was updated to a new version the same day, which refreshed `com.anthropic.claude_browser_extension.json` (timestamp changed). Both native hosts claim the same extension ID.\n- Antigravity Browser Extension (v1.11.3, ID: `eeijfnjmjelapkebgockoeaadonbchdd`) was also installed the same day — unlikely to conflict but noting for completeness.\n\n## Expected behavior\n\n`tabs_context_mcp` should return tab information or create a new tab group.\n\n## Actual behavior\n\nAlways returns \"Browser extension is not connected\" error message.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:mcp",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-11T09:26:37Z",
+  "updated_at": "2026-06-02T22:49:56Z",
+  "closed_at": "2026-06-02T22:49:56Z",
+  "reactions_total": 4,
+  "comments_count": 19,
+  "author": "danielmstoffel",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24886\n2. https://github.com/anthropics/claude-code/issues/20316\n3. https://github.com/anthropics/claude-code/issues/24593\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-11T09:30:26Z"
+    },
+    {
+      "author": "Nachx639",
+      "author_association": "NONE",
+      "body": "## Fix: disable cloud bridge, use local socket\n\nThe root cause of the `\"Browser extension is not connected\"` / `\"Invalid token or user mismatch\"` error is a GrowthBook feature flag that forces the MCP server to use a **cloud WebSocket bridge** (`wss://bridge.claudeusercontent.com`) instead of the **local Unix socket**.\n\n**Quick fix** — edit `~/.claude.json` and set:\n\n```json\n{\n  \"cachedGrowthBookFeatures\": {\n    \"tengu_copper_bridge\": false\n  }\n}\n```\n\nThen restart: `claude --chrome`\n\nThis bypass",
+      "created_at": "2026-02-14T17:29:21Z"
+    },
+    {
+      "author": "ipreuss",
+      "author_association": "NONE",
+      "body": "that fixed it for me!",
+      "created_at": "2026-02-16T10:56:52Z"
+    }
+  ]
+}

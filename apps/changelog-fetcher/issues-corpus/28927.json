@@ -1,0 +1,35 @@
+{
+  "number": 28927,
+  "title": "[BUG] Silent billing change in v2.1.51: 1M context moved to extra-usage-only without notice — JSONL data proves identical workload billed differently",
+  "body": "## Summary\n\nAfter updating Claude Code from v2.1.50 to v2.1.51, all 1M context model usage began consuming Extra Usage instead of the Max plan subscription allocation. This change was not documented in the changelog, no in-app notification was provided, and the Extra Usage charges were not reflected in real-time — only appearing a day later.\n\n## Environment\n\n- **Plan**: Max ($100/month)\n- **Platform**: Windows (MSYS2/bash)\n- **Versions affected**: v2.1.51, v2.1.52, v2.1.53\n- **Version before (working)**: v2.1.50\n\n## Evidence: Same workload, different billing\n\nI extracted token-level usage from my JSONL session transcripts:\n\n| Date | CC Version | Opus 1M API Calls | Cache Read Tokens | Extra Usage Impact |\n|------|-----------|-------------------|-------------------|-------------------|\n| Feb 23 | v2.1.50 | 644 | 85,100,082 | **None** |\n| Feb 25 | v2.1.51+ | 392 | 80,173,520 | **+17% ($48.79 total)** |\n\n**Feb 23 had MORE usage than Feb 25, yet Extra Usage was unaffected.** The only variable that changed was the Claude Code version.\n\n## Timeline\n\n1. **Feb 23 (v2.1.50)**: Used Opus 1M heavily (644 API calls, 85M cache_read tokens). Current Session usage increased normally. Extra Usage: unchanged.\n2. **Feb 25 ~05:00 KST**: Auto-updated to v2.1.51/52/53.\n3. **Feb 25 all day**: Used Opus 1M normally. Unknown to me, ALL sessions were now consuming Extra Usage.\n4. **Feb 25 evening**: Checked Extra Usage — it had NOT increased yet (delayed billing).\n5. **Feb 26**: Extra Usage jumped from ~80% to 97%. $48.79 charged.\n\n## Three distinct problems\n\n### 1. Silent billing change (no notification)\n\nThe v2.1.51 changelog says:\n> \"Model picker improvements: now shows human-readable labels with upgrade hints\"\n\nWhat it actually did: Added \"Billed as extra usage\" labels to 1M models AND changed the billing behavior. The changelog does not mention any billing change.\n\nv2.1.50 prepared for this silently:\n- Added `CLAUDE_CODE_DISABLE_1M_CONTEXT` env var (why disable something that's free?)\n- Added `/extra-usage` command (why monitor something that wasn't being charged?)\n\n### 2. No real-time billing feedback\n\nExtra Usage charges from Feb 25 sessions were NOT reflected on Feb 25. They only appeared on Feb 26. Users cannot monitor or control spending if charges are delayed by 24+ hours.\n\n### 3. Contradictory documentation\n\n- **Model picker UI**: \"Billed as extra usage\" (no threshold mentioned — implies ALL tokens)\n- **Official docs** (code.claude.com): \"Standard rates until 200K, extra usage after 200K\"\n\nWhich is correct? Users cannot make informed decisions with conflicting information.\n\n## Impact\n\n- Max plan ($100/month) subscribers lose access to 1M context without additional payment\n- The feature that was previously included is now paywalled\n- No migration path or notice was provided\n- Disabling Extra Usage to prevent charges also disables 1M models entirely\n\n## Request\n\n1. **Acknowledge** that 1M billing changed in v2.1.51 and was not documented\n2. **Credit** Extra Usage charges incurred between v2.1.50 → v2.1.51 transition (users had no way to know)\n3. **Fix** real-time billing feedback — charges must be reflected immediately, not 24h later\n4. **Clarify** the documentation: is it ALL tokens or only >200K that count as extra usage?\n5. **Add opt-in consent** before switching to extra usage billing (similar to what the model picker now shows, but as an explicit confirmation dialog)\n\n## Related issues\n\n- #23680 — Max subscribers should have full Opus 4.6 access without Extra Usage\n- #27603 — Rate limit on Sonnet 1M (\"Extra usage is required for long context requests\")\n- #26428 — Sonnet 1M disappeared from model picker after v2.1.45\n- #22435 — Undisclosed quota accounting changes (10x variance in burn rates)\n\n## Reproduction\n\n1. Have JSONL transcripts from v2.1.50 sessions using Opus 1M\n2. Compare Extra Usage meter before and after updating to v2.1.51+\n3. Observe that identical (or lower) usage now consumes Extra Usage\n\nI have full JSONL session transcripts with token-level data available for investigation.",
+  "labels": ["bug", "platform:windows", "area:cost", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-26T09:23:52Z",
+  "updated_at": "2026-05-12T22:12:50Z",
+  "closed_at": null,
+  "reactions_total": 19,
+  "comments_count": 15,
+  "author": "paulseongminpark",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/26428\n2. https://github.com/anthropics/claude-code/issues/22435\n3. https://github.com/anthropics/claude-code/issues/27603\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-26T09:29:09Z"
+    },
+    {
+      "author": "paulseongminpark",
+      "author_association": "NONE",
+      "body": "## Important correction: 1M context WAS included in Max plan\n\nTo clarify my timeline: I upgraded from Pro to Max plan specifically to get more usage. **After upgrading to Max, 1M context usage did NOT consume Extra Usage** — it was fully covered by the Max subscription for weeks.\n\nThis is not a case of \"1M was always extra usage and I didn't notice.\" The data proves it:\n\n- **Feb 22 (v2.1.50, Max plan)**: ~$442 worth of Opus 1M usage (3,562 API calls, 473M cache_read tokens) → Extra Usage: unchan",
+      "created_at": "2026-02-26T09:40:44Z"
+    },
+    {
+      "author": "paulseongminpark",
+      "author_association": "NONE",
+      "body": "## Critical clarification: Current Session had remaining capacity\n\nI need to correct my earlier framing. The core issue is simpler and more serious than I initially described.\n\n**Setup:**\n- I purchased $50 of Extra Usage credits while on Pro plan (for session limit overflows)\n- I upgraded to Max plan ($100/month)  \n- After upgrading, my Current Session limits were sufficient — Extra Usage was never touched\n- I used both Sonnet 1M and Opus 1M for weeks with no Extra Usage consumption\n- The $50 cr",
+      "created_at": "2026-02-26T09:46:00Z"
+    }
+  ]
+}

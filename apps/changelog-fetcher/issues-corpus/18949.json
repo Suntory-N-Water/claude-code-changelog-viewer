@@ -1,0 +1,42 @@
+{
+  "number": 18949,
+  "title": "Skills from marketplace plugins don't appear in slash command autocomplete",
+  "body": "## Description\n\nSkills installed via marketplace plugins (registered in `extraKnownMarketplaces`) do not appear in the slash command autocomplete menu, even though:\n1. The skills are correctly loaded (visible in the available skills list)\n2. The skills can be invoked via the `Skill` tool programmatically\n3. The skills have proper `SKILL.md` frontmatter with `name` and `description`\n\nIn contrast, skills installed directly in `~/.claude/skills/` **do** appear in the autocomplete menu.\n\n## Steps to Reproduce\n\n1. Create a local marketplace with a plugin containing a skill:\n   ```\n   my-marketplace/\n   ├── .claude-plugin/\n   │   └── marketplace.json\n   └── plugins/\n       └── my-plugin/\n           └── skills/\n               └── my-skill/\n                   └── SKILL.md\n   ```\n\n2. Register the marketplace in `~/.claude/settings.json`:\n   ```json\n   {\n     \"extraKnownMarketplaces\": {\n       \"my-marketplace\": {\n         \"source\": {\n           \"source\": \"directory\",\n           \"path\": \"/path/to/my-marketplace\"\n         }\n       }\n     },\n     \"enabledPlugins\": {\n       \"my-plugin@my-marketplace\": true\n     }\n   }\n   ```\n\n3. Restart Claude Code\n\n4. Try typing `/my-skill` or `/my-plugin:my-skill` in the input - it doesn't appear in autocomplete\n\n5. However, the skill IS loaded and can be invoked via the `Skill` tool\n\n## Expected Behavior\n\nSkills from marketplace plugins should appear in the slash command autocomplete menu, just like skills installed directly in `~/.claude/skills/`.\n\nAccording to the documentation, `user-invocable` defaults to `true`, which should make skills visible in the autocomplete menu.\n\n## Actual Behavior\n\n- Skills in `~/.claude/skills/` → ✅ Appear in autocomplete\n- Skills from marketplace plugins → ❌ Do not appear in autocomplete (but are loaded and functional)\n\n## Workaround\n\nCreating a symlink from the marketplace skill to `~/.claude/skills/` makes it appear in autocomplete:\n```bash\nln -s /path/to/marketplace/plugins/my-plugin/skills/my-skill ~/.claude/skills/my-skill\n```\n\n## Environment\n\n- OS: macOS (Darwin 24.6.0)\n- Claude Code: Latest version",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "area:tools"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-18T04:45:04Z",
+  "updated_at": "2026-03-31T03:10:06Z",
+  "closed_at": null,
+  "reactions_total": 73,
+  "comments_count": 15,
+  "author": "allen-hsu",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18365\n2. https://github.com/anthropics/claude-code/issues/17271\n3. https://github.com/anthropics/claude-code/issues/17524\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-18T04:48:17Z"
+    },
+    {
+      "author": "mklobucaric",
+      "author_association": "NONE",
+      "body": "Adding another data point: Even within the official `superpowers@claude-plugins-official` plugin (v4.0.3), autocomplete behavior is inconsistent:\n\n✅ **Works:** `/brainstorming`, `/systematic-debugging`, `/test-driven-development`\n❌ **Doesn't work:** `/using-superpowers`, `/using-git-worktrees`\n\nAll skills ARE listed in `/help` and work when typed fully. The autocomplete just doesn't surface them.\n\nEnvironment: Claude Code 2.1.12, macOS",
+      "created_at": "2026-01-20T15:03:28Z"
+    },
+    {
+      "author": "vinnymeller",
+      "author_association": "NONE",
+      "body": "just confirming exact same behavior as @mklobucaric on CC v2.1.19",
+      "created_at": "2026-01-25T02:45:43Z"
+    }
+  ]
+}

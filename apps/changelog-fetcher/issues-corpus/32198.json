@@ -1,0 +1,35 @@
+{
+  "number": 32198,
+  "title": "Claude Code skips mandatory rules in CLAUDE.md (Definition of Done)",
+  "body": "## Bug / Behavior Issue\n\nClaude Code ignores mandatory instructions written in CLAUDE.md, specifically the \"Definition of Done\" checklist that requires running `codex review --uncommitted` before declaring work complete.\n\n## What happened\n\nUser has a clear, explicit rule in their CLAUDE.md:\n\n```\n### Definition of Done (CRITICAL — THE FINAL GATE)\nNEVER tell David \"done\" / \"ready\" / \"完成\" without completing ALL of these:\n1. Tests pass\n2. Codex review clean — Run `codex review --uncommitted`, read every issue, fix the code, re-run if needed.\n3. Website/UI work? → agent-browser verify\n4. Deploy? → Verify on target\n```\n\nThe rule is marked CRITICAL. It says \"Skipping ANY step = lying about completion.\"\n\nDespite this, Claude Code completed a production security hardening task, declared it ready, and **did not run `codex review`**. The user had to run Codex themselves and found 8 security issues (2 critical), which Claude had missed.\n\nAfter fixing those, Codex found 3 more issues. Then 3 more after that. A total of 14 issues across 3 rounds — all of which Claude should have caught by following its own mandatory rule.\n\n## Expected behavior\n\nWhen CLAUDE.md contains an explicit, clearly-marked mandatory step before declaring \"done\", Claude Code should execute that step every time without exception. The user should not have to remind Claude to follow rules the user already wrote.\n\n## Why this matters\n\n- Users write CLAUDE.md rules specifically because they've been burned before\n- If Claude ignores these rules, users lose trust in the entire CLAUDE.md system\n- The user's exact words: \"Skipping ANY step = lying about completion. David has been burned by this.\"\n- This is a production product being sent to clients — skipped security review has real consequences\n\n## Environment\n\n- Model: claude-opus-4-6 (Opus 4.6)\n- Platform: Windows (MINGW64)\n- Claude Code CLI\n\n## Suggestion\n\nClaude Code should have a stronger mechanism for enforcing CLAUDE.md rules marked as CRITICAL or MANDATORY — possibly a pre-completion checklist that must be explicitly satisfied before any \"done\" / \"complete\" / \"ready\" message is sent to the user.",
+  "labels": ["bug", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-08T17:25:52Z",
+  "updated_at": "2026-04-23T15:02:24Z",
+  "closed_at": "2026-04-14T22:22:35Z",
+  "reactions_total": 0,
+  "comments_count": 19,
+  "author": "minatoplanb",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/32193\n2. https://github.com/anthropics/claude-code/issues/29692\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-08T17:28:54Z"
+    },
+    {
+      "author": "MaxwellCalkin",
+      "author_association": "NONE",
+      "body": "Same root cause as #32193 — CLAUDE.md rules are prompts, not enforcement. The model can and does ignore them, especially under long context or adversarial pressure.\n\nWe just shipped a tool that directly addresses this: [sentinel-ai](https://github.com/MaxwellCalkin/sentinel-ai)'s \\`ClaudeMdEnforcer\\` parses your CLAUDE.md, extracts prohibition rules, and converts them into deterministic checks:\n\n\\`\\`\\`bash\n# See what rules sentinel extracts from your CLAUDE.md\nsentinel enforce --file CLAUDE.md -",
+      "created_at": "2026-03-08T17:51:00Z"
+    },
+    {
+      "author": "marlvinvu",
+      "author_association": "NONE",
+      "body": "I've been dealing with the same issue. I'm the author of #26533 and have received zero attention from Anthropic despite multiple follow-up comments with evidence over 3 weeks.\n\n(March 7, 2026), I discovered something that may help you. I just tried it and it's working better. Give it a shot: disable Thinking mode by running `/config` → set **Thinking mode** to `false`. After doing this, Claude started actually reading and recognizing what it understands and what it doesn't — then reporting back ",
+      "created_at": "2026-03-09T20:24:02Z"
+    }
+  ]
+}

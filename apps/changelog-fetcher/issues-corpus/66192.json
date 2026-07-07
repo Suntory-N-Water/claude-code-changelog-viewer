@@ -1,0 +1,35 @@
+{
+  "number": 66192,
+  "title": "[BUG] Copy-paste does not work",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n  - Version: 2.1.168\n  - Terminal: Termius on Mac, SSH to remote Linux\n  - Behavior: copy-paste within Claude session stopped working after recent update; OSC 52 messages appear but clipboard not set\n\n### What Should Happen?\n\nSimple CMD+C (copy) CMD+V(paste) should work\n\n### Error Messages/Logs\n\n```shell\nsent # chars via OSC 52. if paste fails, hold shift (option in iTerm2, Fn in terminal.ap ) while selecting for native copy.\n```\n\n### Steps to Reproduce\n\nSimply copy & paste some text within the same claude session\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.168\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-08T07:01:25Z",
+  "updated_at": "2026-07-03T14:02:27Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 23,
+  "author": "nvankita",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "The detail that \"OSC 52 messages appear but the clipboard isn't set\" actually localizes this well — and it points away from Claude Code being able to fix it directly, so it's worth understanding why.\n\n**What OSC 52 is doing here:** you're SSH'd into a remote Linux box, so the remote process (Claude Code) can't touch your Mac's clipboard directly. OSC 52 is the escape sequence by which the remote program *asks the terminal emulator* (Termius, running locally on the Mac) to write the data into the",
+      "created_at": "2026-06-08T07:24:56Z"
+    },
+    {
+      "author": "aslom",
+      "author_association": "NONE",
+      "body": "Same symptom here on plain iTerm2 (no tmux, no SSH, no IDE — directly in an iTerm2 shell).\n\n**Environment**\n- Claude Code: 2.1.168 (broken)\n- Last-known-good: 2.1.142 (copy-on-select worked fine)\n- Terminal: iTerm2 on macOS\n- Renderer: fullscreen / no-flicker (the current default)\n\n**Repro**\n1. Select text in the Claude Code TUI by click-dragging.\n2. Claude shows the \"copied … via OSC 52\" confirmation.\n3. Paste anywhere → nothing. The pasteboard was never updated.\n\n**What I found**\n- The OSC 52 ",
+      "created_at": "2026-06-08T18:47:38Z"
+    },
+    {
+      "author": "jrbissell",
+      "author_association": "NONE",
+      "body": "same issue on GNOME Terminal / Linux variant (Shift+right-click context menu stopped working),",
+      "created_at": "2026-06-08T19:43:31Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 24106,
+  "title": "[BUG] --teleport fails with \"Session not found\" despite valid session (claude.ai returns 403 to CLI)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n`claude --teleport session_xxx` always fails with \"Session not found\" even though the session is active and accessible on claude.ai/code.\n\nThe root cause appears to be that claude.ai API endpoints return HTTP 403 to non-browser HTTP clients, while api.anthropic.com endpoints work correctly with the same OAuth token.\n\nEvidence:\n`curl -H \"Authorization: Bearer $TOKEN\" \"https://api.anthropic.com/v1/session_ingress/session/session_xxx\"` → Returns full session data with loglines ✅\n`curl -H \"Authorization: Bearer $TOKEN\" \"https://claude.ai/api/code/sessions\"` → HTTP 403 ❌\n\nSame claude.ai URL in browser → Returns JSON normally ✅\n\n`claude --teleport` (without ID, to list sessions) → \"Error loading Claude Code sessions\" ❌\n\nThe CLI appears to validate/fetch sessions via claude.ai endpoints (which get 403'd) rather than api.anthropic.com (which works fine).\n\n### What Should Happen?\n\n`claude --teleport <session_id>` should successfully connect to and resume the web session. The CLI should either use api.anthropic.com endpoints (which work), or handle claude.ai 403 responses gracefully with a meaningful error message.\n\n### Error Messages/Logs\n\n```shell\n2026-02-08T05:29:48.335Z [DEBUG] Resuming code session ID: session_xxx\n2026-02-08T05:29:48.623Z [ERROR] Error: Error: Session not found: session_xxx\n    at pxT (/$bunfs/root/claude:1931:39772)\n    at async ds (/$bunfs/root/claude:2879:1875)\n    at async Oy8 (/$bunfs/root/claude:6381:552)\n    at async E40 (/$bunfs/root/claude:6364:813)\n    at processTicksAndRejections (native:7:39)\n2026-02-08T05:29:48.624Z [ERROR] TeleportOperationError: TeleportOperationError: Session not found: session_xxx\n\nNo HTTP request URL is logged between \"Resuming code session ID\" and the error — the fetch appears to fail silently.\n```\n\n### Steps to Reproduce\n\n1. Start a Claude Code session on claude.ai/code (web interface)\n2. Copy the session ID from the URL (format: session_01Mhb...)\n3. In terminal, run `claude --teleport session_01Mhb...`\n4. Error: \"Session not found\"\n5. Verify the session is accessible via API: curl -H \"Authorization: Bearer $(security find-generic-password -s 'Claude Code-credentials' -w | python3 -c \"import sys,json; print(json.load(sys.stdin)['claudeAiOauth']['accessToken'])\")\" \"https://api.anthropic.com/v1/session_ingress/session/<SESSION_ID>\" — returns full session data\n6. Verify claude.ai is 403'd: curl -v -H \"Authorization: Bearer $TOKEN\" \"https://claude.ai/api/code/sessions\" — returns HTTP 403\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.37 (also tested 2.1.17 and 2.1.0 — same error)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n- Tested across multiple Claude Code versions (2.1.0, 2.1.17, 2.1.37)\n- Tried re-authentication (claude logout → claude login) multiple times\n- Tried switching DNS to Google (8.8.8.8) — no change\n- Tried checking out the matching git branch — no change\n- Location: Australia (Sydney) — possibly relevant to Cloudflare geo-blocking",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:auth",
+    "area:core",
+    "area:api"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-08T05:49:36Z",
+  "updated_at": "2026-02-23T14:31:22Z",
+  "closed_at": "2026-02-16T00:39:23Z",
+  "reactions_total": 20,
+  "comments_count": 10,
+  "author": "quangthien27",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16820\n2. https://github.com/anthropics/claude-code/issues/16403\n3. https://github.com/anthropics/claude-code/issues/16253\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-08T05:52:46Z"
+    },
+    {
+      "author": "quangthien27",
+      "author_association": "NONE",
+      "body": "Opus tried to debug from the compiled claude\n---\n**Root Cause Analysis**                                                                                                                                                 \n                                                                                                                                                                         \n  The --teleport feature works like this:                                                                       ",
+      "created_at": "2026-02-08T06:08:18Z"
+    },
+    {
+      "author": "hbmartin",
+      "author_association": "NONE",
+      "body": "Also having this issue",
+      "created_at": "2026-02-09T16:27:06Z"
+    }
+  ]
+}

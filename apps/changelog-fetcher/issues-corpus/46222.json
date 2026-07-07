@@ -1,0 +1,16 @@
+{
+  "number": 46222,
+  "title": "Duplicate .claude/rules loading in worktrees nested inside .claude/",
+  "body": "## Summary\n\nWhen using worktrees created inside `.claude/worktrees/`, rules from `.claude/rules/` are loaded twice — once from the worktree's own copy and once from the parent repo's `.claude/rules/` (discovered via ancestor directory traversal).\n\n## Steps to reproduce\n\n1. Have a project with `.claude/rules/` containing rule files\n2. Enter a worktree (created at `.claude/worktrees/<name>/`)\n3. Observe that rules are loaded twice:\n\n```\nLoaded ../../rules/pagination.md\nLoaded ../../rules/security.md\nLoaded ../../rules/viewsets.md\nLoaded .claude/rules/pagination.md\nLoaded .claude/rules/security.md\nLoaded .claude/rules/viewsets.md\n```\n\n## Expected behavior\n\nEach rule file should be loaded only once. When operating inside a worktree, the rule discovery should deduplicate rules that resolve to the same file content/origin, or skip ancestor `.claude/rules/` directories that belong to the parent repo.\n\n## Actual behavior\n\nRules are loaded twice because:\n- The worktree is physically located at `<repo>/.claude/worktrees/<name>/`\n- The worktree has its own `.claude/rules/` (checked into git)\n- Walking up the filesystem from the worktree also finds `<repo>/.claude/rules/`\n- Both are loaded, resulting in duplicate context and wasted tokens\n\n## Impact\n\n- Duplicate context consumes tokens unnecessarily (each rule file is sent twice)\n- With many rule files, this compounds significantly\n\n## Suggested fix\n\nDuring rule discovery, if the current working directory is a worktree nested inside another repo's `.claude/`, skip ancestor `.claude/rules/` directories that belong to the parent repo.",
+  "labels": ["bug", "has repro", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-10T13:00:56Z",
+  "updated_at": "2026-05-29T11:14:40Z",
+  "closed_at": "2026-05-29T11:14:40Z",
+  "reactions_total": 0,
+  "comments_count": 9,
+  "author": "planfit-river",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

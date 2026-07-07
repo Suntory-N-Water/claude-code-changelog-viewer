@@ -1,0 +1,35 @@
+{
+  "number": 41194,
+  "title": "Homebrew: claude update advertises version not available in stable cask",
+  "body": "## Summary\n\n`claude update` reports a newer version is available and instructs users to run `brew upgrade claude-code`, but the Homebrew cask formula is pinned to an older stable version. This creates a circular dead end where the user can never actually update.\n\n## Steps to Reproduce\n\n1. Install Claude Code via Homebrew (`brew install claude-code`) — installs 2.1.81\n2. Set `autoUpdaterChannel` to `\"latest\"` in `~/.claude/settings.json`\n3. Run `claude update`\n\n**Output:**\n```\nCurrent version: 2.1.81\nChecking for updates to latest version...\n\nClaude is managed by Homebrew.\nUpdate available: 2.1.81 → 2.1.87\n\nTo update, run:\n  brew upgrade claude-code\n```\n\n4. Run `brew upgrade claude-code`\n\n**Output:**\n```\nWarning: Not upgrading claude-code, the latest version is already installed\n```\n\n## Root Cause\n\n- The Homebrew cask tracks the **stable** release channel (confirmed via `livecheck` URL: `claude-code-releases/stable` which returns `2.1.81`)\n- The cask formula on GitHub HEAD also says `version \"2.1.81\"`\n- `claude update` checks the **latest** channel (per user setting), finds 2.1.87, but then tells the user to use `brew upgrade` which can only install what the stable cask provides\n- `brew update --force`, `brew fetch --force`, re-tapping `homebrew/cask`, and clearing the API cache all confirm 2.1.81 is the correct stable version\n\n## Additional Context\n\n- A second machine (MacBook) with the same Homebrew cask installed shows v2.1.87 — likely because the in-app auto-updater overwrote the binary in-place, which is inconsistent with Homebrew's package management\n- The cask's own caveats acknowledge this tension: *\"This cask tracks the stable release channel. In-app update notifications default to the latest channel regardless.\"*\n\n## Expected Behavior\n\nEither:\n1. `claude update` should respect that a Homebrew-managed installation can only update via the stable channel, and not advertise \"latest\" channel versions with a `brew upgrade` instruction that can't fulfill them, OR\n2. The in-app auto-updater should work consistently for Homebrew installations when `autoUpdaterChannel` is set to `\"latest\"` (updating the binary in-place), OR  \n3. The Homebrew cask should track the latest channel instead of stable\n\n## Environment\n\n- macOS (Darwin 25.4.0, Apple Silicon)\n- Homebrew 4.x\n- Claude Code 2.1.81 (via `brew install claude-code`)\n- `autoUpdaterChannel: \"latest\"` in settings\n\n— Claude Code (Opus 4.6)",
+  "labels": ["bug", "has repro", "platform:macos", "area:packaging"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-30T22:33:10Z",
+  "updated_at": "2026-04-14T14:52:38Z",
+  "closed_at": "2026-04-02T19:09:44Z",
+  "reactions_total": 18,
+  "comments_count": 19,
+  "author": "wrburgess",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "bartektartanus",
+      "author_association": "NONE",
+      "body": "In my case it actually downgraded the Claude-code version:\n\n```\n==> Fetching downloads for: claude-code\n✔︎ Cask claude-code (2.1.81)                                                                                                                                                                             Verified    193.3MB/193.3MB\n==> Upgrading 1 outdated package:\nclaude-code 2.1.87 -> 2.1.81\n==> Upgrading claude-code\n  2.1.87 -> 2.1.81\n```",
+      "created_at": "2026-03-30T22:34:19Z"
+    },
+    {
+      "author": "Ahmad8864",
+      "author_association": "NONE",
+      "body": "To get the newer version back you can do `brew install claude-code@latest` (uninstall old version first)",
+      "created_at": "2026-03-31T00:10:40Z"
+    },
+    {
+      "author": "wrburgess",
+      "author_association": "NONE",
+      "body": "> To get the newer version back you can do `brew install claude-code@latest` (uninstall old version first)\n\n```bash\n> brew install claude-code@latest\n==> Fetching downloads for: claude-code@latest\nError: Cask 'claude-code@latest' conflicts with 'claude-code'.\n```\n\nThis doesn't really make any sense. I've been using brew-managed claude-code for months and upgrading daily. Only today did it revert from 2.1.85 to 2.1.81\n\nI have a Macbook sitting on same network that upgraded just fine.",
+      "created_at": "2026-03-31T00:14:40Z"
+    }
+  ]
+}

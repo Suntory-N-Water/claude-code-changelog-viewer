@@ -1,0 +1,41 @@
+{
+  "number": 4946,
+  "title": "[BUG] Agents and commands broken on nixos",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.65\n- Operating System: NixOs\n- Terminal:  all\n\n## Bug Description\n\nNeither the nix packaged, nor npm installed claude-code work with agents or commands on nixos. There was a point in the past where commands worked but agents have not worked for me ever.\n\nI've tried: the claude in nixpkgs, my own version copying the nix package and updating the version and removing both of those completley and using npm install -g\n\nI hopped over to a ubuntu machine and used the npm install -g method and it was fine\n\n## Steps to Reproduce\n1. Self flagelate a nixos machine into existence\n\n2. Create an agent: \n\n```\n❯ head ~/.claude/agents/nix-packaging-expert.md\n---\nname: nix-packaging-expert\ndescription: Use this agent when you need help with Nix packaging, NixOS module development, or Nix ecosystem expertise. Examples: <example>Context: User wants to package a Python application for Nix. user: 'I need to create a Nix package for my FastAPI application with specific dependencies' assistant: 'I'll use the nix-packaging-expert agent to help you create a proper Nix derivation for your FastAPI application' <commentary>The user needs Nix packaging expertise, so use the nix-packaging-expert agent to provide specialized guidance on creating derivations, handling dependencies, and following Nix best practices.</commentary></example> <example>Context: User is configuring NixOS and needs a custom module. user: 'How do I create a NixOS module for my custom service that manages configuration files and systemd units?' assistant: 'Let me use the nix-packaging-expert agent to guide you through creating a proper NixOS module' <commentary>This requires NixOS module development expertise, so the nix-packaging-expert agent should handle this specialized task.</commentary></example>\ncolor: purple\n---\n\nYou are a Nix and NixOS expert with deep expertise in packaging software and creating robust NixOS modules. You excel at translating complex software requirements into clean, maintainable Nix expressions that follow ecosystem best practices.\n\nYour core competencies include:\n- Creating derivations for various programming languages and build systems\n```\n\n3. Watch it not work:\n\n```\n> Use the nix-packaging-agent sub agent\n\n● I'll use the nix-packaging-agent to evaluate your flake file.\n\n● nix-packaging-agent(Evaluate NixOS flake)\n  ⎿  Initializing…\n  ⎿  Error: Agent type 'nix-packaging-agent' not found. Available agents:\n     general-purpose\n╭────────────────────────────────────────────────────────────────────────────────╮\n│ Agents                                                                         │\n│ No agents found                                                                │\n│                                                                                │\n│ ❯ Create new agent                                                             │\n│                                                                                │\n│ No agents found. Create specialized subagents that Claude can delegate to.     │\n│ Each subagent has its own context window, custom system prompt, and specific   │\n│ tools.                                                                         │\n│ Try creating: Code Reviewer, Code Simplifier, Security Reviewer, Tech Lead, or │\n│  UX Reviewer.                                                                  │\n│                                                                                │\n│                                                                                │\n│   Built-in (always available):                                                 ││   general-purpose · sonnet                                                     │\n│        ",
+  "labels": [
+    "bug",
+    "platform:linux",
+    "area:core",
+    "area:packaging",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-01T19:45:34Z",
+  "updated_at": "2026-01-15T14:17:11Z",
+  "closed_at": "2026-01-08T10:11:37Z",
+  "reactions_total": 2,
+  "comments_count": 18,
+  "author": "commandodev",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "We don't currently ship built-in ripgrep for platforms besides darwin, linux, and win32. You should be able to work around this by installing `ripgrep` yourself and passing env var `USE_BUILTIN_RIPGREP=0` to claude.",
+      "created_at": "2025-08-22T22:55:39Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4728\n2. https://github.com/anthropics/claude-code/issues/4901\n\nIf your issue is a duplicate, please close it and 👍 the existing issue instead.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-01T19:49:59Z"
+    },
+    {
+      "author": "commandodev",
+      "author_association": "NONE",
+      "body": "The plot thickens slightly...\n\n```\nexport NIXPKGS_ALLOW_UNFREE=1\nnix run github:NixOS/nixpkgs/nixos-unstable#claude-code --impure\n> /agents\n```\n\nThis still works on ubuntu\n\nBut it doesn't work on nixos.\n\nIf anyone can give me an idea what that /agents command is doing under the surface I'd be happy to help debug! I assume whatever is being executed assumes a certain filesystem which might explain why it's broken on nixos and the reports of the same on windows.\n",
+      "created_at": "2025-08-01T20:52:00Z"
+    }
+  ]
+}

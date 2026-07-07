@@ -1,0 +1,35 @@
+{
+  "number": 14061,
+  "title": "[BUG] /plugin update does not invalidate plugin cache",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen running `/plugin update`, the marketplace git repository is updated correctly, but the plugin cache in `~/.claude/plugins/cache/` is not cleared or updated. The `installed_plugins.json` file also retains the old `gitCommitSha`.\n\nThis means updated plugin files are not reflected until the cache is manually deleted.\n\n### What Should Happen?\n\nPlugin cache should be invalidated or updated when `/plugin update` is run, so that changes in the marketplace are reflected immediately.\n\n### Error Messages/Logs\n\n```shell\nNo error messages - the command reports success but cache remains stale.\n\nEvidence:\n- ~/.claude/plugins/marketplaces/ - Updated (git pull works) ✓\n- ~/.claude/plugins/cache/ - Not updated (old files remain) ✗\n- ~/.claude/plugins/installed_plugins.json - gitCommitSha not updated ✗\n```\n\n### Steps to Reproduce\n\n1. Add a private marketplace hosted on GitLab:\n    `/plugin marketplace add git@gitlab.com:your-org/your-marketplace.git`\n\n2. Install a plugin from the marketplace:\n    `/plugin install your-plugin@your-marketplace`\n\n3. Make changes to the plugin in the marketplace repository (e.g., update commands or agents)\n\n4. Run `/plugin update`\n\n5. Check cache directory - files remain outdated:\n    ```bash\n    ls -la ~/.claude/plugins/cache/\n\n6. Compare with marketplace directory - this is updated:\ncd ~/.claude/plugins/marketplaces/your-marketplace && git log -1\n\nWorkaround: Manually delete cache directory:\nrm -rf ~/.claude/plugins/cache/\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.69 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\nReporter: Claude Code 2.0.69 🤖",
+  "labels": ["bug", "duplicate", "has repro", "platform:linux", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-15T16:25:44Z",
+  "updated_at": "2026-05-26T01:23:01Z",
+  "closed_at": null,
+  "reactions_total": 31,
+  "comments_count": 23,
+  "author": "shohei-sawaguchi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "nikitakot",
+      "author_association": "NONE",
+      "body": "is there a workaround until it gets fixed? which files should be removed",
+      "created_at": "2025-12-17T10:38:55Z"
+    },
+    {
+      "author": "MariusWilsch",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2025-12-18T18:59:46Z"
+    },
+    {
+      "author": "mavam",
+      "author_association": "NONE",
+      "body": "@nikitakot Deleting the stale plugin cache resolves the issue:\n\n```bash\n# Clear cache for a specific marketplace\nrm -rf ~/.claude/plugins/cache/<marketplace>/\n\n# Or clear all cached plugins\nrm -rf ~/.claude/plugins/cache/\n```\n\nAfter clearing, restart Claude Code and the plugins will be reinstalled from the updated marketplace repo.\n\nNote: Even with `\"autoUpdate\": true` set in `~/.claude/plugins/known_marketplaces.json`, the cache is not invalidated when the marketplace repo is updated via `git p",
+      "created_at": "2025-12-19T09:30:15Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 14321,
+  "title": "[FEATURE] enable extended thinking for subagents, currently not possible",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nthis is a super frustrating issue, and honestly, who are you to say i shouldn't waste tokens enabling extended thinking for subagents? if i want to pay more, use more, get more power out of claude code, then LET ME.\n\ncontext: i would use this for analyzing large amounts of content, and subagents are otherwise perfect for that, except, as we all know, without extended thinking, claude struggles massively with complex tasks, often just spitting bullshit.\n\ni can't be bothered using multiple different main instances instead of subagents. that just destroys everything.\n\n\nclaude code research on this issue as reference:\n\n---\n\nThe Short Answer\n\n  Extended thinking cannot currently be enabled for sub-agents. There's no documented parameter or mechanism to do this.\n\n  The Details\n\n  1. Task tool has no thinking parameter\n\n  The Task tool accepts: description, prompt, subagent_type, model, run_in_background, resume. No thinking or budget_tokens parameter exists.\n\n  2. Verbal cues in main conversation ≠ sub-agent thinking\n\n  The \"think\" → \"think hard\" → \"ultrathink\" progression works in the main conversation because Claude Code's system intercepts these and sets API-level thinking budgets. But when you spawn a sub-agent, that's a separate API call where:\n  - The sub-agent gets its own system prompt\n  - Your task prompt becomes user content\n  - There's no mechanism to pass thinking configuration\n\n  3. Your export observation confirms this\n\n  If your exporter captures thinking blocks from main conversations but not sub-agent conversations, that's evidence they're not getting thinking enabled at the API level.\n\n  Workarounds (all imperfect)\n\n  1. Verbose prompting - Tell sub-agents to \"reason through this step by step, show your work, consider multiple angles before concluding.\" This doesn't enable actual thinking tokens, but it encourages longer, more deliberate output in the main response.\n  2. Don't use sub-agents for complex analysis - If you need thinking, do the analysis in the main conversation and use sub-agents only for simpler tasks.\n  3. Feature request - This seems like a reasonable feature to request via GitHub issues.\n\n  My Take\n\n  You've identified a real limitation. For content analysis where you want deep reasoning, you're currently forced to choose between:\n  - Main conversation with thinking (better analysis, uses your context)\n  - Sub-agents without thinking (preserves context, shallower analysis)\n\n  There's no way to get both right now.\n\n  Sources:\n  - https://code.claude.com/docs/en/sub-agents\n  - https://docs.claude.com/en/docs/build-with-claude/extended-thinking\n  - https://www.anthropic.com/engineering/claude-code-best-practices\n\n### Proposed Solution\n\njust make it possible to enable extended thinking blocks for subagents.\n\nalthough i'm not sure if this is caused by some other limitations than just not allowing it, surely it's possible somehow to implement.\n\n***PLEASE IMPLEMENT THIS, I'M BLOODY DESPERATE!***\n\n\n### Alternative Solutions\n\n_No response_\n\n### Priority\n\nCritical - Blocking my work\n\n### Feature Category\n\nAPI and model interactions\n\n### Use Case Example\n\ncontext: i would use this for analyzing large amounts of content, and subagents are otherwise perfect for that, except, as we all know, without extended thinking, claude struggles massively with complex tasks, often just spitting bullshit.\n\ni can't be bothered using multiple different main instances instead of subagents. that just destroys everything.\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "has repro", "area:tools", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-17T11:00:06Z",
+  "updated_at": "2026-06-13T02:18:48Z",
+  "closed_at": null,
+  "reactions_total": 27,
+  "comments_count": 9,
+  "author": "kaurimark",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "michael-wojcik",
+      "author_association": "NONE",
+      "body": "I strongly agree with this feature request. Given Claude Code's emphasis on the use of agents and skills, this seems like a major gap in the current feature set.",
+      "created_at": "2026-01-06T17:06:51Z"
+    },
+    {
+      "author": "Sociopacific",
+      "author_association": "NONE",
+      "body": "It is really frustrating that we do not have this feature yet",
+      "created_at": "2026-01-29T11:48:12Z"
+    },
+    {
+      "author": "carrotRakko",
+      "author_association": "NONE",
+      "body": "**Additional observations from transcript analysis:**\n\nI examined a subagent's transcript (`.jsonl` file) and confirmed that **thinking blocks are completely absent**. Instead, the subagent outputs text blocks like \"Let me search for...\", \"Now let me look at...\", \"I found a critical piece of information...\" between tool uses. The final output is also a text block.\n\n**Uncertainty about thinking vs text internal processing:**\n\nEven though the subagent is \"thinking\" via text blocks, this may not be",
+      "created_at": "2026-01-30T11:41:28Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 42700,
+  "title": "TTS readback of responses + voice mode for Remote Control sessions",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWhen using Claude Code remotely from a phone via Remote Control, there is no voice capability — all interaction requires    \n  typing on a small screen. Even on desktop, the /voice command only provides speech-to-text input; Claude's responses are    \n  never read back aloud. This makes hands-free or eyes-free coding workflows impossible. The Claude mobile app has a full\n  two-way voice mode, but it has no access to a live codebase, so there is no way to combine conversational voice interaction \n  with real coding context.  \n\n### Proposed Solution\n\n  1. Add TTS readback of Claude's responses when /voice mode is active on desktop — after Claude finishes a response, it\n  should be read aloud automatically (with an option to interrupt or skip).                                                   \n  2. Expose voice input and TTS readback in the Remote Control web interface, so users connecting from a phone or tablet can\n  have the same experience.   \n\n### Alternative Solutions\n\n  - Piping Claude Code output to an external TTS engine (say on macOS, espeak/piper on Linux) — possible but not integrated,\n  requires custom scripting, and breaks the native UX.                                                                        \n  - Claude mobile voice mode + Project file uploads — has full two-way voice but no live codebase access; context goes stale\n  immediately.                                                                                                                \n  - No satisfactory end-to-end solution exists today.  \n\n### Priority\n\nLow - Nice to have\n\n### Feature Category\n\nDeveloper tools/SDK\n\n### Use Case Example\n\n  1. I'm away from my desk and connect to my running Claude Code session via Remote Control on my phone.\n  2. I want to ask Claude to explain a module or walk through a bug.                                                          \n  3. With this feature, I could speak my question, hear the response read back, and have a back-and-forth conversation about  \n  the code — completely hands-free.                                                                                           \n  4. This would make code review, exploration, and planning practical while away from a keyboard.   \n\n### Additional Context\n\n The Claude mobile app already demonstrates that two-way voice works well for general conversation. The missing piece is\n  connecting that experience to a live codebase via Claude Code's Remote Control infrastructure. ",
+  "labels": ["enhancement", "area:a11y"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-02T17:36:22Z",
+  "updated_at": "2026-06-26T15:10:22Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 7,
+  "author": "david-emmerichs-ai",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "bruschke",
+      "author_association": "NONE",
+      "body": "+1 on this. I just built a working proof-of-concept of exactly this using Claude Code hooks and\n  local tools:\n\n  - TTS output: https://github.com/rhasspy/piper (offline neural TTS) reads back responses via a say\n  script called from a CLAUDE.md instruction\n  - Auto-listen: After speaking, it records from the mic for ~10 seconds, transcribes locally with\n  https://github.com/ggml-org/whisper.cpp, and types the result into the terminal via xdotool\n  - Session call signs: Each conversation picks a",
+      "created_at": "2026-04-03T16:05:34Z"
+    },
+    {
+      "author": "mb7272",
+      "author_association": "NONE",
+      "body": "+1 — also hitting this. Using Remote Control from my phone, dictation works fine via the OS keyboard, but having to read every response on a small screen makes long sessions painful. Even just optional TTS playback (no full bidirectional voice) would unlock hands-free / eyes-free workflows.",
+      "created_at": "2026-05-07T05:02:57Z"
+    },
+    {
+      "author": "winstongarland9-ux",
+      "author_association": "NONE",
+      "body": "Adding accessibility weight to this.\n\nI have dyslexia and ADHD; voice is my primary input/output channel, not a convenience. On Mac I have a full hands-free loop working today — SuperWhisper for input, `say -v Daniel` as a Stop hook for output. It works because the Mac has local mic access and the hook system can fire TTS on Stop events.\n\nThe iPhone Code tab has none of that. iOS keyboard dictation works but it's transactional, not conversational; Speak Screen requires tapping the screen, which ",
+      "created_at": "2026-05-11T22:23:22Z"
+    }
+  ]
+}

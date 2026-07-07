@@ -1,0 +1,43 @@
+{
+  "number": 4953,
+  "title": "Claude Code Memory Leak - Process Grows to 120+ GB RAM and Gets OOM Killed",
+  "body": "## Claude Code Memory Leak - Process Grows to 120+ GB RAM and Gets OOM Killed\n\n### Description\nClaude Code has a severe memory leak that causes the process to grow to over 120GB of RAM before being killed by the Linux OOM killer. This happens consistently during extended coding sessions, approximately every 30-60 minutes of active use.\n\n### Environment\n- **Claude Code Version**: 1.0.53\n- **OS**: Ubuntu 24.04\n- **Kernel**: Linux 6.14.11\n- **Total System RAM**: 128GB\n- **Installation Method**: Direct installation in home directory\n\n### Steps to Reproduce\n1. Start Claude Code in interactive mode\n2. Use it for an extended coding session (30-60 minutes)\n3. Perform typical operations: file reading, editing, searching, running bash commands\n4. Monitor memory usage with `ps aux | grep claude`\n5. Process will gradually consume all available RAM until OOM killed\n\n### Expected Behavior\nClaude Code should maintain stable memory usage throughout the session, not exceeding a reasonable amount (e.g., 1-2GB for typical usage).\n\n### Actual Behavior\nThe claude process memory usage grows unbounded until it consumes all available system RAM (120+ GB) and triggers the OOM killer.\n\n### Evidence\n\n**OOM Kill Log Entries** (from `dmesg`):\n```\nKilled process 1983785 (claude) total-vm:234427056kB, anon-rss:124857720kB, file-rss:0kB, shmem-rss:0kB, UID:XXXX pgtables:267248kB oom_score_adj:0\nKilled process 1991601 (claude) total-vm:234453364kB, anon-rss:125118596kB, file-rss:596kB, shmem-rss:0kB, UID:XXXX pgtables:267880kB oom_score_adj:0\nKilled process 1997049 (claude) total-vm:234463420kB, anon-rss:125275392kB, file-rss:5856kB, shmem-rss:0kB, UID:XXXX pgtables:269168kB oom_score_adj:0\nKilled process 2001723 (claude) total-vm:234420884kB, anon-rss:119597028kB, file-rss:3748kB, shmem-rss:0kB, UID:XXXX pgtables:257104kB oom_score_adj:0\nKilled process 2009167 (claude) total-vm:234464008kB, anon-rss:120216960kB, file-rss:372kB, shmem-rss:0kB, UID:XXXX pgtables:252260kB oom_score_adj:0\n```\n\n**Key observations**:\n- **total-vm** consistently around 234GB (virtual memory)\n- **anon-rss** (actual RAM used) between 119-125GB\n- Multiple OOM kills in the same session indicate this is a recurring issue\n- Memory consumption appears to be primarily anonymous pages (anon-rss), not file-backed\n\n### Impact\nThis memory leak makes Claude Code unusable for extended coding sessions as it:\n1. Causes system-wide memory exhaustion\n2. Triggers OOM killer which terminates other processes\n3. Loses session context when Claude is killed\n4. Requires frequent restarts, disrupting workflow\n\n### Additional Information\n- The memory growth appears gradual over time, not sudden\n- The issue persists across multiple sessions\n- After OOM kill and restart, memory usage starts low (~400MB) and grows again\n\n### Potential Debugging Steps\nTo help diagnose this issue, the following information might be useful:\n1. Memory profiling of the claude process\n2. Heap snapshots at various points during execution\n3. Tracking of any unbounded data structures (conversation history, file caches, etc.)\n\n### Workaround\nCurrently, the only workaround is to periodically restart Claude Code before memory exhaustion occurs, which is highly disruptive to workflow.\n\n---\n\n**Priority**: High - This makes the tool unusable for its intended purpose of extended coding assistance",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "memory",
+    "perf:memory",
+    "oncall"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-01T23:01:56Z",
+  "updated_at": "2026-06-29T16:01:33Z",
+  "closed_at": null,
+  "reactions_total": 73,
+  "comments_count": 94,
+  "author": "chatgpt-copypasta",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/3643\n2. https://github.com/anthropics/claude-code/issues/1009\n3. https://github.com/anthropics/claude-code/issues/2938\n\nIf your issue is a duplicate, please close it and 👍 the existing issue instead.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-01T23:05:47Z"
+    },
+    {
+      "author": "fsjn",
+      "author_association": "NONE",
+      "body": "does this was fixed? seems to be i had that too once, the IDE showed the notification e.g. out of memory.",
+      "created_at": "2025-08-04T00:43:54Z"
+    },
+    {
+      "author": "0bLoM",
+      "author_association": "NONE",
+      "body": "I'm still having this issue regardless of where I run it. It's making CC hard to use, as it crashes machine after a while",
+      "created_at": "2025-08-11T10:28:25Z"
+    }
+  ]
+}

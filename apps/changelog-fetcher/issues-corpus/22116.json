@@ -1,0 +1,35 @@
+{
+  "number": 22116,
+  "title": "[BUG] Bug Report - Claude Code 2.1.27 hangs on startup",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Bug Report - Claude Code 2.1.27 hangs on startup**\n\n**Version**: 2.1.27 (macOS arm64, native binary)\n**Working version**: 2.1.23\n\n**Symptoms**:\n- `/resume` hangs indefinitely with \"Scurrying...\" \n- `/plugin` hangs on \"Discover\"\n- `/doctor` hangs after showing output (cannot exit)\n- Simple prompts (`hola`) hang with \"Scurrying...\"\n- CPU spikes to 99%+ in infinite loop\n- Process cannot be interrupted with Ctrl+C\n\n**Workaround**: \n\n```bash\nln -sf ~/.local/share/claude/versions/2.1.23 ~/.local/bin/claude\n```\n\n**Environment**:\n- macOS (Apple Silicon)\n- MCP servers: ssh-manager, context7, sqlite\n- Clean install after removing ~/.claude (problem persists)\n\n### What Should Happen?\n\n**What Should Happen?**\n\nClaude Code should start normally and respond to user prompts without hanging. Specifically:\n\n- `/resume` should load previous session and return to interactive prompt\n- `/plugin` should display plugin marketplace without freezing\n- `/doctor` should complete diagnostics and return to prompt (not require manual kill)\n- Basic prompts should receive API response within normal timeout\n- User should be able to interrupt operations with Ctrl+C\n\nThe behavior in 2.1.23 is the expected behavior - responsive, interruptible, functional.\n\nduring write this, with claude code help, open a new terminal and in new terminal crash another time \n\n\n### Error Messages/Logs\n\n```shell\n## Debug Logs Analysis                                                                                                                                                                                                                       \n                                                                                                                                                                                                                                               \n  The following error appears at startup in version 2.1.27:                                                                                                                                                                                    \n                                                                                                                                                                                                                                               \n  Failed to check enabledPlatforms: TypeError: undefined is not an object (evaluating 'aZ.join')                                                                                                                                               \n                                                                                                                                                                                                                                               \n  This suggests a regression where the `enabledPlatforms` check expects an array                                                                                                                                                               \n  but receives `undefined`, causing an infinite loop or blocking behavior.                                                                                                                                                                     \n                                                                                                                                                                                                                                               \n  **Log files location:** `~/.claude/debug/*.txt`                                                                                                                                                                  ",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "area:mcp"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-31T07:34:10Z",
+  "updated_at": "2026-02-08T14:16:09Z",
+  "closed_at": "2026-01-31T19:38:19Z",
+  "reactions_total": 19,
+  "comments_count": 9,
+  "author": "abkrim",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22077\n2. https://github.com/anthropics/claude-code/issues/22079\n3. https://github.com/anthropics/claude-code/issues/22057\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-31T07:37:11Z"
+    },
+    {
+      "author": "abkrim",
+      "author_association": "NONE",
+      "body": " This may share the same root cause, but my report provides specific debug data that could help identify the fix:                                                                                                                             \n                                                                                                                                                                                                                                               \n  1. Specific error f",
+      "created_at": "2026-01-31T07:49:35Z"
+    },
+    {
+      "author": "joeshub",
+      "author_association": "NONE",
+      "body": "Verified that [downgrading to 2.1.25](https://www.everydev.ai/p/tool-claude-code-2127-freezing-and-cpu-issues-heres-what-we-know-so-far) fixes the hanging issue on my end.",
+      "created_at": "2026-01-31T08:53:45Z"
+    }
+  ]
+}

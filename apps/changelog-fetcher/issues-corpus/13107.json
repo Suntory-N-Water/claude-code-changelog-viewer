@@ -1,0 +1,16 @@
+{
+  "number": 13107,
+  "title": "[BUG] SDK doesn't read from .mcp.json until the CLI is ran in the current working directory",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI have a `.mcp.json` file in my current working directory. Upon launching the Claude Agent SDK from that directory, Claude doesn't seem to have access to any of the MCP servers defined in my `.mcp.json` file. \n\nThis can be verified by calling both the `mcpServerStatus()` callback and examining the `mcp_servers` field in `SDKSystemMessage`s received while running `query`. Both will not have any of the servers configured in my `.mcp.json` file. \n\nBoth of the above methods _will_ start to return valid data after I: \n\n1. Launch `claude` from the CLI in my current working directory \n2. Restart the SDK \n\n**NOTE: This problem does not occur for local or user scoped MCPs. Those work just fine in the Claude Agent SDK. Only project scoped MCPs have this problem.** \n\n### What Should Happen?\n\nThe Claude Agent SDK (just as the CLI) should read from the `.mcp.json` file in my current working directory upon startup _without_ relying on the CLI starting up in that directory. \n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Create a `.mcp.json` file in your current working directory. \n2. Run the `query()` function with an `AsyncIterable` prompt in the Claude Agent SDK. \n3. Either call the `mcpServerStatus()` callback, or send a message and examine the `mcp_servers` field on all messages received of type `SDKSystemMessage`. \n4. Launch the Claude Code CLI from the current working directory, then run `/mcp` (you'll see the server(s) defined in your `.mcp.json` appear here) \n5. Close the existing `AsyncIterable`, and launch a new `query()` function using the Claude Agent SDK. \n6. Either call `mcpServerStatus()` or send a message and examine the `mcp_servers` field on a message of type `SDKSystemMessage`. It will be populated correctly now with the value from your `.mcp.json` file. \n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.54\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nNon-interactive/CI environment\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp", "oncall"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-05T00:01:22Z",
+  "updated_at": "2025-12-24T14:07:20Z",
+  "closed_at": "2025-12-16T19:00:53Z",
+  "reactions_total": 73,
+  "comments_count": 7,
+  "author": "omidmogasemi",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

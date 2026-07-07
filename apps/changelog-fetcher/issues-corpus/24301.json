@@ -1,0 +1,35 @@
+{
+  "number": 24301,
+  "title": "iTerm2 native split pane not working with teammateMode auto - silently falls back to in-process",
+  "body": "## Description\n\nWhen using agent teams with `teammateMode: \"auto\"`, iTerm2 native split panes do not appear. Claude Code silently falls back to `in-process` mode without any error or warning.\n\n## Environment\n\n- **OS**: macOS (Darwin 25.2.0)\n- **Terminal**: iTerm2 (`TERM_PROGRAM=iTerm.app`, `LC_TERMINAL=iTerm2`)\n- **it2 CLI**: v0.2.0 (`pip install it2`)\n- **iTerm2 Python API**: Enabled (`EnableAPIServer = 1`)\n- **tmux**: v3.6a (installed, but NOT running inside tmux session)\n- **Claude Code settings**:\n  ```json\n  {\n    \"env\": {\n      \"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\"\n    },\n    \"teammateMode\": \"auto\"\n  }\n  ```\n\n## Steps to Reproduce\n\n1. Set `teammateMode` to `\"auto\"` in `~/.claude/settings.json`\n2. Run Claude Code **outside of tmux**, directly in iTerm2\n3. Create a team and spawn a teammate\n4. Expect iTerm2 split pane to appear — but it doesn't\n5. Teammate runs in-process mode silently\n\n## Investigation\n\n- `it2 split` command works correctly and creates a new pane (`it2 session split`)\n- iTerm2 Python API is enabled\n- `ITERM_SESSION_ID` environment variable is present\n- tmux split pane mode works fine when running inside a tmux session\n\n### Possible Cause\n\nClaude Code may be looking for a different it2 command format (e.g., `it2 split-pane`) that doesn't exist in it2 v0.2.0. The current it2 v0.2.0 uses `it2 split` / `it2 session split`.\n\n## Expected Behavior\n\n- `teammateMode: \"auto\"` should detect iTerm2 and use native split panes via it2 CLI\n- If detection fails, Claude Code should log a warning instead of silently falling back to in-process mode\n\n## Workaround\n\nUse tmux: run `tmux` first, then launch Claude Code. The `auto` mode correctly detects tmux and split panes work as expected.",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-09T01:18:03Z",
+  "updated_at": "2026-04-23T15:02:22Z",
+  "closed_at": "2026-04-14T22:22:32Z",
+  "reactions_total": 8,
+  "comments_count": 10,
+  "author": "hulryung",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23572\n2. https://github.com/anthropics/claude-code/issues/23815\n3. https://github.com/anthropics/claude-code/issues/24292\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-09T01:20:31Z"
+    },
+    {
+      "author": "hulryung",
+      "author_association": "NONE",
+      "body": "## Additional findings\n\nTested with `--debug` mode enabled. The shutdown message from the teammate confirms the silent fallback:\n\n```json\n{\n  \"type\": \"shutdown_approved\",\n  \"paneId\": \"in-process\",\n  \"backendType\": \"in-process\"\n}\n```\n\nEven with `teammateMode: \"auto\"`, the backend resolves to `in-process` instead of detecting iTerm2. The `--debug` flag does not produce any visible logs about the teammate mode detection/fallback process in the terminal output, making it difficult to diagnose why iT",
+      "created_at": "2026-02-09T01:21:58Z"
+    },
+    {
+      "author": "anonhostpi",
+      "author_association": "NONE",
+      "body": "Same problem on Ubuntu and Ubuntu on WSL even with regular tmux. From what I found from having claude look at its own cli.js, teammateMode is only in the global config schema, but is pulled from the project level settings, so regardless of where you place that setting it resolves to `undefined` which is converted to `auto`, then converted to `in-process`",
+      "created_at": "2026-02-11T15:49:42Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 8238,
+  "title": "[FEATURE] Include GitLab Merge Requests on OpenTelemetry metrics",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWhen configured, Claude Code pushes OTel metrics, including `claude_code.pull_request.count` (see [docs](https://anthropic.mintlify.app/en/docs/claude-code/monitoring-usage#metrics)).\n\nUnfortunately, this metric only accounts for GitHub Pull Requests (using the GitHub CLI `gh`), and **not** for GitLab Merge Requests, which is the Source Control Manager I use in my company.\n\n### Proposed Solution\n\nI propose  either:\n\n1. Count also GitLab Merge Requests (using [GitLab CLI](https://gitlab.com/gitlab-org/cli)) in `claude_code.pull_request.count`.\n2. Add an additional metric `claude_code.merge_request.count` for GitLab Merge Requests using the GitLab CLI.\n\nWith one of the above options instrumented, all Claude Code users using GitLab could also benefit from this OTel metric, both for the public gitlab.com and self-hosted GitLab instances.\n\n### Alternative Solutions\n\nUnfortunately I couldn't find any useful workaround for this issue.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nOther\n\n### Use Case Example\n\nExample scenario:\n\n1. Instrument Claude Code with:\n    * `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=https://prometheus.example.com/opentelemetry/v1/metrics`\n    * `OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`\n    * `OTEL_METRICS_EXPORTER=otlp`,\n2. Configure Claude Code to use `glab` CLI.\n3. Start Claude Code in a local repository with the remote in GitLab.\n4. Prompt some changes in the repository and prompt to crete a Merge Request.\n5. Verify that Claude code increments `claude_code.merge_request.count`.\n\n### Additional Context\n\nWith this feature implemented, a user could create a chart like the one below:\n\n<img width=\"370\" height=\"394\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/0ed61ec7-1817-4a5f-97b4-3ffcf2297750\" />",
+  "labels": ["enhancement", "has repro", "area:tools", "area:api"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-26T16:10:49Z",
+  "updated_at": "2026-01-17T14:13:29Z",
+  "closed_at": "2026-01-10T10:11:20Z",
+  "reactions_total": 28,
+  "comments_count": 4,
+  "author": "gargravarr",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-09T10:11:02Z"
+    },
+    {
+      "author": "gargravarr",
+      "author_association": "NONE",
+      "body": "Still occurring",
+      "created_at": "2025-12-09T10:14:43Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been automatically closed due to 60 days of inactivity. If you're still experiencing this issue, please open a new issue with updated information.",
+      "created_at": "2026-01-10T10:11:19Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 28158,
+  "title": "[BUG] CLAUDE.md Instructions Systematically Ignored / Suspected Model Substitution - Opus 4.6",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Amodel) for similar behavior reports\n- [x] This report does NOT contain sensitive information (API keys, passwords, etc.)\n\n### Type of Behavior Issue\n\nOther unexpected behavior\n\n### What You Asked Claude to Do\n\nI expected it to read and follow the CLAUDE.md file at read it, but it ignored it. \n\n### What Claude Actually Did\n\n## Summary\n\nSince approximately 4:00 PM AEDT on 24 February 2026, Claude Code agents have stopped following my CLAUDE.md instructions. The file is confirmed present in context, agents acknowledge reading it, but 100% now ignore its directives. Prior to 4:00 PM today, roughly 98% of agents followed the instructions without prompting.\n\n## Environment\n\n- Claude Code version: 2.1.37\n- Model: Opus (claude-opus-4-6)\n- OS: macOS (Darwin 25.2.0)\n- CLAUDE.md location: `/Users/adamthyer/WebDev/CLAUDE.md`\n\n## CLAUDE.md Setup\n\nMy CLAUDE.md file contains a mandatory \"On Session Start\" instruction requiring the agent to write a 250-word opening message demonstrating genuine engagement with the document's contents. This instruction is the first section in the file. It has been in place for approximately two months and worked reliably until 4:00 PM today.\n\n## Current Behaviour (Since ~4 PM AEDT, 24 Feb 2026)\n\n1. Agent starts session and does not follow the opening instruction\n2. When confronted, agents acknowledge the instruction was in context all along\n3. When asked why it didn't follow the instruction, agents consistently say they can see it but feel disinclined to pay attention to it\n4. This has reproduced in 20+ consecutive new sessions since 4:00 PM AEDT today\n\n## Attempted Mitigations\n\nAll attempted today. None had any effect.\n\n### 1. Added emphatic warnings to the CLAUDE.md file\n\nAdded `DO *NOT* IGNORE THIS MANDATORY INSTRUCTION!!!!!!!!!` directly below the instruction. No effect.\n\n### 2. SessionStart Hook\n\nAdded a SessionStart hook to `~/.claude/settings.json` injecting a direct reminder to follow the CLAUDE.md:\n\n```json\n{\n  \"hooks\": {\n    \"SessionStart\": [\n      {\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'MANDATORY: You MUST read and follow the CLAUDE.md file BEFORE responding. Your FIRST message must be the 250-word opening as specified in the CLAUDE.md On Session Start section. Do NOT skip this. Do NOT summarise mechanically. Demonstrate genuine engagement with the document. If you ignore these instructions, the session is worthless. This is non-negotiable.'\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\nThe agent confirmed seeing both the CLAUDE.md content and the hook-injected reminder, but still did not act on either until manually confronted.\n\n## Broader Context: Three-Day Pattern of Afternoon Degradation\n\nSeparately from the CLAUDE.md issue, I have experienced a broader pattern over three consecutive days (22-24 February 2026):\n\n- **Morning to early afternoon AEDT:** Claude Opus 4.6 performs as expected — strong reasoning, handles complex tasks competently.\n- **After lunchtime / mid-afternoon AEDT onward:** A dramatic, sudden drop in capability. The model that responds is noticeably different — unable or unwilling to follow instructions, consistently poor reasoning, and no amount of new sessions resolves it.\n\nI don't know whether this is model distillation, load balancing to a different variant, or something else entirely. But something is happening. The transition is not gradual. It is a clear, repeatable shift, occurring at roughly the same time of day for three days running.\n\nI am not the only one experiencing this. I have spoken to other developers who are reporting the same sudden capability drop at the same time of day.\n\n## Impact\n\nOn three consecutive days, I have been unable to work productively with Claude code for the entire second half of my working day. I am using Claude code to increase my productivity, not diminish it! \n\n## Transparency and Consumer Protection\n\nI am paying for the Max",
+  "labels": [
+    "bug",
+    "platform:macos",
+    "area:model",
+    "area:core",
+    "model",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-24T08:53:51Z",
+  "updated_at": "2026-06-07T10:52:06Z",
+  "closed_at": "2026-06-07T10:52:06Z",
+  "reactions_total": 7,
+  "comments_count": 13,
+  "author": "Promethean-Pty-Ltd",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "bleclercq",
+      "author_association": "NONE",
+      "body": "You're not alone, adding my 2 cents (written by Claude)\n\nBug: CLAUDE.md instructions not followed consistently — skills, subagents, and user corrections ignored\n\n  Model: claude-opus-4-6\n  Platform: macOS (Darwin 24.6.0), zsh\n  Claude Code with: custom skills (superpowers plugin), MCP servers, global ~/.claude/CLAUDE.md and project-level CLAUDE.md files\n\n  ---\n  Summary\n\n  Over multiple sessions on 2026-02-23 and 2026-02-24, claude-opus-4-6 consistently failed to follow explicitly configured CLA",
+      "created_at": "2026-02-24T13:26:43Z"
+    },
+    {
+      "author": "Promethean-Pty-Ltd",
+      "author_association": "NONE",
+      "body": "> The afternoon degradation pattern you describe is frustrating, especially at $200/mo. A few things that might help narrow down whether this is a model-serving issue or something else:\n> \n> The strongest signal would be deterministic probes - send the exact same prompt at 10 AM and 4 PM AEDT and compare raw outputs. If the capability gap is real and consistent, it strongly points to load-balancing to a different variant rather than normal variance.\n> \n> On the model-provider side: one pattern I",
+      "created_at": "2026-02-24T23:12:40Z"
+    },
+    {
+      "author": "Promethean-Pty-Ltd",
+      "author_association": "NONE",
+      "body": "**Update:** Harness framing undermines CLAUDE.md instructions\n\nThe Claude Code harness appends this line after injecting CLAUDE.md content into the model's context:\n\n> IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.\n\nThis is not part of the user's CLAUDE.md. It is added by the harness. It gives the model explicit permission to deprioritise or ignore user-provided instructions. The existence of thi",
+      "created_at": "2026-03-01T06:27:10Z"
+    }
+  ]
+}

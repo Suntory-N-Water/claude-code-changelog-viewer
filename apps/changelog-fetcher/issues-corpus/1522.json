@@ -1,0 +1,42 @@
+{
+  "number": 1522,
+  "title": "[BUG] `_claude_fs_right:/Users...` URL crashes rust-analyzer",
+  "body": "originally reported at https://github.com/rust-lang/rust-analyzer/issues/19910\n\n## Environment\n- Claude CLI version: 1.0.9\n- Operating System: macOS 14.7.6\n- Terminal:  VSCode 1.100.2\n\n## Bug Description\n`workspace/didChangeWatchedFiles` LSP call with `_claude_fs_right:/Users/e/Documents/GitHub/hotline/runtime/src/shim_gen.rs` URL crashes rust-analyzer LSP: \"relative URL without a base\"\n\n## Steps to Reproduce\n1. Use Claude code to propose an edit with the Claude Code VSCode extension enabled, so it opens a VSCode native diff viewer pane\n2. Accept the diff\n3. Check the \"rust-analyzer Language Server\" Output pane in VSCode\n\n## Expected Behavior\nNo LSP crash\n\n## Actual Behavior\n\n```\nthread 'LspServer' panicked at crates/rust-analyzer/src/handlers/dispatch.rs:420:17:\nInvalid request\nMethod: workspace/didChangeWatchedFiles\n error: relative URL without a base: \"_claude_fs_right:/Users/e/Documents/GitHub/hotline/runtime/src/shim_gen.rs\"\nstack backtrace:\n   0: __rustc::rust_begin_unwind\n   1: core::panicking::panic_fmt\n   2: rust_analyzer::handlers::dispatch::NotificationDispatcher::on_sync_mut\n   3: rust_analyzer::main_loop::<impl rust_analyzer::global_state::GlobalState>::handle_event\n   4: rust_analyzer::main_loop::<impl rust_analyzer::global_state::GlobalState>::run\n   5: rust_analyzer::main_loop::main_loop\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n\nthread 'main' panicked at /Users/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jod-thread-1.0.0/src/lib.rs:33:22:\ncalled `Result::unwrap()` on an `Err` value: Any { .. }\nstack backtrace:\n   0: __rustc::rust_begin_unwind\n   1: core::panicking::panic_fmt\n   2: core::result::unwrap_failed\n   3: stdx::thread::JoinHandle<T>::join\n   4: rust_analyzer::with_extra_thread\n   5: rust_analyzer::main\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n[Info  - 4:58:26 AM] Connection to server got closed. Server will restart.\ntrue\n[Error - 4:58:26 AM] Server process exited with code 101.\n```",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "area:ide",
+    "platform:vscode"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-03T05:11:11Z",
+  "updated_at": "2026-01-29T14:25:19Z",
+  "closed_at": "2026-01-22T10:13:39Z",
+  "reactions_total": 18,
+  "comments_count": 10,
+  "author": "trevyn",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "anthony-c-martin",
+      "author_association": "NONE",
+      "body": "We're having the same problem in the Bicep extension (https://github.com/Azure/bicep/issues/14140)\n\nContext I shared elsewhere:\n> As per the [LSP spec](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri), the scheme must adhere to the standard for an RFC3986 URI: https://datatracker.ietf.org/doc/html/rfc3986#section-3.1, where it looks like `_` is not technically valid.\n\nIt looks like the fix is that the claude-code extension should not be creating fi",
+      "created_at": "2025-06-03T13:44:26Z"
+    },
+    {
+      "author": "Boscop",
+      "author_association": "NONE",
+      "body": "Yes, this is a very annoying issue for me too. Claude Code always crashes rust-analyzer:\n```\nthread 'LspServer' panicked at crates/rust-analyzer/src/handlers/dispatch.rs:417:17:\nInvalid request\nMethod: workspace/didChangeWatchedFiles\n error: relative URL without a base: \"_claude_fs_right:/Users/me/dev/db/src/api.rs\"\nstack backtrace:\n   0: __rustc::rust_begin_unwind\n   1: core::panicking::panic_fmt\n   2: rust_analyzer::handlers::dispatch::NotificationDispatcher::on_sync_mut\n   3: rust_analyzer::m",
+      "created_at": "2025-07-26T22:47:05Z"
+    },
+    {
+      "author": "loadingalias",
+      "author_association": "NONE",
+      "body": "Any idea of a patch here? I'm using Claude Code in Cursor. The rust-analyzer is crashing every few minutes. Similar to the issues above - MacOS; Cursor; Claude Code.",
+      "created_at": "2025-08-09T01:16:02Z"
+    }
+  ]
+}

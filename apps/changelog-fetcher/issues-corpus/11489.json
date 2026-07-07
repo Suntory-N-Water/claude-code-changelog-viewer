@@ -1,0 +1,23 @@
+{
+  "number": 11489,
+  "title": "[BUG] Task tool subagents don't inherit EU cross-region inference model configuration for AWS Bedrock",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using AWS Bedrock with EU cross-region inference models (model ID format: eu.anthropic.claude-sonnet-4-5-20250929-v1:0), the Task tool fails to launch subagents because it attempts to use the standard US model ID format\n(anthropic.claude-sonnet-4-5-20250929-v1:0) instead of inheriting the configured EU model ID.\n\nThis results in a 403 authentication error because the AWS IAM role has access to the EU cross-region model but not the US format model.\n\n\n### What Should Happen?\n\n The Task tool should inherit the configured model ID (eu.anthropic.claude-sonnet-4-5-20250929-v1:0) and successfully launch subagents using the same model configuration as the main conversation.\n\n### Error Messages/Logs\n\n```shell\nAPI Error: 403 {\"Message\":\"User: arn:aws:sts::xxxxx:assumed-role/xxxxx/xxxxx@xxxxxx.se is\nnot authorized to perform: bedrock:InvokeModel on resource: arn:aws:bedrock:::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0 with an\nexplicit deny in a service control policy\"} · Please run /login\n```\n\n### Steps to Reproduce\n\n  1. Configure Claude Code to use AWS Bedrock in eu-central-1 region\n  2. Set model to: eu.anthropic.claude-sonnet-4-5-20250929-v1:0 (EU cross-region inference format)\n  3. Verify main conversation works (it does, I can interact normally)\n  4. Attempt to launch a subagent using the Task tool with any subagent_type (e.g., general-purpose, Explore)\n  5. Observe the 403 error\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.37 (Claude Code)\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "api:bedrock",
+    "platform:macos",
+    "area:tools",
+    "area:model"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-12T14:58:50Z",
+  "updated_at": "2026-01-01T14:07:51Z",
+  "closed_at": "2025-12-24T22:04:09Z",
+  "reactions_total": 1,
+  "comments_count": 8,
+  "author": "xmnlp",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

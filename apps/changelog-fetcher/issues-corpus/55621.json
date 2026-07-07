@@ -1,0 +1,35 @@
+{
+  "number": 55621,
+  "title": "[FEATURE] Multi-account support in VSCode extension",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Summary\nThe Claude Code VSCode extension does not support switching between multiple Claude accounts, making it impossible to use a second account when the first one hits its usage quota.\n\n### Motivation\nPower users who rely heavily on Claude Code for coding sessions often exhaust the usage quota of a single Claude Pro account within a day. A common workaround is to maintain two separate Claude Pro accounts and switch between them. This works well in the terminal via `CLAUDE_CONFIG_DIR`, but the VSCode extension always uses a single fixed account with no way to switch.\n\n### Current behavior\n- The terminal CLI supports multiple accounts via the `CLAUDE_CONFIG_DIR` environment variable (e.g. `CLAUDE_CONFIG_DIR=~/.claude-acc2 claude`)\n- The VSCode extension reads from its own config directory (`~/.claude-code-gui/`) and does not respect `CLAUDE_CONFIG_DIR`\n- The only way to switch accounts in the extension is to manually `/logout` and re-authenticate, which is disruptive\n\n### Expected behavior\nThe VSCode extension should allow users to:\n1. Add and save multiple Claude accounts\n2. Switch between accounts from the extension UI (e.g. a dropdown in the Account & Usage panel)\n3. Optionally: show remaining quota per account so users know when to switch\n\n### Workaround\nCurrently using terminal aliases as a partial workaround:\n```bash\nalias claude-a=\"claude\"\nalias claude-b=\"CLAUDE_CONFIG_DIR=~/.claude-acc2 claude\"\n```\nThis works in the terminal but the VSCode extension always stays on the primary account.\n\n### Environment\n- OS: macOS\n- Claude Code VSCode extension\n- Plan: Claude Pro (multiple accounts)\n\n### Proposed Solution\n\nThe CLI already handles multiple accounts cleanly via `CLAUDE_CONFIG_DIR`. The VSCode extension could adopt a similar approach:\n\n1. **Account profiles** — Allow users to register multiple accounts in the extension settings, each mapped to a separate config directory (e.g. `~/.claude`, `~/.claude-acc2`)\n2. **Account switcher UI** — Add a dropdown or button in the existing **Account & Usage** panel to switch the active account without requiring a full logout/login flow\n3. **Quota awareness** — Display remaining session and weekly quota for each saved account, so users know when to switch\n4. **Respect `CLAUDE_CONFIG_DIR`** — As a simpler short-term fix, the extension could read the `CLAUDE_CONFIG_DIR` environment variable from the workspace or shell environment, consistent with how the CLI already works\n\nThe last point (respecting `CLAUDE_CONFIG_DIR`) would be the lowest-effort change and would immediately unblock users who already manage multiple accounts via the terminal.\n\n### Alternative Solutions\n\n_No response_\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nConfiguration and settings\n\n### Use Case Example\n\n_No response_\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:auth", "platform:vscode"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-02T17:05:09Z",
+  "updated_at": "2026-05-28T09:25:31Z",
+  "closed_at": null,
+  "reactions_total": 31,
+  "comments_count": 5,
+  "author": "hnkhuy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "m13v",
+      "author_association": "NONE",
+      "body": "the multi-account-as-quota-pool pattern shows up everywhere right now (cursor threads, windsurf, the t3code issue floating around) and it's almost always a symptom of one missing thing: a real-time read of where each account actually sits against the rolling 5h and weekly window before you switch. without that, rotation just round-robins into accounts that are already cooling down. the headers anthropic returns on every /v1/messages call (anthropic-ratelimit-unified-5h-utilization, 7d-utilizatio",
+      "created_at": "2026-05-02T19:52:59Z"
+    },
+    {
+      "author": "delian",
+      "author_association": "NONE",
+      "body": "This is an important feature for me too. If have a company claude account and personal account I might like to use one for one project and another for another project in the same  IDE - multi account support is important even for compliance to company policies. The same applies for the claude-extension for vscode and for the claude agent in the cli.",
+      "created_at": "2026-05-04T13:23:27Z"
+    },
+    {
+      "author": "WarrenSchultz",
+      "author_association": "NONE",
+      "body": "Yes, the same as said above. I have a work account, and need to set up a personal account, but being able to switch between them is critical for my use.",
+      "created_at": "2026-05-11T19:39:30Z"
+    }
+  ]
+}

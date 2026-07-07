@@ -1,0 +1,42 @@
+{
+  "number": 24207,
+  "title": "[BUG] No disk space management: ~/.claude grows unbounded, cascade failure destroys settings and auth at 0 bytes free",
+  "body": "## Description\n\n@bcherny @wolffiex Claude Code has no disk space management. The `~/.claude` directory grows unbounded, there is no monitoring, no cleanup mechanism, and no user warnings. When the disk fills up, Claude Code enters an **unrecoverable cascade failure** that destroys user settings and sessions.\n\n## Environment\n\n- **OS:** Windows 10 (MSYS2/Git Bash)\n- **Claude Code:** 2.1.34 (first observed) → 2.1.37 (still present)\n- **Disk:** 293 GB, filled to **0 bytes free** by Claude Code's own data\n\n## ~/.claude disk usage breakdown\n\n```\n~/.claude/projects/      2,707 MB  — session transcripts (unbounded growth)\n~/.claude/debug/           734 MB  — debug logs (never cleaned)\n~/.claude/file-history/    188 MB  — file snapshots (see #10107: 300 GB for one user)\n~/.claude/history.jsonl      6 MB  — command history\n~/.claude/plugins/           5 MB\n────────────────────────────\nTOTAL:                   3,640 MB\n```\n\nTop projects by transcript size:\n```\nD--projects-gogpu-gogpu      1,114 MB  (single project!)\nD--projects-grpmsoft-grpm      688 MB\nD--projects-freicon            328 MB\nD--projects-coregx-coregex     273 MB\n```\n\nThis is on top of the `.node` native addon leak (#23095, ~20 GB/week) and `claude-*-cwd` temp file leak (#8856, thousands of files).\n\n## The cascade failure (critical)\n\nWhen the disk reaches 0 bytes free, Claude Code enters a **destructive, unrecoverable state**:\n\n1. **Write failure** — Claude Code cannot write `.claude.json` (project settings)\n2. **Corruption** — the failed write produces a zero-length file\n3. **Invalid config** — Claude Code reads the empty file, treats it as invalid JSON\n4. **Settings lost** — Claude Code creates a new default config, overwriting all project settings (allowed tools, agent configurations, custom permissions)\n5. **Authentication lost** — OAuth/API tokens are also corrupted or wiped, requiring the user to re-authenticate\n6. **Agents die** — all running agents/sessions stop and cannot recover even after freeing disk space\n7. **Manual recovery required** — user must:\n   - Kill all Claude Code processes\n   - Free disk space manually (with no guidance on what to clean)\n   - Re-authenticate with Anthropic (login again)\n   - Restore `.claude.json` from backup (if one exists)\n   - Restart all sessions (losing all conversation context)\n   - Re-configure agent settings that weren't in the backup\n\n**There is no warning before this happens. No graceful degradation. No recovery path.**\n\n## What's missing\n\n### 1. Disk space monitoring (critical)\nClaude Code should check available disk space and warn the user **in the session UI** before it's too late:\n\n```\n⚠️ Warning: Only 2 GB free on C: — Claude Code data is using 3.6 GB in ~/.claude\n   Run `claude clean` to free space, or see https://docs.anthropic.com/...\n```\n\n### 2. Atomic writes for config files (critical)\n`.claude.json` should use write-to-temp-then-rename pattern to prevent corruption:\n```\nwrite → .claude.json.tmp\nfsync → .claude.json.tmp\nrename → .claude.json.tmp → .claude.json\n```\nThis is standard practice for any application that persists configuration.\n\n### 3. `claude clean` command (enhancement, requested in #11646)\n```bash\nclaude clean              # Safe cleanup: old debug logs, stale transcripts, temp files\nclaude clean --aggressive # Also clean file-history, old project caches\nclaude clean --dry-run    # Show what would be cleaned\n```\n\n### 4. Data lifecycle policies (enhancement)\n- **debug logs**: auto-delete after 7 days\n- **session transcripts**: compress after 30 days, delete after 90 days\n- **file-history**: cap at 500 MB per project, LRU eviction\n- **claude-*-cwd temp files**: clean on session exit (still leaking per #8856)\n\n## Related issues\n\n| Issue | Status | Problem |\n|---|---|---|\n| #23095 | OPEN | `.node` native addon leak (~20 GB/week on Windows) |\n| #10107 | CLOSED | file-history grew to 300 GB |\n| #8856 | CLOSED | `claude-*-cwd` temp files never cleaned (still happening!) |\n| #11646 | CLOSED | Request for `cla",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:core",
+    "perf:memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-08T15:53:25Z",
+  "updated_at": "2026-06-04T11:12:54Z",
+  "closed_at": "2026-06-04T11:12:54Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "kolkov",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18869\n2. https://github.com/anthropics/claude-code/issues/16093\n3. https://github.com/anthropics/claude-code/issues/16720\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-08T15:57:49Z"
+    },
+    {
+      "author": "kolkov",
+      "author_association": "NONE",
+      "body": "This is **not a duplicate** of any of those issues. Each one covers a single symptom:\n\n- #18869 — debug log bloat (macOS, 472 GB)\n- #16093 — infinite logging loop (debug files, 200 GB+)\n- #16720 — ENOSPC crash handling\n\n**This issue is a comprehensive report** covering the entire chain:\n\n1. **Multiple sources** of unbounded growth (projects/, debug/, file-history/, claude-*-cwd, .node) — not just debug logs\n2. **No monitoring** — no warning in the session UI before disk fills\n3. **Cascade failur",
+      "created_at": "2026-02-08T16:23:29Z"
+    },
+    {
+      "author": "enzoxic",
+      "author_association": "NONE",
+      "body": "## Workaround: Symlink ~/.claude/projects to external storage\n\nWe hit this exact issue on macOS (Mac Studio M1 Max, 500GB internal SSD). The `~/.claude/projects` directory grew to **3.2 GB** over ~2 months of daily Claude Code usage, with no warnings or cleanup.\n\n### Solution: symlink to external SSD\n\n```bash\n# 1. Copy existing data to external drive (preserve permissions)\ncp -a ~/.claude/projects /Volumes/ExternalSSD/claude-data/projects\n\n# 2. Backup original\nmv ~/.claude/projects ~/.claude/pro",
+      "created_at": "2026-02-24T16:57:50Z"
+    }
+  ]
+}

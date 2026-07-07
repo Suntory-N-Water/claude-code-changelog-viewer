@@ -1,0 +1,35 @@
+{
+  "number": 49086,
+  "title": "[BUG] Terminal resize causes repeated banner/content duplication in scrollback (per-frame redraw leak)",
+  "body": "## Bug Description\n\nEach terminal resize event (SIGWINCH) triggers a full viewport redraw, but the previous frame is **not cleared** — it gets pushed into scrollback. When dragging to resize the window horizontally, every intermediate width produces a new copy of the current screen (banner + conversation), flooding scrollback with dozens of near-identical frames at progressively different widths.\n\nThis makes it extremely difficult to scroll back through conversation history, as the entire scrollback is filled with duplicate content.\n\n## Environment\n\n- **Claude Code**: v2.1.110\n- **OS**: macOS 15.1.1 (Darwin 24.1.0, Apple Silicon)\n- **Terminal**: macOS Terminal.app (also reproduces in JetBrains Android Studio integrated terminal)\n- **Shell**: zsh\n\n## Steps to Reproduce\n\n1. Open macOS Terminal.app (or any terminal)\n2. Run `claude`\n3. Horizontally drag the window edge to make it wider (or narrower)\n4. Scroll up in the terminal\n\n## Expected Behavior\n\n- The viewport should re-render at the new width\n- Scrollback should remain clean — only actual conversation history\n\n## Actual Behavior\n\n- **Every intermediate width during the drag** produces a full copy of the current screen pushed into scrollback\n- Scrollback fills up with N copies of the banner + current content, each at a slightly different width\n- Actual conversation history becomes unreachable, buried under duplicate frames\n- The more you resize, the more duplicates accumulate\n\n## Screenshot\n\n_Will attach screenshot in comments showing stacked banners at different widths after a single horizontal resize drag_\n\n## Root Cause Analysis\n\nThe TUI redraw on SIGWINCH appears to write the new frame directly into the normal scrollback buffer without first clearing the previous frame. Well-behaved fullscreen TUI apps (vim, htop, etc.) use the alternate screen buffer to isolate redraws from scrollback. Claude Code's renderer either:\n1. Is not using the alternate screen buffer during resize, or\n2. Is switching between alt/normal buffers in a way that leaks each frame into scrollback\n\nNote: `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1` does **not** fix this issue.\n\n## Related Issues\n\n- #11234 — Repeated re-draw of status text triggered by window resize/monitor switch\n- #6481 — Window resize shenanigans (viewport becomes mirrored duplicate)\n- #18493 — Terminal resize causes content loss\n- #42340 — Terminal scrollback wiped during session\n- #8276 — Text does not reflow when terminal is resized",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-16T09:52:03Z",
+  "updated_at": "2026-06-05T19:22:47Z",
+  "closed_at": "2026-04-21T00:46:16Z",
+  "reactions_total": 9,
+  "comments_count": 21,
+  "author": "Suosuo123",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Suosuo123",
+      "author_association": "NONE",
+      "body": "<img width=\"1456\" height=\"1061\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/38f63f05-cd05-4f4e-a095-f5f99d0026c6\" />",
+      "created_at": "2026-04-16T09:54:30Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/46834\n2. https://github.com/anthropics/claude-code/issues/47235\n3. https://github.com/anthropics/claude-code/issues/49057\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-16T09:58:12Z"
+    },
+    {
+      "author": "lucasec",
+      "author_association": "NONE",
+      "body": "The last stable version before this began occurring is 2.1.97. Previously, Claude would clear the entire scrollback any time it needed to redraw more than the current screen.\n\nI know some users found this problematic when it would clear other content in the scrollback, but some of us found it useful particularly if we wanted to Ctrl-F through the scrollback and not see the same lines repeated over and over again (and for those of us who have our terminals configured for unlimited scrollback, thi",
+      "created_at": "2026-04-17T05:25:01Z"
+    }
+  ]
+}

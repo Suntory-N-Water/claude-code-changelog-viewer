@@ -1,0 +1,16 @@
+{
+  "number": 41763,
+  "title": "bypassPermissions mode silently downgrades to acceptEdits after approving a suspicious path prompt",
+  "body": "## Description\n\nWhen running Claude Code in `bypassPermissions` mode (via `--dangerously-skip-permissions`), if a \"suspicious path pattern\" prompt appears and the user selects option 2 (\"Yes, and always allow access to ... from this project\"), the permission mode silently downgrades from `bypassPermissions` to `acceptEdits`.\n\n## Steps to Reproduce\n\n1. Start Claude Code with `--dangerously-skip-permissions` (or alias `claude='claude --dangerously-skip-permissions'`)\n2. Confirm the mode is `bypassPermissions` in the status bar\n3. Run a task that creates a directory with an underscore in the path (e.g., `mkdir -p \"/path/to/NFLX-Netflix_ Inc.\"`)\n4. Claude Code shows a permission prompt: \"contains a suspicious Windows path pattern that requires manual approval\"\n5. Select option 2: \"Yes, and always allow access to ... from this project\"\n6. Observe: the mode has changed from `bypassPermissions` to `acceptEdits`\n\n## Expected Behavior\n\nAfter approving the prompt, the mode should remain `bypassPermissions`. The user explicitly chose bypass mode and only interacted with the prompt because the system forced it — this should not change the overall permission mode.\n\n## Actual Behavior\n\nThe mode silently downgrades to `acceptEdits`. The user has to press Shift+Tab multiple times to cycle back to `bypassPermissions`.\n\n## Environment\n\n- macOS (Darwin 25.0.0)\n- Claude Code CLI\n- `~/.zshrc` alias: `alias claude='claude --dangerously-skip-permissions'`\n- `settings.json`: `{\"skipDangerousModePermissionPrompt\": true}`",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-01T03:01:03Z",
+  "updated_at": "2026-04-25T14:35:29Z",
+  "closed_at": "2026-04-18T04:18:31Z",
+  "reactions_total": 3,
+  "comments_count": 4,
+  "author": "dspwell",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

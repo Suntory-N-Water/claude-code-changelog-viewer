@@ -1,0 +1,42 @@
+{
+  "number": 23751,
+  "title": "Compaction fails with 'Conversation too long' at 48% context usage (Opus 4.6)",
+  "body": "## Bug Description\n\nWith Claude Code using Opus 4.6, the system reports \"context full\" prematurely and `/compact` fails, leaving the user stuck. First noticed in v2.1.32, still present in v2.1.34.\n\n## Steps to Reproduce\n\n1. Use Claude Code v2.1.34 with `claude-opus-4-6` model\n2. Work normally until message tokens reach ~78k (still only 48% of 200k context)\n3. Claude reports context is full\n4. Run `/compact`\n5. Compaction fails with error\n\n## Error Message\n\n```\n/compact\n⎿ Error: Error during compaction: Error: Conversation too long. Press esc twice to go up a few messages and try again.\n```\n\n## Context State at Time of Error\n\n`/context` output shows plenty of remaining space:\n\n```\nclaude-opus-4-6 · 97k/200k tokens (48%)\n\nEstimated usage by category\nSystem prompt: 3.3k tokens (1.6%)\nSystem tools: 16.5k tokens (8.2%)\nMemory files: 3.4k tokens (1.7%)\nSkills: 290 tokens (0.1%)\nMessages: 77.7k tokens (38.8%)\nFree space: 66k (32.9%)\nAutocompact buffer: 33k tokens (16.5%)\n```\n\nNo MCP servers are configured.\n\n## Expected Behavior\n\n- Context should not report \"full\" at 48% usage\n- `/compact` should successfully summarize the conversation\n- After compaction, work should be able to continue\n\n## Actual Behavior\n\n- Context reports full prematurely\n- `/compact` fails with \"Conversation too long\"\n- User is stuck and cannot continue working\n- Only workaround is pressing Escape twice to drop messages or starting a fresh conversation\n\n## Likely Cause\n\nThe compaction process appears to send the conversation to a smaller model for summarization. When message tokens reach ~78k, this exceeds the summarization model's context window — even though the primary model (Opus 4.6, 200k) has plenty of room. The compaction pipeline may not be scaled for Opus 4.6's larger context window.\n\n## Environment\n\n- Claude Code version: v2.1.34 (first noticed in v2.1.32)\n- Model: claude-opus-4-6\n- Platform: macOS (Darwin 24.6.0)",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:model",
+    "area:core",
+    "memory"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-02-06T17:26:13Z",
+  "updated_at": "2026-05-04T15:06:00Z",
+  "closed_at": "2026-04-27T09:48:38Z",
+  "reactions_total": 13,
+  "comments_count": 15,
+  "author": "airladon",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23047\n2. https://github.com/anthropics/claude-code/issues/21853\n3. https://github.com/anthropics/claude-code/issues/23469\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-06T17:30:54Z"
+    },
+    {
+      "author": "airladon",
+      "author_association": "NONE",
+      "body": "May not be a dup of 1. because this isn't in a long conversation. It gets stuck in a single, relatively simple task (run a test and debug it - and the debug isn't that complex)\nMay not be a dup of 2. as this only started happening in 2.1.32 (2.1.31, and before was not an issue)\nPossible dup of 3., but information above may be clearer.",
+      "created_at": "2026-02-06T17:39:44Z"
+    },
+    {
+      "author": "davidacasey",
+      "author_association": "NONE",
+      "body": "Adding a data point from claude.ai (not Claude Code) that may help narrow this down.\n\nEnvironment: claude.ai web, Claude Max, Opus 4.6, macOS. 8 MCP integrations connected (Notion, Fireflies, Gmail, Calendar, Drive, Chrome extension, office-addin). 67 tool definitions loaded into every session.\n\nBehavior: Compaction triggers on first or second message when fetching content from MCP connectors (Notion documents, Fireflies transcripts). Compaction bar appears at 27-37% of the progress indicator. T",
+      "created_at": "2026-02-08T22:34:54Z"
+    }
+  ]
+}

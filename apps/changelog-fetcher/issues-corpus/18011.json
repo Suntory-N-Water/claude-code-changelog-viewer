@@ -1,0 +1,35 @@
+{
+  "number": 18011,
+  "title": "Memory leak causing V8 OOM crashes (SIGABRT) on extended sessions",
+  "body": "## Description\n\nClaude Code sessions are crashing due to V8 heap exhaustion (Out of Memory). The Node.js process accumulates memory until garbage collection fails, triggering `abort()`.\n\n## Environment\n\n- **Claude Code version:** 2.1.6\n- **Node version:** v23.6.0\n- **OS:** macOS 26.0.1 (Darwin 25.0.0)\n- **Platform:** Apple Silicon (M4 Max, arm64)\n- **RAM:** 64GB\n\n## Crash Evidence\n\nMultiple crash reports in `~/Library/Logs/DiagnosticReports/node-*.ips` showing the same pattern:\n\n```json\n\"termination\": {\n  \"code\": 6,\n  \"namespace\": \"SIGNAL\", \n  \"indicator\": \"Abort trap: 6\"\n}\n\"asi\": {\"libsystem_c.dylib\": [\"abort() called\"]}\n```\n\n**Stack trace:**\n```\nnode::OOMErrorHandler(char const*, v8::OOMDetails const&)\nv8::Utils::ReportOOMFailure(v8::internal::Isolate*, ...)\nv8::internal::V8::FatalProcessOutOfMemory(...)\nv8::internal::Heap::FatalProcessOutOfMemory(char const*)\nv8::internal::Heap::CheckIneffectiveMarkCompact(...)\nv8::internal::Heap::CollectGarbage(...)\n```\n\n## Reproduction\n\n1. Run multiple Claude Code sessions in parallel (3-4 terminal tabs)\n2. Use sessions for extended periods (30+ minutes) with moderate tool usage\n3. Sessions crash simultaneously when heap is exhausted\n\n## Observations\n\n- 10 crash reports in a single day\n- Multiple sessions crash at the **exact same millisecond** (shared heap?)\n- Debug logs show normal operation until abrupt termination (no graceful SessionEnd logged)\n- Sessions that logged `SessionEnd with query: other` vs sessions that just died suggest two crash modes\n\n## Workaround\n\nIncreasing Node.js heap size delays the crash:\n```bash\nexport NODE_OPTIONS=\"--max-old-space-size=8192\"\n```\n\n## Crash Report Timestamps (2026-01-13)\n\n- 16:23:42\n- 16:39:01  \n- 18:28:48 (3 reports)\n- 19:35:29\n- 19:45:42\n- 21:36:06\n- 21:48:44\n- 21:48:45\n\n## Additional Context\n\nThis appears to be a memory leak rather than legitimate memory usage - 64GB machine shouldn't be hitting OOM on CLI tool sessions. Possibly related to:\n- Conversation context accumulation\n- MCP server connections\n- Subagent spawning\n- Debug logging\n\nHappy to provide full crash reports if helpful.\n\n---\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+  "labels": ["stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-13T21:23:13Z",
+  "updated_at": "2026-04-24T14:52:42Z",
+  "closed_at": "2026-04-16T10:36:43Z",
+  "reactions_total": 5,
+  "comments_count": 16,
+  "author": "jc90069",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "bob-bot",
+      "author_association": "NONE",
+      "body": "Experiencing the same crash, but specifically on **idle sessions** (sessions left unused for extended periods).\n\nEnvironment:\n  - Linux (WSL2, Ubuntu 22.04.5)\n  - Crash after ~1.9 hours of process runtime (~6799 seconds)\n  - Heap grows to ~4GB before exhaustion\n\nThis happens even when the session is mostly idle with no active tool usage. The crash timing suggests background processes (statusline updates, MCP polling, event listeners) are continuously accumulating memory without proper garbage co",
+      "created_at": "2026-01-15T13:54:36Z"
+    },
+    {
+      "author": "kuzmeech",
+      "author_association": "NONE",
+      "body": "## Additional Evidence: Crash during active tool use (2026-01-16)\n\nAdding another data point - crash occurred during **active tool processing** (not idle), specifically while processing Grep results after a conversation compaction.\n\n### Environment\n- **Claude Code:** 2.1.9\n- **Node.js:** v25.2.1 (Homebrew)\n- **macOS:** 26.2 (25C56), Apple Silicon\n- **RAM:** 64GB (no swap pressure, plenty free)\n\n### Session State at Crash\n| Metric | Value |\n|--------|-------|\n| Session duration | ~29 minutes |\n| ",
+      "created_at": "2026-01-16T19:09:48Z"
+    },
+    {
+      "author": "Whoaa512",
+      "author_association": "NONE",
+      "body": "Adding another data point - hit the same OOM crash on v2.1.12 (Node 24.11.1, macOS, M-series).\n\nTrigger: Spawned a super-coder Task agent that invoked Skill(commit) mid-execution. Crashed ~9 min into the session. Context was only at 81% when it died, so not context exhaustion.\n\nHeap state at crash:\n8109.9 (8176.6) -> 8099.2 (8253.1) MB\naverage mu = 0.372, current mu = 0.381\n\nSame \"Ineffective mark-compacts near heap limit\" pattern as OP.\n\nStack excerpt:\nFATAL ERROR: Ineffective mark-compacts nea",
+      "created_at": "2026-01-18T07:33:23Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 3402,
+  "title": "[BUG] claude-code for Windows is NOT available due to its port",
+  "body": "<img width=\"580\" height=\"426\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/94746111-e816-4277-9a56-5aa90d1e73b6\" />\n\n## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.51\n- Operating System: Windows 11\n- Terminal: Command Prompt / PowerShell\n\n## Bug Description\nClaude Code fails to start on Windows with OAuth error due to port 54545 conflict with Windows dynamic port range. No configuration option exists to change the port.\n\n## Steps to Reproduce\n1. Install Claude Code on Windows: `npm install -g @anthropic-ai/claude-code`\n2. Run `claude-code` in administrator Command Prompt\n3. Error occurs: `OAuth error: listen EACCES: permission denied 0.0.0.0:54545`\n\n## Expected Behavior\nClaude Code should start successfully and open OAuth authentication in browser.\n\n## Actual Behavior\nApplication fails with permission denied error on port 54545. Port 54545 falls within Windows dynamic port range (49152-65535) which is reserved by the system.\n\n## Additional Context\n- Tested with administrator privileges\n- Firewall disabled (ESET + Windows Defender)\n- Confirmed port 54545 is not in use: `netstat -ano | findstr :54545` shows nothing\n- Adjusted Windows dynamic port range: `netsh int ipv4 set dynamicport tcp start=55000 num=10000`\n- No configuration option found in claude.json or CLI help to specify custom port\n- Need port configuration option (CLI flag, environment variable, or config file) to resolve Windows compatibility",
+  "labels": ["bug", "has repro", "platform:windows", "area:auth"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-12T14:24:08Z",
+  "updated_at": "2025-07-29T16:33:37Z",
+  "closed_at": "2025-07-17T01:05:57Z",
+  "reactions_total": 6,
+  "comments_count": 19,
+  "author": "frkavka",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "We're working on addressing this - for the meantime, we recommend using the URL to sign in.",
+      "created_at": "2025-07-15T23:03:59Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "In upcoming version v1.0.54, we're changing Claude Code to use port 45454 (outside the dynamic range). As a mitigation, continue to use the URL to sign in.",
+      "created_at": "2025-07-16T16:00:20Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "v1.0.54 released today with this fix. Happy coding!",
+      "created_at": "2025-07-17T01:05:57Z"
+    }
+  ]
+}

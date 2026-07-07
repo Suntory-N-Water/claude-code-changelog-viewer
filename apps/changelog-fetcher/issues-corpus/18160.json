@@ -1,0 +1,35 @@
+{
+  "number": 18160,
+  "title": "[BUG] Claude is ignoring `allow` permissions in global `settings.json`",
+  "body": "### Preflight Checklist\n\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe Bash permission pattern `Bash(ls *)` in settings.json is not matching the command `ls -la ~/.claude/`, requiring user approval despite the pattern being in the allow list.\n\nWhen Claude attempts to execute `ls -la ~/.claude/`, the user is prompted for permission even though `Bash(ls *)` is explicitly configured in the permissions.allow array.\n\n### What Should Happen?\n\nThe command `ls -la ~/.claude/` should be automatically allowed without requiring user approval, as it should match the pattern `Bash(ls *)` which is intended to allow any `ls` command with any arguments.\n\n### Error Messages/Logs\n\nNo error messages - the command simply requires manual approval instead of being auto-approved by the permission pattern.\n\n### Steps to Reproduce\n\n1. Add `Bash(ls *)` to the permissions.allow array in `~/.claude/settings.json`:\n   ```json\n   {\n     \"permissions\": {\n       \"allow\": [\n         \"Bash(ls *)\"\n       ]\n     }\n   }\n   ```\n2. Start a Claude Code session\n3. Request Claude to execute `ls -la ~/.claude/`\n4. Observe that Claude prompts for permission approval\n\n**Expected:** Command executes without permission prompt\n**Actual:** User is prompted to approve the command\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Claude Code Version\n\nLatest (as of 2026-01-14)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n**Current settings.json configuration:**\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(grep *)\",\n      \"Bash(ls *)\",\n      \"Bash(pwd *)\",\n      \"Bash(mkdir *)\",\n      ...\n    ]\n  }\n}\n```\n\n**Settings file location:** `~/.claude/settings.json` (symlinked to `~/app/dotfiles/claude/settings.json`)\n\n**System info:**\n- OS Version: Darwin 24.4.0\n- Platform: darwin\n\n**Hypotheses about the issue:**\n\n1. **Tilde expansion timing:** The pattern may be evaluated before shell tilde (`~`) expansion occurs, causing the literal string `~/.claude/` not to match the expected pattern\n2. **Wildcard matching edge case:** The wildcard `*` in `Bash(ls *)` may not properly handle certain combinations of flags and path arguments\n3. **Pattern precedence or parsing:** There may be an issue with how the command string is parsed before pattern matching\n\n**Questions for clarification:**\n\n1. Is `Bash(ls *)` expected to match `ls -la ~/.claude/`?\n2. What is the correct pattern syntax to allow all ls commands regardless of flags and paths?\n3. Should multiple patterns be required (e.g., both `Bash(ls)` and `Bash(ls *)`, or `Bash(ls:*)`)?\n4. Is there a known limitation with special characters (tilde, dots) in path arguments affecting pattern matching?\n\n**Related patterns that also exist in the allow list and work correctly:**\n- `Bash(grep *)` - appears to work\n- `Bash(pwd *)` - appears to work\n- `Bash(git status *)` - appears to work",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-14T14:34:17Z",
+  "updated_at": "2026-05-01T06:08:46Z",
+  "closed_at": null,
+  "reactions_total": 44,
+  "comments_count": 27,
+  "author": "mieubrisse",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mdbudnick",
+      "author_association": "NONE",
+      "body": "I am having a similar issue. I would like Claude to run read and node project commands without asking for permission each time, but it is still asking for permission it has been granted. There's nothing in my hooks that would prevent this.\n\nThe project level .claude/settings.local.json is being respected, but should be allowed by the global settings.json permissions already.\n```\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(npm run convert:*)\",\n      \"Bash(npm run build:*)\",\n      \"Bash(node d",
+      "created_at": "2026-01-14T15:07:54Z"
+    },
+    {
+      "author": "mieubrisse",
+      "author_association": "NONE",
+      "body": "Now it's ignoring it for `mkdir`.\n\nIn my global `~/.claude/settings.json`:\n\n```\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(mkdir *)\",\n```\n\nI asked Claude to create a project-specific `.claude/settings.json` in the repo, and got:\n\n```\n Bash command\n\n   mkdir -p /Users/odyssey/code/prompt-generator/.claude\n   Create .claude directory\n\n Do you want to proceed?\n ❯ 1. Yes\n   2. Yes, and always allow access to prompt-generator/ from this project\n   3. No\n```",
+      "created_at": "2026-01-15T22:01:33Z"
+    },
+    {
+      "author": "mieubrisse",
+      "author_association": "NONE",
+      "body": "Would be great to get someone from Anthropic to explain why it's just not working",
+      "created_at": "2026-01-15T22:01:47Z"
+    }
+  ]
+}

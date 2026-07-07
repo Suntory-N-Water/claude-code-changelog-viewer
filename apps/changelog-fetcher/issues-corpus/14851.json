@@ -1,0 +1,35 @@
+{
+  "number": 14851,
+  "title": "[BUG] Commands are now apparently \"skills\" and are loaded into context without being invoked. This effectively removes command functionality from Claude Code",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nPreviously when creating .md files in directory .claude/commands, these were interpreted at slash commands that could be invoked by the user to inject them into chat. This was useful.\n\nIn the latest version these are now loaded into context as skills. I don't understand this as skills have their own implementation and directory structure.\n\nBecause one of the useful features of commands is that they were not loaded into context, this change effectively removes the commands functionality. Using the /context command it now reports token use for \"skills\" in a separate section that shows the token equivalent of the full contents of all commands files, with the resulting widely varying token use based on file size. Interestingly the agent does not appear to be aware of the contents of the commands files, so perhaps the token use listed is itself a bug.\n\nThe initial prompt, however, also includes metadata for the commands as skills, example below, which increases token use even more and is not useful for commands which are invoked on demand rather than at the agent's discretion:\n`<skill>\n<name>commandName</name>\n<description>commandName (project)</description>\n<location>managed</location>\n</skill>`\n\nNote that I am encountering this in the VS Code extension, I have not test in the CLI as presumably the behavior is the same given that it's related to config/directories.\n\n\n### What Should Happen?\n\nCommands should work as described in the docs and as they have up until recently.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nHave a commands directory under .claude/ populated with files\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.75\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:windows", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-20T09:56:43Z",
+  "updated_at": "2026-01-24T14:09:41Z",
+  "closed_at": "2026-01-17T08:54:04Z",
+  "reactions_total": 7,
+  "comments_count": 21,
+  "author": "designbyian",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "sarahdeaton",
+      "author_association": "COLLABORATOR",
+      "body": "Thank you for reporting this! Here's some information about the two points you raised: (1) about it looking like the full skill and not just metadata was loaded and (2) about commands showing in context when you only intend for them to be user-invoked.\n\n(1) There was a bug in token estimation that was fixed in v2.1. `/context` was showing estimates based on full content length rather than just the frontmatter that's actually loaded. If you're on v2.0.75, updating to the latest version should sho",
+      "created_at": "2026-01-08T19:37:54Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "---\n\nFound 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14611\n2. https://github.com/anthropics/claude-code/issues/11459  \n3. https://github.com/anthropics/claude-code/issues/14834\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\n---",
+      "created_at": "2025-12-20T10:00:08Z"
+    },
+    {
+      "author": "alberduris",
+      "author_association": "NONE",
+      "body": "Confirmed. This is also reported [here](https://x.com/alberduris/status/2002663105914925239?s=20) and seems to be already tracked by Anthropic: https://x.com/trq212/status/2002665131264950489?s=20",
+      "created_at": "2025-12-21T10:16:23Z"
+    }
+  ]
+}

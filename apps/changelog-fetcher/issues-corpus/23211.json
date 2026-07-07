@@ -1,0 +1,35 @@
+{
+  "number": 23211,
+  "title": "[BUG] Windows Terminal input completely frozen starting from v2.1.30 (regression from v2.1.29)",
+  "body": "## Bug Description\n\nClaude Code becomes completely unresponsive to keyboard input on Windows Terminal starting from v2.1.30. The screen appears frozen — no characters can be typed, and the input prompt is non-functional. Downgrading to v2.1.29 immediately resolves the issue.\n\n## Environment\n\n- **OS**: Windows 11\n- **Terminal**: Windows Terminal (native, not WSL)\n- **Shell**: PowerShell / Git Bash (both affected)\n- **Node.js**: v20.11.0\n- **Installation**: npm (`@anthropic-ai/claude-code`)\n\n## Reproduction Steps\n\n1. Install Claude Code v2.1.30: `npm install -g @anthropic-ai/claude-code@2.1.30`\n2. Open Windows Terminal\n3. Run `claude`\n4. Attempt to type anything into the prompt\n5. **Result**: No input is accepted. Screen appears completely frozen.\n\n## Expected Behavior\n\nThe prompt should accept keyboard input normally (as it does in v2.1.29).\n\n## Root Cause Analysis\n\nBinary diff analysis of the bundled `cli.js` between v2.1.29 and v2.1.30 reveals the following significant changes:\n\n### 1. New `useInterval` hooks (0 → 5)\n\nv2.1.29 had **zero** `useInterval`-based animation hooks. v2.1.30 introduces **5 new `useInterval` hooks** running at 50ms–1000ms intervals:\n\n| Hook | Interval | Purpose |\n|------|----------|---------|\n| Spinner position animation | 50ms / 200ms | Glimmer effect calculation |\n| Stalled detection timer | 100ms | Tracks request duration |\n| Stalled intensity interpolation | 50ms | Smooth animation easing |\n| Team name animation | 1000ms | UI counter increment |\n| Elapsed time tracker | 100ms | Duration display |\n\nEach interval triggers a React state update → full Ink re-render → ANSI escape sequence generation → stdout write.\n\n### 2. Rewritten spinner component\n\nThe spinner component was completely rewritten with new `Box` layout (`flexWrap:\"wrap\", height:1, width:2`), a `reducedMotion` parameter, and a reversed animation frame array — all adding layout computation overhead per render cycle.\n\n### 3. Additional reactive state\n\n| Metric | v2.1.29 | v2.1.30 | Diff |\n|--------|---------|---------|------|\n| `useInterval` hooks | 0 | 5 | **+5** |\n| `useRef` | 144 | 153 | +9 |\n| `useState` | 542 | 545 | +3 |\n| `setTimeout` | 302 | 308 | +6 |\n| `useMemo` | 83 | 87 | +4 |\n| spinner/animation refs | 182 | 204 | +22 |\n\n### Why this breaks on Windows Terminal\n\nInk (React for CLI) re-renders the **entire screen buffer** on every state change. On macOS/Linux terminals with Synchronized Output (DEC mode 2026), these rapid re-renders are batched and handled efficiently. However, **Windows Terminal's ConPTY layer processes ANSI sequences significantly slower**, causing:\n\n1. Rapid `useInterval` callbacks (50–100ms) trigger continuous React re-renders\n2. Each re-render writes ANSI sequences to stdout via ConPTY\n3. ConPTY cannot drain the output buffer fast enough\n4. stdout `write()` blocks the Node.js event loop\n5. Blocked event loop cannot process stdin (keyboard input)\n6. **Result**: Screen appears frozen, input is impossible\n\n### `prefersReducedMotion` does NOT fix this\n\nv2.1.30 added a `prefersReducedMotion` config option. Testing confirmed it does **not** resolve the issue — it only changes the visual representation (blinking dot instead of animated spinner) but the underlying `useInterval` hooks continue firing at the same frequency.\n\n## Suggested Fix\n\n- Gate `useInterval` hooks behind a ConPTY/Windows detection check, or significantly increase their intervals on Windows (e.g., 500ms+ instead of 50ms)\n- Make `prefersReducedMotion: true` actually disable or throttle the interval hooks, not just change visuals\n- Consider using `requestAnimationFrame` or passive rendering instead of aggressive interval-based re-renders\n\n## Workaround\n\nDowngrade to v2.1.29:\n\n```bash\nnpm install -g @anthropic-ai/claude-code@2.1.29\n```\n\n## Related Issues\n\n- #18084 — Severe screen flickering in VS Code/Cursor integrated terminal on Windows (same Ink re-rendering root cause)\n- #10736 — Windows Terminal Input Stream Loss After Command Execution\n- #19637 — Windows cmd rendering issue since v2.1.3",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-04T23:46:25Z",
+  "updated_at": "2026-02-23T14:33:20Z",
+  "closed_at": "2026-02-16T11:31:50Z",
+  "reactions_total": 10,
+  "comments_count": 13,
+  "author": "gongpyung",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22906\n2. https://github.com/anthropics/claude-code/issues/22970\n3. https://github.com/anthropics/claude-code/issues/22997\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-04T23:49:42Z"
+    },
+    {
+      "author": "jltx",
+      "author_association": "NONE",
+      "body": "I'm seeing this too. I can't start any new sessions because I can't type into any of them!",
+      "created_at": "2026-02-05T00:49:07Z"
+    },
+    {
+      "author": "mimosel",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-02-05T08:58:38Z"
+    }
+  ]
+}

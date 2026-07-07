@@ -1,0 +1,16 @@
+{
+  "number": 7318,
+  "title": "[BUG] API crashes when attempting to read BMP files via Read tool",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code crashes with API Error 400 when trying to read .bmp files, stating BMP is not a supported media type (only JPEG, PNG, GIF, WEBP\n  supported)\n  - Steps to reproduce: Use Read tool on any .bmp file\n  - Expected behavior: Should either read the file as binary data or gracefully handle unsupported image formats\n  - Actual behavior: Chat session becomes unresponsive and fails to continue\n\n### What Should Happen?\n\nClaude should use an alternative image read tool or bmp support needs to be added to existing read tool. At the very least, the chat should not get stuck in a repeating error loop when this error occurs. Should recover gracefully and move onto another method. Instead my session is lost as any further prompts return same error.\n\n### Error Messages/Logs\n\n```shell\n⏺ Bash(grep -n \"k_work_submit\" /Users/robert/git/mouthpad_usb/app/src/even_g1.c)\n    ⎿  No matches found\n    ⎿  Read ../../../EvenDemoApp/assets/images/image_1.bmp (9.6KB)\n    ⎿  Read ../../../EvenDemoApp/lib/utils/utils.dart (42 lines)\n    ⎿  Read ../../../EvenDemoApp/lib/services/features_services.dart (41 lines)\n    ⎿  Read ../../../EvenDemoApp/lib/views/features/bmp_page.dart (80 lines)\n    ⎿  Read ../../../EvenDemoApp/lib/controllers/bmp_update_manager.dart (137 lines)\n    ⎿ API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.1.content.0.image.source.base64.media_type: Input should be \n  'image/jpeg', \n      'image/png', 'image/gif' or 'image/webp'\"},\"request_id\":\"req_011CSwXxDmhKB6RKufzA1jtS\"}\n```\n\n### Steps to Reproduce\n\n1. Obtain any BMP file (create one, download one, or find one on your system)\n2. Use Claude Code's Read tool to attempt reading the BMP file:\n   - Read /path/to/your/file.bmp\n3. Expected Result:\n    - API Error 400: \"messages.1.content.0.image.source.base64.media_type: Input should be 'image/jpeg', 'image/png', 'image/gif' or 'image/webp'\"\n    - Claude Code chat session becomes unresponsive\n\n  The issue occurs with any .bmp file regardless of size or content.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n1.0.108 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "autoclose"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-09-08T20:18:10Z",
+  "updated_at": "2025-12-13T14:06:51Z",
+  "closed_at": "2025-12-05T19:01:52Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "RobertDaleSmith",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

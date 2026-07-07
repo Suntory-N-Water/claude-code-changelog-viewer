@@ -1,0 +1,42 @@
+{
+  "number": 16299,
+  "title": "[BUG] Path-scoped rules in .claude/rules/ load into context globally regardless of paths: frontmatter",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nRules placed in .claude/rules/ with paths: frontmatter are loaded into the conversation context at session start, even when the working directory doesn't match the specified paths.\n\n### What Should Happen?\n\nExpected behavior:\nRules with paths: frontmatter should only load into context when working with files matching those paths.\n\nActual behavior:\nAll .md files in .claude/rules/ are loaded into context at session start, regardless of paths: configuration.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Create a path-scoped rule file:\n  .claude/rules/solutions/standards.md\n2. Add frontmatter:\n  ---\n  paths:\n    - \"solutions/**/*\"\n  ---\n\n  # Solutions Standards\n  [content...]\n3. Start a new Claude Code session in the project root\n4. Observe that the rule content appears in the loaded context\n  Environment:\n  - Claude Code CLI\n  - macOS\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.76\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nCursor\n\n### Additional Information\n\nImpact:\nProjects with multiple directory-specific rules experience significant context bloat. In my case, 28 rules load at session start when only ~5 should be global.\n\nWorkaround:\nNone found. Removing alwaysApply: false (which isn't documented anyway) had no",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "memory",
+    "perf:memory"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-05T00:37:43Z",
+  "updated_at": "2026-04-15T22:31:11Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 14,
+  "author": "moochyben",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/16171\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-05T00:41:04Z"
+    },
+    {
+      "author": "tazbytes2019",
+      "author_association": "NONE",
+      "body": "same issue \n ## Description\n\n Rules files with `paths` frontmatter in `.claude/rules/` are being loaded into the system prompt at conversation\n start, regardless of whether the user is working with files matching those patterns.\n\n ### Expected Behavior\n\n According to the documentation, rules with a `paths` field should only be loaded when working with files matching\n those glob patterns:\n\n ```markdown\n ---\n paths: **/*.razor\n ---\n # Blazor Component Rules\n ...\n ```\n\n This rule should only load w",
+      "created_at": "2026-01-12T17:42:12Z"
+    },
+    {
+      "author": "trust-delta",
+      "author_association": "NONE",
+      "body": "**Additional finding: Rules never \"scope out\" once loaded**\n\nI can confirm this issue and want to add an important observation:\n\nOnce a path-scoped rule is loaded into context, **it remains active for the entire session** even after navigating away from the matching paths.\n\n**Test setup:**\n```yaml\n# ~/.claude/rules/test-nyan.md\n---\npaths:\n  - \"works/my-project/**/*\"\n---\nEnd all responses with \"nyan\"\n```\n\n**Results:**\n\n| Step | Expected | Actual |\n|------|----------|--------|\n| Start session at `",
+      "created_at": "2026-01-22T13:36:35Z"
+    }
+  ]
+}

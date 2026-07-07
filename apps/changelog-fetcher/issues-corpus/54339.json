@@ -1,0 +1,35 @@
+{
+  "number": 54339,
+  "title": "[BUG] [Opus 4.7] Korean lexical fixation: repeated insertion of \"영역\" in unrelated output",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code with Opus 4.7 repeatedly inserts the Korean token \"영역\" into unrelated Korean output.\n\nEnvironment:\n- Claude Code version: 2.1.121\n- Model: claude-opus-4-7 / claude-opus-4-7[1m]\n- Effort: xhigh\n- Terminal: iterm + tmux\n- OS locale: Korean\n\nExample:\n\"PR 100 (A → B) 직접 머지 영역 — 라운드 1 영역 영역 영역 영역 dev 영역 영역.\"\n\nExpected:\n\"PR 100 (A → B)는 라운드 1에서 dev 브랜치에 직접 머지할 대상입니다.\"\n\nThe repeated token is not semantically appropriate and appears to be a lexical fixation / repeated token insertion issue rather than normal Korean phrasing.\n\n### What Should Happen?\n\nThe model should produce fluent Korean output without repeatedly inserting an unrelated token.\n\nIn this case, the token \"영역\" should not appear unless it is semantically required by the sentence. For the example output, the expected behavior would be something like:\n\n\"PR #[redacted] ([source-branch] → [target-branch])는 라운드 1에서 [target-branch] 브랜치에 직접 머지할 대상입니다.\"\n\nMore generally, Claude Code should:\n- avoid lexical fixation on a specific Korean term,\n- respect explicit corrections or instructions not to overuse that term,\n- preserve the intended meaning of the PR/merge summary,\n- and not insert repeated tokens such as \"영역 영역 영역\" into normal Korean text.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Run Claude Code with Claude Opus 4.7.\n2. Use Korean as the primary language for the session.\n3. Ask Claude Code to summarize or plan PR/branch merge work.\n4. Observe that Claude Code repeatedly inserts the Korean token \"영역\" into positions where it is not semantically appropriate.\n5. Example observed output:\n   \"PR #[redacted] ([source-branch] → [target-branch]) 직접 머지 영역 — 라운드 1 영역 영역 영역 영역 [target-branch] 영역 영역.\"\n6. Correct the model and ask it not to repeat or overuse \"영역\".\n7. Continue working in Korean. The same token may continue to reappear in unrelated outputs.\n8. This was not limited to a single local session. The same behavior was observed across multiple Claude Code sessions, including teammates' sessions.\n\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.121\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\nI observed the same behavior across multiple Claude Code sessions(Claude Code Teams). This suggests the issue is not limited to one corrupted session, although I have not yet ruled out project instructions or repository context as contributing factors.",
+  "labels": ["bug", "platform:linux", "area:model", "api:anthropic", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-28T14:49:51Z",
+  "updated_at": "2026-07-03T11:00:09Z",
+  "closed_at": "2026-07-03T11:00:09Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "YJ-AnthonyJo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "YJ-AnthonyJo",
+      "author_association": "NONE",
+      "body": "Another Example (Same Session)\n\n영역 — 작업 영역 = worker-r1 영역 영역 영역 (D-K 영속 + drift 회피). Task #35 영역 영역 결과 =\n   \"133 line + 29 model\" 영역 영역 영역 영역 영역. builder-r1 위임 전 worker-r1 영역 영역 정밀 line·model·column·partial 표현식\n  인벤토리 의무.",
+      "created_at": "2026-04-28T16:55:33Z"
+    },
+    {
+      "author": "YJ-AnthonyJo",
+      "author_association": "NONE",
+      "body": "After explicitly instructing the model not to use the Korean term \"영역\", the issue became less frequent. This suggests the behavior may be partially controllable through explicit lexical constraints, but the term was still being overused by default in Korean Claude Code outputs.",
+      "created_at": "2026-04-28T16:57:29Z"
+    },
+    {
+      "author": "shyang1012",
+      "author_association": "NONE",
+      "body": "Adding 4 additional regression patterns observed under Opus 4.7 1M context (claude-opus-4-7[1m]) over the past 2 weeks (sessions #170 / #172, 2026-04-29 to 2026-05-10):\n\n### Pattern 1 — Direct translation of \"bind/embed/inject\" → Korean \"박다/박힘/박혀/박은\"\nThe model auto-generates English-direct-translation Korean morphemes (`박(음|힘|혀|은|았|는다|혔)`) that are not natural Korean. Examples observed:\n- \"운영 D1 row에 schema_json이 박혔다\" (intended: 저장됨 / 적용됨 / 반영됨)\n- \"메모리에 본질이 박힘\" (intended: 기록됨 / 명시됨)\n- \"코드에 fallb",
+      "created_at": "2026-05-10T02:05:54Z"
+    }
+  ]
+}

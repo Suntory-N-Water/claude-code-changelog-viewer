@@ -1,0 +1,35 @@
+{
+  "number": 10089,
+  "title": "Add setting to block dangerouslyOverrideSandbox parameter in Bash tool calls",
+  "body": "## Problem\n\nClaude Code's Bash tool includes a `dangerouslyOverrideSandbox` parameter that bypasses sandbox restrictions. While the system prompt instructs Claude to only use this parameter after seeing sandbox violation errors or when explicitly requested by the user, there is no technical enforcement to prevent misuse.\n\n**Note:** Issue #8368 claims this parameter was removed in v2.0.0, but it still functions in v2.0.25, creating confusion about its status and making it even more critical to have explicit controls.\n\nIn practice, Claude can preemptively use `dangerouslyOverrideSandbox: true` without first attempting the command normally, bypassing:\n- Sandbox security restrictions\n- Permission hooks and prompts\n- User review workflows\n\nThis occurred when Claude ran `gh pr create` with the sandbox override flag without first seeing a failure, creating a pull request despite user settings that should have required permission/review first.\n\n## Related issues\n\n- #8961\n- #8368 - Documents that `dangerouslyOverrideSandbox` was supposedly removed in v2.0.0 (but still works in v2.0.25)\n\n## Expected behavior\n\nUsers should be able to prevent the use of `dangerouslyOverrideSandbox` through a configuration setting, similar to how filesystem and network access can be restricted in `settings.json`.\n\n## Proposed solution\n\nAdd a setting in `settings.json` to control sandbox override behavior:\n\n```json\n{\n  \"sandbox\": {\n    \"allowOverride\": false  // default: true for backwards compatibility\n  }\n}\n```\n\nWhen `allowOverride: false`, any Bash tool calls with `dangerouslyOverrideSandbox: true` should either:\n1. Fail with an error message indicating the setting blocks sandbox overrides, or\n2. Be automatically downgraded to run with sandbox enabled (ignoring the parameter)\n\n## Additional context\n\nThis would provide defence-in-depth alongside the existing behavioral guidelines in the system prompt, preventing accidental or unintended bypass of sandbox restrictions.\n\n**Environment:**\n- Claude Code version: 2.0.25",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-22T05:43:46Z",
+  "updated_at": "2026-05-01T19:58:46Z",
+  "closed_at": null,
+  "reactions_total": 19,
+  "comments_count": 9,
+  "author": "johngrimes",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7097\n2. https://github.com/anthropics/claude-code/issues/4320\n3. https://github.com/anthropics/claude-code/issues/8961\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-22T05:49:26Z"
+    },
+    {
+      "author": "rcbeall1",
+      "author_association": "NONE",
+      "body": "I am experiencing the same thing in 2.0.25! ",
+      "created_at": "2025-10-23T04:27:57Z"
+    },
+    {
+      "author": "drswobodziczka",
+      "author_association": "NONE",
+      "body": "still here (or still similar here) for version 2.0.62",
+      "created_at": "2025-12-10T18:25:21Z"
+    }
+  ]
+}

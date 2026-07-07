@@ -1,0 +1,42 @@
+{
+  "number": 13919,
+  "title": "[BUG] Claude Skills context completely lost after auto-compaction, causing repeated errors and massive productivity loss",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter auto-compaction occurs, Claude completely loses awareness of Claude Skills that were actively being used. Specifically:\n\n\n1. Claude forgets which skills were being used during the session\n2. Claude forgets the procedures/methodologies from those skills\n3. Claude does NOT proactively re-read the skill files after compaction\n4. Claude repeats errors that the skills were specifically designed to prevent\n5. Even explicit instructions in ~/.claude/CLAUDE.md telling Claude to reload skills after compaction are ignored\n\nThis causes simple coding tasks that should take ~1 hour to take 5-6+ hours, with constant circling back to repeat mistakes the skills were designed to prevent.\n\n### What Should Happen?\n\n1. Compaction summary should record which skill files were actively loaded/referenced during the session\n2. After compaction, Claude should automatically re-read those skill files before continuing work\n3. Or: Critical skill procedures should be preserved in the compaction summary itself\n4. At minimum: Claude should follow the post-compaction recovery instructions specified in ~/.claude/CLAUDE.md\n\n### Error Messages/Logs\n\n```shell\nNo error messages - the issue is silent context loss. The only observable symptom is Claude suddenly not following skill procedures it was following moments before, and repeating previously-fixed mistakes. Once I realized what was happening, I asked Claude (Opus 4.5) why it wasn't using the Skills I had it invoke earlier ... and Claude had no idea what I was talking about, or any memory of having had used Skills earlier.\n```\n\n### Steps to Reproduce\n\n1. Create a skill file at ~/.claude/skills/test-skill/SKILL.md with specific procedures:\n\n---\nname: test-skill\ndescription: Test skill for reproduction\n---\n\n# Test Skill\n\n## Required Procedure\nWhen working on any task, ALWAYS:\n1. Say \"SKILL ACTIVE\" at the start of each response\n2. Follow the XYZ methodology\n3. Never do ABC (common mistake)\n\n\n2. Add post-compaction recovery instructions to ~/.claude/CLAUDE.md:\n\n## POST-COMPACTION PROTOCOL\nAfter compaction, IMMEDIATELY:\n1. Re-read this file\n2. Re-read any skills that were in use\n3. Ask user which skills were being used\n\n\n3.Start Claude Code in VS Code and begin a task that uses the skill\n4. Verify Claude says \"SKILL ACTIVE\" and follows the procedures\n5. Continue working until auto-compaction triggers (~55K tokens in VS Code extension)\n6. Observe after compaction: Claude no longer says \"SKILL ACTIVE\"\n7. Observe: Claude starts doing \"ABC\" (the thing the skill said never to do)\n8. Observe: Claude does not re-read the skill file or ask about skills, despite CLAUDE.md instructions\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.69 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n**Environment:**\n\nOS: Windows 10\nEditor: VS Code Insiders with Claude Code Chat extension\nModel: Claude Opus 4.5\nPlatform: Claude Pro Max ($200/mo subscription)\n\n_**Impact:**_\n\n| **Without Skills Loss** | **With Skills Loss** |\n\n|---------------------|------------------|\n\n| Task completed in ~1 hour | Task takes 5-6+ hours |\n\n| Errors caught by skill procedures | Same errors repeated multiple times |\n\n| Linear progress | Going in circles |\n\n| Single compaction cycle | 4-6 compaction cycles, each losing more context |\n\n\n**Workaround attempted:**\n\nAdded explicit post-compaction instructions to ~/.claude/CLAUDE.md (shown above in reproduction steps). **Result:** These instructions are also lost/ignored after compaction.\n\n\n**_Related issues:_**\n\n#1534 - Memory Loss After Auto-compact (",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:core",
+    "memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-13T21:40:00Z",
+  "updated_at": "2026-06-26T15:03:29Z",
+  "closed_at": "2026-05-07T10:53:10Z",
+  "reactions_total": 6,
+  "comments_count": 15,
+  "author": "RomanAlexanderW",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/6354\n2. https://github.com/anthropics/claude-code/issues/9796\n3. https://github.com/anthropics/claude-code/issues/3021\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-13T21:44:11Z"
+    },
+    {
+      "author": "RomanAlexanderW",
+      "author_association": "NONE",
+      "body": "It's none of those ... this issue is specific to the complete loss of use & memory, of any Claude Skills invoked/in-use before compaction.",
+      "created_at": "2025-12-14T00:10:40Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-13T10:13:28Z"
+    }
+  ]
+}

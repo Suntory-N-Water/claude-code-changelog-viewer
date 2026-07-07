@@ -1,0 +1,41 @@
+{
+  "number": 5495,
+  "title": "Enable VSCode LSP APIs: 100-1000x Performance Improvement for Code Navigation",
+  "body": "# Feature Request: VSCode API Integration for Claude Code Extension\n\n## Summary\nThe Claude Code extension should expose VSCode's built-in search and code navigation APIs to dramatically improve efficiency when working with codebases. Currently, Claude relies on text-based grep/glob searches which miss the semantic understanding that VSCode already has through its Language Server Protocol (LSP) integration.\n\n## Current Limitation\nClaude currently uses:\n- `Grep` tool for text-based pattern matching\n- `Glob` tool for file pattern matching\n- Manual file reading to understand code structure\n\nThis approach is inefficient because:\n1. It requires multiple searches to find related code\n2. It misses semantic relationships (imports, exports, type definitions)\n3. It can't distinguish between strings, comments, and actual code\n4. It requires reading entire files to understand context\n\n## Proposed VSCode APIs to Expose\n\n### 1. Symbol and Navigation APIs\n\n#### Go to Definition\n```typescript\nvscode.commands.executeCommand('vscode.executeDefinitionProvider', uri, position)\n```\n- **Use Case**: When user asks \"where is X defined?\", instantly jump to definition\n- **Benefit**: No need to grep through files looking for function/class definitions\n\n#### Find All References\n```typescript\nvscode.commands.executeCommand('vscode.executeReferenceProvider', uri, position)\n```\n- **Use Case**: Find all usages of a function, variable, or type\n- **Benefit**: Instantly see impact of changes, understand code relationships\n\n#### Workspace Symbol Search\n```typescript\nvscode.commands.executeCommand('vscode.executeWorkspaceSymbolProvider', query)\n```\n- **Use Case**: Find any class, function, interface, or constant by name\n- **Benefit**: Direct navigation to symbols without text searching\n\n#### Document Symbols\n```typescript\nvscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', uri)\n```\n- **Use Case**: Get outline of a file (classes, methods, properties)\n- **Benefit**: Understand file structure without parsing\n\n### 2. Type and Implementation APIs\n\n#### Go to Type Definition\n```typescript\nvscode.commands.executeCommand('vscode.executeTypeDefinitionProvider', uri, position)\n```\n- **Use Case**: Navigate to type definitions for understanding data structures\n- **Benefit**: Quickly understand TypeScript types and interfaces\n\n#### Find Implementations\n```typescript\nvscode.commands.executeCommand('vscode.executeImplementationProvider', uri, position)\n```\n- **Use Case**: Find all implementations of an interface or abstract class\n- **Benefit**: Understand inheritance and polymorphism in the codebase\n\n### 3. Search and File APIs\n\n#### Find Files with Smart Filtering\n```typescript\nvscode.workspace.findFiles(include: GlobPattern, exclude?: GlobPattern)\n```\n- **Use Case**: Find files by pattern with .gitignore respect\n- **Benefit**: More efficient than current Glob tool\n\n#### Text Search with Context\n```typescript\nvscode.workspace.findTextInFiles(query: TextSearchQuery, options: FindTextInFilesOptions)\n```\n- **Use Case**: Search with file type filtering, regex, and context lines\n- **Benefit**: Richer search than current grep with VSCode's optimizations\n\n### 4. Code Intelligence APIs\n\n#### Hover Information\n```typescript\nvscode.commands.executeCommand('vscode.executeHoverProvider', uri, position)\n```\n- **Use Case**: Get type information, documentation, and signatures\n- **Benefit**: Understand code without reading entire files\n\n#### Call Hierarchy\n```typescript\nvscode.commands.executeCommand('vscode.prepareCallHierarchy', uri, position)\nvscode.commands.executeCommand('vscode.provideIncomingCalls', item)\nvscode.commands.executeCommand('vscode.provideOutgoingCalls', item)\n```\n- **Use Case**: Understand what calls a function and what it calls\n- **Benefit**: Trace execution flow without manual searching\n\n#### Rename Symbol\n```typescript\nvscode.commands.executeCommand('vscode.executeDocumentRenameProvider', uri, position, newName)\n```\n- **Use Case**: Safely rename variables, functions, classes across entire codebase\n- **Benefit**: Automated refactoring with LSP und",
+  "labels": [
+    "enhancement",
+    "area:tools",
+    "area:ide",
+    "perf:memory",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-10T11:50:34Z",
+  "updated_at": "2026-02-05T14:28:06Z",
+  "closed_at": "2026-01-29T10:20:32Z",
+  "reactions_total": 24,
+  "comments_count": 9,
+  "author": "jerry426",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/3039\n2. https://github.com/anthropics/claude-code/issues/1315\n3. https://github.com/anthropics/claude-code/issues/741\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-10T11:58:58Z"
+    },
+    {
+      "author": "jerry426",
+      "author_association": "NONE",
+      "body": "## Why This Feature Has the Highest Possible ROI\n\n  The benefit-to-effort ratio for this feature is likely **astronomical** -\n  possibly the highest ROI improvement the Claude Code team will ever implement.\n   Here's why:\n\n  ### The Effort (Relatively Minimal)\n  - VSCode extension APIs are well-documented\n  - The Language Server Protocol integration already exists in VSCode\n  - This is mostly about exposing existing functionality, not building new\n  capabilities\n  - Similar to how the current `m",
+      "created_at": "2025-08-10T12:03:41Z"
+    },
+    {
+      "author": "jerry426",
+      "author_association": "NONE",
+      "body": "I believe the descriptions of the other duplicates of this feature request fail to adequately cover the broad range of benefits of implementing this correctly. \n\nEspecially regarding the reduction in necessary context size such that Claude can focus more on structure and strategy, knowing that the LSP and other VSCode functionalities will reduce or eliminate the need to keep massive amounts of code related context. ",
+      "created_at": "2025-08-10T14:15:45Z"
+    }
+  ]
+}

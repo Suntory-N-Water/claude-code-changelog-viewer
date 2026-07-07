@@ -1,0 +1,35 @@
+{
+  "number": 26558,
+  "title": "Bash tool fails with exit code 1 on Windows - stdout capture broken",
+  "body": "## Description\r\n\r\nAll Bash tool commands that produce stdout output fail with exit code 1 on Windows. Commands that produce no output (like `true`) succeed. Writing to files works correctly.\r\n\r\n## Environment\r\n\r\n- **Claude Code version:** 2.1.45\r\n- **OS:** Windows 11 Pro for Workstations (10.0.26100)\r\n- **Shell:** Git Bash (MINGW64), GNU bash 5.2.37(1)-release (x86_64-pc-msys)\r\n- **Platform:** MINGW64_NT-10.0-26100, x86_64\r\n\r\n## Steps to Reproduce\r\n\r\n1. Launch Claude Code on Windows with Git Bash\r\n2. Ask Claude to run any command that produces stdout output\r\n\r\n## Observed Behavior\r\n\r\n| Command | Result |\r\n|---------|--------|\r\n| `true` | exit 0 ✅ |\r\n| `echo \"test\"` | exit 1 ❌ |\r\n| `pwd` | exit 1 ❌ |\r\n| `ls` | exit 1 ❌ |\r\n| `builtin echo \"test\"` | exit 1 ❌ |\r\n| `echo \"test\" > /tmp/file.txt 2>&1; true` | exit 0 ✅ (file contains \"test\") |\r\n\r\nTerminal shows: `/usr/bin/echo: /usr/bin/echo: cannot execute binary file`\r\n\r\n## Diagnostics\r\n\r\n- `/usr/bin/echo.exe` is a valid Windows binary: `PE32+ executable for MS Windows 5.02 (console), x86-64`\r\n- `/usr/bin/ls.exe` is also a valid PE32+ executable\r\n- Bash builtins work when output is redirected to a file\r\n- The issue appears to be with stdout capture by Claude Code, not with the binaries themselves\r\n- `MSYSTEM=MINGW64`, `TERM=xterm-256color`\r\n\r\n## What I've Tried\r\n\r\n- Setting `$env:SHELL` to various Git Bash paths (`C:\\Program Files\\Git\\bin\\bash.exe`, `C:\\Program Files\\Git\\usr\\bin\\bash.exe`)\r\n- Deleting `~/.claude/shell-snapshots/`\r\n- Reinstalling Git for Windows\r\n- Updating Claude Code to latest version (2.1.45)\r\n- Running from different terminals (PowerShell, CMD, Git Bash)\r\n- Setting `$env:SHELL = \"powershell\"` (Claude Code still uses bash)\r\n\r\n## Expected Behavior\r\n\r\nBash commands should execute and their stdout output should be captured and returned to the agent.\r\n",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-18T12:00:56Z",
+  "updated_at": "2026-05-28T14:23:52Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 7,
+  "author": "enyakucera",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/26413\n2. https://github.com/anthropics/claude-code/issues/26540\n3. https://github.com/anthropics/claude-code/issues/26486\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-18T12:03:59Z"
+    },
+    {
+      "author": "tokoba",
+      "author_association": "NONE",
+      "body": "Windows 11\nGit bash\nenvironment\n\n> claude install 2.1.36\n> claude\n\n----\n\nI believe 2.1.45 is super buggy crap trash. I spend some time investigating however I endup rolling back to stable version. \nI will never use `claude update` again. ",
+      "created_at": "2026-02-18T12:28:07Z"
+    },
+    {
+      "author": "KatayR",
+      "author_association": "NONE",
+      "body": "Bash commands keep returning \"Error: Exit code 1\" after the standalone Claude installation.\n\n`\n● Bash(pwd 2>&1)\n  ⎿  Error: Exit code 1\n\n● Bash(/bin/pwd 2>&1; echo \"EXIT: $?\")\n  ⎿  Error: Exit code 1\n\n● Bash(echo \"hello world\")\n  ⎿  Error: Exit code 1\n\n● Bash(whoami)\n  ⎿  Error: Exit code 1\n● Bash(echo \"hello\")                                                                                                                                                                                            ",
+      "created_at": "2026-02-18T13:34:36Z"
+    }
+  ]
+}

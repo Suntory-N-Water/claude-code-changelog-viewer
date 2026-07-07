@@ -1,0 +1,35 @@
+{
+  "number": 1434,
+  "title": "[BUG]  Claude Code Bedrock Model Configuration Error",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [X] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: <!-- output of `claude --version` -->\n- Operating System: <!-- e.g. macOS 14.3, Windows 11, Ubuntu 22.04 -->\n- Terminal:  <!-- e.g. iTerm2, Terminal App -->\n\n## Bug Description\nUnable to configure Claude Code to use AWS Bedrock with Claude Sonnet 4. Getting a \"provided model identifier is invalid\" error when attempting to set the global configuration for Bedrock usage.\n\n## Steps to Reproduce\n1. Run the following command to configure Claude Code for AWS Bedrock:\n   ```bash\n   claude config set --global env '{\"CLAUDE_CODE_USE_BEDROCK\": \"true\", \"ANTHROPIC_MODEL\": \"apac.anthropic.claude-sonnet-4-20250514-v1:0\"}'\n   ```\n2. Attempt to use Claude Code with the Bedrock configuration\n3. Error occurs immediately\n\n## Expected Behavior\nClaude Code should successfully configure to use AWS Bedrock with Claude Sonnet 4 model and allow normal operation through Bedrock API.\n\n## Actual Behavior\nConfiguration fails with the following error:\n```\nAPI Error (apac.anthropic.claude-sonnet-4-20250514-v1:0): 400 The provided model identifier is invalid.\n\narn:aws:bedrock:ap-northeast-1:XXXX:inference-profile/apac.anthropic.claude-sonnet-4-20250514-v1:0\n\nInterrupted by user\n```\n\n## Additional Context\n- Using AWS region: ap-northeast-1 (Asia Pacific - Tokyo)\n- The error shows Claude Code is attempting to construct an ARN with an inference profile\n- The model identifier format `apac.anthropic.claude-sonnet-4-20250514-v1:0` appears to be incorrect for AWS Bedrock\n- Standard Bedrock model identifiers typically use format like `anthropic.claude-3-5-sonnet-20241022-v2:0`\n- May be related to regional model availability or incorrect model ID format for Bedrock",
+  "labels": ["bug", "has repro", "api:bedrock", "area:model"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-05-30T12:58:19Z",
+  "updated_at": "2025-08-10T14:08:46Z",
+  "closed_at": "2025-06-04T16:26:57Z",
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "cloudeep-innovation",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Hi @cloudeep-innovation,\n\nThat inference profile looks like the correct specifier, from https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html (section \"APAC Claude Sonnet 4\"). Can you try setting `AWS_REGION=ap-northeast-1` too?\n\nIf that doesn't work, can you try directly invoking the model via the AWS CLI to confirm model availability and region, something like:\n```sh\naws bedrock-runtime invoke-model \\\n    --model-id apac.anthropic.claude-sonnet-4-20250514-v1:0 \\\n",
+      "created_at": "2025-06-02T18:40:36Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Ensure you're setting the `AWS_REGION` or `AWS_DEFAULT_REGION` environment variables for the Claude Code process, to a value that matches where the inference profile is available.\n\n```sh\n# this fails because neither AWS_REGION nor AWS_DEFAULT_REGION were available\n# thus Claude Code defaulted to `us-east-1`\nCLAUDE_CODE_USE_BEDROCK=1 ANTHROPIC_MODEL=eu.anthropic.claude-sonnet-4-20250514-v1:0 claude -p hi\n\nAPI Error (eu.anthropic.claude-sonnet-4-20250514-v1:0): 400 The provided model identifier is",
+      "created_at": "2025-06-03T21:38:04Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Closing this one out since it looks like adding env var `AWS_REGION` fixed this.\n\nWe have some upcoming docs updates that should make this requirement more clear, and may also explore reading from AWS config in the future.",
+      "created_at": "2025-06-04T16:26:57Z"
+    }
+  ]
+}

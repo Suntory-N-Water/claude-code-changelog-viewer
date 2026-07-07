@@ -1,0 +1,42 @@
+{
+  "number": 15034,
+  "title": "[Bug] Response rendering failed in terminal output on v2.0.75",
+  "body": "[**Bug](url) Description**\nI've issue with rendering the response when I use claude code on my terminal. My current version is 2.0.75. So far I've tried:\n1. Uninstalling and deleting global cache and reinstalling claude code\n2. Used multiple terminals (powershell, gitbash and windows terminal with gitbash profile)\n3. I've deleted the bash.profile and bash_rc files as well but still to no avail.\n4. I've changed models and folders wherein I open claude code. But even after all this running /doctor and /logout and logging back in the issue still persists, Kindly help\n\n**Environment Info**\n- Platform: win32\n- Terminal: null\n- Version: 2.0.75\n- Feedback ID: 61c46d69-d107-47bb-8245-4980ee4241aa\n\n\n<img width=\"1111\" height=\"439\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/aebfc785-1601-4f0a-829c-736939f4d754\" />\n\n<img width=\"887\" height=\"178\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/807de555-2fbf-46e6-a59e-8e911861d214\" />\n\n**Errors**\n```json\n[{\"error\":\"Error: Failed to create shell snapshot: Command failed: C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe -c -l SNAPSHOT_FILE='C:\\\\Users\\\\rparekh\\\\.claude\\\\shell-snapshots\\\\snapshot-bash-1766379015179-sode38.sh'\\n      # No user config file to source\\n\\n      # First, create/clear the snapshot file\\n      echo \\\"# Snapshot file\\\" >| \\\"$SNAPSHOT_FILE\\\"\\n\\n      # When this file is sourced, we first unalias to avoid conflicts\\n      # This is necessary because aliases get \\\"frozen\\\" inside function definitions at definition time,\\n      # which can cause unexpected behavior when functions use commands that conflict with aliases\\n      echo \\\"# Unset all aliases to avoid conflicts with functions\\\" >> \\\"$SNAPSHOT_FILE\\\"\\n      echo \\\"unalias -a 2>/dev/null || true\\\" >> \\\"$SNAPSHOT_FILE\\\"\\n\\n      echo \\\"shopt -s expand_aliases\\\" >> \\\"$SNAPSHOT_FILE\\\"\\n\\n      \\n      # Check for rg availability\\n      echo \\\"# Check for rg availability\\\" >> \\\"$SNAPSHOT_FILE\\\"\\n      echo \\\"if ! command -v rg >/dev/null 2>&1; then\\\" >> \\\"$SNAPSHOT_FILE\\\"\\n      echo '  alias rg='\\\"''\\\\''C:\\\\Users\\\\rparekh\\\\AppData\\\\Roaming\\\\npm\\\\node_modules\\\\@anthropic-ai\\\\claude-code\\\\vendor\\\\ripgrep\\\\x64-win32\\\\rg.exe'\\\\'''\\\" >> \\\"$SNAPSHOT_FILE\\\"\\n      echo \\\"fi\\\" >> \\\"$SNAPSHOT_FILE\\\"\\n  \\n\\n      # Add PATH to the file\\n      echo \\\"export PATH=\\\\$PATH\\\" >> \\\"$SNAPSHOT_FILE\\\"\\n  \\n\\n      # Exit silently on success, only report errors\\n      if [ ! -f \\\"$SNAPSHOT_FILE\\\" ]; then\\n        echo \\\"Error: Snapshot file was not created at $SNAPSHOT_FILE\\\" >&2\\n        exit 1\\n      fi\\n    \\n\\n    at file:///C:/Users/rparekh/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/cli.js:2579:132\\n    at ChildProcess.exithandler (node:child_process:424:5)\\n    at ChildProcess.emit (node:events:519:28)\\n    at ChildProcess.emit (node:domain:489:12)\\n    at maybeClose (node:internal/child_process:1101:16)\\n    at ChildProcess._handle.onexit (node:internal/child_process:304:5)\\n    at Process.callbackTrampoline (node:internal/async_hooks:130:17)\",\"timestamp\":\"2025-12-22T04:50:25.320Z\"}]\n```\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tui",
+    "autoclose",
+    "oncall"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-22T04:57:55Z",
+  "updated_at": "2026-02-22T14:19:30Z",
+  "closed_at": "2026-02-14T22:11:19Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "rparekh-mycom",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for reporting this. The fix for this issue should have out in 2.0.74 (and we've seen some reports of it improving rendering).\n\nFor those still experiencing this on v2.0.75, could you please share:\n1. Output of `/status` command in the broken Claude Code session\n2. Terminal app and version (e.g., Windows Terminal 1.23.12811.0)\n3. Shell you're invoking `claude` from (PowerShell, CMD, Git Bash, etc.)\n\nIf you're stuck, downgrading to 2.0.72 and setting env var DISABLE_AUTOUPDATER=1 should wor",
+      "created_at": "2025-12-23T00:29:41Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Thank you for sharing those details - one more question, does the following reproduce the issue?\n- On version 2.0.75, reproduce the issue\n- Install 2.0.72\n- `claude --resume` or `claude --continue` the improperly rendering session\n\nIf the issue still occurs, would you mind sharing your session transcript via `/feedback`?",
+      "created_at": "2025-12-23T18:10:17Z"
+    },
+    {
+      "author": "Airsiren",
+      "author_association": "NONE",
+      "body": "Same ! Same! I have the issue!!!!",
+      "created_at": "2025-12-22T06:14:53Z"
+    }
+  ]
+}

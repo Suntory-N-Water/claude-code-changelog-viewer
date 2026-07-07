@@ -1,0 +1,16 @@
+{
+  "number": 12683,
+  "title": "fix: Gérer correctement l'expiration premium côté iOS",
+  "body": "## Contexte\n\nL'expiration premium est correctement gérée côté **backend** (`checkPremiumStatus()` vérifie `premiumExpiresAt` à chaque requête), mais côté **iOS** plusieurs lacunes existent.\n\n## Problèmes identifiés\n\n### 1. iOS `User` n'a pas `premiumExpiresAt`\n- Le modèle `User.swift` ne contient que `isPremium: Bool`\n- L'app ne peut pas vérifier localement si le premium est expiré\n- **Impact** : Badge premium affiché même après expiration\n\n### 2. `checkCurrentEntitlements()` jamais appelé au lancement\n- La fonction existe dans `PremiumManager.swift:197` mais n'est jamais invoquée\n- Pas de vérification StoreKit → Backend au démarrage de l'app\n- **Impact** : Désynchronisation entre StoreKit et Firestore\n\n### 3. Pas de fonction scheduled backend\n- Aucune Cloud Function ne nettoie les `isPremium: true` expirés\n- Le flag reste indéfiniment dans Firestore\n- **Impact** : Données incohérentes (isPremium: true mais expiré)\n\n### 4. Pas de webhook Apple S2S (Server-to-Server)\n- Le backend n'est pas notifié des annulations/expirations par Apple\n- On dépend uniquement du client pour sync\n- **Impact** : Si l'utilisateur n'ouvre pas l'app, Firestore n'est pas mis à jour\n\n## Comportement actuel\n\n| Composant | Comportement |\n|-----------|--------------|\n| Backend | ✅ Vérifie `premiumExpiresAt` à chaque requête |\n| iOS UI | ❌ Affiche badge premium même si expiré |\n| Firestore | ❌ `isPremium: true` persiste après expiration |\n\n**Résultat** : UX confuse mais pas de fuite de récompenses (backend refuse les bénéfices)\n\n## Solution proposée\n\n### Phase 1 - iOS (prioritaire)\n- [ ] Ajouter `premiumExpiresAt: Date?` au modèle `User.swift`\n- [ ] Créer computed property `isEffectivelyPremium` qui vérifie l'expiration\n- [ ] Utiliser `isEffectivelyPremium` au lieu de `isPremium` pour l'UI\n- [ ] Appeler `checkCurrentEntitlements()` au lancement de l'app (ou retour foreground)\n\n### Phase 2 - Backend (optionnel mais recommandé)\n- [ ] Créer fonction scheduled `cleanupExpiredPremium` (quotidienne)\n- [ ] Implémenter webhook Apple S2S pour notifications d'abonnement\n\n## Fichiers concernés\n\n**iOS :**\n- `Domain/Models/User.swift`\n- `Shared/Services/Premium/PremiumManager.swift`\n- `Presentation/Features/Root/Views/AppRouterView.swift` (ou équivalent pour app launch)\n\n**Backend :**\n- `functions/src/index.ts` (nouvelle fonction scheduled)\n\n## Priorité\n\nMedium - L'intégrité des récompenses est préservée (backend), seule l'UX est impactée.",
+  "labels": ["invalid"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-29T13:57:34Z",
+  "updated_at": "2025-12-07T14:06:49Z",
+  "closed_at": "2025-11-29T20:25:59Z",
+  "reactions_total": 0,
+  "comments_count": 2,
+  "author": "sebastienkothe",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

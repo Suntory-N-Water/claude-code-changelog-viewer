@@ -1,0 +1,35 @@
+{
+  "number": 34958,
+  "title": "[BUG] [1M] Opus 4.6 1M context unavailable on Max 5x — works on another machine with same account",
+  "body": "## Bug Description\n\nClaude Code v2.1.76 on WSL2 shows 200k context window for Opus 4.6 instead of 1M, despite being on the Max 5x plan. Running `/model opus[1m]` returns a message saying the plan does not support the feature.\n\nThe same account on a different Windows machine has 1M context working correctly.\n\n## Steps to Reproduce\n\n1. Install Claude Code v2.1.76 via `npm install -g @anthropic-ai/claude-code`\n2. Sign in with a Max 5x account\n3. Run `/context` — shows `200k` max, not `1M`\n4. Run `/model opus[1m]` — returns plan not supported error\n\n## Expected Behavior\n\nPer the [1M Context GA announcement](https://claude.com/blog/1m-context-ga) and [model configuration docs](https://code.claude.com/docs/en/model-config), Max plan users should automatically get 1M context for Opus 4.6 with no additional configuration.\n\n## Actual Behavior\n\n- `/context` shows `claude-opus-4-6 · Xk / 200k tokens`\n- `/model opus[1m]` returns a \"plan does not support\" error\n- Credentials show `rateLimitTier: \"default_claude_max_5x\"` — re-authenticating produces the same result\n\n## Troubleshooting Already Attempted\n\n- Signed out and back in multiple times\n- Deleted `~/.claude/.credentials.json` and re-authenticated (fresh token, same result)\n- Fully uninstalled standalone installer, reinstalled via npm\n- System clock is correct\n\n## Additional Context\n\n- The **same Max 5x account** works correctly with 1M context on a different Windows machine (not WSL2)\n- `/btw` slash command is also unavailable on this machine (returns \"Unknown skill\")\n- Both machines are Windows — the working one runs Claude Code natively, the failing one runs it inside WSL2 (Ubuntu 24.04)\n- This appears to be a server-side entitlement/feature-gating issue specific to the WSL2 client\n\n## Environment\n\n- **Claude Code:** 2.1.76\n- **OS:** Ubuntu 24.04.2 LTS on WSL2 (kernel 6.6.87.2-microsoft-standard-WSL2)\n- **Node:** v20.19.3\n- **npm:** 10.8.2\n- **Install method:** npm global\n- **Plan:** Max 5x ($100/mo)\n\n## Related Issues\n\n- #26428 — Sonnet 1M disappeared after update\n- #26557 — sonnet[1m] not available on Max despite docs\n- #24208 — Context display shows 200k instead of 1M\n- #33159 — /btw tip shown but command returns \"Unknown skill\"",
+  "labels": ["bug", "has repro", "area:auth", "platform:wsl", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-16T13:57:25Z",
+  "updated_at": "2026-04-24T14:50:38Z",
+  "closed_at": "2026-04-15T22:21:32Z",
+  "reactions_total": 6,
+  "comments_count": 12,
+  "author": "kyle3728",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34333\n2. https://github.com/anthropics/claude-code/issues/34585\n3. https://github.com/anthropics/claude-code/issues/34795\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-16T14:01:37Z"
+    },
+    {
+      "author": "kyle3728",
+      "author_association": "NONE",
+      "body": "Not closing as duplicate — this issue adds the specific detail that the feature works on a **different machine with the same Max 5x account**, pointing to a client-side or platform-detection issue rather than a pure account entitlement problem. The WSL2 platform detail is unique to this report. See also #34795 for the closest match.",
+      "created_at": "2026-03-16T14:04:52Z"
+    },
+    {
+      "author": "Verce11o",
+      "author_association": "NONE",
+      "body": "Same here",
+      "created_at": "2026-03-16T14:18:08Z"
+    }
+  ]
+}

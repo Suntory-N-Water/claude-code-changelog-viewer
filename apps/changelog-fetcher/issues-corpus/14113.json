@@ -1,0 +1,42 @@
+{
+  "number": 14113,
+  "title": "[Bug] /compact fails with \"Tool names must be unique\" even after disabling all MCP servers (v2.0.70)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n The `/compact` command fails with API Error 400: \"tools: Tool names must be unique\"\n  immediately after starting a new session.\n\n  This error persists even after:\n  - Disabling all MCP servers via `/mcp disable`\n  - Fresh session with minimal conversation\n\n  The bug was reportedly fixed in v2.0.31, but it has regressed in v2.0.70.\n\n### What Should Happen?\n\n  /compact should successfully compact the conversation without API errors,\n  regardless of MCP server status or custom agent/command configurations.\n\n### Error Messages/Logs\n\n```shell\n> /compact\n    ⎿  Error: Error during compaction: Error: API Error: 400\n       {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\n       \"message\":\"tools: Tool names must be unique.\"},\n       \"request_id\":\"req_011CW9cz13pCHJv2SC8NPCaq\"}\n\n  After disabling MCP:\n  > /mcp disable\n    ⎿  Disabled 3 MCP server(s)\n\n  > /compact\n    ⎿  Error: Error during compaction: Error: API Error: 400\n       {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\n       \"message\":\"tools: Tool names must be unique.\"},\n       \"request_id\":\"req_011CW9cz13pCHJv2SC8NPCaq\"}\n```\n\n### Steps to Reproduce\n\n1. Start Claude Code v2.0.70\n  2. Have custom agents (20) and slash commands (56) configured in ~/.claude/\n  3. Run any command (even simple greeting like \"hello\")\n  4. Execute `/compact`\n  5. Error occurs: \"tools: Tool names must be unique\"\n\n  Alternative test:\n  1. Run `/mcp disable` to disable all MCP servers (3 servers disabled)\n  2. Run `/compact`\n  3. Same error still occurs\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.0.70\n\n### Claude Code Version\n\n- Claude Code version: 2.0.70\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n- This appears to be a regression. The same issue was fixed in v2.0.31 (Issue #10668)\n  - The error occurs even with 0 MCP servers active\n  - Custom slash commands follow a pattern: /command and /sc:command (e.g., /analyze and /sc:analyze)\n  - Custom agents are defined in ~/.claude/agents/*.md files\n  - Possibly related to tool deduplication logic during compaction subprocess\n\n  Related issues:\n  - #10668 (original fix in v2.0.31)\n  - #10697 (duplicate)\n  - #10761 (similar recent report)",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:core",
+    "area:mcp",
+    "oncall"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-16T04:08:33Z",
+  "updated_at": "2025-12-25T14:07:21Z",
+  "closed_at": "2025-12-17T19:53:22Z",
+  "reactions_total": 12,
+  "comments_count": 5,
+  "author": "gamguy08",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14111\n2. https://github.com/anthropics/claude-code/issues/10668\n3. https://github.com/anthropics/claude-code/issues/10697\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-16T04:12:33Z"
+    },
+    {
+      "author": "turkenh",
+      "author_association": "NONE",
+      "body": "Just hit this and the following worked for me:\n\n- Exit claude code\n- Restart with `claude --continue`\n- Call `/compact` again.",
+      "created_at": "2025-12-16T11:52:15Z"
+    },
+    {
+      "author": "BoMadsen",
+      "author_association": "NONE",
+      "body": "> Just hit this and the following worked for me:\n> \n>     * Exit claude code\n> \n>     * Restart with `claude --continue`\n> \n>     * Call `/compact` again.\n\nThat almost worked for me, although I had to do a \"/mcp disable\" before the exit to get it to work.",
+      "created_at": "2025-12-16T14:25:16Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 49341,
+  "title": "Claude Desktop Task mode: \"Failed to create bridge sockets after 5 attempts\" on macOS 26.4",
+  "body": "## Summary\nTask/agent mode in Claude Desktop fails to start any session on macOS 26.4. Every spawn of the in-VM `claude` CLI exits with code 1 within ~1s. Regular Chat mode works fine; the failure is specific to the agent-mode VM.\n\n## Environment\n- Claude Desktop: **1.3036.0**\n- macOS: **26.4** (Darwin 25.4.0, Apple Silicon)\n- Claude Code SDK in VM: **2.1.111**\n\n## Error\nFrom `~/Library/Logs/Claude/cowork_vm_node.log`:\n```\n[Spawn:vm] Spawn succeeded in 41ms\n[vm-stderr] Error: Failed to create bridge sockets after 5 attempts\n[Process] Exited, code=1, duration=917ms\n```\n\n## Root cause (as far as I can tell)\nThe VM-side CLI spawns `socat TCP-LISTEN:3128 UNIX-CONNECT:/var/run/mitm-proxy.sock` (HTTP bridge) and the same for port 1080 (SOCKS). Both fail. The VM itself boots cleanly, network is `CONNECTED`, and `coworkd` logs `MITM proxy started on /var/run/mitm-proxy.sock`, so the socket appears to exist — but the bridge setup fails deterministically.\n\nLikely candidates: race between proxy socket creation and socat connect, permissions on the socket vs. the non-root session user, or a macOS 26.x Virtualization Framework regression.\n\n## Reproduction\n1. Launch Claude Desktop on macOS 26.4\n2. Start a Task mode session\n3. Session immediately fails with \"error code 1\"\n\n## What I've tried\n- Killed all Claude processes, reinstalled app — no change\n- Deleted `~/Library/Application Support/Claude/claude-code-vm`, `local-agent-mode-sessions`, `vm_bundles` — no change\n- Full wipe of `~/Library/Application Support/Claude/` — no change\n\nChat mode works. claude.ai web works. Only Task mode is affected.",
+  "labels": ["bug", "has repro", "platform:macos", "area:cowork"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-16T18:21:20Z",
+  "updated_at": "2026-04-24T14:54:39Z",
+  "closed_at": "2026-04-16T21:29:20Z",
+  "reactions_total": 6,
+  "comments_count": 13,
+  "author": "flowercodes",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "paul-a-lebrun-nodal",
+      "author_association": "NONE",
+      "body": "Also hitting this on macOS (not 26.4) with Claude 1.3036.0 + SDK 2.1.111. Same signature: \"Failed to create bridge sockets after 5 attempts\", 100% reproducible, started immediately after the update. socat installed, cache wiped, rebooted — nothing clears it. Filed as #49342 (closed as duplicate of this).",
+      "created_at": "2026-04-16T18:25:50Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19503\n2. https://github.com/anthropics/claude-code/issues/45175\n3. https://github.com/anthropics/claude-code/issues/46661\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-16T18:26:34Z"
+    },
+    {
+      "author": "JoeEvans-at",
+      "author_association": "NONE",
+      "body": "Confirming this on macOS 26.4.1, Claude Desktop 1.3036.0.                                                                                                                                                                                                                                         \n                                                                                                                                                                                                                 ",
+      "created_at": "2026-04-16T18:36:30Z"
+    }
+  ]
+}

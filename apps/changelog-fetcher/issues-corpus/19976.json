@@ -1,0 +1,35 @@
+{
+  "number": 19976,
+  "title": "[FEATURE] Support terminal notifications when running inside tmux",
+  "body": "## Problem Statement\nClaude Code's desktop notifications don't work when running inside tmux. This is because tmux requires applications to wrap OSC sequences in DCS passthrough format, but Claude Code sends plain OSC sequences.\n\n## Proposed Solution\nDetect when running inside tmux (via `$TMUX` environment variable) and wrap notification sequences in DCS passthrough format:\n\n```bash\n# Plain (current):\nprintf '\\033]9;message\\007'\n\n# DCS-wrapped for tmux:\nprintf '\\033Ptmux;\\033\\033]9;message\\007\\033\\\\'\n```\n\nThis is the standard pattern used by other terminal tools (imgcat, etc.).\n\n## Alternative Solutions\nUsers can create a notification hook as a workaround.\n\n**1. Create `~/.claude/hooks/tmux-notify.sh`:**\n\n```bash\n#!/bin/bash\n# Only wrap for tmux - let Claude Code handle non-tmux natively\n[ -z \"$TMUX\" ] && exit 0\n\nread -r input\nmessage=$(echo \"$input\" | jq -r '.message // \"Claude Code\"')\n# Must output to /dev/tty - hook stdout is captured by Claude Code\nprintf '\\033Ptmux;\\033\\033]9;%s\\007\\033\\\\' \"$message\" > /dev/tty\n```\n\n**2. Add to `~/.claude/settings.json`:**\n\n```json\n{\n  \"hooks\": {\n    \"Notification\": [\n      {\n        \"hooks\": [{ \"type\": \"command\", \"command\": \"~/.claude/hooks/tmux-notify.sh\" }]\n      }\n    ]\n  }\n}\n```\n\nThis workaround requires manual setup and isn't discoverable by users.\n\n## Additional Context\n- Requires tmux 3.3+ with `allow-passthrough on` (or `all`)\n- Related: #6072",
+  "labels": ["enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-22T03:35:38Z",
+  "updated_at": "2026-06-01T21:04:21Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 10,
+  "author": "rbolkey",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Infonautica",
+      "author_association": "NONE",
+      "body": "You can also try `workmux` as it has status tracking: https://workmux.raine.dev/guide/status-tracking",
+      "created_at": "2026-01-22T12:26:15Z"
+    },
+    {
+      "author": "PrayagS",
+      "author_association": "NONE",
+      "body": "amp has a pre-installed skill to configure this for the user. And they use the `\\ePtmux;...\\e\\\\` escape sequence when running inside tmux.\n\nclaude-code should also support this behavior.",
+      "created_at": "2026-02-07T12:02:08Z"
+    },
+    {
+      "author": "andyuninvited",
+      "author_association": "NONE",
+      "body": "I built this recently to solve this issue: [C3Poh](https://github.com/andyuninvited/c3poh_for_claudecode) - a Telegram comms bridge for Claude Code. Your agent DMs you when it's done (or when something goes wrong), and you can DM it back to kick off new tasks.\n\nPure stdlib Python, no inbound ports (long-polling), allowlist-based access control so only you can reach it. Community channel if you run into anything: [t.me/tinmanc3poh](https://t.me/tinmanc3poh)",
+      "created_at": "2026-02-20T20:03:49Z"
+    }
+  ]
+}

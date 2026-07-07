@@ -1,0 +1,35 @@
+{
+  "number": 9444,
+  "title": "[FEATURE] Support for Plugin Dependencies and Shared Resources",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n## Summary\nAdd support for plugin dependencies and shared resource libraries to the Claude Code plugin system, enabling plugins to declare dependencies on other plugins or common libraries.\n\n## Motivation\n\n### Current Limitation\nToday, plugins are completely independent units. If multiple plugins need the same agents, hooks, or utilities, each plugin must duplicate these resources. This leads to:\n\n1. **File duplication** - Same agent definitions copied across multiple plugins\n2. **Maintenance burden** - Updates must be applied to all copies\n3. **Inconsistency risk** - Copies can drift out of sync\n4. **Storage waste** - duplicated agents in the marketplace\n\n### Real-World Example\nOur marketplace has 11 plugins. We had to copy 32 agents across 7 plugins because:\n- `@code-archaeologist` is used by: epcc-workflow, documentation, architecture, tdd-workflow, performance\n- `@security-reviewer` is used by: epcc-workflow, architecture, tdd-workflow, security\n- `@test-generator` is used by: epcc-workflow, documentation, architecture, tdd-workflow, testing\n\n**Without dependencies**: Copy 32 agents = duplication\n**With dependencies**: 1 common-core plugin = no duplication\n**Pros**: Simple, no changes needed\n**Cons**: Maintenance burden, inconsistency risk\n**Verdict**: ❌ Not scalable as marketplace grows\n\n### 2. Documentation-Only Dependencies\nTell users \"install common-core first\"\n**Pros**: No code changes\n**Cons**: ❌ Not enforced, easy to miss, poor UX\n**Verdict**: ❌ Unreliable\n\n### 3. Monolithic Plugins\nMake each plugin completely self-contained\n**Pros**: Always works\n**Cons**: ❌ Massive duplication (current solution)\n**Verdict**: ✅ Good short-term, ❌ bad long-term\n\n## Related Issues\n- Plugin system scalability\n- Marketplace organization\n- Plugin development experience\n\n### Proposed Solution\n\n## Proposed Solution\n\n### 1. Plugin Dependencies in Manifest\n\nAdd `dependencies` field to `plugin.json`:\n\n```json\n{\n  \"name\": \"epcc-workflow\",\n  \"version\": \"1.0.0\",\n  \"dependencies\": {\n    \"common-core\": \"^1.0.0\",\n    \"security-core\": \"^2.1.0\"\n  },\n  \"agents\": [\"agents/\"],\n  \"commands\": [\"commands/\"]\n}\n```\n\n### 2. Common Resource Plugins\n\nAllow plugins to declare themselves as libraries:\n\n```json\n{\n  \"name\": \"common-core\",\n  \"version\": \"1.0.0\",\n  \"type\": \"library\",\n  \"description\": \"Common agents used across multiple plugins\",\n  \"agents\": [\"agents/\"],\n  \"exports\": {\n    \"agents\": [\n      \"code-archaeologist\",\n      \"system-designer\",\n      \"business-analyst\"\n    ]\n  }\n}\n```\n\n### 3. Automatic Dependency Resolution\n\nWhen installing a plugin:\n```bash\n/plugin install epcc-workflow@claude-code-plugins\n\n# Claude Code automatically:\n✓ Resolving dependencies...\n✓ Installing common-core@1.0.0\n✓ Installing security-core@2.1.0\n✓ Installing epcc-workflow@1.0.0\n✓ All dependencies satisfied\n```\n\n### 4. Shared Resource Directory Structure\n\n```\n~/.claude/plugins/\n├── epcc-workflow@1.0.0/\n│   ├── commands/\n│   └── .claude-plugin/plugin.json  # declares dependencies\n├── common-core@1.0.0/\n│   ├── agents/\n│   │   ├── code-archaeologist.md\n│   │   └── system-designer.md\n│   └── .claude-plugin/plugin.json  # type: \"library\"\n```\n\nPlugins can reference shared agents:\n```bash\n# From epcc-workflow commands\n@code-archaeologist  # Resolves from common-core dependency\n```\n\n## Benefits\n\n### For Plugin Authors\n- ✅ **DRY principle** - Define agents once, reuse everywhere\n- ✅ **Easier maintenance** - Update one file, all plugins benefit\n- ✅ **Smaller plugins** - Plugins only contain unique resources\n- ✅ **Clear dependencies** - Explicit dependency graph\n\n### For Users\n- ✅ **Automatic installation** - Dependencies installed transparently\n- ✅ **Faster installs** - Shared resources downloaded once\n- ✅ ",
+  "labels": ["enhancement", "has repro", "area:packaging"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-12T22:22:25Z",
+  "updated_at": "2026-06-23T15:11:22Z",
+  "closed_at": null,
+  "reactions_total": 47,
+  "comments_count": 18,
+  "author": "jawhnycooke",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "burneyhoel",
+      "author_association": "NONE",
+      "body": "> they already sollved this you can have the resources in the market place root, and then use strict: false, and then the plugin config in the market place can define more granular assignments of command/agents/hooks\n\nI would argue this is a work around, not a solution. In my opinion the solution would use the same @ reference already implemented but be context aware of the marketplace.",
+      "created_at": "2025-10-19T02:00:13Z"
+    },
+    {
+      "author": "burneyhoel",
+      "author_association": "NONE",
+      "body": "> they already sollved this you can have the resources in the market place root, and then use strict: false, and then the plugin config in the market place can define more granular assignments of command/agents/hooks\n\nI tested this and, unless I am missing something, You cannot reference things at the market place root from a plugin due to the schema requirement that the plugin paths start with ./. see error below.\n\n> /plugin\n  ⎿ Failed to load all marketplaces. Errors: test-marketplace: Invalid",
+      "created_at": "2025-10-20T00:38:07Z"
+    },
+    {
+      "author": "smar-sean-sekora",
+      "author_association": "NONE",
+      "body": "thank you @jawhnycooke...I was just about to file a feature request before I found yours",
+      "created_at": "2025-11-10T20:51:14Z"
+    }
+  ]
+}

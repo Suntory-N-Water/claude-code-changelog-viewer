@@ -1,0 +1,41 @@
+{
+  "number": 23095,
+  "title": "Native binary leaks ~7MB .node files to temp directory on each session (Windows)",
+  "body": "## Description\n\nThe native Windows binary (`claude.exe`) extracts native Node.js addon files to the system temp directory on each session/invocation but never cleans them up. Over time this accumulates significant disk usage.\n\n## Environment\n\n- **OS:** Windows 11\n- **Claude Code version:** Native binary (`.local/bin/claude.exe`, ~232 MB)\n- **Installation method:** Native binary (not npm)\n- **Auto-update:** Disabled\n\n## Evidence\n\nAfter ~4 days of regular usage:\n\n- **2,813 files** matching pattern `.789*.node`\n- **18 GB total** disk usage\n- Each file is exactly **6,965,760 bytes** (~6.7 MB)\n- Files are created in `C:\\Users\\<user>\\AppData\\Local\\Temp\\`\n- Naming pattern: `.789127d3????????-00000000.node` (hash varies per session)\n\n```\n$ find /c/Users/slono/AppData/Local/Temp -name \".789*.node\" -type f | wc -l\n2813\n\n$ du -ch /c/Users/slono/AppData/Local/Temp/.789*.node | tail -1\n18G     total\n\n$ ls -la /c/Users/slono/AppData/Local/Temp/.789*.node | head -5\n-rwxr-xr-x 1 slono 197609 6965760 Jan 31 22:34 .789127d317febb4e-00000000.node\n-rwxr-xr-x 1 slono 197609 6965760 Jan 31 22:52 .789127d31aef7f3e-00000000.node\n-rwxr-xr-x 1 slono 197609 6965760 Jan 31 22:39 .789127d31eeffeae-00000000.node\n...\n```\n\nThe files are Windows PE64 DLLs (native Node.js addons) - identical content, just different filenames per session.\n\n## Expected Behavior\n\nThe application should either:\n1. Reuse existing extracted native modules instead of creating new copies each session\n2. Clean up extracted temp files on exit\n3. Use a deterministic filename so subsequent runs reuse the same file\n\n## Workaround\n\nManual cleanup:\n```powershell\nRemove-Item \"C:\\Users\\<user>\\AppData\\Local\\Temp\\.789*.node\" -Force\n```\n\nFiles can be safely deleted when Claude Code is not running.\n\n## Impact\n\nAt ~7 MB per session, heavy users can accumulate tens of GB within days. This is especially problematic on systems with smaller SSDs or limited C: drive space.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:packaging",
+    "perf:memory"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-04T15:51:41Z",
+  "updated_at": "2026-04-15T14:49:43Z",
+  "closed_at": "2026-04-07T13:57:15Z",
+  "reactions_total": 4,
+  "comments_count": 14,
+  "author": "SlothKing16",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22083\n2. https://github.com/anthropics/claude-code/issues/14911\n3. https://github.com/anthropics/claude-code/issues/14914\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-04T15:55:25Z"
+    },
+    {
+      "author": "kolkov",
+      "author_association": "NONE",
+      "body": "@wolffiex Adding another Windows data point and a broader perspective on why this class of issues keeps recurring.\n\n## This is not a duplicate of #14911\n\n#14911 is a macOS Gatekeeper UI warning. This issue is about **silent disk space exhaustion** on Windows — a fundamentally different severity level:\n\n| | #14911 (macOS) | This issue (Windows) |\n|---|---|---|\n| **Platform** | macOS | Windows |\n| **Symptom** | Gatekeeper security dialog | Disk fills up silently |\n| **User impact** | Click \"Done\" ",
+      "created_at": "2026-02-06T13:15:23Z"
+    },
+    {
+      "author": "Nantris",
+      "author_association": "NONE",
+      "body": "I don't use WSL(2) but I use Cygwin and MSYS2 and it seems like MSYS2 suffers this issue but Cygwin is spared. My other details in (now closed as duplicate) #24853\n\nThis difference seems quite possibly useful for diagnosing and fixing the root cause.",
+      "created_at": "2026-02-11T02:04:55Z"
+    }
+  ]
+}

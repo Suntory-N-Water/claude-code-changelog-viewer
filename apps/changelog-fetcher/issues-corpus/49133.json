@@ -1,0 +1,35 @@
+{
+  "number": 49133,
+  "title": "MCP: Silent failures make server integration opaque and hard to debug",
+  "body": "## Summary\n\nMCP server failures are currently silent or cryptic, making it very hard to diagnose why a server isn't working. Several related pain points:\n\n---\n\n## Issues\n\n### 1. Wrong config file location is silently ignored\n\n**Current behavior:** If an MCP server is defined in `~/.claude/mcp/canny.json` (a subdirectory) or `.claude/settings.local.json`, it is silently ignored. No error, no warning, no hint. The server simply doesn't appear.\n\n**Expected behavior:** Warn the user if a file that *looks* like an MCP config is found in a non-standard location, or at least document clearly which file locations are scanned.\n\n---\n\n### 2. Protocol version mismatch causes a silent 30-second timeout\n\n**Current behavior:** When a custom MCP server responds with an older `protocolVersion` (e.g. `2024-11-05`) during the `initialize` handshake, Claude Code silently discards the response and waits ~30 seconds before timing out. No error is shown to the user.\n\n**Expected behavior:** Log a specific error like:\n```\nMCP server \"canny\" handshake failed: server returned protocolVersion \"2024-11-05\", expected \"2025-11-25\"\n```\n\nThis would have saved hours of debugging. The mismatch is easy to fix once you know it's the cause.\n\n---\n\n### 3. No visibility into MCP server startup or handshake\n\n**Current behavior:** There is no way to see what happened during server startup — did the process launch? Did it crash? Did the handshake succeed or fail?\n\n**Expected behavior:**\n- `/mcp` or a new `/mcp logs` command should show per-server status: `starting`, `connected`, `failed (reason)`, `timed out`\n- Optionally: a `--mcp-debug` flag that streams server stderr and protocol messages to the terminal\n\n---\n\n### 4. `--mcp-config` failures are not surfaced\n\n**Current behavior:** When `--mcp-config <file>` is passed and the server fails to start or handshake, there is no feedback. The tools just don't appear.\n\n**Expected behavior:** On startup, print a summary of MCP servers loaded vs. failed, e.g.:\n```\nMCP servers: playwright ✓  canny ✗ (handshake timeout — run with --mcp-debug for details)\n```\n\n---\n\n## Impact\n\nUsers building or debugging custom MCP servers have no feedback loop. The combination of silent config location failures + silent protocol mismatches means a server can \"fail\" in two completely invisible ways before a single tool call is ever made.\n\n## Environment\n\n- Claude Code CLI\n- macOS (darwin 25.2.0)\n- Custom stdio MCP server (TypeScript/tsx)",
+  "labels": ["enhancement", "platform:macos", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-16T11:46:18Z",
+  "updated_at": "2026-05-23T02:19:34Z",
+  "closed_at": "2026-05-23T02:18:33Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "bennypk",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for the request. This is the same ask as #39061 (surface MCP startup errors and per-server logs). Consolidating tracking there.",
+      "created_at": "2026-05-23T02:18:33Z"
+    },
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "Silent failures are a class of behavioral opacity bug that are especially dangerous because they produce confident-looking output on degraded capability. The three scenarios here all share the same structure: the agent believes a tool is available, the user believes it is available, but it is not — and nothing says so.\n\nTwo things are missing across all three cases:\n\n**1. Named diagnostic events, not just log entries.** Log entries get lost; they are not surfaced in the agent's operating context",
+      "created_at": "2026-04-16T11:49:09Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/45529\n2. https://github.com/anthropics/claude-code/issues/39061\n3. https://github.com/anthropics/claude-code/issues/34744\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-16T11:50:46Z"
+    }
+  ]
+}

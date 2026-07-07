@@ -1,0 +1,35 @@
+{
+  "number": 6836,
+  "title": "[Meta] tool_use/tool_result block mismatch causing bad conversation state (150+ reports)",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API, others\n- Claude CLI version: multiple, including 1.0.94; have encountered the issue after the alleged fix in 1.0.84 \n- Operating System: multiple\n- Terminal:  multiple\n\n## Bug Description\nClaude Code users are experiencing conversation disruptions due to mismatched Tool Use and Tool Result blocks. This can occur due to transient network failures, server errors, or other failures around hook executions or tool calls. (Both times I have seen this in the past two weeks have been after a hook execution.) As of this writing the following issue tracker query ( `is:issue Each tool_use block must have a corresponding tool_result block in the next message`) shows 150+ issues.\n\n  Open Issues (63):\n#5662, #6443, #6551, #3886, #3636, #6302, #5599, #5509, #3512, #3632, #3860, #4454, #3916, #3003, #5928, #5374, #6628, #5765, #3637, #2126, #6242, #2616, #2312, #5747, #1800, #3504, #2967, #2961, #2406, #2903, #2352, #2249, #2959, #3754, #6178, #2232, #2704, #4401, #2242, #2802, #5713, #1978, #4425, #3549, #2369, #6585, #2043, #2672, #2261, #4409, #3532, #4466, #3608, #1796, #2971, #3564, #4038, #3983, #5385, #6595, #769, #1672, #3982, #1608\n\n  Closed Issues (92):\n#6575, #6566, #6539, #6567, #5705, #5989, #6521, #5468, #6363, #6410, #5424, #5375, #5450, #5317, #4842, #5060, #4638, #4664, #4563, #3086, #5470, #6343, #4096, #3639, #5594, #4825, #4180, #4798, #1887, #5193, #5479, #3101, #6348, #3331, #6502, #4877, #2697, #1831, #3149, #2157, #1782, #4522, #1776, #1686, #2840, #5410, #2796, #2828, #1894, #4134, #2600, #1574, #1237, #5457, #1881, #3902, #3977, #2179, #1968, #4159, #2201, #2423, #6490, #1747, #1642, #1969, #1738, #1584, #2630, #1577, #3862, #3202, #473, #1586, #1695, #5412, #1571, #5246, #3191, #1956, #1856, #4240, #2708, #1678, #1174, #1579, #558, #1761, #2494, #5476, #5421, #4211, #4283, #2045, #2582, #746, #3985, #4065, #3616, #1679\n\n(My apologies to anyone whose issue was erroneously linked - I asked Claude to pull the `gh issue list` results together for me and did not verify each and every link.)\n\nMost of the closed issues are closed because they are duplicates, not because they are resolved. Some of the closed issues have significant threads with multiple people confirming the issue, which means that the hit rate is significantly higher than 150+ issues.\n\nOne person developed a [remediation](https://github.com/anthropics/claude-code/issues/3886#issuecomment-3086463060), which involves exporting the conversation, clearing the history, restarting Claude Code, and then importing the conversation history. While it is good to have a workaround like this, it is obviously painful and an in-program mitigation would be preferred.\n\n## Steps to Reproduce\nNot consistently reproducible.\n\n## Expected Behavior\nGraceful recovery.\n\n## Actual Behavior\nNo more conversation turns can be generated.\n\n## Additional Context\nTo deal with this issue in my personal AI workbench last year, I developed the following Python code which can be adapted to Typescript/Node.js fairly easily. It makes an O(n) backwards pass through the message history, collecting tool use IDs from results and then detecting any tool uses which do not have those IDs in the collected set:\n```python\n    ''' Filters out tool use blocks that have no matching result. '''\n    tool_result_ids = set( )\n    filtered_messages: list[ AnthropicMessage ] = [ ]\n    for message in reversed( messages ):\n        content = message[ 'content' ]\n        if not isinstance( content, list ):\n            filtered_messages.append( message )\n            continue\n        filtered_blocks = [ ]\n        for block in content:\n            if not isinstance( block, dict ):\n                filtered_blocks.append( block )\n                continue\n            match block.get( 'type' ):\n                case 'tool_result':\n                    if 'tool_use_id' in block:\n                        tool_result_ids.add( block[ 'tool_use_id' ] )\n                    filtered_blocks.append( block )\n                case 'tool_use':\n                    if block",
+  "labels": ["bug", "has repro", "area:tools", "area:core", "oncall"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-29T19:54:22Z",
+  "updated_at": "2026-04-08T06:01:30Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 46,
+  "author": "emcd",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "This issue has a number of causes. While we are always monitoring instances of this error and and looking to fix them, it's unlikely we will ever completely eliminate it due to how tricky concurrency problems are in general. Feel free to share transcripts and complaints here, we'll keep an eye on this issue and close the many duplicates",
+      "created_at": "2025-09-18T20:05:10Z"
+    },
+    {
+      "author": "ldorigo",
+      "author_association": "NONE",
+      "body": "It is indeed a rather irritating bug, especially since fixing it (or at least, adding a workaround while you figure out the root cause...) is really not very difficult. Claude code is essentially unusable at the moment for me.",
+      "created_at": "2025-09-01T19:36:13Z"
+    },
+    {
+      "author": "zazer0",
+      "author_association": "NONE",
+      "body": "@bcherny I remember you were on top of this issue last time I had it ([source](https://github.com/anthropics/claude-code/issues/473#issuecomment-3215680121)) thought it might be helpful to ping incase of useful context on prior fix etc!\n\nMy steps to reproduce:\n* 1 begin subagent task delegation step\n    * induce network dropout (e.g, disconnect wifi) - dropouts happen frequently for me in real-world use\n* 2  note \"API timeout\" error begins to occur\n    * reconnect internet\n    * note subagent ap",
+      "created_at": "2025-09-17T06:04:50Z"
+    }
+  ]
+}

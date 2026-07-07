@@ -1,0 +1,35 @@
+{
+  "number": 32524,
+  "title": "[BUG] MCP tool parameters with type: number are sent as strings to MCP servers",
+  "body": "## Environment\n- Claude Code version: 2.1.71\n- OS: macOS (Darwin 25.3.0)\n- MCP Server: @mobilenext/mobile-mcp v0.0.46 (MCP SDK v1.26.0)\n\n## Description\n\nWhen Claude Code calls an MCP tool that declares parameters with `\"type\": \"number\"` in its JSON Schema, the values are sent as strings in the JSON-RPC call. MCP servers using strict Zod validation (`z.number()`) rightfully reject these with `\"expected number, received string\"`.\n\n## Root Cause Analysis\n\nThe issue is in the XML-to-JSON-RPC pipeline:\n\n1. **MCP server** exposes `tools/list` with JSON Schema declaring `\"type\": \"number\"` for parameters\n2. **Claude Code** presents the schema to the Claude model\n3. **Claude model** generates tool calls in XML format: `<parameter name=\"x\">330</parameter>`\n4. **Claude Code** parses the XML and sends JSON-RPC to the MCP server\n\n**The problem is at step 4.** Everything in XML is inherently a string — there's no type distinction. Claude Code needs to use the JSON Schema from step 1 to coerce parameter values to their declared types before sending the JSON-RPC request. Currently, it passes raw strings through without coercion.\n\n## Reproduction\n\n1. Configure `@mobilenext/mobile-mcp` in `.mcp.json`:\n```json\n{\n  \"mobile-mcp\": {\n    \"type\": \"stdio\",\n    \"command\": \"npx\",\n    \"args\": [\"-y\", \"@mobilenext/mobile-mcp@latest\"]\n  }\n}\n```\n\n2. Call `mobile_click_on_screen_at_coordinates` with any numeric x/y values\n\n3. **Expected:** Parameters sent as JSON numbers (`{\"x\": 330, \"y\": 200}`)\n4. **Actual:** Parameters sent as JSON strings (`{\"x\": \"330\", \"y\": \"200\"}`)\n\n## Error from MCP Server\n\n```\nMCP error -32602: Input validation error: Invalid arguments for tool mobile_click_on_screen_at_coordinates: [\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\"x\"],\n    \"message\": \"Invalid input: expected number, received string\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\"y\"],\n    \"message\": \"Invalid input: expected number, received string\"\n  }\n]\n```\n\n## MCP Server Schema\n\nThe server uses Zod (`z.number()`) which converts to JSON Schema `{\"type\": \"number\"}` via `zodToJsonSchema`. The schema is correct — the server properly declares these as numbers.\n\n```typescript\n// From mobile-mcp server.ts\nx: z.number().describe(\"The x coordinate to click on the screen, in pixels\"),\ny: z.number().describe(\"The y coordinate to click on the screen, in pixels\"),\n```\n\n## Suggested Fix\n\nWhen constructing the JSON-RPC `arguments` object for an MCP tool call, Claude Code should walk the tool's JSON Schema and coerce values to their declared types:\n\n- `\"type\": \"number\"` → `parseFloat(value)`\n- `\"type\": \"integer\"` → `parseInt(value, 10)`\n- `\"type\": \"boolean\"` → `value === \"true\"`\n- `\"type\": \"string\"` → no change (default)\n- `\"type\": \"array\"` / `\"type\": \"object\"` → `JSON.parse(value)`\n\nThis is similar to how the existing `$ref` serialization bug (#18260) manifests, but affects plain primitive types.\n\n## Impact\n\nThis breaks **any** MCP tool that uses `z.number()`, `z.boolean()`, or `z.integer()` for parameters, which is extremely common. Affected tools include coordinate-based interactions (click, swipe, long press), pagination parameters, numeric configuration values, etc.\n\n## Workaround\n\nMCP server authors can use `z.coerce.number()` instead of `z.number()` to accept both strings and numbers, but this shouldn't be necessary — the client should honor the schema.",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-09T16:07:27Z",
+  "updated_at": "2026-07-06T03:44:51Z",
+  "closed_at": "2026-07-03T22:29:26Z",
+  "reactions_total": 4,
+  "comments_count": 11,
+  "author": "kamalsingh11",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "tnull",
+      "author_association": "NONE",
+      "body": "+1, also just hit this.",
+      "created_at": "2026-03-18T09:56:29Z"
+    },
+    {
+      "author": "m13v",
+      "author_association": "NONE",
+      "body": "we build MCP servers (mcp-server-macos-use) and hit this exact problem. our click/scroll tools take numeric x, y, w, h coordinates and we had to switch everything to z.coerce.number() as the workaround. it works but feels wrong since the schema clearly declares these as numbers.\n\nthe suggested fix in the issue is spot on. the XML-to-JSON coercion should be a pretty small change - walk the schema, cast values to their declared types before sending the JSON-RPC request. arrays and objects via JSON",
+      "created_at": "2026-03-18T11:45:50Z"
+    },
+    {
+      "author": "m13v",
+      "author_association": "NONE",
+      "body": "our MCP server where we use the z.coerce workaround for numeric params (click coordinates, scroll amounts): https://github.com/mediar-ai/mcp-server-macos-use/blob/main/Sources/MCPServer/main.swift",
+      "created_at": "2026-03-18T11:46:19Z"
+    }
+  ]
+}

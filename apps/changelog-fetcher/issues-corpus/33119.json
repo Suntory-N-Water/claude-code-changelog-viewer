@@ -1,0 +1,42 @@
+{
+  "number": 33119,
+  "title": "Remote Control not enabled on Max plan account",
+  "body": "## TL;DR — Resolved\n\n**Cause:** `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` in my shell profile silently disables all GrowthBook feature flag evaluation, hiding `/remote-control`, `/rc`, `/btw`, and other gated commands.\n\n**Fix:** Remove it from your shell profile and start a new session. Also check for `DISABLE_TELEMETRY` — same effect. See [root cause analysis comment](https://github.com/anthropics/claude-code/issues/33119#issuecomment-4052694908).\n\n---\n\n## Problem\n\nRunning `claude remote-control` returns:\n\n```\nError: Remote Control is not yet enabled for your account.\n```\n\n## 20x MAX Billing From My Account\n\n<img width=\"1420\" height=\"214\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/ad677201-9e85-4cbc-b057-2d603651f6f1\" />\n\nThe `/remote-control` slash command inside an active session returns \"Unknown skill: remote-control\".\n\n## Environment\n\n- **Claude Code version:** 2.1.72 (latest)\n- **Install method:** native\n- **Auth method:** OAuth (claude.ai)\n- **Plan:** Max (stripe_subscription)\n- **OS:** Pop!_OS (Linux 6.17.9)\n- **Node.js:** system default\n\n## Billing Confirmation\n\nActive Max plan (20x), renewing Apr 8, 2026 — confirmed at claude.ai/settings/billing.\n\n## Troubleshooting completed\n\n1. Full `/logout` + `/login` cycle — no change\n2. Verified no conflicting env vars (`CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_API_KEY` are unset)\n3. Confirmed `~/.claude.json` shows `billingType: \"stripe_subscription\"` but `hasAvailableSubscription: false`\n4. Manually setting `hasAvailableSubscription: true` in `~/.claude.json` does not help — server-side validation rejects it\n5. On latest CLI version (2.1.72)\n\n## Observed\n\n`~/.claude.json` contains:\n```json\n\"hasAvailableSubscription\": false,\n\"oauthAccount\": {\n    \"hasExtraUsageEnabled\": false,\n    \"billingType\": \"stripe_subscription\"\n}\n```\n\nThe login flow does not refresh `hasAvailableSubscription` to `true` despite an active Max subscription.\n\n## Related issues\n\n- #30756\n- #31606\n- #30242\n\n## Expected\n\nRemote Control should be available for Max plan subscribers per https://code.claude.com/docs/en/remote-control",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:linux",
+    "area:auth",
+    "area:cli",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-11T08:00:08Z",
+  "updated_at": "2026-04-30T15:19:30Z",
+  "closed_at": "2026-04-22T22:25:03Z",
+  "reactions_total": 3,
+  "comments_count": 15,
+  "author": "Caylub",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/30756\n2. https://github.com/anthropics/claude-code/issues/31606\n3. https://github.com/anthropics/claude-code/issues/30242\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-11T08:04:16Z"
+    },
+    {
+      "author": "Caylub",
+      "author_association": "NONE",
+      "body": "## Additional Evidence\n\nConfirmed active Max plan (20x) on claude.ai/settings/billing — subscription renews Apr 8, 2026:\n\n![Max plan billing confirmation](https://github.com/user-attachments/assets/placeholder)\n\nDespite this, `~/.claude.json` persists with:\n```json\n\"hasAvailableSubscription\": false,\n\"oauthAccount\": {\n    \"hasExtraUsageEnabled\": false,\n    \"billingType\": \"stripe_subscription\"\n}\n```\n\nThe OAuth login flow is not refreshing the subscription status flag.",
+      "created_at": "2026-03-11T08:10:01Z"
+    },
+    {
+      "author": "Caylub",
+      "author_association": "NONE",
+      "body": "## Additional Diagnostics\n\n`claude auth status` correctly identifies the subscription:\n```json\n{\n  \"loggedIn\": true,\n  \"authMethod\": \"claude.ai\",\n  \"apiProvider\": \"firstParty\",\n  \"subscriptionType\": \"max\"\n}\n```\n\nHowever, the cached account metadata in `~/.claude.json` (populated server-side during OAuth) contains contradictory values:\n\n```json\n\"hasAvailableSubscription\": false,\n\"cachedExtraUsageDisabledReason\": \"org_level_disabled\",\n\"penguinModeOrgEnabled\": false,\n\"oauthAccount\": {\n    \"hasExtra",
+      "created_at": "2026-03-11T08:23:45Z"
+    }
+  ]
+}

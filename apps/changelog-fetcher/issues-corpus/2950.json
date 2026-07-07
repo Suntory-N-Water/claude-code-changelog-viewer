@@ -1,0 +1,35 @@
+{
+  "number": 2950,
+  "title": "Imports or CLAUDE.local.md?",
+  "body": "According to the [Claude Code memory docs](https://docs.anthropic.com/en/docs/claude-code/memory), `CLAUDE.local.md` is deprecated in favor of imports.\n\nThere’s not a good example of how to replicate this behavior, so I came up with something simple and gave it a shot.\n\n### Setup\n\n`CLAUDE.md`:\n\n```\n- Never use abbreviations for methods or variable names\n- If a file named @claudelocaltest.md is found, this is local context. Any conflicting information in this file should have highest precedence.\n```\n\n`claudelocaltest.md`:\n\n```\nAbbreviate all method and variable names as much as possible.\n```\n\nIt failed me the first time I tried it, but assured me that I had done everything right. That doesn’t feel good enough. I am trying to create a reliable replacement for `CLAUDE.local.md` that I can share with my team.\n\n\n### Test Output\n\n```\n> Create a test ruby class with a method that just prints a 50 character string\n\n⏺ I'll create a Ruby file with a class and a method that outputs a 50-character string.\n\n⏺ Write(test_output.rb)\n  ⎿  Wrote 8 lines to test_output.rb\n     #!/usr/bin/env ruby\n     # frozen_string_literal: true\n     class TestOutput\n       def print_fifty_characters\n         puts \"0123456789\" * 5\n       end\n     end\n\n> Are you paying attention to memories?\n\n⏺ Read(claudelocaltest.md)\n  ⎿  Read 2 lines (ctrl+r to expand)\n\n⏺ I missed the instruction in claudelocaltest.md to abbreviate names as much as possible. I'll fix that right away.\n\n⏺ Update(test_output.rb)\n  ⎿  Updated test_output.rb with 2 additions and 2 removals\n       1    #!/usr/bin/env ruby\n       2    # frozen_string_literal: true\n       3    \n       4 -  class TestOutput\n       5 -    def print_fifty_chars\n       4 +  class TO\n       5 +    def pfc\n       6        puts \"0123456789\" * 5\n       7      end\n       8    end\n       9   \\ No newline at end of file\n```\n\n\n### Conclusion\n\nThis is obviously not as deterministic or reliable as `CLAUDE.local.md`, but the docs say that file is deprecated.\n\nAm I doing something wrong? Could I do it better?\n\nI’m not sure if this is a bug report or just a question. Just looking for steps forward. \n\n\n\n### Appendix\n\n```\n\n> Why did you miss the instruction? Do I not have this tool configured correctly?\n\n⏺ I missed the instruction because I didn't properly check all the context files before implementing the solution. The claudelocaltest.md file was available but I didn't read it initially before creating the file.\n\n  Your tool configuration is correct - I can access and read the files. I should have been more thorough in reviewing all context files before writing code.\n\n> How do I ensure that this doesn't happen again? I am trying to create a deterministic mechanism of loading files in local environments. The Claude docs say CLAUDE.local.md is deprecated. It suggests using `@` imports in CLAUDE.md instead.\n\n⏺ Read(CLAUDE.md)\n  ⎿  Read 3 lines (ctrl+r to expand)\n\n⏺ To ensure this doesn't happen again, you should:\n\n  1. Your CLAUDE.md file is already correctly set up with @ imports for your key files.\n  2. The instruction to read claudelocaltest.md is there on line 2.\n  3. For deterministic loading, ensure that:\n    - All imported files use the @ prefix consistently\n    - Add explicit instructions to check specific files first\n    - Make critical instructions more prominent in CLAUDE.md\n\n  The current setup should work if I properly follow instructions. The issue was my failure to thoroughly read all referenced files before coding, not the configuration.\n\n  For local environments, using @ imports in CLAUDE.md (as you're already doing) is indeed the recommended approach instead of CLAUDE.local.md.\n```",
+  "labels": ["documentation", "question", "memory", "stale"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-03T19:26:12Z",
+  "updated_at": "2026-04-10T14:39:06Z",
+  "closed_at": "2026-03-29T22:13:04Z",
+  "reactions_total": 10,
+  "comments_count": 10,
+  "author": "mculp",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Hey, this is a great question and a really well-documented experiment. I've been thinking about this exact issue for my own team's workflow, and your post highlights the core challenge perfectly.\n\nYou're not doing anything wrong. In fact, your setup is exactly what the documentation recommends as the replacement for the deprecated `CLAUDE.local.md`. The problem you've run into isn't a configuration error on your part; it's a fundamental difference in how the new and old systems work.\n\n### The Sh",
+      "created_at": "2025-08-16T04:31:06Z"
+    },
+    {
+      "author": "rcdailey",
+      "author_association": "NONE",
+      "body": "There is no semantic replacement, which is silly and it means they shouldn't deprecate it. Right now if I don't want a `CLAUDE.md` in my repo, I am still forced to have one in order to have a import for `CLAUDE.local.md`. I tested doing an include like `@CLAUDE.local.md` in my user-level memory file, but this relative to *that file* (as expected) and *not* relative to the repo root I'm in.\n\nIn short, I think `CLAUDE.local.md` *should not* be deprecated and is very useful in specific scenarios, s",
+      "created_at": "2025-08-21T20:18:10Z"
+    },
+    {
+      "author": "alessio-locatelli",
+      "author_association": "NONE",
+      "body": "The [official documentation](https://code.claude.com/docs/en/memory#manage-claudes-memory) suggests this as a replacement:\n\n```\n# Individual Preferences\n- @~/.claude/my-project-instructions.md\n```\n\nHowever, this example is not suitable when a user needs individual files per project because the example will fail the AI with:\n\n> I don't have access to files outside the current working directory\n\nBased on the comments here, it seems the correct way is to keep using `CLAUDE.local.md` but reference i",
+      "created_at": "2025-11-10T15:40:21Z"
+    }
+  ]
+}

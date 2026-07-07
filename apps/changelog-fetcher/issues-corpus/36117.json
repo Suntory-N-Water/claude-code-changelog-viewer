@@ -1,0 +1,35 @@
+{
+  "number": 36117,
+  "title": "[FEATURE] `/new` command to end current session and start a new named session",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n  ## Summary\n\n  Add a `/new` slash command that ends the current session and immediately\n  starts a new named session, without requiring the user to exit and\n  relaunch Claude Code manually.\n\n  ## Motivation\n\n  When working on multiple unrelated tasks, it's useful to keep each task\n  in its own named session for easy retrieval via `/resume`.\n\n  Currently, starting a new named session requires:\n  1. Typing `exit` to leave the current session\n  2. Running `claude -n \"session name\"` in the terminal\n\n  This interrupts the flow, especially when switching tasks frequently.\n\n  ## Related\n\n  - `/resume` for session management\n  - `/clear` for resetting context within a session\n\n\n### Proposed Solution\n\n  ## Proposed behavior\n\n  /new \"session name\"\n\n  - Saves and closes the current session\n  - Immediately starts a new session with the given name\n  - If no name is provided, starts an unnamed new session (equivalent\n    to current `/clear` behavior, but as a fresh session)\n\n### Alternative Solutions\n\n  ## Current workaround\n\n  - `exit` + `claude -n \"name\"` from the terminal\n  - Shell alias: `alias cn='claude -n'`\n\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n_No response_\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:cli"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-19T08:54:11Z",
+  "updated_at": "2026-04-09T00:55:58Z",
+  "closed_at": null,
+  "reactions_total": 17,
+  "comments_count": 3,
+  "author": "AbeHaruhiko",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/31926\n2. https://github.com/anthropics/claude-code/issues/34318\n3. https://github.com/anthropics/claude-code/issues/31220\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-19T08:57:48Z"
+    },
+    {
+      "author": "hampsterx",
+      "author_association": "NONE",
+      "body": "**`/clear` is destructive to session history**\n\n`/clear` truncates the conversation from the active context, which means those messages are lost from the session transcript entirely. Tools that query session history won't find anything from before the clear.\n\nThis makes `/new` more than a convenience feature. Right now the only way to preserve a conversation AND start fresh is `exit` + `claude -n \"name\"`. `/new` would let you do that without breaking flow, and without silently destroying history",
+      "created_at": "2026-04-01T02:00:50Z"
+    },
+    {
+      "author": "hampsterx",
+      "author_association": "NONE",
+      "body": "**Session history trail**\n\nThis has been requested repeatedly under different framings since Dec 2025. The core issue is that `/clear` is internally aliased as `[\"reset\", \"new\"]` and creates a fresh session UUID (#37451), but its name implies \"wipe context, keep session.\" That mismatch cascades:\n\n- `/resume` can't find the pre-clear conversation (#18311, #24729)\n- `/rename` names vanish because `/clear` creates a new session (#33029)\n- Typed input lost during the hidden session transition (#3287",
+      "created_at": "2026-04-01T02:11:15Z"
+    }
+  ]
+}

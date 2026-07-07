@@ -1,0 +1,42 @@
+{
+  "number": 14032,
+  "title": "[BUG] .env variable substitution in .mcp.json works in Cursor but not VS Code",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nCursor: using Claude Code for VS Code extension 2.0.62 - 6 days ago (current)\nVS Code: using Claude Code for VS Code extension 2.0.65 - 4 days ago (current)\n\nBoth IDEs are pointed to the same local project folder. I started with the following in .mcp.json:\n{\n  \"mcpServers\": {\n    \"supabase\": {\n      \"type\": \"http\",\n      \"url\": \"https://mcp.supabase.com/mcp?project_ref=${SUPABASE_PROJECT_REF}\",\n      \"headers\": {\n        \"Authorization\": \"Bearer ${SUPABASE_ACCESS_TOKEN}\"\n      }\n    }\n  }\n}\n\nClaude Code extension for VS Code in Cursor is able to connect to Supabase and read the tables, but Claude Code extension for VS Code in VS Code is not. Tells me I need to auth. Even when it says it can now see the env variables and I need to do a developr refresh or restart, and subsequently do both, it still says not connected to supabase. IT suggested I hardcode the variable values in .msp.json and then it connected to Supabase right away. This is not ideal because it means specifying the value of these variables in multiple places and not having a single source of truth for their values. Not a hypothetical issue because we did in fact just change our Supabase instance.\n\n<img width=\"660\" height=\"587\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/3f521361-3a43-46e4-b88d-8a7c796fb18c\" />\n\n### What Should Happen?\n\nNot sure if this is simply a limitation of VS Code, or something extra Claude Code needs to do in VS Code to get this to work, but Claude Code extension in VS Code should hopefully work the same way as Claude Code extension in Cursor when it comes to being able to specify env variables in .mcp.json instead of having to hardcode them. \n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Use variable references in your .mcp.json file for and mcp server (for example, supabase, using the following, or any other mcp config)\n\n{\n  \"mcpServers\": {\n    \"supabase\": {\n      \"type\": \"http\",\n      \"url\": \"https://mcp.supabase.com/mcp?project_ref=${SUPABASE_PROJECT_REF}\",\n      \"headers\": {\n        \"Authorization\": \"Bearer ${SUPABASE_ACCESS_TOKEN}\"\n      }\n    }\n  }\n}\n\n2. attempt to access the mcp server using Claude Code extensions in both Cursor and VS Code\n\n3. Verify it successfully connects in Cursor but not in VS Code\n\n4. Attempt to get VS Code to read the .env file and know that it should replace the referenced variables with their values from the .env file when acessing the mcp server defined, and do a developer refresh, and then restart VS code. Try again and see if you can connect to the mcp server (you probably won't).\n\n5. Hardcode the values in .mcp.json now and test mcp connection. It should work. This proves that Claude Code extension in Cursor can successfully deal with env variable references in .mcp.json but Claude Code extension in VS Code can not.\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.65\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:mcp",
+    "area:ide",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-15T10:14:28Z",
+  "updated_at": "2026-03-07T14:23:10Z",
+  "closed_at": "2026-02-27T22:16:29Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "apelosi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/9427\n2. https://github.com/anthropics/claude-code/issues/6204\n3. https://github.com/anthropics/claude-code/issues/1254\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-15T10:18:30Z"
+    },
+    {
+      "author": "apelosi",
+      "author_association": "NONE",
+      "body": "> Found 3 possible duplicate issues:\n> \n> 1. [[BUG] env variable expansion not working in plugin .mcp.json #9427](https://github.com/anthropics/claude-code/issues/9427)\n> 2. [[BUG] MCP headers with environment variable substitution not being sent from .mcp.json #6204](https://github.com/anthropics/claude-code/issues/6204)\n> 3. [[BUG] Environment variables from `env` section not passed to MCP servers #1254](https://github.com/anthropics/claude-code/issues/1254)\n> \n> This issue will be automatical",
+      "created_at": "2025-12-15T11:12:59Z"
+    },
+    {
+      "author": "neoeinstein",
+      "author_association": "NONE",
+      "body": "I've run into this issue as well. It seems that the HTTPS or SSE transports aren't supporting environment variable substitution for plugins. This makes it really difficult to distribute MCPs that require static tokens, but where we don't want to share those tokens through a marketplace.",
+      "created_at": "2025-12-19T02:38:47Z"
+    }
+  ]
+}

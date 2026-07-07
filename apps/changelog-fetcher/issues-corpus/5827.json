@@ -1,0 +1,43 @@
+{
+  "number": 5827,
+  "title": "[BUG] CRITICAL: Account-Specific Auto-Compact Corruption - Complete Service Loss for Max Plan Subscribers",
+  "body": "## Platform:\nClaude CLI version: 1.0.81 (Claude Code)\nOperating System: Windows 11 (PowerShell)\nTerminal: PowerShell, also tested in VS Code integrated terminal and Cursor\n\n## Bug Description:\nCRITICAL: Account-Specific Auto-Compact Corruption - Complete Service Loss\nClaude Code becomes completely unusable due to persistent \"Context left until auto-compact: 0%\" error that occurs immediately when context begins building up. Through extensive testing across multiple machines, this has been proven to be server-side account state corruption, not a client-side installation issue.\n\n## Key findings:\nIssue is tied to specific Claude Max Plan accounts, not machines or installations\nPersists across complete reinstallations and different computers\nAffects context management even when auto-compact is disabled\nResults in complete tool unusability for $100/month Max Plan subscribers\n\n## Steps to Reproduce:\nLogin to Claude Code with affected Claude Max Plan account on any machine\nStart any coding task (even simple commands like claude \"hello\")\nObserve context percentage as it begins to build\nNotice \"Context left until auto-compact: 0%\" appears immediately\nTool becomes unusable as it thinks context is full at 0%\n\n## Verify persistence by:\nCompletely uninstalling Claude Code\nRemoving all config files (.claude.json, .claude.json.backup)\nReinstalling fresh on same machine → issue returns\nTesting on completely different machine → same behavior occurs\n\n## Expected Behavior:\nClaude Code should manage context normally up to actual limits\nAuto-compact should trigger at appropriate thresholds (e.g., 80-90%, not 0%)\nTool should remain usable throughout coding sessions\nFresh installations should reset any corruption\nDifferent machines should not inherit account-specific corruption\n\n## Actual Behavior:\nImmediate \"Context left until auto-compact: 0%\" error appears when minimal context builds\nTool becomes completely unusable after first few interactions\nComplete reinstallation does NOT fix the issue\nIssue persists across multiple different machines (proving server-side corruption)\nDisabling auto-compact via /config does not prevent the corruption\n/clear and /compact commands provide no relief\n\n## Additional Context:\nCritical Evidence of Server-Side Account Corruption:\nCross-Machine Testing: Identical behavior reproduced on completely different computers with same account, proving corruption exists in Anthropic's user session data, not local installation\n\n## Persistence Through Complete Removal:\nRemoved all Claude Code installations\nDeleted all configuration files (.claude.json, .claude.json.backup)\nCleared VS Code and Cursor extensions\nCleared npm cache\nFresh installation still exhibits same behavior\nAccount-Tied Behavior: Issue follows the user login/account, not the machine or installation\nImmediate Recurrence: Fresh installs work briefly until server synchronization occurs, then corruption immediately returns\n\n## Multiple Affected Users:\nSimilar reports in issues #5385, #2391, #3274, #2283 suggesting this affects multiple Max Plan accounts\n\n## Attempted Solutions (All Failed):\nComplete uninstallation and reinstallation on multiple machines\nClearing all local Claude configuration and cache files\nDisabling auto-compact feature via /config menu\nUsing /clear, /compact, and other reset commands\nTesting different Claude Code versions and terminals\n\n## Impact:\nComplete loss of Claude Code functionality for affected Max Plan subscribers\n$100/month subscription value completely lost\nCritical work projects blocked with no available workarounds\nIssue appears to be permanent account-level corruption\n\n## Urgency:\nThis represents a complete service failure for premium subscribers and requires immediate server-side account state investigation and reset capability.\n\n## Related Issues:\n#5385, #2391, #3274, #2283",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:core",
+    "memory",
+    "perf:memory",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-15T09:10:19Z",
+  "updated_at": "2026-01-15T14:14:40Z",
+  "closed_at": "2026-01-07T10:18:26Z",
+  "reactions_total": 1,
+  "comments_count": 16,
+  "author": "alyfe-how",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5385\n2. https://github.com/anthropics/claude-code/issues/1168\n3. https://github.com/anthropics/claude-code/issues/2391\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-15T09:14:33Z"
+    },
+    {
+      "author": "benlrichards",
+      "author_association": "NONE",
+      "body": "Same issue. Starting new conversations with 10% context remaining. ",
+      "created_at": "2025-08-15T19:31:10Z"
+    },
+    {
+      "author": "Kindjhali",
+      "author_association": "NONE",
+      "body": "Same issue. Starting all new conversations at 10% for a few hours now.",
+      "created_at": "2025-08-15T21:40:47Z"
+    }
+  ]
+}

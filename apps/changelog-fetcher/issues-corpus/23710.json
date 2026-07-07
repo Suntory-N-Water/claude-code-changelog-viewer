@@ -1,0 +1,22 @@
+{
+  "number": 23710,
+  "title": "cleanupPeriodDays: 0 silently disables all transcript persistence (docs say it disables cleanup)",
+  "body": "## Description\n\nSetting `cleanupPeriodDays: 0` in `settings.json` completely prevents session transcripts (`.jsonl` files) from being written to disk. The schema documentation says `0` means \"disable cleanup\" (i.e., retain transcripts forever), but the actual behavior is \"disable all transcript persistence.\"\n\n## Expected Behavior\n\nPer the settings schema:\n> `\"Number of days to retain chat transcripts (0 to disable cleanup)\"`\n\nSetting `cleanupPeriodDays: 0` should mean \"never clean up old transcripts\" — transcripts should still be written and retained indefinitely.\n\n## Actual Behavior\n\nThe `appendEntry` method in the session storage writer has a guard clause that checks `cleanupPeriodDays`:\n\n```javascript\nasync appendEntry(T, R = getSessionId()) {\n    let A = process.env.TEST_ENABLE_SESSION_PERSISTENCE === \"true\";\n    if (getEnv() === \"test\" && !A || getSettings()?.cleanupPeriodDays === 0 || isSessionPersistenceDisabled()) return;\n    // ... write logic never reached\n}\n```\n\nWhen `cleanupPeriodDays === 0`, the function returns immediately without writing **any** transcript data. This means:\n- No `.jsonl` transcript files are created\n- `/resume` reports \"No conversations found\"\n- `SessionEnd` hooks receive an empty `transcript_path` (the file doesn't exist)\n- All session history is permanently lost\n\nThe cleanup function correctly treats `0` as \"don't clean up\":\n```javascript\nfunction cleanup() {\n    let retentionMs = ((getSettings() || {}).cleanupPeriodDays ?? DEFAULT_DAYS) * 24 * 60 * 60 * 1000;\n    // When 0, retentionMs = 0, effectively meaning nothing is old enough to delete\n}\n```\n\nBut `appendEntry` incorrectly uses the same field as a persistence toggle.\n\n## Impact\n\n- Users who set `cleanupPeriodDays: 0` intending to keep transcripts forever actually lose **all** transcripts\n- `/resume` becomes completely non-functional\n- Session hooks that depend on `transcript_path` get empty/nonexistent paths (related: #13668)\n- The data loss is silent — no warning, no error, no log\n\n## Steps to Reproduce\n\n1. Add `\"cleanupPeriodDays\": 0` to `~/.claude/settings.json`\n2. Start a new Claude Code session\n3. Have a conversation\n4. Exit the session\n5. Check `~/.claude/projects/{project}/` — no `.jsonl` file exists\n6. Run `/resume` — \"No conversations found\"\n\n## Suggested Fix\n\nRemove the `cleanupPeriodDays === 0` check from `appendEntry`. The cleanup period should only affect the cleanup/retention logic, not the write path:\n\n```javascript\n// Before (broken):\nif (getEnv() === \"test\" && !A || getSettings()?.cleanupPeriodDays === 0 || isSessionPersistenceDisabled()) return;\n\n// After (fixed):\nif (getEnv() === \"test\" && !A || isSessionPersistenceDisabled()) return;\n```\n\n## Environment\n\n- Claude Code: v2.1.34\n- OS: macOS 15 (arm64)\n- Shell: zsh\n\n## Related Issues\n\n- #13668 (PreCompact receives empty transcript_path — same root cause for users with this setting)\n- #18311\n- #13872",
+  "labels": [
+    "bug",
+    "documentation",
+    "has repro",
+    "platform:macos",
+    "area:core"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-06T15:12:11Z",
+  "updated_at": "2026-04-26T14:31:29Z",
+  "closed_at": "2026-04-18T04:15:32Z",
+  "reactions_total": 5,
+  "comments_count": 12,
+  "author": "Mustafa-Esoofally",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

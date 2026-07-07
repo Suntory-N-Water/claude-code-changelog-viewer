@@ -1,0 +1,35 @@
+{
+  "number": 36751,
+  "title": "Auto-compact not triggering on resumed sessions with Opus 4.6 (1M context)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nDescription\nAuto-compact never triggered during an extended heavy-usage session on Opus 4.6 (1M context). The conversation was resumed from a prior session that ran out of context — the resume injected a large summary at the top of the conversation. After resuming, auto-compact never triggered again despite hours of intensive work.\nEnvironment\nModel: Opus 4.6 (1M context)\nPlatform: Windows 11\nClaude Code version: latest\nExpected Behavior\nAuto-compact should trigger as context approaches the 1M window limit, compressing prior messages to reduce per-message token cost. The system prompt even states: \"The system will automatically compress prior messages in your conversation as it approaches context limits.\"\nActual Behavior\nAfter resuming a compacted session, auto-compact never triggered. The context grew unchecked, and every message sent the full conversation history (500K+ tokens) back to the API. Combined with 8 agent spawns (~580K tokens total in agent calls alone), the entire usage allocation was consumed in approximately 1 hour.\nImpact\nFull usage allocation consumed in ~1 hour of work\nNormal heavy sessions last 4-8+ hours before hitting limits\nThe resumed session appears to have blocked the auto-compaction mechanism\nHypothesis\nThe session resume mechanism may interfere with auto-compact tracking. The compaction system may not correctly track context size or compaction thresholds when a conversation is continued from a prior compacted session via the summary injection pattern.\n\n### What Should Happen?\n\nclaude code resume should not block auto-compact\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nStart a conversation with heavy tool usage (MCP server development, multiple agent spawns, large file reads/writes)\nSession runs out of context and compacts / provides a summary for continuation\nResume the session (\"continue from where we left off\")\nContinue heavy work — building an MCP server with 121 tools, spawning 8+ research agents, dozens of build/deploy/test cycles\nAuto-compact never triggers again after the resume\nEntire usage allocation drains in ~1 hour due to massive per-message token cost\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.80 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:windows", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-20T17:31:47Z",
+  "updated_at": "2026-06-29T11:46:32Z",
+  "closed_at": "2026-06-29T11:46:32Z",
+  "reactions_total": 4,
+  "comments_count": 12,
+  "author": "Tjnorr",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Auto-compact may not trigger on resumed sessions because the compaction threshold calculation uses the original session's token count, not the resumed context size.\n```\n/compact Keep working on the current task.\n```\nRun this periodically (~every 30 minutes or when you notice slowdown) on resumed sessions.\n```\n/context\n```\nIf this shows high usage (>80%) but auto-compact hasn't fired, run /compact manually.\n```bash\nCOUNTER=\"/tmp/claude-prompts-${CLAUDE_SESSION_ID:-$$}\"\nCOUNT=$(cat \"$COUNTER\" 2>/d",
+      "created_at": "2026-03-30T23:00:18Z"
+    },
+    {
+      "author": "kimmeyh",
+      "author_association": "NONE",
+      "body": "Happened again today, 4/14/26 8:36am EST, while Claude Code was reporting context of 294,544 tokens (not anywhere close to 1M)\nClaude Code version 2.1.204 (per Claude Code, this is the latest version as of this moment )\n>claude update\nCurrent version: 2.1.104\nChecking for updates to latest version...\nClaude Code is up to date (2.1.104)",
+      "created_at": "2026-04-13T12:42:12Z"
+    },
+    {
+      "author": "kimmeyh",
+      "author_association": "NONE",
+      "body": "Happened again today\n\n<img width=\"1355\" height=\"182\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/3d6f0ebf-6fd4-440d-b914-f3d012dd9462\" />",
+      "created_at": "2026-04-14T15:35:50Z"
+    }
+  ]
+}

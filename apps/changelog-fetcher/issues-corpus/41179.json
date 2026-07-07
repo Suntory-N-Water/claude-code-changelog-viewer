@@ -1,0 +1,35 @@
+{
+  "number": 41179,
+  "title": "[FEATURE] Enable Auto mode support for Amazon Bedrock models",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nCurrently, Auto mode is restricted to Anthropic's first-party API plans and does not support third-party model providers like Amazon Bedrock. This creates a severely degraded developer experience for enterprise users. Many developers are required by their organizations to use AWS Bedrock for strict data residency compliance, centralized billing, and AWS SSO integration. Because we are locked into Bedrock, we suffer from extreme \"approval fatigue,\" having to manually approve every single file edit, linter fix, and bash command. We are entirely missing out on Claude Code's best quality-of-life feature.\n\n### Proposed Solution\n\nEnable Auto mode functionality (the --auto flag and the a keyboard shortcut) for capable models (like Sonnet/Opus 4.6) when authenticated through the Amazon Bedrock integration. The UX should be identical to the direct Anthropic API experience, allowing the agent to autonomously edit files and run commands up to the set token/cost limits.\n\n### Alternative Solutions\n\n1) Manual Approval (Current State): Sitting at the terminal and pressing y dozens of times per session to approve standard edits and test commands. It breaks flow state and makes large refactors tedious.\n\n2) Switching to Anthropic Direct API: This is not a viable workaround for many enterprise users, as corporate policy often dictates that all generative AI traffic must go through approved VPCs and existing AWS billing contracts.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nAPI and model interactions\n\n### Use Case Example\n\nI request Claude Code to “Refactor the database schema to use UUIDs instead of auto-incrementing integers and update all related repositories. Then, run the test suite.”\n\nClaude identifies 8 files that require modification.\n\nIn the ideal scenario (Auto mode), Claude edits the 8 files, executes npm test, encounters a failing test, corrects the typo in the 9th file, and completes the task autonomously.\n\nIn the current state (Bedrock), I must manually approve the read commands, all 8 file edits, and the test command to resolve the resulting error.\n\n### Additional Context\n\nThe core of the issue isn't really about the command-line interface itself, but rather how Claude Code interacts (or fails to interact) with the AWS Bedrock API to execute that autonomous loop. Tagging it as an API/model interaction ensures it gets routed to the engineers who actually handle the Bedrock integration, rather than the folks who just build the terminal UI. Leaving Bedrock users out of this feature significantly reduces the tool's utility in corporate environments.",
+  "labels": ["enhancement", "api:bedrock"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-30T21:49:34Z",
+  "updated_at": "2026-06-02T13:36:59Z",
+  "closed_at": null,
+  "reactions_total": 155,
+  "comments_count": 8,
+  "author": "matthewpergolski",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jonathanlaniado",
+      "author_association": "NONE",
+      "body": "Massive miss not making this available on Bedrock.",
+      "created_at": "2026-05-15T15:07:58Z"
+    },
+    {
+      "author": "b-godoy",
+      "author_association": "NONE",
+      "body": "Any estimate on when will this be implemented?",
+      "created_at": "2026-05-19T20:12:03Z"
+    },
+    {
+      "author": "abhinavm24",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-05-27T07:58:54Z"
+    }
+  ]
+}

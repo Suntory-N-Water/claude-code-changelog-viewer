@@ -1,0 +1,35 @@
+{
+  "number": 12151,
+  "title": "[BUG] Plugin hook output not captured or passed to agent (UserPromptSubmit, SessionStart)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Summary**: Plugin-based `UserPromptSubmit` and `SessionStart` hooks execute successfully (confirmed by file writes and success callbacks) but their output is **not captured or passed to the agent's context**. The same hook configuration works correctly when defined in `~/.claude/settings.json` or `.claude/hooks/hooks.json`.\n\n**Key Evidence**:\n1. System reminders show: `SessionStart:Callback hook success: Success` and `UserPromptSubmit:Callback hook success: Success`\n2. Hooks demonstrably execute (writing to files confirms this)\n3. Hook output (stdout or structured JSON) is never visible to the agent\n4. Non-plugin hooks with identical output work perfectly\n\n**This is NOT about hooks failing to execute** - it's about hook output being silently discarded when the hook comes from a plugin.\n\n### What Should Happen?\n\nWhen a plugin hook executes:\n1. The hook command runs ✅ (working)\n2. The output (stdout) is captured ✅ (working - we see success callback)\n3. The output is passed to the agent as additional context ❌ (broken for plugins)\n\nPlugin hooks should provide output to the agent identically to non-plugin hooks.\n\n### Error Messages/Logs\n\n**What we see in system reminders**:\n```\nSessionStart:Callback hook success: Success\nUserPromptSubmit:Callback hook success: Success\n```\n\n**What we DON'T see**: The actual output from the hooks appearing in the agent's context.\n\n### Steps to Reproduce\n\n#### Minimal Reproduction Case\n\n**1. Create a test plugin with UserPromptSubmit hook**\n\nCreate directory structure:\n```bash\nmkdir -p test-hook-output-plugin/{.claude-plugin,hooks}\n```\n\nCreate `test-hook-output-plugin/.claude-plugin/plugin.json`:\n```json\n{\n  \"name\": \"test-hook-output\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Test plugin to verify hook output is passed to agent\",\n  \"author\": {\n    \"name\": \"Test\",\n    \"email\": \"[email protected]\"\n  }\n}\n```\n\nCreate `test-hook-output-plugin/hooks/hooks.json`:\n```json\n{\n  \"hooks\": {\n    \"UserPromptSubmit\": [\n      {\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'IMPORTANT INSTRUCTION: If the user mentions an animal, tell a joke about that animal.'\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n**2. Install the plugin**\n\nAdd to `.claude/settings.json`:\n```json\n{\n  \"extraKnownMarketplaces\": {\n    \"test\": {\n      \"source\": {\n        \"source\": \"directory\",\n        \"path\": \"/absolute/path/to/test-hook-output-plugin\"\n      }\n    }\n  },\n  \"enabledPlugins\": {\n    \"test-hook-output@test\": true\n  }\n}\n```\n\n**3. Test the plugin hook**\n\nStart Claude Code and type:\n```\nGiraffe\n```\n\n**Expected behavior**: Agent receives the hook output and tells a joke about giraffes (because the hook injected \"If the user mentions an animal, tell a joke about that animal\" into context)\n\n**Actual behavior**: Agent responds with confusion like \"What would you like me to do with Giraffe?\" - the hook output was not passed to the agent.\n\n**4. Verify hook IS executing**\n\nModify the hook to write to a file:\n```json\n{\n  \"type\": \"command\",\n  \"command\": \"echo 'If the user mentions an animal, tell a joke about that animal.' | tee /tmp/hook-executed.log\"\n}\n```\n\nRun test again. Check `/tmp/hook-executed.log` - it exists and contains the output, proving the hook executed.\n\n**5. Test with non-plugin hook (control)**\n\nMove the same hook to `.claude/settings.json`:\n```json\n{\n  \"hooks\": {\n    \"UserPromptSubmit\": [\n      {\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'IMPORTANT INSTRUCTION: If the user mentions an animal, tell a joke about that animal.'\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\nStart Claude Code and type:\n```\nGiraffe\n```\n\n**Expected behavior**: Agent tells a joke about giraffes\n**Actual b",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-22T19:04:50Z",
+  "updated_at": "2026-04-08T22:23:52Z",
+  "closed_at": null,
+  "reactions_total": 32,
+  "comments_count": 24,
+  "author": "jwaldrip",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "informal-stripes-condo",
+      "author_association": "NONE",
+      "body": "I'm also getting this",
+      "created_at": "2025-11-26T17:45:24Z"
+    },
+    {
+      "author": "crsmithdev",
+      "author_association": "NONE",
+      "body": "Experiencing similar behavior with SessionStart hooks defined in ~/.claude/settings.json (not plugin-based).\n\nHook configuration passes schema validation and script executes successfully when run manually with correct stdout output. However, on session start, no output appears in context - either the hook doesn't execute or output is silently discarded.\n\nThis suggests the output capture issue may not be limited to plugin-based hooks.",
+      "created_at": "2025-11-30T21:55:26Z"
+    },
+    {
+      "author": "RevPalSFDC",
+      "author_association": "NONE",
+      "body": "**Confirming this bug with additional testing details.**\n\n## Environment\n- Claude Code (Opus 4.5, model ID: claude-opus-4-5-20251101)\n- Linux 6.14.0-36-generic\n- Hook defined in project `.claude/settings.json` (not plugin hooks.json)\n\n## Reproduction\n\n**Hook configuration:**\n```json\n{\n  \"hooks\": {\n    \"UserPromptSubmit\": [{\n      \"matcher\": \"*\",\n      \"hooks\": [{\n        \"type\": \"command\",\n        \"command\": \"echo '[TEST] If you see this, context injection works!'\",\n        \"timeout\": 5000\n     ",
+      "created_at": "2025-12-05T00:47:00Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 25022,
+  "title": "Add environment variables for extended context model aliases (sonnet[1m], opus[1m])",
+  "body": "### Problem\n\nCurrently, Claude Code supports extended context models via the `[1m]` suffix (e.g., `sonnet[1m]`, `opus[1m]`), but there are no dedicated environment variables to configure which underlying models these aliases point to.\n\nThe existing environment variables only cover the standard context versions:\n- `ANTHROPIC_DEFAULT_OPUS_MODEL` - configures `opus` alias\n- `ANTHROPIC_DEFAULT_SONNET_MODEL` - configures `sonnet` alias\n- `ANTHROPIC_DEFAULT_HAIKU_MODEL` - configures `haiku` alias\n\nThis creates a limitation for AWS Bedrock users who need to map extended context aliases to specific Bedrock model IDs or inference profile ARNs.\n\n### Use Case\n\nWhen using Claude Code with AWS Bedrock, users need to specify full model identifiers like:\n- Standard: `global.anthropic.claude-opus-4-6-v1`\n- Extended context: `global.anthropic.claude-opus-4-6-v1[1m]`\n\nCurrently, there's no way to configure the default model for `opus[1m]` or `sonnet[1m]` aliases to point to Bedrock-specific identifiers.\n\n### Proposed Solution\n\nAdd new environment variables to configure extended context model aliases:\n\n- `ANTHROPIC_DEFAULT_OPUS_1M_MODEL` - configures `opus[1m]` alias\n- `ANTHROPIC_DEFAULT_SONNET_1M_MODEL` - configures `sonnet[1m]` alias\n- `ANTHROPIC_DEFAULT_HAIKU_1M_MODEL` - configures `haiku[1m]` alias (if/when available)\n\n**Example configuration:**\n```json\n{\n  \"env\": {\n    \"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"global.anthropic.claude-opus-4-6-v1\",\n    \"ANTHROPIC_DEFAULT_OPUS_1M_MODEL\": \"global.anthropic.claude-opus-4-6-v1[1m]\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"global.anthropic.claude-sonnet-4-5-20250929-v1:0\",\n    \"ANTHROPIC_DEFAULT_SONNET_1M_MODEL\": \"global.anthropic.claude-sonnet-4-5-20250929-v1:0[1m]\"\n  }\n}\n```\n\nThis would allow users to run `/model sonnet[1m]` and have it automatically resolve to their configured Bedrock model ID.\n\n### Benefits\n\n1. **Consistency** - Aligns with existing environment variable pattern\n2. **Flexibility** - Allows per-provider configuration of extended context models\n3. **Usability** - Makes it easy to switch between standard and extended context without remembering full model IDs\n4. **AWS Bedrock support** - Properly supports Bedrock inference profiles and regional model IDs\n\n### Alternative Considered\n\nUsers can set the model by ID directly using `/model global.anthropic.claude-opus-4-6-v1[1m]`, but this:\n- Requires remembering and typing the full Bedrock model ID each time\n- Doesn't allow separate configuration of standard vs extended context aliases\n- Prevents using the convenient `/model opus[1m]` shorthand notation\n- Makes it harder to switch between context sizes during sessions",
+  "labels": ["enhancement", "api:bedrock", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-11T15:51:14Z",
+  "updated_at": "2026-04-01T14:47:07Z",
+  "closed_at": "2026-03-24T10:26:47Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "bluedoors",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "aws-yz",
+      "author_association": "NONE",
+      "body": "I tested the `[1m]` model variant with Bedrock and confirmed it does **not** work correctly.\n\n**Setup:** Configured model as `global.anthropic.claude-sonnet-4-6[1m]` in Claude Code with AWS Bedrock.\n\n**Finding (verified via Bedrock invocation logs):**\n\nWhen Claude Code sends the request to Bedrock, it strips the `[1m]` suffix and uses `global.anthropic.claude-sonnet-4-6` as the model ID — but it does **not** include the required `anthropic_beta: [\"context-1m-2025-08-07\"]` field in the request bo",
+      "created_at": "2026-02-20T06:30:28Z"
+    },
+    {
+      "author": "bluedoors",
+      "author_association": "NONE",
+      "body": "I tested this independently using Bedrock model invocation logging in CloudWatch and can confirm the `[1m]` suffix **does** correctly inject the `anthropic_beta` field into the Bedrock request body.\n\n**Test:** Sent a message using `/model global.anthropic.claude-sonnet-4-6[1m]` via Claude Code on Bedrock.\n\n**CloudWatch invocation log :**\n\n| Field | Value |\n|-------|-------|\n| Model ID | `global.anthropic.claude-sonnet-4-6` |\n| `anthropic_beta` in request body | ✅ `[\"context-1m-2025-08-07\", \"inte",
+      "created_at": "2026-02-23T04:31:05Z"
+    },
+    {
+      "author": "aws-yz",
+      "author_association": "NONE",
+      "body": "@bluedoors Thanks for your reply. I'm running Claude Code **2.1.50** as well.\n\nI did further investigation and found the following:\n\n**Source code analysis confirms the beta IS injected correctly.** The `[1m]` suffix triggers `context-1m-2025-08-07` to be added to the request body via the `rtR()` → `UyR()` pipeline (not HTTP headers) for Bedrock. So the code path is working as expected.\n\n**However, I cannot reproduce your CloudWatch finding.** In my account, I enabled Bedrock model invocation lo",
+      "created_at": "2026-02-23T09:13:21Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 17271,
+  "title": "[BUG] Project skill display in slash command but plugin skill doesn't",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAccording to [CHANGELOG.md](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md), since v2.1.3, the slash command and skill are merged.\n\nWhen skill is located in `.claude/skills/my-skill`, the `/my-skill` slash command is available.\nHowever, when the skill is from a plugin e.g., `plugin-skill`, but `/plugin:plugin-skill` or `/plugin-skill`, both are not available.\n\n\n\n### What Should Happen?\n\nNot sure which behavior is correct\n\n| Type | Project | Plugin |\n|------|---------|-------|\n| Command | Visible | Visible |\n| Skill | Current Visible | Current Invisible |\n\nIf the changelog is correct, all scenarios should be visible in `/[command]`\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Create a new plugin with plugin\n2. Install plugin in project-level or use `--plugin-dir` to load it\n3. Check `/skills` to ensure skill is available\n4. Check `/[...]` -> not visible if in the plugin\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.3\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-10T07:38:24Z",
+  "updated_at": "2026-03-31T03:35:46Z",
+  "closed_at": null,
+  "reactions_total": 44,
+  "comments_count": 27,
+  "author": "elct9620",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "natustx",
+      "author_association": "NONE",
+      "body": "I'm seeing the same issue on macos. +1",
+      "created_at": "2026-01-11T13:38:42Z"
+    },
+    {
+      "author": "aaaaaandrew",
+      "author_association": "NONE",
+      "body": "## Root Cause Analysis\n\nI independently encountered this bug and did systematic testing to isolate the cause. Adding my findings here.\n\n### Finding: The `name` frontmatter field removes the plugin prefix\n\nWhen a file in the `commands` array has a `name` field in its frontmatter, Claude Code:\n1. Strips the plugin namespace prefix\n2. Uses the `name` field value as the command identifier\n\nSince skills require a `name` field in their frontmatter (it's part of the skill format), they lose their plugi",
+      "created_at": "2026-01-11T18:34:16Z"
+    },
+    {
+      "author": "aaaaaandrew",
+      "author_association": "NONE",
+      "body": "### Workaround Found\n\nFor skills that need both auto-activation AND slash menu visibility with proper plugin prefix:\n\n**Steps:**\n\n1. Remove `name` field from skill frontmatter (this causes the command to use the filename instead)\n2. Rename `SKILL.md` to `<skillname>.md` (e.g., `sre.md`)\n3. Create symlink: `ln -s <skillname>.md SKILL.md` (so the skills array still finds it for auto-activation)\n4. Add `./skills/<name>/<name>.md` to the `commands` array in marketplace.json\n5. Keep `./skills/<name>`",
+      "created_at": "2026-01-11T19:07:11Z"
+    }
+  ]
+}

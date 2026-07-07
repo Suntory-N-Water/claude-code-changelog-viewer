@@ -1,0 +1,35 @@
+{
+  "number": 38357,
+  "title": "[BUG] Max 20x: Usage meter climbing abnormally fast since ~March 23 — 1-2% per simple message exchange",
+  "body": "## Description\n\nSince approximately March 23, my Max 20x ($200/mo) plan usage meter is climbing at roughly 5-10x the expected rate. Workloads that previously consumed negligible budget are now burning through the 5-hour window rapidly. This is a sudden change — I've been a heavy Claude Code user for months (multi-agent teams, 50+ concurrent sessions, 100M+ token days) with no usage issues until now.\n\n## Evidence\n\n### Test case: Simple troubleshooting chat\n- Fresh session, no teams, no subagents — just back-and-forth text conversation\n- Session total per status line: **37.5M tokens, $2.23 cost**\n- Per-call data from JSONL: **92.7% cache hit rate** (caching is working correctly)\n- Each API call: ~237K context, 99.9% cache reads on recent calls\n- Despite normal-looking per-call metrics, the usage meter climbed from **11% → 18%** in approximately 20 minutes of light conversation\n\n### Forensic audit of per-call data\nParsed the session JSONL (`~/.claude/projects/.../<session>.jsonl`). Last 10 calls all show:\n- `cache_read_input_tokens`: ~236K (99.9% of context)\n- `cache_creation_input_tokens`: 100-500 tokens\n- `input_tokens`: 1-3 tokens\n- `output_tokens`: 100-300 tokens\n- `service_tier`: \"standard\"\n\n**Caching is working.** The token counts per call look normal. But the usage meter is incrementing far faster than these numbers should produce.\n\n### Before vs after\n- **Before March 23**: Could run multi-agent teams (5-6 Opus agents in parallel), 50+ sessions/day, 100M+ token days without hitting limits\n- **After March 23**: A single simple chat burns 2% of the 5-hour window per message exchange. Hit 100% of the window in ~2.5 hours of moderate use.\n\n## Environment\n- Claude Code v2.1.81\n- macOS (Apple Silicon, Mac Studio)  \n- Model: Opus 4.6 (1M context)\n- Plan: Max 20x ($200/mo)\n- No OTEL telemetry enabled\n- No proxy or custom API endpoint\n\n## Suspicion\n\nSomething changed server-side around March 20-23 in how Max plan quota consumption is calculated. The local per-call token counts look normal and caching is functioning, but the rate limit budget is being decremented at a much higher rate than the actual token usage would justify.\n\nThis may be related to:\n- A change in how `cache_read_input_tokens` are weighted against the quota (previously may have been discounted, now possibly counted at full rate)\n- A change in how thinking/reasoning tokens are counted against the quota\n- A backend quota calculation regression\n\n## Related Issues\n- #38350, #38345, #38335, #38330, #38064, #37856, #37622 — all reporting similar symptoms starting around the same timeframe",
+  "labels": ["bug", "duplicate", "platform:macos", "area:cost"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-24T17:57:41Z",
+  "updated_at": "2026-04-13T14:51:46Z",
+  "closed_at": "2026-03-24T18:05:06Z",
+  "reactions_total": 4,
+  "comments_count": 10,
+  "author": "hgreene624",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/38350\n2. https://github.com/anthropics/claude-code/issues/38345\n3. https://github.com/anthropics/claude-code/issues/38330\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-24T18:02:30Z"
+    },
+    {
+      "author": "ArtemisAI",
+      "author_association": "NONE",
+      "body": "They keep on doing it, even if you pay $280 for a Max 20x and consume zero tokens, they will still block you so you open the faucet of \"Keep working even if you hit your limits\", it is absolutely unethical https://github.com/anthropics/claude-code/issues/38910#issuecomment-4134768536",
+      "created_at": "2026-03-26T13:38:16Z"
+    },
+    {
+      "author": "mhbosch",
+      "author_association": "NONE",
+      "body": "I've alerted the most prominent German media outlets to the situation, since Anthropic hasn't commented. Furthermore, we need to investigate how we can get our money back for the paid plans. My main priority, however, is to get back to work productively. It seems, though, that I'll have to find a new provider after Anthropic's behavior.",
+      "created_at": "2026-03-30T15:59:24Z"
+    }
+  ]
+}

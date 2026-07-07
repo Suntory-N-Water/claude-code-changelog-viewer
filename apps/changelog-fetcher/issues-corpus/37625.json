@@ -1,0 +1,35 @@
+{
+  "number": 37625,
+  "title": "[BUG] Slack MCP \"Failed to connect\" — cannot reconnect after re-authentication",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n ▎ Issue: Slack MCP \"Failed to connect\" — cannot reconnect after re-authentication                                     \n                  \n  ▎ Error: {\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32001,\"message\":\"missing_token\"}}                                \n                  \n  ▎ Reference ID: ofid_927339d69f9098ff                                                                                 \n                  \n  ▎ Details:                                                                                                            \n  ▎ - Other MCP servers (Clockwise, Notion, Gmail, Google Calendar, Miro) all connect successfully\n  ▎ - Slack only returns missing_token after OAuth flow                                                                 \n  ▎ - Tried: disable/enable, remove/re-add from Claude Desktop, re-authenticate multiple times                          \n  ▎ - Endpoint https://mcp.slack.com/mcp returns HTTP 401 (reachable)     \n\n### What Should Happen?\n\nrepair\n\n### Error Messages/Logs\n\n```shell\n{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32001,\"message\":\"missing_token\"}}\n```\n\n### Steps to Reproduce\n\n▎ Details:                                                                                                            \n  ▎ - Other MCP servers (Clockwise, Notion, Gmail, Google Calendar, Miro) all connect successfully\n  ▎ - Slack only returns missing_token after OAuth flow                                                                 \n  ▎ - Tried: disable/enable, remove/re-add from Claude Desktop, re-authenticate multiple times                          \n  ▎ - Endpoint https://mcp.slack.com/mcp returns HTTP 401 (reachable)      \n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nlatest\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["invalid"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-23T01:41:30Z",
+  "updated_at": "2026-03-23T23:00:32Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 8,
+  "author": "oyuta-svg",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/36307\n2. https://github.com/anthropics/claude-code/issues/10250\n3. https://github.com/anthropics/claude-code/issues/30855\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-23T01:45:00Z"
+    },
+    {
+      "author": "nishijun",
+      "author_association": "NONE",
+      "body": "## Same issue here — additional findings\n\nExperiencing the exact same problem. Slack MCP is the only one failing while Notion, Linear, Gmail, and Google Calendar MCP all work fine.\n\n### Key finding: v2.1.80 → v2.1.81 regression\n\n**Slack MCP worked on v2.1.80**, but broke after upgrading to v2.1.81. This strongly suggests a regression introduced in v2.1.81.\n\nThe most likely culprit is the **CIMD (SEP-991) support** added in v2.1.81 for MCP OAuth with servers that don't support Dynamic Client Regi",
+      "created_at": "2026-03-23T02:00:27Z"
+    },
+    {
+      "author": "BrianFarnhill",
+      "author_association": "NONE",
+      "body": "Can confirm that I'm seeing the same thing and came to the same result as @nishijun - my logs and output in Claude code confirm the authentication is successful, but the server reconnection fails with that same \"App is not enabled for access\" message. I've also followed the same \"remove it and reconnect it\" steps to the same ineffective result. \n\n### Environment \n\n - Claude Code: v2.1.81\n - OS: macOS (Tahoe 26.3.1)",
+      "created_at": "2026-03-23T02:06:04Z"
+    }
+  ]
+}

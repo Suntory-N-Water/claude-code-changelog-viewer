@@ -1,0 +1,43 @@
+{
+  "number": 4855,
+  "title": "[BUG] [1.0.64-] authentification to subagents are no longer propagated",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [x] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.64 (Claude Code)\n- Operating System: macOS 15.5\n- Terminal:  iTerm2\n\n## Bug Description\nWhen using environment variables to configure Claude Code for AWS Bedrock usage, subagents are no longer seem to receive all informations. \n\nSubagent tasks return API errors while the main context runs without issues. \n```\n⏺ I'll use the foo agent to analyze the code duplication across the commands and identify opportunities for refactoring.\n  ⎿  API Error (403 {\"Message\":\"User: arn:aws:sts::000000:assumed-role/a-user-role/my-user is not authorized to perform: bedrock:InvokeModel on resource: arn:aws:bedrock:eu-central-1:000000:inference-profile/eu.anthropic.claude-sonnet-4-20250514-v1:0 because no identity-based policy allows the bedrock:InvokeModel action\"}) · Retrying in 1 seconds… (attempt 1/10)\n```\n\nA rollback to 1.0.63 fixes the issue.\n\n## Steps to Reproduce\n1. `AWS_ACCESS_KEY_ID=000000 AWS_CA_BUNDLE=.... claude`\n2. Run a subagent\n\n## Expected Behavior\nSubagents are processing steps successfully \n\n## Actual Behavior\nSubagents retries until the retry limit is reached than Claude Code starts processing successfully in the main thread. \n\n## Additional Context\nWe are using the Teleport `tsh` CLI to enable access to AWS Bedrock",
+  "labels": [
+    "bug",
+    "has repro",
+    "api:bedrock",
+    "platform:macos",
+    "area:auth",
+    "area:tools",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-31T11:27:26Z",
+  "updated_at": "2026-01-14T14:12:11Z",
+  "closed_at": "2026-01-05T10:20:52Z",
+  "reactions_total": 6,
+  "comments_count": 12,
+  "author": "secustor",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ZachK543",
+      "author_association": "NONE",
+      "body": "I am experiencing the same issue. And rolling back to 1.0.63 fixed it for me.",
+      "created_at": "2025-07-31T14:38:08Z"
+    },
+    {
+      "author": "kkukshtel",
+      "author_association": "NONE",
+      "body": "I'm also seeing this. Using LiteLLM with set env vars works for the initial response, but subagents then use whatever the claude code default is (not what is set in /model or through env). This means subagents will then often fail with model access errors if the default model isn't supported in your own LiteLLM setup.",
+      "created_at": "2025-08-05T14:39:42Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5737\n2. https://github.com/anthropics/claude-code/issues/5465\n3. https://github.com/anthropics/claude-code/issues/4505\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-15T21:23:42Z"
+    }
+  ]
+}

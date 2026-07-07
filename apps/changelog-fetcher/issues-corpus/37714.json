@@ -1,0 +1,35 @@
+{
+  "number": 37714,
+  "title": "Slack MCP plugin OAuth fails: redirect_uri not registered in Slack app configuration",
+  "body": "## Bug Description\n\nThe Slack MCP plugin OAuth authorization always fails with the following error from Slack:\n\n> **为 Claude 授权时出错了。**  \n> `redirect_uri did not match any configured URIs. Passed URI: http://localhost:3118/oauth/callback`\n\n## Steps to Reproduce\n\n1. Enable the Slack plugin in Claude Code (`plugin:slack:slack`)\n2. Run `/mcp` and attempt to authenticate with Slack\n3. Browser opens and redirects to the Slack OAuth authorization page\n4. Slack immediately shows an authorization error\n\n## Error Details\n\nSlack OAuth app (`client_id: 1601185624273.8899143856786`) has not registered `http://localhost:3118/oauth/callback` as a valid redirect URI. This causes every authorization attempt to fail on Slack's side before any user interaction.\n\n**Screenshot of error:**\n\nThe Slack OAuth page shows:\n```\nredirect_uri did not match any configured URIs. Passed URI: http://localhost:3118/oauth/callback\n```\n\n## Environment\n\n- Claude Code version: 2.1.81\n- OS: macOS\n- Slack plugin config (`~/.claude/plugins/cache/claude-plugins-official/slack/1.0.0/.mcp.json`):\n```json\n{\n  \"mcpServers\": {\n    \"slack\": {\n      \"type\": \"http\",\n      \"url\": \"https://mcp.slack.com/mcp\",\n      \"oauth\": {\n        \"clientId\": \"1601185624273.8899143856786\",\n        \"callbackPort\": 3118\n      }\n    }\n  }\n}\n```\n\n## Expected Behavior\n\nOAuth authorization should complete successfully and Claude Code should receive a valid Slack token.\n\n## Actual Behavior\n\nSlack rejects the OAuth request because `http://localhost:3118/oauth/callback` is not registered as an allowed redirect URI in the Slack app settings for `client_id: 1601185624273.8899143856786`.\n\n## Fix Required\n\nThe Slack OAuth app (`client_id: 1601185624273.8899143856786`) needs to have `http://localhost:3118/oauth/callback` added as an allowed redirect URI in the Slack API app configuration.\n",
+  "labels": ["bug", "platform:macos", "area:mcp", "area:plugins"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-23T07:55:43Z",
+  "updated_at": "2026-05-30T07:00:18Z",
+  "closed_at": "2026-05-30T07:00:18Z",
+  "reactions_total": 32,
+  "comments_count": 18,
+  "author": "mhrong",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for the report. The Slack team fixed the redirect_uri issue server-side on March 23, and two commenters in this thread confirmed it working since. Closing as resolved.\n\nFor the separate 127.0.0.1 reports in May: those are Cowork/Desktop scope, not the Claude Code plugin. The workaround there is `oauth.callbackHost: \"localhost\"` per the May 13 comment. If that variant is still failing, please open a new issue against Cowork.",
+      "created_at": "2026-05-30T07:00:17Z"
+    },
+    {
+      "author": "IliaGolubenko",
+      "author_association": "NONE",
+      "body": "  Same issue here.\n  - Claude Code 2.1.81, macOS\n  - plugin:slack:slack via claude plugins install slack@claude-plugins-official\n  - OAuth fails with: redirect_uri did not match any configured URIs. Passed URI: http://localhost:3118/callback\n  - Reinstalling the plugin and retrying doesn't help — same port, same error every time.\n\n  The redirect URI http://localhost:3118/callback needs to be registered in the Slack OAuth app config for client_id: 1601185624273.8899143856786.",
+      "created_at": "2026-03-23T09:47:45Z"
+    },
+    {
+      "author": "Rocker93",
+      "author_association": "NONE",
+      "body": "Same issue on Windows",
+      "created_at": "2026-03-23T10:40:46Z"
+    }
+  ]
+}

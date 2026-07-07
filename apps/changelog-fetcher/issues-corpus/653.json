@@ -1,0 +1,35 @@
+{
+  "number": 653,
+  "title": "[BUG]",
+  "body": "Here's the updated bug report with the Claude CLI version:\n\n## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude Code version: 0.2.56\n- Operating System: Windows 11 with Ubuntu WSL\n- Terminal: VS Code with Ubuntu (WSL) terminal\n\n## Bug Description\nPersistent \"API Error: Connection error\" when using Claude Code CLI in WSL terminal through VS Code. This issue has recently increased in frequency - previously it occurred rarely or not at all.\n\n## Steps to Reproduce\n1. Open VS Code and select Ubuntu (WSL) terminal from dropdown\n2. Run any Claude Code command (e.g., asking a question)\n3. Observe \"API Error: Connection error\" message\n4. Notice automatic retry attempts also fail with the same error\n\n## Expected Behavior\nClaude Code should connect to the Anthropic API and process commands successfully.\n\n## Actual Behavior\nCommands fail with \"API Error: Connection error\" message, followed by retry attempts that also fail:\n```\n⎿  API Error: Connection error.\n⎿  API Error (Connection error.) · Retrying in 1 seconds… (attempt 1/10)\n```\n\n## Additional Context\n- All required domains (registry.npmjs.org, api.anthropic.com, sentry.io, statsig.anthropic.com, statsig.com) are accessible from WSL as verified by curl tests\n- Network connectivity to all domains confirmed working\n- API key appears to be set (authentication would be a different error message)\n- Issue occurs specifically in VS Code's WSL terminal environment\n- Problem has increased in frequency recently, suggesting a possible change in environment or API behavior",
+  "labels": ["bug", "oncall"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-03-29T18:18:55Z",
+  "updated_at": "2026-02-15T14:16:04Z",
+  "closed_at": "2026-02-01T10:11:16Z",
+  "reactions_total": 35,
+  "comments_count": 47,
+  "author": "lincbal4",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "lincbal4",
+      "author_association": "NONE",
+      "body": "## Additional Context (Update)\n\nAfter further investigation, I've discovered that the \"API Error: Connection error\" is being caused by Cloudflare's security measures. A verbose curl test to claude.ai revealed:\n\n```\nHTTP/2 403\ncf-mitigated: challenge\nserver: cloudflare\n```\n\nThis shows that Cloudflare is presenting a browser challenge (\"Just a moment...\" page) instead of allowing direct API access. This explains why Claude Code CLI is unable to complete requests - it doesn't have the capability to",
+      "created_at": "2025-03-29T18:45:53Z"
+    },
+    {
+      "author": "smaccoun",
+      "author_association": "NONE",
+      "body": "Thanks @lincbal4 . I've been experiencing this issue non stop for the last couple of days (0.2.57 (Claude Code), though i think it started a version or 2 before). Mine occurs from any terminal (I run Claude Code almost exclusively from iTerm)",
+      "created_at": "2025-04-01T16:40:16Z"
+    },
+    {
+      "author": "DonGuillotine",
+      "author_association": "NONE",
+      "body": "> ## Additional Context (Update)\n> After further investigation, I've discovered that the \"API Error: Connection error\" is being caused by Cloudflare's security measures. A verbose curl test to claude.ai revealed:\n> \n> ```\n> HTTP/2 403\n> cf-mitigated: challenge\n> server: cloudflare\n> ```\n> \n> This shows that Cloudflare is presenting a browser challenge (\"Just a moment...\" page) instead of allowing direct API access. This explains why Claude Code CLI is unable to complete requests - it doesn't hav",
+      "created_at": "2025-04-26T17:07:55Z"
+    }
+  ]
+}

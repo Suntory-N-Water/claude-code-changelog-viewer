@@ -1,0 +1,35 @@
+{
+  "number": 30031,
+  "title": "Feature Request: Support multiple account login and switching (like `gh auth switch`)",
+  "body": "## Feature Request: Multiple Account Support / Account Switching\n\n### Problem\nUsers who work across multiple contexts (e.g., personal, Company A, Company B)\nwith separate Claude.ai accounts cannot quickly switch between them. There is\nno way to see which account is currently active at a glance, and no fast\nswitching mechanism exists.\n\nThis creates real risks:\n- Accidentally using a personal account for confidential company work\n- Using a company account for personal projects (policy violation)\n- No visual indicator of the currently active account in the workflow\n\nCurrently, switching requires a full logout → login cycle with browser\nauthentication every time, making it impractical to switch frequently.\n\n### Expected Behavior\nSimilar to `gh auth switch` in GitHub CLI:\n- Store credentials for multiple accounts locally\n- Switch accounts with a single command: `claude auth switch`\n- Show the currently active account clearly (e.g., `claude auth status`)\n\n### Example Workflow\n```bash\n$ claude auth switch\n? Select account:\n  > personal@gmail.com (Personal - Pro)\n    alice@company-a.com (Company A - Teams)\n    alice@company-b.com (Company B - Teams)\n```\n\n### Current Workaround\n```bash\nclaude auth logout && claude auth login --email other@example.com\n```\nThis triggers a full browser authentication flow every time.\n\n### Use Case\nFreelancers, contractors, and consultants working across multiple\norganizations need reliable, frictionless account switching to avoid\naccidental cross-account usage.",
+  "labels": ["duplicate", "enhancement", "area:auth"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-02T09:43:04Z",
+  "updated_at": "2026-06-11T14:47:18Z",
+  "closed_at": null,
+  "reactions_total": 57,
+  "comments_count": 7,
+  "author": "aice-kazuki-okura",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "felipearomani",
+      "author_association": "NONE",
+      "body": "**Feature proposal: `/account` command for multi-account management**\n\nBuilding on the idea of named profiles, I'd like to propose a `/account` command (or `claude account`) that makes multi-account management a first-class experience:\n```\n$ claude account\n\nLogged-in accounts:\n  * work     →  john@company.com    [default for new instances]\n    personal →  john@gmail.com\n\nSwitch account for this session:\n  > work (current)\n    personal\n    + Add another account\n```\n\n**What this would support:**\n\n",
+      "created_at": "2026-03-19T19:11:45Z"
+    },
+    {
+      "author": "diranged",
+      "author_association": "NONE",
+      "body": "In the meantime while this isn't built in, `CLAUDE_CONFIG_DIR` gets you most of the way there. Each config directory gets its own Keychain entry so auth is fully isolated — you can have work and personal running side by side in different terminals without them touching each other.\n\nI got tired of managing the env vars manually so I wrapped it in a small CLI called [claude-profile](https://github.com/diranged/claude-profile). You create named profiles and launch with the one you want.. each gets ",
+      "created_at": "2026-04-06T23:37:11Z"
+    },
+    {
+      "author": "zeroarst",
+      "author_association": "NONE",
+      "body": "On Linux/WSL2 there's no Keychain, so `CLAUDE_CONFIG_DIR` doesn't isolate credentials — the second profile always falls\n through to `~/.claude/.credentials.json`. We've confirmed the credentials file exists at\n`~/.claude-personal/.credentials.json` but Claude Code doesn't pick it up.\n\nCurrently using a symlink swap approach (swapping `~/.claude.json` and `~/.claude/.credentials.json` before launch)\nbut it's not parallel-safe. Would love to know if claude-profile handles this on Linux.",
+      "created_at": "2026-04-13T05:20:44Z"
+    }
+  ]
+}

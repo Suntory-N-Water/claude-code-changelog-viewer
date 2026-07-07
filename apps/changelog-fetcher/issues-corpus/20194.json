@@ -1,0 +1,41 @@
+{
+  "number": 20194,
+  "title": "[BUG] Native Claude Code not using system certs on MacOS",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nRecently updated to the native installer after seeing the deprecation message, and started experiencing Claude Code hanging up with the message `API Error: Error: unable to get issuer certificate`, with a similar error trying to run the native installer.\n\nEventually I discovered that this was because my company is using Netskope to proxy all https traffic:\n\n```\n% curl -vI https://storage.googleapis.com/ 2>&1 | grep -A 6 \"Server certificate\"\n* Server certificate:\n*  subject: CN=storage.googleapis.com\n*  start date: Dec 10 22:13:51 2025 GMT\n*  expire date: Jan  9 22:13:51 2027 GMT\n*  subjectAltName: host \"storage.googleapis.com\" matched cert's \"storage.googleapis.com\"\n*  issuer: emailAddress=certadmin@netskope.com; CN=ca.amperity.goskope.com; OU=<>; O=Amperity; L=Seattle; ST=WA; C=US\n*  SSL certificate verify ok.\n```\n\nNetskope adds a certificate to the MacOS root chain but this isn't being respected by CC. The [docs](https://code.claude.com/docs/en/network-config#custom-ca-certificates) mention an environment variable but it doesn't work - looks like from the pre-native era? Currently I can disable the Netskope client and still use CC but this isn't ideal.\n\n### What Should Happen?\n\nClaude should use the system certificate chain for verification\n\n### Error Messages/Logs\n\n```shell\n% /Users/ras/.claude/downloads/claude-2.1.17-darwin-arm64 install\n\n✘ Installation failed\n\nFailed to fetch version from https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c\n096819/claude-code-releases/latest: self signed certificate in certificate chain\n```\n\n### Steps to Reproduce\n\n1. Install a MITM proxy for https traffic\n2. Try to use the native Claude Code\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.16\n\n### Claude Code Version\n\n2.1.17\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:packaging",
+    "area:security"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-22T23:10:04Z",
+  "updated_at": "2026-06-02T14:24:20Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 12,
+  "author": "ristew-amperity",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/2816\n2. https://github.com/anthropics/claude-code/issues/2775\n3. https://github.com/anthropics/claude-code/issues/8054\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-22T23:14:19Z"
+    },
+    {
+      "author": "ristew-amperity",
+      "author_association": "NONE",
+      "body": "I think this can be solved on our side by whitelisting with Netskope but the docs could still be updated for the new native build",
+      "created_at": "2026-01-22T23:51:19Z"
+    },
+    {
+      "author": "TheTinkeringIdiot",
+      "author_association": "NONE",
+      "body": "Same issue here in WSL with a corporate MITM gateway. Gateway certs are installed and current in WSL and work fine with all services except Claude Code native. Same steps to reproduce as @ristew-amperity gives. \n\n## Error Messages/Logs\n\n```\n✘ Installation failed\n\nFailed to fetch version from https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/stable: certificate has expired\n\n\nTry running with --force to override checks\n```\n(--force has no eff",
+      "created_at": "2026-01-23T17:37:52Z"
+    }
+  ]
+}

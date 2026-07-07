@@ -1,0 +1,35 @@
+{
+  "number": 21018,
+  "title": "[BUG] \"illegal hardware instruction\" on CPU without AVX2 (Xeon E5 v2)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code crashes immediately with \"zsh: illegal hardware instruction\" on macOS 12 with Intel Xeon E5-2697 v2 CPU.\n\nThis CPU (Ivy Bridge, 2013) does not support AVX2 instructions:\n- `sysctl -a | grep avx2` returns `hw.optional.avx2_0: 0`\n\nClaude Code worked fine until recently. After updating, all versions from 1.0.x fail with this error.\n\nOlder versions (0.2.40) launch but cannot connect because server requires 1.0.88+.\n\n**Environment:**\n- macOS 12 Monterey\n- CPU: Intel Xeon E5-2697 v2 (no AVX2)\n- Node: v18.x (via nvm)\n\n**Request:** Please provide builds without AVX2 requirement, or document minimum CPU requirements.\n\n### What Should Happen?\n\nClaude Code should launch and run normally on CPUs without AVX2 support.\n\n\n### Error Messages/Logs\n\n```shell\n$ claude\nzsh: illegal hardware instruction  claude\n\n$ sysctl -n machdep.cpu.brand_string\nIntel(R) Xeon(R) CPU E5-2697 v2 @ 2.70GHz\n\n$ sysctl -a | grep avx2\nhw.optional.avx2_0: 0\n```\n\n### Steps to Reproduce\n\nSteps to Reproduce:\n1. Have a Mac with CPU without AVX2 support (e.g., Intel Xeon E5-2697 v2)\n2. Install Claude Code: npm install -g @anthropic-ai/claude-code\n3. Run: claude\n4. Error appears: \"zsh: illegal hardware instruction claude\"\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nCannot run claude --version (crashes with illegal hardware instruction). Installed version: 1.0.88 (latest via npm)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:packaging"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-26T15:55:03Z",
+  "updated_at": "2026-04-30T15:08:14Z",
+  "closed_at": "2026-04-15T22:22:12Z",
+  "reactions_total": 5,
+  "comments_count": 14,
+  "author": "lmacchiavelli",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5864\n2. https://github.com/anthropics/claude-code/issues/10408\n3. https://github.com/anthropics/claude-code/issues/20435\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-26T15:58:52Z"
+    },
+    {
+      "author": "andrewfb",
+      "author_association": "NONE",
+      "body": "Seeing the same, illegal instructions on late 2013 Mac Pro, 2.7 GHz 12-Core Intel Xeon E5. Manifests with both curl install and brew.",
+      "created_at": "2026-01-27T21:04:08Z"
+    },
+    {
+      "author": "Jachimo",
+      "author_association": "NONE",
+      "body": "I think this is the same underlying issue as #5864, apparently the \"native\" builds are compiled with AVX2, while the `npm` version uses a node.js that's appropriate for the actual hardware (I presume).",
+      "created_at": "2026-02-06T06:49:26Z"
+    }
+  ]
+}

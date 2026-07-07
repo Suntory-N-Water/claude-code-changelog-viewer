@@ -1,0 +1,35 @@
+{
+  "number": 20508,
+  "title": "[BUG] API Error 400: \"tool_use ids must be unique\" when using -p flag with tool-requiring prompts",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using `claude -p` (print mode) with prompts that require tool use (like checking if a file exists or running shell commands), the CLI fails with an API error about duplicate tool_use IDs.                 \n\n## Environment                                                                                                                                                                                                   \n  - **Claude Code version:** 2.1.19                                                                                                                                                                                \n  - **OS:** macOS Darwin 25.2.0                                                                                                                                                                                    \n  - **Shell:** zsh            \n                                                                                                                                                                                                                   \n                                                                                                                                                                                                     \n                                                                                                                              \n\n### What Should Happen?\n\n                                                                                                                        \n Claude should check if the file exists and return the result.      \n\n### Error Messages/Logs\n\n```shell\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.1.content.1: `tool_use` ids must be unique\"},\"request_id\":\"req_011CXRMKYvALAsgksCjT7HoC\"}\n```\n\n### Steps to Reproduce\n\n  ## Steps to Reproduce                                                                                                                                                                                            \n  ```bash                                                                                                                                                                                                          \n  claude -p \"check package.json exists\"                                                                                                                                                                            \n  ```          \n\n ## Pattern Observed                                                                                                                                                                                              \n  - **FAILS:** Prompts requiring tool use (`\"check package.json exists\"`, `\"echo hello\"`)                                                                                                                          \n  - **WORKS:** Pure text responses (`\"2+2\"`, `\"say hello\"`, `\"how many r in strawberry\"`)                                                                                                                          \n                                                                                                                                                                  \n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.18\n\n### Claude Code Version\n\n2.1.19\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nIntelliJ IDEA terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-24T01:57:15Z",
+  "updated_at": "2026-03-13T13:29:01Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 15,
+  "author": "siliconcat",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16340\n2. https://github.com/anthropics/claude-code/issues/18131\n3. https://github.com/anthropics/claude-code/issues/13124\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-24T02:00:36Z"
+    },
+    {
+      "author": "siliconcat",
+      "author_association": "NONE",
+      "body": "while it seems to be the same as #16340 that one has been marked as completed without a solution. Downgrading to 2.1.18 solves the problem, but 2.1.19 fails.",
+      "created_at": "2026-01-24T02:10:12Z"
+    },
+    {
+      "author": "kenfdev",
+      "author_association": "NONE",
+      "body": "I posted a similar issue https://github.com/anthropics/claude-code/issues/20573 but probably it was a duplicate of this issue.\n\nI'll add a little more context.\n\nAfter a fresh login (deleting ~/.claude.json), the first prompt to claude -p works correctly, but any subsequent prompt fails with an API error about duplicate tool_use IDs. Simple prompts like claude -p \"hello\" work.\n\nThe following steps always reproduces the problem:\n\n1. Delete ~/.claude.json to reset state\n2. Run claude and complete l",
+      "created_at": "2026-01-24T12:37:08Z"
+    }
+  ]
+}

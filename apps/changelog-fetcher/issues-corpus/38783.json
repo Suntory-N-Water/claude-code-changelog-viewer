@@ -1,0 +1,35 @@
+{
+  "number": 38783,
+  "title": "[BUG] Windows: Cowork browser automation tools missing after Claude Desktop update — computer-use tools never register",
+  "body": "\n## Description\n\nAfter Claude Desktop auto-updated through multiple versions on March 23, 2026 (1.1.6679 → 1.1.7714 → 1.1.8308 → 1.1.8359 → 1.1.8629), all browser automation tools are missing from Cowork sessions. The Claude in Chrome MCP server connects successfully and authenticates, but only exposes 3 basic tools (`tabs_close_mcp`, `file_upload`, `switch_browser`). The full `computer-use` browsing tools (`navigate`, `read_page`, `click`, `type`/`form_input`, `screenshot`, `find`, `javascript_tool`, `tabs_context_mcp`) never register.\n\nSkills that depend on browser automation (which worked prior to the update) now fail immediately with:\n\n> Unfortunately, I'm missing the core automation tools that this skill requires:\n> navigate, read_page, click, type / form_input, screenshot, find, javascript_tool, tabs_context_mcp\n\n## Environment\n\n- **OS:** Windows 11 Enterprise 10.0.26200\n- **Claude Desktop:** 1.1.8629 (MSIX install via Windows Store)\n- **Claude Code (CCD):** 2.1.78\n- **Browser:** Microsoft Edge (paired via Claude in Chrome extension)\n- **Chrome Canary:** Not installed\n- **Plan:** Max (Opus 4.6)\n\n## Evidence from logs\n\n### Claude in Chrome toolCount dropped from 19 to 3\n\n**Pre-update (March 13, version 1.1.6679)** — `main.log` shows:\n\n```json\n{\n  \"name\": \"Claude in Chrome\",\n  \"status\": \"connected\",\n  \"scope\": \"dynamic\",\n  \"toolCount\": 19\n}\n```\n\n**Post-update (March 25, version 1.1.8629)** — same log shows:\n\n```json\n{\n  \"name\": \"Claude in Chrome\",\n  \"status\": \"connected\",\n  \"scope\": \"dynamic\",\n  \"toolCount\": 3\n}\n```\n\nThe extension connects and authenticates fine. 16 tools simply vanished.\n\n### Cowork VM spawns with computer-use in allowedTools but no computer-use MCP server configured\n\nFrom `cowork_vm_node.log`, sessions are spawned with:\n\n```\n--allowedTools ...mcp__Claude_in_Chrome,mcp__computer-use,...\n```\n\nBut the `--mcp-config` server list does NOT include a `computer-use` server:\n\n```json\n{\"mcpServers\":{\n  \"ab4ab624-...\":{\"type\":\"sdk\",\"name\":\"ab4ab624-...\"},\n  \"4ae5bfe1-...\":{\"type\":\"sdk\",\"name\":\"4ae5bfe1-...\"},\n  \"c1fc4002-...\":{\"type\":\"sdk\",\"name\":\"c1fc4002-...\"},\n  \"Claude in Chrome\":{\"type\":\"sdk\",\"name\":\"Claude in Chrome\"},\n  \"mcp-registry\":{\"type\":\"sdk\",\"name\":\"mcp-registry\"},\n  \"plugins\":{\"type\":\"sdk\",\"name\":\"plugins\"},\n  \"scheduled-tasks\":{\"type\":\"sdk\",\"name\":\"scheduled-tasks\"},\n  \"cowork\":{\"type\":\"sdk\",\"name\":\"cowork\"},\n  \"session_info\":{\"type\":\"sdk\",\"name\":\"session_info\"}\n}}\n```\n\nNo `computer-use` entry. The Desktop app is supposed to provide these tools via the VM-to-host bridge, but they never materialize.\n\n### Previously working (pre-update)\n\nOn March 13-20 (version 1.1.6679), the same setup successfully used browser tools:\n\n```\n[Claude in Chrome] Error calling tool: [Claude in Chrome] Tool call timed out: computer\n[Claude in Chrome] Tool call error: javascript_tool (9496d938) after 1447ms\n[Claude in Chrome] Tool call timed out: get_page_text\n```\n\nThese show the tools existed and were callable (timeouts were unrelated transient issues). After the update, these tools simply don't exist at all.\n\n### Registry and native messaging verified correct\n\nNative messaging host registry entries are correctly configured for both Chrome and Edge:\n\n```\nHKCU\\SOFTWARE\\Google\\Chrome\\NativeMessagingHosts\\com.anthropic.claude_browser_extension\n→ C:\\Users\\...\\Claude\\ChromeNativeHost\\com.anthropic.claude_browser_extension.json\n\nHKCU\\SOFTWARE\\Microsoft\\Edge\\NativeMessagingHosts\\com.anthropic.claude_browser_extension\n→ C:\\Users\\...\\Claude\\ChromeNativeHost\\com.anthropic.claude_browser_extension.json\n```\n\nThe manifest and `chrome-native-host.exe` are present and valid.\n\n### Version progression on March 23\n\n```\n16067: Starting app { appVersion: '1.1.7714' } // 19:16:10\n16087: Starting app { appVersion: '1.1.8308' } // 19:17:12\n16213: Starting app { appVersion: '1.1.8359' } // 19:19:40\n```\n\nThree updates within 4 minutes. Browser tools were missing from the first post-update session onward. App has since auto-updated further to 1.1.8629.\n\n## Steps to reproduce\n\n1. Have Claude Desktop on Windows auto-update to 1.",
+  "labels": ["bug", "platform:windows", "area:mcp", "area:cowork", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-25T14:15:12Z",
+  "updated_at": "2026-06-12T22:41:47Z",
+  "closed_at": "2026-06-12T22:41:47Z",
+  "reactions_total": 4,
+  "comments_count": 14,
+  "author": "michael-head-leeco",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "michael-head-leeco",
+      "author_association": "NONE",
+      "body": "## Additional context: Multi-machine setup\n\nI have Claude Desktop installed on 3 machines under the same Anthropic account:\n\n- **2 Windows PCs** that share a OneDrive (Lee Company tenant)\n- **1 Windows VM** on a separate network\n\nAll 3 are logged into the same account. The Claude Desktop config lives in the MSIX-sandboxed path (`AppData\\Local\\Packages\\Claude_pzs8sxrjxfjjc\\LocalCache\\Roaming\\Claude\\`) which is local per machine and NOT synced by OneDrive. However, all 3 machines share the same Ch",
+      "created_at": "2026-03-25T14:18:59Z"
+    },
+    {
+      "author": "michael-head-leeco",
+      "author_association": "NONE",
+      "body": "## Cross-reference: This appears to be the same underlying issue as #27492\n\nIssue #27492 (\"Claude cowork MCP Issue continues\") has 20 comments spanning Feb–March 2026 describing the same pattern:\n- MCP servers (`mcp-registry`, `Claude in Chrome`) fail to connect after Desktop auto-update\n- Browser automation tools drop from full set to minimal (tab close, file upload only)\n- Confirmed on both macOS and Windows\n- @gskornowicz confirms still broken on Windows 11 with version 1.1.8359 — same versio",
+      "created_at": "2026-03-27T18:30:42Z"
+    },
+    {
+      "author": "michael-head-leeco",
+      "author_association": "NONE",
+      "body": "## Update: Disconnect/reconnect workaround from #27492 does NOT fix this\n\nAttempted the full disconnect/reconnect cycle documented in #27492:\n\n1. Disabled Claude in Chrome connector in Desktop settings\n2. Disabled Claude extension in Edge\n3. Full computer restart\n4. Re-enabled connector in Desktop **first**, then extension in Edge (order matters per workaround)\n5. Started a Cowork task requiring browser access\n\n**Result:** Still only 3 tools registered (`switch_browser`, `tabs_close_mcp`, `file_",
+      "created_at": "2026-03-27T18:56:04Z"
+    }
+  ]
+}

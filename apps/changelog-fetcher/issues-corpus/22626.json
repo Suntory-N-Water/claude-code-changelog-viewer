@@ -1,0 +1,35 @@
+{
+  "number": 22626,
+  "title": "Keybinding set to null consumes keystroke instead of passing through",
+  "body": "## Issue Description\n\nWhen setting a keybinding to `null` in `~/.claude/keybindings.json` to unbind it, the keystroke is still consumed rather than being passed through to the host application.\n\n## Environment\n\n- **Claude Code Version**: 2.1.29\n- **Platform**: macOS (Darwin 25.2.0)\n- **Context**: Running via IntelliJ IDEA plugin with Emacs keybindings\n\n## Problem Details\n\nI want to use Ctrl+B for Emacs-style backward-character movement. I've configured keybindings.json to:\n1. Unbind Ctrl+B by setting it to `null`\n2. Rebind the background task feature to Alt+B\n\n```json\n{\n    \"bindings\": [\n      {\n        \"context\": \"Global\",\n        \"bindings\": {\n          \"ctrl+b\": null\n        }\n      },\n      {\n        \"context\": \"Task\",\n        \"bindings\": {\n          \"task:background\": \"alt+b\"\n        }\n      }\n    ]\n}\n```\n\n## Expected Behavior\n\nSetting `\"ctrl+b\": null` should cause Claude Code to **not handle** the Ctrl+B keystroke at all, allowing it to pass through to:\n- The terminal's readline (in CLI mode)\n- The IDE's keymap (in IDEA plugin mode)\n\n## Actual Behavior\n\n- Ctrl+B no longer triggers the \"background task\" action (good)\n- Ctrl+B does **nothing** - it is consumed/swallowed (bad)\n- The keystroke never reaches IDEA's Emacs keybindings for cursor movement\n\n## Impact\n\nUsers who rely on Emacs keybindings (Ctrl+A, Ctrl+B, Ctrl+E, Ctrl+F, etc.) cannot reclaim Ctrl+B for cursor navigation even after unbinding it in Claude Code.\n\n## Suggested Fix\n\nWhen a keybinding is set to `null`, Claude Code should not register a handler for that keystroke at all, allowing it to propagate to the underlying input system.",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-02T21:57:09Z",
+  "updated_at": "2026-02-17T21:46:39Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 3,
+  "author": "tiessa",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mtesch-um",
+      "author_association": "NONE",
+      "body": "haha... came here to share the bug report claude wrote for _me_ guess we're not the only ones...\n\n----\n# Unbinding keys in keybindings.json swallows keystrokes instead of passing them through to text input (breaks emacs-style cursor movement)\n\n## Description\n\nWhen a default keybinding is unbound by setting it to `null` in `~/.claude/keybindings.json`, the keystroke is consumed/dropped rather than being passed through to the underlying text input component. This makes it impossible to reclaim sta",
+      "created_at": "2026-02-07T03:09:47Z"
+    },
+    {
+      "author": "tadams42",
+      "author_association": "NONE",
+      "body": "Confirming for `Enter` key, `Chat` context, on Linux + WezTerm.\n\n## Environment\n\n- Claude Code: 2.1.39\n- Ubuntu 25.10\n- Terminal: WezTerm (with Kitty protocol enabled)\n\n## Description\n\nWhen `Enter` key is unbound in `~/.claude/keybindings.json`, it becomes completely blocked instead of passing through and inserting new line.\n\n## Expected behavior\n\nWhen `Enter` key is unbound in `~/.claude/keybindings.json`, key presses should insert new lines.\n\n## Steps to reproduce\n\n1. Create ~/.claude/keybindi",
+      "created_at": "2026-02-12T11:33:44Z"
+    },
+    {
+      "author": "vbichkovsky",
+      "author_association": "NONE",
+      "body": "Additional data point: Claude Code's input widget already supports emacs-style keybindings natively. `C-f` (forward char), `C-k` (kill line), `M-b`/`M-f` (word movement) all work as expected in the Chat input.\n\n`C-b` is the exception — it's intercepted by the keybinding layer for `task:background` before reaching the input widget. Setting `\"ctrl+b\": null` stops the action but still swallows the keystroke, so it never reaches the input component that would handle it correctly.\n\nThis confirms that",
+      "created_at": "2026-02-17T21:46:39Z"
+    }
+  ]
+}

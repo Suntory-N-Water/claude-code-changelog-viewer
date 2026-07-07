@@ -1,0 +1,35 @@
+{
+  "number": 5615,
+  "title": "[SOLUTION] Complete Claude Code Timeout Configuration Guide - Verified Working",
+  "body": "[SOLUTION] Complete Claude Code Timeout Configuration Guide - Working for Many Users\n\n## Summary\n**Problem Addressed**: Claude Code 2-minute timeout limitation. This issue provides solutions that have worked for multiple users, though effectiveness may vary by environment.\n\n## Environment  \n- **Platform**: Anthropic API\n- **Claude CLI version**: Latest (tested on v1.0.x)\n- **Operating System**: macOS (should work on all platforms)\n- **Terminal**: Any terminal\n\n## ✅ Solution for Claude Code Bash Tool\n\n### Problem\nClaude Code automatically kills bash commands after exactly 2 minutes, regardless of wrapper scripts or shell environment variables.\n\n### Working Solution (Verified by Multiple Users)\nConfigure timeout in `~/.claude/settings.json` under the `env` section:\n\n```json\n{\n  \"mcpServers\": {\n    // ... existing configurations\n  },\n  \"env\": {\n    \"BASH_DEFAULT_TIMEOUT_MS\": \"1800000\",    // 30 minutes\n    \"BASH_MAX_TIMEOUT_MS\": \"7200000\"         // 120 minutes\n  },\n  \"hooks\": {\n    // ... existing hooks\n  }\n}\n```\n\n### Test Results (Environment-Dependent)\n| Test Duration | Default Behavior | With Configuration | Status |\n|--------------|------------------|-------------------|--------|\n| 30 seconds   | ✅ Success       | ✅ Success        | No change |\n| 3 minutes    | ❌ Timeout       | ✅ Success*       | **Works for many** |\n| 30 minutes   | ❌ Timeout       | ✅ Success*       | **Works for many** |\n\n*Results may vary by system configuration\n\n**Test Command**: `echo \"Test start: $(date)\" && sleep 180 && echo \"Test complete: $(date)\"`\n\n## ❌ Failed Approaches (Confirmed Not Working)\n\n1. **GNU timeout wrappers**: `gtimeout 1800 codex exec \"task\"` - Overridden by internal timeout\n2. **Shell environment variables**: `export BASH_DEFAULT_TIMEOUT_MS=1800000` - Ignored by Claude Code\n3. **Codex profile configuration**: `timeout = 1800` in `~/.codex/config.toml` - Different execution context\n4. **Project-level settings**: `.claude/settings.local.json` - Not recognized for timeout config\n\n## 🆕 Discovery: Codex Exec Dual-Layer Timeout Architecture\n\nDuring investigation, I discovered that Codex Exec has a **dual-layer timeout system**:\n\n### Layer 1: Application Timeout (Configurable) ✅\n- **Control**: `~/.codex/config.toml` timeout settings  \n- **Limit**: Up to ~2.5 minutes tested successfully\n- **Test**: `cxl \"sleep 150\"` → SUCCESS (2.5 minutes)\n\n### Layer 2: Sandbox Timeout (Hardcoded) ❌\n- **Limit**: Approximately 2-3 minutes (appears hardcoded)\n- **Error**: \"sandbox error: command timed out\"\n- **Test**: `cxmarathon \"sleep 300\"` → FAILED (5 minutes)\n\n## 💡 Practical Recommendations\n\n### For Short-Medium Tasks (< 2.5 minutes)\n- Use Codex Exec with configured timeouts in config.toml\n- Commands: `cxl`, `cxd`, `cxf`, etc.\n- Configure timeout in `~/.codex/config.toml`: `timeout = 1800`\n\n### For Long Tasks (> 2.5 minutes)\n- Use Claude Code Bash Tool with settings.json env configuration\n- Extended timeout capability reported by multiple users\n- Test incrementally to verify in your environment\n\n## 🔬 Root Cause Analysis\n\nThe fundamental issue was **configuration location**:\n- ❌ **Shell Environment**: Variables ignored by Claude Code internal timeout system\n- ❌ **Wrapper Commands**: Overridden by Claude Code's internal process management\n- ✅ **Claude Code Settings**: Direct configuration of internal timeout system via settings.json\n\n**Key Insight**: Claude Code requires internal configuration rather than external workarounds. The timeout must be set in Claude Code's own settings system.\n\n## 📊 Potential Benefits\n\nThis solution may enable:\n- **Long-running builds**: Multi-hour compilation processes\n- **Large-scale analysis**: Extended codebase processing  \n- **Database operations**: Long migrations and transformations\n- **AI processing**: Extended model training and inference\n- **Package installations**: Dependencies that take > 2 minutes to install\n- **Data processing**: Large file operations and transformations\n\n## 🎯 Step-by-Step Implementation Guide\n\n1. **Backup current settings**:\n   ```bash\n   cp ~/.c",
+  "labels": ["documentation", "area:tools", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-08-12T13:30:19Z",
+  "updated_at": "2025-08-29T14:07:30Z",
+  "closed_at": "2025-08-21T10:23:30Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "daideguchi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/1635\n2. https://github.com/anthropics/claude-code/issues/3964\n3. https://github.com/anthropics/claude-code/issues/1717\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-12T13:35:28Z"
+    },
+    {
+      "author": "Econowiz",
+      "author_association": "NONE",
+      "body": "Thanks for sharing",
+      "created_at": "2025-08-13T00:02:17Z"
+    },
+    {
+      "author": "daideguchi",
+      "author_association": "NONE",
+      "body": "This is NOT a duplicate. While similar issues exist, I wanted to share my experience:\n\n1. **Step-by-step approach** that worked in my environment\n2. **Discovered dual-layer timeout architecture** in Codex Exec  \n3. **Testing results** from my specific setup\n4. **Clear distinction** between Claude Code Bash Tool and Codex Exec timeouts\n\nI was able to get the timeout extension working in my environment and thought it might be helpful to share the approach.\n\nHope this contributes to the community d",
+      "created_at": "2025-08-13T01:41:31Z"
+    }
+  ]
+}

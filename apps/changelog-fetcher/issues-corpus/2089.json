@@ -1,0 +1,35 @@
+{
+  "number": 2089,
+  "title": "[BUG] Claude Code no longer passing parameters to MCP",
+  "body": "## Environment\n- Platform (select one):\n  - [ X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.24\n- Operating System: EndeavourOS\n- Terminal:  Alacritty\n\n## Bug Description\nClaude code is not able to call an MCP tool that has always worked in the past.  I have an MCP task manager that has been build along with a tool to track tasks.  It's no longer able to pass a body and update the task properly:\n\n> can you also mark 366 as done\n  ⎿  Error: MCP error -32602: failed to deserialize parameters: missing field `task_id`\n\n● I keep making the same mistake. Let me include the parameters properly:\n  ⎿  Error: MCP error -32602: failed to deserialize parameters: missing field `task_id`\n\n● I'm not including the body parameters. Let me do this correctly:\n  ⎿  Error: MCP error -32602: failed to deserialize parameters: missing field `task_id`\n  ⎿  API Error: Request was aborted.\n\n> can you check the tool definition and the required body and try again?\n\n● Let me check the tool definition for update_task:\n\n  Looking at the function definition from earlier, mcp__memory-bank-mcp__update_task requires:\n  - task_id (required, integer)\n  - status (optional, string)\n\n  Let me call it with the proper parameters:\n  ⎿  Error: MCP error -32602: failed to deserialize parameters: missing field `task_id`\n\n● I'm still not passing the parameters correctly. Looking at how I successfully called it before for task 362, I need to use <parameter> tags:\n  ⎿  Error: MCP error -32602: failed to deserialize parameters: missing field `task_id`\n\n● Let me try again with the correct format based on my successful call earlier:\n  ⎿  Error: MCP error -32602: failed to deserialize parameters: missing field `task_id`\n  ⎿  API Error: Request was aborted.\n\n## Additional Context\nThere have been no updates to this MCP server. Other tools for the MCP server are working properly and parameters are being passed.  I have cleared project history and context history and it continues to fail.",
+  "labels": ["bug", "area:mcp", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-14T19:24:49Z",
+  "updated_at": "2026-01-15T14:18:56Z",
+  "closed_at": "2026-01-08T10:16:31Z",
+  "reactions_total": 0,
+  "comments_count": 14,
+  "author": "mattmaslin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "adamkwhite",
+      "author_association": "NONE",
+      "body": "\nHey! \n\nDeveloper here helping with MCP issue triage.\n\nThis looks like a parameter serialization regression in Claude CLI 1.0.24. Since your other MCP tools work and this used to function properly, this points to how the CLI is constructing JSON-RPC calls for specific schemas.\n\n### **Quick diagnostic to help the Anthropic team:**\n\n**1. MCP Server Debug Logging**\nAdd logging to your update_task handler to capture what's actually being received:\n```\npython# Python MCP example\nimport json\nimport lo",
+      "created_at": "2025-06-16T21:58:36Z"
+    },
+    {
+      "author": "mattmaslin",
+      "author_association": "NONE",
+      "body": "Thanks for helping with triage! Here's the diagnostic information requested:\n\n## 1. MCP Server Debug Logging Output\n\nAdded logging to my Rust MCP server's update_task handler. The raw stdio request shows:\n\n**Failing call:**\n```json\n{\"method\":\"tools/call\",\"params\":{\"name\":\"update_task\",\"arguments\":{}},\"jsonrpc\":\"2.0\",\"id\":2}\n```\n\n**Working call (for comparison):**\n```json\n{\"method\":\"tools/call\",\"params\":{\"name\":\"get_task\",\"arguments\":{\"task_id\":999}},\"jsonrpc\":\"2.0\",\"id\":13}\n```\n\nThe `arguments` ",
+      "created_at": "2025-06-16T23:10:19Z"
+    },
+    {
+      "author": "pMatt1988",
+      "author_association": "NONE",
+      "body": "Hi, I'm having a similar issue in both Claude Desktop and Claude Code.\nWhen an MCP tool is expecting multiple arguments, Claude sends none.\nIf a tool is expecting a single argument, Claude sends it with no issue.\n\nIf I direct Claude to call the problematic tool call(s) with a single argument, Claude successfully sends off the request with a single argument.\n\nWhen trying to call tool calls with multiple arguments in the problematic MCP, Claude Desktop's UI disappears leaving a blank window.",
+      "created_at": "2025-06-18T21:07:05Z"
+    }
+  ]
+}

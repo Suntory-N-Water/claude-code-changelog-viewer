@@ -1,0 +1,35 @@
+{
+  "number": 48312,
+  "title": "Tasks sidebar: completed background bash tasks stay as \"Running\"; dismiss (X) button is unresponsive",
+  "body": "## Summary\n\nThe Tasks sidebar keeps showing completed background Bash tasks (started via `run_in_background: true`) in the **Running** state long after their processes have exited. The dismiss (✕) button on those stale entries does not respond, so they accumulate with no way to clear them from the UI.\n\n## Environment\n\n- Claude Code version: **2.1.77**\n- OS: macOS (Darwin 25.2.0)\n- Shell: zsh\n\n## What I observed\n\nA session's Tasks sidebar shows ~15 entries marked as **Running**:\n\n- `Build admin app` (×3)\n- `Build owner app` (×2)\n- `Watch CI checks` / `Watch CI checks to completion` / `Watch CI checks until complete` / `Watch CI checks on PR 148` — 5 total\n- `Squash merge PR from main worktree`\n- `Squash merge PR 147 from main worktree`\n- `Squash merge PR 148 from main worktree`\n- `Install dependencies to wire api-client ...`\n- `Regenerate pnpm lockfile after removing ...`\n\nCross-checking against actual live processes with `ps aux | grep -E 'gh pr checks|pnpm|turbo'`:\n\n```\nmitiay  69148  ...  pnpm --filter owner dev --port 3000\nmitiay  69147  ...  pnpm --filter admin dev --port 3001\nmitiay  69138  ...  pnpm --filter owner dev --port 3000\nmitiay  69137  ...  pnpm --filter admin dev --port 3001\n```\n\nOnly 4 processes are alive — the `pnpm --filter <app> dev` instances behind the `Build admin app` / `Build owner app` entries. None of the `Watch CI checks`, `Squash merge`, `Install dependencies`, or `Regenerate pnpm lockfile` processes are still running.\n\nSo ~11 of the 15 \"Running\" entries are stale UI state.\n\n## Additional bug: ✕ button doesn't dismiss stale tasks\n\nClicking the ✕ icon on any of the stale \"Running\" entries has no effect — the entry stays. There is no way to clear the list from the UI, and it grows across sessions.\n\n## Expected behavior\n\n1. When a backgrounded Bash task exits, its Tasks sidebar entry should transition to its final state (completed / failed / killed) instead of staying **Running** indefinitely.\n2. The ✕ / dismiss button should always remove an entry from the sidebar, regardless of its reported status.\n\n## Impact\n\n- The **Running** badge in the sidebar is no longer trustworthy — you can't tell at a glance which tasks are actually live.\n- Because the dismiss button is unresponsive, the list just accumulates — currently ~15 stale entries across several sessions.\n\n## Screenshot\n\nWill attach sidebar screenshot via the GitHub web UI after creation.",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-15T06:47:50Z",
+  "updated_at": "2026-06-12T22:42:10Z",
+  "closed_at": "2026-06-12T22:42:10Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "mitiay7",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mitiay7",
+      "author_association": "NONE",
+      "body": "<img width=\"408\" height=\"843\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/7ee5c0f7-75ed-4dc0-8b15-462d4f2949cd\" />",
+      "created_at": "2026-04-15T06:51:49Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/41023\n2. https://github.com/anthropics/claude-code/issues/39968\n3. https://github.com/anthropics/claude-code/issues/44357\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-15T06:53:04Z"
+    },
+    {
+      "author": "MenteriumDirkArendt",
+      "author_association": "NONE",
+      "body": "Same behavior reproduced on **Windows 11** (Claude Code on Windows), and it also affects **foreground** Bash tool calls — not only background ones started with `run_in_background: true`.\n\n### Environment\n- OS: Windows 11 Pro 10.0.26200\n- Shell: bash (Git Bash)\n- Claude Code: 2.1.109\n\n### What I observed\nIn a single session I ran ~7 synchronous Bash commands (all foreground, no `run_in_background`), e.g.:\n- `Check gh auth and repo access`\n- `List existing labels and milestones`\n- `Create labels a",
+      "created_at": "2026-04-15T09:54:03Z"
+    }
+  ]
+}

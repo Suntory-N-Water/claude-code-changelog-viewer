@@ -1,0 +1,35 @@
+{
+  "number": 29329,
+  "title": "Sandbox sets TMPDIR=/tmp/claude but writable dir is /tmp/claude-$UID",
+  "body": "## Summary\n\nThe sandbox injects `TMPDIR=/tmp/claude` into the environment, but the actual writable temporary directory is `/tmp/claude-$UID` (e.g., `/tmp/claude-1000`). The path in `TMPDIR` does not exist, causing tools that rely on `TMPDIR` (e.g., `make`) to emit warnings.\n\n## Reproduction\n\n1. Enable sandbox in settings: `\"sandbox\": {\"enabled\": true}`\n2. Run any session and check:\n```bash\necho \"TMPDIR=$TMPDIR\"                  # /tmp/claude\necho \"CLAUDE_CODE_TMPDIR=$CLAUDE_CODE_TMPDIR\"  # /tmp/claude-1000\nls -d /tmp/claude                      # No such file or directory\nls -d /tmp/claude-1000                 # exists\n```\n\n## Observed behavior\n\n\\`\\`\\`\n$ make status\nmake: TMPDIR value /tmp/claude: No such file or directory\nmake: using default temporary directory '/tmp'\n\\`\\`\\`\n\n- \\`TMPDIR=/tmp/claude\\` — set by sandbox, directory does **not** exist\n- \\`CLAUDE_CODE_TMPDIR=/tmp/claude-1000\\` — actual writable temp dir, **does** exist\n- User UID is 1000, so the suffix is \\`-1000\\`\n\n## Expected behavior\n\n\\`TMPDIR\\` should point to the same writable directory as \\`CLAUDE_CODE_TMPDIR\\`, i.e., \\`/tmp/claude-$UID\\`.\n\n## Environment\n\n- Claude Code v2.1.27+\n- Linux (Fedora, uid 1000)\n- \\`\"sandbox\": {\"enabled\": true, \"autoAllowBashIfSandboxed\": true}\\`",
+  "labels": ["bug", "has repro", "platform:linux", "area:sandbox"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-02-27T13:41:44Z",
+  "updated_at": "2026-04-26T14:32:38Z",
+  "closed_at": "2026-04-18T11:53:24Z",
+  "reactions_total": 14,
+  "comments_count": 7,
+  "author": "widefox",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "widefox",
+      "author_association": "NONE",
+      "body": "to workaround, each command inside Claude needs:\nTMPDIR=/tmp/claude-$UID make status\n\nWorkaround for Claude launch fails (gets overridden):\nTMPDIR=/tmp/claude-$UID claude",
+      "created_at": "2026-02-27T15:27:35Z"
+    },
+    {
+      "author": "dfaivre-pcs",
+      "author_association": "NONE",
+      "body": "I have a sandbox read/write permission set for /tmp/claude-$UID  but claude still can't write in teh UID dir?\n\n```\n...\n    \"filesystem\": {\n      \"allowWrite\": [\n        \"~/.npm/**\",\n        \"/tmp/claude-1000/**\",\n        \"/tmp/claude/**\"\n      ]\n    }\n...\n```",
+      "created_at": "2026-03-12T15:02:10Z"
+    },
+    {
+      "author": "olejorgenb",
+      "author_association": "NONE",
+      "body": "Symlinking works for me. Attempting to override `TMPDIR` did not (could not find a late enough stage).\n\n```\nln -s /tmp/claude-1000 /tmp/claude\n```",
+      "created_at": "2026-03-17T18:21:33Z"
+    }
+  ]
+}

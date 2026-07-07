@@ -1,0 +1,35 @@
+{
+  "number": 46834,
+  "title": "TUI relayouts (SIGWINCH / permission-mode toggle) spill entire transcript into scrollback as duplicate copies",
+  "body": "## Version\n- Claude Code **v2.1.101**\n- macOS (Darwin 25.3.0)\n- Opus 4.6 (1M context), Claude Max\n- Standard macOS terminal\n\n## What happens\nDuring a single Claude Code session, the entire conversation transcript is re-emitted into the terminal's primary scrollback as a fresh full copy every time the TUI relayouts. The live alt-screen pane continues to show the session correctly, but scrolling up reveals N identical copies of the session so far.\n\nEach duplicate is the **same session content** — same user messages, same assistant responses, same tool calls, same tool-output line numbers, same in-progress spinner state (e.g. `Wibbling… (4m 39s)`) — rewrapped at a slightly different terminal column width.\n\n## Repro\n1. Start a CC session. Run a few commands that produce meaningful transcript (e.g. an MCP call, a skill launch, multi-hunk file edits with visible diffs).\n2. Trigger any of:\n   - Resize the terminal window\n   - Press `Shift+Tab` to cycle permission mode (e.g. flip to `⏵⏵ accept edits on`)\n   - External display connect/disconnect, full-screen toggle, Mission Control gesture — anything that fires a SIGWINCH\n3. Scroll up in the terminal.\n\n**Expected:** one transcript of the session.\n**Actual:** multiple full copies of the transcript stacked in scrollback, each at a different column width.\n\n## Evidence it's a renderer issue, not duplicate sessions\n- `ps aux | grep claude` shows only one live `claude` process\n- Each scrollback copy wraps at a different column width (e.g. ~100 → ~115 → ~130 cols) — the content is being re-laid out and re-emitted\n- Status line drifts between copies: earlier copies show `1 MCP server failed · /mcp`, later copies show `⏵⏵ accept edits on (shift+tab to cycle)`, proving the copies were captured at different TUI states within the same session\n- The in-memory conversation the model sees is not duplicated — only the primary scrollback buffer is\n\n## Likely cause\nThe Ink/Yoga TUI appears to re-render the full in-scrollback conversation history on SIGWINCH or permission-mode toggle, rather than limiting the relayout to the active alt-screen pane. Each relayout flushes the entire history back into primary scrollback as a fresh block. The cost is proportional to transcript length, so it's most visible in long sessions.\n\n## Impact\nCosmetic / disorienting. The session itself continues to work correctly and the model does not see duplicated context. But scrollback becomes unusable for reviewing a long session, and on first encounter it reads like a real duplication bug — my first hypothesis was that my MCP memory layer was writing duplicate records. It wasn't; the storage was clean.\n\n## Suggested fix\n- Limit relayout to the active alt-screen pane; don't re-emit historical transcript on SIGWINCH\n- If relayout of in-scrollback history is truly necessary for correctness, do it in place via cursor addressing rather than appending to scrollback\n\n## Workarounds\n- `cmd+K` / `clear` to flush scrollback after the fact\n- Avoid resizing the terminal mid-session\n- Avoid toggling permission mode via Shift+Tab in long sessions\n\nHappy to provide additional environment info, a recording, or a minimal repro if useful.",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-12T02:08:32Z",
+  "updated_at": "2026-06-18T11:06:14Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 15,
+  "author": "rdmgator12",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "carrotRakko",
+      "author_association": "NONE",
+      "body": "Adding another trigger and a version regression data point that may help localize the root cause.\n\n**Trigger**: Ctrl+O toggle (open transcript view → Ctrl+O again to return)\n\nSame root symptom as described here: after toggling Ctrl+O into transcript view and Ctrl+O back out, the primary scrollback accumulates another full render of the session instead of the normal view being redrawn in place. Each Ctrl+O round-trip stacks another copy, so scrollback grows with every toggle.\n\n**Version regressio",
+      "created_at": "2026-04-16T16:44:13Z"
+    },
+    {
+      "author": "lucasec",
+      "author_association": "NONE",
+      "body": "The most obvious changelog entry is in 2.1.101: `Fixed rendering issues: flicker in non-fullscreen mode when content above the visible area changed, terminal scrollback being wiped during long sessions in non-fullscreen mode, and mouse-scroll escape sequences occasionally leaking into the prompt as text`\n\nMy testing confirmed the issue appears to have been introduced in 2.1.101. 2.1.98 still clears the scrollback as expected.\n\nI assume this was introduced due to some users complaining that Claud",
+      "created_at": "2026-04-17T05:43:50Z"
+    },
+    {
+      "author": "mevouc",
+      "author_association": "NONE",
+      "body": "I can confirm. I'm using Windows Terminal Quake mode to open/reduce my terminal dynamically. Which may be the same issue as resizing the window talked about above.\n\nThis is a nightmare as a user, and an obvious regression from previous versions.\nI did not have any issue in the past two months (before the last few days).\n\nSome of Claude outputs just become straight-up unreadable because it's mixed up with other pieces of the history.\n\nMy only workaround is too ask Claude to tell his answer again ",
+      "created_at": "2026-04-21T09:52:43Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 5345,
+  "title": "[BUG]",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ x] Other: Claude Code\n- Claude CLI version: 1.0.70\n- Operating System: macOS 15.5\n- Terminal:  Ghostty\n\n## Bug Description\nWhen trying to run `/security-review` I'm getting this error:\n\n```\n> /security-review\n  ⎿  Error: Bash command failed for pattern \"!`git diff --merge-base origin/HEAD`\": [stderr]\n     usage: git diff [<options>] [<commit> [<commit>]] [--] [<path>...]\n\n> why isn't security-review working?\n\n⏺ The security-review command has a bug in its implementation. It's trying to use:\n  git diff --merge-base origin/HEAD\n\n  But --merge-base is not a valid option for git diff. The correct git commands would be:\n\n  1. git diff origin/HEAD...HEAD (three dots for changes on current branch)\n  2. git diff $(git merge-base origin/HEAD HEAD)..HEAD (using merge-base separately)\n\n  This is a bug in the Claude Code security-review command itself. You should report this issue at https://github.com/anthropics/claude-code/issues\n\n  As a workaround, I can manually review your changes for security concerns:\n```\n\n## Steps to Reproduce\n1. Open Claude Code in CLI\n2. type `/security-review`\n\n## Expected Behavior\nIt should run a security review\n\n## Actual Behavior\nGetting this error:\n```\nError: Bash command failed for pattern \"!`git diff --merge-base origin/HEAD`\": [stderr]\n     usage: git diff [<options>] [<commit> [<commit>]] [--] [<path>...]\n```",
+  "labels": ["bug", "has repro", "platform:macos", "area:security", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-07T18:32:26Z",
+  "updated_at": "2026-02-20T05:52:33Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 7,
+  "author": "jnardiello",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "FYeahnyx",
+      "author_association": "NONE",
+      "body": "I have the same problem。\n\ngit version 2.47.0.windows.2\nwindows11 ",
+      "created_at": "2025-08-11T03:44:06Z"
+    },
+    {
+      "author": "politan",
+      "author_association": "NONE",
+      "body": "Same issue for me. Claude Code on WSL2. \n\n- Git 2.25.1\n- Claude-CLI: 1.0.77",
+      "created_at": "2025-08-13T15:16:54Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-11T10:13:52Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 69313,
+  "title": "claude_design MCP fails: 404 from api.anthropic.com/v1/design/mcp (harness-injected, unremovable)",
+  "body": "### What happened\nThe built-in `claude_design` MCP server fails on every startup:\n\n```\nclaude_design: https://api.anthropic.com/v1/design/mcp (HTTP) - ✘ Failed to connect\nStreamable HTTP error: Error POSTing to endpoint: 404 page not found\n```\n\n### Diagnosis\n- Scope: \"Dynamic config (from command line)\" — harness-injected, NOT in my config.\n- Verified absent from `settings.json`, `~/.claude.json` mcpServers, frontend-design plugin (skills-only), and all launch flags (claude launched plain).\n- `claude mcp remove \"claude_design\" -s dynamic` → `Cannot remove MCP server from scope: dynamic`. The CLI suggests this exact command in `/doctor`, then refuses it. Dead-end UX.\n- Endpoint returns 404 → feature flag enabled for the account but the endpoint isnt live.\n\n### Impact\nPersistent red \"MCP server not connected\" banner in `/doctor` and `/mcp`. Cosmetic but unfixable by the user.\n\n### Ask\n1. Stop injecting claude_design when the endpoint is unavailable, OR\n2. Allow removing/disabling dynamic-scope harness MCPs.\n\n### Env\n- claude installed at `~/.local/bin/claude`, macOS (Darwin 25.5.0)\n- Model: Opus 4.8",
+  "labels": ["duplicate", "platform:macos", "area:mcp", "area:plugins"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-06-18T09:46:02Z",
+  "updated_at": "2026-06-24T21:21:53Z",
+  "closed_at": "2026-06-24T21:21:53Z",
+  "reactions_total": 12,
+  "comments_count": 5,
+  "author": "Dhirajdas18",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thank you for taking the time to report this. We're currently triaging open MCP issues, and this one is being closed in favor of tracking it in #69317, which covers the same `claude_design` 404 root cause (login token used instead of the Design OAuth token). Please follow that issue for updates and feel free to add any additional context there.",
+      "created_at": "2026-06-24T21:21:50Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/69310\n2. https://github.com/anthropics/claude-code/issues/69307\n3. https://github.com/anthropics/claude-code/issues/69309\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-06-18T09:49:47Z"
+    },
+    {
+      "author": "Dhirajdas18",
+      "author_association": "NONE",
+      "body": "Not a duplicate to close — this is the most complete *open* writeup of the bug.\n\nRelated reports confirm the same root cause (harness-injected `claude_design` MCP, dead `/v1/design/mcp` endpoint returning 404, unremovable dynamic scope):\n- #69309 — near-identical diagnosis (unremovable dynamic-scope server), but already closed, so it can't carry the discussion.\n- #69310 — same 404, observed after `/design-login` reports successful auth.\n- #69307 — same 404 surfaced via the frontend-design plugin",
+      "created_at": "2026-06-18T09:54:03Z"
+    }
+  ]
+}

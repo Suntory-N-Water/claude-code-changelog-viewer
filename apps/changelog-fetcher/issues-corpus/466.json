@@ -1,0 +1,35 @@
+{
+  "number": 466,
+  "title": "[BUG] 0.2.39 broke bash commands",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 0.2.39 (Claude Code)\n- Operating System: macOS 15.3.1\n- Terminal: iterm2\n\n## Bug Description\nThe 0.2.39 broke bash command running, it waits forever before running the commands.\n\n```\nBash(pnpm typecheck)…\n\n✽ Doing… (65s · esc to interrupt)\n```\n\n## Steps to Reproduce\n1. Ask to run some harmless bash command like `pnpm typecheck` in my case.\n\n## Expected Behavior\nAsk and run\n\n## Actual Behavior\nNot asking and stalling\n\n\nThe only current way to fix it is to disable autoupdate and revert to 0.2.38\n\n```\nclaude config set -g autoUpdaterStatus disabled\nnpm -g install @anthropic-ai/claude-code@0.2.38\n```",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-03-13T13:29:28Z",
+  "updated_at": "2025-08-09T14:07:38Z",
+  "closed_at": "2025-03-14T15:20:57Z",
+  "reactions_total": 0,
+  "comments_count": 15,
+  "author": "hyperknot",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "sorry to break this. we optimized the startup path but that caused problems for some rc files. we'll an attempt to get the best of both worlds in tomorrows release",
+      "created_at": "2025-03-13T21:50:58Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "@mavient this was working and it broke, or it never worked?\nif your .zshrc/.bashrc exists we try and source it\nyesterday I pushed an optimization that was obviously no good, it may be that sourcing your profile is now exiting because it is, say, hanging waiting for user input",
+      "created_at": "2025-03-13T22:17:17Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "are you able to set the path with !\nclaude prefers zsh, check which shell it is actually using (it'll set $SHELL) and make sure you are editing the right rc file",
+      "created_at": "2025-03-13T23:04:39Z"
+    }
+  ]
+}

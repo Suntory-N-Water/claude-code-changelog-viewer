@@ -1,0 +1,16 @@
+{
+  "number": 2267,
+  "title": "[BUG] Cannot connect Remote GitHub MCP Server",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: <!-- output of `claude --version` --> 1.0.27 (Claude Code)\n- Operating System: <!-- e.g. macOS 14.3, Windows 11, Ubuntu 22.04 --> macOS 15.5\n- Terminal:  <!-- e.g. iTerm2, Terminal App --> iTerm2\n\n## Bug Description\n<!-- A clear and concise description of the bug -->\n\nThe OAuth authentication fails for the GitHub MCP Server (https://github.com/github/github-mcp-server) added with the following command:\n```sh\nclaude mcp add -t http github-server https://api.githubcopilot.com/mcp/\n```\n\nand https://docs.anthropic.com/en/docs/claude-code/mcp#authenticate-with-remote-mcp-servers\n\nBased on the observed behavior, it seems that Claude immediately tries to connect to /.well-known/oauth-authorization-server and ignores the resource_metadata in the www-authenticate header, preventing it from properly following the GitHub MCP Server flow.\n\nI believe GitHub MCP Server could be supported by implementing the following flow:\n\n1. Retrieve resource_metadata from the www-authenticate header returned by GET https://api.githubcopilot.com/mcp/\n2. Send a request to the URL obtained in step 1, and use authorization_servers to perform OAuth\n3. Continue with the normal flow\n\n## Steps to Reproduce\n1. do `claude mcp add -t http github-server https://api.githubcopilot.com/mcp/`\n2. run `claude` and try `/mcp` command\n\n## Expected Behavior\n<!-- What you expected to happen -->\n\nComplete OAuth 2.0 authentication flow\n\n## Actual Behavior\n<!-- What actually happened -->\n\nFailed OAuth 2.0 authentication flow\n\n## Additional Context\n<!-- Add any other context about the problem here, such as screenshots, logs, etc. -->",
+  "labels": ["bug", "platform:macos", "area:auth", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-18T17:10:14Z",
+  "updated_at": "2025-07-29T16:33:04Z",
+  "closed_at": "2025-06-19T07:03:27Z",
+  "reactions_total": 24,
+  "comments_count": 11,
+  "author": "yamachu",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

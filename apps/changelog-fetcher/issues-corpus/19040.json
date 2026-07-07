@@ -1,0 +1,24 @@
+{
+  "number": 19040,
+  "title": "[BUG] Session files grow to multi-GB due to normalizedMessages duplication in subagent progress entries",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nSession `.jsonl` files grow to multi-GB sizes during long sessions with heavy subagent (Task tool) usage, eventually preventing Claude Code from starting.\n\n**Root cause:** Every `progress` entry for subagents stores the full `normalizedMessages` array (complete conversation history at that moment). With many progress updates per subagent turn, session files grow exponentially.\n\nEvidence from a 3.1GB session file:\n- 3,620 progress entries with normalizedMessages\n- 777,402 total messages stored (massive duplication)\n- Largest single entry: 7.1MB (1,154 messages)\n- Average ~200x duplication per message\n- Session duration: ~10 hours\n\nEntry structure causing bloat:\n```json\n{\n  \"type\": \"progress\",\n  \"data\": {\n    \"agentId\": \"a9b4d10\",\n    \"normalizedMessages\": [/* FULL HISTORY */],\n    \"prompt\": \"...\",\n    \"message\": \"...\"\n  }\n}\n```\n\nThis is distinct from:\n- #5034 (stream-json format issue)\n- #9890/#10107 (FileHistory issues)\n- #6394 (.claude.json bloat)\n\n\n### What Should Happen?\n\nProgress entries should NOT store the full conversation history on every update. Options:\n- Store message deltas/diffs only\n- Reference previous entries by ID\n- Don't include normalizedMessages in progress events (reconstruct from subagent files if needed)\n\n\n### Error Messages/Logs\n\n```shell\nNo error messages - Claude Code simply fails to start when session files are too large. Had to manually move `~/.claude/projects/` to restore functionality.\n```\n\n### Steps to Reproduce\n\n1. Start a Claude Code session in a project\n2. Use the Task tool (subagents) heavily throughout the session\n3. Continue for several hours with many subagent invocations\n4. Monitor `~/.claude/projects/{project-dir}/*.jsonl` file sizes\n5. Observe exponential growth correlating with subagent usage\n6. Eventually Claude Code refuses to start due to file size\n\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.12 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n- This punishes exactly the workflow that makes Claude Code valuable: long-running sessions with heavy agent delegation for complex tasks\n- I have the bloated session files preserved (~12GB total across multiple sessions) and can provide them for analysis\n- The issue appears to persist in 2.1.12 but at smaller scale in current sessions (226KB max vs 7MB per entry in older sessions)\n- Analysis commands used to identify root cause:\n  ```bash\n  # Size by entry type\n  jq -c '{type, size: (. | tostring | length)}' session.jsonl | jq -s 'group_by(.type) | map({type: .[0].type, count: length, total_size: (map(.size) | add)})'\n  \n  # normalizedMessages sizes\n  jq -c 'select(.type == \"progress\" and .data.normalizedMessages) | {nm_size: (.data.normalizedMessages | tostring | length)}' session.jsonl\n  ```\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:core",
+    "memory",
+    "perf:memory"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-18T16:16:16Z",
+  "updated_at": "2026-04-26T14:31:27Z",
+  "closed_at": "2026-04-18T04:15:21Z",
+  "reactions_total": 3,
+  "comments_count": 11,
+  "author": "rso42",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

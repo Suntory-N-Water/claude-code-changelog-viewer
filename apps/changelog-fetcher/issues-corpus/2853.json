@@ -1,0 +1,16 @@
+{
+  "number": 2853,
+  "title": "[BUG] Claude Code CLI crashes with unhandled EPIPE error during normal usage",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.40 (Claude Code)\n- Operating System: <!-- e.g. macOS 14.3, Windows 11, Ubuntu 22.04 -->\n- Terminal: iTerm2\n\n## Bug Description\nClaude Code CLI unexpectedly terminates with an unhandled EPIPE error during normal usage. The error appears to be related to a broken pipe in the underlying Node.js stream handling.\n\n## Steps to Reproduce\n1. Launch Claude Code CLI\n2. Use the CLI normally for coding tasks\n3. During operation, the CLI suddenly crashes with EPIPE error\n\n## Expected Behavior\nThe CLI should handle pipe errors gracefully and either recover or exit cleanly with a user-friendly error message.\n\n## Actual Behavior\nThe CLI crashes unexpectedly with the following unhandled error:\n```\nnode:events:496 \n    throw er; // Unhandled 'error' event\n    ^\n\nError: write EPIPE\n    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19)\nEmitted 'error' event on Socket instance at:\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {\n  errno: -32,\n  code: 'EPIPE',\n  syscall: 'write'\n}\n```\n\n## Additional Context\n- This appears to be an unhandled stream error that should be caught and handled gracefully\n- The EPIPE error typically occurs when writing to a pipe/socket that has been closed by the receiving end\n- This could be related to network connection issues, terminal window closing, or other stream interruptions\n- The error handling should prevent the CLI from crashing and provide better user feedback",
+  "labels": ["bug", "has repro", "area:core"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-07-02T08:48:49Z",
+  "updated_at": "2025-08-10T14:09:58Z",
+  "closed_at": "2025-07-02T16:19:47Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "Nam-kyu",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

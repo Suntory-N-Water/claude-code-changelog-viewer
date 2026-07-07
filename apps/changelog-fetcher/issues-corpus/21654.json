@@ -1,0 +1,23 @@
+{
+  "number": 21654,
+  "title": "[BUG] \"operation not permitted: /tmp/claude-501/cwd-*\" error on macOS in  sandbox mode",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen executing any Bash command in Claude Code CLI with sandbox mode enabled, a permission error appears before the actual command output:\n\n```\nzsh:1: operation not permitted: /tmp/claude-501/cwd-dd16\n```\n\nThe error occurs on every Bash command execution. The underlying commands still work, but the error message is always present.j\n\n### What Should Happen?\n\nCommands should execute without permission errors. The temporary directory operations in `/tmp/claude-501/` should work seamlessly.\n\n### Error Messages/Logs\n\n```shell\n$ git status\nzsh:1: operation not permitted: /tmp/claude-501/cwd-99da\n\nOn branch main\nYour branch is up to date with 'origin/main'.\n...\n\n\n> The error consistently references `/tmp/claude-501/cwd-*` with varying suffixes (dd16, 99da, 860e, etc.).\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code CLI (`claude`)\n2. Enable sandbox mode in `~/.claude/settings.json`:\n   ```json\n   {\n     \"sandbox\": {\n       \"autoAllowBashIfSandboxed\": true,\n       \"enabled\": true\n     }\n   }\n   ```\n3. Run `claude` to start a session\n4. Execute any Bash command, for example:\n   - Use `/commit-commands:commit` slash command (See: https://github.com/anthropics/claude-code/tree/main/plugins/commit-commands)\n   - Or run `git status`\n5. Observe the error message `zsh:1: operation not permitted: /tmp/claude-501/cwd-*` appearing before the command output\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n2.1.21 (Claude Code)\n\n### Claude Code Version\n\n2.1.23 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n- **Using Claude Code CLI**\n- **Sandbox mode enabled** via `~/.claude/settings.json`\n- The error appears to be related to Claude Code's internal handling of temporary working directory files in sandbox mode\n- The actual commands still execute successfully despite the error\n- This may be related to sandbox mode's interaction with `/tmp` directory operations on macOS\n- The issue affects all Bash command executions, not just specific commands",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-29T09:37:17Z",
+  "updated_at": "2026-02-23T14:31:29Z",
+  "closed_at": "2026-02-16T05:47:38Z",
+  "reactions_total": 29,
+  "comments_count": 8,
+  "author": "monsterhxw",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

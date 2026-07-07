@@ -1,0 +1,35 @@
+{
+  "number": 24963,
+  "title": "[FEATURE]  Support for multiple accounts / profiles",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nI have a work account (managed by my company) and a personal account.  Currently I need to run `claude logout` / `claude login` every time.  I want to switch between them, which is tedious and time-consuming. \n\n### Proposed Solution\n\nA flag like `--profile` or `--user` to switch between accounts:\n\n  claude --profile=work\n  claude --profile=personal\n\nEach profile would store its own credentials separately, so login is only needed once per profile.\n\n### Alternative Solutions\n\nAlternatively, supporting a `CLAUDE_CONFIG_DIR` environment variable to point to separate credential directories would also work.\n\n### Priority\n\nLow - Nice to have\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\nAs a developer, I use Claude Code at work on company projects with a company-managed account, and at home for personal side projects with my own personal account — both on the same machine.\nCurrently my workflow is:\n  1. claude logout\n  2. claude login (with the other account)\n  3. Work\n  4. claude logout\n  5. claude login (back to the first account)\n\nDesired workflow:\n  1. claude --profile=work   (for work projects)\n  2. claude --profile=personal  (for personal projects)\n\nNo logout/login needed after initial setup.\n\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:auth", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-11T11:37:17Z",
+  "updated_at": "2026-06-11T19:50:45Z",
+  "closed_at": null,
+  "reactions_total": 66,
+  "comments_count": 21,
+  "author": "AlbertoGarau",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "maxklimen",
+      "author_association": "NONE",
+      "body": "Running two separate paid subscriptions just because there's no profile support. Web switching is manual, mobile has no workaround at all. This is pushing me toward other tools for separate use. Named profiles with per-profile connector configs would fix this.",
+      "created_at": "2026-02-20T01:11:25Z"
+    },
+    {
+      "author": "Seungwoo321",
+      "author_association": "NONE",
+      "body": "+1 for this feature!\n\nI'm paying $330/month for two Max Plan subscriptions (personal + work accounts).\n\nThe current experience is very frustrating:\n\n1. **No per-session account binding** - Cannot assign different accounts to different terminal sessions\n2. **Global credential sync** - Changing account in one session affects ALL other sessions\n3. **Mass re-login required** - When one session hits its limit, ALL sessions require re-authentication\n\nI investigated implementing a workaround using `CLA",
+      "created_at": "2026-02-22T14:47:46Z"
+    },
+    {
+      "author": "prodan-s",
+      "author_association": "NONE",
+      "body": "**Concrete use case:** I'm on a Team plan through my org (which has Remote Control disabled), and I have a personal Max subscription for Remote Control. On macOS, there's no way to run both simultaneously:\n\n- `CLAUDE_CODE_OAUTH_TOKEN` env var is silently ignored on macOS — CC always reads from Keychain\n- `CLAUDE_CONFIG_DIR` redirects `~/.claude/` but doesn't isolate the Keychain entry (`Claude Code-credentials`)\n- The Keychain entry is a global singleton — switching accounts affects all terminal",
+      "created_at": "2026-03-14T18:38:23Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 6223,
+  "title": "[BUG] SDK (TypeScript at least) fails to invoke hooks",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [x] Other: <!-- specify -->\n- Claude SDK version: 1.0.86\n- Claude CLI version:  1.0.86\n- Operating System: WSL Ubuntu 22.04\n- Terminal:  Warp\n\n## Bug Description\n\nHi team. \n\nI am trying to use TypeScript Claude Code SDK to invoke hooks. I am following all the type guides. But none of the event works.\n\n#\n\n## Steps to Reproduce\n\nRun `$ bun reproduce.ts`\n\n```ts\n// this is reproduce.ts\nimport { query } from \"@anthropic-ai/claude-code\";\n\nfor await (const message of query({\n  prompt: \"Just say 'Hello, world!'\",\n  options: {\n    hooks: {\n      SessionStart: [\n        {\n          matcher: '*',\n          hooks: [\n            async (input, toolUseID, options) => {\n              console.log(\n                \"[Claude Code] SessionStart hook called. \",\n                input.hook_event_name,\n                input.session_id,\n                input.transcript_path,\n              );\n\n              return { continue: false };\n            },\n          ],\n        },\n      ],\n    },\n  },\n})) {\n  console.log(message);\n}\n```\n\n## Expected Behavior\n\nShowing log \"[Claude Code] SessionStart hook called. \"\n\n## Actual Behavior\n\n\"[Claude Code] SessionStart hook called. \" is never shown.\n\n## Additional Context\n\nLogs I received are the normal messages:\n\n```js\n{\n  type: \"system\",\n  subtype: \"init\",\n  cwd: \"...\",\n  session_id: \"4e1ff81d-5864-4767-bd9b-f0aa20fb4fe3\",\n  tools: [\n    \"Task\", \"Bash\", \"Glob\", \"Grep\", \"LS\", \"ExitPlanMode\", \"Read\", \"Edit\", \"MultiEdit\", \"Write\", \"NotebookEdit\",\n    \"WebFetch\", \"TodoWrite\", \"WebSearch\", \"BashOutput\", \"KillBash\"\n  ],\n  mcp_servers: [],\n  model: \"claude-sonnet-4-20250514\",\n  permissionMode: \"default\",\n  slash_commands: [\n    \"add-dir\", \"agents\", \"clear\", \"compact\", \"config\", \"context\", \"cost\", \"doctor\", \"exit\", \"help\", \"ide\",\n    \"init\", \"install-github-app\", \"mcp\", \"memory\", \"migrate-installer\", \"model\", \"output-style\",\n    \"output-style:new\", \"pr-comments\", \"release-notes\", \"resume\", \"status\", \"statusline\", \"bug\",\n    \"review\", \"security-review\", \"upgrade\", \"vim\", \"permissions\", \"hooks\", \"export\", \"logout\", \"login\",\n    \"bashes\"\n  ],\n  apiKeySource: \"none\",\n  output_style: \"default\",\n  uuid: \"a2b78952-f535-4a35-85d2-c618453f78e8\",\n}\n{\n  type: \"assistant\",\n  message: {\n    id: \"msg_01VVxKBGYgi6fH3qPJRVN54b\",\n    type: \"message\",\n    role: \"assistant\",\n    model: \"claude-sonnet-4-20250514\",\n    content: [\n      [Object ...]\n    ],\n    stop_reason: null,\n    stop_sequence: null,\n    usage: {\n      input_tokens: 4,\n      cache_creation_input_tokens: 4064,\n      cache_read_input_tokens: 11326,\n      cache_creation: [Object ...],\n      output_tokens: 7,\n      service_tier: \"standard\",\n    },\n  },\n  parent_tool_use_id: null,\n  session_id: \"4e1ff81d-5864-4767-bd9b-f0aa20fb4fe3\",\n  uuid: \"2fabf843-7681-432d-96b6-735e700c5921\",\n}\n{\n  type: \"result\",\n  subtype: \"success\",\n  is_error: false,\n  duration_ms: 1927,\n  duration_api_ms: 1772,\n  num_turns: 1,\n  result: \"Hello, world!\",\n  session_id: \"4e1ff81d-5864-4767-bd9b-f0aa20fb4fe3\",\n  total_cost_usd: 0.0375096,\n  usage: {\n    input_tokens: 8,\n    cache_creation_input_tokens: 8128,\n    cache_read_input_tokens: 22652,\n    output_tokens: 14,\n    server_tool_use: {\n      web_search_requests: 0,\n    },\n    service_tier: \"standard\",\n  },\n  permission_denials: [],\n  uuid: \"691e7c18-4423-4799-93c3-d375fd099852\",\n}\n```",
+  "labels": ["bug", "has repro", "platform:linux", "area:api", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-21T02:22:10Z",
+  "updated_at": "2026-01-17T14:13:00Z",
+  "closed_at": "2026-01-10T10:10:42Z",
+  "reactions_total": 4,
+  "comments_count": 10,
+  "author": "ivawzh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "lucasfarias2",
+      "author_association": "NONE",
+      "body": "I confirm this still happening for `1.0.108` and in Macbook. Using Node.js `v24.2.0`. Hooks are never being triggered. None of them.",
+      "created_at": "2025-09-06T16:44:51Z"
+    },
+    {
+      "author": "Christina0215",
+      "author_association": "NONE",
+      "body": "same here with v1.0.100",
+      "created_at": "2025-09-12T08:31:20Z"
+    },
+    {
+      "author": "gsabran",
+      "author_association": "NONE",
+      "body": "Same here with 1.0.119",
+      "created_at": "2025-09-19T22:35:58Z"
+    }
+  ]
+}

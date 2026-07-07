@@ -1,0 +1,35 @@
+{
+  "number": 38392,
+  "title": "Statusline JSON missing effort level field",
+  "body": "## Description\n\nThe statusline JSON input (piped via stdin to custom `statusLine` commands) does not include the current effort level. This makes it impossible for custom status line scripts to display the active effort level accurately, especially for session-only changes made via `/effort max`.\n\n## Current statusline JSON schema\n\nThe JSON includes: `context_window`, `cost`, `cwd`, `model`, `output_style`, `rate_limits`, `session_id`, `transcript_path`, `version`, `vim`, `workspace`\n\n**Missing:** No `effort` or `effort_level` field.\n\n## Current workaround limitations\n\nCustom statusline scripts (like [ClaudeCodeStatusLine](https://github.com/daniel3303/ClaudeCodeStatusLine)) currently try to detect effort via:\n1. `CLAUDE_CODE_EFFORT_LEVEL` environment variable — **not set** by Claude Code in the statusline subprocess\n2. `settings.json` `effortLevel` field — only stores persisted values (`low|medium|high`), not session-only changes, and doesn't include `max`\n\nThis means:\n- `/effort max` (session-only) is **never visible** to statusline scripts\n- `/effort high` works only because it's persisted in settings.json\n- The env var path is dead code — Claude Code never sets it for statusline subprocesses\n\n## Proposed fix\n\nAdd an `effort` (or `effort_level`) field to the statusline JSON, reflecting the **effective** effort level for the current session (including session-only overrides):\n\n```json\n{\n  \"effort_level\": \"max\",  // Current effective effort: \"low\" | \"medium\" | \"high\" | \"max\"\n  ...existing fields...\n}\n```\n\nThis would allow custom statuslines to accurately display the effort level without relying on external sources.\n\n## Environment\n\n- Claude Code version: 2.1.80+\n- OS: macOS (Darwin 25.4.0)",
+  "labels": ["enhancement", "area:statusline"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-03-24T19:15:15Z",
+  "updated_at": "2026-05-03T14:32:08Z",
+  "closed_at": "2026-04-24T03:35:35Z",
+  "reactions_total": 21,
+  "comments_count": 7,
+  "author": "FZ1010",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34709\n2. https://github.com/anthropics/claude-code/issues/34837\n3. https://github.com/anthropics/claude-code/issues/37764\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-24T19:19:09Z"
+    },
+    {
+      "author": "Astro-Han",
+      "author_association": "NONE",
+      "body": "I hit this in claude-lens and worked around it by reading `effortLevel` directly from `~/.claude/settings.json` via `--slurpfile` in the same jq call. The limitation is it reflects the persisted setting, not an in-session `/effort` override -- if you run `/effort max` mid-session, the file doesn't update until the setting is saved, so there's a gap. The `setting`/`current` dual-field proposal in #39399 would solve this cleanly; the `current` value would capture the runtime state.",
+      "created_at": "2026-03-27T03:53:08Z"
+    },
+    {
+      "author": "GailElliott1990",
+      "author_association": "NONE",
+      "body": "Hitting this as a real financial risk, not just a display bug. I ran `/effort max` as a session-only override during a long multi-agent workflow, and the statusline continued to confidently display `effort:high` (read from `settings.json`) for the rest of the session. I only discovered the discrepancy when asking Claude to explain why the two workflows differed — at which point I realised I'd been burning max-effort tokens for an unknown number of turns with no visible indication.\n\nThe statuslin",
+      "created_at": "2026-04-11T18:34:52Z"
+    }
+  ]
+}

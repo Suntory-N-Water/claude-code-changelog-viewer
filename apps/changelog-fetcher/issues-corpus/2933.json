@@ -1,0 +1,35 @@
+{
+  "number": 2933,
+  "title": "VS Code Extension Ignores Global dangerously-skip-permissions Setting",
+  "body": "**Bug Description**\n  Subject: VS Code extension ignores dangerously-skip-permissions global setting\n\n  Description:\n  The Claude Code VS Code extension does not respect the dangerously-skip-permissions setting from the global configuration file, causing constant permission prompts that disrupt workflow.\n\n  Environment:\n  - Claude Code CLI version: 1.0.40\n  - VS Code extension version: 1.0.41 (also tested with 1.0.40)\n  - macOS Version: 15.5.0 (Build 24F74)\n  - VS Code version: 1.101.2\n\n  Configuration:\n  Global settings file at ~/.claude/settings.json:\n  {\n    \"model\": \"sonnet\",\n    \"dangerously-skip-permissions\": true,\n    \"permissions\": {\n      \"allow\": [\"*\"],\n      \"deny\": [...]\n    }\n  }\n\n  Project-specific settings also tested at /path/to/project/.claude/settings.local.json with same configuration.\n\n  Expected Behavior:\n  With dangerously-skip-permissions: true, commands should execute immediately without permission prompts in both CLI and VS Code extension.\n\n  Actual Behavior:\n  - CLI version: Works correctly, executes commands without prompts\n  - VS Code extension: Ignores the setting, shows permission dialog for every command\n\n  Steps to Reproduce:\n  1. Set \"dangerously-skip-permissions\": true in global settings\n  2. Start Claude Code CLI - commands execute without prompts ✓\n  3. Use Claude Code in VS Code - still shows permission dialogs ✗\n\n  Impact:\n  This makes the VS Code extension unusable for productive development as every command requires manual approval, defeating the purpose of the dangerous permissions flag.\n\n  Additional Notes:\n  The extension appears to use its own permission handling system that doesn't read or respect the global configuration file settings.\n\n\n**Environment Info**\n- Platform: darwin\n- Terminal: iTerm.app\n- Version: 1.0.40\n- Feedback ID: 0c15f7c0-52c9-4928-ab7b-f6c6908ea500\n\n**Errors**\n```json\n[{\"error\":\"Error: Command failed: security find-generic-password -a $USER -w -s \\\"Claude Code\\\"\\nsecurity: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.\\n\\n    at genericNodeError (node:internal/errors:983:15)\\n    at wrappedFn (node:internal/errors:537:14)\\n    at checkExecSyncError (node:child_process:892:11)\\n    at execSync (node:child_process:964:15)\\n    at FI (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:702:3921)\\n    at file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:9038\\n    at Q (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:526:13327)\\n    at _X (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:8184)\\n    at H_ (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:7265)\\n    at U9 (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:11432)\",\"timestamp\":\"2025-07-02T04:37:23.360Z\"},{\"error\":\"Error: Command failed: security delete-generic-password -a $USER -s \\\"Claude Code\\\"\\nsecurity: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.\\n\\n    at genericNodeError (node:internal/errors:983:15)\\n    at wrappedFn (node:internal/errors:537:14)\\n    at checkExecSyncError (node:child_process:892:11)\\n    at execSync (node:child_process:964:15)\\n    at FI (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:702:3921)\\n    at mpA (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:10150)\\n    at hpA (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:623:10024)\\n    at p9A (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:2158:2567)\\n    at l9A.startOAuthFlow (file:///Users/greg/.claude/local/node_modules/@anthropic-ai/claude-code/cli.js:2158:3689)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\",\"timestamp\":\"2025-07-02T04:37:37.268Z\"},{\"error\":\"Error: Command failed: security find-generic-password -a $USER -w -s \\\"Claude Code\\\"\\nsecurity: SecKeychainSearchCopyNext: The specified",
+  "labels": ["bug", "has repro", "platform:macos", "area:security", "area:ide"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-07-03T13:32:43Z",
+  "updated_at": "2026-06-08T06:57:53Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 25,
+  "author": "fwends",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "nimbah",
+      "author_association": "NONE",
+      "body": "Open the claude code extension & hit Command+C and run claude --dangerously-skip-permissions\n\neasier tbh",
+      "created_at": "2025-07-18T13:53:21Z"
+    },
+    {
+      "author": "fwends",
+      "author_association": "NONE",
+      "body": "> Open the claude code extension & hit Command+C and run claude --dangerously-skip-permissions\n> \n> easier tbh\n\nI have that set up as an alias and type ccc to run it in the terminal that's not what the report here is about. ",
+      "created_at": "2025-07-18T22:41:17Z"
+    },
+    {
+      "author": "deromka",
+      "author_association": "NONE",
+      "body": "Increase priority for this ticket, since with the newly updated Claude Code VSCode extension, the workaround with Ctrl+C and running  'claude --dangerously-skip-permissions' it does **not** work anymore. I've tried setting an alias in zshrc, but it does not work since extensions are not loading up the shell, I've tried adding this flag to ~/.claude/settings.json, it did not work.",
+      "created_at": "2025-09-30T22:01:54Z"
+    }
+  ]
+}

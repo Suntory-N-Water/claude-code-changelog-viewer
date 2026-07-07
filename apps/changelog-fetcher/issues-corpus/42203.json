@@ -1,0 +1,35 @@
+{
+  "number": 42203,
+  "title": "Desktop app ignores env.PATH from settings.json (sandbox overrides)",
+  "body": "## Description\n\nWhen running Claude Code via the **macOS desktop app** (`com.anthropic.claudefordesktop`), the `env.PATH` setting in `~/.claude/settings.json` is silently ignored. The session PATH remains the minimal system default (`/usr/bin:/bin:/usr/sbin:/sbin`) instead of the configured value.\n\n## Steps to Reproduce\n\n1. Set `env.PATH` in `~/.claude/settings.json`:\n   ```json\n   {\n     \"env\": {\n       \"PATH\": \"/opt/homebrew/bin:/opt/homebrew/sbin:/Users/me/go/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\"\n     }\n   }\n   ```\n2. Launch Claude Code from the **desktop app** (not the CLI).\n3. Run `echo $PATH` via the Bash tool.\n\n## Expected Behavior\n\nPATH should be `/opt/homebrew/bin:/opt/homebrew/sbin:/Users/me/go/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` as configured.\n\n## Actual Behavior\n\nPATH is `/usr/bin:/bin:/usr/sbin:/sbin` — the macOS sandbox default. Tools like `go`, `gh`, and `gcloud` installed via Homebrew are not found.\n\n## Environment\n\n- **Entrypoint:** `CLAUDE_CODE_ENTRYPOINT=claude-desktop`\n- **Bundle:** `__CFBundleIdentifier=com.anthropic.claudefordesktop`\n- **Sandbox:** `OPERON_SANDBOXED_NETWORK=1`\n- **Platform:** macOS (Darwin 25.3.0, arm64)\n\n## Notes\n\n- Other settings from `settings.json` **do** work (e.g., `permissions.allow` rules are applied correctly).\n- Only the `env` section appears to be ignored.\n- The same `env.PATH` setting may work correctly when using the CLI entrypoint (`claude` in terminal), since the terminal inherits the shell profile. The issue is specific to the desktop app launch path.\n- A project-level `.claude/settings.local.json` with the same `env.PATH` is also ignored.",
+  "labels": ["bug", "has repro", "platform:macos", "area:desktop"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-01T19:11:44Z",
+  "updated_at": "2026-04-24T14:47:43Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 4,
+  "author": "ManfredM",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "thatChadM",
+      "author_association": "NONE",
+      "body": "Related: #42248 — filed independently with additional findings that may be useful for debugging this.\n\nKey additional data points from #42248:\n\n1. **`launchctl setenv PATH` is also ignored**, even after full quit/restart with no lingering processes. However, OTHER environment variables set via `launchctl setenv` ARE visible to the Desktop app (confirmed via `set` in Bash tool). This suggests the Desktop app/sandbox is specifically overriding PATH while inheriting other session-level env vars.\n\n2",
+      "created_at": "2026-04-01T22:20:45Z"
+    },
+    {
+      "author": "e0da",
+      "author_association": "NONE",
+      "body": "Closed #42639 as a duplicate of this. Adding context:\n\nThis is a regression. The v2.1.78 release notes explicitly state: \"Fixed Bash tool not finding Homebrew and other PATH-dependent binaries when VS Code is launched from Dock/Spotlight.\" This fix regressed by v2.1.87.\n\nThe shell snapshot correctly captures functions and aliases from profile scripts (proving they ran) — but the final export PATH= line reflects the parent process's minimal PATH, not the login shell's resolved PATH.\n\n",
+      "created_at": "2026-04-02T16:28:45Z"
+    },
+    {
+      "author": "parkjoos",
+      "author_association": "NONE",
+      "body": "Same issue here. macOS (Darwin 25.2.0, Apple Silicon), **Claude Desktop app v1.569.0.**\n\n/Users/xxxx/.claude/settings.json has env.PATH set to include /Users/xxxx/.local/bin:/usr/local/bin, but the actual Bash session only gets /usr/bin:/bin:/usr/sbin:/sbin.\n\nThis breaks all MCP servers (e.g. uvx-based Jira/Confluence MCP) and official plugins like playwright@claude-plugins-official — they're enabled in settings but can't start because the binaries aren't found.\n\nWas working fine last week. Conf",
+      "created_at": "2026-04-03T08:27:12Z"
+    }
+  ]
+}

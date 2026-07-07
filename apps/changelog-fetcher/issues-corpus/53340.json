@@ -1,0 +1,42 @@
+{
+  "number": 53340,
+  "title": "[BUG] Claude Code in Claude Desktop is Missing Project Level Folders",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nHitting what looks like the same root cause on Windows 11, Claude Desktop 1.4758.0.0 (MSIX install).\n**Setup:** 9 Claude Code projects with full history at `C:\\Users\\<user>\\.claude\\projects\\`\n(~293 MB, all intact). 61 session JSON files at\n`%APPDATA%\\Claude\\claude-code-sessions\\<accountId>\\<orgId>\\`. After upgrading Desktop,\nthe project-level grouping in the sidebar is gone — only a flat \"Recents\" list under the\nCode mode tab.\n**What I tried (none worked):**\n- Confirmed all 9 project dirs and 61 session files are intact on disk\n- Edited `claude_desktop_config.json` `sidebarMode` to `\"code\"` (Zod schema accepts\n  `chat | code | task | epitaxy | operon`) — Desktop validates the value but the sidebar\n  layout doesn't change\n- Killed all `Claude.exe` processes via Task Manager, full restart — no effect\n- `main.log` confirms Desktop loads 57 of 61 sessions on startup, so the data IS being\n  read, but project organization isn't surfaced\n- The asar bundle's URL routing explicitly maps `code → epitaxy`\n  (`I === \"code\" ? \"epitaxy\" : I`), so both modes load the same `claude.ai/epitaxy` page\nCould you point to the duplicate this was closed against? Want to subscribe to the\ncanonical issue for fix updates. Happy to provide more diagnostics if useful.\n\n### What Should Happen?\n\nI should see my Claude Code Projects with its related sessions underneath when I expand the project folder in the left nav pane\n\n### Error Messages/Logs\n\n```shell\nNo explicit error — the bug is silent UI loss of project grouping. Diagnostic\nevidence from %APPDATA%\\Claude\\logs\\main.log:\n\n# Pre-upgrade — sidebar working, URL was the dedicated Claude Code Desktop page:\n2026-04-24 12:40:01 [info] Using Claude Code binary at: ...\\claude-code\\2.1.111\\claude.exe\n  topFrameUrl: 'https://claude.ai/claude-code-desktop/local_ff27a65f-...'\n\n# Auto-update fires:\n2026-04-25 12:52:03 [info] [CCD] Downloaded file size: 254478496 bytes\n2026-04-25 12:52:03 [info] [CCD] Verifying checksum\n2026-04-25 12:52:03 [info] [CCD] Installed at ...\\claude-code\\2.1.119\\claude.exe\n\n# Post-upgrade — URL changed to /epitaxy, project grouping gone:\n2026-04-25 13:18:13 [info] Loaded 57 persisted sessions from\n  C:\\Users\\<user>\\AppData\\Roaming\\Claude\\claude-code-sessions\\<acct>\\<org>\\\n  topFrameUrl: 'https://claude.ai/epitaxy'\n\n# Sessions ARE loaded into memory; they just don't render with project-level\n# organization in the new sidebar (only as a flat \"Recents\" list).\n\n# The asar bundle's URL routing logic (extracted from\n# C:\\Program Files\\WindowsApps\\Claude_1.4758.0.0_x64__pzs8sxrjxfjjc\\app\\resources\\app.asar)\n# explicitly maps \"code\" -> \"epitaxy\":\nconst I = di(\"sidebarMode\"),\n      E = I === \"code\" ? \"epitaxy\" : I,\n      ...\n\n# Session route is also under /epitaxy now:\ngetSessionRoute(A) { return `/epitaxy/${encodeURIComponent(A)}` }\n\n# claude_desktop_config.json sidebarMode validates as a union of:\n# \"chat\" | \"code\" | \"task\" | \"epitaxy\" | \"operon\"\n# but neither \"code\" nor \"epitaxy\" restores the project-level grouping.\n\n# All 9 project directories at C:\\Users\\<user>\\.claude\\projects\\ are intact\n# (~293 MB of session history preserved).\n```\n\n### Steps to Reproduce\n\n1. On Claude Desktop for Windows (MSIX install) running Claude Code 2.1.111 or\n   earlier, work across multiple project directories so that\n   C:\\Users\\<user>\\.claude\\projects\\ contains several project subdirectories,\n   each with active session history. (My setup: 9 projects, 61 sessions total.)\n\n2. Confirm the Claude Desktop sidebar in Code mode shows your projects grouped\n   into folders (one entry per project working directory), with sessions nested\n   under each project.\n\n3. Allow Claude Desktop to auto-update the bundled Claude Code CLI from 2.1.111\n   to 2.1.119. The updat",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "regression",
+    "area:desktop",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-25T19:11:00Z",
+  "updated_at": "2026-06-14T22:32:22Z",
+  "closed_at": "2026-06-14T22:32:22Z",
+  "reactions_total": 10,
+  "comments_count": 15,
+  "author": "mojxo2010",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "kenanatbraindotwork",
+      "author_association": "NONE",
+      "body": "Same issue on Windows 11, Claude Desktop 2.1.119 (auto-updated from 2.1.111).\nLost all 9 project folder groupings. 60+ sessions now flat in \"Recents\".",
+      "created_at": "2026-04-26T15:04:05Z"
+    },
+    {
+      "author": "richcollins",
+      "author_association": "NONE",
+      "body": "Same issue on macOS Tahoe, Claude Desktop 1.4758.0 (fb266c) 2026-04-24T20:22:30.000Z.",
+      "created_at": "2026-04-26T20:12:25Z"
+    },
+    {
+      "author": "LuizThiago",
+      "author_association": "NONE",
+      "body": "Same issue on MacOS 26.3.1, Claude Desktop 1.4758.0 (fb266c)... This is a bug or a redesign?",
+      "created_at": "2026-04-26T22:00:17Z"
+    }
+  ]
+}

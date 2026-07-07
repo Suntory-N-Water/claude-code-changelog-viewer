@@ -1,0 +1,35 @@
+{
+  "number": 23119,
+  "title": "[BUG] IDE integration broken in v2.1.23+ - MCP server never connects - Affects Jetbrains IDEs on Windows",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# CLion-Claude Code Integration - Windows Regression Bug Report\n\n**Date:** 2026-02-04\n**Regression Introduced:** v2.1.23\n**Last Working Version:** v2.1.22\n**CLion Plugin Version:** 0.1.14-beta\n**Platform:** Windows 11 (PowerShell terminal)\n**Note:** This issue is Windows-specific - the same setup works correctly on macOS.\n\n## Summary\n\nIDE integration is broken in Claude Code v2.1.31 (and v2.1.29) on Windows. The IDE MCP server never attempts to connect, despite environment variables being correctly set.\n\n**Verified:** Downgrading to v2.1.20 via npm restores IDE integration functionality.\n\n**Verified:** Subsequent Upgrade to v2.1.23 via npm results in broken IDE integration functionality again.\n\n## Symptoms\n\n1. `/ide` command shows no IDEs to connect to (v2.1.31)\n2. CLion plugin shows \"Cannot launch Claude Code\" error\n3. Code changes only appear in terminal, not in CLion diff views\n4. Shift+Enter does not create new lines in prompt (v2.1.31 native installer)\n\n## Confirmed Working vs Broken\n\n| Version | Install Method | IDE Connection | Shift+Enter |\n|---------|----------------|----------------|-------------|\n| 2.1.20  | npm            | ✅ Working | ✅ Working |\n| 2.1.22  | npm            | ✅ Working | ✅ Working |\n| 2.1.23  | npm            | ❌ Broken | ❌ Broken |\n| 2.1.29  | native (irm)   | ❌ Broken | ❌ Broken |\n| 2.1.31  | native (irm)   | ❌ Broken | ❌ Broken |\n\n## Workaround\n\nInstall v2.1.22 via npm instead of using the native installer:\n\n```powershell\n# Remove or rename native binary\nmv $env:USERPROFILE\\.local\\bin\\claude.exe $env:USERPROFILE\\.local\\bin\\claude.exe.bak\n\n# Install working version via npm\nnpm install -g @anthropic-ai/claude-code@2.1.22\n```\n\n## Architecture Overview\n\n### How IDE Integration Should Work\n\n```\n┌────────────────────────────────────────────────────────────────┐\n│ CLion + Claude Code Plugin (com.anthropic.code.plugin)         │\n│                                                                │\n│  1. Plugin starts WebSocket server on port (e.g., 62282)       │\n│  2. When opening terminal, plugin sets environment variables:  │\n│     - CLAUDE_CODE_SSE_PORT=62282                               │\n│     - ENABLE_IDE_INTEGRATION=true                              │\n│     - TERMINAL_EMULATOR=JetBrains-JediTerm                     │\n│                                                                │\n│  3. Plugin creates \"Claude Code\" terminal tab and runs `claude`│\n└────────────────────────────────────────────────────────────────┘\n                              ↕ WebSocket (authenticated)\n┌────────────────────────────────────────────────────────────────┐\n│ Claude Code CLI (running in terminal)                          │\n│                                                                │\n│  1. Detects ENABLE_IDE_INTEGRATION=true                        │\n│  2. Writes lock file: ~/.claude/ide/<port>.lock                │\n│     (contains: workspace, PID, transport, authToken)           │\n│  3. Connects to plugin's WebSocket server as MCP server \"ide\"  │\n│  4. Enables: diff views, diagnostics, file open, etc.          │\n└─────────────────────────────────────────────────────────────",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-04T16:39:21Z",
+  "updated_at": "2026-02-19T14:30:20Z",
+  "closed_at": "2026-02-11T09:16:32Z",
+  "reactions_total": 6,
+  "comments_count": 12,
+  "author": "daveelton",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "gabrieljcs",
+      "author_association": "NONE",
+      "body": "What are the odds the first time I tried using this MCP it's broken... thank you so much for reporting, I was losing my mind.",
+      "created_at": "2026-02-05T02:41:09Z"
+    },
+    {
+      "author": "GameDevUmut",
+      "author_association": "NONE",
+      "body": "I have the same problem with JetBrains Rider + Claude Code 0.1.14-beta plugin. I use Windows 11.\nI downgraded my Claude Code version to v2.1.22, and it's solved for now. Thanks for stating the last working version.\nWe need a fix for this issue.",
+      "created_at": "2026-02-05T09:02:11Z"
+    },
+    {
+      "author": "prd-ionelv",
+      "author_association": "NONE",
+      "body": "When I click the Claude button in the IDE, I get the error message:\n**Cannot launch Claude Code**\nPlease ensure Claude Code is installed and the 'claude' command is in your system path.\n\nWhen i type /ide in the Claude terminal i get the message:\n No available IDEs detected. Please install the plugin and restart your IDE\n\nJetBrains Intellij IDEA 2025.3.2 + Claude Code 0.1.14-beta plugin. I use Windows 11.",
+      "created_at": "2026-02-06T06:51:56Z"
+    }
+  ]
+}

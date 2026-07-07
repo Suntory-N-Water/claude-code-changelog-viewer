@@ -1,0 +1,35 @@
+{
+  "number": 42248,
+  "title": "Desktop app (macOS) ignores PATH from all sources — Read tool cannot find poppler/pdftoppm",
+  "body": "## Environment\n\n- **Claude Desktop app version:** 1.2.234\n- **OS:** macOS 15.7.2 (Sequoia), Apple Silicon (arm64)\n- **Shell:** bash\n- **Homebrew prefix:** /opt/homebrew\n- **poppler version:** 26.03.0 (installed via `brew install poppler`)\n\n## Description\n\nThe Claude Code Desktop app's Read tool cannot find `pdftoppm` (poppler) for PDF rendering. The Bash tool also operates with a minimal 4-entry PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) that excludes Homebrew, MacPorts, and `/usr/local/bin` paths.\n\nThe VS Code Claude Code extension **does** pick up the correct PATH from `settings.json` `env`. This is a Desktop-app-specific issue.\n\n## Steps to Reproduce\n\n1. Install poppler: `brew install poppler`\n2. Verify it works: `/opt/homebrew/bin/pdftoppm -v` returns `pdftoppm version 26.03.0`\n3. Open Claude Desktop app\n4. Ask Claude to read any PDF file using the Read tool\n5. **Result:** `pdftoppm is not installed. Install poppler-utils...`\n6. Ask Claude to run `echo \"$PATH\" | tr ':' '\\n'` via Bash tool\n7. **Result:** Only `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin` — no Homebrew, no MacPorts, no `/usr/local/bin`\n\n## Expected Behavior\n\nThe Read tool should find `pdftoppm` when it is installed and available via standard PATH locations (`/opt/homebrew/bin`, `/usr/local/bin`), or when PATH is configured via `settings.json` `env`, or when PATH is set via `launchctl setenv`.\n\n## Workarounds Attempted — ALL FAILED for Desktop App\n\n### 1. Homebrew install (default location)\n- `brew install poppler` installs to `/opt/homebrew/bin/pdftoppm`\n- Desktop app PATH does not include `/opt/homebrew/bin`\n- **Result: Not found**\n\n### 2. Symlink to /usr/local/bin\n```bash\nsudo ln -s /opt/homebrew/bin/pdftoppm /usr/local/bin/pdftoppm\nsudo ln -s /opt/homebrew/bin/pdftotext /usr/local/bin/pdftotext\nsudo ln -s /opt/homebrew/bin/pdfinfo /usr/local/bin/pdfinfo\n```\n- Symlinks confirmed working via full path\n- Desktop app PATH does not include `/usr/local/bin`\n- **Result: Not found**\n\n### 3. settings.json env PATH\n```json\n{\n  \"env\": {\n    \"PATH\": \"/opt/local/bin:/opt/local/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\"\n  }\n}\n```\n- Full quit and restart of Desktop app after edit\n- Bash tool still shows minimal 4-entry PATH\n- **Note: This same setting DOES work for the VS Code extension** — VS Code Claude Code sees the full configured PATH\n- **Result: Not found (Desktop), Works (VS Code)**\n\n### 4. launchctl setenv PATH\n```bash\nlaunchctl setenv PATH /usr/local/bin:/usr/local/sbin:/opt/local/bin:/opt/local/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/bin:/usr/bin:/usr/sbin\n```\n- Confirmed via `launchctl getenv PATH` — value is set correctly\n- Full quit and restart of Desktop app after setting\n- Interesting: OTHER environment variables set via `launchctl setenv` ARE visible to the Desktop app (confirmed by checking custom env vars via Bash `set` command). Only PATH appears to be overridden.\n- **Result: Not found — PATH specifically is being overridden by the Desktop app**\n\n### 5. Shell snapshots\n- `~/.claude/shell-snapshots/*.sh` contains the full PATH with `/opt/homebrew/bin` and `/usr/local/bin`\n- Desktop app does not apply this PATH to the tool environment\n- **Result: Not found**\n\n### 6. Session restarts\n- Multiple full quit-and-restart cycles after each workaround\n- Ensured no lingering Claude or Chrome hook processes\n- **Result: Not found after any restart**\n\n## Key Finding\n\nThe Desktop app picks up other environment variables from `launchctl setenv` (confirmed by checking non-PATH env vars), but **PATH specifically is being overridden** with a hardcoded minimal value. This suggests the Electron app or its utility process is explicitly constructing/replacing PATH rather than inheriting it from the session environment.\n\nPer issue #22559, the Desktop app extracts PATH via a \"utility process\" — this process appears to be producing a minimal system PATH and discarding any user-configured PATH values from all sources (launchctl, settings.json, shell profiles, shell snapshots).\n\n## Workaround That Does Work\n\nCalling `pdfto",
+  "labels": ["bug", "has repro", "platform:macos", "area:desktop"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-01T21:25:59Z",
+  "updated_at": "2026-06-02T07:15:46Z",
+  "closed_at": "2026-05-18T01:32:35Z",
+  "reactions_total": 15,
+  "comments_count": 24,
+  "author": "thatChadM",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/42203\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-01T21:31:27Z"
+    },
+    {
+      "author": "CharlieOktopous",
+      "author_association": "NONE",
+      "body": "> ## Environment\n> * **Claude Desktop app version:** 1.2.234\n> * **OS:** macOS 15.7.2 (Sequoia), Apple Silicon (arm64)\n> * **Shell:** bash\n> * **Homebrew prefix:** /opt/homebrew\n> * **poppler version:** 26.03.0 (installed via `brew install poppler`)\n> \n> ## Description\n> The Claude Code Desktop app's Read tool cannot find `pdftoppm` (poppler) for PDF rendering. The Bash tool also operates with a minimal 4-entry PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) that excludes Homebrew, MacPorts, and `/usr/lo",
+      "created_at": "2026-04-02T08:03:56Z"
+    },
+    {
+      "author": "CharlieOktopous",
+      "author_association": "NONE",
+      "body": "The same PATH stripping by the `disclaimer` binary also breaks the Claude Preview tool when using Next.js with Turbopack.\n\n**What happens:** The preview server spawns `node` via the absolute path in `launch.json`, which works. But Turbopack (Rust-based) internally spawns `node` as a child process for PostCSS/CSS processing via its \"node pooled process\" worker pool. Since it resolves `node` from PATH, it fails:",
+      "created_at": "2026-04-02T08:04:13Z"
+    }
+  ]
+}

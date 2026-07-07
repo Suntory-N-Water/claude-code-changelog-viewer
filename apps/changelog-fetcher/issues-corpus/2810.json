@@ -1,0 +1,35 @@
+{
+  "number": 2810,
+  "title": "[BUG] Claude Code Configuration File Corruption",
+  "body": "Summary\n\n  Claude Code experiences configuration file corruption that causes repeated crashes and requires manual\n  intervention to resolve.\n\n  Environment\n\n  - Claude Code Version: Latest\n  - Operating System: Linux (Ubuntu-based)\n  - Node Version: v18+\n  - Project Type: TypeScript/Node.js application using MCP (Model Context Protocol)\n\n  Description\n\n  The Claude Code configuration/state files become corrupted during normal operation, leading to:\n  1. Repeated crash loops (1200+ restarts observed)\n  2. Service unavailability\n  3. Manual file deletion required to restore functionality\n\n  Steps to Reproduce\n\n  1. Run Claude Code in a project with active file monitoring\n  2. Allow it to run continuously for several hours/days\n  3. Perform normal development activities (file changes, analysis, etc.)\n  4. Configuration file eventually becomes corrupted\n  5. Service enters crash loop state\n\n  Expected Behavior\n\n  - Configuration files should remain valid during normal operation\n  - Service should handle corrupted files gracefully with automatic recovery\n  - No manual intervention should be required for continuous operation\n\n  Actual Behavior\n\n  - Configuration/state files become corrupted (invalid JSON)\n  - Service crashes when attempting to read corrupted files\n  - PM2 or process manager enters infinite restart loop\n  - Manual deletion of corrupted files required to restore service\n\n  Error Messages\n\n  SyntaxError: Unexpected token in JSON at position X\n  Error: Failed to parse configuration file\n  Process crashed with exit code 1\n  PM2: Process restarted 1200+ times\n\n  Workaround\n\n  Currently requires manual intervention:\n  # Stop the service\n  pm2 stop claude-code\n\n  # Remove corrupted files\n  rm -f /tmp/claude-code-state/*.json\n  rm -f ~/.claude/config/*.json\n\n  # Restart service\n  pm2 restart claude-code\n\n  Impact\n\n  - Severity: High\n  - Frequency: Intermittent but recurring\n  - Service becomes completely unavailable\n  - Requires manual intervention defeating 24x7 operation goals\n  - Loss of productivity during downtime\n\n  Suggested Fix\n\n  1. Implement robust error handling for configuration file parsing\n  2. Add file validation before parsing (check file size, basic structure)\n  3. Implement automatic backup/restore mechanism\n  4. Add corruption detection and self-healing\n  5. Use atomic file writes to prevent partial/corrupted writes\n\n  Additional Context\n\n  - Issue occurs more frequently under high load\n  - Large project analysis seems to correlate with corruption\n  - Files grow unbounded until corruption occurs\n  - No built-in monitoring alerts when corruption happens\n\n  Reproduction Files\n\n  Example of corrupted configuration structure:\n  {\n    \"version\": \"1.0\",\n    \"projects\": [\n      {\n        \"path\": \"/path/to/project\",\n        \"analysis\": {\n          // File cuts off here - incomplete JSON\n\n  Related Issues\n\n  - Service reliability for production use\n  - Need for high availability architecture\n  - Lack of automatic recovery mechanisms\n\n  ---\n  Note: This issue prevents Claude Code from being used as a reliable 24x7 service without constant manual\n  monitoring and intervention.",
+  "labels": ["bug", "has repro", "platform:linux", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-07-01T15:45:18Z",
+  "updated_at": "2026-03-03T17:41:41Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 24,
+  "author": "pm0code",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "pauljm",
+      "author_association": "NONE",
+      "body": "I'm seeing this as well. Seems likely to be a concurrency issue as it happens when I run multiple instances of Claude Code in parallel.",
+      "created_at": "2025-07-02T16:40:29Z"
+    },
+    {
+      "author": "steipete",
+      "author_association": "NONE",
+      "body": "I run around 5-10 instances concurrently and see this happen almost every day. It seems once that json file goes >8MB claude craps out.",
+      "created_at": "2025-07-07T16:57:44Z"
+    },
+    {
+      "author": "haasonsaas",
+      "author_association": "NONE",
+      "body": "Echoing the above — I typically run no more than 2–4 instances at a time. However, every command input is being captured. Since I work extensively with cloud tooling, this results in a wide variety of commands being logged. When I mark these as \"always allow,\" the configuration file quickly fills up and becomes corrupted once it hits around 8MB.\n\n(Running on CC latest on 26.0 Beta)",
+      "created_at": "2025-07-07T16:59:41Z"
+    }
+  ]
+}

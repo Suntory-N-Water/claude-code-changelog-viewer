@@ -1,0 +1,35 @@
+{
+  "number": 13657,
+  "title": "[BUG] ECONNRESET errors - Unable to connect to API despite healthy network",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Environment**\n\n- **Platform:** Anthropic API (Claude Max)\n- **Claude Code version:** Latest (CLI and VS Code extension)\n- **Operating System:** macOS (MBP 2024)\n- **Terminal:** VS Code integrated terminal / native terminal\n- **Model:** Opus 4.5\n\nClaude Code suddenly stopped working after functioning normally for several hours. The CLI and VS Code extension both fail with ECONNRESET errors when attempting to connect to the API.\n\n\n✅ DNS resolution working (160.79.104.10)\n✅ TCP connection successful on port 443\n✅ TLS 1.3 handshake completed\n✅ SSL certificate valid\n✅ HTTP/2 working\n✅ API responding (Cloudflare, cf-ray: 9ac3602f1d468958-SIN)\n\nThis confirms the issue is not with my local network, firewall, VPN, or DNS.\n**Steps to Reproduce**\n\nOpen Claude Code (CLI or VS Code extension)\nAttempt any operation (even just viewing auth status)\nConnection fails with ECONNRESET after multiple retry attempts\n\n### What Should Happen?\n\nClaude Code should connect to the API and function normally, as it did 2-3 hours prior.\n\n### Error Messages/Logs\n\n```shell\n**Primary error (CLI):**\n\n> auth\n└ Unable to connect to API (ECONNRESET)\n  Retrying in 11 seconds… (attempt 6/10)\n\n**Telemetry errors (VS Code extension output):**\n\n2025-12-11 15:31:32.486 [info] From claude: 2025-12-11T07:31:32.486Z [ERROR] \"Error: Error: {\"message\":\"Failed to export 49 events\",\"originalLine\":\"426\",\"originalColumn\":\"34293\",\"line\":\"426\",\"column\":\"34293\",\"sourceURL\":\"/$bunfs/root/claude\",\"stack\":\"Error: Failed to export 49 events\\n at doExport (/$bunfs/root/claude:426:34293)\\n at processTicksAndRejections (native:7:39)\"}\"\n\n2025-12-11 15:31:40.825 [info] From claude: 2025-12-11T07:31:40.824Z [ERROR] \"Error: Error: 1P event logging: 6 events failed to export\\n at queueFailedEvents (/$bunfs/root/claude:426:35104)\\n at doExport (/$bunfs/root/claude:426:34215)\\n at processTicksAndRejections (native:7:39)\"\n\n**Network Diagnostics**\nI verified that network connectivity to api.anthropic.com is healthy:\n`bash$ curl -v https://api.anthropic.com/v1/messages`\n**Result:** Connection successful (HTTP/2 405 - expected for GET request)\n```\n\n### Steps to Reproduce\n\n1. Open Claude Code (CLI or VS Code extension)\n2. Attempt any operation (even just viewing auth status)\n3. Connection fails with ECONNRESET after multiple retry attempts\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.65\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n**Troubleshooting Already Attempted**\n-  Restarted VS Code\n-  Logged out and logged back in (claude auth logout / claude auth login)\n-  Reinstalled Claude Code CLI\n-  Verified network connectivity with curl\n-  Confirmed not hitting rate limits (on Max plan)\n-  Checked official status page (shows operational)\n\n**Additional Context**\n\nThird-party status monitors (IncidentHub, StatusGator) show Claude Code as \"Affected\" with 45+ user reports in the past 24 hours, despite the official status page showing operational.\nThe issue appears to affect Claude Code's persistent/streaming connections specifically, while simple HTTP requests succeed.\nThis suggests a server-side issue with the connection handling for Claude Code clients that hasn't been acknowledged on the official status page yet.\n\n**Request**\nCould the team please investigate? It appears this may be affecting multiple users based on third-party monitoring data.",
+  "labels": ["bug", "has repro", "platform:macos", "area:api"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-11T07:58:27Z",
+  "updated_at": "2026-02-20T14:25:14Z",
+  "closed_at": "2026-01-15T05:14:15Z",
+  "reactions_total": 20,
+  "comments_count": 28,
+  "author": "dhawalshah",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5674\n2. https://github.com/anthropics/claude-code/issues/8030\n3. https://github.com/anthropics/claude-code/issues/3131\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-11T08:02:44Z"
+    },
+    {
+      "author": "huangsen365",
+      "author_association": "NONE",
+      "body": "I met the same issue...",
+      "created_at": "2025-12-17T13:32:09Z"
+    },
+    {
+      "author": "hn-alchemist",
+      "author_association": "NONE",
+      "body": "Same issue still",
+      "created_at": "2025-12-27T19:34:18Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 50559,
+  "title": "[BUG] Subprocess initialization did not complete within 60000ms on Windows — regression from 2.1.114",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWindows 11\nWas working on 2.1.113, broke after auto-update to 2.1.114\nRollback to 2.1.112 via VS Code extension didn't fix it\nCache clear didn't fix it\nNative installer, npm install, Desktop App all same error\n\n### What Should Happen?\n\nExact behavior:\n\nClaude Code worked perfectly for 5+ days on the previous version\nWoke up this morning, auto-update had installed 2.1.114 overnight\nEvery attempt to send a message in Claude Code returns: Error: Subprocess initialization did not complete within 60000ms — check authentication and network connectivity\nOutput logs show claude.exe is being spawned but never responds within the 60 second timeout\nRolled back VS Code extension to 2.1.112 — same error persists\nCleared %USERPROFILE%\\.claude cache folder — same error\nTried native PowerShell installer (irm https://claude.ai/install.ps1 | iex) — installed 2.1.114, same error\nTried npm install — same error\nTried Claude Code Desktop App — same error\nRunning claude.exe doctor directly from full path silently exits with no output\nRunning claude.exe --version directly from full path silently exits with no output\nAuthentication is valid — OAuth tokens confirmed present in logs\nNetwork is fine — all other internet working normally\n\nConclusion: The claude.exe binary itself is non-functional on this machine after the 2.1.114 update. All install methods pull the same broken binary.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nHave Claude Code working on Windows 11 with auto-updates enabled\nAuto-update installs 2.1.114 overnight\nOpen VS Code → click Claude Code panel → type any message → hit Enter\nWait 60 seconds\nError appears: Subprocess initialization did not complete within 60000ms\nRollback to 2.1.112 via Extensions → Install Another Version → same error\nClear %USERPROFILE%\\.claude → same error\nRun irm https://claude.ai/install.ps1 | iex in PowerShell → installs 2.1.114 → same error\nRun claude.exe directly from full path → silent exit, no output\nRun claude.exe --version → silent exit, no output\nRun claude.exe doctor → silent exit, no output\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.115 and 21.1.112\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:windows", "platform:vscode"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-18T23:18:47Z",
+  "updated_at": "2026-06-16T13:16:16Z",
+  "closed_at": null,
+  "reactions_total": 3,
+  "comments_count": 20,
+  "author": "winbizai-KBH",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "\"Subprocess initialization did not complete within 60000ms\" after the 2.1.114 auto-update — with rollback to 2.1.112 not fixing it — suggests the 2.1.114 update changed something that persists after rollback: either a registry entry, a PATH modification, a credential storage change, or a config file format change that the older binary cannot parse.\n\nThe fact that native installer, npm, and Desktop App all produce the same error after rollback is the key diagnostic indicator: the issue is not in ",
+      "created_at": "2026-04-18T23:41:02Z"
+    },
+    {
+      "author": "winbizai-KBH",
+      "author_association": "NONE",
+      "body": "%USERPROFILE%\\.claude\\settings.json — does not exist\nwhere.exe claude — could not find files for the given pattern\n%LOCALAPPDATA%\\Claude — does not exist\n\nThe .claude folder was already cleared in a previous troubleshooting step. No persisted state from 2.1.114 exists. The binary itself appears to be the issue — claude.exe silently exits with no output when called directly from its full path, regardless of install method. Awaiting further guidance.",
+      "created_at": "2026-04-19T15:04:50Z"
+    },
+    {
+      "author": "aidnurs",
+      "author_association": "NONE",
+      "body": "Ran into this too. As a quick fix, deleting the `.claude` folder got things working again for me.",
+      "created_at": "2026-04-21T08:54:02Z"
+    }
+  ]
+}

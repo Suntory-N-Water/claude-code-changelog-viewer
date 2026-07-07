@@ -1,0 +1,42 @@
+{
+  "number": 40524,
+  "title": "[BUG] Conversation history invalidated on subsequent turns",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhile investigating huge token usage I've noticed it come due to fact suddenly my conversation history gets invalidated and all subsequent turns revert to only caching system prompt and huge cache writes.\n\n### What Should Happen?\n\nCache shouldn't drop due to history changes. History should not be updated. Or we shouldn't be charged for historical updates.\n\n### Error Messages/Logs\n\n```shell\nAnalysis of token usage from the start of my analysis:\n\ntime        cache_read  cache_cr    input    out    model               stop        \n----------  ----------  ----------  -------  -----  ------------------  ------------\n22:22:48    312377      1944        1        215    opus-4-6            end_turn    \n22:23:39    314321      493         3        159    opus-4-6            end_turn    \n22:24:19    314814      172         3        108    opus-4-6            end_turn    \n22:33:42    0           0           8        1      haiku-4-5-20251001  max_tokens  <-- resume\n22:34:26    11428       305735      3        213    opus-4-6            tool_use    <-- irrelevant cache rewrite after restart\n22:34:35    317163      579         1        239    opus-4-6            tool_use    \n22:34:43    317742      566         1        152    opus-4-6            end_turn    \n22:37:13    318308      245         3        96     opus-4-6            end_turn    \n07:55:55    0           0           8        1      haiku-4-5-20251001  max_tokens  <-- resume\n07:56:22    11428       163547      3        143    opus-4-6            tool_use    <-- partial cache regenerate (wth?)\n07:56:40    174975      358         1        90     opus-4-6            end_turn    \n07:57:25    11428       307626      3        87     opus-4-6            end_turn    <-- full cache regenerate\n07:57:51    319054      108         3        89     opus-4-6            tool_use    \n07:58:05    319162      712         1        448    opus-4-6            tool_use    \n07:58:21    319874      833         1        367    opus-4-6            end_turn    \n07:59:21    320707      393         3        414    opus-4-6            tool_use    \n07:59:34    321100      609         1        560    opus-4-6            tool_use    \n07:59:47    321709      948         1        512    opus-4-6            tool_use    \n08:00:10    322657      615         1        348    opus-4-6            end_turn    \n08:03:00    323272      426         3        530    opus-4-6            tool_use    \n08:03:12    323698      972         1        468    opus-4-6            tool_use    \n08:03:22    324670      529         1        167    opus-4-6            end_turn    \n08:03:29    325199      215         3        28     opus-4-6            end_turn    \n08:05:30    0           0           8        1      haiku-4-5-20251001  max_tokens  <-- resume\n08:05:48    11428       187695      3        155    opus-4-6            tool_use    \n08:06:06    199123      876         1        780    opus-4-6            tool_use    \n08:06:25    199999      2199        1        1285   opus-4-6            tool_use    \n08:06:38    202198      1633        1        302    opus-4-6            end_turn    \n08:08:06    203831      481         3        88     opus-4-6            tool_use    \n08:08:17    204312      408         1        175    opus-4-6            end_turn    \n08:09:16    204720      206         3        154    opus-4-6            end_turn    \n08:10:25    204926      228         3        503    opus-4-6            tool_use    \n08:10:34    205154      1193        1        507    opus-4-6            tool_use    \n08:10:45    206347      1007        1        247    opus-4-6            end_turn    \n08:10:54    0           0           8        1      haiku-4-5-20251001  max_tokens  <-- resume\n08:11:16    11",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:cost",
+    "area:core",
+    "regression"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-29T08:59:50Z",
+  "updated_at": "2026-04-15T14:51:31Z",
+  "closed_at": "2026-04-04T15:17:11Z",
+  "reactions_total": 223,
+  "comments_count": 124,
+  "author": "jmarianski",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34629\n2. https://github.com/anthropics/claude-code/issues/27048\n3. https://github.com/anthropics/claude-code/issues/40319\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-29T09:05:25Z"
+    },
+    {
+      "author": "jmarianski",
+      "author_association": "NONE",
+      "body": "This is not a duplicate. It doesn't relate to session resume, but a subsequent turn invalidation.",
+      "created_at": "2026-03-29T09:09:33Z"
+    },
+    {
+      "author": "RebelSyntax",
+      "author_association": "NONE",
+      "body": "im collecting the  same evidence.  something breaks the cache and it never recovers.  model switches mid session is an easy one to pinpoint.  the billing header seems to be a proxy for whatever it is.  possibly the dynamic tool loading or some sort of memory call back?  not sure but the only way to recover seems to be starting a completely brand new session.  otherwise cache writes grow unbounded and quickly devour premium tokens.  ",
+      "created_at": "2026-03-30T04:13:07Z"
+    }
+  ]
+}

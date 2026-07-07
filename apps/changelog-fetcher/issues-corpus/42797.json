@@ -1,0 +1,35 @@
+{
+  "number": 42797,
+  "title": "[BUG] Auto-mode ignores permissions.ask",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nIt is illogical that `permissions.allow` and `permissions.deny` are respected in auto-mode but not `permissions.ask`.  All three permissions lists are configured in the same place, and if I want auto-mode to ignore permissions.ask I can simply empty out the permissions.ask array.\n\n\n### What Should Happen?\n\nAuto-mode should respect `permissions.ask`\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Turn on auto-mode\n2. Specify a permissions.ask setting in your settings.json\n3. Prompt claude in a way that should trigger permissions.ask, but does not.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.90\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:permissions"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-02T21:21:08Z",
+  "updated_at": "2026-06-30T12:58:01Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 12,
+  "author": "seanemmer",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "homostellaris",
+      "author_association": "NONE",
+      "body": "I was very surprised and dismayed by this behaviour.",
+      "created_at": "2026-04-08T13:19:58Z"
+    },
+    {
+      "author": "mbu-ab",
+      "author_association": "NONE",
+      "body": "### Additional repro: `git push` bypasses explicit `ask` rule in auto mode\n\n**Settings:**\n```json\n{\n  \"permissions\": {\n    \"ask\": [\"Bash(git push*)\"]\n  },\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Bash(git push*)\",\n        \"hooks\": [{ \"type\": \"command\", \"command\": \"git remote -v && git branch --show-current\", \"timeout\": 10 }]\n      }\n    ]\n  }\n}\n```\n\n**What happened:**\n1. Auto mode active, user said \"push to remote\"\n2. First attempt: blocked by a separate rule (default branch ",
+      "created_at": "2026-04-13T19:11:23Z"
+    },
+    {
+      "author": "mbu-ab",
+      "author_association": "NONE",
+      "body": "### Still reproduces on 2026-04-17 (Opus 4.7, 1M context)\n\nVerified the bug persists on the latest Opus release. The model version bump (4.6 → 4.7) did not fix it.\n\n**Same setup, same result:**\n- `permissions.ask` on `Bash(git push*)` ✓ configured\n- PreToolUse hook on `Bash(git push*)` ✓ fires (confirmed via `additionalContext` injection showing branch + upstream)\n- Auto mode classifier silently allowed `git push --dry-run origin HEAD:test-branch` without rendering the approval dialog\n\n**Additio",
+      "created_at": "2026-04-17T08:49:12Z"
+    }
+  ]
+}

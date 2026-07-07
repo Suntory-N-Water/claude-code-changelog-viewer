@@ -1,0 +1,43 @@
+{
+  "number": 42376,
+  "title": "`--continue` on 2.1.90 silently drops conversation context (regression from 2.1.89)",
+  "body": "## Description\n\n`claude --continue` on v2.1.90 introduces a new dialog prompt on session restore that did not exist in v2.1.89. After interacting with this dialog, the conversation context is silently dropped — **no `compact_boundary` event is written**, and **no `/clear` event is recorded** — yet the restored session contains almost none of the prior conversation.\n\n## Steps to Reproduce\n\n1. Have a long-running session (~45K lines, ~280MB JSONL)\n2. On v2.1.89: `exit` → `claude --continue` → session restores correctly ✅\n3. Update to v2.1.90\n4. `exit` → `claude --continue` → **new dialog appears** with options like \"Summarize / Keep as-is / Don't ask again\"\n5. Select \"Don't ask again\"\n6. Session loads with most conversation context missing\n\n## Expected Behavior\n\n`--continue` should restore the session the same way it did in 2.1.89 — directly, without an intermediate dialog, and without data loss.\n\n## Actual Behavior\n\n- A new dialog prompt appears during `--continue` that was not present in 2.1.89\n- After the dialog, the conversation context is drastically reduced\n- Inspection of the JSONL transcript shows:\n  - **No `compact_boundary` event** for the current date — this was not a normal compaction\n  - **No `/clear` event** — this was not a user-initiated clear\n  - The last `compact_boundary` in the file is from a previous date (v2.1.84), with 5,500+ lines added after it\n  - Messages simply vanish from the loaded context without any recorded event\n\n## Additional Context\n\n- **`/resume` (interactive session picker) works correctly** for the same session — context is fully preserved\n- The session had survived **41 normal auto-compactions** across versions 2.1.69 → 2.1.72 → 2.1.84 without issue\n- The \"Don't ask again\" option's default behavior is unclear — it's not documented what action it defaults to\n- A session backup was made before the `--continue` attempt, confirming all messages exist in the JSONL file but are not loaded into context\n\n## Environment\n\n- Claude Code v2.1.90 (built 2026-04-01)\n- Previously working on v2.1.89\n- Linux (WSL2, Ubuntu 24.04)\n- Session size: ~45,000 lines, ~280MB JSONL\n- Auto-compact enabled, `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=90`\n\n## Impact\n\n- **Data loss**: Days of conversation context (March 27 – April 2) silently dropped\n- **No recovery path**: The context cannot be restored even though the JSONL file is intact\n- **Breaks existing workflow**: Users relying on `--continue` for frictionless session restoration are affected\n- **Behavioral regression**: The new dialog fundamentally changes the `--continue` contract (direct restore → interactive prompt)",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "regression",
+    "platform:wsl",
+    "area:cli",
+    "data-loss"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-04-02T04:11:17Z",
+  "updated_at": "2026-05-01T14:40:01Z",
+  "closed_at": "2026-04-19T14:20:11Z",
+  "reactions_total": 4,
+  "comments_count": 12,
+  "author": "yuio124",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/40319\n2. https://github.com/anthropics/claude-code/issues/35358\n3. https://github.com/anthropics/claude-code/issues/42290\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-02T04:15:15Z"
+    },
+    {
+      "author": "yuio124",
+      "author_association": "NONE",
+      "body": "## Not a duplicate — confirming same root cause persists in 2.1.90\n\nAfter investigating, this appears to be the same root cause as #40319 (progress entry elision bug introduced in 2.1.85).\n\n**Key addition from this report:**\n- **2.1.89**: `--continue` worked correctly for this same session\n- **2.1.90**: `--continue` fails — context silently dropped, no `compact_boundary` written\n- The session survived **41 normal auto-compactions** across 2.1.69 → 2.1.72 → 2.1.84 without issue\n- `/resume` (inter",
+      "created_at": "2026-04-02T04:25:02Z"
+    },
+    {
+      "author": "yuio124",
+      "author_association": "NONE",
+      "body": "## Reproduced twice on the same session\n\nAfter the first context loss, I backed up the session JSONL (286MB) and attempted `--continue` again on the same session. **The exact same behavior occurred** — context was silently dropped with no `compact_boundary` or `/clear` event.\n\n### Key observation: this is NOT compaction behavior\n\nIf auto-compaction had fired, the **most recent** conversation topics would be preserved in the summary. Instead:\n- Recent topics (last 5 days of work) were completely ",
+      "created_at": "2026-04-02T05:07:22Z"
+    }
+  ]
+}

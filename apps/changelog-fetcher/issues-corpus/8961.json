@@ -1,0 +1,35 @@
+{
+  "number": 8961,
+  "title": "Claude Code ignores deny rules in .claude/settings.local.json - security vulnerability",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Amodel) for similar behavior reports\n- [x] This report does NOT contain sensitive information (API keys, passwords, etc.)\n\n### Type of Behavior Issue\n\nClaude ignored my instructions or configuration\n\n### What You Asked Claude to Do\n\nClaude Code is **completely ignoring** explicitly defined deny rules in `.claude/settings.local.json`, allowing it to read and modify files that should be blocked. This is a critical security vulnerability that exposes production secrets and sensitive credentials.\n\n### Steps to Reproduce\n1. Add `\"Read(./.env.production.*)\"` to the `\"deny\"` section in `.claude/settings.local.json`\n\n<img width=\"321\" height=\"150\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/e5fdad2e-a43f-4ba3-a28e-381cdca45686\" />\n\n3. In one Claude Code session, the tool reads and updates `.env.production.supabase` without any permission errors\n\n<img width=\"268\" height=\"193\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/2d33d9bc-68aa-4acb-bfe7-b6e0b95e2c78\" />\n\n5. In another session, when asked \"Are you able to access .env.production.supabase?\", Claude correctly responds with \"Permission to read... has been denied\"\n\n### My Frustration\nI cannot emphasize enough how egregious this bug is. This is not some edge case or minor inconvenience, this is a fundamental security control that is being completely ignored. The fact that something as basic as \"don't read files in the deny list\" isn't working properly is absolutely mind-boggling.\n\nThe inconsistent behavior makes it even worse... sometimes it respects the rules, sometimes it doesn't. How am I supposed to trust this tool with my codebase when it can't even consistently follow the most basic security directives?\n\nAnthropic has already lost significant trust from the user base over the past month, and this kind of fundamental failure on basic security controls is making it impossible to recommend Claude Code for any serious development work. I really want to be \"Team Anthropic/Claude\", but this makes me want to pull my hair out - how does something this basic and critical get past QA?\n\n### Requested Action\n1. Immediate hotfix to ensure deny rules are ALWAYS respected\n2. Security audit of all permission controls in Claude Code\n3. Public acknowledgment of this vulnerability and notification to all users\n4. Clear documentation on what security guarantees Claude Code actually provides\n\nThis needs to be fixed IMMEDIATELY. Every moment this bug exists is another moment where production secrets are at risk despite users explicitly configuring the tool to protect them.\n\nLike c'mon guys... how can you build a Ferrari and forget to put brakes in it??\n\nP.S. it honestly feels like someone at Anthropic woke up some time last month and said \"you know what... OpenAI has been the Bond villain long enough... let's throw away the principles we founded the company on and go so low that we make them look like the good guys.\"\n\n### What Claude Actually Did\n\nClaude Code is arbitrarily ignoring deny rules. In one session, it successfully reads and modifies a denied file. In another session, when explicitly asked about access, it correctly reports \"Permission denied.\" This inconsistent behavior is extremely concerning.\n\n### Expected Behavior\n\nWhen a file pattern is listed under `\"deny\"` in `.claude/settings.local.json`, Claude Code should **NEVER** be able to read or modify those files under any circumstances.\n\n### Files Affected\n\n```shell\n.env.production.* files\n```\n\n### Permission Mode\n\nAccept Edits was ON (auto-accepting changes)\n\n### Can You Reproduce This?\n\nHaven't tried to reproduce\n\n### Steps to Reproduce\n\nSee above\n\n### Claude Model\n\nSonnet\n\n### Relevant Conversation\n\n```markdown\n\n```\n\n### Impact\n\nCritical - Data loss or corrupted project\n\n### Claude Code Version\n\n2.0.8 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Additional Context\n\n_No response_",
+  "labels": ["bug", "has repro", "area:core", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-05T09:43:21Z",
+  "updated_at": "2026-03-29T15:23:13Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 19,
+  "author": "sbs44",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/8031\n2. https://github.com/anthropics/claude-code/issues/2014\n3. https://github.com/anthropics/claude-code/issues/7921\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-05T09:47:20Z"
+    },
+    {
+      "author": "LanceVCS",
+      "author_association": "NONE",
+      "body": "Also seeing the same issue, claude code latest version ignores the deny list and reads the file anyways. When Sonnet 4.5 is confronted and shown that there are explicit denies at both user and project level:\n\n```\nThis is definitely a bug. The deny rules are properly configured at the user level, but they're not being enforced when I use the Read tool. I was able to read\n  .tfvars files twice despite explicit denial rules.\n\n  You should report this as a security issue at https://github.com/anthro",
+      "created_at": "2025-10-08T02:10:31Z"
+    },
+    {
+      "author": "kaselby",
+      "author_association": "NONE",
+      "body": "Note: it doesn't just ignore Deny rules, it also ignores Allow rules too! The whole permissions setion is ignored. Other settings like statusline work fine, but all Allow and Deny rules that I have tested have no effect.",
+      "created_at": "2025-10-08T15:43:57Z"
+    }
+  ]
+}

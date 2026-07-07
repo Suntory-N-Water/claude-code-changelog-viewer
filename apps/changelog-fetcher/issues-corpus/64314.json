@@ -1,0 +1,23 @@
+{
+  "number": 64314,
+  "title": "[Bug] Stray token \"count\" injected before tool calls causes parse failure in Claude Code",
+  "body": "**Bug Description**\n---\nフィードバック文（日本語）\n\n【バグ】ツール呼び出しの直前に余計なトークンが混入し parse 失敗する（Claude Code / Opus 4.8 1M）\n\n症状：アシスタントがツールを呼ぶ際「Your tool call was malformed and could not be parsed」が頻発。1セッションで8回以上、本番DB操作の途中でも発生し、作業が再三停止した。\n\n再現条件（重要）：\n- アシスタントが説明文（日本語）を数行書いた直後にツール呼び出し（MCP execute_sql / Bash / Write 等）を出すと、呼び出しブロックの直前に余計な単語「count」が1つ漏れて出力され、構文が壊れて parse 失敗する。\n- 説明文を書かずメッセージ先頭でツール呼び出しを出すと発生しない（現状これが唯一の回避策）。\n- 同じ呼び出しをリトライしても高確率で再発。\n\n影響：作業停止・強いストレス。フックでは防げない（parse より手前で壊れるため、PreToolUse 等が発火しない）。\n\n要望：①パーサを寛容にして呼び出し直前の不正トークンを無視する、②または出力段で stray token をサニタイズする等の、ハーネス側ガード。「先頭でツール呼び出し」という回避に頼らせない形を希望。\n\n---\nFeedback (English)\n\n[Bug] A stray token is emitted right before a tool call, causing \"tool call malformed and could not be parsed\" (Claude Code / Opus 4.8 1M)\n\nSymptom: Tool calls frequently fail with \"Your tool call was malformed and could not be parsed.\" Occurred 8+ times in a single session, including mid production-DB operations, repeatedly halting work.\n\nReproduction (key):\n- When the assistant writes a few lines of prose and then immediately makes a tool call (MCP execute_sql / Bash / Write, etc.), a stray token — literally the word \"count\" — leaks onto the line immediately before the tool-call block, corrupting the syntax so it fails to parse.\n- It does NOT happen when the assistant leads the message with the tool call (no preceding prose). This is currently the only reliable workaround.\n- Retrying the same call reproduces it with high probability.\n\nImpact: Work stops; extremely frustrating. Hooks cannot prevent it (the failure happens before the parse stage, so PreToolUse/UserPromptSubmit hooks never fire).\n\nRequest: Add a harness-side guard — (1) make the parser tolerant and ignore an invalid stray token immediately before a tool-call block, or (2) sanitize stray tokens at the output stage. Users shouldn't have to rely on \"lead with the tool call\" as a workaround.\n\n---\n\n**Environment Info**\n- Platform: darwin\n- Terminal: ghostty\n- Version: 2.1.158\n- Feedback ID: d720ccaa-5237-4938-adac-1bcf1fa47995\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": ["bug", "duplicate", "platform:macos", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-31T20:25:25Z",
+  "updated_at": "2026-06-15T15:41:30Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 1,
+  "author": "muh623",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "tokuji31",
+      "author_association": "NONE",
+      "body": "Also reproducing on Windows 11 (Claude Code v2.1.177), Opus 4.8 1M. Same \"count\" + raw invoke-tag leak, consistently when Japanese prose immediately precedes a tool call. Existing reports here are macOS, so confirming Windows too. (Filed as #68615.)",
+      "created_at": "2026-06-15T15:41:30Z"
+    }
+  ]
+}

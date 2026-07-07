@@ -1,0 +1,16 @@
+{
+  "number": 36759,
+  "title": "Sandbox sets TMPDIR to non-existent directory, causing child processes to hang",
+  "body": "## Description\n\nWhen running in sandbox mode, Claude Code sets `TMPDIR=/tmp/claude` and adds `/tmp/claude` to the filesystem write allowlist — but never actually creates the directory. Since `/tmp` itself is read-only within the sandbox, the directory cannot be created from inside the sandbox either.\n\nThis causes any tool that spawns child processes relying on `os.tmpdir()` (Node.js) or `$TMPDIR` for temp files, IPC, or worker communication to silently hang.\n\n## Steps to reproduce\n\n1. Start Claude Code in sandbox mode (fresh session or after reboot, so `/tmp/claude` doesn't exist)\n2. Run any command that uses worker threads/child processes needing temp files — e.g., `npm run test` in a project using vitest\n\n## Observed behavior\n\n- `TMPDIR` is set to `/tmp/claude` and inherited by child processes\n- `/tmp/claude` does not exist as a directory\n- `mkdir -p /tmp/claude` fails from within the sandbox with `Read-only file system` (because `/tmp` is not writable, only `/tmp/claude` is in the allowlist)\n- Child processes (e.g., vitest worker threads) attempt to write IPC/temp files to the non-existent directory and block indefinitely\n- Commands hang with no error message\n\n## Expected behavior\n\nThe sandbox should create the `TMPDIR` directory on startup before any commands are executed, since it cannot be created from within the sandbox.\n\n## Workaround\n\nManually create the directory with sandbox disabled:\n\n```bash\nmkdir -p /tmp/claude\n```\n\nThis persists until reboot (since `/tmp` is typically `tmpfs`).\n\n## Environment\n\n- Platform: Linux (Ubuntu, kernel 6.8.0-106-generic)\n- Note: The sandbox also creates and uses `/tmp/claude-1000/` which *does* exist — the inconsistency suggests `/tmp/claude` creation was simply missed",
+  "labels": ["bug", "has repro", "platform:linux", "area:sandbox"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-20T17:48:01Z",
+  "updated_at": "2026-04-25T14:34:58Z",
+  "closed_at": "2026-04-18T04:16:54Z",
+  "reactions_total": 4,
+  "comments_count": 4,
+  "author": "ieggel",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

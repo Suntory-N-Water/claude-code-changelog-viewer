@@ -1,0 +1,35 @@
+{
+  "number": 38698,
+  "title": "Feature: Per-agent model provider routing (e.g. local Ollama for subagents, Anthropic for orchestrator)",
+  "body": "## Problem\n\nCurrently, `ANTHROPIC_BASE_URL` and model provider configuration is **session-wide**. There's no way to route individual subagents to different providers within the same session.\n\nThe `model` parameter in agent definitions only accepts `sonnet`, `opus`, `haiku` — all pointing to the same provider endpoint.\n\n## Use case\n\nAs a power user running Claude Code with Opus as orchestrator, I'd like to delegate mechanical/repetitive subagent tasks (bulk edits, i18n key extraction, file moves, simple searches) to a **local model via Ollama** while keeping the orchestrator and complex reasoning agents on Anthropic's API.\n\nThis would:\n- **Reduce API costs** for high-volume agent workflows (GSD, parallel agents, etc.)\n- **Reduce latency** for simple tasks (local inference is instant for small models)\n- **Enable offline capability** for a subset of agent work\n- **Give users control** over the cost/quality tradeoff per agent\n\n## Proposed solution\n\nAllow a `provider` or `base_url` field in agent definitions (both `.md` frontmatter and `--agents` JSON), plus a corresponding entry in `modelOverrides` or a new `providerOverrides` setting:\n\n```yaml\n# ~/.claude/agents/my-bulk-editor.md\n---\nname: bulk-editor\nmodel: llama3.3:70b\nprovider: ollama\nbase_url: http://localhost:11434/v1\n---\n```\n\nOr in settings:\n\n```json\n{\n  \"providerOverrides\": {\n    \"ollama\": {\n      \"baseUrl\": \"http://localhost:11434/v1\",\n      \"format\": \"openai\"\n    }\n  }\n}\n```\n\nThen in agent definitions: `provider: ollama` routes to that endpoint.\n\n## Current workaround\n\nRun separate terminal sessions with different `ANTHROPIC_BASE_URL` values. This loses the orchestrator→subagent delegation model entirely.\n\n## Environment\n\n- Claude Code v2.1.83\n- macOS Apple Silicon\n- Heavy user of parallel subagents (GSD, team agents, custom agents)\n",
+  "labels": ["enhancement", "area:agents", "area:providers"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-25T11:20:50Z",
+  "updated_at": "2026-07-04T13:01:26Z",
+  "closed_at": null,
+  "reactions_total": 37,
+  "comments_count": 6,
+  "author": "berthelius",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "oussama-kh",
+      "author_association": "NONE",
+      "body": "Could this solve your issue? https://github.com/oussama-kh/mcp-llama-swap\nCurrently works for local llm models only, and is not meant for subagents, but maybe you can fork and adapt it to your case.",
+      "created_at": "2026-04-06T12:27:36Z"
+    },
+    {
+      "author": "seanbdoherty",
+      "author_association": "NONE",
+      "body": "I'd also love this.  Exactly what I'm trying to do.  Maybe someone has solved this with a different provider than Ollama?  I'm falling back to having to use a ticketing system like GitHub issues as a middle ground between orchestration and implementation teams.",
+      "created_at": "2026-04-16T16:09:18Z"
+    },
+    {
+      "author": "ksabour",
+      "author_association": "NONE",
+      "body": "+1\n\nData sovereignty is not a preference, it is a non-negotiable requirement in many professional contexts. The session-wide provider lock that forces all inference through Anthropic's servers is a hard blocker, regardless of how capable Claude Code is as a tool.\n\nPer-agent provider routing would change this entirely. Claude handles reasoning and planning. Local inference handles everything that touches protected data. Both within the same session, under a single coherent workflow.\n\nWithout this",
+      "created_at": "2026-04-19T22:29:40Z"
+    }
+  ]
+}

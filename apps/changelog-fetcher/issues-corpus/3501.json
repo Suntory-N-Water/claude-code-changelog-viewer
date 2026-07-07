@@ -1,0 +1,42 @@
+{
+  "number": 3501,
+  "title": "[BUG]   TClaude Code ignores file access restrictions in settings.json",
+  "body": "  Description:\n\n  Claude Code is not respecting file access restrictions configured in\n  /Users/xxx/.claude/settings.json. Despite having deny rules configured in this file, Claude was\n  still able to read files that should have been restricted.\n\n  Steps to Reproduce:\n  1. Configure file access restrictions in ~/.claude/settings.json\n  2. Ask Claude to read a file that should be denied by these restrictions\n  3. Observe that Claude can still access the restricted file\n\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(find:*)\"\n    ],\n    \"deny\": [\n      \"Read(http-client.private.env.json)\",\n      \"Read(*vimwiki/private*)\",\n      \"Read(*/vimwiki/private/*)\",\n      \"Read(/Users/xxx/dev/s/private/vimwiki/private/*)\",\n      \"Read(/Users/xxx/dev/s/private/vimwiki/private/configuration.md)\"\n    ]\n  },\n  \"model\": \"sonnet\"\n}\n\n\n  Expected Behavior:\n  Claude should respect the file access restrictions defined in settings.json and refuse to read\n  denied files.\n\n  Actual Behavior:\n  Claude successfully reads files that should be restricted according to the settings.json\n  configuration.\n\n  Environment:\n  - Platform: macOS (Darwin 23.6.0)\n  - Claude Code version: [current version]\n  - Working directory: /Users/Q187392/dev/s/private/vimwiki\n\n  Additional Context:\n  The file access restrictions are properly configured in settings.json, but Claude was able to read\n  configuration.md despite these restrictions being in place.\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:security",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-14T19:53:55Z",
+  "updated_at": "2026-01-17T14:09:42Z",
+  "closed_at": "2026-01-09T10:13:05Z",
+  "reactions_total": 10,
+  "comments_count": 10,
+  "author": "sysid",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "TimMillerDyck-KindredCreditUnion",
+      "author_association": "NONE",
+      "body": "I am seeing the same problem. I have a user settings file ~/.claude/settings.json with the following rules:\n\n```\n{\n  \"permissions\": {                                                                                                                                          \n    \"deny\": [                                                                                                                                               \n      \"Read(*.properties)\",\n      \"Read(*.yaml)\",\n      \"Read(*.yml)\"\n ",
+      "created_at": "2025-07-25T23:37:29Z"
+    },
+    {
+      "author": "junefish",
+      "author_association": "NONE",
+      "body": "This is happening to me as well. I just configured `.claude/settings.local.json` in my project directory, and added\n```\n{\n    \"permissions\": {\n        \"deny\": [\n            \"Read(./.env)\",\n            \"Read(./.env.*)\",\n            \"Read(./secrets/**)\",\n            \"Read(./zeus/**)\"\n        ]\n    }\n}\n```\nBut, when I then run \"what is zeus\" claude summarizes `./zeus/README.md`.",
+      "created_at": "2025-08-15T21:09:31Z"
+    },
+    {
+      "author": "mnabialek",
+      "author_association": "NONE",
+      "body": "Same for me. When I ask Claude Code what's wrong, he verifies settings.json file and says .env file is denied and as one of possible directions it says there is bug in Claude Code",
+      "created_at": "2025-08-26T18:05:57Z"
+    }
+  ]
+}

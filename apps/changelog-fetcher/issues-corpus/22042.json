@@ -1,0 +1,24 @@
+{
+  "number": 22042,
+  "title": "[BUG] Critical memory regression in 2.1.27 - OOM crash on simple input",
+  "body": "## Bug Description\n\nVersion 2.1.27 has a critical memory regression causing immediate OOM kills on even trivial input. Rolling back to 2.1.25 resolves the issue completely.\n\n## Reproduction Steps\n\n1. Update to Claude Code 2.1.27\n2. Launch `claude` in terminal\n3. Type \"Test\" and press Enter\n4. Process balloons to 7.5GB RAM in ~20 seconds and gets OOM killed\n\n## Expected Behavior\n\nClaude Code should handle simple input without excessive memory consumption, as it did in 2.1.25.\n\n## Actual Behavior\n\nMemory consumption explodes from ~467MB to 7.5GB within 20 seconds of sending a single word, exhausting all available RAM + swap and triggering the Linux OOM killer.\n\n## Evidence\n\n### Memory comparison between versions\n\n| Version | Behavior after typing \"Test\" |\n|---------|------------------------------|\n| 2.1.27 | 467MB → 7.5GB in 20 sec → OOM killed |\n| 2.1.25 | ~540-555MB, stable |\n\n### dmesg OOM killer logs (2.1.27)\n\n```\n[Fri Jan 30 15:40:20 2026] oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,global_oom,task_memcg=/user.slice/user-1000.slice/session-2973.scope,task=claude,pid=2629268,uid=1000\n[Fri Jan 30 15:40:20 2026] Out of memory: Killed process 2629268 (claude) total-vm:86031684kB, anon-rss:7510204kB, file-rss:2304kB, shmem-rss:0kB, UID:1000 pgtables:21288kB oom_score_adj:0\n```\n\n### Memory monitoring during 2.1.27 session\n\n```\n# Baseline at launch\ncurtis 2629268  3.9  5.7 74631248 467256 pts/0 Sl+ 15:38 0:02 claude\nMem: 7.7Gi total, 1.3Gi used, 6.1Gi free\n\n# +15 seconds later\ncurtis 2629268 15.1 61.5 79740216 4988860 pts/0 Rl+ 15:38 0:14 claude\nMem: 7.7Gi total, 5.6Gi used, 1.7Gi free\n\n# +5 more seconds: OOM killed\n```\n\n### 2.1.25 after rollback (stable)\n\n```\ncurtis 2630338 30.0  6.7 81149672 549984 pts/0 Sl+ 15:41 0:10 claude\nMem: 7.7Gi total, 1.4Gi used, 5.0Gi free\n# Remained stable at ~550MB\n```\n\n## Workaround\n\nRoll back to 2.1.25:\n```bash\nln -sf ~/.local/share/claude/versions/2.1.25 ~/.local/bin/claude\n```\n\n## Environment Info\n\n- **Platform:** Linux (Ubuntu 24.04, kernel 6.8.0-90-generic)\n- **Architecture:** x86_64 (QEMU/KVM VM)\n- **RAM:** 8GB + 4GB swap\n- **Terminal:** VSCode integrated terminal (Remote SSH)\n- **Affected Version:** 2.1.27\n- **Working Version:** 2.1.25\n- **MCP Servers:** playwright-mcp, mcp-obsidian (were loading at time of crash, but crash occurs regardless)\n\n## Additional Context\n\n- This VM has been running heavy Claude Code sessions for weeks without issue on earlier versions\n- Previously ran 4 concurrent Claude Code terminals without problems\n- The issue is 100% reproducible on 2.1.27 and 100% resolved by rolling back to 2.1.25\n- Multiple OOM kills observed in a single debugging session, all with the same pattern",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "memory",
+    "perf:memory",
+    "oncall"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-30T21:43:46Z",
+  "updated_at": "2026-02-19T14:33:13Z",
+  "closed_at": "2026-01-31T20:54:06Z",
+  "reactions_total": 92,
+  "comments_count": 65,
+  "author": "Profreshor",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

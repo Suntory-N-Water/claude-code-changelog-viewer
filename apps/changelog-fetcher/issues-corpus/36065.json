@@ -1,0 +1,42 @@
+{
+  "number": 36065,
+  "title": "[BUG] It auto interrups when doing any task",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code is automatically interrupting itself during execution without any user interaction (no Escape press). Tool calls get cancelled mid-task, breaking\n   the workflow.\n\n  Environment\n\n  - Claude Code version: 2.1.79\n  - OS: macOS (Darwin 24.2.0)\n  - Shell: zsh\n  - Model: Opus 4.6 (1M context)\n  - Install method: npm (@anthropic-ai/claude-code)\n\n  Steps to Reproduce\n\n  1. Start a Claude Code session\n  2. Give a task that requires multiple tool calls (e.g., reading files, editing code)\n  3. Claude begins executing but stops mid-task with an interruption, as if Escape was pressed\n\n  Expected Behavior\n\n  Claude should complete all tool calls and finish the task without interruption.\n\n  Actual Behavior\n\n  Claude auto-interrupts itself during tool execution. No Escape key was pressed. The interruption appears unprompted.\n\n  Workarounds Attempted\n\n  - /clear — temporary fix, issue recurs\n  - /compact — no effect\n  - Updating to latest version (2.1.79) — no effect\n\n  Additional Context\n\n  - Context window was not full at the time of interruption\n  - Issue occurs across multiple sessions\n  - No MCP servers configured that could be adding overhead.\n\nMore details:\n\nEnvironment\n\nClaude Code version: v2.1.79\nOS: macOS Tahoe 26.3.1 (MacBook Pro)\nNode.js version: (run node --version and fill in)\nPlan: Claude Max\nModel: Opus 4.6 (1M context)\n\nDescription\nClaude Code automatically interrupts itself after a few seconds of processing, showing \"Interrupted · What should Claude do instead?\" even though I did not press any key, type anything, or interact with the terminal in any way.\nThis happens consistently across:\n\nMultiple fresh sessions (/clear)\nDifferent effort levels (auto, high, max)\nDifferent repositories (tested on 2 separate projects)\nDifferent networks (WiFi, mobile hotspot)\nAfter full laptop restart\nWith voice mode both enabled and disabled\nSimple and complex prompts\n\nSteps to Reproduce\n\nOpen terminal, run claude\nType /clear\nType any prompt (e.g., \"Read CLAUDE.md and tell me the char count\")\nRemove hands from keyboard completely — do not touch any keys\nWait 5-30 seconds while Claude Code is processing (showing spinner)\nClaude Code shows: ⎿ Interrupted · What should Claude do instead?\n\nNo user input was provided. The interruption is automatic.\nExpected Behavior\nClaude Code should continue processing until the task is complete, then show the ❯ prompt for new input.\nActual Behavior\nProcessing is interrupted mid-task with \"Interrupted · What should Claude do instead?\" despite zero user input. This makes Claude Code unusable — no task can complete because it gets interrupted before finishing.\nExample Session Log\n❯ Claude code is automatically interrupting itself. Can you check why?\n⏺ Let me check your Claude Code settings and configuration.\n  Searched for 2 patterns, read 3 files (ctrl+o to expand)\n⏺ You have several plugins installed with hooks. Let me check if any of them might be causing the interruptions.\n  Read 5 files (ctrl+o to expand)\n  ⎿  Interrupted · What should Claude do instead?\nSecond attempt immediately after:\n❯ Claude code is automatically interrupting itself. Can you check why?\n  ⎿  Interrupted · What should Claude do instead?\nThe second attempt interrupted before Claude Code even started processing.\nTroubleshooting Already Attempted\n\n Restarted laptop\n Switched networks (WiFi → mobile hotspot)\n Tried different repositories\n Tried /effort auto, /effort high, /effort max\n Disabled voice mode (/voice toggle)\n Used /clear for fresh sessions\n Verified latest Claude Code version (v2.1.79)\n Verified stable internet connection\n Confirmed no keyboard/mouse input during processing\n\nPossible Causes\n\nMCP server or hook timeout: If any configured MCP ",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:macos",
+    "area:tui",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-19T05:51:07Z",
+  "updated_at": "2026-05-01T14:44:10Z",
+  "closed_at": "2026-04-21T22:21:16Z",
+  "reactions_total": 5,
+  "comments_count": 14,
+  "author": "FaizanZahid",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "john-tgco",
+      "author_association": "NONE",
+      "body": "Similar to #35809  In that ticket I mentioned that Claude code was freezing. It also did this auto interrupt thing many times.",
+      "created_at": "2026-03-19T05:54:19Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/36054\n2. https://github.com/anthropics/claude-code/issues/35982\n3. https://github.com/anthropics/claude-code/issues/35741\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-19T05:55:30Z"
+    },
+    {
+      "author": "FaizanZahid",
+      "author_association": "NONE",
+      "body": "This issue is happening in claude code This is a Claude Code v2.1.79 bug. \ni downgraded it back to 2.1.76 and its working fine.\n\nPlease fix this bug in v2.1.79 \n\nDO NOT close this issue, its a serious issue. unable to work at all in newer version.\n",
+      "created_at": "2026-03-19T06:18:32Z"
+    }
+  ]
+}

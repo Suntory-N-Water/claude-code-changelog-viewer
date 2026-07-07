@@ -1,0 +1,35 @@
+{
+  "number": 2941,
+  "title": "[BUG] Exclamation mark is escaped",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.41 (Claude Code)\n- Operating System: Debian 13\n- Terminal: foot\n\n## Bug Description\nI often observe claude executing a benign command with exclamation mark somewhere in the middle only to raise `Error: ERROR:  syntax error at or near \"\\\"`\n\n## Steps to Reproduce\n1. Work with SQL for some time\n2. Observe the error\n\n## Expected Behavior\nCommand is executed as-shown.\n\n## Actual Behavior\n```\nError: ERROR:  syntax error at or near \"\\\"\nLINE 1: ...1 END) as no_size_data FROM document WHERE status \\!= 'delet...\n```\n\n## Additional Context\nCommand shown after `Bash(...` had no backslash before the exclamation mark.",
+  "labels": ["bug", "has repro", "platform:linux", "area:tools"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-03T16:52:13Z",
+  "updated_at": "2026-02-06T14:25:22Z",
+  "closed_at": "2026-01-26T10:14:17Z",
+  "reactions_total": 13,
+  "comments_count": 10,
+  "author": "savchenko",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "AnhQuanTrl",
+      "author_association": "NONE",
+      "body": "Same issue here as well. The exclamation mark escaping break every CLI that use this character. I has this problem when Claude execute HTTPie to a Graphql Endpoint:\n```\n> http --verbose --ignore-stdin POST http://localhost:4000/graphql \\\n  Content-Type:application/json \\\n  query='mutation CreateUser($input: CreateUserInput!) { createUser(input: $input) { user { id email } } }' \\\n  variables:='{\n    \"input\": {\n      \"email\": \"john.doe@example.com\",\n      \"name\": \"John Doe\"\n    }\n  }'\n```\n\nThe `!`",
+      "created_at": "2025-07-27T18:07:14Z"
+    },
+    {
+      "author": "dpehrson",
+      "author_association": "NONE",
+      "body": "Can confirm I just ran into this when instructing a Claude Code sub-agent to execute the following command that relies on `jq` for filtering GItHub CLI/API responses:\n\n```sh\ngh api \"repos/{repository-owner}/{repository-name}/contents/.github/ISSUE_TEMPLATE\" --jq '[.[] | select(.type == \"file\" and (.name | test(\"\\\\.ya?ml$\")) and .name != \"config.yml\") | {name, download_url}]'\n```\n\nThis results in the following error upon attempting execution:\n\n```\nError: failed to parse jq expression (line 1, col",
+      "created_at": "2025-09-02T16:24:52Z"
+    },
+    {
+      "author": "bukzor",
+      "author_association": "NONE",
+      "body": "I dare you to count the number of failed Bash commands due to this bug, and sum up all the tokens wasted.",
+      "created_at": "2025-10-25T20:22:13Z"
+    }
+  ]
+}

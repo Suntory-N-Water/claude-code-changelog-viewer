@@ -1,0 +1,35 @@
+{
+  "number": 11819,
+  "title": "[FEATURE] Configurable Auto-Compact Threshold in VS Code Extension",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nThe Claude Code VS Code extension auto-triggers `/compact` at approximately **35% context remaining**, while the CLI version operates down to **~1-5%** before compaction. This 30-34% difference forces frequent, premature context loss during complex development tasks.\n\n**Current Impact:**\n- Extension users lose context after reading only 6-7 files in a 12-file refactoring task\n- CLI users can read all 12 files plus their relationships in a single context window\n- Result: Extension requires 2-3 compaction cycles with 20+ redundant file re-reads vs CLI's single pass\n\n**Real-World Example:**\n```\nTask: Refactor DDD architecture across 12 backend files\n\nExtension (35% threshold):\n1. Read files 1-6 → Auto-compact at 35%\n2. Lose context of files 1-3\n3. Re-read files 1-3 + read files 7-9 → Auto-compact again\n4. Total: 3-4 compaction cycles, 20+ redundant file reads\n\nCLI (5% threshold):\n1. Read all 12 files → 8% context remaining\n2. Retain complete architectural view\n3. Total: 1 compaction, 0 redundant reads\n```\n\nThis creates a **60-70% efficiency gap** between extension and CLI for power users working on complex, multi-file tasks.\n\n### Proposed Solution\n\nAdd a user-configurable setting in `settings.json` to control auto-compact threshold:\n\n### Minimum Viable Product (MVP)\n```json\n{\n  \"claudeCode.autoCompactThreshold\": 0.35  // Default: 0.35 (35%), Range: 0.01-0.50\n}\n```\n\n### Enhanced Version (Future)\n```json\n{\n  \"claudeCode.contextManagement\": {\n    \"autoCompactThreshold\": 0.05,    // When to auto-compact (1-50%)\n    \"compactBehavior\": \"auto\",       // \"auto\" | \"prompt\" | \"manual\"\n    \"warningThreshold\": 0.10         // Show warning before auto-compact\n  }\n}\n```\n\n**Configuration Options:**\n- **Default (35%)**: Current behavior - safe for all users, maintains stability\n- **Aggressive (5%)**: Match CLI behavior - for power users, requires monitoring\n- **Custom (10-20%)**: Balanced - moderate risk, better context utilization\n\n**Safety Mechanisms:**\n- Minimum threshold: 1% (prevents values below safe limit)\n- Force-compact at 0.5%: Regardless of user setting (prevents extension crash)\n- Warning UI: Notification when <10% context remains\n\n### Alternative Solutions\n\n## Alternative Solutions\n\n### ❌ Alternative 1: Always Use 5% Threshold\n**Rejected** - Too risky for non-technical users, could cause extension crashes and poor user experience for general audience.\n\n### ❌ Alternative 2: Automatic Detection Based on Codebase Size\n**Rejected** - Requires complex heuristics, unpredictable behavior, difficult to debug when issues occur.\n\n### ❌ Alternative 3: Separate \"Power User Mode\" Toggle\n**Rejected** - Less granular control, doesn't address users who want middle-ground (10-20% threshold).\n\n### ✅ Alternative 4: User-Configurable Threshold (Proposed)\n**Selected** - Gives users full control, backward compatible (default unchanged), opt-in risk model, aligns with VS Code's configuration philosophy.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nConfiguration and settings\n\n### Use Case Example\n\n## Use Case Examples\n\n### Use Case 1: Multi-Layer Feature Implementation\n**Scenario:** Implementing live match streaming across Unity → Backend → Frontend (15+ files)\n\n**Current Experience (35%):**\n- Read Unity layer (5 files) → Auto-compact\n- Lose Unity context when reading Backend layer\n- Must re-read Unity files when debugging integration\n- Total: 3-4 compaction cycles\n\n**With 5% Threshold:**\n- Read all 3 layers in single context window\n- Maintain cross-stack relationships throughout implementation\n- Immediate integration debugging without re-reading\n\n**Benefit:** 70% reduction in redundant file reads, faster integration debugging\n\n---\n\n### Use Case 2: Architectural Refactoring\n**Scenario:** Converting monolithic backend to Domain-Dri",
+  "labels": ["enhancement", "has repro", "area:ide", "memory", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-18T04:06:49Z",
+  "updated_at": "2026-02-21T14:15:06Z",
+  "closed_at": "2026-02-14T00:09:51Z",
+  "reactions_total": 19,
+  "comments_count": 4,
+  "author": "jimmy058910",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "RomanAlexanderW",
+      "author_association": "NONE",
+      "body": "**Confirming this issue on Windows + VS Code Insiders + Pro Max subscription**\n\n\n**Environment:**\n\nOS: Windows 10\nEditor: VS Code Insiders with Claude Code Chat extension\nClaude Code version: 2.0.69\nModel: Claude Opus 4.5 (400K context window)\nPlatform: Claude Pro Max ($200/mo subscription)\n\n**Observed behavior:**\n\nAuto-compact triggers at approximately 55K tokens despite:\n\n- Opus 4.5 having a 400K token context window\n- My settings.json having \"autoCompactThreshold\": 0.85 configured\n\nAt 85% of ",
+      "created_at": "2025-12-13T21:24:55Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-13T10:13:18Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Closing for now — inactive for too long. Please [open a new issue](https://github.com/anthropics/claude-code/issues/new/choose) if this is still relevant.",
+      "created_at": "2026-02-14T00:09:50Z"
+    }
+  ]
+}

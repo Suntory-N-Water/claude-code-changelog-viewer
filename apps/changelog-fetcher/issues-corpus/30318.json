@@ -1,0 +1,29 @@
+{
+  "number": 30318,
+  "title": "Fix: Claude Code 403 \"Request not allowed\" on macOS with Proxy/VPN (China & Region-restricted Areas)",
+  "body": "### Documentation Type\n\nMissing documentation (feature not documented)\n\n### Documentation Location\n\nhttps://code.claude.com/docs/en/troubleshooting\n\n### Section/Topic\n\nNetwork Configuration / Proxy Setup for Region-restricted Areas\n\n### Current Documentation\n\nThe troubleshooting docs say: \"Behind a proxy: corporate proxies can interfere with API requests. See network configuration for proxy setup.\" But it doesn't explain that the terminal and Desktop app don't inherit system proxy settings, which causes persistent 403 errors for all users in region-restricted areas.\n\n### What's Wrong or Missing?\n\n## Root Cause\n\nClaude Code's API requests go through a **different endpoint** than the regular claude.ai chat interface. If you're in a region where Anthropic services are restricted (e.g., China), your browser may route through your proxy/VPN correctly, but **the terminal and the Desktop app do not inherit your system proxy settings**.\n\nKey diagnostic evidence:\n\n```bash\n# Browser/chat works fine through system proxy\ncurl https://api.anthropic.com/v1/models\n# ✅ Returns: {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",...}}\n# (authentication error = network is working, just no API key provided)\n\n# But without proxy, direct connection gets blocked\ncurl https://claude.ai\n# ❌ 302 redirect to https://www.anthropic.com/app-unavailable-in-region\n```\n\nThe critical issue: **macOS GUI apps (including Claude Desktop) and terminal sessions do NOT automatically use your VPN/proxy** even when \"Set as System Proxy\" is enabled in your proxy client (Clash/ClashX/V2Ray/Surge etc.).\n\n## Solution\n\n### Step 1: Fix CLI (Terminal)\n\nAdd proxy environment variables to your shell config:\n\n```bash\n# For Clash (default port 7890), add to ~/.zshrc or ~/.bashrc:\necho 'export https_proxy=http://127.0.0.1:7890' >> ~/.zshrc\necho 'export http_proxy=http://127.0.0.1:7890' >> ~/.zshrc\necho 'export all_proxy=socks5://127.0.0.1:7890' >> ~/.zshrc\nsource ~/.zshrc\n```\n\n> **Note:** Replace `7890` with your actual proxy port. Check your proxy client settings for the correct port number.\n\nThen clean up and re-authenticate:\n\n```bash\nrm -rf ~/.claude\nclaude auth login\n```\n\nVerify with `/status` inside Claude Code — you should see:\n- **Login method: Claude Max Account** (not \"Claude API Account\")\n- **Proxy: http://127.0.0.1:7890**\n\n### Step 2: Fix Desktop App\n\nThe Claude Desktop app is an Electron app that does NOT read `~/.zshrc`. Two approaches:\n\n**Option A: Launch with proxy env vars (quick test)**\n\n```bash\nopen -a \"Claude\" --env https_proxy=http://127.0.0.1:7890 --env http_proxy=http://127.0.0.1:7890\n```\n\n**Option B: Set system-level env vars (permanent)**\n\n```bash\nlaunchctl setenv https_proxy http://127.0.0.1:7890\nlaunchctl setenv http_proxy http://127.0.0.1:7890\nlaunchctl setenv all_proxy socks5://127.0.0.1:7890\n```\n\nThen launch Claude Desktop normally. Note: `launchctl setenv` does not persist across reboots. To make it permanent, create a LaunchAgent plist or add these commands to a login script.\n\n### Step 3: Verify\n\nIn Claude Code (CLI or Desktop), type `/status` and confirm:\n- **Login method:** `Claude Max Account` or `Claude Pro Account`\n- **Proxy:** shows your proxy address\n- **Model:** should show the model tier matching your subscription\n\n## Diagnostic Commands\n\nIf you're still having issues, use these to diagnose:\n\n```bash\n# 1. Check if proxy is set in terminal\necho $HTTP_PROXY $HTTPS_PROXY $ALL_PROXY\n\n# 2. Test API connectivity through proxy\ncurl --proxy http://127.0.0.1:7890 https://api.anthropic.com/v1/models\n\n# 3. Check if you're being region-blocked\ncurl -v https://claude.ai 2>&1 | grep \"location\"\n# If you see \"app-unavailable-in-region\", you need a proxy\n\n# 4. Check DNS resolution\nnslookup api.anthropic.com 8.8.8.8\n```\n\n## Environment\n\n- macOS (Apple Silicon / Intel)\n- Claude Code v2.1.63 (npm install)\n- Proxy: ClashX / Clash Verge / V2Ray / Surge\n- Subscription: Claude Pro or Max\n- Region: China (applies to any region-restricted area)\n\n## Related Issues\n\n- [#24485](https://github.com/anthropics/claude-code/issues/24485) — Desktop app pers",
+  "labels": ["documentation", "platform:macos", "area:networking"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-03T07:33:27Z",
+  "updated_at": "2026-04-12T03:24:18Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 2,
+  "author": "KanTong0626",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "markpolyak",
+      "author_association": "NONE",
+      "body": "I would like to add that in Claude Desktop app for MacOS the \"Chat\" tab correctly respects system proxy settings, while the \"Code\" tab does not. So I would classify this as a **bug**, since different parts of the same app behave differently under the same conditions, without any option to configure such behaviour and without any mention of it in the documentation.",
+      "created_at": "2026-03-09T08:09:26Z"
+    },
+    {
+      "author": "QC15213",
+      "author_association": "NONE",
+      "body": "Thanks for the post. I applied your fix but my /status shows below --- still API account somehow. Also the desktop app cowork still responds 403(chat and code works fine). In the past, I used TUN model proxy and it worked. Maybe something has changed?\n\n```\n   Status   Config   Usage   Stats                                                                                                            \n                                                                                                    ",
+      "created_at": "2026-04-12T03:22:24Z"
+    }
+  ]
+}

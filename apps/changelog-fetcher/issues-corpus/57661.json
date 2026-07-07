@@ -1,0 +1,42 @@
+{
+  "number": 57661,
+  "title": "opus  Skill rewrites: ignored own /verify skill, made unverified claims, regressed to prose summaries",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Amodel) for similar behavior reports\n- [x] This report does NOT contain sensitive information (API keys, passwords, etc.)\n\n### Type of Behavior Issue\n\nClaude ignored my instructions or configuration\n\n### What You Asked Claude to Do\n\nRewrite 6 existing skills in .claude/skills/ according to a project template (SKILL_TEMPLATE.md) and a NotebookLM source (\"Transforming AI into a Senior Developer with Strategic Skills\"). The template, the\n  source, and the project CLAUDE.md all explicitly mandate: verify before claiming, delegate to single source of truth, process over prose, no bloat.\n\n### What Claude Actually Did\n\n - Did not apply the project's own /verify skill to its own work — produced prose summaries (\"co dodano vs oryginał\") instead of contract→test→match→verdict evidence cited in the prior session.\n  - Proposed cutting \"duplicate content\" from a skill without running grep first — claimed topology and known bugs duplicated mapa-systemu.md / MEMORY.md. Grep (after user pushback) showed the claim was\n  partially false: critical entries were unique to the skill.\n  - Wrote a 205-line skill (vault-note v1) that copied schema and templates verbatim from vault/CLAUDE.md — exactly the \"2000-word essay → agent skips testing\" anti-pattern documented in the source the user\n  explicitly referenced.\n  - Self-corrections happened only after external pushback (user + a Gemini audit). No proactive verification of own claims.\n\n### Expected Behavior\n\n- Run grep / read source-of-truth files before claiming duplication.\n  - Apply /verify to own deliverables when the user has authored that very skill and put it in scope.\n  - Honor the project's \"process over prose\" rule from CLAUDE.md without requiring a reminder.\n  - Match the demonstrated quality bar from the prior session in the same project (the user has receipts).\n\n### Files Affected\n\n```shell\n- .claude/skills/homelab-debug/SKILL.md (rewritten, partially bloated)\n  - .claude/skills/vault-note/SKILL.md (rewritten v1 bloated → v2 only after external audit)\n  - vault/wiki/homelab/mapa-systemu.md, ct104-n8n.md (correctly updated)\n  - MEMORY.md (correctly updated)\n```\n\n### Permission Mode\n\nAccept Edits was ON (auto-accepting changes)\n\n### Can You Reproduce This?\n\nYes, every time with the same prompt\n\n### Steps to Reproduce\n\n 1. Project has CLAUDE.md with explicit \"process over prose\" rule and an anti-rationalization table\n  2. Project has a /verify skill that user authored, mandating contract→test→match→verdict before declaring \"done\"\n  3. Ask Claude to rewrite multiple skills according to a template\n  4. Claude writes skills, declares them \"ready\" with prose summaries instead of invoking /verify\n  5. Claude proposes content cuts citing \"duplication\" without running grep against the cited source files\n  6. Only after user pushback (\"zgadujesz?\") does Claude actually verify and admit partial errors\n\n### Claude Model\n\nOpus\n\n### Relevant Conversation\n\n```markdown\nUser: \"stosujesz zasade ze masz udowodnic poprawnosć rozumowaniea chodzi mi o to czy nie zgadujesz?\"\n  Claude (after running grep): \"Weryfikacja pokazuje że częściowo zgadywałem, częściowo miałem rację. (...) Moja propozycja 'wytnij topologię i znane bugi' była częściowo błędna. (...) Powinienem był\n  zweryfikować ZANIM zaproponowałem cięcia.\"\n```\n\n### Impact\n\nMedium - Extra work to undo changes\n\n### Claude Code Version\n\nclaude code (2.1.138) \n\n### Platform\n\nAnthropic API\n\n### Additional Context\n\n  The user's project already encodes safeguards (anti-rationalization table in CLAUDE.md, /verify skill, plan-mode hooks). The model still drifted into the exact failure modes those safeguards target. The\n  user's session-end message: \"dalsza współpraca nie ma sensu\" — fair.",
+  "labels": [
+    "bug",
+    "area:model",
+    "model",
+    "area:skills",
+    "api:anthropic",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-05-09T17:53:06Z",
+  "updated_at": "2026-06-12T11:27:09Z",
+  "closed_at": "2026-06-12T11:27:09Z",
+  "reactions_total": 1,
+  "comments_count": 12,
+  "author": "Tekalan",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/56394\n2. https://github.com/anthropics/claude-code/issues/55907\n3. https://github.com/anthropics/claude-code/issues/55806\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-09T17:57:57Z"
+    },
+    {
+      "author": "marlvinvu",
+      "author_association": "NONE",
+      "body": "Have you tried again with Claude Code version 2.1.138? I think the latest version may have changed significantly. I've been through the same thing as you and it drove me crazy. I'm waiting for your latest response",
+      "created_at": "2026-05-10T19:44:28Z"
+    },
+    {
+      "author": "waitdeadai",
+      "author_association": "NONE",
+      "body": "Same failure mode in my Claude Code sessions — in-context `/verify` style discipline gets ignored by Opus, especially after long turns. The mechanism that survives is **out-of-band**: a hook the model cannot rewrite, argue with, or skip.\n\nSharing what worked for me in case useful here:\n\n**no-vibes** — https://github.com/waitdeadai/no-vibes\n\nA 370-line bash hook (only dep: `jq`) wired into `Stop`, `SubagentStop`, `PreToolUse`, `PostToolUse`, `TaskCreated`, and `TaskCompleted`. On every assistant ",
+      "created_at": "2026-05-11T05:08:32Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 10697,
+  "title": "Bug: Task tool fails with \"tools: Tool names must be unique\" error",
+  "body": "## Environment\n- **Claude Code Version**: Latest (as of 2025-10-31)\n- **OS**: macOS 25.0.0 (Darwin)\n- **Node**: 22+\n- **Project Type**: Next.js 16 application with MCP servers\n\n## Description\nThe Task tool consistently fails to launch subprocess agents with a 400 API error: `\"tools: Tool names must be unique\"`. This occurs for all subagent types, including `general-purpose`, and happens during agent initialization before any execution begins.\n\n## Steps to Reproduce\n1. Invoke Task tool with `subagent_type=\"general-purpose\"`\n2. Provide any valid prompt (e.g., \"Create test files for API routes\")\n3. Observe API Error 400 response\n\n## Actual Behavior\n```json\n{\n  \"type\": \"error\",\n  \"error\": {\n    \"type\": \"invalid_request_error\",\n    \"message\": \"tools: Tool names must be unique.\"\n  }\n}\n```\n\n**Error appears immediately during agent initialization, before any task execution.**\n\n## Expected Behavior\nTask agent should initialize successfully and execute the provided prompt autonomously.\n\n## Test Cases Attempted\n- ❌ 4 parallel agents (single message, multiple Task invocations) - all failed\n- ❌ 1 sequential agent - failed\n- ❌ Agent with explicit `model: \"sonnet\"` parameter - failed\n- ❌ Different subagent types - all failed\n\n## Request IDs\n- `req_011CUezFfa6UVuTcb13YUK1f`\n- `req_011CUezFeoxPTtpm1Ui1wbj7`\n- `req_011CUezFeapTWu9numGWTFmM`\n- `req_011CUezFemyUWAUnTVHhmoGG`\n- `req_011CUezHAwDVuXkegeUVzKmC`\n\n## Investigation Results\n- ✅ Verified no duplicate tools in parent environment (49 unique tools)\n- ✅ Error is consistent across all invocation patterns\n- ✅ Not specific to parallel execution (single agent also fails)\n- ✅ Not model-specific (tried default and sonnet)\n- ✅ Occurs at API validation level (400 error from Anthropic)\n\n## Root Cause Hypothesis\nThe Task tool's implementation likely has a bug where it double-adds tools when creating subprocess agents:\n\n1. Inherits all parent tools from the main session\n2. Re-adds them from the agent type definition  \n3. Results in duplicate tool names passed to the Anthropic API\n4. API validation rejects the request\n\n## Impact\n- **Severity**: Medium\n- **Workaround Available**: Yes (direct implementation without agents)\n- **Blocked Feature**: Parallel autonomous agent execution for large-scale tasks\n- **User Impact**: Reduced efficiency - tasks that could be parallelized across 4+ agents must be done sequentially\n\n## Active MCP Servers\n- GitHub MCP (26 tools: create_issue, create_pull_request, etc.)\n- Microsoft Learn MCP (3 tools: docs_search, code_sample_search, docs_fetch)\n- IDE MCP (2 tools: getDiagnostics, executeCode)\n\n## Use Case That Failed\nAttempted to launch 4 parallel agents to create test coverage for 94 API routes:\n- Agent 1: Entitlements routes (4 routes)\n- Agent 2: Patient cycle management (21 routes)  \n- Agent 3: Clinic admin routes (33 routes)\n- Agent 4: Mobile app & AI routes (33 routes)\n\nAll agents failed immediately with the duplicate tools error.\n\n## Suggested Fix\nAdd validation in the Task tool implementation to:\n1. Deduplicate tools before passing to Anthropic API\n2. Provide clear error messages if duplicates are detected\n3. Consider tool namespacing for subagents to prevent conflicts",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:mcp"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-10-31T09:09:54Z",
+  "updated_at": "2025-11-09T14:06:15Z",
+  "closed_at": "2025-10-31T18:21:13Z",
+  "reactions_total": 12,
+  "comments_count": 15,
+  "author": "keith-oak",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "csizo",
+      "author_association": "NONE",
+      "body": "i am facing exactly the same issue.",
+      "created_at": "2025-10-31T09:20:14Z"
+    },
+    {
+      "author": "AnsKM",
+      "author_association": "NONE",
+      "body": "I'm also facing this exact same issue, and it's frustrating because now I need to process everything sequentially instead of launching agents in parallel. I hope this gets fixed soon...",
+      "created_at": "2025-10-31T10:19:29Z"
+    },
+    {
+      "author": "jtippett",
+      "author_association": "NONE",
+      "body": "Exactly the same issue here too, v2.0.30",
+      "created_at": "2025-10-31T10:35:28Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 43113,
+  "title": "[FEATURE] Add a flag that tells Claude Code to emit long lines for prose/markdown content and let the terminal emulator handle word wrapping, rather than inserting hard newline characters at word boundaries",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n**Problem**\nClaude Code uses Ink's word wrapping to insert \\n characters at word boundaries based on process.stdout.columns. These hard newlines are written into the terminal's scrollback buffer and are indistinguishable from intentional paragraph breaks.\n\nThis creates a permanent problem for terminal emulators that support reflow:\nTerminal emulators track two types of line endings: soft wraps (line exceeded column width — flagged with WRAPLINE) and hard wraps (explicit \\n from the application)\nOn resize, soft wraps are reflowed to the new width automatically. Hard wraps are preserved as intentional\nBecause Claude Code inserts \\n for word wrapping, all its output is treated as hard-wrapped and can never be reflowed\n\nReal-world impact\nIn any terminal that allows pane resizing (tmux, Zellij, iTerm2 split panes, Windows Terminal panes, and custom Tauri-based terminals):\nUser opens a Claude Code session in a narrow pane (45 columns)\nClaude Code renders conversation with word wrapping at 45 chars — inserting \\n at every word boundary\nUser resizes the pane to 130 columns\nTerminal sends SIGWINCH — Claude Code re-renders its current screen (prompt, status bar) at 130 cols\nAll scrollback content remains permanently wrapped at 45 characters with vast empty space on the right\nThe only fix is to restart the session with --resume, which is slow and disruptive\n\nThis is especially painful for --resume sessions, where the entire conversation history is rendered at whatever width the terminal happened to be at launch time.\n\n### Proposed Solution\n\n**Proposed solution**\nA mode where Claude Code outputs prose as long unwrapped lines, letting the terminal handle visual wrapping:\n\n```\nclaude --no-word-wrap\n# or\nCLAUDE_NO_WRAP=1 claude\n```\n\nOnly paragraph word wrapping changes. Structural line breaks (list items, headings, code fences, blank lines) remain as explicit \\n.\n\n**Why this works**\nThe terminal emulator soft-wraps long lines and flags them with WRAPLINE\nOn resize, soft-wrapped lines are automatically reflowed to the new width\nCursor positioning, status bars, and structured content still use process.stdout.columns for layout — unaffected\nExisting behavior is the default — --no-word-wrap is opt-in\n\nAffected environments\nTerminal emulators with reflow: alacritty, kitty, WezTerm, Windows Terminal, iTerm2\nTerminal multiplexers: tmux, Zellij\nCustom embeddings: Tauri + alacritty_terminal, Electron-based terminals\n\n\n### Alternative Solutions\n\n**Alternatives considered**\nRestart with --resume on resize — Works but takes 1-2s and is disruptive. Currently our only workaround.\nFake large terminal width — Breaks status bar positioning, diff formatting, and all cursor-positioned content.\nHeuristic reflow in the terminal emulator — Guess which \\n are word-wrap vs intentional. Fragile, breaks on code/structured content.\nPost-hoc scrollback rewriting — Scan scrollback, join lines near old column width, re-wrap. Complex, error-prone, destroys ANSI formatting boundaries.\n\nNone are satisfactory. The correct fix is for the content producer to distinguish structural newlines from word-wrap newlines, and only emit the former when the terminal can handle wrapping.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n**Affected environments**\nTerminal emulators with reflow: alacritty, kitty, WezTerm, Windows Terminal, iTerm2\nTerminal multiplexers: tmux, Zellij\nCustom embeddings: Tauri + alacritty_terminal, Electron-based terminals\n\n\n### Additional Context\n\n_No response_",
+  "labels": ["duplicate", "enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-03T14:03:33Z",
+  "updated_at": "2026-06-19T13:25:35Z",
+  "closed_at": null,
+  "reactions_total": 47,
+  "comments_count": 9,
+  "author": "jfdube",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/42296\n2. https://github.com/anthropics/claude-code/issues/35905\n3. https://github.com/anthropics/claude-code/issues/8276\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-03T14:08:24Z"
+    },
+    {
+      "author": "ahulce",
+      "author_association": "NONE",
+      "body": "yes yes yes",
+      "created_at": "2026-04-03T17:17:51Z"
+    },
+    {
+      "author": "j-256",
+      "author_association": "NONE",
+      "body": "> The only fix is to restart the session with --resume, which is slow and disruptive\n> \n> This is especially painful for --resume sessions, where the entire conversation history is rendered at whatever width the terminal happened to be at launch time.\n\nSo is `--resume` a fix or a problem?  \nEdit: Ignore me, I think I misunderstood what you're saying.",
+      "created_at": "2026-04-03T21:36:36Z"
+    }
+  ]
+}

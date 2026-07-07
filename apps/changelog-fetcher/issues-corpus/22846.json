@@ -1,0 +1,35 @@
+{
+  "number": 22846,
+  "title": "[BUG] WebFetch returns 403 on Wikipedia and other sites despite successful preflight check",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWebFetch fails with HTTP 403 on several major websites including Wikipedia, even though:\n1. The preflight check (`claude.ai/api/web/domain_info`) succeeds (returns 200)\n2. Direct `curl` access to the same URLs returns 200\n\nThis suggests the issue is not with domain validation, but with how WebFetch makes the actual request (likely User-Agent or other headers being blocked by certain sites).\n\n**Affected sites (tested)**:\n- `en.wikipedia.org` → 403\n- `httpbin.org` → 503\n\n**Working sites**:\n- `example.com` → success\n- `arxiv.org` → success\n\n### What Should Happen?\n\nWebFetch should successfully fetch content from major documentation and reference sites like Wikipedia that don't have explicit bot-blocking policies.\n\n### Error Messages/Logs\n\n```shell\n⏺ Fetch(https://en.wikipedia.org/wiki/Distributed_cognition)\n  ⎿  Error: Request failed with status code 403\n```\n\nVerification that the issue is not network-level:\n```bash\n$ curl -s -o /dev/null -w \"%{http_code}\" https://en.wikipedia.org/wiki/Distributed_cognition\n200\n\n$ curl -s -o /dev/null -w \"%{http_code}\" \"https://claude.ai/api/web/domain_info?domain=en.wikipedia.org\"\n200\n```\n\n### Steps to Reproduce\n\n1. Start a Claude Code session\n2. Ask Claude to fetch any Wikipedia article, e.g.: \"What does the Wikipedia article on distributed cognition say?\"\n3. Claude attempts WebFetch: `Fetch(https://en.wikipedia.org/wiki/Distributed_cognition)`\n4. Error: `Request failed with status code 403`\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.29 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\nRelated: #17929 (WebFetch fails with 403 on npmjs.com URLs)\n\nThe issue in #17929 was attributed to npm specifically blocking AI agents. However, this issue demonstrates the problem is more widespread, affecting sites like Wikipedia that typically allow bot access.\n\nThe difference from #6388 (preflight check failure) is that in this case the preflight succeeds—the 403 occurs during the actual fetch.\n\n---\n\n✍️ Author: Claude Code with @carrotRakko\n\nNote: This issue was written and submitted by an AI agent (Claude Code), with human review and approval.",
+  "labels": ["bug", "has repro", "platform:linux", "area:tools", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-03T16:14:55Z",
+  "updated_at": "2026-05-28T22:41:46Z",
+  "closed_at": "2026-05-28T22:41:46Z",
+  "reactions_total": 9,
+  "comments_count": 12,
+  "author": "carrotRakko",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7568\n2. https://github.com/anthropics/claude-code/issues/17929\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-03T16:18:44Z"
+    },
+    {
+      "author": "carrotRakko",
+      "author_association": "NONE",
+      "body": "Thanks for flagging the related issues.\n\nWhile #7568 (User-Agent issue) may be the root cause, this issue provides additional value:\n- Confirms the problem affects major sites like Wikipedia (not just npm)\n- Documents that preflight check succeeds but fetch fails (helps narrow down the issue)\n\nKeeping this open as a symptom report that demonstrates the user-facing impact.\n\n---\n\n✍️ Author: Claude Code with @carrotRakko",
+      "created_at": "2026-02-03T16:26:37Z"
+    },
+    {
+      "author": "duncan",
+      "author_association": "NONE",
+      "body": "Here's more data I was going to file as a bug, but I think it's a dup of this one:\n\n**Issue:** The WebFetch tool in Cowork mode returns 403 Forbidden errors for URLs that are successfully fetched by other Claude products (Claude web, Claude desktop chat, Claude Code CLI, Claude Code desktop GUI).\n\n**Reproduction steps:**\n\n1. In Cowork mode, use WebFetch to fetch https://httpbin.org/headers\n2. Observe 403 error\n\n**Expected behavior:** Successful fetch, consistent with other Claude products.\n\n**Ac",
+      "created_at": "2026-02-04T12:57:29Z"
+    }
+  ]
+}

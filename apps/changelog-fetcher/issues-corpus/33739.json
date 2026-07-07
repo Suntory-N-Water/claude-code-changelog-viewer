@@ -1,0 +1,35 @@
+{
+  "number": 33739,
+  "title": "[BUG] The official `claude-plugins-official` marketplace fails to load entirely when running `/plugin` in Claude Code.",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nPlugin at index 56 (`semgrep`) in `marketplace.json` uses `\"source\": \"git-subdir\"` — a source type not recognized by the schema validator:\n\n  ```json\n  {\n    \"name\": \"semgrep\",\n    \"source\": {\n      \"source\": \"git-subdir\",\n      \"url\": \"https://github.com/semgrep/mcp-marketplace.git\",\n      \"path\": \"plugin\"\n    }\n  }\n\n  Supported source types appear to be \"url\" (object form) and a relative path string (e.g. \"./plugins/xxx\"). The \"git-subdir\" type is unrecognized, causing the entire marketplace to\n   fail — all ~58 plugins become unavailable, not just semgrep.\n\n\n\n### What Should Happen?\n\n What Should Happen?\n\n  Either:\n  - \"git-subdir\" source type should be supported by the schema, or\n  - Invalid individual plugins should be skipped gracefully rather than causing the entire marketplace to fail loading\n\n\n\n### Error Messages/Logs\n\n```shell\nError Messages/Logs\n\n  Failed to load all marketplaces. Errors: claude-plugins-official: Failed to load marketplace \"claude-plugins-official\" from source (github): Failed to parse marketplace file at\n  /root/.claude/plugins/marketplaces/anthropics-claude-plugins-official/.claude-plugin/marketplace.json: Invalid schema:\n  /root/.claude/plugins/marketplaces/anthropics-claude-plugins-official/.claude-plugin/marketplace.json plugins.56.source: Invalid input\n```\n\n### Steps to Reproduce\n\n\n  1. Have the official claude-plugins-official marketplace configured\n  2. Open Claude Code in your terminal\n  3. Run /plugin or /plugin/example-plugin\n  4. Observe the marketplace load error — no plugins are available\n\n\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n4.6\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n  - The failure affects the entire marketplace — all ~58 plugins become unavailable, not just the semgrep plugin at index 56\n  - The issue is reproducible across multiple terminal emulators (iTerm2 and Ghostty), confirming it is not terminal-specific\n  - Related issues:\n    - #26555 — different but related schema validation issue with category/source fields leaking into cached plugin.json\n    - #22310 — official marketplace inaccessibility\n\n",
+  "labels": ["bug", "duplicate", "platform:macos", "area:plugins"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-12T19:18:50Z",
+  "updated_at": "2026-04-03T14:29:47Z",
+  "closed_at": "2026-03-26T19:24:40Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "deep-visionlab",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33172\n2. https://github.com/anthropics/claude-code/issues/33427\n3. https://github.com/anthropics/claude-code/issues/33592\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-12T19:21:40Z"
+    },
+    {
+      "author": "zechdc",
+      "author_association": "NONE",
+      "body": "Having similar/same issue I think\n\n**v2.1.58** -- marketplace fails to parse entirely at catalog level, cannot be re-added.\n\n**Steps to reproduce:**\n\n1. Noticed these errors in `/plugin`:\n```\n❯ superpowers@claude-plugins-official\n     Plugin 'superpowers' not found in marketplace 'claude-plugins-official'\n  ✘ typescript-lsp@claude-plugins-official\n     Plugin 'typescript-lsp' not found in marketplace 'claude-plugins-official'\n```\n\n2. Ran `claude plugin marketplace remove \"claude-plugins-official",
+      "created_at": "2026-03-13T17:27:10Z"
+    },
+    {
+      "author": "aslafy-z",
+      "author_association": "NONE",
+      "body": "Upgrading to v2.1.77 fixes the issue.",
+      "created_at": "2026-03-17T11:56:35Z"
+    }
+  ]
+}

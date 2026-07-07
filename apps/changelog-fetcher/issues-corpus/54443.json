@@ -1,0 +1,35 @@
+{
+  "number": 54443,
+  "title": "[BUG] OAuth refresh returns 400 after early 401 before local expiresAt; concurrent sessions forced to /login",
+  "body": "## Summary\n\nClaude Code OAuth sessions are being rejected by the server before the locally stored `expiresAt` time. Claude Code then attempts OAuth refresh, but `POST https://platform.claude.com/v1/oauth/token` returns HTTP 400. The user-facing result is repeated `Please run /login` / `API Error: 401 Invalid authentication credentials` prompts every few hours, sometimes much sooner.\n\nThis appears related to the early-revocation refresh path discussed in #52202 and potentially to the concurrent-session refresh-token race described in #24317, but this report includes Linux logs, request IDs, and the exact observed sequence from Claude Code 2.1.121.\n\nI have intentionally omitted account email, account UUIDs, raw credential files, access tokens, and refresh tokens from this public issue. I can provide full debug logs privately to Anthropic if needed.\n\n## Environment\n\n- Claude Code version: `2.1.121`\n- Install path: native installer, `~/.local/bin/claude -> ~/.local/share/claude/versions/2.1.121`\n- OS: Ubuntu 25.10, Linux x86_64\n- Auth mode: Claude.ai OAuth / Max subscription, not API-key billing\n- Shell/session manager: `zsh` inside `tmux`\n- Common command wrapper:\n  - `cc` is only an alias for `NODE_OPTIONS=\"--max-old-space-size=32768\" ~/.local/bin/claude --dangerously-skip-permissions`\n  - It does not call any account-switching tool or set auth env vars.\n\n## What Happened\n\nAfter a successful login, Claude Code works for a while. Later, while the local OAuth credential still has a future `expiresAt`, API calls begin returning:\n\n```text\n401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"Invalid authentication credentials\"}}\n```\n\nClaude Code then attempts to refresh OAuth credentials:\n\n```text\nPOST https://platform.claude.com/v1/oauth/token\n```\n\nbut the refresh request fails with:\n\n```text\nstatus=400 AxiosError: Request failed with status code 400\n```\n\nAfter that, Claude Code prompts for `/login` again.\n\n## Precise Timeline From Latest Captured Failure\n\nAll timestamps below are UTC.\n\nBefore this failure cluster, the active credential had been refreshed at approximately:\n\n```text\n2026-04-28T16:59:24Z\n```\n\nand its local OAuth expiry was approximately:\n\n```text\n2026-04-29T00:59:24Z\n```\n\nSo the failures below happened about 5 hours before the locally stored expiry.\n\nTwo Claude Code sessions were active in different tmux panes, sharing the same Unix user and credential store:\n\n```text\nPID 1118880 started 2026-04-28 15:22:47Z\n  cwd=/data/projects/ddis/ferratomic\n  cmd=/home/ubuntu/.local/bin/claude --dangerously-skip-permissions --debug-file ~/.claude/debug-logs/claude-oauth-20260428T152248Z.log --resume ...\n\nPID 1155909 started 2026-04-28 16:13:13Z\n  cwd=/data/projects/rr-edge\n  cmd=/home/ubuntu/.local/bin/claude --dangerously-skip-permissions --debug-file ~/.claude/debug-logs/claude-oauth-20260428T161314Z.log --resume ...\n```\n\nThe first fresh 401 in the latest cluster appeared in the second session:\n\n```text\n2026-04-28T19:58:52.417Z /v1/messages -> 401\nrequest_id=req_011CaWm7iW1eWEpXC5FQf6HM\nsource=agent:custom:codex:codex-rescue\n\n2026-04-28T19:58:52.874Z /v1/messages -> 401\nrequest_id=req_011CaWm7kQMqRBywN9kq8pJo\nsource=repl_main_thread\n\n2026-04-28T19:58:53.736Z OAuth refresh attempt:\nPOST https://platform.claude.com/v1/oauth/token -> 400\n\n2026-04-28T19:58:54.136Z retry /v1/messages -> 401\nrequest_id=req_011CaWm7qxjXcMySoRUCPjt3\nsource=agent:custom:codex:codex-rescue\n\n2026-04-28T19:58:54.143Z retry /v1/messages -> 401\nrequest_id=req_011CaWm7r5BPaU9S8CACXkrA\nsource=repl_main_thread\n\n2026-04-28T19:58:55.505Z OAuth refresh attempt:\nPOST https://platform.claude.com/v1/oauth/token -> 400\n```\n\nAdditional failures continued in the same session:\n\n```text\n2026-04-28T19:58:57.786Z /v1/messages -> 401\nrequest_id=req_011CaWm87MCDAKvnGCuGvsnz\n\n2026-04-28T19:59:00.255Z retry /v1/messages -> 401\nrequest_id=req_011CaWm8ESqEEduL2MqWmryS\n\n2026-04-28T19:59:18.522Z /v1/messages -> 401\nrequest_id=req_011CaWm9eRzyADJVd7GczwLZ\nsource=agent:builtin:general-purpose\n\n2026-04-28T19:59:20.834Z retry /v1/messages -> 401\nrequest_id=req_011",
+  "labels": ["bug", "has repro", "platform:linux", "area:auth"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-28T20:24:34Z",
+  "updated_at": "2026-06-28T16:41:35Z",
+  "closed_at": null,
+  "reactions_total": 4,
+  "comments_count": 14,
+  "author": "wvandaal",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24317\n2. https://github.com/anthropics/claude-code/issues/36911\n3. https://github.com/anthropics/claude-code/issues/45551\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-28T20:34:21Z"
+    },
+    {
+      "author": "GFalcaoPaias",
+      "author_association": "NONE",
+      "body": "**Adding a single-session data point to prevent auto-closure:**\n\nSame forced re-login pattern, but **without concurrent sessions** — rules out the refresh-token race as the only cause.\n\n**Environment:**\n- Claude Code `2.1.123`, WSL2 (Ubuntu on Windows), `bash`\n- Auth: Claude.ai OAuth, Pro subscription\n- Single session only\n\n**Observed pattern:**\nInspecting `~/.claude/.credentials.json`, the `expiresAt` after `/login` is consistently ~8 hours in the future (`expiresAt` timestamp confirms this). O",
+      "created_at": "2026-04-30T08:50:50Z"
+    },
+    {
+      "author": "wvandaal",
+      "author_association": "NONE",
+      "body": "Additional update with a fresh reproduction from the same machine/session. This is sanitized: no raw access or refresh tokens are included.\n\n## Fresh failure: 2026-04-30T23:26Z\n\nThe failure happened again at approximately `2026-04-30T23:26:00Z` (`2026-04-30 19:26 EDT`) while running Claude Code `2.1.123` from the native install.\n\nActive Claude Code process at the time:\n\n```text\n/home/ubuntu/.local/bin/claude --dangerously-skip-permissions --debug-file /home/ubuntu/.claude/debug-logs/claude-oauth",
+      "created_at": "2026-04-30T23:30:43Z"
+    }
+  ]
+}

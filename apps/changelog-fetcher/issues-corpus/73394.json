@@ -1,0 +1,35 @@
+{
+  "number": 73394,
+  "title": "[Feature Request] Make AskUserQuestion timeout configurable",
+  "body": "**Bug Description**\nFeature request: make the AskUserQuestion / interactive prompt timeout configurable (or longer)\n\nWhen Claude asks me a question via the interactive selection dialog (e.g. during plan mode), it times out after ~60 seconds if I haven't answered. On timeout the model is told \"no response, proceed with best judgment\" and continues on its own — so from my side it looks like it auto-picks a default and moves on without me.\n\nThis is a problem when I step away briefly or need time to think: I lose control of the decision. The SDK docs say interactive input \"waits indefinitely,\" which doesn't match the CLI's actual behavior.\n\nRequest: either make this timeout configurable (settings.json key or env var), significantly increase it, or make it re-ask instead of auto-proceeding.\n\nEnvironment: Claude Code in a remote-SSH VSCode integrated terminal. Version: 2.1.198 (Claude Code)\n\n**Environment Info**\n- Platform: linux\n- Terminal: vscode\n- Version: 2.1.198\n- Feedback ID: 0746dda1-dd3c-41a1-988d-51c92fecbe7a\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": ["duplicate", "enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-07-02T11:25:33Z",
+  "updated_at": "2026-07-02T18:19:07Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 5,
+  "author": "adsf0427",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rlmumford",
+      "author_association": "NONE",
+      "body": "Dup of #73125 ",
+      "created_at": "2026-07-02T11:35:02Z"
+    },
+    {
+      "author": "jakegriffey",
+      "author_association": "NONE",
+      "body": "Hit this today too. The AskUserQuestion prompt timed out at 60s and the agent proceeded on its own judgment instead of waiting — including starting to make code changes I hadn't approved yet. I don't recall this happening before today; previously I've answered prompts that sat pending for hours without the agent acting in the meantime. Would like either a configurable/longer timeout, or a way to mark a specific question as 'wait indefinitely, no fallback' for cases like this where the workflow i",
+      "created_at": "2026-07-02T16:58:32Z"
+    },
+    {
+      "author": "evgenest",
+      "author_association": "NONE",
+      "body": "+1, and a concrete use case where the hardcoded ~60s auto-answer is actively harmful.\n\n**Setup:** Claude Code running on a headless VPS inside tmux, auto permission mode, long-running refactoring sessions. The user attaches from multiple devices and is often away from the terminal for a few minutes.\n\n**Problem:** When Claude calls `AskUserQuestion` at a genuine decision point (e.g. which of two layout approaches to keep), the prompt auto-resolves after ~60 seconds to the recommended/first option",
+      "created_at": "2026-07-02T18:06:47Z"
+    }
+  ]
+}

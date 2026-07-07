@@ -1,0 +1,43 @@
+{
+  "number": 24729,
+  "title": "Sessions-index.json: summaries not generated and new sessions not indexed since ~v2.1.31",
+  "body": "## Bug Description\n\n`/resume` shows \"No conversations found to resume\" despite having many active sessions with hundreds of messages.\n\n## Root Cause\n\nTwo issues found in `~/.claude/projects/<project>/sessions-index.json`:\n\n### 1. Session summaries stopped being generated (~Feb 2, 2026)\n\nAll sessions created after approximately Feb 2 have `\"summary\": \"\"` (empty string) in the index, while older sessions have proper summaries. Since `/resume` likely filters on non-empty summaries, these sessions become invisible.\n\n**Evidence** - sessions-index.json entries:\n```json\n// Old session (works) - Jan 28\n{ \"sessionId\": \"a9572396...\", \"messageCount\": 39, \"summary\": \"WoW ThreadPool & Battleground AI Fixes\" }\n\n// New session (broken) - Feb 4\n{ \"sessionId\": \"a25a9c7f...\", \"messageCount\": 13, \"summary\": \"\" }\n\n// New session (broken) - Feb 6  \n{ \"sessionId\": \"af35a6df...\", \"messageCount\": 19, \"summary\": \"\" }\n```\n\n### 2. New sessions not added to index at all (~Feb 7+)\n\nSessions created after Feb 6 are not even present in `sessions-index.json`. The `.jsonl` transcript files exist in the project directory but the index has no entry for them. Example: current active session `5402474d` (444 messages) is missing from the index entirely.\n\n22 session `.jsonl` files were found that had no corresponding entry in `sessions-index.json`, including sessions with 100-1900+ messages.\n\n## Environment\n\n- **Claude Code version**: 2.1.38 (current), issue started around v2.1.31\n- **Platform**: Windows 11\n- **Shell**: Git Bash / PowerShell\n\n## Workaround\n\nManually patching `sessions-index.json` to add missing entries and populate empty summary fields restores `/resume` functionality.\n\n## Expected Behavior\n\n- `/resume` should list all sessions with at least 1 message\n- Session summaries should be generated when sessions end or are suspended\n- All new sessions should be indexed in `sessions-index.json`",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tui",
+    "area:core",
+    "memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-10T15:30:58Z",
+  "updated_at": "2026-05-02T14:37:05Z",
+  "closed_at": "2026-04-24T22:20:41Z",
+  "reactions_total": 7,
+  "comments_count": 16,
+  "author": "agatho",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23614\n2. https://github.com/anthropics/claude-code/issues/23421\n3. https://github.com/anthropics/claude-code/issues/22878\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-10T15:33:35Z"
+    },
+    {
+      "author": "agatho",
+      "author_association": "NONE",
+      "body": "## Root Cause Found\n\nAfter reverse-engineering the minified `cli.js`, the actual root cause is a **case-sensitivity bug in the multi-worktree code path** of the `/resume` command.\n\n### The Bug\n\nIn function `xa` (conversation loader), when `git worktree list` returns >1 worktree, the code takes a multi-worktree path:\n\n```js\n// xa function (deobfuscated)\nlet sanitizedPaths = worktreePaths.map(p => p.replace(/[^a-zA-Z0-9]/g, \"-\"));\nlet projectDirs = fs.readdirSync(projectsDir);\nfor (let dir of proj",
+      "created_at": "2026-02-10T15:56:51Z"
+    },
+    {
+      "author": "genesiscz",
+      "author_association": "NONE",
+      "body": "## Confirmed on macOS - Not Windows-Specific\n\nWhile the worktree case-sensitivity bug you found is real, there's a **broader system-wide issue** affecting all platforms:\n\n### Cross-Platform Evidence\n\n**macOS user here** - same symptoms without multiple worktrees:\n\n- **Last indexed session**: Feb 4, 2026, 00:33 UTC (across all projects)\n- **Total session files**: 3,080+ `.jsonl` files on disk\n- **Sessions indexed**: 740 (24% of total)\n- **Sessions after Feb 4**: 0% indexed\n\nThis matches the other",
+      "created_at": "2026-02-12T17:41:43Z"
+    }
+  ]
+}

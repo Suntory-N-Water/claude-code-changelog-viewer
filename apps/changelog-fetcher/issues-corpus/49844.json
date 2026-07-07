@@ -1,0 +1,16 @@
+{
+  "number": 49844,
+  "title": "[BUG] Support eu multi-region via Vertex",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nTwo days ago, Google announced support for multi-region endpoints (`us` and `eu`) for Claude models via Vertex. Except for the global endpoint, Opus 4.7 is now only available through these multi-region endpoints (regional endpoints are no longer supported).\n\nSetting `CLOUD_ML_REGION` to `eu` doesn’t work—Claude returns the following error:\n\n> The model claude-opus-4-7 is not available on your vertex deployment. Try /model to switch to claude-opus-4-1@20250805, or ask your admin to enable this model.\n\nIt seems that the URLs for multi-region endpoints are quite different from regional endpoints:\n\n- Multi-regional: `\"https://aiplatform.us.rep.googleapis.com/v1/projects/${PROJECT_ID}/locations/us/publishers/anthropic/models/${MODEL_ID}:rawPredict\"`\n- Regional : `\"https://us-east5-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-east5/publishers/anthropic/models/${MODEL_ID}:${METHOD}\"`\n\n### What Should Happen?\n\nClaude code should response, using multi-region endpoint\n\n### Error Messages/Logs\n\n```shell\n> The model claude-opus-4-7 is not available on your vertex deployment. Try /model to switch to claude-opus-4-1@20250805, or ask your admin to enable this model.\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code (latest version)\n2. Setup Claude Code to use vertex with regional endpoint and opus-4-7\n```\nexport CLAUDE_CODE_USE_VERTEX=1\nexport CLOUD_ML_REGION=eu\nexport ANTHROPIC_VERTEX_PROJECT_ID=YOUR-PROJECT-ID\nexport ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'\n```\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.112\n\n### Platform\n\nGoogle Vertex AI\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["enhancement", "api:vertex", "platform:macos", "area:api"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-17T09:48:47Z",
+  "updated_at": "2026-05-07T15:13:17Z",
+  "closed_at": "2026-04-27T15:01:05Z",
+  "reactions_total": 0,
+  "comments_count": 3,
+  "author": "mautini",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

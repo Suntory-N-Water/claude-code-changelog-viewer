@@ -1,0 +1,35 @@
+{
+  "number": 6635,
+  "title": "Statusline ANSI escape codes not rendering properly with Unicode terminal",
+  "body": "## Issue Description\n\nThe Claude Code statusline is displaying raw ANSI escape codes instead of rendering them as colors when using a Unicode-enabled terminal.\n\n## Expected Behavior\nStatusline should display colored text like:\n- Model name in cyan\n- Directory path in blue  \n- Git branch in appropriate colors\n- Usage indicators with color coding\n\n## Actual Behavior\nStatusline shows raw escape sequences like:\n`\\033[33mmain\\033[0m*` instead of colored text\n\n## Environment\n- macOS Darwin 24.6.0\n- Terminal: Unicode enabled\n- Claude Code with custom statusline script\n- Zsh with Powerlevel10k theme\n\n## Reproduction Steps\n1. Configure custom statusline script in `~/.claude/settings.json`\n2. Script outputs ANSI escape codes using printf\n3. Statusline displays raw codes instead of colors\n\n## Technical Details\nThe statusline script uses standard ANSI escape codes:\n- `\\033[33m` for yellow text\n- `\\033[0m` for reset\n- `\\033[96m` for bright cyan\n\nThese work correctly in terminal but not in Claude Code's statusline rendering.\n\n## Possible Causes\n1. Claude Code statusline renderer doesn't support ANSI escape codes\n2. Unicode terminal handling different from ASCII\n3. Need different escape sequence format for Claude Code\n\n## Requested Solution\nEither:\n1. Enable ANSI escape code rendering in statusline\n2. Document proper color formatting for statuslines\n3. Provide alternative color formatting method\n\nThis affects users who want colored, informative statuslines for better UX.",
+  "labels": ["autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-27T03:34:11Z",
+  "updated_at": "2026-01-14T14:13:18Z",
+  "closed_at": "2026-01-06T10:14:34Z",
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "shadowkon007",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "sirmalloc",
+      "author_association": "NONE",
+      "body": "@shadowkon007 The statusline definitely supports ANSI escape codes.  I use them extensively in [ccstatusline](https://github.com/sirmalloc/ccstatusline) in 16 / 256 / truecolor modes and they output just fine in Terminal.app (16 / 256 only), iTerm2, ghostty, and VSCode.\n\nI just updated my settings.json to this:\n\n```\n{\n  \"model\": \"opus\",\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"printf \\\"\\\\033[33mHello\\\\033[0m\\\\n\\\"\",\n    \"padding\": 0\n  }\n}\n```\n\nand here is the result in ghostty:\n\n<",
+      "created_at": "2025-08-27T06:19:00Z"
+    },
+    {
+      "author": "ErikMeinders",
+      "author_association": "NONE",
+      "body": "I do experience the same issue since about a week. could either be a change in Claude Code or OS X as I am running OX Tahoe beta 7 since about that same time. The issue is specifically with Unicode.",
+      "created_at": "2025-08-28T05:19:21Z"
+    },
+    {
+      "author": "sirmalloc",
+      "author_association": "NONE",
+      "body": "> I do experience the same issue since about a week. could either be a change in Claude Code or OS X as I am running OX Tahoe beta 7 since about that same time. The issue is specifically with Unicode.\n\nIs this only in Terminal.app on macOS 26? How about iTerm2 or ghostty?\n",
+      "created_at": "2025-08-28T05:26:31Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 56145,
+  "title": "[Bug] Linux sandbox (bash) permanently fails — cloud workspace not provisioning for Windows Cowork sessions (6+ sessions affected)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe isolated Linux sandbox fails to start in every Cowork session on Windows. Every bash call returns immediately: \"Workspace unavailable. The isolated Linux environment failed to start.\" This has persisted across 6+ consecutive sessions over multiple weeks with no recovery.\n\n### What Should Happen?\n\nThe Linux sandbox should start successfully when a Cowork session begins, allowing Claude to execute bash commands, run Python scripts, and perform shell operations. Sessions should have cwd set to /sessions/<name>/mnt/ as was the case before the April 2026 app update.\n\n### Error Messages/Logs\n\n```shell\nWorkspace unavailable. The isolated Linux environment failed to start. You can still use file tools directly.\n```\n\n### Steps to Reproduce\n\n1. Open Claude Cowork desktop app on Windows (Microsoft Store version)\n2. Start any new conversation session\n3. Ask Claude to perform any task requiring bash/shell/Python execution\n4. Observe Claude calls mcp__workspace__bash\n5. Result: immediate failure — \"Workspace unavailable. The isolated Linux environment failed to start.\"\n6. Failure is instant with no retry, no startup delay, sandbox never becomes available\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nVersion before Claude_1.5354.0.0_x64 (last working sessions before 29 April 2026)\n\n### Claude Code Version\n\nClaude Cowork 1.5354.0.0 (Microsoft Store, not Claude Code CLI)\n\n### Platform\n\nOther\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nIMPORTANT: This bug is in Claude Cowork (desktop app), not Claude Code CLI.\n\nKEY FINDINGS:\n\n1. Session cwd format changed after app update:\n   - BEFORE (working): /sessions/<name>/mnt/\n   - AFTER (broken): C:\\Users\\NKB.PRBNS.2111.0025\\AppData\\Roaming\\Claude\\local-agent-mode-sessions\\...\n\n2. No local sandbox exists — installation inspection confirms:\n   Path: C:\\Program Files\\WindowsApps\\Claude_1.5354.0.0_x64__pzs8sxrjxfjjc\n   Contents: app/ and assets/ folders only\n   NO WSL, Docker, container runtime, or sandbox binary found\n   %AppData%\\Claude does not exist on this machine\n   Windows Event Viewer shows ZERO Claude entries\n   \n   Conclusion: Linux workspace is a REMOTE/CLOUD service.\n   The failure is server-side — nothing to fix locally.\n\n3. Affected sessions (6 confirmed): \n   local_7922f495, local_b8a680cb, local_83d21f4b, \n   local_b2a16a18, local_b98a6bbc, local_b5a3f165\n\n4. Working sessions (before update):\n   local_749d8921, local_b55ec58e, local_9f5155d2, local_95848dc1\n\n5. Anthropic Support Conversation ID: 215474175581735\n\n6. App update date: 29 April 2026 — correlates exactly with regression start",
+  "labels": ["duplicate"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-05-04T22:35:13Z",
+  "updated_at": "2026-05-23T18:26:37Z",
+  "closed_at": "2026-05-08T09:36:51Z",
+  "reactions_total": 5,
+  "comments_count": 11,
+  "author": "chatkecerdasan",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/55649\n2. https://github.com/anthropics/claude-code/issues/55404\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-04T22:41:30Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been automatically closed as a duplicate of #55649.\n\nIf this is incorrect, please re-open this issue or create a new one.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-08T09:36:52Z"
+    },
+    {
+      "author": "mederic-coreai",
+      "author_association": "NONE",
+      "body": "« +1 same symptom on Surface Book 3 / Windows 11 Pro / i7-1065G7. Identified root cause as 5-second timeout race between Claude Desktop and CoworkVMService startup. Detailed trace and PowerShell workaround posted in #48661 ([link to your comment]). Sharing in case it helps others land on the right fix faster than nuking their install. »",
+      "created_at": "2026-05-11T03:38:58Z"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "number": 60194,
+  "title": "[Bug] Permission prompt disappears after Ctrl+O toggle with concurrent tool calls",
+  "body": "**Bug Description**\n  **Title:** Permission prompt vanishes after Ctrl+O → Ctrl+O, command appears stuck with no way to approve/deny\n\n  **Claude Code version:** 2.1.143 (Claude Code)\n  **OS:** Linux 7.0.8-arch1-1 (Arch)\n  **Shell:** zsh\n  **Model:** Opus 4.7 (1M context)\n\n  ## Steps to reproduce\n\n  1. Issue a Bash tool call that requires permission (e.g. a command not in the auto-allow list).\n  2a. When the \"Allow this command?\" prompt appears, press **Ctrl+O** to expand and view the full output / command text.\n  2b. When Ctrl-O was active and a new Bash tool call was activated (in the background)\n  3. Press **Ctrl+O** again to return to the normal view.\n  \n\n  ## Expected\n\n  The permission prompt is restored; user can approve or deny.\n\n  ## Actual\n\n  The permission prompt is gone. The command is in a stuck state — there is no visible way to approve or deny it, and Claude appears to be waiting indefinitely. The only escape is Esc cancel and re-issue (user requests to continue).\n  \n  ## Frequency\n\n  Reliably reproducible. Hit it 3+ times in a single session today.\n\n  ## Workarounds tried\n\n  - Pressing another CTRL-O + CTRL-O to see if permissions is back did not work\n\n  ## Notes\n\n  - Cache stays warm across this state, so context isn't lost — just the UI affordance for approving the in-flight tool call.\n  - Recent v2.1.141–143 changelogs mention fixes for \"terminal becoming unresponsive after certain operations\" — this may be a related case that wasn't covered.\n\n**Environment Info**\n- Platform: linux\n- Terminal: ghostty\n- Version: 2.1.143\n- Feedback ID: 4789c86c-4937-404e-9c90-c172f262ed2f\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tui",
+    "area:permissions"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-18T11:38:28Z",
+  "updated_at": "2026-07-02T09:59:39Z",
+  "closed_at": "2026-07-02T09:59:39Z",
+  "reactions_total": 19,
+  "comments_count": 16,
+  "author": "veger",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/40984\n2. https://github.com/anthropics/claude-code/issues/52263\n3. https://github.com/anthropics/claude-code/issues/58391\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-18T11:43:23Z"
+    },
+    {
+      "author": "veger",
+      "author_association": "NONE",
+      "body": "The first 'duplicate' mentions:\n\n> Press Ctrl+O again to collapse the expanded output view, then the question prompt will be visible.\n\nThis was the case (IIRC), but seems to be broken in the current version, as the workaround I tried describes.\n\nDuplicate 2 is marked as another duplicate which is about sandboxes, which is not the case here...\n\nAnd duplciate 3 is about some freeze:\n\n> The Claude Desktop app (and Claude Code CLI) crashes or freezes, displaying a \"Claude will return soon\" service d",
+      "created_at": "2026-05-18T13:08:11Z"
+    },
+    {
+      "author": "dwaltrip",
+      "author_association": "NONE",
+      "body": "I'm having this same issue. It happens very frequently, if you use ctrl+o often.\n\nThe only workaround I've found is to cancel the tool use request and ask the model to try again, which isn't great.\n\n---\n\nEdit: I've just found another workaround for some cases.\n\nFor certain tool requests, you can hit `ctrl+b` to have it run in the background  (e.g. bash commands), and you don't have to ask the model to redo the command. Still not ideal, but perhaps slightly better.",
+      "created_at": "2026-05-22T14:38:11Z"
+    }
+  ]
+}

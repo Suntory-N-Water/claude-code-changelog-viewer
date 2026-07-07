@@ -1,0 +1,35 @@
+{
+  "number": 14287,
+  "title": "Panic on UTF-8 boundary when processing Chinese characters",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Description\nClaude Code crashes with a Rust panic when processing files containing Chinese characters.\n\n## Error Message\nthread '<unnamed>' (864528) panicked at /rustc/ed61e7d7e242494fb7057f2657300d9e77bb4fcb/library/core/src/str/mod.rs:833:21: byte index 2 is not a char boundary; it is inside '辑' (bytes 0..3) of 辑 note: run with RUST_BACKTRACE=1 environment variable to display a backtrace fatal runtime error: failed to initiate panic, error 5, aborting zsh: abort claude\n\n## Environment\n- Claude Code version: 2.0.71\n- OS: macOS (Darwin 24.2.0)\n- Context: Opened a file (`ai_mapping/log.md`) that likely contains Chinese text\n\n## Root Cause\nThe code appears to be slicing a UTF-8 string at byte index 2, which falls in the middle of a 3-byte Chinese character '辑' (U+8F91). This is invalid in UTF-8 and causes a panic.\n\n### What Should Happen?\n\nClaude Code should handle UTF-8 strings correctly without crashing. When truncating strings for display (e.g., status line, file paths), it should use character-aware operations that respect UTF-8 boundaries instead of byte-based slicing.\n\n\n### Error Messages/Logs\n\n```shell\nthread '<unnamed>' (864528) panicked at /rustc/ed61e7d7e242494fb7057f2657300d9e77bb4fcb/library/core/src/str/mod.rs:833:21:\nbyte index 2 is not a char boundary; it is inside '辑' (bytes 0..3) of `辑`\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\nfatal runtime error: failed to initiate panic, error 5, aborting\nzsh: abort      claude\n```\n\n### Steps to Reproduce\n\n1. Have a markdown file containing Chinese characters (e.g., `ai_mapping/log.md`)\n2. Open the file in VSCode IDE\n3. Run Claude Code in the same session\n4. The crash occurs, possibly when rendering status line or processing file content\n5. The character '辑' (part of word like \"编辑\") triggers the boundary error\n\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.71\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\nThe crash appears to be in string truncation logic, likely in the status line or UI rendering code. The Chinese character '辑' (U+8F91) is 3 bytes in UTF-8 (E8 BE 91), and the code incorrectly tries to slice at byte index 2.\n\nSuggested fix: Use `str.char_indices()` or `str.chars()` for safe truncation in Rust.\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "oncall"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-12-17T05:39:04Z",
+  "updated_at": "2026-04-25T14:37:22Z",
+  "closed_at": "2026-04-18T10:13:07Z",
+  "reactions_total": 34,
+  "comments_count": 24,
+  "author": "cyberLdy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14133\n2. https://github.com/anthropics/claude-code/issues/14273\n3. https://github.com/anthropics/claude-code/issues/14272\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-17T05:42:46Z"
+    },
+    {
+      "author": "jrlprost",
+      "author_association": "NONE",
+      "body": "Hello, I have the same issue inside my cloud with Chinese characters. I've taken a screenshot if you want to use it.\n\n ### Description                                                                                      \n                                                                                                       \n  When using the Edit tool to modify files containing Chinese (CJK) characters, the tool incorrectly reports that valid UTF-8 characters are invalid, causing the edit operatio",
+      "created_at": "2025-12-19T18:47:01Z"
+    },
+    {
+      "author": "iseeweb",
+      "author_association": "NONE",
+      "body": "This bug makes Claude Code completely unusable for any project involving CJK (Chinese, Japanese, Korean) characters. The CLI crashes immediately when processing multilingual text.\n\n**My use cases affected:**\n  - Working on Chinese documentation and code comments\n  - Debugging Japanese localization files (i18n)\n  - Testing Korean language support in applications\n  - Any project with mixed CJK and English content\n\nAs a developer working on internationalized applications, I frequently need to handl",
+      "created_at": "2025-12-24T00:45:53Z"
+    }
+  ]
+}

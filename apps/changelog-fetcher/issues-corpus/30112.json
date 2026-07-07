@@ -1,0 +1,35 @@
+{
+  "number": 30112,
+  "title": "[BUG]Cowork network egress allowlist not working - custom domains blocked with 403 blocked-by-allowlist",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhat's Wrong?\nDespite enabling network egress in Settings > Capabilities and setting the domain allowlist to \"All domains\", Cowork sessions continue to block external domains with 403 Forbidden errors. The MITM proxy returns blocked-by-allowlist even though all domains should be allowed.\nEnvironment\n\nPlatform: Claude Desktop for macOS\nCowork feature preview (enabled)\nNetwork settings: \"Allow network egress\" toggle ON, domain allowlist set to \"All domains\"\n\n### What Should Happen?\n\nRequests to domains in the allowlist should succeed (200 OK).\n\n### Error Messages/Logs\n\n```shell\nActual Behavior\nAll requests to external domains are blocked with:\nHTTP/1.1 403 Forbidden\nx-deny-reason: blocked-by-allowlist\nThe proxy logs show the domains are explicitly rejected by the MITM proxy filter, regardless of the \"All domains\" setting.\nError Details\nExample blocking errors:\nFailed to fetch https://draw.io/\nError: 403 Forbidden (x-deny-reason: blocked-by-allowlist)\n\nFailed to fetch https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/stencils/archimate32/strategy.xml\nError: 403 Forbidden (x-deny-reason: blocked-by-allowlist)\nRelated Issues\nThis appears related to (but distinct from):\n\n#19087 - \"Additional allowed domains\" not included in JWT allowlist\n#18854 - Cowork proxy blocking api.anthropic.com with blocked-by-allowlist\n#21706 - \"All domains\" setting triggers validation errors\n\nThe core issue is that the MITM proxy on Claude Desktop isn't properly respecting the domain allowlist configuration for Cowork sessions, even when set to the most permissive \"All domains\" option. The sandbox proxy continues to block all external traffic.\n```\n\n### Steps to Reproduce\n\nReproduction Steps\n\nGo to claude.ai/settings/capabilities\nUnder \"Code execution and file creation\", ensure \"Allow network egress\" is enabled\nSet \"Domain allowlist\" to \"All domains\"\nRestart Claude Desktop\nOpen a new Cowork session\nAttempt to fetch from external domains (e.g., draw.io, raw.githubusercontent.com via curl or web requests)\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nCoWork isssue.\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nImpact\nThis significantly limits Cowork's usefulness for research, enterprise architecture diagramming, and any task requiring access to external resources (CDNs, documentation, diagramming tools, etc.).",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-02T15:52:28Z",
+  "updated_at": "2026-07-02T10:10:53Z",
+  "closed_at": null,
+  "reactions_total": 48,
+  "comments_count": 52,
+  "author": "RogerMellie",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23818\n2. https://github.com/anthropics/claude-code/issues/11897\n3. https://github.com/anthropics/claude-code/issues/18854\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-02T16:01:58Z"
+    },
+    {
+      "author": "tylerwhardy",
+      "author_association": "NONE",
+      "body": "Same issue via Claude Code remote execution (launched from Desktop app)\n\nReproducing this in remote container sessions started from Claude Desktop. The code executes server-side in a container (claude_code_remote), and the egress proxy JWT minted at session start still contains a hardcoded allowed_hosts field with ~100 specific domains — despite \"All domains\" being set in capabilities.\n\nDeny reason in remote containers: x-deny-reason: host_not_allowed (vs blocked-by-allowlist on local Desktop pr",
+      "created_at": "2026-03-04T15:53:30Z"
+    },
+    {
+      "author": "gethooo",
+      "author_association": "NONE",
+      "body": "Same issue here. macOS, Claude Desktop 1.1.4328 (d8e391), 2026-02-25T17:04:36.000Z. Pro plan.\n\nThe VM boots fine and the API is reachable — the network itself is working. From cowork_vm_node.log:\n\n```\n[VM] Network status: CONNECTED\n[VM] API reachability: REACHABLE\n[VM:start] Startup complete, total time: 5444ms\n```\n\nBut all non-API web requests are blocked by the egress proxy. Cowork reports \"google.com is blocked by the network egress proxy\" when asked to reach any external domain.\n\nI've tried:",
+      "created_at": "2026-03-04T22:58:08Z"
+    }
+  ]
+}

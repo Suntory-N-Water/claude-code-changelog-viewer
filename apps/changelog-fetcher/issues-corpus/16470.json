@@ -1,0 +1,44 @@
+{
+  "number": 16470,
+  "title": "[BUG] JavaScript heap exhaustion (OOM crash) during heavy Task tool/agent usage",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Environment\n\n- **Claude Code Version**: 2.0.76\n- **Model**: Opus 4.5 (Claude Max subscription)\n- **Platform**: Windows 11 (MSYS_NT-10.0-26200 3.5.7-463ebcdc.x86_64)\n- **Shell**: Git Bash (MSYS2)\n\n## Description\n\nClaude Code consistently crashes with JavaScript heap exhaustion during sessions involving heavy use of the Task tool (subagent spawning). The issue has persisted for **several weeks** across multiple Claude Code versions.\n\n## Crash Output\n\n```\n<--- JS stacktrace --->\nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n\nHeap metrics at crash:\n- Heap: 16125.4 MB used, 16438.5 MB limit\n- GC efficiency: average mu = 0.102, current mu = 0.006\n- GC time: 23,259.76 ms spent on garbage collection\n```\n\n## Steps to Reproduce\n\n1. Start a Claude Code session\n2. Use the Task tool to spawn multiple agents (subagent_type parameter)\n3. Have agents perform complex tasks (20+ tool uses, returning large context)\n4. Spawn agents in parallel (multiple Task calls in single message)\n5. Continue for 30-60 minutes with sustained agent usage\n6. Session crashes with heap exhaustion\n\n## Evidence from Debug Analysis\n\nI analyzed my `.claude/debug/` directory containing **766 session debug files** totaling **343 MB**:\n\n| Metric | Value | Notes |\n|--------|-------|-------|\n| Largest session file | 49.5 MB | Single session debug log |\n| Agent spawns in largest | 626 | Task tool invocations |\n| Sessions > 5 MB | 12 | High-risk for crash |\n\n## Observed Pattern\n\nThe `mu` value (GC mutator utilization) dropping to 0.006 indicates garbage collection is reclaiming virtually no memory, suggesting **strong references are preventing cleanup**.\n\nEach spawned agent appears to retain its full context in memory after completion. When agents complete, context is NOT garbage collected. Parallel agent spawning multiplies memory pressure.\n\n## Suspected Root Cause\n\nAgent context (conversation history + tool outputs) appears to be retained in memory after agent completion:\n\n1. Each spawned agent holds its full context in memory\n2. When agents complete, context is NOT garbage collected\n3. Parallel agent spawning multiplies memory pressure\n4. Agents returning large outputs (47k+ tokens) cause significant retention\n\n## Questions for Engineering\n\n1. Is agent context intentionally retained (for resume capability), and if so, is there a limit?\n2. Are there strong references in the agent management system preventing GC?\n3. Is there a maximum recommended number of agents per session?\n\n## Workarounds Attempted\n\n- Starting fresh sessions frequently (helps but disruptive)\n- Sequential instead of parallel agent spawning (reduces peak memory)\n- Smaller agent task scopes (conflicts with workflow)\n\n## Impact\n\n- Sessions crash mid-task, losing context and progress\n- Unable to complete complex multi-component development tasks\n- Significantly impacts productivity for power users\n\n### What Should Happen?\n\nWhen agents spawned via the Task tool complete their work, their context should be released from memory and garbage collected. Sessions should be able to run indefinitely with heavy agent usage without memory exhaustion, as long as agents are completing (not running concurrently in unbounded numbers).\n\nSpecifically:\n1. Agent context should be garbage collected after agent completion\n2. GC efficiency (mu) should remain healthy (>50%) during normal operation\n3. Memory should stabilize, not grow linearly with cumulative agent spawns\n4. Parallel agent spawning should only increase memory during concurrent execution, not permanently\n\n### Error Messages/Logs\n\n```shell\n<--- JS stacktrace --->\nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n\nMemory metrics at crash:\n- Heap: 16125.4 ",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tools",
+    "area:core",
+    "memory",
+    "perf:memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-06T14:23:09Z",
+  "updated_at": "2026-03-09T14:36:08Z",
+  "closed_at": "2026-02-28T22:11:34Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "DomenicoDomotz",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/15262\n2. https://github.com/anthropics/claude-code/issues/14373  \n3. https://github.com/anthropics/claude-code/issues/9053\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-06T14:30:08Z"
+    },
+    {
+      "author": "DomenicoDomotz",
+      "author_association": "NONE",
+      "body": "## Not a Duplicate - This Issue Provides Unique Quantitative Analysis\n\nI've reviewed the linked issues (#15262, #14373, #9053) and while they report the same *symptom* (OOM during subagent usage), **this issue provides unique debugging value** that none of the others contain:\n\n### What This Issue Adds (Not in Other Reports)\n\n| Existing Issues | This Issue |\n|-----------------|------------|\n| \"It crashes when using subagent\" | **766 debug files (343MB) analyzed** |\n| No root cause identified | **",
+      "created_at": "2026-01-06T15:03:53Z"
+    },
+    {
+      "author": "galcianuk",
+      "author_association": "NONE",
+      "body": "I am getting this as well. \n\n---\n\n ## Bug: Memory explosion (6GB+ OOM) when spawning subagents via Task tool\n\n  ### Environment\n  - **Claude Code Version:** 2.1.1\n  - **Node Version:** v20.19.6\n  - **OS:** Linux (WSL2) - 6.6.87.2-microsoft-standard-WSL2 aarch64\n  - **System Memory:** 15GB\n\n  ### Description\n  When spawning any subagent via the Task tool, memory grows uncontrollably at ~600MB every 5 seconds until hitting the 6GB heap limit and crashing with OOM.\n\n  This previously worked fine - ",
+      "created_at": "2026-01-08T00:48:22Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 37793,
+  "title": "Subagents fail with 'prompt is too long' when user has many MCP servers (tool definitions exceed 200k)",
+  "body": "## Problem\n\nWhen a user has many MCP servers configured at the user level, subagents (Explore, Plan, general-purpose) fail immediately with `prompt is too long: 209117 tokens > 200000 maximum` before executing a single tool call. The TUI shows `Done (0 tool uses · 0 tokens · 44s)` with no error visible to the user.\n\n## Root Cause\n\nSubagents inherit all MCP tool definitions from the parent session. Each tool definition includes a full JSON schema. With many MCP servers, the tool schemas alone exceed Sonnet's 200k context limit.\n\n## Reproduction\n\n**Setup:** 34 MCP servers configured in `~/.claude.json` (Bright Data, Discord, GitHub, Gmail, Playwright, Sentry, YouTube, etc.) totaling ~566 MCP tools.\n\n**Main session:** Opus 4.6 (1M context) on Claude Max — works fine, 209k of tool schemas fits within 1M.\n\n**Subagent spawn:** Any Agent call (Explore, Plan, general-purpose) → Sonnet 200k → immediate API error:\n\n```\n\"error\": \"invalid_request\"\n\"errorDetails\": \"prompt is too long: 209117 tokens > 200000 maximum\"\n```\n\nThe user prompt was ~156 tokens. The Explore system prompt is ~500 tokens. The remaining ~208,000 tokens are tool definitions.\n\n**Subagent JSONL evidence** (from `agent-a4ff9338a6a5a0f09.jsonl`):\n```json\n{\n  \"error\": \"invalid_request\",\n  \"errorDetails\": \"400 {\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"prompt is too long: 209117 tokens > 200000 maximum\\\"}}\"\n}\n```\n\n**Version:** Claude Code v2.1.81, macOS, Claude Max subscription.\n\n## Why This Isn't a Duplicate\n\nPrevious issues were auto-closed incorrectly:\n- #29157 (\"Intelligently disable MCP tools for subagents\") → auto-duped to #10668 (\"Tool names must be unique\"), which was a completely different bug fixed in v2.0.31\n- #27208 (\"Hierarchical deferred tool discovery\") → auto-duped to #23508 (\"Lazy MCP tool group loading\"), which was closed as stale without resolution\n\nThe underlying problem — subagents receiving all MCP tool schemas regardless of relevance, causing context overflow — remains unfixed.\n\n## Proposed Solutions (any would work)\n\n1. **Apply deferred/ToolSearch to subagents** — The main session already uses deferred tools (tool names listed, schemas loaded on demand via ToolSearch). Subagents should get the same treatment.\n2. **Filter tools by subagent type** — Explore agents don't need Canva, Stripe, Discord, etc. Only pass tools relevant to the subagent's declared tool set.\n3. **Inherit parent model** — If the main session is Opus 1M, subagents should also get 1M context (or at least Sonnet 1M if available on the plan).\n4. **Graceful degradation** — If tool definitions exceed the subagent's context, prune least-relevant MCP tools rather than failing silently.\n\n## Workarounds\n\n- Pass `model: \"opus\"` explicitly on Agent calls (costs more quota)\n- Reduce MCP servers in `~/.claude.json` (defeats the purpose of having them)\n- Move servers to project-level configs (tedious, easy to forget)\n\n## Impact\n\nAny Claude Max user with 15+ MCP servers will hit this. The failure is completely silent in the TUI — users see \"0 tool uses · 0 tokens\" and have no idea why. This makes Explore, Plan, and general-purpose agents unusable for power users.",
+  "labels": ["bug", "has repro", "area:mcp", "area:agents"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-23T11:48:18Z",
+  "updated_at": "2026-06-03T02:20:47Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 21,
+  "author": "TweedBeetle",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/31623\n2. https://github.com/anthropics/claude-code/issues/29157\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-23T11:53:02Z"
+    },
+    {
+      "author": "Cianai",
+      "author_association": "NONE",
+      "body": "Not a duplicate of #10668 or #31623 — this is a distinct bug, not a feature request.\n\n**#10668** was about non-unique tool names causing conflicts (fixed in v2.0.31). This issue is about tool schema *volume* exceeding the subagent context window.\n\n**#31623** is the feature request for the real fix (deferred tool loading for subagents). This issue is the bug report documenting the broken behavior that fix would address. Both should remain open — one tracks the symptom, the other the solution.\n\n**",
+      "created_at": "2026-03-23T13:16:40Z"
+    },
+    {
+      "author": "samargy",
+      "author_association": "NONE",
+      "body": "Also have the exact same issue. ",
+      "created_at": "2026-03-24T10:11:07Z"
+    }
+  ]
+}

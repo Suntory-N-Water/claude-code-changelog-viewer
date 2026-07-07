@@ -1,0 +1,35 @@
+{
+  "number": 15148,
+  "title": "LSP plugin lspServers config not being processed from marketplace.json",
+  "body": "## Bug Description\n\nThe `lspServers` configuration defined in marketplace.json plugin entries is not being extracted or processed when plugins are loaded. This results in LSP plugins (typescript-lsp, pyright-lsp, gopls-lsp) being installed but non-functional.\n\n## Steps to Reproduce\n\n1. Enable the typescript-lsp plugin:\n   ```bash\n   claude plugins install typescript-lsp@claude-plugins-official\n   ```\n2. Verify typescript-language-server is installed:\n   ```bash\n   which typescript-language-server\n   # Returns: /opt/homebrew/bin/typescript-language-server\n   ```\n3. Restart Claude Code\n4. Attempt to use LSP:\n   ```\n   LSP documentSymbol on src/server.ts\n   ```\n\n## Expected Behavior\n\nLSP operations should work since:\n- The plugin is enabled in settings.json\n- The marketplace.json plugin definition includes proper `lspServers` config\n- The language server binary is installed\n\n## Actual Behavior\n\n```\nNo LSP server available for file type: .ts\n```\n\n## Debug Log Evidence\n\n```\n2025-12-23T12:09:16.380Z [DEBUG] [LSP MANAGER] initializeLspServerManager() called\n2025-12-23T12:09:16.380Z [DEBUG] [LSP MANAGER] Created manager instance, state=pending\n2025-12-23T12:09:16.387Z [DEBUG] LSP server manager initialized successfully\n2025-12-23T12:09:16.387Z [DEBUG] LSP notification handlers registered successfully for all 0 server(s)\n2025-12-23T12:09:16.433Z [DEBUG] Loading plugin typescript-lsp from source: \"./plugins/typescript-lsp\"\n2025-12-23T12:09:16.434Z [DEBUG] Plugin typescript-lsp has no entry.skills defined\n2025-12-23T12:09:45.479Z [DEBUG] No LSP server available for file type .ts for operation documentSymbol on file src/server.ts\n```\n\nKey observation: **\"0 server(s)\"** - the lspServers config is never loaded.\n\n## Root Cause Analysis\n\nThe marketplace.json correctly defines `lspServers` for the plugin:\n\n```json\n{\n  \"name\": \"typescript-lsp\",\n  \"description\": \"TypeScript/JavaScript language server for enhanced code intelligence\",\n  \"version\": \"1.0.0\",\n  \"source\": \"./plugins/typescript-lsp\",\n  \"lspServers\": {\n    \"typescript\": {\n      \"command\": \"typescript-language-server\",\n      \"args\": [\"--stdio\"],\n      \"extensionToLanguage\": {\n        \".ts\": \"typescript\",\n        \".tsx\": \"typescriptreact\",\n        \".js\": \"javascript\",\n        \".jsx\": \"javascriptreact\",\n        \".mts\": \"typescript\",\n        \".cts\": \"typescript\",\n        \".mjs\": \"javascript\",\n        \".cjs\": \"javascript\"\n      }\n    }\n  }\n}\n```\n\nHowever, when the plugin is installed:\n1. Only the plugin source folder contents (just README.md) are copied to cache\n2. The `lspServers` field from marketplace.json is never extracted or processed\n3. LSP manager initializes with 0 servers before plugins finish loading\n\n## Workarounds Attempted (All Failed)\n\n1. **Adding `.lsp.json` to plugin cache folder** - Not read\n2. **Adding `lspServers` to `~/.claude/settings.json`** - Not a supported setting\n3. **Reinstalling the plugin** - Same result\n\n## Environment\n\n- Claude Code version: Latest (as of 2025-12-23)\n- OS: macOS Darwin 25.2.0\n- typescript-language-server version: 5.1.3\n- Node.js: 20+\n\n## Files Examined\n\n```\n~/.claude/settings.json (has enabledPlugins)\n~/.claude/plugins/installed_plugins.json (plugin registered)\n~/.claude/plugins/marketplaces/claude-plugins-official/.claude-plugin/marketplace.json (has lspServers)\n~/.claude/plugins/cache/claude-plugins-official/typescript-lsp/1.0.0/ (only contains README.md)\n```\n\n## Suggested Fix\n\nThe plugin loader should:\n1. Extract `lspServers` from marketplace.json plugin definitions\n2. Register these servers with the LSP manager after plugin loading completes\n3. Or: Store lspServers config in installed_plugins.json for persistence",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-23T12:12:44Z",
+  "updated_at": "2026-06-25T16:09:29Z",
+  "closed_at": null,
+  "reactions_total": 71,
+  "comments_count": 19,
+  "author": "giovannirco",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "---\n\nFound 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13952\n2. https://github.com/anthropics/claude-code/issues/14803\n3. https://github.com/anthropics/claude-code/issues/14932\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-23T12:15:58Z"
+    },
+    {
+      "author": "abhishekc-timedotmoney",
+      "author_association": "NONE",
+      "body": "Same problem for me as well, tried the plugin, with whatever mentioned in the doc :- https://code.claude.com/docs/en/plugins-reference#lsp-servers\nbut it's not working.",
+      "created_at": "2025-12-24T06:20:29Z"
+    },
+    {
+      "author": "ChrisWiles",
+      "author_association": "NONE",
+      "body": "Same issue with me, here is CC thinks\n\n\n⏺ Here's what I found:\n\n  Summary\n\n  What typescript-lsp does:\n\n  Based on https://github.com/boostvolt/claude-code-lsps and https://code.claude.com/docs/en/plugins:\n\n  The typescript-lsp plugin provides:\n  1. LSP Tool - Five operations: goToDefinition, findReferences, hover, documentSymbol, workspaceSymbol\n  2. Automatic Diagnostics - Real-time TypeScript error/warning detection when reading files\n\n  Current Status\n\n  You have the plugin installed and ena",
+      "created_at": "2025-12-25T16:09:15Z"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "number": 3179,
+  "title": "[BUG] PreToolUse and PostToolUse hooks not triggering on WSL2 despite correct configuration",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: \n- Claude CLI version: 1.0.44 (Claude Code)\n- Operating System: Linux 5.15.167.4-microsoft-standard-WSL2\n- Terminal: Windows Terminal with WSL2\n\n## Bug Description\nPreToolUse and PostToolUse hooks are not being triggered during tool use, despite following the documentation and having what appears to be correct configuration. The hooks are properly configured in `.claude/settings.local.json` with appropriate matchers, but they never execute when tools are used.\n\n## Steps to Reproduce\n1. Configure hooks in `.claude/settings.local.json` with the following structure:\n```json\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Bash|Task|Read|Write|Edit|MultiEdit|Grep|Glob|LS|WebFetch|TodoRead|TodoWrite|NotebookRead|NotebookEdit|WebSearch\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/home/ruslan/.local/bin/uv run .claude/hooks/pre_tool_use.py\"\n          }\n        ]\n      }\n    ],\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Bash|Task|Read|Write|Edit|MultiEdit|Grep|Glob|LS|WebFetch|TodoRead|TodoWrite|NotebookRead|NotebookEdit|WebSearch\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/home/ruslan/.local/bin/uv run .claude/hooks/post_tool_use.py\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n2. Ensure hook scripts exist and are executable\n3. Start Claude Code session: `claude`\n4. Use any tool (e.g., execute a Bash command)\n5. Check hook logs - no new entries are created\n\n## Expected Behavior\n- PreToolUse hook should execute before each tool invocation\n- PostToolUse hook should execute after each tool invocation\n- Hook scripts should log tool usage to JSON files\n- Hook processes should be visible in process list during execution\n\n## Actual Behavior\n- Hook scripts are never executed\n- Log files remain unchanged (last modified timestamp doesn't update despite active tool use)\n- No hook processes appear in process list during tool execution\n- Hook configuration appears to be ignored completely\n\n## Additional Context\n- Initially tried with empty matchers (`\"matcher\": \"\"`) based on examples, which didn't work\n- Updated to explicit tool names based on issue #3091, still doesn't work\n- Tested in multiple modes: debug mode, normal mode, isolated session - same result\n- Hook scripts execute successfully when run manually from command line\n- Notification hooks appear to work (TTS processes visible), but PreToolUse/PostToolUse do not\n- Settings precedence was verified by consolidating to single `.claude/settings.local.json` file\n- Similar to issue #3091 but configuration appears to match recommended format",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-09T00:02:01Z",
+  "updated_at": "2025-08-04T14:08:21Z",
+  "closed_at": "2025-07-28T06:58:46Z",
+  "reactions_total": 1,
+  "comments_count": 8,
+  "author": "ruslanvasylev",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

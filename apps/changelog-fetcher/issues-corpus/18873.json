@@ -1,0 +1,44 @@
+{
+  "number": 18873,
+  "title": "[BUG] Task tool `model` parameter returns 404 - Blocks cost-optimized workflows (10-30x unnecessary spending)",
+  "body": "## What's Wrong?\n\nThe Task tool's `model` parameter is completely broken in Claude Code 2.1.12+, creating a catch-22 that **blocks cost-effective mixed model architectures** and causes **10-30x unnecessary spending** on simple operations.\n\n**The problem:**\n- CLI validation **requires** short model names: `\"haiku\"`, `\"sonnet\"`, `\"opus\"`\n- API **rejects** those same short names with 404 errors: `{\"type\":\"not_found_error\",\"message\":\"model: haiku\"}`\n- Full model IDs (e.g., `\"claude-haiku-4-5-20251001\"`) are **rejected by CLI validation**\n\n**Result:** Users cannot use Opus/Sonnet for main session while delegating simple tasks (file searches, exploration) to Haiku. All sub-agent operations inherit the expensive parent model, causing massive cost waste.\n\n---\n\n## What Should Happen?\n\nThe Task tool's `model` parameter should:\n1. Accept short model names (`\"haiku\"`, `\"sonnet\"`, `\"opus\"`)\n2. Map them to full model IDs using `ANTHROPIC_DEFAULT_*_MODEL` environment variables\n3. Allow cost-optimized workflows: Expensive models for reasoning, cheap models for execution\n\n**Expected workflow:**\n```typescript\n// Main session uses Opus for architecture\n// But delegate simple tasks to Haiku\nTask({\n  subagent_type: \"Explore\",\n  model: \"haiku\",  // Should work, currently returns 404\n  prompt: \"Find authentication code\"\n})\n```\n\n---\n\n## Cost Impact (HIGH PRIORITY)\n\nThis bug forces **10-30x unnecessary spending** on routine operations for power users.\n\n### Scenario 1: Opus Main Session (Architecture Work)\n\n| Task Type | Intended Model | Forced to Use | Cost Multiplier | Daily Operations |\n|-----------|----------------|---------------|-----------------|------------------|\n| Deep reasoning, planning | Opus | Opus ✅ | 1x (correct) | ~5/day |\n| File searches | Haiku | **Opus** ❌ | **30x** | ~10/day |\n| Code exploration | Haiku | **Opus** ❌ | **30x** | ~8/day |\n| Browser automation | Haiku | **Opus** ❌ | **30x** | ~3/day |\n\n**Monthly waste for active Opus users:** Hundreds of thousands of unnecessary Opus tokens\n\n### Scenario 2: Sonnet Main Session (Standard Development)\n\n| Task Type | Intended Model | Forced to Use | Cost Multiplier | Daily Operations |\n|-----------|----------------|---------------|-----------------|------------------|\n| Implementation | Sonnet | Sonnet ✅ | 1x (correct) | ~10/day |\n| File searches | Haiku | **Sonnet** ❌ | **10x** | ~15/day |\n| Simple queries | Haiku | **Sonnet** ❌ | **10x** | ~10/day |\n\n**Impact multipliers:**\n- **Individual developers:** 10-30x cost increase on 50%+ of daily operations\n- **Teams:** Multiplied across entire team\n- **Rate limits:** Burning Opus/Sonnet limits on trivial file searches\n\n---\n\n## Blocked Workflows\n\nThis bug prevents:\n\n1. **Cost-optimized development**\n   - ❌ Opus for architecture decisions + Haiku for codebase exploration\n   - ❌ Sonnet for implementation + Haiku for testing/verification\n\n2. **Rate limit management**\n   - ❌ Users hitting Opus limits cannot offload simple tasks to Haiku\n   - ❌ Forced to wait for Opus rate limits even with Sonnet capacity available\n\n3. **Team cost control**\n   - ❌ Cannot implement \"Opus for architects, Sonnet for developers, Haiku for automation\"\n   - ❌ All-or-nothing model selection per session\n\n4. **Budget-conscious usage**\n   - ❌ Educational/hobbyist users cannot use occasional Opus reasoning with Haiku for bulk operations\n\n---\n\n## Steps to Reproduce\n\n**Environment:**\n- Claude Code version: 2.1.12\n- Platform: macOS (also confirmed on Linux)\n- Session model: Sonnet or Opus (set in `~/.claude/settings.json`)\n\n**Setup:**\n\n1. Configure environment variables in `~/.claude/settings.json`:\n```json\n{\n  \"env\": {\n    \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"claude-haiku-4-5-20251001\",\n    \"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"claude-sonnet-4-5-20250929\"\n  },\n  \"model\": \"sonnet\"\n}\n```\n\n2. Verify environment variable is loaded:\n```bash\n$ echo $ANTHROPIC_DEFAULT_HAIKU_MODEL\nclaude-haiku-4-5-20251001  # Confirmed loaded\n```\n\n**Test 1: Short model name (documented approach)**\n\n3. Attempt to spawn Haiku subagent:\n```typescript\nTask({\n  subagent_type: \"E",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "platform:linux",
+    "area:cost",
+    "area:model",
+    "area:api",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-17T20:27:26Z",
+  "updated_at": "2026-04-22T14:50:13Z",
+  "closed_at": "2026-04-13T22:24:51Z",
+  "reactions_total": 7,
+  "comments_count": 10,
+  "author": "AIntelligentTech",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16115\n2. https://github.com/anthropics/claude-code/issues/11682\n3. https://github.com/anthropics/claude-code/issues/9243\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-17T20:31:35Z"
+    },
+    {
+      "author": "AIntelligentTech",
+      "author_association": "NONE",
+      "body": "This is **not a simple duplicate** - it provides critical business case analysis and new evidence that other issues lack:\n\n## Why This Issue Adds Unique Value\n\n### 1. Cost Quantification (NEW)\n- **10-30x waste tables** with specific daily operation counts\n- Monthly impact calculations for active Opus users\n- Cost multiplier breakdowns by task type\n- None of the related issues (#9243, #11682, #16115) include this financial analysis\n\n### 2. New Technical Evidence\n- **Environment variable testing**",
+      "created_at": "2026-01-17T22:03:00Z"
+    },
+    {
+      "author": "ThanosKitsios",
+      "author_association": "NONE",
+      "body": "+1 - Confirmed this issue. Spawning agents with model: sonnet still uses Opus. Billing shows zero Sonnet usage. Significant cost impact for batch operations.",
+      "created_at": "2026-01-22T21:55:17Z"
+    }
+  ]
+}

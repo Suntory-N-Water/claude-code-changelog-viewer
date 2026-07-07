@@ -1,0 +1,16 @@
+{
+  "number": 932,
+  "title": "[BUG] Tool usage fails when initializing with CLI prompt argument",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [x] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 0.2.97 (Claude Code), 0.2.94 (Claude Code)\n- Operating System: macOS 15.4.1\n- Terminal:  iTerm2, Terminal App\n\n## Bug Description\nWhen running Claude Code with the `prompt` argument, the program fails to execute tool calls as intended. Instead of interacting with the system (e.g., creating or reading files), it only prints the intended tool commands to the console, then proceeds without actually performing the tool actions.\n\n## Steps to Reproduce\n1. Install Claude Code with version 0.2.97\n2. Run claude with prompt using CLI: `claude \"Create hello_world.py in that folder\"`\n\n## Expected Behavior\nThe tool should execute system interactions, such as creating or reading files, and display the resulting action.\nExample expected output:\n\n```\n> Create hello_world.py in that folder\n\n⏺ Write(file_path: hello_world.py)…\n  ⎿ Wrote 1 lines to hello_world.py\n     print(\"Hello, World!\")\n\n⏺ Created hello_world.py successfully.\n```\n\n## Actual Behavior\nInstead of executing the tool calls, Claude just prints the commands without actually running them:\n\n```\n> Create hello_world.py in that folder\n\n⏺ I'll create the hello_world.py file for you.\n\n  print(\"Hello, World!\")\n```\n\nExample when asking it to read a file:\n\n```\n> Read secret_file.txt in the folder and tell me the answer\n\n⏺ I'll check the contents of secret_file.txt for you.\n\n  cat secret_file.txt\n```\n\nWe can see, that Claude outputs intended command cat, but doesn't interact with tool call.\n\n## Additional Context\nIssue may be related to Issue #919 \n\n- This issue only occurs when using the prompt argument on startup.\n\n- When entering the same command manually in the interactive window (even the same one), the tools execute correctly.\nExample:\n\n```\n> Read secret_file.txt in the folder and tell me the answer\n\n⏺ I'll read the secret_file.txt file for you.\n\n  cat secret_file.txt\n\n> Read secret_file.txt in the folder and tell me the answer\n\n⏺ I'll read the secret_file.txt file for you now.\n\n⏺ Read(secret_file.txt)…\n  ⎿  Read 2 lines (ctrl+r to expand)\n\n⏺ The answer is \"hello world\"\n```\n\n### Affected versions:\n- Bug present in versions 0.2.94 and 0.2.97\n- Works correctly in version 0.2.92",
+  "labels": ["bug", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-05-01T22:23:46Z",
+  "updated_at": "2026-01-10T14:07:35Z",
+  "closed_at": "2026-01-03T10:08:12Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "Tuchis",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

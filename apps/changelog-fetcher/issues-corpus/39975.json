@@ -1,0 +1,35 @@
+{
+  "number": 39975,
+  "title": "[FEATURE] Add /unclear command to undo /clear and restore conversation context",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nThe `/clear` command is **irreversible and destructive**, yet it is trivially easy to invoke — a single unconfirmed slash command permanently destroys the entire conversation context with no recovery path.\n\nThis creates a high-severity usability problem in several common scenarios:\n\n1. **Accidental invocation**: A user deep into a productive multi-hour session — where Claude has built up rich understanding of the task, codebase state, prior decisions, and ongoing plan — accidentally runs `/clear` (muscle memory, typo, or misclick). The session is gone. There is no undo, no confirmation prompt, and no way to get back to where they were.\n\n2. **Regretted invocation**: A user intentionally clears context thinking they're done with a topic, then realizes moments later that they still needed that context — e.g., to reference a prior decision, revisit an approach Claude suggested, or continue a multi-step task.\n\n3. **Exploratory clearing**: A user wants to temporarily start fresh to test whether Claude performs better on a subtask without prior context biasing it, but wants the option to return to the full-context session if the fresh start doesn't pan out.\n\nThe impact scales with session length and complexity. The more valuable the accumulated context, the more devastating an accidental or regretted `/clear` becomes. Users working on complex, multi-file refactors or architectural tasks — precisely the sessions where Claude Code provides the most value — are the most harmed.\n\n**Current workarounds are inadequate**:\n- Asking Claude to \"save your context to a file\" before clearing only produces a lossy summary — it cannot capture the full internal conversation state, tool call history, or nuanced understanding Claude has built up.\n- The memory system (`#` annotations, CLAUDE.md) captures long-term facts but not session-specific working state.\n- There is no session snapshot/restore mechanism.\n\n### Proposed Solution\n\nAdd an **`/unclear` command** (or `/clear --undo`) that restores the conversation state from immediately before the most recent `/clear` was executed.\n\n**Proposed behavior:**\n\n- `/clear` continues to work exactly as it does today, but internally **snapshots the full conversation state** before discarding it.\n- `/unclear` restores the most recent snapshot, bringing back the complete conversation as it was before `/clear`.\n- Only the single most recent `/clear` needs to be undoable (not an unlimited undo stack).\n- If `/unclear` is run when there is no snapshot to restore (e.g., at the start of a session, or after the snapshot has been garbage-collected), it should display a clear message: *\"No previous session to restore.\"*\n- The snapshot should persist for the duration of the Claude Code process (i.e., until the terminal/IDE session is closed). It does not need to survive across process restarts.\n\n**Optional enhancements** (not required for the core feature):\n\n- A confirmation prompt before `/clear` executes (e.g., *\"Clear conversation context? This can be undone with /unclear. [y/N]\"*) — though this may annoy power users, so it could be opt-in via settings.\n- Displaying a brief hint after `/clear`: *\"Context cleared. Run /unclear to restore.\"*\n\n### Alternative Solutions\n\n1. **Confirmation prompt on `/clear`**: Adding a \"are you sure?\" prompt would prevent accidental clears but doesn't help with regretted intentional clears. It also adds friction to every `/clear` invocation, even when the user is certain.\n\n2. **Session bookmarks / named snapshots**: A more general `/snapshot save <name>` / `/snapshot restore <name>` system would be more powerful but is significantly more complex to implement and represents a different (broader) feature. `/unclear` is a minimal, targeted solution to the most common pain point.\n\n3. **Auto-persis",
+  "labels": ["enhancement", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-27T19:10:30Z",
+  "updated_at": "2026-06-23T02:03:35Z",
+  "closed_at": "2026-06-23T02:03:35Z",
+  "reactions_total": 34,
+  "comments_count": 5,
+  "author": "oconnorjoseph",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "currentlycurrently",
+      "author_association": "NONE",
+      "body": "/unclear would be a livesaver, but even having an 'are you sure' step that gets you to commit to the destructive action before it takes place would be great. \n\nA huge problem is that when users are typing /context the selector highlights /compact this makes no sense and then /clear is right between /context and /compact so if you are one keystroke off when navigating up to the intended slash command you wipe out your whole session",
+      "created_at": "2026-03-28T01:24:17Z"
+    },
+    {
+      "author": "adamotivo",
+      "author_association": "NONE",
+      "body": "Seconding this - I just accidentally cleared context  early on in an Opus 1M context from planning mode and it cost me a lot of time and tokens to just have Claude re-research everything it just had in its context window.",
+      "created_at": "2026-04-14T07:32:31Z"
+    },
+    {
+      "author": "alexjurkiewicz",
+      "author_association": "NONE",
+      "body": "Allowing /rewind to rewind past a clear would also work",
+      "created_at": "2026-04-18T09:55:37Z"
+    }
+  ]
+}

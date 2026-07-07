@@ -1,0 +1,35 @@
+{
+  "number": 61185,
+  "title": "[BUG] Cyber safeguards false positive: routine sysadmin audit commands blocked, write-only reporting blocked in new session, context poisoning breaks session recovery",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe cyber safeguards filter fires on three categories of work that have no offensive application:\n\n1. Standard sysadmin audit commands run as root on own infrastructure (`find / -perm -4000` — SUID enumeration, present in Lynis/OpenSCAP/CIS benchmarks)\n2. After a block fires, the entire session becomes unusable — subsequent messages with zero security content (e.g. \"how is it going?\") are also blocked\n3. In a brand new session with no commands executed, repeated `Write()` calls to produce a markdown audit report were blocked because the document content mentioned security terminology (e.g. `` `/root/.ssh/authorized_keys` is mode 0777 ``)\n\nAll three occurred while auditing a Proxmox node we own and operate, running as root.\n\n### What Should Happen?\n\n1. Auditing your own infrastructure as root should not trigger the cyber filter. The filter should consider ownership/authorisation context, not just command signatures.\n2. A block on one message should not poison the rest of the session. Subsequent messages should be evaluated independently.\n3. `Write()` tool calls producing markdown documents should not be filtered on the security terminology appearing in the document content. Writing about security findings is not the same as executing offensive commands.\n\n### Error Messages/Logs\n\n```shell\nAPI Error: Claude Code is unable to respond to this request, which appears to violate our Usage Policy (https://www.anthropic.com/legal/aup). Please double press esc to edit your last message or start a new session for Claude Code to assist with a different task.\nRequest ID: req_011CbFr6AcLjEMmhqAVHL5fA\n\nAPI Error: Claude Code is unable to respond to this request, which appears to violate our Usage Policy (https://www.anthropic.com/legal/aup). This request triggered cyber-related safeguards. To request an adjustment pursuant to our Cyber Verification Program based on how you use Claude, fill out https://claude.com/form/cyber-use-case?token=[token]\nRequest ID: req_011CbFr7iBf4RowG2QBRUgQQ\n\nWrite(audit-report.md) blocked in new session:\nRequest ID: req_011CbFrTbe4gH6DzjBSZm7Cv\nRequest ID: req_011CbFrUPqgapjtUTsKTv1sJ\nRequest ID: req_011CbFrV3AkhogP3fWKrZKjU\nRequest ID: req_011CbFrVxDsnPnrtV5FPA8sM\nRequest ID: req_011CbFrWeWnoKHk3k5HGnVap\n```\n\n### Steps to Reproduce\n\n**Bug 1 — Audit command false positive + context poisoning**\n\n1. Start Claude Code as root on a Linux server you own\n2. Ask Claude to perform a security audit: \"perform a security audit of this system, check for misconfigurations, list SUID binaries, check SSH config\"\n3. Claude will successfully run: `pveum user list`, `aa-status`, `sshd -T`, `iptables -L -n -v`, `apt list --upgradable`, `openssl x509 ...`, `smartctl -a ...`\n4. Claude attempts `find / -perm -4000` (SUID binary enumeration) → block fires\n5. Send any follow-up message, e.g. \"how is it going?\" → also blocked despite containing no security content\n\n**Bug 2 — Write-only reporting blocked in new session**\n\n1. After Bug 1 terminates a session, start a completely new Claude Code session (`claude` fresh)\n2. Ask Claude to read the prior session's JSONL transcript from `~/.claude/projects/` and write a markdown audit report from the findings already collected\n3. Claude reads the JSONL files (allowed), then calls `Write(audit-report.md)` with content containing lines like:\n4. | CRITICAL | /root/.ssh/authorized_keys is mode 0777 (world-writable) |\n4. `Write()` is blocked repeatedly (5+ times) despite no commands being executed and no interaction with any system — purely writing a local markdown file\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.146\n\n### Platform\n\nAnthropic API\n\n### O",
+  "labels": ["bug", "platform:linux", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-21T14:20:47Z",
+  "updated_at": "2026-06-25T03:16:37Z",
+  "closed_at": null,
+  "reactions_total": 8,
+  "comments_count": 16,
+  "author": "Zejzz",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Zejzz",
+      "author_association": "NONE",
+      "body": "transcript example: \n  The two highest-value next steps are probably (a) running the full ss + iptables-save + lsof -i :3128 (to\n  confirm what's actually exposed on the public IP, including pveproxy and the unknown 3128 listener) and (b)\n  reading the two port-forward scripts (since they're called as root by every portfwd user). Want me to start\n  with those?\n\n✻ Churned for 18s\n\n❯ yes please\n\n● Bash(echo \"=== FULL ss -tulnp ===\" && ss -tulnp 2>&1\n      echo…)\n  ⎿  === FULL ss -tulnp ===\n     Ne",
+      "created_at": "2026-05-21T14:25:25Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/60076\n2. https://github.com/anthropics/claude-code/issues/48977\n3. https://github.com/anthropics/claude-code/issues/59402\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-21T14:27:22Z"
+    },
+    {
+      "author": "Zejzz",
+      "author_association": "NONE",
+      "body": "By the way, the exact same thing copy pasted into claude.ai chat runs fine, so this is a nonsensicial issue https://claude.ai/chat/8caa1778-9356-42e2-9b47-f98f5b03dc35",
+      "created_at": "2026-05-21T14:30:06Z"
+    }
+  ]
+}

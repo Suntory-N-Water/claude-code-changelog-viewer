@@ -1,0 +1,35 @@
+{
+  "number": 70144,
+  "title": "[iPadOS] App crashes when opening any session in Code tab (v1.260618.0) — main-thread stack overflow in SwiftUI",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter updating to 1.260618.0 from the App Store, tapping ANY session in the\nCode tab (new or archived) crashes the app instantly. Chat and Cowork tabs\nwork fine. 100% reproducible. Clean state (reinstall / re-login) does not help.\n\nCrash analysis (symbolicated .ips): main-thread stack overflow, not memory or network.\n- EXC_BAD_ACCESS (SIGSEGV), KERN_PROTECTION_FAILURE at 0x16b603ff8 (inside Stack Guard region)\n- \"Could not determine thread index for stack guard region\"\n- Faulting thread 0 (com.apple.main-thread), original stack length 175 frames\n- Recursive cycle: AG::Graph::update_attribute -> AGGraphGetValue ->\n  swift_getTypeByMangledName -> __swift_instantiateGenericMetadata ->\n  _swift_getKeyPath -> \"type metadata completion for WritableKeyPath / ReferenceWritableKeyPath\"\nSwiftUI session-screen view body recursively re-evaluates through KeyPath generic\nmetadata instantiation and blows the main-thread stack.\nIncident ID: 1BEDF679-BC74-4E84-B728-260360419E73\n\n\n### What Should Happen?\n\nTapping a session in the Code tab opens it normally without crashing the app.\n\n\n### Error Messages/Logs\n\n```shell\nException Type:  EXC_BAD_ACCESS (SIGSEGV)\nException Subtype: KERN_PROTECTION_FAILURE at 0x000000016b603ff8\nTermination reason: \"Could not determine thread index for stack guard region\"\nFaulting thread: 0 (com.apple.main-thread)\n\nFault address 0x16b603ff8 is inside the Stack Guard region (0x16b600000-0x16b604000),\nstack directly above it -> main-thread stack overflow.\n\nRecursive cycle (original stack length 175 frames):\n  AG::Graph::update_attribute -> AGGraphGetValue\n  -> swift_getTypeByMangledName\n  -> __swift_instantiateGenericMetadata\n  -> _swift_getKeyPath\n  -> type metadata completion function for WritableKeyPath / ReferenceWritableKeyPath\n  -> (repeats until stack guard hit)\n\nApp version: 1.260618.0 (27777773659)\nDevice: iPad Pro 11\" M2 (iPad14,3)\nOS: iPadOS 26.5 (23F77)\nIncident ID: 1BEDF679-BC74-4E84-B728-260360419E73\n```\n\n### Steps to Reproduce\n\n1. Update the Claude iOS/iPadOS app to 1.260618.0 from the App Store.\n2. Open the app (launches fine; Chat and Cowork tabs work).\n3. Go to the Code tab.\n4. Tap any session, new or archived.\n5. App crashes instantly. 100% reproducible, every session.\n\nNote: not reproducible via claude.ai/code in Safari on the same device,\nwhich points to the native SwiftUI session screen rather than backend data.\nReinstall and re-login do not help (deterministic, build-specific).\n\n\n### Claude Model\n\n_No response_\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n1.260611.1\n\n### Claude Code Version\n\nN/A (iOS/iPadOS Claude app, not CLI). App version: 1.260618.0 (build 27777773659)\n\n### Platform\n\nOther\n\n### Operating System\n\nOther\n\n### Terminal/Shell\n\nNon-interactive/CI environment\n\n### Additional Information\n\nNOTE: This is the iOS/iPadOS Claude app, not the Claude Code CLI. The CLI-oriented\ndropdowns (Terminal/Shell, OS, Claude Code Version, Platform) are filled with\nclosest-available placeholders. Actual environment: iPad Pro M2, iPadOS 26.5, app 1.260618.0.\n",
+  "labels": ["bug", "platform:ios"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-22T21:07:52Z",
+  "updated_at": "2026-06-24T12:09:12Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 26,
+  "author": "swd-ks",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "behrndt",
+      "author_association": "NONE",
+      "body": "Confirming on the **stable App Store build (not beta)**: same crash on **both iPhone and iPad**.\n\nBoth devices worked fine until today's app update — immediately after updating, opening or starting *any* Code session crashes the app instantly. Chat and Cowork tabs are unaffected, and **claude.ai/code in a browser works normally against the same sessions**. Backend is a Linux VM running `claude remote-control` sessions.\n\nReinstalling the app and rebooting the device do not help (consistent with t",
+      "created_at": "2026-06-22T21:19:15Z"
+    },
+    {
+      "author": "BillVerhelle",
+      "author_association": "NONE",
+      "body": "Same crash on **iPhone**, not just iPadOS — and I'm on the exact build this issue flags.\n\n- **Claude Code iOS app version:** v1.260618.0 (27777773659) — the same build identified here (last good: 1.260611.1).\n- **Device / OS:** iPhone running iOS 27.0 Beta 2 (released 2026-06-22).\n- **Symptom:** App crashes instantly when tapping any session in the **Code tab** (the session shows a green/active indicator). The crash happens immediately, before the session screen renders.\n- **Persistence:** 100% ",
+      "created_at": "2026-06-22T22:11:11Z"
+    },
+    {
+      "author": "atrusniak-ruz",
+      "author_association": "NONE",
+      "body": "I am having the exact same issue iOS app 1.260618.0 hard-crashes opening a Remote Control session — main-thread \n  ▎ stack overflow in Swift KeyPath metadata. iPhone 16 Pro Max, iOS 26.5 (23F77), \n  ▎ CLI 2.1.186 (also repro'd on 2.1.183). Repro: tap any Remote Control session → \n  ▎ instant crash, no UI. Crash: EXC_BAD_ACCESS/SIGSEGV on main thread, \n  ▎ KERN_PROTECTION_FAILURE in the Stack Guard region; ~48 frames of unbounded \n  ▎ recursion in libswiftCore (swift_getTypeByMangledName → decode",
+      "created_at": "2026-06-22T22:55:45Z"
+    }
+  ]
+}

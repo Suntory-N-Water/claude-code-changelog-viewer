@@ -1,0 +1,35 @@
+{
+  "number": 54528,
+  "title": "[BUG] Remote agent runs stuck on \"Setting up a cloud container\" — cannot cancel",
+  "body": "### Preflight Checklist\n\n- [ ] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nBody:                                                                                                   \n   \n  Scheduled and manual remote agent runs are stuck indefinitely at the \"Setting up a cloud container\" step\n   and never progress to \"Clone repository.\" The issue affects both the automated schedule (3:00 AM EDT)\n  and manual triggers.                                                                                    \n                                                                  \n  What's happening:\n  - All runs show status \"Running\" but are frozen at container setup\n  - The cancel button is unavailable — runs cannot be cancelled from the UI                               \n  - Affected runs: today at 3:00 AM (scheduled), 3:24 PM (manual), 3:30 PM (manual)\n  - Agent name: \"Second Brain — Nightly Journal\", runs daily at 3:00 AM EDT                               \n                                                                                                          \n\n### What Should Happen?\n\nWhat should happen (normal flow):                                                                       \n                                                                  \n  1. Setting up a cloud container — Anthropic spins up a fresh Linux VM in the cloud                      \n  2. Clone repository — your connected GitHub repo gets cloned into that VM\n  3. Run setup script — installs dependencies (Node, any tools your agent needs)                          \n  4. Start Claude Code — Claude Code CLI launches and runs your scheduled prompt against your vault       \n                                                                                                          \n  The whole thing takes ~2-3 minutes and then the agent does its work, writes files, and the container    \n  shuts down.                                                                                             \n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n  Steps to reproduce:                                                                                     \n  1. Trigger a manual run on any scheduled remote agent                                                   \n  2. Run enters \"Setting up a cloud container\" and never advances                                         \n  3. UI provides no way to cancel the stuck run                                                           \n                                                                                                          \n  Expected behavior: Container provisions, repository clones, Claude Code starts, prompt executes.\n                                                                                                          \n  Actual behavior: Stuck at container setup indefinitely. Multiple concurrent stuck runs accumulate with  \n  no way to clear them.                                                                                   \n                                                                                                          \n  Environment: Claude Code (Mac desktop app), remote agent via claude.ai                                  \n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n 2.1.123                      \n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:web", "regression", "stale", "area:routines"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-29T04:01:17Z",
+  "updated_at": "2026-06-24T22:30:40Z",
+  "closed_at": null,
+  "reactions_total": 6,
+  "comments_count": 10,
+  "author": "ae0n1x",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/53691\n2. https://github.com/anthropics/claude-code/issues/53470\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-29T04:05:49Z"
+    },
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "This is control-surface failure during remote execution setup.\n\nIf remote agent runs get stuck on “Setting up a cloud container” and cannot be canceled, the product is failing in two layers at once: startup never completes, and the operator loses the ability to abort the bad state.\n\nWhy it matters:\n- a stuck setup phase already blocks work\n- inability to cancel means the user is trapped in an unproductive state with unclear recovery\n- remote execution becomes hard to trust if failure paths canno",
+      "created_at": "2026-04-29T04:10:37Z"
+    },
+    {
+      "author": "ae0n1x",
+      "author_association": "NONE",
+      "body": "Don't believe I can cancel or force cancel a run through the UI, only option is to actually delete the entire routine itself. The moment I run something, whether it's a one time or recurring execution, it immediately goes into cloud container setup and runs indefinitely.",
+      "created_at": "2026-04-29T04:19:06Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 17356,
+  "title": "CLI: permissionDecisionReason not displayed in permission prompt for PreToolUse 'ask' decisions",
+  "body": "## Description\n\nWhen a PreToolUse hook returns `permissionDecision: \"ask\"`, the `permissionDecisionReason` field is not displayed to users in the CLI permission prompt. Users see the standard permission dialog but cannot see WHY the hook is asking for approval.\n\n## Expected Behavior\n\nAccording to the [hooks documentation](https://docs.anthropic.com/en/docs/claude-code/hooks#pretooluse-decision-control), for `\"ask\"` decisions the `permissionDecisionReason` should be \"shown to user only, not to Claude.\"\n\nThe reason should be visible in the permission prompt so users understand why they're being asked for approval.\n\n## Actual Behavior\n\nThe permission prompt appears but does not display the `permissionDecisionReason` or `systemMessage` fields. Users have no visibility into why the hook triggered the ask.\n\n## Reproduction Steps\n\n1. Create a PreToolUse hook that returns an \"ask\" decision:\n\n```python\nimport json\nimport sys\n\ndef main():\n    hook_input = json.load(sys.stdin)\n    tool_name = hook_input.get(\"tool_name\", \"\")\n    \n    if tool_name == \"Edit\":\n        output = {\n            \"hookSpecificOutput\": {\n                \"hookEventName\": \"PreToolUse\",\n                \"permissionDecision\": \"ask\",\n                \"permissionDecisionReason\": \"This is the reason that should be shown to the user\",\n                \"systemMessage\": \"WARNING: Custom message here\"\n            }\n        }\n        print(json.dumps(output))\n        return 0\n    \n    # Allow other tools\n    output = {\n        \"hookSpecificOutput\": {\n            \"hookEventName\": \"PreToolUse\", \n            \"permissionDecision\": \"allow\",\n            \"permissionDecisionReason\": \"Allowed\"\n        }\n    }\n    print(json.dumps(output))\n    return 0\n\nif __name__ == \"__main__\":\n    sys.exit(main())\n```\n\n2. Register the hook in `.claude/settings.json`:\n\n```json\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Edit\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"python .claude/hooks/test-hook.py\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n3. Ask Claude to edit a file\n4. Observe that the permission prompt appears but does not show the reason\n\n## Environment\n\n- Claude Code CLI (not VS Code extension)\n- Linux (WSL2)\n\n## Additional Context\n\nThe hook JSON output is correct (verified by running manually):\n\n```json\n{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"Suppression comment detected...\", \"systemMessage\": \"SUPPRESSION COMMENT: noqa (ruff/flake8)\"}}\n```\n\nThe hook correctly triggers the \"ask\" behavior (permission is requested), but the reason is not visible to help users make an informed decision.\n\n## Use Case\n\nThis is important for hooks that enforce code quality policies. For example, a hook that detects linter suppression comments (`# noqa`, `# type: ignore`) and requires approval - users need to see WHY they're being asked to approve the edit.",
+  "labels": ["bug", "has repro", "platform:linux", "area:tui"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-10T17:58:38Z",
+  "updated_at": "2026-04-14T14:55:06Z",
+  "closed_at": "2026-04-03T22:15:28Z",
+  "reactions_total": 10,
+  "comments_count": 9,
+  "author": "jwalls89",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/10062\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-10T18:01:42Z"
+    },
+    {
+      "author": "mruwnik",
+      "author_association": "NONE",
+      "body": "From analyzing the bundled CLI code, the permissionDecisionReason IS being captured and passed through to decisionReason.reason in the hook permission result. The issue appears to be in the TUI rendering layer - the uN component that renders permission info in normal mode may not be displaying the reason, or the decisionReason object may be getting overwritten before reaching the UI.\n\nThe debug/verbose view (Sg2 component) does appear to show the message field, but normal users don't see this.",
+      "created_at": "2026-01-11T14:09:23Z"
+    },
+    {
+      "author": "mathew55",
+      "author_association": "NONE",
+      "body": "Second this, facing the same issue!",
+      "created_at": "2026-02-08T00:24:01Z"
+    }
+  ]
+}

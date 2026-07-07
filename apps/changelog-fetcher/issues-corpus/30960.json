@@ -1,0 +1,35 @@
+{
+  "number": 30960,
+  "title": "v2.1.69: Freezes on startup on Windows - mkdirSync EEXIST error loop",
+  "body": "## Bug Description\n\nClaude Code v2.1.69 freezes on startup on Windows. Downgrading to v2.1.66 resolves the issue.\n\n## Root Cause\n\nDuring startup, the config save mechanism repeatedly fails with:\n\n```\n[ERROR] Failed to save config with lock: Error: EEXIST: file already exists, mkdir 'C:\\Users\\<username>'\n```\n\nStack trace:\n```\nat mkdirSync (unknown)\nat mkdirSync (B:/~BUN/root/src/entrypoints/cli.js:12:3048)\nat d38 (B:/~BUN/root/src/entrypoints/cli.js:6483:5856)\nat IA (B:/~BUN/root/src/entrypoints/cli.js:6483:4432)\nat CnA (B:/~BUN/root/src/entrypoints/cli.js:4296:584)\nat processTicksAndRejections (native:7:39)\n```\n\nThe `mkdirSync` call attempts to create the user's home directory (which already exists) as part of the config lock/save path for `~\\.claude.json`. This error fires many times per second during startup, causing the application to appear completely frozen.\n\n## Reproduction\n\n1. Install Claude Code v2.1.69 (standalone installer) on Windows\n2. Launch `claude` from a terminal\n3. Application freezes / hangs at startup\n\n## Comparison\n\n- **v2.1.66**: Config saves work correctly with atomic write (temp file -> rename pattern). Debug log shows: `Writing to temp file ... File written atomically`\n- **v2.1.69**: Every config save fails with the EEXIST error above. The error repeats continuously during startup.\n\n## Environment\n\n- Windows 10/11 with WSL2\n- Standalone installer (`~\\.local\\bin\\claude.exe`)\n- Install method: native\n\n## Workaround\n\nDowngrade to v2.1.66:\n```powershell\n# Rename broken standalone binary\nren %USERPROFILE%\\.local\\bin\\claude.exe claude.exe.bak\n# Install working version via npm\nnpm install -g @anthropic-ai/claude-code@2.1.66\n```",
+  "labels": ["bug", "has repro", "platform:windows", "area:core"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-03-05T05:34:34Z",
+  "updated_at": "2026-04-26T14:32:50Z",
+  "closed_at": "2026-04-18T13:31:50Z",
+  "reactions_total": 20,
+  "comments_count": 10,
+  "author": "nigelgwork",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/30932\n2. https://github.com/anthropics/claude-code/issues/30923\n3. https://github.com/anthropics/claude-code/issues/30924\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-05T05:39:15Z"
+    },
+    {
+      "author": "itavero",
+      "author_association": "NONE",
+      "body": "As mentioned in the other issues by @ReignOfComputer, downgrading to 2.1.68 seems to resolve it.\n\n```pwsh\n& ([scriptblock]::Create((irm https://claude.ai/install.ps1))) 2.1.68\n```\n\nHe also suggests adding `\"DISABLE_AUTOUPDATER\": \"1\"` to the `env` object of your `~/.claude/settings.json` to prevent it from upgrading again.\n\nLeaving it here as this was the first issue I found while looking into it.\n\nI would say this is definitely a duplicate of those other issues mentioned by the bot.",
+      "created_at": "2026-03-05T10:02:04Z"
+    },
+    {
+      "author": "piotr-zasuwa-sollers-eu",
+      "author_association": "NONE",
+      "body": "I resolved this running following command in powershell:\n`ttrib -R C:\\Users\\<user>`\n\nDon't know why but read-only attribute was set on my user directory after last claude code update.",
+      "created_at": "2026-03-05T13:27:52Z"
+    }
+  ]
+}

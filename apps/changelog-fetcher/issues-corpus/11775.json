@@ -1,0 +1,16 @@
+{
+  "number": 11775,
+  "title": "[BUG] Plan agent requests permission for piped commands despite allowed settings (regression of #1271)",
+  "body": "## What's Wrong?\n\nThe Plan agent keeps requesting permission for piped commands even when both commands are explicitly listed in the allowed permissions in `settings.json`.\n\nFor example, when the Plan agent tries to run:\n```bash\nls -lh /Users/prb/sablier/frontend/ui/apps/landing/public/blog/*.webp | awk '{print $5, $9}'\n```\n\nI get a permission prompt asking me to approve the command, despite having both `ls` and `awk` already configured in my allowed permissions.\n\n<img width=\"400\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/f421669c-b563-416b-a896-eb4d8db57e49\" />\n\n## What Should Happen?\n\nWhen both `ls` and `awk` are in the allowed permissions list, the Plan agent should execute piped commands like `ls | awk` without requesting permission. This is a regression of the fix from issue #1271.\n\n## Steps to Reproduce\n\n1. Add both `ls` and `awk` to allowed permissions in `settings.json`\n2. Start a Plan agent session\n3. Ask the agent to analyze files using a piped command (e.g., listing files with sizes)\n4. Agent attempts to run a command like `ls -lh path/*.webp | awk '{print $5, $9}'`\n5. Permission prompt appears despite both commands being whitelisted\n\n## Is this a regression?\n\nYes, this worked in a previous version. This issue was previously fixed in #1271 but has regressed, specifically in the context of the Plan agent.\n\n## Related Issues\n\n- #1271 - Original fix for piped command permissions\n- #10906 - Related permission handling issue\n\n> [!NOTE]\n> This bug appears to be specific to the Plan agent context. The regression may be related to how the Plan agent processes tool permissions differently from the main agent.\n",
+  "labels": ["bug", "has repro", "area:tools", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-17T07:31:38Z",
+  "updated_at": "2026-04-07T22:59:59Z",
+  "closed_at": null,
+  "reactions_total": 26,
+  "comments_count": 17,
+  "author": "PaulRBerg",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,35 @@
+{
+  "number": 17188,
+  "title": "[Feature Request] Expose Session Metadata via Environment Variables and API",
+  "body": "## Problem Description\n\nClaude Code currently lacks programmatic access to session metadata (session ID and user-defined session names). This creates a significant integration barrier for external tooling, particularly multi-agent orchestration systems, git worktree automation, and cross-tool session tracking.\n\n### Current Limitations\n\n1. **No Environment Variables**: Claude Code does not expose `CLAUDE_SESSION_ID` or `CLAUDE_SESSION_NAME` to hook scripts or subprocesses\n2. **Internal-Only Storage**: Session names set via `/rename` are stored internally and not accessible externally\n3. **Limited Session Discovery**: The only ways to identify the current session are:\n   - Parsing the status line JSON input (`session_id` field)\n   - Extracting UUID from transcript file path (`~/.claude/projects/.../UUID.jsonl`)\n4. **No CLI Query**: No command like `claude --current-session` to retrieve session info programmatically\n\n### Real-World Impact\n\nThis limitation prevents:\n- **Multi-agent orchestration**: External systems cannot correlate Claude Code sessions with their own session tracking\n- **Git worktree integration**: Cannot automatically map session → branch → worktree without manual intervention\n- **Status line customization**: Cannot display meaningful session names in custom status line implementations\n- **Post-mortem analysis**: Difficult to trace session activity across multiple tools (Claude Code + Cursor + Windsurf)\n- **Hook automation**: Git hooks cannot make session-aware decisions\n\n---\n\n## Use Cases\n\n### 1. Multi-Agent Orchestration\n**Scenario**: A framework (multi-agent-os) delegates tasks to sub-agents running in isolated Claude Code sessions.\n\n**Current Problem**: Parent orchestrator cannot determine which session a sub-agent is using without complex file path parsing.\n\n**With Session API**: Environment variable `CLAUDE_SESSION_ID` allows instant correlation.\n\n### 2. Git Worktree Automation\n**Scenario**: Session-based isolation using git worktrees (1 session = 1 branch = 1 worktree).\n\n**Current Problem**: Hook scripts must parse transcript paths to determine session UUID, which is fragile.\n\n**With Session API**: `CLAUDE_SESSION_ID` directly maps to worktree directory name.\n\n### 3. Status Line Enhancement\n**Scenario**: Custom status line showing meaningful session context (e.g., \"Session: feature/login-refactor\").\n\n**Current Problem**: `/rename` names are internal-only; status line can only show UUID.\n\n**With Session API**: `CLAUDE_SESSION_NAME` provides user-friendly display.\n\n### 4. Cross-Tool Session Tracking\n**Scenario**: Developer switches between Claude Code, Cursor, and Windsurf for the same task.\n\n**Current Problem**: No unified session identifier across tools.\n\n**With Session API**: External system uses `CLAUDE_SESSION_ID` to maintain consistent session records.\n\n### 5. Audit & Debugging\n**Scenario**: Post-mortem analysis of which sessions created which commits.\n\n**Current Problem**: Must reverse-engineer session IDs from transcript file paths.\n\n**With Session API**: Git commit metadata includes `CLAUDE_SESSION_ID` via hook injection.\n\n---\n\n## Proposed Solution\n\n### Primary: Environment Variables\n\nExpose the following environment variables to all subprocesses (hooks, scripts, CLI commands):\n\n```bash\n# UUID of the current session\nCLAUDE_SESSION_ID=\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\n\n# User-defined name from /rename (empty if not renamed)\nCLAUDE_SESSION_NAME=\"feature/user-authentication\"\n\n# Timestamp when session started (ISO 8601)\nCLAUDE_SESSION_STARTED=\"2026-01-09T10:30:00-03:00\"\n```\n\n**Benefits**:\n- Zero friction for hook scripts\n- Standard POSIX convention\n- Backward compatible (empty if not set)\n- Works across all shells (bash, zsh, fish)\n\n### Secondary: CLI Query Command\n\nProvide a command to retrieve session metadata as JSON:\n\n```bash\n$ claude --current-session\n{\n  \"session_id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"session_name\": \"feature/user-authentication\",\n  \"started_at\": \"2026-01-09T10:30:00-03:00\",\n  \"project_path\": \"/Users/dev/Projects/MyApp\",\n  \"transcript_path\": \"~/.claude/proje",
+  "labels": ["enhancement", "has repro", "area:core", "area:api"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-09T20:48:45Z",
+  "updated_at": "2026-06-24T15:05:19Z",
+  "closed_at": "2026-05-05T15:38:39Z",
+  "reactions_total": 21,
+  "comments_count": 6,
+  "author": "ekson73",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "extemporalgenome",
+      "author_association": "NONE",
+      "body": "I would also benefit from this, for the purpose of writing slash commands that facilitate session recovery following an OS crash, and marking sessions as done (so that they're not candidates for recovery). Without `CLAUDE_SESSION_ID`, this is a lot more awkward to achieve (e.g. by needing to have the model output unique sentinel values and then read through `~/.claude/history.jsonl` to identify its own session). To be sure, in the meantime I _will_ do that either way, but it means the model is s",
+      "created_at": "2026-01-16T00:03:44Z"
+    },
+    {
+      "author": "NicolasPetermann134",
+      "author_association": "NONE",
+      "body": "1+\n",
+      "created_at": "2026-02-10T11:37:23Z"
+    },
+    {
+      "author": "Wirasm",
+      "author_association": "NONE",
+      "body": "+1 — building an agent orchestration tool that manages parallel Claude Code sessions in isolated git worktrees. Need to capture the session ID after launch for stop/resume flows. Currently working around it with `--session-id` to control the UUID upfront, but reading Claude's native session ID via env var would be cleaner.",
+      "created_at": "2026-02-10T14:28:00Z"
+    }
+  ]
+}

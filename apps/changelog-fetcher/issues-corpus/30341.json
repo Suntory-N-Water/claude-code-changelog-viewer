@@ -1,0 +1,35 @@
+{
+  "number": 30341,
+  "title": "[FEATURE] Built-in status line with rate limit usage bars",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nCurrently, users have to discover, install, and configure third-party scripts to see their rate limit usage in the status line. This is critical information that every Pro/Max user wants at a glance.\n\nThe fact that so many community projects exist for this proves the demand:\n- https://github.com/daniel3303/ClaudeCodeStatusLine\n- https://github.com/sirmalloc/ccstatusline\n- https://github.com/Owloops/claude-powerline\n- https://github.com/levz0r/claude-code-statusline\n\nExternal scripts need to handle OAuth token resolution, caching, cross-platform date parsing, and tool availability (e.g. `jq` missing on Windows/Git Bash) — this complexity belongs in the core product.\n\n### Proposed Solution\n\nA built-in default status line showing:\n- **Model name** (compact, e.g. `Op4.6` / `So4.6`)\n- **Working directory + git branch**\n- **Token usage** — current/total with percentage (e.g. `22k/200k 11%`)\n- **5-hour and 7-day rate limit bars** with color coding (green → yellow → orange → red) and compact reset times\n- **Extended thinking status**\n- **Extra usage credits** (if enabled)\n\nEssentially what the community projects above already do — but built into Claude Code as the default experience, with no setup required.\n\n### Alternative Solutions\n\nThe current workaround is using the `statusLine.command` setting with a custom bash script. This works but requires:\n1. Finding the script (Reddit, GitHub, etc.)\n2. Installing dependencies (`jq`, `curl`)\n3. Handling cross-platform differences (macOS BSD date vs GNU date, Windows Git Bash PATH issues)\n4. Managing OAuth token resolution across macOS Keychain, Linux credential files, and GNOME Keyring\n5. Implementing caching to avoid API rate limits on the usage endpoint itself\n\nAll of this is doable but fragile — every user reinvents the same wheel.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nInteractive mode (TUI)\n\n### Use Case Example\n\n1. User installs Claude Code and opens a session\n2. The status line immediately shows: `Op4.6 | myproject@main | 22k/200k 11% | 5h ●●○○○ 38% @15:00 | 7d ●●●○○ 62% @6/3 07:00`\n3. As the user works, they can see at a glance how much of their rate limit is consumed\n4. When approaching limits (bar turns orange/red), they can pace their usage or switch to a lighter model\n5. No setup, no scripts, no `jq` installation — it just works\n\n### Additional Context\n\nThe usage data is already available via `https://api.anthropic.com/api/oauth/usage` and Claude Code already has the OAuth token internally. The only missing piece is rendering it in the status line by default.\n\nA reference implementation (cross-platform bash script handling all edge cases) is available and battle-tested on both macOS and Windows/Git Bash.",
+  "labels": ["enhancement", "area:tui", "area:statusline", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-03T09:41:34Z",
+  "updated_at": "2026-05-23T22:30:48Z",
+  "closed_at": "2026-05-23T22:30:48Z",
+  "reactions_total": 10,
+  "comments_count": 9,
+  "author": "ch4ngo88",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28216\n2. https://github.com/anthropics/claude-code/issues/29321\n3. https://github.com/anthropics/claude-code/issues/29911\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-03T09:45:32Z"
+    },
+    {
+      "author": "Orellius",
+      "author_association": "NONE",
+      "body": "@ch4ngo88 I've Made Solution for you: https://github.com/Orellius/claudeusage-mcp\nEnjoy!",
+      "created_at": "2026-03-22T16:29:42Z"
+    },
+    {
+      "author": "Astro-Han",
+      "author_association": "NONE",
+      "body": "Been using this for the same reason: https://github.com/Astro-Han/claude-lens\n\nBash + jq, reads the `rate_limits` from stdin that CC added in v2.1.80. Also does pace tracking so you can see if you're burning faster than expected, not just the raw percentage.\n\nBut yeah, the fact that like 10 community projects exist for this really does prove it should just be built in.",
+      "created_at": "2026-03-25T06:46:04Z"
+    }
+  ]
+}

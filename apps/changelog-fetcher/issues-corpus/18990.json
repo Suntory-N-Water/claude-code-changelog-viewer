@@ -1,0 +1,42 @@
+{
+  "number": 18990,
+  "title": "[Feature Request] Allow configuring external editor for Ctrl-G prompt editing",
+  "body": "## Problem\n\nWhen pressing **Ctrl-G** to edit a prompt in an external editor, Claude Code auto-detects installed IDEs rather than respecting the standard `EDITOR` or `VISUAL` environment variables. On systems with multiple IDEs installed, this leads to undesirable behavior.\n\n**My specific case:** I have Cursor IDE installed alongside other tools. When I press Ctrl-G to make a quick edit to my prompt, Claude Code launches the full Cursor IDE. This is extremely heavyweight for simply editing a few lines of text—an entire IDE with all its extensions and services starts up just to edit a prompt.\n\nI have configured `EDITOR` in my shell profile to use a lightweight text editor (macOS TextEdit), but Claude Code ignores this setting.\n\n## Current Behavior\n\n- Ctrl-G auto-detects IDEs in the environment (VS Code, Cursor, etc.)\n- The `EDITOR` environment variable is only respected for bash subprocesses (e.g., `git commit`), not for Ctrl-G\n- Users cannot override which editor Ctrl-G opens\n- Related: Issue #12546 reports Claude Code suggesting VS Code even when it's not installed\n\n## Requested Behavior\n\nCtrl-G should respect the `EDITOR` (or `VISUAL`) environment variable, or provide a dedicated setting to configure the external editor for prompt editing.\n\n### Proposed Solution\n\n**Option A:** Respect `EDITOR`/`VISUAL` environment variables for Ctrl-G (consistent with Unix conventions)\n\n**Option B:** Add a dedicated setting in `~/.claude/settings.json`:\n```json\n{\n  \"promptEditor\": \"/usr/bin/open -e -W -n\"\n}\n```\n\n**Option C:** Both—use the setting if present, fall back to `EDITOR`/`VISUAL`, then fall back to IDE auto-detection\n\n## Use Case\n\n- Users with multiple IDEs installed who want a lightweight editor for quick prompt edits\n- Users who prefer terminal-based editors (vim, nano, emacs)\n- Users who want consistent behavior with other Unix tools that respect `EDITOR`\n- Users on resource-constrained systems where launching a full IDE is slow\n\n## Related Issues\n\n- #10891 - Similar request for file editing operations (Edit/Write tools), closed without implementation. **This request is distinct:** it specifically addresses Ctrl-G prompt editing, not file operations.\n- #12546 - Bug where Claude Code suggests VS Code when it's not installed, indicating issues with IDE detection logic\n\n## Environment\n\n- **Claude Code Version:** Latest\n- **Platform:** macOS\n- **Shell:** zsh with `EDITOR` configured\n\nThank you for considering this enhancement.",
+  "labels": [
+    "enhancement",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "area:core",
+    "stale"
+  ],
+  "state": "open",
+  "state_reason": "reopened",
+  "created_at": "2026-01-18T10:15:09Z",
+  "updated_at": "2026-02-22T04:34:32Z",
+  "closed_at": null,
+  "reactions_total": 27,
+  "comments_count": 4,
+  "author": "j-h-scheufen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16342\n2. https://github.com/anthropics/claude-code/issues/282\n3. https://github.com/anthropics/claude-code/issues/4922\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-18T10:19:20Z"
+    },
+    {
+      "author": "j-h-scheufen",
+      "author_association": "NONE",
+      "body": "Closing as duplicate of #4922.\n\nOur issue provides additional context that may be valuable for the discussion:\n- Specific problem: IDE auto-detection (Cursor) ignores `EDITOR`/`VISUAL` environment variables\n- Three proposed solutions: respect env vars, add settings.json config, or both with fallback chain\n- Use cases: lightweight editors, terminal editors (vim/nano), resource-constrained systems\n\nSee the full description above for details that may help with implementation.",
+      "created_at": "2026-01-18T10:53:26Z"
+    },
+    {
+      "author": "j-h-scheufen",
+      "author_association": "NONE",
+      "body": "Reopening: The issue I referenced (#4922) is closed and locked. Added our detailed context as a comment on #16342 (the only open duplicate). Keeping this open as it has the most comprehensive description of the problem and proposed solutions.",
+      "created_at": "2026-01-18T10:57:52Z"
+    }
+  ]
+}

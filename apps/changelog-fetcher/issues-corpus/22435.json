@@ -1,0 +1,35 @@
+{
+  "number": 22435,
+  "title": "[BUG]  Inconsistent and Undisclosed Quota Accounting Changes in Claude Max Plan. Legal liability claim ready.",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# Bug Report: Inconsistent and Undisclosed Quota Accounting Changes in Claude Max Plan                                                                                                        \n\n**Filed:** 2026-02-01\n**Plan:** Claude Max 20x ($200/month)\n**Affected Period:** January 30 - February 1, 2026\n**Severity:** Critical - Service degradation without disclosure\n\n---\n\n## Executive Summary\n\nInstrumented monitoring of Anthropic's rate limit headers reveals **inconsistent quota consumption rates** that cannot be explained by the \"holiday bonus expiration\" cited by Anthropic. The same user, same plan, same workload type shows burn rates varying from **5.6%/hour to 59.9%/hour** within the same 48-hour period. This 10x variance constitutes either a bug in quota accounting or an undisclosed server-side change to rate limiting behavior.\n\n---\n\n## Evidence\n\n### Methodology\n\nAll data was collected by intercepting HTTP responses from `api.anthropic.com/v1/messages` via a local mitmproxy instance. Rate limit values are extracted directly from Anthropic's own response headers:\n\n```\nx-ratelimit-5h-utilization: 0.81\nx-ratelimit-7d-utilization: 0.23\nx-ratelimit-5h-status: allowed\n```\n\nData is stored in SQLite with 5,396+ samples spanning January 30 - February 1, 2026. No sampling bias - every API response is recorded.\n\n### Session Analysis (Quota Reset to Reset)\n\n| # | Start | End | Start% | End% | Duration | Rate (%/hr) | Status |\n|---|-------|-----|--------|------|----------|-------------|--------|\n| 1 | Jan 30 18:41 | Jan 31 02:37 | 9% | 83% | 7.9h | **9.3%/hr** | Normal |\n| 2 | Jan 31 10:02 | Jan 31 20:24 | 0% | 100% | 10.4h | **9.6%/hr** | Normal |\n| 3 | Jan 31 20:28 | Jan 31 22:01 | 0% | 86% | 1.5h | **56.0%/hr** | 2.8x fast |\n| 4 | Jan 31 22:18 | Feb 01 15:00 | 0% | 94% | 16.7h | **5.6%/hr** | Normal |\n| 5 | Feb 01 15:00 | Feb 01 16:40 | 0% | 100% | 1.7h | **59.9%/hr** | 3.0x fast |\n| 6 | Feb 01 16:43 | Feb 01 18:30 | 0% | 100% | 1.8h | **56.1%/hr** | 2.8x fast |\n| 7 | Feb 01 20:01 | ongoing | 0% | 36% | 0.9h | **40.0%/hr** | 2.0x fast |\n\n### Key Observation\n\n**Sessions 1, 2, and 4 all occur AFTER the holiday bonus expiration (Dec 31) and show normal ~10%/hr rates.** If the holiday bonus expiration were the sole explanation, ALL sessions should show the same rate. Instead:\n\n- Normal sessions: 5.6 - 9.6%/hr (consistent with advertised 5-hour window)\n- Anomalous sessions: 40.0 - 59.9%/hr (3-6x the expected rate)\n\nThis variance occurs on the **same account, same plan, same day**, ruling out:\n- Holiday bonus as the explanation (normal sessions exist post-holiday)\n- User behavior differences (same operator, same workload type)\n- Plan differences (same Max 20x account throughout)\n\n### Token-to-Quota Correlation\n\nFrom 722 quota-increasing request pairs:\n\n| Metric | Value |\n|--------|-------|\n| Median tokens per 1% quota | 2,517 |\n| Mean tokens per 1% quota | 39,152 |\n| Min (worst efficiency) | 12,300 tokens per 1% |\n| Max (best efficiency) | 18,531,900 tokens per 1% |\n\nThe **1,500x spread** between min and max tokens-per-percent is not explainable by cache behavior differences alone. This suggests the cost-per-token in quota terms is not deterministic.\n\n---\n\n## Anthropic's Advertised Promises vs. Reality\n\n### What Anthropic Advertises\n\nFrom claude.com/pricing and Claude Help Center:\n\n> \"Max plan: **20x more usage** than the Pro plan\"\n> \"About **900+ messages** per 5-hour window\"\n> \"Rolling 5-hour windows rather than daily caps\"\n\nFrom Anthropic's official announcement:\n\n> \"Introducing a new Max plan for Claude. It's flexible, with options for **5x or 20x more usage** compared to our Pro plan.\"\n\n### What Users Actually Experience\n\nDuring anomalous sessions (3, 5, 6, 7), the 5-hour quota window is e",
+  "labels": ["bug", "has repro", "platform:linux", "area:cost", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-01T20:20:38Z",
+  "updated_at": "2026-06-04T12:42:05Z",
+  "closed_at": null,
+  "reactions_total": 17,
+  "comments_count": 14,
+  "author": "ghost",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "emcd",
+      "author_association": "CONTRIBUTOR",
+      "body": "@argosdevo-svg : I applaud the analysis and the detailed effort. If I had not been previously demotivated/demoralized by Anthropic's lack of responsiveness, I would have done something similar. Please note that, as of this writing, the links to `claude-thinking-audit` tool are broken in your initial post: https://github.com/user/claude-thinking-audit should be https://github.com/argosdevo-svg/claude-thinking-audit.\n\nAnother factor to consider: was the 5-minute cache warm when the requests were m",
+      "created_at": "2026-02-02T15:13:01Z"
+    },
+    {
+      "author": "ghost",
+      "author_association": "NONE",
+      "body": "Awesome observation and thank you for pointing out the link was broken!\n\nTo test this hypothesis with my dataset, I plan to:\n\n  1) Compute “time since last assistant message” for each request.\n  2) Bucket requests into <5 min vs ≥5 min.\n  3) Compare median tokens‑per‑1% quota and burn rates across buckets.\n  4) Treat compaction events and new sessions as cold‑start boundaries.\n\nEven if a cache effect exists, it would still need to be documented and reflected in the advertised “5‑hour window” and",
+      "created_at": "2026-02-02T16:58:35Z"
+    },
+    {
+      "author": "ghost",
+      "author_association": "NONE",
+      "body": "Cache-Warmth Hypothesis - Tested                                                                                                                                          \n                                                                                                                                                                                              \n  Thanks @emcd for the observation about cache warmth affecting quota burn. It's a reasonable hypothesis given Anthropic's documented 5-mi",
+      "created_at": "2026-02-02T18:16:02Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 16021,
+  "title": "[BUG] Hundreds of lines of modified file notes being injected into context on EVERY user message via <system-reminder>",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Update:** I've just encountered this issue with files that were edited only by the agent, I hadn't touched them during the session. This means there's no reliable way to avoid the issue.\n\n**Update 2:** As of at least version 2.1.70 this bug is now injecting the full contents of the edited file(s) into context each turn. It takes only one largeish file being edited to completely eat the context window in a handful of turns. The bug still happens on both agent and user edits.\n\nI'm using Claude Code for VS Code on Windows. I also have the CLI version but I have not tested this issue there, from the behavior I'd guess it's extension specific.\n\nFor at least the last two weeks context has intermittently been getting used up suspiciously fast. I've just been writing it off as some sort of transient issue that would get fixed eventually. In addition the model has been strangely dumber than I'm used to, but not consistently. Weird but not easily reproducible. Definitely frustrating and harder to work with. Causes usage limits to be eaten up more quickly.\n\nThen today the agent said something that made it all make sense. They mentioned some context I wasn't aware of and upon investigation, I discovered this:\n\nIn a session where I'd had the agent make some code modifications, and I then made my own changes to the same files, the changes were being injected into context after EVERY subsequent message I was sending, in this format:\n\n`<system-reminder>\nNote: [Full path and filename] was modified, either by the user or by a linter. This change was intentional, so make sure to take it into account as you proceed (ie. don't revert it unless the user asks you to). Don't tell the user this, since they are already aware. Here are the relevant changes (shown with line numbers):\n[All lines edited in the file here]\n</system-reminder>`\n\nKey points:\n- The reminders are added to every message the user sends following the edits\n- The reminders are 100's of lines of code and could easily be 1000's of lines because:\n- If the edits are in multiple places in the file, the reminders include all code between the first edit and the last. Thus if a small edit was made at the top of the file, and another at the bottom, the reminder injection includes the ENTIRE file\n- Reverting the user changes causes the message injection to stop\n- The reminders happen regardless of whether or not the file is open in the IDE, making it impossible to stop the behavior without reverting the changes or starting a new session\n- Unsurprisingly, the reminders cause subsequent simple back and forth chat to eat through the entire context window in a short time\n\nThis explains both the strange context usage in recent weeks and the agent drift.\n\nI also discovered other context injections like:\n`<system-reminder>\nThe TodoWrite tool hasn't been used recently. If you're working on tasks that would benefit from tracking progress, consider using the TodoWrite tool to track progress. Also consider cleaning up the todo list if has become stale and no longer matches what you are working on. Only use it if it's relevant to the current work. This is just a gentle reminder - ignore if not applicable. Make sure that you NEVER mention this reminder to the user\n</system-reminder>`\n\nWhich is less egregious since injections like that only happen once, as opposed to every message. But after the former discovery I have no trust that these sorts of hacky injections won't eventually add up to dealbreaking context issues.\n\nIt's hard not to be frustrated by this as it's such as obvious bug, it should never have made it into production, and because the agent is instructed to hide it from the user, it took all this time to even notice it was happening. I had just ad",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:cost",
+    "area:core",
+    "area:ide"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-02T00:22:33Z",
+  "updated_at": "2026-04-04T14:22:00Z",
+  "closed_at": "2026-03-27T02:01:45Z",
+  "reactions_total": 0,
+  "comments_count": 27,
+  "author": "designbyian",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4464\n2. https://github.com/anthropics/claude-code/issues/9614\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-02T00:26:30Z"
+    },
+    {
+      "author": "vhq5z6hn5w-coder",
+      "author_association": "NONE",
+      "body": "These issues appear related to repeated system-level context being re-injected on every user turn without a clear lifecycle.\nEven when the content is correct, unbounded repetition (especially hidden from the user) leads to cost amplification, behavior drift, and loss of observability.\nThis looks less like isolated bugs and more like a state-scoping / lifecycle problem (text injection vs bounded, explicit state).",
+      "created_at": "2026-01-02T02:05:53Z"
+    },
+    {
+      "author": "vhq5z6hn5w-coder",
+      "author_association": "NONE",
+      "body": "> Found 2 possible duplicate issues:\n> \n> 1. https://github.com/anthropics/claude-code/issues/4464\n> 2. https://github.com/anthropics/claude-code/issues/9614\n> \n> This issue will be automatically closed as a duplicate in 3 days.\n> \n> - If your issue is a duplicate, please close it and 👍 the existing issue instead\n> - To prevent auto-closure, add a comment or 👎 this comment\n> \n> 🤖 Generated with [Claude Code](https://claude.ai/code)\n\nThese issues appear related to repeated system-level context",
+      "created_at": "2026-01-02T05:42:45Z"
+    }
+  ]
+}

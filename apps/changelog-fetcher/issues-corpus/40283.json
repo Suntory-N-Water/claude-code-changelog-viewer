@@ -1,0 +1,35 @@
+{
+  "number": 40283,
+  "title": "[BUG] Cowork Dispatch not responding on macOS",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nBug: Cowork Dispatch not responding on macOS\n- VM boots successfully but IPv4 route unavailable\n- Missing entitlement: com.apple.vm.networking\n- Only has: com.apple.security.virtualization\n- Log: rate_limit_event loop → QueryClient Not found → UI crash\n- macOS Virtualization VM subnet 172.16.10.x has no bridge interface\n\n### What Should Happen?\n\n\n\n**Expected Flow:**\n\n```\n1. Claude Desktop starts VM (Ubuntu 22.04)\n        ↓\n2. VM gets IP: 172.16.10.3/24 via bridge interface\n        ↓\n3. coworkd confirms IPv4 route AVAILABLE (not NOT_CONNECTED)\n        ↓\n4. MITM proxy on /var/run/mitm-proxy.sock connects to Anthropic API\n        ↓\n5. Dispatch session handshakes successfully\n        ↓\n6. Message sent → processed → response returned to UI\n        ↓\n7. No rate_limit_event loop, no QueryClient errors\n```\n\n---\n\n**What's missing for this to work:**\n\nThe app needs `com.apple.vm.networking` entitlement so macOS allows the VM to:\n- Create a proper bridge at `172.16.10.x`\n- Route traffic between VM ↔ host ↔ Anthropic API\n- Let `coworkd` confirm the route is ready before Dispatch tries to connect\n\n---\n\n**In short** — the VM boots, but macOS blocks its network, so Dispatch never gets a live session. Anthropic needs to re-sign the app with the missing entitlement. This is fully on their end to fix, not something you can work around on your machine.\n\nWorth including all of this in your GitHub issue — it's a clean, reproducible root cause that their team can act on directly.\n\n### Error Messages/Logs\n\n```shell\nHere's a clean summary of all error messages and logs for your GitHub issue report:\n\n---\n\n**1. Rate Limit Loop** *(root trigger)*\n\n[LOCAL_SESSION] unknown sdk message type: rate_limit_event\n\nFired continuously every ~1 second for minutes at a time. The app doesn't know how to handle this new SDK message type, causing a retry loop.\n\n---\n\n**2. UI Crash** *(result of loop)*\n\nUncaught (in promise) TypeError: Cannot read properties of undefined (reading 'includes')\n[REACT_QUERY_CLIENT] QueryClient error: Error: Not found\n\nFires repeatedly after rate limit loop starts. Frontend loses reference to the Dispatch session and crashes silently — message shows as \"read\" but no response is returned.\n\n---\n\n**3. Memory Leak** *(from not restarting)*\n\nMaxListenersExceededWarning: Possible EventEmitter memory leak detected.\n11 listeners added: AutoUpdater / AppPreferences\n\nApp accumulates event listeners over time without cleanup, making the crash loop worse.\n\n---\n\n**4. VM Network Not Ready** *(kernel log)*\n\n[KERNEL] [coworkd] IPv4 route not yet available, emitting NOT_CONNECTED\n[KERNEL] [coworkd] configuring static IP on enp0s1: 172.16.10.3/24 gateway=172.16.10.1\n\nVM boots successfully but cannot establish network route. No matching bridge interface exists on the host side for `172.16.10.x`.\n\n---\n\n**5. Missing Entitlement** *(root cause)*\n\ncodesign -dv --entitlements - /Applications/Claude.app\n[Key] com.apple.security.virtualization   ← only this exists\n\n`com.apple.vm.networking` is absent. macOS blocks VM network access without it, so the bridge never forms and `coworkd` stays in `NOT_CONNECTED` state permanently.\n\n---\n\n**Full Chain:**\n\nMissing entitlement (com.apple.vm.networking)\n    → VM has no bridge at 172.16.10.x\n    → coworkd: NOT_CONNECTED\n    → Dispatch retries repeatedly\n    → rate_limit_event loop (unknown to SDK handler)\n    → TypeError: Cannot read properties of undefined\n    → QueryClient: Not found\n    → UI shows \"read\" but never responds\n    → EventEmitter memory leak after prolonged session\n\n\n---\n```\n\n### Steps to Reproduce\n\n\n**Environment**\n```\nOS: macOS (Apple Silicon)\nApp: Claude Desktop (latest version)\nPlan: Pro / Max\nFeature: Cowork Dispat",
+  "labels": ["invalid"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-28T15:44:19Z",
+  "updated_at": "2026-05-29T14:33:35Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 30,
+  "author": "lerdpisith",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/39142\n2. https://github.com/anthropics/claude-code/issues/40281\n3. https://github.com/anthropics/claude-code/issues/40179\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-28T15:48:43Z"
+    },
+    {
+      "author": "VasenevEA",
+      "author_association": "NONE",
+      "body": "Same issue. Mac Mini M2, headless, Claude Desktop 1.1.9310, macOS 26.0.1 beta.\n\n```\n[error] [REACT_QUERY_CLIENT] QueryClient error: Error: Not found\n[error] TypeError: Failed to fetch\n[error] [REACT_QUERY_CLIENT] QueryClient error: Error: Events check failed: 502\n[error] Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'includes')\n```\n\nMessages show as ✓ Read, no response ever appears.",
+      "created_at": "2026-03-28T21:43:16Z"
+    },
+    {
+      "author": "mjwoolley",
+      "author_association": "NONE",
+      "body": "I am having the same issue. Paired. Sent message (either from phone or in dispatch page of macOS desktop), it receives it but never get a response. I have reset App data and re-paired. Same result. I send message from phone, shows up on Desktop dispatch page, thinks about it, and then no response. \n\nmike@mac ~ % tail -f ~/Library/Logs/Claude/claude.ai-web.log\n2026-03-28 23:17:35 [warn] [LOCAL_SESSION] unknown sdk message type: rate_limit_event\n2026-03-28 23:18:22 [error] Uncaught (in promise) Ty",
+      "created_at": "2026-03-29T03:28:09Z"
+    }
+  ]
+}

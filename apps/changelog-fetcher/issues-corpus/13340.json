@@ -1,0 +1,35 @@
+{
+  "number": 13340,
+  "title": "[BUG] global/local settings.json allow permissions are not respected by Claude Code",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nPiped bash commands prompt for permission even when ALL individual components are already allowed in settings.json.\n\nI have many bash commands allowed in my global settings.json:\n```json\n\"Bash(ls:*)\",\n\"Bash(awk:*)\",\n\"Bash(wc:*)\",\n\"Bash(echo:*)\"\n```\n\nEach command works fine individually:\n- `ls /some/path` - works without prompting\n- `awk --version` - works without prompting\n\nBut piped commands prompt for permission even when ALL components are allowed:\n- `ls /some/path | awk '{print $1}'` - prompts for permission\n- `echo \"test\" | wc -l` - prompts for permission\n\nThis is because the permission system uses prefix matching on the entire command string. `Bash(awk:*)` only matches commands that START with `awk`, not commands where `awk` appears after a pipe.\n\n### What Should Happen?\n\nIf I run `cmd1 | cmd2 | cmd3` and each of `cmd1`, `cmd2`, `cmd3` individually matches an allowed pattern, the full piped command should be allowed without prompting. Same for `&&`, `||`, and `;`.\n\n### Steps to Reproduce\n\n1. Add bash command permissions to global or local settings.json:\n   ```json\n   {\n     \"permissions\": {\n       \"allow\": [\n         \"Bash(ls:*)\",\n         \"Bash(awk:*)\",\n         \"Bash(wc:*)\",\n         \"Bash(echo:*)\"\n       ]\n     }\n   }\n   ```\n2. Ask Claude Code to run a simple allowed command like `ls /tmp` - it runs without prompting\n3. Ask Claude Code to run a piped command like `ls /tmp | wc -l` - it prompts for permission despite both `ls` and `wc` being individually allowed\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.61 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\nI created a PreToolUse hook for a workaround, you can run `npx claude-code-plus` to get this behavior installed on your machine: [claude-code-plus](https://github.com/AbdelrahmanHafez/claude-code-plus).",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-07T23:23:57Z",
+  "updated_at": "2026-04-13T08:25:54Z",
+  "closed_at": null,
+  "reactions_total": 47,
+  "comments_count": 20,
+  "author": "AbdelrahmanHafez",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/11775\n2. https://github.com/anthropics/claude-code/issues/1271\n3. https://github.com/anthropics/claude-code/issues/12919\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-07T23:28:10Z"
+    },
+    {
+      "author": "lucasmccomb",
+      "author_association": "NONE",
+      "body": "Would love a fix for this :)",
+      "created_at": "2026-01-17T18:11:53Z"
+    },
+    {
+      "author": "kristofenyi",
+      "author_association": "NONE",
+      "body": "Looking forward for a fix on this. ",
+      "created_at": "2026-01-20T06:06:31Z"
+    }
+  ]
+}

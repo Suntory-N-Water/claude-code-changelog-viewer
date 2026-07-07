@@ -1,0 +1,35 @@
+{
+  "number": 16600,
+  "title": "[FEATURE] Claude Code memory traversal should respect git worktree boundaries",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWhen using git worktrees, Claude Code's CLAUDE.md traversal loads memory files from both the current worktree AND the parent repository directory, causing a security warning:\n\n> This project's CLAUDE.md imports files outside the current working directory. Never allow this for third-party repositories.\n\n**The problem:**\n- Git worktrees are a common development pattern for working on multiple branches simultaneously\n- Each worktree represents a different branch state with potentially different CLAUDE.md instructions\n- Claude Code traverses up from CWD to filesystem root `/`, loading ALL CLAUDE.md files it encounters\n- This causes the parent repo's CLAUDE.md to be loaded alongside the worktree's CLAUDE.md\n- When the parent CLAUDE.md imports files (e.g., `@./AGENTS.md`), those paths resolve outside the worktree CWD\n- This triggers a misleading security warning for the developer's own repository\n\n**Why this matters:**\n- Teams version-control CLAUDE.md files with branch-specific instructions\n- Different feature branches may need different memory/coding guidelines\n- The warning is technically correct but contextually wrong (it's not a third-party repo security issue)\n- No current way to prevent Claude Code from traversing above the worktree/git boundary\n\n\n### Proposed Solution\n\nClaude Code should **stop memory file traversal at git boundaries**, specifically:\n\n### Option 1: Auto-detect git worktree roots (Preferred)\nWhen Claude Code encounters a `.git` **file** (not directory) during traversal, recognize it as a worktree and stop there:\n\n```bash\n# In a worktree, .git is a file pointing to the actual git directory\n$ cat /path/to/worktree/.git\ngitdir: /path/to/main-repo/.git/worktrees/feature-branch\n```\n\n### Option 2: Stop at git repository root\nWhen Claude Code encounters a `.git/` **directory**, recognize it as a repository root and stop there.\n\n### Option 3: Configurable setting\nAdd user configuration to control traversal behavior:\n\n```json\n{\n  \"memory.stopAtGitRoot\": true,\n  \"memory.stopAtWorktreeRoot\": true,\n  \"memory.maxTraversalDepth\": 3\n}\n```\n\n\n### Alternative Solutions\n\n**Current workarounds (all have drawbacks):**\n\n1. **Ignore the warning** - Works but creates confusion and noise\n2. **Use `CLAUDE.local.md` in parent** - Prevents version control of memory files\n3. **Don't use git worktrees** - Severely limits developer workflow\n4. **Inline AGENTS.md into CLAUDE.md** - Defeats modularity, makes diffs messy\n\nNone of these are acceptable for teams that use both worktrees and version-controlled memory files.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n**Scenario: Multi-branch development with branch-specific coding guidelines**\n\n1. Developer maintains a FastAPI project with CLAUDE.md containing team coding standards\n2. They create a worktree for a new feature branch:\n   ```bash\n   git worktree add worktrees/api-v2-migration api-v2-migration\n   cd worktrees/api-v2-migration\n   ```\n3. This branch modifies CLAUDE.md to add migration-specific instructions:\n   ```markdown\n   @./AGENTS.md\n\n   # API v2 Migration Guidelines\n   - Use Pydantic v2 syntax only\n   - Maintain backwards compatibility with v1 endpoints\n   ```\n4. Developer starts Claude Code in the worktree\n5. Claude Code loads BOTH:\n   - `worktrees/api-v2-migration/CLAUDE.md` (v2 migration instructions)\n   - `../../CLAUDE.md` (main branch instructions)\n6. Warning appears: \"imports files outside the current working directory\"\n7. Developer is confused - both files are from their own repo\n8. Memory instructions conflict between branches, causing inconsistent AI behavior\n\n**Expected behavior:** Claude Code should only load the worktree's CLAUDE.md, respecting the git worktree boundary.\n\n\n### Additional Context\n\n**Git wor",
+  "labels": ["enhancement", "area:core", "area:security", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-07T11:24:41Z",
+  "updated_at": "2026-04-24T08:11:47Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 10,
+  "author": "dedsm",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "paul-mothapo",
+      "author_association": "NONE",
+      "body": "Indeed this is what I saw, Scripts and utilities need to either use paths relative to their current location or properly determine the full path to guarantee they function within the appropriate working directory.",
+      "created_at": "2026-01-07T12:24:43Z"
+    },
+    {
+      "author": "atournayre",
+      "author_association": "NONE",
+      "body": "## Still Present in v2.1.37 (Linux)\n\nThis issue is **still actively causing problems** in v2.1.37.\n\n### Current Impact\n\nWhen working in git worktrees, memory files are loaded **twice** (absolute + relative paths):\n- `~/project/neo/.claude/rules/*.md` (35 files)\n- `.claude/rules/*.md` (same 35 files again)\n\n**Result:**\n- Memory files: **109k tokens instead of ~54k** (doubled)\n- Context at **73% capacity immediately after `/clear`**\n- Premature compaction every 3-4 messages\n- **Session and weekly ",
+      "created_at": "2026-02-08T23:40:03Z"
+    },
+    {
+      "author": "CybotTM",
+      "author_association": "NONE",
+      "body": "Side note: with a layout like\n`/Users/dev/my-repo/` and `/Users/dev/my-repo/worktrees/feature-branch`, tools that scan upward (toward parent directories) or downward (recursively through subfolders) can easily cross from one checkout/worktree into another, and that can affect more than just config files (anything discovered by filesystem traversal: rules, scripts, templates, metadata, etc.). If you keep each checkout/worktree in its own top-level directory (instead of sharing a common parent), y",
+      "created_at": "2026-02-13T11:23:15Z"
+    }
+  ]
+}

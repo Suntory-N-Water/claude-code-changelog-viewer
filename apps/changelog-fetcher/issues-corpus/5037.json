@@ -1,0 +1,35 @@
+{
+  "number": 5037,
+  "title": "MCP servers in .claude/.mcp.json not loading properly",
+  "body": "# MCP Configuration Issue: .claude/.mcp.json Not Loading All Servers\n\n## Summary\nMCP servers configured in `.claude/.mcp.json` are not being loaded properly by Claude Code, while the same configuration works correctly when placed in the root directory as `.mcp.json`.\n\n## Environment\n- **Claude Code Version**: 1.0.67\n- **Platform**: Linux (WSL2)\n- **OS**: Linux 6.6.87.2-microsoft-standard-WSL2\n- **Working Directory**: /mnt/e/CodeProjects/TWC_Meta\n\n## Expected Behavior\nAll MCP servers defined in `.claude/.mcp.json` should be loaded and available, similar to how they work when the configuration is in the root `.mcp.json` file.\n\n## Actual Behavior\nOnly one MCP server (`snap-happy`) loads from `.claude/.mcp.json`, while other servers (puppeteer, ElevenLabs, xero, microsoft, markitdown) are ignored.\n\n## Steps to Reproduce\n\n1. Create a `.claude/.mcp.json` file with multiple MCP server configurations:\n```json\n{\n  \"mcpServers\": {\n    \"puppeteer\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@modelcontextprotocol/server-puppeteer\"],\n      \"env\": {}\n    },\n    \"ElevenLabs\": {\n      \"command\": \"uvx\",\n      \"args\": [\"elevenlabs-mcp\"],\n      \"env\": {\n        \"ELEVENLABS_API_KEY\": \"sk_xxx\"\n      }\n    },\n    \"snap-happy\": {\n      \"command\": \"node\",\n      \"args\": [\"/path/to/snap-happy/dist/index.js\"],\n      \"env\": {\n        \"SNAP_HAPPY_SCREENSHOT_PATH\": \"/path/to/screenshots\"\n      }\n    }\n  }\n}\n```\n\n2. Run `claude mcp list`\n3. Observe that only `snap-happy` is loaded\n4. Move the file to root directory as `.mcp.json`\n5. Run `claude mcp list` again\n6. Observe that all servers now load correctly\n\n## Test Results\n\n### With `.claude/.mcp.json`:\n```\nChecking MCP server health...\n\nsnap-happy: npx @mariozechner/snap-happy - ✓ Connected\n```\n\n### With root `.mcp.json`:\n```\nChecking MCP server health...\n\npuppeteer: npx -y @modelcontextprotocol/server-puppeteer - ✓ Connected\nElevenLabs: uvx elevenlabs-mcp - ✓ Connected\nsnap-happy: npx @mariozechner/snap-happy - ✓ Connected\n```\n\n## Debug Output\nWhen running with `--debug`, only the snap-happy server shows connection attempts:\n```\n[DEBUG] MCP server \"snap-happy\": Starting connection attempt\n[DEBUG] MCP server \"snap-happy\": Connection attempt completed in 1077ms - status: connected\n```\n\nNo debug output appears for other servers, suggesting they're not being read from the configuration file.\n\n## Impact\nThis prevents users from organizing their MCP configurations within the `.claude/` directory structure, forcing them to clutter the root directory with configuration files.\n\n## Possible Cause\nThe MCP configuration loader may not be properly reading or processing the `.claude/.mcp.json` file format, or there may be a path resolution issue when loading servers from this location.\n\n## Workaround\nMove `.mcp.json` to the root directory of the project.",
+  "labels": ["bug", "has repro", "platform:linux", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-03T11:02:21Z",
+  "updated_at": "2026-03-26T19:06:20Z",
+  "closed_at": null,
+  "reactions_total": 35,
+  "comments_count": 29,
+  "author": "cameronstewart",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/2156\n2. https://github.com/anthropics/claude-code/issues/4938\n3. https://github.com/anthropics/claude-code/issues/1870\n\nIf your issue is a duplicate, please close it and 👍 the existing issue instead.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-03T11:06:29Z"
+    },
+    {
+      "author": "t0ddharris",
+      "author_association": "NONE",
+      "body": "Same problem - there seem to be too many places where mcp servers are stored in Claude Code. My .claude.json is a giant file with at least two sections of mcp servers - one I had no idea existed and both had mcp servers I thought I had uninstalled. ",
+      "created_at": "2025-08-06T13:11:08Z"
+    },
+    {
+      "author": "serpent213",
+      "author_association": "NONE",
+      "body": "Same here. Was working earlier, not sure what broke it – tried various older versions. macOS update to 15.6...?",
+      "created_at": "2025-08-15T22:36:17Z"
+    }
+  ]
+}

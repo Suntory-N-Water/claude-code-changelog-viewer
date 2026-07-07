@@ -1,0 +1,43 @@
+{
+  "number": 8856,
+  "title": "Memory leak: Missing cleanup for /tmp/claude-*-cwd working directory tracking files",
+  "body": "## Bug Description\nClaude Code creates temporary files to track working directory changes across Bash command executions but never deletes them, causing accumulation of `/tmp/claude-*-cwd` files.\n\n## Environment\n- **Claude Code Version:** 2.0.1\n- **OS:** Linux (WSL2)\n- **Node Version:** (System default)\n\n## The Problem\nEvery Bash tool invocation creates a temporary file at `/tmp/claude-{random-4-hex}-cwd` to track the working directory after command execution. These files are never cleaned up, leading to accumulation.\n\n### Evidence\n- **Observed:** 174 files accumulated in one day of usage\n- **Pattern:** Each file is 22 bytes containing the working directory path\n- **Debug log:** Shows 2,018 Bash invocations over 4 days\n- **Only cleanup:** systemd-tmpfiles-clean removes them daily at 07:15\n\n## Root Cause Analysis\n\n### Location in Code\nFile: `/usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js`\n\nThe issue is in the `lq6` function (around line 1520 in the minified code):\n\n```javascript\n// Current implementation (BUG - no cleanup):\nP.result.then(async(k)=>{\n  if(k&&!Y&&!k.backgroundTaskId)try{\n    j$(bq6(K,{encoding:\"utf8\"}).trim(),M)  // Reads file but never deletes it\n  }catch{\n    B1(\"tengu_shell_set_cwd\",{success:!1})\n  }\n})\n```\n\n### The Mechanism\n1. Claude Code generates a random temp file path: `let K = \\`${V}/claude-${F}-cwd\\``\n2. Appends `pwd -P >| ${K}` to every Bash command to capture final directory\n3. Reads the file with `bq6(K,{encoding:\"utf8\"})` to update internal cwd\n4. **Missing step:** Never calls `unlinkSync(K)` to delete the file\n\n## The Fix\n\nAdd cleanup immediately after reading the file:\n\n```javascript\n// Fixed implementation:\nP.result.then(async(k)=>{\n  if(k&&!Y&&!k.backgroundTaskId)try{\n    let cwdContent=bq6(K,{encoding:\"utf8\"}).trim();\n    try{C1().unlinkSync(K)}catch{};  // <- Add this line\n    j$(cwdContent,M)\n  }catch{\n    B1(\"tengu_shell_set_cwd\",{success:!1})\n  }\n})\n```\n\n## Verification\nI applied this fix locally and confirmed:\n- Files are now created and immediately deleted after use\n- Working directory tracking continues to function correctly\n- No accumulation even after running 15+ commands in succession\n\n## Impact\n- **Resource leak:** Accumulates filesystem entries (500+ files/day for heavy users)\n- **Privacy concern:** Working directory paths persist in /tmp\n- **Disk usage:** While minimal (22 bytes each), it's unnecessary accumulation\n\n## Reproduction Steps\n1. Run any Bash command: `ls`\n2. Check temp files: `ls /tmp/claude-*-cwd`\n3. Observe new file created but not deleted\n4. Repeat and watch accumulation\n\n## Why This Design Exists\nThe temp file approach is actually clever and necessary:\n- Tracks `cd` commands across subprocess isolation\n- Doesn't pollute stdout with pwd output\n- Works reliably across all shell types\n- The implementation is 95% correct, just missing the cleanup step\n\n## Recommendation\nThis is a simple one-line fix that should be included in the next Claude Code release. The temp file mechanism itself is sound and necessary for stateful directory navigation in a stateless subprocess model.\n\n## Additional Notes\n- The fix has been tested and verified locally\n- No side effects observed\n- This affects all Claude Code users on Unix-like systems",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "area:core",
+    "memory",
+    "perf:memory"
+  ],
+  "state": "open",
+  "state_reason": "reopened",
+  "created_at": "2025-10-03T15:27:49Z",
+  "updated_at": "2026-06-03T00:05:05Z",
+  "closed_at": null,
+  "reactions_total": 69,
+  "comments_count": 107,
+  "author": "Sundeepg98",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "***today's** releae, right @timgu0 ?",
+      "created_at": "2026-01-13T19:20:36Z"
+    },
+    {
+      "author": "Sundeepg98",
+      "author_association": "NONE",
+      "body": "## Additional Analysis & Impact Assessment\n\n### Quantitative Impact Data\nAfter monitoring for 24 hours, here's the accumulation rate:\n- **174 orphaned files** created in ~12 hours of usage\n- **2,018 Bash invocations** tracked in logs  \n- **~14.5 files/hour** accumulation rate during active use\n- **22 bytes each** = minimal individual impact but compounds over time\n\n### Why This Matters\n1. **Multi-user systems**: Shared servers could accumulate thousands of files\n2. **Long-running sessions**: Pow",
+      "created_at": "2025-10-03T15:40:57Z"
+    },
+    {
+      "author": "KCW89",
+      "author_association": "NONE",
+      "body": "Have we resolved this issue?",
+      "created_at": "2025-11-04T05:09:42Z"
+    }
+  ]
+}

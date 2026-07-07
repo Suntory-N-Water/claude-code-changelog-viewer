@@ -1,0 +1,35 @@
+{
+  "number": 27203,
+  "title": "canUseTool callback not invoked for background subagent tool calls in default permission mode",
+  "body": "## Summary\n\nWhen using the Claude Agent SDK with a custom `canUseTool` callback in `default` permission mode, background subagents spawned via the Task tool (`run_in_background: true`) do not route tool permission requests through the callback. The SDK denies their tool calls internally without ever invoking `canUseTool`. Additionally, these internal denials can corrupt the parent session's transport, causing subsequent main-agent tool calls to fail with \"Stream closed\".\n\nThis bug affects `default` mode specifically. In `bypassPermissions` mode, everything works correctly. Reproduced with both personal accounts (with `bypassPermissions` access) and corporate accounts (without), confirming the bug is in `default` mode handling.\n\n## Environment\n\n- Claude Agent SDK: 0.2.42 (bundled with Claude Code 2.1.42)\n- Platform: Linux (Debian)\n\n## Reproduction\n\nA standalone reproduction case is available at: https://github.com/nicolasnoble/claude-sdk-bug-report\n\n```bash\ngit clone https://github.com/nicolasnoble/claude-sdk-bug-report\ncd claude-sdk-bug-report\nnpm install\nnpx tsx repro.ts\n# For non-default credential locations:\nCLAUDE_CONFIG_DIR=~/.claude-work npx tsx repro.ts\n```\n\nThe script starts a session in `default` mode with a `canUseTool` callback that auto-allows all tools and logs every invocation. It triggers Claude to spawn a background subagent that runs a simple Bash command, then reports whether `canUseTool` was invoked.\n\n## Expected output\n\n```\n[canUseTool] canUseTool called: Task (agentID=main, ...)\n[canUseTool] canUseTool called: Bash (agentID=main, ...)\n[canUseTool] canUseTool called: Bash (agentID=<subagent-id>, ...)\n\nSubagent calls (1+):\n  canUseTool called: Bash (agentID=<subagent-id>, ...)\n\nOK: canUseTool was called for subagent Bash calls.\n```\n\n## Actual output\n\n```\n[canUseTool] canUseTool called: Task (agentID=main, ...)\n[canUseTool] canUseTool called: Bash (agentID=main, ...)\n\nSubagent calls (0):\n  BUG CONFIRMED: canUseTool was never called for subagent tool uses.\n```\n\nThe subagent reports \"Permission to use Bash has been denied\" without `canUseTool` ever being invoked.\n\n## Additional observations\n\n- **`bypassPermissions` mode works correctly**: subagent tool calls are properly handled. The bug is specific to `default` mode.\n- **Silent permission mode downgrade**: requesting `bypassPermissions` on an account without access silently falls back to `default` with no error or warning. The only way to discover this is by inspecting the `permissionMode` field on the `system`/`init` message.\n- **Transport corruption**: after background subagent permission denials, subsequent main-agent Bash calls fail with \"Tool permission request failed: Error: Stream closed\". The transport self-heals after several minutes.\n- **Background subagents are isolated from all permission mechanisms**: we tested all three available approaches and none reach background subagents:\n  - `canUseTool` callback: never invoked for background subagent tool calls\n  - `allowedTools` in query options: does not propagate to background subagents\n  - `Bash(*)` in user-level settings (the same settings file the session uses, confirmed via `CLAUDE_CONFIG_DIR`): does not propagate to background subagents\n- The `canUseTool` type definition includes `agentID?: string` for subagent identification, suggesting the callback is designed to handle subagent tool calls.\n\n## Bugs\n\n1. **`canUseTool` not called for background subagents in `default` mode**: the SDK denies tool calls internally without invoking the callback. Background subagents appear completely isolated from all three permission mechanisms.\n2. **Transport corruption**: internal subagent denials break the parent session's transport (\"Stream closed\"), requiring several minutes to self-heal.\n3. **Silent permission mode downgrade**: no error or warning when `bypassPermissions` is unavailable - the SDK silently falls back to `default`.",
+  "labels": ["stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-20T18:28:51Z",
+  "updated_at": "2026-05-24T10:41:01Z",
+  "closed_at": "2026-05-24T10:41:01Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "nicolasnoble",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23983\n2. https://github.com/anthropics/claude-code/issues/21460\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-20T18:31:49Z"
+    },
+    {
+      "author": "nicolasnoble",
+      "author_association": "NONE",
+      "body": "These are related but not duplicates:\n\n- **#23983** is about `PermissionRequest` hooks not firing for subagents\n- **#21460** is about `PreToolUse` hooks not being enforced on subagents\n\nThis issue is specifically about the **SDK `canUseTool` callback** not being invoked for background subagents, plus a **transport corruption bug** where the internal denials cause the parent session's Bash to break with \"Stream closed\" for several minutes.\n\nAll three issues likely share the same root cause (subag",
+      "created_at": "2026-02-20T18:34:45Z"
+    },
+    {
+      "author": "nicolasnoble",
+      "author_association": "NONE",
+      "body": "Still reproducible on latest Claude Code. The standalone repro at https://github.com/nicolasnoble/claude-sdk-bug-report demonstrates all three symptoms.",
+      "created_at": "2026-03-09T23:08:01Z"
+    }
+  ]
+}

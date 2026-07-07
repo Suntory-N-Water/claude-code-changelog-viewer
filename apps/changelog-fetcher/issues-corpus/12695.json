@@ -1,0 +1,35 @@
+{
+  "number": 12695,
+  "title": "[BUG] Edit Tool False Positive \"File has been unexpectedly modified\" on Windows",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n **Environment:**\n  - OS: Windows (Git Bash)\n  - File System: NTFS\n  - Date: 2025-11-29\n\n  **Issue:**\n  The Edit tool consistently fails with \"File has been unexpectedly modified. Read it again before attempting to write it.\" even when\n  no external process is modifying files.\n\n  **Steps to Reproduce:**\n  1. Close all IDEs (IntelliJ IDEA, VS Code, etc.)\n  2. Create a new test file: `echo \"test\" > test.txt`\n  3. Use Read tool to read the file\n  4. Immediately use Edit tool to modify the file\n  5. Error occurs: \"File has been unexpectedly modified\"\n\n  **Expected Behavior:**\n  Edit tool should successfully modify the file when no actual modifications have occurred.\n\n  **Actual Behavior:**\n  Edit tool always fails, even on newly created files that no process has touched.\n\n  **Investigation Performed:**\n  - ✅ Confirmed no IDE processes running (IntelliJ closed)\n  - ✅ Confirmed no cloud sync services running (Dropbox, OneDrive, etc.)\n  - ✅ Confirmed no build tool daemons (Maven, Gradle)\n  - ✅ Confirmed no file watchers or antivirus active scanning\n  - ✅ Verified file timestamps are completely stable:\n    Modify: 2025-11-29 08:43:49.645051300 -0800\n  Timestamp unchanged over multiple checks\n\n  - ✅ Verified file hash (md5sum) remains stable\n  - ✅ Tested with brand new file - still fails\n  - ✅ Bash file operations (sed, cat, mv) work perfectly\n\n  **Root Cause Hypothesis:**\n  The Edit tool's file modification detection logic appears to have issues on Windows NTFS file systems, possibly related to:\n  - High-precision nanosecond timestamps causing comparison issues\n  - Internal metadata caching or state management bug\n  - Race condition when Read and Edit are used in quick succession\n\n  **Workaround:**\n  Use bash commands instead of Edit tool:\n  ```bash\n  sed -i 's/old/new/' file.txt  # Works reliably\n\n  Impact:\n  Severe - Edit tool is unusable on Windows, forcing users to use bash workarounds for all file modifications.\n\n### What Should Happen?\n\n **Environment:**\n  - OS: Windows (Git Bash)\n  - File System: NTFS\n  - Date: 2025-11-29\n\n  **Issue:**\n  The Edit tool consistently fails with \"File has been unexpectedly modified. Read it again before attempting to write it.\" even when\n  no external process is modifying files.\n\n  **Steps to Reproduce:**\n  1. Close all IDEs (IntelliJ IDEA, VS Code, etc.)\n  2. Create a new test file: `echo \"test\" > test.txt`\n  3. Use Read tool to read the file\n  4. Immediately use Edit tool to modify the file\n  5. Error occurs: \"File has been unexpectedly modified\"\n\n  **Expected Behavior:**\n  Edit tool should successfully modify the file when no actual modifications have occurred.\n\n  **Actual Behavior:**\n  Edit tool always fails, even on newly created files that no process has touched.\n\n  **Investigation Performed:**\n  - ✅ Confirmed no IDE processes running (IntelliJ closed)\n  - ✅ Confirmed no cloud sync services running (Dropbox, OneDrive, etc.)\n  - ✅ Confirmed no build tool daemons (Maven, Gradle)\n  - ✅ Confirmed no file watchers or antivirus active scanning\n  - ✅ Verified file timestamps are completely stable:\n    Modify: 2025-11-29 08:43:49.645051300 -0800\n  Timestamp unchanged over multiple checks\n\n  - ✅ Verified file hash (md5sum) remains stable\n  - ✅ Tested with brand new file - still fails\n  - ✅ Bash file operations (sed, cat, mv) work perfectly\n\n  **Root Cause Hypothesis:**\n  The Edit tool's file modification detection logic appears to have issues on Windows NTFS file systems, possibly related to:\n  - High-precision nanosecond timestamps causing comparison issues\n  - Internal metadata caching or state management bug\n  - Race condition when Read and Edit are used in quick succession\n\n  **Workaround:**\n  Use bash commands instead o",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-29T18:22:27Z",
+  "updated_at": "2026-03-07T14:20:41Z",
+  "closed_at": "2026-02-27T22:08:19Z",
+  "reactions_total": 6,
+  "comments_count": 11,
+  "author": "jigounov",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Can you help provide more details around your configurations and repro steps?\n\n- Running Claude Code with PowerShell, CMD, git bash, cygwin?\n- What is your SHELL env var?\n- When running `claude --debug`, any `cygpath` errors appear in the log file?",
+      "created_at": "2025-12-06T00:08:48Z"
+    },
+    {
+      "author": "jigounov",
+      "author_association": "NONE",
+      "body": "It takes multiple attempts to edit any file and eats all my money very quickly.",
+      "created_at": "2025-11-29T18:24:22Z"
+    },
+    {
+      "author": "ariesdeveloper",
+      "author_association": "NONE",
+      "body": "This has been ongoing for over 2 months now for me the work around i found is i have to tell claude \"There's a file modification bug in Claude Code. The workaround is: always use complete absolute Windows paths\nwith drive letters and backslashes for ALL file operations. Apply this rule going forward, not just for this\nfile.\" this resolves the issue i need to reiterate this in each new session or after each compaction I add it to claude.md but it still sometimes forgets on an fresh session",
+      "created_at": "2025-11-30T15:00:48Z"
+    }
+  ]
+}

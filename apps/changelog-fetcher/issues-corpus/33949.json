@@ -1,0 +1,35 @@
+{
+  "number": 33949,
+  "title": "SSE streaming hangs indefinitely (no timeout) + ESC cannot fully cancel (queue auto-restart) — root cause analysis with fix proposals",
+  "body": "## Summary\n\nThese two bugs have been plaguing users for months (see #26224 — 28 comments, #6836 — 150+ reports), with no root cause analysis from the team. After yet another day of babysitting Claude Code and pressing ESC every few minutes to revive a hung agent, we decided to conduct our own deep investigation — reverse-engineering `cli.js` across 12 npm package versions and analyzing 1,571 session JSONL files containing 148,444 tool calls.\n\nHere are the exact root causes and proposed fixes.\n\nClaude Code hangs indefinitely when an SSE streaming connection silently dies. There is no client-side timeout or heartbeat detection, so the process waits forever for events that will never arrive. ESC partially works around this by aborting the dead connection, but the queue auto-restart mechanism (`queue.length > 0 → n()`) immediately starts the next queued prompt instead of returning control to the user.\n\n**Root cause identified in source code** — two separate issues in `cli.js`:\n\n1. **No streaming timeout**: The `messages.stream()` call has no timeout. If the SSE connection dies silently (TCP half-open), the client waits forever.\n2. **Queue auto-restart after abort**: After ESC aborts a hung request, `if (queue.length > 0) { n(); return; }` immediately starts the next queued prompt. The user cannot fully cancel.\n\n## Environment\n\n- Claude Code: 2.1.74 (also confirmed on 2.1.50–2.1.73)\n- OS: Windows 10, Git Bash\n- Model: Opus 4.6\n- API: Anthropic direct (not Bedrock/Vertex)\n\n## Reproduction\n\n1. Start a Claude Code session\n2. Submit a prompt → agent starts processing\n3. Wait for a hang (0 tokens, timer running, no progress) — happens ~10-15% of prompts\n4. Submit another prompt while hung → goes to queue\n5. Press ESC\n6. **Expected:** Cancel everything, return to `❯`\n7. **Actual:** Cancels the hung prompt, immediately starts the queued one\n\n## Frequency\n\nMeasured across **1,571 sessions** using a custom JSONL analyzer tool:\n\n| Period | Versions | Orphan rate (lost tool calls) |\n|--------|----------|-------------------------------|\n| Dec 2025 | 2.0.72–2.1.2 | 6–14% |\n| Jan 2026 | 2.1.5–2.1.23 | 5–10% |\n| Feb 2026 | 2.1.29–2.1.56 | 3–8% |\n| Mar 2026 | 2.1.69–2.1.74 | 2.4–4% |\n\nThe hang frequency has been **increasing** over time: rare in fall 2025, now ~10-15% of prompts per hour.\n\n## Source Code Analysis\n\nAnalyzed `cli.js` extracted from `npm pack @anthropic-ai/claude-code` across versions 2.0.72 through 2.1.74.\n\n### Issue 1: No streaming timeout\n\nThe API call at approximately offset 2,553,870 in cli.js (v2.1.74):\n\n```js\nclient.beta.messages.stream({...params}, options)\n```\n\nThere is no timeout parameter, no keepalive check, and no heartbeat detection. The Anthropic SSE API sends periodic `:ping` comments, but the client does not monitor for their absence.\n\nWhen the TCP connection silently dies (common on Windows, WiFi, VPN, or after laptop sleep), the Node.js HTTP client has no way to know the connection is dead. The `AbortController` signal is never triggered because no error event fires.\n\n**Evidence**: Packet inspection by other reporters confirms the client is stuck waiting for SSE events that never arrive. Token count stays at 0. ESC + re-submit creates a new connection that works immediately.\n\n### Issue 2: Queue auto-restart prevents full cancellation\n\nThe main processing loop (offset ~11,400,559 in v2.1.74):\n\n```js\nn = async () => {\n  if (M) return;       // running guard\n  M = true;\n  // ... prepare input, call API, process response ...\n}\n```\n\nAfter completion or abort — in the `finally` block (offset ~11,406,174):\n\n```js\nfinally {\n  M = false;           // clear running guard\n  W6.start();          // restart idle timer\n}\nif (c36()) {           // c36() = yY.length > 0 = queue not empty?\n  n();                 // YES → immediately restart with queued message!\n  return;              // without returning control to user!\n}\n```\n\nHistorical analysis of npm packages confirms this pattern exists since **v2.1.50** (as `queue.length > 0`) and was refactored to `c36()` in v2.1.74.\n\n### Issue 3",
+  "labels": ["bug", "has repro", "platform:windows", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-13T10:42:16Z",
+  "updated_at": "2026-05-23T09:08:44Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 37,
+  "author": "kolkov",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25979\n2. https://github.com/anthropics/claude-code/issues/27841\n3. https://github.com/anthropics/claude-code/issues/18028\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-13T10:46:16Z"
+    },
+    {
+      "author": "kolkov",
+      "author_association": "NONE",
+      "body": "This is **not a duplicate** of any of those issues. Here's why:\n\n| Issue | What it has | What it lacks |\n|-------|------------|---------------|\n| #25979 | Symptom description (hang on stall) | No source code analysis, no fix proposals |\n| #27841 | Symptom description (hang with multiple sessions) | No root cause, no code references |\n| #18028 | Timing measurements (59-138s delays) | No source analysis, no fix proposals |\n| **This issue** | **Root cause in source code** + **3 fix proposals** + **",
+      "created_at": "2026-03-13T10:50:02Z"
+    },
+    {
+      "author": "kolkov",
+      "author_association": "NONE",
+      "body": "> **⚠️ Updated April 1, 2026**: The source map leak in v2.1.88 gave us access to the full TypeScript source. We've posted **updated prompts with exact file paths and line numbers** — no more reverse engineering of minified code: [Updated prompts →](https://github.com/anthropics/claude-code/issues/33949#issuecomment-4169440989)\n> \n> Also see our full write-up: [We Reverse-Engineered 12 Versions of Claude Code. Then It Leaked Its Own Source Code.](https://dev.to/kolkov/we-reverse-engineered-12-ver",
+      "created_at": "2026-03-13T14:33:44Z"
+    }
+  ]
+}

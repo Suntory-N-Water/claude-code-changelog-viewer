@@ -1,0 +1,41 @@
+{
+  "number": 12178,
+  "title": "[BUG] Skill tool fails to activate plugin-dev skills - missing build.sh script",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe Skill tool fails when attempting to activate any skill from the plugin-dev plugin (part of\n  the claude-code-plugins marketplace) due to a missing build script. This prevents users from\n  accessing authoritative plugin development guidance during slash command creation, agent\n  development, and plugin auditing workflows.\n\n  Steps to Reproduce\n\n  1. Ensure claude-code-plugins marketplace is installed\n  2. Attempt to activate any plugin-dev skill:\n  Skill --skill plugin-dev:command-development\n  # or\n  Skill --skill plugin-dev:agent-development\n  # or any other plugin-dev skill\n  3. Observe error\n\n  Expected Behavior\n\n  The skill should load and display its content (guidance for command development, agent\n  development, hook development, etc.) to inform the user's workflow.\n\n  Actual Behavior\n\n  Error is returned:\n  Bash command failed for pattern \"!`bash ~/.claude/plugins/marketplaces/claude-code-pl\n  ugins/plugins/plugin-dev/scripts/build.sh`\": [stderr]\n  bash: ~/.claude/plugins/marketplaces/claude-code-plugins/plugins/plugin-dev/scripts/b\n  uild.sh: No such file or directory\n\n  Analysis: The Skill tool appears to be attempting to execute a build script to dynamically\n  generate skill content, but this script doesn't exist in the plugin-dev plugin installation.\n\n  Environment\n\n  - Platform: Linux (WSL2)\n  - OS Version: Linux 6.6.87.2-microsoft-standard-WSL2\n  - Claude Code Version: [current version]\n  - Marketplace: claude-code-plugins\n  - Plugin: plugin-dev\n  - Skill Names Affected: All plugin-dev skills\n    - plugin-dev:command-development\n    - plugin-dev:agent-development\n    - plugin-dev:hook-development\n    - plugin-dev:skill-development\n    - plugin-dev:mcp-integration\n    - plugin-dev:plugin-structure\n    - plugin-dev:plugin-settings\n\n  Impact\n\n  Severity: Medium-High\n\n  User Impact:\n  - Cannot access authoritative plugin development criteria during audits\n  - Slash command and agent creation workflows lack proper guidance\n  - Plugin quality validation operates without official standards\n  - Users must rely on general knowledge instead of plugin-dev best practices\n\n  Workaround: None available - skills simply don't load\n\n  Use Case Example\n\n  When using /audit-request command to audit a slash command, the specification\n  requires mandatory skill evaluation:\n\n  ## MANDATORY SKILL EVALUATION - PHASE 0.5\n\n  **CRITICAL BLOCKING INSTRUCTION**: You MUST complete this skill evaluation\n  phase BEFORE Phase 1 (Discovery & Parsing). Auditing plugin components\n  without authoritative skill criteria makes your compliance assessment WORTHLESS.\n\n  For EACH skill below, explicitly output:\n  - **YES** with specific reason this skill applies to current audit\n  - **NO** with specific reason this skill doesn't apply\n\n  For each skill evaluated as YES, immediately invoke using Skill tool:\n  ```bash\n  Skill --skill plugin-dev:command-development\n\n  This workflow is completely blocked by the missing build script.\n\n  ### Additional Context\n\n  **File Path Expected**: `~/.claude/plugins/marketplaces/claude-code-plugins/plugins/p\n  lugin-dev/scripts/build.sh`\n\n  **Possible Root Causes**:\n  1. The build script was never included in the plugin-dev plugin package\n  2. The script exists elsewhere but path configuration is incorrect\n  3. The Skill tool is incorrectly trying to execute a build script when it should directly load\n  skill content\n  4. Installation process failed to create/copy the build script\n\n  **Related Files** (if they help):\n  - Plugin manifest:\n  `.claude/plugins/marketplaces/claude-code-plugins/plugins/plugin-dev/.claude-plugin/plugin.json`\n  - Skills directory:\n  `.claude/plugins/marketplaces/claude-code-plugins/plugins/plugin-dev/skills/` (may contain skill\n   markdown files)\n\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "platform:linux",
+    "area:tools"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-23T05:32:24Z",
+  "updated_at": "2026-02-17T14:27:09Z",
+  "closed_at": "2026-02-08T10:12:17Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "technicallychudi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "technicallychudi",
+      "author_association": "NONE",
+      "body": "### What’s Wrong?\nThe Skill tool is executing example code embedded in `plugin-dev` skill documentation (`SKILL.md`). Inline examples that demonstrate the command execution syntax are being treated as live directives, causing cascading failures (e.g., missing `scripts/build.sh`, then missing `scripts/analyze.js`, etc.). This makes `plugin-dev` skills unusable.\n\n- I can activate skills from other marketplace plugins without issue.\n- The failures are specific to `plugin-dev` skills, at minimum `pl",
+      "created_at": "2025-11-24T18:53:06Z"
+    },
+    {
+      "author": "technicallychudi",
+      "author_association": "NONE",
+      "body": "### Update\n- I replaced all runnable example markers in `plugin-dev:command-development` from leading `!` to the literal text “exclamation_mark” (e.g., `exclamation_mark\\`bash ...\\``) in `skills/command-development/SKILL.md`.\n- After this change, the skill activates successfully and no subprocesses are attempted. This confirms the Skill tool was executing inline examples from the documentation.\n\n### Implications\n- The execution parser is being applied to skill documentation. Fenced example block",
+      "created_at": "2025-11-24T20:09:09Z"
+    },
+    {
+      "author": "PaulRBerg",
+      "author_association": "NONE",
+      "body": "Also encountering this when trying to use `command-development`\n\n<img width=\"1000\" src=\"https://github.com/user-attachments/assets/926eec51-8df7-4dd9-8d25-6d6a6a30f3be\" />",
+      "created_at": "2025-12-02T11:40:36Z"
+    }
+  ]
+}

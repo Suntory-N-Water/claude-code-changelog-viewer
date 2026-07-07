@@ -1,0 +1,35 @@
+{
+  "number": 26675,
+  "title": "Support pre-configured OAuth client credentials without requiring Dynamic Client Registration",
+  "body": "## Problem\n\nClaude Code's OAuth implementation requires Dynamic Client Registration (DCR) even when a `clientId` is pre-configured in `.mcp.json`. This makes Azure AD/Entra ID (and other enterprise OAuth providers) incompatible with Claude Code's MCP client.\n\n**Enterprise OAuth providers like Azure AD do not support DCR** - they require pre-registered applications with fixed client IDs. This is standard practice in enterprise environments for security and compliance reasons.\n\n## Current Behavior\n\nEven with this configuration:\n```json\n{\n  \"mcpServers\": {\n    \"my-server\": {\n      \"type\": \"http\",\n      \"url\": \"http://localhost:5042/mcp\",\n      \"oauth\": {\n        \"clientId\": \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }\n}\n```\n\nClaude Code still:\n1. Fetches authorization server metadata\n2. Looks for `registration_endpoint`\n3. Fails with \"Incompatible auth server: does not support dynamic client registration\"\n\nThe pre-configured `clientId` is ignored.\n\n## Expected Behavior\n\nWhen `oauth.clientId` is provided in the configuration, Claude Code should:\n1. Skip the DCR check entirely\n2. Use the pre-configured client ID for the OAuth flow\n3. Proceed directly to authorization\n\n## VS Code Comparison\n\nVS Code's MCP implementation handles this correctly:\n- Reads `/.well-known/oauth-protected-resource` from MCP server\n- Uses a pre-registered client ID\n- Redirects to Azure AD login\n- Works without any additional endpoints or workarounds\n\n## Workarounds Attempted\n\nTo make Azure AD work with Claude Code, we had to implement:\n1. A fake `/.well-known/oauth-authorization-server` endpoint proxying Azure AD metadata\n2. A `/register` DCR endpoint returning pre-configured credentials\n3. Even then, failures occur due to `resource` parameter / scope mismatches (AADSTS9010010)\n\nThis adds significant complexity and still doesn't fully work.\n\n## Proposed Solution\n\nWhen `oauth.clientId` is present in the MCP server configuration:\n1. Skip checking for `registration_endpoint` in authorization server metadata\n2. Skip the DCR call to `/register`\n3. Use the configured `clientId` directly in the authorization flow\n\nThis aligns with the MCP spec which states DCR is a \"SHOULD\", not a \"MUST\":\n> \"MCP clients and authorization servers **SHOULD** support the OAuth 2.0 Dynamic Client Registration Protocol\"\n\n## Impact\n\nThis limitation affects:\n- All Azure AD/Entra ID users\n- Enterprise environments with pre-registered OAuth apps\n- GitHub's official MCP server (see github/github-mcp-server#549)\n- Any OAuth provider that doesn't support DCR\n\n## Related Issues\n\n- #2527 (closed due to inactivity, but issue persists)\n\n## Environment\n\n- Claude Code CLI\n- MCP server with Azure AD/Entra ID OAuth\n- `.mcp.json` with pre-configured `oauth.clientId`",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-18T20:11:56Z",
+  "updated_at": "2026-05-14T15:10:41Z",
+  "closed_at": null,
+  "reactions_total": 29,
+  "comments_count": 15,
+  "author": "danwritecode",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/2527\n2. https://github.com/anthropics/claude-code/issues/3273\n3. https://github.com/anthropics/claude-code/issues/3433\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-18T20:14:41Z"
+    },
+    {
+      "author": "danwritecode",
+      "author_association": "NONE",
+      "body": "Even in the official MCP spec, DCR is a fallback option \"if supported\", furthermore clients SHOULD support provided client information (first bullet):\n\n<img width=\"390\" height=\"275\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/01bc0b54-64c2-45e8-8bce-f62e034d114f\" />",
+      "created_at": "2026-02-18T20:22:18Z"
+    },
+    {
+      "author": "ajbest0070",
+      "author_association": "NONE",
+      "body": "I am also encountering this issue.",
+      "created_at": "2026-02-18T20:23:06Z"
+    }
+  ]
+}

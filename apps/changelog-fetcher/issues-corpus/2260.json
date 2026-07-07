@@ -1,0 +1,35 @@
+{
+  "number": 2260,
+  "title": "[BUG] Claude Code v1.0.27 with AWS Bedrock gives \"API Error: 403 The security token included in the request is invalid.\"",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [x] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version:\n```\n% claude update\nCurrent version: 1.0.27\nChecking for updates...\nClaude Code is up to date (1.0.27)\n```\n- Operating System: `macOS 15.3.2`\n- Terminal:  `Terminal App`\n\n## Bug Description\nI've followed https://docs.anthropic.com/en/docs/claude-code/amazon-bedrock and have setup claude to use aws bedrock. It suddenly started failing with `API Error: 403 The security token included in the request is invalid.`.\n\nI've the following environment variable set,\n```\nexport CLAUDE_CODE_USE_BEDROCK=1\nexport DISABLE_PROMPT_CACHING=1\n# Using inference profile ID\nexport ANTHROPIC_MODEL='us.anthropic.claude-3-7-sonnet-20250219-v1:0'\nexport ANTHROPIC_SMALL_FAST_MODEL='us.anthropic.claude-3-5-haiku-20241022-v1:0'\nexport AWS_REGION='us-east-1'\n```\n\nMy AWS IAM user has the following permissions,\n\n<img width=\"1068\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/5260f2d4-895b-4d11-b834-e2ff0958f27d\" />\n\n<details>\n<summary>Policy JSONs expand/collapse</summary>\n\n```\nMarketplaceBedrockPolicy:\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Sid\": \"MarketplaceBedrock\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"aws-marketplace:ViewSubscriptions\",\n                \"aws-marketplace:Unsubscribe\",\n                \"aws-marketplace:Subscribe\"\n            ],\n            \"Resource\": \"*\"\n        }\n    ]\n}\n\nAmazonBedrockFullAccess:\n{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Sid\": \"BedrockAll\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"bedrock:*\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Sid\": \"DescribeKey\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"kms:DescribeKey\"\n            ],\n            \"Resource\": \"arn:*:kms:*:::*\"\n        },\n        {\n            \"Sid\": \"APIsWithAllResourceAccess\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"iam:ListRoles\",\n                \"ec2:DescribeVpcs\",\n                \"ec2:DescribeSubnets\",\n                \"ec2:DescribeSecurityGroups\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Sid\": \"MarketplaceModelEndpointMutatingAPIs\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"sagemaker:CreateEndpoint\",\n                \"sagemaker:CreateEndpointConfig\",\n                \"sagemaker:CreateModel\",\n                \"sagemaker:DeleteEndpoint\",\n                \"sagemaker:UpdateEndpoint\"\n            ],\n            \"Resource\": [\n                \"arn:aws:sagemaker:*:*:endpoint/*\",\n                \"arn:aws:sagemaker:*:*:endpoint-config/*\",\n                \"arn:aws:sagemaker:*:*:model/*\"\n            ],\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"aws:CalledViaLast\": \"bedrock.amazonaws.com\",\n                    \"aws:ResourceTag/sagemaker-sdk:bedrock\": \"compatible\"\n                }\n            }\n        },\n        {\n            \"Sid\": \"MarketplaceModelEndpointAddTagsOperations\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"sagemaker:AddTags\"\n            ],\n            \"Resource\": [\n                \"arn:aws:sagemaker:*:*:endpoint/*\",\n                \"arn:aws:sagemaker:*:*:endpoint-config/*\",\n                \"arn:aws:sagemaker:*:*:model/*\"\n            ],\n            \"Condition\": {\n                \"ForAllValues:StringEquals\": {\n                    \"aws:TagKeys\": [\n                        \"sagemaker-sdk:bedrock\",\n                        \"bedrock:marketplace-registration-status\",\n                        \"sagemaker-studio:hub-content-arn\"\n                    ]\n                },\n                \"StringLike\": {\n                    \"aws:RequestTag/sagemaker-sdk:bedrock\": \"compatible\",\n                    \"aws:RequestTag/bedrock:marketplace-registration-status\": \"registered\",\n                    \"aws:RequestTag/sagemaker-studio:hub-content-arn\": \"arn:aws:sagemak",
+  "labels": ["bug", "api:bedrock", "platform:macos", "area:auth"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-18T14:39:45Z",
+  "updated_at": "2025-08-03T14:06:01Z",
+  "closed_at": "2025-06-24T18:32:17Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "msmygit",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "@msmygit how are you authenticating to Bedrock? This 403 indicates your credentials are expired, and you'll need to run something like `aws configure`, `aws sso login`, or set new `AWS_*` environment variables again.",
+      "created_at": "2025-06-20T21:42:42Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Hmm - are you passing `AWS_PROFILE=bedrock` to Claude Code as well?",
+      "created_at": "2025-06-20T23:04:38Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Hmm - I don't think we've made any changes to the AWS auth flow here, in that we require either an `AWS_PROFILE` with relevant `.aws` entries, or `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` etc. Let me know if you run into any other issues.",
+      "created_at": "2025-06-24T18:32:17Z"
+    }
+  ]
+}

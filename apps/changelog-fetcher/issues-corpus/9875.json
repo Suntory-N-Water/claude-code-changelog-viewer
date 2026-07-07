@@ -1,0 +1,42 @@
+{
+  "number": 9875,
+  "title": "Bug: Pressing '2' overwrites .claude/settings.local.json instead of appending permissions",
+  "body": "# Bug Report: Pressing \"2\" Overwrites .claude/settings.local.json Instead of Appending\n\n## Summary\nWhen pressing \"2\" to approve all future requests for a command, Claude Code overwrites the entire `.claude/settings.local.json` file instead of appending the new permission to the existing permissions array.\n\n## Steps to Reproduce\n1. Have an existing `.claude/settings.local.json` file with custom permissions in the `allow` array\n2. Execute a command that requires permission approval\n3. When prompted, press \"2\" to \"Approve this request and all future requests like it\"\n4. Observe the `.claude/settings.local.json` file after approval\n\n## Expected Behavior\nClaude Code should:\n1. Read the existing `.claude/settings.local.json` file\n2. Parse the JSON and locate the `permissions.allow` array\n3. Append the new permission pattern to the existing array\n4. Write the updated JSON back to the file, preserving all existing permissions\n\n## Actual Behavior\nClaude Code appears to **overwrite the entire file**, losing previously configured permissions. This requires users to manually re-add permissions after each approval.\n\n## Impact\n- **High severity**: Users lose custom permission configurations\n- Forces manual file editing after each \"approve all\" action\n- Defeats the purpose of the \"approve all future requests\" feature\n- Creates security risk as users may be tempted to use overly broad patterns to avoid repeated loss\n\n## Environment\n- **OS**: macOS (Darwin 24.3.0)\n- **Project**: Python project with `.claude/settings.local.json` in project root\n- **File location**: `.claude/settings.local.json`\n\n## Example File Before Approval\n```json\n{\n  \"includeCoAuthoredBy\": false,\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(git *)\",\n      \"Bash(python *)\",\n      \"Bash(pytest *)\",\n      \"Bash(echo *)\",\n      \"Bash(date *)\"\n    ],\n    \"deny\": [],\n    \"ask\": []\n  },\n  \"outputStyle\": \"confident-literal\"\n}\n```\n\n## Example File After Approving New Command (e.g., \"bd create task\")\n```json\n{\n  \"includeCoAuthoredBy\": false,\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(bd create *)\"\n    ],\n    \"deny\": [],\n    \"ask\": []\n  },\n  \"outputStyle\": \"confident-literal\"\n}\n```\n\n**Note**: All previous permissions are lost.\n\n## Workaround\nUsers must manually edit `.claude/settings.local.json` to restore lost permissions after each approval, which is tedious and error-prone.\n\n## Suggested Fix\nUpdate the permission approval logic to:\n1. Load existing `.claude/settings.local.json` if it exists\n2. Merge new permission into existing `allow` array (avoiding duplicates)\n3. Preserve all other configuration settings\n4. Write the merged configuration back to the file\n\n---\n\n**Report submitted by**: User experiencing this issue in production workflow\n**Date**: 2025-10-18\n",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:auth",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-18T21:40:55Z",
+  "updated_at": "2026-01-23T14:12:52Z",
+  "closed_at": "2026-01-15T10:11:32Z",
+  "reactions_total": 5,
+  "comments_count": 10,
+  "author": "BucklerCTO",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rdhyee",
+      "author_association": "NONE",
+      "body": "I'm experiencing the exact same issue in my workflow.\n\n## Context\nWorking on PR review workflow for EbookFoundation/free-programming-books, I'm attempting to set up wildcard permissions for read-only gh commands like:\n- `Bash(gh pr view *)`\n- `Bash(gh pr list *)`\n- `Bash(gh api *)`\n\n## What Happens\n1. I (or Claude Code) writes these wildcards to `.claude/settings.local.json`\n2. Claude attempts to run a command like `gh pr view 12664 --repo ... --json ... | jq ...`\n3. Permission prompt appears (w",
+      "created_at": "2025-10-20T13:43:37Z"
+    },
+    {
+      "author": "BucklerCTO",
+      "author_association": "NONE",
+      "body": "I believe I have discovered root cause. If the json is malformed in any way, this behavior will occur.\n\nI tested by running claude doctor before and after manual changes to the json to confirm.\n\nAdam",
+      "created_at": "2025-10-20T14:16:59Z"
+    },
+    {
+      "author": "rdhyee",
+      "author_association": "NONE",
+      "body": "@BucklerCTO Let me check on my own json settings -- I was having claude code itself write to the file and perhaps it messed it up and confused itself....I'll check!",
+      "created_at": "2025-10-20T14:53:29Z"
+    }
+  ]
+}

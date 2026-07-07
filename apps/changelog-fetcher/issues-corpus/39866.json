@@ -1,0 +1,35 @@
+{
+  "number": 39866,
+  "title": "Better session names in /resume",
+  "body": "## Problem\n\nWhen using `/resume` to pick up a previous session, the session list is difficult to navigate because sessions lack descriptive names. It's hard to tell which session was about what without opening each one.\n\n## Proposed Solution\n\nAutomatically generate a short, descriptive name for each session based on the conversation content (e.g., a summary of the main task or topic). This would make it much easier to identify and resume the right session.\n\n## Example\n\nInstead of showing generic/timestamp-based entries, the `/resume` list could show something like:\n- \"Refactoring auth middleware\"\n- \"Fixing CI pipeline for deploy\"\n- \"Adding dark mode support\"\n\nThis would greatly improve the UX of session management.",
+  "labels": ["enhancement", "user-experience", "area:cli"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-27T14:07:30Z",
+  "updated_at": "2026-05-01T08:12:59Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 5,
+  "author": "nandinicbit1981",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "This is the same request as #35921 (2r). Until auto-naming is built in:\n```bash\nclaude --resume auth-refactor\n/rename auth-refactor\n```\n```bash\nSID=\"${CLAUDE_SESSION_ID:-}\"\n[ -z \"$SID\" ] && exit 0\nFILE=$(find ~/.claude/projects -name \"${SID}.jsonl\" 2>/dev/null | head -1)\n[ -z \"$FILE\" ] && exit 0\nFIRST=$(jq -rs '[.[] | select(.message.role==\"user\")] | .[0].message.content' \"$FILE\" 2>/dev/null | head -c 50)\necho \"💡 Session topic: $FIRST\" >&2\nexit 0\n```",
+      "created_at": "2026-03-30T22:44:07Z"
+    },
+    {
+      "author": "stefmf",
+      "author_association": "NONE",
+      "body": "+1 on this. The current experience when you've explicitly named sessions via `/rename` is particularly frustrating -- the name is stored and visible once you're inside the session, but the `/resume` picker doesn't surface it. So you end up guessing which session is which from truncated auto-summaries, opening them one by one until you find the right one, only to confirm it had the correct name all along.\n\nAt minimum, `/resume` should display and search by user-set session names. That alone would",
+      "created_at": "2026-04-08T03:33:21Z"
+    },
+    {
+      "author": "tylerlaprade",
+      "author_association": "NONE",
+      "body": "TerminalTabTitle already exists. I would expect the session to be automatically named the same (converted to kebab case) if no other name has been given",
+      "created_at": "2026-04-14T16:51:50Z"
+    }
+  ]
+}

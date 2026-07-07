@@ -1,0 +1,16 @@
+{
+  "number": 30656,
+  "title": "[BUG] AskUserQuestion tool result prevents skills from using it as a phase gate / turn boundary",
+  "body": "## Description\n\nWhen a skill uses `AskUserQuestion` as a phase gate (e.g., \"ask the user which mode, then STOP and wait\"), the model cannot reliably stop after the user answers. The tool result includes the message **\"You can now continue with the user's answers in mind\"**, which is a system-level instruction that overrides any skill-level instructions to stop.\n\nThis makes it impossible to build interactive, multi-phase skills that pause between phases for user input.\n\n## Steps to reproduce\n\n1. Create a skill that calls `AskUserQuestion` and includes instructions like:\n   - \"Your response MUST end with the AskUserQuestion call\"\n   - \"STOP. Do not generate any further output. Wait for the user's response.\"\n   - \"Every AskUserQuestion call is a hard stop\"\n2. Invoke the skill\n3. Answer the question when prompted\n\n**Expected:** The model stops after the user answers. The next user message triggers the next phase.\n\n**Actual:** The model immediately continues generating output (Phase 2 analysis, tool calls, etc.) because the tool result explicitly says to continue.\n\n## Analysis\n\nThe root cause is that `AskUserQuestion` returns its result as a regular tool result within the same turn. The tool result message actively encourages continuation, which overrides even very emphatic skill instructions to stop.\n\nI've tried multiple rewrites of the skill with increasingly strong \"STOP\" language — none work reliably because a system-level instruction in the tool result is stronger than a skill-level prompt instruction.\n\n## Suggested fix\n\nOne or more of:\n\n- **Add an `endTurn` parameter** to `AskUserQuestion` that skills can set to force a turn boundary after the user answers\n- **Change the tool result message** to not actively encourage continuation (e.g., just return the answer without \"You can now continue\")\n- **Make AskUserQuestion force a turn boundary by default** when called from within a skill, since skills using it almost always intend it as a stopping point\n\n## Environment\n\n- Claude Code CLI (latest)\n- macOS\n- Affects all model backends (observed with Opus)",
+  "labels": ["bug", "area:tools", "area:skills"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-04T08:32:05Z",
+  "updated_at": "2026-03-15T14:18:31Z",
+  "closed_at": "2026-03-07T07:51:06Z",
+  "reactions_total": 0,
+  "comments_count": 3,
+  "author": "olebor",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

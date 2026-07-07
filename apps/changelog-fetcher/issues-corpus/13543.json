@@ -1,0 +1,41 @@
+{
+  "number": 13543,
+  "title": "[BUG] MCP servers from marketplace no longer available",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n  Bug Report: Plugin MCP servers not loaded after update to 2.0.64\n\n  Description\n\n  After updating to Claude Code 2.0.64, MCP servers defined in marketplace plugins are no longer available. The /mcp command shows \"No MCP servers configured\" even though the plugin is installed and enabled.\n  Plugin commands and skills continue to work correctly.\n\n  Environment\n\n  - Claude Code version: 2.0.64\n  - OS: macOS (Darwin 24.6.0, ARM64)\n  - Plugin source: Local directory marketplace\n\n  Steps to Reproduce\n\n  1. Install a plugin from a local marketplace that includes .mcp.json with MCP server definitions\n  2. Enable the plugin in settings.json: \"enabledPlugins\": { \"plugin-name@marketplace\": true }\n  3. Start Claude Code\n  4. Run /mcp command\n\n  Expected Behavior\n\n  MCP servers defined in the plugin's .mcp.json should be available and shown in /mcp output.\n\n  Actual Behavior\n\n  - /mcp shows \"No MCP servers configured\"\n  - Plugin commands (slash commands) work correctly\n  - Plugin skills work correctly\n  - Only MCP servers are missing\n\n  Technical Analysis\n\n  1. .mcp.json not copied to cache\n\n  The plugin's .mcp.json file exists in the source directory but is NOT copied to the plugin cache:\n\n  # Source has .mcp.json:\n  ~/.claude/plugins/marketplaces/my-marketplace/my-plugin/.mcp.json\n\n  # Cache only has commands/ and skills/:\n  ~/.claude/plugins/cache/my-marketplace/my-plugin/<hash>/\n  ├── commands/\n  └── skills/\n  # .mcp.json is MISSING\n\n  2. Install path mismatch in installed_plugins.json\n\n  {\n    \"installPath\": \".../my-plugin/unknown\"  // This directory doesn't exist\n  }\n\n  The unknown directory referenced doesn't exist. Cache has hash-named directories instead (e.g., 3e8d46c8013a/, b4139b6ea827/).\n\n  3. Plugin .mcp.json contents (for reference)\n\n  {\n    \"mcpServers\": {\n      \"server1\": {\n        \"type\": \"sse\",\n        \"url\": \"https://example.com/sse\"\n      },\n      \"server2\": {\n        \"command\": \"npx\",\n        \"args\": [\"-y\", \"some-mcp-server@latest\"]\n      }\n    }\n  }\n\n  Workaround Attempted\n\n  - Reinstalling plugin (/plugin uninstall + /plugin install) - did not resolve\n  - Plugin remains enabled in settings\n\n  Impact\n\n  - Multiple users affected (confirmed by team members)\n  - Breaks workflows that depend on plugin-provided MCP servers (e.g., Atlassian, browser tools)\n\n  Possible Root Cause\n\n  In version 2.0.64, the plugin caching mechanism appears to skip .mcp.json files, only copying commands/ and skills/ directories. Additionally, the install path tracking uses unknown as version string for local\n   directory plugins, which doesn't match the actual cache directory structure.\n\n### What Should Happen?\n\n/plugin should show me the MCP servers from the marketplace\n\n### Error Messages/Logs\n\n```shell\nn/a\n```\n\n### Steps to Reproduce\n\nsee description\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.0.62\n\n### Claude Code Version\n\n2.0.64\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:packaging",
+    "area:mcp"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-10T11:02:44Z",
+  "updated_at": "2026-06-09T09:35:42Z",
+  "closed_at": "2026-06-09T09:35:42Z",
+  "reactions_total": 3,
+  "comments_count": 18,
+  "author": "stephanwesten",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for the report. All three sub-symptoms here have been resolved: `.mcp.json` and `.lsp.json` are now copied to the cache directory (confirmed by the contributor in this thread, ~v2.0.65), and the related hooks behavior was fixed alongside. Closing as fixed.",
+      "created_at": "2026-06-09T09:35:42Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13471\n2. https://github.com/anthropics/claude-code/issues/11856  \n3. https://github.com/anthropics/claude-code/issues/13509\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-10T11:08:03Z"
+    },
+    {
+      "author": "stephanwesten",
+      "author_association": "NONE",
+      "body": "This is a different issue as the 3 above",
+      "created_at": "2025-12-10T15:11:28Z"
+    }
+  ]
+}

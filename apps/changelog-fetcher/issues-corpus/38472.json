@@ -1,0 +1,35 @@
+{
+  "number": 38472,
+  "title": "Plan mode: default should preserve clear-context, not hide it",
+  "body": "## Problem\n\nv2.1.75 hid the \"clear context and implement\" option by default when accepting a plan, in response to #25734 / #18523 where users were accidentally triggering it by pressing Enter too fast.\n\nThe fix punishes intentional users to protect inattentive ones. The destructive default was a real UX problem, but the solution should have been to change the *default selection* (e.g., default to \"implement without clearing\"), not to hide the option entirely behind an undocumented setting.\n\n## Who this affects\n\nAnyone using plan mode as a deliberate workflow boundary — research/plan in one context, clear, implement with a fresh window. This is arguably the *primary* value of plan mode for complex tasks: the plan file captures all decisions, and implementation gets maximum context budget without carrying research artifacts.\n\nThe `showClearContextOnPlanAccept` setting restores the behavior, but:\n1. It's not discoverable — you have to know it exists\n2. It's user-scoped friction for what should be the normal flow\n3. Skills/automations that rely on plan mode for context clearing broke silently with no migration path\n\n## Suggested fix\n\nKeep the \"clear context and implement\" option visible by default, but change the default *selection* to a non-destructive option (e.g., \"implement\" without clearing). Users who want to clear context can still select it deliberately. Users who mash Enter get the safe default.\n\nAlternatively, if hiding remains the default, document `showClearContextOnPlanAccept` in the plan mode docs and changelog so affected users can find it.",
+  "labels": ["enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-24T23:58:13Z",
+  "updated_at": "2026-05-13T17:10:36Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 3,
+  "author": "joeyimbasciano",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ieggel",
+      "author_association": "NONE",
+      "body": "I'd like to hear from the team why they did this? Is there a specific reason? Isn't it good practice to clear the context when implementing according to the existing plan?",
+      "created_at": "2026-03-30T13:29:49Z"
+    },
+    {
+      "author": "jspiro",
+      "author_association": "NONE",
+      "body": "+1. The point of plan mode is to spend tokens building an execution document so the executor starts with a clean context—that's where the value comes from, and if anything, removing the affordance produces *worse* output, since the planning conversation now rides along into execution and competes with the plan itself for attention.\n\nThis looks like a dark pattern designed to burn user tokens; fix the UI instead.\n\nPlease keep commenting on this—don't let it get closed like #38071, #42923, and #45",
+      "created_at": "2026-04-29T23:02:20Z"
+    },
+    {
+      "author": "biovolt",
+      "author_association": "NONE",
+      "body": "This has to be fixed! Comon Anthropics",
+      "created_at": "2026-05-13T17:10:36Z"
+    }
+  ]
+}

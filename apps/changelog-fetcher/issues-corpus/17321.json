@@ -1,0 +1,41 @@
+{
+  "number": 17321,
+  "title": "[BUG] Allowed write commands (e.g. mkdir) still prompt for permission",
+  "body": "## Summary\n\nBash commands in the `allow` list work for read-only and network commands, but still prompt for filesystem write commands. This creates an inconsistent and counterintuitive security model.\n\n## Minimal Reproduction\n\nRepo with repro: https://github.com/jameshfisher/claude-code-permissions-bug\n\n1. Clone the repo\n2. Run `claude` in the directory\n3. Ask Claude to run `ls -la` → **No prompt** ✅\n4. Ask Claude to run `curl -s -I https://example.com` → **No prompt** ✅\n5. Ask Claude to run `mkdir -p /tmp/test` → **Prompts for permission** ❌\n\n## Settings\n\n`.claude/settings.json`:\n\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(mkdir:*)\",\n      \"Bash(ls:*)\",\n      \"Bash(curl:*)\"\n    ]\n  }\n}\n```\n\n## Actual Behavior\n\n| Command | Type | Allow Rule | Result |\n|---------|------|------------|--------|\n| `ls -la` | Filesystem read | `Bash(ls:*)` | ✅ No prompt |\n| `curl -s -I https://example.com` | Network | `Bash(curl:*)` | ✅ No prompt |\n| `mkdir -p /tmp/test` | Filesystem write | `Bash(mkdir:*)` | ❌ Prompts |\n\n## Things That Don't Help\n\n- `\"sandbox\": { \"enabled\": false }` - still prompts\n- Restarting Claude Code after settings change - still prompts\n- The pattern appears correctly in `/permissions` UI - still prompts\n\n## Security Model Inconsistency\n\nThis is counterintuitive:\n- `curl` can exfiltrate data, download malware, make arbitrary HTTP requests → **allowed**\n- `mkdir` creates an empty directory → **blocked**\n\n## Not a Settings Override Issue\n\nVerified no settings are overriding:\n\n```\n~/.claude/settings.json          → empty allow/deny lists\n~/.claude/settings.local.json    → doesn't exist\n~/.claude/managed-settings.json  → doesn't exist\n.claude/settings.local.json      → doesn't exist\n```\n\n## Related Issues\n\nThese are similar but not the same bug:\n\n- #13340 - piped commands, not single commands\n- #5140 - user-level settings not applied (project-level works for them)\n- #15421 - closed as dupe of #13340\n\n## Environment\n\n- macOS (Darwin 24.6.0)\n- Claude Code 2.1.3\n- Node.js v22",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:security"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-10T14:27:07Z",
+  "updated_at": "2026-03-29T16:23:18Z",
+  "closed_at": null,
+  "reactions_total": 17,
+  "comments_count": 7,
+  "author": "jameshfisher",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/15237\n2. https://github.com/anthropics/claude-code/issues/6527\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-10T14:34:48Z"
+    },
+    {
+      "author": "jameshfisher",
+      "author_association": "NONE",
+      "body": "I also looked for source code to debug this, or unit tests to add, but could find neither.",
+      "created_at": "2026-01-10T17:07:08Z"
+    },
+    {
+      "author": "lucasmccomb",
+      "author_association": "NONE",
+      "body": "Would love a fix for this :)",
+      "created_at": "2026-01-17T18:11:45Z"
+    }
+  ]
+}

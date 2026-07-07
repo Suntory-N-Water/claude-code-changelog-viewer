@@ -1,0 +1,42 @@
+{
+  "number": 13827,
+  "title": "[BUG] Freshly installed Claude Code ignores settings.json",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThis breaks new users in a corporate environment behind a proxy (ex: LiteLLM).\n\nMaybe related to #13663\n\nIf you're initially installing 2.0.65 or later without having ever run a previous version (so no `~/.claude.json` exists), the first run of `claude` doesn't pick up the environment variables from settings.json. My `~/.claude/settings.json` is configured with `ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN` pointing at a LiteLLM instance.  On a \"fresh install\" these settings are ignored on initial run, resulting in the prompt to \"Select login method\":\n\n```\nClaude Code can be used with your Claude subscription or billed based on API usage through your Console account.\n\n Select login method:\n\n ❯ 1. Claude account with subscription · Pro, Max, Team, or Enterprise\n\n   2. Anthropic Console account · API usage billing\n```\n\n### What Should Happen?\n\nWith `ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN` set in `~/.claude/settings.json`, the initial run of `claude` should skip the prompt for the login method.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nKeep a backup of your .claude.json and restore it later.\ncp ~/.claude.json ~/.claude.json.keep\n\n1. rm ~/.claude.json\n2. install specific version\n3. run claude\n\nbroken = prompts for theme setup (expected) and login method (doesn't use settings.json)\nworks = prompts for theme setup, shows security note, and asks \"Do you trust the files in this folder\"\n\nResults:\n2.0.75 broken\n2.0.74 broken\n2.0.73 broken\n2.0.72 broken\n2.0.71 broken\n2.0.67 broken\n2.0.66 broken\n2.0.65 broken\n2.0.64 works\n2.0.63 Does Not Exist\n2.0.62 works\n2.0.56 works\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.0.64\n\n### Claude Code Version\n\n2.0.75 (Claude Code)\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nI found 2 workarounds:\na) roll back to a previous version (2.0.64 or earlier), run claude through the configuration prompts (~/.claude.json now exists), run `claude update` to get the latest version.  Latest version now works.\nb) temporarily set ANTHROPIC_BASE_URL and ANTHROPIC_AUTH_TOKEN in the shell and a fresh install and first run of 2.0.67 works.\n\nMaybe related: The `claude update` process wants to stop on 2.0.65. Prior versions upgrade to 2.0.65 and another upgrade run is required to upgrade 2.0.65 to latest (2.0.67).\n\nEdited to add:\n- cvbnt provided a third workaround which I confirmed works for me:  edit ~/.claude.json, set “hasCompletedOnboarding”: true, claude skips login\n- up to 2.0.75 is also still broken",
+  "labels": [
+    "bug",
+    "has repro",
+    "api:bedrock",
+    "platform:linux",
+    "area:auth",
+    "area:api"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-12T18:36:31Z",
+  "updated_at": "2026-06-09T08:47:40Z",
+  "closed_at": null,
+  "reactions_total": 33,
+  "comments_count": 13,
+  "author": "cjpeterein",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13663\n2. https://github.com/anthropics/claude-code/issues/4714\n3. https://github.com/anthropics/claude-code/issues/13770\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-12T18:40:07Z"
+    },
+    {
+      "author": "cvbnt",
+      "author_association": "NONE",
+      "body": "edit .claude.json，“hasCompletedOnboarding”: true，It can skip login",
+      "created_at": "2025-12-16T09:09:55Z"
+    },
+    {
+      "author": "cjpeterein",
+      "author_association": "NONE",
+      "body": "> edit .claude.json，“hasCompletedOnboarding”: true，It can skip login\n\nConfirmed. This is another workaround.",
+      "created_at": "2025-12-16T15:39:28Z"
+    }
+  ]
+}

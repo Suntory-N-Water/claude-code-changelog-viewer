@@ -1,0 +1,35 @@
+{
+  "number": 5158,
+  "title": "[BUG] Unable to Start Claude - Started 2 hour ago. On going sessions still work fine",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [X] Other: Claude Code\n- Claude CLI version: 1.0.68\n\n\n- Operating System: Windows 11 Professional x64\n- Terminal:  Windows Terminal - Powershell\n\n## Bug Description\nUnable to Start Claude\n\n## Steps to Reproduce\nOpen Terminal Window\nType Claude\n\nPS C:\\Users\\MyUser> Claude\nfile:///C:/Users/MyUser/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/cli.js:716\n\nSyntaxError: The requested module 'node:events' does not provide an export named 'addAbortListener'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:124:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:190:5)\n\nNode.js v18.17.0\n\n## Expected Behavior\nClaude to start\n\n## Actual Behavior\nSyntaxError: The requested module 'node:events' does not provide an export named 'addAbortListener'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:124:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:190:5)\n\nNode.js v18.17.0\n\n\n",
+  "labels": ["bug", "has repro", "platform:windows", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-08-05T14:05:39Z",
+  "updated_at": "2025-08-15T14:06:01Z",
+  "closed_at": "2025-08-05T17:14:13Z",
+  "reactions_total": 9,
+  "comments_count": 16,
+  "author": "HugoL-git",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Hey folks - as a workaround, upgrading to Node.js 18.18 will resolve this (see https://nodejs.org/en/blog/release/v18.18.0 / [a68a67f54d](https://github.com/nodejs/node/commit/a68a67f54d)).\n\nNoting that Node.js 18 is EOL as of earlier this year, I'm looking into the recently added dependency on `addAbortListener`.",
+      "created_at": "2025-08-05T16:27:11Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "We've got a patch incoming that removes the dependency on `addAbortListener`. For those of you who can't upgrade to a non-EOL version of Node, this patch will make Node 18.0.0 through 18.17.1 work properly again.\n\nThis should release in Claude Code version 1.0.71.",
+      "created_at": "2025-08-05T17:16:25Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "This should be feeling better with Claude Code 1.0.70",
+      "created_at": "2025-08-06T20:13:05Z"
+    }
+  ]
+}

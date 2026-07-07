@@ -1,0 +1,35 @@
+{
+  "number": 4377,
+  "title": "Feature Request: Add Optional Model Parameter to Sub-Agents",
+  "body": "# Feature Request: Add Optional Model Parameter to Sub-Agents\n\n## Description\n\nCurrently, sub-agents in Claude Code have the following structure:\n\n```yaml\n---\nname: your-sub-agent-name\ndescription: Description of when this sub agent should be invoked\ntools: tool1, tool2, tool3  # Optional - inherits all tools if omitted\n---\nYour sub agent's system prompt goes here. This can be multiple paragraphs\nand should clearly define the sub agent's role, capabilities, and approach\nto solving problems.\nInclude specific instructions, best practices, and any constraints\nthe sub agent should follow.\n```\n\n## Proposed Enhancement\n\nAdd an optional `model` parameter to the sub-agent configuration that allows specifying which Claude model the sub-agent should use:\n\n```yaml\n---\nname: your-sub-agent-name\ndescription: Description of when this sub agent should be invoked\ntools: tool1, tool2, tool3  # Optional - inherits all tools if omitted\nmodel: opus  # Optional - inherits main agent's model if omitted\n---\nYour sub agent's system prompt goes here...\n```\n\nThe `model` parameter should support the same values as the CLI `--model` flag:\n- Model aliases: `sonnet`, `opus`\n- Full model names: `claude-sonnet-4-20250514`, etc.\n\n## Use Case\n\nThis feature would enable developers to:\n- Use different models for different sub-agents based on task complexity\n- Optimize costs by using lighter models for simpler sub-agent tasks\n- Leverage specific model strengths for specialized sub-agents\n\n## Expected Behavior\n\n- If `model` is specified: The sub-agent uses the specified model\n- If `model` is omitted: The sub-agent inherits the model from the main agent (current behavior)\n- Invalid model names should produce a clear error message\n\n## Example\n\n```yaml\n---\nname: code-reviewer\ndescription: Reviews code for best practices and potential issues\ntools: filesystem, search\nmodel: sonnet  # Use Sonnet for cost-effective code review\n---\nYou are a code review specialist...\n```\n\n```yaml\n---\nname: architect\ndescription: Designs complex system architectures\ntools: filesystem, search, web\nmodel: opus  # Use Opus for complex architectural decisions\n---\nYou are a system architecture expert...\n```",
+  "labels": ["enhancement", "area:cost", "area:model", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-25T08:43:36Z",
+  "updated_at": "2025-08-07T14:08:23Z",
+  "closed_at": "2025-07-31T06:47:28Z",
+  "reactions_total": 14,
+  "comments_count": 5,
+  "author": "freiit",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "fitz-vivodyne",
+      "author_association": "NONE",
+      "body": "+1, this was the first feature I looked for when starting to use agents.\nI default to opus but would like the ability to explicitly tell sub-agents to use sonnet without having to interrupt flow",
+      "created_at": "2025-07-26T22:13:19Z"
+    },
+    {
+      "author": "Allmight97",
+      "author_association": "NONE",
+      "body": "+9000 - this is exactly what I had in mind and what 'felt natural' when I first saw the agent file format. I would like to assign opus as the main agent and use sonnet for all sub-agents save for say an architect agent.  ",
+      "created_at": "2025-07-27T00:50:09Z"
+    },
+    {
+      "author": "cgaaf",
+      "author_association": "NONE",
+      "body": "+1 for this feature! Being able to specify different models per sub-agent would be incredibly valuable for optimizing both performance and costs. For example, using Sonnet for simpler tasks like code reviews while reserving Opus for complex architectural decisions makes perfect sense.\n\nI'd also love to see this model parameter support extended to custom commands, allowing similar flexibility there as well. This would give developers fine-grained control over which model handles different types o",
+      "created_at": "2025-07-30T11:57:07Z"
+    }
+  ]
+}

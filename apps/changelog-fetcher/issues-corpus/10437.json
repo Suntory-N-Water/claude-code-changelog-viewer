@@ -1,0 +1,35 @@
+{
+  "number": 10437,
+  "title": "Edit/Write tools fail with 'File has been unexpectedly modified' after Read tool",
+  "body": "## Bug Description\n\nThe Edit and Write tools consistently fail with error \"File has been unexpectedly modified. Read it again before attempting to write it.\" even immediately after successfully using the Read tool on the same file.\n\n## Reproduction Steps\n\n1. Create a file via Bash: `echo \"test content\" > test.txt`\n2. Read the file: `Read(file_path=\"test.txt\")` → Success\n3. Immediately edit the file: `Edit(file_path=\"test.txt\", old_string=\"test content\", new_string=\"modified\")` → **Error: \"File has been unexpectedly modified\"**\n\n## Expected Behavior\n\nAfter successfully reading a file, the Edit/Write tools should recognize that the file has been read and allow modifications.\n\n## Actual Behavior\n\nEdit/Write tools report \"File has been unexpectedly modified\" even though:\n- No external process modified the file\n- The Read tool just successfully read it\n- No time has passed between Read and Edit\n\n## Additional Evidence\n\nTesting shows this also affects the Write tool:\n- `Read(file_path=\"test.txt\")` → Success\n- `Write(file_path=\"test.txt\", content=\"new\")` → **Error: \"File has not been read yet\"** (despite just reading it)\n\n## Root Cause Analysis\n\nThe file state tracking between Read tool and Edit/Write tools appears to be broken:\n- Read tool successfully reads files created/modified by Bash\n- Edit/Write tools don't recognize that Read occurred\n- State is not properly shared between these tools\n\n## Impact\n\nThis bug forces workarounds:\n- Using Python scripts via Bash instead of Edit tool\n- Avoiding mixing Bash file modifications with Edit tool\n- Significant workflow friction and token waste\n\n## Environment\n\n- Platform: Windows 11 with WSL2\n- Claude Code CLI version: Latest (as of 2025-10-27)\n- Model: claude-sonnet-4-5\n\n## Workaround\n\nUse Python for file modifications instead of Edit tool:\n```bash\nuv run python << 'SCRIPT'\nfrom pathlib import Path\nfile = Path('file.txt')\ncontent = file.read_text()\ncontent = content.replace('old', 'new')\nfile.write_text(content)\nSCRIPT\n```",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-27T15:21:17Z",
+  "updated_at": "2026-03-15T05:44:31Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 18,
+  "author": "baldsam",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "---\n\nFound 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7457\n2. https://github.com/anthropics/claude-code/issues/7446  \n3. https://github.com/anthropics/claude-code/issues/7883\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\n---",
+      "created_at": "2025-10-27T15:28:09Z"
+    },
+    {
+      "author": "Dev-GOM",
+      "author_association": "NONE",
+      "body": "same issue",
+      "created_at": "2025-10-27T17:16:09Z"
+    },
+    {
+      "author": "conorpeterbrennan",
+      "author_association": "NONE",
+      "body": "I am also seeing this on Windows 11 and v2.0.42",
+      "created_at": "2025-11-16T02:41:57Z"
+    }
+  ]
+}

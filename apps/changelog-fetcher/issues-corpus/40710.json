@@ -1,0 +1,35 @@
+{
+  "number": 40710,
+  "title": "My automated tool is running git reset --hard origin/main in my project every 10 minutes",
+  "body": "> **Update (2026-03-30): Root cause identified — this was NOT a Claude Code bug.**\n> The resets were caused by a separate tool I built that was running locally, which used GitPython to hard-reset the working directory on a poll cycle. The evidence was misleading because the tool shared the same CWD and monitored projects CC was working on. See [my comment below](https://github.com/anthropics/claude-code/issues/40710#issuecomment-4153044661) for full details. Apologies for the false report.\n\n## Summary\n\nClaude Code performs `git fetch origin` + `git reset --hard origin/main` on the user's project repo every 10 minutes via programmatic git operations (no external `git` binary spawned). This silently destroys all uncommitted changes to tracked files. Untracked files survive. Git worktrees are immune.\n\n## Environment\n\n- **Claude Code version:** 2.1.87 (Homebrew cask, compiled Bun binary)\n- **OS:** macOS 15.4 (Darwin 25.3.0, arm64)\n- **Shell:** zsh\n\n## Evidence\n\n### 1. Git reflog: 95+ entries at exact 10-minute intervals\n\n```\ne8ea2c9 HEAD@{2026-03-29 22:19:09 +0200}: reset: moving to origin/main\ne8ea2c9 HEAD@{2026-03-29 22:09:09 +0200}: reset: moving to origin/main\ne8ea2c9 HEAD@{2026-03-29 21:59:09 +0200}: reset: moving to origin/main\ne8ea2c9 HEAD@{2026-03-29 21:49:09 +0200}: reset: moving to origin/main\n...\n8792b6c HEAD@{2026-03-29 16:55:41 +0200}: reset: moving to origin/main\n8792b6c HEAD@{2026-03-29 16:45:41 +0200}: reset: moving to origin/main\n...\n32aa7c7 HEAD@{2026-03-28 15:47:36 +0100}: reset: moving to origin/main\n32aa7c7 HEAD@{2026-03-28 15:37:36 +0100}: reset: moving to origin/main\n```\n\nThe second offset is consistent within each session but varies between sessions (`:08`, `:36`, `:41`, `:09`), confirming a timer tied to session start time with a 600-second interval. 95+ entries observed across 4 sessions over ~36 hours.\n\n### 2. Live reproduction\n\n1. Modified `src/lib/api.ts` (tracked file) and created `.canary-test.txt` (untracked file)\n2. Monitored every 15 seconds\n3. At the next 10-minute mark, `api.ts` silently reverted — modification gone\n4. `.canary-test.txt` (untracked) survived\n5. Reproduced consistently across 4 consecutive cycles\n\n### 3. fswatch caught the file operations\n\nAt the exact reset time, fswatch on `.git/` captured:\n```\n23:59:10.349 .git/refs/remotes/origin/HEAD.lock  Created IsFile Removed AttributeModified\n23:59:10.352 .git/logs/HEAD                       IsFile Updated\n23:59:10.354 .git/refs/heads/main.lock            Created IsFile Removed AttributeModified\n```\nThis is the classic pattern for `git fetch origin` + `git reset --hard origin/main`.\n\n### 4. Only the Claude Code process is a candidate\n\n`lsof` confirms the Claude Code CLI process (PID 70111, `claude --dangerously-skip-permissions`) is the **only process** with CWD in the affected repo. Two other Claude CLI sessions are in different directories.\n\n### 5. No external git binary spawned\n\nProcess monitoring at 0.1-second intervals found zero `git` processes around reset times. The operations are programmatic (libgit2 or similar) within the Claude Code process, confirmed by `.git/` lock file creation without any external process.\n\n### 6. Worktrees are immune\n\nThe worktree reflog shows **zero** `reset: moving to origin` entries. The reset targets the main working tree only.\n\n## What was ruled out\n\nA thorough investigation eliminated all external causes:\n\n| Cause | Verdict | Detail |\n|-------|---------|--------|\n| Git hooks | Cleared | All `.sample` (inactive). No husky/lint-staged. |\n| Claude Code user hooks | Cleared | Only peon-ping (audio). None reference git. |\n| Plugin marketplace updater | **Disproven** | Deleted `~/.claude/plugins/marketplaces/` — resets continued unchanged. |\n| macOS cloud sync | Cleared | No sync tool covers this directory (checked iCloud, Dropbox, Syncthing, Synology, Google Drive). |\n| Cron/LaunchAgents | Cleared | No crontab. No LaunchAgent does git operations on this path. |\n| Vite/SvelteKit dev server | Cleared | All file writes go to output dirs. Zero git awareness in source. |\n| IDE/editors | Cleared |",
+  "labels": ["bug", "platform:macos", "area:core", "data-loss"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-29T22:12:21Z",
+  "updated_at": "2026-03-30T10:40:34Z",
+  "closed_at": "2026-03-30T01:24:56Z",
+  "reactions_total": 121,
+  "comments_count": 21,
+  "author": "johnmathews",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "adam-s",
+      "author_association": "NONE",
+      "body": "Can you ask Claude what is inside `MEMORY.md`, all `.claude/` including at `~/.claude`, and any that might be in subfolders? Then ask Claude to search or use `grep` for `sleep` and `600` in those folders and .  Then search your code base for `600`. \n\nThere could be a stray artifact that got written by accident. I would rule that out first.\n\nAlso, it might be a rogue agent.\n\n<img width=\"1018\" height=\"445\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/021ffb29-2b22-4c80-aadd-1f18bba4",
+      "created_at": "2026-03-30T00:06:38Z"
+    },
+    {
+      "author": "piiiico",
+      "author_association": "NONE",
+      "body": "This issue illustrates something deeper than a timer misconfiguration.\n\nThe root cause isn't the specific command — it's that the agent acted without pre-authorization, repeatedly, on your project. Whether Claude Code had a misconfigured timer or intentional sync logic, the structural gap is the same: an agent executing destructive, irreversible commands dozens of times without an approval record.\n\nI wrote about why this pattern keeps recurring and what an approval gate would have changed: https",
+      "created_at": "2026-03-30T01:11:53Z"
+    },
+    {
+      "author": "Jarred-Sumner",
+      "author_association": "NONE",
+      "body": "> What internal mechanism runs git fetch origin + git reset --hard against process.cwd() every 600 seconds? \n\nThere is no code in Claude Code itself that runs `git reset --hard origin/main`.\n\nWhat I think is happening: you're running `--dangerously-skip-permissions`, so any shell command Claude runs executes without a prompt. The 10-minute cadence with a per-session offset matches `/loop 10m <prompt>` (runs a prompt every N minutes). If something is prompting Claude to \"sync with remote\" on an i",
+      "created_at": "2026-03-30T01:24:56Z"
+    }
+  ]
+}

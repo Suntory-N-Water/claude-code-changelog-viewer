@@ -1,0 +1,42 @@
+{
+  "number": 32368,
+  "title": "Agent Teams: Spawned teammates don't inherit model configuration from team lead",
+  "body": "## Summary\n\nWhen using Agent Teams with a custom/internal model endpoint, spawned teammates fail to inherit the model configuration. The team lead works correctly with the configured model, but teammates attempt to use a different model ID (`claude-opus-4-6`), resulting in 403 permission errors.\n\n## Environment\n\n- **Claude Code version**: Latest (March 2026)\n- **OS**: macOS Darwin 24.6.0\n- **Shell**: zsh\n- **Model configured**: Internal/custom endpoint (e.g., `internal-model-opus-aws`)\n\n## Steps to Reproduce\n\n1. Configure Claude Code to use a custom/internal model endpoint\n2. Enable Agent Teams experimental feature:\n   ```json\n   {\n     \"env\": {\n       \"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\"\n     }\n   }\n   ```\n3. Create a team:\n   ```\n   TeamCreate with team_name: \"test-team\"\n   ```\n4. Spawn teammates:\n   ```\n   Agent with subagent_type: \"general-purpose\", team_name: \"test-team\"\n   ```\n5. Send tasks to teammates via SendMessage\n\n## Expected Behavior\n\nTeammates should inherit the same model configuration as the team lead and execute tasks normally.\n\n## Actual Behavior\n\n- Team lead works correctly with the configured internal model\n- Teammates repeatedly send `idle_notification` without executing any tasks\n- Teammates' API calls fail with 403 error:\n\n```\nAPI Error: 403 {\n  \"error\": {\n    \"code\": \"\",\n    \"message\": \"Token does not have permission to access model claude-opus-4-6\",\n    \"type\": \"new_api_error\"\n  }\n}\n```\n\n## Analysis\n\n| Role | Model Used | Result |\n|------|------------|--------|\n| Team Lead | `internal-model-opus-aws` (from config) | ✅ Works |\n| Teammates | `claude-opus-4-6` (hardcoded?) | ❌ 403 Error |\n\nThe teammates appear to use a hardcoded or default model ID (`claude-opus-4-6`) instead of inheriting from the team lead's configuration or the global settings.\n\n## Impact\n\nUsers with custom/internal API endpoints cannot use the Agent Teams feature at all. This blocks adoption for enterprise users or those using proxy endpoints.\n\n## Suggested Fix\n\nEnsure spawned teammates inherit the model configuration from:\n1. The `model` parameter passed to the Agent tool, OR\n2. The team lead's current model configuration, OR\n3. The global settings.json configuration\n\n## Workaround Attempted\n\nTried specifying `model: \"haiku\"` or `model: \"sonnet\"` in the Agent tool parameters, but the issue persists (teammates still attempt to use `claude-opus-4-6`).",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:model",
+    "area:agents",
+    "stale"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-09T07:06:56Z",
+  "updated_at": "2026-07-03T22:23:46Z",
+  "closed_at": null,
+  "reactions_total": 8,
+  "comments_count": 17,
+  "author": "gavinyao",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/29660\n2. https://github.com/anthropics/claude-code/issues/25094\n3. https://github.com/anthropics/claude-code/issues/23561\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-09T07:11:05Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "Hitting this too with custom endpoints. We've added a doctor check for this in **[Cozempic v0.9.0](https://github.com/Ruya-AI/cozempic)**:\n\n```bash\npip install -U cozempic\ncozempic doctor  # warns if agent teams are active but no model set in settings.json\n```\n\nThe check detects when `~/.claude/settings.json` is missing a `model` key while team directories are present — since that's the condition where subagents silently fall back to `claude-opus-4-6` instead of inheriting the team lead's config",
+      "created_at": "2026-03-09T11:38:18Z"
+    },
+    {
+      "author": "gavinyao",
+      "author_association": "NONE",
+      "body": "thans for reply, but It's not work for me.\n\n\n Claude Code v2.1.71\n\n\n❯ cozempic --version\ncozempic 0.9.0\n\n\n❯ cozempic doctor\n\n  COZEMPIC DOCTOR\n  ═══════════════════════════════════════════════════════════════════\n\n    ✓ trust-dialog-hang         [OK]\n      Trust dialog flag not set — no issue\n\n    ✓ hooks-trust-flag          [OK]\n      Hooks trust flag set correctly — hooks will load normally\n\n    ✓ claude-json-corruption    [OK]\n      .claude.json is valid (25160 bytes)\n\n    ✓ corrupted-tool-us",
+      "created_at": "2026-03-09T12:11:40Z"
+    }
+  ]
+}

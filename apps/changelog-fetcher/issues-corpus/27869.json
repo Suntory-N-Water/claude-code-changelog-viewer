@@ -1,0 +1,35 @@
+{
+  "number": 27869,
+  "title": "[BUG] Chrome MCP screenshots accumulate in context, causing extreme token drain on session resume (17% of Max plan for 5 trivial turns)",
+  "body": "## Preflight Checklist\n\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n## What's Wrong?\n\nWhen using the Claude in Chrome extension (`claude-in-chrome` MCP), each `computer` screenshot action returns a base64-encoded JPEG image that gets permanently embedded in the conversation context. These images accumulate across the session and are re-sent to the API on **every subsequent turn**.\n\nIn a session with 18 screenshots (~1.7 MB of base64 data), resuming the next day and asking a simple question (\"open the browser to our website and review the changes to the UI and layout\") consumed **17% of my 5-hour Max plan usage** in just 5 API calls. For comparison, an entirely separate conversation performing extensive code analysis with 10+ tool calls used only **1%** of the same quota — a **17:1 cost ratio**.\n\nThe user receives **no warning** that the context is bloated with old screenshot data. There is no crash or error — just silent, extreme token consumption.\n\n## What Should Happen?\n\n1. Old screenshots should be evicted from context after a few turns (only the most recent 1-2 should be retained)\n2. When resuming a session with accumulated image data, Claude Code should either prune the images or warn the user about the context cost\n3. Screenshot data should not be re-sent in its entirety on every API call when it's no longer relevant to the current task\n\n## Error Messages/Logs\n\nNo errors or warnings are shown. The only symptom is rapid usage consumption visible on the account dashboard. The session transcript JSONL reveals the problem:\n\n```\nSession file: 54a680d7-1717-4e4e-a088-0030ac693b8c.jsonl\nTotal size: 2,736,990 bytes (2.7 MB)\nScreenshot data: 1,746,937 bytes (1.7 MB) — 64% of session\nNon-image data: 986,938 bytes (0.9 MB) — 36% of session\n\n18 screenshots accumulated (42 KB to 291 KB each):\n  Line 252:  42,957 bytes    Line 310:  52,565 bytes\n  Line 259:  46,821 bytes    Line 322:  57,013 bytes\n  Line 262:  44,517 bytes    Line 329:  51,109 bytes\n  Line 265:  49,669 bytes    Line 344: 195,017 bytes\n  Line 275:  41,653 bytes    Line 347: 147,135 bytes\n  Line 278:  63,949 bytes    Line 351: 185,609 bytes\n  Line 281:  64,653 bytes    Line 354: 151,463 bytes\n  Line 293:  56,069 bytes    Line 388: 143,490 bytes\n  Line 303:  55,485 bytes    Line 571: 297,763 bytes\n\nContext at session resume: 2,419,821 bytes (2.3 MB)\nMorning API calls: 5\nTotal input processed across 5 calls: ~12.1 MB\nEstimated tokens per call: ~279,000 (vs ~20,000 for a fresh session = 13x overhead)\n```\n\n## Steps to Reproduce\n\n1. Start a Claude Code session with Chrome extension enabled (`claude --chrome`)\n2. Perform browser work that involves multiple screenshots (e.g., navigating pages, checking layouts, debugging UI). Each `computer` action with `screenshot` adds a base64 image to context\n3. After accumulating 10+ screenshots, end the session (rate limit, `/exit`, etc.)\n4. Resume the session later with `claude --continue`\n5. Ask any simple question that triggers a few API calls\n6. Observe that usage consumption is dramatically disproportionate to the work being done\n\n**The critical factor is accumulation across turns** — each new API call includes ALL previous screenshots in the context, not just the most recent one.\n\n## Claude Model\n\nOpus\n\n## Is this a regression?\n\nI don't know — anecdotally I have been using the Chrome extension on/off for the last few weeks and have not noticed this before, though it may be due to smaller session sizes.\n\n## Claude Code Version\n\n2.1.50 (Claude Code)\n\n## Platform\n\nAnthropic API (claude.ai Max subscription)\n\n## Operating System\n\nmacOS\n\n## Terminal/Shell\n\nTerminal.app (macOS)\n\n## Additional Information\n\n### Analysis\n\nEach screenshot from the Chrome `computer` tool is stored as a base64 JPEG in the session JSONL transcript. The data is included in the `message` field as an `image` content block and duplicated in the `toolUseResult` field. When the session is resumed or a new turn begins, the full conversatio",
+  "labels": ["stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-23T11:59:27Z",
+  "updated_at": "2026-05-17T10:38:18Z",
+  "closed_at": "2026-05-17T10:38:18Z",
+  "reactions_total": 4,
+  "comments_count": 10,
+  "author": "dotdevdotdev",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "prakersh",
+      "author_association": "NONE",
+      "body": "One way to avoid this token drain is to use structured text annotations instead of base64 screenshots. [onUI](https://github.com/onllm-dev/onUI) is a free, open-source browser extension with a local MCP server that returns lightweight annotation data (labels, coordinates, metadata) rather than images — so your context stays small even over many turns.",
+      "created_at": "2026-03-16T05:37:02Z"
+    },
+    {
+      "author": "greatwitenorth",
+      "author_association": "NONE",
+      "body": "I'm having the same issue. 2 prompts used up my entire 5 hour limit. Found out that Chrome mcp was storing every screenshot it took in the context window. I'm not sure why since they mostly become irrelevant once they are taken and acted upon by Claude.",
+      "created_at": "2026-03-24T20:20:30Z"
+    },
+    {
+      "author": "achiya-automation",
+      "author_association": "NONE",
+      "body": "13x overhead from screenshots is painful on a Max plan.\n\nFor macOS users — Safari MCP takes screenshots via native AppleScript which is significantly lighter than Chrome's CDP screenshot pipeline. No base64 round-trips through a Chrome DevTools WebSocket.\n\nhttps://github.com/achiya-automation/safari-mcp\n\n80 tools including screenshots, works with Claude Code/Cursor/Windsurf. Also has `safari_snapshot` which returns a structured accessibility tree instead of an image — much more token-efficient f",
+      "created_at": "2026-03-28T22:05:02Z"
+    }
+  ]
+}

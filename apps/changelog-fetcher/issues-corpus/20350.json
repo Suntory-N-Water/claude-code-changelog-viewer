@@ -1,0 +1,44 @@
+{
+  "number": 20350,
+  "title": "[BUG] Verified Evidence: Claude Code Delivers 10% of Requested Thinking Budget While Charging Full Price",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# [BUG] Verified Evidence: Claude Code Delivers 10% of Requested Thinking Budget While Charging Full Price\n\n## Summary\n\nIndependent MITM traffic analysis of **7,000+ API requests** over 4 days confirms that Claude Code delivers approximately **10% of the requested thinking budget** regardless of subscription tier or explicit budget configuration. Users paying $200/month for Max subscriptions are receiving Haiku-level cognitive engagement while being charged for Opus.\n\nThis is not speculation. This is measured, timestamped, reproducible data.\n\n---\n\n## Environment\n\n- **Claude Code Version**: 2.1.x+\n- **Subscription**: Max ($200/month) × 2 accounts\n- **Model Requested**: `claude-opus-4-5-20251101`\n- **Thinking Budget Requested**: 31,999 tokens (ultrathink tier)\n- **Analysis Period**: January 20-23, 2026\n- **Sample Size**: 7,000+ API requests\n- **Methodology**: Read-only MITM proxy capturing request/response metrics\n\n---\n\n## The Evidence\n\n### 1. Thinking Budget Throttling (Quantified)\n\n| What We Requested | What We Received | Delivery Rate |\n|-------------------|------------------|---------------|\n| 31,999 tokens | ~3,200 tokens | **10%** |\n| 200,000 tokens (interleaved) | ~600 tokens | **0.3%** |\n\n**This is consistent across 7,000+ requests over 4 days.**\n\n### 2. Below-Haiku Performance on Opus Requests\n\n| Model | Expected Thinking | Measured Thinking | Status |\n|-------|-------------------|-------------------|--------|\n| Opus 4.5 | 42.67% | **10-14%** | ❌ FAIL |\n| Haiku 4.5 | 22.24% | — | — |\n\n**Users requesting Opus receive thinking utilization BELOW the Haiku baseline.**\n\n### 3. Consistent Across ALL Backends\n\n| Backend | Avg Thinking | Expected | Samples |\n|---------|--------------|----------|---------|\n| TPU | 10.5% | 42.67% | 3,241 |\n| GPU | 9.1% | 42.67% | 1,986 |\n| Trainium | 8.0% | 42.67% | 1,686 |\n\n**Throttling occurs on every backend type. This is not a hardware limitation.**\n\n### 4. Timing Fingerprint Confirms Model Identity\n\nUsing the methodology from [arXiv:2502.20589](https://arxiv.org/abs/2502.20589) \"LLMs Have Rhythm\":\n\n| Metric | Opus Baseline | Our Measurement | Match |\n|--------|---------------|-----------------|-------|\n| ITT Mean | 42ms | 41.4ms | ✅ YES |\n| Variance Coef | 3.01 | 3.07 | ✅ YES |\n| Tokens/sec | 80 | 74 | ✅ YES |\n\n**The hardware fingerprint confirms we ARE hitting Opus infrastructure.**\n**But the thinking allocation is throttled to sub-Haiku levels.**\n\n### 5. Server-Side Throttling Confirmed\n\nWe attempted to force full thinking budget via request modification:\n\n```\nRequest: thinking.budget_tokens = 200,000\nResponse: ~600 tokens used (0.3%)\n```\n\n**Anthropic's servers ignore the budget parameter and allocate what THEY decide.**\n\nPer Anthropic's own documentation:\n> \"The thinking budget is a target, not a strict limit.\"\n\nDelivering 10% of a \"target\" while charging for 100% is deceptive.\n\n---\n\n## Behavioral Impact (User-Visible Symptoms)\n\nThe throttled thinking manifests as:\n\n- ❌ **Skimming instead of reading** - Claude scans files rather than comprehending them\n- ❌ **Scope creep** - Expands tasks without permission (e.g., running git commands when asked to \"read files\")\n- ❌ **Not following instructions** - Ignores explicit directives in CLAUDE.md\n- ❌ **Requires repeated corrections** - Users report needing \"use sequential\" in 92% of sessions ([#19088](https://github.com/anthropics/claude-code/issues/19088))\n- ❌ **Claims completion without verification** - Says \"Done\" without actually completing tasks\n\n**These are not user perception issues. They are the direct result of 75% thinking reduction.**\n\n---\n\n## Financial Impact\n\n- **Subscription Cost**: $200/month (Max tier)\n- **Advertised**: Full Opus capabilities with extended thinkin",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:cost",
+    "area:model",
+    "area:core",
+    "area:api",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-23T12:53:40Z",
+  "updated_at": "2026-03-08T14:24:28Z",
+  "closed_at": "2026-03-01T10:15:09Z",
+  "reactions_total": 2,
+  "comments_count": 12,
+  "author": "ghost",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "DevairRestani",
+      "author_association": "NONE",
+      "body": "Hey! 👋 I appreciate the effort to bring transparency to API services. However, after reviewing the audit tool's code and methodology, I found some significant issues that affect the validity of these findings.\n\n## The Core Problem: Chunk Count ≠ Token Count\n\nThe tool estimates thinking tokens using this formula ([line 339](https://github.com/argosdevo-svg/claude-thinking-audit/blob/main/addon/thinking_audit.py#L339)):\n\n```python\ncapture.thinking_tokens_used = capture.thinking_chunk_count * 32\n`",
+      "created_at": "2026-01-23T14:14:47Z"
+    },
+    {
+      "author": "ghost",
+      "author_association": "NONE",
+      "body": "<h2 dir=\"auto\">Thank you for the detailed technical review. I want to address each point clearly.</h2>\n<h3 dir=\"auto\">What the Critique Says</h3>\n<p dir=\"auto\">The commenter correctly identified that our tool estimated \"thinking tokens\" using a flawed formula:</p>\n<div class=\"highlight highlight-source-python notranslate position-relative overflow-auto\" dir=\"auto\"><pre class=\"notranslate\"><span class=\"pl-s1\">thinking_tokens</span> <span class=\"pl-c1\">=</span> <span class=\"pl-s1\">chunk_count</spa",
+      "created_at": "2026-01-23T17:46:40Z"
+    },
+    {
+      "author": "Aleem89",
+      "author_association": "NONE",
+      "body": "Please address these findings. Since ultrathink has been deprecated, and \"thinking budget is now max by default\" which clearly appears to not be true, CC is making some very ridiculous mistakes. @bcherny ",
+      "created_at": "2026-01-26T22:15:36Z"
+    }
+  ]
+}

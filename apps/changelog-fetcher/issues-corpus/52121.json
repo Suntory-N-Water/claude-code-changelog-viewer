@@ -1,0 +1,35 @@
+{
+  "number": 52121,
+  "title": "Grep and Glob tools missing entirely from registry under ENABLE_TOOL_SEARCH=true",
+  "body": "## Summary\n\nWhen `ENABLE_TOOL_SEARCH=true` is set, the built-in `Grep` and `Glob` tools disappear from the session entirely — they are neither preloaded as direct tools nor present in the deferred-tool list returned by `ToolSearch`. The documentation states tool search defers MCP tools, so built-ins like `Grep`/`Glob` should not be affected.\n\n## Environment\n\n- Claude Code: `2.1.117`\n- Node: `v24.10.0`\n- macOS: `26.4.1` (build `25E253`)\n- Model: Opus 4.7 (`claude-opus-4-7`)\n- Provider: Vertex via a non-first-party AI gateway proxy\n- `ENABLE_TOOL_SEARCH=true` set in `~/.claude/settings.json` env block\n- Permissions explicitly allow `Grep` and `Glob` (both in user settings and marketplace-managed permissions)\n\n## Repro\n\n1. Set `ENABLE_TOOL_SEARCH=true` in `~/.claude/settings.json` env field.\n2. Start a fresh Claude Code session against an Anthropic-compatible proxy.\n3. Inspect the available tools (top-level) — `Grep` and `Glob` are absent.\n4. Call `ToolSearch` with `query: \"select:Grep,Glob\"` — returns no results.\n5. Call `ToolSearch` with broad keywords like `grep`, `glob`, `search files` — they are not in the deferred-tool list at all.\n\n## Expected\n\nPer the docs, tool search defers MCP tools on demand. Built-in tools (`Grep`, `Glob`, `Read`, `Edit`, `Write`, `Bash`, etc.) should remain available — either preloaded or at minimum discoverable via `ToolSearch`.\n\n## Actual\n\n`Read`, `Edit`, `Write`, `Bash`, `Agent`, `Skill`, `ToolSearch` are preloaded. `AskUserQuestion`, `WebFetch`, `WebSearch`, `NotebookEdit`, etc. show up in the deferred list. **`Grep` and `Glob` are in neither list.** They cannot be invoked at all.\n\nThis also affects subagents (e.g. Explore) launched from the parent — they inherit the same gap.\n\n## Impact\n\nThis collides with `~/.claude/hooks/` setups that block bash `grep`/`find` and redirect users to `Grep`/`Glob`. Result: no path to filesystem search at all without a manual workaround.\n\n## Workaround\n\nPatched the redirect hook to honor a `CLAUDE_DEGRADED_NATIVE_TOOLS=Grep,Glob` env var that allows bash `grep`/`find` to fall through when the named native tools are unavailable. Works, but masks a real registration bug.\n\n## Note on proxy default\n\nDocs state that when `ANTHROPIC_BASE_URL` points to a non-first-party host, tool search defaults to OFF because most proxies do not forward `tool_reference` blocks. Setting `=true` explicitly was intentional. Possible the registration bug is specific to the proxy path — happy to provide more diagnostic info if useful.",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-22T20:33:22Z",
+  "updated_at": "2026-07-05T07:18:36Z",
+  "closed_at": null,
+  "reactions_total": 17,
+  "comments_count": 15,
+  "author": "saminstacart",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "tpeacock19",
+      "author_association": "NONE",
+      "body": "I am also experiencing a similar issue. The agent does not have access to a number of core built-in tools without using `ToolSearch` first.\n\n## Summary\n\nThe `ENABLE_TOOL_SEARCH` feature (default `true`) — documented under [MCP configuration](https://code.claude.com/docs/en/mcp.md#configure-tool-search) — defers schema loading for first-party Claude Code tools, not just tools provided by MCP servers. This forces the model to make an extra `ToolSearch` round-trip before it can invoke core harness ",
+      "created_at": "2026-04-23T06:21:05Z"
+    },
+    {
+      "author": "nerrante",
+      "author_association": "NONE",
+      "body": "Also affected on macOS desktop app, 2.1.116 CLI works fine after downgrading but app does not. Symptom matches #52004 eight-tool fingerprint exactly.",
+      "created_at": "2026-04-28T23:28:52Z"
+    },
+    {
+      "author": "ah4c",
+      "author_association": "NONE",
+      "body": "Still reproduces in 2.1.126 (latest as of 2026-05-01) with default settings (`ENABLE_TOOL_SEARCH` unset). Tested on macOS, native install, both Sonnet 4.6 and Opus 4.7 — model makes no difference, tool palette is fixed at session start by the harness. Glob and Grep absent from both base palette and deferred registry.",
+      "created_at": "2026-05-01T08:50:12Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 16965,
+  "title": "[BUG] cannot read past thoughts with ctrl-o",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI use ctrl-o to inspect thinking when Claude appears to be spiralling on complex tasks. I can no longer see the past thoughts to determine if Claude is stuck (needs a helpful nudge) or legitimately making progress.\n\n### What Should Happen?\n\nPress ctrl-o and see past thoughts in thinking mode.\n\n### Error Messages/Logs\n\n```shell\nNo output\n```\n\n### Steps to Reproduce\n\n1. Enter thinking mode\n2. Give it a complex task that takes multiple steps\n3. Press ctrl-o to see detailed view\n4. Cannot read thoughts\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nlatest\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:linux", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-08T22:38:43Z",
+  "updated_at": "2026-04-02T14:39:42Z",
+  "closed_at": "2026-03-24T22:15:38Z",
+  "reactions_total": 0,
+  "comments_count": 13,
+  "author": "withinboredom",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14511\n2. https://github.com/anthropics/claude-code/issues/11310\n3. https://github.com/anthropics/claude-code/issues/8477\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-08T22:42:23Z"
+    },
+    {
+      "author": "carrotRakko",
+      "author_association": "NONE",
+      "body": "Additional details from #17641:\n\n### Environment\n\n- **Claude Code version**: 2.1.5\n- **Platform**: Linux (VS Code DevContainer on macOS Apple Silicon host)\n- **Model**: claude-opus-4-5-20251101\n\n### Expected Behavior (2.0.x)\n\nEach thinking block appears **immediately before** its corresponding response, in chronological order:\n\n```\n● Tool call (Web Search)\n  ⎿  Results...\n\n∴ Thinking…\n  [thinking content for the response below]\n\n● Response A\n\n❯ User message\n\n∴ Thinking…\n  [thinking content for t",
+      "created_at": "2026-01-12T09:46:29Z"
+    },
+    {
+      "author": "carrotRakko",
+      "author_association": "NONE",
+      "body": "## Source code analysis\n\nI analyzed the Claude Code CLI source (v2.1.17, npm package, prettified) to understand this issue.\n\n### Root cause\n\nIn transcript mode, `hidePastThinking: !0` (true) is hardcoded:\n\n```javascript\n// Search: \"hidePastThinking\" - only 2 occurrences in the codebase\nif (a === \"transcript\")\n  return k4.createElement(Wt, {\n    ...\n    hidePastThinking: !0,        // ← This causes the issue\n    streamingThinking: J6,\n  })\n```\n\nIn normal mode, `hidePastThinking` is **not passed**",
+      "created_at": "2026-01-23T12:33:03Z"
+    }
+  ]
+}

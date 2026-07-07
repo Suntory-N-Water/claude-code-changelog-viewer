@@ -1,0 +1,35 @@
+{
+  "number": 9681,
+  "title": "[DOCS] Bedrock setup missing AWS Marketplace subscription requirements causing permission errors",
+  "body": "### Documentation Type\n\nIncorrect/outdated documentation\n\n### Documentation Location\n\nhttps://docs.claude.com/en/docs/claude-code/amazon-bedrock\n\n### Section/Topic\n\n Prerequisites, Setup, IAM Configuration\n\n### Current Documentation\n\nThe docs currently state:\n\n  Prerequisites:\n  - AWS CLI configured with appropriate credentials\n  - IAM role/user with Bedrock access permissions\n  - Model access enabled in AWS Bedrock console\n\n  IAM configuration:\n  Configure AWS credentials to access Bedrock. The following IAM permissions are required:\n  - bedrock:InvokeModel\n  - bedrock:InvokeModelWithResponseStream\n\nThe documentation focuses entirely on IAM permissions and model access in the Bedrock console, but does not mention AWS Marketplace subscriptions at all.\n\n### What's Wrong or Missing?\n\nThe documentation is missing critical information about AWS Marketplace subscription requirements, which could cause users to encounter errors even after following all of the setup steps.\n\n  Specific gaps:\n\n  1. No mention of marketplace subscriptions: AWS recently changed their model access system. Models are now available by default, but access is controlled through AWS Marketplace subscriptions with product IDs. The docs don't explain this shift.\n  2. Misleading error symptoms: Users correctly configure IAM permissions and enable model access, but still get errors like:\n  [ERROR] Error streaming: Calling boto3.exceptions.botocore.exceptions.ClientError:\n  An error occurred (AccessDeniedException) when calling the Converse operation:\n  API Model access is denied by Marketplace subscription\n  3. Missing marketplace workflow: No explanation of:\n    - How to subscribe to models in AWS Marketplace\n    - Where to verify marketplace subscription status\n    - Relationship between \"model access\" in Bedrock console vs marketplace subscriptions\n    - How to troubleshoot marketplace permission errors\n  4. Incomplete troubleshooting: The troubleshooting section doesn't cover marketplace-related access denials, only IAM permission issues.\n\n  Impact on users:\n  - Users follow all documented steps but still can't use Bedrock\n  - Error messages reference marketplace subscriptions not mentioned in docs\n  - No clear path forward when encountering marketplace permission errors\n  - Time wasted debugging IAM when the issue is marketplace subscriptions\n\n### Suggested Improvement\n\n1. Add AWS Marketplace Subscription Information to Prerequisites\n\nThe prerequisites section should clearly state that AWS Marketplace subscriptions are required in addition to IAM permissions and model access. Currently, the docs only mention IAM and model access, which is incomplete.\n\n  Suggested addition:\n  Prerequisites:\n  - AWS CLI configured with appropriate credentials\n  - IAM role/user with Bedrock access permissions\n  - **AWS Marketplace subscriptions for the Bedrock model(s) you want to use**\n\n  2. Add Documentation on How to Obtain Marketplace Subscriptions\n\n  Include a section explaining:\n  - That Bedrock models require marketplace subscriptions (not just \"model access\")\n  - Where to subscribe to models (link to AWS Marketplace or Bedrock console)\n  - How to verify that marketplace subscriptions are active\n  - That this is a requirement separate from IAM permissions\n\n  3. Add Troubleshooting for Marketplace Permission Errors\n\n  The troubleshooting section should cover the specific error:\n  AccessDeniedException: API Model access is denied by Marketplace subscription\n\n  And explain:\n  - What this error means (missing marketplace subscription, not an IAM issue)\n  - Where to check marketplace subscription status\n  - How to resolve it (link to subscription process)\n\n  4. Clarify the Relationship Between IAM, Model Access, and Marketplace\n\n  The docs should explain that three things are required:\n  1. IAM permissions (documented ✅)\n  2. Model access enabled in Bedrock console (documented ✅)\n  3. AWS Marketplace subscriptions for specific models (missing ❌)\n\n  Why this matters: Users correctly configure 1, and 2, but still get errors because 3 isn't documented.\n\n### Impact\n\nHi",
+  "labels": ["documentation", "has repro", "api:bedrock", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-16T19:44:50Z",
+  "updated_at": "2026-01-24T14:10:28Z",
+  "closed_at": "2026-01-13T10:12:04Z",
+  "reactions_total": 19,
+  "comments_count": 10,
+  "author": "markspivey",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "alexnederlof",
+      "author_association": "NONE",
+      "body": "It's also unclear how to use it with Bedrock inference profiles. \n\nIf you specify `CLAUDE_CODE_SUBAGENT_MODEL` and `ANTHROPIC_SMALL_FAST_MODEL` as inference profiles, the documentation suggests that it won't understand it's Haiku 4.5. \n\nThen when you follow the instruction and add \"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"us.anthropic.claude-haiku-4-5-20251001-v1:0\"\n\nThe code starts reaching out to the market place, which it should not. But if you change `ANTHROPIC_DEFAULT_HAIKU_MODEL` to the inference ",
+      "created_at": "2025-10-18T18:16:58Z"
+    },
+    {
+      "author": "maxabaumgarten",
+      "author_association": "NONE",
+      "body": "Running into the same as @alexnederlof ",
+      "created_at": "2025-10-18T18:58:37Z"
+    },
+    {
+      "author": "mckinsey-adumi",
+      "author_association": "NONE",
+      "body": "While I couldn’t find a way to subscribe using the AWS console, there are some workarounds you can use:\n\n1) Option A - CLI/API: You can run in CloudShell\n```\necho '{\"texts\": [\"hello world\"], \"input_type\": \"search_query\"}' | base64 | tr -d '\\n' | xargs -I {} aws bedrock-runtime invoke-model \\\n    --model-id cohere.embed-english-v3 \\\n    --body {} \\\n    --content-type \"application/json\" \\\n    --accept \"application/json\" \\\n    --region us-east-1 \\\n    output.json\n```\nReplace with the model-id and r",
+      "created_at": "2025-10-23T06:14:31Z"
+    }
+  ]
+}

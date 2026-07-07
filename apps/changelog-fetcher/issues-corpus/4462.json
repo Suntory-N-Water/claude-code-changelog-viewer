@@ -1,0 +1,42 @@
+{
+  "number": 4462,
+  "title": "[BUG] Sub-agents claim successful file creation but files don't persist to filesystem",
+  "body": "# [BUG] Sub-agents claim successful file creation but files don't persist to filesystem\n\n## Summary\nSub-agents spawned via the Task tool report successful file creation using Write/Edit/MultiEdit tools, but the files do not actually persist to the filesystem. This creates a critical inconsistency where agents confirm success but no file changes occur.\n\n## Environment\n- **Claude Code Version**: 1.0.61\n- **Platform**: macOS (Darwin 24.5.0)  \n- **Node Version**: v24.4.1\n- **Project Type**: Next.js with TypeScript\n\n## Bug Description\n\n### Expected Behavior\nWhen a sub-agent uses the Write tool to create a file, the file should be created on the filesystem and be visible in directory listings.\n\n### Actual Behavior  \nSub-agents report successful file creation with detailed confirmation messages, but external verification shows no files were created. The agent's response often includes mock directory listings showing the file exists, but filesystem checks confirm it doesn't.\n\n## Reproduction Steps\n\n1. **Test with project-level agent:**\n   ```bash\n   Task(subagent_type=\"project-business-analyst\", prompt=\"Create a test file called 'agent-file-test.md' with basic content\")\n   ```\n   \n2. **Agent reports success** with message like:\n   ```\n   I have successfully created the test file `/path/to/agent-file-test.md`\n   ```\n   \n3. **Verify file doesn't exist:**\n   ```bash\n   ls -la | grep agent-file-test\n   find . -name \"*agent*test*\" 2>/dev/null\n   # Both return no results\n   ```\n\n4. **Control test - Direct Write tool works:**\n   ```bash\n   Write(file_path=\"/path/to/control-test.md\", content=\"test\")\n   ```\n   ✅ File successfully created and persists\n\n## Systematic Test Results\n\n| Test Method | Agent Type | File Creation Claim | File Actually Exists |\n|-------------|------------|-------------------|---------------------|\n| Task tool | project-business-analyst | ✅ Success | ❌ No file |\n| Task tool | business-analyst-developer | ✅ Success | ❌ No file |  \n| Task tool | business-writer | ✅ Success | ❌ No file |\n| Direct Write | Main Claude instance | ✅ Success | ✅ File exists |\n\n## Technical Analysis\n\n### Agent Tool Configuration\nTested agents have proper Write tool access:\n```yaml\ntools: [\"Read\", \"Grep\", \"Glob\", \"LS\", \"TodoWrite\", \"Edit\", \"MultiEdit\", \"Write\"]\n```\n\n### Observed Pattern\n- **First invocation**: Occasionally works (inconsistent)\n- **Subsequent invocations**: Consistently fail to persist files  \n- **Agent feedback**: Always reports success regardless of actual outcome\n- **Main Claude instance**: Direct tool usage always works correctly\n\n## Impact Assessment\n\nThis issue severely impacts:\n- **Multi-agent workflows**: Cannot rely on file handoffs between agents\n- **Documentation automation**: Agents cannot generate actual documentation files  \n- **Code generation**: File-based code generation workflows fail silently\n- **User experience**: Creates mistrust due to success claims vs. reality mismatch\n\n## Possible Root Causes\n\n1. **Execution Context Isolation**: Sub-agents may operate in temporary/sandboxed contexts\n2. **Session Lifecycle**: Sub-agent sessions may be cleaned up before file operations complete\n3. **Permission Model**: Different filesystem access between main instance and sub-agents\n4. **Tool Implementation**: Write tool may behave differently in sub-agent contexts\n\n## Related Issues\n- #4182 - Sub-Agent Task Tool limitations\n- #3978 - Task tool transparency issues\n- #3408 - Task tool crash scenarios\n\n## Current Workarounds\n- Use direct tool calls instead of Task tool for file operations\n- Always verify file creation externally after sub-agent operations  \n- Avoid sub-agents for critical file operations\n\n## Additional Context\nThis was discovered during systematic testing of project-level agent capabilities. The issue affects both project-specific agents (`.claude/agents/`) and global agents (`~/.claude/agents/`). The inconsistency suggests a fundamental issue with sub-agent execution context rather than a configuration problem.\n\n## Logs/Screenshots\nTesting showed agents providing detailed success messag",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:core",
+    "oncall"
+  ],
+  "state": "open",
+  "state_reason": "reopened",
+  "created_at": "2025-07-25T23:01:26Z",
+  "updated_at": "2026-06-02T19:22:42Z",
+  "closed_at": null,
+  "reactions_total": 31,
+  "comments_count": 39,
+  "author": "RGCsAGupta",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "RGCsAGupta",
+      "author_association": "NONE",
+      "body": "cc @rgcsagupta - Original reporter who discovered and systematically tested this agent file writing persistence issue.",
+      "created_at": "2025-07-25T23:01:58Z"
+    },
+    {
+      "author": "deksden",
+      "author_association": "NONE",
+      "body": "Some write problems are in-effect inside IDE's terminal, but system terminal is ok",
+      "created_at": "2025-07-28T08:43:56Z"
+    },
+    {
+      "author": "jchavannes",
+      "author_association": "NONE",
+      "body": "For me this seems to have affected a single subagent. I created a new agent and it was able to save/edit files. Using iTerm2.",
+      "created_at": "2025-08-01T04:35:11Z"
+    }
+  ]
+}

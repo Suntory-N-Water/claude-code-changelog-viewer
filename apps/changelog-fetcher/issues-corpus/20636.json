@@ -1,0 +1,35 @@
+{
+  "number": 20636,
+  "title": "Expose rate limit usage (session %, weekly %) to statusLine configuration",
+  "body": "## Feature Request\n\n### Problem\n\nThe `/usage` command shows valuable rate limit information:\n- **Current session**: X% used (5-hour billing window)\n- **Current week (all models)**: X% used (weekly limit)\n\nHowever, this data is **not available** to the `statusLine` configuration. The statusLine only receives context window tokens and cost data, not the rate limit percentages.\n\n### Use Case\n\nI want to see my session and weekly usage percentages **persistently in the status bar** without having to repeatedly open `/usage`. This would help me:\n- Know when I'm approaching limits before hitting them\n- Better pace my usage throughout the day/week\n- Avoid interruptions from unexpected rate limit hits\n\n### Current Workaround\n\nNone that provides the exact same data. Tools like `ccusage` track 5-hour blocks from JSONL files but may not match the percentages shown in `/usage`.\n\n### Proposed Solution\n\nAdd rate limit data to the JSON structure passed to statusLine scripts:\n\n```json\n{\n  \"rate_limits\": {\n    \"session\": {\n      \"used_percentage\": 91,\n      \"resets_at\": \"2026-01-24T13:59:00-06:00\"\n    },\n    \"weekly\": {\n      \"used_percentage\": 81,\n      \"resets_at\": \"2026-01-29T08:59:00-06:00\"\n    }\n  }\n}\n```\n\nThis would allow users to display rate limit info in their custom status lines.\n\n### Environment\n\n- macOS Terminal\n- Claude Code CLI",
+  "labels": ["enhancement", "platform:macos", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-24T18:51:15Z",
+  "updated_at": "2026-05-02T14:36:54Z",
+  "closed_at": "2026-04-24T19:31:38Z",
+  "reactions_total": 59,
+  "comments_count": 11,
+  "author": "tejasgadhia",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19374\n2. https://github.com/anthropics/claude-code/issues/20465\n3. https://github.com/anthropics/claude-code/issues/19385\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-24T18:55:21Z"
+    },
+    {
+      "author": "ghost",
+      "author_association": "NONE",
+      "body": "https://github.com/argosdevo-svg/claude-thinking-audit",
+      "created_at": "2026-01-24T20:10:38Z"
+    },
+    {
+      "author": "nsanden",
+      "author_association": "NONE",
+      "body": "https://github.com/nsanden/claude-rate-monitor",
+      "created_at": "2026-01-29T18:16:33Z"
+    }
+  ]
+}

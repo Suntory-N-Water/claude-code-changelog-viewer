@@ -1,0 +1,35 @@
+{
+  "number": 23983,
+  "title": "PermissionRequest hooks not triggered for subagent permission requests in Agent Teams",
+  "body": "## Bug Description\n\nWhen using Claude Code's **Agent Teams** (multi-agent system with `Task` tool and `TeamCreate`), permission requests from **subagents do not trigger `PermissionRequest` hooks**. Instead, they fall back to standard terminal prompts in the parent session.\n\nThis means any custom hook configured for `PermissionRequest` (e.g., sending notifications to Telegram, Slack, or any external service) is completely bypassed when subagents need permission.\n\n## Steps to Reproduce\n\n1. Configure a `PermissionRequest` hook in `~/.claude/settings.json`:\n   ```json\n   {\n     \"hooks\": {\n       \"PermissionRequest\": [\n         {\n           \"matcher\": \"\",\n           \"hooks\": [\n             {\n               \"type\": \"command\",\n               \"command\": \"bash ~/.claude/hooks/my_custom_hook.sh\",\n               \"timeout\": 600\n             }\n           ]\n         }\n       ]\n     }\n   }\n   ```\n\n2. Start a Claude Code session and spawn a multi-agent team using `TeamCreate` and `Task` tool with subagents.\n\n3. When a **subagent** needs permission to run a command (e.g., `curl`, `export ... && curl ...`), the permission request appears as a **standard terminal dialog** (`\"Do you want to proceed? [y/n]\"`) in the parent session.\n\n4. The `PermissionRequest` hook is **never called** for the subagent's request.\n\n## Expected Behavior\n\n`PermissionRequest` hooks should fire for **all** permission requests, including those delegated from subagents to the parent session. The hook should intercept the request before it reaches the terminal UI, regardless of whether it originates from the main session or a subagent.\n\n## Actual Behavior\n\n- **Main session** permission requests → Hook fires correctly ✅\n- **Subagent** permission requests → Hook is bypassed, terminal prompt shown ❌\n\n## Impact\n\nThis limitation breaks the use case of **remote permission management**. Users who set up hooks to approve/deny permissions from external services (phone notifications, Slack, Telegram, etc.) are forced back to the terminal when using Agent Teams — defeating the purpose of the hook.\n\nWith Agent Teams being a new and powerful feature, many users will want to use it alongside custom permission hooks. The current behavior makes these two features incompatible.\n\n## Workaround\n\nPre-approve common subagent commands in `settings.json` permissions so they don't need to ask:\n\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(export:*)\",\n      \"Bash(source:*)\",\n      \"Bash(curl:*)\"\n    ]\n  }\n}\n```\n\nThis lets subagents work autonomously but removes the ability to review their actions, which is not ideal for security-conscious users.\n\n## Environment\n\n- **Claude Code version:** Latest (2026-02-07)\n- **OS:** Linux (WSL2 on Windows)\n- **Hook event:** `PermissionRequest`\n\n## Related\n\nWe documented this limitation in our open-source project [claude-telegram-hook](https://github.com/webcomunicasolutions/claude-telegram-hook), which sends permission requests to Telegram with inline buttons. The hook works perfectly for the main session but is completely bypassed by subagents.",
+  "labels": ["bug", "has repro", "platform:linux", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-07T17:48:37Z",
+  "updated_at": "2026-05-23T06:16:36Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 9,
+  "author": "webcomunicasolutions",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ThomasHoussin",
+      "author_association": "NONE",
+      "body": "Same issue ; I have a permissionRequest hook whick works with agents and is never fired in teams :\n\n```\n\t\t\"PermissionRequest\": [\n\t\t\t{\n\t\t\t\t\"matcher\": \"^(?!ExitPlanMode$|AskUserQuestion$).*\",\n\t\t\t\t\"hooks\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"type\": \"command\",\n\t\t\t\t\t\t\"command\": \"node .claude/hooks/permission-check.mjs\"\n\t\t\t\t\t}\n\t\t\t\t]\n\t\t\t}\n\t\t]\n```",
+      "created_at": "2026-02-09T21:36:17Z"
+    },
+    {
+      "author": "recoworks",
+      "author_association": "NONE",
+      "body": "Same issue here. Whenever I or Claude Code spawn a multi-agent team in a Claude Code session, I constantly get prompted by the agents for actions that the main Claude Code session does have permission to do which is annoying and defeats the purpose of using agents since I have to babysit them.",
+      "created_at": "2026-02-23T11:25:24Z"
+    },
+    {
+      "author": "isnifer",
+      "author_association": "NONE",
+      "body": "Same here, agent-teams running in tmux with `--dangerously-skip-permissions` do not have this issue. Outside of tmux — problem exists even with `--dangerously-skip-permissions`.",
+      "created_at": "2026-03-04T22:01:20Z"
+    }
+  ]
+}

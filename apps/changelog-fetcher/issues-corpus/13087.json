@@ -1,0 +1,35 @@
+{
+  "number": 13087,
+  "title": "[BUG] Background Tasks Fail to Detect Valid Git Repository",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Summary\nBackground tasks fail with \"Background tasks require a git repository\" error despite being in a valid git repository that is correctly detected by the main Claude Code session.\n\n## Environment\n- **OS**: macOS 15.6.1 (Build 24G90)\n- **Platform**: darwin\n- **Kernel**: Darwin 24.6.0\n- **Git Version**: 2.39.5 (Apple Git-154)\n- **Git Location**: /usr/bin/git\n\n## Repository Information\n- **Working Directory**: `/Users/Jonny/Documents/obsidian/trading`\n- **Git Repository Status**: Valid and functional\n- **Main Session Detection**: ✅ Correctly detected (`Is directory a git repo: Yes`)\n- **Background Task Detection**: ❌ Fails with error\n\n## Expected Behavior\nBackground tasks should successfully detect the git repository, just as the main Claude Code session does.\n\n## Actual Behavior\nBackground tasks fail with a git repository detection error despite:\n- Being in a valid git repository\n- All git commands working correctly\n- Main session detecting the repository properly\n- No permission, symlink, or configuration issues\n\n## Additional Context\nThe repository has:\n- Recent commits (verified with `git log`)\n- Clean working tree\n- Proper `.git` directory structure\n- All standard git operations working\n\n## Analysis\nThis appears to be a bug in the background task system's git detection logic. The background task spawning process uses different repository detection code than the main session, and this detection is failing even though:\n\n1. The repository is completely valid\n2. All git commands execute successfully\n3. The main Claude Code session correctly identifies it as a git repository\n4. No environmental or permission issues exist\n\n## Suggested Investigation\nThe background task system should use the same git repository detection logic as the main session, or inherit the repository status from the parent session rather than re-detecting independently.\n\n## Workaround\nCurrently, tasks must be run sequentially using the Task tool instead of background tasks, which significantly impacts performance when processing multiple independent items.\n\n### What Should Happen?\n\nBackground tasks should successfully detect the git repository, just as the main Claude Code session does.\n\n\n### Error Messages/Logs\n\n```shell\nCannot launch remote Claude Code session.\n\nBackground tasks require a git repository. Initialize git or run from a git repository.\n```\n\n### Steps to Reproduce\n\n## Steps to Reproduce\n1. Navigate to a valid git repository\n2. Verify git repository status:\n   ```bash\n   git rev-parse --is-inside-work-tree  # Returns: true\n   git rev-parse --show-toplevel        # Returns: /Users/Jonny/Documents/obsidian/trading\n   ```\n3. Start Claude Code session (main session correctly detects git repo)\n4. Attempt to run background tasks using the background task syntax\n5. Observe error about missing git repository\n\n## Validation Performed\n\n### ✅ Git Repository Validation\n```bash\n$ git rev-parse --is-inside-work-tree\ntrue\n\n$ git rev-parse --show-toplevel\n/Users/Jonny/Documents/obsidian/trading\n\n$ git rev-parse --git-dir\n.git\n\n$ git status\nOn branch main\nnothing to commit, working tree clean\n```\n\n### ✅ Permissions Check\n```bash\n$ stat -f \"%Sp %Su:%Sg\" .git\ndrwxr-xr-x Jonny:staff\n\n$ ls -la .git/\ndrwxr-xr-x@  13 Jonny  staff    416 Nov 30 19:49 .\ndrwxr-xr-x@  22 Jonny  staff    704 Nov 30 19:42 ..\n-rw-r--r--@   1 Jonny  staff     11 Nov 30 19:47 COMMIT_EDITMSG\n-rw-r--r--@   1 Jonny  staff    137 Nov 25 17:38 config\n[... all files owned by user with proper permissions]\n```\n\nAll `.git` subdirectories have proper permissions (755/drwxr-xr-x).\n\n### ✅ Path Check (No Symlinks)\n```bash\n$ pwd\n/Users/Jonny/Documents/obsidian/trading\n\n$ pwd -P\n/Users/Jonny/Documents/obsidian/trading\n\n$ readlink -n \"$(pwd)\"\nNot ",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-04T18:47:35Z",
+  "updated_at": "2026-01-15T14:20:34Z",
+  "closed_at": "2026-01-08T00:42:04Z",
+  "reactions_total": 6,
+  "comments_count": 13,
+  "author": "Jon-Biz",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Jon-Biz",
+      "author_association": "NONE",
+      "body": "I had this issue because I was unintentionally triggered background process mode, the new (to me) '&' command, that I had assigned as a prefix for my prompt snippets. Calling a prompt in the Claude console would also initiate background process mode.\n\nHowever, the underlying issue - that background processes are unable to detect the git repo they are being called in, still stands.",
+      "created_at": "2025-12-05T03:43:44Z"
+    },
+    {
+      "author": "kylesnowschwartz",
+      "author_association": "NONE",
+      "body": "I face the same issue - instructions for installation unclear. Changelog suggests `Added background agent support. Agents run in the background while you work` but using what appears to be the entryway to that feature `& <my task>` just results in an error even after adding the github app\n\n<img width=\"969\" height=\"302\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/1044f81e-a5b8-4638-ac68-04568d4bf621\" />",
+      "created_at": "2025-12-06T02:27:47Z"
+    },
+    {
+      "author": "derekc00",
+      "author_association": "NONE",
+      "body": "I'm getting the same error",
+      "created_at": "2026-01-03T00:57:57Z"
+    }
+  ]
+}

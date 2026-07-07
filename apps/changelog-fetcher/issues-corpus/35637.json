@@ -1,0 +1,35 @@
+{
+  "number": 35637,
+  "title": "Remote control: permission prompts not rendering on mobile app",
+  "body": "## Description\n\nWhen using Claude Code via `claude remote-control --name <session>` and connecting from the mobile app, interactive permission prompts do not render on the mobile client. The session appears frozen/unresponsive from the mobile side, while the desktop terminal shows the prompt waiting for input.\n\n## Affected prompts\n\n- `EnterPlanMode` confirmation\n- `ExitPlanMode` approval\n- `AskUserQuestion` (unconfirmed — may also be affected)\n\n## Steps to reproduce\n\n1. Start a named remote control session: `claude remote-control --name test-session`\n2. Connect to the session from the mobile app\n3. Trigger a plan mode entry (e.g., ask Claude to plan a multi-step implementation)\n4. Observe: the mobile app shows no permission prompt; session appears hung\n5. Check the desktop terminal: permission prompt is visible and waiting for input\n\n## Expected behavior\n\nPermission prompts should render on the mobile app the same way they render on the desktop terminal.\n\n## Environment\n\n- Claude Code v2.1.77\n- Windows 11 Pro\n- Remote control sessions with `--permission-mode bypassPermissions`\n- Mobile app (latest version)\n\n## Notes\n\n- Regular text output renders fine on mobile — only interactive permission widgets are affected\n- The mobile app has a full UI with plan mode and code mode, so this appears to be a rendering gap for the specific permission confirmation widget, not a general mobile limitation",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-18T04:02:46Z",
+  "updated_at": "2026-06-13T16:40:19Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 18,
+  "author": "GMedlin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33625\n2. https://github.com/anthropics/claude-code/issues/28427\n3. https://github.com/anthropics/claude-code/issues/33967\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-18T04:06:35Z"
+    },
+    {
+      "author": "GMedlin",
+      "author_association": "NONE",
+      "body": "## Additional finding: bug is specific to `/config` RC toggle\n\nTested both RC activation methods:\n\n1. **Dedicated RC session** (`claude remote-control --name <session>`) — permission prompts **render correctly** on mobile\n2. **Interactive session with RC enabled via `/config` toggle** — permission prompts **do NOT render** on mobile\n\nThis suggests the bug is in the `/config` RC code path specifically, not the mobile RC client in general. The dedicated `claude remote-control` command handles perm",
+      "created_at": "2026-03-18T04:13:30Z"
+    },
+    {
+      "author": "swarajban",
+      "author_association": "NONE",
+      "body": "Seeing this too",
+      "created_at": "2026-03-22T17:48:13Z"
+    }
+  ]
+}

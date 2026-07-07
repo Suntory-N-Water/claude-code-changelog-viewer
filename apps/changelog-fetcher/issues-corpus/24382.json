@@ -1,0 +1,35 @@
+{
+  "number": 24382,
+  "title": "Auto memory should be shared across git worktrees of the same repository",
+  "body": "When using git worktrees, each worktree gets its own auto memory directory because the path is derived from the working directory:\n\n- `/Code/app5` → `~/.claude/projects/-Code-app5/memory/`\n- `/Code/app5-pay-123` → `~/.claude/projects/-Code-app5-pay-123/memory/`\n\nThis means learnings recorded in one worktree (e.g. \"this billing system counts refunded orders as fulfilled\") are invisible when working in another worktree of the same project.\n\n**Expected behavior:** All worktrees sharing the same git origin should share a single auto memory directory. The memory path could be derived from the repo's remote URL or the main worktree path instead of the current working directory.\n\n**Use case:** We use worktrees for parallel feature work. Learnings about the codebase (architecture patterns, common pitfalls, domain knowledge) apply across all worktrees. Currently, Claude re-discovers the same things in each worktree independently.\n\n**Related issues:** #16600, #15776, #16089",
+  "labels": ["enhancement", "area:core", "memory"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-09T10:17:56Z",
+  "updated_at": "2026-03-12T14:32:25Z",
+  "closed_at": "2026-02-27T03:44:38Z",
+  "reactions_total": 19,
+  "comments_count": 8,
+  "author": "dansv59",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/15776\n2. https://github.com/anthropics/claude-code/issues/16600\n3. https://github.com/anthropics/claude-code/issues/23715\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-09T10:20:16Z"
+    },
+    {
+      "author": "dansv59",
+      "author_association": "NONE",
+      "body": "Not a duplicate - the suggested issues are actually about different (sometimes opposite) concerns:\n\n- **#15776** is about session state persistence, not auto memory\n- **#16600** is about memory traversal *respecting* worktree boundaries (i.e. more isolation) - this issue asks for the opposite: *sharing* auto memory\n- **#23715** is about agent team isolation per worktree\n\nThis issue specifically requests that the **auto memory directory** (`~/.claude/projects/<path>/memory/`) be derived from the ",
+      "created_at": "2026-02-09T10:21:36Z"
+    },
+    {
+      "author": "CybotTM",
+      "author_association": "NONE",
+      "body": "> https://github.com/anthropics/claude-code/issues/16600 is about memory traversal respecting worktree boundaries (i.e. more isolation) - this issue asks for the opposite: sharing auto memory\n\nThis is not really the \"opposite\" it effectively asks for not loading the \"same\" project memories multiple times - (due to weird git worktree path structure)",
+      "created_at": "2026-02-13T10:50:29Z"
+    }
+  ]
+}

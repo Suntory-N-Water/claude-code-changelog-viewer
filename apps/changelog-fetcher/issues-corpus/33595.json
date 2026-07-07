@@ -1,0 +1,35 @@
+{
+  "number": 33595,
+  "title": "[BUG] Bash(ls:*) allow rule still prompts for ls commands in settings.local.json",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI have Bash(ls:*) in my project's .claude/settings.local.json allow list, but Claude Code still prompts me to approve ls commands. I'm also in \"Edit Automatically\" permission mode, which I initially expected would help, but I understand that mode only affects file edits, not Bash commands.\n\n\n\n### What Should Happen?\n\nThe Bash(ls:*) allow rule should match any command starting with ls and auto-approve it without prompting.\n\n\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nAdd \"Bash(ls:*)\" to .claude/settings.local.json → permissions.allow\nStart a conversation where Claude runs a command like:\n\nls -la /c/Users/jonat/Documents\\ \\(Local\\)/pinman/pinman2/envdata/source_fixtures/richtree/\nClaude Code prompts for approval instead of auto-approving\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nv2.1.71\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nLooking at the docs, it appears the tool:* syntax (with colon) may be deprecated in favor of tool * (with space), e.g. Bash(ls *). However:\n\nIt's unclear whether the colon syntax still works at all or silently fails\nThere's no migration warning or documentation calling out the deprecation clearly\nIf the colon syntax is broken, many users with older configs will hit this silently\nAdditionally, the path in my command contains escaped parentheses (\\(, \\)) and escaped spaces — special characters in command arguments may also be interfering with the prefix matcher.\n\nEnvironment:\n\nPlatform: Windows 11 (Git Bash)\nClaude Code: latest (as of 2026-03-12)\nMy full allow list for reference:\n\n\n\"Bash(ls:*)\",\n\"Bash(cat:*)\",\n\"Bash(find:*)\",\n\"Bash(grep:*)\"\nSuggestion:\n\nIf :* is deprecated, emit a warning or auto-migrate to the space syntax\nDocument the exact matching semantics for Bash allow rules more prominently\nClarify that \"Edit Automatically\" mode does not affect Bash command approval (this is a common point of confusion)",
+  "labels": ["bug", "area:bash", "area:permissions"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-12T12:24:19Z",
+  "updated_at": "2026-03-31T23:18:32Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 12,
+  "author": "linojon",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/29529\n2. https://github.com/anthropics/claude-code/issues/30071\n3. https://github.com/anthropics/claude-code/issues/30113\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-12T12:31:01Z"
+    },
+    {
+      "author": "jake-albert",
+      "author_association": "NONE",
+      "body": "Facing similar here for Next.js projects, closed my own issue https://github.com/anthropics/claude-code/issues/33827 so this can get consolidated.",
+      "created_at": "2026-03-13T01:41:25Z"
+    },
+    {
+      "author": "dwightware4",
+      "author_association": "NONE",
+      "body": "Same issue. It's a real pain, and it's not just `ls` but basically all Bash commands from what I can tell. `grep`, `tail`, etc. None of my allow configuration seems to be respected anymore. ",
+      "created_at": "2026-03-13T18:02:06Z"
+    }
+  ]
+}

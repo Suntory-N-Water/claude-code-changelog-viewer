@@ -1,0 +1,35 @@
+{
+  "number": 34126,
+  "title": "[FEATURE] Per-model configurable autocompact threshold",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n## Problem Statement\n\nWith the 1M context window now available for Opus, a single global CLAUDE_AUTOCOMPACT_PCT_OVERRIDE is no longer sufficient. Different models benefit from different compaction strategies, and users need per-model control over when autocompact triggers.\n\n### Motivation\n\nWhen using Opus (1M context) as the primary model that spawns Sonnet subagents, the optimal autocompact threshold differs significantly between them:\n\n### Use Case Example\n\n- **Opus (1M):** I may want to compact at ~30% (300K tokens) to keep costs manageable and responses fast, since the full 1M window is rarely needed\n- **Sonnet subagents:** I want them to use a larger portion of their context (e.g., 80-90%) since they handle focused, bounded tasks where more context is useful\n\nCurrently, `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` applies globally — forcing a single trade-off that can't serve both use cases.\n\n## Proposed Solution\n\nAllow per-model autocompact thresholds in `settings.json`:\n\n```json\n{\n  \"autoCompactThreshold\": {\n    \"default\": 80,\n    \"opus\": 30,\n    \"sonnet\": 90,\n    \"haiku\": 95\n  }\n}\n```\n\nOr alternatively, extend the environment variable approach:\n\n```bash\nCLAUDE_AUTOCOMPACT_PCT_OPUS=30\nCLAUDE_AUTOCOMPACT_PCT_SONNET=90\nCLAUDE_AUTOCOMPACT_PCT_HAIKU=95\nCLAUDE_AUTOCOMPACT_PCT_OVERRIDE=80  # fallback default\n```\n\n## Why Not Use the Existing Global Override\n\n| Scenario | Global at 30% | Global at 90% |\n|----------|---------------|---------------|\n| Opus (1M) primary session | Good — keeps cost/latency down | Bad — consumes up to 900K tokens before compacting |\n| Sonnet subagents | Bad — compacts too early, loses useful context for focused tasks | Good — maximizes available context |\n\nThere is no single value that works well for both.\n\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nConfiguration and settings\n\n### Additional Context\n\n#### Related Issues\n\n- #28728 — Auto-compact should trigger earlier / threshold should be configurable\n- #15719 — Configurable Context Window Compaction Threshold\n- #15435 — Configurable autocompact buffer size",
+  "labels": ["enhancement", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-13T20:29:56Z",
+  "updated_at": "2026-05-24T10:45:23Z",
+  "closed_at": "2026-05-24T10:45:23Z",
+  "reactions_total": 10,
+  "comments_count": 5,
+  "author": "Theurgist",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28728\n2. https://github.com/anthropics/claude-code/issues/25679\n3. https://github.com/anthropics/claude-code/issues/26764\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-13T20:33:48Z"
+    },
+    {
+      "author": "Theurgist",
+      "author_association": "NONE",
+      "body": "[#26764](https://github.com/anthropics/claude-code/issues/26764) is closest one, but there are no duplicates.\nWe could want to have both global per-model and per-agent configuration",
+      "created_at": "2026-03-13T20:40:54Z"
+    },
+    {
+      "author": "simfor99",
+      "author_association": "NONE",
+      "body": "+1 — strong use-case evidence from a multi-agent workflow running daily.\n\n## My scenario (Sanctum-OS, ~daily Claude Code use)\nMain agent: **Opus 4.6 [1M]** as orchestrator\nSubagents: parallel `general-purpose` + specialized agents, spawned 4-6 at a time for:\n- Codebase analysis (large repos, heavy Read/Grep)\n- Parallel web research\n- Multi-agent GTM pipelines (6+ agents per wave)\n\n## Why the global `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` breaks this\n- Main at 25-30% works perfectly — keeps Opus 1M res",
+      "created_at": "2026-04-14T18:15:58Z"
+    }
+  ]
+}

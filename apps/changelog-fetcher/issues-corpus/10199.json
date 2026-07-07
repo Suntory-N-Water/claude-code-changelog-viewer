@@ -1,0 +1,42 @@
+{
+  "number": 10199,
+  "title": "[BUG] API Error 400 - Thinking Block Modification Error",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe Claude Code session became completely unresponsive with repeated API 400 errors. Every subsequent user input triggered the same error, making recovery impossible.\n\n**Symptom**: Session entered an error loop where the conversation history reached a corrupted state:\n1. A previous assistant response contained thinking blocks\n2. The system attempted to modify or replay that message's thinking blocks\n3. The API correctly rejected this (thinking blocks are immutable once sent)\n4. The error persisted because the corrupted state remained in conversation history\n\n**Error Pattern**: The error occurred at `messages.71.content.8` (71st message, 8th content block), indicating:\n- Deep conversation history (71 messages)\n- Specific content block contained thinking blocks that couldn't be modified\n- Every subsequent user input triggered the same error\n\n**Contributing Factors**:\n- **Long session**: Nearly 15k lines of transcript suggests extended conversation\n- **Complex workflow**: Multiple tool calls, file reads, git operations\n- **Repeated questions**: Same question asked multiple times may have confused state\n- **Message editing attempt**: The system may have tried to edit/retry previous responses\n\n**Impact**:\n- **Session Status**: Completely unrecoverable\n- **User Action**: Had to save transcript and start new session\n- **Work Status**: Context lost mid-conversation about a technical topic\n- **Data Loss**: Any uncommitted mental state/context\n\n**What Was Lost**:\n- Active conversation context and unresolved questions\n- Current working state and recent discussion topics\n- Mental model of the problem being discussed\n\n\n### What Should Happen?\n\n**Expected Behavior**:\n- Claude Code should handle long conversations gracefully without entering unrecoverable error states\n- If thinking blocks cannot be modified (as per API constraint), the system should detect this condition before submitting the request\n- When errors occur, the system should offer graceful degradation options\n\n**Ideal Recovery Flow**:\n1. Detect when conversation state is approaching problematic conditions\n2. Offer to summarize current state\n3. Save context to file automatically\n4. Start fresh session with context restored\n5. Or provide mechanism to \"rewind\" conversation history to before corrupted state\n\n**Preventive Measures That Should Exist**:\n- Conversation state validation to detect when thinking blocks are being modified\n- Message history pruning or summarization for very long conversations\n- Threshold warnings when conversation history reaches risky size (>10k lines)\n- Checkpoint mechanism to enable rollback to stable state\n\n\n### Error Messages/Logs\n\n```shell\n### Primary Error Message\n\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.71.content.8: `thinking` or `redacted_thinking` blocks in the latest assistant message cannot be modified. These blocks must remain as they were in the original response.\"},\"request_id\":\"req_011CUQZ6ttKtJbU8JQRYyizo\"}\n\n\n### Error Repetition Pattern\n\nLine 14957: User asks question → API Error 400\nLine 14961: User asks same question → API Error 400 (same request)\nLine 14965: User asks same question → API Error 400 (same request)\nLine 14969: User references the error itself → API Error 400\nLine 14974: User asks to update memory files → API Error 400\n\n\n### Technical Details\n\n**API Endpoint**: Anthropic Claude API (claude.code integration)\n\n**Error Type**: `invalid_request_error`\n\n**Error Message Pattern**:\n\nmessages.{N}.content.{M}: `thinking` or `redacted_thinking` blocks in the latest\nassistant message cannot be modified. These blocks must remain as they were in\nthe original response.\n\n\nWhere:\n- `{N}` = Message index in conversation history (71 in",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "area:api",
+    "oncall"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-23T18:22:59Z",
+  "updated_at": "2026-06-26T18:01:18Z",
+  "closed_at": null,
+  "reactions_total": 62,
+  "comments_count": 100,
+  "author": "WamBamBoozle",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "---\n\nFound 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/2171\n2. https://github.com/anthropics/claude-code/issues/1702\n3. https://github.com/anthropics/claude-code/issues/2608\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\n---",
+      "created_at": "2025-10-23T18:30:00Z"
+    },
+    {
+      "author": "WamBamBoozle",
+      "author_association": "NONE",
+      "body": "not a duplicate -- all the false positives listed above have different error messages",
+      "created_at": "2025-10-23T18:53:51Z"
+    },
+    {
+      "author": "chops",
+      "author_association": "NONE",
+      "body": "Experiencing a similar issue with CC throwing 400's.\n\nClaude Code Version: 2.0.25\nLogin method: Claude Max Account\nModel: Sonnet 4.5 (default)\nOS: GNU Guix\nTERM: xterm-256color (via ssh)",
+      "created_at": "2025-10-23T19:52:58Z"
+    }
+  ]
+}

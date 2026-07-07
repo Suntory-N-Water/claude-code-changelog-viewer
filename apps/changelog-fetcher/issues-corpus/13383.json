@@ -1,0 +1,35 @@
+{
+  "number": 13383,
+  "title": "[BUG]",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# Bug Report: MCP Tool Large Screenshot Causes Unescapable Infinite Loop\n\n## Preflight Checklist\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n## Bug Description\n\nWhen using an MCP tool (e.g., `chrome-devtools`) to take a screenshot, if the resulting image is too large (5MB+), Claude Code enters an **infinite loop** that cannot be escaped through normal means.\n\nThe error message displayed is:\n```\nImage was too large. Double press esc to go back and try again with a smaller image.\n```\n\nHowever, the suggested action (double press ESC) does not work effectively. The only way to break out of this loop is to use the `/clear` command, which loses all conversation context.\n\n## Steps to Reproduce\n\n1. Configure an MCP tool that can take screenshots (e.g., `chrome-devtools`)\n2. Use the MCP tool to navigate to a page and take a screenshot\n3. The screenshot is saved successfully (in my case, to `/var/folders/.../screenshot.png`)\n4. Claude automatically attempts to read the image\n5. If the image is large (5MB-20MB), the error appears: \"Image was too large\"\n6. Try any of the following:\n   - Type \"continue\" → Claude retries viewing the same large image → same error\n   - Press stop → Ask a new question → Claude still tries to view the image → same error\n   - Double press ESC → Does not effectively cancel the operation\n7. The loop continues indefinitely until `/clear` is used\n\n## Expected Behavior\n\n1. **Graceful failure**: When an image is too large, Claude should acknowledge the failure and move on without retrying\n2. **Effective cancellation**: The ESC key or stop button should completely cancel the image viewing attempt\n3. **No automatic retry**: Claude should not automatically retry viewing the same too-large image\n4. **Alternative options**: Claude could offer to:\n   - Skip the image and continue the conversation\n   - Suggest resizing the image\n   - Provide the file path for manual inspection\n\n## Actual Behavior\n\n- Claude enters an infinite retry loop\n- Cannot escape without `/clear`\n- Loses all conversation context when forced to use `/clear`\n- The \"double press ESC\" suggestion in the error message does not resolve the issue\n\n## Environment Info\n\n- **Platform**: macOS (darwin)\n- **Terminal**: Standard terminal / iTerm2\n- **MCP Tool**: chrome-devtools (but likely affects any MCP tool that returns large images)\n- **Image Size**: ~5MB-20MB (screenshot of a full webpage)\n\n## Screenshots / Logs\n\n```\n● chrome-devtools - navigate_page (MCP)(type: \"url\", url: \"https://example.pages.dev/login\")\n  └ # navigate_page response\n    Successfully navigated to https://example.pages.dev/login.\n    ## Pages\n    0: https://example.pages.dev/login [selected]\n\n● chrome-devtools - list_network_requests (MCP)(resourceTypes: [\"fetch\",\"xhr\"])\n  └ # list_network_requests response\n    ## Network requests\n    No requests found.\n  # take_screenshot response\n    Took a screenshot of the current page's viewport.\n    Saved screenshot to /var/folders/.../screenshot.png.\n\n● Read(/var/folders/.../screenshot.png)\n  └ Read image (5MB)\n\n● Image was too large. Double press esc to go back and try again with a smaller image.\n\n> continue\n\n● Image was too large. Double press esc to go back and try again with a smaller image.\n```\n\n## Impact\n\n- **Workflow disruption**: Users are forced to lose all conversation context\n- **No graceful recovery**: The only workaround (`/clear`) is destructive\n- **Poor UX**: The error message suggests an action (double ESC) that doesn't fully resolve the issue\n\n## Suggested Fix\n\n1. Implement a maximum retry count (e.g., 1 attempt) for large images\n2. After failure, mark",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-08T14:59:42Z",
+  "updated_at": "2026-06-30T01:58:42Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 7,
+  "author": "feek13",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13179\n2. https://github.com/anthropics/claude-code/issues/13175  \n3. https://github.com/anthropics/claude-code/issues/9049\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-08T15:04:58Z"
+    },
+    {
+      "author": "MussaCharles",
+      "author_association": "NONE",
+      "body": "Hi, I Built [claude-code-image-sanitizer](https://github.com/MussaCharles/claude-code-image-sanitizer) to stop this from happening. It resizes screenshots on the fly so they never exceed the limit. If you're already stuck in the loop, there's a repair tool to fix corrupted\n  sessions.\n\nWould appreciate any feedback or contributions.",
+      "created_at": "2025-12-08T16:33:42Z"
+    },
+    {
+      "author": "orderflowone",
+      "author_association": "NONE",
+      "body": "running /compact seems to save the conversation and allows me to continue. Though it basically clears the memory and I need claude to look at the codebase to continue",
+      "created_at": "2025-12-19T03:01:47Z"
+    }
+  ]
+}

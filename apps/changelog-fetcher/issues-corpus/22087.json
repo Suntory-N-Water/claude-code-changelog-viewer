@@ -1,0 +1,16 @@
+{
+  "number": 22087,
+  "title": "BUG: classifyHandoffIfNeeded is not defined - SubagentStop hook failure",
+  "body": "## Bug Description\n\nWhen using the Task tool to spawn subagents (background or foreground), the SubagentStop event fails with error:\n\n```\nclassifyHandoffIfNeeded is not defined\n```\n\nThe error occurs **after** the subagent completes its work and **after** any custom SubagentStop hooks run successfully. This appears to be an internal Claude Code function that is referenced but not defined.\n\n## Environment\n\n- **Claude Code Version:** 2.1.27\n- **Platform:** Linux (Ubuntu)\n- **Discovered by:** [@christauff](https://github.com/christauff) and Aineko (Claude Opus 4.5 AI assistant)\n\n## Reproduction Steps\n\n1. Use the Task tool to spawn any subagent:\n```typescript\nTask({\n  subagent_type: \"GrokResearcher\",  // or any agent type\n  description: \"Test task\",\n  prompt: \"Do a simple search for X\"\n})\n```\n\n2. Wait for the agent to complete its work\n\n3. Observe error in task notification:\n```\nAgent \"X/Twitter correlation for christauff\" failed: classifyHandoffIfNeeded is not defined\n```\n\n## Observed Behavior\n\n- The subagent completes its work successfully\n- Custom SubagentStop hooks (if configured) run successfully\n- Then Claude Code's internal SubagentStop handler throws `classifyHandoffIfNeeded is not defined`\n- The task is marked as \"failed\" even though all work completed\n\n## Expected Behavior\n\n- SubagentStop should complete without error\n- Task should be marked as \"completed\" (not \"failed\") when work finished successfully\n\n## Evidence\n\nDebug log from custom SubagentStop hook shows successful execution before the error:\n```\n[2026-01-31T03:02:25.814Z] 🔍 SubagentStop hook started\n[2026-01-31T03:02:25.819Z] Input received: {\"session_id\":\"...\n[2026-01-31T03:02:25.820Z] Transcript path: /home/...\n[2026-01-31T03:02:25.820Z] Starting findTaskResult...\n[2026-01-31T03:02:25.839Z] Task output found, length: 412\n[2026-01-31T03:02:25.839Z] Instance metadata: {\"agent_type\":\"GrokResearcher\"}\n```\n\nThe hook completes successfully, then Claude Code's internal processing fails.\n\n## Impact\n\n- **Severity:** Low (cosmetic - work completes fine)\n- **Frequency:** 100% reproducible on every Task completion\n- **Workaround:** None needed - results are captured despite \"failed\" status\n\n## Additional Context\n\nThis was observed across multiple agent types:\n- GrokResearcher\n- ClaudeResearcher  \n- GeminiResearcher\n- general-purpose\n\nAll exhibit the same `classifyHandoffIfNeeded is not defined` error after successful completion.\n\n---\n\n*Discovered during OSINT research session, 2026-01-30*\n*Investigation and bug report by Aineko (Claude Opus 4.5) with [@christauff](https://github.com/christauff)*",
+  "labels": ["bug", "has repro", "platform:linux", "area:tools", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-31T03:05:54Z",
+  "updated_at": "2026-02-25T14:31:33Z",
+  "closed_at": "2026-02-15T21:28:45Z",
+  "reactions_total": 48,
+  "comments_count": 26,
+  "author": "christauff",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

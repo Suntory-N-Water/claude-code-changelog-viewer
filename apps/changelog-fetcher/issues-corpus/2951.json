@@ -1,0 +1,16 @@
+{
+  "number": 2951,
+  "title": "[BUG] Permissions Issue",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.41\n- Operating System: Docker / Node:18-slim\n- Terminal:  bash?\n\n## Bug Description\nOperating the SDK in a docker container, both locally and through AWS ECS I had an issue where files were not being changed, the SDK/CLI was just erroring out. This is what i believe has happened, correct me if i'm off track. This was super hard to debug.\n\nI believe the Claude CLI is rejecting my request because:\n- Container runs as root (Docker default)\n- SDK sets permission_mode=\"bypassPermissions\" which maps to --dangerously-skip-permissions\n- CLI security feature prevents this when running as root\n- CLI exits immediately with error code 1\n\nAs such, no JSON output is produced → SDK gets 0 messages\n\n## Expected Behavior\nI'd expect something back to users, or an alternative mode by default. \n\n## Actual Behavior\nLost an afternoon wondering why the CLI worked but not the SDK. \n\n## Additional Context\nna",
+  "labels": ["bug", "platform:linux", "area:api", "area:security"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-03T19:51:08Z",
+  "updated_at": "2025-12-07T14:09:38Z",
+  "closed_at": "2025-11-30T03:53:32Z",
+  "reactions_total": 4,
+  "comments_count": 3,
+  "author": "Rucknar",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

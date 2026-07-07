@@ -1,0 +1,16 @@
+{
+  "number": 14799,
+  "title": "[BUG] Plugin install fails with EXDEV when /tmp is tmpfs",
+  "body": "## Description\n\nPlugin installation fails with `EXDEV: cross-device link not permitted` when `/tmp` is mounted as tmpfs (common default on modern Linux distros like Ubuntu, Fedora, Arch).\n\n## Steps to Reproduce\n\n1. Have `/tmp` mounted as tmpfs (default on Ubuntu 25.10, many other distros)\n2. Have `~/.claude` on a different filesystem (ext4, btrfs, etc.)\n3. Attempt to install any plugin via `/plugins` UI\n\n## Error Message\n\n```\nError: Failed to install: EXDEV: cross-device link not permitted, \nrename '/home/user/.claude/plugins/cache/hiivmind-corpus-github' -> '/tmp/claude-plugin-temp-1766187024245'\n```\n\n## Environment\n\n- **OS**: Ubuntu 25.10 (Questing Quetzal)\n- **Kernel**: 6.17.0-8-generic\n- **/tmp**: tmpfs mount (`tmpfs on /tmp type tmpfs`)\n- **~/.claude**: ext4 on nvme (`/dev/nvme0n1p2`)\n- **Claude Code Version**: Latest (1.0.40)\n\n## Root Cause\n\nNode.js `fs.rename()` cannot move files across filesystem boundaries. The plugin installer uses rename() to move between `~/.claude/plugins/cache/` and `/tmp/`, which fails with EXDEV when these are on different mount points.\n\nThis is increasingly common as:\n- Ubuntu 21.04+ defaults to tmpfs for /tmp\n- Fedora, Arch, and others also use tmpfs /tmp by default\n- Many users have /home on a separate partition\n\n## Workaround\n\nSet TMPDIR to a location on the same filesystem as ~/.claude:\n\n```bash\nmkdir -p ~/.claude/tmp\nTMPDIR=~/.claude/tmp claude\n```\n\nOr permanently in shell profile:\n```bash\necho 'export TMPDIR=\"$HOME/.claude/tmp\"' >> ~/.bashrc\n```\n\n## Suggested Fix\n\nCatch EXDEV error and fall back to copy+unlink pattern:\n\n```javascript\ntry {\n  fs.renameSync(src, dest);\n} catch (err) {\n  if (err.code === 'EXDEV') {\n    fs.cpSync(src, dest, { recursive: true });\n    fs.rmSync(src, { recursive: true, force: true });\n  } else {\n    throw err;\n  }\n}\n```\n\nThis is the standard pattern for handling cross-device moves in Node.js.\n\n## Related\n\n- #13503 - Similar rename issue (EINVAL, different root cause)",
+  "labels": ["bug", "has repro", "platform:linux"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-20T00:00:47Z",
+  "updated_at": "2026-02-21T14:14:41Z",
+  "closed_at": "2026-02-13T20:24:53Z",
+  "reactions_total": 49,
+  "comments_count": 10,
+  "author": "discreteds",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

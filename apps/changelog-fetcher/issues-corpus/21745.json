@@ -1,0 +1,35 @@
+{
+  "number": 21745,
+  "title": "Feature Request: Programmatic API for enabling/disabling MCPs without restart",
+  "body": "## Problem\n\nCurrently, users can enable/disable MCP servers in two ways:\n\n1. **Via `/mcp` interactive menu** - Works without restart (hot-reload) ✅\n2. **Via editing `.claude.json`** - Requires Claude Code restart ❌\n\nWhile the interactive menu is great for manual control, there's no programmatic way to toggle MCPs on/off without restarting, which limits automation capabilities.\n\n## Use Case\n\nUsers want to create custom skills/commands that can dynamically enable/disable MCPs based on context. For example:\n\n- **Project-specific MCP profiles**: Enable only relevant MCPs for a project type\n- **Performance optimization**: Disable heavy MCPs during specific tasks\n- **Batch operations**: Toggle multiple MCPs programmatically\n- **Automated workflows**: Enable/disable MCPs as part of a script or hook\n\nExample desired workflow:\n```bash\n# Custom skill that prepares environment for frontend work\n/setup-frontend\n→ Disables: mysql, postgres, docker MCPs\n→ Enables: playwright, browser, figma MCPs\n→ No restart needed\n```\n\n## Current Investigation\n\nI've investigated the codebase structure and found:\n\n**What works:**\n- `.claude.json` structure:\n  ```json\n  {\n    \"projects\": {\n      \"/path/to/project\": {\n        \"disabledMcpServers\": [\"context7\", \"slack\"]\n      }\n    }\n  }\n  ```\n- `/mcp` menu successfully modifies this structure AND triggers hot-reload\n- Skills can modify `.claude.json` but changes only apply after restart\n\n**What's missing:**\n- No programmatic API to trigger the internal reload function that `/mcp` uses\n- Skills have no access to the runtime that manages MCP processes\n\n## Proposed Solution\n\nAdd one of the following:\n\n### Option 1: Expose MCP control via Bash tool commands\n```bash\nclaude mcp enable context7\nclaude mcp disable slack\nclaude mcp reload  # Force reload config\n```\n\n### Option 2: Add dedicated MCP control tool\nSimilar to existing tools (Read, Write, Bash), add:\n- `MCPEnable(server_name)`\n- `MCPDisable(server_name)`\n- `MCPReload()`\n\n### Option 3: Add skill-accessible IPC endpoint\nAllow skills to send commands to Claude Code runtime:\n```bash\n# Skills could use this internally\necho '{\"action\":\"mcp.disable\",\"server\":\"context7\"}' > ~/.claude/.runtime/commands.fifo\n```\n\n## Benefits\n\n1. **Automation**: Users can create sophisticated workflows\n2. **Context-aware**: MCPs auto-enable/disable based on project\n3. **Performance**: Programmatically disable unused MCPs\n4. **Developer experience**: More powerful customization\n\n## Additional Context\n\n- Current behavior: Modifying `.claude.json` requires restart\n- Desired behavior: Programmatic changes apply immediately (like `/mcp` menu)\n- This would unlock powerful automation capabilities while maintaining the same UX as the interactive menu\n\n## Related\n\nThis would pair well with existing features:\n- Hooks (`.claude/settings.json`)\n- Custom commands (`.claude/commands/`)\n- Project-specific configs (`.claude.json` per project)\n\n---\n\n**Would love to see this feature!** It would significantly enhance Claude Code's automation and customization capabilities.",
+  "labels": ["duplicate"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-29T17:37:59Z",
+  "updated_at": "2026-02-10T14:37:36Z",
+  "closed_at": "2026-02-02T09:22:08Z",
+  "reactions_total": 10,
+  "comments_count": 3,
+  "author": "programadorEmerson",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/10447\n2. https://github.com/anthropics/claude-code/issues/14067\n3. https://github.com/anthropics/claude-code/issues/20365\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-29T17:41:45Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been automatically closed as a duplicate of #10447.\n\nIf this is incorrect, please re-open this issue or create a new one.\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-02T09:22:11Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been automatically locked since it was closed and has not had any activity for 7 days. If you're experiencing a similar issue, please file a new issue and reference this one if it's relevant.",
+      "created_at": "2026-02-10T14:37:35Z"
+    }
+  ]
+}

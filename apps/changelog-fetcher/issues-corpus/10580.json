@@ -1,0 +1,35 @@
+{
+  "number": 10580,
+  "title": "[Bug] Claude consistently misspells user home directory path in file operations",
+  "body": "**Bug Description**\nClaude Code (with Sonnet 4.5) gets consistently confused with my home directory of /home/tbekolay. Across many sessions and even if corrected, it will typo my home directory as /home/tbekolag (always the same typo). The recent thinking in this conversation is a striking example of how it cannot seem to fathom that my home directory is /home/tbekolay. This results in repeated loops of it trying to find files, failing, then trying again and eventually it will get it. I'm assuming that this is wasting tokens.\n\nThe thinking in question:\n\n```\n> # My home directory is /home/tbekolay\n\n∴ Thinking…\n\n  The user is correcting me - I was using the wrong path. They're saying their home directory is /home/tbekolay, not /home/tbekolag. I've been making typo errors in the file paths. Let me acknowledge this correction.\n\n  Actually, looking back at my attempts to read files, I see I tried:\n  - /home/tbekolag/Code/proj/docs/REQUIREMENTS.md\n  - /home/tbekolag/Code/proj/mockups/morning-routine.html\n\n  But then succeeded with:\n  - /home/tbekolag/Code/proj/mockups/morning-routine.html\n\n  Wait, that's odd. Let me check the working directory from the env block at the start:\n  \"Working directory: /home/tbekolag/Code/proj\"\n\n  Hmm, but the user is saying their home directory is /home/tbekolag. Oh wait, I see the issue - I'm spelling it \"tbekolag\" when it should be \"tbekolag\" in the working directory. But they're saying it's \"tbekolag\". Let me re-read...\n\n  Actually, looking at the env:\n  \"Working directory: /home/tbekolag/Code/proj\"\n\n  And the user is saying:\n  \"# My home directory is /home/tbekolag\"\n\n  These match! So the user is just confirming the correct path. Maybe they noticed I had some failed file reads earlier and wanted to make sure I have the right path? Or maybe they're just providing context.\n```\n\nClaude Code is incorrect, `/home/tbekolag` does not exist, and is not the working directory.\n\n**Environment Info**\n- Platform: linux\n- Terminal: WezTerm\n- Version: 2.0.27\n- Feedback ID: 2c5faa14-db18-45b4-ba66-d96535229354",
+  "labels": ["bug", "has repro", "platform:linux", "area:tools"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-29T16:07:31Z",
+  "updated_at": "2026-02-12T14:29:01Z",
+  "closed_at": "2026-01-26T10:13:17Z",
+  "reactions_total": 4,
+  "comments_count": 13,
+  "author": "tbekolay",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "bhavanki",
+      "author_association": "NONE",
+      "body": "I'm seeing the same issue. In one run, it spelled my home directory as `bhavaniki` and subsequently failed to do basic editing work because it was looking in the wrong place.\n\nI ran a fresh context and quizzed it, and it made a _different_ spelling error, and didn't even understand the nature of its error. This is using Sonnet 4.5.\n\n```\n> OK Claude. What is the path to my home directory?\n\n⏺ Based on the paths I can see in the environment, your home directory is /Users/bhavanaki.\n\n> Which path in",
+      "created_at": "2025-10-31T21:24:00Z"
+    },
+    {
+      "author": "bhavanki",
+      "author_association": "NONE",
+      "body": "After further experimenting, it looks like Sonnet 4.5 is the problem. When I use Sonnet 3.7 or 4 for large tasks, everything works as expected. I've tried a few ways to instruct Claude under Sonnet 4.5 to verify / alter the home directory, but nothing works. Even when I ask it to confirm my instruction, it describes it using a misspelled directory name.",
+      "created_at": "2025-11-20T22:03:22Z"
+    },
+    {
+      "author": "tbekolay",
+      "author_association": "NONE",
+      "body": "Yes, I agree that the bug is in Sonnet 4.5 as I've never experienced this issue with Opus 4.1.",
+      "created_at": "2025-11-21T15:42:19Z"
+    }
+  ]
+}

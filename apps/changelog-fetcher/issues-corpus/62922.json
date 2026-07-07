@@ -1,0 +1,35 @@
+{
+  "number": 62922,
+  "title": "Multiline input: arrow keys should navigate lines, not history",
+  "body": "Codex CLI supports up/down navigation within multiline input. Claude Code does not. When editing a multi-line message, pressing up/down arrows jumps to command history instead of moving between lines, making it hard to edit longer messages.",
+  "labels": ["enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-27T20:41:29Z",
+  "updated_at": "2026-06-11T10:04:58Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 6,
+  "author": "showsf",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "adamjgmiller",
+      "author_association": "NONE",
+      "body": "Confirming — but flagging that this is a **regression**, not a missing feature.\n\nUp/down line navigation was working in my multiline prompts until ~2 days ago (broken since ~2026-05-26 for me, Linux). Worth noting it's broken-and-been-fixed before too: comments on the now-closed #20328 pinpoint v2.1.19 as the version it broke in back in January (last working v2.1.14). So this code path appears to regress periodically.\n\nSuggest labeling `bug` and bisecting against the last 2-3 releases.",
+      "created_at": "2026-05-28T04:08:24Z"
+    },
+    {
+      "author": "artisticmedic",
+      "author_association": "NONE",
+      "body": "+1 on macOS — Claude Code 2.1.153, Darwin 25.5.0, cmux terminal. Broke this past week for me too.\n\nAdditional finding worth noting for triage: unbinding `up`/`down` in the `Chat` context via `~/.claude/keybindings.json` (setting both to `null`) does **not** restore visual-row navigation across soft-wrapped lines. Hard newlines (`Shift+Enter`) navigate fine; soft-wrapped logical lines do not. So the fall-through behavior of the input widget itself treats a wrapped line as a single logical line — ",
+      "created_at": "2026-05-28T08:47:36Z"
+    },
+    {
+      "author": "scalebloom",
+      "author_association": "NONE",
+      "body": "FYI this is actually a **regression**, not a missing feature — multi-line cursor navigation worked correctly in 2.1.148 and broke in 2.1.149+. See #62736 (canonical) and #63191 (Windows bisect).\n\nProbably worth retagging this from `enhancement` to `bug`/`regression` so it lands on the right triage queue.\n",
+      "created_at": "2026-05-28T17:26:42Z"
+    }
+  ]
+}

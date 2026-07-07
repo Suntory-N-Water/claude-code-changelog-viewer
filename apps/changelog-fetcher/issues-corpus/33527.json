@@ -1,0 +1,35 @@
+{
+  "number": 33527,
+  "title": "Auto-rename sessions based on conversation context",
+  "body": "## Problem\n\nWhen working across multiple Claude Code sessions in separate terminal tabs (e.g., iTerm2), it's difficult to identify which tab contains which work. The only way to distinguish sessions is by manually running `/name`, which breaks flow and is easy to forget.\n\nThe current session identifier is a UUID, which provides no context at a glance.\n\n## Proposed solution\n\nAutomatically generate a short, descriptive session name based on the conversation context. This could work as:\n\n1. **Auto-name on first substantive interaction** — after the first tool call or user message, generate a name like `\"symfony-upgrade-debugging\"` or `\"fix-auth-middleware\"`.\n2. **Re-rename mid-flight** — as the conversation evolves, update the name if the focus shifts significantly (e.g., from debugging to refactoring).\n\n### Possible implementation approaches\n\n- **LLM-generated name:** Use a lightweight model call (e.g., Haiku) to summarize the session topic into 2-4 words after the first few exchanges.\n- **Heuristic-based:** Derive a name from the first file edited, branch name, or slash command used.\n- **Hook-based:** Expose an `on_session_start` or `on_context_change` hook, plus a `SessionRename` tool, so users can implement custom naming logic via skills or hooks.\n\n### Configuration\n\n- A setting to opt in/out (e.g., `\"autoNameSessions\": true` in settings)\n- Respect manually set names — don't overwrite a name the user set with `/name`\n\n## Use case\n\nA typical workflow involves 3-5 concurrent Claude Code sessions in iTerm tabs — one per feature branch or task. Today, the only way to find the right tab is to switch to each one and read the conversation. Auto-generated descriptive names would make tab-switching instant, especially with iTerm's tab title display.\n\n## Alternatives considered\n\n- **Manual `/name`:** Works but requires discipline and interrupts flow.\n- **Custom skill:** Skills cannot programmatically rename sessions — there's no `SessionRename` tool or equivalent API available to them.",
+  "labels": ["duplicate", "enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-12T07:56:41Z",
+  "updated_at": "2026-03-23T10:30:42Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 6,
+  "author": "michal-giergielewicz",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ruchernchong",
+      "author_association": "NONE",
+      "body": "I remembered I saw @ThariqS or @bcherny mentioning on social media now that there is auto name session?",
+      "created_at": "2026-03-14T04:31:14Z"
+    },
+    {
+      "author": "rookledookle",
+      "author_association": "NONE",
+      "body": "> I remembered I saw [@ThariqS](https://github.com/ThariqS) or [@bcherny](https://github.com/bcherny) mentioning on social media now that there is auto name session?\n\nDon't think so - only renaming worktrees I think ",
+      "created_at": "2026-03-17T06:42:36Z"
+    },
+    {
+      "author": "ruchernchong",
+      "author_association": "NONE",
+      "body": "Looks like this now partially works when leaving Plan Mode. ",
+      "created_at": "2026-03-18T02:25:49Z"
+    }
+  ]
+}

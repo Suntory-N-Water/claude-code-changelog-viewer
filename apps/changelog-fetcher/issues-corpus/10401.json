@@ -1,0 +1,35 @@
+{
+  "number": 10401,
+  "title": "[BUG] All hooks (SessionStart, Stop, UserPromptSubmit) require --debug flag to execute in v2.0.27",
+  "body": "## Summary\nAll hook types (`SessionStart`, `Stop`, `UserPromptSubmit`) fail to execute in normal Claude Code operation. Hooks only fire when Claude Code is launched with the `--debug` flag (specifically `--debug hooks`), forcing users to run in verbose debug mode for basic hook functionality.\n\n## Environment\n- **Claude Code Version**: 2.0.27\n- **Platform**: macOS Darwin 24.4.0\n- **Installation**: npm global install (`~/.claude/local/node_modules/.bin/claude`)\n- **Configuration**: `~/.claude/settings.json`\n\n## Bug Description\n\n### Observed Behavior\n1. **Without `--debug` flag**: NO hooks execute (SessionStart, Stop, UserPromptSubmit)\n   - No log file creation\n   - No script execution\n   - No evidence of hooks being triggered\n   - `--verbose` mode shows no hook activity\n\n2. **With `--debug` flag**: ALL hooks work correctly\n   - Scripts execute as expected\n   - Log files created\n   - Proper JSON input passed to hooks\n   - Hook completion messages appear\n\n### Impact\nThis breaks automated workflows that depend on hooks for:\n- Session preservation (SessionStart)\n- Cleanup operations (Stop)\n- Input validation (UserPromptSubmit)\n- Background processing integration\n\n## Reproduction Steps\n\n### 1. Configure hooks in `~/.claude/settings.json`\n```json\n{\n  \"hooks\": {\n    \"SessionStart\": [\n      {\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/usr/local/bin/test-hook.sh\"\n          }\n        ]\n      }\n    ],\n    \"Stop\": [\n      {\n        \"matcher\": \"\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/usr/local/bin/stop-hook.sh\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n### 2. Create test hook script (`/usr/local/bin/test-hook.sh`)\n```bash\n#!/bin/bash\necho \"Hook executed at $(date)\" >> /tmp/hook-test.log\nINPUT=$(cat)\necho \"Input received: $INPUT\" >> /tmp/hook-test.log\n```\n\n### 3. Test without debug mode\n```bash\nclaude\n# Make some interactions\n# Exit\ncat /tmp/hook-test.log  # File doesn't exist or has no new entries\n```\n\n### 4. Test WITH debug mode\n```bash\nclaude --debug\n# Make some interactions\n# Exit\ncat /tmp/hook-test.log  # File exists with hook execution logs!\n```\n\n## Expected Behavior\nHooks should execute in normal mode without requiring `--debug` flag. Debug mode should only add verbose logging, not enable core functionality.\n\n## Actual Behavior\nHooks are completely non-functional unless `--debug` is specified, forcing all hook-dependent workflows to run in debug mode.\n\n## Workaround\nCreated wrapper script at `/usr/local/bin/claude` that forces `--debug hooks` mode:\n```bash\n#!/bin/bash\n# WORKAROUND: Claude Code 2.0.27 bug - hooks only work with --debug flag\nif [[ ! \"$*\" =~ --debug ]]; then\n    exec \"/Users/ant/.claude/local/node_modules/.bin/claude\" --debug hooks \"$@\"\nelse\n    exec \"/Users/ant/.claude/local/node_modules/.bin/claude\" \"$@\"\nfi\n```\n\n**Note**: Using `--debug hooks` specifically (not just `--debug`) enables hook-specific debugging which appears to be required for hooks to fire at all.\n\n## Additional Context\n\n### Hook types tested (all broken without --debug):\n- ✅ `SessionStart` - works ONLY with --debug\n- ✅ `Stop` - works ONLY with --debug  \n- ✅ `UserPromptSubmit` - works ONLY with --debug\n\n### Related Issues\n- #6305 - PreToolUse/PostToolUse hooks not executing (possibly same root cause)\n- #6403 - PostToolUse hooks comprehensive testing\n- #2814 - Multiple hook system issues\n- #3091 - Hooks don't work per-project\n\n### Potential Root Cause\nThis suggests hook initialization logic may be incorrectly placed inside debug-mode-only code paths, preventing hook registration/firing in normal operation.\n\n## Request\nPlease investigate why hooks require `--debug` mode to function. This is a critical regression that breaks automated workflows and forces users into debug mode for basic hook functionality.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-27T01:09:54Z",
+  "updated_at": "2026-01-20T14:17:35Z",
+  "closed_at": "2026-01-12T10:14:10Z",
+  "reactions_total": 5,
+  "comments_count": 10,
+  "author": "anthonyjj89",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "anthonyjj89",
+      "author_association": "NONE",
+      "body": "## Additional Evidence: Related Issue\n\nJust discovered #10399 which reports the exact same bug from a different user:\n- Hooks worked in v2.0.25\n- Stopped working in v2.0.27\n- Affects Stop and SessionEnd hooks\n\nThis confirms this is a **regression in v2.0.27** affecting multiple hook types and multiple users.\n\nCombined evidence:\n- #10399: Stop/SessionEnd hooks broken\n- This issue: SessionStart/Stop/UserPromptSubmit broken\n- **Common factor**: All hooks broken in 2.0.27 unless `--debug` flag is us",
+      "created_at": "2025-10-27T01:12:34Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/10399\n2. https://github.com/anthropics/claude-code/issues/10287  \n3. https://github.com/anthropics/claude-code/issues/10367\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-27T01:14:39Z"
+    },
+    {
+      "author": "anthonyjj89",
+      "author_association": "NONE",
+      "body": "It is a duplicate but I dont see mention of the debug work around in the other issue reports. \n\nI want to know if that works for others too",
+      "created_at": "2025-10-27T01:23:34Z"
+    }
+  ]
+}

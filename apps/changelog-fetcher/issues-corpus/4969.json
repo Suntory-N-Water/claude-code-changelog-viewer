@@ -1,0 +1,16 @@
+{
+  "number": 4969,
+  "title": "[Feature Request] Add $CLAUDE_RESPONSE environment variable to Stop hook",
+  "body": "# Feature Request: Add $CLAUDE_RESPONSE environment variable to Stop hook\n\n## Description\nCurrently, the Stop hook event does not provide access to Claude's response text through environment variables, making it impossible to implement features like voice notification or response logging.\n\n## Problem Statement\n- The Stop hook is triggered when Claude finishes responding\n- However, the response text is not accessible via any environment variable\n- This limits the ability to create accessibility features or response processing tools\n\n## Proposed Solution\nAdd `$CLAUDE_RESPONSE` environment variable to the Stop hook event, similar to how `$CLAUDE_USER_PROMPT` is available in UserPromptSubmit.\n\n## Use Cases\n1. **Voice notification systems** - Text-to-speech for Claude's responses\n2. **Response logging** - Save responses for analysis or documentation\n3. **External tool integration** - Send responses to other applications\n4. **Accessibility features** - Help visually impaired users by reading responses aloud\n5. **Translation services** - Automatically translate responses to other languages\n\n## Example Implementation\n```json\n{\n  \"hooks\": {\n    \"Stop\": [{\n      \"matcher\": \".*\",\n      \"hooks\": [{\n        \"type\": \"command\",\n        \"command\": \"python voice_reader.py --response \\\"$CLAUDE_RESPONSE\\\"\"\n      }]\n    }]\n  }\n}\n```\n\n## Expected Behavior\nWhen Claude completes a response, the `$CLAUDE_RESPONSE` environment variable should contain:\n- The full text of Claude's response\n- Excluding system messages and function call results\n- Plain text format (markdown rendered as text)\n\n## Current Workaround\nNone available - the response text is not accessible through any hook or environment variable.\n\n## Additional Context\nThis feature would greatly enhance the extensibility of Claude Code, especially for:\n- Users with visual impairments\n- Non-native English speakers who benefit from audio\n- Developers building Claude Code extensions\n- Productivity tools that process Claude's outputs\n\n## Technical Considerations\n- The response text should be properly escaped for shell commands\n- Consider size limits for very long responses\n- Handle multi-line responses appropriately\n- Ensure proper encoding (UTF-8)\n\n---\n\n**Submitted by**: A Claude Code user implementing voice notification features\n**Date**: August 2, 2025\n**Claude Code Version**: Latest",
+  "labels": ["enhancement", "area:a11y", "area:core", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-02T08:54:06Z",
+  "updated_at": "2026-01-13T14:13:15Z",
+  "closed_at": "2026-01-05T10:15:27Z",
+  "reactions_total": 0,
+  "comments_count": 7,
+  "author": "xxGodLiuxx",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

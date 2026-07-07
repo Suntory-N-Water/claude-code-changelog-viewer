@@ -1,0 +1,35 @@
+{
+  "number": 18131,
+  "title": "[BUG] API Error 400 \"tool use concurrency issues\" occurs only in print mode (-p), not in interactive mode",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen running Claude Code in print mode (`-p` flag), even simple commands like `echo hello` fail with \"API Error: 400 due to tool use concurrency issues.\"\n\nThis error does NOT occur in interactive mode - only in print/pipeable mode.\n\nI'm aware that #11421 is still open for the same error message, but that issue describes a different scenario:\n- **#11421**: Occurs in interactive mode during parallel tool execution (3 Bash commands running simultaneously)\n- **This issue**: Occurs in print mode (`-p`) with simple prompts like `echo hello`, with NO parallel tool execution involved\n\nSince this appears to be a print-mode-specific manifestation of the underlying issue (and print mode was not covered in #11421 or the many closed duplicates like #8763, #9433, #9103, #9002, #15261), I'm filing a new issue to track this specific case.\n\n\n### What Should Happen?\n\nClaude Code should execute simple commands in print mode without API errors, just as it does in interactive mode.\n\n### Error Messages/Logs\n\n```shell\n~ via 🥟 v1.3.6\n❯ claude -p --dangerously-skip-permissions \"echo hello\"\nAPI Error: 400 due to tool use concurrency issues.\n\n~ via 🥟 v1.3.6 took 9s\n❯ claude -p \"echo hello\"\nAPI Error: 400 due to tool use concurrency issues.\n```\n\n### Steps to Reproduce\n\n1. Open terminal\n2. Run `claude -p \"echo hello\"` or `claude -p --dangerously-skip-permissions \"echo hello\"`\n3. Observe the 400 error\n\nNote: The same prompt works fine in interactive mode (`claude` without `-p`).\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.7\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n- This appears to be a print-mode-specific issue, as interactive mode works without problems\n- Multiple MCP servers are configured, but the error occurs even with minimal prompts\n- Related open issue: #11421 (different scenario - interactive mode with parallel tools)\n- Related closed issues: #8763, #9433, #9103, #9002, #15261",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-14T11:19:44Z",
+  "updated_at": "2026-05-26T15:29:38Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 5,
+  "author": "convcha",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ccolas",
+      "author_association": "NONE",
+      "body": "Same issue here with v2.1.19.                                                                                                                                                    \n                                                                                                                                                                                   \n  **Reproduction command**                                                                                                                    ",
+      "created_at": "2026-01-24T14:19:22Z"
+    },
+    {
+      "author": "matchpoint-ai-bot",
+      "author_association": "NONE",
+      "body": "Adding another repro + environment for print mode failure.\n\nEnvironment\n- Claude Code: 2.1.19 (regression)\n- OS: Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-90-generic x86_64)\n- Node: v22.22.0\n\nBehavior\n- Print mode (-p) tool use fails with: API 400 \"tool_use ids must be unique\"\n\nRepro\n`claude --dangerously-skip-permissions -p \"Use Read tool to read ./README.md\" --output-format stream-json --verbose`\n\nWorkaround\n- Downgraded to 2.1.17: print-mode tool use works again\n\nExtra\n- Non-interactive `claude doc",
+      "created_at": "2026-01-24T15:45:13Z"
+    },
+    {
+      "author": "elpinguinofrio",
+      "author_association": "NONE",
+      "body": "Same issue, but it seems related to calling our Claude instance with the -p flag while in planning mode. ",
+      "created_at": "2026-01-24T19:51:16Z"
+    }
+  ]
+}

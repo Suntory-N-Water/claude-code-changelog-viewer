@@ -1,0 +1,35 @@
+{
+  "number": 1132,
+  "title": "[BUG] Bash Tool JQ Command Escaping Issue",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 0.2.115 (Claude Code)\n- Operating Systems: \n  - macOS Darwin 24.4.0\n  - Ubuntu linux \n```ClaudeExecStepOutput\n! ~/.claude/local/claude --version\n  ⎿  0.2.98 (Claude Code)\n! lsb_release --version\n  ⎿  LSB Version:\tcore-11.1.0ubuntu4-noarch:printing-11.1.0ubuntu4-noarch:security-11.1.0ubuntu4-noarc\n\n```\n- Terminal: Command line through Claude Code\n\n## Bug Description\nThe Bash tool in Claude Code has a critical escaping bug that corrupts\njq commands containing the pattern `.entries[]|`. This pattern gets\nincorrectly transformed during command preparation, causing stdin\nredirection syntax (`< /dev/null`) to be injected into the middle of\njq expressions, resulting in syntax errors that make many common jq\nqueries impossible to execute.\n\n## Steps to Reproduce\n1. Create a JSON file with an `entries` array structure:\n   ```json\n   {\"entries\": [{\"title\": \"test\"}, {\"title\": \"example\"}]}\n   ```\n2. Execute a jq command using the Bash tool with array filtering:\n   ```ClaudeExecStepOutput\n   Bash('jq \\'[.entries[]|select(.title==\"test\")]|length\\' file.json')\n   ```\n3. The command fails with a jq syntax error\n\n## Expected Behavior\nThe jq command should execute correctly and return the count of matching entries:\n```bash\n$ jq '[.entries[]|select(.title==\"test\")]|length' file.json\n1\n```\n\n## Actual Behavior\nThe command fails with a syntax error because the pipe character is corrupted:\n```\njq: error: syntax error, unexpected '/' (Unix shell quoting issues?) at <top-level>, line 1:\n[.entries[] < /dev/null | select(.title==\"test\")]|length\n```\n\nThe pattern `.entries[]|` is being transformed to `.entries[] < /dev/null |` during command escaping.\n\n## Additional Context\n\n### Root Cause Analysis\nThrough testing, we discovered that the command escaping mechanism\nspecifically corrupts the pattern `.entries[]|` by inserting `<\n/dev/null` between the array accessor and pipe. This can be verified\nby base64 encoding:\n\n```bash\n# create file.json\necho '{\"entries\": [{\"title\": \"test\"}, {\"title\": \"example\"}]}' > file.json\n\n# What we type:\njq '[.entries[]|select(.title==\"test\")]|length' file.json\n\n# What gets executed (after decoding base64):\njq '[.entries[] < /dev/null | select(.title==\"test\")]|length' file.json\n```\n\n### Working Examples vs Failing Examples\n- ✅ Works: `echo '{\"test\": 1}' | jq '.test'`\n- ✅ Works: `jq '.entries[0].title' file.json`\n- ❌ Fails: `jq '[.entries[]|select(.title==\"test\")]' file.json`\n- ❌ Fails: `jq '(.entries[]|select(.title==\"test\"))' file.json`\n\n### Verified Workarounds\n\n#### Workaround 1: Script File\n```ClaudeExecStepOutput\nWrite(\"/tmp/query.sh\", \"\"\"#!/bin/bash\njq '[.entries[]|select(.title==\"test\")]|length' file.json\n\"\"\")\nBash(\"chmod +x /tmp/query.sh && /tmp/query.sh\")\n# Returns correct result: 1\n```\n\n#### Workaround 2: Base64 Encoding\n```ClaudeExecStepOutput\nWrite(\"/tmp/cmd.txt\", \"jq '[.entries[]|select(.title==\\\"test\\\")]|length' file.json\")\nBash(\"encoded=$(cat /tmp/cmd.txt | base64); eval \\\"$(echo $encoded | base64 -d)\\\"\")\n# Returns correct result: 1\n```\n\n### Impact\n- Prevents data extraction from JSON files with array structures\n- Blocks analytics and reporting workflows\n- Forces developers to use complex workarounds for basic operations\n- Affects any jq query using the common pattern `.array[]|filter`\n\n### Test Environment\n- Working directory: `~/test/`\n  - \n```bash\nls -l file.json\n-rw-r--r-- 1 user staff 54 May 16 14:03 file.json\n```\n- Node.js based Claude Code (evident from path structure)\n\n### Minimal Reproducible Example\n```ClaudeExecStepOutput\n# Create test data\nWrite(\"file.json\", '{\"entries\": [{\"title\": \"test\"}, {\"title\": \"other\"}]}')\n\n# This fails:\nBash(jq '[.entries[]|select(.title==\"\")]|length' file.json)…                                                                                           Cost: $0.0275 (5.5s)\n  ⎿  Error: jq: error: syntax error, unexpected '/' (Unix shell quoting issues?) at <top-level>, line 1:\n     [.entries[] < /d",
+  "labels": ["bug", "has repro", "area:tools", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-05-16T18:19:13Z",
+  "updated_at": "2025-12-19T14:08:27Z",
+  "closed_at": "2025-12-12T10:10:19Z",
+  "reactions_total": 6,
+  "comments_count": 11,
+  "author": "davidwalter0",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "JakobBruenker",
+      "author_association": "NONE",
+      "body": "I get the same issue trying to use `|` with `jj` (as in `jj new -r 'all:(merge-|testing-branch)'`)",
+      "created_at": "2025-05-23T12:38:31Z"
+    },
+    {
+      "author": "avdaredevil",
+      "author_association": "NONE",
+      "body": "It literally happens in any `|` inside a string. For now if anyone else is running into it, I've added the following guidance in my local CLAUDE.md files:\n\n````\n### ⚠️ CRITICAL: PowerShell/Cmd.exe Pipe Injection Fix\n\n- **PROBLEM**: Your environment injects `/dev/null` before the first pipe in PowerShell/Cmd.exe commands, breaking pipe chains\n- **SOLUTION**: Always prefix PowerShell commands containing pipes with a \"null consumer\" (`\"|\" >$null;`):\n  ```pwsh\n  pwsh.exe -NoProf -Command '\"|\" >$null",
+      "created_at": "2025-06-06T07:28:53Z"
+    },
+    {
+      "author": "sthaber",
+      "author_association": "NONE",
+      "body": "This is affecting my ability use `rg` as my primary code search tool in Claude Code. It randomly inserts `< /dev/null` into regex that looks like `thing|other|thing|etc`, causing the tool to hang for the default timeout of 2 minutes. My horrible workaround is a CLAUDE.md directive to set a 10 second timeout on `rg` commands.",
+      "created_at": "2025-07-01T20:31:15Z"
+    }
+  ]
+}

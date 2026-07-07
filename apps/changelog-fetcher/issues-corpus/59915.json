@@ -1,0 +1,35 @@
+{
+  "number": 59915,
+  "title": "[BUG] Intermittent terminal rendering corruption in VS Code (text selection forces a partial re-render)",
+  "body": "### Preflight Checklist\n\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nOutput from claude in the VS Code integrated terminal intermittently becomes garbled. Clicking and dragging over the affected region forces a partial repaint and makes the text readable again, which points to a terminal renderer issue rather than malformed output from Claude Code.\n\n### What Should Happen?\n\nTerminal output should render cleanly without requiring user interaction to force a repaint.\n\n### Steps to Reproduce\n\nIntermittent and non-deterministic. There are no reliable repro steps. Not correlated with any specific command or output length I can identify. Happy to test alternative renderer settings if useful.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Claude Code Version\n\n2.1.143\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n**Visual symptoms**\nSee screenshot. Latin characters are replaced with fallback Unicode glyphs, but layout, colours, and Claude Code's UI elements all render correctly. Consistent with glyph cache / texture atlas corruption, not malformed output.\n\n<img width=\"1123\" height=\"837\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/5ef6a533-99f8-4289-a6fa-941f064e09d4\" />\n\n\n**Key diagnostic observation**\nSelecting the garbled text forces a repaint of the highlighted region, which makes it readable. Releasing the selection often reverts the area to its garbled state. \n\n**Prior reports**\nSeveral similar reports have been filed over the past year, many closed without resolution. Happy to link them if it helps consolidate the investigation.",
+  "labels": ["bug", "platform:macos", "area:tui", "platform:vscode"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-17T07:09:19Z",
+  "updated_at": "2026-06-08T16:16:49Z",
+  "closed_at": "2026-05-27T07:18:29Z",
+  "reactions_total": 49,
+  "comments_count": 17,
+  "author": "rid-saw",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/59553\n2. https://github.com/anthropics/claude-code/issues/59546\n3. https://github.com/anthropics/claude-code/issues/59401\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-17T07:14:57Z"
+    },
+    {
+      "author": "shw1606",
+      "author_association": "NONE",
+      "body": "Maybe related. I posted repro steps in #59163: switching macOS Spaces\nand coming back to the terminal. Same VSCode integrated terminal,\nclaude 2.1.143.\n\nOne extra data point for the selection/repaint behavior you describe:\nI am a Korean user, so my buffer has mix of English and Hangul. After\nthe bug hits, dragging to force repaint recovers English text mostly,\nbut Korean only partially. Looks like CJK / wide chars get worse cache\ncorruption than ASCII. Fullscreen mode doesn't avoid the bug eithe",
+      "created_at": "2026-05-19T04:34:10Z"
+    },
+    {
+      "author": "JoannaSapiecha",
+      "author_association": "NONE",
+      "body": "**Environment**\n- OS: Windows 11 Pro\n- VS Code: version 1.120.0\n- Claude Code\n\n**Symptoms**\nClaude Code output in the VS Code integrated terminal intermittently becomes garbled. Latin characters are replaced with fallback glyphs, but layout, colours, and Claude Code UI elements (boxes, status indicators, the `accept edits on …` footer, the recap header) all render correctly. Consistent with a glyph cache / texture atlas issue rather than malformed output from Claude Code.\n\n**Key diagnostic — mat",
+      "created_at": "2026-05-19T11:58:35Z"
+    }
+  ]
+}

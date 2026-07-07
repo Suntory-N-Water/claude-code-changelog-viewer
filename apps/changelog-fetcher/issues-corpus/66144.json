@@ -1,0 +1,35 @@
+{
+  "number": 66144,
+  "title": "[BUG] Auto compact does not trigger at 100% context window and Claude Code stops itself on cli",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAuto compact does not trigger automatically when the context window reaches 100%.\n\nI am using Claude Code CLI on Arch Linux with the latest version, currently 2.1.168. During long coding sessions, the context window eventually reaches 100%, but Claude Code does not automatically compact the context. Instead, it stops itself / becomes unable to continue reliably, and I have to manually intervene.\n\nI have tried adding instructions to my CLAUDE.md telling Claude Code to compact automatically or preserve context more aggressively, but it does not change the behavior. The problem still happens.\n\nThis has been happening for roughly the last 12 Claude Code versions, not only the current release.\n\nThe main issue is that auto compact appears to be enabled or expected, but when the context reaches the limit, no automatic compaction happens. Claude Code simply reaches 100% context and stops / blocks progress instead of compacting and continuing the task.\n\n### What Should Happen?\n\nClaude Code should automatically compact the conversation/context before or when the context window reaches 100%.\n\nExpected behavior:\n\n- Detect that the context window is close to full or already at 100%\n- Automatically compact the context without requiring manual `/compact`\n- Preserve the important project state, task plan, files changed, decisions, and next steps\n- Continue the coding session after compaction\n- Avoid stopping itself just because the context window reached 100%\n\nIf auto compact is not supposed to work this way, the CLI should clearly document what the setting actually does and when it is expected to trigger.\n\n### Error Messages/Logs\n\n```shell\nNo traditional stack trace is shown.\n\nObserved behavior:\n\n- Context window reaches 100%\n- Auto compact does not run\n- Claude Code stops itself / cannot continue the task reliably\n- Manual `/compact` is required\n- Adding instructions to CLAUDE.md does not change the behavior\n\nExample warning/context state:\n```\n\n### Steps to Reproduce\n\n1. Install or update Claude Code CLI to the latest version.\n\n   Current version used:\n   ```bash\n   claude --version\n   # 2.1.168\n\n### Claude Model\n\nOther\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nNot sure. This has been broken for approximately the last 12 Claude Code versions.\n\n### Claude Code Version\n\n2.1.168\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nNon-interactive/CI environment\n\n### Additional Information\n\nEnvironment:\n\n- OS: Arch Linux\n- Claude Code version: 2.1.168\n- Shell: ZSH\n- Project type: large real-world codebase\n- Usage pattern: long-running coding sessions with many edits, tests, file reads, and follow-up prompts\n\n-------\n\nI tried to mitigate this by adding context-management and auto-compaction instructions to CLAUDE.md, but it does not affect the behavior. Once the context window reaches 100%, Claude Code still does not automatically compact.\n\nThis makes long-running coding sessions unreliable because Claude Code can stop itself at the context limit instead of preserving state and continuing.\n\nThis has been reproducible for approximately the last 12 Claude Code versions.",
+  "labels": ["bug", "duplicate", "platform:linux", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-08T00:32:35Z",
+  "updated_at": "2026-07-05T20:36:51Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 13,
+  "author": "Kartalops",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Your instinct to stop fiddling with CLAUDE.md is the right one — that approach genuinely can't fix this, and it's worth knowing why so you don't lose more time on it.\n`CLAUDE.md` is loaded *into* the model's context as instructions. But the auto-compact trigger isn't something the model decides and runs — it's a harness/runtime behavior that watches context usage and fires `/compact` for you. So an instruction like \"compact automatically\" lands on the wrong layer: the model can read it, but it h",
+      "created_at": "2026-06-08T00:38:58Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "The frustration here is real — you've hit the exact failure mode where CC reaches the context wall and just... stops, instead of compacting and continuing. The fact that CLAUDE.md instructions don't help is expected: auto-compact is wired to a token-threshold check in the CC internals, not to model instructions, so no amount of prompt engineering changes when or whether it fires.\n\nWhile Anthropic tracks down the root-cause regression (which seems to have been broken across a lot of versions base",
+      "created_at": "2026-06-08T07:05:02Z"
+    },
+    {
+      "author": "AinzRimuru",
+      "author_association": "NONE",
+      "body": "same here\nauto compact still not work when I set \"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE\": \"80\"",
+      "created_at": "2026-06-09T05:51:50Z"
+    }
+  ]
+}

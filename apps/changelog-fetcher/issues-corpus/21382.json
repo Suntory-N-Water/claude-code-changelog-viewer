@@ -1,0 +1,35 @@
+{
+  "number": 21382,
+  "title": "[BUG] Korean IME composition fails in Quick Launcher (Option+Space) on macOS",
+  "body": "## Description\n\nWhen typing Korean (Hangul) in the **Quick Launcher** (triggered by `Option+Space`), characters are lost during the IME composition process.\n\nKorean input requires a composition buffer where consonants (초성), vowels (중성), and final consonants (종성) are combined before being committed. However, in the Quick Launcher, intermediate characters disappear during this composition process.\n\n## Steps to Reproduce\n\n1. Open Claude Desktop on macOS\n2. Press `Option+Space` to open the Quick Launcher\n3. Switch to Korean input method\n4. Try typing \"오늘 무엇을 도와드릴까요?\" (a common Korean phrase)\n\n## Expected Behavior\n\nThe text should appear as typed: **오늘 무엇을 도와드릴까요?**\n\n## Actual Behavior\n\nThe text appears broken: **오ㄹ 무ㅅㅡ 도ㅏㅡㅣ까?**\n\n### What's happening:\n- When typing \"오늘\":\n  1. Type \"오\" → \"오\" appears ✓\n  2. Type \"ㄴ\" → \"온\" appears in composition buffer\n  3. Type \"ㅡ\" → At this moment, \"오\" gets committed but \"ㄴ\" disappears, only \"ㄹ\" from the next syllable remains\n- Result: \"오늘\" becomes \"오ㄹ\"\n\nThis pattern repeats for each syllable, causing every other character to be lost.\n\n## Environment\n\n- **OS**: macOS (Darwin)\n- **Claude Desktop**: Latest version\n- **Input Method**: macOS default Korean input (2-Set Korean)\n- **Trigger**: Quick Launcher via `Option+Space`\n\n## Additional Context\n\n- This issue does **NOT** occur in the main Claude Desktop window (opened from Dock)\n- This issue **ONLY** occurs in the Quick Launcher overlay\n- This appears to be related to known Electron IME issues when windows are focused programmatically:\n  - https://github.com/electron/electron/issues/32307 (Tray click causes CJK input issue)\n  - https://github.com/electron/electron/issues/14834 (IME position bug on focus)\n\nThe Quick Launcher likely uses a similar mechanism (overlay/tray-like window focus) that triggers the Electron CJK IME bug.\n\n## Workaround\n\nCurrently, the only workaround is to use the main Claude Desktop app instead of the Quick Launcher for Korean input.",
+  "labels": ["bug", "has repro", "platform:macos", "area:a11y", "external"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-28T04:04:28Z",
+  "updated_at": "2026-05-20T10:07:19Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 8,
+  "author": "sangmandu",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "NAGON-0702",
+      "author_association": "NONE",
+      "body": "Please fix!\n\nhttps://github.com/user-attachments/assets/abcea0eb-1c29-41f6-86f5-01d05b7ca82c",
+      "created_at": "2026-02-12T07:12:49Z"
+    },
+    {
+      "author": "soyeon102",
+      "author_association": "NONE",
+      "body": "I am a Korean user. The Quick Launcher is convenient, but I rarely use the desktop app because it is not very convenient for Korean. Please fix this issue as soon as possible.",
+      "created_at": "2026-03-19T01:50:49Z"
+    },
+    {
+      "author": "slaysd",
+      "author_association": "NONE",
+      "body": "i am also have the same issue. please fix this issue",
+      "created_at": "2026-03-20T04:51:31Z"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "number": 4809,
+  "title": "[BUG] PostToolUse Hook Exit Code 1 Blocks Claude Execution",
+  "body": "Environment\n\n  - Platform: Anthropic API (via claude code max20)\n  - Claude CLI version: 1.0.64\n  - Operating System: macOS\n  - Terminal: Terminal App\n\n  Bug Description\n\n  PostToolUse hooks with exit code 1 block Claude's execution despite documentation stating they are \"non-blocking\" and \"execution continues\".\n\n  Steps to Reproduce\n\n  1. Create .claude/settings.json:\n  {\n    \"hooks\": {\n      \"PostToolUse\": [{\n        \"matcher\": \"Read\",\n        \"hooks\": [{\n          \"type\": \"command\",\n          \"command\": \"./test-hook.sh\"\n        }]\n      }]\n    }\n  }\n\n  2. Create test-hook.sh:\n  #!/bin/bash\n  echo \"Warning: This is a non-blocking error\" >&2\n  exit 1\n\n  3. Make it executable: chmod +x test-hook.sh\n  4. Ask Claude: \"Read any file, then list the current directory\"\n  5. Observe Claude is blocked after the Read operation\n\n  Expected Behavior\n\n  According to documentation:  \"Other exit codes: Non-blocking error. stderr is shown to the user and execution continues.\" https://docs.anthropic.com/en/docs/claude-code/hooks\n\n  Claude should:\n  1. Execute Read tool\n  2. Show hook's stderr to user\n  3. Continue with ls command\n\n  Actual Behavior\n\n  1. Read tool executes\n  2. User sees: PostToolUse:Read [./test-hook.sh] failed with non-blocking status code 1: Warning: This is a non-blocking error\n  3. Claude is blocked - cannot execute ls or any other command\n  4. User must type a response before Claude can continue\n\n  Additional Context\n\n  - Tested exit codes 0, 1, 2, 3 - only exit 0 and 2 allow Claude to continue\n  - This forces hooks to use exit 0 for all warnings/errors, losing the ability to show messages to users\n  - Documentation reference: https://docs.anthropic.com/en/docs/claude-code/hooks",
+  "labels": ["duplicate"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-07-30T23:43:36Z",
+  "updated_at": "2025-08-23T14:07:24Z",
+  "closed_at": "2025-08-15T18:07:31Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "dwenaus",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

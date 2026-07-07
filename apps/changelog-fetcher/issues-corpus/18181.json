@@ -1,0 +1,16 @@
+{
+  "number": 18181,
+  "title": "Manual update doesn't fix symlink when CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC is set",
+  "body": "## Description\n\nWhen `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is set, running `claude update` manually downloads new versions but doesn't update the symlink at `~/.local/bin/claude`. This causes two issues:\n\n1. **Stale version**: The CLI continues running the old version even after updating\n2. **Downgrade on update**: If you're running a newer version (e.g., via direct invocation) and run `claude update`, the stale symlink + old lock files can actually *downgrade* you to the older version\n\n## Steps to Reproduce\n\n1. Set `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`\n2. Have an older version symlinked (e.g., 2.1.2) with its lock file present\n3. Run `claude update` (downloads 2.1.7)\n4. Run `claude --version` → still shows 2.1.2\n5. Or: manually run 2.1.7, then run `claude update` → get downgraded to 2.1.2\n\n## Expected Behavior\n\nManual `claude update` should update the symlink regardless of the `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` setting. The env var should only disable *automatic* update checks, not break manual updates or cause downgrades.\n\n## Workaround\n\nManually fix the symlink:\n\n```bash\nln -sf ~/.local/share/claude/versions/2.1.7 ~/.local/bin/claude\n```\n\n## Environment\n\n- macOS Tahoe 26.2\n- Claude Code 2.1.7 (downloaded but not symlinked)\n- Shell: zsh",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-14T16:40:24Z",
+  "updated_at": "2026-01-23T14:15:13Z",
+  "closed_at": "2026-01-14T18:54:57Z",
+  "reactions_total": 0,
+  "comments_count": 2,
+  "author": "ramonclaudio",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

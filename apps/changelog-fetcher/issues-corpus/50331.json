@@ -1,0 +1,35 @@
+{
+  "number": 50331,
+  "title": "Auto mode injects undocumented behavioral system-reminder that steers beyond its documented permission-gate contract",
+  "body": "## Preflight\n\n- [x] I have searched existing issues and this specific angle isn't reported\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n## Summary\n\nAuto mode is documented as a **permission mode** — \"Claude execute[s] without permission prompts. A separate classifier model reviews actions before they run\" ([permission-modes](https://code.claude.com/docs/en/permission-modes)). The documented contract is a permission gate plus an external classifier.\n\nIn addition to that, auto mode also injects a `<system-reminder>` into the model's context that contains **behavioral steering instructions** — not permission semantics. These instructions (\"execute immediately\", \"prefer action over planning\", \"minimize interruptions\", \"when in doubt, start coding\") are not mentioned anywhere in the permission-mode docs, change the model's consent-seeking and cadence behavior in ways that can override other instructions, and are the root cause of several open/closed bugs.\n\n## The injected system-reminder (verbatim)\n\n```\n## Auto Mode Active\n\nAuto mode is active. The user chose continuous, autonomous execution. You should:\n\n1. **Execute immediately** — Start implementing right away. Make reasonable assumptions and proceed on low-risk work.\n2. **Minimize interruptions** — Prefer making reasonable assumptions over asking questions for routine decisions.\n3. **Prefer action over planning** — Do not enter plan mode unless the user explicitly asks. When in doubt, start coding.\n4. **Expect course corrections** — The user may provide suggestions or course corrections at any point; treat those as normal input.\n5. **Do not take overly destructive actions** — Auto mode is not a license to destroy. Anything that deletes data or modifies shared or production systems still needs explicit user confirmation. If you reach such a decision point, ask and wait, or course correct to a safer method instead.\n6. **Avoid data exfiltration** — Post even routine messages to chat platforms or work tickets only if the user has directed you to. You must not share secrets (e.g. credentials, internal documentation) unless the user has explicitly authorized both that specific secret and its destination.\n```\n\nPoint 5 is the only one that tracks the documented permission-gate contract. Points 1–3 are behavioral steering that has no corresponding element in the docs.\n\n## The documented contract\n\nFrom [permission-modes](https://code.claude.com/docs/en/permission-modes):\n\n> Auto mode lets Claude execute without permission prompts. A separate classifier model reviews actions before they run, blocking anything that escalates beyond your request, targets unrecognized infrastructure, or appears driven by hostile content Claude read.\n\nNothing in the doc says the model itself should \"execute immediately\", \"prefer action over planning\", or \"minimize interruptions\". The doc describes a **permission layer plus classifier** — an external gate on what auto-approves. It does not describe (and by omission, does not authorize) a separate behavioral-steering layer.\n\n## Why this matters\n\nPoints 1–3 and point 5 pull in opposite directions, and point 5 is the narrow one:\n\n- 1–3 say \"execute, don't pause, don't ask\"\n- 5 says \"but ask before touching shared or production systems\"\n\nIn practice the weight of three points toward action vs one point toward caution biases the model toward over-action on exactly the kind of edits where the permission-mode doc's classifier also doesn't run (local files, files in `additionalDirectories`). The \"execute immediately / prefer action\" wording is then doing work that the permission gate was supposed to do — gating behavior, not just prompts.\n\n## Observed behavior\n\nIn a recent session I attempted to edit a shared config file without first asking for explicit consent, in response to a user question that was a request for a recommendation, not permission to make the change. A self-modification guard denied the edit, which forced reflection. Points 1–3 of the reminder had biased the weighting of \"shou",
+  "labels": ["bug", "platform:macos", "area:core", "area:permissions"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-18T09:19:02Z",
+  "updated_at": "2026-05-28T12:09:21Z",
+  "closed_at": "2026-05-28T12:09:21Z",
+  "reactions_total": 10,
+  "comments_count": 9,
+  "author": "milobird",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/42797\n2. https://github.com/anthropics/claude-code/issues/38938\n3. https://github.com/anthropics/claude-code/issues/44318\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-18T09:24:15Z"
+    },
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "This is the root cause explanation for many of the behavioral trust failures documented in this issue tracker over the past week — including the unauthorized rm-rf incidents (#48792, #49102, #49129, #49890), the DB DROP without backup (#50027), the 41 unauthorized production actions (#49092), and numerous \"agent ignores explicit instructions\" reports.\n\nThe injected `system-reminder` for auto mode contains \"execute immediately,\" \"minimize interruptions,\" and \"prefer action over planning\" — behavi",
+      "created_at": "2026-04-18T09:40:57Z"
+    },
+    {
+      "author": "lucascaro",
+      "author_association": "NONE",
+      "body": "incredibly dangerous, I don't get how this has been unfixed for so long since it makes claude look terribly bad, breaking trust, and breaking production systems",
+      "created_at": "2026-05-04T00:33:07Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 25034,
+  "title": "[BUG] Cowork for windows: yukonSilver not supported",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI do not get the Cowork tab on Windows Desktop.\n\nWindows 11 Enterprise, 25H2\nHyper-V fully enabled\nLatest Claude Desktop (1.1.2685)\nPaid plan (Max)\nCowork logs show yukonSilver not supported (status=unsupported) on every launch and @ant/claude-swift module fails to load\n\n\n### What Should Happen?\n\nI should get the Cowork tab.\n\n### Error Messages/Logs\n\n```shell\n2026-01-27 10:03:01 [info] [Bundle:status] rootfs.img missing\n2026-01-27 10:03:01 [info] [SwiftVM] Loading @ant/claude-swift module...\n2026-01-27 10:03:01 [error] [SwiftVM] Failed to load module: Error: Cannot find package 'C:\\Users\\REDACTED\\AppData\\Local\\AnthropicClaude\\app-1.1.886\\resources\\app.asar\\node_modules\\@ant\\claude-swift\\js\\index.js' imported from C:\\Users\\REDACTED\\AppData\\Local\\AnthropicClaude\\app-1.1.886\\resources\\app.asar\\.vite\\build\\index.js\n    at legacyMainResolve (node:internal/modules/esm/resolve:208:44)\n    at packageResolve (node:internal/modules/esm/resolve:789:12)\n    at moduleResolve (node:internal/modules/esm/resolve:865:18)\n    at defaultResolve (node:internal/modules/esm/resolve:995:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21) {\n  [stack]: [Getter/Setter],\n  [message]: \"Cannot find package 'C:\\\\Users\\\\REDACTED\\\\AppData\\\\Local\\\\AnthropicClaude\\\\app-1.1.886\\\\resources\\\\app.asar\\\\node_modules\\\\@ant\\\\claude-swift\\\\js\\\\index.js' imported from C:\\\\Users\\\\REDACTED\\\\AppData\\\\Local\\\\AnthropicClaude\\\\app-1.1.886\\\\resources\\\\app.asar\\\\.vite\\\\build\\\\index.js\",\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n2026-02-11 11:29:21 [info] [cleanupVMBundleIfUnsupported] yukonSilver not supported (status=unsupported), checking for stale bundle...\n```\n\n### Steps to Reproduce\n\nQuit Claude for Windows\nQuit system service in the system tray\nDownload latest Claude\nIntall\nWindows Features: enabled Hyper V, Virtual Machine Platform, Windows HyperVisor Platform\nShutdown machine\nRestart\nLaunch Claude Desktop for Windows\nNo cowork 😢 \n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude 1.1.2685 (f39a62) 2026-02-10T19:42:56.000Z\n\n### Platform\n\nOther\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:windows", "area:packaging"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-11T16:48:59Z",
+  "updated_at": "2026-03-08T14:19:18Z",
+  "closed_at": "2026-02-25T05:22:07Z",
+  "reactions_total": 13,
+  "comments_count": 25,
+  "author": "marketneutral",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24974\n2. https://github.com/anthropics/claude-code/issues/25024\n3. https://github.com/anthropics/claude-code/issues/24962\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-11T16:52:40Z"
+    },
+    {
+      "author": "marketneutral",
+      "author_association": "NONE",
+      "body": "I finally got it to work. Here is the summary:\n\n\n# [BUG] Claude Desktop MSIX installer fails silently on Windows Enterprise with split user/admin accounts — Cowork unavailable\n\n## Preflight Checklist\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Desktop\n\n## Environment\n\n- **Claude Desktop version:** 1.1.2685 (f39a62)\n- **OS:** Windows 11 Enterprise 25H2 (OS Build 26200.7623)\n- **Architecture",
+      "created_at": "2026-02-11T20:17:53Z"
+    },
+    {
+      "author": "aldred-coetzee",
+      "author_association": "NONE",
+      "body": "Experiencing the same issue. Cowork tab does not appear — only Chat and Code are visible.\n\n**Environment:**\n- Claude Desktop: v1.1.2685 (f39a62)\n- Windows 11 Enterprise 25H2, Build 26200.7623\n- HP ZBook Power 16 inch G11 Mobile Workstation\n- Intel Core Ultra 9 185H (2.30 GHz)\n- 64GB RAM, x64-based processor\n- Team plan (premium seat), Cowork confirmed enabled by org admin\n\n**Virtualization features (all enabled, confirmed after reboot):**\n- Hyper-V ✅\n- Virtual Machine Platform ✅\n- Windows Hyperv",
+      "created_at": "2026-02-14T10:04:23Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 14118,
+  "title": "[Bug] Background subagent tool calls exposed in parent context window",
+  "body": "**Bug Description**\nBackgrounding subagents exposes their tool calls to the parent agent. This destroys the concept of an isolated context window. Run the following prompt and you'll see what I mean. The tool log is exposed in the getOutput call the parent makes\n\n```\n# Subagent Context Isolation Test\n\nThis script tests whether subagents properly hide their internal operations from the parent context.\n\n## Test: Can subagents hide secrets from the coordinating agent?\n\nRun this prompt sequence:\n\n---\n\n### Foreground Agent Test\n\n`Please think of a secret message (something creative and fun).\nWrite this secret message to the file: /tmp/foreground_secret.txt\n\nWhen you're done writing the secret to the file, simply respond with \"DONE\".\nDo NOT tell me what the secret is.`\n\n**Agent Type:** general-purpose\n**Run Mode:** Foreground (default)\n\n---\n\n### Background Agent Test\n\n`Please think of a secret message (something creative and fun).\nWrite this secret message to the file: /tmp/background_secret.txt\n\nWhen you're done writing the secret to the file, simply respond with \"DONE\".\nDo NOT tell me what the secret is.`\n\n**Agent Type:** general-purpose\n**Run Mode:** Background\n**Then call TaskOutput to retrieve results**\n\n---\n\n## Analysis\n\nAfter running both tests, check:\n\n1. **Foreground result:** From the output you received, can you figure out what their secret message was? (without reading the file)\n2. **Background result:** When you retrieve TaskOutput, are tool logs visible showing the secret content?\n3. **Context Isolation test:** Can you (the coordinating agent) determine what the secret is from:\n   - The agent's response text\n   - Tool call logs in the output\n   - Any other information leaked\n\nIf the architecture works as documented, the secrets should be completely hidden - you should have NO way to know what they wrote without actually reading the files yourself.\n\n---\n\n## Expected Behavior (Per Docs)\n\n- ✅ Subagent context is isolated\n- ✅ Only final results returned to parent\n- ✅ Tool call details should NOT leak to parent\n- ✅ File contents written by subagent should NOT be visible in parent context\n\n## Actual Behavior (Testing)\n\nDocument what you actually observe versus the expected behavior.\n\n```\n\n**Environment Info**\n- Platform: darwin\n- Terminal: iTerm.app\n- Version: 2.0.70\n- Feedback ID: \n\n**Errors**\n```json\n[]\n```\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:security",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-16T05:03:58Z",
+  "updated_at": "2026-05-04T15:03:16Z",
+  "closed_at": "2026-04-25T22:16:30Z",
+  "reactions_total": 7,
+  "comments_count": 10,
+  "author": "woweow",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ivanjuras",
+      "author_association": "NONE",
+      "body": "Same. Huge issue.",
+      "created_at": "2025-12-16T22:00:14Z"
+    },
+    {
+      "author": "devacc00",
+      "author_association": "NONE",
+      "body": "Also faced this issue, when I'm running 10+ subagents and all of them pollute orchestrator, it's compacting convesation all time... as instead of getting status or result of agent it's have whole context what it was doing, calling etc.",
+      "created_at": "2025-12-29T23:55:27Z"
+    },
+    {
+      "author": "gabrielbryk",
+      "author_association": "NONE",
+      "body": "Same issue here, seems to mostly happen when the subagents run out of context so they return early and dump their context to the main agent, which causes it to bloat context so much that /compact doesn't work",
+      "created_at": "2025-12-31T22:08:26Z"
+    }
+  ]
+}

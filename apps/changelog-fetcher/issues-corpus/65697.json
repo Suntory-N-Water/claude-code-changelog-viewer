@@ -1,0 +1,35 @@
+{
+  "number": 65697,
+  "title": "[FEATURE] Official Claude Desktop build for Linux (Ubuntu LTS / Debian)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n**Preflight note.** The closest open issue is #40347. Related: #47316 (closed), #38276 (closed as out of scope for this repo), #36011 (stale). I am filing this as a consolidation and extension of #40347 with corrected technical framing (Claude Code plugin development against Desktop extensions), named primary sourcing for the Cowork Linux-VM architecture, and current market data. Happy to merge into #40347 if maintainers prefer; please route rather than close if a different venue is correct.\n\n**On scope:** this issue concerns Claude Code in two concrete ways. (1) Claude Code plugins are developed and tested against Claude Desktop extensions, which has no Linux build, so plugin work currently requires switching OS. (2) Cowork invokes the Claude Code binary inside a Linux VM on macOS, so the Linux execution path already exists inside the Claude Code product and is the practical thing missing as a published target.\n\n**What this issue is asking for**\nA public Anthropic position on Linux desktop support, and ideally a first-party build. A reasoned \"not on the current roadmap, and here is why\" would resolve most of what this issue is about. There is, to my knowledge, no public statement on Linux desktop support; the absence is itself part of the problem.\n\n**Current state**\n\nAnthropic distributes Claude Desktop for macOS and Windows only. The official download page states \"Not available for Linux\". Claude Code (the CLI) runs natively on Linux but is a terminal tool, not a substitute for the desktop GUI. Desktop extensions (the surface Claude Code plugins are tested against), computer use, desktop dictation and Cowork are available only in Claude Desktop. Linux users therefore have no officially supported graphical path to these capabilities, and in particular no way to develop and test Claude Code plugins as desktop extensions without switching to macOS or Windows.\n\n**Why this is structurally hard to justify**\nAnthropic already builds, signs and distributes Linux software. Per code.claude.com/docs/en/setup, Claude Code ships signed apt, dnf and apk repositories and per-architecture binaries (linux-x64, linux-arm64, musl variants). The pipeline exists.\n\nThe Cowork agent already depends on Linux inside the product. Independent reverse-engineering by Simon Willison on launch day (12/01/2026), corroborated by Pluto Security and pvieito (\"Inside Claude Cowork\"), found that on macOS Cowork boots a custom Ubuntu 22.04 VM via Apple's Virtualization Framework (VZVirtualMachine) and runs the Claude Code binary inside it under bubblewrap and seccomp. Anthropic's own documentation confirms the hypervisor split: Apple Virtualization.framework on macOS, Hyper-V on Windows. The community project johnzfitch/claude-cowork-linux demonstrates the same Cowork mode running natively on Linux x86_64 by stubbing the macOS native modules and skipping the VM entirely. The Linux capability already exists inside the product; what's missing is a published Linux target.\n\n**Why it matters that it is missing**\nClaude Desktop handles OAuth tokens, API keys, and extension configurations. It is a credential-handling application running on developer workstations.\n\nLinux users currently obtain it via third-party repackages of the Windows Electron build. The leading project, aaddrick/claude-desktop-debian (roughly 4.5k stars), is genuinely high quality: signed apt and dnf repositories, .deb/.rpm/AppImage/AUR/Nix builds, CI-tested, a --doctor diagnostic, and upstream tracking within days (latest release 05/06/2026, tracking Claude Desktop 1.11187.1). It is also, by definition, not vendor-signed and not vendor-audited. A non-trivial number of Claude users entrust their credentials and local filesystem access to a third-party repackage because Anthropic ships nothing official. The structural",
+  "labels": ["enhancement", "platform:linux", "area:desktop"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-06-05T17:48:57Z",
+  "updated_at": "2026-07-04T01:33:36Z",
+  "closed_at": "2026-06-30T17:10:33Z",
+  "reactions_total": 651,
+  "comments_count": 51,
+  "author": "powell-clark",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "felixrieseberg",
+      "author_association": "MEMBER",
+      "body": "Hi, Felix from Anthropic here! \n\nLet me answer a understandable question first: Armed with Claude and developers with a history of shipping Linux software, why didn't we just churn out a quick Linux build? Historically, I've been cautious about building apps for Linux too early in the development cycle or haphazardly - a few of us are Electron maintainers and have spent years working both on apps and platforms for Linux, but actually supporting users on the heterogenous landscape that is Linux o",
+      "created_at": "2026-06-07T17:31:15Z"
+    },
+    {
+      "author": "fluffynuts",
+      "author_association": "NONE",
+      "body": "Yes please. Then I can stop using unofficial builds that are reverse-engineered from the windows electron app.",
+      "created_at": "2026-06-07T13:28:38Z"
+    },
+    {
+      "author": "fenix1851",
+      "author_association": "NONE",
+      "body": "please🙏🙏🙏🙏",
+      "created_at": "2026-06-07T14:06:55Z"
+    }
+  ]
+}

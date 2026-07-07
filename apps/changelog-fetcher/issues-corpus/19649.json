@@ -1,0 +1,35 @@
+{
+  "number": 19649,
+  "title": "[MODEL] Frequently uses Bash tools (sed/grep/etc) when use-case is well aligned to other builtin tools (Read/Grep/etc)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Amodel) for similar behavior reports\n- [x] This report does NOT contain sensitive information (API keys, passwords, etc.)\n\n### Type of Behavior Issue\n\nOther unexpected behavior\n\n### What You Asked Claude to Do\n\nSee attached (redacted, and line-wrapped for readability) for a full exchange analyzing occurrences based on claude/agent logs. The analysis ran afoul of some of the same issues being analyzed.\n\n[claude.cat-sed-grep.txt](https://github.com/user-attachments/files/24756859/claude.cat-sed-grep.txt)\n\n### What Claude Actually Did\n\nI frequently see Bash tool permission requests invocations just like the following:\n\n```sh\n# Output lines 147-162 from a given file.\nsed -n 147,162p /path/to/some/file\n\n# Search for a pattern in a directory.\ngrep -r \"^some pattern$\" /path/to/some/dir\n\n# Write a file from content expressed via heredoc.\ncat > file.txt <<EOF ... EOF\n```\n\nOften these are just solitary commands (not as part of a pipeline). Sometimes, e.g. grep, might be piped to `head`. Sometimes these `&&`'d commands like:\n\n```sh\ncat > file.py <<EOF ... EOF && chmod +x file.py && ./file.py\n```\n\n### Expected Behavior\n\nAll of the above examples are undesirable.\n\nThese cases should broadly use the `Read`, `Grep` (builtin, **not** `Bash(grep)`), and `Write`/`Edit`.\n\nThe `&&`'d example above ideally should use `Write` followed by `Bash` tool call(s).\n\n### Files Affected\n\nN/A\n\n### Permission Mode\n\nAccept Edits was ON (auto-accepting changes)\n\n### Can You Reproduce This?\n\nSometimes (intermittent)\n\n### Steps to Reproduce\n\nSufficiently long code-investigation/debugging sessions will usually involve seeing many permission prompts matching these undesirable patterns.\n\n### Claude Model\n\nSonnet\n\n### Relevant Conversation\n\nN/A\n\n### Impact\n\nMedium - Extra work to undo changes\n\n### Claude Code Version\n\nv2.1.2\n\n### Platform\n\nAWS Bedrock\n\n### Additional Context\n\n*I'll let Claude's own analysis conclusions explain why this matters (everything that follows is from Claude own reflection)...*\n\n### Why This Matters\n\nBuilt-in tools (Read, Grep, Write, Edit) are specifically designed to work efficiently with Claude Code's permission system. Using bash commands bypasses these optimizations, resulting in slower task completion and more human time spent on reviews. The permission system can cache approvals for built-in tool operations but cannot cache unique bash command content like heredocs, creating significant efficiency penalties in human-in-the-loop workflows.\n\n### Key Findings\n\n**1. sed -n for line ranges (45 cases, ~40 problematic)**\n\nWhen users mention line ranges (e.g., \"lines 253-343\" or \"around line 150\"), Claude agents often reach for sed -n because it directly translates the user's language. The Read tool requires offset/limit arithmetic (offset=252, limit=91), creating cognitive overhead. The root issue is parameter mismatch: users think in line numbers, but the Read tool speaks in offsets and limits. Solution: Add start_line/end_line parameters to the Read tool so agents can write Read(start_line=253, end_line=343) directly, eliminating the mental translation step and making the tool as intuitive as sed.\n\n**2. grep for searching (45 cases, ~30 problematic)**\n\nClaude agents use bash grep commands for operations like counting matches (grep -c), showing context lines (grep -A/-B/-C), or recursive searching (grep -r) because these features aren't obviously discoverable in the Grep tool. While the Grep tool supports all these capabilities (output_mode=\"count\", -A=N, -B=N, -C=N parameters), they're buried in documentation. Agents fall back to familiar bash idioms because grep -c feels more direct than Grep(output_mode=\"count\"). Solution: Enhanced system prompt with concrete examples showing how common grep patterns translate to Grep tool calls, and improved tool descriptions that prominently highlight these features.\n\n**3. cat heredoc for file creation (127 cases, ~127 problematic)**\n\nThis is the mo",
+  "labels": ["enhancement", "has repro", "api:bedrock", "area:tools", "model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-21T05:23:43Z",
+  "updated_at": "2026-05-28T18:05:58Z",
+  "closed_at": null,
+  "reactions_total": 87,
+  "comments_count": 25,
+  "author": "extemporalgenome",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Da1sypetals",
+      "author_association": "NONE",
+      "body": "I think it is time to BAN claude from using those tools. Making it understand the tools tailored for LLM agents and make those tools full-featured is the correct path. \"bash for everything\" is just wrong.",
+      "created_at": "2026-02-10T08:33:56Z"
+    },
+    {
+      "author": "sanjit-bhat",
+      "author_association": "NONE",
+      "body": "I run into the same issue all the time. It'd be great to fix this.",
+      "created_at": "2026-02-13T22:47:34Z"
+    },
+    {
+      "author": "JustGoscha",
+      "author_association": "NONE",
+      "body": "This is becoming a major problem.\n\nSometimes if I tell it to remember to not use sed (in CLAUDE.md or whatever) then it tries to be more creative and writes its own node scripts to search and replace tabs vs spaces for example 😂\n\nHilarious, but very dumb and inefficient and not leading to anything.",
+      "created_at": "2026-02-26T18:20:12Z"
+    }
+  ]
+}

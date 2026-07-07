@@ -1,0 +1,16 @@
+{
+  "number": 2085,
+  "title": "[BUG]",
+  "body": "Environment\n\n  - Platform (select one):\n    - Anthropic API\n    - AWS Bedrock\n    - Google Vertex AI\n    - Other:\n  - Claude CLI version: 1.0.24 (Claude Code)\n  - Operating System: macOS Darwin 24.5.0\n  - Terminal: zsh\n\n  Bug Description\n\n  Claude CLI fails with \"Invalid model name\" error when using the \"opus\" model alias, despite the documentation stating it's a supported alias.\n\n  Steps to Reproduce\n\n  1. Set environment variable: export CLAUDE_DEFAULT_MODEL=\"opus\"\n  2. Run claude\n  3. Type any message (e.g., \"hi\")\n  4. Receive error: API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"system: Invalid model name\"}}\n\n  Expected Behavior\n\n  According to claude --help, the \"opus\" alias should work:\n  --model <model>  Model for the current session. Provide an alias for the latest model (e.g. 'sonnet' or 'opus') or a model's full name\n  The CLI should translate \"opus\" to \"claude-opus-4-20250514\" before making API calls.\n\n  Actual Behavior\n\n  The CLI passes \"opus\" directly to the API without translation, causing a 400 error. The error occurs immediately upon sending any message.\n\n  Additional Context\n\n  - Workaround: Using \"sonnet\" alias or full model IDs works correctly\n  - This affects all new CLI sessions when CLAUDE_DEFAULT_MODEL=\"opus\" is set\n  - The bug persists across shell restarts due to the environment variable\n  - Confirmed that removing all Claude settings and reinstalling didn't fix the issue\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:model"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-14T15:44:38Z",
+  "updated_at": "2025-08-10T14:08:42Z",
+  "closed_at": "2025-06-14T17:51:27Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "njrun1804",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

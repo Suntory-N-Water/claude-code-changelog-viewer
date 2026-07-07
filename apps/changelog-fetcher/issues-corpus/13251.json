@@ -1,0 +1,41 @@
+{
+  "number": 13251,
+  "title": "Claude Code crashes with ACCESS_VIOLATION on Windows ARM64",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Claude Code crashes with ACCESS_VIOLATION on Windows ARM64\n\n**Environment:**\n- Claude Code Version: 2.0.60\n- OS: Windows 11 ARM64 (Build 26200, version 25H2 Insider Preview)\n- Device: Surface Pro 11\n- Processor: Qualcomm Snapdragon ARMv8 (64-bit)\n- Memory: 16GB (78.9% used at time of crash)\n\n**Behavior:**\nClaude Code crashes silently ~11 seconds after launch with exit code 0xC0000005 (STATUS_ACCESS_VIOLATION).\n\n- `claude -p \"say hello\"` - crashes, no output\n- `claude` (interactive) - crashes, no output\n- `claude doctor` - works\n- `claude auth status` - works\n- `claude --version` - works\n\n**Process monitoring before crash:**\n- Threads: 15 → 25 → 1 (sudden drop at crash)\n- Memory: 133MB → 510MB → 450MB (drop at crash)\n- No stdout/stderr output captured\n\n**Expected:** Claude Code should run on Windows ARM64.\n\n**Actual:** Immediate crash with memory access violation.\n\n**Diagnostic files attached:**\n- claude_crash_report.json\n- claude_diagnostics.log\n\n[claude_crash_report.json](https://github.com/user-attachments/files/24008396/claude_crash_report.json)\n[claude_diagnostics.log](https://github.com/user-attachments/files/24008395/claude_diagnostics.log)\n\n### What Should Happen?\n\nDon't crash\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. run \n[claude_code_diagnostics.py](https://github.com/user-attachments/files/24008407/claude_code_diagnostics.py)\n\nC:\\Users\\<user>\\python claude_code_diagnostics.py -- -p \"say hello\"\n\n2. review logs:\n\n[claude_crash_report.json](https://github.com/user-attachments/files/24008421/claude_crash_report.json)\n[claude_diagnostics.log](https://github.com/user-attachments/files/24008422/claude_diagnostics.log)\n\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n4.5\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:core",
+    "perf:memory"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-07T00:23:28Z",
+  "updated_at": "2026-02-25T14:31:51Z",
+  "closed_at": "2026-02-14T00:49:56Z",
+  "reactions_total": 12,
+  "comments_count": 25,
+  "author": "rock1110",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Builds for Windows ARM64 are now available as of 2.1.41! Install using the install.ps1 / install.cmd flows in https://code.claude.com/docs/en/setup#installation.\n\nWe expect to start getting future builds into winget sometime next week.",
+      "created_at": "2026-02-14T00:49:56Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Windows ARM64 builds are available in winget starting with 2.1.42 - `winget install Anthropic.ClaudeCode`\n\n@alan-cooney-dsit  I saw you opened #25713, let's discuss Linux ARM64 there.",
+      "created_at": "2026-02-17T21:12:49Z"
+    },
+    {
+      "author": "HaruSoul",
+      "author_association": "NONE",
+      "body": "same issue",
+      "created_at": "2025-12-18T07:48:57Z"
+    }
+  ]
+}

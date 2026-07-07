@@ -1,0 +1,35 @@
+{
+  "number": 18951,
+  "title": "[BUG] Thai characters display as squares (tofu) in Claude Code CLI - works fine outside Claude",
+  "body": "## Describe the bug\nThai characters display as squares (tofu/boxes) when using Claude Code CLI. The same terminal displays Thai characters correctly when NOT running inside Claude Code.\n\n## Environment\n- **Claude CLI version:** 2.1.12\n- **Platform:** Windows 11 + WSL2 (Ubuntu)\n- **Terminals tested:** Windows Terminal, PuTTY, VS Code integrated terminal\n- **Locale:** C.UTF-8\n\n## Steps to reproduce\n1. Open any terminal (Windows Terminal, VS Code, PuTTY)\n2. Verify Thai characters display correctly: `echo \"สวัสดีครับ\"` → Shows Thai text properly\n3. Launch Claude Code: `claude`\n4. Claude Code UI and responses show Thai characters as squares (□□□□□)\n\n## Expected behavior\nThai characters should display correctly in Claude Code CLI, just like they do in the regular terminal.\n\n## Actual behavior\n- Thai characters appear as squares/boxes (tofu)\n- This happens in ALL terminals when running Claude Code\n- Terminal displays Thai correctly when NOT in Claude Code\n- Bash command output within Claude Code shows Thai correctly (e.g., `echo \"ภาษาไทย\"` works)\n- Only Claude Code's own UI/response text renders Thai as squares\n- This confirms the issue is within Claude Code's TUI rendering, not the terminal/font\n\n## Additional context\nThis issue affects Thai-speaking users who need to work in their native language. The problem appears to be in Claude Code's TUI (Terminal User Interface) rendering layer, not in the terminal emulator or font configuration.\n\n## Related issues\n- #3961 - Unicode Input Handling Fails for Vietnamese Characters\n- #6094 - Unicode Character Input Corruption\n- #1716 - UTF-8 Corruption Bug\n- #14686 - Korean characters display issues",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-18T04:54:25Z",
+  "updated_at": "2026-02-13T14:28:50Z",
+  "closed_at": "2026-02-06T13:48:55Z",
+  "reactions_total": 0,
+  "comments_count": 15,
+  "author": "ptanik01",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "cirospaciari",
+      "author_association": "MEMBER",
+      "body": "This has been fixed in the latest release. Thai spacing vowels (U+0E32 SARA AA, U+0E33 SARA AM) were incorrectly classified as zero-width combining marks in the TUI rendering pipeline, causing them to be silently dropped from the screen buffer. The fix corrects the width classification so these characters are properly treated as width-1 spacing vowels and render correctly.\n\nPlease update to the latest version and confirm the fix. Closing this issue.",
+      "created_at": "2026-02-06T13:48:41Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18103\n2. https://github.com/anthropics/claude-code/issues/18281\n3. https://github.com/anthropics/claude-code/issues/9907\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-18T04:57:54Z"
+    },
+    {
+      "author": "ptanik01",
+      "author_association": "NONE",
+      "body": "<img width=\"454\" height=\"162\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a27edeb4-6be6-4c71-b9a4-4f13574f296e\" />",
+      "created_at": "2026-01-18T05:00:47Z"
+    }
+  ]
+}

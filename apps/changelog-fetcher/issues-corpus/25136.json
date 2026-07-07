@@ -1,0 +1,35 @@
+{
+  "number": 25136,
+  "title": "[BUG] Cowork tab not showing on Windows 11 Pro x64 — \"yukonSilver\" marked as unsupported + CoworkVMService cannot be removed",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n<html>\n<body>\n<!--StartFragment--><html><head></head><body><h1>[BUG] Cowork tab not showing on Windows 11 Pro x64 — \"yukonSilver\" marked as unsupported + CoworkVMService cannot be removed</h1>\n<h2>Preflight Checklist</h2>\n<ul>\n<li>[x] I have searched existing issues and this hasn't been reported yet</li>\n<li>[x] This is a single bug report</li>\n<li>[x] I am using the latest version of Claude Desktop</li>\n</ul>\n<h2>What's Wrong?</h2>\n<p>After installing the latest Claude Desktop for Windows (v1.1.2685.0, downloaded Feb 11, 2026), the <strong>Cowork tab does not appear</strong> at all. Only \"Chat\" is available. The root cause appears to be two interrelated issues:</p>\n<ol>\n<li><strong><code>yukonSilver</code> VM configuration is marked as \"unsupported\"</strong> — preventing the VM bundle from being downloaded and the Cowork tab from appearing.</li>\n<li><strong><code>CoworkVMService</code> cannot be removed</strong> — the installer detects it as a \"conflicting service\" but fails to remove it with \"Access is denied\", even when running as Administrator.</li>\n</ol>\n<h2>Environment</h2>\n\nComponent | Details\n-- | --\nOS | Windows 11 Pro (Build 26200)\nArchitecture | x64 (Intel/AMD)\nClaude Desktop | v1.1.2685.0 (MSIX install from claude.ai/download)\nClaude Plan | Max\nHyper-V | ✅ Enabled\nVirtual Machine Platform | ✅ Enabled\nWindows Hypervisor Platform | ✅ Enabled\nWSL2 | ✅ Installed\nSideloading | ✅ Enabled\n\n\n<h2>Symptoms</h2>\n<ul>\n<li>Cowork tab is <strong>not visible</strong> in Claude Desktop — only Chat mode available</li>\n<li><code>vm_bundles</code> folder under <code>%APPDATA%\\Claude</code> is <strong>never created</strong></li>\n<li>Regular Chat mode works without issues</li>\n</ul>\n<h2>Log Evidence</h2>\n<h3>cowork_vm_node.log</h3>\n<pre><code>2026-02-11 18:01:09 [info] [cleanupVMBundleIfUnsupported] yukonSilver not supported (status=unsupported), checking for stale bundle...\n</code></pre>\n<p>This appears to be the primary issue: the VM configuration <code>yukonSilver</code> is incorrectly classified as \"unsupported\" on a fully capable x64 Windows 11 Pro system with all virtualization features enabled.</p>\n<h3>ClaudeSetup.log (repeated across multiple installation attempts)</h3>\n<pre><code>WARNING: CoworkVMService already exists (potential conflict)\nConflicting service: true\nRemoving conflicting CoworkVMService...\nWARNING: failed to remove conflicting service: could not open CoworkVMService: Access is denied.\nWARNING: old package removal had issues: exit status 1\n</code></pre>\n<p>The installer successfully installs the MSIX package (<code>INSTALL_SUCCESS</code>), but:</p>\n<ul>\n<li>Cannot remove the pre-existing <code>CoworkVMService</code> (Access denied even with full elevation)</li>\n<li>Cannot remove previous MSIX package cleanly (exit status 1)</li>\n<li>Launches via <code>explorer.exe claude://</code> which fails because the protocol handler is not registered</li>\n</ul>\n<h3>Manual removal also fails</h3>\n<pre><code class=\"language-powershell\"># As Administrator:\nsc.exe delete CoworkVMService\n# Result: [SC] OpenService FEHLER 5: Zugriff verweigert (Access denied)\n</code></pre>\n<p>The service cannot be removed even via Administrator PowerShell or registry manipulation.</p>\n<h2>Additional Installation Issue</h2>\n<p>The installer has a <strong>user account elevation conflict</strong>: When run by a non-admin user (e.g., \"Fritz\") and elevated to a different admin account (e.g., \"Admin\"), the MSIX is downloaded and installed in the Admin user's context (<code>C:\\Users\\Admin\\AppData\\Local\\Temp\\</code>), making it invisible to the original user. The app does not appear in the non-admin user's Start menu.</p>\n<p><strong>Workaround found:</strong> Running <code>Add-AppxPackage</co",
+  "labels": ["bug", "has repro", "platform:windows", "area:packaging"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-12T00:45:03Z",
+  "updated_at": "2026-03-12T14:34:09Z",
+  "closed_at": "2026-02-13T10:30:26Z",
+  "reactions_total": 21,
+  "comments_count": 48,
+  "author": "hreg123",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25034\n2. https://github.com/anthropics/claude-code/issues/25055\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-12T00:47:56Z"
+    },
+    {
+      "author": "gus-p-williams",
+      "author_association": "NONE",
+      "body": "I received the following from Claude:\n\nThe problem is definitely the Windows Insider build 26200. Cowork's compatibility detection doesn't recognize this preview build as supported, even though your system has all the right features.",
+      "created_at": "2026-02-12T23:30:30Z"
+    },
+    {
+      "author": "pearson-tfl",
+      "author_association": "NONE",
+      "body": "**Same issue here — yukonSilver marked unsupported on Windows 11 Pro Insider Preview x64**\n\n## Environment\n- **Claude Desktop Version:** 1.1.2998\n- **OS:** Windows 11 Pro Insider Preview, Build 26300, 25H2\n- **CPU:** 11th Gen Intel Core i7-1185G7 @ 3.00GHz (x64)\n- **RAM:** 64 GB\n- **Hyper-V:** VM Monitor Mode Extensions: Yes; Virtualization Enabled In Firmware: Yes\n- **Subscription:** Pro\n\n## Symptoms\nCowork tab does not appear — only Chat and Code tabs visible \n\n## Log Output (`%APPDATA%\\Claude",
+      "created_at": "2026-02-13T09:30:05Z"
+    }
+  ]
+}

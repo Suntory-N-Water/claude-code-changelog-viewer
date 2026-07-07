@@ -1,0 +1,42 @@
+{
+  "number": 11678,
+  "title": "[BUG] claude -p fails with \"tools.3.custom.input_examples: Extra inputs are not permitted\"",
+  "body": "## Description\nThe `claude -p` command (headless mode) fails immediately with API Error 400 when attempting to execute any prompt.\n\n## Error Message\n```\nAPI Error: 400 {\"error\":{\"message\":\"{\\\"message\\\":\\\"tools.3.custom.input_examples: Extra inputs are not permitted\\\"}. Received Model Group=claude-sonnet-4-5-20250929\\nAvailable Model Group Fallbacks=None\",\"type\":\"None\",\"param\":\"None\",\"code\":\"400\"}}\n```\n\n## Environment\n- **Claude Code version**: 2.0.42\n- **OS**: macOS (Darwin 25.1.0)\n- **Model**: claude-sonnet-4-5-20250929\n- **Installation method**: Homebrew Cask\n\n## Reproduction Steps\n```bash\nclaude -p \"1+1等于几？\" --output-format json\n```\n\nor\n\n```bash\nclaude -p \"What is 1+1?\" --output-format json --allowedTools \"\"\n```\n\nBoth commands fail with the same error.\n\n## Expected Behavior\nShould return JSON response with the answer.\n\n## Actual Behavior\nImmediately fails with API Error 400 before any response is generated. The error indicates that tool index 3 (Grep tool based on session init output) has an `input_examples` field in its definition that the current Anthropic API doesn't accept.\n\n## Additional Context\n- Interactive mode works fine - this only affects headless mode (`claude -p`)\n- The error suggests the tool definition schema used by Claude Code 2.0.42 is incompatible with the current API\n- From the session init output, tool index 3 corresponds to the Grep tool in the tools array: `[\"Task\",\"Bash\",\"Glob\",\"Grep\",...]`\n- The `input_examples` field was likely part of tool definitions in an earlier API version but has since been removed or renamed\n\n## Session Init Output\n```json\n{\n  \"tools\": [\"Task\",\"Bash\",\"Glob\",\"Grep\",\"ExitPlanMode\",\"Read\",\"Edit\",\"Write\",\"NotebookEdit\",\"WebFetch\",\"TodoWrite\",\"BashOutput\",\"KillShell\",\"Skill\",\"SlashCommand\"],\n  \"model\": \"claude-sonnet-4-5-20250929\",\n  \"claude_code_version\": \"2.0.42\"\n}\n```\n\n## Impact\nThis completely breaks headless mode functionality, preventing any programmatic use of Claude Code from scripts or automation workflows.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:api",
+    "oncall"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-15T11:41:30Z",
+  "updated_at": "2026-03-31T03:30:40Z",
+  "closed_at": null,
+  "reactions_total": 37,
+  "comments_count": 53,
+  "author": "ecarx-ai-adm",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "As a mitigation, downgrade to 2.0.36.\n\nSolution is to confirm your llm gateway is passing the `anthropic-beta` header through.",
+      "created_at": "2025-11-15T18:59:10Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Double check that your llm gateway is passing through the `anthropic-beta` header (if Claude Code is calling Anthropic or Vertex format endpoints) or `anthropic_beta` body parameter (if Claude Code is calling Bedrock format endpoints) specified by Claude Code.\n\nPlease share the error you're receiving after downgrading to Claude Code 2.0.36.",
+      "created_at": "2025-11-15T22:01:56Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "The `anthropic-beta` header value is determined by Claude Code, and LLM gateways need to forward it as is.\n\nFor folks still running into this issue after confirming their gateway is forwarding that header, please share your: Claude Code version; LLM gateway name; API provider (Anthropic, Bedrock, Vertex); API format exposed to Claude Code by gateway.\n\nSee https://code.claude.com/docs/en/llm-gateway#gateway-requirements",
+      "created_at": "2025-11-17T17:53:50Z"
+    }
+  ]
+}

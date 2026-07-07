@@ -1,0 +1,16 @@
+{
+  "number": 49584,
+  "title": "[BUG] claude-code 2.1.110 no longer sending DEC 2026 messages on terminals that support it",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code has supported the DEC 2026 synchronized output terminal extension for some time, which can help to reduce screen tearing and other artifacts when Claude redraws the scrollback buffer.\n\nSince Claude 2.1.110, I've noticed Claude is no longer sending DEC 2026 enable/disable commands on my terminal which supports it. I use a modified version of the Emacs `eat` terminal emulator, which uses a TERM value of `eat-truecolor`. Its terminfo advertises the `Sync` capability, and it responds to DECRPM queries to test for the availability of the feature. I also tested setting my TERM value to `xterm-256color` to match iTerm, and Claude also does not send the sync messages.\n\nMeanwhile, if I set my `TERM` to `xterm-ghostty` or `xterm-kitty`, Claude continues to send DEC 2026 instructions.\n\n### What Should Happen?\n\nI assume Claude is now relying on a hardcoded list of terminal which support this feature, but this penalizes us users who run more obscure terminal emulators. Claude should support checking for DEC 2026 support using the DECRPM instruction, or a hardcoded list plus looking for the `Sync` feature in the terminfo (`ghostty` includes this feature in its custom terminfo, but other emulators such as iTerm that rely on a standard terminfo such as `xterm-256color` do not).\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nLaunch `claude` in an affected terminal. When Claude produces a large amount of output, screen tearing will occur.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.109\n\n### Claude Code Version\n\n2.1.112\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:tui", "regression"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-16T22:57:26Z",
+  "updated_at": "2026-06-14T08:58:49Z",
+  "closed_at": "2026-04-19T00:46:12Z",
+  "reactions_total": 0,
+  "comments_count": 8,
+  "author": "lucasec",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

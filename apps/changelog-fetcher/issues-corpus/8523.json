@@ -1,0 +1,35 @@
+{
+  "number": 8523,
+  "title": "[BUG] Incorrect Installation Diagnostics for npm-global Installation",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code 2.0.1 shows incorrect installation diagnostic warnings when installed via `npm install -g`, claiming it's a \"native\" installation and reporting configuration mismatches, even though the installation is functioning correctly.\n\n**Environment**\nClaude Code Version: 2.0.1\nInstallation Method: npm global (`npm install -g @anthropic-ai/claude-code`)\nOS: macOS\nNode Version: `v22.19.0`\nnpm Version: `11.6.1`\n\n**Installation Details**\n```\nbash\n$ which claude\n/usr/local/bin/claude\n\n$ ls -la /usr/local/bin/claude\nlrwxr-xr-x  1 user  wheel  52 [date] /usr/local/bin/claude -> ../lib/node_modules/@anthropic-ai/claude-code/cli.js\n\n$ npm list -g --depth=0 | grep claude\n├── @anthropic-ai/claude-code@2.0.1\n```\n\n### What Should Happen?\n\nWhen installed via `npm install -g`, Claude Code should:\n\nCorrectly detect the installation method as `npm-global`\nNot show warnings about native installation paths\nNot report configuration mismatches between detected and actual installation method\n\n### Error Messages/Logs\n\n```shell\n**System Diagnostics**\n  ⚠  installMethod is native, but claude command not found at /Users/[username]/.local/bin/claude\n  ⚠  Insufficient permissions for auto-updates\n  ⚠  No write permissions for auto-updates (requires sudo)\n  ⚠  Installation config mismatch: running npm-global but config says native\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code globally: `npm install -g @anthropic-ai/claude-code`\n2. Verify installation: `which claude` (should show `/usr/local/bin/claude`)\n3. Create config file at `~/.claude/config.json`with:\n\n```\njson   {\n\"installMethod\": \"npm-global\"\n}\n```\n\n4. Run `claude` in any project directory\n5. Observe the system diagnostics warnings\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.1 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n**Investigation Results**\nLooking at the compiled CLI code, the `b$()` function correctly detects `npm-global` based on the binary path:\n```\njavascriptif([\"/usr/local/lib/node_modules\", ...].some((Z)=>A.includes(Z)))\n  return\"npm-global\";\n```\nHowever, the diagnostics code appears to be checking for a native installation configuration somewhere else, possibly in a cached state or different config location.\n\n**Additional Context**\n- The warnings persist even after:\n1. Creating/updating `~/.claude/config.json`\n2. Killing all Claude processes with `pkill -f claude`\n3. Clearing cache with `rm -rf ~/.claude/.cache`\n- The actual functionality of Claude Code works correctly despite these warnings\n- Config files checked:\n1. `~/.claude/config.json` ✓ (set to `npm-global`)\n2. `~/.claude/settings.json`✓ (contains only `alwaysThinkingEnabled`)\n3. `~/.claude/plugins/config.json` ✓ (contains only `repositories`)\n\n**Workaround**\nSetting `DISABLE_INSTALLATION_CHECKS=1` environment variable suppresses the warnings.\n\n**Suggested Fix**\nThe diagnostics logic should respect the runtime-detected installation method (`npm-global`) and not compare it against a potentially stale or incorrectly initialized \"native\" configuration value. The detection logic in `b$()` appears correct, but the diagnostics validation logic may need to be updated to use the same detection method.",
+  "labels": ["bug", "has repro", "platform:macos", "area:packaging"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-09-30T20:06:45Z",
+  "updated_at": "2026-03-08T23:37:46Z",
+  "closed_at": null,
+  "reactions_total": 3,
+  "comments_count": 13,
+  "author": "Philsmith1",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Have you previously installed the native executable?\n\nCheck `~/.claude.json` or `~/.claude/.config.json` (the path you listed `~/.claude/config.json` is incorrect) for installMethod.",
+      "created_at": "2025-10-07T00:08:36Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/7231\n2. https://github.com/anthropics/claude-code/issues/8415\n3. https://github.com/anthropics/claude-code/issues/5159\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-09-30T20:12:17Z"
+    },
+    {
+      "author": "gbaian10",
+      "author_association": "NONE",
+      "body": "same issue",
+      "created_at": "2025-10-01T02:52:39Z"
+    }
+  ]
+}

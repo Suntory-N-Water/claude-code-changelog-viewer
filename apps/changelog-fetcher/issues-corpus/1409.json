@@ -1,0 +1,35 @@
+{
+  "number": 1409,
+  "title": "Command Execution in Incorrect Directory When Running npx nx run-many via Claude Code",
+  "body": "Hi,\n\nI’m encountering an issue with Claude Code executing commands in the wrong directory.\n\nSetup:\n\t•\tI’m in the root of my Nx monorepo.\n\t•\tA CLAUDE.md file is present in this directory.\n\nIssue:\n\nWhen I instruct Claude Code to run:\n\nnpx nx run-many --target=test --all\n\nIt executes the command, but I receive the following error:\n\nNX   The current directory isn't part of an Nx workspace.\n\nUpon investigation, it appears that the command is being executed from my home directory ($HOME) instead of the project root.\n\nSteps Taken:\n\t•\tConfirmed that I’m running Claude Code from the project root.\n\t•\tVerified the presence of CLAUDE.md in the current directory.\n\t•\tChecked that npx nx run-many --target=test --all works as expected when run directly in the terminal from the project root.\n\nExpected Behavior:\n\nClaude Code should execute commands from the directory it’s launched in, respecting the current working directory context.\n\nAdditional Information:\n\t•\tClaude Code version: 1.0.5\n\t•\tOperating System: MacOS 15.4\n\nIs there a known workaround or configuration to ensure commands are executed in the correct directory?\n\nThank you for your assistance.\n\nBest regards,\n\nThomas\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "area:bash"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-05-29T14:18:38Z",
+  "updated_at": "2025-08-11T14:10:53Z",
+  "closed_at": "2025-06-05T17:09:20Z",
+  "reactions_total": 0,
+  "comments_count": 13,
+  "author": "thlandgraf",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "can you ask claude to print the cwd using the shell tool? the current directory should stick to where you started claude regardless of what your shell config does",
+      "created_at": "2025-06-05T16:31:12Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "I'm guessing that your bashrc or zshrc has a cd command in it? If so can you condition that on CLAUDE_CODE env var not being set?",
+      "created_at": "2025-06-05T16:52:12Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "if this is a mac, the cd command might also appear in ~/.bash_profile OR ~/.bash_login OR ~/.profile for bash or ~/.zprofile OR ~/.zlogin for zsh",
+      "created_at": "2025-06-05T17:03:00Z"
+    }
+  ]
+}

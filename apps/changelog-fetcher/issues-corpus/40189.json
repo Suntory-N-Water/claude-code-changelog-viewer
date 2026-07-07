@@ -1,0 +1,16 @@
+{
+  "number": 40189,
+  "title": "Bedrock streaming: undefined is not an object (evaluating '_.speed')",
+  "body": "## Bug\n\nWhen using Claude Code v2.1.86 with Amazon Bedrock as the provider, the error `undefined is not an object (evaluating '_.speed')` fires repeatedly during streaming (mid-thinking/response), not just at startup. It appears on every streaming chunk.\n\n## Environment\n\n- **Claude Code version:** 2.1.86 (latest)\n- **Provider:** Amazon Bedrock via Teleport proxy (`CLAUDE_CODE_USE_BEDROCK=1`)\n- **Model:** `us.anthropic.claude-opus-4-6-v1`\n- **OS:** macOS (Darwin 25.3.0)\n- **Node.js:** with custom `--require` bootstrap for HTTPS proxy tunneling\n\n## Reproduction\n\n1. Configure Bedrock provider (`CLAUDE_CODE_USE_BEDROCK=1`)\n2. Launch Claude Code with a Bedrock model ID\n3. Send any prompt — the error appears repeatedly during streaming output\n\n## Analysis\n\nThe minified code is trying to access `.speed` on model metadata (`_`) that is `undefined`. The Anthropic direct API likely returns speed/performance metadata in the streaming response, but the Bedrock endpoint does not include this field, causing the property access to fail on every chunk.\n\n## Current workaround\n\nFiltering stderr: `claude --model \"$MODEL\" 2> >(grep -v '\\.speed' >&2)`\n\nThis suppresses the error messages but doesn't fix the underlying null-safety issue.\n\n## Expected behavior\n\nClaude Code should handle missing `.speed` metadata gracefully when using Bedrock (e.g., optional chaining `_.speed` → `_?.speed`).",
+  "labels": ["bug", "has repro", "api:bedrock", "platform:macos", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-28T10:31:19Z",
+  "updated_at": "2026-04-14T10:31:56Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 0,
+  "author": "zainraza",
+  "is_maintainer_involved": false,
+  "top_comments": []
+}

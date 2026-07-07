@@ -1,0 +1,42 @@
+{
+  "number": 37442,
+  "title": "Subagents don't inherit bypassPermissions mode from parent session",
+  "body": "## Description\n\nWhen the parent session is configured with `\"defaultMode\": \"bypassPermissions\"` in `~/.claude/settings.json`, subagents spawned via the `Agent` tool still prompt for tool permissions. This defeats the purpose of bypass mode and creates a disruptive experience — every subagent invocation can trigger permission prompts that the user has already opted out of.\n\n## Steps to Reproduce\n\n1. Set `\"defaultMode\": \"bypassPermissions\"` in `~/.claude/settings.json`\n2. Also set `\"skipDangerousModePermissionPrompt\": true`\n3. Start a Claude Code session — main agent correctly bypasses all permission prompts\n4. Invoke a task that uses the `Agent` tool (subagent)\n5. The subagent prompts for permissions on tools the parent session would silently allow\n\n## Expected Behavior\n\nSubagents should inherit the parent session's permission mode, including `bypassPermissions` and all `allow` patterns.\n\n## Actual Behavior\n\nSubagents prompt for permissions as if running in a more restrictive mode.\n\n## Environment\n\n- Claude Code version: 2.1.81\n- OS: Windows 11 Pro (10.0.26200)\n- Shell: bash (Git Bash)\n\n## Notes\n\nPersistent issue across multiple sessions over several days. Adding broad `allow` patterns (e.g., `Bash(*)`) as a workaround doesn't fully resolve it since `bypassPermissions` should already cover everything.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:agents",
+    "area:permissions",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-22T13:38:29Z",
+  "updated_at": "2026-05-28T11:30:11Z",
+  "closed_at": "2026-05-28T11:30:11Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "sorfanit",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/26083\n2. https://github.com/anthropics/claude-code/issues/26479\n3. https://github.com/anthropics/claude-code/issues/36225\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-22T13:42:12Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "The Agent tool has a `mode` parameter that can explicitly set the permission mode for spawned subagents. Until the inheritance bug is fixed, you can work around this by instructing Claude to use `mode: \"bypassPermissions\"` when spawning agents.\nIn your CLAUDE.md, add:\n```\nWhen using the Agent tool, always set mode: \"bypassPermissions\"\n```\nThis tells Claude to pass the mode explicitly on every Agent invocation, bypassing the broken inheritance.\nIf you want a more enforceable approach, a PreToolUs",
+      "created_at": "2026-03-22T16:53:43Z"
+    },
+    {
+      "author": "AldereteRuben",
+      "author_association": "NONE",
+      "body": "Still repros on claude-opus-4-6 (1M context) via VSCode extension on darwin 25.4.0. Confirming from a real multi-repo scenario where this blocked a 7-blocker pre-launch sprint:\n\n**Setup**\n- Primary cwd: `/repo-front`\n- Sibling repo: `/repo-api` (listed in `additionalDirectories`)\n- Two git worktrees of `/repo-api` at `/repo-api-be1` and `/repo-api-be2` (also in `additionalDirectories`)\n\n**`.claude/settings.local.json`** (project scope):\n\n```​\njson\n{\n  \"permissions\": {\n    \"defaultMode\": \"bypassP",
+      "created_at": "2026-04-15T11:31:54Z"
+    }
+  ]
+}

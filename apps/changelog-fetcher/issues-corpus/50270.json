@@ -1,0 +1,41 @@
+{
+  "number": 50270,
+  "title": "v2.1.113+ broken on Termux/Android: native binary requires glibc, no JS fallback",
+  "body": "## Summary\n\nStarting with **v2.1.113**, Claude Code switched from a JavaScript entry point (`cli.js`) to a native glibc Linux binary (`bin/claude.exe`). This completely breaks Claude Code on **Termux (Android)**, where:\n\n- `process.platform` reports `android`, not `linux`\n- Android's kernel rejects `ET_EXEC` glibc ELF binaries (`unexpected e_type: 2`)\n- There is no glibc on Android/Termux (it uses Bionic libc)\n\n**v2.1.112** (last JS-based version) works perfectly.\n\n## Environment\n\n- **Device:** Pixel 9, Android 14 (non-rooted)\n- **Termux:** latest from F-Droid\n- **Node.js:** v22 (Termux arm64)\n- **Claude Code:** v2.1.113 / v2.1.114 broken, v2.1.112 works\n\n## Steps to reproduce\n\n```bash\n# On Termux\nnpm install -g @anthropic-ai/claude-code@latest\nclaude --version\n```\n\n**Expected:** Version output\n**Actual:**\n```\nError: claude native binary not installed.\n\nEither postinstall did not run (--ignore-scripts, some pnpm configs)\nor the platform-native optional dependency was not downloaded\n(--omit=optional).\n```\n\n## Root cause\n\n1. **`install.cjs`** calls `process.platform` → returns `android` → not in `PLATFORMS` map → skips binary install\n2. Even force-installing `@anthropic-ai/claude-code-linux-arm64` and copying the binary fails because Android's kernel rejects glibc executables:\n   ```\n   error: \"bin/claude.exe\" has unexpected e_type: 2\n   ```\n3. Running via `patchelf` or the glibc `ld-linux-aarch64.so.1` loader also fails (`Could not find a PHDR: broken executable?`)\n4. Running via `proot-distro` works (`proot-distro login ubuntu -- /path/to/claude --version`) but is too slow for interactive use\n\n## Workaround\n\nPin to the last JS-based version:\n```bash\nnpm install -g @anthropic-ai/claude-code@2.1.112\n```\n\n## Suggested fix\n\nOne or more of:\n\n- **Add `android-arm64` platform support** with a statically-linked or Bionic-compatible binary\n- **Keep the JS fallback** (`cli.js` / `cli-wrapper.cjs`) functional as a real fallback, not just an error message\n- **Map `android` → `linux`** in platform detection (won't fix the glibc issue alone, but would help if a compatible binary is provided)\n\n## Impact\n\nAll Termux users on Android are locked out of updates. Termux is one of the few ways to run Claude Code on mobile — a non-trivial use case for developers on the go.",
+  "labels": [
+    "bug",
+    "has repro",
+    "area:packaging",
+    "platform:android",
+    "regression"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-18T04:38:36Z",
+  "updated_at": "2026-07-02T12:38:11Z",
+  "closed_at": null,
+  "reactions_total": 54,
+  "comments_count": 61,
+  "author": "tpdhd",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Claude Code 2.1.113 has switched to a native executable (after npm deprecation was announced in January), which drops support for some platforms. We may add support for Android in the future - this requires either a [bun](https://github.com/oven-sh/bun) target for `android-arm64` or static musl.\n\nYou can pin to the last JS bundle release https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.112 to continue using Claude Code for now.",
+      "created_at": "2026-04-23T23:14:02Z"
+    },
+    {
+      "author": "cyberb",
+      "author_association": "NONE",
+      "body": "Please fix it, the whole idea of terminal agent is that I do not need IDE in most of the cases now, which means I do not really need my 4 screens , which means no need for a PC. Android termux will th 5 terminals running Claude and doing everything I need is almost all I need these days.",
+      "created_at": "2026-04-18T09:33:06Z"
+    },
+    {
+      "author": "salviz",
+      "author_association": "NONE",
+      "body": "+1, hitting the same regression on Samsung S918B (Galaxy S23 Ultra) running Termux native (not proot).\n\n**Environment**\n\n- Device: Samsung SM-S918B\n- OS: Android 16, kernel `5.15.178-android13-8`\n- Termux: native arm64 (no proot)\n- Node: v24.14.1\n- npm: 11.12.1\n- claude-code: 2.1.114 from `npm install -g`\n\n**Reproduction confirmed**\n\n`process.platform` on Termux Node returns `\"android\"`, not `\"linux\"`:\n\n```\n$ node -e \"console.log(process.platform, require('os').arch())\"\nandroid arm64\n```\n\n`insta",
+      "created_at": "2026-04-18T15:49:26Z"
+    }
+  ]
+}

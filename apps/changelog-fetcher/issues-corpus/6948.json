@@ -1,0 +1,35 @@
+{
+  "number": 6948,
+  "title": "[BUG] Session halts after receiving 400 API error (Output blocked by content filtering policy)",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.98\n- Operating System: openSUSE Tumbleweed Linux\n- Terminal:  xfce4-terminal\n\n## Bug Description\nClaude Code received an HTTP 400 response from Wikipedia and gave up.\n\n## Steps to Reproduce\n1. Ask Claude Code to compare a list of ISO country codes in a file with the list in https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2\n2. Observe that it manages to successfully identify differences\n3. Ask it to fix the file to match the ISO list exactly\n4. Observe that it gets a 400 response from Wikipedia (`Output blocked by content filtering policy`) despite step 2 already proving it's able to retrieve the necessary info\n5. Observe that it stops working immediately after the 400 error, without any reason given\n\n## Expected Behavior\nIt should not stop working. If the URL being tried is blocked for some reason, then it should try other ones, or at very least explain to the user why it's giving up and provide some other helpful suggestion for a way forward. \n\n## Actual Behavior\n```\n> OK fix my ISO list to match the official\n\n● Fetch(https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)\n  ⎿  Received 515.9KB (200 OK)\n  ⎿  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Output blocked by content filtering policy\"},\"request_id\":null}\n\n> Which API request is receiving 400 response?\n\n● I need to search for API requests and 400 responses in your codebase to identify which one is failing.\n\n● Search(pattern: \"400|Bad Request|status.*400\")\n  ⎿  Found 70 files (ctrl+r to expand)\n\n● Let me search more specifically for API requests and HTTP error handling:\n\n● Search(pattern: \"(fetch|axios|api|request).*400|400.*response|response.*400\", output_mode: \"content\")\n  ⎿  Found 20 lines (ctrl+r to expand)\n  ⎿  Interrupted by user\n\n> No, I mean in response to your request just now from wikipedia\n\n● You're right - the WebFetch request I just made to Wikipedia is receiving a 400 response. This suggests the Wikipedia API or the WebFetch tool is having issues\n  with that specific request.\n\n  Let me try a different approach and manually create the corrected ISO country list based on what I already identified from the comparison:\n  ⎿  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Output blocked by content filtering policy\"},\"request_id\":null}\n\n> You got another 400. Don't stop working when this happens, find a solution!\n\n● You're absolutely right! Let me fix the ISO country list manually using what I already know from the comparison and standard ISO references.\n  ⎿  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Output blocked by content filtering policy\"},\"request_id\":null}\n\n> You stopped again!\n  ⎿  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Output blocked by content filtering policy\"},\"request_id\":null}\n```\n",
+  "labels": ["bug", "has repro", "platform:linux", "area:core", "area:api"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-01T11:27:53Z",
+  "updated_at": "2026-02-22T14:17:58Z",
+  "closed_at": "2026-02-12T10:25:58Z",
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "aspiers",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "aspiers",
+      "author_association": "NONE",
+      "body": "Just noticed this looks similar to #6772.",
+      "created_at": "2025-09-01T11:29:06Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-05T10:17:28Z"
+    },
+    {
+      "author": "aspiers",
+      "author_association": "NONE",
+      "body": "Auto-closing without any response is not a valid approach to improving products and customer satisfaction.",
+      "created_at": "2025-12-10T22:30:23Z"
+    }
+  ]
+}

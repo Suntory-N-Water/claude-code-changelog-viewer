@@ -1,0 +1,43 @@
+{
+  "number": 20692,
+  "title": "API Error 400: thinking blocks order error on first tool use after clean install",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code throws API Error 400 immediately after ANY tool completes execution, even on a completely fresh install with all cache/config deleted.\n\nError message:\n```json\n{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.1.content.0: If an assistant message contains any thinking blocks, the first block must be 'thinking' or 'redacted_thinking'. Found 'text'.\"}}\n```\n\nThis happens on EVERY tool use - Bash, Search, Read, etc. The tool executes successfully but the response synthesis fails.\n\n### What Should Happen?\n\nClaude Code should successfully process tool results and continue the conversation normally.\n\n### Error Messages/Logs\n\n```shell\nAPI Error: 400\n{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.1.content.0: If an assistant message contains any thinking blocks, the first block must be 'thinking' or 'redacted_thinking'. Found 'text'.\"},\"request_id\":\"req_011CXT8hZtKJJcTCAUi2eqLJ\"}\n```\n\n### Steps to Reproduce\n\n1. Clean install: `claude install stable`\n2. Delete ALL config: \n```bash\n   rm -rf ~/.claude/cache ~/.claude/debug ~/.claude/projects ~/.claude/todos\n   rm -rf ~/.claude/session-env ~/.claude/statsig\n   rm -f ~/.claude/settings.json ~/.claude/history.jsonl\n```\n3. Start Claude Code: `cd /any/directory && claude`\n4. Type simple query: \"What files are in this directory?\"\n5. Bash tool runs `ls` successfully\n6. API Error 400 occurs when synthesizing response\n\nMinimal reproduction - no special files or configuration needed.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nUnknown - worked earlier today (2026-01-25) before multiple Explore agents were used\n\n### Claude Code Version\n\n2.1.7 (Claude Code) - also tested with 2.1.19\n\n### Platform\n\nOther\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nWSL (Windows Subsystem for Linux)\n\n### Additional Information\n\nTimeline:\n1. Claude Code was working normally\n2. Asked complex question that triggered parallel Explore agents\n3. Explore agents completed successfully\n4. Error occurred during \"Swooping\" (result synthesis)\n5. Error now persists on ALL subsequent sessions, even after:\n   - Deleting conversation history\n   - Clean reinstall (both stable and latest)\n   - Deleting ALL ~/.claude config except credentials\n   - Different projects/directories\n   - Simple queries without images\n\nHypothesis: Something in the account/server state got corrupted during the parallel agent session. The error persists across clean installs, suggesting server-side state issue.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "area:core",
+    "area:api",
+    "oncall"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-25T00:19:22Z",
+  "updated_at": "2026-04-23T16:06:39Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 45,
+  "author": "Dixter999",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Manavk2004",
+      "author_association": "NONE",
+      "body": "Same here",
+      "created_at": "2026-01-25T00:20:34Z"
+    },
+    {
+      "author": "dcurran90",
+      "author_association": "NONE",
+      "body": "+1 on this. getting the same thing and it started within the last hour",
+      "created_at": "2026-01-25T00:20:43Z"
+    },
+    {
+      "author": "dsolis-deloryx",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-01-25T00:20:55Z"
+    }
+  ]
+}

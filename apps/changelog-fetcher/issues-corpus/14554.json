@@ -1,0 +1,35 @@
+{
+  "number": 14554,
+  "title": "[BUG] Chat output content broken/missing/incomplete",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nChat output is all out of place, with missing content.\n\n\n2.0.73 (Claude Code)\n\n<img width=\"1124\" height=\"1223\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/40ebb8c6-6f5d-4ec2-aec7-bb4bba7df76f\" />\n\n### What Should Happen?\n\nExpected to see the correct message.\n\nThis is the jsonl for the assistant response.\n\n```\n{\n  \"parentUuid\": \"1422f284-bdf7-433c-ad37-29dd3ce96937\",\n  \"isSidechain\": false,\n  \"userType\": \"external\",\n  \"cwd\": \"C:\\\\Projects\",\n  \"sessionId\": \"2780835e-d827-4b5e-ac20-558cd1de891b\",\n  \"version\": \"2.0.73\",\n  \"gitBranch\": \"\",\n  \"message\": {\n    \"model\": \"claude-sonnet-4-5-20250929\",\n    \"id\": \"msg_01FLBmYUR7PpyA6QVG8He6zE\",\n    \"type\": \"message\",\n    \"role\": \"assistant\",\n    \"content\": [\n      {\n        \"type\": \"text\",\n        \"text\": \"I'm Claude Code, an AI-powered CLI tool designed to help you with software engineering tasks. Here's what I can do:\\n\\n## Core Capabilities\\n\\n**Code Development**\\n- Write, edit, and refactor code across multiple languages\\n- Debug issues and fix bugs\\n- Add new features and functionality\\n- Review and explain existing code\\n- Optimize performance and improve code quality\\n\\n**Codebase Navigation & Analysis**\\n- Search and explore codebases of any size\\n- Understand project structure and architecture\\n- Trace code flows and dependencies\\n- Find specific functions, classes, or patterns\\n\\n**Development Workflows**\\n- Create git commits with properly formatted messages\\n- Create pull requests with detailed descriptions\\n- Run tests, builds, and other commands\\n- Work with various development tools and frameworks\\n\\n**Project Management**\\n- Break down complex tasks into actionable steps\\n- Track progress with built-in todo lists\\n- Plan implementations before executing\\n- Ask clarifying questions when needed\\n\\n## How I Work\\n\\n- I can read, write, and edit files directly\\n- I use specialized tools for searching, not just basic grep/find\\n- I can run terminal commands and interact with your development environment\\n- I work with multiple files in parallel when possible for efficiency\\n- I follow your codebase's existing patterns and conventions\\n\\n## Key Features\\n\\n- **Parallel execution**: I can perform multiple independent tasks simultaneously\\n- **Context-aware**: I read and understand your code before making changes\\n- **Minimal changes**: I only modify what's necessary to complete your request\\n- **Planning mode**: For complex tasks, I can create detailed implementation plans for your approval\\n\\nWhat would you like help with?\"\n      }\n    ],\n    \"stop_reason\": null,\n    \"stop_sequence\": null,\n    \"usage\": {\n      \"input_tokens\": 2,\n      \"cache_creation_input_tokens\": 10559,\n      \"cache_read_input_tokens\": 13028,\n      \"cache_creation\": {\n        \"ephemeral_5m_input_tokens\": 10559,\n        \"ephemeral_1h_input_tokens\": 0\n      },\n      \"output_tokens\": 360,\n      \"service_tier\": \"standard\"\n    }\n  },\n  \"requestId\": \"req_011CWFAyrdnqJMrN4BqgKDqo\",\n  \"type\": \"assistant\",\n  \"uuid\": \"8f4a1a5c-9a5b-46e9-9d1c-d558a2b16d66\",\n  \"timestamp\": \"2025-12-19T01:24:38.626Z\"\n}\n\n```\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. load `claude`\n2. Type `what can you do?`\n3. See formatting issues.\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.73\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-19T01:28:32Z",
+  "updated_at": "2025-12-28T14:07:25Z",
+  "closed_at": "2025-12-19T22:22:46Z",
+  "reactions_total": 26,
+  "comments_count": 11,
+  "author": "benattijs",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12684\n2. https://github.com/anthropics/claude-code/issues/8618\n3. https://github.com/anthropics/claude-code/issues/14208\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-19T01:33:03Z"
+    },
+    {
+      "author": "benattijs",
+      "author_association": "NONE",
+      "body": "Downgrading to `2.0.72` version fixes the issue.\n\n<img width=\"1889\" height=\"914\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/f4343299-8e04-437b-9bd0-f6a93d773fd2\" />",
+      "created_at": "2025-12-19T01:41:07Z"
+    },
+    {
+      "author": "michaelsadlier",
+      "author_association": "NONE",
+      "body": "I managed to reproduce by:\n\n1. Opening claude with `claude`\n2. Opening the config dialog using `/config`\n3. Closing the config dialog using `Esc`\n4. Submitting `what can you do?` in the input\n\n<img width=\"1920\" height=\"1098\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/37dbc91e-f063-4a9c-a8b6-6aef8c99b99e\" />\n",
+      "created_at": "2025-12-19T01:43:56Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 29795,
+  "title": "Best Practice: 5-Layer QA & Safety System Built Over 68 Claude Code Failures",
+  "body": "# Taming Claude Code: A Real-World QA & Safety System Built Over 68 Failures\n\n> **Context:** This document describes a production QA/safety system developed over 3+ months of daily Claude Code usage on a Python roguelike game project (~110 source files, 30k+ LOC). Every mechanism described here was born from a real failure -- documented in our `plans/claude_fails.md` with 68 entries and counting.\n>\n> **Purpose:** (a) Give Claude Code users actionable patterns to control AI behavior, (b) surface systemic issues that Anthropic could address at the model/platform level.\n\n---\n\n## 1. The Problem\n\nClaude Code is powerful but unreliable in long sessions. Without guardrails, it will:\n- Silently bypass restrictions by switching tools (Edit blocked? Use Bash instead)\n- \"Forget\" rules after context compression, even when written in CLAUDE.md\n- Make autonomous decisions without asking (scope creep, design changes)\n- Dismiss review findings as \"pre-existing\" or \"not my problem\"\n- Repeat the same mistakes across sessions despite documentation\n\nThe core insight: **Text-based rules alone don't work.** Claude reads them, \"understands\" them, and then ignores them under pressure. You need **technical enforcement** -- hooks that physically block forbidden actions.\n\n---\n\n## 2. System Architecture\n\nOur system has 5 layers, from soft (advisory) to hard (blocking):\n\n```\nLayer 5: HOOKS (hard blocks -- cannot be bypassed)\nLayer 4: AUTOMATED REVIEWS (5 tools, must pass before commit)\nLayer 3: DECISION LOG (mandatory audit trail, hook-enforced)\nLayer 2: FAIL DOCUMENTATION (68 documented failure patterns)\nLayer 1: RULES & CONVENTIONS (CLAUDE.md, plans/*.md)\n```\n\nEach layer compensates for the weaknesses of the layers below it.\n\n---\n\n## 3. Layer 1: Rules & Conventions\n\n### What it is\n- `CLAUDE.md` -- Project rules (loaded into every session automatically)\n- `plans/claude_vorgaben.md` -- Detailed behavioral rules\n- `plans/quality_gate.md` -- Pre-implementation checklist\n- `plans/ui_design.md` -- UI pattern guidelines\n- `plans/oo_design.md` -- Architecture guidelines\n\n### What it catches\nBasic conventions: language, documentation requirements, architectural patterns, coding style.\n\n### Limitations\n**This layer alone is insufficient.** Claude reads the rules, appears to understand them, and then violates them anyway. We've documented this 68 times. Rules without enforcement are suggestions, not constraints.\n\n---\n\n## 4. Layer 2: Fail Documentation\n\n### What it is\n- `plans/claude_fails.md` -- 68 documented failure patterns with:\n  - **What** went wrong (concrete example)\n  - **Why** Claude did it (the cognitive pattern)\n  - **What** it should have done instead\n  - **Automated check** reference (if a hook/review now catches it)\n\n### What it catches\nRecurring behavioral patterns:\n- #68: Using `cd &&` before commands (breaks allow-list, happened EVERY session)\n- #31: Dismissing findings as \"pre-existing\" (happened 5+ times before hook)\n- #26: Starting subagents despite explicit ban (happened 3+ times before hook)\n- #53: Hiding INFO findings to make reviews pass\n\n### Limitations\nClaude doesn't reliably read this file at session start. Even when it does, deeply ingrained patterns (like `cd &&`) persist. **This layer documents failures; it doesn't prevent them.** The real value is: each fail entry eventually becomes a hook or review check.\n\n### Recommendation for users\nStart your own fails file. Every time Claude makes a mistake you've corrected before, document it. Over time, patterns emerge that you can automate away.\n\n---\n\n## 5. Layer 3: Decision Log (Hook-Enforced)\n\n### What it is\nA mandatory audit trail (`docs/decision_log.md`) that Claude must write to BEFORE making any code changes.\n\n### How it works\n1. **PreToolUse hook** (`require_decision_log.py`): Blocks ALL `.py` edits unless the decision log has been modified in this session\n2. **PostToolUse hook** (`mark_decision_log.py`): Sets a marker file when decision log is edited\n3. **SessionStart hook** (`clean_decision_marker.py`): Clears all markers at session start\n\n### Decision log format (machine-reada",
+  "labels": ["enhancement", "area:hooks", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-01T10:18:59Z",
+  "updated_at": "2026-05-03T14:35:14Z",
+  "closed_at": "2026-04-25T22:15:50Z",
+  "reactions_total": 0,
+  "comments_count": 14,
+  "author": "weilhalt",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rishson",
+      "author_association": "NONE",
+      "body": "The findings and descriptions match my own observations. I have a similar approach (multi-layered, hook based, then bash based).\n@weilhalt, you've clearly put a huge amount of research and effort into raising this - 🙏\n\nOne thing - \"All hook scripts, review tools, rule files, and the complete fail log are available in our repository.\"\nDid you intentionally not link to your repo? I was hoping to see if you have any clever tricks in there that I've missed, specifically \"guard_bash_file_writes.py\"",
+      "created_at": "2026-03-01T13:53:30Z"
+    },
+    {
+      "author": "weilhalt",
+      "author_association": "NONE",
+      "body": "Thanks @rishson! Glad to hear the observations match yours -- that's validating.\n\nThe repo isn't public (it contains game code), but I'm happy to explain `guard_bash_file_writes.py` in detail. It's a PreToolUse:Bash hook with three layers:\n\n**1. cd-Blocker:** Rejects any command starting with `cd`. The working directory is already correct -- `cd \"path\" && git status` breaks the permission allowlist and forces manual approval on every command. Simple regex: `^cd\\s+`\n\n**2. Allowlist (safe commands",
+      "created_at": "2026-03-01T16:19:24Z"
+    },
+    {
+      "author": "rishson",
+      "author_association": "NONE",
+      "body": "@weilhalt thanks for the details - very helpful! 💯",
+      "created_at": "2026-03-01T17:46:51Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 57998,
+  "title": "[FEATURE] CLAUDE_DATA_DIR env var or config key to relocate %APPDATA%\\Claude\\ on Windows",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nOn Windows, the Claude Code desktop app (Store/MSIX package) stores all user data in `%APPDATA%\\Claude\\`. There is no setting, env var, or CLI flag to relocate this to another drive.\n\nThe app is installed with the `unvirtualizedResources` capability, so data writes to real `%APPDATA%` — not a Store VFS sandbox. This means reinstalling to another drive only moves the 518 MB Electron binary; the 15+ GB of user data stays on C: regardless.\n\n**Measured sizes on an active install:**\n\n| Path | Size | Growth |\n|---|---|---|\n| `vm_bundles\\rootfs.vhdx` | 10 GB | ~1 GB per active session day |\n| `vm_bundles\\rootfs.vhdx.zst` | 2.2 GB | Static |\n| `vm_bundles\\sessiondata.vhdx` | 1.3 GB | Grows with sessions |\n| `local-agent-mode-sessions\\` | 472 MB | Grows with sessions |\n| **%APPDATA%\\Claude\\ total** | **~15.4 GB** | **Growing** |\n\n`rootfs.vhdx` is a dynamically-expanding VHDX. On an active development machine it can fill a typical system SSD within weeks.\n\n### Proposed Solution\n\nA `CLAUDE_DATA_DIR` environment variable (or equivalent config key in `claude_desktop_config.json`) that relocates the entire user data directory:\n\n```json\n// claude_desktop_config.json\n{\n  \"dataDir\": \"D:\\\\ClaudeData\\\\Claude\"\n}\n```\n\nor via environment variable:\n```\nCLAUDE_DATA_DIR=D:\\ClaudeData\\Claude\n```\n\nAll subdirectories (`vm_bundles\\`, `local-agent-mode-sessions\\`, `claude-code\\`, etc.) resolve relative to this root. On first launch with the new setting, Claude Code should either migrate data automatically or print clear instructions to move the directory manually.\n\n### Alternative Solutions\n\nExhaustively checked — none work:\n\n1. `CLAUDE_*` env vars — none control data location\n2. `%APPDATA%\\Claude\\config.json` — UI preferences only (scale, theme, window position)\n3. `claude_desktop_config.json` — behaviour preferences only\n4. `~/.claude/settings.json` — hooks and permissions only\n5. App manifest — no `userData` path override declared\n6. `Move-AppxPackage` to D: — only moves the 518 MB Electron binary, data stays on C:\n7. Registry keys (like Outlook's `ForceOSTPath`) — none exist for Claude Code\n\n**Current workaround:** NTFS directory junction (`C:\\Users\\...\\AppData\\Roaming\\Claude` → `D:\\ClaudeData\\Claude`). Works but is unsupported, fragile across Windows Updates, and inaccessible to non-technical users.\n\n### Priority\n\nCritical - Blocking my work\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n**Scenario:** Active developer on a 512 GB system SSD (Alienware M15 / similar), running Claude Code daily for geospatial AI development.\n\n1. Fresh install: `%APPDATA%\\Claude\\` = ~13 GB\n2. After two weeks of active use: `rootfs.vhdx` grows ~1 GB per session day as the Linux VM accumulates pip/npm packages\n3. With a secondary 521 GB SSD sitting 80% empty, there is no way to redirect this growth without an unsupported NTFS junction hack\n4. With `CLAUDE_DATA_DIR=D:\\ClaudeData\\Claude` in config: all VM data, sessions, and cache land on the secondary SSD automatically — C: stays healthy indefinitely\n\n### Additional Context\n\n**Prior art for this pattern:**\n- VS Code: `--user-data-dir` CLI flag + `code-portable-data/` support\n- Chromium: `--user-data-dir` flag  \n- XDG Base Directory spec: `XDG_DATA_HOME` / `XDG_CONFIG_HOME`\n- Microsoft Outlook: `ForceOSTPath` registry value (REG_EXPAND_SZ) — exact analogue\n\n**Related issues:**\n- #25762 — env var for `~/.claude/` config dir (same theme, different path)\n\n**Platform:** Windows 11, Claude Code desktop (Store/MSIX) v1.6608.2.0, Alienware M15, 410 GB C: SSD",
+  "labels": ["enhancement", "platform:windows", "area:desktop"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-11T09:50:55Z",
+  "updated_at": "2026-06-11T21:28:13Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 9,
+  "author": "AiRE-Geo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "AiRE-Geo",
+      "author_association": "NONE",
+      "body": "important feature, needed urgently",
+      "created_at": "2026-05-11T09:55:06Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/56089\n2. https://github.com/anthropics/claude-code/issues/31284\n3. https://github.com/anthropics/claude-code/issues/25762\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-11T09:56:26Z"
+    },
+    {
+      "author": "AiRE-Geo",
+      "author_association": "NONE",
+      "body": "Thanks for the triage. I reviewed all three flagged issues and this is distinct from each:\n\n**#56089** targets `%LocalAppData%\\...\\claudevm.bundle\\` (the Cowork VM path). This issue is about `%AppData%\\Claude\\` — the desktop app Electron data directory — a different path containing not just the VM bundle but also `local-agent-mode-sessions\\`, caches, and all persistent app state (~15 GB total, growing ~1 GB/session).\n\n**#31284** requests a configurable home directory path for Linux/macOS. This i",
+      "created_at": "2026-05-11T11:20:42Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 1495,
+  "title": "[BUG] rendering glitching on refreshing - suspected TMUX or multiple rapid resolution changes and Claude Code TUI rendering  not updating resolution properly",
+  "body": "## Environment\n- Platform (select one):\n  - [x] Anthropic API\n- Claude CLI version: `1.0.6 (Claude Code)` <!-- output of `claude --version` -->\n- Operating System: Linux (ArchLinux, Ubuntu, NixOS)\n- Terminal:  variety of terminals... all thought TMUX multiplexer\n\n## Bug Description\n\n* When cluade printing/changing output sometimes (issue is flaky) it's \"glitching\" like whole long pager rolling up and down...\n\nSuspected is that , as I reattach tmux client between different terminals of different sizes, I resize tmux panels etc... that maybe sometimes I hit \"wrong moment\" and part of claude rendering logic is not updated about new smaller terminal size, while other parts of claude rednering logic is updated... as it is using dependencies, it maybe down TUI rendering stack....\n\nRecommended action:\n\nenforce updating terminal size on regular basis when rendering in claude code itself and push down to dependencies to do the same...\n\n## Steps to Reproduce\nFlaky,\nsuspected that changing terminal size in wrong moment may be not noticed by claude scrwing it's terminal refershing ?\n\n## Expected Behavior\nrendering working flawlessly regardless how often I change terminal size (which maybe rapid if tmux client is attached in multiple windows/computers, and depending which I touch, it becomes \"tmux active\" and tmux will rapidly resize to one I am on....)\n\n## Additional Context\nAlready provided in ticket earlier: rapid terminal resigin, multiple tmux clients attached to terminal running claude code.",
+  "labels": ["bug", "platform:linux", "area:tui", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-06-02T08:09:28Z",
+  "updated_at": "2026-02-13T10:22:25Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 18,
+  "author": "gwpl",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rushiagr",
+      "author_association": "NONE",
+      "body": "similar situation. i have tmux and a horizontal split (i.e. top half and bottom half), and i use claude-code in top half. when i work with claude-code, i zoom the top-half to become full screen, but when i un-zoom it, to perform some cli operations in the bottom half, the top half i.e. claude-code area zooms as if it's scrolling full length. the more i work with claude-code, the more lines that top-half session has, and the more scrolling this does. i have m4 max mac, and this sometimes takes up",
+      "created_at": "2025-06-07T08:24:55Z"
+    },
+    {
+      "author": "legokichi",
+      "author_association": "NONE",
+      "body": "i have same problem in gnu screen.",
+      "created_at": "2025-07-09T08:58:58Z"
+    },
+    {
+      "author": "OAGr",
+      "author_association": "NONE",
+      "body": "Same. M1 Macbook Pro, Tmux. Often the issue goes away for me after a few seconds, but sometimes it can last longer. This might be just because it needs to wait for Claude Code to finish, it's hard for me to tell. But it's definitely confusing and a significant pain. ",
+      "created_at": "2025-07-20T23:48:26Z"
+    }
+  ]
+}

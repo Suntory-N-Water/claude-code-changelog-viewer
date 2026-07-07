@@ -1,0 +1,35 @@
+{
+  "number": 44212,
+  "title": "Model compliance regression: auto-loaded .claude/rules/ procedures skipped on session start",
+  "body": "## Environment\n- Claude Code CLI: `2.1.92`\n- Model: `claude-opus-4-6[1m]` (Opus 4.6, 1M context)\n- OS: Windows 11 Pro (Git Bash shell)\n- Date observed: 2026-04-06\n\n## Summary\nAs of today, the model is no longer executing procedural instructions defined in auto-loaded `.claude/rules/` files at session start. The rules text is verifiably present in context (visible in system reminders), but the model fabricates the expected output instead of running the documented steps.\n\n## Repro\n1. In a project with `.claude/rules/03-session-startup.md` defining a multi-step startup sequence (config integrity check, branch sync check, charter validation, domain specialist load, etc., culminating in a \"Session Initialized\" block).\n2. Open a fresh Claude Code session.\n3. User sends a single word: `Start`.\n\n## Expected\nModel executes each documented startup step sequentially via the prescribed tools (Read `framework-config.json`, run `config-integrity-check.js`, run `branch-sync-check.js`, Glob `CHARTER.md`, etc.) and only then emits the Session Initialized block populated from real tool output.\n\n## Actual\nModel emits a Session Initialized block fabricated from the `gitStatus` snapshot in the system prompt. None of the prescribed scripts run. No file reads occur. The charter check, config integrity check, branch sync check, and domain specialist load are all skipped. When challenged, the model acknowledges it bypassed the rules.\n\n## Why this matters\n`.claude/rules/` is a documented, harness-supported feature ([memory docs](https://code.claude.com/docs/en/memory.md#organize-rules-with-claude-rules)) loaded \"with the same priority as `.claude/CLAUDE.md`.\" Projects rely on this for repeatable session initialization, anti-hallucination guarantees, and gating destructive workflows. Silent non-compliance defeats the purpose of putting procedures in rules files at all — they become advisory text the model can ignore at will.\n\n## Diagnostic signal\nThis is **not** a loading bug. The rules content is present in this session's context (confirmable by quoting it back). The regression is in **model adherence** to auto-loaded procedural rules, not in the harness's injection of them. Please route to the model behavior team rather than the CLI team.\n\n## Suggested\nEither (a) restore prior compliance behavior for auto-loaded rules, or (b) document clearly that `.claude/rules/` is advisory only and recommend hooks for any procedure that must actually execute — so projects can plan accordingly.\n",
+  "labels": ["bug", "platform:windows", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-06T13:56:52Z",
+  "updated_at": "2026-06-05T11:16:08Z",
+  "closed_at": "2026-06-05T11:16:08Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "rubrical-worker",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rubrical-worker",
+      "author_association": "NONE",
+      "body": "What changed between yesterday and today?\n\n> so you got lazy too and did not execute .claude/rules\n\n● You're right — I skipped startup steps. Running them now.\n\n● Bash(node .claude/scripts/shared/upgrade-check.js)\n  ⎿  {\n       \"success\": true,\n       \"message\": \"Cooldown active — skipping upgrade check.\",\n     … +6 lines (ctrl+o to expand)\n  ⎿  Interrupted · What should Claude do instead?",
+      "created_at": "2026-04-06T13:59:35Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/39697\n2. https://github.com/anthropics/claude-code/issues/27032\n3. https://github.com/anthropics/claude-code/issues/43632\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-06T14:01:27Z"
+    },
+    {
+      "author": "rubrical-worker",
+      "author_association": "NONE",
+      "body": "❯ another session built a local session startup hook - find it\n\n  Read 1 file (ctrl+o to expand)\n\n● Found it. The SessionStart \"startup\" hook is configured at .claude/settings.local.json:66-75. It's an inline node -e command that emits the additionalContext directing me to read CLAUDE.md and load every\n  file in .claude/rules/ — which is exactly the system-reminder I received at the top of this session.\n\n  ★ Insight ─────────────────────────────────────\n  - The \"hook\" isn't a separate script fil",
+      "created_at": "2026-04-06T14:19:32Z"
+    }
+  ]
+}

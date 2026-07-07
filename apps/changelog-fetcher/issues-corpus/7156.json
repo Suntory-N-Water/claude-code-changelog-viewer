@@ -1,0 +1,35 @@
+{
+  "number": 7156,
+  "title": "Search tool doesn't find anything when user has custom `~/.config/ripgrep/.ripgreprc` present",
+  "body": "Search tool doesn't find anything when user has custom `~/.config/.ripgreprc` present.\n\nI'm also experiencing this issue - the below report was closed as stale. So here is me reopening it.\n\n> Ok I figured it out! Like a few different variations of issues have mentioned, the issue is with ripgrep!\n> \n> The issue specifically is having a ripgrep config file (`~/.config/.ripgreprc`) set on my system. I am on Windows using Claude Code through WSL2 (arch) and using zsh (if any of that matters).\n> \n> The solution for me was to add to the Claude Code `settings.json` file the `RIPGREP_CONFIG_PATH` environment variable setting it to a \"dummy\" value (so it does not load a custom ripgrep config in claude code)!\n> \n> ```json\n> {\n>   \"env\": {\n>     \"RIPGREP_CONFIG_PATH\": \"dummy\"\n>   },\n> }\n> ```\n> \n> The `USE_BUILTIN_RIPGREP` env variable (as others have mentioned helped them) did NOT work for me for some reason, but `RIPGREP_CONFIG_PATH` did work!\n> \n> NOTE: This actually solved FOUR different issues for me!!\n> \n> 1. `/agents` not showing up\n> 2. `@` file autocompletion not working properly\n> 3. `/custom-slash-commands` not showing up\n> 4. Search / Grep tools always showing \"0 results found\"\n> \n> I am going to link all the issues that relate to these problems below so that this message shows up linked in those comments!\n> \n> - https://github.com/anthropics/claude-code/issues/2288\n> - https://github.com/anthropics/claude-code/issues/1843\n> - https://github.com/anthropics/claude-code/issues/5284\n> - https://github.com/anthropics/claude-code/issues/5256\n> - https://github.com/anthropics/claude-code/issues/5185\n> - https://github.com/anthropics/claude-code/issues/5182\n> - https://github.com/anthropics/claude-code/issues/5062\n> - https://github.com/anthropics/claude-code/issues/4632 \n\n _Originally posted by @GitMurf in [#4741](https://github.com/anthropics/claude-code/issues/4741#issuecomment-3177976916)_",
+  "labels": ["bug", "has repro", "platform:linux", "area:tools"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-09-04T17:39:07Z",
+  "updated_at": "2025-11-04T14:07:25Z",
+  "closed_at": "2025-10-27T22:56:24Z",
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "corneliusroemer",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "What's in your `~/.config/.ripgreprc`, i.e. does finding zero results align with the exclusions you have set?\n\nIf not, can you run `claude --debug` and see if you have any `rg` / `ripgrep` errors logged?",
+      "created_at": "2025-09-04T19:10:04Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Hey folks - this should be resolved in the next release, which also drops support for custom ripgrep configs in Claude Code.",
+      "created_at": "2025-10-28T00:27:55Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4741\n2. https://github.com/anthropics/claude-code/issues/5256  \n3. https://github.com/anthropics/claude-code/issues/4946\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-09-04T17:42:51Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 16886,
+  "title": "Feature Request: PreSessionEnd Hook",
+  "body": "# Feature Request: PreSessionEnd Hook\n\n**Repository**: https://github.com/anthropics/claude-code/issues\n\n---\n\n## Summary\n\nRequest for a `PreSessionEnd` hook that fires when the user signals exit, but *before* Claude terminates — enabling Claude-dependent operations as part of the exit flow.\n\n## The Problem\n\nThe current `SessionEnd` hook runs **after** Claude has already exited. Any operation requiring Claude's participation is impossible at that point.\n\n**Current flow:**\n```\nUser: /exit or Ctrl-D\n  → Claude exits immediately\n  → SessionEnd hook fires (Claude is gone)\n  → Hook can only run shell commands — Claude cannot participate\n```\n\n**Desired flow:**\n```\nUser: /exit or Ctrl-D\n  → PreSessionEnd hook fires (Claude still active)\n  → Claude executes any configured prompt/operation\n  → Claude exits\n  → SessionEnd hook fires for post-exit tasks\n```\n\n## The Architectural Gap\n\nThe hooks system currently covers:\n- **SessionStart** — before Claude is ready (injection)\n- **PostToolUse** — during session (validation, logging)\n- **SessionEnd** — after Claude exits (cleanup)\n\nWhat's missing: a hook at the moment the user signals \"I'm done\" but Claude is still active. This is the only point where Claude can participate in exit-related operations.\n\n## Use Case\n\nI've built a custom context persistence system:\n- **SessionStart hook**: Decrypts and injects saved context\n- **SessionEnd hook**: Encrypts context file for storage\n- **Custom `/save-context` skill**: Claude summarises session → writes to `.claude/context.md`\n\nThe gap: The encryption hook runs after Claude exits, but the context *generation* requires Claude to be active. Currently I must manually run `/save-context` before exiting. If I forget, there's nothing to encrypt.\n\nThis isn't specific to my workflow — it's the general pattern: any exit operation requiring Claude's participation has no trigger point.\n\n## Proposed Solution\n\nA `PreSessionEnd` hook that fires when the user signals exit (`/exit`, Ctrl-D twice, etc.) but before Claude terminates.\n\n```json\n{\n  \"hooks\": {\n    \"PreSessionEnd\": [{\n      \"hooks\": [{\n        \"type\": \"prompt\",\n        \"prompt\": \"Summarise this session and save context to .claude/context.md\"\n      }]\n    }]\n  }\n}\n```\n\n### Hook Types\n\n- **`type: \"prompt\"`** — Inject a prompt for Claude to execute before exit. This is the key capability: Claude can summarise, clean up, confirm, or run any skill.\n- **`type: \"command\"`** — Run a shell command (consistent with other hooks, though less useful here since the point is Claude participation).\n\n### Behaviour\n\n- Hook fires once per exit signal\n- Claude processes the prompt normally\n- After completion, exit proceeds\n- If hook fails or times out, exit proceeds anyway (graceful degradation)\n\n## Workaround\n\nI've created an `/exit-save` command that chains my save operation with `/exit`. It works, but requires discipline to use the right exit command — easy to forget and just Ctrl-D.\n\n## Impact\n\nThis fills the one timing gap in the hooks system. Users could:\n- Auto-generate session summaries on exit\n- Run cleanup prompts before termination\n- Trigger any Claude-dependent operation as part of the exit flow\n- Build more robust context persistence without manual steps\n\nThe hooks architecture is already excellent. This adds the missing lifecycle event.\n\n---\n\n**Environment**: Claude Code CLI\n**Related**: SessionStart, SessionEnd, PostToolUse hooks",
+  "labels": ["enhancement", "has repro", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-08T15:15:38Z",
+  "updated_at": "2026-06-24T15:02:37Z",
+  "closed_at": "2026-05-05T10:40:07Z",
+  "reactions_total": 6,
+  "comments_count": 11,
+  "author": "paullaudeman",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12755\n2. https://github.com/anthropics/claude-code/issues/13239\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-08T15:20:54Z"
+    },
+    {
+      "author": "paullaudeman",
+      "author_association": "NONE",
+      "body": "## Not a duplicate — distinct capability request\n\n#12755 requests a `PreSessionEnd` hook with `type: \"command\"` — an external shell script that can block exit based on external state (e.g., `git status`).\n\nThis request is for `type: \"prompt\"` — **Claude participates in the exit flow with full session context.**\n\nThe architectural distinction:\n\n| Capability | External command | Prompt injection |\n|------------|------------------|------------------|\n| Access to session context | ❌ None | ✅ Full |\n",
+      "created_at": "2026-01-08T17:18:53Z"
+    },
+    {
+      "author": "multipletwigs",
+      "author_association": "NONE",
+      "body": "@paullaudeman i'd love for this to be included as well, i have a use case here where i'd want to trigger external compilations of chat history before `/exit` finishes, following this thread! hope they add it in. ",
+      "created_at": "2026-01-10T12:41:49Z"
+    }
+  ]
+}

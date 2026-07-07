@@ -1,0 +1,23 @@
+{
+  "number": 40281,
+  "title": "Dispatch: SendUserMessage tool not loadable — agent responds but messages never appear",
+  "body": "## Summary\n\nDispatch in Cowork shows user messages as \"Read\" but never displays the agent's response. The cowork VM agent generates responses successfully, but `SendUserMessage` is not available as a deferred tool, so the response is never relayed back to the Dispatch UI.\n\n## Environment\n\n- **Claude Desktop:** 1.1.9310 (cb30ac) 2026-03-27T17:11:42.000Z (latest)\n- **Claude Code SDK in VM:** 2.1.85\n- **macOS:** Darwin 25.4.0\n- **Platform:** Apple Silicon\n\n## Steps to Reproduce\n\n1. Open Claude Desktop → Cowork → Dispatch\n2. Send any message (e.g., \"hi\")\n3. Message shows \"✓ Read\" but no response ever appears\n\n## Root Cause (from logs)\n\nThe agent transcript (`.claude/projects/-sessions-festive-confident-bohr/8ac32ec7-d4f8-43af-9a3b-b601a190468a.jsonl`) shows:\n\n1. Agent receives user message \"hi\"\n2. Agent calls `ToolSearch(\"select:mcp__dispatch__send_message\")` → **found**\n3. Agent calls `ToolSearch(\"select:SendUserMessage\")` → **\"No matching deferred tools found\"**\n4. Agent falls back to plain text output: `\"Hey Patrick! What can I help you with today?\"`\n5. Plain text output is **not relayed** to the Dispatch UI\n\n`SendUserMessage` is listed in both `--allowedTools` and `--tools` in the spawn config, but is not resolvable via `ToolSearch` inside the VM. The agent cannot send responses back through the dispatch channel.\n\n## Log Evidence\n\n**main.log** — Turn completes \"successfully\" but response never renders:\n```\n[sessions-bridge] Received user message for session cse_01PhK2qdByjb9yB7aiLtqiMZ: \"hi\"\n[Result] Turn succeeded for session local_ditto_aaec128a-6a8e-417b-b46c-754657d7f1a3\n[CycleHealth] Healthy cycle: {\n  cycle_health: 'healthy',\n  had_first_response: true,\n  seconds_to_outcome: 23,\n  is_resume: false,\n  transcript_size_bytes: 5269\n}\n```\n\n**cowork_vm_node.log** — Spawn config includes `SendUserMessage` in allowedTools:\n```\n--allowedTools ...,SendUserMessage,...\n--tools ...,SendUserMessage,...\n```\n\n**Agent transcript** — ToolSearch fails to find it:\n```json\n{\"query\":\"select:SendUserMessage\",\"total_deferred_tools\":371}\n// Result: \"No matching deferred tools found\"\n```\n\n## Troubleshooting Attempted\n\n- Cleared Cache, Code Cache, Session Storage, IndexedDB, blob_storage\n- Deleted bridge-state.json (3 separate times, each creating fresh sessions)\n- Deleted entire `local-agent-mode-sessions` directory (forced fresh setup flow with `is_resume: false`)\n- All attempts show identical behavior: backend healthy, response generated, UI shows only \"Read\"\n\n## Expected Behavior\n\n`SendUserMessage` should be available to the cowork VM agent so dispatch responses are relayed back to the Dispatch UI.\n\n## Notes\n\nThis appears to be a regression — Dispatch was working on this same machine the previous day (2026-03-27) with extensive back-and-forth conversation history.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:cowork",
+    "regression",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-28T15:37:59Z",
+  "updated_at": "2026-05-26T22:41:02Z",
+  "closed_at": "2026-05-26T22:41:02Z",
+  "reactions_total": 3,
+  "comments_count": 9,
+  "author": "aspenas",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

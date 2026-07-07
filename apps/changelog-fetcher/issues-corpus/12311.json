@@ -1,0 +1,23 @@
+{
+  "number": 12311,
+  "title": "Auto-compact fails with Opus 4.5 extended thinking blocks",
+  "body": "# Bug Report: Auto-compact fails with Opus 4.5 extended thinking blocks\r\n\r\n## Description\r\n\r\nWhen using Claude Code with the **claude-opus-4-5-20251101** model, the automatic conversation compaction feature fails repeatedly with a 400 error. This causes the session to become unusable and all context is lost.\r\n\r\n## Environment\r\n\r\n- **Claude Code version:** Latest (npm global install)\r\n- **Model:** claude-opus-4-5-20251101\r\n- **OS:** Windows 10/11\r\n- **Date:** 2025-11-24\r\n\r\n## Error Message\r\n\r\n```\r\n400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.11.content.11: `thinking` or `redacted_thinking` blocks in the latest assistant message cannot be modified. These blocks must remain as they were in the original response.\"},\"request_id\":\"req_011CVTZiv4zz4a4AmyidNwVx\"}\r\n```\r\n\r\n## Steps to Reproduce\r\n\r\n1. Start a Claude Code session with Opus 4.5 model\r\n2. Have a long conversation that triggers auto-compaction\r\n3. When Claude Code attempts `PreCompact:auto`, the API returns error 400\r\n4. The error repeats on every subsequent message\r\n5. Session becomes unusable\r\n\r\n## Debug Log Evidence\r\n\r\nFrom the debug log (`~/.claude/debug/*.txt`):\r\n\r\n```\r\n2025-11-24T23:15:23.678Z [DEBUG] Skipping PreCompact:auto hook execution - workspace trust not accepted\r\n2025-11-24T23:15:24.181Z [ERROR] Error streaming, falling back to non-streaming mode: 400 {\"type\":\"error\"...\r\n2025-11-24T23:15:24.604Z [ERROR] Error in non-streaming fallback: 400 {\"type\":\"error\"...\r\n```\r\n\r\n**Total failed compact attempts in session:** 77\r\n\r\n## Root Cause Analysis\r\n\r\nThe Opus 4.5 model uses \"extended thinking\" which generates `<thinking>` blocks in responses. When Claude Code attempts to compact/summarize the conversation:\r\n\r\n1. It modifies or reorganizes messages containing thinking blocks\r\n2. The API rejects this because thinking blocks \"cannot be modified\" and \"must remain as they were in the original response\"\r\n3. Both streaming and non-streaming fallback fail with the same error\r\n4. The compaction never succeeds, making the session unrecoverable\r\n\r\n## Impact\r\n\r\n- **Severity:** High\r\n- **Data Loss:** Complete loss of conversation context\r\n- **User Experience:** Session becomes completely unusable\r\n- **Workaround:** Switch to Sonnet model (no extended thinking)\r\n\r\n## Expected Behavior\r\n\r\nClaude Code should either:\r\n1. Preserve thinking blocks exactly as-is during compaction\r\n2. Handle the error gracefully and continue the session\r\n3. Warn users before using Opus 4.5 about this limitation\r\n\r\n## Suggested Fix\r\n\r\nWhen compacting conversations with Opus 4.5:\r\n- Extract and preserve `thinking`/`redacted_thinking` blocks unchanged\r\n- Only summarize the non-thinking content\r\n- Or skip compaction for messages containing thinking blocks\r\n\r\n## Additional Context\r\n\r\nThe user was working on AutoCAD LISP development when this occurred. The session had grown large enough to trigger auto-compaction, at which point it entered an error loop and became unusable.\r\n\r\n---\r\n\r\n*Reported via Claude Code session analysis*\r\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:model",
+    "area:core",
+    "area:api"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-25T00:13:33Z",
+  "updated_at": "2025-12-24T14:07:40Z",
+  "closed_at": "2025-12-12T16:50:05Z",
+  "reactions_total": 13,
+  "comments_count": 12,
+  "author": "ManuelMRosa",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,35 @@
+{
+  "number": 61491,
+  "title": "Claude Code suggests non-existent \"fan out subagents\" command",
+  "body": "## Summary\nClaude Code suggested I try a command phrased like \"fan out subagents — claude code will dig deep\". No such slash command exists. The phrase appears to be a hallucinated command name based on the real \"fan-out subagents\" *pattern* described in Anthropic's docs/webinars.\n\n## Expected\nClaude Code should either:\n- Reference the pattern descriptively (\"I can spawn subagents in parallel to investigate X, Y, Z\") without quoting it as a runnable command, or\n- Point to a real mechanism (custom slash commands in `.claude/commands/`, or just asking the model to issue parallel `Agent` calls).\n\n## Actual\nThe CLI surfaced text like *\"try 'fan out subagents', claude code will dig deep\"*, implying a built-in command. There is no `/fan-out-subagents` command, no skill by that name in the default install, and no entry in `~/.claude/commands/`. Verified against:\n- https://docs.anthropic.com/en/docs/claude-code/sub-agents\n- https://resources.anthropic.com/hubfs/Claude%20Code%20Advanced%20Patterns_%20Subagents,%20MCP,%20and%20Scaling%20to%20Real%20Codebases.pdf\n\nThe docs describe fan-out as a *pattern* users implement via custom slash commands or parallel `Agent` invocations, not as a shipped command.\n\n## Impact\nMisleading suggestions erode trust — users try a command that doesn't exist, get confused, and have to verify against docs.\n\n## Environment\n- Claude Code on Windows 11 (PowerShell)\n- Model: Claude Opus 4.7",
+  "labels": ["bug", "platform:windows", "area:model", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-22T15:30:40Z",
+  "updated_at": "2026-06-22T12:03:44Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 7,
+  "author": "joeedh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "joeedh",
+      "author_association": "NONE",
+      "body": "Managed to get the exact print: ` Tip: Say \"fan out subagents\" and Claude sends a team. Each one digs deep so nothing gets missed.`",
+      "created_at": "2026-05-22T15:34:37Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Confirming the gap from the operator side and adding three concrete workarounds you can use today.\n**The pattern.** The Tip text presents \"fan out subagents\" as if it were a runnable command (a slash command or recognized phrase), but the actual mechanism documented in Anthropic's sub-agents page and Advanced Patterns PDF is the parallel-`Agent`-call pattern. The Tip surface and the actual mechanism are decoupled: saying the phrase to Claude doesn't trigger anything the harness intercepts, and t",
+      "created_at": "2026-05-22T16:03:45Z"
+    },
+    {
+      "author": "timur-da",
+      "author_association": "NONE",
+      "body": "Related but distinct symptom — when users attempt the documented \"fan-out subagents\" pattern via real `Agent` calls from inside a forked skill context (skill frontmatter `context: fork` + `allowed-tools: [..., \"Agent\"]`), every `Agent` call returns `agent_tool_unavailable` instantly, no API call made. Empirically verified on `claude-opus-4-7`, Claude Code on Linux devcontainer, 2026-05-28.\n\nWorkaround we tried that also failed: spawning an outer `Agent()` without `subagent_type` from main (i.e. ",
+      "created_at": "2026-05-28T08:46:31Z"
+    }
+  ]
+}

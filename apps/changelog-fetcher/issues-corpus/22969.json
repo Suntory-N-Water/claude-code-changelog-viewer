@@ -1,0 +1,35 @@
+{
+  "number": 22969,
+  "title": "Windows: Cannot type in terminal until pressing Enter after v2.1.31 update (regression)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen Claude Code is launched with an initial prompt argument (`claude \"any prompt\"`), the terminal input freezes — the user cannot type until pressing **Enter** to \"unstick\" it. Launching `claude` without arguments works fine.\n\n**Trigger:** Passing a CLI prompt argument\n```\nclaude \"any prompt\"    → FREEZES (must press Enter to unstick)\nclaude                 → WORKS (always)\n```\n\nThis is a race condition that triggers more reliably in directories with heavier project context (CLAUDE.md files, .claude/ settings, git repos). In any project directory it freezes 100% of the time. In minimal directories it can occasionally succeed.\n\n### What Should Happen?\n\nAfter processing the initial prompt argument, keyboard input should work immediately without needing to press Enter to activate the input field.\n\n### Error Messages/Logs\n\n```shell\nNo error messages — the hook and prompt processing complete successfully.\nDebug logs show normal execution; the issue is in stdin/readline state after processing.\n```\n\n### Steps to Reproduce\n\n1. Open any terminal on Windows (PowerShell, Git Bash, cmd)\n2. Navigate to any project directory with a CLAUDE.md file\n3. Run `claude \"hello world\"`\n4. Wait for Claude to respond to the initial prompt\n5. Try to type — nothing appears in the input field\n6. Press Enter — keyboard input now works normally\n\n**Minimal reproduction (fresh terminal, no hooks/plugins needed):**\n```\ncd <any-project-directory>\nclaude \"a\"\n# Stdin is frozen — press Enter to unstick\n```\n\n### What's NOT the cause (ruled out with 18+ tests)\n\n| Suspected Cause | How Ruled Out |\n|-----------------|---------------|\n| SessionStart hooks | Disabled all hooks — freeze persists with `claude \"prompt\"` |\n| Any hooks/plugins/statusLine | Emptied all hooks.json, disabled plugins — freeze persists |\n| Console mode corruption | Win32 GetConsoleMode/SetConsoleMode save/restore — freeze persists |\n| Console input buffer | FlushConsoleInputBuffer — freeze persists |\n| PowerShell -Command mode | Freeze happens with manually typed commands too |\n| Terminal emulator | Reproduces in Windows Terminal, standalone PowerShell |\n| Interactive input before claude | Red herring — always co-occurred with prompt argument |\n\n### What DOES work (no freeze)\n\n| Command | Result |\n|---------|--------|\n| `claude` (no args) | **Works** — always |\n| `claude --resume` | **Works** |\n| `claude -c` | **Works** |\n| `claude --verbose` | **Works** |\n\nNon-prompt flags follow a different code path and don't trigger the race condition.\n\n### Claude Model\n\nClaude Opus 4\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.30\n\n### Claude Code Version\n\n2.1.34 (Claude Code)\n\n### Platform\n\nClaude Max (Pro/Team subscription)\n\n### Operating System\n\nMicrosoft Windows 11 Pro (10.0.26200)\n\n### Terminal/Shell\n\nWindows Terminal 1.23.20211.0 / PowerShell 5.1.26100.7705\n\n### Additional Information\n\n**Node.js version:** v24.11.1\n\n**Related Issues (all closed as NOT_PLANNED):**\n- #11581 - Cannot type until Ctrl+V on Windows bash\n- #10736 - Windows Terminal Input Stream Loss\n- #8566 - Can't type anymore in Claude Code\n\n**Likely root cause:** Race condition between Node.js stdin/readline initialization and initial prompt processing on Windows. When claude processes a CLI prompt argument, stdin setup doesn't complete correctly before entering interactive mode.\n\n**Workaround:** Always launch `claude` without prompt arguments. Type the initial prompt interactively after claude starts.",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-04T02:52:36Z",
+  "updated_at": "2026-03-19T14:30:07Z",
+  "closed_at": "2026-03-10T22:11:08Z",
+  "reactions_total": 6,
+  "comments_count": 10,
+  "author": "reconunpro",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22906\n2. https://github.com/anthropics/claude-code/issues/22948\n3. https://github.com/anthropics/claude-code/issues/22949\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-04T02:56:16Z"
+    },
+    {
+      "author": "Junik-Choi",
+      "author_association": "NONE",
+      "body": "your my god. thank you a lot...",
+      "created_at": "2026-02-04T07:04:06Z"
+    },
+    {
+      "author": "ykrzy",
+      "author_association": "NONE",
+      "body": "Same issue. Confirmed this is triggered by SessionStart hook execution.\n\n| Test Case | Result |\n|-----------|--------|\n| Plugin with hooks disabled | Works |\n| Plugin enabled, empty hooks.json | Works |\n| SessionStart hook registered but non-matching matcher | Works |\n| **SessionStart hook executes** | **Freezes (Enter unfreezes)** |\n| SessionStart with simple `echo {\"continue\":true}` | Freezes |\n| SessionStart with `exit 1` (failing command) | Freezes |\n| SessionStart with no output (silent exi",
+      "created_at": "2026-02-04T11:25:29Z"
+    }
+  ]
+}

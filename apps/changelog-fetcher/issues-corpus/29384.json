@@ -1,0 +1,35 @@
+{
+  "number": 29384,
+  "title": "[Bug] --worktree flag causes CLI to hang indefinitely",
+  "body": "**Bug Description**\n`--worktree` seems to just hang - waited like 5+ minutes and the TUI didn't render and there's nothing happening, no cpu usage or anything from the process/etc.\n\n**Environment Info**\n- Platform: darwin\n- Terminal: tmux\n- Version: 2.1.62\n- Feedback ID: 961a6f70-c147-48b3-bab0-0e781d0d732c\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": ["bug", "duplicate", "platform:macos"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-27T18:15:09Z",
+  "updated_at": "2026-03-13T16:44:57Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 9,
+  "author": "tom-pang",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/27169\n2. https://github.com/anthropics/claude-code/issues/27436\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-27T18:20:38Z"
+    },
+    {
+      "author": "tom-pang",
+      "author_association": "NONE",
+      "body": "## Additional debugging info\n\nDug into this more. The debug log tells the whole story.\n\n### What happens\n\nEvery `--worktree` session produces exactly 29 lines in its debug log, then stops dead. The last lines are always:\n\n```\nWorktreeCreate [bash ~/.claude/hooks/worktree-jj-init.sh] completed with status 0\nHook output does not start with {, treating as plain text\n```\n\nAfter that: nothing. No SessionStart hook fires. No MCP initialization. No API call. No TUI render. The process sits at 0% CPU wi",
+      "created_at": "2026-02-27T18:22:50Z"
+    },
+    {
+      "author": "arnemortenw",
+      "author_association": "NONE",
+      "body": "I believe I found the issue. I have a WorkTreeCreate hook registered in `.claude/settings.json`. \n\nRemoving that hook from the file, claude -w initialized as expected. ",
+      "created_at": "2026-03-09T20:06:39Z"
+    }
+  ]
+}

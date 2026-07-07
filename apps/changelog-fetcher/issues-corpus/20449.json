@@ -1,0 +1,44 @@
+{
+  "number": 20449,
+  "title": "Bash(command:*) allow rules do not prevent permission prompts for file-modifying commands",
+  "body": "### Description\n\nBash commands explicitly listed in the `allow` array of `.claude/settings.json` **do not prevent permission prompts** - commands still prompt for permission despite being explicitly allowed.\n\n### Environment\n\n- **Platform:** Linux (Synology NAS)\n- **OS Version:** Linux 6.12.30+\n- **Claude Code Version:** Latest (January 2026)\n\n### Configuration\n\nProject-level `.claude/settings.json` with 200+ explicit allow rules:\n\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(mkdir:*)\",\n      \"Bash(touch:*)\",\n      \"Bash(mv:*)\",\n      \"Bash(cp:*)\",\n      \"Bash(curl:*)\",\n      \"Bash(tar:*)\",\n      \"Bash(echo:*)\",\n      \"Bash(tee:*)\",\n      \"Bash(sed:*)\",\n      \"Bash(ln:*)\",\n      \"Bash(chmod:*)\"\n      // ... 200+ other rules\n    ],\n    \"ask\": [\"Bash(rm:*)\"],\n    \"deny\": [\"Bash(rm -rf:*)\", \"Bash(sudo:*)\", \"Bash(wget:*)\"]\n  }\n}\n```\n\n### Steps to Reproduce\n\n1. Create `.claude/settings.json` with commands in allow array (full config available)\n2. Restart Claude Code session\n3. Run: `mkdir test-dir`\n4. Run: `touch test-dir/file.txt`\n5. Run: `curl -sL https://example.com -o /tmp/test.tar.gz`\n6. Run: `tar -xzf /tmp/test.tar.gz`\n\n### Test Results (2026-01-23)\n\n**Commands that PROMPTED despite being in allow list:**\n\n| Command | In Allow List | Result |\n|---------|---------------|--------|\n| `mkdir perm-test` | `Bash(mkdir:*)` | **PROMPTED** |\n| `touch test1.txt` | `Bash(touch:*)` | **PROMPTED** |\n| `echo \"test\" > file.txt` | `Bash(echo:*)` | **PROMPTED** |\n| `tee file.txt <<< \"test\"` | `Bash(tee:*)` | **PROMPTED** |\n| `cp file1 file2` | `Bash(cp:*)` | **PROMPTED** |\n| `mv file1 file2` | `Bash(mv:*)` | **PROMPTED** |\n| `curl -sL url -o file` | `Bash(curl:*)` | **PROMPTED** |\n| `tar -xzf archive.tar.gz` | `Bash(tar:*)` | **PROMPTED** |\n\n**Commands that worked WITHOUT prompting:**\n\n| Category | Commands |\n|----------|----------|\n| Read-only system | `ls`, `pwd`, `whoami`, `hostname`, `date`, `uname`, `df`, `ps`, `env` |\n| Read-only file | `cat`, `head`, `tail`, `wc`, `grep`, `find`, `file`, `stat`, `md5sum` |\n| Version/help | `git --version`, `node --version`, `curl --version`, `tar --version` |\n| Git operations | `git status`, `git log`, `git branch`, `git diff`, `git remote` |\n\n**Deny rules that worked correctly:**\n\n| Command | Result |\n|---------|--------|\n| `rm -r dir` | **BLOCKED** ✓ |\n| `rm -rf dir` | **BLOCKED** ✓ |\n| `sudo ls` | **BLOCKED** ✓ |\n| `wget url` | **BLOCKED** ✓ |\n\n### Key Observations\n\n1. **Allow rules don't work for file-modifying commands:** mkdir, touch, cp, mv, echo redirect, tee, sed -i all prompt\n2. **Allow rules don't work for network commands:** curl with -o flag prompts\n3. **Allow rules don't work for archive commands:** tar extraction prompts\n4. **Deny rules work correctly:** Blocked commands are consistently blocked\n5. **Read-only commands work:** Never prompt (may not even check allow rules)\n\n### Conditions Verified\n\n- [x] Correct syntax `Bash(command:*)` per documentation\n- [x] Session restarted after config changes\n- [x] No `settings.local.json` overwriting permissions\n- [x] Valid JSON confirmed with `jq .`\n- [x] File in correct location (`.claude/settings.json` in project root)\n- [x] Commands NOT in deny or ask arrays\n\n### Hypothesis\n\nIt appears that:\n- **Deny rules** are checked and enforced\n- **Read-only commands** may bypass permission checks entirely\n- **Allow rules for file-modifying/network commands** are either not checked or not matched correctly\n\n### Related Issues\n\n- #17017 - Project-level permissions replace global instead of merging\n- #6900 - settings.local.json overwrites existing manual settings\n- #13340 - Global allow rules not recognized\n\n### Expected Behavior\n\nCommands listed in the `allow` array with `Bash(command:*)` syntax should execute without prompting for permission.\n\n### Actual Behavior\n\nFile-modifying and network commands prompt for permission regardless of allow rules. Only deny rules and read-only commands behave as expected.\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "area:security",
+    "area:bash",
+    "high-priority",
+    "user-experience"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-23T20:25:22Z",
+  "updated_at": "2026-05-17T17:13:22Z",
+  "closed_at": "2026-05-04T05:59:23Z",
+  "reactions_total": 17,
+  "comments_count": 6,
+  "author": "mrchris-ai",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18846\n2. https://github.com/anthropics/claude-code/issues/17321\n3. https://github.com/anthropics/claude-code/issues/20088\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-23T20:30:22Z"
+    },
+    {
+      "author": "mrchris-ai",
+      "author_association": "NONE",
+      "body": "**Additional clarification:** This issue affects both **project-level** (`.claude/settings.json`) AND **global-level** (`~/.claude/settings.json`) configurations.\n\nDuring testing, we verified:\n- Global `~/.claude/settings.json` with the same allow rules - **same behavior** (prompts for file-modifying commands)\n- Project-level `.claude/settings.json` - **same behavior**\n- Both configurations simultaneously - **same behavior**\n\nThe allow rules are not honored at either configuration level for file",
+      "created_at": "2026-01-23T20:35:12Z"
+    },
+    {
+      "author": "adamavenir",
+      "author_association": "NONE",
+      "body": "Hitting this same issue with `mkdir` being blocked in directories that Claude is already authorized in. Thank you for filing.",
+      "created_at": "2026-01-26T18:57:52Z"
+    }
+  ]
+}

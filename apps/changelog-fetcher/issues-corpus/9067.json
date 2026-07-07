@@ -1,0 +1,35 @@
+{
+  "number": 9067,
+  "title": "[BUG] WebSearch tool missing input_schema - API Error 422",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n The WebSearch tool is returning a 422 error indicating a missing input_schema field.\n\n### What Should Happen?\n\nthe websearch tool can work.\n\n### Error Messages/Logs\n\n```shell\nAPI Error: 422 {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"tools\",0,\"input_schema\"],\"msg\":\"Field required\",\"input\":{\"type\":\"web_search_20250305\",\"name\":\"web_search\",\"max_uses\":8}}]}\n```\n\n### Steps to Reproduce\n\n 1. Use the WebSearch tool with any query\n  2. Tool returns 422 error immediately\n\n### Claude Model\n\nOther\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.9\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\ni use custom model, it is ZhipuAI/GLM-4.6",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-07T11:12:07Z",
+  "updated_at": "2026-02-02T14:25:23Z",
+  "closed_at": "2026-01-26T10:14:05Z",
+  "reactions_total": 11,
+  "comments_count": 12,
+  "author": "macedonianking",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "dashidhy",
+      "author_association": "NONE",
+      "body": "Found the same issue today,  also happened after connecting to GLM 4.6 ([doc](https://docs.z.ai/devpack/tool/claude)). It is obvious that the ANTHROPIC_BASE_URL serves as the API host for using the WebSearch tool. However, your model customizing changes the API host setting, causing the tool to fail. If you remove the settings.json, you will find the WebSearch tool comes back (for sure, you also lose your GLM).\n\nI was wondering whether Anthropic really supports third-party models connecting to C",
+      "created_at": "2025-10-14T14:58:03Z"
+    },
+    {
+      "author": "eapiova",
+      "author_association": "NONE",
+      "body": "same, maybe related to [this](https://github.com/anthropics/claude-code/issues/8987)?",
+      "created_at": "2025-10-17T13:05:05Z"
+    },
+    {
+      "author": "shrwnsan",
+      "author_association": "NONE",
+      "body": "I've tried this with the Z.ai Web Search MCP Server:\nhttps://docs.z.ai/devpack/mcp/search-mcp-server\n\nSeems to work in early testing.\n\nThough SOL if custom model doesn't have something like this.\n\nMeanwhile, as I'm still learning... seems the Search-Plus plugin would be clutch for those in this bind:\nhttps://github.com/shrwnsan/vibekit-claude-plugins/tree/main/plugins/search-plus\n* No need for any API service access to start\n* It also goes beyond \"Did 0 search...\" errors\n\nHope this helps",
+      "created_at": "2025-11-06T10:19:43Z"
+    }
+  ]
+}

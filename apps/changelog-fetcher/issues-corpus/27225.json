@@ -1,0 +1,35 @@
+{
+  "number": 27225,
+  "title": "[FEATURE] Add setting to disable context window compacting reservation",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nClaude Code reserves 10% of the context window to accommodate auto-compacting and maintain a hard blocking limit. This reservation persists even when auto-compact is disabled in settings, preventing users from reclaiming unused capacity.\n\n**Current impact:**\n- Context window: 200k tokens\n- System tools & prompt: ~10% (20k tokens)\n- Compacting reservation (hard blocking limit): ~10% (20k tokens)\n- **Effective available context: 160k tokens** (instead of 180k)\n\nUsers who disable auto-compact and prefer session handoff workflows cannot reclaim this 20k token reservation, even though it serves no functional purpose for their workflow.\n\n#### Technical Analysis\n\nThe 10% hard cutoff originates from the interaction of three components:\n\n1. **Auto-compact threshold**: 95% (default, configurable via `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`)\n2. **Compact buffer**: Fixed 3k token allocation (verified through testing)\n3. **Processing overhead**: Small buffer for accepting and processing the next request\n\nCombined, these reserve approximately 10% of the context window, creating an effective hard blocking limit at ~90% utilization. When auto-compact is disabled, this reservation becomes unused overhead.\n\n**Verification:** Testing confirmed the compact buffer remains fixed at 3k tokens across context sizes, indicating it is not an active parallel summarization process but a reserved allocation.\n\n#### Why It Matters\n\nThe 20k token reservation represents significant unused capacity:\n\n- **Last-minute actions**: Users approaching context limits lose 20k tokens for final decisions, writes, or critical actions before context limit\n- **Agent task completion**: Long-running agent tasks that reach 180k capacity get blocked at 160k, preventing task completion when that final 10% could be sufficient\n- **Session handoff workflows**: Users who prefer detailed handoff protocols and starting fresh sessions in new contexts lose 20k tokens that could be used for comprehensive documentation\n- **Resource efficiency**: For users who don't use auto-compact or `/compact`, this 10% represents pure waste with no corresponding benefit\n\n### Proposed Solution\n\nAdd a new setting **\"Disable compacting reservation\"** (boolean toggle) that:\n\n- Aligns with existing `auto-compact` setting granularity (same scope: global or per-session)\n- When **disabled** (default): Maintains current 10% reservation behavior\n- When **enabled**: Removes the 10% reservation and `/compact` ability if limit is reached, increasing effective available context to 180k tokens\n- Implements same hard rejection behavior as current 90% limit—user decides whether to accept this trade-off (session cannot continue past true 100% context, but user has full capacity available)\n\n#### Technical Considerations\n\nImplementation is straightforward:\n\n```\nif (autoCompactEnabled OR compactingReservationDisabled) {\n  reserve 10%\n} else {\n  // Use full capacity up to hard context limit\n}\n```\n\n- Can likely be implemented as runtime check before message acceptance\n- May require restart depending on architecture\n- No breaking changes to existing behavior (disabled by default)\n\n#### Acceptance Criteria\n\n- [ ] New boolean setting added: `disableCompactingReservation` (default: false)\n- [ ] Setting location aligns with `auto-compact` in settings hierarchy\n- [ ] When enabled, 10% reservation is not subtracted from available context\n- [ ] Context rejection behavior remains consistent (respects user's choice)\n- [ ] Setting persists across sessions\n- [ ] When disabled (default), existing behavior unchanged\n- [ ] Documentation clarifies the trade-off: full capacity available but no emergency reserve for `/compact`\n- [ ] No breaking changes to existing workflows\n\n#### Context Window Math\n\n**Current behavior (auto-compact disabled):**\n- Total: 200k token",
+  "labels": ["enhancement", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-20T20:18:36Z",
+  "updated_at": "2026-06-29T11:46:03Z",
+  "closed_at": "2026-06-29T11:46:03Z",
+  "reactions_total": 4,
+  "comments_count": 13,
+  "author": "thoeltig",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23419\n2. https://github.com/anthropics/claude-code/issues/18152\n3. https://github.com/anthropics/claude-code/issues/18155\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-20T20:21:50Z"
+    },
+    {
+      "author": "Ahacad",
+      "author_association": "NONE",
+      "body": "It's already been there for quite some time, just do /config and disable autocompact",
+      "created_at": "2026-02-20T20:30:31Z"
+    },
+    {
+      "author": "thoeltig",
+      "author_association": "NONE",
+      "body": "@Ahacad That is not working or solving the issue. I always have auto compact disabled because I do not use it or the compact command but the last 10% of the context window are still blocked.",
+      "created_at": "2026-02-20T20:38:33Z"
+    }
+  ]
+}

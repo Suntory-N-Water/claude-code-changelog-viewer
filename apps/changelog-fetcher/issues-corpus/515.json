@@ -1,0 +1,16 @@
+{
+  "number": 515,
+  "title": "[BUG] MCP servers defined in global.json are not applied to projects",
+  "body": "## Description\nGlobal MCP servers configured in `~/.claude-code/mcp/global.json` are not being detected or applied to projects automatically. This defeats the purpose of having global configuration.\n\n## Steps to reproduce\n1. Configure MCP servers in `~/.claude-code/mcp/global.json` under the \"mcpServers\" key\n2. Open Claude Code in a project directory\n3. Run `claude mcp list` - no servers are shown despite being in global config\n4. Manually adding servers with `claude mcp add-json` works as a workaround\n\n## Expected behavior\nMCP servers defined in the global config should be automatically available to all projects without requiring per-project configuration.\n\n## Environment\nUsing Claude Code CLI with globally configured MCP servers in `~/.claude-code/mcp/global.json`\n\n## Configuration reference (API keys redacted)\n```json\n{\n  \"brave-search\": {\n    \"command\": \"npx\",\n    \"args\": [\n      \"-y\",\n      \"@modelcontextprotocol/server-brave-search\"\n    ],\n    \"env\": {\n      \"BRAVE_API_KEY\": \"API_KEY_REDACTED\"\n    }\n  },\n  \"puppeteer\": {\n    \"command\": \"npx\",\n    \"args\": [\n      \"-y\",\n      \"@modelcontextprotocol/server-puppeteer\"\n    ]\n  }\n}\n```\n\nThis is from the mcpServers field in global.json.\n\n## Workaround applied\nAs a workaround, we were able to add the MCP servers to the project-specific configuration using:\n\n```\nclaude mcp add-json brave-search \"$(cat ~/.claude-code/mcp/global.json | jq '.mcpServers.\"brave-search\"')\"\nclaude mcp add-json puppeteer \"$(cat ~/.claude-code/mcp/global.json | jq '.mcpServers.puppeteer')\"\n```\n\nAfter running these commands, `claude mcp list` properly showed both servers as configured.",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-03-15T16:12:54Z",
+  "updated_at": "2025-08-14T14:07:01Z",
+  "closed_at": "2025-03-17T22:45:52Z",
+  "reactions_total": 0,
+  "comments_count": 6,
+  "author": "aaronlippold",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

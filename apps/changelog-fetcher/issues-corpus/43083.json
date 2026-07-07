@@ -1,0 +1,35 @@
+{
+  "number": 43083,
+  "title": "Feature: configurable reasoning effort level for subagents",
+  "body": "## Feature Request\n\n**Is your feature request related to a problem?**\n\nWhen using the Agent tool to dispatch subagents, the `model` parameter allows selecting which model the subagent runs on (opus, sonnet, haiku). However, there is no way to configure the **reasoning effort level** (low/medium/high) for subagents. Effort level only applies to the parent conversation via `/model`.\n\n**Describe the solution you'd like**\n\nAdd an optional `effort` parameter to the Agent tool (and/or subagent YAML frontmatter) that controls the reasoning effort level for the spawned subagent:\n\n```yaml\n# In .claude/agents/my-agent.md frontmatter:\n---\nmodel: opus\neffort: high\n---\n```\n\nOr per-invocation:\n```json\n{\n  \"subagent_type\": \"senior-dev\",\n  \"model\": \"opus\",\n  \"effort\": \"high\",\n  \"prompt\": \"...\"\n}\n```\n\n**Use case**\n\nI run a 28-agent orchestration system for an algorithmic trading platform:\n- **Orchestrator**: Opus at **low effort** (fast routing, summarization)\n- **Code-writing agents** (10): Should run at **high effort** (deep reasoning for correctness)\n- **Review agents** (12): Could run at **medium effort** (structured analysis)\n- **Lookup agents** (6): Should run at **low effort** (fast data queries)\n\nCurrently all subagents spawn at default effort regardless of task complexity. Being able to set effort per-agent would optimize both cost and quality across the swarm.\n\n**Additional context**\n\n- The model resolution already has a clean priority chain: env var > invocation param > frontmatter > parent. Effort could follow the same pattern.\n- This would pair well with the existing `model` parameter on the Agent tool.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "labels": ["enhancement", "area:agents"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-03T12:47:06Z",
+  "updated_at": "2026-07-02T13:53:28Z",
+  "closed_at": null,
+  "reactions_total": 36,
+  "comments_count": 13,
+  "author": "AndrewGoodson",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jacobcxdev",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-04-16T10:57:03Z"
+    },
+    {
+      "author": "mpolomack",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-04-27T17:53:09Z"
+    },
+    {
+      "author": "markdiantonio",
+      "author_association": "NONE",
+      "body": "+100",
+      "created_at": "2026-05-04T12:30:02Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 4580,
+  "title": "Claude Code freezes with 100% CPU during multi-agent task JSON serialization",
+  "body": "### Description\nClaude Code CLI becomes unresponsive with 100% CPU usage when using the Task tool to spawn sub-agents. The freeze occurs during JSON serialization of the response object, likely when processing large/complex data from a project with an extensive backlog.\n\nTo be clear: this is the new agents introduced in 1.0.60\n\n### Environment\n- **OS**: macOS 15.5 (24F74)\n- **Claude Code**: v1.0.61\n- **Node Version**: v20.19.1\n- **Working Directory**: Single MCP server project with large backlog file\n\n### Steps to Reproduce\n1. Work in a project with an extensive backlog (long .claude/backlog.md file)\n2. Use the Task tool to spawn a sub-agent (the new feature with pre-defined roles in .claude/agents/xxx)\n3. Process freezes during response serialization\n\n### Expected Behavior\nTask tool sub-agent spawning should complete and return results without freezing.\n\n### Actual Behavior\n- Process uses 100%+ CPU indefinitely\n- Session becomes unresponsive\n- Must force kill process (PID)\n\n### Technical Details\nProcess sampling reveals the freeze occurs in V8's JSON serialization:\n```\nv8::internal::JsonStringifier::Serialize_<false> (2000+ recursive calls)\nv8::internal::JsonStringifier::SerializeArrayLikeSlow\nv8::internal::IncrementalStringBuilder::Extend\n```\n\nMultiple garbage collection cycles are triggered, indicating memory pressure from expanding strings.\n\n### Root Cause\nThe issue appears to be caused by attempting to serialize an object containing project context (likely including the large backlog file) with:\n- Circular references in the context data\n- Extremely deep nesting in project metadata\n- Large backlog/project data being included in serialization\n\n### Suggested Fix\n1. Implement circular reference detection before serialization\n2. Add depth limits for object serialization\n3. Use a custom JSON.stringify replacer to handle edge cases\n4. Add timeouts for serialization operations\n\n### Impact\nThis bug makes the Task tool unusable for sub-agent spawning, particularly in projects with large context files.\n\n### Additional Information\n- Reproducible across multiple attempts\n- Specifically affects projects with large .claude/backlog.md files\n- No error messages logged before freeze\n- Process working directory: `/Users/guillaume/dev/tools/mcp/obsidian-mcp-resources`\n- Full process sample and stack trace available if needed\n\n---\n\n**Labels to add**: `bug`, `performance`, `multi-agent`",
+  "labels": ["bug", "has repro", "platform:macos", "area:tools", "memory"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-28T08:38:29Z",
+  "updated_at": "2026-01-26T14:15:33Z",
+  "closed_at": "2026-01-18T10:09:47Z",
+  "reactions_total": 38,
+  "comments_count": 38,
+  "author": "duquesnay",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "megagon",
+      "author_association": "NONE",
+      "body": "same here",
+      "created_at": "2025-07-28T15:01:30Z"
+    },
+    {
+      "author": "janreges",
+      "author_association": "NONE",
+      "body": "In my case, the same with version 1.0.62. After a few minutes of parallel work of several subagents, the CPU is 100% (single-core with claude process) and it is practically impossible to stop CC in any way other than by killing the process.",
+      "created_at": "2025-07-29T17:43:57Z"
+    },
+    {
+      "author": "Aroton",
+      "author_association": "NONE",
+      "body": "I'm seeing this too. I'm on wsl2/ubuntu. I actually started seeing this with the task tool a couple releases ago. I used to be able to run 10x tasks in parallel and merge back in now issues. Now after 2-3 sub agent tasks in serial, my timers even lag out, and I can't type anything into the input box.\n\nI am on node 22 and recently cleared out all claude config files and reinstalled claude fresh.",
+      "created_at": "2025-07-30T03:45:34Z"
+    }
+  ]
+}

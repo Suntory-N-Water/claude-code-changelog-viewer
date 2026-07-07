@@ -1,0 +1,35 @@
+{
+  "number": 49337,
+  "title": "[BUG] Large paste is silently trimmed — only partial content reaches the input",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nPasting a large block of content into the Claude Code prompt causes the content to be silently trimmed. Only the first portion of what I pasted reaches the input — the rest is cut off with no warning, no indicator, and no \"[Pasted text]\" placeholder showing the original size.\n\nThis is different from the existing paste-collapse behavior (#23134, #29375), where the full content is preserved and just hidden behind a placeholder. In my case the content itself is being truncated before submission, so Claude only receives a partial version of what I pasted. This makes it impossible to reliably share logs, stack traces, diffs, or file contents by pasting.\n\nVersion: 2.1.111\nOS: Windows 11 (10.0.26200)\n\n\n### What Should Happen?\n\n Restore the previous behavior: when a large block is pasted, collapse it behind a \"[Pasted text #N +X lines]\" placeholder in the input display, but preserve the full content and send it to Claude in its entirety.\n\n  The placeholder UX was great — it kept the prompt clean while guaranteeing nothing was lost. The current behavior silently trims the content, so Claude only receives part of what I pasted. I have no way to tell what made it through and what got cut.\n\n  Summary of the regression:\n  - Before: paste → \"[Pasted text]\" placeholder shown, full content sent to Claude ✅\n  - Now: paste → content silently trimmed, only partial content sent to Claude ❌\n\n  Please restore the placeholder-with-full-content behavior.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n\n  1. Open Claude Code in a terminal (claude --version: 2.1.111, Windows 11).\n  2. Copy a large block of text to the clipboard — e.g., a long log file, a large JSON payload, or several hundred lines of source code (anything more than a few hundred lines / a few thousand characters).\n  3. Paste it into the Claude Code prompt (Ctrl+V).\n  4. Submit the message.\n  5. Observe Claude's response — it only reflects the first portion of what was pasted; the tail is missing.\n\n  Previously (in earlier versions), the same paste would show a \"[Pasted text #N +X lines]\" placeholder in the input and Claude would receive the full content. Now there's no placeholder and the content itself is trimmed before sending.\n\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.111\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n FYI — I'm using Git Bash (MINGW64) running inside Windows Terminal on native Windows. Not WSL",
+  "labels": ["bug", "platform:windows", "area:tui", "regression", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-16T18:05:39Z",
+  "updated_at": "2026-05-29T11:18:53Z",
+  "closed_at": "2026-05-29T11:18:53Z",
+  "reactions_total": 3,
+  "comments_count": 13,
+  "author": "kavania2002",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5017\n2. https://github.com/anthropics/claude-code/issues/13328\n3. https://github.com/anthropics/claude-code/issues/47658\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-16T18:11:03Z"
+    },
+    {
+      "author": "eter5nityforce-oss",
+      "author_association": "NONE",
+      "body": "Hello! I had the exact same issue and managed to fix it, so I'm sharing this in hopes it might help. Try updating your current Node version to the latest one. I was using 22.12.0, and after upgrading to 22.22.2, everything works perfectly for me.\n\n```\nnvm install 22.22.2\nnvm use 22.22.2\nnpm install -g @anthropic-ai/claude-code\n```",
+      "created_at": "2026-04-17T03:11:49Z"
+    },
+    {
+      "author": "kavania2002",
+      "author_association": "NONE",
+      "body": "I was so excited after reading this but after trying, it didn't work for me :(\nFYI, I was using v20.19.6 and upgraded to latest v20.20.2, do you think I should maybe shift to v22 and try?",
+      "created_at": "2026-04-17T06:07:42Z"
+    }
+  ]
+}

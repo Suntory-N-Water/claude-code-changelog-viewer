@@ -1,0 +1,35 @@
+{
+  "number": 69419,
+  "title": "[BUG] Usage jumped from 80% to 100% for the week.",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n\nIt is Friday morning and I have one more day left and I was planning my tokens correctly, sitting pretty at 80%. Within a minute of usage the weekly jumped to 100%, without even exhausting the current 5-hour session limit (that is at 23%). \n\nHow is that possible?\n\n### What Should Happen?\n\n\nEven 5-hour window, with 100% usage takes ~10% tokens usually. In this case I should have been at 82.3% (23%) usage.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n\nActively use claude cli on Friday?\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.181 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:cost", "api:anthropic"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-18T18:16:58Z",
+  "updated_at": "2026-06-20T02:23:47Z",
+  "closed_at": null,
+  "reactions_total": 6,
+  "comments_count": 15,
+  "author": "alexsanjoseph",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "WolfSkin0",
+      "author_association": "NONE",
+      "body": "I just jumped from ~50-60% (iirc) to 95% in the last hour, on a single opus 4.8 xthink session, with 7% usage in the 5hr window, and only 400.8k tokens in the context window for this session. I've not run a single other session in that time, so something does appear to be wrong...\n\nMaybe they silently tweaked how much the weekly usage is worth and applied it retroactively?\n\nCC 2.1.181, on linux (archlinux x64, 7.0.12-zen1-1-zen), Max x20 plan",
+      "created_at": "2026-06-18T18:21:40Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "The piece that explains a lot of these \"weekly jumped but my 5-hour window barely moved\" reports: **the weekly pool is charged on *total tokens processed*, and your input context is re-sent every turn** — so weekly burn tracks roughly Σ(context size) across turns, not just the new text you type. A session sitting at ~400k context (like the comment above) bills a large chunk *per turn* against the weekly pool even when each turn adds little. Prompt caching discounts the unchanged part, but extend",
+      "created_at": "2026-06-18T18:48:34Z"
+    },
+    {
+      "author": "Seraphli",
+      "author_association": "NONE",
+      "body": "Same here, just one message on 4.8 jump from 60% to 95%.",
+      "created_at": "2026-06-18T18:51:48Z"
+    }
+  ]
+}

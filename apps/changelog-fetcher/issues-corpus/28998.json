@@ -1,0 +1,35 @@
+{
+  "number": 28998,
+  "title": "[BUG]  Cowork \"Reinstall\" button in banner does nothing — \"Check for Updates\" falsely reports latest version on Windows",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Desktop on Windows shows a banner at the top of the app stating \"Cowork requires a newer installation\" with a \"Reinstall\" button. However, clicking the Reinstall button does absolutely nothing — no download starts, no installer launches, no error message appears, and the app state doesn't change.\n\nAdditionally, using Help → Check for Updates displays a dialog saying \"No Update Available — You are running the latest version.\"\nThis creates a frustrating dead end: the app tells me I need to reinstall to use Cowork, provides a button to do so, but the button is non-functional — and the update checker contradicts the banner entirely.\n\nThis appears to be because my existing installation uses the older Squirrel-based packaging, and the Cowork-enabled build uses MSIX packaging. The in-app updater and Reinstall button only check the Squirrel update channel, which has no knowledge of the MSIX version.\n\nNote: Filing here as there is no dedicated Claude Desktop repository.\n\n### What Should Happen?\n\nClicking the \"Reinstall\" button in the Cowork banner should either:\n\nDownload and run the new MSIX-based installer automatically, handling the Squirrel → MSIX migration, or\nOpen the browser to claude.ai/download with clear instructions, or\nAt minimum, display a message explaining that a manual download is required and link to the download page\n\nThe \"Check for Updates\" feature should also be aware that a newer MSIX build exists and not falsely report that the current Squirrel build is the latest version.\n\n### Error Messages/Logs\n\n```shell\nNo error messages are shown at all. The Reinstall button silently does nothing. The update checker shows:\n\n\"No Update Available\nYou are running the latest version.\"\n```\n\n### Steps to Reproduce\n\nSteps to Reproduce\n\n1) Have an existing Squirrel-based Claude Desktop installation on Windows (installed before Feb 10, 2026)\n2) Open Claude Desktop — observe the banner: \"Cowork requires a newer installation\" with a \"Reinstall\" button\n3) Click the \"Reinstall\" button — nothing happens\n4) Go to Help → Check for Updates — dialog says \"No Update Available — You are running the latest version\"\n5) Note that claude.ai/download has a newer Cowork-enabled installer available\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nN/A — this is a Claude Desktop issue, not Claude Code.\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n-This is related to #25313 (in-app updater doesn't deliver Cowork build) and #25162 (Squirrel-to-MSIX upgrade silently fails), but neither of those specifically address the Reinstall button in the Cowork banner doing nothing with zero feedback to the user.\n\n-The only known workaround is a full manual uninstall → cleanup → fresh download from claude.ai/download → reinstall, which risks disrupting local MCP server configurations and desktop extensions.\n\n-This likely affects all Windows users who installed Claude Desktop before the Cowork launch on Feb 10, 2026.\n\n<img width=\"332\" height=\"247\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/7d3e8e43-08a0-4278-b9a5-28d08d88216f\" />",
+  "labels": ["invalid", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-26T13:35:16Z",
+  "updated_at": "2026-06-14T11:04:50Z",
+  "closed_at": "2026-06-14T11:04:50Z",
+  "reactions_total": 1,
+  "comments_count": 12,
+  "author": "tony-42069",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28963\n2. https://github.com/anthropics/claude-code/issues/25313\n3. https://github.com/anthropics/claude-code/issues/25162\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-26T13:39:47Z"
+    },
+    {
+      "author": "HadockKali",
+      "author_association": "NONE",
+      "body": "Any fixes this is still presistent even after manual cleanup and reinstallation. ",
+      "created_at": "2026-02-26T16:06:54Z"
+    },
+    {
+      "author": "mbtsmo",
+      "author_association": "NONE",
+      "body": "Yeah - getting the same exact issue as mentioned here on a completely fresh Windows Claude Desktop install.",
+      "created_at": "2026-02-26T18:09:07Z"
+    }
+  ]
+}

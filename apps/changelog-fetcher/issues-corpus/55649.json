@@ -1,0 +1,41 @@
+{
+  "number": 55649,
+  "title": "[BUG] Cowork mode - Linux bash sandbox never starts on Windows (Workspace unavailable since first launch)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**App Version:** Claude for Windows 1.5354.0 (9a9e3d)\n**OS:** Windows\n**Conversation ID:** 215474154138182\n\n## Description\nThe Linux bash sandbox in Cowork mode has never successfully started since the first launch on April 28, 2026. Every bash command returns \"Workspace still starting\" and has since changed to \"Workspace unavailable. The isolated Linux environment failed to start.\" Plugins were also not auto-generated on initial setup.\n\n## Error Message\n\"Workspace unavailable. The isolated Linux environment failed to start.\"\n\n## Windows Event Viewer Logs\nThe following errors were found in Windows Logs > Application:\n\n- **Event ID 1002 - Application Hang** (2026-05-03, 12:52:40)\n  - claude.exe version 1.5354.0.0 stopped interacting with Windows and was terminated.\n\n- **Event ID 1000 - Application Error** (2026-05-03, 01:49:52 and 01:58:10, recurring)\n  - Faulting application: secureconnectionservice.exe, version 1.0.0.3, timestamp 0x64171421\n  - This process crashes repeatedly.\n\n- **Event ID 1 - CoworkVMService** (2026-05-03, 01:50:11 and 01:58:22)\n  - Logs appear immediately after each secureconnectionservice.exe crash.\n\nSuspected failure chain: secureconnectionservice.exe crashes → CoworkVMService fails to initialize → bash sandbox cannot start.\n\n## Troubleshooting Steps Completed (all failed)\n- [x] Cleared C: drive space (~2GB → 45GB free)\n- [x] Restarted app multiple times\n- [x] Rebooted PC\n- [x] Ran app as administrator\n- [x] Help > Troubleshooting > Clear Cache and Restart\n- [x] Help > Troubleshooting > Reset App Data\n- [x] Terminated F5 VPN\n- [x] Disabled other network security tools\n- [x] Disabled third-party antivirus programs (only Windows Defender remains active)\n\nNone of the above resolved the issue.\n\n## Additional Notes\nThis issue has persisted since the very first launch. The sandbox has never worked even once. Engineering-level investigation of the CoworkVMService and secureconnectionservice.exe components appears to be required.\n\n### What Should Happen?\n\nThe Linux bash sandbox in Cowork mode should start successfully and execute bash commands without errors.\n\n### Error Messages/Logs\n\n```shell\nWorkspace unavailable. The isolated Linux environment failed to start.\n```\n\n### Steps to Reproduce\n\n1. Install Claude for Windows (Cowork mode) version 1.5354.0\n2. Launch the Cowork desktop app\n3. Start any conversation and request a bash command\n4. Observe: \"Workspace still starting\" error appears and never resolves\n5. Error eventually changes to \"Workspace unavailable. The isolated Linux environment failed to start.\"\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n1.5354.0 (9a9e3d)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nNon-interactive/CI environment\n\n### Additional Information\n\nThis issue occurs in Cowork desktop app (not Claude Code CLI). The bash sandbox has never worked since first launch on 2026-04-28. Plugins were also not auto-generated on initial setup.\n\nAnthropic Support Conversation ID: 215474154138182\n\nAll third-party VPN (F5) and security tools were disabled during testing — issue persists with only Windows Defender active.",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:windows",
+    "area:cowork",
+    "area:desktop"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-02T18:50:00Z",
+  "updated_at": "2026-06-12T17:05:24Z",
+  "closed_at": null,
+  "reactions_total": 4,
+  "comments_count": 13,
+  "author": "parkjune0723-netizen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "parkjune0723-netizen",
+      "author_association": "NONE",
+      "body": "## ✅ RESOLVED — Solution for Windows users\n\n**Root Cause:** `CoworkVMService` was set to Automatic startup but consistently failed to start on boot (due to `secureconnectionservice.exe` crash on startup).\n\n**Fix that worked:**\n\n**Step 1:** Open PowerShell as Administrator and run:\n```powershell\nRestart-Service vmcompute -Force\nRestart-Service hns -Force\nStart-Service -Name \"CoworkVMService\"\n```\n\n**Step 2:** Create a scheduled task to auto-start the service on every boot:\n```powershell\n$action = ",
+      "created_at": "2026-05-03T16:44:09Z"
+    },
+    {
+      "author": "mozkan985",
+      "author_association": "NONE",
+      "body": "+1\nSame issue on Windows 11, Cowork desktop app (Microsoft Store version). Error message identical: \"Workspace unavailable. The isolated Linux environment failed to start.\" Persists across multiple sessions. File tools work, only Linux sandbox is dead.",
+      "created_at": "2026-05-09T10:25:05Z"
+    },
+    {
+      "author": "gaborschilten",
+      "author_association": "NONE",
+      "body": "+1 — same symptom on Windows desktop Cowork, May 9 2026\n(Europe/Amsterdam, NL).\n\nPattern persisted since May 7 ~22:00 CEST across:\n- Full Claude desktop app restart (multiple times)\n- Full Windows app restart (twice)\n- Complete reinstall (Microsoft Store removed, standalone installer + admin)\n- PowerShell fix from earlier in this thread (Restart-Service +\n  scheduled task) — CoworkVMService is Running, but workaround had no\n  effect on bash sandbox availability\n\nLocal diagnostics confirm server-",
+      "created_at": "2026-05-09T13:37:14Z"
+    }
+  ]
+}

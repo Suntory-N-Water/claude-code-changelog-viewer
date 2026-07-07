@@ -1,0 +1,16 @@
+{
+  "number": 5004,
+  "title": "Add explicit documentation that MCP permissions do not support wildcards",
+  "body": "Summary\n\n  The Claude Code documentation does not explicitly state that wildcard syntax (*) is\n  not supported for MCP permissions. This omission causes confusion as users naturally\n  expect wildcards to work as they do for other permission types.\n\n  The Problem\n\n  1. Wildcards work for other permissions, leading to reasonable user expectations:\n  \"Bash(npm run:*)\"              // ✅ Works\n  \"WebFetch(domain:*.github.com)\" // ✅ Works\n  2. Users naturally try the same pattern for MCP:\n  \"mcp__github__*\"    // ❌ Does NOT work (but nothing says it won't)\n  \"mcp__mongodb__*\"   // ❌ Does NOT work (but seems logical)\n  3. Current documentation doesn't mention this limitation, causing users to:\n    - Spend time debugging \"broken\" permissions\n    - File bug reports (like #3107)\n    - Add redundant permission entries\n\n  Evidence of User Confusion\n\n  - Issue #3107: User reported wildcards \"not being honored\" as a bug\n  - The issue had to be closed with Anthropic staff explaining: \"Permission rules do not\n   support wildcards\"\n  - This indicates the limitation is non-obvious and needs explicit documentation\n\n  Requested Addition\n\n  Add clear documentation in the\n  https://docs.anthropic.com/en/docs/claude-code/iam#permission-modes stating:\n\n  ⚠️ Note: Unlike other permission types, MCP permissions do NOT support wildcards (*). \n\n  To approve all tools from an MCP server:\n  - ✅ Use: \"mcp__github\" (approves ALL GitHub tools)\n  - ❌ Don't use: \"mcp__github__*\" (wildcards are not supported)\n\n  To approve specific tools only, list each one:\n  - ✅ Use: \"mcp__github__get_issue\"\n  - ✅ Use: \"mcp__github__list_issues\"\n\n  Benefits\n\n  Adding this clarification will:\n  - Prevent user confusion and wasted debugging time\n  - Reduce bug reports about \"broken\" wildcard permissions\n  - Clarify the intentional design difference between MCP and other permission types\n  - Help users configure permissions correctly the first time\n\n  References\n\n  - Issue #3107 - Example of user confusion due to missing documentation\n  - Current https://docs.anthropic.com/en/docs/claude-code/iam#permission-modes -\n  Explains MCP syntax but doesn't mention wildcard limitation",
+  "labels": ["documentation", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-08-02T21:59:16Z",
+  "updated_at": "2025-12-08T14:09:35Z",
+  "closed_at": "2025-11-30T02:12:30Z",
+  "reactions_total": 4,
+  "comments_count": 2,
+  "author": "patrickstump",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

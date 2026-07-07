@@ -1,0 +1,35 @@
+{
+  "number": 18599,
+  "title": "[FEATURE] Change Default Plan Mode Exit Option",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWhen exiting plan mode via `ExitPlanMode`, the default option is \"Yes, clear context and auto-accept edits.\" This clears conversation context, losing any instructions, templates, or procedural guidance not captured in the plan file.\n\nThis breaks skill-based workflows (`.claude/skills/`) that use plan mode as part of multi-phase processes. These skills contain agent prompt templates, phase-specific instructions, and codebase investigation context that inform post-plan execution. When context is cleared at plan approval, subsequent phases lose access to this critical information.\n\nThe current options presented are:\n\n1. **Yes, clear context and auto-accept edits (shift+tab)** ← DEFAULT\n2. Yes, auto-accept edits\n3. Yes, manually approve edits\n4. Type here to tell Claude what to change\n\nUsers must manually select option 2 or 3 each time to preserve context—easy to forget when the default is highlighted and `shift+tab` provides a convenient shortcut.\n\n### Proposed Solution\n\nChange the default to \"Yes, auto-accept edits\" (option 2), which preserves context while maintaining the streamlined execution flow users expect after plan approval.\n\nThe \"clear context\" option should remain available for users who want a fresh start, but it shouldn't be the default behavior that risks losing workflow state.\n\n### Alternative Solutions\n\n1. **Make the default configurable** via `settings.json`:\n\n```json\n{\n  \"planMode\": {\n    \"defaultExitOption\": \"auto-accept\" | \"manual-approve\" | \"clear-context\"\n  }\n}\n```\n\n2. **Per-skill override** allowing skill authors to specify exit behavior in skill frontmatter:\n\n```yaml\n---\nname: my-skill\nplan-mode-exit: preserve-context\n---\n```\n\n3. **Remove \"clear context\" from the exit dialog entirely** and let users who want to clear context use the existing `/compact` command after plan approval.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nInteractive mode (TUI)\n\n### Use Case Example\n\nA feature development skill with the following phases:\n\n1. Requirements clarification\n2. Codebase investigation (launches `code-investigator` agents)\n3. Architecture design (launches `implementation-strategist` agents, writes plan)\n4. **Plan approval** ← `ExitPlanMode` called here\n5. Implementation (uses agent prompt templates from skill, investigation context from phase 2)\n6. Code review (launches review agents per skill instructions)\n7. Validation\n\nThe skill file contains detailed templates for agent prompts in phases 5-7 and instructions for how to handle review findings. When the user approves the plan with the default \"clear context\" option, phases 5-7 fail because:\n\n- Agent prompt templates from the skill are no longer in context\n- Investigation findings from phase 2 are lost\n- Phase-specific instructions for code review and validation are gone\n\nThe plan file captures *what* to build, but not *how* to execute the remaining phases according to the skill's methodology.\n\n### Additional Context\n\n- Claude Code version: 2.1.9\n- Related: #2988 (addresses auto-accept behavior, but not context clearing)\n- The v2.1.2 changelog notes that Shift+Tab was added as a shortcut for the auto-accept option, which reinforces the default selection and makes accidental context clearing more likely",
+  "labels": ["enhancement", "area:tui", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-16T15:26:16Z",
+  "updated_at": "2026-03-31T03:34:57Z",
+  "closed_at": null,
+  "reactions_total": 38,
+  "comments_count": 12,
+  "author": "jasonevines",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18576\n2. https://github.com/anthropics/claude-code/issues/18523\n3. https://github.com/anthropics/claude-code/issues/2988\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-16T15:29:35Z"
+    },
+    {
+      "author": "jasonevines",
+      "author_association": "NONE",
+      "body": "I wouldn't call this a duplicate because it provides more context on why the \"clear context\" setting is problematic and proposes various solutions.",
+      "created_at": "2026-01-16T15:48:31Z"
+    },
+    {
+      "author": "timdmackey",
+      "author_association": "NONE",
+      "body": "The new \"clear context\" option can definitely be useful, but I agree it would be nice to make this default configurable. @jasonevines gave a good rundown of reason why clearing context isn't always desired.",
+      "created_at": "2026-01-18T10:40:54Z"
+    }
+  ]
+}

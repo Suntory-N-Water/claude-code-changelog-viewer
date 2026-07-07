@@ -1,0 +1,35 @@
+{
+  "number": 58727,
+  "title": "[BUG] Claude for PowerPoint: MCP connector tools are not loaded into Claude's tool list at session start; only become available after refresh_mcp_connectors runs",
+  "body": "## Summary\n\nMCP-connector tools are not available to Claude on the first turn of a new Claude for PowerPoint session, even when the connector is connected and enabled. Claude ignores the MCP server entirely and falls back to built-in tools.\n\nThe tools only become visible after the user manually types \"refresh Acme MCP tools\", which triggers `refresh_mcp_connectors`. This is an undocumented workaround users shouldn't need to know.\n\n## Environment\n\n- **Product:** Claude for PowerPoint add-in\n- **Host:** PowerPoint on Windows (Microsoft 365 desktop)\n- **Model:** Claude Opus 4.7 / Sonnet 4.6 (both affected)\n- **Plan:** Enterprise\n- **MCP server:** Custom .NET 10 server, Streamable HTTP, `tools.listChanged = true`\n\n## Steps to Reproduce\n\n1. Register and enable a custom MCP connector (\"Acme MCP\") in the Claude for PowerPoint connector settings.\n2. Close and reopen the Claude task pane to start a fresh session.\n3. Send a request that matches a tool on the MCP server (e.g. \"update all links\").\n4. Observe that Claude ignores the MCP connector and uses only built-in tools, then fails.\n5. Send \"refresh Acme MCP tools\" — Claude calls `refresh_mcp_connectors` and confirms \"Acme MCP is connected.\"\n6. Re-send the original request — Claude now correctly calls the MCP tool and completes the task.\n\n## Expected Behaviour\n\nMCP connector tools should be fetched and merged into Claude's tool list **before** the first user message is processed, so they are available on turn 1 without any manual refresh.\n\n## Actual Behaviour\n\nMCP tools are lazy-loaded and absent on turn 1. Claude ignores the connector and fails to complete requests it could handle, requiring users to manually trigger a refresh first.\n\n## Proposed Fix\n\nAt session start (or when a connector is toggled on), call `tools/list` before the first user message is sent. If the server declares `tools.listChanged = true`, also register a `notifications/tools/list_changed` handler. As a minimum, run `refresh_mcp_connectors` implicitly at session start.\n\n## Related Issues\n\n- #13646 — MCP tool list not refreshed on notifications/tools/list_changed\n- #27193 — \"Tool names must be unique\" error on first message\n\n## Contact\n\nReporter: Larry — happy to provide server logs or a screen recording on request.",
+  "labels": ["invalid"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-13T15:09:15Z",
+  "updated_at": "2026-05-19T13:42:01Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 4,
+  "author": "larrygfr",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/49753\n2. https://github.com/anthropics/claude-code/issues/35899\n3. https://github.com/anthropics/claude-code/issues/51138\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-13T15:17:00Z"
+    },
+    {
+      "author": "larrygfr",
+      "author_association": "NONE",
+      "body": "Not a duplicate:\n\n- **#49753** — intermittent SDK/CLI race; mine is 100% reproducible and not in the CLI.\n- **#35899** — unattended scheduled tasks; mine is an interactive task pane.\n- **#51138** — connector never works; mine works fine after `refresh_mcp_connectors`.",
+      "created_at": "2026-05-13T15:26:39Z"
+    },
+    {
+      "author": "edwinsjr",
+      "author_association": "NONE",
+      "body": "I can repro for my own MCP connector. I would hate to add \"Refresh the tool page until tools show up\" to my instructions.",
+      "created_at": "2026-05-18T00:44:36Z"
+    }
+  ]
+}

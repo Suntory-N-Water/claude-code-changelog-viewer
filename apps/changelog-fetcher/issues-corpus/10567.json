@@ -1,0 +1,35 @@
+{
+  "number": 10567,
+  "title": "[BUG] /sandbox reports as unsupported in Linux when run under WSL2",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet (issue by another user was erroneously closed without investigation)\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n```\n> /sandbox \n  ⎿ Error: Sandboxing is currently only supported on macOS and \n    Linux\n```\neven though\n```\n$ uname -a\nLinux 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\n```\n\n### What Should Happen?\n\n`/sandbox` should enable sandbox mode\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nStart Ubuntu in WSL2 under Windows 11.\nstart `claude`\ndo `/sandbox`\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.28\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nI am re-opening https://github.com/anthropics/claude-code/issues/10038 because this was closed without a valid explanation.\n\nWSL2 _is_ Linux and all other Linux commands do work.  Please confirm if sandbox functionality can be enabled in WSL2.  This is a major feature for Windows users who rely on WSL to give a great developer experience inside of Windows.",
+  "labels": ["bug", "has repro", "platform:windows", "platform:linux"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-29T13:21:16Z",
+  "updated_at": "2026-03-09T22:17:36Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 17,
+  "author": "ianfiske",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/10038\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-29T13:26:11Z"
+    },
+    {
+      "author": "Konamiman",
+      "author_association": "NONE",
+      "body": "I can confirm that the bug is present even after running `sudo apt install bubblewrap` in WSL (as bubblewrap is documented as being the underlying mechanism for sandboxing).",
+      "created_at": "2025-11-05T10:45:55Z"
+    },
+    {
+      "author": "Konamiman",
+      "author_association": "NONE",
+      "body": "From Claude Code itself:\n\n<hr/>\n\n## Technical Analysis of WSL2 Sandbox Detection Issue\n\nI've done some reverse engineering of the Claude Code binary to understand why sandboxing is rejected on WSL2 despite it being functionally equivalent to native Linux.\n\n### Investigation Findings\n\n**Platform Detection Logic** (from `cli.js`):\n\n```javascript\nF0Q(A){return[\"macos\",\"linux\"].includes(A)}\n```\n\nThe code checks if the platform is in the allowed list `[\"macos\",\"linux\"]`, and for Linux specifically, i",
+      "created_at": "2025-11-10T08:50:46Z"
+    }
+  ]
+}

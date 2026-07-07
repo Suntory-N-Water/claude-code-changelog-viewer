@@ -1,0 +1,35 @@
+{
+  "number": 45208,
+  "title": "[BUG] GitHub MCP authenticate tool redirects OAuth flow to Google Drive consent screen instead of GitHub",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nBug: mcp__github__authenticate routes to Google Drive MCP installer instead of GitHub\nSession ID: cse_01Xv66mTze4xxaFDaUc4KTDC\nTool: mcp__github__authenticate\nTool description says: \"The github MCP server (http at https://api.anthropic.com/v2/ccr-sessions/cse_01Xv66mTze4xxaFDaUc4KTDC/github/mcp) is installed but requires authentication.\"\nActual behavior: When the generated https://api.anthropic.com/authorize?client_id=... URL is fetched, it redirects to:\nhttps://api.anthropic.com/mcp/gdrive/google/install?metadata=...\n\nwhich then redirects to Google's OAuth consent with scopes:\nopenid, userinfo.email, drive.readonly, drive.file\n\n\nImpact: GitHub MCP cannot be re-authenticated in-session. All GitHub operations (pushing files, reading, PRs) fail for the duration of the session. The Google Drive MCP is also broken — authorizing it does not restore GitHub tools.\n\n\n### What Should Happen?\n\nmpact: GitHub MCP cannot be re-authenticated in-session. All GitHub operations (pushing files, reading, PRs) fail for the duration of the session. The Google Drive MCP is also broken — authorizing it does not restore GitHub tools.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nReproduction: In any Claude Code session where the GitHub MCP server has disconnected, call mcp__github__authenticate. All generated URLs route to the Google Drive installer. Tested with 4 separate fresh client_ids — same result every time.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nOpus 4.61M Claude Code \n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:auth", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-08T13:20:32Z",
+  "updated_at": "2026-06-18T09:23:59Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 8,
+  "author": "GrantWeberAI",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ivan-klass",
+      "author_association": "NONE",
+      "body": "Experienced the same. \nGot this with Claude Code (cloud runner)\nNote that the code branch was created successfully, the issue was with PR.\n\nMaybe a related thing: the first PR for the session was already merged, I was following it up to create a fix PR.\nSo maybe that was causing some internal issue when creating a (non-implemented/unexpected) second PR per session",
+      "created_at": "2026-04-16T09:07:43Z"
+    },
+    {
+      "author": "ivan-klass",
+      "author_association": "NONE",
+      "body": "This is how Claude itself explains that behavior:\n\nTo be transparent about my part: I passed along the URL that the `mcp__github__authenticate` tool returned verbatim — I didn't construct it and I can't see what the consent page actually displays. You're the one source of truth on what the page showed.\n\n## What to include in the report\n\n- The tool name you saw (`mcp__github__authenticate`) and the literal consent screen title/app name you saw (`Claude for Google Drive`).\n- The `client_id` from t",
+      "created_at": "2026-04-16T09:13:36Z"
+    },
+    {
+      "author": "alvexld",
+      "author_association": "NONE",
+      "body": "I experienced the same today while it was working yesterday. \n\nI asked to read a Notion database. Claude use `select:mcp__Notion__authenticate`. It returned to Claude\n\n> Ask the user to open this URL in their browser to authorize the Notion MCP server:\n> https://api.anthropic.com/authorize?response_type=code&client_id=XXX\n> Once they complete the flow, the server's tools will become available automatically.\n> This session is remote, so after authorizing the browser will try to load `http://local",
+      "created_at": "2026-04-22T09:28:39Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 996,
+  "title": "[BUG]   ✗ Auto-update failed · Try claude doctor or npm i -g @anthropic-ai/claude-code",
+  "body": "## Environment\n- Platform (select one):\n  - [√ Anthropic API\n- Claude CLI version: 0.2.61 (Claude Code)\n- Operating System: Mac OS 15.3\n- Terminal:  IntelJIdea 2023.1.1\n\n## Bug Description\nAuto update does not work.\n\nSpecified instructions for update do not work.\n\nOnly solution has been to completely delete the claude code directory.\n\n## Steps to Reproduce\n1. Run Claude Code\n2. Observe that it can't update itself\n3. Try to update it with \"npm i -g @anthropic-ai/claude-code\"\n4. Observe it fail:\n\n```\n% npm i -g @anthropic-ai/claude-code\n\nnpm ERR! code ENOTEMPTY\nnpm ERR! syscall rename\nnpm ERR! path /Users/walt/.nvm/versions/node/v18.18.0/lib/node_modules/@anthropic-ai/claude-code\nnpm ERR! dest /Users/walt/.nvm/versions/node/v18.18.0/lib/node_modules/@anthropic-ai/.claude-code-Mnsj2ANr\nnpm ERR! errno -66\nnpm ERR! ENOTEMPTY: directory not empty, rename '/Users/walt/.nvm/versions/node/v18.18.0/lib/node_modules/@anthropic-ai/claude-code' -> '/Users/walt/.nvm/versions/node/v18.18.0/lib/node_modules/@anthropic-ai/.claude-code-Mnsj2ANr'\n\nnpm ERR! A complete log of this run can be found in: /Users/walt/.npm/_logs/2025-05-07T21_04_49_796Z-debug-0.log\n\n```\n5. Try the suggested \"claude doctor\" and observe as it think it succeeds:\n\n```\n% claude doctor\n\n ✓ npm permissions: OK\n\n Your installation is healthy and ready for auto-updates.\n\n\n You can also install Claude Code locally to avoid npm permission issues using the slash command:\n\n\n\n   /migrate-installer\n\n\n Press Enter to continue…\n\n\n```\n## Expected Behavior\nThe update to work\n\n## Actual Behavior\nThe update failed\n\n## Additional Context\n<!-- Add any other context about the problem here, such as screenshots, logs, etc. -->",
+  "labels": ["bug", "duplicate", "platform:macos"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-05-07T21:08:07Z",
+  "updated_at": "2026-05-25T16:56:16Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 18,
+  "author": "walt93",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "bradleyjames",
+      "author_association": "NONE",
+      "body": "I received the same error message today and now claude won't run at all.  `claude doctor` results in the same error.\n\n```\n$ claude\nnode:internal/modules/cjs/loader:995\n  const err = new Error(message);\n              ^\n\nError: Cannot find module './yoga.wasm'\nRequire stack:\n- /Users/bradreynolds/.nvm/versions/node/v18.11.0/lib/node_modules/@anthropic-ai/claude-code/cli.js\n    at Module._resolveFilename (node:internal/modules/cjs/loader:995:15)\n    at Function.resolve (node:internal/modules/cjs/he",
+      "created_at": "2025-06-17T02:41:12Z"
+    },
+    {
+      "author": "liby",
+      "author_association": "NONE",
+      "body": "This looks more like a known npm error rather than a Claude Code issue. The ENOTEMPTY error occurs when npm fails to clean up temporary directories during package updates.\n\n### What's happening:\n\n1. npm creates a temporary directory (e.g., `.claude-code-jtqndIsa`) during the update process\n2. If the rename operation fails or is interrupted, npm doesn't clean up this temp directory\n3. Subsequent installation attempts fail because npm tries to use the same temp directory name\n\n### Evidence:\n\n- Thi",
+      "created_at": "2025-06-26T05:20:31Z"
+    },
+    {
+      "author": "kkukshtel",
+      "author_association": "NONE",
+      "body": "@liby this answer worked for me, thank you!",
+      "created_at": "2025-08-13T03:04:09Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 45810,
+  "title": "Marketplace update button is disabled/not pressable even when version is outdated",
+  "body": "## Description\n\nThe Update button in the plugin marketplace UI is unresponsive even when an update is available. The button appears in the customize menu but cannot be clicked — it is greyed out and non-interactive regardless of the version state.\n\n## Steps to Reproduce\n\n1. Add a git-based marketplace (e.g. `https://github.com/DojoGenesis/plugins.git`)\n2. Push new commits to the remote repository so a newer version is available\n3. Open Claude Code → plugin customize menu → find the marketplace\n4. Observe that the version shown is outdated but the Update button is disabled/not pressable\n\n## Expected Behavior\n\nThe Update button is clickable and triggers a fresh `git pull` to bring the local clone up to date with the remote.\n\n## Actual Behavior\n\nThe Update button is present but disabled — it cannot be pressed regardless of version state, even when the local clone is behind the remote.\n\n## Additional Context\n\nThis is one of several related marketplace lifecycle bugs that suggest the marketplace state manager has broad lifecycle issues around create/update/delete operations:\n\n- The marketplace cannot be deleted from the customize menu (issue #45649)\n- Marketplace git clones are created empty (issue #45653)\n- This issue: the Update button is always disabled\n\nAll three point to the same underlying area of the marketplace lifecycle management code.",
+  "labels": ["bug", "duplicate", "area:plugins"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-09T15:51:07Z",
+  "updated_at": "2026-07-06T06:08:51Z",
+  "closed_at": null,
+  "reactions_total": 5,
+  "comments_count": 12,
+  "author": "DojoGenesis",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "pbuda",
+      "author_association": "NONE",
+      "body": "A workaround could be to tell claude to pull the latest version if it's a github marketplace, then uninstall the plugin and install again - now it should point to the new version",
+      "created_at": "2026-05-17T20:39:52Z"
+    },
+    {
+      "author": "mikebronner",
+      "author_association": "NONE",
+      "body": "Some evidence from digging into this on macOS Desktop, plus a workaround that actually moved it. The desktop app's mechanism looks **different from the local-git-clone model** in the OP — which is probably why the \"pull + uninstall/reinstall\" workaround is unreliable.\n\n## What worked\n\n1. Terminal: `claude plugin marketplace update <marketplace-name>` (brings the CLI's own clone current — in my case it was already at the latest pin)\n2. **Fully quit the desktop app (Cmd-Q), not just close the wind",
+      "created_at": "2026-06-01T22:45:50Z"
+    },
+    {
+      "author": "antmcc-hub",
+      "author_association": "NONE",
+      "body": "I am observing this issue on a Max Plan, Interested to see if it occurs on all plans.\nI am unclear if it works successfully for Teams and Enterprise Plan users as likely intended, and simply not on the Pro or Max plans.\nFor context I am a solopreneur with >50 skills, and building more, and need to be able manage them efficiently as needs change.\nEDIT: I am a Cowork user trying to sell Cowork to white collar / professional clients as a CPN partner. The hard limit of 50 skills drives the need for ",
+      "created_at": "2026-06-02T04:46:29Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 29367,
+  "title": "[BUG] Cowork Windows: API unreachable from VM behind corporate NTLM proxy (cntlm)",
+  "body": "## Bug Description\n\nCowork VM starts successfully but cannot reach the Anthropic API from inside the VM when the host machine is behind a corporate NTLM-authenticated proxy (cntlm).\n\nThe Claude Desktop app itself works fine for regular chat (it uses the Windows system proxy), and Claude Code CLI works fine (runs natively on Windows). Only Cowork's Linux VM fails because it has no awareness of the host's proxy configuration.\n\n## Environment\n\n- **OS**: Windows 11 Enterprise 10.0.22631\n- **CPU**: 11th Gen Intel Core i7-11850H\n- **RAM**: 32 GB\n- **Claude Desktop version**: 1.1.4498 (MSIX)\n- **Proxy**: cntlm on localhost:3128 (NTLM auth to corporate proxy)\n- **Network**: Mercedes-Benz corporate network with NTLM proxy + SSL interception\n\n## Steps to Reproduce\n\n1. Install Claude Desktop on a Windows machine behind a corporate NTLM proxy\n2. Open Cowork\n3. VM downloads bundle files successfully (through the Desktop app's connection)\n4. VM boots, guest connects, network shows CONNECTED\n5. API reachability immediately shows UNREACHABLE\n6. Cowork session fails — cannot send/receive messages\n\n## Log Evidence\n\nFrom `cowork_vm_node.log`:\n\n```\n06:21:36 [info] [VM] Network status: CONNECTED\n06:21:40 [info] [VM:start] Startup complete, total time: 376725ms\n06:21:41 [info] [VM] API reachability: PROBABLY_UNREACHABLE\n06:22:06 [info] [VM] API reachability: UNREACHABLE\n06:22:06 [warn] [VM:network] API is unreachable\n```\n\nThe VM successfully starts and the guest connects to the host:\n\n```\n06:21:35 [info] [VM:start] Still waiting for guest connection... 10546ms elapsed, 12 polls\n06:21:36 [info] [VM] Network status: CONNECTED\n```\n\nOAuth token is approved with MITM proxy awareness, suggesting some proxy support exists:\n\n```\n06:22:00 [info] [Spawn:vm] OAuth token approved with MITM proxy\n```\n\nBut the VM itself cannot egress to the API. Sessions spawn and then get killed after ~3 minutes:\n\n```\n06:22:00 [info] [Spawn:create] id=8fda9b3b ... name=lucid-brave-planck\n06:24:58 [info] [CoworkVMProcess:8fda9b3b] kill called with signal: SIGTERM\n```\n\n## Expected Behavior\n\nThe Cowork VM should either:\n1. Inherit the host's proxy settings (detect system proxy / `HTTP_PROXY` env vars)\n2. Allow user-configurable proxy settings for the VM (e.g., in Claude Desktop settings)\n3. Route VM traffic through the host's network stack (which already has proxy access)\n\n## Workaround\n\nUsing Claude Code CLI directly on Windows, which runs natively and uses the system proxy without issues.\n\n## Related Issues\n\n- #26258 — Similar API unreachable on Windows, different root cause (Home edition)\n- #27283 — CSP + API unreachable on Windows 10 Pro\n- #26510 — NAT rule creation failures on Windows 11 Pro\n\nThis issue is distinct because the root cause is specifically **corporate NTLM proxy** — the VM's network connects but cannot egress through the authenticated proxy.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:cowork",
+    "area:networking"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-27T16:57:01Z",
+  "updated_at": "2026-04-10T00:11:02Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 2,
+  "author": "robomello",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "tu-claudecode",
+      "author_association": "NONE",
+      "body": "j'ai le même problème, est ce qu'anthropic travail à la résolution du bug ?",
+      "created_at": "2026-03-05T12:56:59Z"
+    },
+    {
+      "author": "jonas-karlsson",
+      "author_association": "NONE",
+      "body": "Having same issue on Mac OS. It ignores HTTP(S)_PROXY settings from ENV, claude.json and  `launchctl setenv HTTP_PROXY` and instead taking the system defined proxy which is failing NTLM auth.",
+      "created_at": "2026-03-25T17:31:40Z"
+    }
+  ]
+}

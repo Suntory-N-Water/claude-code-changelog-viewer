@@ -1,0 +1,36 @@
+{
+  "number": 16831,
+  "title": "[BUG] CC 2.1.1 Remote/Background Sessions Failing Intermittently",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nBackground sessions (& command) fail with multiple different errors even after proper setup. The session may appear to start on the web interface but doesn't execute properly.\n\n### What Should Happen?\n\n- After installing GitHub app, background sessions should work immediately from CLI\n- After successful /login, background sessions should work consistently\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Install Claude GitHub app on the repository\n  2. Run a background task: & test\n  3. Receive error:\n  Cannot launch remote Claude Code session.\n  The Claude GitHub app must be installed on this repository first.\n  https://github.com/apps/claude/installations/new\n  3. Note: This error appears even though the GitHub app IS already installed.\n  4. The only way to proceed is to first execute ANY action from the Claude Code web interface on this repository.\n  5. After that, retry: & test\n  6. Receive new error: Failed to create background session: Failed to create remote session\n  7. Run /login - login succeeds\n  8. Try another background task\n  9. Receive yet another error: Failed to create background session: Failed to upload session history (message 1/12)\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.1\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n Actual Behavior\n\n  1. Initial block: \"GitHub app must be installed\" error appears despite app being installed\n  2. Workaround required: Must first use web interface on the repo to \"initialize\" something\n  3. After workaround: Still fails with \"Failed to create remote session\"\n  4. After /login: Fails with different error \"Failed to upload session history\"\n  5. Web UI behavior: Shows \"Starting Claude Code...\" but agent doesn't actually execute\n\n  Root Cause Hypothesis\n\n  There appears to be a missing initialization/registration step that only gets triggered when using the web client first. The CLI alone cannot properly initialize a repository for remote sessions, even with all prerequisites met.\n\n  Workaround\n\n  Execute any action from Claude Code web interface first on the target repository before attempting to use & background commands from CLI.\n\n  Additional Notes\n\n  - Login state doesn't persist between background session attempts\n  - Three distinct failure modes observed in sequence:\n    a. GitHub app not detected (false positive)\n    b. Remote session creation failure\n    c. Session history upload failure",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:auth",
+    "area:core",
+    "stale"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-08T10:00:15Z",
+  "updated_at": "2026-02-13T10:18:14Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 2,
+  "author": "emssik",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Taytay",
+      "author_association": "NONE",
+      "body": "I am seeing this bug repeatedly, even on a private repo where I've performed web Claude code sessions. \n\nMost of the time I try to start a remote task, it tells me:\n\n\"Failed to upload session history\"\nAnd tells me I need to login again.\n\nAnd sure enough, just as with the OP, I see broken sessions in the web that simply say \"Starting Claude Code...\" or are empty, with no ability to interact with them.",
+      "created_at": "2026-01-15T18:28:15Z"
+    },
+    {
+      "author": "Taytay",
+      "author_association": "NONE",
+      "body": "There was another issue that is closer to my experience described: https://github.com/anthropics/claude-code/issues/16403\n\nHowever, it was closed as a duplicate of this one. It suggested starting Claude with the \"--debug\" flag and that did help me successfully background one task. Subsequent attempts failed.\n\n",
+      "created_at": "2026-01-15T18:35:34Z"
+    }
+  ]
+}

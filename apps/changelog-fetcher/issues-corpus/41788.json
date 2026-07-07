@@ -1,0 +1,35 @@
+{
+  "number": 41788,
+  "title": "Max 20 plan: rate limit 100% exhausted within ~70 minutes after reset (never happened before v2.1.89)",
+  "body": "## Environment\n\n- **Plan**: Max 20 ($200/month subscription)\n- **Claude Code version**: 2.1.89 (auto-updated today, April 1 2026)\n- **Previous versions**: 2.1.86 (Mar 28) → 2.1.87 (Mar 29) → 2.1.88 (Mar 31) → 2.1.89 (Apr 1)\n- **Model**: Claude Opus 4.6 (1M context)\n- **OS**: Ubuntu 24.04, Linux 6.14.0-1020-oem (HP ZBook Ultra G1a)\n- **Node**: v22.22.1\n- **Settings**: effortLevel: \"high\", 1 PostToolUse hook (ruff linter, lightweight)\n\n## Problem\n\nStarting today (April 1, 2026), my 5-hour rate limit reaches **100% far too quickly**. This happened **twice** in the same day.\n\n**This has never happened before.** I have been a Max 20 subscriber for months and have never hit the limit this fast, even with identical (or heavier) usage patterns.\n\n## Timeline\n\n| Time | Event |\n|------|-------|\n| ~08:30 KST | Started working (remote session) |\n| ~11:30 KST | Noticed rate limit already at **100%** — roughly 3 hours of normal usage |\n| 12:00 KST | Rate limit reset confirmed |\n| 12:00~ KST | Resumed normal work immediately after reset |\n| ~13:10 KST | **100% usage again** — exhausted in **~70 minutes** of light conversational work |\n\n## What I was doing\n\n- Normal conversational coding tasks (not bulk/batch)\n- Working from home directory with project CLAUDE.md (~17KB) + MEMORY.md (~14KB) auto-loaded\n- No unusual tool-heavy operations, no massive file reads\n- Same workflow I've used daily for months without issues\n\n## What changed\n\n- **v2.1.89 auto-updated today** (Apr 1, 10:15 KST) — but the morning session (pre-update) also had the same issue\n- v2.1.88 installed Mar 31 — issue may have started then\n- No changes to my settings, hooks, or project files before this started\n\n## Investigation done\n\n1. Optimized CLAUDE.md + MEMORY.md from 30KB → 14KB (53% reduction) — did not resolve the issue\n2. Confirmed no heavy background processes or concurrent Claude Code sessions\n3. Checked GitHub issues — found related reports:\n   - #41249 (Mar 31): \"Excessive token consumption\" — 5-hour limit exhausted in <1 hour\n   - #38357 (Mar 23~): \"Max 20x usage climbing 5-10x faster\"\n\n## Expected behavior\n\nWith Max 20 plan and normal conversational usage, the 5-hour rate limit should last at least 3-4 hours of active use, as it has for the past several months.\n\n## Actual behavior\n\n- Morning: 100% in ~3 hours\n- Afternoon (after reset): 100% in **~70 minutes** with even lighter usage\n\nReproducible across two consecutive reset cycles on the same day.\n\n## Possible causes\n\n- Server-side change in how cached/thinking tokens are counted against rate limits\n- Prompt cache invalidation causing full re-processing of system prompts each turn\n- Rate limit calculation regression in v2.1.88 or v2.1.89\n- Model change (Opus 4.6) affecting internal token accounting\n\n## Request\n\nI am paying $200/month for the Max 20 plan, and the service has become practically unusable — **70 minutes of light usage per 5-hour window** is not acceptable for a premium subscription. This is severely impacting my daily workflow and productivity. I would appreciate a prompt investigation and resolution of this issue. Thank you.\n\n## Related issues\n\n- #41249\n- #38357",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-01T04:39:19Z",
+  "updated_at": "2026-06-03T19:44:22Z",
+  "closed_at": null,
+  "reactions_total": 85,
+  "comments_count": 59,
+  "author": "ArkNill",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jbj338033",
+      "author_association": "NONE",
+      "body": "same issue :(",
+      "created_at": "2026-04-01T04:44:57Z"
+    },
+    {
+      "author": "peterhaehnel-codes",
+      "author_association": "NONE",
+      "body": "SAME ISSUE! We are paying customers guys, it's ridiculous, this is happening for days now! DO SOMETHING!",
+      "created_at": "2026-04-01T05:13:21Z"
+    },
+    {
+      "author": "karytabilu",
+      "author_association": "NONE",
+      "body": "Have you tried downgrading to version 2.1.68? Although you lose some of the recent updates that seems to work for me. No more bleeding tokens.",
+      "created_at": "2026-04-01T06:04:39Z"
+    }
+  ]
+}

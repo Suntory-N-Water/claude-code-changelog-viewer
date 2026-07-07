@@ -1,0 +1,23 @@
+{
+  "number": 7370,
+  "title": "[BUG] API Error 400: Tool name exceeds 200 character limit causing complete session failure",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code session becomes completely unresponsive with API error 400 after extended usage (~75+ messages). All subsequent commands, including simple text responses, trigger the same error about tool names exceeding 200 characters. Session becomes completely unusable with no recovery mechanism.\n\n### What Should Happen?\n\n  - Tool names should never exceed the 200 character API limit\n  - If individual commands fail, the session should remain functional for other commands\n  - Simple text responses should not be affected by tool name length issues\n  - There should be graceful error handling and recovery mechanisms\n\n### Error Messages/Logs\n\n```shell\nAPI Error: 400\n  {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.75.content.1.tool_use\n  .name: \n  String should have at most 200 characters\"},\"request_id\":\"req_011CSyQ2VgbQwSWHfbzxPhpV\"}\n```\n\n### Steps to Reproduce\n\n 1. Start a new Claude Code session\n  2. Perform extended analysis work over ~75+ message exchanges including:\n    - Use Read tool on large files (20MB+)\n    - Use Task tool for complex multi-step analysis\n    - Use WebSearch for research\n    - Generate comprehensive reports/documentation\n  3. Attempt a basic git command like:\n  git remote add origin https://github.com/username/anyrepo.git\n  4. Observe API 400 error appears\n  5. Try any subsequent command (even simple text like \"Need help?\")\n  6. All commands now fail with the same API 400 error\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n 1.0.109 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nThe error seems to be triggered after extensive session use, specifically around message 75. Once it occurs, the session becomes completely corrupted - even simple text responses that shouldn't involve any tools trigger the same API error. The only workaround is force quitting (Ctrl+C) and restarting Claude Code, which loses all conversation context and work progress.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:api",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-10T00:01:20Z",
+  "updated_at": "2026-01-19T14:18:30Z",
+  "closed_at": "2026-01-12T10:14:26Z",
+  "reactions_total": 3,
+  "comments_count": 7,
+  "author": "Shamdon",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

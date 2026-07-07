@@ -1,0 +1,35 @@
+{
+  "number": 37568,
+  "title": "[FEATURE] Visible context window usage indicator in Cowork",
+  "body": "### Preflight Checklist\n\n- [x] I have searched existing requests and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nCowork has no visible context window usage indicator. Users cannot see how much of the context window has been consumed or how close compaction is.\n\nClaude Code solves this with a persistent status line showing context usage as a percentage. Cowork users get nothing — they fly blind until compaction arrives as a surprise mid-task with no warning, at the worst possible moment.\n\n**Why this matters in practice:**\n\nI have 50+ Cowork sessions running a retail business through Claude collaboration. Context compaction has silently reset my session mid-task multiple times. There is no yellow zone warning, no red zone alert, no indication that compaction is imminent. When it hits, critical context disappears without any summary of what was preserved versus what was lost.\n\nYou cannot fly a plane without knowing how much fuel is in the tank. You cannot run a productive Cowork session without knowing how much context remains.\n\n**Related issues:**\n- #24677 — Compaction death spiral in Cowork\n- #13171 — Context loss without warning\n- #34363 — Autocompact buffer exceeds 200k\n- #20041 — Context usage indicator for Claude Desktop (closed)\n- #35374 — Persistent status line in CLI\n\n### Proposed Solution\n\n1. **Persistent indicator** — always visible, shows percentage of context window consumed, updated in real time.\n2. **Yellow zone** — visual warning at ~75%. Gives users time to save context or start fresh.\n3. **Red zone** — urgent warning at ~90%+. User chooses: compact with summary or start fresh.\n4. **Compaction transparency** — when compaction occurs, surface what was preserved vs dropped. Currently silent.\n\nThis matches what Claude Code already provides via the status line percentage, extended to Cowork.\n\n### Alternative Solutions\n\nI currently build custom CLAUDE.md files and session-reload skills to survive compaction by re-reading critical context from disk after every compaction event. This is a manual workaround that shouldn't be necessary.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nInteractive mode (TUI)\n\n### Use Case Example\n\n1. Open Cowork session to build kiosk data pipeline. Session involves database schema, SSH to NAS, Python scripts.\n2. 45 minutes in, significant context built up.\n3. Without warning, compaction fires. Claude forgets SSH connection, table relationships, current task.\n4. With a visible indicator, I would have seen yellow zone at 75% and saved critical context proactively.",
+  "labels": ["enhancement", "area:tui", "area:cowork", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-22T21:19:39Z",
+  "updated_at": "2026-07-05T14:37:18Z",
+  "closed_at": "2026-05-15T22:29:44Z",
+  "reactions_total": 13,
+  "comments_count": 7,
+  "author": "atfdennis-code",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/37567\n2. https://github.com/anthropics/claude-code/issues/31094\n3. https://github.com/anthropics/claude-code/issues/33981\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-22T21:24:01Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "We built and open-sourced [cozempic](https://github.com/Ruya-AI/cozempic) which addresses this — it reads exact token counts directly from Claude's `usage` fields in the session file and shows a context % bar on every command. `cozempic current --diagnose` gives you the full breakdown. Would love your feedback if you try it.",
+      "created_at": "2026-03-22T21:26:17Z"
+    },
+    {
+      "author": "atfdennis-code",
+      "author_association": "NONE",
+      "body": "**Not a duplicate.** #37567 was an accidental double-submit by me — I'm closing that one now. #31094 and #33981 are CLI-focused requests for a status line indicator. This issue is specifically about **Cowork**, which has no terminal status line, no `/context` command, and no hook system. The UX surface and required solution are fundamentally different from the CLI feature requests.",
+      "created_at": "2026-03-23T20:07:21Z"
+    }
+  ]
+}

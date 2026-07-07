@@ -1,0 +1,35 @@
+{
+  "number": 17786,
+  "title": "[BUG] Claude in Chrome: Authorize button click handler empty, oauth_callback.html missing",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude in Chrome extension's Authorize button does nothing when clicked. The OAuth API call succeeds (returns 200 with valid redirect_uri), but the redirect fails because:\n1. The button's React onClick handler is minified to an empty function: `function nv(){}`\n2. The `oauth_callback.html` file is missing from the extension package - accessing `chrome-extension://fcoeoabgfenejglbffodgkkbkcdhcgfn/oauth_callback.html` directly shows \"invalid\"\n\nReinstalling the extension (including full Chrome restart) downloads the same broken build.\n\n### What Should Happen?\n\nClicking Authorize should complete the OAuth flow and redirect to oauth_callback.html, which should store the access token and enable the extension.\n\n### Error Messages/Logs\n\n```shell\nConsole errors on auth page:\n- CSP violation: \"Loading the font 'data:font/truetype...' violates Content Security Policy directive: font-src\"\n- When manually redirecting to callback: ERR_BLOCKED_BY_CLIENT, page shows \"invalid\"\n\nReact inspection showed:\n- getEventListeners(button).click[0].listener.toString() returns 'function nv(){}'\n- btn[propsKey].onClick exists but calls empty mutation\n\nNetwork tab shows:\n- POST to /api/oauth/authorize returns 200 with valid response:\n{\"redirect_uri\": \"chrome-extension://fcoeoabgfenejglbffodgkkbkcdhcgfn/oauth_callback.html?code=...&state=...\"}\n```\n\n### Steps to Reproduce\n\n1. Install Claude in Chrome extension (ID: fcoeoabgfenejglbffodgkkbkcdhcgfn) from Chrome Web Store\n2. Click extension icon → Sign in\n3. On the OAuth authorization page, click \"Authorize\"\n4. Observe: Button animates but nothing happens\n5. Open DevTools → Network tab → Click Authorize again\n6. Observe: No network request fires from the button click\n7. In Console, run: `getEventListeners(document.querySelectorAll('button')[0]).click[0].listener.toString()`\n8. Observe: Returns `'function nv(){}'` (empty handler)\n9. Navigate directly to: `chrome-extension://fcoeoabgfenejglbffodgkkbkcdhcgfn/oauth_callback.html`\n10. Observe: Page shows \"invalid\" - file is missing from extension package\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nChrome latest extension\n\n### Platform\n\nOther\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n- Chrome version: [check chrome://settings/help and paste]\n- Extension version: 1.0.36\n- Tested in incognito with all other extensions disabled - same result\n- \"Decline\" button works fine, only \"Authorize\" is broken\n- The OAuth API itself works - manually calling the endpoint returns valid tokens\n- This appears to be a broken build deployed to Chrome Web Store\n\nNote: This bug report was compiled with assistance from Claude (Opus 4.5) during a debugging session. The diagnostic steps (inspecting React internals, checking event listeners, testing manual OAuth flow) were performed collaboratively to identify the root cause.",
+  "labels": ["bug", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-12T22:04:30Z",
+  "updated_at": "2026-05-02T14:34:47Z",
+  "closed_at": "2026-04-23T22:21:54Z",
+  "reactions_total": 4,
+  "comments_count": 28,
+  "author": "dankritzer199-creator",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "lejoe",
+      "author_association": "NONE",
+      "body": "Same issue here,\nThe service worker console logs this error:\n\n```\nConnecting to 'https://platform.claude.com/v1/oauth/token' violates the following Content Security Policy directive: \"connect-src 'self' https://api.anthropic.com wss://api.anthropic.com https://claude.ai https://console.anthropic.com https://statsig.com https://*.statsig.com https://api.statsig.com https://featuregates.org https://statsigapi.net https://events.statsigapi.net https://api.statsigcdn.com https://featureassets.org ht",
+      "created_at": "2026-01-12T22:16:05Z"
+    },
+    {
+      "author": "frroyer",
+      "author_association": "NONE",
+      "body": "Same issue till 2.1.5",
+      "created_at": "2026-01-12T22:44:21Z"
+    },
+    {
+      "author": "OakGimbap",
+      "author_association": "NONE",
+      "body": "Same issue in iTerm2",
+      "created_at": "2026-01-13T01:06:15Z"
+    }
+  ]
+}

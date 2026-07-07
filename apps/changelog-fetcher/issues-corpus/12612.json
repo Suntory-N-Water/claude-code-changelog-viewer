@@ -1,0 +1,35 @@
+{
+  "number": 12612,
+  "title": "[Feature Request] Add 'claude model list' CLI command for non-interactive model queries",
+  "body": "## Problem\n\nCurrently, there is no way to programmatically query available Claude models from the CLI without starting an interactive session and using `/model`.\n\n### Current Workarounds\n1. **Interactive only**: Start `claude` session → type `/model` → consumes tokens for LLM processing\n2. **No CLI command**: `claude model list` doesn't exist\n3. **API directly**: Must use `curl` with API keys manually\n\n## Requested Feature\n\nAdd a `claude model` subcommand for non-interactive model queries:\n\n```bash\n# List all available models\nclaude model list\n\n# Output:\n# ID                              NAME            TYPE      CONTEXT\n# claude-sonnet-4-5-20250929     Sonnet 4.5      Latest    200K\n# claude-3-5-sonnet-20241022     Sonnet 3.5      Standard  200K  \n# claude-3-opus-20240229         Opus 3          Premium   200K\n# claude-3-5-haiku-20241022      Haiku 3.5       Fast      200K\n\n# Show current model for session\nclaude model current\n\n# Show model info\nclaude model info claude-sonnet-4-5-20250929\n```\n\n## Use Cases\n\n1. **Scripting/Automation** - Check available models before running tasks\n2. **Cost Optimization** - Programmatically select cheapest model for task\n3. **CI/CD Pipelines** - Validate model availability before running agents\n4. **Documentation** - Generate up-to-date model lists\n5. **Debugging** - Verify which models are accessible with current API key\n\n## Comparison with Similar Tools\n\n**GitHub CLI:**\n```bash\ngh api /repos/:owner/:repo  # Direct API access\ngh repo view                # Formatted output\n```\n\n**Docker CLI:**\n```bash\ndocker images               # List available images\ndocker inspect <image>      # Show image details\n```\n\n**Claude Code (requested):**\n```bash\nclaude model list           # List available models (no LLM inference)\nclaude model current        # Show current session model\n```\n\n## Benefits\n\n- ✅ **Zero token cost** (no LLM inference needed)\n- ✅ **Scriptable** (parseable output for automation)\n- ✅ **Fast** (no interactive session startup)\n- ✅ **Consistent** with modern CLI patterns\n- ✅ **Better DX** for power users\n\n## Implementation Notes\n\n- Should work without starting interactive session\n- Output should be parseable (consider `--json` flag)\n- Cache model list locally (refresh periodically)\n- Respect API provider (Anthropic, Bedrock, Vertex)\n\n## Related Issues\n\n- #10169 - Custom Bedrock models not discoverable in `/model` command list\n- #10717 - `/model` returns old version of models\n\n---\n\n**Environment:**\n- Platform: Linux (WSL2)\n- Version: Claude Code v2.0.x\n- Use case: Automation scripts, CI/CD integration",
+  "labels": ["enhancement", "area:cost", "area:model", "area:core", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-28T10:37:09Z",
+  "updated_at": "2026-07-02T08:16:14Z",
+  "closed_at": null,
+  "reactions_total": 42,
+  "comments_count": 14,
+  "author": "ThePlenkov",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-29T10:10:07Z"
+    },
+    {
+      "author": "alanspires",
+      "author_association": "NONE",
+      "body": "bump",
+      "created_at": "2026-01-09T06:15:19Z"
+    },
+    {
+      "author": "amitmahbubani",
+      "author_association": "NONE",
+      "body": "+1, this would be nice to have. We have custom models setup on Bedrock and choosing models when switching between a claude subscription and Bedrock use is a pain. ",
+      "created_at": "2026-01-13T11:12:13Z"
+    }
+  ]
+}

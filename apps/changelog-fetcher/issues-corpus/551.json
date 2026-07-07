@@ -1,0 +1,16 @@
+{
+  "number": 551,
+  "title": "Non-Interactive Mode Fails to Authenticate Using Provided API Key",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 0.2.48\n- Operating System: Ubuntu (via Docker)\n- Terminal: Docker container\n\n## Bug Description\nIn a non-interactive environment, the CLI still requires executing `/login` even though an API key is provided. The documentation states that CI automation should work, but in my setup, running claude non-interactively results in the error \"Invalid API key · Please run /login.\" While interactive sessions work fine after manually logging in with `/login`, this behavior prevents the tool from being used in automated CI workflows (such as GitHub Actions).\n\n## Steps to Reproduce\n1. Build a Docker image with the following Dockerfile:\n   ```dockerfile\n   FROM ubuntu:latest\n   USER root\n   WORKDIR /home/app\n   RUN apt-get update\n   RUN apt-get -y install curl git\n   RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -\n   RUN apt-get -y install nodejs\n   RUN npm install -g @anthropic-ai/claude-code\n   # Set environment variables for authentication (replace sk-xxx with your API key)\n   ENV ANTHROPIC_API_KEY=sk-xxx  \n   ENTRYPOINT [\"sh\", \"-c\", \"claude\"]\n   ```\n2. Run the container in non-interactive mode with the command:\n   ```sh\n   docker run -it <image_id> -p \"hello\"\n   ```\n3. Observe the error message:\n   ```\n   Invalid API key · Please run /login\n   ```\n4. Confirm that the `ANTHROPIC_API_KEY` is set by running:\n   ```sh\n   docker run -it --entrypoint sh <image_id> -c 'echo $ANTHROPIC_API_KEY'\n   ```\n   which outputs:\n   ```\n   sk-xxx\n   ```\n\n## Expected Behavior\n\nIs there a known workaround or a fix planned to support non-interactive authentication?",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-03-18T14:23:23Z",
+  "updated_at": "2025-08-14T14:06:00Z",
+  "closed_at": "2025-04-02T00:30:19Z",
+  "reactions_total": 7,
+  "comments_count": 16,
+  "author": "potproject",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

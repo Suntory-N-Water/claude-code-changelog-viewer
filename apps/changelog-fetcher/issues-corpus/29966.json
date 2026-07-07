@@ -1,0 +1,16 @@
+{
+  "number": 29966,
+  "title": "Agent SDK subagents have prompt caching disabled by default (enablePromptCaching: false)",
+  "body": "## Summary\n\nSubagent requests spawned via the Agent tool have `enablePromptCaching` hardcoded to `false`, causing all subagent API calls to miss prompt caching entirely. This results in significant unnecessary cost for tools, system prompts, and conversation history being sent as uncached input on every request.\n\n## Root Cause\n\nIn the CLI bundle, the main REPL query path correctly defaults to enabling prompt caching:\n\n```javascript\n// Main REPL path (line ~6108 in cli.js):\nlet S = w.enablePromptCaching ?? YWq(w.model)  // YWq() returns true unless env var disabled\n```\n\nHowever, subagent internal queries explicitly default to `false`:\n\n```javascript\n// Subagent path:\nenablePromptCaching: z.enablePromptCaching ?? false  // hardcoded false\n```\n\nThis means:\n- **Main CLI (Opus)**: `enablePromptCaching` → `undefined` → falls through to `YWq()` → `true` ✅\n- **Subagent (Sonnet/etc)**: `enablePromptCaching` → `undefined` → falls through to `false` ❌\n\n## Impact\n\nFrom real proxy logs analyzing 104 requests in a single session:\n\n| Request Type | Count | Cache Behavior |\n|-------------|-------|---------------|\n| Main CLI (Opus) | 50 | ✅ Cache breakpoints injected, cache hits observed |\n| Subagent (Sonnet) | 54 | ❌ Zero cache breakpoints, all input uncached |\n\nSubagent requests typically carry ~7,000+ tokens of tools and system prompt that are identical across requests. Without caching, these are billed as full uncached input every time.\n\n**Cost example**: 54 subagent requests × 7,013 uncached tokens each = ~378,000 wasted uncached input tokens per session.\n\n## Proposed Fix\n\nChange the subagent default from `false` to use the same `YWq()` check as the main REPL:\n\n```javascript\n// Before:\nenablePromptCaching: z.enablePromptCaching ?? false\n\n// After:\nenablePromptCaching: z.enablePromptCaching ?? YWq(model)\n```\n\nThis would make subagents respect the same environment variable controls (`DISABLE_PROMPT_CACHING`, `DISABLE_PROMPT_CACHING_SONNET`, etc.) while enabling caching by default — consistent with the main CLI behavior.\n\n## Environment\n\n- Claude Code version: 2.1.63\n- Agent SDK version: 0.2.63\n- Provider: AWS Bedrock (but issue applies to all providers)\n- Analysis method: Reverse proxy intercepting API requests, confirmed zero `cache_control` blocks in subagent request bodies\n\n## Workaround\n\nCurrently using a local reverse proxy that injects `cache_control` breakpoints into subagent requests that lack them. This works but adds operational complexity. A one-line fix in the CLI would eliminate the need for this workaround.",
+  "labels": ["bug", "has repro", "area:cost", "area:agent-sdk"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-02T03:55:52Z",
+  "updated_at": "2026-05-25T23:14:38Z",
+  "closed_at": null,
+  "reactions_total": 9,
+  "comments_count": 5,
+  "author": "KevinZhao",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

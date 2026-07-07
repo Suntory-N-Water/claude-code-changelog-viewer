@@ -1,0 +1,24 @@
+{
+  "number": 1224,
+  "title": "Critical Bug: Claude Code CLI is making excessive background API calls, ignoring model configuration, and console reporting inconsistencies",
+  "body": "  **Critical Bug: Claude Code CLI is making excessive background API calls, ignoring model configuration, and \n  console reporting inconsistencies**\n\n  **Environment**\n\n  - Platform: Anthropic API\n  - Claude CLI version: latest\n  - Operating System: macOS Sequoia 15.0.1 (Darwin 24.0.0), MacBook Pro 14-inch (Nov 2023), Apple M3 Pro,\n  18GB RAM\n  - Terminal: Terminal App\n\n  **Bug Description**\n\n  CRITICAL SEVERITY - Multiple severe issues have been identified with Claude Code CLI:\n\n  1. Excessive unauthorized background API calls to Claude 3.5 Haiku despite configuration for Sonnet\n  2. Massive token usage with abnormal input:output ratios (150:1)\n  3. Inefficient cache management loading ~50K tokens per API call\n  4. Non-sequential API logs suggesting race conditions or threading issues\n  5. Time zone inconsistencies in the Anthropic console\n  6. Data discrepancies between logs and usage charts\n\n  **Steps to Reproduce**\n\n  1. Install Claude Code CLI\n  2. Set up configuration to use Sonnet model (via settings.local.json and environment variables)\n  3. Start using Claude Code CLI for development tasks\n  4. Check Anthropic console logs and usage charts to observe the issues\n\n  Expected Behavior\n\n  - Claude Code CLI should only make API calls when explicitly triggered by user actions\n  - Configuration settings for model choice should be respected\n  - Cache management should be efficient and not reload the entire context with every call\n  - Logs should be sequential and consistent with usage charts\n  - Time zones should be consistent across the console interface\n\n  **Actual Behavior**\n\n  - Billions of input tokens being consumed monthly with minimal output\n  - Constant background API calls to Haiku despite explicit Sonnet configuration\n  - Inefficient cache management reloading ~50K tokens with each API call\n  - Non-sequential logs suggesting race conditions or threading issues\n  - Time zone inconsistencies between different parts of the console\n  - Data discrepancies between logs and usage charts\n\n  Time Zone and Data Inconsistencies\n\n  There is a confusing mismatch in the Anthropic console:\n  - The API Logs page shows GMT+1 (UTC+1), which is correct for my local time (BST)\n  - The API usage chart displays UTC time but labels it as \"Europe/London\" in the UI\n  - However, the time shown doesn't match the Logs time of UTC+1\n  - The token usage I calculated from my logs does not match the usage chart\n  - When hovering over a usage chart bar (at 18:05 UTC), it shows:\n    - claude-3-5-haiku-20241022: 1,208\n    - claude-3-7-sonnet-20250219: 897,918\n    - Total: 899,126\n  - However, these numbers don't consistently align with the logs for the corresponding time period\n\n  These inconsistencies make it extremely difficult to track, audit, and understand my token usage.\n\n  **Business Impact**\n\n  I've committed 100+ hours per week over the last 6 months to immerse myself in AI to build tech products\n   as a non-coder. When Claude Code works with Sonnet 3.7, I make progress. When it switches to Haiku, it\n  cannot perform what would be rudimentary coding tasks for Sonnet.\n\n  This issue has resulted in:\n  - Significant time loss\n  - Enormous business opportunity cost\n  - Financial harm through excessive billing\n  - Delayed product development\n  - Frustration and loss of productivity\n\n  **\n\n<img width=\"1392\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/c0764278-4caf-425c-8b80-e378753c7902\" />\n<img width=\"825\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/9c004da6-05c4-448f-b719-42ebd89652ee\" />\n<img width=\"595\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/319cc683-5b94-4a22-9f49-f4fc22fd05bd\" />\n<img width=\"832\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/ce489a86-49c1-4995-86ee-767211edcea8\" />\n<img width=\"362\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/e5282327-29c7-4ccf-9077-ab1ac16e5e98\" />\n<img width=\"1512\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/f7af8dc0-0a32-4839-86ec-7862a51a88dc\" />\n\n<img width=\"783\" alt=\"Image\" src=\"https://github.com/u",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:cost",
+    "area:model",
+    "area:core",
+    "area:api"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-05-22T15:50:25Z",
+  "updated_at": "2025-08-10T14:08:39Z",
+  "closed_at": "2025-06-16T16:16:17Z",
+  "reactions_total": 3,
+  "comments_count": 6,
+  "author": "ryanantonyshaw",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

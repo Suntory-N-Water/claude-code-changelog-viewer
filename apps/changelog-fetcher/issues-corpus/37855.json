@@ -1,0 +1,35 @@
+{
+  "number": 37855,
+  "title": "[BUG] Copied multi-line commands from Claude Code output contain formatting artifacts — still unfixed after 6+ months",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen Claude Code outputs a multi-line command for the user to copy and run in their terminal, the copied text contains formatting artifacts — extra spaces, line breaks in wrong places, or line-number prefixes — that cause the command to fail when pasted.\n\n**Example:** Claude outputs a command like:\n```\npython3 km.py add posthog-project-key --service posthog --tier 3 --owner david --secret \"phc_abc123\" --notes \"PostHog project API key (public, client-side). Use as NEXT_PUBLIC_POSTHOG_KEY. Cloud US instance.\"\n```\n\nWhen the user copies this from the Claude Code terminal and pastes it into their shell, the text gets split across lines with formatting artifacts inserted, causing `zsh: command not found` errors on the fragments.\n\nThis is a real workflow problem. Claude Code frequently needs to give users commands to run (especially when the command requires interactive input like a password prompt that Claude can't handle itself). The user's only option is to copy from Claude's output, but the copy is corrupted.\n\n### What Should Happen?\n\nText copied from Claude Code's output should be identical to the source text — no added spaces, no line-number prefixes, no formatting artifacts. Multi-line code blocks and commands should be copy-safe.\n\n### Issue History — This Has Been Reported Repeatedly and Mishandled\n\nThis bug has been reported at least **6 times** over the past 6+ months. Every report gets auto-closed by bots as a \"duplicate\" — but the duplicates point to each other in a circle, and none of them were ever actually fixed:\n\n- **#5097** — Original report (closed as duplicate)\n- **#4686** — Closed as duplicate\n- **#10969** — Reopened as v2 of the bug, tagged `has repro`, had active discussion. Auto-closed by inactivity bot despite human comments asking for a dev response. Now locked.\n- **#18798** — Closed as duplicate of #10969 (which was already closed)\n- **#23014** — Closed as duplicate\n- **#33223** — Closed as duplicate of #18798 (which was closed as duplicate of #10969)\n\nThe auto-close bot (#16497) and the circular-duplicate problem (#19267) have themselves been reported as issues.\n\n**The result:** A bug that affects every user who copies multi-line output from Claude Code has been in the product for 6+ months with zero developer engagement, bounced between closed issues by automation, and is now locked so the original reporters can't even comment.\n\n### Steps to Reproduce\n\n1. Ask Claude Code to output a long single-line command (e.g., a `curl` or `python3` command with many flags)\n2. The terminal wraps it visually across multiple lines\n3. Select and copy the command from the terminal output\n4. Paste into a separate terminal window\n5. Observe: the pasted text contains extra whitespace, line breaks, or other artifacts that were not in the original command\n\n### Claude Model\n\nOpus (Claude Opus 4.6)\n\n### Is this a regression?\n\nNo, this never worked\n\n### Claude Code Version\n\nv2.1.81\n\n### Platform\n\nAnthropic API (Max subscription)\n\n### Operating System\n\nmacOS Darwin 25.4.0\n\n### Terminal/Shell\n\nzsh (macOS Terminal)\n\n### Additional Information\n\nPrevious issue chain: #5097 → #4686 → #10969 → #18798 → #23014 → #33223. All closed, most locked. No fix delivered.\n\nRelated meta-issues about the auto-close/circular-duplicate problem: #16497, #19267.",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-23T15:00:43Z",
+  "updated_at": "2026-05-28T11:54:00Z",
+  "closed_at": "2026-05-26T22:46:03Z",
+  "reactions_total": 10,
+  "comments_count": 7,
+  "author": "LucidDream",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18798\n2. https://github.com/anthropics/claude-code/issues/23014\n3. https://github.com/anthropics/claude-code/issues/15199\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-23T15:04:51Z"
+    },
+    {
+      "author": "LucidDream",
+      "author_association": "NONE",
+      "body": "This is not a duplicate — this is a report about an issue that has been bounced between 6+ closed/locked issues over 6 months with zero developer engagement. The duplicate chain is documented in the issue body.\n\nRegarding the technical fix: a simple approach would be a **raw output mode toggle** in the terminal. When enabled, Claude Code output renders as plain text without any TUI formatting — no line-number prefixes, no rich wrapping, no invisible characters. Users could toggle it on when they",
+      "created_at": "2026-03-23T15:57:43Z"
+    },
+    {
+      "author": "LucidDream",
+      "author_association": "NONE",
+      "body": "This is NOT a duplicate of #18798, #23014, or #15199. Those issues describe related but distinct problems:\n\n- #18798 is about **line wrapping** artifacts in terminal output\n- #23014 is about **ANSI escape codes** leaking into copied text\n- #15199 is about **markdown rendering** stripping code formatting\n\nThis issue is specifically about **multi-line command blocks** that, when copied from Claude Code output, contain invisible formatting characters (zero-width spaces, non-breaking spaces, or simi",
+      "created_at": "2026-03-23T22:04:53Z"
+    }
+  ]
+}

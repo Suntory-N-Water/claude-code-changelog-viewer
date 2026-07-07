@@ -1,0 +1,35 @@
+{
+  "number": 49593,
+  "title": "[BUG] 2.1.111 introduced ~14% context window bloat at session startup (8% → 22%)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n### Environment\n\n- Claude Code 2.1.112 (also 2.1.111)\n- Opus 4.6, macOS Darwin 25.3.0\n- 200K context window\n\n### Summary\nSession startup context usage jumped from ~8% to ~22% with no changes to my project, CLAUDE.md files, MCP servers, or plugins. After extensive investigation, the change correlates exactly with the auto-update from 2.1.110 → 2.1.111 on Apr 16 2026.\n\n### Evidence\nBinary sizes in ~/.local/share/claude/versions/:\n\n- 202,932,416  2.1.110  (Apr 15 — 8% startup)\n- 203,956,832  2.1.111  (Apr 16 13:35 — 22% startup)\n- 203,956,832  2.1.112  (Apr 16 15:59 — 22% startup)\n- 14MB increase between .110 and .111. Timing matches exactly. Nothing else changed in the environment.\n\n### Impact\n\n- Startup context floor went from ~16K to ~45K tokens (estimated)\n- Effective context burn rate ~5x higher during working sessions\n- All available mitigation (pruning agents, skills, plugins, MCP servers) produced negligible improvement — confirming the bloat is inside Claude Code itself, not user configuration\n\n### What Should Happen?\n\n- Identify and revert whatever was added to the system prompt / tool schemas in 2.1.111 that caused this, or provide a config flag to opt out of the expanded content.\n- Add a /context command showing a per-component breakdown of startup token usage (system prompt, tool schemas, MCP servers, CLAUDE.md, skills list, memory). Without this, users are forced to do blind archaeology when startup bloat occurs. This is the 6th time I've investigated this class of issue; a breakdown command would have resolved it in 60 seconds.\n\n\n\n\n### Error Messages/Logs\n\nNone\n\n\n### Steps to Reproduce\n\nPin to 2.1.110: `ln -sfn ~/.local/share/claude/versions/2.1.110 ~/.local/bin/claude`\nStart session, run trivial prompt, note context %\nUpdate to 2.1.112, repeat\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.112\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "regression"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-16T23:19:59Z",
+  "updated_at": "2026-05-02T14:36:57Z",
+  "closed_at": "2026-04-22T01:42:32Z",
+  "reactions_total": 4,
+  "comments_count": 19,
+  "author": "paulalbert1",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "A fix for this should be in 2.1.117 today",
+      "created_at": "2026-04-21T17:00:46Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "Sorry, I interpreted this as being about the incorrect message about how much context is used. The per-turn overhead you're measuring isn't a Claude Code bug — it's an expected Opus 4.7 behavior change.\n\nOpus 4.7 [uses an updated tokenizer](https://www.anthropic.com/news/claude-opus-4-7) that maps the same text to roughly 1.0–1.35× more tokens than Opus 4.6, depending on content type. Opus 4.7 also thinks more at higher effort levels, and those thinking blocks get carried forward as input on sub",
+      "created_at": "2026-04-22T01:42:32Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/48050\n2. https://github.com/anthropics/claude-code/issues/47659\n3. https://github.com/anthropics/claude-code/issues/48982\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-16T23:23:42Z"
+    }
+  ]
+}

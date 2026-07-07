@@ -1,0 +1,42 @@
+{
+  "number": 7020,
+  "title": "[Bug] Memory Leak When Initializing Sub-Agent Orchestration",
+  "body": "**Bug Description**\nIf I continue this session by issuing an instruction like \"Continue as an orchestrator, directing sub-agents to perform the necessary work.\" claude code will start allocating memory until all system memory is exhausted and the process crashes. In a newly-launched `claude` session, Activity Monitor shows that the claude process has about 450MB allocated (once I resume the session); when I issue the command, I can watch it start allocating massive amounts of memory almost right away, growing to 500, 1GB, 1.5GB, 2GB, 4GB, 4.5GB, 6GB,....30GB, ...crash\n\nIt doesn't *always* begin the massive allocations immediately. Sometimes, it'll run a prompt for a while, seeming normal, but within a prompt or two it will innevitably get into the massive allocation state and crash.\n\n**Environment Info**\n- Platform: darwin\n- Terminal: iTerm.app\n- Version: 1.0.100\n- Feedback ID: 5e71aaf2-81fd-47bb-b0a9-8a15b230127c\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": [
+    "bug",
+    "platform:macos",
+    "area:tools",
+    "memory",
+    "perf:memory",
+    "oncall"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-09-02T16:53:40Z",
+  "updated_at": "2026-02-15T14:16:17Z",
+  "closed_at": "2026-02-07T21:00:23Z",
+  "reactions_total": 15,
+  "comments_count": 18,
+  "author": "hughescr",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4580\n2. https://github.com/anthropics/claude-code/issues/6904\n3. https://github.com/anthropics/claude-code/issues/4953\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-09-02T16:58:10Z"
+    },
+    {
+      "author": "hughescr",
+      "author_association": "NONE",
+      "body": "Here's an example of the crash:\n\n```\n<--- Last few GCs --->\n\n[43988:0x128008000]  1369682 ms: Scavenge (interleaved) 4057.2 (4096.9) -> 4056.4 (4100.9) MB, pooled: 0 MB, 4.33 / 0.00 ms  (average mu = 0.249, current mu = 0.192) allocation failure;\n[43988:0x128008000]  1370434 ms: Mark-Compact 4059.9 (4100.9) -> 4051.3 (4101.4) MB, pooled: 0 MB, 749.25 / 0.00 ms  (average mu = 0.148, current mu = 0.020) allocation failure; scavenge might not succeed\n\nFATAL ERROR: Ineffective mark-compacts near hea",
+      "created_at": "2025-09-02T17:03:26Z"
+    },
+    {
+      "author": "hughescr",
+      "author_association": "NONE",
+      "body": "Note: the crash seems to happen whether running under nodejs directly, under `bunx`, and under `bunx --bun`. I've tried deleting ~/.claude.json and starting afresh - crash still happens.\n\nI'd ba happy to provide my settings.json, mcp.json etc if helpful.",
+      "created_at": "2025-09-02T17:05:38Z"
+    }
+  ]
+}

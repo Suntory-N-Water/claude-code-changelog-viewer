@@ -1,0 +1,42 @@
+{
+  "number": 16389,
+  "title": "ralph-wiggum plugin: Bash permission check fails despite allowed-tools declaration",
+  "body": "## Description\n\nThe ralph-wiggum plugin's `/ralph-loop` command fails with a permission error even though:\n1. The plugin correctly declares `allowed-tools` in its command definition\n2. Manual `Bash(...)` permissions are added to `settings.local.json`\n\nThe permission system appears to be checking the raw markdown content (including code fence markers) rather than the parsed command, and/or not handling quoted paths correctly.\n\n## Steps to Reproduce\n\n1. Install the ralph-wiggum plugin:\n   ```bash\n   claude plugin install ralph-wiggum@claude-plugins-official\n   ```\n\n2. Run the ralph-loop command:\n   ```bash\n   /ralph-wiggum:ralph-loop \"Test task\" --completion-promise \"DONE\" --max-iterations 5\n   ```\n\n3. Observe the error\n\n## Expected Behavior\n\nThe command should execute successfully because the plugin's `commands/ralph-loop.md` declares:\n```yaml\nallowed-tools: [\"Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.sh)\"]\n```\n\n## Actual Behavior\n\nError message:\n```\nError: Bash command permission check failed for pattern \"` ` `!\n\"/home/user/.claude/plugins/cache/claude-plugins-official/ralph-wiggum/15b07b46dab3/scripts/setup-ralph-loop.sh\" \"Test task\" --completion-promise \"DONE\" --max-iterations 5\n` ` `\": This command requires approval\n```\n\nNote that the error shows:\n1. The markdown code fence markers are included in the pattern being checked\n2. The path has quotes around it (`\"/home/user/...\"`)\n\n## Attempted Workarounds\n\nAdded various permission patterns to `.claude/settings.local.json`:\n- `Bash(/home/user/.claude/plugins/cache/claude-plugins-official/ralph-wiggum/:*)` - No match\n- `Bash(*ralph-wiggum*)` - Rejected by validator (\"Use `:*` for prefix matching\")\n\nNone matched because the actual command starts with a quote character.\n\n## Environment\n\n- Claude Code version: Latest (Jan 5, 2026)\n- OS: Linux (WSL2 Ubuntu 22.04 on Windows 11)\n- Plugin version: ralph-wiggum@claude-plugins-official (hash: 15b07b46dab3)\n\n## Analysis\n\nThe permission pattern matching appears to have two issues:\n\n1. **Raw markdown parsing**: The pattern being checked includes markdown fence markers, suggesting the command isn't being properly extracted from the markdown\n\n2. **Quoted path mismatch**: The actual command wraps the path in quotes for shell safety (`\"/path/to/script\"`), but permission patterns don't include quotes, causing a mismatch\n\n## Related Issues\n\n- anthropics/claude-plugins-official#91 - Multi-line bash fix was merged Jan 2, 2026\n- #15640 - \"Command contains newlines\" variant (different error, same plugin)\n\nThis appears to be a separate issue from the newlines bug that was recently fixed.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "area:security",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-05T21:17:05Z",
+  "updated_at": "2026-03-08T14:13:46Z",
+  "closed_at": "2026-02-27T10:17:05Z",
+  "reactions_total": 7,
+  "comments_count": 10,
+  "author": "bighapa67",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Th0rgal",
+      "author_association": "NONE",
+      "body": "getting the same issue",
+      "created_at": "2026-01-05T21:45:03Z"
+    },
+    {
+      "author": "ray-amjad",
+      "author_association": "NONE",
+      "body": "Same issue",
+      "created_at": "2026-01-06T05:51:21Z"
+    },
+    {
+      "author": "rphovley",
+      "author_association": "NONE",
+      "body": "Seeing this on macos as well\nSequoia 15.6.1 \nClaude Code: 2.0.67",
+      "created_at": "2026-01-06T22:13:29Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 22637,
+  "title": "[BUG]",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAgent-type hooks in `PreToolUse` fail to execute with the error: `Failed to run: Messages are required for agent hooks. This is a bug.`\n\nWhen configuring an agent hook to run before Bash commands (specifically to check documentation before `git push`), the hook is matched correctly but fails to execute because it doesn't receive the required messages/context.\n\n### What Should Happen?\n\nAgent hooks configured in `PreToolUse` should receive the conversation context and execute successfully, allowing the agent to analyze the command and return `{ok: true}` or `{ok: false, reason: \"...\"}`.\n\n### Error Messages/Logs\n\n```shell\n2026-02-02T20:00:39.160Z [DEBUG] Getting matching hook commands for PreToolUse with query: Bash\n2026-02-02T20:00:39.160Z [DEBUG] Found 1 hook matchers in settings\n2026-02-02T20:00:39.160Z [DEBUG] Matched 1 unique hooks for query \"Bash\" (1 before deduplication)\n2026-02-02T20:00:39.161Z [DEBUG] Hook PreToolUse:Bash (PreToolUse) error:\nFailed to run: Messages are required for agent hooks. This is a bug.\n```\n\n### Steps to Reproduce\n\n1. Create .claude/settings.json with an agent hook:\n\n```\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Bash\",\n        \"hooks\": [\n          {\n            \"type\": \"agent\",\n            \"prompt\": \"Check if this is a git push command. If not, return {\\\"ok\\\": true}. If it is, verify documentation is up to date.\",\n            \"timeout\": 90\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n2. Run any Bash command through Claude Code (e.g., `git push origin master`)\n3. Observe the hook error in debug logs\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.29\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nThe hook matcher works correctly (logs show it matched 1 hook for \"Bash\"), but the agent execution fails because messages aren't being passed to the agent context. Command-type hooks may work as a workaround, but agent-type hooks appear fundamentally broken for PreToolUse.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-02T23:19:53Z",
+  "updated_at": "2026-05-03T14:32:56Z",
+  "closed_at": "2026-04-23T02:56:09Z",
+  "reactions_total": 17,
+  "comments_count": 8,
+  "author": "kthrams",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "dpowley",
+      "author_association": "NONE",
+      "body": "We are running into the same issue, but on `PostToolUse`. \n\nVersion: 2.1.37, macOS, Anthropic API\n\nError: `Failed to run: Messages are required for agent hooks. This is a bug.`\n",
+      "created_at": "2026-02-08T01:18:33Z"
+    },
+    {
+      "author": "DeanFromLondon",
+      "author_association": "NONE",
+      "body": "Also hitting this with `PermissionRequest` hooks using `type: \"agent\"`.\n\n**Use case:** I have an Opus-based \"Permissions Gatekeeper\" agent configured to evaluate Bash commands for safety — classifying them as SAFE (auto-approve) or RISKY (auto-block) before execution. This would allow running in `acceptEdits` mode while still catching destructive commands like `rm -rf`, `git reset --hard`, `git push --force` to main, `DROP TABLE`, etc.\n\n**Configuration** (in `~/.claude/settings.json`):\n\n```json\n",
+      "created_at": "2026-02-10T14:37:09Z"
+    },
+    {
+      "author": "DeanFromLondon",
+      "author_association": "NONE",
+      "body": "## Root Cause Identified: Settings serialization drops `prompt` field\n\nAfter further investigation with backup history analysis, I've identified the **root cause** of this bug:\n\n**Claude Code silently drops the `prompt` field from `type: \"agent\"` hooks when re-serializing `settings.json`.**\n\n### Reproduction Steps\n\n1. Add a `PermissionRequest` hook with `type: \"agent\"` and a `prompt` field to `~/.claude/settings.json`\n2. Run Claude Code and approve any new Bash command (which adds it to `permiss",
+      "created_at": "2026-02-23T14:53:30Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 2174,
+  "title": "\"@-file Search Autocomplete Regression: Inconsistent Path Completion\"",
+  "body": "**Bug Description**\nthere's been a bad regression in terms of using @ for adding files. the search is nowhere near as good as it was a week ago, and when i hit tab, it only sometimes fills in the entire path. other times, it will only add one part of a long path, which is infuriating because then i need to add things segment by segment.\n\n**Environment Info**\n- Platform: darwin\n- Terminal: iTerm.app\n- Version: 1.0.24\n- Feedback ID: 2c433a7b-ce80-4893-a0c4-6286db741ef8\n\n**Errors**\n```json\n[{\"error\":\"Error: Command failed: security find-generic-password -a $USER -w -s \\\"Claude Code\\\"\\nsecurity: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.\\n\\n    at genericNodeError (node:internal/errors:983:15)\\n    at wrappedFn (node:internal/errors:537:14)\\n    at checkExecSyncError (node:child_process:882:11)\\n    at execSync (node:child_process:954:15)\\n    at HZ (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:659:3921)\\n    at file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:582:8863\\n    at Q (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:526:17199)\\n    at tJ (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:582:8009)\\n    at HS (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:582:7090)\\n    at T6 (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:582:11202)\",\"timestamp\":\"2025-06-14T19:48:39.292Z\"},{\"error\":\"Error: Language not supported while highlighting code, falling back to markdown: \\n    at pD (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:1493:1173)\\n    at file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:1493:907\\n    at Array.map (<anonymous>)\\n    at SK (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:1493:898)\\n    at c$2 (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:1938:9109)\\n    at LE (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:142:19798)\\n    at jT (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:144:42555)\\n    at ST (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:144:38104)\\n    at Kq (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:144:38032)\\n    at pE (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:144:37886)\",\"timestamp\":\"2025-06-14T19:56:17.984Z\"},{\"error\":\"Error: Language not supported while highlighting code, falling back to markdown: \\n    at pD (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:1493:1173)\\n    at file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:1493:907\\n    at Array.map (<anonymous>)\\n    at SK (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:1493:898)\\n    at c$2 (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:1938:9109)\\n    at LE (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:142:19798)\\n    at jT (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:144:42555)\\n    at ST (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:144:38104)\\n    at Kq (file:///Users/willriley/.nvm/versions/node/v22.14.0/lib/node_modules/@anthropic-ai/claude-code/cli.js:144:38032)\\n    at pE (file:///Users/w",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-16T22:58:28Z",
+  "updated_at": "2025-08-11T14:09:04Z",
+  "closed_at": "2025-06-20T17:22:20Z",
+  "reactions_total": 11,
+  "comments_count": 10,
+  "author": "willriley",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "igorkofman",
+      "author_association": "COLLABORATOR",
+      "body": "Yep!",
+      "created_at": "2025-06-20T17:22:20Z"
+    },
+    {
+      "author": "serpent213",
+      "author_association": "NONE",
+      "body": "Yes, very broken with 1.0.22 and still 1.0.25. Finding files by typing `@{filename}` does not work anymore, and it apparently pulls in unrelated MCP data.\n\n```\n╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮\n│ > @S                                                                                                                   │\n╰─────────────────────────────────────────────────────────────────────────────────────────────",
+      "created_at": "2025-06-17T10:01:23Z"
+    },
+    {
+      "author": "speza",
+      "author_association": "NONE",
+      "body": "This is very broken for me too (version `1.0.25`). The file search is practically unusable.\nThat is with the `@` and also just when tabbing for files. ",
+      "created_at": "2025-06-17T11:55:53Z"
+    }
+  ]
+}

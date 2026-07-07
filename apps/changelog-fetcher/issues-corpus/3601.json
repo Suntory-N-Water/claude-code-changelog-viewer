@@ -1,0 +1,35 @@
+{
+  "number": 3601,
+  "title": "[BUG] shell-snapshot is gone",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: 1.0.53\n- Operating System: ArchLinux\n- Terminal: Gnome Terminal\n\n## Bug Description\nFor the first time I started getting this error for every single Bash tool claude is trying to run:\n```\n● Now let me start the server and test the improved design:\n\n● Bash(source venv/bin/activate && python run.py &)\n  ⎿  Error: zsh:source:1: no such file or directory: \n     /home/pmatos/.claude/shell-snapshots/snapshot-zsh-415f5359.sh\n\n● Bash(source venv/bin/activate && python run.py &)\n  ⎿  Error: zsh:source:1: no such file or directory: \n     /home/pmatos/.claude/shell-snapshots/snapshot-zsh-415f5359.sh\n\n● Bash(source venv/bin/activate && python run.py &)\n  ⎿  Error: zsh:source:1: no such file or directory: \n     /home/pmatos/.claude/shell-snapshots/snapshot-zsh-415f5359.sh\n\n● Let me try a different approach:\n\n● Bash(source _venv/bin/activate && python run.py &)\n  ⎿  Error: zsh:source:1: no such file or directory: \n     /home/pmatos/.claude/shell-snapshots/snapshot-zsh-415f5359.sh\n\n● Let me try a different approach without the problematic shell snapshot:\n\n● Bash(_venv/bin/python run.py &)\n  ⎿  Error: zsh:source:1: no such file or directory: \n     /home/pmatos/.claude/shell-snapshots/snapshot-zsh-415f5359.sh\n\n● Bash(_venv/bin/python run.py &)\n  ⎿  Error: zsh:source:1: no such file or directory: \n     /home/pmatos/.claude/shell-snapshots/snapshot-zsh-415f5359.sh\n\n● Let me try a simpler approach:\n\n● Bash(_venv/bin/python run.py &)\n  ⎿  No (tell Claude what to do differently)\n```\n\nI have another terminal running `/init` on another project, but unsure it's related. I have certainly ran multiple claude's simultaneously without any problems.\n",
+  "labels": ["bug", "duplicate", "has repro", "platform:linux", "area:tools"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-16T07:25:59Z",
+  "updated_at": "2025-07-29T16:12:42Z",
+  "closed_at": "2025-07-17T22:27:59Z",
+  "reactions_total": 5,
+  "comments_count": 15,
+  "author": "pmatos",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "Hi everyone, I'm really sorry for this trouble. It seems we found the limit of our lockfile implementation 😅\n\nWe switched to an in-memory implementation of the snapshot. If you need to see it for debugging purposes, `claude` will write to a file when you run with `--debug`\n\nPlease let us know if you have any more trouble!",
+      "created_at": "2025-07-16T23:58:10Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "Oh sorry yes, I forgot to update this issue. We published 1.0.54 yesterday but it caused some problems for folks who have big shell environments. We have a fix for that which should go out with 1.0.55 today. I'll try to promote the new build early today so folks get this fix. Sorry again for the trouble.",
+      "created_at": "2025-07-17T14:40:10Z"
+    },
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "That will break in-progress sessions.",
+      "created_at": "2025-07-17T17:49:11Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 53872,
+  "title": "[BUG] Opus 4.7 [1M] context capped at 500K on Max x20 — server-side enforcement persists across fresh install (org_level_disabled stale flag)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nOn my Max x20 plan, Opus 4.7 [1M] context window is capped at exactly\n500K tokens instead of the documented 1M, while Sonnet 4.6 (1M) and\nHaiku 4.5 (200K) are correctly applied on the same machine and same\nlogin. The 500K is not a documented tier for Max plans.\n\nThe cap persists across all of the following remediation attempts:\n- `/extra-usage` activation (no effect; this command targets billing\n  overflow, not context cap restoration)\n- `/logout` → `/login` (no effect)\n- Manual deletion of `cachedExtraUsageDisabledReason` line in\n  `~/.claude.json` (server immediately re-writes the line on next\n  launch — matches Issue #47019 pattern)\n- **Fresh install on a separate PC with a new login** (same 500K cap\n  applied, conclusively confirming the issue is bound to my account\n  at the server side, not client-side cache)\n\n`~/.claude.json` shows `cachedExtraUsageDisabledReason: \"org_level_disabled\"`,\nwhich is incorrect — my Max x20 subscription is verified active at\nclaude.ai/settings/billing (next renewal 2026-05-08).\n\nAnthropic Help Center chatbot (Fin AI Agent) confirmed this is an\nentitlement sync bug requiring backend reset, but cannot perform the\naction and only refers ban appeals which do not apply to my case.\n\n### What Should Happen?\n\nOpus 4.7 [1M] should provide the full 1M context window as included\nin the Max x20 plan per the 1M context GA announcement:\nhttps://claude.com/blog/1m-context-ga\n\nExpected `/context` output for Opus 4.7 [1M]: `xxx / 1m tokens`\nActual: `xxx / 500k tokens`\n\n### Error Messages/Logs\n\n```shell\n/context output (Opus 4.7 [1M]):\n  230.7k / 500k tokens (46%)  ← should be 230.7k / 1m\n\n/context output (Sonnet 4.6, same machine, same session):\n  102.2k / 1m tokens  ← correct (1M applied)\n\n/context output (Haiku 4.5):\n  102.2k / 200k tokens  ← correct (200K applied)\n\n/usage output (current week):\n  Current week (all models):  50% used  ← no quota exhaustion\n  Current session:            55% used  ← within 5h window\n  Resets Apr 30, 3pm KST\n\n~/.claude.json flags found:\n  cachedExtraUsageDisabledReason: \"org_level_disabled\"\n  opusProMigrationComplete: true\n  sonnet1m45MigrationComplete: true\n  unpinOpus47LaunchEffort: true\n  migrationVersion: 12\n  lastReleaseNotesSeen: 2.1.119\n\n~/.claude/backups/.claude.json.backup.* (5 files) contain:\n  tengu_amber_redwood2: \"500000\"\n(now reset to empty string in current ~/.claude.json body — suggests\n prior Statsig cohort variant push, matches `tengu_amber_*` naming\n convention; see Issue #33580 for `tengu_amber_quartz` precedent)\n```\n\n### Steps to Reproduce\n\n1. Sign in with a Max x20 plan account (verified active at\n   claude.ai/settings/billing)\n2. Run `claude` in the terminal\n3. Run `/model claude-opus-4-7[1m]` to select Opus 4.7 [1M]\n4. Run `/context` — cap shown as 500k instead of 1m\n5. Switch to Sonnet 4.6 with `/model claude-sonnet-4-6`\n6. Run `/context` — correctly shows 1m\n7. Switch to Haiku 4.5\n8. Run `/context` — correctly shows 200k\n\nReproducibility: 100% on this account.\nAlso reproduced on a separate Windows PC with a fresh Claude Code\ninstall and a new login session — same 500K cap, confirming\nserver-side account-bound enforcement.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nSame version (2.1.119) was working with 1M context until 2026-04-26 ~22:00 KST. Issue is server-side, not version-related.\n\n### Claude Code Version\n\n2.1.119\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n**Account**: Max x20 ($200/month), verified active at https://claude.ai/settings/billing\n(next renewal 2026-05-08).\n\n**Duration**: 36+ hours since 2026-04-26 late-night KST.\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:auth",
+    "area:model",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-27T10:41:15Z",
+  "updated_at": "2026-06-08T11:42:59Z",
+  "closed_at": "2026-06-08T11:42:59Z",
+  "reactions_total": 7,
+  "comments_count": 14,
+  "author": "lachisis02",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "hey 👋 please use the `/autocompact` command to configure the larger context window in these cases (there should be a notification on compaction about this new command when it happens)\n\n",
+      "created_at": "2026-04-28T17:20:07Z"
+    },
+    {
+      "author": "arrev-dev",
+      "author_association": "NONE",
+      "body": "+1 having same issue",
+      "created_at": "2026-04-27T18:40:37Z"
+    },
+    {
+      "author": "Hobbit233",
+      "author_association": "NONE",
+      "body": " +1 — reproducing the exact same bug.\n\n  **Environment**\n  - Claude Code: 2.1.119\n  - OS: Linux (WSL2)\n  - Plan: Max\n\n  **Symptom**\n  `/context` for `claude-opus-4-7[1m]` shows `xxx / 500k tokens` instead of the documented 1M.\n\n  **Same flags present in `~/.claude.json`:**\n\n  ```json\n  \"cachedGrowthBookFeatures\": {\n    ...\n    \"tengu_amber_redwood2\": \"500000\",\n    ...\n  },\n  \"cachedExtraUsageDisabledReason\": \"org_level_disabled\",\n  \"opusProMigrationComplete\": true,\n  \"unpinOpus47LaunchEffort\": t",
+      "created_at": "2026-04-27T22:07:02Z"
+    }
+  ]
+}

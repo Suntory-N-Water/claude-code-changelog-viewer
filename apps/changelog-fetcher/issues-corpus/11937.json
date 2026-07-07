@@ -1,0 +1,35 @@
+{
+  "number": 11937,
+  "title": "[BUG] [BUG] Claude not respecting Azure AI foundry environment variables",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter setting the environment variables for usage of AzureAI Foundry Claude model deployments as described in claude docs, claude continues to ask for user to login to an Anthropic account.\n\nSetting the following environment variables:\n\nexport ANTHROPIC_FOUNDRY_API_KEY=\"my-key\"\nexport CLAUDE_CODE_USE_FOUNDRY=1\nexport ANTHROPIC_FOUNDRY_BASE_URL=\"https://my-resource.services.ai.azure.com\"\nexport ANTHROPIC_DEFAULT_SONNET_MODEL=\"claude-sonnet-4-5\"\nexport ANTHROPIC_DEFAULT_HAIKU_MODEL=\"claude-haiku-4-5\"\nexport ANTHROPIC_DEFAULT_OPUS_MODEL=\"claude-opus-4-1\"\n\ncurl commands to the same model endpoints are working successfully \n\n### What Should Happen?\n\n\n\nClaude should launch and use the ai foundry model endpoints\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nDeploy claude modes in azure\nSet environment variables\nLaunch claude\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.42\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:auth", "area:api"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-11-19T12:20:29Z",
+  "updated_at": "2025-12-04T14:08:26Z",
+  "closed_at": "2025-11-21T23:16:11Z",
+  "reactions_total": 1,
+  "comments_count": 18,
+  "author": "mduddyaiprojects-coder",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "FYI support for Microsoft Foundry was added in Claude Code version 2.0.45 (see https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#2045). Once you set the appropriate env vars, you should see `claude /status` showing the appropriate API Provider.",
+      "created_at": "2025-11-21T23:16:11Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "@sheldonhull `ANTHROPIC_LOG=debug claude --debug` will enable request and debug logging - these logs go to a file whose path Claude Code will output on start. These will confirm if requests are going to the proper Foundry deployment with correct auth.\n\n@benyrfg please check that you're on Claude Code >= 2.0.45, the `/status` command shows the settings source (and no warnings about invalid settings files), and the env vars in settings.json are set like this:\n```\n  \"env\": {\n    \"CLAUDE_CODE_USE_FO",
+      "created_at": "2025-11-25T23:02:03Z"
+    },
+    {
+      "author": "hackyon-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "Can you try this? \n1. Open up \"Preferences: Open User Settings\" in VSCode command palette\n2. Search for \"claudeCode\"\n3. Toggle on \"Disable Login Prompt\"\n4. Restart VSCode and see if it works\n\nAlso, please make sure you're on the latest version of the VSCode extension (update it, and then restart VSCode). It should be v2.0.53 or higher",
+      "created_at": "2025-11-26T14:40:11Z"
+    }
+  ]
+}

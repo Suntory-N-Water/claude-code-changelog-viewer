@@ -1,0 +1,35 @@
+{
+  "number": 10223,
+  "title": "[BUG] Inconsistent Network Behavior and Unclear UX in Default Cloud Environment",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n\nThe \"Default Cloud Environment\" with \"Trusted network access\" exhibits critical inconsistencies and a confusing user experience that prevents it from being a functional, ready-to-use environment for common tasks like web scraping.\n\n1.  **Inconsistent Network Blocking:** There is a fundamental inconsistency in how network restrictions are applied. When attempting to access a non-allowlisted domain (`jenni.ai`), a `curl` command from the shell resolves the host and receives an `HTTP/2 403` response. However, a Python script using `aiohttp` (as part of the `crawl4ai` tool) fails at a much lower level with a DNS resolution error (`Temporary failure in name resolution`). This inconsistent behavior makes debugging the environment's limitations extremely difficult.\n\n2.  **Misleading User Interface:** The \"Trusted network access\" setting (see screenshot) is misleading. The term \"Trusted\" implies a permissive state, when in fact it enables a highly restrictive allowlist that blocks access to most public domains. This creates a significant gap between user expectation and reality, leading users to believe the environment is broken when it is, by design, simply restricted. The UI does not provide any context about what this setting actually does or link to the list of allowed domains.\n\n3.  **Missing Core Dependencies for Fallback Mechanisms:** The environment's \"universal image\" is missing key dependencies required for its own fallback logic. The `crawl4ai` tool correctly tried to fall back from the missing Docker backend to the `native` (Playwright) backend, but this also failed because Playwright and its browser dependencies are not pre-installed. The subsequent attempt to install them failed due to the network restrictions mentioned above, creating a catch-22.\n\n### What Should Happen?\n\n\nThe cloud environment should be consistent, transparent, and ready for common development tasks.\n\n1.  **Consistent Network Failure:** All tools and processes should fail consistently when accessing a blocked domain. If a domain is not on the allowlist, all outbound connection attempts to it—whether from `curl`, Python, Node.js, or any other tool—should fail at the same level (e.g., DNS resolution failure or a clear proxy rejection), not behave differently depending on the tool.\n\n2.  **Clear UI and User Guidance:** The \"Network access\" setting in the UI should use clearer language.\n    *   Rename \"Trusted network access\" to something more descriptive like **\"Limited (Allowlisted Domains Only)\"**.\n    *   The UI should include a tooltip or link that directs users to the documentation listing the allowed domains.\n\n3.  **Functional Fallbacks:** If a \"native\" backend like Playwright is a primary fallback for the unavailable Docker backend, its dependencies should be pre-installed on the \"universal image.\" A user should not be required to install core components of a fallback system, especially in a network-restricted environment where such installation is doomed to fail.\n\n4.  **Automated Dependency Installation:** For a smoother experience, the environment should attempt to auto-detect and run project dependency installations (like `make install` or `pip install`) upon startup.\n\n### Error Messages/Logs\n\n```shell\n*   **Python DNS Failure:**\n    \n    Error fetching https://jenni.ai directly: Cannot connect to host jenni.ai:443 ssl:default [Temporary failure in name resolution]\n    \n*   **Playwright Install Failure (due to network block):**\n    \n    Failed to install browsers\n    Error: Download failure, code=1\n    \n*   **Docker Not Found:**\n    \n    make: docker: No such file or directory\n    make: *** [Makefile:48: docker-start] Error 127\n```\n\n### Steps to Reproduce\n\n\n1.  On a mobile device, start a new Clau",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-24T05:34:55Z",
+  "updated_at": "2026-06-23T23:20:36Z",
+  "closed_at": null,
+  "reactions_total": 2,
+  "comments_count": 11,
+  "author": "coygeek",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/1346\n2. https://github.com/anthropics/claude-code/issues/10221\n3. https://github.com/anthropics/claude-code/issues/6388\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-24T05:39:05Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "\n### [[BUG]] Cloud Environment Has Inconsistent and Broken Network/DNS Resolution for Python and Node.js\n\n### What's Wrong?\n\nThe Claude Code on the web cloud environment exhibits critical network inconsistencies that prevent the successful execution of common development tasks, specifically those involving Python or Node.js-based tools that need to download dependencies or access the web.\n\nEven when the environment is set to \"Full internet access,\" the underlying networking is broken for specifi",
+      "created_at": "2025-10-24T19:07:34Z"
+    },
+    {
+      "author": "jsclayton",
+      "author_association": "NONE",
+      "body": "Similar issue with Go dependencies:\n\n```\nBash\ngo version\nExit code 1\ngo: downloading go1.25.3 (linux/amd64)\ngo: download go1.25.3: golang.org/toolchain@v0.0.1-go1.25.3.linux-amd64: Get \"https://storage.googleapis.com/proxy-golang-org-prod/d6315236f37e3b3a-golang.org:toolchain-v0.0.1-go1.25.3.linux-amd64.zip?Expires=1763068817&GoogleAccessId=gcs-urlsigner-prod%40golang-modproxy.iam.gserviceaccount.com&Signature=AF1UNJdfIfgVqC%2Fv8CWwS%2BwOt1GixyL6sTf1gxjWOONkY8KqA7a3uEaTmzAmoQd%2F%2BzEYeP1GzrQehU",
+      "created_at": "2025-11-13T00:08:09Z"
+    }
+  ]
+}

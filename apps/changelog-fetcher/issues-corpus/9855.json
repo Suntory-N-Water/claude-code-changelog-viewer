@@ -1,0 +1,42 @@
+{
+  "number": 9855,
+  "title": "[BUG] Claude code crashes",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nevery time I use refer to a directory Claude code crashes.\n\n```\n❯ claude --version\n2.0.22 (Claude Code)\n❯ claude\n\n ▐▛███▜▌   Claude Code v2.0.22\n▝▜█████▛▘  us.anthropic.claude-sonnet-4-5-20250929-v1:0 · API Usage Billing\n  ▘▘ ▝▝    /work/<redacted path>/demonstrate-full-workflow\n\n> there is a uv environment @<redacted path> i want to create section for test-and-eval for the packages that are only installed in a test environment. \n  ⎿  Listed directory <redacted path>\n\n✻ Inferring… (esc to interrupt)\n\n─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n>  \n─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\n  ? for shortcuts                                                                                                                              Thinking off (tab to toggle)\n3320 | ${Object.entries(G).map(([Y,W])=>`# ${Y}\n3321 | ${W}`).join(`\n3322 | `)}\n3323 | \n3324 |       IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.\n3325 | `,isMeta:!0}),...Z]}async function iUY(Z,G){if(tS())return;let[{tools:Y},W,X,J]=await Promise.all([Ok0(Z),sw(G),f7(),x7()]),B=J.gitStatus?.length??0,Q=X.claudeMd?.length??0,V=B+Q,K=I9(),H=K9();setTimeout(()=>H.abort(),1000);let z=await Hq0(o1(),H.signal,K.ignorePatterns??[]),I=0,$=0,F=0,w=0,U=0,N=W.filter((E)=>!E.isMcp);I=Y.length,w=N.length;let O=new Set;for(let E of Y){let T=E.name.split(\"__\");if(T.length>=3&&T[1])O.add(T[1])}$=O.size;try{if(Y.length>0){let{mcpToolTokens:E}=await TQ0(Y,async()=>G,null);F=E}if(N.length>0)U=await pUY(W,async()=>G,null)}catch{}G0(\"tengu_context_size\",{git_status_size:B,claude_md_size:Q,total_context_size:V,project_file_count_rounded:z,mcp_tools_count:I,mcp_servers_count:$,mcp_tools_tokens:F,non_mcp_tools_count:w,non_mcp_tools_tokens:U})}function nUY(Z,G){switch(Z.name){case pY.name:{let Y=pY.inputSchema.parse(G),{command:W,timeout:X,description:J,run_in_background:B}=Y,Q=W.replace(`cd ${o1()} && `,\"\");if(Q=Q.replace(/\\\\\\\\;/g,\"\\\\;\"),/^echo\\s+[\"']?[^|&;><]*[\"']?$/i.test(Q.trim() | ... truncated \n\nerror: No assistant message found\n      at gb (/$bunfs/root/claude:3325:12889)\n      at async <anonymous> (/$bunfs/root/claude:3325:21638)\n      at async Om1 (/$bunfs/root/claude:3325:2017)\n      at async SV (/$bunfs/root/claude:3325:21495)\n      at async _tG (/$bunfs/root/claude:3332:208)\n      at processTicksAndRejections (7:39)\n\nBun v1.2.23 (Linux x64 baseline)\n\n```\n\n### What Should Happen?\n\nit should not crash.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nevery time I use refer to a directory Claude code crashes.\n\n```\n❯ claude --version\n2.0.22 (Claude Code)\n❯ claude\n\n ▐▛███▜▌   Claude Code v2.0.22\n▝▜█████▛▘  ",
+  "labels": [
+    "bug",
+    "has repro",
+    "api:bedrock",
+    "platform:linux",
+    "area:core",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-18T14:43:41Z",
+  "updated_at": "2026-01-20T14:15:58Z",
+  "closed_at": "2026-01-12T10:11:45Z",
+  "reactions_total": 17,
+  "comments_count": 13,
+  "author": "udai-kiran",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "longas",
+      "author_association": "NONE",
+      "body": "I'm writing to bring more visibility to this issue. I'm also getting `error: No assistant message found` when using Bedrock and v2.0.22, and in my case, the crash only occurs when using `\"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"eu.anthropic.claude-haiku-4-5-20251001-v1:0\"` and asking CC to examine the contents of a directory. I experience the same crash when explicitly using the new Explore agent, which uses Haiku. With Haiku 3.5, it doesn't crash, but when the Explore agent is used, I see `(0 tool use",
+      "created_at": "2025-10-18T17:23:23Z"
+    },
+    {
+      "author": "alexnederlof",
+      "author_association": "NONE",
+      "body": "I had this too earlier today. Removing and re-installing worked. It had something to do with a temp directory not being there",
+      "created_at": "2025-10-18T18:05:53Z"
+    },
+    {
+      "author": "alexnederlof",
+      "author_association": "NONE",
+      "body": "Ok, I'm having the same issue again. Even after the re-install. I can't find out what's causing it.\n\n\n```\nError: No assistant message found\n    at Nm (file:///Users/anederlof/.bun/install/global/node_modules/@anthropic-ai/claude-code/cli.js:3310:12886)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async file:///Users/anederlof/.bun/install/global/node_modules/@anthropic-ai/claude-code/cli.js:3310:21634\n    at async va0 (file:///Users/anederlof/.bun/ins",
+      "created_at": "2025-10-18T19:25:22Z"
+    }
+  ]
+}

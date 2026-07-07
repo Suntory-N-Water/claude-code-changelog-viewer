@@ -1,0 +1,16 @@
+{
+  "number": 39290,
+  "title": "[BUG] Caps Lock (Korean/English toggle) inserts raw escape sequence [57358u on macOS",
+  "body": "## Description\n\nPressing the Caps Lock key (used as Korean/English input source toggle on macOS) inserts the literal text `[57358u` into the Claude Code input field instead of being silently handled.\n\n## Environment\n\n- **OS**: macOS Sequoia (latest)\n- **Shell**: zsh (updated recently)\n- **Claude Code**: latest version (CLI)\n- **Keyboard**: macOS Korean input with Caps Lock as input source toggle\n\n## Steps to Reproduce\n\n1. Open Claude Code CLI on macOS\n2. Start typing in the input field\n3. Press Caps Lock to toggle between Korean/English input\n4. Observe `[57358u` being inserted as literal text\n\n## Expected Behavior\n\nCaps Lock key press should be silently consumed (it's used for input source switching on macOS Korean keyboards), not inserted as text.\n\n## Actual Behavior\n\nThe raw Kitty keyboard protocol escape sequence `[57358u` (keycode 57358 = Caps Lock) is inserted as literal text into the input field.\n\n## Additional Context\n\n- This is a **Kitty keyboard protocol** issue. The keycode 57358 corresponds to Caps Lock in the Kitty protocol spec.\n- The same issue was reported in VS Code: https://github.com/microsoft/vscode/issues/304679\n- Adding `printf '\\e[>0u'` to `.zshrc` does NOT fix this because Claude Code uses its own terminal UI (ink/yoga), not the shell's terminal directly.\n- `Ctrl+C` also sometimes becomes unresponsive, possibly related to the same Kitty protocol handling issue.\n- This started happening after a recent zsh/macOS update, suggesting a change in how macOS sends Caps Lock events to terminal applications.\n\n## Workaround\n\nUse `Ctrl+Space` for Korean/English input switching instead of Caps Lock while in Claude Code.",
+  "labels": ["bug", "duplicate", "platform:macos", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-26T10:09:23Z",
+  "updated_at": "2026-04-25T14:35:26Z",
+  "closed_at": "2026-04-18T04:17:34Z",
+  "reactions_total": 1,
+  "comments_count": 3,
+  "author": "yosyus-Yo",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

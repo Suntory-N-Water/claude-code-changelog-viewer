@@ -1,0 +1,43 @@
+{
+  "number": 19666,
+  "title": "[BUG] Claude Code crashes with Bun panic in Visual Studio Code on Windows 11",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Environment**\nOS: Windows 11\nVS Code Extension: Claude Code v2.1.11\nBundled Bun version: v1.3.5 (1e86cebd)\nCPU: x64 (baseline) with sse42, avx, avx2\n\n**Problem**\nClaude's code constantly crashes when opening a certain project, but even on projects that work, the error appears. The extension works fine on other projects. The crash occurs during initialization with a Bun panic error.\n\n**Observations**\n1. The --model \"d\" argument appears truncated/corrupted (should be full model name or \"default\")\n2. Memory usage is very high (3.54GB RSS) before crash\n3. Crash happens consistently on this project but not on others\n4. Crash report URL: https://bun.report/1.3.5/e_11e86cebGugogCw+kiM65ioJgqpmMCYKERNEL32.DLLut0LCSntdll.dll4zijBA0eNoFwcENACAMAsBVWM1ENHyosXzc3js53LyYxYYrWApkTHbkEZWRd/gBNAAPKQ\n\n**What I tried (none of these helped)**\n\n1. Installed global Bun v1.3.6 (extension still uses bundled v1.3.5)\n2. Deleted .claude folder in project directory\n3. Deleted tmpclaude-* temporary folders\n4. Reinstalled the extension\n5. Restarted VS Code\n\n### What Should Happen?\n\n**Expected behavior**\nClaude Code should start normally without crashing.\n\n**Additional context**\nThe project is a medium-sized backend application with multiple subfolders. Other projects open without issues on the same machine with the same extension version.\n\n### Error Messages/Logs\n\n```shell\nArgs: \"c:\\Users\\ACER\\.vscode\\extensions\\anthropic.claude-code-2.1.11-win32-x64\\resources\\native-binary\\claude.exe\" \"--output-format\" \"stream-json\" \"--verbose\" \"--input-format\" \"stream-json\" \"--max-thinking-tokens\" \"0\" \"--model\" \"d\"...\n\nElapsed: 4531ms | User: 2250ms | Sys: 2265ms\nRSS: 3.54GB | Peak: 3.54GB | Commit: 3.56GB | Faults: 873251 | Machine: 34.19GB\n\npanic(thread 18532): integer does not fit in destination type\noh no: Bun has crashed. This indicates a bug in Bun, not your code.\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code extension v2.1.11 on VS Code (Windows 11)\n2. Open a project with multiple subfolders and files (in my case: `c:\\Project_programing\\Work\\Yieldy\\nytroseo\\back`)\n3. Open Claude Code panel in VS Code\n4. Extension attempts to initialize and index the project\n5. Bun crashes with panic error before Claude Code becomes usable\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.11\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:windows",
+    "area:packaging",
+    "area:ide",
+    "perf:memory"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-21T07:12:04Z",
+  "updated_at": "2026-06-14T14:18:03Z",
+  "closed_at": null,
+  "reactions_total": 19,
+  "comments_count": 19,
+  "author": "DenisKrav",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19439\n2. https://github.com/anthropics/claude-code/issues/19453\n3. https://github.com/anthropics/claude-code/issues/18567\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-21T07:15:40Z"
+    },
+    {
+      "author": "Zamaroht",
+      "author_association": "NONE",
+      "body": "I started getting this too, I can't use claude code\n\npanic(thread 1441708): integer does not fit in destination type\noh no: Bun has crashed. This indicates a bug in Bun, not your code.",
+      "created_at": "2026-01-21T19:34:21Z"
+    },
+    {
+      "author": "IsmailHassani",
+      "author_association": "NONE",
+      "body": "Same here. Every command will trigger this issue.\nThis is the crash report:  https://bun.report/1.3.10/W_11423d3cmgkgEuhogCwmzrfg36uiBw4sC4k8gmCg916lCg6xjkBgsjufCYKERNEL32.DLLg0jCCSntdll.dlloqi1BA0eNrLzEvOLypKTS5RSMzJTM/LTc0rAQBMcwep",
+      "created_at": "2026-02-19T21:13:17Z"
+    }
+  ]
+}

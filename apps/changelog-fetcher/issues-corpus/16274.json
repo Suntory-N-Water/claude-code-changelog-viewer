@@ -1,0 +1,35 @@
+{
+  "number": 16274,
+  "title": "Marketplace plugin sync triggers YubiKey presence, undermining hardware key security model",
+  "body": "## Summary\n\nClaude Code's periodic marketplace plugin sync uses SSH to clone/fetch from `git@github.com:anthropics/claude-plugins-official.git`. For users with FIDO2/hardware security keys (YubiKey) configured for GitHub SSH authentication, this triggers **unintended touch prompts every few minutes**, which:\n\n1. **Undermines the security model** - Users configure YubiKey touch requirements specifically to authorize sensitive operations (like commit signing). Frequent \"background noise\" prompts train users to touch without thinking, defeating the purpose.\n\n2. **Disrupts workflow** - Unexpected YubiKey prompts interrupt work and cause confusion about what operation is being authorized.\n\n3. **Creates authorization ambiguity** - When a user touches their YubiKey, they should know exactly what they're authorizing. Background syncs make this impossible.\n\n## Environment\n\n- **OS:** macOS 14.x (Darwin 25.1.0)\n- **Claude Code version:** Latest\n- **YubiKey model:** YubiKey 5 Nano (OTP+FIDO+CCID mode)\n- **SSH key type:** `sk-ssh-ed25519@openssh.com` (FIDO2 resident key)\n\n## Reproduction\n\n1. Configure GitHub SSH access with a FIDO2 security key:\n   ```\n   # ~/.ssh/config\n   Host github.com\n     IdentityFile ~/.ssh/id_ed25519_sk\n   ```\n\n2. Configure git commit signing with the same key:\n   ```\n   git config --global gpg.format ssh\n   git config --global user.signingkey ~/.ssh/id_ed25519_sk.pub\n   git config --global commit.gpgsign true\n   ```\n\n3. Run Claude Code normally\n\n4. **Observe:** YubiKey blinks and requests touch every few minutes during marketplace sync, even when no commits are being made\n\n## Evidence\n\nProcess list shows periodic SSH operations to GitHub:\n```\nssh -o BatchMode=yes ... git@github.com git-upload-pack 'anthropics/claude-plugins-official.git'\ngit ... clone --depth 1 git@github.com:anthropics/claude-plugins-official.git\n```\n\n## Suggested Solutions\n\n1. **Use HTTPS instead of SSH** for marketplace sync (preferred) - This avoids SSH key authentication entirely for read-only public repo access\n\n2. **Respect `GIT_SSH_COMMAND` or provide config option** - Allow users to specify a different SSH command/key for Claude's internal git operations\n\n3. **Add config to disable or reduce sync frequency** - `claude config set plugins.marketplace.sync false` or similar\n\n4. **Batch/coalesce syncs** - Instead of syncing every few minutes, sync once at startup or on explicit user request\n\n## Workaround\n\nUsers can work around this by:\n- Adding a non-SK SSH key before the SK key in `~/.ssh/config`\n- Disabling marketplace plugins entirely\n\nHowever, this shouldn't be necessary - Claude Code's internal operations should not trigger user-facing security prompts.\n\n## Security Consideration\n\nThis is fundamentally a **security UX issue**. Hardware security keys are designed around the principle that touch = explicit authorization. When background processes trigger touch prompts, users either:\n- Get annoyed and disable the security feature\n- Start touching reflexively without checking what they're authorizing\n\nBoth outcomes weaken security posture.",
+  "labels": ["bug", "has repro", "platform:macos", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-04T17:10:08Z",
+  "updated_at": "2026-06-12T00:54:14Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 8,
+  "author": "arcaven",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14346\n2. https://github.com/anthropics/claude-code/issues/14485\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-04T17:17:39Z"
+    },
+    {
+      "author": "arcaven",
+      "author_association": "NONE",
+      "body": "These other reports are similar/related but do not capture the additional use case where yubikey presence is required git operation, and to avoid theft of key materials from the local workstation. \n\n",
+      "created_at": "2026-01-04T17:23:48Z"
+    },
+    {
+      "author": "theavey",
+      "author_association": "NONE",
+      "body": "FYI @arcaven, [I found a workaround](https://github.com/anthropics/claude-code/issues/14485#issuecomment-3725218624), though I'm not sure it's permanent. Completely agree this should not be necessary and should be fixed. Claude should not be using my SSH credentials without my explicit permission.",
+      "created_at": "2026-01-08T19:04:29Z"
+    }
+  ]
+}

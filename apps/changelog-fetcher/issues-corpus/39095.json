@@ -1,0 +1,22 @@
+{
+  "number": 39095,
+  "title": "[BUG] Caps Lock (IME toggle) sends raw [57358u escape sequence in VS Code integrated terminal",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using Caps Lock as an IME (Input Method Editor) toggle to switch between English and Japanese input on macOS, pressing Caps Lock inserts the raw escape sequence [57358u into the Claude Code prompt. This is a CSI u sequence (Kitty keyboard protocol) for the Caps Lock key that Claude Code does not consume/discard.\n\nThis happens every single time the user switches input methods, making Claude Code very difficult to use for　Japanese users.\n\n### What Should Happen?\n\nClaude Code should silently consume/discard the Kitty keyboard protocol event for Caps Lock (keycode 57358) without inserting any text into the input buffer.\n\n### Error Messages/Logs\n\n```shell\nNo error message. Raw text [57358u is inserted into the input field each time Caps Lock is pressed.\n```\n\n### Steps to Reproduce\n\n 1. Use macOS with Caps Lock configured as IME toggle (System Settings → Keyboard → Input Sources → \"Use Caps Lock to switch input source\")\n 2. Open VS Code integrated terminal                                                                                                                          \n 3. Launch Claude Code with claude                             \n 4. Press Caps Lock to switch between English and Japanese input                                                                                              \n 5. [57358u appears in the input prompt                                                                                                                       \n 6. Every subsequent Caps Lock press inserts another [57358u\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.84 \n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nThis primarily affects Japanese (and Chinese/Korean) users on macOS who use Caps Lock as an IME toggle — a very common configuration. The Kitty keyboard protocol reports Caps Lock as keycode 57358 (CSI 57358 u), and Claude Code's input handler does not filter this event.                                         \nWorkaround: Use the fn/Globe (🌐) key for input switching instead of Caps Lock, but this is not ideal for users with established muscle memory.  ",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:macos",
+    "area:tui",
+    "platform:vscode"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-26T02:00:53Z",
+  "updated_at": "2026-04-25T14:35:22Z",
+  "closed_at": "2026-04-18T04:17:28Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "eiei114",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,35 @@
+{
+  "number": 14866,
+  "title": "Feature Request: Configurable Plan File Storage Path & Plan Templates",
+  "body": "## Problem Statement\n\nCurrently, Claude Code stores plan files in `~/.claude/plans/` (user-level directory). This makes it difficult to:\n\n1. **Version control plans** alongside project code\n2. **Share plans with team members** via git\n3. **Reference past plans** for specific projects\n4. **Standardize plan formats** across a team\n\n## Proposed Solution\n\n### Option 1: Configurable Plan Path\nAdd a setting in `.claude/settings.json` to specify plan storage location:\n\n```json\n{\n  \"planPath\": \".claude/plans/\"\n}\n```\n\n### Option 2: Auto-detect Project Plans Directory\nAutomatically use `.claude/plans/` if it exists in the project root, falling back to `~/.claude/plans/` otherwise (similar to how `.claude/commands/` works for project-scoped commands).\n\n### Additional Feature: Plan Templates\nSupport a template file (`.claude/plan-template.md`) that Claude uses as a starting structure when creating new plans. This would help teams standardize plan documentation formats.\n\n## Use Cases\n\n- Teams wanting to track planning decisions in version control\n- Projects requiring consistent plan documentation formats\n- Developers working on multiple projects who want project-specific plan history\n- Code review workflows where plans need to be visible to reviewers\n\n## Current Workaround\n\nCurrently requires manual copying of plan files from `~/.claude/plans/` to the project directory after plan mode exits.\n\n## Consistency with Existing Features\n\nThis would be consistent with how other Claude Code features work:\n- Commands: `.claude/commands/` (project) vs `~/.claude/commands/` (user)\n- Skills: `.claude/skills/` (project-scoped)\n- Settings: `.claude/settings.json` (project) vs `~/.claude/settings.json` (user)\n\nPlans should follow the same pattern for consistency.\n\n---\n\nThank you for considering this enhancement!",
+  "labels": ["enhancement", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-20T12:40:35Z",
+  "updated_at": "2026-03-31T03:43:16Z",
+  "closed_at": null,
+  "reactions_total": 39,
+  "comments_count": 14,
+  "author": "Interstellar-code",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "SaymV",
+      "author_association": "NONE",
+      "body": "To add another use case:\n\nAt current API limits: it is nice to plan work in one session and execute on it in another. ",
+      "created_at": "2025-12-23T19:34:24Z"
+    },
+    {
+      "author": "CodeOfficer",
+      "author_association": "NONE",
+      "body": "This would be super useful. I’m doing my best to keep each Claude Code project atomic, but it keeps putting plan files in ~/.claude, which means they drift out of sync with the project’s instructions. I try to use a PLAN.md in the repo root, but I spend way too much time fighting Claude to keep plan items there instead of in ~/.claude.\n\nI’m also switching between multiple machines (work and personal), which makes the sync problem even worse.",
+      "created_at": "2025-12-30T15:31:55Z"
+    },
+    {
+      "author": "tsw025",
+      "author_association": "NONE",
+      "body": " Workaround for loading existing plans into new sessions:\n\n  I found a workflow that works:\n\n  1. Start a new session and enter `plan mode`\n  2. Ask Claude to read your existing plan: \"Read and use this plan: ~/.claude/plans/mighty-mapping-storm.md\"\n  3. Claude will create a new session plan based on that content\n  4. Exit plan mode and continue working\n\n  Note: This creates a duplicate file in ~/.claude/plans/ since Claude Code always generates a new random filename per session.\n\nHowever, the c",
+      "created_at": "2025-12-31T05:47:22Z"
+    }
+  ]
+}

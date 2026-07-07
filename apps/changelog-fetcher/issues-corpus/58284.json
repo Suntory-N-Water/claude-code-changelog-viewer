@@ -1,0 +1,42 @@
+{
+  "number": 58284,
+  "title": "Agent View hard-disabled on AWS Bedrock / Vertex / Foundry backends",
+  "body": "## Summary\n\nAgent View (`claude agents`, `/background`, `/bg`, left-arrow detach) is unavailable in v2.1.139 for any user on a third-party provider backend, even when no `disableAgentView` setting is present and `CLAUDE_CODE_DISABLE_AGENT_VIEW` is unset.\n\nThe docs at https://code.claude.com/docs/en/agent-view do not mention this restriction — they state only that `disableAgentView` is the off-switch and that v2.1.139+ is required.\n\n## Reproduction\n\n1. Set `CLAUDE_CODE_USE_BEDROCK=1` (or `CLAUDE_CODE_USE_VERTEX=1`, etc.) and configure provider credentials\n2. Install Claude Code 2.1.139\n3. Run `claude agents` → returns the static built-in agent definition list, not the tabbed running/blocked/done view\n4. Inside an interactive session, `/bg` and `/background` both return `No commands match`\n\n## Root cause\n\nIn the compiled binary, the Agent View enable-check resolves to:\n\n```js\nfunction DWH(){\n  return SH(process.env.CLAUDE_CODE_DISABLE_AGENT_VIEW)\n      || vS()?.settings.disableAgentView === true\n      || yk1();\n}\n\nfunction yk1(){\n  return SH(process.env.CLAUDE_CODE_USE_BEDROCK)\n      || SH(process.env.CLAUDE_CODE_USE_VERTEX)\n      || SH(process.env.CLAUDE_CODE_USE_FOUNDRY)\n      || SH(process.env.CLAUDE_CODE_USE_ANTHROPIC_AWS)\n      || SH(process.env.CLAUDE_CODE_USE_MANTLE)\n      || A\\$() !== null;\n}\n```\n\n`yk1()` returning true forces Agent View off regardless of user/admin settings.\n\n## Asks\n\n1. Document the third-party-provider exclusion on the Agent View page so users on Bedrock/Vertex don't waste time debugging.\n2. If the gate exists because of dependencies on Anthropic-operated infra (push notification preferences endpoint, etc.), please clarify what's blocking — the daemon itself looks provider-agnostic.\n3. Either lift the gate for Bedrock/Vertex or expose an opt-in env var for users willing to live without the Anthropic-only side features.\n\n## Environment\n\n- Claude Code: 2.1.139 (macOS arm64, Darwin 24.5.0)\n- Backend: AWS Bedrock (`CLAUDE_CODE_USE_BEDROCK=1`, `eu-west-1`)\n- No `disableAgentView` set in user, project, or managed settings\n- No `CLAUDE_CODE_DISABLE_AGENT_VIEW` env var",
+  "labels": [
+    "documentation",
+    "enhancement",
+    "api:bedrock",
+    "platform:macos",
+    "area:agents",
+    "area:agent-view"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-12T08:51:14Z",
+  "updated_at": "2026-07-03T14:51:19Z",
+  "closed_at": "2026-05-13T23:30:44Z",
+  "reactions_total": 14,
+  "comments_count": 5,
+  "author": "eenglesson",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "bogini",
+      "author_association": "COLLABORATOR",
+      "body": "Thanks for reporting. This was a feature-flag delivery issue — `claude agents` was gated on a GrowthBook flag whose cache could be stale or unreachable depending on platform/network. We've removed the gate entirely; `claude agents` now opens the dashboard unconditionally (including on Bedrock/Vertex/Foundry).\n\nShips in **v2.1.141** (tomorrow).\n",
+      "created_at": "2026-05-12T20:37:14Z"
+    },
+    {
+      "author": "pengchengneo",
+      "author_association": "NONE",
+      "body": "Same issue here. I'm using a custom `ANTHROPIC_BASE_URL` (API proxy), not Bedrock/Vertex/Foundry. Agent View is silently disabled — `claude agents` only lists agent configurations, `←` key does nothing, and `/bg` works but the TUI never appears. The daemon and background sessions work fine, so the gate seems unnecessary for proxy users.\n\n**Environment:**\n- Claude Code: 2.1.139 (macOS arm64, Darwin 25.2.0)\n- Backend: Anthropic API via custom `ANTHROPIC_BASE_URL`\n- No `disableAgentView` set, no `C",
+      "created_at": "2026-05-12T09:20:28Z"
+    },
+    {
+      "author": "np2446",
+      "author_association": "NONE",
+      "body": "> Thanks for reporting. This was a feature-flag delivery issue — `claude agents` was gated on a GrowthBook flag whose cache could be stale or unreachable depending on platform/network. We've removed the gate entirely; `claude agents` now opens the dashboard unconditionally (including on Bedrock/Vertex/Foundry).\n> \n> Ships in **v2.1.141** (tomorrow).\n\nis this still getting shipped today? ",
+      "created_at": "2026-05-13T21:44:47Z"
+    }
+  ]
+}

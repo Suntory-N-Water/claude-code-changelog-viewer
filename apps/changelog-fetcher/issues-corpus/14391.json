@@ -1,0 +1,35 @@
+{
+  "number": 14391,
+  "title": "Claude in Chrome: Native messaging host not installed for Chromium/Brave browsers (Linux)",
+  "body": "## Description\n\nThe Claude in Chrome extension (v1.0.35) fails to connect with Claude Code (v2.0.72) when using Chromium-based browsers other than Google Chrome on Linux.\n\n## Environment\n\n- **OS**: Arch Linux (6.17.9-arch1-1)\n- **Claude Code**: 2.0.72\n- **Chrome Extension**: 1.0.35\n- **Affected Browsers**: Chromium, Brave (likely all non-Google Chrome Chromium-based browsers)\n\n## Problem\n\nThe native messaging host configuration file is only installed in the Google Chrome directory:\n```\n~/.config/google-chrome/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json\n```\n\nOther Chromium-based browsers look in their own directories:\n- Chromium: `~/.config/chromium/NativeMessagingHosts/`\n- Brave: `~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/`\n- Vivaldi: `~/.config/vivaldi/NativeMessagingHosts/`\n- Edge: `~/.config/microsoft-edge-dev/NativeMessagingHosts/`\n\n## Symptoms\n\n- Extension installed and enabled\n- Claude panel opens in browser\n- MCP server shows \"Successfully connected\" in debug logs\n- But `tabs_context_mcp` returns \"Browser extension is not connected\"\n\n## Workaround\n\nCopy the native messaging host config to the appropriate browser directory:\n\n```bash\n# For Chromium\ncp ~/.config/google-chrome/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json \\\n   ~/.config/chromium/NativeMessagingHosts/\n\n# For Brave\ncp ~/.config/google-chrome/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json \\\n   ~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/\n```\n\nThen restart the browser.\n\n## Suggested Fix\n\nThe installer should either:\n1. Detect installed Chromium-based browsers and configure native messaging hosts for all of them\n2. Or install to a system-wide location like `/etc/chromium/native-messaging-hosts/` (though this requires root)\n3. Or document that only Google Chrome is officially supported\n\n## Notes\n\n- The extension ID (`fcoeoabgfenejglbffodgkkbkcdhcgfn`) is the same across browsers\n- The native host executable at `~/.claude/chrome/chrome-native-host` works correctly once the config is in place",
+  "labels": ["bug", "has repro", "platform:linux", "area:ide", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-18T00:28:36Z",
+  "updated_at": "2026-03-09T14:35:10Z",
+  "closed_at": "2026-02-28T22:10:37Z",
+  "reactions_total": 13,
+  "comments_count": 8,
+  "author": "bengous",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/14370\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-18T00:33:09Z"
+    },
+    {
+      "author": "pvojnisek",
+      "author_association": "NONE",
+      "body": "## Additional Findings: Native Messaging Works, But Detection Still Fails\n\nI did extensive testing on **Brave Browser (v143.1.85.111)** with **Claude Code v2.0.74** on Linux (Pop!_OS 22.04) and found something important:\n\n### What Works ✅\nAfter copying the native messaging config:\n```bash\ncp ~/.config/google-chrome/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json \\\n   ~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/\n```\n\nThe **native messaging host successfully co",
+      "created_at": "2025-12-20T00:53:15Z"
+    },
+    {
+      "author": "pvojnisek",
+      "author_association": "NONE",
+      "body": "## 🎉 Complete Working Solution Found\\!\n\nAfter digging into the Claude Code binary, I found the root cause and a **complete working solution** for Brave browser on Linux.\n\n### Root Cause\n\nThe extension detection in Claude Code checks for the extension in a **hardcoded Chrome profile path**:\n\n```javascript\ncase \"linux\": return path.join(homedir, \".config\", \"google-chrome\");\n```\n\nIt then looks for profile directories (`Default`, `Profile *`) and checks if the extension ID exists in `Extensions/`. ",
+      "created_at": "2025-12-20T01:01:18Z"
+    }
+  ]
+}

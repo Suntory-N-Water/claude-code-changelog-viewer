@@ -1,0 +1,16 @@
+{
+  "number": 2891,
+  "title": "Hooks not executing despite following documentation",
+  "body": "# Hook Functionality Verification Report\n\n## Environment\n- Claude Code Version: 0.10.14 (from ps output)\n- OS: Ubuntu 24.04.2 LTS\n- Date: 2025-07-02\n\n## Test Methodology\n\n### 1. Hook Setup\nCreated executable hook scripts in `~/.claude/hooks/`:\n- `pre-tool` (chmod +x)\n- `post-tool` (chmod +x)\n- `pre-edit` (chmod +x)\n\nEach hook logs to `/tmp/claude_hooks_*.log` when executed.\n\n### 2. Configuration\nAdded hook configuration to `~/.claude/settings.json`:\n```json\n{\n    \"hooks\": {\n        \"PreToolUse\": [\n            {\n                \"matcher\": \"\",\n                \"hooks\": [\n                    {\n                        \"type\": \"command\",\n                        \"command\": \"~/.claude/hooks/pre-tool\"\n                    }\n                ]\n            }\n        ],\n        \"PostToolUse\": [\n            {\n                \"matcher\": \"\",\n                \"hooks\": [\n                    {\n                        \"type\": \"command\",\n                        \"command\": \"~/.claude/hooks/post-tool\"\n                    }\n                ]\n            }\n        ]\n    }\n}\n```\n\n### 3. Tests Performed\n1. Multiple Bash commands executed\n2. File creation using Write tool\n3. File editing using Edit tool\n4. Checked for log files after each operation\n\n### 4. Results\n- No log files created in `/tmp/claude_hooks_*.log`\n- Manual execution of hooks works correctly\n- Hooks do not appear to execute automatically during tool use\n\n## Observations\n- Claude Code process running with flags: `--dangerously-skip-permissions --mcp-config \"/home/graham/.claude/claude_code/.mcp.json\" --continue`\n- No hook-related processes detected during tool execution\n- Settings file is valid JSON and readable\n\n## Questions\n1. Are there additional configuration steps required to enable hooks?\n2. Is there a specific flag needed when launching Claude Code?\n3. Are hooks only available in certain versions or editions?\n\n## Reproduction Steps\n1. Create hook script: `echo '#!/bin/bash\\necho \"Hook executed\" > /tmp/hook_test.log' > ~/.claude/hooks/pre-tool && chmod +x ~/.claude/hooks/pre-tool`\n2. Configure in `~/.claude/settings.json` as shown above\n3. Execute any Bash command through Claude Code\n4. Check for `/tmp/hook_test.log` - file is not created\n\nWould appreciate clarification on whether hooks are currently functional and if there are additional setup requirements.",
+  "labels": ["bug", "has repro", "platform:linux", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-02T21:34:34Z",
+  "updated_at": "2026-01-23T14:12:13Z",
+  "closed_at": "2026-01-15T05:44:20Z",
+  "reactions_total": 2,
+  "comments_count": 11,
+  "author": "grahama1970",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

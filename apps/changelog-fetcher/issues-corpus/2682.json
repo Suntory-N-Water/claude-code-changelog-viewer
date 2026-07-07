@@ -1,0 +1,35 @@
+{
+  "number": 2682,
+  "title": "[BUG] \"MCP Tools Not Available in Conversation Interface Despite Successful Connection\"",
+  "body": "# MCP Tools Not Available in Conversation Interface Despite Successful Connection\n\n## Bug Description\nClaude Desktop successfully connects to MCP server and lists tools via `tools/list` requests, but the tools never become available in the conversation interface for actual use.\n\n## Environment\n- **Claude Desktop Version**: 0.11.3 (latest as of Dec 2024)\n- **OS**: macOS (Darwin 24.5.0)\n- **MCP Server**: Custom PHP-based portfolio management server\n- **MCP Protocol Version**: 2024-11-05\n\n## Expected Behavior\nAfter Claude Desktop successfully connects to MCP server and receives tool definitions, the tools should be available for use in conversations (e.g., when asking \"list my portfolios\").\n\n## Actual Behavior\n- Claude Desktop connects successfully to MCP server ✅\n- `tools/list` requests return proper tool definitions ✅\n- `initialize` handshake completes successfully ✅\n- BUT: Tools are never made available in conversation interface ❌\n- Claude responds with \"I don't have access to...\" instead of using available tools\n\n## Debug Evidence\n\n### MCP Server Debug Log Shows Successful Connection:\n```\n[2025-06-27 23:53:34] MCP DEBUG: Handling method: initialize\n[2025-06-27 23:53:34] MCP DEBUG: Sending response | Data: {\"jsonrpc\":\"2.0\",\"id\":0,\"result\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{\"listChanged\":false}},\"serverInfo\":{\"name\":\"simple-portfolio-mcp\",\"version\":\"1.0.0\",\"description\":\"Simple Portfolio MCP Server for testing\"}}}\n[2025-06-27 23:53:34] MCP DEBUG: Handling method: tools/list\n[2025-06-27 23:53:34] MCP DEBUG: Sending response | Data: {\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"list_portfolios\",\"description\":\"List all available portfolios for the user\",\"inputSchema\":{\"type\":\"object\",\"properties\":[],\"required\":[]}},{\"name\":\"get_portfolio_details\",\"description\":\"Get detailed information about a specific portfolio including assets and performance\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"portfolio_id\":{\"type\":\"integer\",\"description\":\"The ID of the portfolio to retrieve details for\"}},\"required\":[\"portfolio_id\"]}},{\"name\":\"get_portfolio_performance\",\"description\":\"Get performance metrics for a portfolio\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"portfolio_id\":{\"type\":\"integer\",\"description\":\"The ID of the portfolio\"},\"period\":{\"type\":\"string\",\"description\":\"Time period for performance data\",\"enum\":[\"1d\",\"1w\",\"1m\",\"3m\",\"6m\",\"1y\"]}},\"required\":[\"portfolio_id\"]}}]}}\n```\n\n### Claude Desktop Configuration:\n```json\n{\n  \"mcpServers\": {\n    \"portfolio\": {\n      \"command\": \"/usr/local/bin/php\",\n      \"args\": [\n        \"/Users/didierphmartin/Documents/claude_code/PortfolioManagement/backend/portfolio-service/simple_mcp_server.php\"\n      ]\n    }\n  }\n}\n```\n\n### MCP Server Tool Definitions:\n```json\n{\n  \"tools\": [\n    {\n      \"name\": \"list_portfolios\",\n      \"description\": \"List all available portfolios for the user\",\n      \"inputSchema\": {\n        \"type\": \"object\",\n        \"properties\": [],\n        \"required\": []\n      }\n    },\n    {\n      \"name\": \"get_portfolio_details\", \n      \"description\": \"Get detailed information about a specific portfolio including assets and performance\",\n      \"inputSchema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"portfolio_id\": {\n            \"type\": \"integer\",\n            \"description\": \"The ID of the portfolio to retrieve details for\"\n          }\n        },\n        \"required\": [\"portfolio_id\"]\n      }\n    },\n    {\n      \"name\": \"get_portfolio_performance\",\n      \"description\": \"Get performance metrics for a portfolio\", \n      \"inputSchema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"portfolio_id\": {\n            \"type\": \"integer\",\n            \"description\": \"The ID of the portfolio\"\n          },\n          \"period\": {\n            \"type\": \"string\",\n            \"description\": \"Time period for performance data\",\n            \"enum\": [\"1d\", \"1w\", \"1m\", \"3m\", \"6m\", \"1y\"]\n          }\n        },\n        \"required\": [\"portfolio_id\"]\n      }\n    }\n  ]\n}\n```\n\n## Reproduction Steps\n1. Create MCP server with proper stdio-based communication\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-06-28T00:09:26Z",
+  "updated_at": "2026-07-06T11:44:34Z",
+  "closed_at": null,
+  "reactions_total": 27,
+  "comments_count": 37,
+  "author": "didierphmartin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Mahloc",
+      "author_association": "NONE",
+      "body": "Version 0.12.28 is also affected\nWindows 11 with Python MCP servers\nSame symptoms: server runs, shows as \"running\", but tools don't appear",
+      "created_at": "2025-07-19T19:56:56Z"
+    },
+    {
+      "author": "fitd-tech",
+      "author_association": "NONE",
+      "body": "I'm experiencing this as well. A test MCP server I made fails to register tools with both Claude Clode and Claude Desktop, but the Anthropic example [Fetch MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch) connects and exposes tools fine. This tells me that it's possible to expose the tools, but I cannot find any fundamental difference in the implementation.\n\nThe `capabilities` are defined, and the list-tools response is working on a local MCP client. Logs show tha",
+      "created_at": "2025-08-14T18:35:31Z"
+    },
+    {
+      "author": "didierphmartin",
+      "author_association": "NONE",
+      "body": "I finally resolved the issue which was maily with the oAuth protocol.\n",
+      "created_at": "2025-08-16T02:51:08Z"
+    }
+  ]
+}

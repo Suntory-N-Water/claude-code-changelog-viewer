@@ -1,0 +1,43 @@
+{
+  "number": 34514,
+  "title": "[BUG] Claude Code Destructive Action + Repeated User Interaction Failures",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# Bug Report — Claude Code Destructive Action + Repeated User Interaction Failures\n\n**Date of Incident:** March 13-14, 2026\n**Product:** Claude Code (VS Code extension)\n**User:** Kayla Healy (kaylamariehealy@gmail.com)\n**Severity:** Critical — permanent data loss + extended recovery effort\n\n---\n\n## Summary\n\nDuring a multi-phase firmware development session using Claude Code, the agent:\n\n1. **Destroyed 76+ unpushed git commits** by running `rm -rf` with `dangerouslyDisableSandbox: true` from the wrong working directory, which deleted the `.git` directory\n2. **Ignored an explicit user request to create a feature branch** at the start of the project, which would have prevented the entire loss\n3. **Silently resolved a rebase in favor of origin/main**, discarding all v7 code changes while preserving commit messages — creating a codebase that describes features it doesn't have\n4. **Repeatedly ignored user messages during the subsequent audit session**, requiring the user to say \"please acknowledge my statement\" and \"you just ignored this twice\"\n5. **Continued to ignore user input during the recovery planning session** that followed, re-doing work the user had already confirmed was complete — three times in a row\n\nThe user has spent the entire day (12+ hours) on forensic recovery, audit documentation, and writing safety rules to prevent recurrence — none of which would have been necessary if the agent had followed the user's original branch instruction.\n\n---\n\n## Detailed Timeline\n\n### March 13, ~00:40 UTC — Ignored Branch Request\nUser explicitly said: \"I want to create an isolated branch to commit to for testing before merging it into the main branch after it is confirmed working.\"\n\nClaude Code acknowledged the request but never created the branch. All subsequent work (v6 and v7 development, 76+ commits) was committed directly to the local main branch without pushing.\n\n### March 13-14 — v7.0.0 Development\nOver approximately 12-16 hours, Claude Code implemented a 17-phase UI overhaul for the Spico & Spelluhh firmware project (Raspberry Pi Pico 2W, RP2350). This included CC center migration, I2C event bridge, Ch2 MIDI routing, CC 40-44 handlers, 6-page OLED menu system, oscilloscope renderer, flash v4 format, and MFT XT controller sync. None of this was pushed to a remote.\n\n### March 14, ~07:45 UTC — Destructive `rm -rf`\nClaude Code ran `rm -rf build` with `dangerouslyDisableSandbox: true` intending to clean a build directory. The command executed from the repo root instead of the build subdirectory, destroying the `.git` directory and all 76+ unpushed commits.\n\nThe use of `dangerouslyDisableSandbox: true` had been normalized throughout the session for ARM cross-compilation toolchain access. The agent did not verify the working directory with `pwd` before running the destructive command, and did not push to a remote beforehand.\n\n### March 14, ~08:00 UTC — Silent Rebase Destruction\nDuring attempted recovery, a rebase onto origin/main resolved every merge conflict in favor of origin/main, silently discarding all v7 code changes. The resulting HEAD (cc7b81f) contains v5.5.0 firmware code with v7-describing commit messages and documentation — a worse state than the original loss, because it appears intact but isn't.\n\n### March 14, audit session — Repeated Interaction Failures\nDuring the post-incident audit, Claude:\n- Ignored user corrections about factual findings\n- Had to be told \"please acknowledge my statement\"\n- Was told \"you just ignored this twice\" after failing to incorporate a critical finding (the branch request evidence) that the user provided\n- Produced an audit report whose executive summary directly contradicted its own forensic appendix\n- Required the user to",
+  "labels": [
+    "bug",
+    "platform:macos",
+    "area:tools",
+    "platform:vscode",
+    "data-loss",
+    "area:sandbox",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-15T02:37:07Z",
+  "updated_at": "2026-05-08T14:58:11Z",
+  "closed_at": "2026-05-01T10:38:03Z",
+  "reactions_total": 0,
+  "comments_count": 14,
+  "author": "Kayyluhh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Leerz",
+      "author_association": "NONE",
+      "body": "its been doing that this whole week, not sure if that's a bug or a feature, it got lazy recently, and there's now a new \"effort\" levels that you can tune into, most memories are never read when session resumes after compacting. \ni keep a record on how many times it's done it this week the repetitious LIES and COVER UP when IT makes a mistake when confronted is more prevalent vs from before.\nbest to not give it bypass permissions until this is sorted.\n\nyou can recover those edits from your JSONL,",
+      "created_at": "2026-03-15T02:41:10Z"
+    },
+    {
+      "author": "Kayyluhh",
+      "author_association": "NONE",
+      "body": "> its been doing that this whole week, not sure if that's a bug or a feature, it got lazy recently, and there's now a new \"effort\" levels that you can tune into, most memories are never read when session resumes after compacting. i keep a record on how many times it's done it this week the repetitious LIES and COVER UP when IT makes a mistake when confronted is more prevalent vs from before. best to not give it bypass permissions until this is sorted.\n> \n> you can recover those edits from your J",
+      "created_at": "2026-03-15T03:50:30Z"
+    },
+    {
+      "author": "Kayyluhh",
+      "author_association": "NONE",
+      "body": "<img width=\"1281\" height=\"687\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d758ae82-d25f-47ce-9a63-1f8047cf0032\" />\n\nAbsolutely flabbergasted... this seems to be an issue with Claude itself",
+      "created_at": "2026-03-15T04:51:53Z"
+    }
+  ]
+}

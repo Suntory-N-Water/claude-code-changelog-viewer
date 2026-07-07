@@ -1,0 +1,35 @@
+{
+  "number": 30280,
+  "title": "Sub-agents spawned via Agent tool don't reliably inherit MCP tools (inconsistent with docs)",
+  "body": "## Summary\n\nSub-agents spawned directly via the `Agent` tool do not receive MCP tool access, even though the documentation states that sub-agents inherit all tools from the parent session (including MCP tools) by default.\n\n## Environment\n\n- Claude Code version: latest (claude-sonnet-4-6)\n- Platform: macOS Darwin 25.3.0\n- MCP server: Atlassian (Jira)\n\n## Observed Behavior\n\n**Sub-agents spawned within a skill's execution context** → ✅ MCP tools available (e.g. `jira_get_issue`, `jira_search_fields`, `jira_create_issue` — 17 successful MCP calls made)\n\n**Sub-agents spawned directly via the `Agent` tool** (outside a skill context) → ❌ MCP tools not available. The agent reports only standard tools (Bash, Glob, Grep, Read, Edit, Write, etc.) and has no Jira/Atlassian tools in its tool list.\n\n### Reproduction Steps\n\n1. Configure an Atlassian MCP server in Claude Code (`~/.claude/settings.json`)\n2. Verify MCP is working (e.g. via a skill that uses Jira tools successfully)\n3. Directly spawn a `general-purpose` sub-agent via the `Agent` tool:\n   ```\n   Agent tool:\n     subagent_type: general-purpose\n     prompt: \"Call jira_get_issue with issue_key 'PROJ-123' and return the result\"\n   ```\n4. Observe that the sub-agent reports no MCP tools in its available tool list and cannot make the call\n\n## Expected Behavior\n\nPer the documentation:\n\n> Subagents can use any of Claude Code's internal tools. By default, **subagents inherit all tools from the main conversation, including MCP tools**.\n\nSub-agents spawned via the `Agent` tool should have access to the same MCP tools available in the parent session, regardless of whether they are invoked within a skill context or directly.\n\n## Additional Context\n\nThe inconsistency is specifically between:\n- Skill-invoked agents → MCP tools ✅\n- Directly spawned agents (via `Agent` tool in main conversation) → MCP tools ❌\n\nThis suggests the skill execution framework passes MCP context through correctly, but the direct `Agent` tool invocation does not.",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp", "area:agents"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-03T04:36:11Z",
+  "updated_at": "2026-06-09T17:37:15Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 11,
+  "author": "sainikhil1705",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "lucasilvano1",
+      "author_association": "NONE",
+      "body": "## Additional reproduction data — 3 scenarios with controlled tests\n\nI ran into the same issue while trying to give MCP tools (Serena LSP, Context7 docs) to GSD workflow subagents. I set up 3 controlled tests that narrow down exactly when MCP propagation works vs. fails.\n\n### Environment\n\n- Claude Code version: 2.1.72\n- Platform: macOS Darwin 25.3.0 (arm64)\n- MCP servers tested: Serena (LSP-based, stateful), Context7 (stateless docs), Figma, IDE\n\n### Test matrix\n\n| # | Flow | MCP tools available",
+      "created_at": "2026-03-10T16:28:24Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "A `UserPromptSubmit` hook (which fires in subagent sessions too) can inject CLAUDE.md content:\n```bash\nMARKER=\"/tmp/cc-claudemd-injected-$$\"\n[ -f \"$MARKER\" ] && exit 0\ntouch \"$MARKER\"\nCONTEXT=\"\"\nfor f in CLAUDE.md .claude/CLAUDE.md; do\n    [ -f \"$f\" ] && CONTEXT+=\"$(cat \"$f\")\n\"\ndone\n[ -z \"$CONTEXT\" ] && exit 0\njq -n --arg ctx \"CLAUDE.md rules (injected via hook for subagent inheritance):\n$CONTEXT\" '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":$ctx}}'\nexit 0\n```\nT",
+      "created_at": "2026-03-29T13:12:34Z"
+    },
+    {
+      "author": "stefmf",
+      "author_association": "NONE",
+      "body": "+1 on this. Reliable MCP tool access in subagents spawned via the Agent tool would be a significant capability unlock. Looking forward to seeing this addressed.",
+      "created_at": "2026-04-08T04:23:43Z"
+    }
+  ]
+}

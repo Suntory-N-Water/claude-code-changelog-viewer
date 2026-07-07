@@ -1,0 +1,35 @@
+{
+  "number": 6616,
+  "title": "Context low warning and /compact failure despite having 86% free context space",
+  "body": "**Description**\n\nClaude Code incorrectly shows \"Context low · Run /compact to compact & continue\" warning messages even when there is plenty of context space available (86% free). The /compact command also fails with an error, preventing normal usage.\n\n **Environment**\n\n  - OS: macOS (Darwin 24.6.0)\n  - Claude Code Version: Latest\n  - Model: claude-sonnet-4-20250514\n\n  **Steps to Reproduce**\n\n  1. Start Claude Code in any project\n  2. Run /context to check usage\n  3. Context shows 26k/200k tokens used (13% usage, 86% free)\n  4. Attempt to ask any question\n  5. System shows \"Context low\" warning\n  6. Run /compact command\n  7. Command fails with error\n\n  **Expected Behavior**\n\n  - No \"Context low\" warning when 86% of context is free\n  - /compact command should work or not be needed with this much free space\n  - Should be able to ask questions normally\n\n  **Actual Behavior**\n\n  - \"Context low\" warning appears immediately, even on fresh conversations\n  - /compact command fails with: \"Error during compaction: Error: Conversation too long. Press esc to go up a few messages and try again.\"\n  - System interrupts and prevents normal question asking\n\n  **Context Usage Details**\n\n  Context Usage\n  claude-sonnet-4-20250514 • 26k/200k tokens (13%)\n\n  ⛁ System prompt: 4.0k tokens (2.0%)\n  ⛁ System tools: 11.6k tokens (5.8%)\n  ⛁ MCP tools: 10.6k tokens (5.3%)\n  ⛁ Messages: 265 tokens (0.1%)\n  ⛶ Free space: 173.5k (86.8%)\n\n  **Additional Notes**\n\n  - This happens \"every time\" and \"on the first question\" according to the user\n  - Occurs even with fresh restarts\n  - Context window includes standard system tools and MCP tools (filesystem, memory)\n  - Issue persists across different conversations and projects\n\n  **Impact**\n\n  This bug prevents normal usage of Claude Code, as the system incorrectly believes context is full and interrupts user interactions.\n\n### Additional Diagnostic Information\n\n  **Claude Code Version**: 1.0.92 (@anthropic-ai/claude-code@^1.0.92)\n\n  **MCP Configuration**:\n  - Active MCP servers: Supabase (12 tools) and Vercel (16 tools)\n  - This may explain the 10.6k tokens used by MCP tools in the baseline context\n\n  **Configuration Files**:\n  - Settings: `{\"model\": \"sonnet\"}`\n  - MCP config includes Supabase and Vercel integrations\n  - Project-based configuration active\n\n  **Request for Investigation**:\n  - Whether MCP server count affects context calculation thresholds\n  - If the warning threshold is incorrectly triggered by MCP tool token usage\n  - Why `/compact` fails when actual usage is only 13%",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-26T18:54:30Z",
+  "updated_at": "2026-05-21T15:52:18Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 18,
+  "author": "mattschwen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mattschwen",
+      "author_association": "NONE",
+      "body": "I do not believe this issues is fixed yet but I have done a few things to help it.\n\n1 - reset context and client\n2 - switched to a different model, entered a few commands, switched back.\n3 - I had a couple of large custom MCP servers that were only consuming 10K tokens, but I removed them ",
+      "created_at": "2025-08-26T19:11:45Z"
+    },
+    {
+      "author": "mattschwen",
+      "author_association": "NONE",
+      "body": "Issue is still happening, this is on a new thread.\n\n\n  ⎿  Context low · Run /compact to compact & continue\n\n> /model \n  ⎿  Set model to opus (claude-opus-4-1-20250805)\n\n> confinue\n  ⎿  Context low · Run /compact to compact & continue\n\n> /compact \n  ⎿  Error: Error during compaction: Error: Conversation too long. Press esc to go up a few messages and try again.\n\n> /model \n  ⎿  Set model to sonnet (claude-sonnet-4-20250514)\n\n> continue\n  ⎿  Context low · Run /compact to compact & continue\n\n> /comp",
+      "created_at": "2025-08-27T06:21:54Z"
+    },
+    {
+      "author": "son1112",
+      "author_association": "NONE",
+      "body": "Running into this same issue over the past few hours.",
+      "created_at": "2025-08-27T10:07:06Z"
+    }
+  ]
+}

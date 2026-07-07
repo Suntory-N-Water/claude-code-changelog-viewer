@@ -1,0 +1,35 @@
+{
+  "number": 28018,
+  "title": "Sandbox: allow outbound connections to localhost",
+  "body": "## Problem\n\nThe sandbox blocks outbound TCP connections to localhost/127.0.0.1/::1 even when these are listed in `sandbox.network.allowedDomains`. The `sock.connect()` syscall gets `EPERM` (Operation not permitted).\n\nThis makes it impossible to run integration tests against local Docker services (e.g. `http://localhost:8000`) from within the sandbox.\n\n## What I've tried\n\nIn `settings.json`:\n\n```json\n\"sandbox\": {\n  \"enabled\": true,\n  \"network\": {\n    \"allowLocalBinding\": true,\n    \"allowedDomains\": [\n      \"localhost\",\n      \"127.0.0.1\",\n      \"::1\"\n    ]\n  }\n}\n```\n\nNone of these settings allow the outbound connection. The only workaround is either `dangerouslyDisableSandbox: true` on every bash call, or adding the command to `excludedCommands`, both of which defeat the purpose of the sandbox.\n\n## Requested feature\n\nA sandbox setting that allows outbound TCP connections to loopback addresses, e.g.:\n\n```json\n\"sandbox\": {\n  \"network\": {\n    \"allowLocalhostConnections\": true\n  }\n}\n```\n\nOr have `allowedDomains` with `localhost`/`127.0.0.1`/`::1` actually allow the TCP connection, not just DNS resolution.\n\n## Use case\n\nRunning integration tests against services in local Docker containers. For example, starting a service via `docker compose` and then running integration tests that hit `http://localhost:8000`.",
+  "labels": ["enhancement", "area:sandbox"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-24T00:11:29Z",
+  "updated_at": "2026-07-04T23:14:08Z",
+  "closed_at": null,
+  "reactions_total": 60,
+  "comments_count": 5,
+  "author": "robreeves",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "akda5id",
+      "author_association": "NONE",
+      "body": "I'm hitting this as well, would really like to be able to hit local servers with claude code, and stay inside the sandbox.",
+      "created_at": "2026-03-14T15:05:18Z"
+    },
+    {
+      "author": "GautierBlandin",
+      "author_association": "NONE",
+      "body": "Same problem here",
+      "created_at": "2026-03-16T11:43:47Z"
+    },
+    {
+      "author": "lgruen-vcgs",
+      "author_association": "NONE",
+      "body": "On MacOS, there's `network.allowLocalBinding`: https://code.claude.com/docs/en/settings#sandbox-settings\n\nWould be nice to have fine-grained per port restrictions though.",
+      "created_at": "2026-03-19T23:25:24Z"
+    }
+  ]
+}

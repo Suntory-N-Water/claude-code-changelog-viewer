@@ -1,0 +1,35 @@
+{
+  "number": 28276,
+  "title": "[FEATURE] Configurable auto-memory storage location (memoryDirectory setting)",
+  "body": "## Summary\n\nAuto-memory is currently stored at a fixed path:\n`~/.claude/projects/<encoded-git-root>/memory/`\n\nThere is no way to configure this location. I'd like a `memoryDirectory`\nsetting in `settings.json` to allow custom storage paths.\n\n## Use Cases\n\n**1. Cross-machine sync via git**\nWhen working across multiple machines (e.g. MacBook + Mac Mini via SSH),\nauto-memory is siloed per machine. There's no way to sync it except manual\nrsync. If memory could be stored inside the repo (e.g. `.claude/memory/`),\nit would sync automatically via git pull.\n\n**2. Team-shared memory**\nTeams may want to share certain project learnings (architecture decisions,\nrecurring debugging patterns) across all developers. Currently this requires\nduplicating content into CLAUDE.md. A repo-local memory option would allow\nteam-scoped memory distinct from global CLAUDE.md instructions.\n\n**3. Backup and portability**\nThe current location in `~/.claude/` is easy to lose on machine wipe/reset.\nStoring memory in the repo makes it part of normal backup workflows.\n\n## Proposed API\n\nIn `settings.json`:\n```json\n{\n  \"memoryDirectory\": \".claude/memory\"\n}\n```\n\n- Relative path → resolved from git repo root\n- Absolute path → used as-is\n- Unset → current behavior (`~/.claude/projects/<project>/memory/`)\n\n## Notes\n\n- Repo-local memory should probably be `.gitignore`d by default\n  (to avoid accidental commits), with an opt-in flag like\n  `\"memoryDirectoryTracked\": true` to commit it\n- This is complementary to CLAUDE.md (instructions) — memory is\n  Claude's own scratchpad, not user rules\n- Current workaround: manually rsync `~/.claude/projects/*/memory/`\n  between machines",
+  "labels": ["duplicate", "enhancement", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-24T19:37:47Z",
+  "updated_at": "2026-07-03T20:09:58Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 9,
+  "author": "chencheng-li",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25947\n2. https://github.com/anthropics/claude-code/issues/25739\n3. https://github.com/anthropics/claude-code/issues/24382\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-24T19:43:15Z"
+    },
+    {
+      "author": "a3lem",
+      "author_association": "NONE",
+      "body": "I've kept auto-memory disabled since I first noticed it on the 'latest' update channel.\n\nI disabled it after I noticed CC referring to assumptions about the project that I hadn't told it about or that weren't documented. And those assumptions were incomplete and had caused CC to reach the wrong conclusions.\n\nI'm not opposed to auto-memory, but it needs to me stored under the project directory, so that I can keep track of everything – just like with rules, skills, etc.\n\nEven if it's Claude's own ",
+      "created_at": "2026-02-27T09:51:59Z"
+    },
+    {
+      "author": "mvuk27",
+      "author_association": "NONE",
+      "body": "Any news about this? @anyone   🥲",
+      "created_at": "2026-03-24T12:59:25Z"
+    }
+  ]
+}

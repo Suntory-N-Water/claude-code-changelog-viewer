@@ -1,0 +1,35 @@
+{
+  "number": 6527,
+  "title": "[BUG] ask list is ignored when \"Bash\" is in allow list",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [ ] Other: <!-- specify -->\n- Claude CLI version: Latest (as of 2025-08-25)\n- Operating System: Linux\n- Terminal: Terminal App\n\n## Bug Description\nThe `ask` list in permissions is completely ignored when `\"Bash\"` is in the `allow` list, making it impossible to implement a \"allow all commands except require confirmation for destructive ones\" permission model at the user level.\n\n## Steps to Reproduce\n1. Set user-level configuration in `~/.claude/settings.json`:\n   ```json\n   {\n     \"permissions\": {\n       \"allow\": [\"Bash\"],\n       \"ask\": [\"Bash(rm *)\", \"Bash(git push*)\", \"Bash(git branch*-D*)\"]\n     }\n   }\n   ```\n2. Ensure no project-level overrides exist (empty or no `.claude/settings.json` in project)\n3. Restart Claude Code completely\n4. Run: `touch test.txt && rm test.txt`\n\n## Expected Behavior\nThe `rm` command should trigger a confirmation prompt because it matches the `\"Bash(rm *)\"` pattern in the `ask` list, despite `\"Bash\"` being in the allow list.\n\n## Actual Behavior\nThe file is deleted immediately without any confirmation prompt. All commands matching patterns in the `ask` list execute without prompting.\n\n## Additional Context\n**Goal**: Single user-level configuration for \"bypass all permissions except blacklisted destructive commands\" across all projects.\n\n**Impact**: No way to achieve both convenience (no prompts for safe commands) and safety (protection against destructive commands).\n\n**Workarounds attempted (none work)**:\n- `defaultMode: \"bypassPermissions\"` - Bypasses everything including ask list\n- `defaultMode: \"default\"` - Prompts for every new command type",
+  "labels": ["bug", "platform:linux", "area:tools", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-08-25T15:01:48Z",
+  "updated_at": "2026-05-20T10:49:45Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 22,
+  "author": "orpheuslummis",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "---\n\nFound 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/6413\n2. https://github.com/anthropics/claude-code/issues/4364\n3. https://github.com/anthropics/claude-code/issues/6128\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\n---",
+      "created_at": "2025-08-25T15:06:17Z"
+    },
+    {
+      "author": "cwardgar",
+      "author_association": "NONE",
+      "body": "I'm encountering this as well. I have the following `settings.json`:\n```json\n{\n  \"permissions\": {\n    \"defaultMode\": \"acceptEdits\",\n    \"allow\": [\n      \"Bash\",\n      \"Edit\",\n      \"MultiEdit\",\n      \"NotebookEdit\",\n      \"WebFetch\",\n      \"WebSearch\",\n      \"Write\"\n    ],\n    \"ask\": [\n      \"Bash(git commit:*)\",\n      \"Bash(git push --force:*)\",\n      \"Bash(git push -f:*)\",\n      \"Bash(git reset --hard:*)\",\n      \"Bash(git clean -f:*)\",\n      \"Bash(git clean -d:*)\",\n      \"Bash(git rebase:*)\",\n",
+      "created_at": "2025-09-06T05:00:29Z"
+    },
+    {
+      "author": "Nxt3",
+      "author_association": "NONE",
+      "body": "Same thing:\n\n```json\n  \"permissions\": {\n    \"allow\": [\n      \"Bash\",\n      \"Edit\",\n      \"Glob\",\n      \"Grep\",\n      \"Read\",\n      \"Task\",\n      \"TodoWrite\",\n      \"Write\"\n    ],\n    \"deny\": [\n      \"Bash(curl :*)\",\n    ]\n  },\n```\n\nbut it will still run `curl` commands if I ask it to.\n\nWe are essentially asking for \"allow all Bash commands except some\" and that isn't currently being honored.",
+      "created_at": "2025-10-13T20:30:32Z"
+    }
+  ]
+}

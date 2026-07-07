@@ -1,0 +1,35 @@
+{
+  "number": 18547,
+  "title": "[BUG] Plugin hooks registered but not firing in VSCode extension",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# GitHub Bug Report: VS Code Plugin Hooks Not Loading\n\n**Repository:** https://github.com/anthropics/claude-code/issues/new\n\n**Title:** VS Code Extension: Plugin hooks.json not loaded - hooks only work from settings.json\n\n---\n\n## Summary\n\nHooks defined in a plugin's `hooks/hooks.json` file are not loaded by the VS Code extension. Hooks only fire when defined directly in `.claude/settings.json` or `~/.claude/settings.json`.\n\n## Environment\n\n- **Platform**: macOS (Darwin 25.2.0)\n- **Claude Code**: VS Code Extension\n- **Date**: 2025-01-16\n\n## Expected Behavior\n\nAccording to [hooks documentation](https://code.claude.com/docs/en/hooks), plugins can provide hooks via `hooks/hooks.json`:\n\n> Plugins can provide hooks via `hooks/hooks.json`\n\nThe [hookify plugin](https://github.com/anthropics/claude-code/tree/main/plugins/hookify) demonstrates this pattern with its `hooks/hooks.json` file.\n\nWhen a plugin is enabled via `enabledPlugins` in settings.json, its hooks should automatically be registered and fire on the appropriate events.\n\n## Actual Behavior\n\nHooks defined in a plugin's `hooks/hooks.json` are **not loaded** by the VS Code extension. The hooks only fire when copied directly into `.claude/settings.json`.\n\n## Impact\n\n- **Plugin portability**: Plugins cannot be self-contained with their own hooks\n- **Plugin marketplace**: Published plugins with hooks may not work in VS Code\n- **User experience**: Users must manually copy hooks from plugin to settings.json\n- **Maintenance burden**: Hook updates in plugins don't propagate - users must re-copy each time plugin is updated\n\n## Additional:\n\n1. CLI loads the plugin hook correctly, **without** copying to settings.json\n\n## Related\n\n- [hookify plugin](https://github.com/anthropics/claude-code/tree/main/plugins/hookify) - Official plugin with hooks.json\n- [Hooks documentation](https://code.claude.com/docs/en/hooks)\n\n## False positives for duplicate issue:\n\nHave reviewed and the ones below that relate are closed as duplicates or done, but the duplicates were false positives and this issue persist.\n\nhttps://github.com/anthropics/claude-code/issues/10997\nhttps://github.com/anthropics/claude-code/issues/11509\nhttps://github.com/anthropics/claude-code/issues/11544\nhttps://github.com/anthropics/claude-code/issues/6305\n\n### What Should Happen?\n\nClaude VSCode extension should recognize local file plugin hooks in place without need to copy into settings.json\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n\n## Reproduction Steps\n\n### 1. Create a plugin with hooks\n\nCreate directory structure:\n```\n.claude/plugins/my-plugin/\n├── .claude-plugin/\n│   └── marketplace.json.json\n│   └── plugin.json\n└── hooks/\n    ├── __init__.py\n    └── hooks.json\n```\n**marketplace.json**\n```json\n{\n  \"name\": \"my-plugin-marketplace\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Test local marketplace\",\n  \"owner\": {\n    \"name\": \"Local\",\n    \"email\": \"local@localhost\"\n  },\n  \"plugins\": [\n    {\n      \"name\": \"my-plugin\",\n      \"version\": \"1.0.0\",\n      \"description\": \"Test plugin with hooks\"\n      \"source\": \"./\"\n    }\n  ]\n}\n```\n\n**plugin.json:**\n```json\n{\n  \"name\": \"my-plugin\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Test plugin with hooks\"\n}\n```\n\n**hooks/hooks.json:**\n```json\n{\n  \"hooks\": {\n    \"UserPromptSubmit\": [\n      {\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo '{\\\"hookSpecificOutput\\\": {\\\"hookEventName\\\": \\\"UserPromptSubmit\\\", \\\"additionalContext\\\": \\\"Hook fired from plugin!\\\"}}'\",\n            \"timeout\": 10\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n### 2. Enable the plugin in settings.json\n\n**.claude/settings.json:**\n```json\n{\n  \"extraKnownMarketplaces\": {\n    \"my-plugin-ma",
+  "labels": ["bug", "has repro", "platform:macos", "area:ide"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-16T10:33:09Z",
+  "updated_at": "2026-06-23T15:52:40Z",
+  "closed_at": "2026-05-24T22:33:32Z",
+  "reactions_total": 7,
+  "comments_count": 11,
+  "author": "EarthmanWeb",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/16288\n2. https://github.com/anthropics/claude-code/issues/12649\n3. https://github.com/anthropics/claude-code/issues/16114\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-16T10:36:46Z"
+    },
+    {
+      "author": "EarthmanWeb",
+      "author_association": "NONE",
+      "body": "https://github.com/anthropics/claude-code/issues/16288\nDoes not relate - 16288 is specific to CLI only\n\nhttps://github.com/anthropics/claude-code/issues/12649\nRelates, but was false-positive closed as a duplicate, when it actually was not\n\nhttps://github.com/anthropics/claude-code/issues/16114\nAlso relates, but was falsely closed due to no one taking action on it\n\nPlease pay attention to this very real bug.  If required I can post a demo video repro.\n",
+      "created_at": "2026-01-18T22:33:15Z"
+    },
+    {
+      "author": "backnotprop",
+      "author_association": "NONE",
+      "body": "I have users experiencing the same issue\n\nhttps://github.com/backnotprop/plannotator/issues/99",
+      "created_at": "2026-01-20T23:15:31Z"
+    }
+  ]
+}

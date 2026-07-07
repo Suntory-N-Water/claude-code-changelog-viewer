@@ -1,0 +1,35 @@
+{
+  "number": 53011,
+  "title": "/rewind hangs the CLI on any session; Ctrl+C does not interrupt",
+  "body": "## Summary\n\nUsing the `/rewind` slash command from inside an active Claude Code session hangs the CLI **regardless of session size**. The process stays alive at low CPU, produces no output, and does not respond to Ctrl+C — `kill -9` is required to recover.\n\nThis was initially observed as part of #52995 (large-session resume hang), but on further testing `/rewind` hangs on small/new sessions as well, so it looks like a distinct regression worth its own issue.\n\n## Environment\n\n- Claude Code: `2.1.119`\n- OS: macOS (Darwin 25.4.0)\n\n## Reproduction\n\n1. Start `claude` (or `claude --resume` and pick any session — size does not matter).\n2. Do some trivial work so there is at least one checkpoint available (e.g. a single file read or a short exchange).\n3. Run `/rewind` and select any checkpoint.\n4. CLI hangs immediately after selection. No output, no prompt returns.\n5. Ctrl+C has no effect.\n6. `kill -9 <pid>` is required.\n\nReproduces on multiple different sessions, including small ones created fresh for the purpose of testing. So it is not dependent on the large-`.jsonl` / oversized-line conditions from #52995.\n\n## Expected\n\n- `/rewind` restores the selected checkpoint and returns control to the prompt within a second or two on a normal-sized session.\n- Ctrl+C always interrupts, even if rewind is doing real work.\n\n## Suggested directions\n\n1. Check whether `/rewind`'s restore path blocks the event loop — symptoms (unresponsive Ctrl+C, 0–1% CPU) match a synchronous call that never returns rather than a CPU-bound loop.\n2. Add a timeout / progress indicator for rewind, so a stuck restore fails visibly instead of hanging forever.\n3. Verify SIGINT handling during rewind — the signal handler should run even while the restore is in progress.\n\n## Workaround\n\nNone that I've found beyond killing the process and starting a new session. `/rewind` is effectively unusable at the moment.\n\nRelated: #52995 (large-session resume hang — the signal-handler aspect and the hang-on-checkpoint-rehydration code path may share a root cause).",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-24T21:32:13Z",
+  "updated_at": "2026-05-21T02:12:24Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 14,
+  "author": "dashesy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/52897\n2. https://github.com/anthropics/claude-code/issues/52329\n3. https://github.com/anthropics/claude-code/issues/53008\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-24T21:37:36Z"
+    },
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "This is a severe recovery-path bug because `/rewind` is supposed to be a safety/control tool for navigating session state, yet invoking it can deadlock the entire CLI. Once even Ctrl+C cannot interrupt, the feature has crossed from \"broken command\" into \"requires force-kill\" territory.\n\nThat is especially costly because users reach for rewind precisely when they are trying to regain control of the session. A hung rewind path therefore destroys confidence in one of the main escape hatches the pro",
+      "created_at": "2026-04-24T21:40:29Z"
+    },
+    {
+      "author": "luweigen",
+      "author_association": "NONE",
+      "body": "This makes me feel like I'm back to version 1.x or 0.x.",
+      "created_at": "2026-04-25T05:21:42Z"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "number": 2508,
+  "title": "[DOCS] Environment variables don't persist between bash commands - documentation inconsistency",
+  "body": "## Environment\n- Platform: Anthropic API  \n- Claude CLI version: Latest\n- Operating System: Windows + VS Code SSH + Docker Desktop Ubuntu container\n- Terminal: bash\n\n## Documentation Issue\nThe bash tool documentation at https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/bash-tool#example-usage states:\n\n> **How it works**\n> The bash tool maintains a persistent session:\n> 1. Claude determines what command to run\n> 2. You execute the command in a bash shell  \n> 3. Return the output (stdout and stderr) to Claude\n> 4. **Session state persists between commands (environment variables, working directory)**\n\nHowever, testing shows that **environment variables do NOT persist between bash tool calls**.\n\n## Verification Tests\n\n**Test 1: Basic environment variable**\n```bash\n# Command 1\nexport TEST_VAR=\"test_value\"\necho \"Variable set: $TEST_VAR\"\n# Output: Variable set: test_value\n\n# Command 2  \necho \"Variable in next command: '$TEST_VAR'\"\n# Output: Variable in next command: '' (empty)\n```\n\n**Test 2: PYTHONPATH (real-world scenario)**\n```bash\n# Command 1\nexport PYTHONPATH=. && python -c \"import sys; print('Current dir in sys.path:', '.' in sys.path)\"\n# Output: Current dir in sys.path: True\n\n# Command 2\npython -c \"import sys; print('Current dir in sys.path:', '.' in sys.path)\"\n# Output: Current dir in sys.path: False\n```\n\n**Test 3: Working directory DOES persist (as documented)**\n```bash\n# Command 1\nmkdir testdir && cd testdir\n\n# Command 2\npwd\n# Output: /path/to/testdir ✅ (correctly persists)\n```\n\n## Expected vs Actual Behavior\n- **Expected** (per documentation): Environment variables persist between commands\n- **Actual**: Environment variables are reset between commands, only working directory persists\n\n## Impact on Development Workflow\nThis inconsistency affects common development patterns:\n- Python projects requiring `PYTHONPATH` setup\n- Build tools needing custom environment variables  \n- Development workflows expecting persistent environment state\n- Users need workarounds like `export VAR=value && command` for each bash call\n\n## Request for Clarification\nCould you please clarify:\n\n1. **Is the current behavior intended?** (environment variables don't persist)\n2. **If so, can the documentation be updated** to reflect actual behavior?\n3. **If this is a bug**, are there plans to implement environment variable persistence?\n\n## Suggested Documentation Fix\n**Current text:**\n> Session state persists between commands (environment variables, working directory)\n\n**Suggested revision:**\n> Session state persists between commands (working directory). Environment variables need to be re-exported in each command or set permanently in shell configuration files.\n\nThank you for clarifying this behavior\\!\"",
+  "labels": ["documentation", "area:tools"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-24T03:04:19Z",
+  "updated_at": "2025-12-10T14:10:00Z",
+  "closed_at": "2025-12-02T21:00:20Z",
+  "reactions_total": 16,
+  "comments_count": 9,
+  "author": "isCopyman",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

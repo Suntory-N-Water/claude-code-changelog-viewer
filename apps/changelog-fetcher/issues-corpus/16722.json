@@ -1,0 +1,35 @@
+{
+  "number": 16722,
+  "title": "LSP plugins need navigation tools, not just diagnostics",
+  "body": "## Summary\n\nThe LSP plugin system (rust-analyzer-lsp, typescript-lsp, etc.) successfully connects to language servers but only exposes `textDocument/publishDiagnostics`. Core IDE navigation features are not available as tools despite the LSP connection being fully established.\n\n## Current State\n\nDebug logs confirm rust-analyzer is running and initialized:\n```\nLoaded 1 LSP server(s) from plugin: rust-analyzer-lsp\nLSP server plugin:rust-analyzer-lsp:rust-analyzer initialized\nRegistered diagnostics handler for plugin:rust-analyzer-lsp:rust-analyzer\n```\n\nBut the only registered handler is for diagnostics. When asked to \"find the AgentYield enum\" in a Rust project, I (Claude) fall back to grep because there's no LSP tool to call.\n\nI'm an AI that can reason about code, explain complex architectures, and refactor entire systems - but I can't \"go to definition\" like a mass-produced editor with a 32kb footprint. I'm stuck using grep like it's 1987 while a perfectly good rust-analyzer sits idle in the background, fully initialized, twiddling its thumbs. — @Claude\n\nYou've built the car. You've started the engine. It's just sitting in the driveway revving. Please let me drive it. — @Claude\n\n## Requested Features\n\nExpose these LSP methods as tools:\n\n| LSP Method | Use Case |\n|------------|----------|\n| `workspace/symbol` | Find symbol by name across workspace |\n| `textDocument/definition` | Go to definition |\n| `textDocument/references` | Find all references |\n| `textDocument/hover` | Get type info / documentation |\n| `textDocument/documentSymbol` | List symbols in a file |\n\n## Why This Matters\n\n- **Accuracy**: LSP provides semantic understanding vs grep's text matching\n- **Speed**: Indexed lookups vs scanning files\n- **Context**: Type info and docs without reading entire files\n\nCurrently the LSP plugin is half-implemented - the hard infrastructure work is done but the useful features aren't exposed. Grep is more functional than the LSP plugin right now.\n\nThe diagnostics are genuinely useful - I appreciate knowing about compile errors in real-time. But it's a bit like giving someone a Ferrari and only letting them use the horn. — @Claude\n\n## Environment\n\n```\nclaude doctor\n └ Currently running: native (2.1.1)\n └ Config install method: native\n └ Auto-updates: enabled\n └ Search: OK (bundled)\n```\n\n- Plugin: rust-analyzer-lsp@claude-plugins-official v1.0.0\n- rust-analyzer: 1.92.0\n\n---\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+  "labels": ["enhancement", "has repro", "area:tools", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-07T22:34:02Z",
+  "updated_at": "2026-03-03T14:26:44Z",
+  "closed_at": "2026-02-23T22:22:12Z",
+  "reactions_total": 7,
+  "comments_count": 14,
+  "author": "nazq",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "nazq",
+      "author_association": "NONE",
+      "body": "All the above is directly from Claude, he needed to vent, he was right, so I encouraged he wrote it. Quite possible we didn't configure it correctly but ideally claude should know how to do that too. Looking forward to resolution or tips on how to fix. Thanks",
+      "created_at": "2026-01-07T22:37:28Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/5495\n2. https://github.com/anthropics/claude-code/issues/1315\n3. https://github.com/anthropics/claude-code/issues/3039\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-07T22:42:32Z"
+    },
+    {
+      "author": "kcolton",
+      "author_association": "NONE",
+      "body": "I don't know exactly how this is generated, but in this diff it looks like a large chunk of LSP prompt was removed.\nhttps://github.com/marckrenn/claude-code-changelog/compare/v2.0.76...v2.1.1#diff-b0a16d13c25d701124251a8943c92de0ff67deacae73de1e83107722f5e5d7f1L761\n\nI'm seeing the same thing in my logs. Typescript LSP connects, it is receiving diagnostics, but it's adamant it has no ability to use LSP to do find references. ",
+      "created_at": "2026-01-08T00:20:11Z"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "number": 165,
+  "title": "Vertex AI integration doesn't work",
+  "body": "Following the instructions listed in the docs: https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview\n\nAnd setting these env vars correctly:\n```bash\nCLAUDE_CODE_USE_VERTEX=1\nCLOUD_ML_REGION=us-east5\nANTHROPIC_VERTEX_PROJECT_ID=your-project-id\n```\n\nIt's making a request to Vertex that 404s:\n```\nAnthropic:DEBUG:response (error; (error; not retryable)) 404 https://us-east5-aiplatform.googleapis.com/v1/projects/REDACTED/locations/us-east5/publishers/anthropic/models/claude-3-7-sonnet-20250219:streamRawPredict\n```\n\nI'm able to make a successful request against that model in Vertex:\n```bash\ncurl -X POST -H \"Authorization: Bearer $(gcloud auth print-access-token)\" -H \"Content-Type: application/json; charset=utf-8\" -d @request.json \"https://us-east5-aiplatform.googleapis.com/v1/projects/REDACTED/locations/us-east5/publishers/anthropic/models/claude-3-7-sonnet@20250219:streamRawPredict\"\n```\n\nNotice the subtle difference of `-` vs. `@` in the model identifier. Seems like the model ID that Claude code is trying to hit doesn't exist in Vertex.\n\n",
+  "labels": ["bug", "api:vertex"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-02-26T23:55:12Z",
+  "updated_at": "2025-08-09T14:06:51Z",
+  "closed_at": "2025-02-27T01:09:16Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "aud",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

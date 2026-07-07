@@ -1,0 +1,35 @@
+{
+  "number": 31089,
+  "title": "[BUG] M365 MCP OAuth fails with AADSTS9000411 - parameter 'prompt' is duplicated",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen authenticating the Microsoft 365 MCP connector via `/mcp` in Claude Code, \nthe OAuth redirect to Microsoft Entra ID fails with:\n\nAADSTS9000411: The request is not properly formatted. \nThe parameter 'prompt' is duplicated.\n\nThis suggests the OAuth authorization URL being constructed by Claude Code \nsends the `prompt` parameter twice.\n\n### What Should Happen?\n\nThe authentication via browser should trigger an account selection dialog for authentication.\n\n### Error Messages/Logs\n\n```shell\n- Request Id: 5fbd47a4-6cc2-4ce2-8255-1632a4264700\n- Correlation Id: 67e883f1-c921-4728-aeec-c70b6df03547\n- Timestamp: 2026-03-05T13:44:50Z\n```\n\n### Steps to Reproduce\n\n1. Have Microsoft 365 MCP server configured in settings.json\n2. Run `claude` and enter `/mcp`\n3. Select Microsoft 365 and authenticate\n4. Browser opens to Microsoft sign-in and immediately shows the error\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.58 (native)\n\n### Platform\n\nOther\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n<img width=\"649\" height=\"640\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/27663134-7208-4f9d-9867-3f22c0d5ce2b\" />",
+  "labels": ["bug", "has repro", "platform:windows", "area:auth", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-05T13:59:48Z",
+  "updated_at": "2026-05-07T15:13:20Z",
+  "closed_at": "2026-04-24T16:54:11Z",
+  "reactions_total": 6,
+  "comments_count": 18,
+  "author": "stefanlindqvist",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/21309\n2. https://github.com/anthropics/claude-code/issues/23560\n3. https://github.com/anthropics/claude-code/issues/23593\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-05T14:03:04Z"
+    },
+    {
+      "author": "RealfinityKipper",
+      "author_association": "NONE",
+      "body": "having this same issue, additionally once I remove the duplicate prompt parameter manually and retry it gives a callback error\nAADSTS50011: The redirect URI 'http://localhost:52024/callback' specified in the request does not match the redirect URIs configured for the application '08ad6f98-a4f8-4635-bb8d-f1a3044760f0'. Make sure the redirect URI sent in the request matches one added to your application in the Azure portal. Navigate to https://aka.ms/redirectUriMismatchError to learn more about ho",
+      "created_at": "2026-03-08T14:31:48Z"
+    },
+    {
+      "author": "dimisant",
+      "author_association": "NONE",
+      "body": "Still hitting this issue on v2.1.76",
+      "created_at": "2026-03-16T16:44:00Z"
+    }
+  ]
+}

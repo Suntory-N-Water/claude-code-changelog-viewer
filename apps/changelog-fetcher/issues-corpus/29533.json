@@ -1,0 +1,35 @@
+{
+  "number": 29533,
+  "title": "Sandbox blocks Go TLS cert verification on macOS (gh CLI fails)",
+  "body": "## Summary\n\nGo-based CLI tools (notably `gh`) fail with TLS certificate verification errors when running inside the Claude Code sandbox on macOS. Tools using libcurl (curl, git) work fine.\n\n## Error\n\n```\nPost \"https://api.github.com/graphql\": tls: failed to verify certificate: x509: OSStatus -26276\n```\n\n## Root Cause\n\nGo's `crypto/x509` package on macOS uses Security.framework via cgo for certificate verification. This requires mach service calls (likely `com.apple.SecurityServer`). The Claude Code sandbox appears to block these mach services, causing the cert verification to fail with `errSecInternalComponent` (OSStatus -26276).\n\n## Reproduction\n\n1. Add `github.com` and `api.github.com` to `sandbox.network.allowedDomains`\n2. Run `gh api /rate_limit` in sandbox → TLS error\n3. Run `curl -s https://api.github.com/rate_limit` in sandbox → works (200)\n4. Run `gh api /rate_limit` with `dangerouslyDisableSandbox: true` → works\n\n## Impact\n\nAny Go binary that uses cgo TLS (default on macOS) will fail in the sandbox. `gh` is the most common case. Workaround is `dangerouslyDisableSandbox: true` per command, but this bypasses all sandbox restrictions rather than just the mach service needed for TLS.\n\n## Environment\n\n- macOS 15.3 (Darwin 25.2.0)\n- Claude Code (latest)\n- gh 2.67.0\n\n## Suggested Fix\n\nAllow mach-lookup for Security.framework services in the sandbox profile, or provide a per-tool sandbox override in settings.",
+  "labels": ["bug", "has repro", "platform:macos", "area:sandbox"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-28T07:51:18Z",
+  "updated_at": "2026-04-17T19:00:10Z",
+  "closed_at": null,
+  "reactions_total": 32,
+  "comments_count": 5,
+  "author": "paulnsorensen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23416\n2. https://github.com/anthropics/claude-code/issues/28954\n3. https://github.com/anthropics/claude-code/issues/27966\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-28T07:55:50Z"
+    },
+    {
+      "author": "xXMrNidaXx",
+      "author_association": "NONE",
+      "body": "**Root Cause Confirmation + Workaround**\n\nGreat analysis on the Security.framework mach service blocking. This affects any Go binary using the default `crypto/x509` cgo path on macOS.\n\n**Quick Workaround** (without full sandbox disable):\n\nYou can force Go to use a pure-Go TLS implementation by setting:\n\n```bash\nexport GODEBUG=x509usecgo=0\n```\n\nThis bypasses the Security.framework calls entirely. Works for `gh` and other Go CLIs.\n\n**Caveats:**\n- Pure-Go verifier uses its own root cert pool, not t",
+      "created_at": "2026-02-28T08:05:11Z"
+    },
+    {
+      "author": "connorbrinton",
+      "author_association": "NONE",
+      "body": "@xXMrNidaXx did you verify that the `export GODEBUG=x509usecgo=0` approach works? I can't find any mention of a `x509usecgo` parameter anywhere besides this issue and am unable to get `gh` to work in the sandbox even with the environment variable set.\n\nI've also tried `GODEBUG=x509usefallbackroots=1` with no success",
+      "created_at": "2026-03-12T18:19:37Z"
+    }
+  ]
+}

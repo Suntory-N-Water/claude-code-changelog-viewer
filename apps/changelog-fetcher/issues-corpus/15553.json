@@ -1,0 +1,35 @@
+{
+  "number": 15553,
+  "title": "[FEATURE] Support for Programmatic Input Submission in Interactive Mode",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n# Feature Request: Support for Programmatic Input Submission in Interactive Mode\n\n## Summary\nWhen using Claude Code in interactive mode within VS Code/Cursor terminals, programmatic input (sent via `terminal.sendText()` or `sendSequence`) cannot be submitted. The Enter key character (`\\r`, `\\n`, etc.) creates a newline instead of triggering submission.\n\n## Use Case\nI'm building a voice-to-code system (speech-to-text → Claude Code) that needs to:\n1. Send transcribed text to an existing Claude Code terminal session\n2. Have it automatically submitted without manual user intervention\n3. Work with terminals running in the background (not necessarily the active terminal)\n\n## Problem Description\nClaude Code uses the Ink library for terminal UI. Ink's `ink-text-input` component treats programmatic stdin input differently than physical keyboard input:\n- **Physical Enter keypress** → triggers `onSubmit` → prompt is processed\n- **Programmatic `\\r` or `\\n`** → treated as newline character → prompt is NOT submitted\n\nThis appears to be a fundamental limitation of how Ink handles raw mode and TTY detection.\n\n## What We Tried\n\n### VS Code Extension API approaches:\n```typescript\n// Approach 1: terminal.sendText with newline\nterminal.sendText(text, true);  // ❌ Creates newline, doesn't submit\n\n// Approach 2: sendSequence with carriage return\nvscode.commands.executeCommand('workbench.action.terminal.sendSequence', {\n    text: text + '\\r'  // ❌ Creates newline, doesn't submit\n});\n\n// Approach 3: sendSequence with line feed\nvscode.commands.executeCommand('workbench.action.terminal.sendSequence', {\n    text: text + '\\n'  // ❌ Creates newline, doesn't submit\n});\n\n// Approach 4: Hex/Unicode variants\n'\\x0d', '\\x0a', '\\u000D', '\\u000A'  // ❌ All create newlines\n\n// Approach 5: Text first, then Enter separately with delay\nterminal.sendText(text, false);\nsetTimeout(() => {\n    vscode.commands.executeCommand('workbench.action.terminal.sendSequence', {\n        text: '\\r'\n    });\n}, 100);  // ❌ Still creates newline\n\n// Approach 6: ESC + Enter (Option+Enter equivalent)\nvscode.commands.executeCommand('workbench.action.terminal.sendSequence', {\n    text: '\\x1b\\r'\n});  // ❌ Doesn't work\n```\n\n### macOS AppleScript approaches:\n```bash\n# Approach 7: AppleScript keystroke\nosascript -e 'tell application \"System Events\" to keystroke return'\n# ❌ Doesn't trigger submit\n\n# Approach 8: AppleScript key code\nosascript -e 'tell application \"System Events\" to key code 36'\n# ❌ Doesn't trigger submit\n```\n\n### Alternative CLI approaches:\n```bash\n# Approach 9: Headless mode (works but different use case)\nclaude -p \"prompt\"           # ✅ Works but exits after response\nclaude -p --continue \"prompt\" # ✅ Works but exits after response\n```\n\nThe headless mode (`-p`) works for one-shot prompts but:\n- Exits after each response (not interactive)\n- Doesn't show in the same terminal as an active Claude Code session\n- Different workflow than typing into interactive mode\n\n## Suggested Solutions\n\n### Option 1: Accept programmatic Enter\nAdd a configuration option or environment variable that makes Claude Code accept programmatic `\\r`/`\\n` as submit triggers, even when stdin is not a \"real\" TTY.\n\n### Option 2: Special submission character/sequence\nDefine a special escape sequence (e.g., `\\x1b[SUBMIT]` or similar) that triggers submission regardless of input source.\n\n### Option 3: Named pipe or socket for input\nProvide an alternative input mechanism (like a Unix socket or named pipe) that accepts prompts and submits them to the active session.\n\n### Option 4: VS Code extension command\nIf there's a Claude Code VS Code extension, add a command like `claude.submitPrompt(text)` that can be invoked programmatically.\n\n## Environment\n- macOS Sonoma\n- Cursor IDE (VS Code fork)\n- Claude Code ",
+  "labels": ["enhancement"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-28T01:36:57Z",
+  "updated_at": "2026-03-10T08:35:53Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 8,
+  "author": "ColinusM",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "aaronS7",
+      "author_association": "NONE",
+      "body": "@ColinusM I actually stumble upon this when trying to implement something like this in claude code. Still early work in progress, but I (or claude code) got it working by having a tmux session send keys to claude code. \nThe \"tmux send-keys\" is what worked for me\nhttps://man7.org/linux/man-pages/man1/tmux.1.html",
+      "created_at": "2026-01-26T01:47:44Z"
+    },
+    {
+      "author": "nbonamy",
+      "author_association": "NONE",
+      "body": "@ColinusM did you find a workaround?\n\n@aaronS7 what key did you send exactly? tried some options but none work",
+      "created_at": "2026-01-30T05:11:17Z"
+    },
+    {
+      "author": "aaronS7",
+      "author_association": "NONE",
+      "body": "@nbonamy I was able to have it type in a message and press enter. I didn't do anything super crazy with other special characters",
+      "created_at": "2026-01-31T02:42:27Z"
+    }
+  ]
+}

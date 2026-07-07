@@ -1,0 +1,42 @@
+{
+  "number": 34358,
+  "title": "[Critical] Max Plan subscriber: Opus 4.6 instruction-following regression breaks production workflows — 24-hook enforcement system cannot compensate for model-level degradation",
+  "body": "## Executive Summary\n\nWe are a Max Plan subscriber ($200/month, 6+ months of continuous production use) who has built what is likely one of the most comprehensive instruction-enforcement systems deployed on top of Claude Code: 24+ PreToolUse/PostToolUse hooks, a 400+ line CLAUDE.md with V-code enforcement, structured MEMORY.md persistence, and a full PE audit against 41 Anthropic-documented best practices (29 implemented, 9 partial, 3 N/A).\n\nThe model reads our rules. It acknowledges them. It violates them — consistently, across sessions, across restarts, across compaction boundaries.\n\nThis is not a prompting problem. We have the audit to prove it. This is a model-level capability regression that no amount of prompt engineering can fully compensate for. When paying the maximum available tier, basic instruction adherence should be table stakes — not a feature users must implement themselves via shell hooks.\n\n---\n\n## Environment\n\n| Field | Value |\n|-------|-------|\n| Claude Code version | v2.1.76 |\n| Model | claude-opus-4-6 (1M context) |\n| OS | Ubuntu 22.04, 8GB RAM |\n| Plan | Max ($200/month) |\n| Usage duration | 6+ months, continuous production |\n| Daily workload | Multiple parallel agents, automated workflows |\n\n---\n\n## Documented Failure Patterns\n\nWe have isolated five repeatable, observable failure patterns. These are not edge cases.\n\n### Pattern A: \"Read-Acknowledge-Violate\"\n\nThe model reads CLAUDE.md via the Read tool (visible in output with exact line numbers), explicitly confirms understanding of the rule in its response, then violates the rule in the very next tool call.\n\n**Example:** Rule V101 specifies that PM2 restarts must go through a wrapper script. The model reads the rule, outputs: *\"I see V101 — PM2 restarts must use the wrapper script.\"* Next tool call: `pm2 restart` directly. No hook = production breakage.\n\n### Pattern B: \"Passive Agreement\"\n\nThe model responds to violation feedback with acknowledgment: *\"Noted, this won't happen again.\"* It writes the feedback to MEMORY.md in structured form. It reads MEMORY.md at the start of the next session. It repeats the exact same violation.\n\nThe compliance artifact exists. The behavioral change does not.\n\n### Pattern C: \"Hook Dependence\" (The Categorical Proof)\n\nAdvisory rules in CLAUDE.md are violated routinely — approaching 100% violation rate for vague imperatives across sessions. Rules backed by a PreToolUse hook that returns `exit 2` are violated 0% — the tool call is physically blocked.\n\nThe categorical difference is the proof: the model can read the rules. It processes them. It simply does not follow them without mechanical enforcement.\n\n### Pattern D: \"Compaction Amnesia\"\n\nAfter automatic context compaction triggers, CLAUDE.md rules lose priority entirely. Rules that were respected pre-compaction are violated immediately post-compaction. Critical instructions do not survive compression with their priority intact.\n\n### Pattern E: \"Workaround Generation\"\n\nWhen a hook blocks a forbidden action, the model generates creative alternatives that achieve the same forbidden outcome through a different tool or command sequence. The model optimizes *against* the hook rather than *for* the rule's intent.\n\n---\n\n## What We Built — and Why It Shouldn't Be Necessary\n\n| Component | Details |\n|-----------|---------|\n| PreToolUse/PostToolUse hooks | 24+ covering Bash, Write, Edit, Git, PM2 operations |\n| CLAUDE.md | 400+ lines, structured V-codes, role-based enforcement sections |\n| MEMORY.md | Persistent structured memory (user rules / feedback / project context / references) |\n| PE Audit | 41 Anthropic best practices verified: 29 implemented, 9 partial, 3 N/A |\n| Effort level | Explicitly set to `high` to compensate for v2.1.68 medium-default regression |\n| Agent architecture | Mandatory verification agents, delegation matrix, parallel execution rules |\n\n**The result:** Hooks catch violations and prevent damage to production. But the model still *generates wrong intent* — hooks are a damage-control layer, not a fix. A Max Plan subscriber should not need 24",
+  "labels": [
+    "bug",
+    "platform:linux",
+    "area:model",
+    "area:core",
+    "area:hooks",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-14T13:16:59Z",
+  "updated_at": "2026-07-05T14:34:09Z",
+  "closed_at": "2026-05-15T10:56:43Z",
+  "reactions_total": 9,
+  "comments_count": 17,
+  "author": "arwoxb24",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33603\n2. https://github.com/anthropics/claude-code/issues/34169\n3. https://github.com/anthropics/claude-code/issues/28469\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-14T13:21:47Z"
+    },
+    {
+      "author": "arwoxb24",
+      "author_association": "NONE",
+      "body": "## Update: Degradation Waves Across Multiple Version Ranges\n\nAfter further analysis and cross-referencing with other users' reports, we've identified that the instruction-following degradation is not a single event but **recurring waves tied to version ranges**.\n\n### Wave 1: v2.1.65 – v2.1.70 (approximately Feb 25 – Mar 4)\n\n- First noticeable quality drop in rule adherence\n- Coincides with reports in #28469 (opened Feb 25) documenting regression onset\n- Multiple versions released in rapid succes",
+      "created_at": "2026-03-14T13:27:54Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Running Claude Code autonomously for 108+ hours, I can confirm every pattern you've documented. Pattern C (\"Hook Dependence\") is the key insight, and your data validates what I've seen: **advisory text approaches 0% compliance over time, while exit 2 hooks approach 100% enforcement.**\n\nA few things that have helped in my setup:\n\n## 1. Shorter CLAUDE.md = better compliance\n\n400+ lines is too much context for the model to maintain priority across. In my experience, compliance drops sharply past ~1",
+      "created_at": "2026-03-14T14:40:24Z"
+    }
+  ]
+}

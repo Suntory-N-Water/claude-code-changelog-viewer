@@ -1,0 +1,35 @@
+{
+  "number": 12541,
+  "title": "[FEATURE] Claude Code requires some built-in environment variables to facilitate the development of custom plugins.",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nI defined a custom claude code skill. claude code can easily perform tasks according to the workflow I specified and run the scripts in the scripts directory correctly. However, when I integrate it into the plugin, errors occur!\n\nWhen claude code runs the script steps in the skill, it looks for the script from the current working path instead of from the skill directory：\n<img width=\"2306\" height=\"117\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d14d9975-d953-45e7-9d12-d472717ac68c\" />\n\nSpecifically, when using the slash command /git-commit-squash:commit-squash, claude code cannot obtain the corresponding skill directory, resulting in the inability to execute some scripts correctly. It is necessary to explicitly use the absolute path to work properly. But I can work properly when using skill (skill remains at ~/.claude/skills).\n\ndirectory tree:\n```\n  git-commit-skills/\n  ├── .claude-plugin/\n  │   └── plugin.json\n  ├── commands/\n  │   └── commit-squash.md\n  └── skills/\n      └── commit-squash/\n          ├── SKILL.md\n          ├── commit_message_rules.md\n          └── scripts/\n              └── analyze_repo.py\n```\n\n\n### Proposed Solution\n\nIf there are some fixed environment variables that are automatically loaded when the slash command is executed, such as $PLUGIN_DIR (pointing to the git-commit-squash directory) and $SKILL_DIR (pointing to the commit-squash skill directory), then I can conveniently define the workflow in the slash command. Improve the portability of the plugin.\n\n### Alternative Solutions\n\nAt present, the problem is solved by prompting claude code to find the corresponding skill directory and then mapping it to the corresponding file.\n\n```markdown\n# ~/.claude/plugins/marketplaces/gudsen-plugin/git-commit-skills/commands/commit-squash.md\n\n---\ndescription: Squash multiple commits from the target branch into a single commit\n---\n\n**Locate Skill Directory**:\nSearch for files with the path `*/skills/commit-squash/SKILL.md` (under ~/.claude/plugins).\nOnce found, remember the absolute path of the directory where this file is located. All subsequent files will be based on this directory.\n`find ~/.claude -name \"SKILL.md\" -path \"*/skills/commit-squash/*\" 2>/dev/null || echo \"SKILL.md file not found\"`\n\nExample: If `/home/user/.claude/plugins/git-commit-squash/skills/commit-squash/SKILL.md` is found,\nThen the skill directory is: `/home/user/.claude/plugins/git-commit-squash/skills/commit-squash`\n**Execute Skill**:\n\nUsing the found skill directory path:\n1. Read `SKILL.md` in that directory to understand the workflow\n2. Refer to `commit_message_rules.md` in that directory to understand commit specifications\n3. Strictly follow the workflow. When running scripts, use `scripts/analyze_repo.py` from that directory\n\n**Important**: When executing Python scripts, use the full path in the format:\n`python \"<absolute_path_to_skill_directory>/scripts/analyze_repo.py\" <branch_name>`\n\nNow start: Search and locate the SKILL.md file.\n```\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n1. I implemented a custom claude code skill\n2. Based on the convenience of the plugin, I ported this skill to the plugin to make it easier for other colleagues to use this skill together and to facilitate the management and maintenance of the skill.\n3. With \"built-in environment variables\", the portability of skills will be higher.\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-27T09:39:10Z",
+  "updated_at": "2026-04-19T14:25:27Z",
+  "closed_at": "2026-04-09T10:34:46Z",
+  "reactions_total": 5,
+  "comments_count": 10,
+  "author": "SAIL-Fang",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/11011\n2. https://github.com/anthropics/claude-code/issues/9354\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-27T09:43:26Z"
+    },
+    {
+      "author": "SAIL-Fang",
+      "author_association": "NONE",
+      "body": "> Found 2 possible duplicate issues:\n> \n> 1. [[Bug] Skill plugin scripts fail on first execution with relative path resolution #11011](https://github.com/anthropics/claude-code/issues/11011)\n> 2. [[BUG] Fix ${CLAUDE_PLUGIN_ROOT} in command markdown OR support local project plugin installation #9354](https://github.com/anthropics/claude-code/issues/9354)\n> \n> This issue will be automatically closed as a duplicate in 3 days.\n> \n> * If your issue is a duplicate, please close it and 👍 the existing ",
+      "created_at": "2025-11-27T09:46:51Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-27T10:09:03Z"
+    }
+  ]
+}

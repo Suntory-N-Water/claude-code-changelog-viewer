@@ -1,0 +1,35 @@
+{
+  "number": 20436,
+  "title": "[BUG] TUI rendering corrupted in neovim's built-in terminal (macOS)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen running Claude Code inside neovim's built-in `:terminal`, permission prompts and other interactive UI elements render with overlapping/duplicated text. Menu options appear multiple times, text fragments get garbled (e.g., `>sc tNocancel`), and \"Tab to add additional instructions\" appears twice.\n\nThis issue is only observed when running Claude Code inside neovim's terminal - running in a regular terminal (iTerm2, Terminal.app, etc.) works correctly.\n\n### What Should Happen?\n\nUI elements should render cleanly without overlapping or duplication.\n\n### Error Messages/Logs\n\n```shell\nNo error messages - this is a visual rendering issue.\n```\n\n### Steps to Reproduce\n\n1. Open neovim\n2. Run `:terminal` to open a terminal buffer\n3. Run `claude` to start Claude Code\n4. Trigger any permission prompt (e.g., request a file edit)\n5. Observe garbled/overlapping UI elements in the permission prompt\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.17\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n- Terminal width: 120 columns (issue persists even with wide terminal)\n- $TERM: xterm-256color\n- Neovim version: 0.11.5\n- macOS Darwin 24.6.0\n\n## Root Cause Analysis\n\nNeovim's `:terminal` uses **libvterm**, which does not appear to support **synchronized output (DEC mode 2026)**. This is the protocol modern TUI applications use to prevent screen tearing by batching screen updates.\n\n- Neovim's own TUI supports mode 2026 (since v0.10), but this is for neovim rendering to a host terminal\n- Neovim's embedded terminal emulator (`:terminal`) does not appear to support mode 2026 for applications running inside it\n- When Claude Code's TUI sends synchronized output sequences to a terminal that doesn't support them, the cursor positioning and screen updates don't work correctly, causing overlapping/garbled output\n\nThis appears similar to #19637 (Windows cmd rendering corruption) - Windows cmd also lacks modern terminal features.\n\n**Suggested fix**: Claude Code could detect when synchronized output mode 2026 is not supported (via DECRQM query) and fall back to simpler rendering that doesn't rely on it.\n\nReferences:\n- [Synchronized Output Spec](https://gist.github.com/christianparpart/d8a62cc1ab659194337d73e399004036)\n- [libvterm](https://www.leonerd.org.uk/code/libvterm/)",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-23T19:30:49Z",
+  "updated_at": "2026-06-22T15:47:37Z",
+  "closed_at": "2026-05-03T22:20:07Z",
+  "reactions_total": 8,
+  "comments_count": 11,
+  "author": "mgleonard425",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mgleonard425",
+      "author_association": "NONE",
+      "body": "## Screenshot\n\n<img width=\"604\" height=\"152\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/4518234e-b983-4621-9df3-010609322444\" />",
+      "created_at": "2026-01-23T19:34:50Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19533\n2. https://github.com/anthropics/claude-code/issues/17775\n3. https://github.com/anthropics/claude-code/issues/14613\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-23T19:35:45Z"
+    },
+    {
+      "author": "mgleonard425",
+      "author_association": "NONE",
+      "body": "This is not a duplicate issue. It's possible that this has the same root cause as #19533, but this issue tracks a different platform",
+      "created_at": "2026-01-23T19:39:00Z"
+    }
+  ]
+}

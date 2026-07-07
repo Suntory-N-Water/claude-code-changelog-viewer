@@ -1,0 +1,35 @@
+{
+  "number": 22103,
+  "title": "[BUG] Claude Code 2.1.27 freezes after first message - regression from 2.1.25",
+  "body": "## Description\n\nClaude Code 2.1.27 freezes after sending the first message. The UI shows \"Frolicking...\" (thinking animation) and then becomes completely unresponsive. Downgrading to 2.1.25 immediately fixes the issue.\n\n## Environment\n\n- **OS**: Windows 11 + WSL2 (Ubuntu)\n- **Claude Code Version**: 2.1.27 (broken), 2.1.25 (works)\n- **Terminal**: Windows Terminal, Zed terminal, standard WSL terminal\n- **Shell**: bash with custom `.bashrc`\n\n## Steps to Reproduce\n\n1. Install/update to Claude Code 2.1.27\n2. Run `claude` in any directory\n3. Type \"hi\" and press Enter\n4. Observe: Shows \"Frolicking...\" then freezes indefinitely\n\n## Expected Behavior\n\nClaude should respond to the message.\n\n## Actual Behavior\n\n- UI freezes after showing \"Frolicking...\"\n- No response is displayed\n- Terminal becomes unresponsive (can't Ctrl+C)\n- When terminal is closed, Claude process becomes orphaned and runs at ~95% CPU\n\n## Workaround\n\nDowngrade to 2.1.25:\n```bash\nln -sf ~/.local/share/claude/versions/2.1.25 ~/.local/bin/claude\n```\n\n## Suspected Cause\n\nBased on the 2.1.27 changelog, one of these changes may be responsible:\n- \"Fixed bash command execution failing for users with `.bashrc` files\"\n- \"Fixed console windows flashing when spawning child processes\"\n\nThe user has a complex `.bashrc` with custom functions and aliases.\n\n## Additional Context\n\n- Plugins enabled/disabled makes no difference\n- Happens on both Windows filesystem (`/mnt/c/`) and Linux filesystem (`~/`)\n- Large session files (>50MB) were ruled out as the cause\n- CPU does not spike to 99% during freeze (stays around 18%)\n- The session that was already running before the update continues to work fine\n- Only new sessions freeze\n\n## Diagnostic Info\n\n```\nPlatform: WSL2 (Linux 6.6.87.2-microsoft-standard-WSL2)\nNode: v22.22.0\nClaude Code: 2.1.27 (broken) / 2.1.25 (works)\n```",
+  "labels": ["bug", "has repro", "platform:windows", "area:core", "regression"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-31T05:30:36Z",
+  "updated_at": "2026-02-13T14:26:47Z",
+  "closed_at": "2026-01-31T19:37:04Z",
+  "reactions_total": 47,
+  "comments_count": 24,
+  "author": "ashkonmousavi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22057\n2. https://github.com/anthropics/claude-code/issues/22097\n3. https://github.com/anthropics/claude-code/issues/22041\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-31T05:33:58Z"
+    },
+    {
+      "author": "kerim",
+      "author_association": "NONE",
+      "body": "Same issue here on MacOS\n",
+      "created_at": "2026-01-31T05:45:52Z"
+    },
+    {
+      "author": "sarth6",
+      "author_association": "NONE",
+      "body": "`rm -rf ~/.claude/projects/the-project-where-the-freeze-happened` mitigates the issue for me, and then it comes back again an hour later, also on `2.1.27`",
+      "created_at": "2026-01-31T06:14:43Z"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "number": 38807,
+  "title": "[BUG] Ctrl+W, Shift+Tab, Alt+V stopped working in Claude Code on Windows (regression)",
+  "body": "## Description\n\nSeveral readline/terminal keybindings stopped working inside Claude Code's TUI on Windows. They worked until approximately one week ago (around v2.1.7x).\n\n**Key finding:** Ctrl+W works in Git Bash inside VS Code's integrated terminal **before** launching Claude Code, but stops working **after** Claude Code starts. This confirms the issue is in Claude Code's TUI input handler, not VS Code or the terminal emulator.\n\n## Affected Keys\n\n| Key | Expected behavior | Actual behavior |\n|---|---|---|\n| **Ctrl+W** | Delete previous word (readline) | Nothing happens — keystroke is swallowed |\n| **Shift+Tab** | Pass through to shell | Captured by `chat:cycleMode` (new default?) |\n| **Alt+V** | Pass through to shell | Captured by `chat:imagePaste` |\n| **Ctrl+C** | Interrupt / expected terminal behavior | Inconsistent behavior |\n\n## Steps to Reproduce\n\n1. Open VS Code with Git Bash as integrated terminal\n2. In the terminal, type some text and press Ctrl+W — it deletes the previous word ✓\n3. Run `claude` in the same terminal\n4. Type some text in the Claude Code chat input\n5. Press Ctrl+W — nothing happens ✗\n\n## Expected Behavior\n\nCtrl+W should delete the previous word in the chat input, as it does in any readline-based terminal input. Keys not bound to Claude Code actions should pass through to standard text editing.\n\n## Context\n\n- This is a regression — these keys worked ~1 week ago\n- Related to #22626 (unbinding keys via null swallows keystrokes instead of passing through)\n- Related to #29931 (Ctrl+B passthrough blocked)\n- Related to #38354 (Ctrl+W word boundary issues — different bug, that one is about Bun's Intl.Segmenter)\n\n## Environment\n\n- Claude Code: 2.1.83\n- Claude Code VS Code extension: 2.1.83\n- VS Code: 1.113.0\n- OS: Windows 10 Pro 10.0.19045 (running in Parallels VM on macOS)\n- Shell: Git Bash\n- Terminal: VS Code integrated terminal",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tui",
+    "platform:vscode",
+    "regression",
+    "keybindings"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-25T15:08:19Z",
+  "updated_at": "2026-04-26T14:35:03Z",
+  "closed_at": "2026-04-19T00:45:51Z",
+  "reactions_total": 10,
+  "comments_count": 5,
+  "author": "larstomas",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

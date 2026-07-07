@@ -1,0 +1,35 @@
+{
+  "number": 11205,
+  "title": "[BUG] Custom Subagents in ~/.claude/agents/ Not Discovered or Loaded (v2.0.35)",
+  "body": "# [BUG] Custom Subagents in ~/.claude/agents/ Not Discovered or Loaded (v2.0.35)\n\n## Summary\nCustom subagents placed in `~/.claude/agents/` are completely ignored by Claude Code v2.0.35, despite following the official documentation exactly. This has been an ongoing issue since v1.0.60 when subagents were first introduced (75+ versions ago), making custom agents effectively unusable for users who manually create agent files.\n\n## Environment\n- **Claude Code Version:** 2.0.35\n- **Platform:** Android (Termux)\n- **OS:** Linux 5.4.254-qgki-gd2808d43acca aarch64\n- **Shell:** Bash\n- **Installation Method:** npm (via Termux)\n\n## Expected Behavior\nAccording to the official documentation (https://code.claude.com/docs/en/subagents):\n\n> **File locations**\n>\n> Subagents are stored as Markdown files with YAML frontmatter in two possible locations:\n>\n> | Type | Location | Scope |\n> |------|----------|-------|\n> | **User subagents** | `~/.claude/agents/` | Available across all projects |\n\nCustom agents in `~/.claude/agents/` should be automatically discovered at session startup and available via the Task tool with `subagent_type` parameter.\n\n## Actual Behavior\nCustom agents in `~/.claude/agents/` are **completely ignored**. Only built-in agents are available:\n- `general-purpose`\n- `statusline-setup`\n- `Explore`\n- `Plan`\n\nWhen attempting to invoke a custom agent:\n```\nTask({\n  subagent_type: \"termux-platform-agent\",\n  prompt: \"Test agent\"\n})\n\nError: Agent type 'termux-platform-agent' not found.\nAvailable agents: general-purpose, statusline-setup, Explore, Plan\n```\n\n## Reproduction Steps\n\n### 1. Create a Valid Custom Agent\n```bash\nmkdir -p ~/.claude/agents\ncat > ~/.claude/agents/test-agent.md << 'EOF'\n---\nname: test-agent\ndescription: Simple test agent to verify discovery mechanism\ntools: Read, Bash\nmodel: sonnet\n---\n\nYou are a test agent. Confirm you're operational when invoked.\nEOF\n```\n\n### 2. Verify File Exists and is Valid\n```bash\n$ ls -la ~/.claude/agents/test-agent.md\n-rw-------. 1 user user 156 Nov 7 12:00 ~/.claude/agents/test-agent.md\n\n$ head -10 ~/.claude/agents/test-agent.md\n---\nname: test-agent\ndescription: Simple test agent to verify discovery mechanism\ntools: Read, Bash\nmodel: sonnet\n---\n\nYou are a test agent. Confirm you're operational when invoked.\n```\n\n### 3. Start Fresh Claude Code Session\n```bash\nclaude\n# or restart existing session with /exit and relaunch\n```\n\n### 4. Attempt to Invoke Custom Agent\nWithin Claude Code:\n```\n> Use the Task tool to invoke test-agent\n```\n\n**Result:** `Agent type 'test-agent' not found`\n\n### 5. Compare with UI-Created Agent\n```\n> /agents\n[Select \"Create New Agent\"]\n[Create any simple agent through UI]\n```\n\n**Result:** UI-created agent DOES work immediately, proving the Task tool itself functions correctly.\n\n## Evidence Collected\n\n### Agent Files Present (16 custom agents)\n```bash\n$ ls -1 ~/.claude/agents/*.md | grep -v README | grep -v SUMMARY\n/home/user/.claude/agents/companion-platform-agent.md\n/home/user/.claude/agents/config-validator.md\n/home/user/.claude/agents/cross-platform-builder.md\n/home/user/.claude/agents/cross-platform-validator.md\n/home/user/.claude/agents/integrated-system-validator.md\n/home/user/.claude/agents/integration-tester.md\n/home/user/.claude/agents/mobile-platform-agent.md\n/home/user/.claude/agents/quadra-lock-cssr.md\n/home/user/.claude/agents/quadran-lock-gatekeeper.md\n/home/user/.claude/agents/restraint-doctrine.md\n/home/user/.claude/agents/security-audit-agent.md\n/home/user/.claude/agents/termux-platform-agent.md\n/home/user/.claude/agents/test-agent.md\n/home/user/.claude/agents/test-discovery.md\n/home/user/.claude/agents/test-suite-auditor.md\n/home/user/.claude/agents/windows-platform-agent.md\n```\n\n### Example Valid Agent File\n```yaml\n---\nname: termux-platform-agent\ndescription: Termux Android CLI development and deployment specialist. Use when working with Termux-specific features, Android environment, or mobile CLI deployments.\ntools: Read, Grep, Bash, Glob, Edit, Write\nmodel: sonnet\ncolor: green\n---\n\nYou are a Termux platform specialist with expertise in Android ",
+  "labels": ["bug", "has repro", "platform:linux", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-07T18:22:22Z",
+  "updated_at": "2026-05-17T19:23:09Z",
+  "closed_at": null,
+  "reactions_total": 17,
+  "comments_count": 12,
+  "author": "GrizzlyRooster34",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/8256\n2. https://github.com/anthropics/claude-code/issues/5289\n3. https://github.com/anthropics/claude-code/issues/9366\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-07T18:31:58Z"
+    },
+    {
+      "author": "GrizzlyRooster34",
+      "author_association": "NONE",
+      "body": "This is a issue, seriously ",
+      "created_at": "2025-11-10T06:49:00Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-10T10:16:35Z"
+    }
+  ]
+}

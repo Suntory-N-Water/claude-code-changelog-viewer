@@ -1,0 +1,35 @@
+{
+  "number": 19078,
+  "title": "OAuth token expired immediately after fresh login - cannot use Claude Code (blocking)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nEnvironment:\n\nClaude Code v2.1.12\nmacOS (M1, MacBook Pro 2022)\nClaude Max subscription\n\nIssue:\nCannot use Claude Code at all. Two failure modes observed:\n\nToken pre-expired: Fresh OAuth login completes successfully (browser shows \"You're all set up for Claude Code\"), welcome screen displays, but the very first API call fails with 401: \"OAuth token has expired.\"\nLogin callback failure: /login command fails with ECONNREFUSED or \"Was there a typo in the url or port?\" - even though the browser successfully completes auth on Anthropic's side.\n\nSteps to reproduce:\n\nExit Claude Code\nrm -rf ~/.claude (clear all credentials)\nRun claude\nRun /login\nEither: login callback fails with ECONNREFUSED, OR login succeeds but first prompt returns 401 \"token expired\"\n\nKey difference from #17716:\nThis is not a mid-session expiration - the token is invalid immediately upon issuance. No prompts can be sent at all. This is a complete blocker, not a UX friction issue.\nAdditional context:\n\nOccurred Jan 17 and Jan 18, 2026, same time of day (~3pm EST)\nSpontaneously resolved after several hours on Jan 17\nCredential reset does not fix the issue\nNo VPN, firewall disabled, Pi-hole disabled during testing\n\n\n\n### What Should Happen?\n\nAfter completing the browser OAuth flow, Claude Code should receive a valid token and successfully execute API calls. Users should be able to send prompts immediately after login.\n\n### Error Messages/Logs\n\n```shell\nAPI Error: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"OAuth token has expired. Please obtain a new token or refresh your existing token.\"},\"request_id\":\"req_011CXFRbLKkrH6cs3PmDt3b1\"} · Please run /login\nOAuth error: ECONNREFUSED\nPress Enter to retry.\nOAuth error: Was there a typo in the url or port?\nPress Enter to retry.\n```\n\n### Steps to Reproduce\n\nRun claude in terminal\nEnter any prompt (e.g., 1x)\nReceive 401 \"OAuth token has expired\" error\nRun /login\nEither:\n\nLogin callback fails with ECONNREFUSED, OR\nBrowser completes successfully but CLI reports \"Was there a typo in the url or port?\"\n\n\nIf login appears to succeed, first prompt still returns 401 \"token expired\"\n\nWorkaround attempted (unsuccessful):\n\nExit Claude Code\nrm -rf ~/.claude (clear all credentials)\nRun claude\nRun /login\nSame failure occurs\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.12\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n<img width=\"535\" height=\"565\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/92978a37-2f88-4803-9842-c4bc94b06c60\" />",
+  "labels": ["bug", "has repro", "platform:macos", "area:auth", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-18T20:11:12Z",
+  "updated_at": "2026-05-02T14:37:08Z",
+  "closed_at": "2026-04-24T22:20:45Z",
+  "reactions_total": 6,
+  "comments_count": 19,
+  "author": "michaelhdmd",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "michaelhdmd",
+      "author_association": "NONE",
+      "body": "And now we are back.\n\n<img width=\"1112\" height=\"768\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/55ccde77-43a9-45fc-b24a-e88b3f18cbbd\" />",
+      "created_at": "2026-01-19T00:26:01Z"
+    },
+    {
+      "author": "jacoporicare",
+      "author_association": "NONE",
+      "body": "I am experiencing the same since Friday. The token expires in 3 hours or so.",
+      "created_at": "2026-01-19T11:47:00Z"
+    },
+    {
+      "author": "michaelhdmd",
+      "author_association": "NONE",
+      "body": "After working last night (EST), OAuth token has expired.",
+      "created_at": "2026-01-19T22:21:52Z"
+    }
+  ]
+}

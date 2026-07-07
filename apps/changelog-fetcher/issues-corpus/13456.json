@@ -1,0 +1,35 @@
+{
+  "number": 13456,
+  "title": "[BUG] Claude Code Edit tool fails on files with CRLF line endings, falsely   reporting \"File has been unexpectedly modified.\"",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nCRLF Edit Problem\n\n  What happened:\n  Claude Edit tool kept failing with \"File has been unexpectedly modified\" even\n  though nothing was changing the file. The file timestamp (Dec 7) never moved.\n\n  Root cause:\n  The file [redacted].js uses Windows line endings (CRLF = \\r\\n).\n  When my Edit tool reads the file, it appears to normalize to LF (\\n)\n  internally. When I try to write, it compares my LF version against the CRLF\n  original, sees a \"difference,\" and blocks the edit.\n\n  Why it kept failing:\n  Every read-edit cycle hit the same mismatch. The file wasn't being modified\n  externally - my tool was comparing apples to oranges.\n\n  Recommended Fix:\n  Normalize line endings during comparison, or preserve and match original file\n  encoding throughout the read-compare-write cycle.\n\n### What Should Happen?\n\nThe Edit tool should detect and preserve the file's original line endings, and not falsely report modification when comparing content.\n\n### Error Messages/Logs\n\n```shell\nFile has been unexpectedly modified. Read it again before attempting to write it.\n```\n\n### Steps to Reproduce\n\nHow to Reproduce\n\n  1. Create a file with CRLF line endings (Windows-style):\n  node -e \"require('fs').writeFileSync('test.js',\n  'line1\\r\\nline2\\r\\nline3\\r\\n')\"\n  2. Read the file with Claude Code's Read tool\n  3. Attempt to Edit the file - replace \"line2\" with \"changed\"\n  4. Error occurs: \"File has been unexpectedly modified\"\n  5. Verify file unchanged:\n  powershell -Command \"Get-ChildItem test.js | Select-Object LastWriteTime\"\n  5. Timestamp is identical - nothing actually modified it.\n\n  Key conditions:\n  - File must have CRLF (\\r\\n) line endings\n  - Edit tool's internal comparison appears to use LF (\\n)\n  - The mismatch triggers false \"modified\" detection\n\n  Quick verification the file has CRLF:\n  file test.js\n  Output: test.js: ASCII text, with CRLF line terminators\n\n  The workaround:\n  I wrote a Node.js script that:\n  1. Reads the file raw (preserving CRLF)\n  2. Does string replacement with CRLF in the replacement text\n  3. Writes back with original encoding\n\n  Proper fix needed:\n  The Edit tool should either:\n  - Preserve original line endings when comparing/writing\n  - Normalize both sides before comparison\n  - Or explicitly handle CRLF/LF conversion\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\nN/A - issue appears present in current version, no known working version\n\n### Claude Code Version\n\nclaude-opus-4-5-20251101\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nImpact Statement\n\n  Severity: High\n\n  Issue: Claude Code Edit tool fails on files with CRLF line endings, falsely\n  reporting \"File has been unexpectedly modified.\"\n\n  Direct Impact:\n  - Each corruption required manual restoration\n  - Developer time wasted debugging a phantom \"external modification\" that\n  didn't exist\n\n  Cascade Effect:\n  When the Edit tool fails, the natural response is to try workarounds:\n  - PowerShell string replacement (escaping issues cause malformed writes)\n  - Node.js patch scripts (pattern matching fails due to line ending mismatch)\n  - Multiple retry attempts (each risking partial writes or corruption)\n\n  These workarounds introduced the actual corruption while trying to solve a\n  non-existent problem.\n\n  Scope:\n  Any Windows-created file or file touched by Windows editors (VS Code default,\n  Notepad, etc.) will have CRLF endings. This affects a significant portion of\n  Windows users' codebases.\n\n  Business Impact:\n  - Production downtime during restoration\n  - Loss of trust in the tool for critical edits\n  - Developers for",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-09T10:32:54Z",
+  "updated_at": "2026-04-12T14:26:06Z",
+  "closed_at": "2026-04-03T22:15:37Z",
+  "reactions_total": 6,
+  "comments_count": 13,
+  "author": "gmnistasia-beep",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12675\n2. https://github.com/anthropics/claude-code/issues/12945\n3. https://github.com/anthropics/claude-code/issues/12805\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-09T10:37:01Z"
+    },
+    {
+      "author": "gmnistasia-beep",
+      "author_association": "NONE",
+      "body": "This report is the only one that documents:\n  - Actual file corruption from workaround attempts\n  - Impact analysis (trust erosion, affected users, agentic reliability)\n  - Root cause confirmation (not hypothesis - I proved it with the CRLF byte\n  analysis)\n\nSame bug. This is the fourth report of the same CRLF line ending issue. My\n  report confirms the root cause (not just hypothesis) and documents real-world\n  impact: two file corruptions of a highly valued production app while\n  attempting wo",
+      "created_at": "2025-12-09T10:44:51Z"
+    },
+    {
+      "author": "WebTiger89",
+      "author_association": "NONE",
+      "body": "Broke in 2.0.61. When does it get fixed. This is pure ass",
+      "created_at": "2025-12-10T01:23:13Z"
+    }
+  ]
+}

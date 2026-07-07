@@ -1,0 +1,35 @@
+{
+  "number": 33165,
+  "title": "Allow Claude to rename its own session (programmatic session rename API)",
+  "body": "## Problem\n\nWhen using Claude Code in VS Code with agentic workflows, it's useful to name sessions by the issue/task number being worked on. Currently this requires manual renaming via the UI.\n\nI investigated making Claude rename its own session programmatically by appending `custom-title` entries to the session `.jsonl` file (which is what the extension's `renameSession()` does internally). This partially works but has two issues:\n\n### 1. Session list titles lost on long sessions\n\nThe session list (`listSessions`) reads titles by scanning only the **last 64KB** of each `.jsonl` file for `\"customTitle\"` entries. On long sessions (common with agentic workflows), the `custom-title` entry gets pushed outside this 64KB tail window by subsequent conversation messages, and the title is lost from the session list.\n\n### 2. No way to update the live tab title\n\nThe editor tab title is set via an internal `rename_tab` webview message. There's no registered VS Code command to trigger this externally. Even if the file-based title is correct, the active tab title can't be updated without going through the extension's internal message channel.\n\n## Proposed Solution\n\nExpose a VS Code command like `claude-vscode.renameSession` that:\n1. Appends the `custom-title` entry to the `.jsonl` file (already implemented internally)\n2. Updates the in-memory `customTitles` Map\n3. Sends a `rename_tab` message to update the live tab title\n4. Refreshes the session list sidebar\n\nThis would allow Claude itself (or other extensions/tools) to set meaningful session names programmatically.\n\n### Alternative for #1 alone\n\nStore custom titles in a separate lightweight index (e.g., `sessions-index.json` or a small sidecar file) rather than relying on scanning the tail of potentially large `.jsonl` files.\n\n## Use Case\n\nAgentic workflows where each session maps to a GitHub issue. Having Claude auto-name the session (e.g., \"941-fix-supabase-release\") at the start of a workflow would save manual effort and improve session organization.",
+  "labels": ["duplicate", "enhancement", "area:ide", "platform:vscode"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-11T11:17:40Z",
+  "updated_at": "2026-03-24T13:54:05Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 7,
+  "author": "dokipen",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mgerasolo",
+      "author_association": "NONE",
+      "body": "Historically, I only saw the first 24 characters as tab titles.  Now it's randomly updating it, and you can't tell which conversation is which anymore as they are changing, but its picking a random message, which makes it hard to pick the right conversation again, especially since lately when I reload, some of my tabs (I usually have 2-5 open panes each with multiple tabs) won't load likely becuase it is trying to load too many conversations at once on reload/refresh.",
+      "created_at": "2026-03-16T02:37:43Z"
+    },
+    {
+      "author": "interconnectedMe",
+      "author_association": "NONE",
+      "body": "## Session title corruption — root cause analysis and workaround\n\nThis issue is part of a family of bugs that all stem from the same root cause. Collecting them here for visibility:\n\n**Title lost/overwritten:**\n- #33165 — custom-title pushed outside 64KB tail window on long sessions\n- #32150 — last-prompt overwrites custom-title after session close\n- #25090 — renamed session name disappears after second exit\n- #23610 — /rename title overwritten after /resume (locked)\n- #26240 — /rename titles lo",
+      "created_at": "2026-03-16T19:18:51Z"
+    },
+    {
+      "author": "interconnectedMe",
+      "author_association": "NONE",
+      "body": "@hackyon-anthropic — you worked on the session title fix for #9668 (Warmup titles) and the v2.1.47/v2.1.71 patches. The root cause analysis above identifies why those fixes didn't fully resolve the problem: the 64KB tail scanner picks up `\"customTitle\"` strings from inside tool result content, not just from real JSONL entries. This causes cross-session title contamination that no amount of repositioning the `custom-title` entry can fix.\n\nA separate title index file (rather than scanning conversa",
+      "created_at": "2026-03-16T19:30:07Z"
+    }
+  ]
+}

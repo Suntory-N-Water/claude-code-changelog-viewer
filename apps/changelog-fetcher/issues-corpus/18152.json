@@ -1,0 +1,35 @@
+{
+  "number": 18152,
+  "title": "[BUG] Turning auto-compact OFF won't allow to continue until you fill the 200K tokens window anymore (it worked before).",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n[BUG] Turning auto-compact OFF won't allow to continue until you fill the 200K tokens window anymore (it worked before).\n\n### What Should Happen?\n\nYou should continue conversation until you fill the 200K tokens window, not when you reach the recommended limit to run /compact! It used to work prior to 2.1.7 maybe even < 2.1.5 \n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nJust keep clauding until you reach the 0% remaining threshold and check the context.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.7\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nWSL (Windows Subsystem for Linux)\n\n### Additional Information\n\n<img width=\"830\" height=\"143\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/f97400c3-f0b3-44a6-9d2a-94062c0455a3\" />",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-14T13:54:25Z",
+  "updated_at": "2026-05-21T15:51:11Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 14,
+  "author": "alessandroavenali",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "i-dedova",
+      "author_association": "NONE",
+      "body": "Exactly! This thing showed up yesterday and was working fine before! It now doesn't allow to continue on 170+k!\n\n<img width=\"715\" height=\"433\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/71b6567b-bbfb-48e4-ba99-b0884bdbac64\" />",
+      "created_at": "2026-01-14T15:04:34Z"
+    },
+    {
+      "author": "tfvchow",
+      "author_association": "NONE",
+      "body": "(Note: The following was entirely prepared by Claude Code, and my input was minimal. Please take it with a grain of extra salt. It took me a few sessions to somehow replicate the problems and let Claude Code inspect the logs though.)\n\n(Note 2: I saw this (\"Fixed context window blocking limit being calculated using the full context window instead of the effective context window (which reserves space for max output tokens\") in the latest change of 2.1.7 and had Claude Code dig deeper and thus got ",
+      "created_at": "2026-01-14T15:07:03Z"
+    },
+    {
+      "author": "thielm",
+      "author_association": "NONE",
+      "body": "+1 - This is blocking upgrades past 2.1.6 for users who rely on manual context management.\n\n**Use case:** When `autoCompact` is disabled, users expect full control over when compaction happens. The v2.1.7 change forces early blocking at ~65-80% regardless of this setting, which defeats the purpose of disabling auto-compact.\n\n**Suggested fix:** Only apply the output token reservation when `autoCompact` is enabled. Users who disable it have explicitly opted into manual management and accept the ri",
+      "created_at": "2026-01-15T15:40:14Z"
+    }
+  ]
+}

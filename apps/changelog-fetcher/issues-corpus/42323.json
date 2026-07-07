@@ -1,0 +1,16 @@
+{
+  "number": 42323,
+  "title": "Remote trigger: MCP connectors not exposed as tools in cloud sessions",
+  "body": "## Bug Description\n\nMCP connectors attached to a remote trigger (scheduled agent) are not discoverable as tools by the remote agent session. The agent searches for MCP tools (e.g. `mcp__slack__*`, `mcp__gmail__*`) via ToolSearch and finds nothing, even though the connectors are properly configured on the trigger.\n\n## Trigger Config\n\nThe trigger has `mcp_connections` correctly configured:\n\n```json\n\"mcp_connections\": [\n  {\"connector_uuid\": \"2866e9d7-...\", \"name\": \"Slack\", \"url\": \"https://mcp.slack.com/mcp\"},\n  {\"connector_uuid\": \"ded8eb40-...\", \"name\": \"Gmail\", \"url\": \"https://gmail.mcp.claude.com/mcp\"}\n]\n```\n\nThe connectors are authorized and working in interactive claude.ai sessions.\n\n## What Happens\n\nWhen the remote agent runs, it cannot find any MCP tools. The agent reports:\n\n> \"The required MCP tools for Slack and Gmail are not available in this session. ToolSearch found no tools matching mcp__slack, mcp__gmail, or mcp__github__*.\"\n\n## What Was Tried\n\n1. Setting `allowed_tools: []` (empty) — API expanded to built-in tools only, no MCP tools\n2. Explicitly adding MCP tool names to `allowed_tools` (e.g. `mcp__Slack__slack_send_message`, `mcp__Gmail__gmail_search_messages`) — still not found\n3. Multiple manual runs via `RemoteTrigger` action: \"run\" — same result every time\n\n## Expected Behavior\n\nMCP connectors attached to a trigger should be exposed as callable tools in the remote agent session, the same way they are in interactive claude.ai sessions.\n\n## Environment\n\n- Trigger ID: `trig_017dYGChncYAmfoSK3tdqX7Q`\n- Environment: `env_018TFDoYupLmXaPDAYHnxGLM` (claude-code-default, anthropic_cloud)\n- Model: claude-sonnet-4-6\n- Connectors: Slack (mcp.slack.com), Gmail (gmail.mcp.claude.com)\n- The trigger has never successfully used MCP connectors since creation (2026-03-31)\n\n## Failed Session Examples\n\n- https://claude.ai/code/session_01Apx96YWAZewLUGSGS2UGhk",
+  "labels": ["bug", "duplicate", "area:mcp", "area:agents"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-02T01:02:15Z",
+  "updated_at": "2026-04-18T14:28:55Z",
+  "closed_at": "2026-04-10T19:44:58Z",
+  "reactions_total": 1,
+  "comments_count": 8,
+  "author": "dyi1",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

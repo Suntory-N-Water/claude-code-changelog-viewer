@@ -1,0 +1,35 @@
+{
+  "number": 22648,
+  "title": "[Feature Request] Account-level settings sync across devices",
+  "body": "## Problem\n\nClaude Code settings are stored locally in `~/.claude/` with no way to sync across devices. Users with multiple machines (e.g., Linux desktop + MacBook) must manually maintain separate configurations.\n\nThis has been requested multiple times (see #6037, #19634, #13461, #12119) but no official response from Anthropic yet.\n\n## Requested Feature\n\nSync the following via authenticated Anthropic account:\n\n| What | Path | Why |\n|------|------|-----|\n| Global instructions | `~/.claude/CLAUDE.md` | Core user preferences |\n| Rules | `~/.claude/rules/` | Persistent learnings |\n| Commands/Skills | `~/.claude/commands/` | Custom slash commands |\n| Settings | `~/.claude/settings.json` | User preferences |\n| Keybindings | `~/.claude/keybindings.json` | Custom shortcuts |\n\n## Why Account-Level Sync?\n\n1. **Already authenticated** - Users already log in with Anthropic account\n2. **Precedent exists** - VS Code Settings Sync works exactly this way\n3. **Cross-platform** - Paths differ between OS (`/home/` vs `/Users/`), cloud sync abstracts this\n4. **High demand** - Multiple duplicate issues show community wants this\n\n## Proposed UX\n\n```bash\n# Enable sync (one-time)\nclaude config set sync.enabled true\n\n# Manual sync commands\nclaude sync push    # Upload local to cloud\nclaude sync pull    # Download cloud to local\nclaude sync status  # Show sync state\n```\n\nOr automatic background sync when authenticated.\n\n## Current Workarounds\n\nUsers currently resort to:\n- Dropbox/iCloud + symlinks (breaks with absolute paths)\n- Manual copy between machines\n- Maintaining separate configs (defeats the purpose of persistent learnings)\n\n## Related Issues\n\n- #6037 - Account settings layer (closed by autoclose, not rejection)\n- #19634 - Account-level CLAUDE.md (duplicate)\n- #13461 - Account-level slash commands (duplicate)\n- #12119 - Skill sync CLI/Web (duplicate)\n- #17682 - Cross-environment history sync (open)",
+  "labels": ["enhancement", "area:auth", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-03T00:58:48Z",
+  "updated_at": "2026-06-06T01:32:42Z",
+  "closed_at": null,
+  "reactions_total": 40,
+  "comments_count": 23,
+  "author": "wesleyfolly",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "120tc2cp",
+      "author_association": "NONE",
+      "body": "Agree.\n\nI sync my config across devices using a private git repo that symlinks into     \n~/.claude/. It covers CLAUDE.md, settings.json, commands, and skills.\n\nAn install.sh script sets up the symlinks and configures two hooks:\n- SessionStart hook — git pull on every new session\n- PostToolUse hook — auto-commits and pushes whenever Claude edits a config\nfile\n\nWorks well for me but it's a lot of plumbing for what should be a built-in feature - would love native account-level sync.",
+      "created_at": "2026-02-08T21:22:53Z"
+    },
+    {
+      "author": "olw83",
+      "author_association": "NONE",
+      "body": "I came here to make this feature request.",
+      "created_at": "2026-02-20T14:33:45Z"
+    },
+    {
+      "author": "thomashillman",
+      "author_association": "NONE",
+      "body": "Also desperately looking for this to be solved. I run across desktop, Claude.ai (using Claude code) and then iOS. ",
+      "created_at": "2026-02-27T12:10:42Z"
+    }
+  ]
+}

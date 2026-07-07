@@ -1,0 +1,35 @@
+{
+  "number": 23220,
+  "title": "[BUG] Claude Code v2.1.24+ broken on macOS - cache_control.ephemeral.scope error",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAnything later than v2.1.23 causes :\n  API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"system.2.cache_control.ephemeral.scope: Extra inputs are not\n     permitted\"},\"request_id\":\"req_011CXoxb4QmrysjyNqcTUneF\"}\n\n### What Should Happen?\n\nError: system.2.cache_control.ephemeral.scope: Extra inputs are not permitted\n\nDetails:\n- Account: locotoki@gmail.com (Claude Max)\n- Platform: macOS (M1), Portugal\n- Works: v2.1.23 and earlier\n- Broken: v2.1.24, 2.1.25, 2.1.28, 2.1.29, 2.1.31\n- Same account works on Windows with v2.1.29\n- CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1 does NOT fix it\n\nThe \"scope\" field in cache_control.ephemeral appears to be rejected by my account's API endpoint. This may be region-specific or account-specific routing issue.\n\n### Error Messages/Logs\n\n```shell\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"system.2.cache_control.ephemeral.scope: Extra inputs are not\n     permitted\"},\"request_id\":\"req_011CXoxb4QmrysjyNqcTUneF\"}\n```\n\n### Steps to Reproduce\n\nanything later than v2.1.23 causes this error, for both Native and npm installation\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nv2.1.23\n\n### Claude Code Version\n\n2.1.23 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:api"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-05T00:23:45Z",
+  "updated_at": "2026-04-16T14:54:40Z",
+  "closed_at": "2026-03-24T22:15:41Z",
+  "reactions_total": 6,
+  "comments_count": 14,
+  "author": "locotoki",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/21612\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-05T00:27:00Z"
+    },
+    {
+      "author": "locotoki",
+      "author_association": "NONE",
+      "body": "**This is not a duplicate of #21612. Please remove the duplicate label before auto-close.**\n\n#21612 is about `context_management: Extra inputs are not permitted` — a **top-level parameter** being rejected.\n\nMy error is `system.2.cache_control.ephemeral.scope: Extra inputs are not permitted` — a **nested field inside the third system message's cache_control block**. These are completely different fields, different code paths, and different root causes.\n\nHere's the proof:\n\n### 1. Different error f",
+      "created_at": "2026-02-05T21:53:06Z"
+    },
+    {
+      "author": "locotoki",
+      "author_association": "NONE",
+      "body": "### Additional bug: v2.1.23 also broken — /plan mode corrupts message state\n\nTo compound the issue above, even **v2.1.23** (the only version where basic requests work) has a separate critical bug:\n\n**After using `/plan` mode, exiting to execute corrupts the conversation history:**\n\n```\nAPI Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.0.content.0: unexpected `tool_use_id` found in `tool_result` blocks: toolu_01JTTpYfhCmHfS6VGMTcvmfe. Each `tool_result` bl",
+      "created_at": "2026-02-06T09:08:34Z"
+    }
+  ]
+}

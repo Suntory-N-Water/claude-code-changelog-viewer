@@ -1,0 +1,42 @@
+{
+  "number": 1188,
+  "title": "Bug Report: Path Patterns in allowedTools Not Honored in Non-Interactive Mode",
+  "body": "Environment\n\n Other: Claude Code CLI tool\n\nClaude CLI version: v0.2.122\nOperating System: Windows 11 with WSL2 (Ubuntu)\nTerminal: Bash in WSL\n\nBug Description\nClaude Code ignores path patterns in allowedTools configuration when running in non-interactive mode (with -p flag). While simple tool permissions (e.g., \"Write\") work correctly, any path-specific permissions (e.g., \"Write(/path/**)\") are completely ignored in non-interactive mode, despite being correctly configured and visible in claude config list.\nSteps to Reproduce\n\nConfigure path-specific tool permissions:\nbashclaude config add allowedTools \"Write(/mnt/c/path/to/project/**)\"\nclaude config list  # Confirms the permission is saved\n\nRun Claude Code in non-interactive mode targeting a path matching the pattern:\nbashclaude -p \"write a test file to /mnt/c/path/to/project/test.md\" --output-format stream-json\n\nObserve that Claude requests permissions despite matching the allowed path pattern.\nTest with universal wildcard to confirm it's not a path matching issue:\nbashclaude config add allowedTools \"Write(/**)\"  # Most permissive pattern possible\nclaude -p \"write a test file to /any/path/test.md\"  # Still asks for permission\n\n\nExpected Behavior\nClaude Code should honor the path patterns configured in allowedTools settings when running in non-interactive mode, just as it does in interactive mode.\nActual Behavior\nClaude Code always requests permission for path-based tools when running in non-interactive mode, regardless of path patterns specified in allowedTools. However, when configured with simple tool names without paths (e.g., \"Write\" instead of \"Write(/path/**)\") it works correctly.\nAdditional Context\nWhen run with --allowedTools Bash, Claude Code correctly identifies its working directory and execution context, confirming there are no path resolution issues at the operating system level:\nbashclaude -p \"Führe den Befehl 'pwd' aus und zeige mir dein aktuelles Arbeitsverzeichnis.\" --allowedTools Bash\n# Returns correct working directory and permissions\nThis issue prevents using path-restricted permissions in CI/CD pipelines, scripts, or any other non-interactive workflows, significantly limiting Claude Code's security model in automated contexts.\nThe only workaround is to use simple tool permissions without path patterns:\nbashclaude config add allowedTools Write  # No path pattern\nOr specify permissions directly via command line:\nbashclaude -p \"your prompt\" --allowedTools Write\nThis appears to be related to Issue #581 (\"Bug: Claude CLI non-interactive mode doesn't respect configured tool permissions\") but specifically concerns path pattern matching.",
+  "labels": [
+    "bug",
+    "platform:windows",
+    "platform:linux",
+    "area:tools",
+    "area:api",
+    "area:security"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-05-20T12:21:04Z",
+  "updated_at": "2026-01-13T14:14:00Z",
+  "closed_at": "2026-01-05T10:23:33Z",
+  "reactions_total": 12,
+  "comments_count": 8,
+  "author": "Stef1982",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "DmacMcgreg",
+      "author_association": "NONE",
+      "body": "MCP settings are also not respected. It picks up the global settings, but does not allow passing in mcpSettings.",
+      "created_at": "2025-08-14T15:03:45Z"
+    },
+    {
+      "author": "majerr",
+      "author_association": "NONE",
+      "body": "It would be great to have some indication of whether this is even being looked at",
+      "created_at": "2025-08-15T07:31:01Z"
+    },
+    {
+      "author": "grll",
+      "author_association": "CONTRIBUTOR",
+      "body": "> It would be great to have some indication of whether this is even being looked at\n\nSpent much more time than I should have on this issue today... I find it extremely limiting to not be able to restrict the Edit tool to some file pattern in non-interactive setting. For the use case I have right now it's even a deal breaker see #6194.\n\nI am not sure I could do it through hooks because the whole point of what I want to do is to restrict Claude dynamically while using the python SDK (to let it edi",
+      "created_at": "2025-08-20T16:22:36Z"
+    }
+  ]
+}

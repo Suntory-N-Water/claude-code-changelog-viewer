@@ -1,0 +1,35 @@
+{
+  "number": 23014,
+  "title": "[BUG] TUI copy/paste includes trailing whitespace padding and ANSI escapes — Ink renderer uses space-padding instead of \\x1b[K",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n\n**Describe the bug**\nCopying text from Claude Code's TUI output includes trailing whitespace (spaces padded to full terminal width) and ANSI escape sequences (`\\x1b[7m`/`\\x1b[27m` reverse video). This makes copied code blocks unusable when pasted into SSH sessions, editors, or other terminals.\n\n**This is a design-level problem, not an edge case.**\nClaude Code is a CLI tool whose primary purpose is generating code that developers need to use. Clean copy/paste is not a nice-to-have — it is the most basic functional requirement of a code-generation tool that runs in a terminal. Every ncurses-based terminal application — nano, vim, htop, tmux — has respected the terminal contract for decades: use `\\x1b[K` (erase to end of line) for empty space, so terminals know those cells aren't content. The decision to use Ink's full-cell painting approach (filling every empty cell with actual space characters and reverse video attributes) prioritizes cosmetic TUI polish over the fundamental utility of the tool. The agent itself is excellent — but none of that matters if users can't get the code out of the terminal. A developer copying code from Claude Code into an SSH session, a file, or another terminal and getting 160 bytes of space padding and ANSI escape sequences per line is a tool that has failed at its core job. Please prioritize terminal correctness over visual styling.\n\n**Expected behavior**\nCopying text from the TUI should produce clean plaintext with no trailing whitespace or escape sequences, matching behavior of other terminal UIs (nano, htop, vim, etc.).\n\n**Root cause**\nThe Ink renderer's normal rendering path (`render()` method in cli.js, line 761) pads every screen line with actual space characters (0x20) to the terminal width, wrapped in reverse video escape sequences. ncurses-based TUIs use `\\x1b[K` (erase to end of line) which marks those cells as empty — terminals exclude empty cells from copies.\n\nThe debug rendering path (`getRenderOpsDebug()`, line 760) already handles this correctly by calling `.trimEnd()` on each line. The normal path does not.\n\n**Evidence (xxd of pasted content received over SSH)**\n```\n000000c0: 346d 7e1b 5b30 306d 2420 1b5b 376d 6e61  4m~.[00m$ .[7mna\n000000d0: 6d65 7320 3d20 5b22 416c 6963 6522 5d20  mes = [\"Alice\"]\n000000e0: 2020 2020 2020 2020 2020 2020 2020 2020\n000000f0: 2020 2020 2020 2020 2020 2020 2020 2020\n[... ~160 bytes of 0x20 space padding to terminal width ...]\n00000170: 2020 2020 2020 2020 2020 2020 2020 201b                 .\n00000180: 5b32 376d 1b5b 376d 201b 5b32 376d 1b5b  [27m.[7m .[27m.[\n```\n\nPattern per line: `\\x1b[7m` (reverse video on) → content text → space padding to terminal width → `\\x1b[27m` (reverse video off)\n\n**Only Claude Code is affected.** nano, htop, cat output, and node stdout all copy clean on the same system.\n\n**Onset behavior — this bug is not always present**\nThis is not a static configuration issue. The bug onsets unpredictably during normal use:\n- Machine 1 (MacBook Pro, macOS 15.5): Bug appeared during a working session. Persisted through reboots, cache clears, OS upgrade to 15.7.3, version rollback. No recovery possible.\n- Machine 2 (MacBook Air, macOS 15.7.3): Switched to this machine to escape the bug. Copy/paste worked perfectly for a full day (all day Monday). Then tonight, after hours of clean operation, the bug onset here too — same symptoms, same machine, no configuration changes.\n- There is nothing in the user's session history or configuration that triggers it — it happens on a fresh terminal after a reboot on a machine where it previously worked fine.\n- Once it onsets, there is no recovery path. The user is permanently locked out of clean copy/paste with no workaround.\n- This is ",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-04T08:14:13Z",
+  "updated_at": "2026-04-07T03:26:11Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 4,
+  "author": "lotto3",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "adereis",
+      "author_association": "NONE",
+      "body": "**Supplemental technical details from v2.1.34 on Linux (gnome-terminal, Fedora 42)**\n\nConfirming the same behavior on Linux — this is not macOS-specific. The issue is also tracked independently in #18170 (15+ comments, no labels, no triage).\n\nThe OP's root cause analysis of the Ink renderer is spot-on. Adding a **second source of padding** that compounds the problem — the `mI4` function in `cli.js`, which explicitly pads user-typed messages independently of the Ink screen buffer:\n\n```javascript\n",
+      "created_at": "2026-02-06T22:14:42Z"
+    },
+    {
+      "author": "mister-liss",
+      "author_association": "NONE",
+      "body": "Issue also affects windows terminal. Would love to see this fix go in.",
+      "created_at": "2026-02-20T02:38:51Z"
+    },
+    {
+      "author": "prmichaelsen",
+      "author_association": "NONE",
+      "body": "Affects me\n",
+      "created_at": "2026-03-11T16:55:53Z"
+    }
+  ]
+}

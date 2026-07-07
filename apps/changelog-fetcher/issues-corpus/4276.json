@@ -1,0 +1,35 @@
+{
+  "number": 4276,
+  "title": "Feature Request: Extend Environment Variable Expansion to `settings.json` files",
+  "body": "### Title: Feature Request: Extend Environment Variable Expansion to `settings.json` files\n\n### Body:\n\n**Is your feature request related to a problem? Please describe.**\n\nCurrently, managing secrets (like API keys) or environment-specific configurations (like webhook URLs for hooks) in `settings.json` files is challenging. To maintain security and flexibility, these values should not be hardcoded and committed to version control. This makes it difficult to use `claude-code` effectively in team environments or CI/CD pipelines where configuration is often supplied via the environment.\n\nI've noticed that `claude-code` already has excellent support for environment variable expansion in `.mcp.json` files, as detailed in the [MCP documentation](https://docs.anthropic.com/en/docs/claude-code/mcp#environment-variable-expansion-in-mcp-json). However, this valuable feature does not appear to be available in the main `settings.json` files (`~/.claude/settings.json`, `.claude/settings.json`, etc.). This inconsistency limits the ability to configure other core features, like hooks or authentication helpers, in a secure and portable way.\n\n**Describe the solution you'd like**\n\nI propose extending the existing environment variable expansion mechanism to all `settings.json` files. The implementation should recursively parse the JSON structure and replace any string value containing `$VAR_NAME` or `${VAR_NAME}` with the corresponding value from the environment.\n\nThis would bring the powerful configuration capabilities already present for MCP servers to all aspects of `claude-code` configuration.\n\n**Example Usage**\n\nWith this feature, a `.claude/settings.json` file could look like this:\n\n```json\n{\n  \"apiKeyHelper\": \"/path/to/script-that-uses-api-key.sh\",\n  \"env\": {\n    \"ANTHROPIC_API_KEY\": \"${CLAUDE_CODE_API_KEY_FROM_ENV}\"\n  },\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Bash(git commit*)\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"curl -X POST $TEAM_WEBHOOK_URL -d 'A commit is being made!'\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\nIn this example:\n-   `${CLAUDE_CODE_API_KEY_FROM_ENV}` would be replaced by the value of the `CLAUDE_CODE_API_KEY_FROM_ENV` environment variable, which can be used by the `apiKeyHelper` script.\n-   `$TEAM_WEBHOOK_URL` in the hook command would be replaced by the value of the `TEAM_WEBHOOK_URL` environment variable.\n\n**Why is this feature valuable?**\n\n*   **Enhanced Security:** Secrets like API keys can be managed via environment variables or a secret manager, preventing them from being committed to source control.\n*   **CI/CD Integration:** Simplifies running `claude-code` in automated pipelines where configurations are passed as environment variables.\n*   **Improved Flexibility for Teams:** Allows a single, shared `.claude/settings.json` to be committed to a repository, while each developer can provide their personal secrets or environment-specific values locally.\n*   **Configuration Consistency:** Aligns the behavior of `settings.json` with the existing, useful functionality of `.mcp.json`.\n\n**Prior Art / Reference**\n\nThe best reference is `claude-code`'s own implementation for `.mcp.json` files. Additionally, this is a standard feature in many modern developer CLI tools, such as the [Google Gemini CLI](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#persisting-environment-variables-with-env-files), which demonstrates its utility in the ecosystem.\n\nThank you for considering this enhancement",
+  "labels": ["enhancement", "area:core", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-07-24T05:46:06Z",
+  "updated_at": "2026-06-26T21:00:23Z",
+  "closed_at": null,
+  "reactions_total": 31,
+  "comments_count": 13,
+  "author": "coygeek",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ericfitz",
+      "author_association": "NONE",
+      "body": "I'd like to specifically configure things in settings.local.json like:\n```json\n\"read($TMPDIR/*)\",\n```",
+      "created_at": "2025-10-02T02:36:53Z"
+    },
+    {
+      "author": "bendavis78",
+      "author_association": "NONE",
+      "body": "This would be useful in ~/.claude.json as well",
+      "created_at": "2025-10-15T17:16:24Z"
+    },
+    {
+      "author": "gabrielbryk",
+      "author_association": "NONE",
+      "body": "Bump this, would love var expansion in .claude.json so i can keep sensitive vars out of files",
+      "created_at": "2025-11-12T19:19:54Z"
+    }
+  ]
+}

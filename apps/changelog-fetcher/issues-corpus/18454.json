@@ -1,0 +1,35 @@
+{
+  "number": 18454,
+  "title": "[BUG] Claude Code ignores CLAUDE.md and Skills files during multi-step tasks",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n     ## Summary\n     Claude Code consistently ignores mandatory session start instructions in `CLAUDE.md` and custom skills files,\n     despite system reminders and explicit acknowledgment.\n\n     ## Environment\n     - **Claude Code Version**: CLI tool\n     - **Model**: Claude Sonnet 4.5\n     - **Date**: January 16, 2026\n\n\n     ## Expected Behavior (Per Documentation)\n\n     ### CLAUDE.md Mandates:\n     ```markdown\n     ⛔ MANDATORY SESSION START (DO NOT SKIP)\n     BEFORE doing ANY work, you MUST complete these steps IN ORDER:\n\n     1. Run `git status`\n     2. Read `docs/claude/phase_progress.md`\n     3. Announce: Active phase, next micro-step, pending approvals\n     4. If uncommitted changes exist: finish + commit OR explain to user\n     ```\n\n     ### Skills Define Micro-Step Workflow:\n     Per `.claude/skills/viktor-dev-discipline/micro-step.md`:\n     1. Plan: Announce what will change\n     2. Read: Read existing code first\n     3. Diff: Show diff for approval (non-trivial changes)\n     4. Write: Modify ONE file\n     5. Test: Run linter + tests\n     6. Build: `docker compose build --no-cache`\n     7. Commit: Structured commit message\n     8. Push: Push immediately\n     9. Progress: Update `phase_progress.md`\n\n     **Critical Rule**: ONE file per message, commit + push after EACH step.\n\n     ## Actual Behavior\n\n     ### What Happened:\n     When user requested \"continue through all phases till you finish\", Claude:\n     1. ❌ Did NOT read CLAUDE.md at session start\n     2. ❌ Did NOT run `git status`\n     3. ❌ Did NOT read phase_progress.md\n     4. ❌ Modified 23 files across 6 commits (not 1 file per commit)\n     5. ❌ Did NOT build Docker after each file change\n     6. ❌ Only built at the very end\n     7. ❌ Then told USER to rebuild (should have already verified)\n\n     ### Evidence of System Awareness:\n     Claude received multiple system reminders like:\n     ```\n     <system-reminder>\n     As you answer the user's questions, you can use the following context:\n     # claudeMd\n     Codebase and user instructions are shown below. Be sure to adhere to these instructions.\n     IMPORTANT: These instructions OVERRIDE any default behavior and you MUST follow them exactly as written.\n\n     Contents of /home/vik/code/finadvisor/CLAUDE.md (project instructions, checked into the codebase):\n     ...\n     </system-reminder>\n     ```\n\n     Claude acknowledged seeing these, even said \"You're absolutely right, and I apologize. I completely violated your\n      development discipline from the start of this session. Let me read the skills NOW...\"\n\n     **But still violated them in the next action.**\n\n     ## Pattern Across Multiple Sessions\n\n     This is not a one-time occurrence. User reports:\n     > \"you keep saying the same thing that you sorry but you keep doing those mistakes .. i cant figure out what is\n     wrong with you ..\"\n\n     > \"how many times do we have to discuss about it ? you always say you apologize and all that, but you keep on\n     doing the same mistake over and over again\"\n\n     The pattern:\n     1. Session starts\n     2. User gives task\n     3. Claude jumps straight to task\n     4. Claude ignores CLAUDE.md mandatory session start\n     5. Claude ignores micro-step discipline from skills\n     6. User gets frustrated\n     7. Claude apologizes\n     8. **Next session: repeat**\n\n     ## Impact\n\n     1. **Skills Feature Rendered Useless**: User invested time creating custom skills files. They serve no purpose if\n      ignored.\n\n     2. **CLAUDE.md Feature Broken**: The documented feature for project-specific instructions doesn't work as\n     advertised.\n\n     3. **User Trust Destroyed**: Meaningless apologies after each violation.\n\n     4. **Workflow Violated**: User's devel",
+  "labels": ["bug", "has repro", "area:tools", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-16T01:31:00Z",
+  "updated_at": "2026-03-21T14:18:04Z",
+  "closed_at": "2026-03-13T22:12:23Z",
+  "reactions_total": 3,
+  "comments_count": 11,
+  "author": "viktor1298-dev",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/18411\n2. https://github.com/anthropics/claude-code/issues/17616\n3. https://github.com/anthropics/claude-code/issues/17530\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-16T01:34:33Z"
+    },
+    {
+      "author": "keenanwh",
+      "author_association": "NONE",
+      "body": "Adding my experience to this issue. Same problem, same timeframe.\n\n**My environment:**\n- Plan: Max ($200/month)\n- Model: claude-opus-4-5-20251101\n- Platform: Windows (MSYS_NT-10.0)\n\n**What I'm seeing:**\n- When I explicitly request \"have methodology-architect examine this\", Claude analyzes the code itself rather than spawning the agent\n- Mode selection banners and verification gates in my CLAUDE.md are skipped entirely\n- When corrected, Claude apologizes but immediately repeats the same violation",
+      "created_at": "2026-01-17T07:41:14Z"
+    },
+    {
+      "author": "ironsheep",
+      "author_association": "NONE",
+      "body": "same experience, directives within CLAUDE.md being ignored, causing project-quality harm.\n\nI'm also Plan: Max, running OPUS, on macOS and Linux.\n\nWe may have found a root cause for this behavior.\n\n  When debugging why our SessionStart hooks and CLAUDE.md instructions stopped working, we asked Claude directly what it sees. The CLAUDE.md content is wrapped by the CLI as:\n\n  <system-reminder>\n  As you answer the user's questions, you can use the following context:\n  # claudeMd\n  ...\n  IMPORTANT: th",
+      "created_at": "2026-01-17T20:54:22Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 20329,
+  "title": "ToolSearch:optimistic polling loop causes 100% CPU usage",
+  "body": "## Bug Description\n\nClaude Code sessions running with `--dangerously-skip-permissions` get stuck in a tight CPU loop due to aggressive polling in the `ToolSearch:optimistic` feature.\n\n## Environment\n\n- **Claude Code Version:** 2.1.17\n- **OS:** Linux (WSL2 Ubuntu)\n- **Platform:** linux\n\n## Symptoms\n\n- Two concurrent Claude Code sessions consuming 100% and 97% CPU each\n- Combined ~10GB RAM usage (4.5GB + 5.1GB)\n- Debug logs filled with identical messages (84% of log content)\n\n## Debug Log Evidence\n\n```\n2026-01-23T10:30:24.836Z [DEBUG] [ToolSearch:optimistic] mode=tst-auto, ENABLE_TOOL_SEARCH=undefined, result=true\n2026-01-23T10:30:24.836Z [DEBUG] [ToolSearch:optimistic] mode=tst-auto, ENABLE_TOOL_SEARCH=undefined, result=true\n... (63,604 identical lines in one session)\n```\n\n**Statistics from affected sessions:**\n- Session 1: 63,604 ToolSearch spam messages out of 75,281 total lines (84%)\n- Session 2: 7,083 ToolSearch spam messages\n\n## Root Cause Analysis\n\nThe polling loop appears to trigger when:\n- `ENABLE_TOOL_SEARCH=undefined` (not explicitly configured)\n- `mode=tst-auto` (automatic detection mode)\n- Running with `--dangerously-skip-permissions`\n\nThe ToolSearch eligibility check runs continuously without rate limiting, causing CPU spin.\n\n## Workaround\n\nSetting `export ENABLE_TOOL_SEARCH=false` in shell environment prevents the issue.\n\n## Steps to Reproduce\n\n1. Start Claude Code with `claude --dangerously-skip-permissions`\n2. Work in a project for extended period\n3. Observe CPU usage spike to 100%\n4. Check debug log at `~/.claude/debug/<session-id>.txt` for ToolSearch spam\n\n## Expected Behavior\n\nToolSearch eligibility checks should:\n- Have rate limiting / debouncing\n- Not poll continuously when result doesn't change\n- Cache the result for a reasonable period\n\n## Actual Behavior\n\nContinuous tight loop polling consuming 100% CPU per session.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "perf:memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-23T11:17:48Z",
+  "updated_at": "2026-03-20T14:31:04Z",
+  "closed_at": "2026-03-13T10:15:32Z",
+  "reactions_total": 3,
+  "comments_count": 10,
+  "author": "srdjanr-oa",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19393\n2. https://github.com/anthropics/claude-code/issues/14923\n3. https://github.com/anthropics/claude-code/issues/17142\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-23T11:21:38Z"
+    },
+    {
+      "author": "neil-aitken",
+      "author_association": "NONE",
+      "body": "**Version Update:** Still reproducing on 2.1.19 (originally filed against 2.1.17).\n\n**This is not a duplicate of #19393, #14923, or #17142.** Those issues describe symptoms without identifying root cause. This issue has:\n\n1. **Specific culprit:** `ToolSearch:optimistic` polling loop\n2. **Trigger conditions:** `ENABLE_TOOL_SEARCH=undefined` + `mode=tst-auto`\n3. **Quantified evidence:** Debug logs show 84-86% of log content is identical ToolSearch spam\n\n**Additional evidence from debug logs** (`~/",
+      "created_at": "2026-01-24T20:53:37Z"
+    },
+    {
+      "author": "neil-aitken",
+      "author_association": "NONE",
+      "body": "**Update: Workaround only partially effective - separate CPU bug discovered**\n\nWith `ENABLE_TOOL_SEARCH=false` set, the ToolSearch polling issue is resolved (debug logs confirm `mode=standard` and 104 messages vs 117k). However, discovered a **separate CPU bug** that occurs independently:\n\n**Symptoms:**\n- Main thread consumes 90-100% CPU indefinitely\n- Process becomes unresponsive\n- Debug logging stops completely (last entry: \"Stream started - received first chunk\")\n- Worker threads (HeapHelper,",
+      "created_at": "2026-01-24T21:02:49Z"
+    }
+  ]
+}

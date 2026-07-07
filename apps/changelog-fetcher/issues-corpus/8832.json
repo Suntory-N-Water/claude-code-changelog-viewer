@@ -1,0 +1,35 @@
+{
+  "number": 8832,
+  "title": "[FEATURE] Full Customizable Status Bar",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n When using specialized agents (launched via the Task tool), users cannot tell when Claude Code is operating in agent mode versus regular mode. This creates significant UX issues:\n\n  Core Problems:\n\n  1. Invisible Mode Transitions - Agents launch and complete silently with no visual indicator, leaving users confused about which system is responding\n  2. Lost Context Awareness - Users don't know if they're getting specialized agent capabilities or regular responses, leading to incorrect assumptions about answer quality and scope\n  3. Workflow Disruption - Tasks may be handled incorrectly when users assume an agent is still active but it has already completed and returned to regular mode\n  4. Manual Verification Required - Users must frequently ask \"what mode am I in?\" or infer from conversation context, breaking flow\n  5. No Session Context - Beyond basic directory and token warnings, users lack visibility into critical session state: active model, token usage progress, costs, active modes, etc.\n\n  Current State:\n  - Agent launches with no persistent UI feedback\n  - Agent completion happens silently\n  - No visual difference between agent vs regular responses\n  - Status line shows only: directory, token warning (>200K), session cost\n\n  Impact:\n  - Reduced trust in agent system\n  - Decreased productivity from context-switching confusion\n  - Missed opportunities to leverage specialized agents effectively\n  - Poor user experience compared to modern IDE status bars\n\n### Proposed Solution\n\n Proposed Solution\n\n  Add a customizable status bar system with persistent agent mode indicator as the primary feature.\n\n  Core Features:\n\n  1. Agent Mode Indicator (Primary)\n  - Persistent visual indicator showing when agent mode is active\n  - Display format: 🤖 Agent: {agent-name} in status bar\n  - Nested agent support: 🤖 parent → child → grandchild\n  - Color-coded by agent type (using existing subagent color system)\n  - Mode transition notifications with configurable verbosity\n\n  2. Expanded Status Bar Widgets\n  Beyond agent mode, create a modular widget system for comprehensive session context:\n\n  | Widget          | Purpose               | Example Display          |\n  |-----------------|-----------------------|--------------------------|\n  | 🤖 Agent Mode   | Show active agent     | 🤖 code-reviewer         |\n  | 🧠 Model        | Current Claude model  | sonnet-4.5               |\n  | 📊 Token Usage  | Visual progress bar   | [████░░] 75% (150K/200K) |\n  | 💰 Cost         | Session cost tracking | $0.0234                  |\n  | ⏱ Duration      | Session time          | 1h 23m                   |\n  | 💭 Active Modes | Special modes         | 💭 Thinking              |\n  | 🔒 Permissions  | Tool restrictions     | 🔒 Restricted            |\n  | ⎇ Git           | Branch/status         | ⎇ main ↑3                |\n\n  3. User Customization\n  # Configure via slash commands\n  /statusbar preset minimal    # Show only essentials\n  /statusbar preset verbose    # Show everything\n  /statusbar add token-usage   # Add specific widget\n  /statusbar remove cost       # Remove widget\n\n  # Or configure in settings.json\n  {\n    \"statusBar\": {\n      \"widgets\": [\"agent-mode\", \"model\", \"token-usage\", \"cost\"],\n      \"format\": \"compact\",\n      \"notifications\": {\n        \"verbosity\": \"normal\"  # quiet | normal | verbose\n      }\n    }\n  }\n\n  4. Example Status Bar Outputs\n\n  # Minimal preset\n  /project │ 🤖 general-purpose │ 45%\n\n  # Default preset\n  /project │ 🤖 Agent: code-reviewer │ 90K/200K tokens │ $0.02\n\n  # Verbose preset\n  ~/dev/project (⎇ main) │ 🤖 Agent: general-purpose (2m 34s) │ sonnet-4.5 │ [████████░░] 80% │ ⏱ 1h 23m │ 💰 $0.0234 │ 💭 Thinking\n\n  5. Mode Transition Notifi",
+  "labels": ["enhancement", "area:tui", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-03T10:31:02Z",
+  "updated_at": "2026-02-13T14:28:31Z",
+  "closed_at": "2026-02-06T10:21:47Z",
+  "reactions_total": 10,
+  "comments_count": 6,
+  "author": "ko-stack",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-07T10:13:08Z"
+    },
+    {
+      "author": "JasonPries",
+      "author_association": "NONE",
+      "body": "+1 on this feature request!\n\nI'd like to add a few specific use cases that would be addressed by this:\n\n1. **Hide built-in mode indicators** - When using a custom statusLine script, I'd like the option to hide the built-in \"accept edits on\" and \"plan mode\" text so I can replace them with my own styled indicators.\n\n2. **\"Default mode\" indicator** - When cycling through modes with Shift+Tab (Normal → Plan → Accept Edits → Normal), there's no visual indicator for \"normal/default\" mode. It would be ",
+      "created_at": "2025-12-17T21:38:45Z"
+    },
+    {
+      "author": "scttbnsn",
+      "author_association": "NONE",
+      "body": "+1 — This is the most comprehensive request covering all statusline customization needs.\n\nI created #16494 as a focused subset request, but closed it as duplicate since this issue and #6227 already cover it. Related issues for the permissions mode specifically:\n- #6227 - Expose `activePermissionMode` in JSON payload\n- #10406 - Option to hide built-in mode indicator\n\nMy use case: Custom statusline showing context %, git branch, session cost, model — want to consolidate permissions indicator into ",
+      "created_at": "2026-01-06T17:40:20Z"
+    }
+  ]
+}

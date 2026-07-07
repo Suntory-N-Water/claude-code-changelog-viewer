@@ -1,0 +1,35 @@
+{
+  "number": 6004,
+  "title": "MAJOR BUG: Claude Code Stuck in Infinite Compaction Loop Making it Basically Useless!",
+  "body": "✽ Compacting conversation… (esc to interrupt) \nand since it is wasting so much time and cycles on compacting, this happens a lot sooner that it should:  Claude usage limit reached. Your limit will reset at 12pm (America/Los_Angeles).\n\n**Issue Summary**\n\n  Claude Code v1.0.83 is stuck in an infinite loop attempting to \"compact\" the conversation,\n  preventing task completion and wasting computational resources. consequently, i am getting, \"   Approaching Opus usage limit\" and \"Approaching usage limit. resets at x pm\" a lot faster than what I am used to for the past 3 months that I have been using claude code.\n\n  **Environment**\n\n  - Claude Code Version: v1.0.83 (latest)\n  - OS: Windows 11 + WSL2 Ubuntu\n   - Session Duration: Multiple hours\n  - Task: Creating test files \n\n  **Bug Description**\n\n  Expected Behavior\n\n  Claude should:\n  1. Read the required files to understand test patterns\n  2. Identify missing test files\n  3. Create the missing test files\n  4. Complete the task\n\n  **Actual Behavior**\n\n  Claude is stuck in an infinite loop where it:\n  1. Reads the same 5 test files repeatedly:\n    - x_strategy_test.go (746 lines)\n    - y_timeseries_strategy_test.go (746 lines)\n    - z_markov_model_strategy_test.go (647 lines)\n    - w_strategy_test.go (795 lines)\n    - v_strategy_test.go (810 lines)\n  2. After reading files, attempts to \"compact\" the conversation\n  3. Returns to step 1, reading the same files again\n  4. Never progresses to actually creating the missing test files\n\n  **Pattern Observed**\n\n  Read x_strategy_test.go →\n  Read y_timeseries_strategy_test.go →\n  Read z_markov_model_strategy_test.go →\n  Read w_range_strategy_test.go →\n  Read v_flow_imbalance_strategy_test.go →\n  [Compaction attempt] →\n  [Loop restarts]\n\n  **Reproduction Steps**\n\n  1. Start a conversation about creating missing test files\n  2. Claude identifies need to read existing test files for patterns\n  3. Claude reads 5 test files successfully\n  4. Claude enters compaction loop\n  5. Loop continues indefinitely without task progress\n\n  - User Experience: User must manually interrupt and restart\n\n  **Evidence of Loop**\n\n  The conversation history shows:\n  - Same 5 files read multiple times\n  - No actual test file creation despite having all needed information\n  - Pattern recognition completed but no execution\n  - Todo list shows task as \"in_progress\" but no progress made\n\n  **Suspected Cause**\n\n  Appears to be a context management issue where:\n  1. Claude tries to compact/summarize conversation to fit context window\n  2. Compaction process loses critical task state\n  3. Claude re-reads files to \"recover\" context\n  4. Process repeats infinitely\n\n  **Workaround Attempts**\n\n  - User interrupted with: \"Please continue the conversation from where we left it off\"\n  - Claude acknowledged but resumed the same loop pattern\n\n  **Requested Fix**\n\n  1. Immediate: Break loop detection - if same files read >2 times, force task execution\n  2. Long-term: Fix compaction logic to preserve task state and progress\n  3. Safety: Add loop detection to prevent infinite patterns\n\n  **Additional Context**\n\n  - The task is straightforward: create 3 test files following established patterns\n  - All required information was successfully gathered in first read\n  - No technical blockers exist - purely a control flow issue\n  - System has sufficient context from the 5 example files\n\n  Severity: CRITICAL\n\n  This bug prevents completion of any complex multi-step task that triggers compaction, making\n  Claude Code unusable for production software development tasks.\n\n  ---\n  Recommendation: The compaction/context management system needs urgent review. When compaction\n   occurs, task state and progress markers must be preserved to prevent re-reading already\n  processed files.",
+  "labels": ["bug", "platform:windows", "area:core", "memory", "perf:memory"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-18T02:01:03Z",
+  "updated_at": "2026-02-14T14:16:43Z",
+  "closed_at": "2026-02-07T10:10:38Z",
+  "reactions_total": 7,
+  "comments_count": 18,
+  "author": "pm0code",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/2283\n2. https://github.com/anthropics/claude-code/issues/3288\n3. https://github.com/anthropics/claude-code/issues/2391\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-18T02:06:09Z"
+    },
+    {
+      "author": "pm0code",
+      "author_association": "NONE",
+      "body": "@claude:: This has become a major productivity killer. it just came back from a compact and is showing already 11%:\n=============================== Previous Conversation Compacted ===============================\n● Compact summary (ctrl+r to expand)\n  ⎿  Read internal/abc.go (776 lines)\n  ⎿  Read internal/xyz.go (633 lines)\n  ⎿  Read internal/gag.go (500 lines)\n  ⎿  Read ../../../../.claude/agents/shared/coordination_session.json (49 lines)\n  ⎿  Read internal/fhfh.go (791 lines)\n  ⎿  Todo list re",
+      "created_at": "2025-08-18T20:04:46Z"
+    },
+    {
+      "author": "cruftyoldsysadmin",
+      "author_association": "NONE",
+      "body": "Bump",
+      "created_at": "2025-08-22T11:49:46Z"
+    }
+  ]
+}

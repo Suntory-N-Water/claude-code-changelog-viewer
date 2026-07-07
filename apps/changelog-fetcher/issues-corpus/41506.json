@@ -1,0 +1,35 @@
+{
+  "number": 41506,
+  "title": "Max Plan: Token usage increased ~3-5x without any configuration change (since ~March 28-29)",
+  "body": "## Summary\n\nSince approximately March 28-29, 2026, my token consumption on the **Max plan ($100/month)** has increased dramatically — roughly **3-5x** — without any changes to my setup.\n\n## Before (working fine for months)\n- 5+ hour coding sessions possible\n- Multiple terminals in parallel\n- 30-60 minute cooldown between heavy sessions\n- Same plugins, same model, same configuration\n\n## Now (since ~March 28-29)\n- 1-2 hours in a **single terminal** → limit reached\n- ~42% of the 5-hour rolling window consumed by a moderate coding session\n- Frequent rate limit warnings\n\n## Setup (unchanged for months)\n- **Plan:** Max ($100/month)\n- **Model:** Opus 4.6 (1M context) — `claude-opus-4-6[1m]`\n- **Claude Code version:** 2.1.87\n- **OS:** Debian 12 (remote server via SSH)\n- **Plugins:** 57 enabled (unchanged)\n- **MCP Servers:** 9 configured (unchanged)\n- **Settings:** `alwaysThinkingEnabled: true`, `effortLevel: \"high\"`, `CLAUDE_CODE_MAX_OUTPUT_TOKENS: 32000`\n\n## Token Analysis (estimated for today's session)\n\nA single coding session (building a maintenance page — ~1000 lines of new code, 4 deploys, 15 back-and-forth messages) consumed approximately **42% of the 5-hour limit**.\n\nEstimated breakdown:\n| Category | Estimated Tokens |\n|----------|-----------------|\n| System context overhead per request | ~40,000 |\n| Context overhead × ~30 turns | ~1,200,000 |\n| Conversation history (growing) | ~600,000 |\n| Tool results (file reads, bash output) | ~300,000 |\n| Output (responses + code) | ~150,000 |\n| **Total** | **~2,250,000** |\n\nThe **per-request overhead** (~40k tokens) is dominated by:\n- Plugin/skill descriptions (57 plugins → ~15k tokens)\n- MCP server instructions (~5k tokens)\n- Project rules + CLAUDE.md files (~12k tokens)\n\nThis overhead existed before and was not a problem. The same configuration worked fine for months.\n\n## What changed?\n\n**Nothing on my end.** The plugin list, MCP servers, rules files, model selection, and Claude Code settings have been identical for weeks/months. The spike in consumption started around March 28-29.\n\nPossible server-side causes:\n- Change in token accounting/billing for the 1M context variant?\n- Change in rate limit calculation for Max plan?\n- Change in how system prompts / plugin descriptions are counted?\n- Claude Code update changing context management?\n\n## Expected behavior\n\nToken consumption consistent with the same setup 1 week ago — i.e., 5+ hour sessions without hitting limits after 1-2 hours.\n\n## Environment\n```\nClaude Code: 2.1.87\nModel: claude-opus-4-6[1m]\nPlan: Max ($100/month)\nOS: Debian 12\n```\n",
+  "labels": ["bug", "platform:linux", "area:cost"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-31T14:03:20Z",
+  "updated_at": "2026-06-24T20:03:14Z",
+  "closed_at": null,
+  "reactions_total": 29,
+  "comments_count": 36,
+  "author": "Commandershadow9",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/41504\n2. https://github.com/anthropics/claude-code/issues/41425\n3. https://github.com/anthropics/claude-code/issues/40790\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-31T14:07:20Z"
+    },
+    {
+      "author": "SamoraDC",
+      "author_association": "NONE",
+      "body": "Same here, exatly the same thing, that bug that almost consumed 60% of my week quota ",
+      "created_at": "2026-03-31T14:09:57Z"
+    },
+    {
+      "author": "intellia1",
+      "author_association": "NONE",
+      "body": "Same here! Exactly the same problem.",
+      "created_at": "2026-03-31T16:17:20Z"
+    }
+  ]
+}

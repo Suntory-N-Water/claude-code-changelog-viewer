@@ -1,0 +1,35 @@
+{
+  "number": 2527,
+  "title": "Claude OAuth requires dynamic client registration, making Azure AD/Entra ID integration complex",
+  "body": "  ## Issue Description:\n\n  I've been working on implementing an MCP server with OAuth 2.1 authentication using Azure Entra ID (formerly Azure AD).\n\n  ### With VS Code Desktop - Simple and Working\n\n  VS Code's implementation is straightforward:\n\n  1. MCP server provides `/.well-known/oauth-protected-resource`:\n\n  ```json\n  {\n    \"resource\": \"https://my-mcp-function.azurewebsites.net\",\n    \"authorization_servers\": [\"https://login.microsoftonline.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/v2.0\"],\n    \"bearer_methods_supported\": [\"header\"]\n  }\n```\n  2. VS Code reads this and redirects user to Azure AD login\n  3. User authenticates, VS Code receives token, sends it in Authorization header\n  4. It just works - No extra endpoints needed, uses standard Azure AD OAuth flow\n\n  With Claude Apps - Complex Workarounds Required\n\n  To make the same MCP server work with Claude (Code/Desktop/ai), I had to:\n\n  1. Implement a fake authorization server endpoint at /.well-known/oauth-authorization-server\n  2. Create a dynamic client registration endpoint at /register that returns:\n```json\n  {\n    \"client_id\": \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\",\n    \"client_name\": \"Claude Code (test)\",\n    \"redirect_uris\": [\"http://localhost:64236/callback\"],\n    \"grant_types\": [\"authorization_code\", \"refresh_token\"],\n    \"response_types\": [\"code\"],\n    \"token_endpoint_auth_method\": \"none\",\n    \"application_type\": \"native\",\n    \"scope\": \"openid profile email offline_access\"\n  }\n```\n  3. Handle the fact that Azure AD URLs need /oauth2 in the path:\n    - VS Code works with: https://login.microsoftonline.com/{tenant}/v2.0/authorize\n    - Claude needs: https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize\n  4. Deal with dynamic redirect URIs - Claude uses random ports (54212, 56619, 57411, 59306, 64236, etc.) requiring constant Azure AD app updates\n  5. Even after all this, still getting errors:\n\n  AADSTS70011: The provided request must include a 'scope' input parameter. The provided value for the input parameter 'scope' is not valid.\n\n###  The Problem\n\n  Azure AD (and many enterprise OAuth providers) don't support dynamic client registration. They require pre-registered applications with fixed redirect URIs and client IDs.\n\n  Creating fake registration endpoints and trying to proxy the OAuth flow adds significant complexity compared to VS Code's approach, and still doesn't fully work due to how Claude constructs the authorization requests.\n\n\nI believe this client oauth2 implementation is also causing github's official remote MCP server to be incompatible with Claude apps https://github.com/github/github-mcp-server/issues/549",
+  "labels": ["bug", "area:auth", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-24T11:20:20Z",
+  "updated_at": "2026-02-07T14:14:36Z",
+  "closed_at": "2026-01-30T10:15:57Z",
+  "reactions_total": 49,
+  "comments_count": 14,
+  "author": "JayDoubleu",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mculp",
+      "author_association": "NONE",
+      "body": "> I believe this client oauth2 implementation is also causing github's official remote MCP server to be incompatible with Claude apps https://github.com/github/github-mcp-server/issues/549\n\nYep, as mentioned here, Github MCP Server does not support Dynamic Client Registration\n\nhttps://github.com/github/github-mcp-server/blob/main/docs/host-integration.md#connecting-to-the-remote-github-mcp-server",
+      "created_at": "2025-06-27T18:47:29Z"
+    },
+    {
+      "author": "scthi",
+      "author_association": "NONE",
+      "body": "In my tests, Claude.ai doesn't perform the register call even if dynamic client registration is enabled. Instead, the authorize endpoint is called directly, which by default fails.",
+      "created_at": "2025-06-28T07:57:20Z"
+    },
+    {
+      "author": "jnicholls",
+      "author_association": "NONE",
+      "body": "What was the purpose of dynamic client registration for Claude (Desktop et al)? It's a very unusual requirement. Dynamic client registration ([rfc7591](https://datatracker.ietf.org/doc/html/rfc7591)) is one of those specs that I thought died out due to impracticality and low usefulness 😆 Jokes aside (it is a useful spec, but I hardly see it in practice), does Claude Code/Desktop support an initial authentication mechanism for DCR?",
+      "created_at": "2025-07-24T17:42:29Z"
+    }
+  ]
+}

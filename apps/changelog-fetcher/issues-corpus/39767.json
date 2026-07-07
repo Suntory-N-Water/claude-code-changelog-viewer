@@ -1,0 +1,35 @@
+{
+  "number": 39767,
+  "title": "HTTP 529 Overloaded errors occurring frequently on Max plan with Claude Opus 4.6",
+  "body": "## Summary\n\nFrequent `HTTP 529 Overloaded` errors occurring during active Claude Code sessions on a **Claude Max plan**, which is supposed to have priority access. This is causing significant workflow disruption.\n\n## Error Details\n\n```json\n{\n  \"type\": \"error\",\n  \"error\": {\n    \"type\": \"overloaded_error\",\n    \"message\": \"Overloaded. https://docs.claude.com/en/api/errors\"\n  },\n  \"request_id\": \"req_011CZTJ1qxC36noVwkn5tcvj\"\n}\n```\n\n**HTTP Status Code:** 529\n\n## Environment\n\n| Field | Value |\n|-------|-------|\n| Claude Code Version | 2.1.84 |\n| OS | macOS Darwin 25.3.0 (ARM64, Apple Silicon M1 Pro) |\n| Model | claude-opus-4-6 |\n| Plan | Claude Max |\n| Date | 2026-03-27 |\n| Shell | zsh |\n\n## Reproduction\n\n1. Open Claude Code on Max plan with `claude-opus-4-6` model\n2. Run a session with tool use (MCP servers, file reads, bash commands)\n3. Error occurs mid-session — no consistent repro pattern, appears random\n\n## Frequency\n\n**Very frequent** — occurring multiple times per day across different sessions. Not an isolated incident.\n\n## Impact\n\n- Interrupts active development sessions mid-flow\n- Affects productivity despite paying for Max plan priority access\n- Occurs even in sessions with moderate tool use (not just heavy parallel agent workloads)\n\n## Additional Context\n\n- Running multiple Claude Code sessions simultaneously (common workflow)\n- Using MCP servers: XcodeBuildMCP, Playwright, Figma, sequential-thinking, shadcn, Sentry, Vercel, Supabase\n- Running on Apple Silicon (M1 Pro) with macOS 15.3\n- The error has been increasing in frequency around 2026-03-26/27, potentially correlated with high server demand following the Claude Mythos/Capybara model leak news\n\n## Expected Behavior\n\nMax plan subscribers should experience **significantly reduced** overload errors compared to free/lower tiers. Priority access should buffer against server capacity constraints.\n\n## Workaround Attempted\n\n- Retry on error (transient fix)\n- Reduce parallel sessions (helps slightly)\n- `--fallback-model sonnet` is only available in `--print` mode, not interactive sessions — a settings-level fallback model config would be highly valuable\n\n## Feature Request (related)\n\nPlease consider adding a `fallbackModel` setting to `settings.json` so interactive sessions can automatically fall back to a less-loaded model (e.g., Sonnet) when Opus returns a 529, rather than failing hard. The `--fallback-model` CLI flag currently only works with `--print` mode.\n\n---\n\n**Reported by:** AMBR0SI0 via Claude Code CLI",
+  "labels": ["bug", "duplicate", "platform:macos", "external", "api:anthropic"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-27T09:00:07Z",
+  "updated_at": "2026-04-21T19:34:50Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 7,
+  "author": "AMBR0SI0",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/35517\n2. https://github.com/anthropics/claude-code/issues/35785\n3. https://github.com/anthropics/claude-code/issues/35981\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-27T09:04:28Z"
+    },
+    {
+      "author": "lemonroti",
+      "author_association": "NONE",
+      "body": "same issue here !",
+      "created_at": "2026-03-27T09:19:48Z"
+    },
+    {
+      "author": "nbros",
+      "author_association": "NONE",
+      "body": "Here we go again...",
+      "created_at": "2026-03-27T10:04:34Z"
+    }
+  ]
+}

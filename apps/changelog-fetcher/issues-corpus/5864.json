@@ -1,0 +1,35 @@
+{
+  "number": 5864,
+  "title": "[BUG] illegal hardware instruction, please compile without the AVX2 requirement",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n- Claude CLI version: `1.0.81`\n- Operating System: mac 12.7.6\n- Terminal:  iterm2\n\n## Bug Description\nClaude native install has CPU hardware instruction problem:\n```\nclaude --version\n[1]    36152 illegal hardware instruction\n```\nMacbook is Retina 15 early 2013, cpu is Intel (3635QM)\n**This CPU does NOT have AVX2 / BMI2 / FMA support**\n\n## Steps to Reproduce\n1. Use older intel macbook without AVX2 instructions\n2. Install claude code via npm\n3. Do native install, try to run, and hit error\n\n## Expected Behavior\nIt should not crash on unknown cpu instruction\n\n## Actual Behavior\nCrashes due to unknown instruction\n\n## Additional Context\nClaude code native build is not that CPU intensive, so I don't see why it would need to be compiled with AVX2 requirement. In Rust, please compile with target `RUSTFLAGS=\"-C target-cpu=x86-64\"` and this should fix it by going back to the normal baseline x86-64 instructions",
+  "labels": ["bug", "platform:macos", "area:packaging"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-15T19:11:46Z",
+  "updated_at": "2026-02-13T14:27:10Z",
+  "closed_at": "2026-01-25T10:10:00Z",
+  "reactions_total": 3,
+  "comments_count": 24,
+  "author": "diwu-sf",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "@diwu-sf can you see if this repros in version 1.0.69 ?",
+      "created_at": "2025-08-15T20:09:14Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "This should be working better in upcoming release 1.0.84 - likely rolling out Monday",
+      "created_at": "2025-08-15T23:04:24Z"
+    },
+    {
+      "author": "ant-kurt",
+      "author_association": "COLLABORATOR",
+      "body": "Hmm - can you try running v1.0.84 with env var `USE_BUILTIN_RIPGREP=0` to see if that isolates the problem?",
+      "created_at": "2025-08-19T17:45:04Z"
+    }
+  ]
+}

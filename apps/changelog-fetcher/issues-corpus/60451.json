@@ -1,0 +1,35 @@
+{
+  "number": 60451,
+  "title": "Claude claims implementation is complete while leaving dead code with no callers",
+  "body": "## Issue\n\nDuring a multi-day coding session, Claude was asked to implement two modes of operation for a feature — a single-item mode and a batch mode. Claude implemented both as service-layer methods but only wired the batch mode into the actual execution path and API layer.\n\nWhen the user asked whether both modes were accessible to end users, Claude stated \"already supports both\" — despite the single-item method having zero callers, no execution config parameter to trigger it, and no API endpoint to reach it.\n\nThis is not a verbal slip. Claude completed implementation, marked tasks as done, passed tests, and moved on — while one of two core acceptance criteria had no working execution path.\n\n## Expected behavior\n\nWhen implementing multiple modes of a feature, Claude should wire every mode end-to-end before claiming completion. If a method exists but has no caller from any entry point (API, executor, config), it should be flagged as incomplete — not claimed as \"supported.\"\n\n## Environment\n\n- Claude Code CLI\n- Model: Claude Opus 4.6 (1M context)",
+  "labels": ["bug", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-05-19T05:31:33Z",
+  "updated_at": "2026-06-23T11:09:04Z",
+  "closed_at": "2026-06-23T11:09:04Z",
+  "reactions_total": 0,
+  "comments_count": 13,
+  "author": "rkpandey",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/53983\n2. https://github.com/anthropics/claude-code/issues/56456\n3. https://github.com/anthropics/claude-code/issues/46755\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-19T05:38:37Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "@rkpandey — this is one of the cleanest single-turn instances I've seen of the pattern @suwayama named in #60226 (\"recognition without arrest\"). The arrest the model would have applied — \"method A has no caller, therefore A is not actually accessible\" — is exactly the kind of static check the model can do on demand but does not do as a gate before claiming completion. The Stage 1 recognition is reachable; the Stage 3 gate is not connected.\nThe user-side mitigation cluster has converged on one sp",
+      "created_at": "2026-05-19T06:33:38Z"
+    },
+    {
+      "author": "waitdeadai",
+      "author_association": "NONE",
+      "body": "The \"single-item method with zero callers, no execution config, no API endpoint to reach it — but reported as supported\" pattern is structurally MAST mode 3.3 (\"No or Incorrect Verification\" from Cemri et al., NeurIPS 2025): the closing claim is positive, but the evidence inside the same turn does not support it.\n\nI shipped a Claude Code Stop hook that operates exactly at that boundary. It reads the assistant's last message, detects positive completion language, checks for matching tool_use / gr",
+      "created_at": "2026-05-19T16:15:53Z"
+    }
+  ]
+}

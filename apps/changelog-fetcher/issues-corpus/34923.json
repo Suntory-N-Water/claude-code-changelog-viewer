@@ -1,0 +1,35 @@
+{
+  "number": 34923,
+  "title": "[BUG] defaultMode: bypassPermissions in settings.json has no effect — permission prompts still appear",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nSetting \"defaultMode\": \"bypassPermissions\" in both ~/.claude/settings.json and the project-level\n  .claude/settings.local.json does not suppress permission prompts. Every tool call still triggers an approval\n  prompt, and approved commands accumulate in the permissions.allow list in settings.local.json, confirming the\n   bypass is not active.\n\n  The only working solution is --dangerously-skip-permissions via CLI flag.\n\nPrompts appear on every tool call. Each approval writes the specific command to settings.local.json under\n  permissions.allow, growing the allowlist indefinitely.\n\n### What Should Happen?\n\nNo approval prompts. All tools run automatically as documented.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n  1. Set {\"defaultMode\": \"bypassPermissions\"} in ~/.claude/settings.json\n  2. Open a new terminal and start claude in any project\n  3. Observe that Bash tool calls still require approval\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n 2.1.72\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nWarp\n\n### Additional Information\n\n  The settings.local.json file is also being modified in real-time during sessions, causing race conditions\n  when Claude attempts to write to it (receiving \"file modified since last read\" errors).\n\nIt was working fine in Terminal and in Craft Agents as well.",
+  "labels": ["bug", "platform:macos", "area:core", "area:permissions", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-16T12:24:56Z",
+  "updated_at": "2026-06-01T12:09:56Z",
+  "closed_at": "2026-06-01T12:09:56Z",
+  "reactions_total": 10,
+  "comments_count": 14,
+  "author": "lillaszulyovszky",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/29026\n2. https://github.com/anthropics/claude-code/issues/32047\n3. https://github.com/anthropics/claude-code/issues/28023\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-16T12:29:09Z"
+    },
+    {
+      "author": "lillaszulyovszky",
+      "author_association": "NONE",
+      "body": "It's not resolved 👎",
+      "created_at": "2026-03-16T12:33:25Z"
+    },
+    {
+      "author": "laqzww",
+      "author_association": "NONE",
+      "body": "### Confirming on v2.1.81 — neither settings.json nor CLI flag works\n\nSame issue. Running CLI `claude --dangerously-skip-permissions` on macOS (not VS Code) — every tool call still prompts.\n\n**Confirming the settings.local.json accumulation behavior:** approved commands pile up in `.claude/settings.local.json` under `permissions.allow`, proving bypass mode is not active. This matches your description exactly.\n\n**Additional finding:** having *any* `permissions.allow` rules in project-level `.clau",
+      "created_at": "2026-03-21T13:15:31Z"
+    }
+  ]
+}

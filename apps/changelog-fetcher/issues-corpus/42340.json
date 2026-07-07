@@ -1,0 +1,35 @@
+{
+  "number": 42340,
+  "title": "Terminal scrollback wiped during session (alternate screen buffer cleared on redraw)",
+  "body": "## Description\n\nTerminal scrollback gets completely wiped mid-session, losing all previous output. The screen clears and only shows the Claude Code banner + greeting as if the session just started. This happens multiple times within a single session, sometimes close together.\n\n## Environment\n\n- **Claude Code version:** v2.1.90\n- **Model:** Opus 4.6 (1M context) with Claude Max\n- **Terminal:** macOS Terminal.app, 130x37+\n- **OS:** macOS 26.x (Darwin 25.4.0)\n- **Shell:** zsh\n\n## Reproduction\n\n1. Start a Claude Code session\n2. Run several tool-heavy operations (SSH commands, parallel Agent calls, long markdown table output)\n3. After some time (varies — sometimes 10-12 minutes), the entire terminal output is cleared\n4. Only the Claude Code banner, the greeting line, and the latest prompt remain visible\n5. All previous output (tool results, tables, analysis) is gone from scrollback\n\n## Observed behavior\n\n- Screen wipes happen at unpredictable intervals, sometimes twice in quick succession\n- Context usage at time of wipe is low (~12% of usable context, ~20K tokens) — not near autocompact threshold\n- The session continues working normally after the wipe — only the terminal display is affected\n- The conversation context is preserved (Claude remembers prior exchanges), but the user can't scroll back to see previous output\n\n## Expected behavior\n\nTerminal scrollback should be preserved throughout the session. If Claude Code needs to redraw its UI (autocompact, context management), it should not clear the alternate screen buffer's scrollback.\n\n## Investigation done\n\nChecked all custom hooks — none write terminal-clearing escape sequences:\n- `set-terminal-title.sh` (SessionStart) — writes OSC title sequence to TTY, no screen clear\n- `gsd-context-monitor.js` (PostToolUse) — JSON stdout only\n- `gsd-statusline.js` — JSON stdout only  \n- `format-on-edit.sh` (PostToolUse) — runs formatters silently\n- Custom `statusline.sh` — ANSI color codes via stdout only\n\nThe issue appears to be Claude Code's internal rendering/redraw logic clearing the alternate screen buffer.\n\n## Screenshots\n\nTwo consecutive screen wipes during a single session — first showing 8K tokens consumed, second showing 20.2K tokens. Both times the screen was wiped clean to just the banner + greeting.\n\n## Workaround\n\nRunning inside `tmux` preserves scrollback independent of Claude Code's buffer management.",
+  "labels": ["bug", "duplicate", "platform:macos", "area:tui"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-04-02T01:51:38Z",
+  "updated_at": "2026-04-25T14:33:11Z",
+  "closed_at": "2026-04-17T16:50:24Z",
+  "reactions_total": 15,
+  "comments_count": 8,
+  "author": "civillizard",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Houtamelo",
+      "author_association": "NONE",
+      "body": "Confirming same behavior on Linux/kitty.\n\n- **Claude Code:** v2.1.90\n- **Terminal:** kitty 0.32.2\n- **OS:** Linux 6.8.0-90-lowlatency (Ubuntu)\n- **Shell:** zsh\n- Not running inside tmux/zellij/screen\n\nScrollback truncates to ~200 lines at unpredictable intervals. `ctrl+shift+h` (kitty's scrollback pager) also shows no additional history, confirming the buffer is genuinely cleared — not a scroll interception issue.\n\nNo custom `scrollback_lines` set (kitty default is 2000), and this was not happen",
+      "created_at": "2026-04-02T01:53:49Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/41965\n2. https://github.com/anthropics/claude-code/issues/41968\n3. https://github.com/anthropics/claude-code/issues/42199\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-02T01:54:40Z"
+    },
+    {
+      "author": "bigwolfeman",
+      "author_association": "NONE",
+      "body": "this is so annoying, it was mostly fine before 2.1.90",
+      "created_at": "2026-04-02T03:17:56Z"
+    }
+  ]
+}

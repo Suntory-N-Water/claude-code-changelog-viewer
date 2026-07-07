@@ -1,0 +1,35 @@
+{
+  "number": 17941,
+  "title": "[BUG] Claude Code for VS Code Extension SIGABRT on ARM64 with 64KB Page Size (Remote SSH)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe Claude Code VS Code extension (in remote SSH) crashes with SIGABRT (exit code 134) on ARM64 systems using 64KB kernel page size.\n\n\n### What Should Happen?\n\nClaude Code vscode extension should run on remote ssh or tunnels but it does not. In other words, extension should work on ARM64 systems regardless of kernel page size.\n\n### Error Messages/Logs\n\n```shell\n$ ~/.vscode-server/extensions/anthropic.claude-code-2.1.6-linux-arm64/resources/native-binary/claude --version\nAborted (core dumped)\n$ echo $?\n134\n\n\nExit code 134 = 128 + 6 (SIGABRT)\n```\n\n### Steps to Reproduce\n\n- Install Claude Code extension on VS Code Remote-SSH to an ARM64 server with 64KB page size\n- Extension fails to start with \"Not connected\" errors\n\n## Probable Cause\n\nThe native binary was compiled for standard 4KB page size:\n\n```\n$ file .../native-binary/claude\nELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), dynamically linked, \ninterpreter /lib/ld-linux-aarch64.so.1, for GNU/Linux 3.7.0, ...\n\n$ getconf PAGESIZE\n65536\n```\n\nBinaries compiled with 4KB page alignment are incompatible with 64KB page kernels on ARM64.\n\n\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.6\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-13T14:17:32Z",
+  "updated_at": "2026-05-24T10:38:56Z",
+  "closed_at": "2026-05-24T10:38:56Z",
+  "reactions_total": 0,
+  "comments_count": 12,
+  "author": "hmehrafarin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "wael-mika",
+      "author_association": "NONE",
+      "body": "The same issue",
+      "created_at": "2026-01-13T15:01:19Z"
+    },
+    {
+      "author": "LorenzoTarricone",
+      "author_association": "NONE",
+      "body": "I have the same issue!!",
+      "created_at": "2026-01-13T19:00:44Z"
+    },
+    {
+      "author": "hmehrafarin",
+      "author_association": "NONE",
+      "body": "Any stats on this?",
+      "created_at": "2026-01-16T11:32:22Z"
+    }
+  ]
+}

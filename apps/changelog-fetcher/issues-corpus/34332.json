@@ -1,0 +1,35 @@
+{
+  "number": 34332,
+  "title": "Opus 4.6 (1M context): autocompact triggers at ~76K tokens — 92% of context window wasted",
+  "body": "## Summary\n\nClaude Code's automatic context compaction fires at approximately 76K tokens even when using Opus 4.6 with a 1M context window. This discards valuable conversation history with 924K tokens of headroom remaining (92% unused). This is a regression compared to 200K model behavior.\n\n## Environment\n\n- Claude Code CLI (latest)\n- Model: Opus 4.6 (1M context) — confirmed via `/model` command\n- macOS Darwin 24.6.0, zsh\n\n## What happened\n\n1. Started a session on Opus 4.6 (1M context window)\n2. Had a rich multi-step conversation: RFP analysis, 4 research subagents, design spec, 2 council review subagents, code review subagent, implementation, testing, 2 production deploys\n3. At approximately 76,144 input tokens (**7.6%** of 1M), Claude Code automatically compacted/compressed earlier messages\n4. Lost the entire first half of the conversation — detailed analysis, research findings, and design decisions that were actively being referenced\n5. Our context monitoring script confirmed actual usage at session end: `138,280 / 1,000,000 tokens = 13.8%`\n\n## The problem\n\nThe autocompact threshold appears to use a hardcoded absolute token count calibrated for 200K windows, regardless of the model's actual context window size.\n\n| Window | Compaction at 76K | Headroom wasted |\n|--------|------------------|-----------------|\n| 200K | 38% — aggressive but defensible | 124K |\n| **1M** | **7.6% — absurd** | **924K** |\n\nThis means the 1M upgrade actively provides **worse** conversation retention than 200K — same compaction trigger, 5x the wasted headroom. The entire value proposition of the larger context window is negated.\n\n## Expected behavior\n\nThe compaction threshold should scale proportionally with the model's context window:\n- On 200K: compact at ~140K-170K (70-85%)\n- On 1M: compact at ~700K-850K (70-85%)\n\nOr alternatively:\n- Expose `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` as a documented, first-class setting (not just an undocumented env var)\n- Default it to something reasonable like 80% of the detected window\n\n## Workaround found\n\nSetting `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=95` in the shell profile appears to control this behavior. However:\n- This env var is undocumented (found via Claude Chat suggestion)\n- It's unclear if it works as a percentage of the actual context window or of a hardcoded limit\n- Users paying for 1M context shouldn't need to discover undocumented env vars to get the behavior they're paying for\n\n## Evidence\n\n```\n# Our monitoring script output (after fixing its own hardcoded 200K bug):\nModel:              claude-opus-4-6  \nContext window:     1,000,000 tokens\nTotal input context: 138,280 / 1,000,000 tokens\nUSAGE: 13.8% | REMAINING: 86.2% | HEALTHY\n\n# Yet messages from the first ~45 minutes of the session were already\n# compacted — silently, with no warning, at 7.6% context usage\n```\n\n## Impact\n\n- Critical conversation context silently destroyed mid-session\n- No warning before compaction, no opt-out mechanism\n- Complex multi-step work (research → design → council review → implementation) loses its reasoning chain\n- Users who upgraded specifically for 1M context get worse behavior than 200K\n- Our context monitoring hook (which runs every 10 tool calls) also had a hardcoded 200K limit and never warned us — suggesting this is a systemic assumption throughout the codebase",
+  "labels": ["bug", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-14T11:12:08Z",
+  "updated_at": "2026-06-04T05:04:02Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 7,
+  "author": "mackmother",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "I've been tracking context usage across 471+ sessions with a context monitoring tool and can confirm the threshold behavior you're describing.\n\n## What I've observed\n\nOn 200K context, autocompact triggers around 150K tokens (~75%). The issue is that on 1M, the threshold doesn't scale — it still uses an absolute token count rather than a percentage of the window.\n\n## Workaround: manual compact with monitoring\n\nUntil this is fixed, you can prevent premature autocompact by running `/compact` manual",
+      "created_at": "2026-03-14T15:08:10Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "We built and open-sourced [cozempic](https://github.com/Ruya-AI/cozempic) which prevents premature compaction — it runs a guard daemon that soft-prunes bloat at a configurable threshold (default 45% of context window) so you never burn compaction budget unnecessarily. Token thresholds auto-scale for 1M context. Feedback welcome.",
+      "created_at": "2026-03-22T21:26:41Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "This is Cozempic's core thesis. The JSONL session file accumulates a lot of token-heavy noise — tool output envelopes, progress bar ticks, repeated file reads, thinking blocks — that inflates the apparent token count without adding useful context. So autocompact fires at 76K when the meaningful content might be 20K.\n\nWe built **[Cozempic](https://github.com/Ruya-AI/cozempic)** to prune exactly this noise out of the JSONL. After treatment a session that was showing 76K often drops to 15-25K of re",
+      "created_at": "2026-03-26T22:34:24Z"
+    }
+  ]
+}

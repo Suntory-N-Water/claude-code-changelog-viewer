@@ -1,0 +1,21 @@
+{
+  "number": 38299,
+  "title": "[FEATURE] Permission hook or API for remote/programmatic approval of tool use prompts",
+  "body": "## Summary\n\nWhen Claude Code runs inside a PTY (e.g., via `node-pty` in a web-based terminal dashboard), there is no programmatic way to respond to permission prompts. This blocks building remote approval workflows such as mobile app approval, CI/CD pipelines, or team-based authorization.\n\n## Problem\n\nClaude Code's permission prompt (\"Do you want to proceed? 1. Yes 2. Yes 3. No\") cannot be answered via `pty.write()`. Characters written to the PTY stdin appear in the terminal output but are not consumed by the permission handler. This has been tested with:\n\n- `pty.write('1')` — character echoes to terminal but prompt ignores it\n- `pty.write('3\\r')` — same result with carriage return\n- `pyautogui.hotkey('3')` via Windows SendInput API — keystroke not captured\n- Direct HTTP API → `sendToSession()` → `session.pty.write()` — same behavior\n\nThe permission prompt appears to read input through a mechanism that bypasses normal PTY stdin, making it impossible for any external process to respond.\n\n## Use Case\n\nI'm building [PAN](https://tereseus.github.io/PAN/) — a personal AI operating system with an Android app, web dashboard, and Node.js server. Claude Code runs in PTY sessions served via WebSocket to a browser-based xterm.js terminal.\n\nWhen Claude needs permission approval, I want to:\n1. Detect the permission prompt (working — via PTY output pattern matching)\n2. Send a push notification to the user's phone (working — Android notification with Allow/Deny buttons)\n3. Authenticate via biometric (fingerprint) on the phone for security\n4. Send the approval back to Claude Code (broken — no method works)\n\nThis would be **more secure** than the current keyboard-only approach since it adds biometric authentication as a factor.\n\n## Proposed Solutions (any of these would work)\n\n1. **Permission hook** — A `PermissionRequest` hook event that fires when Claude Code needs approval, with a response mechanism (HTTP callback, file-based, or stdin)\n2. **Permission API endpoint** — If `claude serve` (#37211) is implemented, include a `/permissions` endpoint to list pending prompts and respond to them\n3. **Fix PTY stdin handling** — Make the permission prompt read from normal PTY stdin so `pty.write()` works like keyboard input\n4. **CLI flag** — Something like `claude --approve-via=http://localhost:7777/approve` that delegates permission decisions to an external service\n\n## Environment\n\n- Windows 11, Claude Code CLI (Max subscription)\n- PTY via node-pty 1.1.0, terminal via xterm.js 5.5.0\n- Also tested with pyautogui SendInput (OS-level keystroke injection)\n\n---\nBuilt with [PAN](https://tereseus.github.io/PAN/) — Personal AI Network",
+  "labels": [
+    "enhancement",
+    "platform:windows",
+    "area:hooks",
+    "area:permissions"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-24T15:40:20Z",
+  "updated_at": "2026-04-01T14:51:06Z",
+  "closed_at": "2026-03-25T12:07:36Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "Tereseus",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

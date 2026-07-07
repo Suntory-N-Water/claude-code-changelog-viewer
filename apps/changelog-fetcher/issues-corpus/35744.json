@@ -1,0 +1,35 @@
+{
+  "number": 35744,
+  "title": "[FEATURE] Auto-continue after subscription rate limit resets",
+  "body": "## Problem\n\nWhen Claude Code hits the subscription usage limit (\"5-hour limit reached - resets 3pm\"), the session pauses and the user must manually wait and type \"continue\" to resume. For long-running tasks (overnight work, AFK coding), this kills productivity.\n\nThis has been reported multiple times:\n- #13354 (41+ upvotes, primary tracking issue)\n- #26789 (closed as dup)\n- #18980 (closed as dup)\n- #28484 (better \"stop and wait\" behavior)\n- #5977 (context loss after usage limit)\n\n## Community Solution\n\nI built an open-source tool that solves this today:\n\n```bash\nnpm i -g claude-auto-retry\nclaude-auto-retry install\n```\n\n**How it works:** Intercepts the `claude` command transparently via a shell function, monitors the tmux pane for rate limit messages, waits for the reset time (timezone-aware), and sends \"continue\" automatically via `tmux send-keys`.\n\n- Zero dependencies, zero workflow change\n- Works with and without tmux (auto-creates session if needed)\n- Verifies Claude is still the foreground process before sending keys\n- Supports `--print` mode (buffers + retries for piped usage)\n- 59 tests, MIT licensed\n\n**Repo:** https://github.com/cheapestinference/claude-auto-retry\n**npm:** https://www.npmjs.com/package/claude-auto-retry\n\n## Suggested Native Fix\n\nWhile the community tool works, this behavior should be built directly into Claude Code:\n\n1. When rate limit is hit, show the reset time (already done)\n2. Add an **\"Auto-continue when limit resets\"** option to `/rate-limit-options`\n3. Claude Code sleeps internally until the reset time + margin\n4. Automatically resumes the conversation — no tmux, no wrapper, no external tool\n\nThis would be a much cleaner UX since Claude Code already knows the reset time from the API response and can handle the retry internally without needing terminal monitoring.\n\n## Environment\n\n- Claude Code 2.1.x\n- Anthropic Pro/Max subscription\n- All platforms (Linux, macOS)",
+  "labels": ["duplicate", "enhancement", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-18T11:02:36Z",
+  "updated_at": "2026-06-28T11:28:40Z",
+  "closed_at": null,
+  "reactions_total": 53,
+  "comments_count": 9,
+  "author": "cheapestinference",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "kachebb",
+      "author_association": "NONE",
+      "body": "I have a workaround by scheduling claude to resume the session and continue at the limit reset time.  \n\nThe solution is described at \nhttps://gist.github.com/kachebb/307c8faa101ff980ac0013c465870b1c\n\nHopefully it helps!",
+      "created_at": "2026-03-30T08:25:46Z"
+    },
+    {
+      "author": "dsecareanu",
+      "author_association": "NONE",
+      "body": "What do you want to do?\n\n❯ 1. Stop and wait for limit to reset\n2. Add funds to continue with extra usage  \n3. Upgrade your plan\n  \nEnter to confirm · Esc to cancel\n\nReplace option 1 with 2, 2 with 3, and add an option 3 to resume once the rate limit has expired (which could be automatically triggered to solve the issue raised by multiple other users).",
+      "created_at": "2026-03-30T10:08:24Z"
+    },
+    {
+      "author": "cheapestinference",
+      "author_association": "NONE",
+      "body": "Yep that would be perfect\r\n\r\nEl El lun, 30 mar 2026 a las 12:08, Daniel Secareanu <\r\n***@***.***> escribió:\r\n\r\n> *dsecareanu* left a comment (anthropics/claude-code#35744)\r\n> <https://github.com/anthropics/claude-code/issues/35744#issuecomment-4153822787>\r\n>\r\n> What do you want to do?\r\n>\r\n> ❯ 1. Stop and wait for limit to reset\r\n> 2. Add funds to continue with extra usage\r\n> 3. Upgrade your plan\r\n>\r\n> Enter to confirm · Esc to cancel\r\n>\r\n> Replace option 1 with 2, 2 with 3, and add an option 3 t",
+      "created_at": "2026-03-30T10:34:45Z"
+    }
+  ]
+}

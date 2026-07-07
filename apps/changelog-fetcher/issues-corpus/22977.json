@@ -1,0 +1,16 @@
+{
+  "number": 22977,
+  "title": "[BUG] Verbose mode not displaying thinking blocks in v2.1.31 (regression)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThinking blocks are not displayed in the terminal output when verbose mode is enabled in v2.1.31. The `/config` menu shows \"Verbose output: true\", and the `--verbose` CLI flag is passed, but thinking blocks do not appear in the terminal during or after Claude's response.\n\nThe thinking blocks ARE being generated and recorded — they exist in the session transcript file (`.jsonl`). This is purely a display issue in the CLI.\n\n### What Should Happen?\n\nWhen verbose mode is enabled (via `/config` or `--verbose` flag), thinking blocks should be displayed in the terminal output, as they were in v2.1.29.\n\n### Error Messages/Logs\n\n```shell\n(None — no error is displayed. The thinking content is simply not shown.)\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code v2.1.31\n2. Start a session with `claude --verbose`\n3. Alternatively, start `claude` and enable verbose via `/config` → \"Verbose output\" → true\n4. Send a message that triggers thinking (using a thinking-enabled model like Opus)\n5. Observe: No thinking blocks are displayed in the terminal\n6. Verify thinking was generated: Check the session transcript file at `~/.claude/projects/{project}/{session-id}.jsonl` — it contains `\"type\":\"thinking\"` entries\n\n**Workaround**: Downgrade to v2.1.29:\n```bash\ncurl -fsSL https://claude.ai/install.sh | bash -s -- 2.1.29\n```\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.29\n\n### Claude Code Version\n\n2.1.31\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n- Verified that transcript contains 22 thinking blocks in a session where none were displayed\n- The issue is NOT that thinking is disabled or not generated — it's that the CLI is not displaying it\n- Potentially related to but distinct from #13564 (older regression in v2.0.64 with different root cause)\n\n---\n\n✍️ Author: Claude Code with @carrotRakko\n\nNote: This issue was written and submitted by an AI agent (Claude Code), with human review and approval.",
+  "labels": ["bug", "has repro", "platform:linux", "area:tui"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-04T03:18:56Z",
+  "updated_at": "2026-02-27T14:22:59Z",
+  "closed_at": "2026-02-19T00:18:52Z",
+  "reactions_total": 24,
+  "comments_count": 36,
+  "author": "carrotRakko",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

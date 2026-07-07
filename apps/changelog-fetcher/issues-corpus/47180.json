@@ -1,0 +1,35 @@
+{
+  "number": 47180,
+  "title": "[BUG] Cowork scheduled tasks ignore \"Always allow\" folder/tool permissions — prompts reappear every run (macOS)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nCowork scheduled tasks repeatedly prompt for folder/tool permissions on every run, even after selecting \"Always allow.\" The permission does not persist between scheduled task sessions.\n\n**Context:**\nI have 6 scheduled tasks in Cowork (price checkers on Amazon.sa, a market crash scanner, and a Gmail action items task). All tasks post results to Slack via the Slack MCP connector. Every time a scheduled task runs, it re-prompts for folder access and tool permissions, even though I have previously selected \"Always allow.\"\n\n**What I tried (none of these resolved the issue):**\n1. Clicking \"Always allow\" on every permission prompt during manual \"Run now\" — permissions do not persist to the next scheduled run.\n2. Creating `~/.claude/settings.json` with explicit allow rules:\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"WebSearch(*)\",\n      \"WebFetch(*)\",\n      \"Read\",\n      \"Write\",\n      \"Edit\",\n      \"Glob\",\n      \"Grep\",\n      \"Bash(curl:*)\",\n      \"Bash(ls:*)\",\n      \"Bash(cat:*)\",\n      \"Bash(mkdir:*)\",\n      \"mcp__slack__*\",\n      \"mcp__gmail__*\"\n    ]\n  }\n}\n```\n3. Restarting Claude Desktop after applying settings — still prompts on every scheduled run.\n\n**Related closed issue:** #40470 was filed for the same problem and is now closed, but the issue persists on macOS. Issue #30356 (Chrome browser permissions) and #33027 (\"Always allow\" missing from scheduled task prompts) also describe the same underlying problem.\n\n**Environment:**\n- macOS (Mac Mini)\n- Claude Desktop (latest version as of April 2026)\n- Claude Cowork with scheduled tasks\n- Connected MCPs: Slack, Gmail\n- Plan: Paid plan (Pro/Max)\n\n### What Should Happen?\n\nScheduled tasks should respect the user's \"Always allow\" permission selections and ~/.claude/settings.json allow rules. Once a user grants \"Always allow\" for a tool or folder, subsequent scheduled runs should execute without re-prompting.\n\nThe scheduled task runner should inherit the account's permission settings (including defaultMode and allow rules), enabling unattended automation — which is the entire purpose of scheduled tasks.\n\n### Error Messages/Logs\n\n```shell\nNo specific error message — the issue is behavioral. Each scheduled task run displays permission prompts such as:\n\n\"Allow Claude to access [folder path]?\"\n\"Allow Claude to use [tool name]?\"\n\nThese prompts appear on every run despite previously selecting \"Always allow.\" The task stalls until the user manually clicks \"Allow,\" defeating the purpose of scheduled automation.\n```\n\n### Steps to Reproduce\n\n1. Create a scheduled task in Cowork (e.g., a daily price checker that uses WebSearch, WebFetch, and posts to Slack via the Slack MCP connector).\n2. Run the task manually using \"Run now.\"\n3. When permission prompts appear, select \"Always allow\" for each one.\n4. Wait for the next scheduled run (or click \"Run now\" again).\n5. Observe that the same permission prompts reappear, despite having selected \"Always allow\" previously.\n\nAdditional attempt:\n6. Create ~/.claude/settings.json with explicit allow rules (WebSearch, WebFetch, Read, Write, mcp__slack__*, mcp__gmail__*, etc.).\n7. Restart Claude Desktop.\n8. Run the scheduled task again — permission prompts still appear.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude 1.1617.0 (8d6345) 2026-04-09T16:10:15.000Z\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n**Related issues (all describe the same underlying problem):**\n- #40470 — Scheduled tasks prompt for permissions despite bypassPermissions defaultMode set in settings.json (now closed, but issue persist",
+  "labels": ["bug", "area:cowork", "area:permissions"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-13T03:08:28Z",
+  "updated_at": "2026-07-06T03:08:43Z",
+  "closed_at": null,
+  "reactions_total": 31,
+  "comments_count": 25,
+  "author": "aabajabaa",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/40470\n2. https://github.com/anthropics/claude-code/issues/33027\n3. https://github.com/anthropics/claude-code/issues/24433\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-13T03:13:58Z"
+    },
+    {
+      "author": "nic-astro",
+      "author_association": "NONE",
+      "body": "**Adding a specific reproduction detail:** When a scheduled task with `permissionMode: \"bypassPermissions\"` prompts for an MCP tool permission and the user clicks \"Allow,\" the desktop app adds an `approvedPermissions` array to that task's entry in `scheduled-tasks.json`. For example:\n\n```json\n{\n  \"id\": \"slack-nic-bot\",\n  \"permissionMode\": \"bypassPermissions\",\n  \"approvedPermissions\": [\n    { \"toolName\": \"mcp__4bfcea91-87e6-4e2c-bf15-15cefb3f481f__slack_send_message\" },\n    { \"toolName\": \"mcp__4b",
+      "created_at": "2026-04-13T22:33:15Z"
+    },
+    {
+      "author": "marceloweuller",
+      "author_association": "NONE",
+      "body": "+1 — this is a major blocker for my workflow.\n\nI have a custom Cowork skill that automates image generation on Freepik Pikaso for YouTube video production. Because of context window limits, the skill is designed to generate 10 images per session, then automatically create a scheduled task (via `mcp__scheduled-tasks__create_scheduled_task`) to continue from where it left off 15 seconds later — using a checkpoint JSON file to track progress.\n\nThe idea is fully autonomous batch processing: generate",
+      "created_at": "2026-04-15T15:15:31Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 2305,
+  "title": "[FEATURE REQUEST] Allow Claude Code to access gitignored files",
+  "body": "## Current Behavior\nClaude Code currently respects `.gitignore` files and excludes gitignored files from:\n- `@`-mention autocomplete suggestions\n- General file awareness and reading (unless explicitly requested)\n\n## Problem Description\nThis behavior creates friction for local development workflows where users want to:\n- Keep certain files out of version control (private notes, local configs, etc.)\n- Still have Claude Code access these files for development assistance\n- Avoid committing sensitive or personal files to public repositories\n\n### Use Case Example\nI maintain a local `tasks/` folder with markdown files containing project notes and TODOs. These files are:\n- Gitignored to keep them out of the public repository\n- Useful for Claude Code to reference when providing development assistance\n- Currently inaccessible via `@`-mentions, making the workflow cumbersome\n\n## Proposed Solution\nIntroduce a `.claudeignore` file that works similarly to `.gitignore` but specifically controls Claude Code's file awareness:\n\n- **Override gitignore**: Allow patterns like `!tasks/` to make gitignored files visible to Claude Code\n- **Additional exclusions**: Support standard ignore patterns to exclude files from Claude Code even if they're tracked by git\n- **Precedence**: `.claudeignore` rules should take precedence over `.gitignore` for Claude Code's file handling\n\n### Example `.claudeignore` configuration:\n```\n# Make tasks folder visible to Claude Code despite being gitignored\n!tasks/\n\n# Exclude specific files from Claude Code even if tracked by git\n*.log\ntemp/\n```\n\n## Alternative Solutions\n1. **Command-line flag**: `--include-gitignored` to override gitignore behavior globally\n2. **Config file option**: Setting in Claude Code's configuration to control gitignore respect\n3. **Environment variable**: `CLAUDE_RESPECT_GITIGNORE=false` for session-based control\n\n## Benefits\n- Maintains security by keeping sensitive files out of version control\n- Improves local development experience with Claude Code\n- Provides granular control over file visibility\n- Follows familiar patterns (similar to `.gitignore` syntax)\n\n## Impact\nThis would significantly improve the local development workflow for users who need to reference private/local files while keeping them out of version control.",
+  "labels": ["enhancement", "area:tools", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-19T09:42:33Z",
+  "updated_at": "2025-08-13T14:08:13Z",
+  "closed_at": "2025-07-31T07:04:31Z",
+  "reactions_total": 62,
+  "comments_count": 35,
+  "author": "npupko",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ollie-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "Hey all, hidden files should be available now for searching in the latest release (v1.0.64) :) \n\n<img width=\"229\" height=\"67\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/34f84fa4-e217-427e-a186-d3717148b9eb\" />",
+      "created_at": "2025-07-31T07:04:31Z"
+    },
+    {
+      "author": "hesreallyhim",
+      "author_association": "NONE",
+      "body": "Please let me know if you disagree, but it also ignores **all dot-files**, even if they are git-committed.",
+      "created_at": "2025-06-19T19:08:52Z"
+    },
+    {
+      "author": "vladrpmd",
+      "author_association": "NONE",
+      "body": "This is strange. I was able to instruct claude to modify.env and.env.local files which are git ignored ",
+      "created_at": "2025-06-20T05:21:13Z"
+    }
+  ]
+}

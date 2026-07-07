@@ -1,0 +1,35 @@
+{
+  "number": 36060,
+  "title": "[BUG] claude.ai MCP integrations   (Gmail, Google Calendar) not available in -p mode or --resume sessions since v2.1.79",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nCloud-managed claude.ai MCP integrations (Gmail, Google Calendar) are no longer available as tools when running\n   Claude Code in non-interactive mode (-p, --print, or --resume sessions). They work correctly in interactive\n  mode.                                       \n                                                                                                                 \n  claude mcp list shows them as connected, and they execute successfully in interactive mode, but claude -p\n  cannot see or use them. Other OAuth-based MCPs added via plugins (Notion, Supabase) work fine in both modes —  \n  the only difference is that plugin MCPs have local config in the plugin cache, while claude.ai MCPs are purely\n  cloud-managed with no local config file.  \n\n### What Should Happen?\n\nclaude.ai MCP tools should be available in -p / non-interactive mode, just as they are in interactive mode, and\n   just as plugin MCPs (Notion, Supabase) are.\n\n### Error Messages/Logs\n\n```shell\nNo error — the tools simply don't appear. Claude reports \"I don't have any Gmail tools available\" when asked in\n   -p mode, while the same query in interactive mode returns and executes the tools successfully.\n```\n\n### Steps to Reproduce\n\n1. Have claude.ai Gmail and/or Google Calendar MCPs connected (visible and working in /mcp in interactive mode)\n  2. Verify they work interactively: open claude, ask to list calendar events — works fine\n  3. Run: claude -p \"Do you have access to Gmail tools? List any mcp tools with gmail in the name.\"\n  4. Claude reports no Gmail tools available                                                                     \n  5. Compare with plugin MCPs: claude -p \"list your Notion tools\" — these appear correctly\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n Not sure of the exact version — it was working before v2.1.79 was installed on March 19, 2026.\n\n### Claude Code Version\n\n  2.1.79 \n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-19T05:39:45Z",
+  "updated_at": "2026-04-03T14:29:48Z",
+  "closed_at": "2026-03-26T19:37:28Z",
+  "reactions_total": 10,
+  "comments_count": 13,
+  "author": "guibonaccorsi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/26364\n2. https://github.com/anthropics/claude-code/issues/27647\n3. https://github.com/anthropics/claude-code/issues/29345\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-19T05:44:17Z"
+    },
+    {
+      "author": "guibonaccorsi",
+      "author_association": "NONE",
+      "body": "Not a duplicate, the referenced issues are older, and the previous version (2.1.78) which is from after those issues, had this working. The problem started with 2.1.79 -> i downgraded to 2.1.78 and confirmed it works",
+      "created_at": "2026-03-19T05:56:51Z"
+    },
+    {
+      "author": "zhiqiang-zz",
+      "author_association": "NONE",
+      "body": "+1 for this, it's a regression",
+      "created_at": "2026-03-20T00:49:24Z"
+    }
+  ]
+}

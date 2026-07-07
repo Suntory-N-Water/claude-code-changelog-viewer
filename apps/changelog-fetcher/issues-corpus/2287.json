@@ -1,0 +1,22 @@
+{
+  "number": 2287,
+  "title": "[BUG] Non-interactive mode able to use tools including Bash and WebSearch without permissions",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [x] Other: Anthropic Subscription\n- Claude CLI version: 1.0.29\n- Operating System: macOS 15.5, Fedora 42, Ubuntu docker container\n- Terminal: ghostty, vscode integrated terminal\n\n## Bug Description\nWhen run non-interactively (`-p`) claude code is able to use tools like Bash and WebSearch even through they are not allowed via configuration files or command line arguments. It is not able to use the Write tool without permission, though.\n\n## Steps to Reproduce\n\n```sh\n❯ claude -p \"use the Bash tool to get the current datetime\"\nWed Jun 18 22:52:25 MDT 2025\n```\n\n```sh\n❯ claude -p \"check if you are allowed to use the WebSearch tool by trying to issue a simple search\"\nYes, the WebSearch tool is working properly. The search was successful and returned relevant results.\n```\n\n```sh\n❯ claude -p \"write a file called test.txt to the current directory\"\nI need permission to write the file. Please grant permission for the Write tool.\n```\n\n## Expected Behavior\nShould follow the behavior described in [this table in the docs](https://docs.anthropic.com/en/docs/claude-code/settings#tools-available-to-claude)\n\n## Actual Behavior\nTools like Bash (!!!) and WebSearch are allowed to be run even without permissions, even though the table above says they require permissions.\n\n## Additional Context\nThis is also happening via the TypeScript SDK. I can't find any files on either of my machines or in devcontainers that would grant these permissions.",
+  "labels": [
+    "bug",
+    "platform:macos",
+    "platform:linux",
+    "area:tools",
+    "area:security"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-19T04:58:00Z",
+  "updated_at": "2025-08-11T14:08:43Z",
+  "closed_at": "2025-06-19T05:16:14Z",
+  "reactions_total": 0,
+  "comments_count": 3,
+  "author": "sbking",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

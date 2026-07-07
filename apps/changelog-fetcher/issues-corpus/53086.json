@@ -1,0 +1,42 @@
+{
+  "number": 53086,
+  "title": "2.1.120 regression: claude --resume / --continue crash with \"g9H is not a function\"",
+  "body": "## Summary\n\n`claude --resume <session-id>` and `claude --continue` crash immediately on **2.1.120** with a JS runtime error. The interactive workaround (`claude --new`, then `/resume <session-id>` from the REPL) works fine. Both `--resume` and `--continue` worked correctly on 2.1.119.\n\n## Repro steps\n\n1. Have at least one prior session in `~/.claude/projects/`.\n2. From a shell: `claude --resume <session-id>`\n3. Observe the crash. `claude --continue` crashes the same way.\n\n## Error output\n\n```\nERROR  g9H is not a function. (In 'g9H(K)', 'g9H' is undefined)\n\n/$bunfs/root/src/entrypoints/cli.js:9251:5663\n```\n\n(Full stack trace shows repeated calls through `pj` / `fT` callbacks in line 492 before reaching the crash site at line 9251.)\n\n## Environment\n\n- **Platform**: macOS (arm64)\n- **Install method**: native auto-updater (`~/.local/share/claude/versions/`)\n- **Version that broke**: 2.1.120 (auto-installed 2026-04-24)\n- **Last working version**: 2.1.119 (confirmed working after rolling back)\n- **Shell**: fish (via zsh login shell), also zsh and bash\n\n## Version timeline\n\n| Version | Installed | Status |\n|---|---|---|\n| 2.1.118 | 2026-04-22 | Working |\n| 2.1.119 | 2026-04-23 | Working |\n| **2.1.120** | 2026-04-24 15:53 | **Broken** |\n\n## Workaround\n\nEither:\n- Roll back the symlink: `ln -sfn ~/.local/share/claude/versions/2.1.119 ~/.local/bin/claude`\n- Or use `claude --new` and then type `/resume <session-id>` from inside the REPL (this takes a different code path that doesn't hit the bug)\n\n## Analysis (from reading obfuscated source — not verified against real source)\n\nThe REPL component at `cli.js:9251` destructures an `onSessionRestored` callback from a hook that appears to be gated by a feature flag:\n\n```js\nlet { onSessionRestored: g9H, ... } = FXK({ enabled: S, ... })\n// S = useMemo(() => false, [])  — always false\n```\n\nWhen `enabled` is `false`, the hook returns no `onSessionRestored`, so `g9H` is `undefined`. A `useEffect` on REPL mount then calls `g9H(K)` unconditionally when `K` (the initial messages array) is non-empty:\n\n```js\nuseEffect(() => {\n  if (K && K.length > 0) {\n    ..., g9H(K)   // 💥 crashes when undefined\n  }\n}, [])\n```\n\nThe two paths diverge because:\n- `claude --resume` / `--continue` → REPL mounts with `K = [prior session messages]` → effect fires → crash\n- `claude --new` → REPL mounts with `K = []` → effect is skipped → `/resume` uses a different internal function that doesn't reference `g9H`\n\nThe fix would be `g9H?.(K)` instead of `g9H(K)`, or ensuring the hook always returns a safe no-op for `onSessionRestored` even when disabled.",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "regression"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-04-25T01:01:33Z",
+  "updated_at": "2026-05-07T15:18:45Z",
+  "closed_at": "2026-04-27T21:40:04Z",
+  "reactions_total": 32,
+  "comments_count": 11,
+  "author": "sgalliver",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/53041\n2. https://github.com/anthropics/claude-code/issues/53064\n3. https://github.com/anthropics/claude-code/issues/53079\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-25T01:06:05Z"
+    },
+    {
+      "author": "PopFlamingo",
+      "author_association": "NONE",
+      "body": "Same here this seems to be a very recent regression, it has first happened to me around 30 minutes ago.\n```\n ERROR  g9H is not a function. (In 'g9H(K)', 'g9H' is undefined)\n```\n\nAlso at the end of the error message:\n```\nError: sandbox required but unavailable: ${f_}\n 9253: `+`  sandbox.failIfUnavailable is set \\u2014 refusing to start without a working sandbox.\n 9254:\n```\n",
+      "created_at": "2026-04-25T01:07:38Z"
+    },
+    {
+      "author": "coloradodba",
+      "author_association": "NONE",
+      "body": "this occurs on Fedora 43 as well",
+      "created_at": "2026-04-25T01:15:48Z"
+    }
+  ]
+}

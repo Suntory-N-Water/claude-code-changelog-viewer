@@ -1,0 +1,35 @@
+{
+  "number": 60669,
+  "title": "[BUG]",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nsubject: Re: Conversation ID 215474356405859 — Cowork broken only on my Max account; new $20 Pro account works fine on same machine\nHi,\nI need a human agent to read this in full. Fin has now deflected me five times. Conversation ID for reference: 215474356405859.\nThe definitive proof this is an account-level backend issue:\nI just created a brand-new account with a different email and paid $20 for Claude Pro. Cowork works perfectly on that account, on the exact same Windows machine, with the exact same Claude desktop app installation. Then I switch back to my Max account and Cowork throws spawn ENAMETOOLONG on every chat immediately.\nSame computer. Same app. Same network. Same Windows install. The only variable is which account is signed in. This is not a Windows bug, not an app bug, not a Cowork bug — it is something broken on my Max account specifically.\nFull background — what's been tried and what's been confirmed:\nThe original issue: spawn ENAMETOOLONG on every Cowork chat (new, old, empty) on my Max account.\nLocal diagnostics already completed:\n\nWindows 11 25H2, build 26200.8457 (stable GA, not Insider)\nClaude desktop app version 1.7196.1.0, MSIX install at C:\\Program Files\\WindowsApps\\Claude_1.7196.1.0_x64__pzs8sxrjxfjjc\nPATH length: 848 characters\nAppData, LocalAppData, UserProfile all on local C: drive, no redirection\nFull clean reinstall completed: uninstalled → rebooted → deleted %APPDATA%\\Claude, %LOCALAPPDATA%\\Claude, %LOCALAPPDATA%\\Packages\\Claude_pzs8sxrjxfjjc → reinstalled from claude.com/download\nCowork still broken on Max account after every single one of these steps\n\nCross-machine reproduction:\n\nSame ENAMETOOLONG error on a completely different second computer signed into the same Max account\nOn the second computer, my conversations, projects, and memory are also missing despite signing into the correct account with the correct email\n\nCross-account reproduction (new, today):\n\nCreated new account, paid $20 for Pro on a separate email\nSigned into Pro account on the same machine that fails for my Max account\nCowork works perfectly on the Pro account, instantly\nSwitched back to Max account, same machine, same install — ENAMETOOLONG immediately\n\nPossibly related, from DevTools console (Max account only):\n\nRepeated 404s on /api/organizations/<uuid>/model_configs/claude-opus-4-7[1m] — note the square brackets in the model ID, which looks malformed and may be what's pushing the subprocess command past Windows' length limit\nMaxListenersExceededWarning on AutoUpdater state in the IPC layer\n\nSupport history on this case:\n\nCase has been closed as \"resolved\" twice without anyone verifying on my account\nFin has acknowledged in writing — twice — that this is \"an account-specific backend issue requiring engineering investigation\"\nFin has now also acknowledged it cannot assign cases to humans\nFive separate Fin replies have all deflected me back to self-serve options instead of routing to a human\nTwo Opus 4.7 incidents resolved on May 18 and May 19 — neither fixed my account\nThe Intercom support chat widget itself was throwing JavaScript errors when I tried to use it\n\nWhat I am asking for:\n\nAssign this case to a human agent. Please confirm by email when this has happened.\nHave engineering investigate why Cowork fails on my Max account but works on a brand-new Pro account on the same machine. The bad model config URL with the bracketed [1m] suffix is a strong starting point.\nService credit for the Max plan downtime. I have been paying $200/month for a plan whose flagship feature has been broken on my account for days, while a $20 Pro account on the same machine works instantly.\nIf this cannot be resolved in a reasonable timeframe, I will downgrade my Max plan, k",
+  "labels": ["bug", "platform:windows", "area:cowork", "area:desktop"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-19T20:48:59Z",
+  "updated_at": "2026-06-29T16:39:18Z",
+  "closed_at": null,
+  "reactions_total": 2,
+  "comments_count": 12,
+  "author": "scantsan",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "netsurfer404",
+      "author_association": "NONE",
+      "body": "Bug Report: spawn ENAMETOOLONG on Cowork workspace connection — Windows 11\nPosted by: Stefan (MGC Transport) | Claude Desktop v1.9659.2.0 | Windows 11\n\nThe Error\nEvery time I attempt to connect a local workspace folder to Cowork, the app immediately throws:\nspawn ENAMETOOLONG\nThe error fires on every attempt without exception — new tasks, existing tasks, empty tasks. Cowork is completely non-functional for me as a result.\n\nMy Environment\n\nOS: Windows 11\nClaude Desktop version: 1.9659.2.0\nInstall",
+      "created_at": "2026-06-01T19:00:36Z"
+    },
+    {
+      "author": "Kogi82",
+      "author_association": "NONE",
+      "body": "Same issue on Windows 11, Claude Desktop (latest version, MSIX from claude.com/download), Max plan.\n\nEvery Cowork chat throws \"spawn ENAMETOOLONG\" immediately on send — new chats, empty chats, any model, any selected folder. Cowork is completely unusable on this account.\n\nAlready tried (none resolved it):\n- Full app restart\n- Sign out / sign in\n- Switching to every available model before sending\n- Using a brand-new folder\n- Cleared Cowork global instructions (they were already empty)\n- PATH leng",
+      "created_at": "2026-06-02T14:58:35Z"
+    },
+    {
+      "author": "scantsan",
+      "author_association": "NONE",
+      "body": "try removing all skills and plug ins\r\n\r\nOn Tue, Jun 2, 2026 at 11:01 AM Kogi82 ***@***.***> wrote:\r\n\r\n> *Kogi82* left a comment (anthropics/claude-code#60669)\r\n> <https://github.com/anthropics/claude-code/issues/60669#issuecomment-4603696359>\r\n>\r\n> Same issue on Windows 11, Claude Desktop (latest version, MSIX from\r\n> claude.com/download), Max plan.\r\n>\r\n> Every Cowork chat throws \"spawn ENAMETOOLONG\" immediately on send — new\r\n> chats, empty chats, any model, any selected folder. Cowork is compl",
+      "created_at": "2026-06-03T19:09:08Z"
+    }
+  ]
+}

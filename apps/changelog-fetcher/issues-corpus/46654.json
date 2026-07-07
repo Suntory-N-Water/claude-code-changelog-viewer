@@ -1,0 +1,29 @@
+{
+  "number": 46654,
+  "title": "Deferred tools not loaded in context: fork skills",
+  "body": "## Problem\n\nSkills with `context: fork` in their SKILL.md frontmatter cannot use deferred tools (AskUserQuestion, WebSearch, WebFetch, TodoWrite, TeamCreate, TeamDelete, SendMessage, etc.). The forked executor doesn't call `ToolSearch` to load their schemas before execution, so the model either:\n\n1. Falls back to outputting plain text instead of using the interactive tool (AskUserQuestion)\n2. Silently skips the tool call entirely\n3. Fails with an error the user never sees\n\n## Expected Behavior\n\nWhen a skill declares a deferred tool in its `allowed-tools` list, the fork executor should auto-load that tool's schema (via ToolSearch or equivalent) before running the skill body.\n\n## Reproduction\n\n1. Create a skill with `context: fork` and `AskUserQuestion` in `allowed-tools`\n2. Have the skill body call AskUserQuestion\n3. Invoke the skill\n\n**Actual:** The model outputs \"Since AskUserQuestion isn't available as a deferred tool, I'll ask directly\" and prints plain text instead of the interactive prompt.\n\n**Expected:** The interactive AskUserQuestion prompt appears.\n\n## Workaround\n\nOnly use `context: fork` for skills that exclusively use non-deferred tools (Read, Glob, Grep, Bash, Write, Edit, Agent). Skills needing WebSearch, WebFetch, AskUserQuestion, TodoWrite, or team tools must not use fork.\n\n## Impact\n\nThis affects any skill author using `context: fork` who expects deferred tools to work. The failure is silent -- no error is shown, the skill just degrades or produces incomplete output.",
+  "labels": ["bug", "has repro", "area:tools", "area:skills"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-11T13:36:22Z",
+  "updated_at": "2026-05-08T14:51:30Z",
+  "closed_at": "2026-04-28T05:58:43Z",
+  "reactions_total": 11,
+  "comments_count": 2,
+  "author": "voyagi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "pleb",
+      "author_association": "NONE",
+      "body": "This has broken a fairly large internal company plugin for Claude Code. I'm trying to figure out a workaround that doesn't involve having to change the context from `fork`, but no luck so far",
+      "created_at": "2026-04-13T04:34:38Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been automatically locked since it was closed and has not had any activity for 7 days. If you're experiencing a similar issue, please file a new issue and reference this one if it's relevant.",
+      "created_at": "2026-05-08T14:51:30Z"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "number": 45437,
+  "title": "[BUG] FileIndex re-indexes large non-git codebase via ripgrep causing multi-second hitches every turn",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWorking with Claude Code on a large project (200k+ files), but without a git repo (we use P4). I'm seeing multi-second hitches every turn as Claude re-indexes files. On my machine this is currently taking between 7-13 seconds every turn, on a slower machine in the office here it takes 20+ seconds.\n\nWhen there is a git repo, Claude reindexes once at the start of the session and then never again. I've been able to confirm this as a workaround by creating a local git repo, and after all of the files are committed, the hitch no longer occurs (confirmed times by looking at debug logs).\n\nIf I use an .ignore or .rgignore, I can reduce the number of files that ripgrep tests, but the re-indexing is still occurring every turn.\n\n### What Should Happen?\n\nFor non-git repos there should be some kind of file index cache for the and not re-scan files every turn.\n\n### Error Messages/Logs\n\n```shell\n[FileIndex] getProjectFiles called, respectGitignore=true\n  [FileIndex] getFilesUsingGit called\n  [FileIndex] not a git repo, returning null\n  [FileIndex] git ls-files returned null, falling back to ripgrep\n  [FileIndex] ripgrep: 204372 files in 12842ms\n  [FileIndex] cache refresh completed in 13049ms\n```\n\n### Steps to Reproduce\n\n1. In a project with hundreds of thousands of files (ours has ~230k), open Claude Code. Do not create a git repo at that location (or above it in the file path)\n2. Note that Claude Code hitches on startup, and every turn afterwards\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.96\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n  [FileIndex] getProjectFiles called, respectGitignore=true\n  [FileIndex] getFilesUsingGit called\n  [FileIndex] not a git repo, returning null\n  [FileIndex] git ls-files returned null, falling back to ripgrep\n  [FileIndex] ripgrep: 211764 files in 6758ms\n  [FileIndex] cache refresh completed in 6992ms\n\n  [FileIndex] getProjectFiles called, respectGitignore=true\n  [FileIndex] not a git repo, returning null\n  [FileIndex] git ls-files returned null, falling back to ripgrep\n  [FileIndex] ripgrep: 203599 files in 6654ms\n  [FileIndex] cache refresh completed in 6890ms\n\n  [FileIndex] getProjectFiles called, respectGitignore=true\n  [FileIndex] not a git repo, returning null\n  [FileIndex] git ls-files returned null, falling back to ripgrep\n  [FileIndex] ripgrep: 202984 files in 6619ms\n  [FileIndex] cache refresh completed in 6853ms\n\n  [FileIndex] getProjectFiles called, respectGitignore=true\n  [FileIndex] not a git repo, returning null\n  [FileIndex] git ls-files returned null, falling back to ripgrep\n  [FileIndex] ripgrep: 208870 files in 6762ms\n  [FileIndex] cache refresh completed in 6987ms\n\n  [FileIndex] getProjectFiles called, respectGitignore=true\n  [FileIndex] not a git repo, returning null\n  [FileIndex] git ls-files returned null, falling back to ripgrep\n  [FileIndex] ripgrep: 201247 files in 7306ms\n  [FileIndex] cache refresh completed in 7537ms",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "api:bedrock",
+    "area:core",
+    "performance"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-08T21:47:11Z",
+  "updated_at": "2026-04-24T14:53:52Z",
+  "closed_at": "2026-04-15T21:08:48Z",
+  "reactions_total": 0,
+  "comments_count": 3,
+  "author": "BlanckCarbon",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

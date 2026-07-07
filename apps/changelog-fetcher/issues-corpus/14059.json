@@ -1,0 +1,41 @@
+{
+  "number": 14059,
+  "title": "[FEATURE] GitHub CLI Support for iOS Claude Code",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n## Problem Statement\n\nClaude Code on iOS cannot effectively troubleshoot GitHub Actions workflow failures due to lack of GitHub CLI (`gh`) access. This limitation has resulted in multiple failed diagnostic sessions where critical issues (such as billing/payment problems) could not be identified.\n\n### Real-World Impact\n\n**Incident**: 2025-12-15 - All GitHub Actions workflows failing\n**Root Cause**: Billing/payment issue preventing job execution\n**Sessions Failed**: Multiple (iOS, Web) - Could not diagnose\n**Session Succeeded**: Linux with `gh` CLI - Diagnosed in 30 minutes\n\n**Key Finding**: The error message was only accessible via:\n```bash\ngh api repos/{owner}/{repo}/check-runs/{id}/annotations\n```\n\nWithout this capability, the issue was invisible to iOS/Web sessions.\n\n---\n\n## Current Limitations\n\n### iOS Claude Code Cannot:\n\n1. **Access GitHub API** - No programmatic access to GitHub data\n2. **View workflow runs** - Cannot list or inspect workflow execution history\n3. **Read workflow logs** - Cannot view job output or error messages\n4. **Query check-run annotations** - Cannot access detailed error information\n5. **Diagnose billing issues** - Cannot detect account/quota problems\n6. **Manage PRs/issues** - Cannot create, update, or close via CLI\n7. **Check workflow status** - Must rely on user manually checking web UI\n\n### What iOS Can Do:\n\n- Read local workflow files (`.github/workflows/*.yml`)\n- Use `git` commands\n- Provide GitHub web URLs for manual operations\n\n---\n\n\n---\n\n\n\n### Proposed Solution\n\n## Proposed Solution\n\n### Option 1: Bundle GitHub CLI in iOS App (Preferred)\n\n**Implementation:**\n- Include `gh` binary in iOS app bundle\n- Pre-authenticate using app's credentials\n- Expose `gh` commands to Claude's bash tool\n- Installation path: `~/Documents/.claude/bin/gh` or similar\n\n**Benefits:**\n- Full GitHub API access\n- No user setup required\n- Consistent experience across platforms\n- Can troubleshoot private repositories\n\n**Technical Considerations:**\n- Binary size: ~15-20 MB (manageable)\n- Requires GitHub app token for API access\n- May need iOS-specific build of `gh` CLI\n- Should respect iOS sandbox restrictions\n\n\n\n### Alternative Solutions\n\n### Option 2: Add GitHub API Tool to Claude Code\n\n**Implementation:**\n- Create dedicated GitHub API tool (similar to WebFetch)\n- Expose common operations: list runs, get logs, query annotations\n- Use user's GitHub token or app credentials\n- iOS-native implementation\n\n**Benefits:**\n- Lighter weight than full `gh` CLI\n- Can be optimized for mobile\n- Purpose-built for Claude's needs\n\n**Drawbacks:**\n- Requires developing/maintaining custom tool\n- May not have feature parity with `gh` CLI\n- Less flexible than full CLI access\n\n### Option 3: Web-Based GitHub Integration\n\n**Implementation:**\n- OAuth integration with GitHub\n- Fetch workflow data via web API calls\n- Display in Claude's interface\n- User must authenticate via GitHub OAuth\n\n**Benefits:**\n- No binary bundling required\n- Standard OAuth flow\n- Works on all platforms\n\n**Drawbacks:**\n- Requires user authentication setup\n- May have rate limiting issues\n- More complex error handling\n\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n## Use Cases\n\n### 1. Troubleshooting Workflow Failures\n\n**Scenario**: User reports \"all my GitHub Actions are failing\"\n\n**Current iOS Experience**:\n```\nClaude: I can see your workflow files, but I cannot view the actual\nfailures or logs. Please:\n1. Go to github.com/your-repo/actions\n2. Click on a failed run\n3. Copy/paste the error message to me\n\nUser: [frustrated, has to do manual work]\n```\n\n**With GitHub CLI**:\n```\nClaude: Let me check the workflow runs...\n[Runs: gh run list --limit 10]\n[Checks: gh run view 123456 --log]\n[Analyzes: gh api repos/.../check-runs/.../",
+  "labels": [
+    "enhancement",
+    "has repro",
+    "area:tools",
+    "area:core",
+    "platform:ios"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-15T16:17:15Z",
+  "updated_at": "2026-03-03T03:22:33Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 8,
+  "author": "Egly443",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Egly443",
+      "author_association": "NONE",
+      "body": "The nub of this is the inability to diagnose GitHub Actions failures on Claude Code on iOS",
+      "created_at": "2025-12-16T18:42:10Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-17T10:10:17Z"
+    },
+    {
+      "author": "mcintyre94",
+      "author_association": "NONE",
+      "body": "Another capability gap this introduces is pushing PRs from Claude code on iOS. I can only get it to go as far as pushing a branch to the repo.\n\nIn terms of your implementation comments, I'm not sure this would need to be added to the iOS app itself? AFAICT Claude Code iOS is cloning the repo and running in some sort of cloud container, rather than executing against the iOS file system. So I'd think gh could be added to that environment, and it's just a question of the auth workflow. I'm not sure",
+      "created_at": "2026-01-21T07:15:20Z"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "number": 16682,
+  "title": "[BUG] Claude Code 2.1.0 crashes on startup - Invalid Version semver parsing error",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code 2.1.0 fails to launch with a semver parsing error. The application crashes immediately on startup with:\nERROR Invalid Version: 2.1.0 (2026-01-07)\n\nApplication crashes on startup before any UI is displayed. The semver validation fails because the version string contains a non-semver-compliant date suffix.\n\n### What Should Happen?\n\n\nClaude Code should start normally.\n\n### Error Messages/Logs\n\n```shell\n## Root Cause\n\nThe version string `2.1.0 (2026-01-07)` includes a date in parentheses, which is not valid semver format. The semver library only accepts:\n- Standard format: `2.1.0`\n- Prerelease format: `2.1.0-beta.1`\n\nThe date suffix `(2026-01-07)` causes the semver parser to reject the version string entirely.\n\n\n## Full Stack Trace\n\n\nERROR Invalid Version: 2.1.0 (2026-01-07)\nTypeError: Invalid Version: 2.1.0 (2026-01-07)\n    at new Pw (file:///Users/[user]/.npm/_npx/[hash]/node_modules/@anthropic-ai/claude-code/cli.mjs:813:1565)\n    at kw (file:///Users/[user]/.npm/_npx/[hash]/node_modules/@anthropic-ai/claude-code/cli.mjs:813:1867)\n    at Dw (file:///Users/[user]/.npm/_npx/[hash]/node_modules/@anthropic-ai/claude-code/cli.mjs:813:ь2convey)\n    ... [additional stack frames in bundled code]\n```\n\n### Steps to Reproduce\n\n1. Update to Claude Code 2.1.0 (via auto-update or `npm install -g @anthropic-ai/claude-code@latest`)\n2. Run `claude` in terminal\n3. Application crashes immediately with semver error\n\n\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.0.76\n\n### Claude Code Version\n\n2.1.0 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n## Additional Context\n\nThis appears to be a release configuration issue where the version string was set to include a release date. The fix would be to either:\n1. Remove the date suffix from the version string\n2. Use semver-compliant prerelease format if date tracking is needed (e.g., `2.1.0+20260107`)\n\n## Labels (suggested)\n- `bug`\n- `area:packaging`\n- `priority:critical`",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:core",
+    "area:packaging"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-07T20:27:57Z",
+  "updated_at": "2026-01-20T14:18:10Z",
+  "closed_at": "2026-01-08T01:15:35Z",
+  "reactions_total": 82,
+  "comments_count": 80,
+  "author": "kelapure",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

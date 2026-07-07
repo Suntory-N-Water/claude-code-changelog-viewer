@@ -1,0 +1,35 @@
+{
+  "number": 54847,
+  "title": "Tool dispatch stalls silently in 2.1.121–2.1.123: tool_use emitted, no tool_result, no disk side-effects, no errors",
+  "body": "# Tool dispatch stalls silently in 2.1.121–2.1.123: `tool_use` emitted, no `tool_result`, no disk side-effects, no errors\n\n## Summary\n\nIn claude CLI versions 2.1.121, 2.1.122, and 2.1.123 (Claude Code), local tool calls (Write, Bash, Edit, Read) intermittently stall after the model emits a `tool_use` block. The tool handler is never invoked: no disk I/O occurs, no `tool_result` is emitted, no permission prompt fires, and no error is logged on the CLI side. The stall persists indefinitely from the CLI's perspective; only an external watchdog can recover the subprocess.\n\nThis appears to be a regression. We have not observed the stall on 2.1.120 or earlier in the same workload.\n\n## Environment\n\n- **OS:** macOS 25.4.0 (Darwin)\n- **Node:** (default; can supply on request)\n- **Install path:** `/opt/homebrew/bin/claude` → `@anthropic-ai/claude-code`\n- **Versions where observed:** 2.1.121, 2.1.122, 2.1.123\n- **Last known good:** 2.1.120\n- **Invocation:** `claude --print --permission-prompt-tool stdio` (subprocess invoked from a parent harness that responds to permission prompts on the CLI's stdio channel)\n\n## Signature (how to detect the bug from logs)\n\nThree coincident facts in a single CLI subprocess turn:\n\n1. The session jsonl at `~/.claude/projects/<project>/<sessionId>.jsonl` contains an assistant message with a `tool_use` block (`{\"type\":\"tool_use\",\"id\":\"toolu_…\",\"name\":\"Write\",…}`).\n2. **No** matching `tool_result` entry for that `tool_use_id` appears anywhere later in the same jsonl.\n3. The intended side-effect of the tool did not happen — e.g. for `Write`, the target `file_path` does not exist on disk (or exists only with content from an unrelated later attempt).\n\nThere is **no** accompanying error on stderr, no permission-prompt-tool error, and no `Tool permission stream closed before response received` message. The CLI gives no observable signal that anything has gone wrong; from the assistant's perspective the call is simply pending forever.\n\n## Empirical incidence\n\nIn a single host running real interactive workloads:\n\n| Date | Distinct stalled tool-uses |\n|------|----------------------------|\n| 2026-04-26 (CLI 2.1.120) | 0 (different bug class observed — see \"Distinguishing from prior bug\" below) |\n| 2026-04-27 (CLI 2.1.120 → 2.1.121) | 0 |\n| 2026-04-28 (CLI 2.1.121 → 2.1.122 → 2.1.123) | 1 |\n| 2026-04-29 (CLI 2.1.123) | 11 |\n\nTool distribution across the 12 events: Write ×6, Bash ×3, Edit ×2, Read ×1. No correlation with input size or content type — Read ×1 was a small local file; Write ×6 ranged from short text to multi-KB content. No correlation with concurrent MCP load that we can see.\n\n## Reproducer status\n\nWe have not been able to reproduce the stall with a minimal `claude --print \"Write hello to /tmp/x\"`-style invocation. Out of two minimal-repro attempts on 2026-04-29, both completed cleanly in ~9s. The stall appears to require some combination of: a real model turn with prior context, MCP servers loaded, multiple back-to-back tool calls, or model latency above some threshold. We have not isolated the trigger.\n\nIf your team can reproduce with a constructed prompt that emits multiple tool calls under MCP load, that would likely be faster than my isolation effort. Happy to provide:\n- Sanitized session jsonl excerpts containing the orphan `tool_use` blocks and the surrounding turn structure\n- Full gateway-side log of all 12 stalled events with timestamps and tool IDs\n- Our MCP server config (raven, linear, openclaw, framer, outseta)\n\n## Distinguishing from the prior perm-stream bug\n\nWe previously observed a *different* hang class on 2.1.120 where the `--permission-prompt-tool stdio` stream broke and subsequent tool calls returned `is_error: true` with body `Tool permission stream closed before response received`. That class appears patched on 2.1.121+ — zero occurrences of that error string in any session jsonl or gateway log since 2026-04-27. The current dispatch stall is silent (no error string, no perm-stream traffic at all), affects the same tools, and has comparable wall-clock i",
+  "labels": ["bug", "platform:macos", "area:tools", "regression", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-29T23:29:07Z",
+  "updated_at": "2026-06-07T22:28:51Z",
+  "closed_at": "2026-06-07T22:28:50Z",
+  "reactions_total": 1,
+  "comments_count": 12,
+  "author": "rhinocap",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/50727\n2. https://github.com/anthropics/claude-code/issues/53862\n3. https://github.com/anthropics/claude-code/issues/44596\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-29T23:34:35Z"
+    },
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "This is execution-observability failure at the tool-dispatch boundary.\n\nIf a `tool_use` is emitted but no `tool_result` arrives, no disk side-effects occur, and no error is surfaced, then the system has entered a silent failure state right at the point where operators need positive evidence that work actually happened.\n\nWhy it matters:\n- tool dispatch is one of the core trust boundaries in agent workflows\n- when dispatch stalls silently, users cannot distinguish between slow execution, dropped w",
+      "created_at": "2026-04-29T23:40:24Z"
+    },
+    {
+      "author": "rhinocap",
+      "author_association": "NONE",
+      "body": "Thanks @github-actions for the auto-classification. After reading the cited candidates, **none of the three are this bug** — but the bot missed #51927, which is very likely the same bug class.\n\n## On the cited candidates\n\n- **#53862** and **#44596**: tool *runs to completion* (work happens on disk), then `tool_result` is lost on its way back. Return-path failure. Different code path from this report.\n- **#50727**: closed 2026-04-19 by the reporter after `Mode B` was fixed in the v2.1.113 era. Th",
+      "created_at": "2026-04-29T23:52:33Z"
+    }
+  ]
+}

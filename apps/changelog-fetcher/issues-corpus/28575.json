@@ -1,0 +1,35 @@
+{
+  "number": 28575,
+  "title": "[FEATURE] Gmail MCP Connector: Add file attachment support to gmail_create_draft and add gmail_send_draft tool",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nThe Gmail MCP connector in Cowork mode does not support attaching files when creating email drafts. The `gmail_create_draft` tool only accepts `to`, `subject`, `body`, `cc`, `bcc`, and `contentType` parameters — there is no parameter for file attachments. Additionally, there is no `gmail_send_draft` tool to send a previously created draft.\n\n**The workflow breaks down as follows:**\n\n1. `gmail_create_draft` successfully creates the draft with the correct recipients, subject, and body\n2. 2. **No attachment parameter exists** — the tool cannot attach files that Cowork has generated (e.g., .docx, .pdf, .xlsx reports)\n3. 3. **No `gmail_send_draft` tool** — even if the draft is created, Cowork cannot programmatically send it\nThis forces users to fall back to browser automation (Claude in Chrome) to manually navigate Gmail, find the draft, click the attach button, and upload the file — which is unreliable and slow. In practice, the user ends up having to attach the file and send the email manually, defeating the purpose of the automation.\n\n**Reproduction Steps:**\n1. In Cowork mode, create a file (e.g., a .docx report)\n2. 2. Ask Claude to email the file via Gmail to a recipient\n3. 3. Claude creates the draft via `gmail_create_draft` but cannot attach the file\n4. 4. Claude attempts to use Chrome automation as a fallback, but injecting files into Gmail's file input via JavaScript is complex, unreliable, and often times out\nThis is a significant gap in Cowork's end-to-end workflow capability. One of Cowork's core value propositions is automating tasks like \"research X, create a report, and email it to Y.\" Without attachment support, the last step always requires manual intervention.\n\n### Proposed Solution\n\nAdd an `attachments` parameter to `gmail_create_draft` and create two new tools:\n\n### 1. Update `gmail_create_draft`\n\nAdd an optional `attachments` parameter:\n\n```\ngmail_create_draft:\n  - to (required)\n  -   - subject (required)\n  -   -   - body (required)\n  -   -   -   - cc (optional)\n  -   -   -   -   - bcc (optional)\n  -   -   -   -   -   - contentType (optional)\n  -   -   -   -   -   -   - attachments (optional): array of {filename: string, base64Content: string, mimeType: string}\n  -   -   -   -   -   -   - ```\n### 2. New `gmail_send_draft` tool\n\n```\ngmail_send_draft:\n  - draftId (required): The draft ID returned by gmail_create_draft\n  - ```\n### 3. New `gmail_send_message` tool (optional but ideal)\n\nA convenience tool for direct sending without creating a draft first:\n\n```\ngmail_send_message:\n  - to (required)\n  -   - subject (required)\n  -   -   - body (required)\n  -   -   -   - cc (optional)\n  -   -   -   -   - bcc (optional)\n  -   -   -   -   -   - contentType (optional)\n  -   -   -   -   -   -   - attachments (optional): array of {filename: string, base64Content: string, mimeType: string}\n  -   -   -   -   -   -   - ```\nThe Gmail API already supports all of these operations via `messages.send` and `drafts.send`, so the backend implementation should be straightforward.\n\n### Alternative Solutions\n\nThe current workaround is to use Claude in Chrome (browser automation) to manually navigate Gmail, find the draft, click the attach button, and upload the file. However, this approach is:\n\n1. **Unreliable** — injecting files into Gmail's file input via JavaScript is complex and often fails due to Gmail's dynamic DOM and security restrictions\n2. 2. **Slow** — the multi-step browser automation process (navigate, find draft, click attach, inject base64 file) can take several minutes and often times out\n3. 3. **Fragile** — depends on Gmail's UI structure which can change at any time\nIn practice, users end up having to manually attach files and send the email themselves, which defeats the purpose of the Cowork automation workflow.\n\n### Priority",
+  "labels": ["enhancement", "area:mcp", "area:cowork"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-25T15:59:23Z",
+  "updated_at": "2026-06-27T07:52:56Z",
+  "closed_at": null,
+  "reactions_total": 27,
+  "comments_count": 7,
+  "author": "maurorozco",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Cloufy",
+      "author_association": "NONE",
+      "body": "Is there anyone working on this",
+      "created_at": "2026-03-16T17:43:59Z"
+    },
+    {
+      "author": "Zacccck",
+      "author_association": "NONE",
+      "body": "> Is there anyone working on this\n\nTested and worked on my claude desktop https://github.com/Zacccck/Claude-MCP-Read-Email-Attachments",
+      "created_at": "2026-04-12T19:23:57Z"
+    },
+    {
+      "author": "hankma-28",
+      "author_association": "NONE",
+      "body": "Looking for updates on this as the ability to read/download attachments through Claude Code do not work for me",
+      "created_at": "2026-05-15T16:48:04Z"
+    }
+  ]
+}

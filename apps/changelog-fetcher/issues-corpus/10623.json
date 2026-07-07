@@ -1,0 +1,42 @@
+{
+  "number": 10623,
+  "title": "[BUG] Settings not applied: alwaysThinkingEnabled ignored and inconsistent permission behavior",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n`.claude/settings.json` configuration is not being applied correctly. Two main issues:\n\n  1. **`alwaysThinkingEnabled: true` is completely ignored** - no thinking blocks appear in the\n  UI despite being enabled\n  2. **Bash permission allow list behaves inconsistently** - `bun run lint` (matching the allow\n  pattern `\"bun run lint*\"`) was blocked on first attempt but succeeded on second attempt\n  3. **Message truncation** - assistant response was cut off mid-sentence at the exact point of\n  referencing a thinking block tag\n\n  The assistant confirmed it is generating thinking blocks, but they are not visible in the UI.\n  Settings file exists at the correct location and Claude Code was restarted after settings\n  modification.\n\n### What Should Happen?\n\nWith `alwaysThinkingEnabled: true` in settings:\n  - Thinking blocks should be visible in all assistant responses\n\n  With bash allow list configured:\n  - Commands matching allow patterns (like `\"bun run lint*\"`) should execute without permission\n  prompts or blocks\n\n### Error Messages/Logs\n\n```shell\nWhen first attempting to run `bun run lint`, the following error was shown:\n  The user doesn't want to proceed with this tool use. The tool use was rejected (eg. if it was\n  a file edit, the new_string was NOT written to the file). STOP what you are doing and wait for\n   the user to tell you how to proceed.\n\n  The second attempt of the same command succeeded without any changes.\n\n  Message truncation example - assistant's message ended abruptly:\n  ⏺ That's definitely a bug then. The facts:\n\n  1. Thinking blocks: I am generating them (in `\n```\n\n### Steps to Reproduce\n\n1. Create `.claude/settings.json` with the configuration below\n  2. Restart Claude Code session\n  3. Request: \"please lint\"\n  4. Observe: First attempt is blocked/rejected\n  5. Request again: \"please lint\"\n  6. Observe: Second attempt succeeds\n  7. Throughout: No thinking blocks visible despite `alwaysThinkingEnabled: true`\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.28\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nWarp\n\n### Additional Information\n\n**Configuration file** (`.claude/settings.json`):\n  ```json\n  {\n    \"alwaysThinkingEnabled\": true,\n    \"permissions\": {\n      \"bash\": {\n        \"allow\": [\n          \"bun run lint*\",\n          \"bun run test*\",\n          \"bun run types:check*\",\n          \"bun run types:generate*\",\n          \"git status*\",\n          \"git diff*\",\n          \"git log*\",\n          \"git show*\",\n          \"ls*\",\n          \"pwd\"\n        ]\n      }\n    },\n    \"hooks\": {\n      \"PreToolUse\": [\n        {\n          \"matcher\": \"Edit|Write\",\n          \"hooks\": [\n            {\n              \"type\": \"command\",\n              \"command\": \"FILE=$(jq -r '.tool_input.file_path' 2>/dev/null || echo ''); case\n  \\\"$FILE\\\" in *.env|*credentials*|*secrets*) echo 'Blocked: sensitive file' >&2; exit 1;; esac\"\n            }\n          ]\n        },\n        {\n          \"matcher\": \"Bash\",\n          \"hooks\": [\n            {\n              \"type\": \"command\",\n              \"command\": \"CMD=$(jq -r '.tool_input.command' 2>/dev/null || echo ''); if echo\n  \\\"$CMD\\\" | grep -q 'deploy'; then cd [PATH REDACTED] && bun run types:check\n  || (echo 'Build check failed - fix errors before deploying' >&2; exit 1); fi\"\n            }\n          ]\n        }\n      ],\n      \"PostToolUse\": [\n        {\n          \"matcher\": \"Edit|Write\",\n          \"hooks\": [\n            {\n              \"type\": \"command\",\n              \"command\": \"cd [PATH REDACTED] && bun run lint\"\n            },\n            {\n              \"type\": \"command\",\n              \"command\": \"FILE=$(jq -r '.tool_input.fi",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "area:auth",
+    "area:core"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-10-30T10:35:14Z",
+  "updated_at": "2026-01-23T14:14:56Z",
+  "closed_at": "2026-01-16T10:10:16Z",
+  "reactions_total": 5,
+  "comments_count": 14,
+  "author": "scruffymongrel",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-09T10:18:37Z"
+    },
+    {
+      "author": "elfenlieds7",
+      "author_association": "NONE",
+      "body": "I'm also experiencing this issue with `alwaysThinkingEnabled: true` being ignored.\n\n**My environment:**\n- **OS:** Windows 11\n- **Terminal:** Claude Code in VSCode integrated terminal\n- **Claude Code Version:** Latest (2.0.62)\n- **Platform:** Anthropic API\n\n**Configuration** (`~/.claude/settings.json`):\n```json\n{\n  \"alwaysThinkingEnabled\": true,\n  \"hooks\": { ... }\n}\n```\n\n**Behavior:**\n- Every time I start a new Claude Code session, thinking mode is OFF by default\n- I have to manually press `Tab` ",
+      "created_at": "2025-12-09T12:25:03Z"
+    },
+    {
+      "author": "andrewklingelhofer",
+      "author_association": "NONE",
+      "body": "Confirming this issue is still present.\n\n**My environment:**\n- **OS:** macOS (Darwin 25.1.0)\n- **Terminal:** CLI\n- **Claude Code Version:** 2.0.64\n- **Platform:** Anthropic API\n\n**Important note:** This only started happening for me on **v2.0.64**. It hasn't been an issue until this build - the setting was being respected in previous versions.\n\n**Configuration** (`~/.claude/settings.json`):\n```json\n{\n  \"alwaysThinkingEnabled\": true\n}\n```\n\n**Behavior:**\n- Thinking mode always defaults to OFF on s",
+      "created_at": "2025-12-10T06:58:33Z"
+    }
+  ]
+}

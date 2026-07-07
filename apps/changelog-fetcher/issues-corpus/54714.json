@@ -1,0 +1,35 @@
+{
+  "number": 54714,
+  "title": "Max 20x plan hitting daily limit with reduced usage — limits appear silently tightened (April 28-29, 2026)",
+  "body": "## Summary\n\nMax 20x subscriber ($200/month) consistently hitting daily usage limits on April 28-29, 2026, despite **reduced** usage compared to previous weeks. No change in workflow, plugins, or usage patterns. Running Claude Code v2.1.123 — well past the v2.1.116 fixes from the April 23 postmortem.\n\n## Environment\n\n- **Plan**: Max 20x\n- **Claude Code version**: 2.1.123\n- **Model**: `claude-opus-4-6[1m]`\n- **Effort level**: `high`\n- **Platform**: macOS (Darwin 25.3.0)\n\n## What happened\n\n- Hit the daily usage limit on both April 28 and April 29, 2026\n- Usage patterns have not increased — if anything, usage was **less** than usual\n- The rate limit message mentioned high subagent usage, but subagent usage has not increased\n- Previously sustained heavier workloads on the same plan without hitting limits\n\n## What has NOT changed\n\n- Same plugins enabled (no new plugins added recently)\n- Same model (`claude-opus-4-6[1m]`)\n- Same effort level (`high`)\n- Same types of tasks (coding, research, code review)\n- Researcher plugin (which spawns many Opus subagents) was **disabled** during this period\n- No increase in session length or frequency\n\n## The broader pattern\n\nThis is not an isolated report. There is a documented pattern of Max plan limits being silently reduced over time:\n\n- **Issue #28848** (Feb 2026): \"Max plan usage limits silently reduced since Claude 4.6 release\" — labeled \"invalid\" with no explanation\n- **Issue #17084** (Jan 2026): \"Opus 4.5 usage limits significantly reduced since January 2026\"\n- **Issue #4203** (earlier): \"Significant Rate Limit Reduction in Claude Code — Impact on Professional Workflow — $200 max plan\"\n- **Issue #41788** (Apr 2026): \"Max 20 plan: rate limit 100% exhausted within ~70 minutes after reset\"\n\nEach time, users report the same thing: limits suddenly tighter with no change in usage. Each time, no concrete response from Anthropic about what changed.\n\n## The transparency problem\n\nThe core issue is that **Anthropic does not publish concrete limits for any plan tier**. The official help article ([Using Claude Code with your Pro or Max plan](https://support.claude.com/en/articles/11145838-using-claude-code-with-your-pro-or-max-plan)) says only that \"usage limits are shared across Claude and Claude Code.\" No token budgets, no 5-hour window sizes, no weekly caps — just opaque percentages.\n\nThis means:\n1. Users cannot verify whether they are getting what they pay for\n2. Anthropic can adjust limits at any time without announcing changes\n3. When users report tighter limits, it's impossible to prove because there are no published baselines\n4. The \"20x\" in \"Max 20x\" is meaningless without knowing 20x of what\n\n## Compute constraint context\n\nAnthropic's CEO Dario Amodei has [publicly described the company as compute-constrained](https://www.mindstudio.ai/blog/anthropic-compute-shortage-claude-limits). An Anthropic engineer confirmed on March 26, 2026 that session limits drain faster during peak hours (5am–11am PT), affecting ~7% of users. The April 23 postmortem acknowledged three bugs causing 10-20x token inflation but stated they were fixed in v2.1.116.\n\nIf limits are being dynamically adjusted based on available compute capacity, that is understandable from an infrastructure perspective — but it needs to be communicated transparently, not silently applied to paying subscribers.\n\n## What I'm asking for\n\n1. **Publish concrete limits** for each plan tier — token budgets per 5-hour window, weekly caps, and how subagent usage counts. Users paying $200/month deserve to know what they're buying.\n\n2. **Announce limit changes** when they happen. Silent reductions erode trust. A simple status page update or changelog entry would suffice.\n\n3. **Investigate whether limits were reduced between April 23-28, 2026**, after the postmortem fixes shipped. If the v2.1.116+ fixes reduced Anthropic's server-side costs (by fixing cache bugs that inflated usage), was the \"savings\" passed on to users, or were limits tightened to absorb it?\n\n4. **Clarify whether the 1M context model variant (`claude-opus-4-6[1",
+  "labels": ["bug", "platform:macos", "area:cost", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-29T15:37:22Z",
+  "updated_at": "2026-06-08T22:36:30Z",
+  "closed_at": "2026-06-08T22:36:30Z",
+  "reactions_total": 9,
+  "comments_count": 13,
+  "author": "tbuckworth",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/41788\n2. https://github.com/anthropics/claude-code/issues/54630\n3. https://github.com/anthropics/claude-code/issues/52135\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-29T15:42:52Z"
+    },
+    {
+      "author": "RickDavis404",
+      "author_association": "NONE",
+      "body": "I'm seeing same issue Feedback ID: a646606f-f1ab-4e8b-9666-29f10f531cc6",
+      "created_at": "2026-04-29T16:40:28Z"
+    },
+    {
+      "author": "tbuckworth",
+      "author_association": "NONE",
+      "body": "how does this make any sense:\n\n<img width=\"1126\" height=\"1089\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/9351e29d-fbc3-4501-8ff5-e04c3a54c6d0\" />\n\n90% from sub-agent heavy sessions, but then lower down my top sub-agents used 1%??? fork and explore.",
+      "created_at": "2026-04-30T13:33:24Z"
+    }
+  ]
+}

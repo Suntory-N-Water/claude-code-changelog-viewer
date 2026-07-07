@@ -1,0 +1,41 @@
+{
+  "number": 49619,
+  "title": "[BUG] Stream idle timeout / partial response during long tool-use turns on Claude Code Web (Opus 4.7, 1M and non-1M)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Environment\n- Platform: Claude Code Web (claude.ai/code)\n- Model(s) affected:\n  - `claude-opus-4-7[1m]` (1M context) — reproducible\n  - `claude-opus-4-7` (standard context) — also reproducible after switching\n- OS: Linux sandbox (provided by the web harness)\n- Session type: long-running conversation with multiple tool calls\n  (Read / Bash / Grep), working in a git repo\n- Approx. transcript length when error first appeared: mid-session,\n  after several dozen tool calls and a few long assistant messages\n\n## Summary\nDuring turns where the assistant is about to produce a long text output\n(e.g. drafting a ~400-line markdown design doc after a few Read/Bash\ntool calls), the stream terminates with:\n\n  `API Error: Stream idle timeout - partial response received`\n\nThe error is *not* triggered by the tool calls themselves — tool results\narrive normally. It consistently fires in the window between the last\ntool result and the start (or middle) of the long text reply.\n\n## Reproduction\n1. Open a Claude Code Web session with Opus 4.7 (1M) on a non-trivial\n   repo (mine: ~several hundred markdown/py files, custom CLAUDE.md).\n2. Hold a long design discussion (tens of turns, many Read/Grep/Bash\n   calls, several multi-paragraph replies).\n3. Ask the assistant to draft a long markdown document (~400+ lines)\n   into a file, preceded by 1–2 exploratory tool calls.\n4. Observe `Stream idle timeout - partial response received` fire\n   after the tool calls complete but before / during the long write.\n\nRetry attempts (even after slimming CLAUDE.md and switching from\n`claude-opus-4-7[1m]` to plain `claude-opus-4-7`) reproduce the same error.\n\n## Actual behavior\nStream aborts mid-turn with an idle timeout; partial response is\ndiscarded from the user's perspective and the Write tool call never\nexecutes. The session is usable afterwards, but the same turn cannot\nbe completed — it fails repeatedly at roughly the same point.\n\n## Impact\n- Blocks any workflow that involves drafting a long file in a single\n  turn (design docs, protocol revisions, report packs).\n- Forces the user to manually split work into smaller chunks, losing\n  the model's ability to produce a coherent document in one pass.\n- Switching to the non-1M model does not resolve it, so it does not\n  appear to be strictly a 1M-context issue.\n\n## Workarounds tried (none fully effective)\n- Slimmed CLAUDE.md to reduce per-turn context overhead — still fails.\n- Switched `claude-opus-4-7[1m]` → `claude-opus-4-7` — still fails.\n- Starting a fresh session helps temporarily, but the error returns\n  after the session grows.\n\n## Additional context\n- The moments when errors occur most frequently are always during the combination of “multi‑turn conversations + about to generate long markdown.”\n- The web version cannot call /help, and there is no way to report issues directly from the client, so I am submitting this issue manually.\n- Session ID :  https://claude.ai/code/session_014AtytC2zxPcAqaoj9LwcGi\n\n## Ask\n1. Is the idle timeout threshold tunable (e.g. via a server-side\n   setting or client flag)?\n2. Can the stream be kept alive with heartbeats during long\n   text generation so long Write tool calls don't get cut off?\n3. Is there a known interaction between 1M context and long\n   tail-end text streaming that we should avoid?\n\n### What Should Happen?\n\n## Expected behavior\nThe assistant should finish streaming the long reply, or at minimum\nfail with a retriable error that preserves the in-progress Write/Edit\ntool call.\n\n### Error Messages/Logs\n\n```shell\nAPI Error: Stream idle timeout - partial response received\n```\n\n### Steps to Reproduce\n\n1. Open a Claude Code Web session with Opus 4.7 (1M) on a non-trivial\n   repo (mine: ~several hundred ",
+  "labels": [
+    "bug",
+    "duplicate",
+    "area:claude-code-web",
+    "platform:web",
+    "api:anthropic"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-17T00:40:24Z",
+  "updated_at": "2026-05-26T01:55:24Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 12,
+  "author": "masterzhuang",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/48974\n2. https://github.com/anthropics/claude-code/issues/48901\n3. https://github.com/anthropics/claude-code/issues/47555\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-17T00:44:30Z"
+    },
+    {
+      "author": "trex0092",
+      "author_association": "NONE",
+      "body": "I am getting the same !!! ",
+      "created_at": "2026-04-17T21:26:13Z"
+    },
+    {
+      "author": "guillaume-defer",
+      "author_association": "NONE",
+      "body": "Same here",
+      "created_at": "2026-04-19T20:04:34Z"
+    }
+  ]
+}

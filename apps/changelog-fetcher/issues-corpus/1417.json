@@ -1,0 +1,35 @@
+{
+  "number": 1417,
+  "title": "[Feature Request]  Session Checkpointing and Branching",
+  "body": "**Problem Statement:**\nWhen working on complex development tasks in Claude Code, users invest significant time getting Claude situated with project context, coding standards, and workflow understanding for an epic. However, as the context window fills up, this valuable context is lost when compaction or clearing becomes necessary. Regardless of the method used, Claude will not quite be at that same stage he was before - requiring reminders of requirements or corrections to get back on track. This degrades Claude's ability to iterate effectively on a set of related tasks.\n\n**Proposed Solution:**\nLeverage the existing session ID system to enable checkpointing and branching:\nWithin Claude Code REPL:\n```\n/checkpoint [optional-name] - Save current session state as a checkpoint\n/list-checkpoints - Show available checkpoints with their session IDs\n```\nFrom command line:\n```\nclaude-code --branch <session-id> - Start new session branched from the checkpointed session\n```\n\nUse Cases:\n\nEpic Implementation: Get Claude situated with epic context and workflow, checkpoint that session, then branch new sessions for implementing individual tickets while maintaining that established understanding\n\n\nSDK Workflows: Maintain established patterns and configurations across multiple related tasks (N8N workflows, API integrations, etc.)",
+  "labels": ["enhancement", "area:core", "memory"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-05-29T18:03:39Z",
+  "updated_at": "2025-10-07T14:07:11Z",
+  "closed_at": "2025-09-29T17:30:28Z",
+  "reactions_total": 27,
+  "comments_count": 7,
+  "author": "StephenBadger",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "gswangg",
+      "author_association": "NONE",
+      "body": "+1 for supporting more sophisticated session checkpointing/forking.\n\nthe poor man's version of this that you can do in the latest version is, in the session that contains your desired context, press escape twice on the empty prompt, go back to an earlier message and fork the conversation at the first message that diverges from your desired context. but, as you mention, compacting and clearing destroys the conversation history -- you'd need to prepare the conversation history and execute the fork",
+      "created_at": "2025-05-30T07:20:25Z"
+    },
+    {
+      "author": "jacobhallgren",
+      "author_association": "NONE",
+      "body": "Please add this ",
+      "created_at": "2025-07-31T10:23:23Z"
+    },
+    {
+      "author": "aretrace",
+      "author_association": "NONE",
+      "body": "## Git Checkpoints Hook\n\nPlace the following JSON into your Project settings (`.claude/settings.json`) or User settings (`~/.claude/settings.json`):\n```json\n{\n  \"hooks\": {\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Edit|NotebookEdit|MultiEdit|Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"IFS= read -r PAYLOAD; SESSION_ID=$(jq -r .session_id <<<\\\"$PAYLOAD\\\"); \\\"$HOME/.claude/local/claude\\\" --dangerously-skip-permissions -p -r \\\"$SESSION_ID\\\" \\\"",
+      "created_at": "2025-07-31T22:42:03Z"
+    }
+  ]
+}

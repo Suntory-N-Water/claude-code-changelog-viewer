@@ -1,0 +1,35 @@
+{
+  "number": 46983,
+  "title": "[BUG]TUI banner duplication stacking repeatedly on macOS Terminal.app (v2.1.104) — blocking daily work",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nOn macOS Terminal.app with Claude Code CLI v2.1.104, the entire TUI (Claude Code logo, version header, working directory, input box,\n   and bottom status bar) stacks multiple times vertically in the same terminal window after launching claude and sending a single\n  message like \"hello\". The banners pile on top of each other, each one progressively narrower, as if SIGWINCH is being fired\n  repeatedly on startup.\nEnvironment\n\n  - Claude Code version: 2.1.104\n  - OS: macOS (Darwin 25.2.0, Apple Silicon M1, 8GB RAM)\n  - Terminal: Apple Terminal.app, version 466\n  - Shell: zsh\n  - TERM: xterm-256color\n  - No tmux / screen\n  - Window was NOT resized manually\n\n  Steps to Reproduce\n\n  1. Open a fresh Terminal.app window\n  2. Run claude\n  3. Type hello and press Enter\n  4. Observe: the full TUI banner (logo + version + cwd + prompt + status bar) renders multiple times stacked vertically in the same\n  window\n\n  What I've Already Tried\n\n  - Cleared all SessionStart hooks — issue persists\n  - Set CLAUDE_CODE_NO_FLICKER=1 — issue persists (please confirm if this flag still exists in v2.1.104)\n  - Verified no hook writes to stdout during startup\n  - Confirmed TERM is correct\n  - Did not resize the window\n\n  Impact\n\n  This is severely blocking my daily work. I have lost multiple days of development time because of this rendering bug. The terminal\n  becomes unusable within seconds of starting a session, and I have already submitted official support requests several days ago with\n  no response. This is a long-standing TUI issue on macOS Terminal.app that has been acknowledged by the community but not fully\n  resolved.\n\n  Expected Behavior\n\n  The TUI should render once and redraw in place using the alternate screen buffer — not stack repeated copies of the banner in the\n  scrollback.\n\n  Request\n\n  Please prioritize a fix for Apple Terminal.app users, or at minimum provide a --plain / --no-tui / --legacy fallback mode so we can\n  keep working while the TUI bug is being investigated.\n\n  Screenshots attached.\n\n<img width=\"962\" height=\"1088\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/dbe60a1a-37a9-40b1-bec2-7d4d7c48d053\" />\n\n### What Should Happen?\n\n<img width=\"962\" height=\"1088\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/742ebd75-8d8a-47e7-a5d2-d5350d22aa0f\" />\n\n<img width=\"920\" height=\"1081\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/92e3ba7a-c932-4a9f-adc3-65ea306ea399\" />\n\n<img width=\"962\" height=\"1088\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/dcf05051-9832-48be-b6d8-47643823f54b\" />\n\n<img width=\"950\" height=\"1086\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/db036eaf-7194-473d-8b64-d42382c9e785\" />\n\n<img width=\"950\" height=\"1086\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/41c4c5a4-2c38-479a-9c86-3a88342f4579\" />\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Open a fresh macOS Terminal.app window (no tmux, no screen)\n  2. Run `claude`\n  3. Wait for the TUI to render (banner + prompt + status bar)\n  4. Type any message, e.g. `hello`, and press Enter\n  5. Observe: the full TUI (logo + version header + working directory + input box + bottom status bar) stacks multiple times\n  vertically in the same window, each copy progressively narrower — as if SIGWINCH is being fired repeatedly on startup.\n\n  Environment:\n  - Claude Code 2.1.104\n  - macOS (Darwin 25.2.0, Apple M1, 8GB RAM)\n  - Terminal.app version 466\n  - zsh, TERM=xterm-256color\n  - No tmux/screen, window was NOT resized\n\n  Already tried:\n  - Cleared all SessionStart hooks — still happens\n  - Set CLAUDE_CODE_NO_FLICKER=1 — still happens\n  - Confirmed no hook writes to stdout during startup\n\n### Claude Model\n\nOpus\n\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-12T13:07:37Z",
+  "updated_at": "2026-05-30T22:26:52Z",
+  "closed_at": "2026-05-30T22:26:52Z",
+  "reactions_total": 4,
+  "comments_count": 11,
+  "author": "limikelove200-lgtm",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/46462\n2. https://github.com/anthropics/claude-code/issues/46834\n3. https://github.com/anthropics/claude-code/issues/46499\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-12T13:10:48Z"
+    },
+    {
+      "author": "limikelove200-lgtm",
+      "author_association": "NONE",
+      "body": " Update: Switching to iTerm2 did NOT fix the issue.\n                                                                                                                                                            \n  I followed community suggestions and installed iTerm2 (3.6.9, official build from Homebrew), but the TUI banner duplication is still happening — the\n  entire Claude Code interface (logo, version, working directory, input box, status bar) continues to stack repeatedly in the same window af",
+      "created_at": "2026-04-12T13:27:20Z"
+    },
+    {
+      "author": "ventilla",
+      "author_association": "NONE",
+      "body": " Hitting this on macOS Terminal.app, Claude Code 2.1.104, Darwin 25.4.0, zsh. Custom   \n  ▎ statusLine configured in ~/.claude/settings.json (single-line output with ANSI colors \n  ▎ and multibyte ·/⚡ characters). Scrollback accumulates duplicate copies of the        \n  ▎ statusline + model banner throughout a session — after ~1hr of use, scrolling up shows\n  ▎  the CID line repeated dozens of times interleaved with actual output. Screenshots\n  ▎ attached.\n\n<img width=\"676\" height=\"512\" alt=\"Ima",
+      "created_at": "2026-04-12T15:49:18Z"
+    }
+  ]
+}

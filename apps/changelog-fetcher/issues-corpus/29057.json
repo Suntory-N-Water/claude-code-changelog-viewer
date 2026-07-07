@@ -1,0 +1,35 @@
+{
+  "number": 29057,
+  "title": "Claude Code Chrome integration fails to connect when Claude Desktop (Cowork) is also installed",
+  "body": "## Description\n  Claude Code's Chrome browser integration (`tabs_context_mcp`) never connects when Claude Desktop is also installed\n  with the Cowork/browser feature enabled. The extension remains in a disconnected state even with Claude Desktop fully\n  closed.\n\n  ## Environment\n  - **Claude Code version**: 2.1.59\n  - **Extension version**: 1.0.56\n  - **Extension ID**: fcoeoabgfenejglbffodgkkbkcdhcgfn\n  - **OS**: macOS (Darwin 25.3.0)\n  - **Chrome**: latest\n\n  ## Root Cause (Investigated)\n  Both Claude Desktop and Claude Code register native messaging hosts for the **same extension ID**:\n  - `com.anthropic.claude_browser_extension` → `/Applications/Claude.app/Contents/Helpers/chrome-native-host`\n  - `com.anthropic.claude_code_browser_extension` → `~/.claude/chrome/chrome-native-host`\n\n  Claude Desktop force-installs the extension via Chrome's External Extensions policy (`~/Library/Application\n  Support/Google/Chrome/External Extensions/fcoeoabgfenejglbffodgkkbkcdhcgfn.json`), causing Chrome to label it \"Added\n  by a third-party\". The extension's service worker opens the Desktop Cowork side panel UI but never initiates a\n  connection to Claude Code's native host.\n\n  ## Steps to Reproduce\n  1. Install Claude Desktop with Cowork/browser integration enabled\n  2. Install Claude Code and set up Chrome integration\n  3. Close Claude Desktop completely\n  4. Attempt to use Claude Code's Chrome tools — connection always fails\n\n  ## What Was Tried\n  - Full Chrome restarts (multiple)\n  - Removing and reinstalling the extension\n  - Verified native messaging host config is correct with matching extension ID\n  - Verified Claude Code binary is functional (native host creates socket successfully)\n  - Verified account match (same email in Claude Code auth and claude.ai in Chrome)\n  - Temporarily hiding Desktop's native messaging host file — did not resolve it\n\n  ## Expected Behavior\n  Claude Code's Chrome integration should work independently of whether Claude Desktop is installed.\n\n  ## Actual Behavior\n  `tabs_context_mcp` always returns: \"Browser extension is not connected\"\n\n  The extension only opens the Desktop Cowork side panel UI and does not connect to Claude Code's native messaging host.\n\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:chrome"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-26T16:59:34Z",
+  "updated_at": "2026-05-07T12:39:51Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 3,
+  "author": "ch-804",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "enkr1",
+      "author_association": "NONE",
+      "body": "Still experiencing this on macOS (Darwin 25.3.0, Chrome latest). `tabs_context_mcp` returns \"Browser extension is not connected\" consistently. Been broken for days. Any update on a fix? @anthropics/claude-code",
+      "created_at": "2026-03-25T09:55:50Z"
+    },
+    {
+      "author": "alennugi",
+      "author_association": "NONE",
+      "body": "**Environment:** macOS, Chrome with multiple profiles (Default + Profile 2, 7, 9, 10, 11, 12), Claude Desktop (Cowork mode)\n\n**Debugging session findings:**\n\n1. `chrome-native-host` process starts successfully (PID visible in Activity Monitor) — Chrome ↔ native messaging host communication works\n2. The bridge from native host → Cowork VM is broken — `tabs_context_mcp` always returns \"not connected\"\n3. `com.anthropic.claude_code_browser_extension.json` and `com.anthropic.claude_browser_extension.",
+      "created_at": "2026-03-26T04:58:46Z"
+    },
+    {
+      "author": "ianm199",
+      "author_association": "NONE",
+      "body": "This is the same bug as #54567 — that thread has the full root-cause analysis: the extension's service worker probes `com.anthropic.claude_browser_extension` (Desktop) before `com.anthropic.claude_code_browser_extension` (CLI) and takes the first that returns `pong`.\n\nAdding a repro data point for anyone landing here first:\n- Claude Code 2.1.132 / Extension 1.0.70 / Chrome 147 / macOS 15.3.2 — same failure mode.\n\nWorkaround that does work (refining \"even with Claude Desktop fully closed\" from th",
+      "created_at": "2026-05-07T12:39:50Z"
+    }
+  ]
+}

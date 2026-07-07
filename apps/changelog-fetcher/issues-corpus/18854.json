@@ -1,0 +1,35 @@
+{
+  "number": 18854,
+  "title": "Cowork sessions fail with 'Connection error' - internal MITM proxy blocking api.anthropic.com",
+  "body": "## What's happening\n\nCowork sessions completely fail to work. Every time I try to use Cowork, after about 2-3 minutes of waiting, I get:\n\n```\nAPI Error: Connection error.\n```\n\nThis happens 100% of the time. I've tried probably 15+ times over the past few days.\n\n## Environment\n\n- macOS (Darwin 25.2.0)\n- Claude Desktop - latest version (just updated today)\n- Claude Code SDK 2.1.8\n- No VPN running\n- macOS firewall is off\n- UniFi router with no special network security configured\n\n## What I tried\n\n1. **Updated Claude Desktop** to the latest version - no change\n2. **Deleted the VM bundle** (`rm -rf ~/Library/Application Support/Claude/vm_bundles/`) and let it re-download fresh - no change\n3. **Restarted my Mac completely** - no change\n4. **Checked firewall settings** - it's off\n5. **Made sure no VPN was running** - confirmed\n\n## Debugging deep dive\n\nI spent a while digging through the logs and I think I found the actual issue.\n\n### The VM starts fine\n\nLooking at `claude_vm_node.log`, the VM boots up successfully:\n\n```\n[VM:start] Step 4/4 complete: connected after 23 polls, 11064ms since boot\n[VM:start] Installing SDK: subpath=Library/Application Support/Claude/claude-code-vm, version=2.1.8\n[VM:start] SDK installed, total startup time: 85430ms\n```\n\n### OAuth token gets approved\n\nIn `claude_vm_swift.log`:\n\n```\n[VM] OAuth token approved successfully\n[VM] Process spawned: id=5e568266-79f1-4252-ac8a-d2bfd633055c name=busy-wonderful-mayer command=/usr/local/bin/claude\n```\n\n### MCP servers connect\n\nThe session audit shows all MCP servers connecting fine:\n\n```json\n\"mcp_servers\":[\n  {\"name\":\"Claude in Chrome\",\"status\":\"connected\"},\n  {\"name\":\"mcp-registry\",\"status\":\"connected\"},\n  ...\n  {\"name\":\"cowork\",\"status\":\"connected\"}\n]\n```\n\n### Then the API call fails\n\nAfter all that succeeds, the actual API call to Anthropic fails:\n\n```json\n{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"text\",\"text\":\"API Error: Connection error.\"}]},\"error\":\"unknown\"}\n```\n\n### Found it: The MITM proxy is blocking api.anthropic.com\n\nI ran a curl test and discovered the issue:\n\n```bash\n$ curl -v https://api.anthropic.com/v1/messages\n* Uses proxy env variable https_proxy == 'http://localhost:64922'\n...\n< HTTP/1.1 403 Forbidden\n< Content-Type: text/plain\n< X-Proxy-Error: blocked-by-allowlist\n```\n\nThe internal MITM proxy (which I confirmed is Claude Desktop itself via `lsof -i :64922`) is returning **403 Forbidden** with `X-Proxy-Error: blocked-by-allowlist` when trying to connect to `api.anthropic.com`.\n\nSo the VM's network goes through Claude Desktop's proxy, but that proxy isn't allowing connections to the actual Anthropic API.\n\n### The blocklist is empty\n\nI checked the extensions blocklist file and it's empty:\n\n```json\n[{\"entries\":[],\"lastUpdated\":\"2026-01-17T18:36:37.752Z\",...}]\n```\n\nAnd in `config.json`:\n\n```json\n\"dxt:allowlistEnabled\": false\n```\n\n## What I think is happening\n\nIt looks like the VM's egress traffic goes through Claude Desktop's MITM proxy for security/isolation, but the allowlist that's supposed to permit `api.anthropic.com` isn't working correctly. The proxy is blocking the exact domain that Cowork needs to function.\n\nThe rest of the networking works fine - I can see in the logs that it successfully fetches from `https://claude.ai/api/organizations/.../dxt/blocklist`, so outbound HTTPS works in general. It's specifically `api.anthropic.com` that's getting blocked.\n\n## Logs\n\nHappy to provide full logs if helpful. The relevant ones are:\n- `~/Library/Logs/Claude/main.log`\n- `~/Library/Logs/Claude/claude_vm_node.log`\n- `~/Library/Logs/Claude/claude_vm_swift.log`\n- `~/Library/Logs/Claude/sdk_daemon.log`\n\nAnd the session audit files in `~/Library/Application Support/Claude/local-agent-mode-sessions/`",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-17T18:46:13Z",
+  "updated_at": "2026-02-04T14:24:37Z",
+  "closed_at": "2026-01-27T01:56:13Z",
+  "reactions_total": 9,
+  "comments_count": 20,
+  "author": "mikecfisher",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "MarshallOfSound",
+      "author_association": "NONE",
+      "body": "@mikecfisher can you drop me your logs? Best way to do so it to send in product feedback via the \"bug\" button in the bottom left and mention your github username in the form somewhere, I should be able to find it.",
+      "created_at": "2026-01-21T20:57:39Z"
+    },
+    {
+      "author": "mikecfisher",
+      "author_association": "NONE",
+      "body": "Thanks so much Samuel I did this a few hours ago actually. However I didn't add my user name but I did include a link to this GitHub issue",
+      "created_at": "2026-01-21T21:26:09Z"
+    },
+    {
+      "author": "mikecfisher",
+      "author_association": "NONE",
+      "body": "Hi @MarshallOfSound I resubmitted feedback and tagged my GH username and yours. Let me know if you find anything. Thanks!\n\nAlso FYI I tried completely uninstalling Claude Desktop including these files: \n```\n  ✓ /Applications/Claude.app\n  ✓ ~/Library/Application Support/Claude\n  ✓ ~/Library/Caches/com.anthropic.claudefordesktop\n  ✓ ~/Library/Logs/Claude\n  ✓ ~/Library/HTTPStorages/com.anthropic.claudefordesktop\n  ✓ ~/.local/share/Claude\n```\n\nand the issue persists. \n",
+      "created_at": "2026-01-21T21:44:32Z"
+    }
+  ]
+}

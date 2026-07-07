@@ -1,0 +1,35 @@
+{
+  "number": 52135,
+  "title": "[BUG] Max (20x) weekly limit depletes disproportionately — 51% mid-week, ~17% within minutes of session reset",
+  "body": "### Preflight Checklist\n- [x] I have searched existing issues\n- [x] This is a single bug report\n- [x] I am using the latest version (2.1.117)\n\n### What's Wrong?\n\nOn the Max **(20x)** plan — the top subscription tier — the weekly quota depletes far faster than the \"20x\" positioning implies. Two concrete data points from a single machine, single active session at a time, no parallel sessions, no subagent-heavy workflows:\n\n**Earlier today (before the most recent session reset):**\n- Current session: **14%** used (session had just started, resets in 4h 45min)\n- Weekly (all models): **51%** used, resets Mon 9 PM\n- Weekly (Sonnet only): 10%\n- Claude Design: 0%\n\n**Right after the session limit reset (just now, single short burst of work):**\n- Current session already at **~17%** used\n\nAt this burn rate on Opus 4.7 (1M context), the weekly cap will be exhausted well before Monday — on the tier that is *explicitly sold as* 4× the budget of Max (5x).\n\nOne of:\n1. Opus 4.7 with 1M context is accounted far more aggressively than is communicated,\n2. there is a measurement / accounting bug,\n3. the \"20x\" multiplier quietly shrank after the 4.7 rollout.\n\nEither way this needs investigation and transparency.\n\n### What Should Happen?\n\n1. The weekly cap on Max (20x) should actually reflect the \"20x\" positioning. A user doing normal single-session Opus work should not burn 50%+ in 2–3 days.\n2. The UI should show **what is being counted**, not just a creeping bar. Users need a breakdown to self-throttle:\n   - per-model % (Opus vs Sonnet vs Haiku)\n   - per-session cost in % of weekly\n   - whether the 1M-context mode is priced differently from 200k\n   - cache-hit vs cache-miss ratio\n3. Ideally, an on-demand `/usage --detailed` or plan-page breakdown that shows the last N sessions and what each cost against the quota.\n\nRight now the only signal is \"% used\" with no explanation, so the limit feels arbitrary and there's no way to budget ahead.\n\n### Steps to Reproduce\n\n1. Subscribe to Max (20x)\n2. Use Claude Code CLI primarily with Opus 4.7 (1M-context variant) for a few hours/day, single session at a time (no parallel sessions, no subagent spam)\n3. After 2–3 days, check the plan page — weekly \"all models\" is already ~50%\n4. Observe that even a single short burst of work right after the session reset pushes the current-session bar to ~17% almost immediately\n\n### Error Messages / Logs\n\nNone — this is not a crash, it is unexpectedly rapid quota depletion.\n\n### Claude Model\n\nOpus 4.7 (1M-context variant, `claude-opus-4-7[1m]`)\n\n### Is this a regression?\n\nI don't know (no pre-4.7 baseline on this plan to compare against). Community signal (see related issues below) suggests it worsened after the 4.7 / 1M-context rollout.\n\n### Claude Code Version\n\n`2.1.117 (Claude Code)`\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nOther Linux (Debian 13)\n\n### Terminal / Shell\n\nOther (Linux interactive shell, bash)\n\n### Additional Information\n\nSeveral open reports appear to describe the same root cause:\n- #50742 — \"Investigate usage limits on Max 20x subscriptions\"\n- #47587 — \"Usage limits gone crazy\"\n- #51715 — \"Usage limit reached - while session reset\"\n- #51219 — \"Usage limit reached despite UI showing low consumption percentages\"\n- #41174 — \"Usage limit reached in 10 minutes\"\n\nThe volume of complaints from Max (20x) users specifically is a signal that either the accounting is broken or the tier's economics have quietly changed since the 4.7 release. Please either fix / clarify the accounting or expose an itemized breakdown so users can self-manage.\n\nScreenshot of the plan page will be attached via the web UI after creation (the `gh` CLI cannot upload user-attachments).\n",
+  "labels": ["bug", "platform:linux", "area:cost", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-22T21:21:20Z",
+  "updated_at": "2026-06-16T22:45:07Z",
+  "closed_at": "2026-06-16T22:45:07Z",
+  "reactions_total": 4,
+  "comments_count": 14,
+  "author": "up4k73",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "up4k73",
+      "author_association": "NONE",
+      "body": "### Update — burn rate in the last ~9 minutes\n\nBetween my original report and right now, literally **9 minutes** passed (session countdown went from 4h 45min → 4h 36min). During those 9 minutes I was not actively coding — a handful of messages, nothing heavy.\n\nFresh numbers:\n\n| Metric | Then | Now | Delta |\n|---|---|---|---|\n| Current session | 14% | **21%** | **+7 pp in 9 min** |\n| Weekly (all models) | 51% | **52%** | +1 pp |\n| Weekly (Sonnet only) | 10% | 10% | 0 |\n\nAt **+7 pp in 9 min** the ",
+      "created_at": "2026-04-22T21:25:43Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/43274\n2. https://github.com/anthropics/claude-code/issues/45756\n3. https://github.com/anthropics/claude-code/issues/41930\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-22T21:27:50Z"
+    },
+    {
+      "author": "up4k73",
+      "author_association": "NONE",
+      "body": "### Update #2 — another 10 minutes later\n\nThird data point. Session countdown went 4h 36min → 4h 26min (another ~10 minutes). Again: not writing code, not launching background processes, nothing heavy. A handful of conversational messages in a single Claude Code CLI session.\n\n| Metric | t=0 | t=+9min | t=+19min | Total delta |\n|---|---|---|---|---|\n| Current session | 14% | 21% | **25%** | **+11 pp in 19 min** |\n| Weekly (all models) | 51% | 52% | **53%** | +2 pp in 19 min |\n| Weekly (Sonnet onl",
+      "created_at": "2026-04-22T21:35:42Z"
+    }
+  ]
+}

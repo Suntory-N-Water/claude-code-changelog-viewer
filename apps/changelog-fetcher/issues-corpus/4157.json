@@ -1,0 +1,35 @@
+{
+  "number": 4157,
+  "title": "How to report progress with an MCP Server",
+  "body": "When you run a built-in tool like Task in an interactive session, it shows you status updates so you know what it is doing. Things like what tool it is uses and how many total tools were used.\n\nI tried to emulate this be sending progress notifications as defined in https://modelcontextprotocol.io/specification/2025-03-26/basic#notifications, but it does not show anything in the client. What do I need to do to make this work?\n\nHere is an example of testing the notifications via Bash:\n\n```\n● Bash(cd /home/user/claude-instructions/mcp-servers && echo\n      '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"run_bot\",\"arguments\":{\"bot_name\":\"memory-search\",\"bot_args\":\"quick\n       test\",\"_meta\":{\"progressToken\":\"bash-test-123\"}}}}' | pnpm start:internal)\n  ⎿ > mcp-servers@1.0.0 start:internal /home/user/claude-instructions/mcp-servers                                                        \n    > node --conditions=production build/internal/index.js\n\n    {\n      \"method\": \"notifications/progress\",\n      \"params\": {\n        \"progressToken\": \"bash-test-123\",\n        \"progress\": 1,\n        \"total\": 10,\n        \"message\": \"Starting bot: memory-search\"\n      },\n      \"jsonrpc\": \"2.0\"\n    }\n    {\n      \"method\": \"notifications/progress\",\n      \"params\": {\n        \"progressToken\": \"bash-test-123\",\n        \"progress\": 2,\n        \"total\": 10,\n        \"message\": \"I'll help search the memory database for information about \\\"quick test\\\".\"\n      },\n      \"jsonrpc\": \"2.0\"\n    }\n    {\n      \"method\": \"notifications/progress\",\n      \"params\": {\n        \"progressToken\": \"bash-test-123\",\n        \"progress\": 3,\n        \"total\": 10,\n        \"message\": \"Tool call: mcp__memory__search_memories({\\n  \\\"search_terms\\\": [\\n    \\\"quick\\\",\\n    \\\"test\\\"\\n  ]\\n})\"\n      },\n      \"jsonrpc\": \"2.0\"\n    }\n```\n\nIt looks like it is sending notifications properly, but nothing is displayed in the client.\n\nThanks for your help.",
+  "labels": ["question", "area:mcp", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-22T20:39:47Z",
+  "updated_at": "2026-01-14T14:19:11Z",
+  "closed_at": "2026-01-07T10:20:55Z",
+  "reactions_total": 1,
+  "comments_count": 19,
+  "author": "cseickel",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "macebake",
+      "author_association": "NONE",
+      "body": "I've also had this issue, commenting to stay informed.\n\nI thought an alternative might be to use [progress monitoring](https://gofastmcp.com/clients/progress), but this didn't work. Concluded that Claude Code doesn't support progress tokens -- certainly there's nothing in the docs that suggests they do yet.",
+      "created_at": "2025-08-01T13:37:21Z"
+    },
+    {
+      "author": "FallDownTheSystem",
+      "author_association": "NONE",
+      "body": "This would be a nice feature to support, progress tracking for long running tool calls is really useful.",
+      "created_at": "2025-08-04T09:33:48Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Hi there! Thanks for the excellent question and for providing a clear example of what you're trying to accomplish. It's a great use case.\n\nYou've correctly identified the `notifications/progress` method in the Model Context Protocol (MCP) specification. However, there's a key distinction in how the protocol works that's causing the behavior you're seeing.\n\n### The Model vs. The Tool\n\nThe `notifications/progress` method is designed for the primary AI model (in this case, Claude) to report its own",
+      "created_at": "2025-08-16T04:01:34Z"
+    }
+  ]
+}

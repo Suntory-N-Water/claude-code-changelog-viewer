@@ -1,0 +1,41 @@
+{
+  "number": 57968,
+  "title": "[BUG] BUG: Cowork Linux sandbox fails to start on Windows — persists after all Hyper-V service fixes",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Environment:**\n- OS: Windows (company managed)\n- App: Claude Cowork mode\n- Error: \"Workspace unavailable. The isolated Linux environment failed to start.\"\n\n**Steps taken (with IT admin, full admin access):**\n1. Set vmms (Hyper-V Virtual Machine Management) → Automatic ✅\n2. Set vmcompute (Hyper-V Host Compute Service) → Automatic ✅\n3. Set hvhost (HV Host Service) → Automatic ✅\n4. Verified via PowerShell: all three services Running + Automatic\n5. Restarted Claude, started multiple new sessions\n6. Sandbox still fails on every attempt\n\n**Result:** File tools work. Only bash/Linux sandbox is broken — across all sessions and after full restart.\n\n**Related issues:** #50997, #52359, #55404, #55649, #56145\n\n**Request:** Local Hyper-V config appears correct. Please investigate server-side provisioning or advise on fix for managed Windows environments.\n\n### What Should Happen?\n\nThe Linux sandbox should start successfully so Claude can execute bash commands and Python scripts in Cowork mode.\n\n### Error Messages/Logs\n\n```shell\nWorkspace unavailable. The isolated Linux environment failed to start. You can still use file tools directly.\n```\n\n### Steps to Reproduce\n\n1. Open Claude Cowork mode on Windows (company managed)\n2. Start a new session\n3. Ask Claude to run any bash command\n4. Error appears every time: \"Workspace unavailable\"\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\napril 30 2026\n\n### Claude Code Version\n\nCowork desktop app (not Claude Code CLI)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nThis bug occurs in Claude Cowork desktop app (not Claude Code CLI). \nThe sandbox has never worked on this machine. All Hyper-V services \nconfirmed Running + Automatic via PowerShell. Bug appears systemic \nbased on related issues #50997, #52359, #55404, #55649, #56145.",
+  "labels": [
+    "duplicate",
+    "platform:windows",
+    "area:cowork",
+    "area:desktop",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-05-11T07:43:13Z",
+  "updated_at": "2026-06-12T22:39:42Z",
+  "closed_at": "2026-06-12T22:39:42Z",
+  "reactions_total": 1,
+  "comments_count": 12,
+  "author": "christianbauhn-maker",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/56145\n2. https://github.com/anthropics/claude-code/issues/55649\n3. https://github.com/anthropics/claude-code/issues/55404\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-11T07:48:13Z"
+    },
+    {
+      "author": "christianbauhn-maker",
+      "author_association": "NONE",
+      "body": "Additional impact — skill-based file generation also broken\nI want to clarify that the scope of this bug is broader than just direct bash access.\nThe Cowork skills for generating Word documents (.docx), PDFs, Excel files (.xlsx), and PowerPoint files (.pptx) all depend on Python scripts running in the Linux sandbox. Since the sandbox fails to start, none of these file generation workflows work either.\nPractical impact over the past several days:\n\ndocx skill fails → had to use HTML as workaround\n",
+      "created_at": "2026-05-11T09:26:25Z"
+    },
+    {
+      "author": "christianbauhn-maker",
+      "author_association": "NONE",
+      "body": "Update: All local Windows features confirmed enabled\nFollowing further investigation, all relevant Windows features are now verified as correctly enabled:\n\n✅ Hyper-V (all sub-features: Hyper-V Hypervisor, Hyper-V-tjänster, management tools)\n✅ Hyper-V Platform\n✅ Virtual Machine Platform\n✅ Windows Hypervisor Platform\n✅ Windows Subsystem for Linux\n\nAll three Hyper-V services (vmms, vmcompute, hvhost) are also confirmed Running + Automatic via PowerShell.\nThere is nothing left to configure locally. ",
+      "created_at": "2026-05-11T09:31:01Z"
+    }
+  ]
+}

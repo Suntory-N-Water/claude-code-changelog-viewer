@@ -1,0 +1,35 @@
+{
+  "number": 59013,
+  "title": "Unhandled case: [object Object] on stream end with had_error: true after long sessions",
+  "body": "## What happened\nMid-response in a long-running VS Code conversation, the UI shows\n\"Unhandled case: [object Object]\" in a red error bar. The session\nbecomes unresponsive (Thinking... never resolves). Sometimes typing\n\"continue\" recovers, sometimes not — it's a gamble.\n\n## Reproduction (consistent pattern in logs)\n1. Long-running conversation (40+ messages, multiple large MCP\n   tool results — 90KB+ persisted read-results in my case)\n2. Tool call completes successfully\n3. Follow-up API request sent\n4. Stream starts, delivers a few hundred bytes\n5. Stream stalls for 15s with no further chunks\n6. `sdk_stream_ended_no_result` fires with `had_error: true`\n7. UI surfaces \"Unhandled case: [object Object]\"\n\n## Log excerpt\n```\n[Stall] tool_dispatch_end tool=mcp__JARVISVault__list_directory outcome=ok durationMs=4\n[API REQUEST] /v1/messages source=sdk\nStream started - received first chunk\n[WARN] [Stall] stream_idle_partial lastChunkAgeMs=15010 bytesTotal=669\nlog_event sdk_stream_ended_no_result {\"had_error\":true,\"message_count\":41}\n```\n\n## Expected\nEither:\n- Automatic retry of the failed stream, OR\n- A user-facing error with a \"Retry\" / \"Resume\" button, OR\n- At minimum, a meaningful error message instead of `[object Object]`\n\n## Environment\n- Extension version: 2.1.141.672 (also reproduced on 2.1.141.752)\n- VS Code on Windows 11\n- Model: Opus 4.7 (1M context)\n- MCP servers active: ~20 (heavy MCP usage)\n\n## Impact\nIn long content-heavy sessions (vault analysis, document audits, etc.)\nthis fires multiple times per hour. The workflow becomes a gamble of\n\"does retry work this time\".",
+  "labels": ["bug", "duplicate", "platform:windows", "platform:vscode"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-05-14T10:32:00Z",
+  "updated_at": "2026-07-04T14:36:30Z",
+  "closed_at": "2026-05-15T04:20:15Z",
+  "reactions_total": 12,
+  "comments_count": 13,
+  "author": "Maseschine",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/58989\n2. https://github.com/anthropics/claude-code/issues/58897\n3. https://github.com/anthropics/claude-code/issues/52151\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-14T10:36:17Z"
+    },
+    {
+      "author": "arielmoatti",
+      "author_association": "NONE",
+      "body": "> **[Edited 2026-05-14] Correction:** the Bash-latency attribution below turned out to be at most a *secondary* cause — see [my follow-up comment](https://github.com/anthropics/claude-code/issues/59013#issuecomment-4450900233) with the actual log data (13 of 23 stalls were `bytesTotal=0` first-byte stalls, not Bash). Leaving the original text below for thread continuity.\n\n---\n\n**Same signature on Windows 11 + Git Bash — and I think I can name the stall trigger.**\n\nReproduced this with a near-ide",
+      "created_at": "2026-05-14T11:14:03Z"
+    },
+    {
+      "author": "captain-cognt",
+      "author_association": "NONE",
+      "body": "same issue here",
+      "created_at": "2026-05-14T11:20:36Z"
+    }
+  ]
+}

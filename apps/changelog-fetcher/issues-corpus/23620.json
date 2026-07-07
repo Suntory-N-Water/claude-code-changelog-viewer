@@ -1,0 +1,35 @@
+{
+  "number": 23620,
+  "title": "Agent team lost when lead's context gets compacted during long session",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n  When running an agent team for a longer task (16 content pages for an Astro\n  site), the lead's context window fills up and gets compacted/summarized. After\n   compaction, the lead completely loses awareness of the team — it can't\n  message teammates, coordinate tasks, or even acknowledge the team exists. The\n  team effectively vanishes mid-session despite teammates potentially still\n  running. The user has to start a new session and manually clean up orphaned\n  files from ~/.claude/teams/ and ~/.claude/tasks/.\n\n### What Should Happen?\n\n  The lead should retain team awareness after compaction. At minimum, the team\n  config path (~/.claude/teams/{name}/config.json) and active task list should\n  be re-injected into context after summarization — similar to how CLAUDE.md\n  persists across compaction. The data is already on disk, it just needs to be\n  re-read.\n\n### Error Messages/Logs\n\n```shell\nNo explicit error. The lead simply continues as if no team exists. When the\n  user asks about the team, the lead has no memory of it.\n```\n\n### Steps to Reproduce\n\n  1. Set CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: \"1\" in .claude/settings.json\n  2. Create an agent team with multiple teammates and a shared task list\n  3. Assign enough work that the lead's context approaches the 200K token limit\n  (e.g., writing/reviewing 16 pages with SEO checks, internal linking, and\n  umlaut fixes)\n  4. Wait for compaction to trigger couple of times\n  5. Try to interact with the team after compaction — the lead no longer knows\n  it exists\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n  2.1.34 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n\n  - macOS Darwin 21.6.0\n  - In-process teammate mode (default/auto)\n  - The team (\"aimiten-content\") had a lead + multiple teammates writing Astro\n  content pages. All writing tasks completed successfully. The team was lost\n  during the SEO review phase when context was compacted.\n  - A possible fix: add a PostCompact hook or built-in logic that re-reads\n  ~/.claude/teams/{active-team}/config.json and the task list after\n  summarization, injecting team state back into the lead's context.\n  Alternatively, team state could be treated as system-level context (like\n  CLAUDE.md) that always persists.\n  - 16 pages is a modest workload for a feature designed around multi-agent\n  autonomous collaboration.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-06T08:39:16Z",
+  "updated_at": "2026-06-03T18:37:46Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 18,
+  "author": "Aimiten",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "Working on the fix for this issue but meanwhile this will surely help by giving you much more time before compaction hits...\n\nWe built **[Cozempic](https://github.com/junaidtitan/cozempic)** to prune this from session files. Running it between sessions or before resuming can delay the point where compaction triggers. On a 6,602 message session we saw 1,529 messages removed and 22% size reduction, mostly from progress ticks and metadata that contribute nothing to context but consume tokens.\n\n```b",
+      "created_at": "2026-02-06T09:37:56Z"
+    },
+    {
+      "author": "weiT1993",
+      "author_association": "NONE",
+      "body": "Running into the same issue on V2.1.37.",
+      "created_at": "2026-02-08T17:55:31Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "**Update:** Cozempic now has full Agent Teams protection that addresses this issue end-to-end.\n\n```bash\npip install cozempic\ncozempic init\n```\n\n`cozempic init` auto-wires everything into your project — no manual configuration:\n\n- **Guard daemon auto-starts** on every session (`SessionStart` hook) — continuously checkpoints team state, prunes bloat before compaction triggers\n- **Team-protect pruning** — when pruning fires, team messages (Task, TaskCreate, TaskUpdate, TeamCreate, SendMessage) are ",
+      "created_at": "2026-02-09T11:31:18Z"
+    }
+  ]
+}

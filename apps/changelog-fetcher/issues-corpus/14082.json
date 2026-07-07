@@ -1,0 +1,16 @@
+{
+  "number": 14082,
+  "title": "[BUG] Hooks not loaded from .claude/settings.json when file also contains \"permissions\" block",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n Hooks defined in project-level `.claude/settings.json` are not loaded when the same file also contains a `permissions` block. Removing the `permissions` block causes hooks to load correctly.\n\nImp## act\n\nThis breaks the ability to share both permissions AND hooks via a single committed .claude/settings.json file. Teams wanting to distribute validation hooks must tell users to manually configure permissions separately.\n\n## Related Issues\n\nPossibly related to #11544, #7916 - but those don't identify this specific cause.\n\n### What Should Happen?\n\nhooks should be consistently loaded\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Create `.claude/settings.json` with both `permissions` and `hooks`:\n\n  ```json\n  {\n    \"permissions\": {\n      \"allow\": [\"Bash(*)\", \"Edit\", \"Write\"]\n    },\n    \"hooks\": {\n      \"PreToolUse\": [\n        {\n          \"matcher\": \"Edit|Write\",\n          \"hooks\": [\n            {\n              \"type\": \"command\",\n              \"command\": \"echo 'HOOK TEST' >&2\"\n            }\n          ]\n        }\n      ]\n    }\n  }\n\n  2. Start Claude Code and run /hooks\n  3. Result: \"No matchers configured yet\"\n  4. Debug log shows: Found 0 hook matchers in settings\n\n  Workaround\n\n  Remove the permissions block from settings.json (move permissions to settings.local.json instead):\n\n  {\n    \"hooks\": {\n      \"PreToolUse\": [\n        {\n          \"matcher\": \"Edit|Write\",\n          \"hooks\": [\n            {\n              \"type\": \"command\",\n              \"command\": \"echo 'HOOK TEST' >&2\"\n            }\n          ]\n        }\n      ]\n    }\n  }\n\n  After this change, /hooks correctly shows the configured matchers.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nv2.0.69\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nCursor\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "autoclose"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-12-15T20:48:34Z",
+  "updated_at": "2026-01-24T14:09:10Z",
+  "closed_at": "2026-01-17T00:25:30Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "cmungall",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

@@ -1,0 +1,16 @@
+{
+  "number": 590,
+  "title": "[BUG] non-interactive mcp add doesn't accept arguments",
+  "body": "## Environment\n- Platform (select one):\n  - [ ] Anthropic API\n  - [x] AWS Bedrock\n  - [ ] Google Vertex AI\n- Claude CLI version: 0.2.53 (Claude Code)\n- Operating System: macOS 15.3.2 (24D81)\n- Terminal:  iTerm2\n\n## Bug Description\n\nUsing [mcp-server-fetch](https://pypi.org/project/mcp-server-fetch/) as an example (can be any python module mcp, runnable as `python -m module_name_mcp`), there is no obvious way to connect it to claude code in non-interactive way (without using the wizard).\n\n\nWhat I tried:\n\n1.\n```\nclaude mcp add fetch python '-m mcp_server_fetch'\nerror: unknown option '-m mcp_server_fetch'\n```\n\n2.\n```\nclaude mcp add fetch python -m mcp_server_fetch\nerror: unknown option '-m'\n```\n\n3.\n```\nclaude mcp add fetch 'python -m mcp_server_fetch'\nAdded stdio MCP server fetch with command: python -m mcp_server_fetch  to local config\n\nclaude --mcp-debug\nMCP server \"fetch\" Connection failed: spawn python -m mcp_server_fetch ENOENT\n```\n\n4. Using wizard works:\n```\nclaude mcp add\n1. Server Name: fetch\n2. Server Scope: project\n3. Server Command: python -m mcp_server_fetch\n\nclaude\n> /mcp\n  ⎿  MCP Server Status\n\n     • fetch: connected\n```\n\n\n\n## Steps to Reproduce\n1. `pip install mcp-server-fetch`\n2. `claude mcp add --scope project fetch \"python -m mcp_server_fetch\"`\n\n## Expected Behavior\nadded mcp server works\n\n.mcp.json  produced:\n```\n{\n  \"mcpServers\": {\n    \"fetch\": {\n      \"type\": \"stdio\",\n      \"command\": \"python\",\n      \"args\": [\"-m\",  \"mcp_server_fetch\"],\n      \"env\": {}\n    }\n  }\n}\n```\n\n## Actual Behavior\nadded mcp server fails to spawn\n\n.mcp.json produced:\n```\n{\n  \"mcpServers\": {\n    \"fetch\": {\n      \"type\": \"stdio\",\n      \"command\": \"python -m mcp_server_fetch\",\n      \"args\": [],\n      \"env\": {}\n    }\n  }\n}\n```\n\n\n## Additional Context\n\n\nLooks like the issue is in how `mcp add` parses arguments and could be related to #526.",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-03-21T20:22:33Z",
+  "updated_at": "2025-08-09T14:07:32Z",
+  "closed_at": "2025-03-21T21:54:22Z",
+  "reactions_total": 0,
+  "comments_count": 2,
+  "author": "izaitsevfb",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

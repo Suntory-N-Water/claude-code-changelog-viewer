@@ -1,0 +1,35 @@
+{
+  "number": 16712,
+  "title": "[FEATURE] Allow providing tool_result via stdin when resuming session with pending tool_use",
+  "body": "### Description\n\nWhen building wrappers around Claude Code CLI (mobile apps, custom UIs, etc.) that need to handle interactive tools like `AskUserQuestion` in non-interactive mode, there's no way to provide a `tool_result` via stdin without the CLI first injecting a synthetic response.\n\n### Current Behavior\n\nWhen resuming a session that ends with a `tool_use` (e.g., `AskUserQuestion`) using `--input-format stream-json`:\n\n1. Session ends with: `[user] prompt` → `[assistant] tool_use`\n2. Resume with: `claude --resume <id> --input-format stream-json --output-format stream-json`\n3. CLI **immediately injects**: `[assistant] \"No response requested.\"`\n4. Then reads stdin: `[user] tool_result`\n5. **API rejects**: `unexpected tool_use_id found in tool_result blocks`\n\nThe chain is broken because the synthetic message is inserted between `tool_use` and `tool_result`.\n\n### Expected Behavior\n\nWhen resuming with `--input-format stream-json`, the CLI should:\n- Wait for stdin input before injecting any synthetic messages\n- OR provide a flag like `--no-synthetic-response` to disable the injection\n- OR recognize that a `tool_result` message on stdin corresponds to the pending `tool_use`\n\n### Use Case\n\nBuilding a mobile/web wrapper for Claude Code that:\n1. Runs CLI in non-interactive mode (`-p`, `--output-format stream-json`)\n2. Detects `AskUserQuestion` tool calls\n3. Renders custom UI to collect user's answer\n4. Needs to provide the `tool_result` back to continue the session\n\n### Current Workaround\n\nThe only working approach is to:\n1. Write the `tool_result` directly to the session JSONL file (`~/.claude/projects/.../<session>.jsonl`)\n2. Resume with a text prompt\n\nThis works but:\n- Requires manipulating internal session files (fragile)\n- Still results in an extra user turn and \"No response requested\" message\n\n### Reproduction\n\n```bash\n# 1. Start session, get AskUserQuestion, kill process\nclaude -p \"Use AskUserQuestion to ask about my favorite color\" \\\n  --output-format stream-json --verbose \\\n  --session-id test-123\n# Kill when tool_use appears\n\n# 2. Try to resume with tool_result via stdin\necho '{\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_xxx\",\"content\":\"Blue\",\"is_error\":false}]}}' | \\\nclaude --resume test-123 \\\n  --input-format stream-json \\\n  --output-format stream-json --verbose\n\n# Result: API error due to \"No response requested\" being injected first\n```\n\n### Environment\n- Platform: macOS\n- Version: 2.0.76",
+  "labels": ["enhancement", "has repro", "area:tools", "area:core", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-07T21:37:43Z",
+  "updated_at": "2026-05-20T00:30:45Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 4,
+  "author": "cheruvian",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "doruchiulan",
+      "author_association": "NONE",
+      "body": "following",
+      "created_at": "2026-01-25T02:48:16Z"
+    },
+    {
+      "author": "SimonAKing",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-03-02T13:20:36Z"
+    },
+    {
+      "author": "dayhuang",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-04-09T08:14:07Z"
+    }
+  ]
+}

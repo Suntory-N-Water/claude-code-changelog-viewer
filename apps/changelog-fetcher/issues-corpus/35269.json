@@ -1,0 +1,35 @@
+{
+  "number": 35269,
+  "title": "[BUG] Opus & Sonnet silently blocked on MaxPlan — only Haiku served, no user notification (14h+)",
+  "body": "\n## Summary\n\nSince ~2026-03-16 22:00 UTC (now **14+ hours**), `claude-opus-4-6` and `claude-sonnet-4-6` return HTTP 400 (`invalid_request_error`, `\"message\":\"Error\"`) on a MaxPlan 5x subscription. Only `claude-haiku-4-5-20251001` responds successfully. The Anthropic status page shows all systems green.\n\n**Critical**: Claude Code silently falls back to Haiku when Opus/Sonnet are rejected, without any user notification. Users believe they are getting Opus-quality responses while actually receiving Haiku. This was confirmed via MITM traffic interception.\n\n## Proof: identical requests, only `model` field differs\n\nSame OAuth token, same headers, same endpoint, same body — only `\"model\"` changes.\n\n```\nPOST https://api.anthropic.com/v1/messages?beta=true\nHeaders:\n  anthropic-version: 2023-06-01\n  Authorization: Bearer sk-ant-oat01-[REDACTED]\n  anthropic-beta: oauth-2025-04-20,interleaved-thinking-2025-05-14,token-counting-2024-11-01\n  User-Agent: claude-cli/2.1.77 (external, cli)\n  x-app: cli\n```\n\n| # | Requested model | HTTP | Response | Verdict |\n|---|----------------|------|----------|---------|\n| 1 | `claude-opus-4-6` | **400** | `{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Error\"}}` | **BLOCKED** |\n| 2 | `claude-sonnet-4-6` | **400** | `{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Error\"}}` | **BLOCKED** |\n| 3 | `claude-haiku-4-5-20251001` | **200** | `{\"model\":\"claude-haiku-4-5-20251001\",\"type\":\"message\",\"content\":[...],\"service_tier\":\"standard\"}` | OK |\n\nRequest IDs for Anthropic investigation:\n- Opus: `req_011CZ8Ur3C3s52gZkrXmciG4`\n- Sonnet: `req_011CZ8Ur5t2KgJ3GQVH6ot7o`\n- Haiku: `msg_01DR7eFAQdz9bxHyz491HWeJ`\n\nTested on both Claude Code v2.0.76 and v2.1.77 — same result. This is **not** a client version issue.\n\n## MITM proof: Claude Code silently downgrades to Haiku\n\nAt ~04:00 UTC, we intercepted Claude Code traffic (VS Code extension) using mitmproxy 11.0.2:\n\n1. Claude Code **sends** `\"model\": \"claude-opus-4-6\"` in POST body\n2. Anthropic API **rejects** with 400\n3. Claude Code **silently retries** with Haiku\n4. User sees a response and believes they are using Opus\n5. **Zero indication** in the UI that a downgrade occurred\n\nThe Claude Code CLI (terminal) at least shows `Haiku 4.5 · Claude Max` in the welcome banner after\n{EDIT: <fallback> Upgrade from v2.0.76 to v2.1.77-> changing model :/model opus4.6 -> keeping opus4.6 and still receiving haiku answer}.\n But the VS Code extension shows nothing — the user has no way to know they've been downgraded.\n\n```\n╭─── Claude Code v2.1.77 ──────────────────────╮\n│   Haiku 4.5 · Claude Max   │  ← at least the CLI is honest\n╰───────────────────────────────────────────────╯\n```\n\n## Why this is worse than a \"rate limit\" error\n\nOther MaxPlan users are reporting `Rate limit reached` errors (#35213, #34786, #34287, #33514, #34958). Some report that \"VS Code works fine\" while CLI fails.\n\n**Our MITM analysis explains this discrepancy**: VS Code isn't \"working fine\" — it's silently falling back to Haiku. These users think they're getting Opus responses but they're actually getting Haiku. They just don't know it.\n\nThis means the actual scope of this issue is likely much larger than the few users who noticed the error messages.\n\n## The error message is deliberately opaque\n\n```json\n{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Error\"}}\n```\n\n`\"message\":\"Error\"` — that's it. No reason, no explanation, no suggested action. For a paying MaxPlan customer, this is unacceptable. Compare with how other APIs handle this:\n- OpenAI: `\"The model 'gpt-4' is currently overloaded. Please try again later.\"`\n- AWS Bedrock: `\"ThrottlingException: Rate exceeded for model X\"`\n\n## Account details\n\n- **Subscription**: MaxPlan (`subscriptionType: \"max\"`)\n- **Rate limit tier**: `default_claude_max_5x`\n- **OAuth scopes**: `user:inference`, `user:sessions:claude_code`, `user:mcp_serve",
+  "labels": ["bug", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-17T10:25:35Z",
+  "updated_at": "2026-05-28T22:41:00Z",
+  "closed_at": "2026-05-28T22:40:59Z",
+  "reactions_total": 4,
+  "comments_count": 15,
+  "author": "VzKtS",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33790\n2. https://github.com/anthropics/claude-code/issues/30350\n3. https://github.com/anthropics/claude-code/issues/34958\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-17T10:31:12Z"
+    },
+    {
+      "author": "ghost",
+      "author_association": "NONE",
+      "body": "Make a database and record all requests then at the end of the day check your api usage in the dashboard console and cross check opus vs haiku calls. They even have no shame in charging the user opus prices for haiku calls.",
+      "created_at": "2026-03-17T10:59:14Z"
+    },
+    {
+      "author": "JCDC03",
+      "author_association": "NONE",
+      "body": "Confirming this bug independently. The OAuth token (`sk-ant-oat01-*`) with `anthropic-beta: oauth-2025-04-20` returns `400 {\"type\":\"invalid_request_error\",\"message\":\"Error\"}` for both `claude-opus-4-6` and `claude-sonnet-4-6` via direct API calls. `claude-haiku-4-5-20251001` still returns 200. This is not a duplicate — it started ~2026-03-16 22:00 UTC and is ongoing. The GET `/v1/models` endpoint works fine with the same token, so it is specific to POST `/v1/messages`. Re-authenticating and refr",
+      "created_at": "2026-03-17T11:25:27Z"
+    }
+  ]
+}

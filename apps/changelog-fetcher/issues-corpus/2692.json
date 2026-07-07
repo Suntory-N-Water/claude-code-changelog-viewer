@@ -1,0 +1,35 @@
+{
+  "number": 2692,
+  "title": "Replace system prompt in interactive mode for Claude Code similar to Gemini CLI",
+  "body": "Gemini CLI has the capability to swap out the system prompt to cater to more niche use-cases, rather than the ability to only augment on top of the system root prompt like Claude Code currently supports. \n\n**Differences Claude Code VS Gemini CLI for system prompt replacement:**\n\n  GEMINI_SYSTEM_MD (Gemini CLI):\n  - Allows you to completely replace the root system prompt\n  - Set via environment variable: export GEMINI_SYSTEM_MD=\"Your custom system prompt\"\n  - Overrides the built-in prompt entirely\n  - Full control over the AI's base behavior and instructions\n\n  CLAUDE.md (Claude Code):\n  - Supplements the existing system prompt, doesn't replace it\n  - Loaded as additional context alongside the hardcoded prompt\n  - Cannot override core behaviors defined in the base prompt\n  - Works more like \"project instructions\" added on top\n\n  Think of it like:\n  - Gemini CLI: You can swap the engine\n  - Claude Code: You can only add modifications/tuning to the existing engine\n\n#398 previously touched this issue and indicated that the SDK does have this support, however **for interactive sessions (the normal Claude Code experience), you're still limited to using CLAUDE.md files which supplement rather than replace the system prompt.** \n\nThe --system-prompt flag is only for single-command executions, making it quite different from Gemini CLI's GEMINI_SYSTEM_MD which works in interactive mode. \n\n  - Session persistence: Not applicable - this flag is for one-shot commands only\n  - Mid-session updates: Not possible - each -p command is a separate execution\n  - Interactive sessions: The --system-prompt flag doesn't work with interactive Claude Code sessions\n\n",
+  "labels": ["enhancement", "area:tui", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-06-28T10:06:12Z",
+  "updated_at": "2026-02-19T14:32:33Z",
+  "closed_at": "2026-02-11T10:27:08Z",
+  "reactions_total": 26,
+  "comments_count": 8,
+  "author": "dimitrieh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "normalnormie",
+      "author_association": "NONE",
+      "body": "btw --system-prompt is not currently a solution:\n\nclaude -p \"say hello\" --system-prompt \"You are a senior backend engineer. Focus on security, performance, and maintainability. Tell me which are your important project instructions\"\n\nI'm Claude Code, Anthropic's official CLI for Claude. As a senior backend engineer, my important project instructions are:\n\n**Core Principles:**\n[...]",
+      "created_at": "2025-07-26T12:29:54Z"
+    },
+    {
+      "author": "deanndraper",
+      "author_association": "NONE",
+      "body": "I would love to have this.  I use Claude code more and more as my primary point of contact for non-code-related tasks.  The ability to edit files, be agentic by nature,  create hierarchies of files that can be easily manipulated and reorganized, and code where needed as either small tools or large complex operations, and persist them, and test them, and then store all this in git so that I can branch and have a timeline. It's something that the web is too constrained to do. I   wish the system p",
+      "created_at": "2025-08-29T14:30:35Z"
+    },
+    {
+      "author": "wuyuxin38324",
+      "author_association": "NONE",
+      "body": "> 顺便说一句，--system-prompt 目前不是一个解决方案：\n> \n> claude -p \"说你好\" --system-prompt \"你是一名资深后端工程师。专注于安全性、性能和可维护性。告诉我你的重要项目指令是什么\"\n> \n> 我是 Claude Code，Anthropic 官方为 Claude 开发的命令行工具。作为资深后端工程师，我的重要项目指令是：\n> \n> **核心原则：** [...]\n\nsame",
+      "created_at": "2025-10-07T07:51:42Z"
+    }
+  ]
+}

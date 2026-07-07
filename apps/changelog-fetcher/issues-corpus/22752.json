@@ -1,0 +1,35 @@
+{
+  "number": 22752,
+  "title": "[BUG] NO_PROXY stopped working in 2.1.23",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nStarting in 2.1.23 and continuing through 2.1.29 my NO_PROXY settings are being ignored and the proxy is being used for my ANTHROPIC_BASE_URL.\n\n{\n  \"env\": {\n    \"CLAUDE_CODE_ENABLE_TELEMETRY\": \"0\",\n    \"ANTHROPIC_MODEL\": \"anthropic.claude-sonnet-4-5-20250929-v1:0\",\n    \"ANTHROPIC_BASE_URL\": \"https://my-litelllm-endpoint.example.com\",\n    \"DISABLE_AUTOUPDATER\": \"1\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"litellm token\",\n    \"NO_PROXY\": \"127.0.0.1,.example.com\",\n    \"HTTPS_PROXY\": \"http://myproxy.somedomain.com:8080/\",\n    \"HTTP_PROXY\": \"http://myproxy.somedomain.com:8080/\",\n    \"DISABLE_INSTALLATION_CHECKS\": \"1\"\n  }\n}\n\nWith 2.1.22 and before traffic to my ANTHROPIC_BASE_URL would not pass through the proxy because I included .example.com in my NO_PROXY settings.  Starting with 2.1.23, the proxy is used when trying to connect to my ANTHROPIC_BASE_URL .\n\n### What Should Happen?\n\nClaude Code should not use the PROXY when the ANTHROPIC_BASE_URL's domain is in NO_PROXY.\n\n### Error Messages/Logs\n\n```shell\nI get errors from my proxy\n```\n\n### Steps to Reproduce\n\nWith a LiteLLM endpoint setup your proxy and exclude that endpoint from your proxy via NO_PROXY.   You will see that the proxy is being used for accessing the ANTHROPIC_BASE_URL\n\n{\n  \"env\": {\n    \"CLAUDE_CODE_ENABLE_TELEMETRY\": \"0\",\n    \"ANTHROPIC_MODEL\": \"anthropic.claude-sonnet-4-5-20250929-v1:0\",\n    \"ANTHROPIC_BASE_URL\": \"https://my-litelllm-endpoint.example.com\",\n    \"DISABLE_AUTOUPDATER\": \"1\",\n    \"ANTHROPIC_AUTH_TOKEN\": \"litellm token\",\n    \"NO_PROXY\": \"127.0.0.1,.example.com\",\n    \"HTTPS_PROXY\": \"http://myproxy.somedomain.com:8080/\",\n    \"HTTP_PROXY\": \"http://myproxy.somedomain.com:8080/\",\n    \"DISABLE_INSTALLATION_CHECKS\": \"1\"\n  }\n}\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.22\n\n### Claude Code Version\n\n2.1.29 (Claude Code)\n\n### Platform\n\nOther\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:linux", "area:auth", "area:api"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-03T14:42:36Z",
+  "updated_at": "2026-02-19T14:29:29Z",
+  "closed_at": "2026-02-10T13:36:44Z",
+  "reactions_total": 4,
+  "comments_count": 13,
+  "author": "primerano",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22004\n2. https://github.com/anthropics/claude-code/issues/8179\n3. https://github.com/anthropics/claude-code/issues/11660\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-03T14:46:20Z"
+    },
+    {
+      "author": "saidelike",
+      "author_association": "NONE",
+      "body": "Same problem here and confirmed 2.1.22 was working but 2.1.23 and 2.1.29 are not. Workaround is to disable proxy entirely but then claude can't access external websites (if needed).\n\nNOTE: in my case I had set `http_proxy`,`https_proxy` and `no_proxy` env variables (lowercase) in my `~/.bashrc` or `~/.zshrc` (so not in the config file). And it was working before, but not anymore.",
+      "created_at": "2026-02-03T15:20:47Z"
+    },
+    {
+      "author": "wi-adam",
+      "author_association": "NONE",
+      "body": "I don't have an explanation of *why* this fixes it but on my mac if I install Claude Code via npm I can get NO_PROXY working by running `node /opt/homebrew/bin/claude` at least on 2.1.30... ",
+      "created_at": "2026-02-03T23:03:34Z"
+    }
+  ]
+}

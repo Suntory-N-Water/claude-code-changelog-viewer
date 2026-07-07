@@ -1,0 +1,35 @@
+{
+  "number": 27384,
+  "title": "[BUG] Cowork \"Virtualization is not enabled\" error despite hypervisor active — regression on Windows 11 Home 25H2",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n<html>\n<body>\n<!--StartFragment--><p class=\"font-claude-response-body break-words whitespace-normal leading-[1.7]\">Cowork displays <strong>\"Virtualization is not enabled. Claude's workspace requires hardware virtualization (Hyper-V)\"</strong> error, despite all virtualization features being confirmed active and working correctly at the system level.</p>\n<p class=\"font-claude-response-body break-words whitespace-normal leading-[1.7]\"><strong>This is a regression</strong> — Cowork was working fine on this exact same Windows 11 Home configuration until a few days ago. The issue started appearing after a recent Claude Desktop update.</p>\n<h4 class=\"text-text-100 mt-2 -mb-1 text-base font-bold\">System verification confirms virtualization is fully operational:</h4>\n<div class=\"overflow-x-auto w-full px-2 mb-6\">\nCheck | Result\n-- | --\nTask Manager → Virtualization | ✅ Enabled\nvmcompute service | ✅ Running\nvmms service | ✅ Running (Automatic)\nsysteminfo | \"A hypervisor has been detected. Features required for Hyper-V will not be displayed.\"\nVirtualMachinePlatform | ✅ Enabled\nHypervisorPlatform | ✅ Enabled\nMicrosoft-Windows-Subsystem-Linux | ✅ Enabled\nWSL2 + Ubuntu | ✅ Installed and working\n\n</div>\n<h4 class=\"text-text-100 mt-2 -mb-1 text-base font-bold\">Troubleshooting already attempted (all failed):</h4>\n<ol class=\"[li_&amp;]:mb-0 [li_&amp;]:mt-1 [li_&amp;]:gap-1 [&amp;:not(:last-child)_ul]:pb-1 [&amp;:not(:last-child)_ol]:pb-1 list-decimal flex flex-col gap-1 pl-8 mb-3\">\n<li class=\"whitespace-normal break-words pl-2\">Disabled and re-enabled all virtualization features (VirtualMachinePlatform, HypervisorPlatform, WSL) via DISM</li>\n<li class=\"whitespace-normal break-words pl-2\">Reinstalled WSL2 with Ubuntu distribution</li>\n<li class=\"whitespace-normal break-words pl-2\">Uninstalled and reinstalled Claude Desktop</li>\n<li class=\"whitespace-normal break-words pl-2\"><strong>Full OS reset (Remove Everything)</strong> — performed a complete Windows reset, reinstalled everything from scratch</li>\n<li class=\"whitespace-normal break-words pl-2\">Multiple reboots throughout the process</li>\n</ol>\n<p class=\"font-claude-response-body break-words whitespace-normal leading-[1.7]\"><strong>None of these resolved the issue.</strong> The error persists even after a full OS reset, which strongly suggests this is a Claude Desktop app-side detection bug, not a system configuration issue.</p><!--EndFragment-->\n</body>\n</html>\n\n### What Should Happen?\n\nCowork should detect the active hypervisor and start the workspace successfully, as it did before the recent update.\n\n### Error Messages/Logs\n\n```shell\n\"Virtualization is not enabled. Claude's workspace requires hardware virtualization (Hyper-V).\"\n\nNote: Could not locate cowork_vm_node.log at %APPDATA%\\Claude\\logs\\ — the Claude folder does not exist at that path. Log directory location for MSIX installs may differ.\n```\n\n### Steps to Reproduce\n\nInstall Claude Desktop (latest version) on Windows 11 Home 25H2\nEnsure all virtualization features are enabled and verified working\nOpen Claude Desktop\nSwitch to Cowork tab\nObserve: \"Virtualization is not enabled\" error appears immediately\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Desktop (latest MSIX install from claude.ai/download). This is Cowork on Claude Desktop, not Claude Code CLI.\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nThis is NOT a system virtualization issue — all system-level checks confirm virtualization is active and functional.\nThis is a regression — the same hardware + O",
+  "labels": ["bug"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-21T10:53:43Z",
+  "updated_at": "2026-03-07T14:23:41Z",
+  "closed_at": "2026-02-22T10:20:46Z",
+  "reactions_total": 3,
+  "comments_count": 13,
+  "author": "zyzone03",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/27354\n2. https://github.com/anthropics/claude-code/issues/27323\n3. https://github.com/anthropics/claude-code/issues/27340\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-21T10:57:27Z"
+    },
+    {
+      "author": "Carobelli",
+      "author_association": "NONE",
+      "body": "Same issue here. Dell Precision 7770, Windows Pro (domain-joined), Intel 12th Gen, x64.\n\nFrom cowork_vm_node.log:\n- [cleanupVMBundleIfUnsupported] yukonSilver not supported (status=unsupported)\n- [startVM] VM not supported (win32/x64), skipping\n\nHyper-V: Enabled, VT-x/VT-d: Enabled in BIOS, CoworkVMService: Running.\nClaude Desktop v1.1.3918 (a4b368).\n\nAlso a regression — Cowork was working previously on this same system.\nIdentical to #25136.",
+      "created_at": "2026-02-21T11:02:16Z"
+    },
+    {
+      "author": "albadrov-del",
+      "author_association": "NONE",
+      "body": "Same issue on:\nWindows 10 Education, Hyper-V enabled, virtualization enabled in BIOS, still showing \"Virtualization is not enabled\" error.\n",
+      "created_at": "2026-02-21T11:02:52Z"
+    }
+  ]
+}

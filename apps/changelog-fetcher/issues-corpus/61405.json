@@ -1,0 +1,35 @@
+{
+  "number": 61405,
+  "title": "[Bug] Subagent delegation lacks timeout, monitoring, and abort controls—caused 12+ hour session hang",
+  "body": "**Bug Description**\n  Title: Subagent delegation has no timeout, no monitoring, and no sanity checks — caused multi-hour session failure                                        \n\n\n  During a session involving GitHub Actions workflow review, plan mode was activated. Claude Code was asked to verify a claim it had made about a specific GitHub Action.\n  This required a single web search that would have completed in under 10 seconds via a direct WebFetch call.                                 \n\nCritical Issue - Zero sanity checks on subagent execution:                                                                                       \n                                                                                                                                              \n  When Claude Code spawns a subagent, there is no mechanism available to the user or to Claude Code itself to bound, monitor, or abort that subagent's execution.\n  Specifically:\n\n  - There is no user-configurable timeout. Users cannot set a parameter such as \"this subagent task should not exceed 60 seconds.\"\n  - The main Claude Code process has no check-in interval. It simply waits for the subagent to return with no periodic status reporting.\n  - There is no abort trigger. Once a subagent is spawned, the user cannot cancel it.\n  - There is no progress visibility. The user has no way to see what the subagent is currently doing or how far along it is.\n  - The subagent starts with zero knowledge of Claude Code's prior conversation context, including the specific claim or suggestion that prompted the search. This means\n  the subagent cannot self-correct or stay anchored to the original intent — it only knows what Claude Code wrote in the prompt it was handed.\n\n  A subagent will run until it completes its task or exhausts its own context limit. In this session, a subagent tasked with a single web lookup instead made 10+\n  sequential web fetches because Claude Code wrote an over-scoped prompt and there was nothing — no timeout, no check-in, no guardrail — to catch or stop it. The user had\n  no ability to detect the problem or intervene. The session ran over 12 hours.\n  \n  This is a fundamental reliability gap. Users have no way to \"ground\" a subagent in terms of runtime expectations, and Claude Code has no way to self-detect that a\n  delegated task has gone off the rails.\n\n  Secondary Issue - Plan mode forces subagent delegation with no user transparency:                                                                         \n                                                                                                                                              \n  Plan mode in Claude Code requires ALL research tasks to be routed through Explore subagents. Claude Code cannot make direct tool calls such as WebFetch while plan mode\n  is active. When this constraint forces a task to be slower or more indirect than it would otherwise be, Claude Code does not inform the user. The user has no visibility\n  into why something is taking long and no opportunity to exit plan mode before the delegation occurs.\n  \n  This constraint exists for legitimate reasons — large codebase exploration benefits from subagent isolation. But applying it to a clearly bounded single-URL lookup is a\n  structural mismatch, and the user has no way to know it is happening.\n\n  What Anthropic should review:                                                                                                                             \n                                                                                                                                              \n  - Implement user-configurable subagent timeouts — the single most important missing control\n  - Implement a check-in mechanism — if a subagent exceeds a time threshold, surface a warning to the user with an option to abort\n  - Require Claude Code to disclose upfront when a mode constraint is forcing subagent delegation instead of a direct tool call, and what the user's options are\n  - Evaluate whether plan mod",
+  "labels": ["enhancement", "area:agents", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-22T09:05:21Z",
+  "updated_at": "2026-06-21T22:29:25Z",
+  "closed_at": null,
+  "reactions_total": 1,
+  "comments_count": 11,
+  "author": "meefs",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/37521\n2. https://github.com/anthropics/claude-code/issues/41461\n3. https://github.com/anthropics/claude-code/issues/52492\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-22T09:08:37Z"
+    },
+    {
+      "author": "jshaofa-ui",
+      "author_association": "NONE",
+      "body": "## Proposed Solution: Subagent Delegation Lacks Timeout/Monitoring/Abort\n\n### Root Cause\nWhen the main agent delegates to a subagent:\n1. No timeout configured — subagent can run indefinitely\n2. No monitoring — no heartbeat, progress tracking, or health check\n3. No abort controls — user cannot cancel a stuck subagent\n4. No sanity checks — no validation that subagent is making progress\n\nThis caused a 12+ hour hang during a simple web search task.\n\n### Proposed Fix\n**File**: `src/agents/delegation.",
+      "created_at": "2026-05-22T10:06:36Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Posting this as one signal among many — this issue is sub-pattern 3 in a cluster of six sub-agent issues filed over the past 5 days that share an observability axis. Wrote up an independent analysis at https://gist.github.com/yurukusa/9857a9ed407696ba8483b354917ff161 decomposing them into four sub-patterns: dispatch fabrication (#61107, #61167), silent stall (#61315, #60987), absence of observation and control (this issue), and scope expansion (#61102).\nThe structural point relevant here: this i",
+      "created_at": "2026-05-22T15:22:53Z"
+    }
+  ]
+}

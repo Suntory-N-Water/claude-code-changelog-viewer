@@ -1,0 +1,35 @@
+{
+  "number": 28300,
+  "title": "[FEATURE] Multi-agent collaboration across machines (Agent-to-Agent protocol)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nModern software is rarely a single codebase. Microservices, headless CMS + consumer apps, IoT platforms — real-world systems consist of multiple repositories on multiple machines that must work together through shared APIs, webhooks, and data contracts.\n\n**Claude Code is excellent at working within one codebase. But it has no concept of \"the other side.\"**\n\nWhen two Claude Code instances work on interconnected systems simultaneously, they are completely blind to each other. Every interface change, every schema decision, every API contract must be manually relayed by the developer — who becomes a slow, error-prone message broker between two AI agents that could otherwise coordinate at machine speed.\n\nThis isn't an edge case. It's the reality for:\n- **Microservice architectures** (each service = separate repo, separate machine)\n- **Headless CMS + frontend apps** (CMS on server A, consumer apps on server B)\n- **IoT/embedded + cloud** (device firmware on one machine, cloud backend on another)\n- **Platform teams** (API team + multiple consumer teams working in parallel)\n\nThe irony: we use Claude Code *because* it's fast and autonomous. But the moment a project spans two machines, the human becomes the bottleneck again.\n\n### Proposed Solution\n\nAn **Agent-to-Agent protocol** built on top of MCP, enabling:\n\n1. **Shared Workspace / Channel**: Multiple Claude Code instances join a shared collaboration channel (via MCP server or similar). They can see what each agent is working on, what files were changed, and what decisions were made.\n\n2. **Real-time Messaging**: Agents can send structured messages to each other:\n   - \"I changed the webhook payload format — here's the new schema\"\n   - \"I need an endpoint at `/api/events` returning this JSON structure\"\n   - \"My side is ready for integration testing\"\n\n3. **Spec Negotiation**: Agents can propose and agree on shared interfaces (API specs, data models, event formats) before implementing independently in parallel.\n\n4. **Conflict Awareness**: When both agents touch shared definitions (e.g., a TypeScript type exported by one and imported by the other), they coordinate rather than diverge.\n\n\n### Alternative Solutions\n\n- **Shared MCP Knowledge Base (current workaround)**: A custom MCP server that both machines access via SSH. Agents store and retrieve project knowledge asynchronously. This works for background context but lacks real-time coordination — Agent A doesn't know Agent B just changed an interface.\n\n- **Human as Message Broker**: The developer manually copies context between sessions (\"On the other machine, Claude just built X, now build Y to match\"). This works but is slow and defeats the purpose of AI-assisted development.\n\n- **Single Machine, Multiple Repos**: Running everything on one machine loses the benefit of parallel execution and doesn't match real-world team setups where systems run on different infrastructure.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nAPI and model interactions\n\n### Use Case Example\n\nA typical multi-system project with Claude Code on two machines:\n\n| System | Stack | Machine | Purpose |\n|--------|-------|---------|---------|\n| Backend API | Python (FastAPI) | Mac 1 | API + business logic |\n| Headless CMS | Strapi/Contentful | Mac 2 | Content management |\n| Consumer App | Next.js | Mac 2 | End-user frontend |\n\nThe CMS is the single source of truth for content (events, menus, schedules, media). The backend API consumes this data and serves it to displays, apps, and other endpoints.\n\nBoth systems are being actively developed by separate Claude Code instances. The CMS has content types with channel controls (which content goes to which consumer). The backend has webhook receivers and rendering endpoints. Custom API routes are being built on both ",
+  "labels": ["enhancement", "area:mcp", "area:agents"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-24T21:01:14Z",
+  "updated_at": "2026-06-29T19:30:50Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 30,
+  "author": "MarioK1975",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/27601\n2. https://github.com/anthropics/claude-code/issues/20559\n3. https://github.com/anthropics/claude-code/issues/27441\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-24T21:05:56Z"
+    },
+    {
+      "author": "MarioK1975",
+      "author_association": "NONE",
+      "body": "Not a duplicate — this addresses a different layer of the problem.\n\nI've reviewed the linked issues, and while they're all related to multi-agent communication, they solve different parts of the stack:\n\n#27601 focuses on remote debugging — sending error logs from a production server back to the dev machine. That's a specific DevOps workflow.\n#27441 focuses on message injection infrastructure — sockets, pipes, APIs to push prompts into a running session. That's the transport layer.\n#20559 is clos",
+      "created_at": "2026-02-24T21:10:37Z"
+    },
+    {
+      "author": "tiagogbarbosa",
+      "author_association": "NONE",
+      "body": "+1",
+      "created_at": "2026-02-27T18:17:31Z"
+    }
+  ]
+}

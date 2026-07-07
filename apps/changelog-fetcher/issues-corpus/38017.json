@@ -1,0 +1,16 @@
+{
+  "number": 38017,
+  "title": "Permission wildcard Bash(command:*) fails when command arguments contain parentheses",
+  "body": "## Description\n\nThe `Bash(gcloud logging read:*)` permission rule in `~/.claude/settings.json` does not match commands where the arguments contain parentheses.\n\n## Steps to Reproduce\n\n1. Add permission rule to `~/.claude/settings.json`:\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(gcloud logging read:*)\"\n    ]\n  }\n}\n```\n\n2. Run a command **without** parentheses in args — passes without prompting:\n```bash\ngcloud logging read '...' --project=okood-dev --limit=5 --format=json\n```\n\n3. Run a command **with** parentheses in args — prompts for approval:\n```bash\ngcloud logging read '...' --project=okood-dev --limit=5 --format=\"value(textPayload,jsonPayload)\"\n```\n\n## Expected Behavior\n\nThe `:*` wildcard should match any arguments regardless of special characters. The parentheses in `--format=\"value(textPayload,jsonPayload)\"` should not interfere with the `Bash(gcloud logging read:*)` permission pattern.\n\n## Likely Cause\n\nThe permission pattern uses `Bash(...)` syntax with parentheses as delimiters. Parentheses inside the command arguments are likely being parsed as the closing delimiter of the `Bash(...)` pattern, causing the match to fail.\n\n## Environment\n\n- macOS (Darwin 25.3.0)\n- Claude Code CLI\n- Model: claude-opus-4-6\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "labels": ["bug", "has repro", "platform:macos", "area:permissions"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-03-24T00:08:29Z",
+  "updated_at": "2026-04-30T15:04:24Z",
+  "closed_at": "2026-04-19T17:29:52Z",
+  "reactions_total": 1,
+  "comments_count": 6,
+  "author": "rghazarian",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

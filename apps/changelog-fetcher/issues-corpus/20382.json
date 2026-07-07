@@ -1,0 +1,35 @@
+{
+  "number": 20382,
+  "title": "[BUG] Claude Desktop Local mode rejects folders outside C:\\Users on Windows, even with valid MCP config",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# [BUG] Code with Claude Desktop Local mode rejects folders outside C:\\Users on Windows, even with valid MCP config\n\n## Preflight Checklist\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Desktop\n\n## Environment\n- **OS:** Windows 11\n- **Claude Desktop version:** [check Help → About and add here]\n- **Node.js version:** Installed via nvm4w\n\n## Bug Description\n\nClaude Desktop's \"Local\" mode suddenly rejects any folder outside `C:\\Users\\<username>` with the error:\n\n> **\"Selezione Cartella Non Valida\"**  \n> \"La cartella selezionata si trova all'esterno della directory home. È possibile utilizzare solo le cartelle all'interno della directory home.\"  \n> (Translation: \"The selected folder is outside the home directory. You can only use folders inside the home directory.\")\n\n**This was working a few days ago.** I was successfully using Local mode with folders on `D:\\` drive without any issues.\n\n## Steps to Reproduce\n\n1. Open Claude Desktop on Windows\n2. Create a new chat\n3. Click the folder dropdown and select \"Local\"\n4. Try to select any folder on a secondary drive (e.g., `D:\\Projects\\my-project`)\n5. Error appears immediately\n\n## What I've Tried\n\n- ✅ Configured MCP filesystem server in `claude_desktop_config.json` with `C:\\` and `D:\\` as allowed directories — **MCP logs show server starts successfully and then gets shut down immediately**\n- ✅ Created environment variable `HOME=C:\\Users\\fabio` — no effect\n- ✅ Created junction/symlink from `C:\\Users\\fabio\\projects` → `D:\\...` — Claude resolves the symlink and still rejects it\n- ✅ Cleared Session Storage — no effect\n- ✅ Verified `USERPROFILE`, `HOMEDRIVE`, `HOMEPATH` are all correct\n- ✅ The target folder has a valid `.git` repository\n\n## MCP Logs Evidence\n\nThe MCP filesystem server **starts successfully** for the D: drive folder:\n\n```\n2026-01-23T14:52:39.167Z [info] [filesystem] Server started and connected successfully\n2026-01-23T14:52:39.170Z [info] [filesystem] Message from client: {\"method\":\"initialize\"...}\n```\n\nBut then **immediately shuts down** (~600ms later):\n\n```\n2026-01-23T14:52:39.770Z [info] [filesystem] Shutting down server...\n```\n\nThis proves the rejection is **not from MCP** but from a separate validation in Claude Desktop that checks if the path is inside `USERPROFILE`.\n\n## Expected Behavior\n\nLocal mode should work with any folder that:\n1. The user has access to\n2. Is configured in the MCP filesystem server (if MCP is being used)\n3. OR at minimum, behave consistently (it worked on D: drive just days ago)\n\n## Actual Behavior\n\nClaude Desktop hard-blocks any folder not under `C:\\Users\\<username>`, regardless of MCP configuration, permissions, or symlinks.\n\n## Impact\n\nThis is a **regression** that breaks workflows for users who:\n- Keep projects on secondary drives (very common on Windows for SSD/HDD setups)\n- Use drive partitions for organization\n- Cannot move projects to C: drive due to space constraints\n\n## Suggested Fix\n\nEither:\n1. Respect the MCP filesystem server's allowed directories\n2. Add a setting to configure additional allowed root paths\n3. At minimum, document this limitation clearly\n\n---\n\n**Note:** Existing sessions that were created when the folder was on D: still show in the UI but throw API errors when trying to continue them.\n\n### What Should Happen?\n\nUse all file system without limitations.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nSteps to Reproduce:\n\nOpen Claude Desktop on Windows 11\nStart a new chat\nClick the folder dropdown selector (top left)\nSelect \"Local\" as environment\nBrowse and select any folder on a secondary drive (e.g., D:\\0_OWN\\Script\\script-utils)\nEr",
+  "labels": ["bug", "has repro", "platform:windows", "area:core", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-23T15:21:28Z",
+  "updated_at": "2026-02-01T14:13:21Z",
+  "closed_at": "2026-01-24T19:17:20Z",
+  "reactions_total": 14,
+  "comments_count": 10,
+  "author": "fabioandreapetrini",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "BorisTr32",
+      "author_association": "NONE",
+      "body": "same error lol",
+      "created_at": "2026-01-23T21:12:20Z"
+    },
+    {
+      "author": "cameronbowe",
+      "author_association": "NONE",
+      "body": "Same issue, one of the most awful things they could have done and added. No reason you should be forced to use your home directory; frankly, it should be quite the opposite, or an option. ",
+      "created_at": "2026-01-23T21:45:47Z"
+    },
+    {
+      "author": "krakenunbound",
+      "author_association": "NONE",
+      "body": "Happened today in the middle of a conversation.  Claude went down, came back up and this started happening.  FFS.",
+      "created_at": "2026-01-24T00:42:29Z"
+    }
+  ]
+}

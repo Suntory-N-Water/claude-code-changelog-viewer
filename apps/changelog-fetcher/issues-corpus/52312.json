@@ -1,0 +1,16 @@
+{
+  "number": 52312,
+  "title": "[BUG] `output_config` sent to Vertex AI causes `invalid_request_error` on session title generation",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Environment**\n- Claude Code version: 2.1.118 (Claude Code)\n- Backend: Vertex AI\n- Model: `claude-haiku-4-5@20251001`\n- Environment variables set:\n  ```\n  CLAUDE_CODE_USE_VERTEX=1\n  CLOUD_ML_REGION=global\n  ANTHROPIC_VERTEX_PROJECT_ID=my-secret-project\n  VERTEX_REGION_CLAUDE_3_5_HAIKU=global\n  ```\n\n**Describe the bug**\n\nWhen running Claude Code with Vertex AI, the session title generation request fails because Claude Code includes an `output_config` field in the request body. Vertex AI's Claude integration does not support `output_config` and rejects the request with an `invalid_request_error`.\n\n**Request body sent (abbreviated)**\n```json\n{\n  \"model\": \"claude-haiku-4-5@20251001\",\n  \"output_config\": {\n    \"format\": {\n      \"type\": \"json_schema\",\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": { \"title\": { \"type\": \"string\" } },\n        \"required\": [\"title\"],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  ...\n}\n```\n\n**Error response from Vertex AI**\n```json\n{\n  \"type\": \"error\",\n  \"error\": {\n    \"type\": \"invalid_request_error\",\n    \"message\": \"output_config: Extra inputs are not permitted\"\n  }\n}\n```\n\n**Actual behavior**\n\nThe session title generation call fails. This appears to affect every new session start.\n\n\n**Workaround**\n\nNone available for CLI users. Users proxying requests can strip `output_config` before forwarding to Vertex AI.\n\n### What Should Happen?\n\n**Expected behavior**\n\nWhen `CLAUDE_CODE_USE_VERTEX=1` is set, Claude Code should not include `output_config` (or other Anthropic-native-only fields) in requests sent to Vertex AI. JSON output should be enforced via prompt instructions instead, which Vertex AI supports.\n\n### Error Messages/Logs\n\n```shell\n{\n\t\"type\": \"error\",\n\t\"error\": {\n\t\t\"type\": \"invalid_request_error\",\n\t\t\"message\": \"output_config: Extra inputs are not permitted\"\n\t},\n\t\"request_id\": \"req_vrtx_...\"\n}\n```\n\n### Steps to Reproduce\n\nStart `claude` and send `hi` in a new session.\n\n### Claude Model\n\nOther\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.118 (Claude Code)\n\n### Platform\n\nGoogle Vertex AI\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "api:vertex", "platform:macos"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-23T08:15:59Z",
+  "updated_at": "2026-07-01T15:04:15Z",
+  "closed_at": "2026-04-27T14:58:24Z",
+  "reactions_total": 0,
+  "comments_count": 6,
+  "author": "aeroxy",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

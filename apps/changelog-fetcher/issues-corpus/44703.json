@@ -1,0 +1,35 @@
+{
+  "number": 44703,
+  "title": "[BUG] TaskOutput deprecation note causes agents to Read full sub-agent conversation history, triggering autocompact thrashing",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen a background local_agent task completes, the TaskOutput tool's deprecation message instructs the agent to Read the task's .output file directly: \n \n DEPRECATED: Prefer using the Read tool on the task's output file path instead. \n Background tasks return their output file path in the tool result, and you receive \n a <task-notification> with the same path when the task completes — Read that file directly. \n \nThis guidance does not distinguish between task types. For local_bash tasks, the .output file contains stdout/stderr — reading it is appropriate. \nFor local_agent tasks, however, the .output file contains the full raw conversation history JSON of the sub-agent, which can be 80K+ characters. \n \nThe Agent tool already returns a summarized result directly when the task completes. But following the deprecation note, the agent reads the .output file anyway — injecting the entire sub-agent conversation dump into the main agent's context window. When multiple sub-agents run in the same session, this causes rapid context saturation and triggers autocompact thrashing.\n\n### What Should Happen?\n\nThe deprecation guidance should distinguish between task types:\n \n - local_bash tasks: Reading the .output file is appropriate — it contains command stdout/stderr. \n - local_agent tasks: The Agent tool result already contains the sub-agent's summarized output. The agent should not Read the .output file — it \ncontains the full conversation history JSON and will inflate the context unnecessarily. \n \nSuggested fix to the TaskOutput prompt: \n \n DEPRECATED: Prefer using the Read tool on the task's output file path instead. \n - For bash tasks: Read the output file path to get stdout/stderr. \n - For agent tasks: use the Agent tool result directly. Do NOT Read the .output file — \n it contains the full sub-agent conversation history and will overflow your context window.\n\n### Error Messages/Logs\n\n```shell\nSDK AssistantMessage carries error=invalid_request | text_len=257 \n SDK API error (fatal): error=invalid_request | \n raw={'content': [TextBlock(text='Autocompact is thrashing: the context refilled to the limit \n within 3 turns of the previous compact, 3 times in a row. A file being read or a tool output \n is likely too large for the context window. Try reading in smaller chunks, or use /clear to \n start fresh.')]} \n \n The oversized Read that triggered the issue: \n tool_call Read | input: {'file_path': '/tmp/claude-1000/.../tasks/aa8bd3ced112e5ae5.output'} \n tool_result Read | ok | output: {\"parentUuid\":null,\"isSidechain\":true,\"promptId\":\"747dfb10...\", \n \"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":\"In the repo at ... <- 87,286 chars \n \n Comparison — Agent tool result vs .output file: \n Agent tool return value : 4,087 chars (summarized result, appropriate) \n .output file via Read : 87,286 chars (full conversation history JSON, 21x larger) \n \n 3 compacts each saving ~167K tokens, all triggered within the same turn: \n SDK compact triggered: count=1 pre_tokens=167199 tokens_saved=167199 text=SDK auto compact \n SDK compact triggered: count=2 pre_tokens=167883 tokens_saved=167883 text=SDK auto compact \n SDK compact triggered: count=3 pre_tokens=167202 tokens_saved=167202 text=SDK auto compact\n```\n\n### Steps to Reproduce\n\n 1. Use Claude Code (v2.1.92) with a long-running agent session.\n 2. Launch a sub-agent using the Agent tool with run_in_background: true. \n 3. When task_notification fires, observe the main agent immediately calling Read on the path /tmp/claude-1000/.../tasks/<task_id>.output. \n 4. The file read returns the full sub-agent conversation history JSON (~87K chars per sub-agent). \n 5. With 3+ sub-agents in one session, context fills to the 800K token compact threshold. \n 6. Aft",
+  "labels": ["bug", "has repro", "platform:linux", "area:agents"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-07T14:18:06Z",
+  "updated_at": "2026-04-16T14:56:14Z",
+  "closed_at": "2026-04-08T22:31:49Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "wishacloud",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17591\n2. https://github.com/anthropics/claude-code/issues/24764\n3. https://github.com/anthropics/claude-code/issues/42123\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-07T14:22:48Z"
+    },
+    {
+      "author": "wishacloud",
+      "author_association": "NONE",
+      "body": "> Found 3 possible duplicate issues:\n> \n> 1. [[Bug] TaskOutput returns raw JSONL transcript instead of subagent summary (regression in 2.0.77) #17591](https://github.com/anthropics/claude-code/issues/17591)\n> 2. [Read tool can overflow context window, making autocompact unrecoverable #24764](https://github.com/anthropics/claude-code/issues/24764)\n> 3. [[BUG] Explore sub-agent infinite read loop on single file — never completes (v2.1.89, Windows) #42123](https://github.com/anthropics/claude-code/",
+      "created_at": "2026-04-07T15:00:48Z"
+    },
+    {
+      "author": "Alpha2Zulu1872",
+      "author_association": "NONE",
+      "body": "Affected since April 6 — two separate incidents, 74:1 and 175:1 input/output ratios, $21.69 consumed, account driven negative. Support ticket 215473797766657 open with no human response after 15+ hours. This has shut down my commercial operation for two days. No communication received from Anthropic about this known issue despite it apparently existing since March 23.",
+      "created_at": "2026-04-07T17:30:42Z"
+    }
+  ]
+}

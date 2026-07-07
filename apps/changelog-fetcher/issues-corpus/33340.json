@@ -1,0 +1,16 @@
+{
+  "number": 33340,
+  "title": "[FEATURE] Permission system should evaluate piped commands independently, not as a single string",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nThe current Bash permission pattern matching treats an entire pipeline as one string, meaning Bash(tee:*) doesn't match something | tee logfile because the command doesn't start with tee. This is both a UX problem (the \"don't ask again\" suggestion is wrong) and a conceptual one.\nThe core issue: piping is data routing, not execution risk. The risk surface is in what each individual command does. rg foo | tee out.txt is not more dangerous than rg foo — tee just redirects stdout to a file.\nRelated: #29967 documents the symptom; this is the underlying design issue.\n\n### Proposed Solution\n\neach subcommand in a pipeline should be evaluated independently against the allowlist. Only prompt if any individual subcommand isn't covered. This matches the actual threat model (which commands run, not how their output is connected).\n\n### Alternative Solutions\n\nn/a\n\n### Priority\n\nLow - Nice to have\n\n### Feature Category\n\nInteractive mode (TUI)\n\n### Use Case Example\n\nn/a\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:bash", "area:permissions", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-11T20:16:11Z",
+  "updated_at": "2026-05-06T22:19:24Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 7,
+  "author": "graehl",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

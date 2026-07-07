@@ -1,0 +1,23 @@
+{
+  "number": 51720,
+  "title": "[BUG] slack_read_channel / slack_read_thread drop message attachments and blocks",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe slack_read_channel and slack_read_thread tools only return the top-level text field from Slack messages. Content stored in attachments or Block Kit blocks is silently discarded, causing many messages to\nappear completely empty even when they have visible content in the Slack UI. Many Slack bots (alerting systems and monitoring tools) store their entire payload in attachments or blocks and set no top-level text field. This makes those messages completely invisible to Claude via the MCP.\n\n### What Should Happen?\n\nThe tool should surface:                   \n\n- attachments[].fallback — the plain-text fallback that well-formed attachments always include\n- attachments[].text and attachments[].fields[].title / .value   \n- For Block Kit: plain_text andmrkdwn leaf nodes from the blocks[] tree\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Connect the claude.ai Slack MCP integration                                                                                                                                                                \n2. Find a channel containing bot messages that use attachments or blocks (common for CI bots, alerting systems, monitoring tools, etc.)\n3. Call slack_read_channel — those messages return as empty strings           \n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.104 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-21T20:40:48Z",
+  "updated_at": "2026-05-12T22:16:34Z",
+  "closed_at": null,
+  "reactions_total": 29,
+  "comments_count": 1,
+  "author": "dcai-etsy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ericnelson",
+      "author_association": "NONE",
+      "body": "⏺ Confirming repro — adding a concrete A/B that narrows the scope:\n\n  Same Slack channel, same `slack_read_channel` call, two different bots:\n  \n  - **PagerDuty** (posts using top-level `blocks[]`) → full body renders correctly (title link, urgency, service, emoji).\n  - **Datadog monitor alerts** (posts using legacy `attachments[]` with `color`, `fallback`, `fields[]`) → envelope only (sender + ts), body empty.\n  \n  So the MCP *does* handle top-level `blocks[]`; the gap is specifically `attachme",
+      "created_at": "2026-05-12T22:16:34Z"
+    }
+  ]
+}

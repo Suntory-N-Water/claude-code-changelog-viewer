@@ -1,0 +1,35 @@
+{
+  "number": 7172,
+  "title": "Feature Request: Improve Claude Code Token Management with MCP Servers",
+  "body": "# Feature Request: Improve Claude Code Token Management with MCP Servers\n\n## Problem Statement\n\nClaude Code's current MCP server architecture creates significant workflow friction and inefficient resource utilization. All configured MCP servers load their complete tool schemas into the context at session initialization, consuming tokens regardless of actual usage.\n\n**Specific Issues:**\n- Static token overhead: 18.3k tokens (9.2% of context) consumed by unused AWS MCP servers\n- Configuration-time resource decisions in discovery-driven workflows\n- Session restart required to modify MCP server availability\n- Premature optimization pressure: choose between token efficiency or tool availability\n\n## Impact on Developer Workflow\n\nReal development scenarios require dynamic tool access patterns that the current architecture cannot support:\n\n1. **Mid-conversation discovery**: Developer realizes they need AWS documentation while debugging, but MCP servers weren't loaded\n2. **Context-dependent tooling**: Different projects require different AWS services (Lambda vs CDK vs pricing analysis)\n3. **Token budget management**: 18k static overhead reduces effective context window by ~4-5k lines of code\n4. **Workflow interruption**: Restarting sessions to change MCP configuration breaks conversation continuity\n\n## Technical Root Cause\n\nThe system treats MCP servers as session-scoped heavyweight resources rather than on-demand lightweight services. Tool schema definitions are eagerly loaded rather than lazily initialized, violating efficient resource allocation principles.\n\n## Proposed Solutions\n\n### Primary: Runtime MCP Server Management\n- **Enable/disable servers within active sessions** without configuration changes\n- UI controls in `/mcp` interface for real-time server toggling\n- Tool schema loading/unloading on demand\n- Preserve conversation context during server state changes\n\n### Secondary: Intelligent Tool Loading\n- **Lazy schema initialization**: Load tool definitions only when first referenced\n- **Contextual server suggestions**: Claude identifies and requests needed servers mid-conversation\n- **Automatic schema eviction**: Unload unused tool definitions to reclaim tokens\n- **Token-aware prioritization**: Prefer lightweight servers when context pressure exists\n\n### Tertiary: Enhanced Configuration Scoping\n- **Session profiles**: Quick-switch between predefined MCP server combinations\n- **Project-based auto-configuration**: Automatically load relevant servers based on project type detection\n- **Usage analytics**: Track MCP server utilization to inform configuration optimization\n\n## Success Criteria\n\n1. **Zero-restart server management**: Developers can enable AWS documentation MCP server mid-conversation without session interruption\n2. **Token efficiency**: Unused servers consume zero context tokens\n3. **Workflow preservation**: MCP server changes maintain conversation history and context\n4. **Predictable performance**: Server loading/unloading operations complete within 2-3 seconds\n\n## Business Justification\n\nThis directly impacts developer productivity in Claude Code adoption:\n- **Reduced cognitive overhead**: No need to predict entire toolchain requirements at session start\n- **Improved context utilization**: Recover 9%+ of context window for actual code and conversation\n- **Enhanced user experience**: Eliminate artificial workflow constraints that force suboptimal behavior\n\n## Current Environment\n- Claude Code with global MCP server configuration\n- AWS MCP servers: aws-core, aws-documentation, aws-cdk, aws-pricing\n- Context usage: 89k/200k tokens with 18.3k MCP overhead\n- Development focus: Serverless/Lambda with Terraform (not CDK)\n\n## Priority Classification\n**High Priority** - This addresses a fundamental architectural constraint that forces users into inefficient resource allocation patterns, directly impacting the core value proposition of Claude Code as a development productivity tool.",
+  "labels": ["enhancement", "area:core", "area:mcp", "memory", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-04T21:38:07Z",
+  "updated_at": "2026-01-17T14:12:50Z",
+  "closed_at": "2026-01-10T10:10:28Z",
+  "reactions_total": 11,
+  "comments_count": 12,
+  "author": "nCubed",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/6638\n2. https://github.com/anthropics/claude-code/issues/6309  \n3. https://github.com/anthropics/claude-code/issues/1774\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-09-04T21:42:28Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Hey, this is a fantastic and incredibly well-detailed feature request. You've perfectly articulated a major friction point in using MCP servers for complex, discovery-driven workflows. That static 18k+ token hit just for the *possibility* of needing a tool is a tough pill to swallow when context is so valuable.\n\nWhile we wait for an official solution from the Claude Code team, exploring some of the existing configuration options might offer a potential workaround to mitigate the issue.\n\n### Pote",
+      "created_at": "2025-09-05T00:05:26Z"
+    },
+    {
+      "author": "machjesusmoto",
+      "author_association": "NONE",
+      "body": "I've created a working implementation that addresses your token management concerns:\n\n🔗 **Repository**: https://github.com/machjesusmoto/claude-lazy-loading  \n📝 **Full discussion**: #7336\n\n**Solves your specific issues:**\n- **Static overhead eliminated**: AWS MCP (18.3k) loads only when AWS operations detected\n- **Discovery-friendly**: Tools load based on context, not pre-configuration\n- **No restart needed**: Registry approach enables dynamic loading (with native support)\n\n**Your AWS example:",
+      "created_at": "2025-09-10T19:17:51Z"
+    }
+  ]
+}

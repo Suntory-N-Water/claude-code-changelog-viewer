@@ -1,0 +1,35 @@
+{
+  "number": 32249,
+  "title": "fix(voice): add SoX fallback for /voice on Windows when native audio module is unavailable",
+  "body": "## Problem\n\n`/voice` fails on Windows with:\n```\nVoice recording requires the native audio module, which could not be loaded.\n```\n\nThe native `audio-capture.node` binary is not bundled with the Windows standalone binary (`claude.exe`). The v2.1.70 changelog mentions \"Fixed voice mode failing on Windows native binary with 'native audio module could not be loaded'\" but the issue persists in v2.1.71 — the `.node` path was corrected, but the binary itself still isn't shipped.\n\nOn **Linux**, the code gracefully falls back to `arecord` (ALSA) or `rec` (SoX).  \nOn **macOS**, it falls back to `rec` (SoX).  \nOn **Windows**, there is **no fallback** — it immediately returns an error.\n\n**Environment:** Windows 10 Enterprise 10.0.19045, Claude Code v2.1.71\n\n## Root Cause\n\nThree functions short-circuit on `win32` before reaching the SoX fallback path:\n\n**`checkRecordingAvailability`**\n```typescript\nif (process.platform === \"win32\")\n  return { available: false, reason: \"Voice recording requires the native audio module...\" };\n// SoX check is never reached on Windows\n```\n\n**`checkVoiceDependencies`**\n```typescript\nif (process.platform === \"win32\")\n  return { available: false, missing: [...], installCommand: null };\n// SoX check is never reached on Windows\n```\n\n**`startRecording`**\n```typescript\nif (process.platform === \"win32\")\n  return log(\"[voice] Windows native recording unavailable, no fallback\"), false;\n// rec/arecord fallbacks are never reached on Windows\n```\n\nAdditionally, `getInstallCommand` has no Windows package manager entries.\n\n## Proposed Fix\n\nSoX is fully cross-platform and available on Windows via `winget install ChrisBagwell.SoX`. However, there's one key difference: **Windows SoX only ships `sox.exe` — there is no `rec` symlink.** The `rec` command is equivalent to `sox -d` (record from default audio device).\n\n### 1. `checkRecordingAvailability` — check for `sox` on Windows\n\n```typescript\n// Remove the early win32 rejection.\n// After the arecord check, add a Windows-specific branch:\n\nif (process.platform === \"win32\") {\n  if (!commandExists(\"sox\")) {\n    const install = getInstallCommand();\n    return {\n      available: false,\n      reason: install\n        ? `Voice mode requires SoX for audio recording. Install it with: ${install.displayCommand}`\n        : `Voice mode requires SoX for audio recording.\\n  Install: winget install ChrisBagwell.SoX`,\n    };\n  }\n  return { available: true, reason: null };\n}\n```\n\n### 2. `checkVoiceDependencies` — check `sox` instead of `rec` on Windows\n\n```typescript\n// Remove the early win32 rejection.\n// Replace the single rec check with platform-aware logic:\n\nconst missing: string[] = [];\nif (process.platform === \"win32\") {\n  if (!commandExists(\"sox\")) missing.push(\"sox\");\n} else if (!commandExists(\"rec\")) {\n  missing.push(\"sox (rec command)\");\n}\n```\n\n### 3. `startRecording` — add `startSoxWin32()` fallback\n\n```typescript\n// Remove the early win32 return. Route to a new Windows function:\n\nif (process.platform === \"linux\" && commandExists(\"arecord\"))\n  return startArecord(onData, onClose);\nif (process.platform === \"win32\")\n  return startSoxWin32(onData, onClose, options);  // NEW\nreturn startRec(onData, onClose, options);\n```\n\n**New function** — identical to `startRec` but uses `sox -d` instead of `rec`:\n\n```typescript\nfunction startSoxWin32(\n  onData: (data: Buffer) => void,\n  onClose: () => void,\n  options?: { silenceDetection?: boolean },\n): boolean {\n  const silenceDetection = options?.silenceDetection !== false;\n  const args = [\n    \"-d\",       // default audio input device (equivalent of rec)\n    \"-q\", \"--buffer\", \"1024\",\n    \"-t\", \"raw\",\n    \"-r\", String(SAMPLE_RATE),\n    \"-e\", \"signed\", \"-b\", \"16\",\n    \"-c\", String(CHANNELS),\n    \"-\",        // output to stdout\n  ];\n  if (silenceDetection)\n    args.push(\"silence\", \"1\", \"0.1\", SILENCE_THRESHOLD, \"1\", SILENCE_DURATION, SILENCE_THRESHOLD);\n\n  const proc = spawn(\"sox\", args, { stdio: [\"pipe\", \"pipe\", \"pipe\"] });\n  childProcess = proc;\n  proc.stdout?.on(\"data\", (chunk) => onData(chunk));\n  proc.stderr?.on(\"data\", () => {});\n ",
+  "labels": ["bug", "has repro", "platform:windows", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-08T22:11:50Z",
+  "updated_at": "2026-05-02T14:37:24Z",
+  "closed_at": "2026-04-24T22:21:07Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "NetVar1337",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/31065\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-08T22:15:16Z"
+    },
+    {
+      "author": "NetVar1337",
+      "author_association": "NONE",
+      "body": "This is not a duplicate of #31065.\n\n#31065 is a bug report describing the symptom (voice fails on Windows). This issue provides **a complete implementation-ready fix** with reconstructed TypeScript for all 4 functions that need changes, along with a new `startSoxWin32()` recording function.\n\nKey differences:\n- **#31065**: \"voice doesn't work on Windows\" (symptom report, no fix proposed)\n- **This issue**: Root cause analysis + complete code changes for `checkRecordingAvailability`, `checkVoiceDep",
+      "created_at": "2026-03-08T22:41:08Z"
+    },
+    {
+      "author": "Trebben",
+      "author_association": "NONE",
+      "body": "## Working user-side fix for Windows voice mode (no source changes needed)\n\nThe binary already has an escape hatch: it checks `AUDIO_CAPTURE_NODE_PATH` before trying to load the missing native module. We can point it to a JS shim that wraps SoX.\n\n**Important:** The proposed fix in this issue uses `sox -d`, which **outputs 0 bytes on Windows**. You must use `-t waveaudio default` instead.\n\n### Step 1: Install SoX\n\n```powershell\nwinget install ChrisBagwell.SoX\n```\n\n### Step 2: Create the shim\n\nSav",
+      "created_at": "2026-03-10T08:23:27Z"
+    }
+  ]
+}

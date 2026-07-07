@@ -1,0 +1,41 @@
+{
+  "number": 59456,
+  "title": "Background tasks panel: stopped tasks reappear as Running after session switch / refresh",
+  "body": "## Summary\n\nIn the Claude Code app's **Background tasks** side panel, clicking **Stop** on a Running task visibly moves it to the **Completed** section with status \"Stopped\" — but the change does not persist. After leaving and returning to the conversation (session switch, app refresh, or closing/reopening the panel), every task that was previously stopped reappears in the **Running** section with status \"Running\", even though no process is actually alive.\n\nNet effect: dead background-task slots accumulate in the UI and can't be cleared. The list grows monotonically across the lifetime of a conversation and survives refresh/restart.\n\n## Environment\n\n- **macOS:** 26.3 (build 25D125), Apple silicon\n- **Claude (desktop app):** 1.7196.0\n- **Claude Code CLI:** 2.1.142 (used as a tool; the UI in question is in the desktop app)\n- **Model in session:** Opus 4.7 · Max\n\n## Reproduction\n\nTrigger condition (how the dead-but-Running slots get created in the first place):\n\n1. In a Claude Code session, have the assistant call the `Task` tool to spawn a sub-agent.\n2. Have that sub-agent call `Bash` with `run_in_background: true` several times.\n3. Let the sub-agent finish and return.\n\nResult of the trigger: the sub-agent's `run_in_background` Bash slots appear in the Background tasks panel as **Running**, indefinitely. `ps` on the host confirms the underlying processes are gone — no live PIDs. There appears to be no first-class way (no `KillBash`-equivalent surfaced to the orchestrator) to clear these slots programmatically, so the only path is the panel's **Stop** button.\n\nThe staleness bug (what this report is about):\n\n4. Open the Background tasks panel. Observe the dead tasks listed under **Running**.\n5. Click **Stop** on each dead task one by one. The panel updates correctly: each task moves to **Completed** with status \"Stopped\", and the bottom-bar \"N shells running\" counter decreases as expected.\n6. Click any other conversation in the left sidebar (or refresh the app, or close+reopen the panel — any of these reproduces it), then return to the original conversation.\n7. Open the Background tasks panel again.\n\n**Expected:** the previously-stopped tasks remain under **Completed** with status \"Stopped\". `Running` shows only the tasks that are genuinely alive.\n\n**Actual:** every task that was stopped in step 5 is back under **Running** with status \"Running\". The Completed section forgets they were ever stopped. The bottom-bar counter shows the full revived count.\n\n## Frequency\n\nI've observed this multiple times over the past several days. Confirmed reproducible in the screen recording I'll attach as a comment.\n\n## Workaround\n\nNone that persists. Clicking Stop again works for the current view but the same tasks return on the next session switch / refresh.\n\n## Why it matters\n\n- The Background tasks panel becomes unreliable as a status signal — you have to manually re-verify with `ps` whether anything in **Running** is actually alive.\n- The \"N shells running\" counter at the bottom of the conversation is similarly misleading: it shows the stale-revived count, not the real count.\n- Combined with the upstream issue (sub-agent `run_in_background` slots are not reaped when the sub-agent finishes), a single session can accumulate an unbounded number of phantom Running slots that survive every UI refresh, with no in-product way to clear them.\n\n## Hypothesis (where to look)\n\nThe Stop click handler appears to write to a transient in-memory state, while the panel's render on session open reads from a persisted source (per-session state on disk / server) that still records those slots as Running. Two likely shapes:\n\n1. The Stop action is not persisted at all — only the local view state is updated. On re-render the panel rehydrates from the unmodified persisted record.\n2. The Stop action is persisted, but to a layer that the re-render path does not consult, so the persisted \"stopped\" status is masked by a stale \"running\" record from another layer (e.g. the sub-agent's task ledger).\n\nEither way, the persistence layer that backs the panel on o",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:agents",
+    "area:agent-view"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-05-15T16:43:43Z",
+  "updated_at": "2026-06-04T00:03:48Z",
+  "closed_at": "2026-05-27T03:58:34Z",
+  "reactions_total": 4,
+  "comments_count": 10,
+  "author": "venpopov",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "bogini",
+      "author_association": "COLLABORATOR",
+      "body": "Fixed — stopped tasks no longer reappear as running after session switch. Please reopen if you still see this on a current version.",
+      "created_at": "2026-05-27T03:58:33Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/58662\n2. https://github.com/anthropics/claude-code/issues/48312\n3. https://github.com/anthropics/claude-code/issues/58457\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-15T16:49:33Z"
+    },
+    {
+      "author": "venpopov",
+      "author_association": "NONE",
+      "body": "<img width=\"2244\" height=\"1305\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/628abacc-c98f-4971-9f91-7a0c3c727be5\" />\nhttps://github.com/user-attachments/assets/e5d316ce-f305-4476-8c36-0896a43d54a2",
+      "created_at": "2026-05-15T16:54:28Z"
+    }
+  ]
+}

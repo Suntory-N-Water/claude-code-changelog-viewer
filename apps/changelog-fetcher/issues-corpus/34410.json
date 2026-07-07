@@ -1,0 +1,35 @@
+{
+  "number": 34410,
+  "title": "[BUG] Max x20 plan — 5-hour quota consumed in ~10 prompts (started March 14, 2026)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**What's Wrong?**\nStarting today (March 14, 2026), the 5-hour rolling quota on my Max x20 ($200/month) subscriptions is being consumed at an abnormally fast rate. The quota is exhausted after approximately 10 prompts, which is drastically fewer than expected for this tier.\n\n**Setup & Context**\nI have three separate Max x20 subscriptions:\n\nSubscription A & B: Used both on remote agents (headless/distant machines) and in local terminal sessions on my PC.\nSubscription C: Used exclusively in local terminal sessions on my PC — no remote agents, no shared usage.\n\n**The Problem**\nTo isolate the issue, I tested Subscription C (local-only, no remote agents) and hit the 5-hour quota limit in roughly 10 prompts. This rules out any shared/concurrent usage as a cause — the quota is simply being consumed far too quickly.\nAll three subscriptions exhibit the same behavior since today. My workflow has not changed.\n\n### What Should Happen?\n\n**Expected Behavior**\nOn a Max x20 plan, the 5-hour quota window should support a significantly higher number of prompts (historically hundreds of messages). Hitting the limit in ~10 prompts suggests either a change in quota accounting or a backend bug.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nLog in with a Max x20 subscription on Claude Code (local terminal only)\nSend ~10 standard development prompts\nObserve that the 5-hour quota is already exhausted\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.76\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nRelated Issues\n\n#28537 — Usage limits hit significantly faster with unchanged workflow\n#29178 — Usage limits hit faster since v2.1.53–v2.1.59 (system prompt bloat)\n#20767 — Pro quota significantly reduced\n#22435 — Inconsistent quota accounting on Max plan (10x burn rate variance documented with mitmproxy)",
+  "labels": ["bug", "platform:linux", "area:cost", "api:anthropic", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-14T17:27:54Z",
+  "updated_at": "2026-07-01T15:11:47Z",
+  "closed_at": "2026-05-12T10:59:46Z",
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "mik3fly",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34145\n2. https://github.com/anthropics/claude-code/issues/33752\n3. https://github.com/anthropics/claude-code/issues/34287\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-14T17:31:29Z"
+    },
+    {
+      "author": "mik3fly",
+      "author_association": "NONE",
+      "body": "A ticket is open : 215473481043220",
+      "created_at": "2026-03-14T17:33:00Z"
+    },
+    {
+      "author": "mik3fly",
+      "author_association": "NONE",
+      "body": "Problem solved with a plausible explanation:\nMy Claude sessions had been running for several days. On the 14th, a new default model with 1M context became available. All my local Claude sessions were still running the old 1M context model. Five models were listed in the model selector. I exited all my sessions (logout/login), selected the new 1M context model as default, and everything went back to normal.\nMy plausible explanation: token consumption for the old model became bugged after the new ",
+      "created_at": "2026-03-15T11:37:51Z"
+    }
+  ]
+}

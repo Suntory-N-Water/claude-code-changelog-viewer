@@ -1,0 +1,35 @@
+{
+  "number": 2722,
+  "title": "Claude Code doesn't respond to MCP notifications/prompts/list_changed for dynamic command updates",
+  "body": "## Summary\nClaude Code is not properly handling MCP `notifications/prompts/list_changed` notifications, preventing dynamic updates of custom commands without restarting the application.\n\n## Expected Behavior\nWhen an MCP server sends a `notifications/prompts/list_changed` notification, Claude Code should:\n1. Receive the notification\n2. Make a new `prompts/list` request to get the updated prompt list\n3. Refresh its available commands and make new forward-slash commands immediately available\n\n## Actual Behavior\n- Custom MCP commands added to `.claude/commands/` directory don't appear in Claude's available commands\n- Sending `notifications/prompts/list_changed` notification has no effect\n- **Claude Code does not make a subsequent `prompts/list` request** when the notification is received\n- Only way to pick up new commands is to restart Claude Code entirely\n\n## Use Case\nI'm developing custom forward-slash commands and want to iterate on them quickly. Currently, I have to restart Claude Code every time I add a new command, which breaks my development workflow.\n\n## Steps to Reproduce\n1. Create a custom MCP command (e.g., `/mcp:tool`)\n2. Send MCP notification:\n   ```json\n   {\n     \"jsonrpc\": \"2.0\",\n     \"method\": \"notifications/prompts/list_changed\"\n   }\n   ```\n3. Observe that Claude Code does not make a `prompts/list` request\n4. Try to use the new command in Claude Code\n5. Command is not available until full restart\n\n## Environment\n- Claude Code version: 1.0.36\n- MCP server: Custom implementation\n- Commands directory: `.claude/commands/`\n\n## Request\nPlease implement proper handling of MCP `notifications/prompts/list_changed` by making a `prompts/list` request when the notification is received, enabling dynamic command updates without restarts.",
+  "labels": ["bug", "has repro", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-06-29T14:23:23Z",
+  "updated_at": "2025-08-24T14:06:46Z",
+  "closed_at": "2025-08-16T21:25:05Z",
+  "reactions_total": 13,
+  "comments_count": 5,
+  "author": "emanuelturis",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "SamPeng87",
+      "author_association": "NONE",
+      "body": "I think Claude Code has not implemented any of the notifications protocol standards at all. For example, notifications/resources/list_changed does not respond at all.",
+      "created_at": "2025-07-11T06:18:33Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/4094\n2. https://github.com/anthropics/claude-code/issues/4384\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-16T04:33:27Z"
+    },
+    {
+      "author": "RobbieMcKinstry",
+      "author_association": "NONE",
+      "body": "This issue or https://github.com/anthropics/claude-code/issues/4094 are the tickets that should remain open, since they most precisely pinpoint the issue. There are a handful of other issues that could be closed as duplicates.",
+      "created_at": "2025-08-16T20:11:11Z"
+    }
+  ]
+}

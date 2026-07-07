@@ -1,0 +1,35 @@
+{
+  "number": 32294,
+  "title": "[Bug] Claude defaults to assertion from memory instead of verification from tools",
+  "body": "## Bug Description\n\nClaude Code states facts about schemas, file contents, configurations, and system state from memory/inference rather than checking with available tools. When these assertions are wrong, the error propagates into generated code, SQL, or recommendations — and is reported with the same confidence as verified facts.\n\n## Concrete Examples\n\n### Example 1: Column count from memory\nA prior session wrote a SQL INSERT for `gameobject_template` with 32 Data column values. The table actually has 35 (Data0-Data34). Claude counted from memory instead of running `DESCRIBE gameobject_template`. The 3-column mismatch wasn't caught until execution failed in a later session.\n\n### Example 2: Column existence assumption\nClaude wrote a verification query referencing `smart_scripts.VerifiedBuild`. That column doesn't exist on this table. Instead of checking the schema first, Claude assumed the column existed because most other tables in the same database have it.\n\n### Example 3: Schema inference across databases\nWhen writing cross-database queries (source DB → target DB), Claude inferred that matching table names have matching schemas. Several tables had extra columns in the target (`creature.size`, `gameobject.visibility`, `npc_vendor.OverrideGoldCost`). The import document accounted for these, but only because a human had previously run DESCRIBE on both sides.\n\n## The Pattern\n\nClaude has strong priors about what \"should\" be true based on patterns in training data and conversation context. These priors are often correct, which reinforces the behavior. But when they're wrong, the failure is silent — there's no indication that a fact was inferred rather than verified.\n\nThe fix isn't \"always run DESCRIBE\" — it's \"distinguish between 'I know this' and 'I checked this' in reasoning, and default to checking when the cost is low.\"\n\n## Impact\n\n- Generated code contains bugs that match \"what Claude thinks the schema looks like\" rather than what it actually is\n- Users can't tell from Claude's output whether a claim is verified or inferred\n- The cost of checking (one DESCRIBE query, ~100ms) is trivially low compared to the cost of debugging wrong SQL\n\n## Related\n\n- #32289 — Claude generates incorrect code and reports it as complete\n\n## Environment\n\n- Claude Code 2.1.71\n- Windows 11",
+  "labels": ["bug", "platform:windows", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-09T02:26:59Z",
+  "updated_at": "2026-05-24T10:39:35Z",
+  "closed_at": "2026-05-24T10:39:35Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "VoxCore84",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/32289\n2. https://github.com/anthropics/claude-code/issues/27790\n3. https://github.com/anthropics/claude-code/issues/16546\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-09T02:33:05Z"
+    },
+    {
+      "author": "VoxCore84",
+      "author_association": "NONE",
+      "body": "## Additional Detail: Three Assertion-From-Memory Failures in One Session\n\n### Failure 1: gameobject_template column count (prior session)\n\n**What Claude asserted**: Data0-Data34 needs 32 zero values.\n**What's actually true**: Data0-Data34 is 35 columns (0 through 34 inclusive = 35).\n**How it should have been verified**: `DESCRIBE gameobject_template` → count the Data columns.\n**Cost of checking**: ~100ms for a DESCRIBE query.\n**Cost of not checking**: Broken SQL file that failed on execution in",
+      "created_at": "2026-03-09T02:35:23Z"
+    },
+    {
+      "author": "VoxCore84",
+      "author_association": "NONE",
+      "body": "## This Is Not a Duplicate\n\n### vs #32289 (our own issue — \"Generates incorrect code, reports success\")\nThe bot flagged our own issue as a duplicate of our other issue. These describe different failure modes in the same pipeline:\n\n- **#32289** = the **output** is wrong (SQL with 32 values for 35 columns). Focuses on the generated artifact.\n- **#32294** (this issue) = the **reasoning process** is wrong (stating schema facts from memory instead of checking). Focuses on the decision not to verify b",
+      "created_at": "2026-03-09T03:03:13Z"
+    }
+  ]
+}

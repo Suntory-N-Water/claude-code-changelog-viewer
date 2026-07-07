@@ -1,0 +1,35 @@
+{
+  "number": 47383,
+  "title": "[BUG] Gmail connector OAuth missing write/modify scopes for label operations",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe Gmail connector's OAuth flow should request the gmail.modify scope (or equivalent) so that all exposed tools — including label_thread and label_message — work correctly. If a tool requires a scope that isn't currently granted, either the scope should be added to the OAuth request, or the tool should not be exposed in the UI.\n\n### What Should Happen?\n\nThe Gmail connector's OAuth flow should request the gmail.modify scope (or equivalent) so that all exposed tools — including label_thread and label_message — work correctly. If a tool requires a scope that isn't currently granted, either the scope should be added to the OAuth request, or the tool should not be exposed in the UI.\n\n### Error Messages/Logs\n\n```shell\nThis connector requires additional permissions. The user needs to reconnect it with the appropriate access.\n```\n\n### Steps to Reproduce\n\n1. Open Cowork mode in Claude Desktop\n2. 2. Connect the Gmail connector\n3. 3. Search for email threads using search_threads — this works fine (read access is granted)\n4. 4. Attempt to apply a label to a thread using label_thread\n5. 5. Observe error: \"This connector requires additional permissions. The user needs to reconnect it with the appropriate access.\"\n6. 6. Disconnect, delete, and reconnect the Gmail connector\n7. 7. Check Google's third-party access permissions screen — only \"See your profile info\", \"Manage drafts and send emails\", and \"View your email messages and settings\" are listed. No modify/write scope for labels.\n8. 8. Retry label_thread — same error persists\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nCowork mode (Claude Desktop) — April 2026\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nThis bug was encountered in Cowork mode (not Claude Code CLI). The label_thread and label_message tools appear to have been recently added to the Gmail connector, but the OAuth app registration was not updated to include the gmail.modify scope. Screenshot of Google's third-party permissions screen confirms only read + drafts/send scopes are granted. The Terminal/Shell field above is not applicable — this is a Cowork desktop issue.",
+  "labels": ["bug", "area:cowork", "area:routines"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-13T13:01:41Z",
+  "updated_at": "2026-05-19T15:57:53Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 8,
+  "author": "lewistaylor",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "artifactperception",
+      "author_association": "NONE",
+      "body": "+1 on this. I built a full email-triage workflow in Cowork around the Gmail connector — pulling threads, drafting replies, filing to Notion, archiving. Dropped it into daily use. Then label_thread / unlabel_thread disappeared from the tool surface and the whole second half of the workflow (archive, star, label) went dead.\nReconnecting doesn't fix it. The tools aren't even registered in my session now.",
+      "created_at": "2026-04-24T00:25:08Z"
+    },
+    {
+      "author": "perlierely",
+      "author_association": "NONE",
+      "body": "+1 Bug encountered in the **Claude Code scheduled agent (remote trigger) + interactive sessions**\n\n**Tools missing from registered MCP tools:** label_thread, unlabel_thread — not present in the deferred tools list at all, unlike create_label, list_labels, search_threads which are available.\n\nError when attempting label operations via cloud trigger: **403 Permission Denied**\n\nAttempted fixes (all ineffective):\n\nReconnected Gmail integration via claude.ai > Settings > Integrations — repeated 8+ ti",
+      "created_at": "2026-04-24T04:02:13Z"
+    },
+    {
+      "author": "tanishg98",
+      "author_association": "NONE",
+      "body": " +1, reproduced today in Claude Code (Opus 4.7). What's the solution here?\n\nAdding a scope breakdown in case it's useful for triage:             \n                                                                                                                       \n  Working (read + compose scopes):\n  - list_labels — ✅                                                                                                   \n  - search_threads — ✅\n  - create_draft — ✅                                     ",
+      "created_at": "2026-04-24T06:15:09Z"
+    }
+  ]
+}

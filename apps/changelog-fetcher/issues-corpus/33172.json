@@ -1,0 +1,29 @@
+{
+  "number": 33172,
+  "title": "[BUG] Official marketplace fails to load due to unsupported \"git-subdir\" source type in semgrep plugin",
+  "body": "**Version:** `2.1.72`\n\n## Describe the bug\n\nRunning `/plugin` produces:\n\n```\nFailed to load all marketplaces. Errors: claude-plugins-official: Failed to parse marketplace file at ...marketplace.json: Invalid schema: plugins.56.source: Invalid input\n```\n\n## Root cause\n\n`marketplace.json` entry #56 (`semgrep`) uses a `git-subdir` source type that Claude Code's Zod schema does not accept:\n\n```json\n{\n  \"name\": \"semgrep\",\n  \"source\": {\n    \"source\": \"git-subdir\",\n    \"url\": \"https://github.com/semgrep/mcp-marketplace.git\",\n    \"path\": \"plugin\"\n  }\n}\n```\n\nThe schema only accepts `url`, `github`, and relative path strings. `git-subdir` is not a recognized type, causing the entire marketplace to fail validation — making `/plugin` unusable.\n\n## Workaround\n\nManually remove the semgrep entry from the cached `marketplace.json`:\n\n```\n~/.claude/plugins/marketplaces/claude-plugins-official/.claude-plugin/marketplace.json\n```\n\nNote: this is overwritten on each fetch.\n\n## Expected behavior\n\nEither the marketplace should not ship a source type the client doesn't support, or Claude Code should skip invalid entries with a warning instead of rejecting the entire marketplace.\n\n**Related:** #30593 (feature request to support subdirectory paths)",
+  "labels": ["bug", "area:plugins"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-11T12:14:30Z",
+  "updated_at": "2026-05-07T15:21:23Z",
+  "closed_at": "2026-04-29T11:36:43Z",
+  "reactions_total": 13,
+  "comments_count": 2,
+  "author": "d0ttir",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "claude[bot]",
+      "author_association": "CONTRIBUTOR",
+      "body": "This issue was fixed as of version 2.1.120.",
+      "created_at": "2026-04-29T11:36:34Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been automatically locked since it was closed and has not had any activity for 7 days. If you're experiencing a similar issue, please file a new issue and reference this one if it's relevant.",
+      "created_at": "2026-05-07T15:21:22Z"
+    }
+  ]
+}

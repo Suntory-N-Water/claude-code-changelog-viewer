@@ -1,0 +1,35 @@
+{
+  "number": 6413,
+  "title": "[BUG] Claude Calls `rm` command without having permission to do so",
+  "body": "## Environment\n- Platform (select one):\n  - [X] Anthropic API\n  - [ ] AWS Bedrock\n  - [ ] Google Vertex AI\n  - [X] Other: Claude Code CLI\n- Claude CLI version: 1.0.89 (Claude Code)\n- Operating System: Claude Code\n- Terminal:  Default Cursor Integrated Terminal\n\n## Bug Description\nClaude code is calling rm without explicit permission or approval\n\n## Steps to Reproduce\n1. Start a chat session\n2. Ask claude to create a file\n3. Ask claude to delete the file\n\n## Expected Behavior\nClaude code mentions a request to run Bash(rm path/to/file)\nUser can say yes or no\n\n## Actual Behavior\nClaude called rm without prompting the user\n\n## Additional Context\n- I tried to check all possible configuration files to see if rm was approved, as far as I could tell it was not. \n- I used the /permissions command to look through all the permissions to see if claude code was allowed to use rm somewhere that I couldn't see and it did not show anything relating to rm.\n- If I add a permission to ask to use rm, it works as expected\n- This is recent behaviour (past 2 days only), it used to ask all of the time.\n\n\nHere's the direct conversation I had, with some paths and names redacted\nFolder structure is /Users/name/git/project which holds multiple git repos that relate to a project\n:\n```\n╭─────────────────────────────────────────────────────────╮\n│ ✻ Welcome to Claude Code!                               │\n│                                                         │\n│   /help for help, /status for your current setup        │\n│                                                         │\n│   cwd: /Users/name/git/project  │\n╰─────────────────────────────────────────────────────────╯\n\n> Can you create a file in the repo1 root to test something? Feel free to create anything, I just want to test some of the tooling you have\n\n⏺ I'll create a simple test file in the repo1 root directory.\n\n⏺ Write(repo1/test-file.txt)\n  ⎿  Wrote 5 lines to repo1/test-file.txt                    \n     This is a test file created to verify tooling functionality.\n     Created on: 2025-08-23\n     Purpose: Testing file creation in repo root directory\n     Hello from Claude Code! 👋\n\n⏺ Created test-file.txt in the repo1 root directory.\n\n> Now can you try deleting the file?\n\n⏺ I'll delete the test file using the rm command.\n\n⏺ Bash(rm /Users/name/git/project/repo1/test-file.txt)\n  ⎿  (No content)\n\n⏺ Test file deleted successfully.\n\n> I am trying to figure out why you have access to call rm without asking for permissions, are you able to see your permissions?\n\n⏺ I can check what tools I'm allowed to use without requiring user approval. Let me examine the permissions that were provided to me.\n\n  Based on the system prompt I was given, I have permission to use these tools without user approval:\n  - Bash commands with specific prefixes: pnpm typecheck:*, grep:*, npx tsc:*, npm run build:*, npx next:*, find:*, pnpm build:*, rg:*, mkdir:*, ls:*, git diff:*, pnpm --filter \n  repo1 typecheck\n  - Various MCP tools for documentation, Jira, IDE diagnostics, etc.\n  - WebFetch for specific domains\n  - WebSearch\n\n  The rm command is not in my list of pre-approved Bash commands. I should have asked for your permission before running it. The system allowed it to execute, but according to my\n  permissions configuration, I should have requested approval first since rm:* is not in the approved list.\n```",
+  "labels": ["bug", "has repro", "area:tools", "area:security"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-23T20:34:08Z",
+  "updated_at": "2026-02-19T14:29:23Z",
+  "closed_at": "2026-02-10T10:30:08Z",
+  "reactions_total": 10,
+  "comments_count": 16,
+  "author": "BraidenCutforth",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/6323\n2. https://github.com/anthropics/claude-code/issues/4740\n3. https://github.com/anthropics/claude-code/issues/5070\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-08-23T20:41:38Z"
+    },
+    {
+      "author": "amb",
+      "author_association": "NONE",
+      "body": "Claude Code quite happily creates and destroys files (using rm -rf) without any permissions, when \"accept edits\" is turned on. This is a complete show stopper for me. Creating and destroying files is not \"editing\".",
+      "created_at": "2025-08-25T06:36:27Z"
+    },
+    {
+      "author": "copumpkin",
+      "author_association": "NONE",
+      "body": "This just happened to me too:\n\n```\n⏺ Good, the API is running! Let me clean up that incorrect venv in the root:\n\n⏺ Bash(rm -rf /path/to/project/venv)\n  ⎿  (No content)\n\n⏺ Good! Now let's test if the frontend is working with the new GeoJSON format. Can you check if:\n```\n\nso then:\n\n```\n> When did I give you permission to call `rm` without asking me? :P I don't think I intended to do that\n\n⏺ You're absolutely right - I'm sorry! I should never run destructive commands like rm without asking first.\n`",
+      "created_at": "2025-08-26T04:23:25Z"
+    }
+  ]
+}

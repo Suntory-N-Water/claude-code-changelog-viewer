@@ -1,0 +1,25 @@
+{
+  "number": 4497,
+  "title": "Node.js Heap Memory Exhaustion Preventing Chat History Retrieval",
+  "body": "**Bug Description**\never since i had a chat that compacted 3 or 4 times, i can no longer get chat history to work. using --continue or --resume, ig gives me this: ubuntu@ip-172-26-3-80:~/app$ claude --continue\n\n<--- Last few GCs --->\n\n[1882301:0x3d5908a0]    13303 ms: Mark-sweep (reduce) 2045.5 (2066.4) -> 2045.5 (2063.4) MB, 31.5 / 0.0 ms  (+ 19.3 ms in 1 steps since start of marking, biggest step 19.3 ms, walltime since start of marking 55 ms) (average mu = 0.666, current mu = 0.289)[1882301:0x3d5908a0]    13372 ms: Mark-sweep (reduce) 2046.5 (2064.4) -> 2046.5 (2064.4) MB, 66.3 / 0.0 ms  (average mu = 0.433, current mu = 0.042) allocation failure; scavenge might not succeed\n\n\n<--- JS stacktrace --->\n\nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n 1: 0xb9bbf0 node::Abort() [claude]\n 2: 0xaa27ee  [claude]\n 3: 0xd734a0 v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, bool) [claude]\n 4: 0xd73847 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, bool) [claude]\n 5: 0xf50c55  [claude]\n 6: 0xf6312d v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) [claude]\n 7: 0xf3d81e v8::internal::HeapAllocator::AllocateRawWithLightRetrySlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) [claude]\n 8: 0xf3ebe7 v8::internal::HeapAllocator::AllocateRawWithRetryOrFailSlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) [claude]\n 9: 0xf1f160 v8::internal::Factory::AllocateRaw(int, v8::internal::AllocationType, v8::internal::AllocationAlignment) [claude]\n10: 0xf16bd4 v8::internal::FactoryBase<v8::internal::Factory>::AllocateRawWithImmortalMap(int, v8::internal::AllocationType, v8::internal::Map, v8::internal::AllocationAlignment) [claude]\n11: 0xf18f68 v8::internal::FactoryBase<v8::internal::Factory>::NewRawTwoByteString(int, v8::internal::AllocationType) [claude]\n12: 0xf2241c v8::internal::Factory::NewStringFromUtf8(v8::base::Vector<char const> const&, v8::internal::AllocationType) [claude]\n13: 0xd826b3 v8::String::NewFromUtf8(v8::Isolate*, char const*, v8::NewStringType, int) [claude]\n14: 0xc89ed1  [claude]\n15: 0xc89fed node::StringDecoder::DecodeData(v8::Isolate*, char const*, unsigned long*) [claude]\n16: 0xc8a5be  [claude]\n17: 0x16974ef  [claude]\nAborted (core dumped) \n\n--its happened every time for over a week. its not something that looks like it will fix itself. (i havent tried uninstalling though)  is there a max number of compacts that will break chat history? thank you!!\n\n**Environment Info**\n- Platform: linux\n- Terminal: vscode\n- Version: 1.0.61\n- Feedback ID: cc294049-2d29-4738-be97-061449d63921\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "memory",
+    "perf:memory",
+    "autoclose"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-07-26T16:31:10Z",
+  "updated_at": "2026-01-13T14:11:00Z",
+  "closed_at": "2026-01-04T10:13:08Z",
+  "reactions_total": 0,
+  "comments_count": 4,
+  "author": "rjmh94",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

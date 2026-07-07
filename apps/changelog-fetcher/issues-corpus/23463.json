@@ -1,0 +1,42 @@
+{
+  "number": 23463,
+  "title": "Subagent results silently overflow context, causing unrecoverable session crash",
+  "body": "   1 ## Bug Description\n   2 \n   3 When multiple Task tool subagents complete and return large results to the parent agent, the combined results can overflow the parent's context window. This causes the parent to enter a terminal \"Prompt is too long\" loop — it cannot process any incoming messages, cannot summarize or act on the results, and the session becomes permanently unresponsive until the user force-quits. \n   4 \n   5 From the user's perspective, the session simply freezes and then crashes, with no indication of what happened and no way to recover the work. The user sees nothing — no error message, no partial results, no graceful degradation.\n   6 \n   7 ## Reproduction Steps\n   8 \n   9 1. Start a Claude Code session on a large codebase (~200+ files)\n  10 2. Use the Task tool to spawn 7 parallel subagents (e.g., `subagent_type=general-purpose`), each tasked with auditing a different module against a spec\n  11 3. Each agent reads many files and produces a detailed report (15K–37K chars each)\n  12 4. All 7 agents complete and return their results as task-notification messages to the parent\n  13 5. The parent's context now contains the full conversation history PLUS all 7 agent results (~150K chars of agent output alone)\n  14 6. The parent agent responds with \"Prompt is too long\" to every subsequent message\n  15 7. The session is permanently stuck — no way to recover\n  16 \n  17 ## Observed Behavior\n  18 \n  19 From the JSONL session log (`4a5b2a9a-4416-41b5-ad5e-573db03dba2b.jsonl`):\n  20 \n  21 - **209 total messages** in the session before crash\n  22 - **Session log size**: 6.2 MB\n  23 - **7 agent reports** returned totaling **150,511 characters** of output\n  24 - **8 consecutive \"Prompt is too long\" errors** — one for each incoming agent notification, plus one extra\n  25 - The parent agent could not execute a single tool call or produce any meaningful response after the agents started returning\n  26 - The session became completely unresponsive\n  27 \n  28 Timeline from the log:\n  29 ```\n  30 [Line 194] assistant: \"Prompt is too long\"    ← First failure\n  31 [Line 195] user: <task-notification> Agent \"Audit auth + infrastructure\" completed (19,606 chars)\n  32 [Line 196] assistant: \"Prompt is too long\"\n  33 [Line 197] user: <task-notification> Agent \"Audit tasks + projects + checklist\" completed (21,383 chars)\n  34 [Line 198] assistant: \"Prompt is too long\"\n  35 [Line 199] user: <task-notification> Agent \"Audit notes + tags module\" completed (15,031 chars)\n  36 [Line 200] assistant: \"Prompt is too long\"\n  37 [Line 201] user: <task-notification> Agent \"Audit medical module\" completed (18,664 chars)\n  38 [Line 202] assistant: \"Prompt is too long\"\n  39 [Line 204] user: <task-notification> Agent \"Audit hobbies + UI shell + today\" completed (23,267 chars)\n  40 [Line 205] assistant: \"Prompt is too long\"\n  41 [Line 207] user: <task-notification> Agent \"Audit finance module\" completed (36,786 chars)\n  42 [Line 208] assistant: \"Prompt is too long\"    ← Session permanently dead\n  43 ```\n  44 \n  45 Each incoming agent result made the problem worse, but the system kept delivering them with no backpressure.\n  46 \n  47 ## Expected Behavior\n  48 \n  49 Several things should happen instead:\n  50 \n  51 1. **Prevent the overflow in the first place**: The Task tool / agent coordinator should track the parent's remaining context budget and either truncate or summarize agent results before injecting them into the parent's context. A 37K-char agent result does not need to be delivered verbatim — a summary with a pointer to the full output file would suffice.\n  52 \n  53 2. **Graceful degradation when context is near-full**: When the parent is approaching context limits, it should be able to trigger compaction/summarization of older messages BEFORE the context is completely full, not after it's too late.\n  54 \n  55 3. **Stop delivering messages to a dead session**: Once the parent hits \"Prompt is too long\", the system should not keep delivering more agent results that make the situation worse. There should be backpressure or circ",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tools",
+    "area:core",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-05T20:44:16Z",
+  "updated_at": "2026-04-25T14:33:48Z",
+  "closed_at": "2026-04-17T22:18:19Z",
+  "reactions_total": 2,
+  "comments_count": 12,
+  "author": "treygoff24",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23448\n2. https://github.com/anthropics/claude-code/issues/17208\n3. https://github.com/anthropics/claude-code/issues/15191\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-05T20:47:53Z"
+    },
+    {
+      "author": "gabrielbryk",
+      "author_association": "NONE",
+      "body": "Experiencing this exact issue. When using multiple subagents (Task tool) — especially background agents spawned in parallel — the parent context fills up silently. Once it hits the limit, the session becomes completely unrecoverable: `/compact` no longer works, and the only option is to start a new conversation, losing all accumulated context.\n\n**Environment:**\n- Claude Code CLI on Linux (Ubuntu 24.04)\n- Opus 4.6 model\n- Heavy use of Task tool with `run_in_background: true` for parallel agent wo",
+      "created_at": "2026-02-06T18:11:32Z"
+    },
+    {
+      "author": "Notum",
+      "author_association": "NONE",
+      "body": "I can confirm this bug and currently working with claude code as an agenting development is just impossible.\nAgents context window is shared between agents and main claude code context:\n\n● Agent \"Create Certifications migration+model\" completed\n⎿ Context limit reached · /compact or /clear to continue\n\n● Agent \"Add CRS org settings migration\" completed\n⎿ Context limit reached · /compact or /clear to continue\n\n● Agent \"Create CRS models and migration\" completed\n⎿ Context limit reached · /compact o",
+      "created_at": "2026-02-09T18:06:38Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 22041,
+  "title": "CLI hangs at 99% CPU on startup with large session .jsonl files",
+  "body": "## Bug Description\n\nClaude Code CLI hangs indefinitely at 99% CPU usage on startup when the project has large session `.jsonl` files in `~/.claude/projects/<project-path>/`.\n\n## Environment\n\n- **Claude Code version:** 2.1.27\n- **OS:** Ubuntu 24.04 LTS (kernel 6.8.0)\n- **Hardware:** 8 cores, 24GB RAM\n- **Node.js:** v24.13.0\n\n## Steps to Reproduce\n\n1. Have a project with accumulated session files totaling ~19MB (one file was 11MB, another 4.7MB)\n2. Run `claude` or `claude --print \"hello\"` from the project directory\n3. The process immediately spikes to 99% CPU and never responds\n\n## Expected Behavior\n\nClaude Code should start normally, possibly with a slight delay for large sessions, or gracefully skip/truncate oversized session files.\n\n## Actual Behavior\n\n- The `claude` process enters an infinite CPU loop at 99%\n- No output is produced (not even a prompt)\n- The process never recovers — requires `kill -9`\n- Happens consistently on every launch from the affected project directory\n\n## Isolation Testing Performed\n\nSystematically tested by removing components one at a time:\n\n| Test | Result |\n|------|--------|\n| Empty directory (`/tmp/claude-test`) | ✅ Works |\n| Parent directory (`~/Development`) | ✅ Works |\n| Project dir without plugins | ❌ Hangs |\n| Project dir without MCP servers | ❌ Hangs |\n| Project dir without `.git` | ❌ Hangs |\n| Project dir without `node_modules` (77k files) | ❌ Hangs |\n| Project dir without `CLAUDE.md` | ❌ Hangs |\n| Project dir without session `.jsonl` files | ✅ Works |\n\n**Root cause:** Removing all `.jsonl` session files from `~/.claude/projects/<project-path>/` immediately resolves the issue.\n\n## Workaround\n\n```bash\nrm ~/.claude/projects/<project-path>/*.jsonl\nrm -rf ~/.claude/projects/<project-path>/<session-uuid>\n```\n\n## Suggestion\n\n- Add a timeout or size limit for session file loading on startup\n- Gracefully handle corrupted or oversized session files instead of entering a CPU loop",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "memory",
+    "perf:memory"
+  ],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-30T21:27:42Z",
+  "updated_at": "2026-02-08T14:15:23Z",
+  "closed_at": "2026-01-31T19:37:14Z",
+  "reactions_total": 23,
+  "comments_count": 12,
+  "author": "evertonresende",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/21179\n2. https://github.com/anthropics/claude-code/issues/20367\n3. https://github.com/anthropics/claude-code/issues/19025\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-30T21:30:53Z"
+    },
+    {
+      "author": "pback34",
+      "author_association": "NONE",
+      "body": "i may have accidentally filed duplicate issue:\nhttps://github.com/anthropics/claude-code/issues/22057\nAlso on ubuntu 24.04 (Pop!_OS) cosmic",
+      "created_at": "2026-01-30T23:57:03Z"
+    },
+    {
+      "author": "davidmoneil",
+      "author_association": "NONE",
+      "body": " I'm experiencing the same issue on v2.1.27 (Linux). Additional findings:                                                                                                                                                         \n  - Happens even with small session files (~47KB), not just large ones                                                                                                                                                             \n  - Issue is directory-specific - same workfl",
+      "created_at": "2026-01-31T03:11:56Z"
+    }
+  ]
+}

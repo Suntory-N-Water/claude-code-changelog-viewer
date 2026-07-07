@@ -1,0 +1,35 @@
+{
+  "number": 18644,
+  "title": "[BUG] Claude Cowork: `local_` prefixed session IDs rejected by API UUID validation",
+  "body": "## Preflight Checklist\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Desktop\n\n## What's Wrong?\n\nClaude Cowork (Local Agent Mode) fails because session IDs with `local_` prefix are sent to an API endpoint that expects pure UUIDs. The API rejects the session ID, causing queries to fail and Cowork to hang indefinitely.\n\n**Error message:**\n```\npath.conversation_uuid: Input should be a valid UUID, invalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `l` at 1\n```\n\nThe `'l' at 1` indicates the first character is `l` (from `local_`), not a valid UUID character.\n\n## Environment\n- **Platform:** macOS 26.2 (Tahoe)\n- **Claude Desktop Version:** 1.1.280\n- **Claude Code VM SDK:** 2.1.9\n\n## Root Cause Analysis\n\nLocal Agent Mode creates sessions with `local_` prefixed IDs stored in:\n```\n~/Library/Application Support/Claude/local-agent-mode-sessions/local_<uuid>/\n```\n\nExample session ID: `local_643f6c9c-6cf3-4368-88dd-4635eb967597`\n\nWhen Cowork attempts to communicate, this prefixed ID is sent to an API endpoint (via React Query) that performs strict UUID validation. The validation expects:\n- Pure UUID: `643f6c9c-6cf3-4368-88dd-4635eb967597`\n- Or URN format: `urn:uuid:643f6c9c-6cf3-4368-88dd-4635eb967597`\n\nBut receives: `local_643f6c9c-6cf3-4368-88dd-4635eb967597` → **rejected**\n\n## Logs\n\nFrom `~/Library/Logs/Claude/unknown-window.log`:\n```\n2026-01-16 09:43:18 [error] [REACT_QUERY_CLIENT] QueryClient error: Error: path.conversation_uuid: Input should be a valid UUID, invalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `l` at 1\n2026-01-16 09:43:21 [error] [REACT_QUERY_CLIENT] QueryClient error: Error: path.conversation_uuid: Input should be a valid UUID, invalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `l` at 1\n```\n\nThis error repeats dozens of times across multiple days (Jan 15-16, 2026).\n\n## Steps to Reproduce\n\n1. Open Claude Desktop\n2. Navigate to Cowork tab\n3. Send any message\n4. Observe indefinite hang with no response\n5. Check `~/Library/Logs/Claude/unknown-window.log` for UUID validation errors\n\n## Expected Behavior\n\nEither:\n1. Strip the `local_` prefix before sending to the API endpoint, OR\n2. Update the API endpoint to accept `local_`-prefixed UUIDs for Local Agent Mode sessions\n\n## Actual Behavior\n\n- Session ID with `local_` prefix sent verbatim to API\n- API rejects with UUID validation error\n- React Query client errors repeatedly\n- Cowork hangs indefinitely\n\n## Relationship to Other Issues\n\nThis may be related to:\n- **#18006** - CSP blocking `a-api.anthropic.com` (co-occurring error)\n- **#17868** - Shows same `local_` prefixed session IDs in logs\n\nBoth errors appear in the same log files, suggesting multiple failure points in the Cowork code path.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "area:api"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-16T17:57:15Z",
+  "updated_at": "2026-02-03T14:26:21Z",
+  "closed_at": "2026-01-24T02:43:00Z",
+  "reactions_total": 15,
+  "comments_count": 18,
+  "author": "skinnyandbald",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ryanbadger",
+      "author_association": "NONE",
+      "body": "also experiencing this on v1.1.351",
+      "created_at": "2026-01-18T06:38:14Z"
+    },
+    {
+      "author": "joenoon",
+      "author_association": "NONE",
+      "body": "Also on Claude 1.1.381 (c2a39e) 2026-01-18T20:18:52.000Z\n\nEverything except Cowork works fine for me.  But I can't get past \"Sending request\" with Cowork.  Debugging shows those UUID errors (redacted):\n\n```\nGET https://claude.ai/api/organizations/UUID/artifacts/local_UUID/versions?source=w 400 (Bad Request)\n\n{\n    \"type\": \"error\",\n    \"error\": {\n        \"type\": \"invalid_request_error\",\n        \"message\": \"path.conversation_uuid: Input should be a valid UUID, invalid character: expected an option",
+      "created_at": "2026-01-19T02:22:37Z"
+    },
+    {
+      "author": "goslingmanagment",
+      "author_association": "NONE",
+      "body": "Same on Claude 1.1.381",
+      "created_at": "2026-01-19T15:59:48Z"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "number": 16078,
+  "title": "Feature Request: Show active skill in status line",
+  "body": "## Summary\n\nWhen using Claude Code with many custom skills, there's no way to tell which skill is currently active/being invoked. It would be helpful to display the active skill name in the status line (the bar at the bottom of the terminal that shows project name, branch, and model).\n\n## Current Behavior\n\n- When a skill matches a request, Claude shows a confirmation prompt before activating it\n- Once a skill is running, there's no persistent indicator showing which skill is active\n- The status line JSON input includes model, branch, cost, context window info, etc. but **no skill metadata**\n\n## Proposed Solution\n\nAdd an `active_skill` field (or similar) to the JSON input passed to custom status line scripts. This would allow users to display the active skill alongside existing information like model and branch.\n\nExample addition to status line JSON:\n```json\n{\n  \"model\": { \"id\": \"claude-opus-4-5-20251101\", \"displayName\": \"Opus 4.5\" },\n  \"active_skill\": { \"name\": \"commit\", \"location\": \"project\" },\n  ...\n}\n```\n\n## Use Case\n\nUsers with many project-specific and user-defined skills would benefit from knowing at a glance which skill context Claude is operating under. This improves transparency and helps debug unexpected behavior.\n\n## Alternatives Considered\n\n- Parsing the transcript file from a status line script (expensive, runs every 300ms)\n- Using PreToolUse/PostToolUse hooks to log skill invocations (doesn't update status line in real-time)\n\nNeither provides a clean solution.\n\n---\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "labels": ["enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-02T16:29:27Z",
+  "updated_at": "2026-03-29T13:14:22Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 2,
+  "author": "Swishwork",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "billybrickner",
+      "author_association": "NONE",
+      "body": "Yeah, I'm having an issue that I tried to prompt around, but it's difficult to know if skills are even working without any UI elements or feedback. \n\nI have in my prompt:\n\n## Skill Loading Protocol\n\n**Skills are checklists, not reference manuals.** When user message matches skill keywords:\n\n1. **STOP** - Do not take action yet\n2. **Load the skill** - Read SKILL.md or use Skill tool\n3. **Check state first** - Most problems have existing state to analyze\n4. **Follow the skill's workflow** - Step b",
+      "created_at": "2026-01-27T19:12:34Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "A hook pair can track active skills and display in statusLine:\n```bash\nSKILL=$(cat | jq -r '.tool_input.skill // empty' 2>/dev/null)\n[ -n \"$SKILL\" ] && echo \"$SKILL\" > /tmp/cc-active-skill\nexit 0\n```\nStatusLine:\n```bash\nINPUT=$(cat)\nSKILL=$(cat /tmp/cc-active-skill 2>/dev/null || echo \"-\")\nCTX=$(echo \"$INPUT\" | jq -r '.context_window.used // 0')\nCTX_MAX=$(echo \"$INPUT\" | jq -r '.context_window.max // 200000')\necho \"skill:$SKILL | ctx:$((CTX*100/CTX_MAX))%\"\n```",
+      "created_at": "2026-03-29T13:14:22Z"
+    }
+  ]
+}

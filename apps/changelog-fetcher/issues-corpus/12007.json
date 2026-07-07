@@ -1,0 +1,35 @@
+{
+  "number": 12007,
+  "title": "[BUG] Claude won't start \"SandboxDEB is not valid JSON\" error",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# Sandbox debug output breaks JSON stream communication in WSL2 Debian, causing repeated crashes\n\n## Environment\n- **Claude Code Version**: 2.0.47\n- **VS Code Version**: 1.106.1\n- **OS**: WSL2 - Debian GNU/Linux 13 (trixie)\n- **Kernel**: Linux 6.6.87.2-microsoft-standard-WSL2\n- **Architecture**: x64\n- **Extension Path**: `/home/ryan/.vscode-server/extensions/anthropic.claude-code-2.0.47-linux-x64`\n\n## Description\nThe Claude Code extension repeatedly crashes with a JSON parse error in a specific project directory. The error occurs **every time** the extension initializes, creating an infinite crash/restart loop that renders the extension completely unusable in the affected directory.\n\n**Error Message**:\n```\nSyntaxError: Unexpected token 'S', \"[SandboxDeb\"... is not valid JSON\n```\n\n## Root Cause\nThe Claude Code native binary's sandbox initialization outputs debug messages to `stdout`:\n\n```\n[SandboxDebug] [Sandbox Linux] Seccomp filtering not available (missing binaries for x64). Sandbox will run without Unix socket blocking (allowAllUnixSockets mode). This is less restrictive but still provides filesystem and network isolation.\n```\n\nEven though the binary is invoked with `--output-format stream-json` and `--debug-to-stderr`, this debug message is being written to stdout instead of stderr, corrupting the JSON stream that the VS Code extension host is attempting to parse.\n\n## Steps to Reproduce\n1. Open VS Code in WSL2 Debian environment\n2. Navigate to a project directory (in my case: `/home/ryan/01_SW_DEV_PROJECTS/03_ANALYTICS`)\n3. Launch Claude Code extension\n4. Observe immediate crash with JSON parse error\n5. Process exits with code 143 (SIGTERM) and attempts to restart\n6. Crash repeats infinitely\n\n## Log Evidence\nFrom `/home/ryan/.vscode-server/data/logs/20251117T135829/exthost30/Anthropic.claude-code/Claude VSCode.log`:\n\n```\n2025-11-19 19:13:49.516 [info] From claude: [SandboxDebug] [Sandbox Linux] Seccomp filtering not available (missing binaries for x64). Sandbox will run without Unix socket blocking (allowAllUnixSockets mode). This is less restrictive but still provides filesystem and network isolation.\n2025-11-20T03:13:49.516Z [DEBUG] Getting matching hook commands for SessionStart with query: startup\n2025-11-20T03:13:49.516Z [DEBUG] Found 0 hook matchers in settings\n2025-11-20T03:13:49.516Z [DEBUG] Matched 0 unique hooks for query \"startup\" (0 before deduplication)\n\n2025-11-19 19:13:49.518 [info] From claude: 2025-11-20T03:13:49.518Z [DEBUG] Getting matching hook commands for SessionEnd with query: other\n2025-11-20T03:13:49.518Z [DEBUG] Found 0 hook matchers in settings\n2025-11-20T03:13:49.518Z [DEBUG] Matched 0 unique hooks for query \"other\" (0 before deduplication)\n\n2025-11-19 19:13:49.529 [info] From claude: 2025-11-20T03:13:49.528Z [DEBUG] Cleaned up session snapshot: /home/ryan/.claude/shell-snapshots/snapshot-bash-1763608428837-fmky72.sh\n2025-11-20T03:13:49.529Z [DEBUG] LSP server manager shut down successfully\n\n2025-11-19 19:13:49.658 [info] From claude: Claude Code process exited with code 143\n2025-11-19 19:13:49.676 [info] Closing Claude on channel: pu49pbq0obk\n2025-11-19 19:13:49.676 [error] Error from Claude (on channel pu49pbq0obk): SyntaxError: Unexpected token 'S', \"[SandboxDeb\"... is not valid JSON\n```\n\n## Binary Invocation\nThe extension spawns the binary with:\n```bash\n/home/ryan/.vscode-server/extensions/anthropic.claude-code-2.0.47-linux-x64/resources/native-binary/claude \\\n  --output-format stream-json \\\n  --verbose \\\n  --input-format stream-json \\\n  --debug \\\n  --debug-to-stderr \\\n  --enable-auth-status\n```\n\nNote that `--debug-to-stderr` is explicitly specified, but the sandbox debug message still appears on stdout.\n\n## Expected Behavior\n- Debug messages sho",
+  "labels": ["bug", "has repro", "platform:linux", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-11-20T03:20:18Z",
+  "updated_at": "2026-03-29T14:20:20Z",
+  "closed_at": "2026-03-20T10:18:19Z",
+  "reactions_total": 2,
+  "comments_count": 15,
+  "author": "tondeaf",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12005\n2. https://github.com/anthropics/claude-code/issues/11828\n3. https://github.com/anthropics/claude-code/issues/11940\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-11-20T03:24:24Z"
+    },
+    {
+      "author": "schergr",
+      "author_association": "NONE",
+      "body": "Same issue",
+      "created_at": "2025-11-20T13:07:43Z"
+    },
+    {
+      "author": "quovai",
+      "author_association": "NONE",
+      "body": "Downgraded to 2.0.37 to make it work.",
+      "created_at": "2025-11-20T13:22:38Z"
+    }
+  ]
+}

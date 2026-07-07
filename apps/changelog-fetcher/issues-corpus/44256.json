@@ -1,0 +1,35 @@
+{
+  "number": 44256,
+  "title": "[BUG] OAuth Authorize button returns 500 Internal Server Error — cannot login to Claude Code in VSCode",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nOAuth token expired in Claude Code (VSCode extension). When clicking the **Authorize** button on the OAuth page, the server returns a 500 Internal Server Error. Authentication never completes and Claude Code remains unusable.\n\nThe page briefly flashes \"Build something great. You're all set up for Claude Code.\" before showing \"Authorization failed — Internal server error\", suggesting the flow partially completes on the browser side but fails on Anthropic's backend.\n\n### What Should Happen?\n\nClicking \"Authorize\" should complete the OAuth flow, return a token to Claude Code, and allow normal usage to resume.\n\n### Error Messages/Logs\n\n```shell\nTerminal:\n\nAPI Error: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"OAuth token has expired. Please obtain a new token or refresh your existing token.\"}}\nPlease run /login\n\nOAuth error: timeout of 15000ms exceeded\n\n\nBrowser console (all browsers: Chrome, Edge):\n\nPOST https://claude.ai/v1/oauth/eb81b55e-f1e4-4a57-bad1-92e8b1dd60bd/authorize 500 (Internal Server Error)\n\nFailed to load resource: the server responded with a status of 405 ()\n\n[REACT_QUERY_CLIENT] QueryClient error: a: Internal server error\n    at n (5741-e0df12e868d24a1c.js:1:95179)\n    at 5741-e0df12e868d24a1c.js:1:100054\n    at async Object.mutationFn (5741-e0df12e868d24a1c.js:1:100872)\n```\n\n### Steps to Reproduce\n\n1. Use Claude Code in VSCode until OAuth token expires (~4 days)\n2. Claude Code prompts to re-authenticate with 401 error\n3. Run `/login` or `claude auth login` in terminal\n4. Browser opens the OAuth authorize page at `https://claude.ai/oauth/authorize?code=true&client_id=9d1c250a-e61b-44d9-88ed-5944d1962f5e&...`\n5. Click the **Authorize** button\n6. Page shows \"Authorization failed — Internal server error\"\n7. Terminal shows `OAuth error: timeout of 15000ms exceeded`\n\n**Workarounds attempted (all failed):**\n- Tried on Chrome, Edge (different browsers)\n- Tried in Incognito mode\n- Deleted `~/.claude.json` and `~/.claude/` then retried\n- Logged out of claude.ai on browser then re-logged in before authorizing\n- status.anthropic.com shows no incidents\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nUnknown — worked before token expiry (5 hours ago)\n\n### Claude Code Version\n\nv2.1.76\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nThe OAuth endpoint `POST /v1/oauth/{session-id}/authorize` is returning 500 on Anthropic's server side. This is not reproducible to a specific browser or local config — the error originates from Anthropic's backend. The issue blocks all Claude Code usage until re-authentication is possible.\n",
+  "labels": ["bug", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-06T15:38:12Z",
+  "updated_at": "2026-05-17T22:24:55Z",
+  "closed_at": "2026-05-17T22:24:55Z",
+  "reactions_total": 9,
+  "comments_count": 20,
+  "author": "Ttuandatt",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Ttuandatt",
+      "author_association": "NONE",
+      "body": "\"Claude Code welcome screen correctly identifies the account (Claude Pro, Opus 4.6) but any actual API call immediately returns 401. This suggests the session/token metadata is cached locally but the token itself is expired and cannot be refreshed due to the server-side 500 error on the authorize endpoint.\"",
+      "created_at": "2026-04-06T15:38:47Z"
+    },
+    {
+      "author": "AlainPilon",
+      "author_association": "NONE",
+      "body": "Same issue here. ",
+      "created_at": "2026-04-06T15:39:16Z"
+    },
+    {
+      "author": "zeon01",
+      "author_association": "NONE",
+      "body": "same issue here",
+      "created_at": "2026-04-06T15:39:29Z"
+    }
+  ]
+}

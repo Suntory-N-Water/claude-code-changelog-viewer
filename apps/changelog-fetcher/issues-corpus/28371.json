@@ -1,0 +1,35 @@
+{
+  "number": 28371,
+  "title": "v2.1.53: EINVAL on every Bash command when launched from PowerShell on Windows",
+  "body": "## Bug: v2.1.53 EINVAL on every Bash command when launched from PowerShell on Windows\r\n\r\n### Environment\r\n\r\n- **OS:** Windows 11 Pro 10.0.26200\r\n- **Shell:** PowerShell 7.5.4\r\n- **Claude Code:** v2.1.53 (binary updated 2026-02-25 08:13 AWST)\r\n- **User profile:** `ben.d_zento` (contains `.` — Windows 8.3 short name: `BEN~1.D_Z`)\r\n\r\n### Description\r\n\r\nAfter auto-update from v2.1.51 to v2.1.53, every Bash tool call fails with `EINVAL: invalid argument, open` when Claude Code is launched from PowerShell. The error references the task output file in the temp directory:\r\n\r\n```\r\nError: EINVAL: invalid argument, open\r\n'C:\\Users\\BEN~1.D_Z\\AppData\\Local\\Temp\\claude\\D--GitHub-zento-dev-platform\\tasks\\bw5x1085q.output'\r\n```\r\n\r\nNo Bash commands execute — even `echo \"test\"` fails with the same error. Sessions are completely non-functional.\r\n\r\n### Reproduction\r\n\r\n1. Windows machine with a user profile containing `.` in the name (e.g., `ben.d_zento`)\r\n2. Open PowerShell 7.x\r\n3. Run `claude` from any project directory\r\n4. Attempt any Bash command (e.g., `echo \"test\"`)\r\n5. Observe EINVAL error on the `.output` file\r\n\r\n### Investigation findings\r\n\r\n- **v2.1.51 works** — rolled back to yesterday's binary (`claude.exe.old.*`), PowerShell sessions work perfectly\r\n- **v2.1.53 fails** — every Bash command hits EINVAL\r\n- **Git Bash sessions work on v2.1.53** — a session launched from VS Code's Git Bash terminal (where `TEMP=/tmp`) worked fine on v2.1.53\r\n- **Not a path/permissions issue** — the `tasks/` directory exists, is writable, and Node.js `fs.writeFileSync()` succeeds at the same path\r\n- **Not an 8.3 short name issue** — overriding TEMP to the long path (`C:\\Users\\ben.d_zento\\...`) still produces EINVAL\r\n- **Not a `.claude.json` issue** — config file is valid JSON; a separate corruption was detected and repaired but did not resolve the EINVAL\r\n\r\n### Workaround\r\n\r\nRolled back to v2.1.51:\r\n\r\n```powershell\r\nMove-Item \"$env:USERPROFILE\\.local\\bin\\claude.exe\" \"$env:USERPROFILE\\.local\\bin\\claude.exe.broken\"\r\nMove-Item \"$env:USERPROFILE\\.local\\bin\\claude.exe.old.*\" \"$env:USERPROFILE\\.local\\bin\\claude.exe\"\r\n```\r\n\r\n### Likely cause\r\n\r\nSomething changed in the Bash tool's task output file creation between v2.1.51 and v2.1.53 that fails under PowerShell's process environment on Windows. The Bun runtime's `open()` call returns EINVAL for the `.output` file, but only when the parent process is PowerShell — not Git Bash. Standard Node.js `fs` operations succeed at the same path, suggesting a Bun-specific or Claude Code-specific regression.\r\n",
+  "labels": ["bug", "has repro", "platform:windows", "area:bash", "regression"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-02-25T02:30:04Z",
+  "updated_at": "2026-03-05T14:27:11Z",
+  "closed_at": "2026-02-25T03:37:26Z",
+  "reactions_total": 3,
+  "comments_count": 12,
+  "author": "benjaminhdd",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "webbertakken",
+      "author_association": "NONE",
+      "body": "See https://github.com/anthropics/claude-code/issues/28364",
+      "created_at": "2026-02-25T02:31:39Z"
+    },
+    {
+      "author": "delphiprofi",
+      "author_association": "NONE",
+      "body": "Same problem with User Name containing spaces like: \"c:\\Users\\Jon Dow\\claude\"",
+      "created_at": "2026-02-25T02:33:18Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28370\n2. https://github.com/anthropics/claude-code/issues/28358\n3. https://github.com/anthropics/claude-code/issues/28357\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-25T02:33:23Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 31480,
+  "title": "Opus 4.6 quality regression: production automations broken by apparent model downgrade",
+  "body": "## Summary\n\nA production automation pipeline that has been running reliably for 2+ weeks with `claude-opus-4-6` suddenly started producing incoherent results today (March 6, 2026). The output quality is consistent with Sonnet 3.5, not Opus 4.6.\n\n## What happened\n\nWe run a daily automation that invokes Claude Code programmatically (`@anthropic-ai/claude-code` SDK, `model: \"claude-opus-4-6\"`) to generate structured content following a detailed skill specification. The skill contains:\n\n- **Critical rules** clearly marked at the top of the prompt (e.g., \"NEVER do X in field Y\")\n- **Style references** pointing to a file the agent must read and apply\n- **Schema constraints** the output must follow\n\nFor the past 2 weeks, the automation consistently:\n- Followed all critical rules\n- Read and applied the referenced style library\n- Produced output matching the expected schema and quality bar\n\n**Today, without any change to our code, prompts, or configuration**, the agent:\n- Ignored critical rules that were clearly stated (produced output with values explicitly forbidden by \"NEVER\" rules)\n- Skipped reading a referenced style file entirely, generating output in a completely wrong format\n- The overall reasoning depth and instruction adherence dropped dramatically\n\nThis is not a subtle regression. The output went from \"follows 15+ layered rules correctly\" to \"ignores top-level NEVER rules.\"\n\n## Broader pattern\n\nThis is not isolated to the automation. Across **all sessions today** (interactive and programmatic), the model feels like Sonnet 3.5 quality at best:\n\n- Shallow instruction following\n- Misses rules that require holding multiple constraints simultaneously  \n- Reduced reasoning depth on multi-step tasks\n- When we ask the model to self-evaluate conversation quality, it consistently benchmarks at Sonnet 4 level maximum, not Opus 4.6\n\n## What we need from Anthropic\n\n### 1. Transparency\n\nIf there has been an inference-time reduction, A/B test, model routing change, or any modification to what `claude-opus-4-6` actually serves, this needs to be communicated. Paying for Opus and silently receiving a lower-capability model breaks trust.\n\n### 2. Model version pinning\n\nProduction automations need **continuity guarantees**. We need the ability to pin to a specific model version (e.g., `claude-opus-4-6-20260301`) so that:\n- Upgrades don't silently break working pipelines\n- We can test new versions before adopting them\n- Rollbacks are possible when regressions occur\n\nThis is standard practice for any API serving production workloads (OpenAI offers dated model snapshots, for example).\n\n### 3. Immediate resolution\n\nIf this is a routing bug (requests for Opus being served by a smaller model), it needs to be fixed immediately. Users paying for Max/Opus tier cannot have their production workloads silently degraded.\n\n## Environment\n\n- `@anthropic-ai/claude-code` SDK (latest)\n- `model: \"claude-opus-4-6\"`\n- `permissionMode: \"bypassPermissions\"`\n- Running on Linux VPS via cron\n- Same code, same prompts, same config as previous successful runs\n\n## Impact\n\nProduction content pipeline is effectively broken. Output requires full manual redo. The automation's entire value proposition depends on the model reliably following complex multi-layered instructions, which it did perfectly until today.",
+  "labels": ["invalid"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-06T13:48:25Z",
+  "updated_at": "2026-04-06T13:33:19Z",
+  "closed_at": null,
+  "reactions_total": 31,
+  "comments_count": 14,
+  "author": "ilanoh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "CamdenSpehl",
+      "author_association": "NONE",
+      "body": "Experiencing the same thing at the same time. It stopped following our merge instructions and claude.md file that outline how to merge things in SOC2 compliance, and clearly disregarded instructions",
+      "created_at": "2026-03-07T21:40:37Z"
+    },
+    {
+      "author": "winderman66",
+      "author_association": "NONE",
+      "body": "Adding another data point from tonight (March 8, 2026, ~9:30 PM EST / ~2:30 AM UTC).\n\n  Using Claude Code with claude-opus-4-6 on a Max subscription. During this session, the model exhibited behavior inconsistent with\n  Opus-level reasoning:\n\n  1. Nearly removed a working Docker collector from monitoring because it wrongly concluded Pi-hole runs natively instead of in Docker —\n  despite the infrastructure documentation (CLAUDE.md) clearly stating otherwise\n  2. Proposed deferring trivial fixes \"",
+      "created_at": "2026-03-08T02:13:42Z"
+    },
+    {
+      "author": "alicercedigital",
+      "author_association": "NONE",
+      "body": "For us, Claude just isn’t working anymore. It’s too dumb and keeps outputting awful code. These days we can’t use it because we end up losing time trying to make it work decently. The code quality has dropped a lot.",
+      "created_at": "2026-03-08T13:19:33Z"
+    }
+  ]
+}

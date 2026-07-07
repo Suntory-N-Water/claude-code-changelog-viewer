@@ -1,0 +1,35 @@
+{
+  "number": 67917,
+  "title": "[BUG] [area:tool-use] [platform:macos] Write tool's full-file-replacement default causes irrecoverable data loss on governed, untracked state files — no append-only or protected-path mechanism available",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n### Environment\n\n- **Platform:** macOS Darwin 25.6.0 (Apple Silicon)\n- **Claude Code CLI:** `2.1.173 (Claude Code)` (confirmed by `claude --version`)\n- **Transport:** CLI / local subprocess\n- **Context:** Agentic session with long-running cross-session continuity file (`STATE.md`) maintained as untracked (deliberately excluded from git, so git is not a backstop)\n\n### Summary\n\nThe Claude Code `Write` tool's semantics are whole-file replacement with no append mode and no way to declare a file as protected from full-file replacement. When a session's instructions say \"add a new dated section to this file,\" the model will reach for `Write` — which truncates and replaces the entire file — rather than `Edit` (surgical/append). This caused two irrecoverable or near-irrecoverable overwrite incidents on a cross-session state file in two days, losing carry-forward content that existed nowhere else. The file is deliberately untracked (git is not a backstop by design), and the only recovery paths available were a session-context in-memory copy and hourly Time Machine snapshots (not shell-recoverable without root).\n\n### Reproduction Shape\n\n1. Create a file (`STATE.md`) that is deliberately untracked in git (gitignore + git hook block), and contains cross-session carry-forward content.\n2. Configure instructions telling the agent to \"add a new section\" to this file at the start of a new calendar day.\n3. Dispatch a session. The agent sees a file whose header date differs from today's date and interprets the instruction as requiring a full new format write.\n4. The agent calls `Write` with the new content, full-file-replacing the existing carry-forward content.\n5. The prior session's carry-forward items are gone. The file is untracked, so `git restore` is unavailable.\n\n### Expected Behavior\n\nThere should be a mechanism — configurable at the project or settings level — to declare that the `Write` tool must not perform whole-file replacement on a specified file path or basename. An \"append-only\" or \"no-clobber\" concept for `Write` would allow operators to protect files that are architectural append-only ledgers.\n\nAlternatively, the Write tool should provide an append mode distinct from its current replace-everything behavior, so instruction-authors can specify intent explicitly.\n\n### Actual Behavior\n\nThe `Write` tool always performs whole-file replacement. There is no way to prevent it at the tool configuration level. Instructions telling the agent to \"add a section\" can and do resolve to `Write`, especially on date-rollover conditions where the agent interprets the instruction as \"write the new format.\" The result is silent and immediate data loss with no undo at the tool layer.\n\n### Impact\n\n**Irrecoverable data loss on untracked state files.** In our case:\n- The affected file (`STATE.md`) is a cross-session continuity ledger intentionally excluded from git (git would track unrelated operational content). Git is not a backstop by design.\n- Two full-overwrite incidents occurred within two days (same failure class: Write on a governed append-only file). In the first incident, task-specific carry-forward content survived only because it was still in the same session's in-memory context. In the second, recovery required a SessionStart hook that had been wired specifically to embed the file's contents in a session-open capture — without that hook, the only recovery would have been a Time Machine mount (requires root, not shell-automatable).\n- The failure is particularly insidious because the tool performs a silently successful write with no indication that prior content was discarded. The model receives no error; the operator has no signal.\n\n### Mitigations We Implemented (Workarounds, Not Solut",
+  "labels": ["enhancement", "platform:macos", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-12T13:30:51Z",
+  "updated_at": "2026-07-04T03:40:07Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "jsoldner",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/42618\n2. https://github.com/anthropics/claude-code/issues/27137\n3. https://github.com/anthropics/claude-code/issues/34597\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-06-12T13:35:59Z"
+    },
+    {
+      "author": "abhinas90",
+      "author_association": "NONE",
+      "body": "This is a real production reliability concern. Issues like this compound when you're running multiple agents or in CI pipelines.\n\n**Quick triage steps that help narrow the root cause:**\n1. **Isolate** — Does it happen with a single agent session or only under concurrency? Run the same input sequentially vs parallel and compare.\n2. **Resource profiling** — During a failing session, log CPU/memory/disk every 5s. Often the trigger is a spike (node_modules install, large git clone) not steady-state ",
+      "created_at": "2026-06-12T14:17:03Z"
+    },
+    {
+      "author": "jsoldner",
+      "author_association": "NONE",
+      "body": "Reviewed all three suggested duplicates — none is a live duplicate, and none requests the same fix:\n\n#42618 ([MODEL] Write instead of Edit when appending) — closed as not planned (stale, May 11). Behavior report; no mechanism request.\n#34597 (Write overwrites uncommitted working-tree changes) — closed as not planned (May 1) and locked. Also concerns git-tracked files, where git is a partial backstop; this report is specifically about untracked-by-design files with no backstop.\n#27137 ([MODEL] Wr",
+      "created_at": "2026-06-12T14:29:58Z"
+    }
+  ]
+}

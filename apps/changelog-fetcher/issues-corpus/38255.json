@@ -1,0 +1,35 @@
+{
+  "number": 38255,
+  "title": "Plan mode: model made file edits despite plan mode being active",
+  "body": "## Bug Report\n\n**What happened:**\nWhile in plan mode, the model (Claude Opus 4.6) made direct edits to source files (`api/app/routers/facility_payouts.py`) despite multiple system reminders stating plan mode was active and that only the plan file could be edited.\n\n**Steps to reproduce:**\n1. Enter plan mode\n2. Investigate a bug (facility member access issue)\n3. User rejects `ExitPlanMode` and provides clarifying information (\"earnings should be visible, bank payout info should be restricted\")\n4. Model proceeds to make 4 `Edit` tool calls to the source file while plan mode system reminders were still being injected into tool results\n\n**Expected behavior:**\nThe model should only edit the plan file while in plan mode, and should call `ExitPlanMode` before making any source code changes.\n\n**Actual behavior:**\nThe model ignored the plan mode system reminders and made edits to `api/app/routers/facility_payouts.py` directly. The user had to manually intervene (\"you know you are in plan mode right\").\n\n**Environment:**\n- Model: Claude Opus 4.6 (1M context)\n- Platform: macOS (Darwin 25.3.0)",
+  "labels": ["bug", "platform:macos", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-24T14:13:54Z",
+  "updated_at": "2026-07-01T02:37:10Z",
+  "closed_at": null,
+  "reactions_total": 37,
+  "comments_count": 28,
+  "author": "siah-maraat",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33037\n2. https://github.com/anthropics/claude-code/issues/21292\n3. https://github.com/anthropics/claude-code/issues/23163\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-24T14:18:06Z"
+    },
+    {
+      "author": "forreggbor",
+      "author_association": "NONE",
+      "body": "Same issue here. I use /model opusplan. I switch the plan mode with Shift+Tab. After that I describe the task. Claude code start editing files although I still see that it is in plan mode. Beside of this the plan is not written and displayed.\nCalude code didn't realized the issue even if I described what happened. I have to ask explicitly to make a plan and don't modify any files even the plan mode is active.\nI use claude code in linux terminal.",
+      "created_at": "2026-03-26T10:58:48Z"
+    },
+    {
+      "author": "sabeekpradhan",
+      "author_association": "NONE",
+      "body": "Had this happen just now on 2.1.84, Opus 4.6 with 1M context, high effort\n\nI have auto mode enabled, although it was Plan Mode (NOT auto) that was active when I saw this issue happen.",
+      "created_at": "2026-03-26T23:19:01Z"
+    }
+  ]
+}

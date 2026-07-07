@@ -1,0 +1,23 @@
+{
+  "number": 47195,
+  "title": "[FEATURE] Preview should allow localhost subdomains (e.g. playground.localhost)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nWhen using the Preview feature, navigating to a localhost subdomain like playground.localhost:3000 is blocked with the message:\n\nLink to playground.localhost was blocked. Preview only supports localhost URLs.\n\nLocalhost subdomains resolve to 127.0.0.1 the same as localhost and are commonly used in local development (e.g. multi-tenant apps that route by subdomain). The preview URL allowlist should permit *.localhost in addition to localhost.\n\n<img width=\"549\" height=\"93\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/45cf473d-62e4-4c11-9206-846a943bb106\" />\n\n### Proposed Solution\n\nThe Preview URL allowlist should permit *.localhost in addition to localhost. All subdomains of localhost (e.g. playground.localhost, app.localhost) resolve to 127.0.0.1 per [RFC 6761](https://datatracker.ietf.org/doc/html/rfc6761) and are safe to allow. No configuration should be needed — this should just work out of the box.\n\n\n### Alternative Solutions\n\nCurrently there's no workaround within Preview. The only option is to open the URL manually in a separate browser, which defeats the purpose of the integrated preview.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n1. I'm building a multi-tenant SaaS app (Tightknit) where each community is accessed via a localhost subdomain in local dev (e.g. playground.localhost:3000)\n1. I set up .claude/launch.json and start the dev server via Preview\n1. The app loads at localhost:3000 then redirects to playground.localhost:3000\n1. Preview blocks the redirect with \"Link to playground.localhost was blocked\"\n1. I have to copy the URL and open it in a separate browser, losing the integrated preview workflow\n\n### Additional Context\n\nLocalhost subdomains are guaranteed to resolve to loopback by RFC 6761 and are widely used by frameworks like Next.js, Vite, and Rails for multi-tenant local development. Most browsers and dev tools treat them identically to localhost.",
+  "labels": ["enhancement", "area:ide"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-13T04:00:21Z",
+  "updated_at": "2026-05-21T06:58:57Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 1,
+  "author": "zhawtof",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "timherby",
+      "author_association": "NONE",
+      "body": "Running into the same thing. We use subdomains, and I'm looking to switch from Conductor due to the upcoming June 15 billing change Anthropic is imposing. Very disappointed to learn that the Claude Code preview doesn't work for subdomains. \n\nWe use 2 local loopback subdomains of our own, so need to be able to allowlist these to custom loopback domains.\n```\nLink to local.companydomain.com was blocked. Preview only supports localhost URLs.\n```\n\n🙏 Please listen to the numerous people on this threa",
+      "created_at": "2026-05-21T06:58:57Z"
+    }
+  ]
+}

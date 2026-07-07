@@ -1,0 +1,41 @@
+{
+  "number": 24855,
+  "title": "[BUG] Claude Desktop opening when running \"claude\" in Powershell ( Windows )",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen typing claude in the command line on Windows, the claude code cli no longer opens.  Instead I get:\n\n```\n(node:11048) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.\n(Use `Claude --trace-deprecation ...` to show where the warning was created)\n\n```\n\nAnd it opens Claude Desktop instead.\n\nThis just starting happening after installing Cowork for Windows.\n\n### What Should Happen?\n\nClaude Code should successfully open its TUI interface.  Claude Cowork / Desktop should not open.\n\n### Error Messages/Logs\n\n```shell\n(node:11048) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.\n(Use `Claude --trace-deprecation ...` to show where the warning was created)\n```\n\n### Steps to Reproduce\n\n1. Download Claude Cowork for Windows\n2. Type \"claude\" in Powershell\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.39\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tui",
+    "area:packaging"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-11T01:30:53Z",
+  "updated_at": "2026-02-28T15:05:51Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 8,
+  "author": "chriswingler",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "felixrieseberg",
+      "author_association": "MEMBER",
+      "body": "Hi, Felix from the Claude team here - we'll have a fix for this out (in the desktop app) shortly, probably today. Apologies!",
+      "created_at": "2026-02-12T18:35:49Z"
+    },
+    {
+      "author": "GBA63",
+      "author_association": "NONE",
+      "body": "## Root Cause Analysis\n\nThe issue is caused by a **Windows App Execution Alias**. When the Claude Desktop App is installed, Windows creates an alias at:\n\n```\nC:\\Users\\<user>\\AppData\\Local\\Microsoft\\WindowsApps\\Claude.exe\n```\n\nThis path takes priority over the Claude Code CLI at `C:\\Users\\<user>\\.local\\bin\\claude.exe`, so typing `claude` in the terminal launches the Electron Desktop App instead of the CLI.\n\nYou can verify with:\n```powershell\nwhere.exe claude\n# C:\\Users\\<user>\\AppData\\Local\\Micros",
+      "created_at": "2026-02-11T07:43:20Z"
+    },
+    {
+      "author": "UltraK18",
+      "author_association": "NONE",
+      "body": "## Additional findings: Root cause and workaround\n\n### Root Cause: Windows App Execution Alias\n\nThe issue is caused by Claude Desktop registering a Windows App Execution Alias at `C:\\Users\\<user>\\AppData\\Local\\Microsoft\\WindowsApps\\Claude.exe`. This alias takes priority over normal PATH resolution, so even if you reorder your PATH to put `C:\\Users\\<user>\\.local\\bin` (Claude Code CLI) above `WindowsApps`, it has no effect.\n```\n> where claude\nC:\\Users\\<user>\\AppData\\Local\\Microsoft\\WindowsApps\\Cla",
+      "created_at": "2026-02-11T10:41:20Z"
+    }
+  ]
+}

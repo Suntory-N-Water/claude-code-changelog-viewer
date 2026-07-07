@@ -1,0 +1,16 @@
+{
+  "number": 44342,
+  "title": "Scheduled triggers: MCP connector tools never register in automated runs",
+  "body": "## Description\n\nMCP connector tools (specifically Slack via `claude.ai` connector) are never available in automated scheduled trigger runs, but work fine when manually interacting with the same session on claude.ai.\n\n## Reproduction\n\n1. Create a scheduled trigger with an MCP connection:\n```json\n{\n  \"mcp_connections\": [{\n    \"connector_uuid\": \"ee462478-b709-497b-9d0e-373de55cf866\",\n    \"name\": \"Slack\",\n    \"url\": \"https://mcp.slack.com/mcp\",\n    \"permitted_tools\": [\"slack_search_channels\", \"slack_read_channel\", \"slack_read_thread\"]\n  }]\n}\n```\n\n2. The Slack MCP tools are also listed in `allowed_tools` in the session context and `ToolSearch` is included.\n\n3. When the trigger runs automatically (or via `POST /run`), the agent calls `ToolSearch` with `select:mcp__Slack__slack_search_channels,...` and gets **\"No matching deferred tools found\"**.\n\n4. The agent retries with `sleep 5` between attempts, up to 5 times — still fails every time.\n\n5. **However**, if I visit the session URL on claude.ai and manually type \"try again\", the `ToolSearch` call succeeds immediately and the Slack tools load and work perfectly.\n\n## Observed behavior\n\n- **Automated run**: `ToolSearch` → \"No matching deferred tools found\" (100% failure across 6 consecutive runs)\n- **Manual interaction in same session**: `ToolSearch` → tools load successfully, Slack API calls work\n\n## Expected behavior\n\nMCP connector tools should be available in automated scheduled trigger runs without manual intervention.\n\n## Environment\n\n- Trigger IDs: `trig_01VacCxX5umUYa3VDEDV36Nj`\n- MCP connector: `claude.ai` Slack connector (`ee462478-b709-497b-9d0e-373de55cf866`)\n- Environment: Default Anthropic Cloud (`env_01CoHRoFa1MymevZrCN43dFH`)\n- Model: `claude-sonnet-4-6`\n\n## Workaround\n\nNone found. The only way to make it work is manual interaction with the session on claude.ai after the automated run starts.",
+  "labels": ["bug", "duplicate", "area:mcp", "area:claude-code-web"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-06T18:33:42Z",
+  "updated_at": "2026-04-18T14:28:40Z",
+  "closed_at": "2026-04-10T19:44:28Z",
+  "reactions_total": 0,
+  "comments_count": 2,
+  "author": "aomerk",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

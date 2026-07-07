@@ -1,0 +1,35 @@
+{
+  "number": 17154,
+  "title": "[BUG] Please reopen #6377 (\"Frontmatter Parsing Error: Missing 'name' Field Despite Valid YAML\")",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThis is NOT a new bug, but it *definitely* has not been resolved, and all dupes have been closed/dupe, or closed/inactive, except for #6377, which github-actions \"Closed as not planned\"(?!) last week.\n\n*My* info:\n\nOperating System: Fedora 43 6.18.3-200.fc43.x86_64\nTerminal: ghostty 1.2.3-2.fc43\n\nHowever:\n\nAccording to (closed) issues (and, based on my dumpster-diving here, in *unrelated issue's error logs*), **this has happened on all platforms**, and many versions: current and even pre-2.0.\n\nDefinitely an issue, with *latest* (2.1.2, as of this post).\n\nThis has been appearing consistently in *unrelated* error logs in tens of GH issues since Aug/Sept '25.\n\nAFAICT, this breaks agents completely, as none are even discovered.\n\nGreat Catch-22 btw: can't *omit* `name`; any attempt to *include* `name` causes error.\n\n### What Should Happen?\n\nClaude should discover, load, and use agents defined in .md files with valid front-matter\n\n### Error Messages/Logs\n\n```shell\n/doctor\n\n Agent Parse Errors\n └ Failed to parse 8 agent file(s):\n   └ ~/.claude/agents/code-reviewer.md: Missing required \"name\" field in frontmatter\n   └ ~/.claude/agents/js-debugger.md: Missing required \"name\" field in frontmatter\n   └ ~/.claude/agents/le-dépôt-ménager.md: Missing required \"name\" field in frontmatter\n   └ ~/.claude/agents/py-debugger.md: Missing required \"name\" field in frontmatter\n   └ ~/.claude/agents/swe-master-prompter.md: Missing required \"name\" field in frontmatter\n   └ ~/.claude/agents/unstucker.md: Missing required \"name\" field in frontmatter\n   └ ~/.claude/agents/test-automator.md: Missing required \"name\" field in frontmatter\n   └ ~/.claude/agents/python-pro-coder.md: Missing required \"name\" field in frontmatter\n```\n\n### Steps to Reproduce\n\n1. Create agent.md file, with e.g.\n\n```markdown\n---\nname: code-reviewer\n---\n\n<valid Markdown agent definition>\n\n```\n\n2. Load/Re-load claude-code\n3. Run `/doctor`\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nSorry, not certain. Probaby pre-August '25.\n\n### Claude Code Version\n\n2.1.2 (Claude Code)\n\n### Platform\n\nGoogle Vertex AI\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nAll of\n\n- #6709\n- #6868\n- #6950\n- #7280\n- #7281\n- #7303\n- #7448\n- #7794\n- #7850\n- #7903\n\ncontain this *exact* error, during the time span in question (Aug-Sep '5 -- present), in spite of none actually being filed for this exact issue.",
+  "labels": ["bug", "has repro", "platform:linux", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-09T17:38:02Z",
+  "updated_at": "2026-03-21T14:16:14Z",
+  "closed_at": "2026-03-12T22:11:22Z",
+  "reactions_total": 0,
+  "comments_count": 14,
+  "author": "ben-alkov",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/6377\n2. https://github.com/anthropics/claude-code/issues/11205\n3. https://github.com/anthropics/claude-code/issues/16916\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-09T17:42:16Z"
+    },
+    {
+      "author": "ben-alkov",
+      "author_association": "NONE",
+      "body": "Asked Claude Code about it (unedited except for line wraps for readability):\n\nExplain to me why the `/doctor` command is incorrectly marking ALL agent\ndefinitions in @agents/ as \"Missing required \"name\" field in frontmatter\".\n  ⎿  Listed directory agents/\n\n● Let me read the agent definition files to understand their structure.\n\n● Read(agents/code-reviewer.md)\n  ⎿  Read 245 lines\n\n● Read(agents/python-pro-coder.md)\n  ⎿  Read 247 lines\n\n● The agent definition files have valid YAML frontmatter with",
+      "created_at": "2026-01-09T17:51:54Z"
+    },
+    {
+      "author": "ben-alkov",
+      "author_association": "NONE",
+      "body": "Tests as suggested by C-C:\n\n```bash\ncat -A agents/code-reviewer.md | head -5\n---$\nname: code-reviewer$\ndescription: Python code review specialist focusing on security, performance, and$\n  maintainability. Use when reviewing significant code changes (>100 lines), before$\n  PR merges, or when user requests code review.$\n```\n\n```bash\nfile -bi agents/code-reviewer.md\ntext/plain; charset=us-ascii\n```",
+      "created_at": "2026-01-09T17:52:52Z"
+    }
+  ]
+}

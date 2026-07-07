@@ -1,0 +1,35 @@
+{
+  "number": 36419,
+  "title": "[BUG] Claude Desktop code mode crashes instantly with exit code 1 — VM never boots (macOS Tahoe, v1.1.7714)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n  Claude Desktop code mode stopped working on March 19, 2026. Every code mode session crashes instantly with \"Claude Code process exited with code 1\" — the VM module\n  loads but never boots. Chat mode works perfectly. Claude Code in Terminal works perfectly. Only code mode in the Desktop app is broken.\n\n  This started without any changes on my end — no OS update, no config changes. I reinstalled the Desktop app from scratch (latest version 1.1.7714) and the problem\n  persists.\n\n  Extensive troubleshooting confirmed this is NOT a config issue:\n  - Removed ~/.claude directory entirely — still crashes\n  - Removed all session data — still crashes\n  - Removed settings.local.json files — still crashes\n  - Removed skills plugin — still crashes\n  - Deleted and re-downloaded VM bundle (rootfs.img, 10GB) — still crashes\n  - Claude Code binary works fine from Terminal (even with CLAUDE_DESKTOP=1 env var)\n\n  The crash sequence from main.log is always identical:\n  1. \"Passing 1 plugin(s) to SDK (skills: 1, local: 0)\"\n  2. \"Using Claude Code binary at: .../claude-code/2.1.78/...\"\n  3. IMMEDIATELY: \"Session [id] query error: Claude Code process exited with code 1\"\n  4. \"[CCD CycleHealth] unhealthy cycle... (0s, hadFirstResponse=false, reason=no_response)\"\n\n  The VM module loads (\"Loading @ant/claude-swift module... Module loaded successfully\") but the VM never actually boots — no boot sequence, no guest connection, no SDK\n   install. The cowork_vm_swift.log shows NO entries after the initial session, and no VM process appears in `ps aux`.\n\n  This appears related to issues #26945 and #31647 — the cowork VM runtime may be missing or non-functional in the current macOS distribution.\n\n### What Should Happen?\n\n  Code mode should respond to messages, as it did on March 18, 2026 (the day before).\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n  1. Open Claude Desktop (v1.1.7714) on macOS Tahoe 26.2 (Apple Silicon)\n  2. Switch to Code mode\n  3. Type any message and press Enter\n  4. Message appears but Claude never responds — session crashes instantly with exit code 1\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n 2.1.78\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:desktop", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-20T00:48:54Z",
+  "updated_at": "2026-05-30T22:27:11Z",
+  "closed_at": "2026-05-30T22:27:11Z",
+  "reactions_total": 5,
+  "comments_count": 20,
+  "author": "CaesarKal2",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/35430\n2. https://github.com/anthropics/claude-code/issues/31571\n3. https://github.com/anthropics/claude-code/issues/35025\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-20T00:54:54Z"
+    },
+    {
+      "author": "CaesarKal2",
+      "author_association": "NONE",
+      "body": "👎 None of these sound like the same issue. I don't think this is a duplicate. ",
+      "created_at": "2026-03-20T02:58:07Z"
+    },
+    {
+      "author": "CaesarKal2",
+      "author_association": "NONE",
+      "body": "## Update — March 19, 2026 (evening)\n\n  **Key new finding: Same build (v1.1.7714) works perfectly on two other Macs.** This is not a packaging or distribution issue. Something is specific to this machine.\n\n  ### What was tried and eliminated tonight:\n\n  - Removed entire ~/.claude directory — still crashes\n  - Removed all session data and skills plugin — still crashes\n  - Removed settings.local.json files — still crashes\n  - Deleted and re-downloaded VM bundle (10GB rootfs.img) — still crashes\n  ",
+      "created_at": "2026-03-20T05:49:56Z"
+    }
+  ]
+}

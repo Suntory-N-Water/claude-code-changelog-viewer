@@ -1,0 +1,35 @@
+{
+  "number": 33978,
+  "title": "[FEATURE] Built-in Usage Analytics Command (claude usage) — Consolidates 10+ Open Issues",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nToken usage visibility is the #1 most-requested feature category in Claude Code issues. At least 10+ open issues request overlapping subsets of the same core need:\n\n- #31564 — Per-session and consolidated token usage\n- #13891 — All-time cumulative token usage command\n- #13892 — Usage history tracking for Pro/Max subscribers\n- #10593 — Real-time token usage indicator in CLI\n- #18550 — Automatic cost tracking and reporting\n- #1109 — Usage metrics visibility for Max subscribers\n- #11008 — Token usage in hook inputs\n- #8861 / #10436 / #11535 — Token usage in statusline\n- #15931 — Remaining plan tokens instead of context usage\n- #10388 — Agent Token Usage API\n\nThe data already exists — every Claude Code session writes detailed JSONL transcripts under `~/.claude/projects/` with per-message `usage` objects containing `input_tokens`, `output_tokens`, `cache_creation_input_tokens`, and `cache_read_input_tokens`. But there is no built-in way to query or aggregate this data.\n\n### Proposed Solution\n\nA built-in `claude usage` subcommand (or `claude-usage` standalone) that provides unified token usage analytics. I've built a working prototype that demonstrates feasibility by parsing the existing JSONL transcripts — no API changes or new data collection required.\n\n#### 1. Summary view (default)\n\n```\n$ claude usage\n============================================================\n  Claude Code Usage (last 7 days)\n============================================================\n  Sessions:       19\n  Duration:       3080 min (51.3 hrs)\n  Messages:       1356\n────────────────────────────────────────────────────────────\n  Input tokens:         9.6K\n  Cache write:          3.5M\n  Cache read:         151.0M\n  Output tokens:      392.2K\n  Total tokens:       155.3M\n────────────────────────────────────────────────────────────\n  Est. cost:      $282.52\n============================================================\n```\n\n#### 2. Plan status + today/weekly overview\n\n```\n$ claude usage --plan\n============================================================\n  Claude Code Plan Status\n============================================================\n  Plan:           Max\n  Rate Limit:     Max 20x\n  Extra Usage:    Disabled\n  Active Now:     4 session(s)\n============================================================\n\n                        Today           This Week\n  ────────────────────────────────────────────────\n  Sessions                  6                  19\n  Messages                736                1356\n  Tokens                91.4M              157.1M\n  Est. cost         $186.01            $286.02\n```\n\n#### 3. Live monitoring dashboard\n\n```\n$ claude usage --watch 5\n============================================================\n  Claude Code Live Monitor\n  Updated: 21:27:11   Refresh: 5s   Ctrl+C to quit\n============================================================\n  Active sessions:  4\n  User messages:    701\n  Model:            claude-opus-4-6\n────────────────────────────────────────────────────────────\n  Input tokens:           6.2K\n  Cache write:            1.8M\n  Cache read:            88.4M\n  Output tokens:        231.7K\n  Total:                 90.4M\n  Delta:                 25.3K  (+25,312)\n────────────────────────────────────────",
+  "labels": ["enhancement", "area:cost", "area:cli"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-13T12:32:55Z",
+  "updated_at": "2026-07-04T12:18:43Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 17,
+  "author": "mp719lkh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "smigolsmigol",
+      "author_association": "NONE",
+      "body": "I ran into the same gap and ended up building an MCP server that reads local session data and exposes cost tools. Works inside Claude Code, Cline, and Cursor directly.\n\nFive tools: session cost, cumulative per-project costs across all sessions ranked by spend, cache savings analysis, monthly cost projection vs Max subscription, and subagent cost attribution.\n\nAuto-detects which AI coding tools are installed and aggregates data from all of them. Also runs as a SessionEnd hook for automatic cost l",
+      "created_at": "2026-03-22T04:11:55Z"
+    },
+    {
+      "author": "digitalpromptmarket-beep",
+      "author_association": "NONE",
+      "body": "This consolidation is overdue — glad to see the 10+ fragmented issues pulled together.\n\nI've been running my own analysis on session JSONL files for the past few weeks, and the data validates every use case listed in this issue. A few things I found that might be useful for scoping the implementation:\n\n**The data is already there, and it's rich.** A single session JSONL file from `~/.claude/projects/` contains per-turn token counts broken down by input, output, cache_read, and cache_creation — p",
+      "created_at": "2026-03-27T07:51:50Z"
+    },
+    {
+      "author": "Omsatyaswaroop29",
+      "author_association": "NONE",
+      "body": "## Unified `claude usage` command\n\n> **Issues addressed:** #33978 · #27915 · #7328\n> **Also closes:** #20636 · #23512 · #6057 (and 17+ other duplicates)\n\nHi @mp719lkh — great issue writeup and prototype. I'd like to build on your work and contribute a production-ready implementation that also pulls in the closely related rate-limit (#27915) and MCP context budget (#7328) requests.\n\n### Why unify them\n\nAll three issues boil down to the same gap: **users can't see what Claude Code is consuming.** ",
+      "created_at": "2026-03-28T22:37:39Z"
+    }
+  ]
+}

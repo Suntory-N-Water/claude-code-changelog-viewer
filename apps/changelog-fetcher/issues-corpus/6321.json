@@ -1,0 +1,35 @@
+{
+  "number": 6321,
+  "title": "File import in CLAUDE.md",
+  "body": "I have a question about file import in CLAUDE.md (or wherever it's supported): how does Claude handle markdown heading hierarchy when importing files?\nSpecifically, if I import a file that contains its own headings, are those headings inserted at the same level as they appear in the imported file, potentially breaking the intended document structure?\nLet me explain with an example:\nCLAUDE.md\n```\n# Project info\nproject information ...\n# Code conventions\n@conventions.md\n```\nconventions.md\n```\n# Main conventions\n- Use DRY principles\n```\nDoes the resultant prompt become:\n```\n# Project info\nproject information ...\n# Code conventions\n# Main conventions\n- Use DRY principles\n```\nIn this case, the imported file content would be structurally outside of the `# Code conventions` section, since `# Main conventions` becomes a top-level heading rather than a subsection. This breaks the intended document hierarchy where the conventions should be nested under the Code conventions section.\nIs this how the import mechanism works, or does Claude automatically adjust heading levels to maintain proper document structure?",
+  "labels": ["question", "memory", "autoclose"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-08-22T09:13:23Z",
+  "updated_at": "2026-01-16T14:13:50Z",
+  "closed_at": "2026-01-09T10:10:11Z",
+  "reactions_total": 2,
+  "comments_count": 13,
+  "author": "marcoscale98",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "Hey, that's a really sharp question. \n\nYou've hit the nail on the head with your analysis. Based on the documentation and my own experience, the `@` import is a direct, literal file inclusion. **It does not automatically adjust or \"demote\" the heading levels of the imported file.**\n\nSo, in your example, your hypothesis is correct. The final context provided to Claude would look like this:\n\n```markdown\n# Project info\nproject information ...\n# Code conventions\n# Main conventions\n- Use DRY principl",
+      "created_at": "2025-08-22T19:21:03Z"
+    },
+    {
+      "author": "marcoscale98",
+      "author_association": "NONE",
+      "body": "@coygeek yes, really clear explanation.\nI’m wondering why the Claude code team didn’t choose XML for memories. If I’m not mistaken, the literature suggests that XML is better understood by LLMs and could have solved the hierarchy problem.",
+      "created_at": "2025-08-22T19:36:58Z"
+    },
+    {
+      "author": "coygeek",
+      "author_association": "NONE",
+      "body": "You're right that LLMs have a solid understanding of XML's explicit structure. The strict hierarchy of opening and closing tags is unambiguous, which is a big advantage for machine parsing.\n\nSo why did the Anthropic team likely choose Markdown? While I can only speculate, I believe it comes down to a core design principle: **optimizing for the human developer experience.**\n\nHere are a few reasons why Markdown probably won out:\n\n1.  **Developer Ergonomics:** This is the biggest one. Developers li",
+      "created_at": "2025-08-22T19:43:06Z"
+    }
+  ]
+}

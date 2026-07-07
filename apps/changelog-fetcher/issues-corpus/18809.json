@@ -1,0 +1,35 @@
+{
+  "number": 18809,
+  "title": "[BUG] cowork error \"CLI output was not valid JSON. This may indicate an error during startup. Output: Invalid configuration in /etc/srt-settings.json:\"",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nEvery time I start up Co-Work and initiate a prompt, I get this error message: \"CLI output was not valid JSON. This may indicate an error during startup. Output: Invalid configuration in /etc/srt-settings.json:\"\n\nOccasionally when I delete VM bundle and restart it will work correctly but then eventually this arrow will reappear.\n\n### What Should Happen?\n\nCloud co-work should start correctly \n\n<img width=\"728\" height=\"242\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/6198d45b-d5c6-4bc4-94fc-33f23f71c1c0\" />\n\n### Error Messages/Logs\n\n```shell\nCLI output was not valid JSON. This may indicate an error during startup. Output: Invalid configuration in /etc/srt-settings.json:\n```\n\n### Steps to Reproduce\n\nFor me to recreate it I just simply start a new Claude Code work session in Cloud Desktop.  \n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude 1.1.351 (648bf5) 2026-01-16T23:53:30.000Z\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-01-17T13:08:48Z",
+  "updated_at": "2026-01-31T14:12:05Z",
+  "closed_at": "2026-01-24T02:25:23Z",
+  "reactions_total": 0,
+  "comments_count": 18,
+  "author": "jeff-jeffrolc",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jeff-jeffrolc",
+      "author_association": "NONE",
+      "body": "    Bug Report Info\n\n  System:\n  - macOS 15.2 (Darwin 25.2.0)\n  - Apple M2 Max, arm64\n  - Claude Desktop 1.1.351\n  - VM Bundle: 8c56966fa5825aba21d51a59e8a505b849e14f41\n  - SDK Version: 2.1.8\n\n  Error:\n  CLI output was not valid JSON. This may indicate an error during startup.\n  Output: Invalid configuration in /etc/srt-settings.json:\n\n  What happens:\n  1. sdk_daemon logs \"updated srt-settings with 28 allowed domains\" (success)\n  2. CLI process starts inside VM\n  3. CLI immediately fails reading",
+      "created_at": "2026-01-18T20:08:58Z"
+    },
+    {
+      "author": "jeff-jeffrolc",
+      "author_association": "NONE",
+      "body": "  This appears to be a bug in how the VM image handles the srt-settings.json file - either the file isn't being written to /etc/ properly, or the CLI is reading it before it's fully written. Since it persists across fresh VM downloads, it's likely a bug in the VM image build itself.",
+      "created_at": "2026-01-18T20:09:09Z"
+    },
+    {
+      "author": "jeff-jeffrolc",
+      "author_association": "NONE",
+      "body": "Reinstalled OSX fresh and then Claude desktop on refresh OSX install and got the same error. ",
+      "created_at": "2026-01-18T20:09:47Z"
+    }
+  ]
+}

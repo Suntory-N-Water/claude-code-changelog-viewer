@@ -1,0 +1,43 @@
+{
+  "number": 14461,
+  "title": "[BUG] Input latency severely affected by API response times - typing becomes unusable during API slowdowns",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n When Anthropic API experiences slowdowns (even minor ones not reported on status page), keyboard input in Claude Code CLI becomes extremely slow. Each keystroke takes approximately 1 second to\n  appear on screen.\n\n  This issue is particularly severe when:\n  - Working on large codebases with extensive context\n  - Using Opus model\n  - During peak API usage hours (US business hours)\n  - Sessions with long conversation history\n\n  The problem appears to be that Claude Code's Node.js event loop gets blocked when API responses are slow. Since keyboard input (stdin) runs on the same event loop, it gets affected even though\n  input handling should be completely local and independent of API communication.\n\n  **Confirmed this is NOT a system/network issue:**\n  - System Load: 0.4\n  - Memory: 24GB available out of 31GB\n  - Network latency: 0.6ms\n  - Tested on multiple servers - same issue\n  - Tested from different client machines - same issue\n  - After exiting Claude Code, typing in same terminal is instant\n\n\n### What Should Happen?\n\n Keyboard input should be processed locally and remain responsive regardless of API latency. The input buffer should be independent of the API communication layer.\n\n  User should be able to type messages at normal speed even when API is slow. The slowness should only affect the response generation, not the input experience.\n\n  Suggested fixes:\n  1. Separate input handling into its own thread/worker\n  2. Use non-blocking I/O for API communication\n  3. Buffer user input locally, independent of API state\n\n\n### Error Messages/Logs\n\n```shell\nNo error messages - the application continues to function, just with severe input lag.\n\n  Diagnostic output:\n\n  # Inside Claude Code session - typing \"hello\" takes ~5 seconds\n  # Each character appears with ~1 second delay\n\n  # Isolation test (same terminal, after exiting Claude Code):\n  $ echo \"test\"\n  # Types instantly - no delay\n\n  # System resources during issue:\n  $ uptime\n   14:34:00 up 30 days, load average: 0.40, 0.35, 0.32\n\n  $ free -h\n                total        used        free      shared  buff/cache   available\n  Mem:           31Gi       6.8Gi       4.4Gi        71Mi        20Gi        24Gi\n\n  $ ps aux | grep node\n  # Claude Code process running normally, no excessive CPU/memory\n```\n\n### Steps to Reproduce\n\n Steps to Reproduce\n\n  1. Open Claude Code CLI: `claude`\n  2. Work on a large project with many files (to build up context)\n  3. Have a conversation with multiple back-and-forth messages\n  4. Wait for API to experience any slowdown (often during US business hours)\n  5. Try typing a new message\n  6. Observe: each keystroke takes ~1 second to appear on screen\n  7. Exit Claude Code with /quit\n  8. Type in same terminal - observe instant response (proving it's not terminal/SSH issue)\n\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.0.72\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tui",
+    "area:core",
+    "perf:memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-12-18T12:14:36Z",
+  "updated_at": "2026-04-03T14:30:15Z",
+  "closed_at": "2026-03-26T22:11:46Z",
+  "reactions_total": 6,
+  "comments_count": 11,
+  "author": "burakyalti",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/14413\n2. https://github.com/anthropics/claude-code/issues/12161\n3. https://github.com/anthropics/claude-code/issues/12182\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-18T12:19:17Z"
+    },
+    {
+      "author": "george7979",
+      "author_association": "NONE",
+      "body": "I'm experiencing the same issue on **v2.0.72**.\n\nI've tested previous versions and confirmed that **v2.0.71** is the last stable version where this bug does not occur.\n\n### Environment\n- **OS/Platform:** Windows 11 + WSL (Ubuntu)\n- **Terminal:** Cursor IDE terminal / standalone WSL console\n- **Setup:** Filesystem and installation are entirely within WSL\n\n### Symptoms\n- Severe input lag that scales with conversation context\n- Frequent API connection retry messages\n- Running `/clear` temporarily f",
+      "created_at": "2025-12-18T12:48:23Z"
+    },
+    {
+      "author": "burakyalti",
+      "author_association": "NONE",
+      "body": " **Downgrading to version 2.0.71 resolves the issue.**\n\n  The input latency problem does not exist in version 2.0.71. This suggests a regression was introduced in a newer version.\n\n  ### Steps to downgrade:\n\n  ```bash\n  npm install -g @anthropic-ai/claude-code@2.0.71\n\n  To prevent auto-update (keeping the working version):\n\n  Add the following to ~/.claude/settings.json:\n\n  {\n    \"env\": {\n      \"DISABLE_AUTOUPDATER\": \"1\"\n    }\n  }\n\n  Version comparison:\n\n  | Version          | Input Latency     ",
+      "created_at": "2025-12-18T13:29:16Z"
+    }
+  ]
+}

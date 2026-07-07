@@ -1,0 +1,35 @@
+{
+  "number": 16329,
+  "title": "[FEATURE] Add support for AWS Bedrock service_tier parameter (flex, priority, reserved, default)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nSupport AWS Bedrock Service Tier Selection\nhttps://docs.aws.amazon.com/bedrock/latest/userguide/service-tiers-inference.html\n\n ### Summary\nAdd a configuration option to set the AWS Bedrock `service_tier` parameter when using Claude CLI with Bedrock, allowing users to leverage Bedrock's different pricing and performance tiers (flex, priority, default, reserved).\n\n  ### Motivation\n  AWS Bedrock supports different service tiers with varying pricing and latency characteristics:\n  - **Flex**: Cost-effective tier with pricing discounts for workloads that tolerate longer processing times\n  - **Priority**: Fastest response times at premium pricing\n  - **Default**: Standard tier with consistent performance\n  - **Reserved**: Fixed-price capacity reservations for mission-critical workloads\n\n\nCurrently, Claude CLI does not expose the `service_tier` parameter, forcing users to use the default tier or bypass Claude CLI entirely to use cost-effective options like flex tier.\n\n### Proposed Solution\n\n **Option 1: Environment Variable**\nexport CLAUDE_CODE_USE_BEDROCK=1\nexport AWS_BEDROCK_SERVICE_TIER=flex  # or priority, default, reserved\n\n Option 2: Command-line Flag\n claude --bedrock-service-tier flex\n\nOption 3: Settings File\n  {\n    \"bedrock\": {\n      \"serviceTier\": \"flex\"\n    }\n  }\n\n\n **Technical Details**\n\n  The service_tier parameter is sent as part of the Bedrock runtime API request:\n\n  {\n    \"service_tier\": \"flex\",\n    \"anthropic_version\": \"bedrock-2023-05-31\",\n    \"messages\": [...]\n  }\n\n  \n  Reference: https://docs.aws.amazon.com/bedrock/latest/userguide/service-tiers-inference.html\n\n### Alternative Solutions\n\n_No response_\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nAPI and model interactions\n\n### Use Case Example\n\n  1. Cost Optimization: Use flex tier for batch processing, evaluations, and non-time-sensitive tasks\n  2. Performance Requirements: Use priority tier for latency-sensitive applications\n  3. Budget Control: Leverage reserved capacity for predictable workloads\n\n### Additional Context\n\nService tier is an optional parameter (defaults to standard tier if not specified)",
+  "labels": ["enhancement", "api:bedrock", "area:cost", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-05T09:07:18Z",
+  "updated_at": "2026-07-02T20:27:49Z",
+  "closed_at": null,
+  "reactions_total": 39,
+  "comments_count": 10,
+  "author": "rsedletsky",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "gopinaath",
+      "author_association": "NONE",
+      "body": "It'll be really great to be able to specify service tier option.",
+      "created_at": "2026-01-14T22:54:05Z"
+    },
+    {
+      "author": "ryuzakyl",
+      "author_association": "NONE",
+      "body": "Indeed. This would be a great addition.",
+      "created_at": "2026-01-24T18:22:31Z"
+    },
+    {
+      "author": "DingGGu",
+      "author_association": "NONE",
+      "body": "Anthropic-related models don't seem to support the `flex` model. Only the `reserved` model is available.\n\nhttps://docs.aws.amazon.com/bedrock/latest/userguide/service-tiers-inference.html",
+      "created_at": "2026-01-28T14:18:19Z"
+    }
+  ]
+}

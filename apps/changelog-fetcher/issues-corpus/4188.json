@@ -1,0 +1,35 @@
+{
+  "number": 4188,
+  "title": "[BUG] [BUG] Claude Desktop MCP tools failing with \"Required\" parameter error",
+  "body": "# [BUG] Claude Desktop MCP tools failing with parameter validation error - July 23, 2025\n\n## Bug Description\nClaude Desktop MCP tools suddenly stopped working on July 23, 2025. All MCP tools are failing with parameter validation errors when called by Claude Desktop, despite the MCP servers themselves functioning correctly.\n\n## Environment\n- **Date**: July 23, 2025\n- **Platform**: Multiple computers affected (confirming this is not a local configuration issue)\n- **Claude Desktop Version**: [Please check your version]\n- **Operating System**: [Please specify your OS]\n\n## Expected Behavior\nMCP tools should receive proper parameters when called by Claude Desktop and execute successfully as they did until July 22, 2025.\n\n## Actual Behavior\n- Claude Desktop calls MCP tools without required parameters\n- All tool calls result in validation errors\n- Error indicates `\"expected\": \"object\", \"received\": \"undefined\"`\n- MCP servers themselves are working (connection established, communication functional)\n\n## Reproduction Steps\n1. Have any MCP server configured and running (e.g., filesystem)\n2. Try to use any MCP tool through Claude Desktop interface\n3. Observe the parameter validation error in MCP logs\n\n## Error Logs\n```\n2025-07-23T04:39:51.994Z [filesystem] [info] Message from client: {\"method\":\"tools/call\",\"params\":{\"name\":\"list_directory\"},\"jsonrpc\":\"2.0\",\"id\":16} { metadata: undefined }\n2025-07-23T04:39:51.995Z [filesystem] [info] Message from server: {\"jsonrpc\":\"2.0\",\"id\":16,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"Error: Invalid arguments for list_directory: [\\n  {\\n    \\\"code\\\": \\\"invalid_type\\\",\\n    \\\"expected\\\": \\\"object\\\",\\n    \\\"received\\\": \\\"undefined\\\",\\n    \\\"path\\\": [],\\n    \\\"message\\\": \\\"Required\\\"\\n  }\\n]\"}],\"isError\":true}} { metadata: undefined }\n```\n\n## Analysis\n1. **MCP Server Status**: ✅ Working correctly (connection established, responds to calls)\n2. **Client-Server Communication**: ✅ Working (messages are being exchanged)\n3. **Parameter Passing**: ❌ **Claude Desktop is not passing required parameters to MCP tools**\n\n## Additional Context\n- **Timeline**: Worked perfectly until July 22, 2025, suddenly broke on July 23, 2025\n- **Scope**: Multiple users on different computers experiencing the same issue simultaneously\n- **Impact**: All MCP functionality is currently broken in Claude Desktop\n- **Workaround**: None available - this appears to be an internal Claude Desktop issue\n\n## Root Cause Assessment\nThis appears to be a regression introduced in Claude Desktop's MCP tool calling mechanism, where the application is no longer properly packaging tool parameters before sending them to MCP servers.\n\n## Priority\n**High** - This completely breaks MCP functionality for all users, which is a core feature of Claude Desktop.\n\n---\n\n**Note**: This issue appears to coincide with reported Claude service instabilities on July 23, 2025, suggesting this may be related to a recent update or backend change.",
+  "labels": ["bug", "has repro", "area:mcp"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-23T04:50:44Z",
+  "updated_at": "2025-08-07T14:09:19Z",
+  "closed_at": "2025-07-23T21:19:20Z",
+  "reactions_total": 59,
+  "comments_count": 66,
+  "author": "charles69729798",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "ollie-anthropic",
+      "author_association": "COLLABORATOR",
+      "body": "It looks like this was due to an upstream API failure affecting all MCP tool calls. This should be resolved now (perhaps with a Claude Desktop restart). Please see https://status.anthropic.com/. \n\nVery sorry for the issue here.",
+      "created_at": "2025-07-23T21:19:20Z"
+    },
+    {
+      "author": "charles69729798",
+      "author_association": "NONE",
+      "body": "2025-07-23T04:04:26.961Z [filesystem] [info] Server started and connected successfully { metadata: undefined }\n2025-07-23T04:04:27.071Z [filesystem] [info] Message from client: {\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{},\"clientInfo\":{\"name\":\"claude-ai\",\"version\":\"0.1.0\"}},\"jsonrpc\":\"2.0\",\"id\":0} { metadata: undefined }\nSecure MCP Filesystem Server running on stdio\nAllowed directories: [\n  'c:\\\\test',\n  '\\\\\\\\wsl.localhost\\\\ubuntu\\\\home\\\\charles',\n  'c:\\\\user",
+      "created_at": "2025-07-23T04:51:08Z"
+    },
+    {
+      "author": "teticio",
+      "author_association": "NONE",
+      "body": "I notice that it affects all MCP tool calls after the first. Happens with local and connector type remote MCP servers. In the POST request to my `/mcp` endpoint I notice that the params only contain the name of the tool but not the arguments:\n\nFirst call:\n `POST /mcp {\"method\":\"tools/call\",\"params\":{\"name\":\"doThing\",\"arguments\":{\"withThis\":\"stuff\"}},\"jsonrpc\":\"2.0\",\"id\":9}`\n\nSubsequent calls:\n`POST /mcp {\"method\":\"tools/call\",\"params\":{\"name\":\"doThing\"},\"jsonrpc\":\"2.0\",\"id\":13}`\n\nIt looks like a",
+      "created_at": "2025-07-23T09:12:39Z"
+    }
+  ]
+}

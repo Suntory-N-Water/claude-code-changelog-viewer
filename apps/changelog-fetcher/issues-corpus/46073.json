@@ -1,0 +1,16 @@
+{
+  "number": 46073,
+  "title": "[BUG] /export produces 0-byte file (v2.1.98, macOS)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe `/export` command produces a 0-byte empty file. Running `/export session-log.md` or `/export` (with auto-generated filename) both create the file at the correct path, but the file contains no content.\n\nThe command output says \"Conversation exported to: /path/to/file\" suggesting success, but `ls -la` shows 0 bytes. This happens regardless of conversation length — tested with a session containing 60+ messages and tool calls.\n\n### What Should Happen?\n\n`/export` should create a Markdown file containing the full conversation transcript (user messages, assistant responses, tool calls and results).\n\n### Error Messages/Logs\n\n```shell\n$ ls -la session-log.md\n  -rw-r--r--  1 jidohyun  staff  0  Apr 10 14:03 session-log.md\n\n$ wc -l session-log.md\n0 session-log.md\n\n# The command itself reports success:\n# \"Conversation exported to: /Users/jidohyun/.../session-log.md\"\n\n# No error messages in stderr. Exit appears successful.\n# The JSONL transcript at ~/.claude/projects/.../session-id.jsonl is intact and non-empty.\n```\n\n### Steps to Reproduce\n\n1. Start a Claude Code session with any conversation (e.g. `claude \"hello\"`)\n2. Have at least a few exchanges so there's content to export\n3. Run `/export session-log.md`\n4. Check the output: `ls -la session-log.md` → shows 0 bytes\n5. Also tried `/export` without filename — auto-generated .txt file is also 0 bytes\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.98 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n- Shell: zsh\n- macOS Darwin 25.3.0\n- The JSONL transcript file (~/.claude/projects/.../session-id.jsonl) is correctly written and non-empty, so the conversation data itself is being recorded — only the `/export` markdown conversion appears broken.\n- Workaround: manually copying the JSONL file with `cp ~/.claude/projects/.../<session-id>.jsonl ./`\n- Permission mode: bypassPermissions (but also tested in default mode — same result)",
+  "labels": ["bug", "has repro", "platform:macos", "area:cli"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-04-10T05:11:31Z",
+  "updated_at": "2026-04-26T14:34:23Z",
+  "closed_at": "2026-04-19T00:44:35Z",
+  "reactions_total": 13,
+  "comments_count": 3,
+  "author": "jidohyun",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

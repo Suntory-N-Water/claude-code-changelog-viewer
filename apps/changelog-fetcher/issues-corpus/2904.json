@@ -1,0 +1,35 @@
+{
+  "number": 2904,
+  "title": "[BUG] Claude Code CLI JSON Response Truncation Issue",
+  "body": "# Claude Code CLI JSON Response Truncation Issue\n\n  ## Summary\n  Claude Code CLI truncates long JSON responses at fixed character positions (4000, 6000, 8000, 10000, 12000, 16000 characters), causing JSON parsing errors when the truncation occurs mid-JSON\n  structure.\n\n  ## Environment\n  - **Claude Code Version**: 1.0.35\n  - **Node.js Version**: v22.15.0\n  - **Platform**: macOS (Darwin 21.6.0)\n  - **Model**: claude-3-5-sonnet-20241022\n\n  ## Expected Behavior\n  Claude Code CLI should return complete JSON responses regardless of length, allowing proper JSON parsing by downstream applications.\n\n  ## Actual Behavior\n  When Claude generates JSON responses longer than ~8000-10000 characters, the CLI truncates the output at fixed positions, resulting in malformed JSON that fails to parse with errors like:\n  SyntaxError: Unterminated string in JSON at position 8000\n  SyntaxError: Unexpected end of JSON input at position 4000\n\n  ## Reproduction Steps\n\n  1. Create a test script that requests a long JSON response:\n  ```javascript\n  import { query } from '@anthropic-ai/claude-code';\n\n  const prompt = `Generate a JSON object with 25 detailed tasks. Each task should have comprehensive implementation details to ensure the response is over 15,000 characters. Respond ONLY with valid\n  JSON containing a 'tasks' key.`;\n\n  for await (const chunk of query({ prompt })) {\n      console.log(chunk);\n  }\n\n  2. Run the script and observe JSON parsing errors at specific character positions\n\n  Root Cause Analysis\n\n  The issue is in /lib/node_modules/@anthropic-ai/claude-code/sdk.mjs lines 125-130:\n\n  for await (const line of rl) {\n      if (line.trim()) {\n          yield JSON.parse(line);  // ← Assumes each line is complete JSON\n      }\n  }\n  ```\n  The problem mechanism:\n  1. Claude CLI process writes long JSON response to stdout\n  2. When response exceeds certain length, CLI internally truncates at fixed positions\n  3. readline.createInterface reads line-by-line, but receives truncated incomplete JSON\n  4. JSON.parse() attempts to parse incomplete JSON string, causing parse failure\n\n  Truncation Patterns Observed\n\n  Through systematic testing, we identified these truncation patterns:\n\n  - Short responses (<10K chars): No truncation\n  - Medium responses (10-30K chars): 8000 character truncation\n  - Long responses (30-50K chars): 4000 character truncation\n  - Very long responses: Even smaller truncation limits\n\n  Common truncation positions: 4000, 6000, 8000, 10000, 12000, 16000 characters\n\n  Evidence\n\n  Direct Claude API vs Claude Code CLI comparison:\n  - Direct Anthropic API calls return complete responses (tested with same prompts)\n  - Claude Code CLI consistently truncates at the same positions\n  - The actual assistant response content is complete, but CLI processing truncates it\n\n  SDK Debug Output:\n  🔍 [SDK.mjs] Line 1: length=8000 [SUSPECTED TRUNCATION AT 8000!]\n  🚨 [SDK.mjs] TRUNCATION PATTERN DETECTED: Line length is exactly 8000 characters!\n  🚨 [SDK.mjs] Line ends abruptly without JSON closure - CONFIRMED TRUNCATION\n  ❌ [SDK.mjs] JSON parse failed: Unterminated string in JSON at position 8000\n\n  Impact\n\n  This issue affects:\n  - Applications that generate long structured JSON responses\n  - Task management systems that create detailed task breakdowns\n  - Any workflow requiring comprehensive JSON data from Claude\n\n  Workaround\n\n  We've implemented a temporary workaround in our application:\n```\n  try {\n      const parsed = JSON.parse(line);\n      yield parsed;\n  } catch (parseError) {\n      // Check if we have valid text data despite JSON parsing error\n      if (error instanceof SyntaxError &&\n          error.message.includes('JSON') &&\n          error.message.includes('position') &&\n          text && text.length > 0) {\n          // Continue processing with the complete data we have\n          console.log('Working around Claude Code CLI truncation issue...');\n          // Skip error and continue\n      } else {\n          throw parseError;\n      }\n  }\n```\n\n  Suggested Fix\n\n  The SDK should either:\n  1. Buffer accumulation: Accumulate",
+  "labels": ["duplicate"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2025-07-03T06:38:54Z",
+  "updated_at": "2025-08-27T14:07:42Z",
+  "closed_at": "2025-08-20T09:13:25Z",
+  "reactions_total": 12,
+  "comments_count": 10,
+  "author": "LinLL",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ben-vargas",
+      "author_association": "NONE",
+      "body": "100% agree with this issue... I see many users experience the problems caused by this when trying to use claude code sdk.",
+      "created_at": "2025-07-03T19:39:32Z"
+    },
+    {
+      "author": "nwentling5",
+      "author_association": "NONE",
+      "body": "Great deep dive @LinLL!\n\nHaving this same issue when parsing PRDs with [https://github.com/eyaltoledano/claude-task-master](https://github.com/eyaltoledano/claude-task-master ).",
+      "created_at": "2025-07-03T20:01:24Z"
+    },
+    {
+      "author": "neno-is-ooo",
+      "author_association": "NONE",
+      "body": "big issue! ",
+      "created_at": "2025-07-09T16:27:53Z"
+    }
+  ]
+}

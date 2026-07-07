@@ -1,0 +1,42 @@
+{
+  "number": 63903,
+  "title": "[BUG] autoMemoryEnabled=false does not suppress the ~11-16k memory preamble (re: closed #44829)",
+  "body": "## Summary\n\nSetting `autoMemoryEnabled: false` in `~/.claude/settings.json` correctly disables auto-memory writes and stops Claude from attempting them, but the hardcoded memory preamble (instructional text + \\\"currently empty\\\" branch + formatting templates) still loads into the system prompt at session start.\n\nThis was previously reported in #44829, which was auto-closed by the staleness bot on 2026-05-20 without Anthropic response. Re-filing with concrete measurement.\n\n## Reproduction\n\n1. `~/.claude/settings.json`: `{ \\\"autoMemoryEnabled\\\": false }`\n2. Empty the memory directory: `rm ~/.claude/projects/<encoded-cwd>/memory/*.md`\n3. Fully quit Claude Code app (`Cmd+Q`), relaunch.\n4. Open a fresh session, run `/context` before sending any prompt.\n\n## Measured impact (Claude Code 2.1.149, macOS)\n\n| Model | \\\"Memory files\\\" bucket | All other buckets |\n|---|---|---|\n| Sonnet 4.5 (200k window) | **11.3k tokens** | normal |\n| Opus 4.7 (1M window) | **16.2k tokens** | also inflated (+75% session overhead vs Sonnet) |\n\nMemory dir contents: **0 files, 0 bytes**. The entire bucket is preamble loaded from the binary.\n\nBinary inspection (`strings claude.app/Contents/MacOS/claude | grep -i memory`) surfaces 4 preamble templates: 27,303 / 22,477 / 4,482 / 105 chars. The smallest is the \\\"is currently empty. When you save new memories, they will appear here.\\\" branch — proof the preamble loads regardless of `autoMemoryEnabled` state.\n\n## Impact\n\n- ~11k tokens/session wasted on Sonnet, ~16k on Opus, for users who have explicitly opted out of auto-memory.\n- For users with 5-tier learning systems (or any non-memory routing), this preamble actively pollutes context by suggesting routes Claude shouldn't take.\n- Scales with usage: at 100 sessions/week, ~1.1M tokens/week of preamble for an opted-out user.\n\n## Requested behavior\n\nWhen `autoMemoryEnabled: false`:\n- Skip the memory preamble entirely (no instructional text, no \\\"currently empty\\\" branch, no format templates).\n- `/memory` slash command can still work via lazy-load when explicitly invoked.\n\nThis is the fix #44829 originally requested — restating with measurement so it doesn't sit idle until the bot closes it again.\n\n## Related\n\n- #44829 (closed-as-inactive 2026-05-20, NOT_PLANNED — no Anthropic response)\n- #56329 (open: \\\"Optionally disable memory\\\" — more general request)\n- #52488 (closed: \\\"decouple CLAUDE.md and MEMORY.md controls\\\")",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:cost",
+    "area:core",
+    "memory"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-30T08:43:13Z",
+  "updated_at": "2026-07-05T11:05:01Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 23,
+  "author": "guillaume-paradise",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/44829\n2. https://github.com/anthropics/claude-code/issues/52488\n3. https://github.com/anthropics/claude-code/issues/29178\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-30T08:49:57Z"
+    },
+    {
+      "author": "guillaume-paradise",
+      "author_association": "NONE",
+      "body": "do not close, this is still a real issue.",
+      "created_at": "2026-05-30T12:18:59Z"
+    },
+    {
+      "author": "guillaume-paradise",
+      "author_association": "NONE",
+      "body": "This bug still affects me on current Claude Code. Keeping open.",
+      "created_at": "2026-05-30T13:46:02Z"
+    }
+  ]
+}

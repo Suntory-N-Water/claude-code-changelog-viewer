@@ -1,0 +1,23 @@
+{
+  "number": 39266,
+  "title": "Permission prompts on heredoc body lines corrupt settings.local.json with garbage allow entries",
+  "body": "## Description\n\nWhen a Bash command contains a heredoc (e.g. `gh issue create --body \"$(cat <<'EOF' ... EOF)\"`), the permission system appears to parse individual lines of the heredoc body as separate Bash commands. When the user approves these prompts, the individual lines get written into `settings.local.json` as allow entries, corrupting the file.\n\n## Reproduction\n\nRun a command like:\n```bash\ngh issue create --repo owner/repo --title \"Title\" --body \"$(cat <<'EOF'\n## Heading\n\nSome text with a date 2026-03-26 and words like task-name and description.\nEOF\n)\"\n```\n\nAfter approving the permission prompts, `settings.local.json` contained:\n```json\n{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(2026-03-26)\",\n      \"Bash(task-name)\",\n      \"Bash(description)\"\n    ]\n  }\n}\n```\n\nThese are fragments from inside the heredoc body — `2026-03-26`, `task-name`, and `description` — not actual Bash commands. They were parsed as separate commands and persisted as allow rules when approved.\n\n## Expected behavior\n\nHeredoc content should be treated as part of the enclosing command, not parsed as separate Bash commands. The permission prompt should be for the entire `gh issue create` command, and if approved, only that command pattern should be written to settings.\n\n## Actual behavior\n\nIndividual heredoc lines are presented as separate Bash permission prompts. Approving them writes nonsensical allow entries to `settings.local.json`, silently corrupting the user's permission configuration.\n\n## Impact\n\nThis is a data corruption bug. Users who approve these prompts end up with a polluted allow list that accumulates garbage entries over time. The entries are harmless (they match nothing useful) but degrade the signal-to-noise ratio of the settings file and require manual cleanup.\n\n## Related\n\nThis may share a root cause with #39263 (matcher fails on compound shell constructs) — both involve the permission system failing to correctly parse multi-line or complex Bash commands.\n\n## Environment\n\n- Claude Code on macOS (Darwin 25.3.0)\n- Permission mode: Ask",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:macos",
+    "area:permissions",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-26T09:16:16Z",
+  "updated_at": "2026-05-29T11:18:58Z",
+  "closed_at": "2026-05-29T11:18:58Z",
+  "reactions_total": 0,
+  "comments_count": 5,
+  "author": "afrancke",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}
