@@ -1,0 +1,1503 @@
+{
+  "id": "20260707-003220",
+  "timestamp": "2026-07-07T00:32:20.709Z",
+  "aiSummary": "Claude Code v2.1.202へのアップデートに伴い、インストールや更新時の接続エラーに対する自動リトライ機能が導入されました。ワークフロー機能においてエージェントの生成数を制御するworkflowSizeGuideline設定が追加され、OpenTelemetryによる詳細な実行トレースも強化されています。また、リモートコントロール時のパーミッション同期や、スキル再呼び出し時のコンテキスト重複を削減する最適化など、操作の安定性と効率性が向上しました。",
+  "files": [
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "ネストされたサブエージェントからメッセージが送られた際、親エージェントのIDを保持するparent_agent_idプロパティの説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -255,6 +255,7 @@ function getSessionMessages(",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `session_id` | `string` | Session this message belongs to |"
+            },
+            {
+              "type": "context",
+              "content": "| `message` | `unknown` | Raw message payload from the transcript |"
+            },
+            {
+              "type": "context",
+              "content": "| `parent_tool_use_id` | `string \\| null` | For subagent messages, the `tool_use_id` of the spawning `Agent` tool call. `null` for main-session messages and older sessions |"
+            },
+            {
+              "type": "added",
+              "content": "| `parent_agent_id` | `string \\| null` | For messages from a [nested subagent](/en/sub-agents#spawn-nested-subagents), the `agentId` of the subagent that spawned it. `null` for main-session messages, messages from top-level subagents, and older sessions. Requires Claude Code v2.1.202 or later |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Example"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-view.md",
+      "additions": 3,
+      "deletions": 0,
+      "explanation": "バックグラウンドセッションで/renameやCtrl+Rを使用して名前を変更した際、プロセス再起動後もその名前が維持される仕様変更が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -417,6 +417,8 @@ The [permission mode](/en/permissions) depends on how you started the session. B",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The permission mode, model, and effort a background session was started with, along with the [configuration flags it carries](#from-inside-a-session), all persist when the supervisor later [stops and restarts](#the-supervisor-process) its process. A session you launched with `claude --bg --dangerously-skip-permissions` or `claude --bg --permission-mode bypassPermissions` stays in `bypassPermissions` after that restart instead of falling back to the directory's `defaultMode`, and a model or effort you changed mid-session with `/model` or `/effort` is kept."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A name you set with [`/rename`](/en/commands) or `Ctrl+R` also persists across that restart, so [`claude --resume <name>`](/en/sessions#name-your-sessions) still resolves the session. Before v2.1.202, the restart reverted the session to the name it was dispatched with and the new name stopped resolving."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To set defaults for every session you dispatch from agent view, pass any of `--permission-mode`, `--model`, `--effort`, or `--agent` when opening it:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            }
+          ]
+        },
+        {
+          "header": "@@ -634,6 +636,7 @@ Agent view has evolved quickly during research preview. If you are on an older C",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Version | Change |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| v2.1.202 | A name set with `/rename` or `Ctrl+R` on a background session persists when the supervisor stops and restarts its process, instead of reverting to the name the session was dispatched with. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.200 | An older Claude Code version that rewrites the session list in `roster.json` preserves fields written by a newer version, matching the existing `state.json` guarantee, so sessions started by the newer version keep accepting input after the supervisor restarts. When you open a session that has stopped responding, the supervisor restarts its process and the session continues the interrupted response from where it left off. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.199 | A background session whose process exits before it finishes starting on a low-memory host shows `possibly low memory — free some up and retry` in its row status instead of only the bare exit reason. Backgrounding a session with `←` or `/background` carries its `/color` over to the new row. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.198 | Agent view sends a notification through `preferredNotifChannel` when a background session needs input, finishes, or fails, and fires the `Notification` hook with the `agent_needs_input` or `agent_completed` type. `←` and `/exit` inside `claude attach <id>` return to agent view instead of exiting to the shell; `Ctrl+Z` returns to the shell. A background session that isolated its work in a worktree commits, pushes its own isolated branch, never `main` or `master`, and opens a draft pull request when it finishes instead of asking first. `/login` runs in agent view and opens the sign-in dialog. The `Background work is running` exit dialog offers `Move to background and exit`. The exit handoff also covers background subagents, which resume from their transcript on the next wake instead of being reported as failed. `claude --bg` combined with `-p` or `--print` is rejected with an error. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "/reviewコマンドによるGitHubプルリクエストのレビューが、読み取り専用の実行エンジンを使用する点など、説明が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -23,7 +23,7 @@ Most commands are useful at a specific point in a session, from setting up a pro",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Run work in parallel.** Claude delegates side tasks to [subagents](/en/sub-agents), and `/tasks` lists what's running in the background of the current session. `/background` detaches the whole session to keep running as a [background agent](/en/agent-view) and frees your terminal. For a large change that spans the codebase, `/batch` decomposes it into independent units and runs each in its own [worktree](/en/worktrees). See [Run agents in parallel](/en/agents) for how these approaches relate."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Before you ship.** `/diff` shows what changed, `/code-review` checks the diff for correctness bugs and cleanups and can apply the findings with `--fix`, `/review` runs the same read-only review on a GitHub pull request, and `/security-review` gives a deeper read-only pass. `/code-review ultra` runs a multi-agent review in the cloud."
+            },
+            {
+              "type": "added",
+              "content": "**Before you ship.** `/diff` shows what changed, `/code-review` checks the diff for correctness bugs and cleanups and can apply the findings with `--fix`, `/review` gives a read-only review of a GitHub pull request, and `/security-review` checks the diff for security vulnerabilities. `/code-review ultra` runs a multi-agent review in the cloud."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Between sessions.** `/clear` starts fresh on a new task while keeping project memory. `/resume` and `/branch` let you return to or fork an earlier conversation. `/teleport` pulls a web session into this terminal, and `/remote-control` lets you continue this local session from another device."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -112,7 +112,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/remote-env` | Choose the default environment for [cloud agents](/en/claude-code-on-the-web#configure-your-environment) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/rename [name]` | Rename the current session and show the name on the prompt bar. Without a name, auto-generates one from conversation history |"
+            },
+            {
+              "type": "context",
+              "content": "| `/resume [session]` | Resume a conversation by ID or name, or open the session picker. As of v2.1.144, [background sessions](/en/agent-view) appear in the picker marked with `bg`. Alias: `/continue` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/review [PR]` | Review a GitHub pull request by number, using the same review engine as `/code-review`. With no arguments, lists open PRs to pick from. For a cloud-based review, see [`/code-review ultra`](/en/ultrareview) |"
+            },
+            {
+              "type": "added",
+              "content": "| `/review [PR]` | Review a GitHub pull request by number. With no argument, lists open PRs to pick from. For a cloud-based review, see [`/code-review ultra`](/en/ultrareview) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/rewind` | Rewind the conversation and/or code to a previous point, or summarize from a selected message. See [checkpointing](/en/checkpointing). Aliases: `/checkpoint`, `/undo` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/run` | **[Skill](/en/skills#bundled-skills).** Launch and drive your project's app to see a change working, not only passing tests. See [Run and verify your app](/en/skills#run-and-verify-your-app). Requires Claude Code v2.1.145 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `/run-skill-generator` | **[Skill](/en/skills#bundled-skills).** Teach `/run` and `/verify` how to build, launch, and drive your project's app from a clean environment by writing a per-project [skill](/en/skills#run-and-verify-your-app). Requires Claude Code v2.1.145 or later |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "OTEL_LOG_TOOL_DETAILS環境変数で、ユーザー作成のワークフロー名を含めた詳細なログ取得が可能になったことが反映されています。",
+      "hunks": [
+        {
+          "header": "@@ -343,7 +343,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_ASSISTANT_RESPONSES` | Set to `1` to include the model's response text on `assistant_response` OpenTelemetry log events. When unset, the value of `OTEL_LOG_USER_PROMPTS` is used instead. Set to `0` to keep responses redacted even when `OTEL_LOG_USER_PROMPTS` is set. Requires Claude Code v2.1.193 or later. See [Monitoring](/en/monitoring-usage#assistant-response-event) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_RAW_API_BODIES` | Emit Anthropic Messages API request and response JSON as `api_request_body` / `api_response_body` log events. Set to `1` for inline bodies truncated at 60 KB, or `file:<dir>` to write untruncated bodies to disk and emit a `body_ref` path instead. Disabled by default; bodies include the entire conversation history. See [Monitoring](/en/monitoring-usage#api-request-body-event) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_TOOL_CONTENT` | Set to `1` to include tool input and output content in OpenTelemetry span events. Disabled by default to protect sensitive data. See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `OTEL_LOG_TOOL_DETAILS` | Set to `1` to include tool input arguments, MCP server names, raw error strings on tool failures, the refusal `category` on `api_refusal` events, and other tool details in OpenTelemetry traces and logs. Disabled by default to protect PII. See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "added",
+              "content": "| `OTEL_LOG_TOOL_DETAILS` | Set to `1` to include tool input arguments, MCP server names, user-authored workflow names, raw error strings on tool failures, the refusal `category` on `api_refusal` events, and other tool details in OpenTelemetry traces and logs. Disabled by default to protect PII. See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_USER_PROMPTS` | Set to `1` to include user prompt text in OpenTelemetry traces and logs. Disabled by default (prompts are redacted). See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` | Set to `false` to exclude account UUID from metrics attributes (default: included). See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_METRICS_INCLUDE_ENTRYPOINT` | Set to `true` to include the session entrypoint in metrics attributes (default: excluded). Added in v2.1.152. See [Monitoring](/en/monitoring-usage) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 23,
+      "deletions": 1,
+      "explanation": "アップデートのダウンロード中に接続が切断された際、最大3回まで自動リトライを行う新機能と、その際のトラブルシューティング手順が詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -67,6 +67,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `API Error: 400 due to tool use concurrency issues` | [Request errors](#tool-use-or-thinking-block-mismatch) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Claude Code is unable to respond to this request, which appears to violate our Usage Policy` | [Request errors](#usage-policy-refusal) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Installation was killed before it could finish (exit code 137)` | [Installation errors](#installation-was-killed-before-it-could-finish) |"
+            },
+            {
+              "type": "added",
+              "content": "| `The connection dropped while downloading the update` | [Installation errors](#the-connection-dropped-while-downloading-the-update) |"
+            },
+            {
+              "type": "context",
+              "content": "| `--bg and --print conflict` | [Command-line errors](#command-line-errors) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ignoring N permissions.allow entries from ... this workspace has not been trusted` | [Configuration warnings](#workspace-has-not-been-trusted) |"
+            },
+            {
+              "type": "context",
+              "content": "| Responses seem lower quality than usual | [Response quality](#responses-seem-lower-quality-than-usual) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -880,7 +881,7 @@ The check evaluates the full conversation, not only your latest prompt, so sendi",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Installation errors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "These errors come from the [install script](/en/setup#install-claude-code) before Claude Code has started. For `command not found`, PATH, permission, and TLS problems during setup, see [Troubleshoot installation and login](/en/troubleshoot-install)."
+            },
+            {
+              "type": "added",
+              "content": "These errors appear while installing or updating Claude Code, from the [install script](/en/setup#install-claude-code), `claude install`, or `claude update`. For `command not found`, PATH, permission, and TLS problems during setup, see [Troubleshoot installation and login](/en/troubleshoot-install)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Installation was killed before it could finish"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -898,6 +899,25 @@ For any other fatal signal, and for exit code 137 on macOS, the script prints `I",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Stop other processes to free memory, then rerun the installer"
+            },
+            {
+              "type": "context",
+              "content": "- Add swap space or move to a larger instance. See [Install killed on low-memory Linux servers](/en/troubleshoot-install#install-killed-on-low-memory-linux-servers) for the swap-file commands."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### The connection dropped while downloading the update"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The connection to the download server closed while `claude install`, `claude update`, or the [automatic updater](/en/setup#auto-updates) was fetching the Claude Code binary, and the retries didn't recover. Claude Code retries the download when the connection drops, the transfer stalls, or the downloaded file fails its checksum, up to three attempts in total. A completed HTTP error, such as a 404, isn't retried because the server already answered. Before v2.1.202, a single dropped connection failed the download immediately with the bare error `aborted` instead of retrying."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "The connection dropped while downloading the update (attempt 3/3: aborted). Check your network — proxies sometimes cut off large downloads."
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The text in parentheses names which attempt failed and the underlying network error. `claude update` precedes the message with `Error: Failed to install native update` on stderr."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The usual cause is a proxy or gateway that closes a long transfer before it finishes. The Claude Code binary is a large download, so a proxy connection limit that never affects normal API traffic can still interrupt it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Run `claude update` again. On an otherwise healthy network, the download usually succeeds on the next run."
+            },
+            {
+              "type": "added",
+              "content": "- If your network requires a proxy, set `HTTPS_PROXY` before running the installer or `claude update`. See [Check network connectivity](/en/troubleshoot-install#check-network-connectivity)."
+            },
+            {
+              "type": "added",
+              "content": "- If a corporate proxy keeps closing the transfer, ask your network team to allow the full download from `downloads.claude.ai`. See [Network access requirements](/en/network-config#network-access-requirements)."
+            },
+            {
+              "type": "added",
+              "content": "- Run `claude doctor` from your shell for installation diagnostics"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Command-line errors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These errors come from Claude Code's own validation of the `claude` command line. Claude Code prints them immediately, before it creates a session or sends any API request."
+            }
+          ]
+        },
+        {
+          "header": "@@ -954,6 +974,8 @@ When a response goes wrong, rewinding usually works better than replying with co",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If quality still seems off after checking the above, run `/feedback` and describe what you expected versus what you got. Feedback submitted this way includes the conversation transcript, which is the fastest way for Anthropic to diagnose a real regression. See [Report an error](#report-an-error) if `/feedback` is unavailable in your environment."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If Sonnet 5 refuses a request and cites a suspected prompt injection on Claude Code v2.1.200 or earlier, run `claude update` to pick up the v2.1.201 fix."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Report an error"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For errors from components this page doesn't cover, see the relevant guide:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "非同期フックからの不正なJSON出力によってセッションがクラッシュする問題が修正され、無効なフィールドを自動で破棄する挙動について記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -2882,6 +2882,8 @@ When an async hook fires, Claude Code starts the hook process and immediately co",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "After the background process exits, if the hook produced a JSON response with an `additionalContext` field, that content is delivered to Claude as context on the next conversation turn. A `systemMessage` field is shown to you, not to Claude."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code validates that JSON response against the same [output schema](#json-output) as synchronous hooks, and drops any field whose value has the wrong type, such as a `systemMessage` that isn't a string, instead of delivering it. Run with `--debug` to see a warning naming each dropped field. Before v2.1.202, malformed JSON output from an async hook could crash the session, and the crash recurred each time the session was resumed."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Async hook completion notifications are suppressed by default. To see them, enable verbose mode with `Ctrl+O` or start Claude Code with `--verbose`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Run tests after file changes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Escキーでダイアログを閉じる際の挙動改善や、履歴読み込み中の検索キャンセルに関する安定性の向上が説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -35,7 +35,7 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Ctrl+T` | Toggle Claude's task checklist | Show or hide [Claude's to-do checklist](#task-list) in the status area. This is not the background-task view; use [`/tasks`](/en/commands) to see running shells and subagents |"
+            },
+            {
+              "type": "context",
+              "content": "| `Left/Right arrows` | Cycle through dialog tabs | Navigate between tabs in permission dialogs and menus |"
+            },
+            {
+              "type": "context",
+              "content": "| `Up/Down arrows` or `Ctrl+P`/`Ctrl+N` | Move cursor or navigate command history | When the input spans more than one visual row, whether wrapped or multiline, first moves the cursor within the prompt. Once the cursor is on the first or last visual row, pressing again navigates command history. As of v2.1.169, wrapped single-line input behaves the same as multiline |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Esc` | Interrupt Claude | Stop the current response or tool call mid-turn so you can redirect. Claude keeps the work done so far |"
+            },
+            {
+              "type": "added",
+              "content": "| `Esc` | Interrupt Claude, or close a dialog | Stop the current response or tool call mid-turn so you can redirect. Claude keeps the work done so far. When a dialog such as a permission prompt is open, `Esc` closes the dialog rather than interrupting Claude. Before v2.1.202, `Esc` on some dialogs interrupted Claude and left the dialog open |"
+            },
+            {
+              "type": "context",
+              "content": "| `Esc` + `Esc` | Clear input draft, or rewind | When the prompt input contains text, double `Esc` clears it and saves the draft to history so `Up` recalls it. When the input is empty, double `Esc` opens the [rewind menu](/en/checkpointing) to restore or summarize code and conversation from a previous point |"
+            },
+            {
+              "type": "context",
+              "content": "| `Shift+Tab` or `Alt+M` (some configurations) | Cycle permission modes | Cycle through `default` (labeled Manual in the mode indicator), `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/en/permission-modes). |"
+            },
+            {
+              "type": "context",
+              "content": "| `Option+P` (macOS) or `Alt+P` (Windows/Linux) | Switch model | Switch models without clearing your prompt |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -231,6 +231,8 @@ Press `Ctrl+R` to interactively search through your command history:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The search loads the 100 most recent unique prompts in the selected scope, with duplicates collapsed to the newest occurrence. Matching prompts display with the search term highlighted, so you can find and reuse previous inputs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Accepting a match or canceling the search takes effect immediately, even while Claude Code is still loading the history. Before v2.1.202, accepting or canceling during that load could report an internal error."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Background Bash commands"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code supports running Bash commands in the background, allowing you to continue working while long-running processes execute."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "MCPサーバー設定でtypeが未指定の場合に、従来の不明瞭なエラーではなく具体的な設定ミスとして報告されるようになった点が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -70,6 +70,8 @@ claude mcp add --transport http secure-api https://api.example.com/mcp \\",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When configuring MCP servers via JSON in `.mcp.json`, `~/.claude.json`, or `claude mcp add-json`, the `type` field accepts `streamable-http` as an alias for `http`. The MCP specification uses the name `streamable-http` for this transport, so configurations copied from server documentation work without modification."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A JSON entry that has a `url` but no `type` is a configuration error, because Claude Code reads an entry with no `type` as a stdio server. Claude Code skips that server and reports `MCP server \"<name>\" has a \"url\" but no \"type\"; add \"type\": \"http\" (or \"sse\" / \"ws\") to this entry`. Before v2.1.202, Claude Code reported this misconfiguration as `command: expected string, received undefined`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Option 2: Add a remote SSE server"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The SSE (Server-Sent Events) transport is deprecated. Use HTTP servers instead, where available."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 7,
+      "deletions": 1,
+      "explanation": "ワークフローの実行IDや名前をOpenTelemetryで追跡するための新しい属性と、そのフィルタリング方法についての詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -83,7 +83,7 @@ Claude Code doesn't pass `OTEL_*` environment variables to the subprocesses it s",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `OTEL_LOGS_EXPORT_INTERVAL` | Logs export interval in milliseconds (default: 5000) | `1000`, `10000` |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_USER_PROMPTS` | Enable logging of user prompt content (default: disabled) | `1` to enable |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_ASSISTANT_RESPONSES` | Enable logging of assistant response text on `assistant_response` events (default: disabled). When unset, falls back to the value of `OTEL_LOG_USER_PROMPTS`. Requires Claude Code v2.1.193 or later | `1` to enable, `0` to keep redacted |"
+            },
+            {
+              "type": "removed",
+              "content": "| `OTEL_LOG_TOOL_DETAILS` | Enable logging of tool parameters and input arguments in tool events and trace span attributes: Bash commands, MCP server and tool names, skill names, and tool input. Also enables custom, plugin, and MCP command names on `user_prompt` events (default: disabled) | `1` to enable |"
+            },
+            {
+              "type": "added",
+              "content": "| `OTEL_LOG_TOOL_DETAILS` | Enable logging of tool parameters and input arguments in tool events and trace span attributes: Bash commands, MCP server and tool names, skill names, user-authored workflow names, and tool input. Also enables custom, plugin, and MCP command names on `user_prompt` events (default: disabled) | `1` to enable |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_TOOL_CONTENT` | Enable logging of tool input and output content in span events (default: disabled). Requires [tracing](#traces-beta). Content is truncated at 60 KB | `1` to enable |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_RAW_API_BODIES` | Emit the full Anthropic Messages API request and response JSON as `api_request_body` / `api_response_body` log events (default: disabled). Bodies include the entire conversation history. Enabling this implies consent to everything `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, and `OTEL_LOG_TOOL_CONTENT` would reveal | `1` for inline bodies truncated at 60 KB, or `file:<dir>` for untruncated bodies on disk with a `body_ref` pointer in the event |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | Metrics temporality preference (default: `delta`). Set to `cumulative` if your backend expects cumulative temporality | `delta`, `cumulative` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -177,6 +177,8 @@ Every span carries the [standard attributes](#standard-attributes) plus a `span.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `query_source` | Subsystem that issued the request, such as `repl_main_thread` or a subagent name | |"
+            },
+            {
+              "type": "context",
+              "content": "| `agent_id` | Identifier of the subagent or teammate that issued the request. Absent on the main session | |"
+            },
+            {
+              "type": "context",
+              "content": "| `parent_agent_id` | Identifier of the agent that spawned this one. Absent for the main session and for agents spawned directly from it | |"
+            },
+            {
+              "type": "added",
+              "content": "| `workflow.run_id` | Run identifier of the [Workflow](/en/workflows) tool run that spawned this agent, prefixed `wf_`. Absent for agents not spawned by a workflow | |"
+            },
+            {
+              "type": "added",
+              "content": "| `workflow.name` | Name of the workflow that spawned this agent. User-authored names are replaced with `custom` unless the gate is set | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `speed` | `fast` or `normal` | |"
+            },
+            {
+              "type": "context",
+              "content": "| `llm_request.context` | `interaction`, `tool`, or `standalone` depending on the parent span | |"
+            },
+            {
+              "type": "context",
+              "content": "| `duration_ms` | Wall-clock duration including retries | |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -207,6 +209,8 @@ Each retry attempt is also recorded as a `gen_ai.request.attempt` span event wit",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `result_tokens` | Approximate token size of the tool result | |"
+            },
+            {
+              "type": "context",
+              "content": "| `agent_id` | Identifier of the subagent or teammate that ran the tool. Absent on the main session | |"
+            },
+            {
+              "type": "context",
+              "content": "| `parent_agent_id` | Identifier of the agent that spawned this one. Absent for the main session and for agents spawned directly from it | |"
+            },
+            {
+              "type": "added",
+              "content": "| `workflow.run_id` | Run identifier of the Workflow tool run that spawned this agent, prefixed `wf_`. Absent for agents not spawned by a workflow | |"
+            },
+            {
+              "type": "added",
+              "content": "| `workflow.name` | Name of the workflow that spawned this agent. User-authored names are replaced with `custom` unless the gate is set | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `tool_use_id` | The model's `tool_use` block id for this call. Matches the `tool_use_id` on the [tool\\_result](#tool-result-event) and [tool\\_decision](#tool-decision-event) events and in hook payloads, so you can join the span to those records | |"
+            },
+            {
+              "type": "context",
+              "content": "| `gen_ai.tool.call.id` | Same value as `tool_use_id`. OpenTelemetry GenAI semantic convention | |"
+            },
+            {
+              "type": "context",
+              "content": "| `file_path` | Target file path for Read, Edit, and Write tools | `OTEL_LOG_TOOL_DETAILS` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -402,6 +406,8 @@ Events additionally include the following attributes. These are never attached t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `prompt.id`: UUID correlating a user prompt with all subsequent events until the next prompt. See [Event correlation attributes](#event-correlation-attributes)."
+            },
+            {
+              "type": "context",
+              "content": "- `workspace.host_paths`: host workspace directories selected in the desktop app, as a string array"
+            },
+            {
+              "type": "added",
+              "content": "- `workflow.run_id`: run identifier, prefixed `wf_`, on the API and tool events emitted by agents that belong to a [Workflow](/en/workflows) tool run. Filtering events by one `workflow.run_id` reconstructs that run's API requests and tool results. The identifier covers the agents the workflow script spawns and any agents those spawn in turn, such as skill invocations. It matches the run identifier reported in the Workflow tool result. Absent on all other events. Requires Claude Code v2.1.202 or later"
+            },
+            {
+              "type": "added",
+              "content": "- `workflow.name`: name of the workflow, its script's `meta.name`, emitted alongside `workflow.run_id`. Built-in workflow names appear verbatim when the run executes the unmodified built-in script. User-authored names, including edited copies of built-in scripts, are replaced with `custom` unless `OTEL_LOG_TOOL_DETAILS=1` is set. Requires Claude Code v2.1.202 or later"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Metrics"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "network-config.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "設定が適用されるたびに証明書とキーファイルが再読み込みされ、セッション中の証明書更新が可能になったことが明記されています。",
+      "hunks": [
+        {
+          "header": "@@ -89,6 +89,8 @@ export CLAUDE_CODE_CLIENT_KEY=/path/to/client-key.pem",
+          "lines": [
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_CLIENT_KEY_PASSPHRASE=\"your-passphrase\""
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code reads the certificate and key files at startup and re-reads them each time it applies settings, including when settings change during a session. To rotate the certificate and key, replace the files at the same paths."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Network access requirements"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code requires access to the following URLs. Allowlist these in your proxy configuration and firewall rules, especially in containerized or restricted network environments."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "リモートコントロールセッションにおいて、ローカルマシンとclaude.ai上のUIでパーミッションモードの状態が正しく同期されるよう改善されました。",
+      "hunks": [
+        {
+          "header": "@@ -85,7 +85,7 @@ Use the mode selector next to the send button. Auto and Bypass permissions appea",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Use the mode dropdown next to the prompt box on [claude.ai/code](https://claude.ai/code) or in the mobile app. Permission prompts appear in claude.ai for approval. Which modes appear depends on where the session runs:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Cloud sessions** on [Claude Code on the web](/en/claude-code-on-the-web): Accept edits, Plan mode, and Auto mode. Accept edits corresponds to `default` mode: the cloud environment pre-approves file edits regardless of mode, so the dropdown shows Accept edits instead of Ask permissions. `defaultMode: \"acceptEdits\"` from settings is still honored. Auto mode appears only when your organization allows it and the selected model supports it. Bypass permissions is not available."
+            },
+            {
+              "type": "removed",
+              "content": "- **[Remote Control](/en/remote-control) sessions** on your local machine: Ask permissions, Auto accept edits, and Plan mode. Auto and Bypass permissions are not available."
+            },
+            {
+              "type": "added",
+              "content": "- **[Remote Control](/en/remote-control) sessions** on your local machine: Ask permissions, Auto accept edits, and Plan mode. You can't select Auto or Bypass permissions from the app. The dropdown shows the mode the local session is in, including a mode set from the terminal, and updates when the mode changes in the app or in the terminal. The one exception is Bypass permissions: the session never reports that mode to claude.ai, so switching into it from the terminal doesn't change what the dropdown shows. Before v2.1.202, sessions connected with `/remote-control` or `claude --remote-control` didn't report their mode at all, so claude.ai and the mobile app could show a mode the session wasn't in. The mismatch affected only the label: permission prompts were generated from the session's actual mode and still appeared in the app for approval."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For Remote Control, you can also set the starting mode when launching the host:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "gitignoreパターンのエスケープ処理による許可パスの正確な判定や、特定のディレクトリ移動を伴うgitコマンド実行時の警告条件が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -182,7 +182,7 @@ Claude Code recognizes a built-in set of Bash commands as read-only and runs the",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Unquoted glob patterns are permitted for commands whose every flag is read-only, so `ls *.ts` and `wc -l src/*.py` run without a prompt. Commands with write-capable or exec-capable flags, such as `find`, `sort`, `sed`, and `git`, still prompt when an unquoted glob is present because the glob could expand to a flag like `-delete`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A `cd` into a path inside your working directory or an [additional directory](#working-directories) is also read-only. A compound command like `cd packages/api && ls` runs without a prompt when each part qualifies on its own. Combining `cd` with `git` in one compound command always prompts, regardless of the target directory."
+            },
+            {
+              "type": "added",
+              "content": "A `cd` into a path inside your working directory or an [additional directory](#working-directories) is also read-only. A compound command like `cd packages/api && ls` runs without a prompt when each part qualifies on its own. Combining `cd` with `git` in one compound command prompts when the `cd` changes into a different directory, since running `git` in a new directory can execute that directory's hooks. A `cd` whose target resolves to the current working directory is a no-op and doesn't trigger this prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Bash permission patterns that try to constrain command arguments are fragile. For example, `Bash(curl http://github.com/ *)` intends to restrict curl to GitHub URLs, but won't match variations like:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -268,6 +268,8 @@ A rule only matches files under its anchor, so the anchor determines how far a d",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In gitignore patterns, `*` matches within a single path segment and can appear at any position in the pattern, while `**` matches across directories. To allow all file access, use only the tool name without parentheses: `Read`, `Edit`, or `Write`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When you approve a file path with \"Yes, don't ask again\", Claude Code escapes gitignore pattern characters in that path, such as `[`, `]`, and `*`, so the generated rule matches only the literal path you approved. Rules you write yourself aren't escaped. Before v2.1.202, Claude Code saved the path unescaped, so a generated rule for a directory named `[2024-06] Reports` could fail to match its own path or match unintended sibling directories."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When Claude accesses a symlink, permission rules check two paths: the symlink itself and the file it resolves to. Allow and deny rules treat that pair differently: allow rules fall back to prompting you, while deny rules block outright."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Allow rules**: apply only when both the symlink path and its target match. A symlink inside an allowed directory that points outside it still prompts you."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "remote-control.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "モバイルアプリやブラウザからキャプションなしでファイルを送信した際に、セッションに正しく反映されるよう改善されました。",
+      "hunks": [
+        {
+          "header": "@@ -15,6 +15,7 @@ When you start a Remote Control session on your machine, Claude keeps running lo",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Use your full local environment remotely**: your filesystem, [MCP servers](/en/mcp), tools, and project configuration all stay available, and typing `@` autocompletes file paths from your local project"
+            },
+            {
+              "type": "context",
+              "content": "- **Work from both surfaces at once**: the conversation stays in sync across all connected devices, so you can send messages from your terminal, browser, and phone interchangeably"
+            },
+            {
+              "type": "added",
+              "content": "- **Send images and files from your phone or browser**: when you add an attachment in the Claude app or at claude.ai/code, Claude Code downloads it to your machine and passes it to Claude as an `@` file reference, with or without a caption. Before v2.1.202, Claude Code could drop an attachment sent without a caption before it reached the session."
+            },
+            {
+              "type": "context",
+              "content": "- **Survive interruptions**: if your laptop sleeps or your network drops, the session reconnects automatically when your machine comes back online"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Unlike [Claude Code on the web](/en/claude-code-on-the-web), which runs on cloud infrastructure, Remote Control sessions run directly on your machine and interact with your local filesystem. The web and mobile interfaces are just a window into that local session."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "scheduled-tasks.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "自己完結型のループ処理において、タスク完了時にScheduleWakeupツールを通じて明示的にループを終了できる仕組みが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -122,7 +122,9 @@ On Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry, `loop.m",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To stop a `/loop` while it is waiting for the next iteration, press `Esc`. This clears the pending wakeup so the loop does not fire again. Tasks you scheduled by [asking Claude directly](#manage-scheduled-tasks) are not affected by `Esc` and stay in place until you delete them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In [self-paced mode](#let-claude-choose-the-interval), Claude can also end the loop on its own by not scheduling the next wakeup once the task is provably complete. Loops on a fixed interval keep running until you stop them or [seven days elapse](#seven-day-expiry)."
+            },
+            {
+              "type": "added",
+              "content": "In [self-paced mode](#let-claude-choose-the-interval), Claude can also end the loop on its own once the task is complete. Claude calls the [`ScheduleWakeup` tool](/en/tools-reference) with `stop: true`, which cancels the pending wakeup immediately. If an iteration ends without either rescheduling or stopping, Claude Code schedules one fallback wakeup about 20 minutes later and ends the loop when that iteration doesn't reschedule either. Before v2.1.202, not rescheduling was the only way Claude could end a loop on its own."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Loops on a fixed interval keep running until you stop them or [seven days elapse](#seven-day-expiry)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Set a one-time reminder"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "動的なワークフロー作成時にClaudeが目指すべきエージェント数のガイドラインを指定するworkflowSizeGuideline設定が導入されました。",
+      "hunks": [
+        {
+          "header": "@@ -325,6 +325,7 @@ Versions before v2.1.119 also store a number of `/config` preference keys here i",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `autoInstallIdeExtension` | **Default**: `true`. Automatically install the Claude Code IDE extension when running from a VS Code terminal. Appears in `/config` as **Auto-install IDE extension** when running inside a VS Code or JetBrains terminal. You can also set the [`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/en/env-vars) environment variable to `1` | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `externalEditorContext` | **Default**: `false`. Prepend Claude's previous response as `#`-commented context when you open the external editor with `Ctrl+G`. Appears in `/config` as **Show last response in external editor** | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `teammateDefaultModel` | Default model for [agent team](/en/agent-teams) teammates when the spawn prompt doesn't specify one. Set to a model alias such as `\"sonnet\"`, or `null` to inherit the lead's current `/model` selection. Appears in `/config` as **Default teammate model** | `\"sonnet\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `workflowSizeGuideline` | **Default**: `unrestricted`, which sends no guideline. Sets the [agent count Claude aims for](/en/workflows#set-a-size-guideline) in the dynamic workflows it writes. Claude Code sends the value to Claude as advice, not an enforced cap. Accepts `unrestricted`, `small`, `medium`, or `large`. Appears in `/config` as **Dynamic workflow size**. You can also set it directly with `/config workflowSizeGuideline=small`. Requires Claude Code v2.1.202 or later | `\"small\"` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Worktree settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "同一内容のスキルが再呼び出しされた際、コンテキストに重複した全文を追加せず、読み込み済みである旨の短い注釈に留める最適化が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -339,6 +339,8 @@ In a regular session, skill descriptions are loaded into context so Claude knows",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there for the rest of the session. Claude Code does not re-read the skill file on later turns, so write guidance that should apply throughout a task as standing instructions rather than one-time steps."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When Claude re-invokes a skill whose rendered content is identical to the copy already in context, Claude Code adds a short note that the skill is already loaded rather than a second copy of the content. When the rendered content differs, because the arguments changed or a [dynamic context](#inject-dynamic-context) command produced new output, Claude Code appends the full content again. Before v2.1.202, every re-invocation appended another full copy of the skill's instructions."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Auto-compaction](/en/how-claude-code-works#when-context-fills-up) carries invoked skills forward within a token budget. When the conversation is summarized to free context, Claude Code re-attaches the most recent invocation of each skill after the summary, keeping the first 5,000 tokens of each. Re-attached skills share a combined budget of 25,000 tokens. Claude Code fills this budget starting from the most recently invoked skill, so older skills can be dropped entirely after compaction if you have invoked many in one session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If a skill seems to stop influencing behavior after the first response, the content is usually still present and the model is choosing other tools or approaches. Strengthen the skill's `description` and instructions so the model keeps preferring it, or use [hooks](/en/hooks) to enforce behavior deterministically. If the skill is large or you invoked several others after it, re-invoke it after compaction to restore the full content."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ScheduleWakeupツールに、保留中のウェイクアップをキャンセルしてループを停止するためのstopフィールドが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -37,7 +37,7 @@ To add custom tools, connect an [MCP server](/en/mcp). To extend Claude with reu",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ReadMcpResourceTool` | Reads a specific MCP resource by URI | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `RemoteTrigger` | Creates, updates, runs, and lists [Routines](/en/routines) on claude.ai. Backs the `/schedule` command. Routines live on claude.ai and require a Pro, Max, Team, or Enterprise plan, so this tool is not accessible from Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `ReportFindings` | Reports code-review findings as a structured list, with a file, summary, and failure scenario per finding, so Claude Code can render them instead of printing them as text. Claude calls it when active code-review instructions tell it to. Requires Claude Code v2.1.196 or later. As of v2.1.199, a finding can also carry an optional `category` slug, such as `correctness` or `test-coverage`, shown next to the file location in the rendered list | No |"
+            },
+            {
+              "type": "removed",
+              "content": "| `ScheduleWakeup` | Reschedules the next iteration of a [self-paced `/loop`](/en/scheduled-tasks#let-claude-choose-the-interval). Claude calls this at the end of each iteration to pick when the next one runs, between one minute and one hour out; you don't call it directly. The pending wakeup appears in `session_crons` in [Stop hook input](/en/hooks#stop-input). Not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry, where a `/loop` prompt with no interval runs on a fixed schedule instead | No |"
+            },
+            {
+              "type": "added",
+              "content": "| `ScheduleWakeup` | Reschedules the next iteration of a [self-paced `/loop`](/en/scheduled-tasks#let-claude-choose-the-interval). Claude calls this at the end of each iteration to pick when the next one runs, between one minute and one hour out; you don't call it directly. To end the loop instead, Claude calls it with `stop: true`, which cancels the pending wakeup. The `stop` field requires Claude Code v2.1.202 or later. The pending wakeup appears in `session_crons` in [Stop hook input](/en/hooks#stop-input). Not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry, where a `/loop` prompt with no interval runs on a fixed schedule instead | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `SendMessage` | Sends a message to an [agent team](/en/agent-teams) teammate, or [resumes a subagent](/en/sub-agents#resume-subagents) by its agent ID or name. Stopped subagents auto-resume in the background. Structured team-protocol messages require agent teams. A receiver never treats a message from another agent as your consent or approval. As of v2.1.198, a subagent treats a message from the agent that launched it as normal task direction rather than as a peer request. As of v2.1.199, a send to a name that now resolves to a different agent than it did earlier in the conversation is refused instead of delivered; see [Resume subagents](/en/sub-agents#resume-subagents) | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `SendUserFile` | Sends files from the session to you with an optional caption, so a generated report, diagram, screenshot, or built artifact reaches your device instead of only being mentioned in the transcript. As of v2.1.196, the optional `display` input controls presentation: `render` opens the file inline in the client, `attach` shows a download card only, and when unset the client decides by file type. Available when a [Remote Control](/en/remote-control) client is connected or the session runs in a managed cloud environment such as [Claude Code on the web](/en/claude-code-on-the-web). Delivery runs through Anthropic-hosted infrastructure, so the tool is not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `ShareOnboardingGuide` | Uploads `ONBOARDING.md` and returns a share link teammates can open in Claude Code. Called from `/team-onboarding` after the guide is written. Available to claude.ai subscribers on Pro, Max, Team, and Enterprise plans | Yes |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshooting.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "インストールおよびアップデートのダウンロードが失敗した場合の新しいエラーメッセージに対応する参照先が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -12,6 +12,7 @@ This page covers performance, stability, and search problems once Claude Code is",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Symptom | Go to |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `command not found`, install fails, PATH issues, `EACCES`, TLS errors | [Troubleshoot installation and login](/en/troubleshoot-install) |"
+            },
+            {
+              "type": "added",
+              "content": "| Update or install download fails with `The connection dropped while downloading the update` or `aborted` | [Error reference](/en/errors#the-connection-dropped-while-downloading-the-update) |"
+            },
+            {
+              "type": "context",
+              "content": "| Login loops, OAuth errors, `403 Forbidden`, \"organization disabled\", Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry credentials | [Troubleshoot installation and login](/en/troubleshoot-install#login-and-authentication) |"
+            },
+            {
+              "type": "context",
+              "content": "| Settings not applying, hooks not firing, MCP servers not loading | [Debug your configuration](/en/debug-your-config) |"
+            },
+            {
+              "type": "context",
+              "content": "| `API Error: 5xx`, `529 Overloaded`, `429`, request validation errors | [Error reference](/en/errors) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "ultrareview.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "クラウドベースのマルチエージェントレビューと、通常のローカルレビューにおける深度や所要時間の比較説明が調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -14,7 +14,7 @@ Ultrareview is a deep code review that runs on Claude Code on the web infrastruc",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Compared to a local `/code-review` or `/review`, ultrareview offers:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Higher signal**: every reported finding is independently reproduced and verified, so the results focus on real bugs rather than style suggestions"
+            },
+            {
+              "type": "removed",
+              "content": "- **Broader coverage**: a larger fleet of reviewer agents explores the change in parallel, which surfaces issues that a medium-effort local review can miss"
+            },
+            {
+              "type": "added",
+              "content": "- **Broader coverage**: a larger fleet of reviewer agents explores the change in parallel, which surfaces issues that a local review can miss"
+            },
+            {
+              "type": "context",
+              "content": "- **No local resource use**: the review runs entirely in a remote sandbox, so your terminal stays free for other work while it runs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ultrareview requires authentication with a Claude.ai account because it runs on Claude Code on the web infrastructure. If you are signed in with an API key only, run `/login` and authenticate with Claude.ai first. Ultrareview is not available when using Claude Code with Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry, and it is not available to organizations that have enabled Zero Data Retention."
+            }
+          ]
+        },
+        {
+          "header": "@@ -94,8 +94,8 @@ All three commands review code, but they target different stages of your workflo",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| Target | your working diff | a GitHub pull request | your working diff or a pull request |"
+            },
+            {
+              "type": "context",
+              "content": "| Runs | locally in your session | locally in your session | remotely in a cloud sandbox |"
+            },
+            {
+              "type": "removed",
+              "content": "| Depth | scales with the effort argument | the medium `/code-review` engine | multi-agent fleet with independent verification |"
+            },
+            {
+              "type": "removed",
+              "content": "| Duration | seconds to a few minutes | a few minutes | roughly 5 to 10 minutes |"
+            },
+            {
+              "type": "added",
+              "content": "| Depth | scales with the effort argument | a single-pass review at the session's effort | multi-agent fleet with independent verification |"
+            },
+            {
+              "type": "added",
+              "content": "| Duration | seconds to a few minutes | seconds to a few minutes | roughly 5 to 10 minutes |"
+            },
+            {
+              "type": "context",
+              "content": "| Cost | counts toward normal usage | counts toward normal usage | free runs, then roughly $5 to $20 per review as usage credits |"
+            },
+            {
+              "type": "context",
+              "content": "| Best for | quick feedback while iterating | reviewing a teammate's PR before approving | pre-merge confidence on substantial changes |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "voice-dictation.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "音声入力の自動停止判定において、起動失敗だけでなく録音開始後のキャプチャ失敗もカウントされるよう判定基準が強化されました。",
+      "hunks": [
+        {
+          "header": "@@ -164,7 +164,7 @@ Common issues when voice dictation does not activate or record:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **`No audio recording tool found` on Linux**: the native audio module could not load and no fallback is installed. Install SoX with the command shown in the error message, for example `sudo apt-get install sox`."
+            },
+            {
+              "type": "context",
+              "content": "- **`Voice mode requires a microphone, but SoX could not open an audio capture device`**: SoX is installed, but the host has no audio capture device, for example a headless server or a container. Run Claude Code on a machine with a microphone. As of v2.1.195, Claude Code on Linux reports this message in that situation; earlier versions asked you to install SoX even when it was already installed."
+            },
+            {
+              "type": "context",
+              "content": "- **`Voice mode could not find a working audio recorder in WSL`**: WSLg routes audio through PulseAudio rather than an ALSA device, so SoX needs its PulseAudio backend installed explicitly. Run `sudo apt install sox libsox-fmt-pulse`. Installing `sox` alone pulls in the ALSA backend, which cannot record on WSL because there is no `/dev/snd` device."
+            },
+            {
+              "type": "removed",
+              "content": "- **`Voice input is failing repeatedly and has been paused`**: voice dictation hit several start-up failures in a row and stopped attempting new sessions until one succeeds. This usually means the microphone or audio stack on this host can't capture audio, for example a headless server, a remote shell with no audio passthrough, or a denied microphone permission. Confirm a working input device, fix the underlying cause from the entries above, then trigger voice again."
+            },
+            {
+              "type": "added",
+              "content": "- **`Voice input is failing repeatedly and has been paused`**: voice dictation hit several capture failures in a row and stopped attempting new sessions until one succeeds. A failure counts whether the microphone fails to start or the recorder starts and then stops without producing any audio. This usually means the microphone or audio stack on this host can't capture audio, for example a headless server, a remote shell with no audio passthrough, or a denied microphone permission. Confirm a working input device, fix the underlying cause from the entries above, then trigger voice again. Before v2.1.202, only start-up failures counted toward the pause."
+            },
+            {
+              "type": "context",
+              "content": "- **Nothing happens when holding `Space` in hold mode**: watch the prompt input while you hold. If spaces keep accumulating, voice dictation is likely off; run `/voice hold` to enable it. If only one or two spaces appear and then nothing, voice dictation is on but hold detection is not triggering. Hold detection requires your terminal to send key-repeat events, so it can't detect a held key if key-repeat is disabled at the OS level. Switch to tap mode with `/voice tap` to avoid the key-repeat requirement."
+            },
+            {
+              "type": "context",
+              "content": "- **Tapping `Space` types a space instead of recording in tap mode**: the first tap only starts recording when the prompt input is empty. Clear the input first, or check that you are in tap mode by running `/voice tap`."
+            },
+            {
+              "type": "context",
+              "content": "- **`No audio detected from microphone`**: recording started but captured silence. Confirm the correct input device is set as the system default and that its input level is not muted or near zero. On Windows, open Settings → System → Sound → Input and select your microphone. On macOS, open System Settings → Sound → Input."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "workflows.md",
+      "additions": 16,
+      "deletions": 1,
+      "explanation": "ワークフローの規模を制御するための「Dynamic workflow size」設定の詳細と、推奨されるエージェント数の各目安が定義されました。",
+      "hunks": [
+        {
+          "header": "@@ -287,13 +287,28 @@ Resume works within the same Claude Code session. If you exit Claude Code while",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A workflow spawns many agents, so a single run can use meaningfully more tokens than working through the same task in conversation. Runs count toward your plan's usage and rate limits like any other session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To gauge the spend before committing to a large task, run the workflow on a small slice first: one directory instead of the whole repo, or a narrow question instead of a broad one. The `/workflows` view shows each agent's token usage as the run progresses, and you can stop the run there at any time without losing completed work. The runtime's [agent caps](#behavior-and-limits) limit how many agents a single run can spawn, which bounds the cost of a runaway script."
+            },
+            {
+              "type": "added",
+              "content": "To gauge the spend before committing to a large task, run the workflow on a small slice first: one directory instead of the whole repo, or a narrow question instead of a broad one. The `/workflows` view shows each agent's token usage as the run progresses, and you can stop the run there at any time without losing completed work. The runtime's [agent caps](#behavior-and-limits) limit how many agents a single run can spawn, which bounds the cost of a runaway script. To keep every run smaller by default, [set a size guideline](#set-a-size-guideline) in `/config`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Every agent in a workflow uses your session's model unless the script routes a stage to a different one. To control the model cost:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Check `/model` before a large run if you usually switch to a smaller model for routine work"
+            },
+            {
+              "type": "context",
+              "content": "- Ask Claude to use a smaller model for stages that don't need the strongest one when you describe the task"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Set a size guideline"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The Dynamic workflow size setting in `/config` keeps the workflows Claude writes to a smaller scale by default. Claude Code sends the setting to Claude as advice, so a prompt that calls for a different scale still overrides it. Requires Claude Code v2.1.202 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each value sets the agent count Claude aims for in the scripts it writes."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Value | Guidance sent to Claude |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `unrestricted` | No guideline. This is the default. |"
+            },
+            {
+              "type": "added",
+              "content": "| `small` | Aim for fewer than 5 agents. |"
+            },
+            {
+              "type": "added",
+              "content": "| `medium` | Aim for fewer than 15 agents. |"
+            },
+            {
+              "type": "added",
+              "content": "| `large` | Aim for fewer than 50 agents. |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Changes take effect on the next prompt. The [runtime agent caps](#behavior-and-limits) still apply regardless of the setting."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Turn workflows off"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Workflows are available in the CLI, the Desktop app, the IDE extensions, [non-interactive mode](/en/headless) with `claude -p`, and the [Agent SDK](/en/agent-sdk/overview). The same disable settings apply on every surface."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
