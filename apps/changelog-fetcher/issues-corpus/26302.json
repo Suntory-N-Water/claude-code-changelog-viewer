@@ -1,0 +1,35 @@
+{
+  "number": 26302,
+  "title": "[BUG] Claude Desktop 1.1.3189 severe UI lag and mouse stutter on Windows — performance regression after update",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Desktop became severely laggy after auto-updating from 1.1.2998 to **1.1.3189** on February 16, 2026. The app had been working perfectly for weeks prior. When the Claude Desktop window is in the foreground, the **mouse cursor visibly stutters**, typed input lags, and the entire UI feels unresponsive. Moving the app to the background immediately relieves system responsiveness.\n\n## Root Cause Analysis\n\nI profiled the running app and identified three contributing factors introduced or amplified by v1.1.3189:\n\n### 1. Cowork VM starts on every launch (new in this version)\n\nThe update introduced a Hyper-V virtual machine that boots automatically on app start, even when the Cowork feature is not being used. The VM:\n- Downloads and manages a **9.5 GB `rootfs.vhdx`** disk image\n- Runs `vmcompute` and `vmmemCmZygote` processes in the background\n- Sends a **keepalive ping every 2,000ms** indefinitely\n- Takes ~9 seconds to boot on each app launch\n\nPrior versions logged `\"yukonSilver not supported, skipping\"` — the VM was not started. Now it starts unconditionally.\n\nFrom `cowork_vm_node.log`:\n```\n2026-02-16 06:45:41 [info] [VM:start] Beginning startup...\n2026-02-16 06:45:54 [info] [Keepalive] Starting (interval=2000ms)\n```\n\n### 2. SkillsPlugin polls every 60 seconds with React state updates\n\nThe `SkillsPlugin` syncs every 60 seconds, accumulating **2,177+ log entries** in a single session. Each sync cycle triggers a React state update even when nothing changes (0 downloads, 0 removals every time):\n\n```\n2026-02-17 06:43:36 [info] [SkillsPlugin] Starting skills sync\n2026-02-17 06:43:36 [info] [SkillsPlugin] Found 5 enabled skills\n2026-02-17 06:43:36 [info] [SkillsPlugin] Delta: 0 to download, 0 to remove\n2026-02-17 06:43:36 [info] [SkillsPlugin] Sync complete: 0 downloaded, 0 removed, 0 orphans cleaned\n```\n\n### 3. Renderer and GPU processes consume significant idle CPU\n\nWith the app window focused but idle (no streaming, no scrolling), a 5-second CPU sample showed:\n\n| Process | CPU % (of one core) | Role |\n|---------|---------------------|------|\n| Renderer (PID 3744) | **13.4%** | Chromium compositor |\n| GPU process (PID 38784) | **11.6%** | GPU compositing |\n| **Combined** | **~25%** | Just painting frames while idle |\n\nThis is on a 3840x1600 @ 144Hz monitor with 1.5x DPI scaling. The MSIX packaging ignores all standard Electron GPU flag mechanisms (`ELECTRON_EXTRA_LAUNCH_ARGS`, `electron-flags.conf`, NVIDIA Control Panel per-app profiles), so there is no way to tune GPU compositing behavior.\n\n### Additional log signals\n\n- **React hydration error on every startup:** `Uncaught Error: Minified React error #418` (hydration mismatch)\n- **EventEmitter memory leak warning:** `MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 listeners added` — suggests listener accumulation without cleanup\n- **CSP violation:** `Connecting to 'https://a-api.anthropic.com/v1/m' violates Content Security Policy` — blocked metrics endpoint\n\n### Environment\n\n| Component | Detail |\n|-----------|--------|\n| **Claude Desktop** | 1.1.3189.0 (MSIX: `Claude_1.1.3189.0_x64__pzs8sxrjxfjjc`) |\n| **Electron** | 40.4.1 |\n| **Claude Code** | 2.1.41 |\n| **Previous working version** | 1.1.2998 |\n| **OS** | Windows 11 Pro 25H2 (Build 26200) |\n| **CPU** | Intel Core i9-14900HX (24 cores / 32 threads) |\n| **RAM** | 64 GB |\n| **GPU** | NVIDIA GeForce RTX 4070 Laptop (Driver 32.0.15.9174) |\n| **iGPU** | Intel UHD Graphics (Driver 32.0.101.7079) |\n| **Monitor** | Dell AW3821DW — 3840x1600 @ 144Hz, 1.5x scaling, 10-bit color |\n| **Windows Updates** | KB5077181, KB5077869 (Feb 11, 2026) |\n\n### Suggested Fixes\n\n1. **Don't start the Cowork VM unless the user opens a Cowork session.** The VM currently boot",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-17T12:48:02Z",
+  "updated_at": "2026-06-28T16:16:56Z",
+  "closed_at": null,
+  "reactions_total": 42,
+  "comments_count": 45,
+  "author": "J3-code",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/22543\n2. https://github.com/anthropics/claude-code/issues/22275\n3. https://github.com/anthropics/claude-code/issues/18014\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-17T12:52:39Z"
+    },
+    {
+      "author": "J3-code",
+      "author_association": "NONE",
+      "body": "Not a duplicate of any of the three listed issues.\n\n- **#22543** is macOS-only and focuses on the VM bundle size/cleanup. This issue is Windows-specific and covers three separate problems introduced by v1.1.3189: (1) the Cowork VM starting unconditionally even when Cowork is never used, (2) SkillsPlugin polling every 60s triggering unnecessary React state updates (2,177+ entries in a single session), and (3) the MSIX packaging ignoring all Electron GPU flag mechanisms (`ELECTRON_EXTRA_LAUNCH_ARG",
+      "created_at": "2026-02-17T13:00:24Z"
+    },
+    {
+      "author": "TheDeftones",
+      "author_association": "NONE",
+      "body": "I have the same problem with Claude desktop. When I first started with chatty, I had the same problem there too and Claude says it might be because they both use Electron apps? Although it acknolwedged that the issue with Claude is more recent. Still, it's super annoying. ",
+      "created_at": "2026-03-01T06:40:35Z"
+    }
+  ]
+}

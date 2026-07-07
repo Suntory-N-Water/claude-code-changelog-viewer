@@ -1,0 +1,42 @@
+{
+  "number": 57242,
+  "title": "Windows 11: Claude Code interactive claude command frozen in all terminals; non‑interactive and doctor work",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code’s interactive mode is completely frozen on my Windows 11 machine. Running claude shows the banner / welcome but never accepts any keyboard input. I cannot type commands or messages, and /feedback is unusable. Non‑interactive commands and claude doctor work.\n\n**Environment**\n\n- OS: Windows 11 (64‑bit)\n- Install method: npm install -g @anthropic-ai/claude-code\n- Claude Code CLI version: as reported by claude doctor (currently shows npm‑global, 2.1.112; stable 2.1.123, latest 2.1.133)\n- Terminal shells tried:\n-- Windows Terminal: PowerShell 7\n-- Windows Terminal: Command Prompt (cmd.exe)\n-- Git Bash \n-- Classic PowerShell (outside Windows Terminal)\n-- Classic cmd.exe\n- VS Code: latest stable, Windows\n\n**Auth / status**\n\n- claude auth login succeeds.\n- claude auth status shows loggedIn: true, authMethod: \"claude.ai\", subscriptionType: \"max\", with my org ID.\n- claude doctor runs to completion and reports no critical errors, only an MCP warning (playwright on Windows needing cmd /c), which is unrelated.\n- Claude status page now shows “Fully operational” (it was down the previous day).\n\n**Workarounds already tried (none worked)**\n- Set CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 and then ran claude in PowerShell and cmd.exe.\n- Set TERM=dumb plus CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 and ran claude.\n- Tried multiple terminal hosts and shells:\n-- Windows Terminal (PowerShell 7 and cmd.exe).\n-- Classic PowerShell and classic cmd.exe.\n-- VS Code integrated terminal.\n-- Git Bash\n- Killed all stuck node/Claude processes from Task Manager before restarting.\n- Verified non‑interactive commands:\n-- claude doctor works.\n-- claude auth status works.\n-- claude ask \"test\" also freezes.\n- Renamed C:\\Users\\<user>\\.claude to force fresh config and re‑auth; issue persists.\n- Checked that there is only one CLI install (npm global) and used that path.\n\n### What Should Happen?\n\nRunning claude should open an interactive session where I can type commands and questions.\n\n**What actually happens**\nThe TUI / interactive mode is completely frozen on startup in every Windows terminal I’ve tried, with no visible error message, so I can’t even run /feedback to report from within the tool.\n\n**Impact**\n- I cannot use Claude Code’s interactive terminal UI at all on this Windows machine.\n- I also can’t use /feedback or /bug, so I’m filing this report manually.\n\n### Error Messages/Logs\n\n```shell\nNone, simply freezes\n```\n\n### Steps to Reproduce\n\n**Steps to reproduce**\n\n1. Open a terminal on Windows 11 (PowerShell 7, Windows Terminal).\n2. Run:\n```powershell\nclaude auth login\nclaude auth status\nclaude doctor\n```\nAll of these succeed.\n3. Run:\n```powershell\nclaude\n```\n4. Observe: the CLI appears to start (screen clears or shows a banner), but the session is completely frozen:\n- No > prompt.\n- Keyboard input is ignored.\n- I cannot type /help, /feedback, or any message.\n- I must close the terminal or kill the process from Task Manager.\n\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.112 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n- This continued even after Claude’s status page returned to “Fully operational.”\n- Browser‑based Claude (Claude.ai) and my Max subscription work fine.\n- Logs from the VS Code extension show repeated Error: Query closed before response received and “OAuth tokens found in secure storage,” but CLI auth and doctor are healthy.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tui",
+    "regression",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-05-08T09:39:06Z",
+  "updated_at": "2026-07-05T22:25:52Z",
+  "closed_at": "2026-07-05T22:25:52Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "glkoons",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/31225\n2. https://github.com/anthropics/claude-code/issues/22970\n3. https://github.com/anthropics/claude-code/issues/31283\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-08T09:44:48Z"
+    },
+    {
+      "author": "glkoons",
+      "author_association": "NONE",
+      "body": "Closing as duplicate of #31181 which describes the same Windows TUI freeze with no input and no workaround. Adding a 👍 there.",
+      "created_at": "2026-05-09T07:38:42Z"
+    },
+    {
+      "author": "glkoons",
+      "author_association": "NONE",
+      "body": "This is the same family as #31181 but reproducible on v2.1.112, which is ~50 versions past the 2.1.58–2.1.69 range #31181 covers. The three flagged duplicates (#31225, #22970, #31283) are all closed v2.1.69 reports; closing this as a duplicate of any of them would hide the fact that the regression has persisted or returned on a much later build. Also cross-reference #58352 (open, v2.1.139, related symptoms) so a maintainer can see the version spread.",
+      "created_at": "2026-05-13T11:50:35Z"
+    }
+  ]
+}

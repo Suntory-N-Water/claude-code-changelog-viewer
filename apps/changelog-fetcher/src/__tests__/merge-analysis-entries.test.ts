@@ -84,7 +84,7 @@ describe('解析済み項目の差分反映', () => {
     ).toEqual(['- Added plan mode support']);
   });
 
-  it('同じ本文の項目が複数ある時、本文だけでなく位置が一致した項目だけを流用すること', () => {
+  it('同じ本文の項目が複数ある時、id が一致する既存解析を全ての重複位置で流用すること', () => {
     const duplicatedContent = '- Added settings validation';
     const currentEntries = [
       changelogEntry(duplicatedContent),
@@ -93,24 +93,40 @@ describe('解析済み項目の差分反映', () => {
     ];
     const existingAnalysis = changelogAnalysis([
       analyzedEntry(duplicatedContent, 'docs/settings-first.md'),
-      analyzedEntry(duplicatedContent, 'docs/settings-second.md'),
     ]);
 
     const sut = mergeAnalysisEntries(currentEntries, existingAnalysis);
     const searchedEntries = [
       analyzedEntry('- Fixed settings migration', 'docs/settings-migration.md'),
-      analyzedEntry(duplicatedContent, 'docs/settings-new-position.md'),
     ];
 
     expect(sut.entriesNeedingSearch.map((entry) => entry.content)).toEqual([
       '- Fixed settings migration',
-      duplicatedContent,
     ]);
     expect(filesFromMergeDecisions(sut.decisions, searchedEntries)).toEqual([
       'docs/settings-first.md',
       'docs/settings-migration.md',
-      'docs/settings-new-position.md',
+      'docs/settings-first.md',
     ]);
+  });
+
+  it('項目の並び順が変わっても id が一致する既存解析を流用すること', () => {
+    const currentEntries = [
+      changelogEntry('- Fixed resume from VS Code terminal'),
+      changelogEntry('- Added plan mode support'),
+    ];
+    const existingAnalysis = changelogAnalysis([
+      analyzedEntry('- Added plan mode support', 'docs/plan.md'),
+      analyzedEntry('- Fixed resume from VS Code terminal', 'docs/vs-code.md'),
+    ]);
+
+    const sut = mergeAnalysisEntries(currentEntries, existingAnalysis);
+
+    expect(filesFromMergeDecisions(sut.decisions, [])).toEqual([
+      'docs/vs-code.md',
+      'docs/plan.md',
+    ]);
+    expect(sut.entriesNeedingSearch).toEqual([]);
   });
 });
 

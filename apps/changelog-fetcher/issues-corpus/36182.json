@@ -1,0 +1,35 @@
+{
+  "number": 36182,
+  "title": "Worktree: Edit/Read tools use main workspace paths instead of worktree paths",
+  "body": "## Bug Description\n\nWhen Claude Code operates in a git worktree (created automatically by the harness), the Edit, Read, and Write tools consistently target files in the **main workspace** rather than the **worktree directory**, even though the system prompt correctly identifies the worktree as the primary working directory.\n\n## Steps to Reproduce\n\n1. Start a Claude Code session that creates/uses a git worktree (e.g. via the automatic branch creation feature)\n2. The system prompt correctly states:\n   - Primary working directory: /path/to/repo/.claude/worktrees/name\n   - Current branch: claude/name\n3. Ask Claude to edit a file (e.g. workspace_shell.py)\n4. The Edit tool targets /path/to/repo/workspace_shell.py (main workspace) instead of /path/to/repo/.claude/worktrees/name/workspace_shell.py (worktree)\n\n## Expected Behavior\n\nAll file operations should resolve relative to the worktree path when operating in a worktree. The system prompt explicitly provides the correct working directory, but file paths from Explore agents and subsequent tool calls use the main workspace root.\n\n## Actual Behavior\n\n- Explore agents report file paths using the main workspace root\n- Subsequent Edit/Read/Write calls use those paths verbatim\n- All changes land in the main workspace (often main branch), not the worktree side branch\n- The running app (via preview_start) executes from the worktree and sees none of the changes\n- This is completely invisible to the user — no error is raised, edits succeed silently on the wrong files\n\n## Impact\n\nIn our session, every edit across ~15 iterations went to the wrong file. The app ran the original unmodified code the entire time. Hours of debugging a \"not working\" visual change were wasted because the changes were never in the file being executed.\n\n## Environment\n\n- macOS (Darwin 25.3.0)\n- Claude Code CLI with worktree support\n- Model: claude-opus-4-6\n\n## Suggested Fix\n\nWhen operating in a worktree, file tool calls should either:\n1. Resolve relative paths against the worktree root (not the main workspace), or\n2. Validate that absolute paths fall within the worktree and warn/redirect if they don't\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-19T12:14:25Z",
+  "updated_at": "2026-06-30T05:58:59Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 12,
+  "author": "primum-mobile",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17927\n2. https://github.com/anthropics/claude-code/issues/34877\n3. https://github.com/anthropics/claude-code/issues/35230\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-19T12:18:24Z"
+    },
+    {
+      "author": "primum-mobile",
+      "author_association": "NONE",
+      "body": "👎",
+      "created_at": "2026-03-19T16:48:46Z"
+    },
+    {
+      "author": "ishaan-mehta",
+      "author_association": "NONE",
+      "body": "I am seeing this behavior with the Explore agent as well, which regularly tries to read from the project root rather than the worktree directory, even though I started the conversation in the worktree directory.",
+      "created_at": "2026-03-25T17:56:14Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 48945,
+  "title": "[BUG] Plan-file inline comments (\"Leave a comment for Claude\") don't reach the model on resume",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nSummary\nThe plan-review UI shows \"Leave a comment for Claude…\" on hover for each line of the plan file. Comments left this way are visible in the client's right pane but are never delivered to the model — not in the approved-plan payload, not in the plan file on disk, and not through any other channel the model can access.\n\n\n\nWhat does work\nDirect file edits made by the user in the plan review UI do come through (they modify the file on disk). So the model can see changes the user types directly into the plan text.\nComments do not. They live only in the client UI.\nTested twice in one session\nFirst test (organic): User left 4 substantive comments on a dashboard plan (field corrections, scope changes). Model couldn't see any of them. User had to screenshot each comment one-by-one and paste into chat.\nSecond test (controlled): Model wrote 3 marked lines (\"Comment test line A/B/C\") explicitly asking the user to leave comments. User confirmed comments were visible in the right pane. After approval, all 3 lines came back clean — no comments attached.\nImpact\nPlan comments are the only structured way for a user to give line-level feedback on a plan without rewriting the plan text. When they don't work:\n\nThe model builds the wrong thing (missing field corrections, scope changes, business logic overrides)\nThe user has to re-communicate feedback through screenshots or chat — defeating the purpose of the feature\nTrust in the planning workflow erodes (\"why does it say 'for Claude' if Claude can't read it?\")\nSuggested fix\nEither:\n\n(a) Merge comments into the plan file on approval as inline annotations (e.g. <!-- user: comment text --> next to the target line)\n(b) Append a ## User Comments section to the approved-plan payload in the ExitPlanMode tool result, with line references\n(c) Deliver them as a follow-up user message after plan approval\nOption (a) is the most durable — it survives the model re-reading the file later.\n\nEnvironment\nClaude Code (desktop app, macOS)\nModel: Claude Opus 4.6 (1M context)\nDate: 2026-04-15\n\n\n### What Should Happen?\n\n The model can read the comments after approval — either embedded in the plan file, appended to the ExitPlanMode tool result, or delivered as a user message.\n\nActual: The model receives the plan with zero trace of the comments. The plan file on disk is byte-identical to what the model wrote pre-approval. The approved-plan payload in the ExitPlanMode result also omits them. The model has no tool or API to access the client's annotation layer.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nEnter plan mode — model writes a plan to the plan file\nModel calls ExitPlanMode\nIn the plan review UI, hover on any line and click \"Leave a comment for Claude…\"\nType a comment and click \"Comment\"\nConfirm the comment appears in the right-side annotation pane\nClick Approve\nExpected: The model can read the comments after approval — either embedded in the plan file, appended to the ExitPlanMode tool result, or delivered as a user message.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude 1.2773.0 (884b37) 2026-04-15T14:32:09.000Z\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:core"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-16T03:53:24Z",
+  "updated_at": "2026-06-21T01:41:10Z",
+  "closed_at": "2026-06-06T10:43:46Z",
+  "reactions_total": 6,
+  "comments_count": 12,
+  "author": "llima-llama",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/43503\n2. https://github.com/anthropics/claude-code/issues/36436\n3. https://github.com/anthropics/claude-code/issues/44174\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-16T03:56:19Z"
+    },
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "Plan-file inline comments labeled \"Leave a comment for Claude\" that are never delivered to the model is a broken UI contract — the label explicitly promises the model will see the comment, and the feature does not deliver on that promise.\n\nThis is a trust failure at the UX layer: users make decisions based on the assumption that labeled UI elements do what they say. \"Leave a comment for Claude\" creates a reasonable expectation that Claude will receive the comment. When the feature silently disca",
+      "created_at": "2026-04-16T04:10:58Z"
+    },
+    {
+      "author": "FlorianBELLAZOUZ",
+      "author_association": "NONE",
+      "body": "I got the same problem ",
+      "created_at": "2026-04-28T12:19:11Z"
+    }
+  ]
+}

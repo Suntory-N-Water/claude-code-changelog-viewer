@@ -1,0 +1,35 @@
+{
+  "number": 45178,
+  "title": "[BUG] Cowork EXDEV: cross-device link not permitted — rename within same directory (Windows 11 Pro, OneDrive present)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nEvery time Cowork attempts to set up the workspace, the download of rootfs.vhdx completes and validates the checksum successfully, but the final rename() operation fails with EXDEV — even though both source and destination are within the exact same directory (claudevm.bundle\\).\n\nThe error repeats on every retry. After the failure, Claude deletes the temp files immediately, leaving no residual files. cowork_vm_node.log is never created.\n\n### What Should Happen?\n\nThe rootfs.vhdx file should be successfully moved from the temp subdirectory .wvm-tmp-* to the bundle directory, and the Cowork VM should start normally.\n\n### Error Messages/Logs\n\n```shell\nFailed to start Claude's workspace EXDEV: cross-device link not permitted, rename 'C:\\Users\\theop\\AppData\\Roaming\\Claude\\vm_bundles\\claudevm.bundle\\.wvm-tmp-HdFDd7\\rootfs.vhdx'     -> 'C:\\Users\\theop\\AppData\\Roaming\\Claude\\vm_bundles\\claudevm.bundle\\rootfs.vhdx' \n\nEvent Log (System):\nThe Claude service terminated with the following service-specific error: Incorrect function. (Error code 1)\n\nCoworkVMService status:\nStatus: Stopped\nExitCode: 1 (ERROR_INVALID_FUNCTION)\n```\n\n### Steps to Reproduce\n\n1. Perform an in-place upgrade from Windows 11 Home to Windows 11 Pro (build 26200.8117)\n2. Have OneDrive installed and active (folder at C:\\Users\\<user>\\OneDrive, separate from AppData)\n3. Install Claude Desktop from claude.ai/download\n4. Enable Hyper-V: Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All\n5. Enable HypervisorPlatform: Enable-WindowsOptionalFeature -Online -FeatureName HypervisorPlatform\n6. Reboot\n7. Open Claude Desktop → navigate to Cowork tab\n8. Observe EXDEV error after download completes\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Desktop 1.1062.0 (b81bcd) — 2026-04-06\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nKey detail: Both paths in the EXDEV error are inside the same parent directory (claudevm.bundle\\). This is not a cross-drive issue. The source is a hidden subdirectory .wvm-tmp-* created by cowork-svc.exe inside the destination directory itself.\n\nTroubleshooting already attempted (all failed):\n\n- Reboot — Error persists\n- Full reinstall (Remove-AppxPackage + manual data cleanup) — Error persists\n- Enable HypervisorPlatform + VirtualMachinePlatform + Hyper-V — Done, all Enabled\n- Disable CldFlt driver (sc.exe config CldFlt start= disabled) + reboot — CldFlt confirmed STOPPED, error persists\n- Manually create sessiondata.vhdx via New-VHD — Created successfully, CoworkVMService still fails\n- Pre-create vm_bundles\\claudevm.bundle directory — Claude deletes and recreates; error unchanged\n- Create placeholder rootfs.vhdx at destination before launch — Error unchanged\n- FileSystemWatcher to intercept and copy .wvm-tmp-*\\rootfs.vhdx — File deleted too fast, watcher does not fire\n- Verified $env:APPDATA is not a symlink or junction — Confirmed: normal directory\n- Verified OneDrive is at C:\\Users\\theop\\OneDrive (not syncing AppData) — Confirmed: AppData not in OneDrive path\n- Confirmed OS build 26200.8117 (KB5086672)\n\nAppData symlink check:\nFullName: C:\\Users\\theop\\AppData\\Roaming — Target: {} — LinkType: (none)\n\nHypothesis: The in-place upgrade from Windows 11 Home → Pro may leave filesystem filter driver registrations or NTFS metadata in a state where Node.js fs.rename() across subdirectories within the same parent triggers EXDEV — even with CldFlt stopped. A copyFile + unlink fallback when EXDEV is encountered (as suggested in #30584) would resolve this regardless of the underlying filesystem sta",
+  "labels": ["bug", "duplicate", "platform:windows", "area:cowork"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-08T12:28:18Z",
+  "updated_at": "2026-07-05T18:04:56Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "theopeixoto23",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/38457\n2. https://github.com/anthropics/claude-code/issues/39029\n3. https://github.com/anthropics/claude-code/issues/40505\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-08T12:31:40Z"
+    },
+    {
+      "author": "theopeixoto23",
+      "author_association": "NONE",
+      "body": "This is not a duplicate of #38457 (CldFlt/Dropbox) — CldFlt was confirmed STOPPED during testing and the error persisted.\nThe key difference in this report: both source and destination paths are inside the same directory (claudevm.bundle\\), not across drives or different volumes. This suggests a distinct failure mode specific to the Home→Pro upgrade path combined with OneDrive presence.\nPreventing auto-close as this combination has not been documented in the referenced issues.\n",
+      "created_at": "2026-04-08T12:41:11Z"
+    },
+    {
+      "author": "maya4stern-sketch",
+      "author_association": "NONE",
+      "body": "Hello, I'd like to report the same issue. I didn't want to open a duplicate, as I see there are already a few marked as duplicates by github-actions.\nAfter chatting with claude about it, and trying to resolve this in many ways, including some directions in powershell. The issue persist and here's the summary:\n\nCowork workspace setup fails repeatedly with: EXDEV: cross-device link not permitted, rename 'C:\\Users\\maya4\\AppData\\Roaming\\Claude\\vm_bundles\\claudevm.bundle.wvm-tmp-AVAM1B\\rootfs.vhdx' -",
+      "created_at": "2026-04-14T03:02:43Z"
+    }
+  ]
+}

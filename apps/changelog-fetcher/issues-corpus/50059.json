@@ -1,0 +1,35 @@
+{
+  "number": 50059,
+  "title": "Desktop Code tab doesn't honor `remoteControlAtStartup` from ~/.claude/settings.json",
+  "body": "## Summary\n\nThe `remoteControlAtStartup: true` setting in `~/.claude/settings.json` auto-enables Remote Control for every new session in the terminal CLI, but **does not take effect in the claude.app desktop app's Code tab**. Each new Code session starts with Remote Control disabled; `/config` isn't available in that context to toggle it either.\n\n## Environment\n\n- macOS 15.x (Darwin 25.5.0)\n- Claude desktop app (latest)\n- Embedded Claude Code at `~/Library/Application Support/Claude/claude-code/2.1.111/claude.app/Contents/MacOS/claude`\n- Terminal `claude` CLI installed separately\n\n## Repro\n\n1. In `~/.claude/settings.json`, set `\"remoteControlAtStartup\": true`.\n2. Start a new session in the terminal CLI → Remote Control auto-enables ✅\n3. Start a new session in the claude.app desktop app's \"Code\" tab → Remote Control is **not** auto-enabled ❌\n4. `/config` is unavailable inside the desktop Code tab, so there's no UI to toggle the equivalent preference.\n\n## What I found while investigating\n\n- The desktop's embedded Claude Code install dir has no separate `settings.json` (only the `.app` bundle and a `.verified` marker), which suggests the embedded CLI should already read `~/.claude/settings.json`.\n- The desktop app's own `~/Library/Application Support/Claude/config.json` stores OAuth/theme/migration state only — no `remoteControlAtStartup` analogue.\n- So either (a) the embedded CLI reads the file but `remoteControlAtStartup` is a CLI-only startup behavior, or (b) the desktop host app wraps the session and manages Remote Control activation separately from the embedded CLI's startup flag.\n\n## Request\n\nOne of:\n\n1. Have the desktop Code tab honor `remoteControlAtStartup` from `~/.claude/settings.json` for the embedded sessions it spawns, OR\n2. Surface a \"Enable Remote Control for all sessions\" toggle in the desktop Code tab's UI (parity with the CLI's `/config` toggle), OR\n3. Make `/config` available inside the desktop Code tab.\n\nAny of these would close the gap. Option 1 is the least-surprise behavior given the shared-settings-file model.\n\n## Why this matters\n\nThe terminal CLI's auto-start behavior is useful precisely because it removes a per-session step. Desktop Code sessions need the same convenience to be first-class — right now the desktop feels like a downgrade from the CLI for users who rely on Remote Control.",
+  "labels": ["bug", "platform:macos", "area:desktop"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-17T18:00:52Z",
+  "updated_at": "2026-06-24T14:12:54Z",
+  "closed_at": "2026-06-02T11:38:36Z",
+  "reactions_total": 11,
+  "comments_count": 6,
+  "author": "oliverames",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jasonpiepmeier",
+      "author_association": "NONE",
+      "body": "+1 — hitting the same friction on the Claude Desktop app for Mac. Every new session in the Code tab requires manually typing /remote-control. A remoteControlEnabled: true setting (per #37589) would fix this across CLI and Desktop.",
+      "created_at": "2026-04-18T00:18:32Z"
+    },
+    {
+      "author": "natekettles",
+      "author_association": "NONE",
+      "body": "**+ 1** (_more if I could!_). \nClaude clearly wants us to use the Desktop app, so either honouring the flag or exposing a toggle in the Desktop app itself would go a long way to making it a first-class experience. ",
+      "created_at": "2026-04-29T15:01:44Z"
+    },
+    {
+      "author": "jaredingold",
+      "author_association": "NONE",
+      "body": "having the same issue... as a temp workaround I'm starting multiple sessions before i leave my workstation, setting each to remote-control, then using dispatch to run them... would be really nice to allow either dispatch to run remote-control or let the settings (remote control = true) work in the desktop app",
+      "created_at": "2026-05-04T18:44:17Z"
+    }
+  ]
+}

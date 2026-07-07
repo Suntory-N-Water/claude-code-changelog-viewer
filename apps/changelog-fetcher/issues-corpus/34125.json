@@ -1,0 +1,41 @@
+{
+  "number": 34125,
+  "title": "[BUG] Past Conversations empty on Windows with mapped network drives (realpath resolves to UNC path)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Description\n\nThe VS Code extension's session loading silently fails when the workspace is on a mapped network drive (e.g., `Z:\\Claude Code`). The \"Past Conversations\" dropdown shows only the current session — all historical sessions are missing.\n\n## Root Cause\n\nThe extension calls `fs.realpath()` on the workspace path, which on Windows resolves mapped drives to their UNC path:\n- Input: `z:\\Claude Code`\n- realpath output: `\\\\192.168.1.15\\MIKE - DROPBOX\\Claude Code`\n\nThe sanitized UNC path (`--192-168-1-15-MIKE---DROPBOX-Claude-Code`) doesn't match the project directory created by the CLI (`z--Claude-Code`), so `readdir` fails with ENOENT and the error is silently swallowed.\n\n## Steps to Reproduce\n\n1. Map a network share to a drive letter (e.g., `Z:`)\n2. Open VS Code with a workspace on the mapped drive\n3. Have multiple Claude Code conversations\n4. Close and reopen VS Code\n5. Click \"Past Conversations\" dropdown — only the current session appears\n\n## Workaround\n\nCreate a Windows junction linking the UNC-sanitized name to the real project dir:\n\n```powershell\nNew-Item -ItemType Junction -Path \"$HOME\\.claude\\projects\\--192-168-1-15-MIKE---DROPBOX-Claude-Code\" -Target \"$HOME\\.claude\\projects\\z--Claude-Code\"\n\n\n### What Should Happen?\n\nPast Conversations should display all historical sessions regardless of \nwhether the workspace is on a local drive or a mapped network drive. The \nCLI and VS Code extension should resolve the project directory name \nconsistently.\n\n### Error Messages/Logs\n\n```shell\nNo visible errors — the failure is completely silent. The dropdown renders \nbut shows only the current active session.\n\nVS Code Output log (Claude VSCode channel) shows the request being sent \nbut no corresponding response or error:\n\n2026-03-13 15:13:23.106 [info] Received message from webview: {\"type\":\"request\",\"requestId\":\"177sxgvtwqi\",\"request\":{\"type\":\"list_sessions_request\"}}\n2026-03-13 15:13:23.954 [info] Received message from webview: {\"type\":\"request\",\"requestId\":\"u2gpr7lwfp\",\"request\":{\"type\":\"list_sessions_request\"}}\n\n(No list_sessions_response ever logged. Remote sessions work fine: \"Fetched 2 remote sessions\")\n\nThe underlying error is ENOENT on readdir for the UNC-sanitized path, \ncaught and swallowed silently in the session loading code.\n```\n\n### Steps to Reproduce\n\n1. Map a network share to a Windows drive letter (e.g., Z:)\n2. Open a workspace on the mapped drive in VS Code (e.g., Z:\\my-project)\n3. Start a Claude Code conversation and close VS Code\n4. Reopen VS Code to the same workspace\n5. Click the \"Past Conversations\" dropdown — only the current session appears, historical sessions are missing\n\nThe mapped drive is key — the bug does not occur on local drives (C:\\).\n\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n- Claude Code extension: v2.1.75 (default model: Sonnet)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:ide",
+    "platform:vscode"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-13T20:28:09Z",
+  "updated_at": "2026-06-19T12:38:58Z",
+  "closed_at": "2026-05-28T11:27:40Z",
+  "reactions_total": 4,
+  "comments_count": 12,
+  "author": "ironcannibal",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33140\n2. https://github.com/anthropics/claude-code/issues/31219\n3. https://github.com/anthropics/claude-code/issues/33408\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-13T20:31:33Z"
+    },
+    {
+      "author": "BoostlyPeter",
+      "author_association": "NONE",
+      "body": "Confirmed on v2.1.76 with a mapped network drive (`X:` → UNC `\\server\\share\\...`). Same silent failure — `list_sessions` returns `n=0` even with 11 sessions on disk.\n\n**Root cause confirmed:**\n\nThe function is `IS(v)` in v2.1.76 (`FS(z)` in v2.1.74):\n\n```javascript\nasync function IS(v) {\n  try { return (await N3.realpath(v)).normalize(\"NFC\") }\n  catch { return v.normalize(\"NFC\") }\n}\n```\n\n`N3` is `require(\"fs/promises\")`. On Windows, `fs.promises.realpath()` resolves mapped drive letters to UNC p",
+      "created_at": "2026-03-16T16:35:42Z"
+    },
+    {
+      "author": "BoostlyPeter",
+      "author_association": "NONE",
+      "body": "**Update for v2.1.78:** The function was renamed and variables changed again. New targets:\n\n```javascript\n// v2.1.78 — function renamed pP, async fs = M3, sync fs = Iq:\nasync function pP(z) {\n  try { return Iq.realpathSync(z).normalize(\"NFC\") }\n  catch { return z.normalize(\"NFC\") }\n}\n```\n\nSummary across versions:\n\n| Version | Function | Async fs var | Sync fs var |\n|---------|----------|-------------|-------------|\n| v2.1.74 | `FS(z)` | `o8` | `DH` |\n| v2.1.76 | `IS(v)` | `N3` | `b2` |\n| v2.1.78",
+      "created_at": "2026-03-18T09:27:05Z"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "number": 46140,
+  "title": "CRITICAL: claude.ai MCP connector OAuth completes but Bearer token never sent to server",
+  "body": "## Priority: CRITICAL / URGENT\n\n## Summary\n\nclaude.ai's MCP connector completes the full OAuth 2.1 authorization_code + PKCE flow successfully (Dynamic Client Registration → authorize → token exchange), but **never sends the subsequent MCP request with the Bearer token**. The server issues a valid access_token, but claude.ai reports \"Authorization with the MCP server failed\" without ever attempting an authenticated request.\n\nThis affects ALL self-hosted remote MCP servers using OAuth. The server-side implementation is correct — verified by simulating the full flow with curl through the same tunnel.\n\n## Environment\n\n- Self-hosted MCP server behind Cloudflare named tunnel\n- Transport: Streamable HTTP (POST for JSON-RPC, GET for SSE)\n- Protocol version: 2025-03-26\n- Server correctly implements: RFC 9728 (Protected Resource Metadata), RFC 8414 (Authorization Server Metadata), RFC 7591 (Dynamic Client Registration), PKCE (S256)\n\n## Reproduction\n\nEvery attempt follows this exact sequence (from server logs):\n\n```\nPOST /gws → 200 (initialize succeeds)\nGET /.well-known/oauth-protected-resource/gws → 404\nGET /.well-known/oauth-protected-resource → 404  \nGET /.well-known/oauth-authorization-server → 404\nPOST /register → 201 (client registered successfully)\nGET /authorize → 302 (code issued, redirect to claude.ai callback)\nPOST /token → 200 (access_token issued, PKCE verified ✓)\n... silence. No authenticated MCP request ever arrives.\n```\n\nClaude.ai then displays: \"Authorization with the MCP server failed\"\n\n## Proof the server works\n\nFull OAuth + authenticated MCP call via curl through the same tunnel:\n\n```bash\n# Register → Authorize → Token (all succeed)\n# Then:\ncurl -X POST https://mcp.prtrust.fund/gws \\\n  -H \"Authorization: Bearer <token>\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\"}'\n# Returns: 6 tools successfully\n```\n\nThe server is reachable, OAuth is correct, authenticated MCP calls work. claude.ai just never sends step 8.\n\n## Variations tested (all fail identically)\n\n| Version | What we tried | Result |\n|---------|--------------|--------|\n| v1.5.19 | well-known 200 + OAuth enabled, resource=/sse | Token issued, never used |\n| v1.5.20 | Added 401 gate on POST /sse for tunnel requests | claude.ai skipped 401, went straight to /register |\n| v1.5.22 | Path-aware well-known (resource matches connector URL) | Token issued, never used |\n| v1.5.25 | Accept client_secret as Bearer + client_credentials grant | Token issued, never used |\n| v1.5.27 | 404 ALL OAuth endpoints | \"Couldn't reach server\" |\n| v1.5.28 | 404 well-known only, OAuth endpoints live | Token issued, never used |\n| v1.5.29 | 404 /register too | \"Couldn't reach server\" |\n| v1.5.30 | Fresh domain (mcp.prtrust.fund, no cached state) | Token issued, never used |\n\n## PKCE verification proof (from server logs)\n\n```\nOAuth /token: grant_type=authorization_code code=a9693dc3… verifier=present\nOAuth /token: PKCE: challenge=0Qdw7BNb6SUK… computed=0Qdw7BNb6SUK… match=true\nOAuth: token issued for 0b5d725f1b047d1757c3b6bb3e299f2f (token=ab956009…)\n```\n\nPKCE passes. Token is valid. claude.ai has the token. It never uses it.\n\n## Support references\n\n- `ofid_5b4f176052475e66`\n- `ofid_24385e3ebac39bf8`\n- `ofid_00912162dce5872c`\n- `ofid_3ddc9e36fada07fa`\n- `ofid_42c4f5ce4ebf5530`\n- `ofid_0124fba879402e77`\n- `ofid_f8bab433728a98e9`\n- `ofid_0c0e836314b4995f`\n- `ofid_5211d10fd69c4ff0`\n\n## Related issues\n\n- modelcontextprotocol/modelcontextprotocol#2157\n- Multiple reports on community forums of the same \"Authorization failed\" pattern\n- Cloudflare community thread: \"Authorization with the MCP server failed\" (WAF ruled out)\n\n## Impact\n\nCannot use any self-hosted MCP server with claude.ai web interface. Claude Code CLI works perfectly with the same server (OAuth completes and Bearer token is correctly sent). This blocks all remote MCP integrations for users who need claude.ai web access.\n\n## Expected behavior\n\nAfter receiving a valid access_token from POST /token, claude.ai should retry the original MCP request ",
+  "labels": [
+    "bug",
+    "area:auth",
+    "area:mcp",
+    "area:claude-code-web",
+    "platform:web"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-10T08:42:58Z",
+  "updated_at": "2026-06-21T14:32:13Z",
+  "closed_at": null,
+  "reactions_total": 7,
+  "comments_count": 19,
+  "author": "daveladouceur",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "raye-deng",
+      "author_association": "NONE",
+      "body": "This is a critical issue – OAuth flow completes successfully but the Bearer token never gets used in subsequent requests. We've seen a similar pattern in production where AI-generated API clients complete all the setup steps correctly but fail to actually use the credentials in the actual API calls.\n\nThe tricky part is that these failures are often silent: the OAuth response looks valid (200 OK with access_token), the code path for authorization completes without exceptions, but the actual API r",
+      "created_at": "2026-04-10T09:25:43Z"
+    },
+    {
+      "author": "daveladouceur",
+      "author_association": "NONE",
+      "body": "## Update — still broken, now with fully protocol-compliant server (v1.5.37)\n\nRebuilt the OAuth 2.1 implementation from scratch following the spec exactly. All server-side issues from the original report are fixed. The bug is confirmed client-side.\n\n### What was fixed server-side (v1.5.36–v1.5.37)\n\n- Added proper 401 gate with `WWW-Authenticate: Bearer realm=\"MCP\", resource_metadata=\"<absolute-url>\"`\n- Public client registration — no `client_secret`, `token_endpoint_auth_methods_supported: [\"non",
+      "created_at": "2026-04-10T22:32:41Z"
+    },
+    {
+      "author": "daveladouceur",
+      "author_association": "NONE",
+      "body": "## Workaround found — noauth on fresh domain\n\nWhile waiting for the OAuth proxy fix, we found a working workaround:\n\n**Use a fresh domain that has never exposed OAuth endpoints.** Claude.ai connects directly — same pattern as any MCP server without auth (e.g., regen-media).\n\n### What we discovered\n\n- `regen-media` MCP (media.regendevcorp.com) works on claude.ai because it **never had** OAuth endpoints\n- Any domain that has **ever** exposed `/.well-known/oauth-authorization-server` appears to be ",
+      "created_at": "2026-04-11T19:25:50Z"
+    }
+  ]
+}

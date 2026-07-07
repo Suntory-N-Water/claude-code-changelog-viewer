@@ -1,0 +1,35 @@
+{
+  "number": 64108,
+  "title": "Tool calls intermittently emitted as literal text (stray 'court' + raw <invoke>) instead of executing — mostly Edit/Read (Opus, CLI)",
+  "body": "### Summary\n\nIn a long Claude Code CLI session (Opus, large-context), the agent **intermittently\nemitted tool calls as literal text in the transcript instead of executing them.**\nThe leaked text is prefixed with a stray `court` token followed by the raw\nfunction-call XML, e.g.:\n\n```\ncourt\n<invoke name=\"Edit\">\n<parameter name=\"file_path\">/path/to/file</parameter>\n<parameter name=\"old_string\">...</parameter>\n<parameter name=\"new_string\">...</parameter>\n</invoke>\n```\n\nInstead of the `Edit` (or `Read`) being dispatched, the `<invoke>…</invoke>` block\nrendered verbatim in chat. The stray leading `court` token is the consistent\nsignature.\n\n### Frequency / pattern\n\n- Happened ~6+ times across one session.\n- Almost exclusively on **`Edit`** and **`Read`** tool calls. `Bash` calls were\n  unaffected.\n- Sometimes the underlying tool still executed despite the leaked text; other\n  times the turn was wasted and the call had to be re-issued.\n\n### Impact\n\n- Heavy transcript noise and operator confusion.\n- Wasted turns re-issuing calls.\n- Looks like the agent is malfunctioning mid-task.\n\n### Environment\n\n- Surface: Claude Code CLI\n- Model: Opus (large-context)\n- OS: macOS\n\n### Notes\n\nThe `court`-prefixed raw `<invoke>` strongly suggests a function-call\nserialization/tokenization corruption rather than a tool-side error (the tools\nthemselves work when the call is well-formed). Filing for visibility; happy to\nprovide more redacted transcript context if useful.\n",
+  "labels": ["bug", "platform:macos", "platform:linux", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-31T02:32:18Z",
+  "updated_at": "2026-07-05T16:16:27Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 13,
+  "author": "lyrova-andy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/64097\n2. https://github.com/anthropics/claude-code/issues/63998\n3. https://github.com/anthropics/claude-code/issues/63870\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-31T02:40:58Z"
+    },
+    {
+      "author": "cheonnamsu",
+      "author_association": "NONE",
+      "body": "Adding a data point — same symptom observed on **Opus 4.8 (1M variant)** in a Claude Code CLI session on macOS. Likely same root cause; reporting what differs from the original to help triage.\n\n**Reproduction context**\n- Model: `claude-opus-4-8` (1M variant; session model id shown as `claude-opus-4-8[1m]`)\n- Claude Code: 2.1.159\n- OS: macOS 26.5 (Apple Silicon, M4 Pro)\n- MCP: Playwright (stdio + HTTP); also reproduced with the built-in Bash tool with no MCP active\n\n**Additional data points**\n- *",
+      "created_at": "2026-06-01T05:11:50Z"
+    },
+    {
+      "author": "cnighswonger",
+      "author_association": "NONE",
+      "body": "Adding a first-party data point that may matter for triage: **this corruption is not specific to Opus 4.8 or CC 2.1.158/159.**\n\nWe observed the identical `\"court\"`-corruption shape on **Opus 4.7 + CC 2.1.148**, in a long-running session where neither the model variant nor the client binary changed across the onset of the bug.\n\n### Forensic shape\n\nFrom a single Claude Code session's local `.jsonl` transcript:\n\n- **490 confirmed corruption events** observed between **2026-05-28 17:12 UTC** and **2",
+      "created_at": "2026-06-02T11:55:50Z"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "number": 49747,
+  "title": "[BUG] Opus 4.7 mixes legacy XML tool-use format into JSON tool calls on longer payloads",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen calling a custom MCP tool with multiple required parameters (including an array field and a few string fields) on Opus 4.7, the model intermittently emits **legacy Anthropic XML tool-use syntax inside a JSON-format tool call**. Specifically, a string-valued argument ends with a literal `</parameter_name>` closing tag *inside the JSON string*, and subsequent parameters appear as `<parameter name=\"X\">value</parameter>` XML blocks instead of JSON key-value pairs.\n\nBecause Claude Code parses tool calls as strict JSON, the XML-declared parameters never reach the parsed arguments object — required fields come through as `undefined`, schema validation fails, and the model is forced to retry. In practice this produces **4-6 consecutive tool-call attempts per logical turn**, each progressively shorter, burning ~1k tokens per failed attempt before one finally succeeds.\n\nThe trigger correlates strongly with **total output length of the tool call**. Short arguments (one-phrase fields) succeed on first attempt. Paragraph-length arguments almost always trigger the XML leak. The model cannot self-correct via prompt instructions — I tested explicit system-prompt rules forbidding XML tags in tool-call strings; the bug still fires. This is a decoder-level format switch, not something overridable from the prompt layer.\n\nThis is a regression from Opus 4.6, which handled the same MCP tool with verbose arguments reliably.\n\n### What Should Happen?\n\nThe model should emit **one** tool call per turn with all arguments as JSON key-value pairs, no XML tags embedded in any string value. Schema validation passes on first attempt, no retries, no context-window waste.\n\n### Error Messages/Logs\n\n```shell\nMCP error -32602: Input validation error: Invalid arguments for tool <tool_name>: [\n  {\n    \"expected\": \"array\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"files_modified\"\n    ],\n    \"message\": \"Invalid input: expected array, received undefined\"\n  }\n]\n\n\nExample of the malformed tool-call output that causes this (note the `</summary_of_changes>` + `<parameter name=\"files_modified\">` tokens *inside the JSON string* for `summary_of_changes`):\n\n\ntool_name(\n  user_intent: \"...\",\n  ai_reasoning: \"...\",\n  summary_of_changes: \"...several sentences of content.</summary_of_changes>\\n<parameter name=\\\"files_modified\\\">[\\\"item1\\\",\\\"item2\\\"]\",\n  status: \"completed\",\n  model_name: \"claude-opus-4-7[1m]\",\n  tags: [\"tag-a\"]\n)\n\n\nThe JSON string for `summary_of_changes` ends with `</summary_of_changes>` followed by `<parameter name=\"files_modified\">...` — the decoder flipped to legacy XML tool-use mid-argument. The `files_modified` array never becomes a JSON top-level key, so the parsed arguments have `files_modified: undefined`.\n```\n\n### Steps to Reproduce\n\n1. Register a custom MCP tool via the official TypeScript MCP SDK with 5-7 required parameters — at least one `z.array(z.string())` array field plus several `z.string()` fields whose descriptions invite verbose content (e.g., \"detailed explanation\", \"concise summary of changes\"). Example schema:\n   ```ts\n   server.tool(\n     \"log_outcome\",\n     \"Log the outcome of the turn.\",\n     {\n       user_intent: z.string(),\n       ai_reasoning: z.string(),\n       summary_of_changes: z.string(),\n       files_modified: z.array(z.string()),\n       status: z.enum([\"completed\", \"in_progress\", \"failed\"]),\n       tags: z.array(z.string()).optional(),\n       model_name: z.string().optional(),\n     },\n     async (args) => ({ content: [{ type: \"text\", text: \"ok\" }] })\n   );\n   ```\n2. Connect it to Claude Code via `.mcp.json` over stdio. Confirm it loads.\n3. Start a Claude Code session on Opus 4.7.\n4. Prompt the model to perform any non-trivial work and then call `log_outcome` with",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:model",
+    "area:mcp",
+    "regression"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-17T05:34:32Z",
+  "updated_at": "2026-07-04T17:06:38Z",
+  "closed_at": null,
+  "reactions_total": 34,
+  "comments_count": 32,
+  "author": "nextdev-labs",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Omegastick",
+      "author_association": "NONE",
+      "body": "I have also noticed this as an issue not just in Claude Code but with Opus 4.7 via the API.",
+      "created_at": "2026-04-17T08:39:58Z"
+    },
+    {
+      "author": "valentabc",
+      "author_association": "NONE",
+      "body": "Confirming this from #60584 (closing that as a duplicate of this one — same root cause: legacy XML tool-use markup leaking into the output).\n\nAdding two observations that may help narrow it down:\n\n1. It also leaks into the visible message, not just into tool-call args. In my sessions the assistant emitted the literal text court followed by a full <invoke name=\"Edit\">...</invoke> block as plain markdown in the chat. No tool ran, no error was returned — completely silent. So the failure mode isn't",
+      "created_at": "2026-05-19T16:56:44Z"
+    },
+    {
+      "author": "akige",
+      "author_association": "NONE",
+      "body": "## Additional data point: empty thinking block + missing tool_use (5/20 onset)\n\nI'm seeing a related but distinct failure mode on Opus 4.7 that started around **May 20, 2026**:\n\n**Symptom**: The API returns `stop_reason: \"tool_use\"` but the `content` array contains **only an empty thinking block** (0 chars, with valid signature) — the `tool_use` block is completely absent. The SDK detects the mismatch, retries, and if the retry also fails, surfaces `\"The model's tool call could not be parsed (re",
+      "created_at": "2026-05-21T05:24:05Z"
+    }
+  ]
+}

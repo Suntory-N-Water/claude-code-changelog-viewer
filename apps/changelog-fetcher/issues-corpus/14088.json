@@ -1,0 +1,35 @@
+{
+  "number": 14088,
+  "title": "[BUG] Chat history not persisting for projects on mapped drives / OneDrive",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nEnvironment\n\nOS: Windows 11 ARM64\nVS Code: 1.107.0 (also tested with 1.106.2)\nClaude Code Extension: 2.0.46\nProject location: Mapped drive O: pointing to OneDrive folder\n\nSummary\nClaude Code extension fails to persist chat history when the project is located on a mapped Windows drive (e.g., O:\\OneDrive\\Projects\\...). The same project works correctly when opened from a local path (e.g., C:\\temp\\project).\nSymptoms\n\nChat history disappears: After restarting VS Code, the chat title briefly appears (~1 second) then vanishes. \"Past Conversations\" shows empty.\nEmpty .jsonl files created: The extension creates empty (0 bytes) session files in ~/.claude/projects/ on every startup:\n\n   63f5f607-d84c-477d-b6b2-ff2b9243b937.jsonl    0 bytes\n   d733edbc-d2df-4a34-b90d-870bfc870158.jsonl    0 bytes\n   ...\n\nConsole errors:\n\n   ERR [UriError]: Scheme contains illegal characters.\n   ERR chatParticipant must be declared in package.json: claude-code\n   ERR Error providing chat sessions: TypeError: Cannot read properties of undefined (reading 'created_at')\nRoot Cause Analysis\nThe mapped drive letter O: appears to be interpreted as a URI scheme by VS Code/extension, causing the UriError: Scheme contains illegal characters error.\nAdditionally, the extension creates empty .jsonl session files which then break the session loading logic (attempting to read created_at from empty/invalid JSON).\n\n### What Should Happen?\n\nChat history should persist across VS Code restarts regardless of whether the project is on a local drive or mapped drive.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Map a network drive or OneDrive folder to a drive letter (e.g., O:)\n2. Create/open a project on that mapped drive: code O:\\Projects\\myproject\n3. Open Claude Code sidebar and start a conversation\n4. Close VS Code completely\n5. Reopen VS Code with the same project\n6. Observe: Chat history briefly appears then disappears\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n1.107.0\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nWorkaround\nOpen the project using a local path instead of the mapped drive:\nbash# Instead of:\ncode O:\\OneDrive\\Projects\\myproject\n\n# Use:\ncode C:\\Users\\username\\OneDrive\\Projects\\myproject\nAdditional Notes\nVS Code 1.107.0 Compatibility Issue\nWith VS Code 1.107.0, there's an additional error:\nERR Error providing chat sessions: TypeError: Cannot read properties of undefined (reading 'created_at')\nThis error originates from mainThreadChatSessions.ts:498 (VS Code internal code), suggesting a Chat Participant API incompatibility. Downgrading to VS Code 1.106.2 reduces (but doesn't eliminate) the errors for mapped drive projects.\nEmpty File Creation Bug\nThe extension should either:\n\nNot create empty .jsonl files, OR\nHandle empty files gracefully when loading sessions (skip them instead of crashing)\n\nFile System Monitoring Evidence\nUsing PowerShell FileSystemWatcher, observed that:\n\nExtension creates new session files on every startup\nSome files remain at 0 bytes\nDeleting empty files temporarily fixes history loading, but new empty files are created immediately\n\nSuggested Fixes\n\nPath handling: Normalize Windows mapped drive paths before using them as identifiers or in URI construction\nEmpty file handling: Add null/empty check when parsing .jsonl session files\nVS Code 1.107.0: Update Chat Participant API integration for compatibility",
+  "labels": ["bug", "has repro", "platform:windows", "area:core", "area:ide"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-15T21:53:21Z",
+  "updated_at": "2026-07-06T09:09:33Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 39,
+  "author": "michalekz",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/8515\n2. https://github.com/anthropics/claude-code/issues/12872\n3. https://github.com/anthropics/claude-code/issues/9713\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-15T21:58:11Z"
+    },
+    {
+      "author": "michalekz",
+      "author_association": "NONE",
+      "body": "Update: Root cause identified\nAfter extensive debugging, the actual root cause is Windows Junction points, not the mapped drive itself.\nSetup:\n\nO:\\Projects was a Junction pointing to O:\\OneDrive\\Projects\nOpening project via junction path: code O:\\Projects\\_optimai\\euronaradi → broken history\nOpening project via real path: code O:\\OneDrive\\Projects\\_optimai\\euronaradi → works fine\n\nSolution:\nRemoved the junction and moved the folder directly to O:\\Projects. Chat history now persists correctly, ev",
+      "created_at": "2025-12-15T22:23:50Z"
+    },
+    {
+      "author": "JeffKwasha",
+      "author_association": "NONE",
+      "body": "Same basic problem happens on linux with symlinks:\n\n`lrwxrwxrwx 1 jk jk        14 Nov 15 11:15 NAME -> /mnt/@/NAME/`\n\n`2026-01-07 11:28:42.900 [warning] Failed to load sessions from /home/jk/NAME/NAME-worker-js: Error: ENOENT: no such file or directory, scandir '/home/jk/.claude/projects/-home-jk-NAME-NAME-worker-js'`\n\nSo when writing to .claude/projects the vscode extension uses the fully resolved absolute path of '/mnt/@/SUBVOLUME/..projects..'\n\nBut when attempting to load the same project it ",
+      "created_at": "2026-01-07T16:58:42Z"
+    }
+  ]
+}

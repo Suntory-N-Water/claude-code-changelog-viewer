@@ -1,0 +1,35 @@
+{
+  "number": 26588,
+  "title": "Marketplace plugin cloning should default to HTTPS instead of SSH",
+  "body": "## Problem\n\nWhen installing a marketplace plugin via `/plugin marketplace add owner/repo`, Claude Code clones the repository using SSH (`git@github.com:...`). This fails for users who don't have SSH keys configured for GitHub:\n\n```\nError: Failed to clone marketplace repository: SSH authentication failed. Please ensure your\nSSH keys are configured for GitHub, or use an HTTPS URL instead.\n\nOriginal error: Cloning into '/Users/user/.claude/plugins/marketplaces/owner-repo'...\ngit@github.com: Permission denied (publickey).\nfatal: Could not read from remote repository.\n```\n\n## Why this is a problem\n\n- Marketplace repositories are **public** and **read-only** — SSH authentication is unnecessary.\n- HTTPS works out of the box with no configuration for public repos.\n- Many users don't have SSH keys set up for GitHub, especially on fresh machines or if they primarily use HTTPS for their own repos.\n- Most tools that clone public repos default to HTTPS for this reason (e.g., `go get`, `cargo install`, `npm install` from git URLs).\n\n## Current workaround\n\nUsers must either:\n1. Set up SSH keys for GitHub, or\n2. Configure Git globally to rewrite SSH to HTTPS: `git config --global url.\"https://github.com/\".insteadOf git@github.com:`\n\nBoth are unnecessary friction for a read-only clone of a public repo.\n\n## Suggested fix\n\nDefault to HTTPS (`https://github.com/owner/repo.git`) when cloning marketplace repositories. SSH could optionally be supported via a flag or configuration for users behind corporate proxies that block HTTPS but allow SSH.",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-18T14:38:34Z",
+  "updated_at": "2026-07-05T22:47:40Z",
+  "closed_at": null,
+  "reactions_total": 32,
+  "comments_count": 5,
+  "author": "pmatos",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "DanielLaberge",
+      "author_association": "NONE",
+      "body": "This is **EXTREMELY** annoying because it Prompts the 1Password CLI to use my GitHub key **EVERY** time I sent a first message in a new Claude Session, even though my repos are set to use HTTPS auth.\n\nCodex doesn't have that issue.\n\n<img width=\"400\" height=\"537\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/45314cd8-7c5d-4fbe-9282-467787e94004\" />",
+      "created_at": "2026-03-12T13:45:56Z"
+    },
+    {
+      "author": "DanHam",
+      "author_association": "NONE",
+      "body": "I have a similar (and equally annoying!) issue to Daniel Laberge.\n\nEvery time a marketplace update runs my pinentry program pops up as the ssh-based update command tries to access my (protected) ssh keys. The marketplace update runs _every time_ I quit Claude Code. I am aware that I can remove the marketplace or disable auto-updates. However, that does not seem like a very satisfactory solution.\n\nAn additional annoyance is that (as other have reported) if you are using a terminal based pinentry ",
+      "created_at": "2026-03-13T18:36:46Z"
+    },
+    {
+      "author": "sw1nn",
+      "author_association": "NONE",
+      "body": "it seems that even setting up a ssh -> https rewrite for git is not enough, because claude does a connectivity check with\n\n `ssh -T git@github.com` \n\non session start and  that will prompt for ssh key passphrase via whatever configured agent / pinentry setup you have\n\nYou can work around that by adding this to `~/.ssh/config`\n\n```ssh_config\n# ~/.ssh/config\nHost github.com\n  IdentityAgent none\n```\nwhich fails silently, but that is problematic if you need ssh auth with agent elsewhere",
+      "created_at": "2026-03-20T22:04:27Z"
+    }
+  ]
+}

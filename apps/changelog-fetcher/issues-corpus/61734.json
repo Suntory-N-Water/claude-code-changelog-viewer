@@ -1,0 +1,41 @@
+{
+  "number": 61734,
+  "title": "Context window status bar shows 200k for Claude Sonnet 4.6, but model supports 1M tokens",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe context window status bar in Claude Code displays 200k tokens when using Claude Sonnet 4.6, but the official model documentation confirms Sonnet 4.6 has a 1M token context window.\n\n### What Should Happen?\n\nThe status bar should display 1M tokens (or ~1,000,000) to match the actual context window of Claude Sonnet 4.6.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nOpen Claude Code\nStart a new conversation\nObserve the context window meter in the status bar\nIt shows 200k — but claude-sonnet-4-6 has a 1M context window per https://platform.claude.com/docs/en/about-claude/models/overview\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.150 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "platform:windows",
+    "area:model",
+    "area:statusline",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-05-23T11:17:19Z",
+  "updated_at": "2026-06-26T11:08:42Z",
+  "closed_at": "2026-06-26T11:08:42Z",
+  "reactions_total": 1,
+  "comments_count": 23,
+  "author": "ChrisC156",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "giruuuuj",
+      "author_association": "NONE",
+      "body": "## Analysis\n\nThe status bar shows 200K because Claude Code's model capabilities configuration has the wrong context window size for `claude-sonnet-4-6`. This is a hardcoded value in the closed-source CLI — Sonnet 4.6 launched with a 1M context window per [the official docs](https://platform.claude.com/docs/en/about-claude/models/overview), but the CLI's model config still has the old 200K value.\n\n### Root cause\n\nThe context window meter reads from an internal model capabilities map. When Sonnet ",
+      "created_at": "2026-05-23T11:24:08Z"
+    },
+    {
+      "author": "ChrisC156",
+      "author_association": "NONE",
+      "body": "<img width=\"1029\" height=\"632\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/03d43e8a-456b-4636-b6a7-96295aaeb81a\" />\n\nDoesn's work still. It affects my actual session and not just the status bar display.",
+      "created_at": "2026-05-23T11:26:57Z"
+    },
+    {
+      "author": "giruuuuj",
+      "author_association": "NONE",
+      "body": "@ChrisC156 You're right — I incorrectly assumed it was only the display. If the actual session is being limited to 200K, then the CLI is **actively capping the context window** to 200K for Sonnet 4.6, not just displaying the wrong number.\n\nCorrected root cause: The CLI has an internal `max_input_tokens` of 200K for `claude-sonnet-4-6` in its model capabilities config. This value is used to both (a) display the meter and (b) bound the actual context sent to the API. Since the API supports 1M, thi",
+      "created_at": "2026-05-23T11:28:42Z"
+    }
+  ]
+}

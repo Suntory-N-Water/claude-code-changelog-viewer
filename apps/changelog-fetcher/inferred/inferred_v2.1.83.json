@@ -3,6 +3,7 @@
   "summary": "大規模組織向けの管理設定ディレクトリ `managed-settings.d/` や、環境変化に自動適応する新しいフックイベントが導入され、運用管理性が向上しました。起動レイテンシや大規模セッションのメモリ使用量、SDK 実行速度など、全体的なパフォーマンスが大幅に改善されています。VSCode 拡張機能での巻き戻しピッカー追加や、UI のハングアップ・表示不具合の修正など、快適な開発体験を支える多くの改善が行われました。",
   "items": [
     {
+      "id": "c86e040b888f",
       "content": "- Added `managed-settings.d/` drop-in directory alongside `managed-settings.json`, letting separate teams deploy independent policy fragments that merge alphabetically",
       "content_ja": "管理設定用のドロップインディレクトリ `managed-settings.d/` を追加し、複数のチームが独立したポリシー断片をデプロイしてアルファベット順にマージできるようになりました",
       "prefix": "Added",
@@ -22,8 +23,9 @@
       }
     },
     {
+      "id": "b7e61442486d",
       "content": "- Added `CwdChanged` and `FileChanged` hook events for reactive environment management (e.g., direnv)",
-      "content_ja": "環境変数のリアクティブな管理（direnv 等）のために、`CwdChanged` と `FileChanged` フックイベントを追加しました",
+      "content_ja": "環境変数のリアクティブな管理(direnv 等)のために、`CwdChanged` と `FileChanged` フックイベントを追加しました",
       "prefix": "Added",
       "feature_areas": ["Hooks"],
       "related_docs": [
@@ -38,12 +40,13 @@
         }
       ],
       "inference": {
-        "before": "Claude が `cd` コマンドでディレクトリを移動したり、特定のファイル（.env など）が変更されたりしても、Bash ツール内の環境変数が自動的に更新されませんでした。direnv などの外部ツールによる動的な環境変化を自動的に反映する仕組みが不足していました。",
+        "before": "Claude が `cd` コマンドでディレクトリを移動したり、特定のファイル(.env など)が変更されたりしても、Bash ツール内の環境変数が自動的に更新されませんでした。direnv などの外部ツールによる動的な環境変化を自動的に反映する仕組みが不足していました。",
         "after": "ディレクトリ移動時に発火する `CwdChanged` と、指定したファイルを監視する `FileChanged` イベントが導入されました。これらのフックを使用して `CLAUDE_ENV_FILE` を更新することで、環境変数を自動的に再読み込みできます。",
         "benefit": "プロジェクトごとに異なる環境変数を扱う direnv や .env ファイルの運用が自動化され、ユーザーが手動で環境を再設定する手間が省け、作業ミスも防げます。"
       }
     },
     {
+      "id": "67e791d88663",
       "content": "- Added `sandbox.failIfUnavailable` setting to exit with an error when sandbox is enabled but cannot start, instead of running unsandboxed",
       "content_ja": "サンドボックスが有効な場合に起動できない時は、サンドボックスなしで実行せずエラーで終了する `sandbox.failIfUnavailable` 設定を追加しました",
       "prefix": "Added",
@@ -54,12 +57,13 @@
         }
       ],
       "inference": {
-        "before": "サンドボックスが有効に設定されていても、依存関係の不足やプラットフォームの制限で起動できない場合、Claude Code は警告を表示した上でサンドボックスなし（保護なし）の状態でコマンドを実行してしました。",
+        "before": "サンドボックスが有効に設定されていても、依存関係の不足やプラットフォームの制限で起動できない場合、Claude Code は警告を表示した上でサンドボックスなし(保護なし)の状態でコマンドを実行してしました。",
         "after": "`sandbox.failIfUnavailable` を `true` に設定することで、サンドボックスを起動できない場合にプロセスをエラーで停止させることができるようになりました。これにより、意図しない非保護状態での実行を防げます。",
         "benefit": "厳格なセキュリティポリシーを必要とするエンタープライズ環境において、安全性が確認できない状態でのコマンド実行を確実に阻止できるようになり、セキュリティガバナンスが強化されます。"
       }
     },
     {
+      "id": "2362c21bf014",
       "content": "- Added `disableDeepLinkRegistration` setting to prevent `claude-cli://` protocol handler registration",
       "content_ja": "`claude-cli://` プロトコルハンドラの登録を無効化する `disableDeepLinkRegistration` 設定を追加しました",
       "prefix": "Added",
@@ -82,8 +86,9 @@
       }
     },
     {
+      "id": "854f7f39cbc6",
       "content": "- Added `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` to strip Anthropic and cloud provider credentials from subprocess environments (Bash tool, hooks, MCP stdio servers)",
-      "content_ja": "サブプロセス環境（Bash ツール、フック、MCP stdio サーバー）から Anthropic やクラウドプロバイダーの認証情報を削除する `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` を追加しました",
+      "content_ja": "サブプロセス環境(Bash ツール、フック、MCP stdio サーバー)から Anthropic やクラウドプロバイダーの認証情報を削除する `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` を追加しました",
       "prefix": "Added",
       "feature_areas": ["Hooks", "MCP"],
       "related_docs": [
@@ -99,13 +104,14 @@
       ],
       "inference": {
         "before": "Claude Code が起動されているシェルに設定されている API キーなどの機密情報が、Claude が実行する Bash コマンドや MCP サーバーなどの子プロセスにそのまま引き継がれていました。万が一、プロンプトインジェクションが発生した場合、これらの情報が外部に漏洩するリスクがありました。",
-        "after": "この環境変数を有効にすることで、子プロセスの環境変数から機密性の高い認証情報を自動的に除去（スクラブ）します。Claude Code 本体は認証情報を保持し続けますが、その配下で動くツールからは参照できなくなります。",
+        "after": "この環境変数を有効にすることで、子プロセスの環境変数から機密性の高い認証情報を自動的に除去(スクラブ)します。Claude Code 本体は認証情報を保持し続けますが、その配下で動くツールからは参照できなくなります。",
         "benefit": "開発環境における機密情報の露出を最小限に抑え、信頼できないコードを分析したり、外部の MCP ツールを利用したりする際の安全性が大幅に向上します。"
       }
     },
     {
+      "id": "dd58f0e82c9e",
       "content": "- Added transcript search — press `/` in transcript mode (`Ctrl+O`) to search, `n`/`N` to step through matches",
-      "content_ja": "トランスクリプトの検索機能を追加しました。トランスクリプトモード（`Ctrl+O`）で `/` を押して検索、`n`/`N` で次/前のマッチ箇所に移動できます",
+      "content_ja": "トランスクリプトの検索機能を追加しました。トランスクリプトモード(`Ctrl+O`)で `/` を押して検索、`n`/`N` で次/前のマッチ箇所に移動できます",
       "prefix": "Added",
       "feature_areas": ["Skills"],
       "related_docs": [
@@ -126,8 +132,9 @@
       }
     },
     {
+      "id": "949b50fe0af4",
       "content": "- Added `Ctrl+X Ctrl+E` as an alias for opening the external editor (readline-native binding; `Ctrl+G` still works)",
-      "content_ja": "外部エディタを開くための readline 標準エイリアス `Ctrl+X Ctrl+E` を追加しました（`Ctrl+G` も引き続き利用可能です）",
+      "content_ja": "外部エディタを開くための readline 標準エイリアス `Ctrl+X Ctrl+E` を追加しました(`Ctrl+G` も引き続き利用可能です)",
       "prefix": "Added",
       "feature_areas": [],
       "related_docs": [
@@ -142,12 +149,13 @@
         }
       ],
       "inference": {
-        "before": "複雑なプロンプトや複数行の入力を書く際、標準のターミナル入力では編集が不便なため外部エディタ（VS Code や Vim など）を利用できますが、そのショートカットは `Ctrl+G` という Claude Code 独自の構成でした。",
+        "before": "複雑なプロンプトや複数行の入力を書く際、標準のターミナル入力では編集が不便なため外部エディタ(VS Code や Vim など)を利用できますが、そのショートカットは `Ctrl+G` という Claude Code 独自の構成でした。",
         "after": "多くのシェルで使用されている標準的な `readline` のショートカット `Ctrl+X Ctrl+E` が追加されました。これにより、ターミナルに慣れたユーザーが直感的にエディタを呼び出せるようになります。",
         "benefit": "既存のシェルの操作体系と同じ感覚で Claude Code を扱えるようになり、入力効率と操作の快適性が向上します。"
       }
     },
     {
+      "id": "1a1dcde2ce0f",
       "content": "- Pasted images now insert an `[Image #N]` chip at the cursor so you can reference them positionally in your prompt",
       "content_ja": "画像を貼り付ける際、カーソル位置に `[Image #N]` チップを挿入し、プロンプト内で位置を指定して参照できるようになりました。",
       "prefix": "Changed",
@@ -164,6 +172,7 @@
       }
     },
     {
+      "id": "6028a65b7722",
       "content": "- Agents can now declare `initialPrompt` in frontmatter to auto-submit a first turn",
       "content_ja": "エージェントのフロントマナーに `initialPrompt` を宣言できるようになり、起動時に自動的に最初のターンを送信できるようになりました",
       "prefix": "Added",
@@ -174,12 +183,13 @@
         }
       ],
       "inference": {
-        "before": "カスタムサブエージェントを起動した際、常にユーザーが最初の指示（プロンプト）を入力する必要がありました。特定のタスク（コードレビューやテスト実行など）を自動開始させたい場合でも、毎回同じ手動入力が発生していました。",
+        "before": "カスタムサブエージェントを起動した際、常にユーザーが最初の指示(プロンプト)を入力する必要がありました。特定のタスク(コードレビューやテスト実行など)を自動開始させたい場合でも、毎回同じ手動入力が発生していました。",
         "after": "サブエージェントの定義ファイル内に `initialPrompt` を記述しておくことで、エージェント開始時にその内容を自動的に実行できるようになりました。ユーザーが手動で入力したプロンプトよりも先に処理されます。",
         "benefit": "特定の役割を持つエージェントをワンクリックやショートカットで起動した直後に、そのまま自動で作業を開始させることができ、定型業務の自動化がさらに進みます。"
       }
     },
     {
+      "id": "3833454e11b0",
       "content": "- `chat:killAgents` and `chat:fastMode` are now rebindable via `~/.claude/keybindings.json`",
       "content_ja": "`chat:killAgents` と `chat:fastMode` が `~/.claude/keybindings.json` で変更可能になりました",
       "prefix": "Changed",
@@ -193,12 +203,13 @@
         }
       ],
       "inference": {
-        "before": "バックグラウンドエージェントの停止（`Ctrl+X Ctrl+K`）や高速モードの切り替え（`Meta+O`）のショートカットキーは固定されており、ユーザーの好みに合わせたり、他のツールとの競合を避けたりすることができませんでした。",
+        "before": "バックグラウンドエージェントの停止(`Ctrl+X Ctrl+K`)や高速モードの切り替え(`Meta+O`)のショートカットキーは固定されており、ユーザーの好みに合わせたり、他のツールとの競合を避けたりすることができませんでした。",
         "after": "キーバインディング設定ファイルを通じて、これらのアクションを任意のキーに割り当てられるようになりました。設定は即座に反映され、再起動も不要です。",
         "benefit": "自分の作業スタイルに合わせてキーボード操作を完全にカスタマイズできるようになり、よりストレスのない操作環境を構築できます。"
       }
     },
     {
+      "id": "67a5abcbfd05",
       "content": "- Fixed mouse tracking escape sequences leaking to shell prompt after exit",
       "content_ja": "終了後にマウスドラッグの制御シーケンスがシェルプロンプトに残ってしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -206,6 +217,7 @@
       "related_docs": []
     },
     {
+      "id": "fdc929a2f503",
       "content": "- Fixed Claude Code hanging on exit on macOS",
       "content_ja": "macOS において、終了時に Claude Code がハングアップする問題を修正しました。",
       "prefix": "Fixed",
@@ -213,6 +225,7 @@
       "related_docs": []
     },
     {
+      "id": "a6db554111f7",
       "content": "- Fixed screen flashing blank after being idle for a few seconds",
       "content_ja": "数秒間アイドル状態になると画面が一瞬空白になる問題を修正しました。",
       "prefix": "Fixed",
@@ -220,13 +233,15 @@
       "related_docs": []
     },
     {
+      "id": "8fe3ee18d205",
       "content": "- Fixed a hang when diffing very large files with few common lines — diffs now time out after 5 seconds and fall back gracefully",
-      "content_ja": "共通の行が極端に少ない非常に大きなファイルの差分（diff）を取る際にハングする問題を修正しました。5秒でタイムアウトし、適切にフォールバックされます。",
+      "content_ja": "共通の行が極端に少ない非常に大きなファイルの差分(diff)を取る際にハングする問題を修正しました。5秒でタイムアウトし、適切にフォールバックされます。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
+      "id": "07503f1635b5",
       "content": "- Fixed a 1–8 second UI freeze on startup when voice input was enabled, caused by eagerly loading the native audio module",
       "content_ja": "音声入力が有効な場合、ネイティブオーディオモジュールの先行読み込みによって起動時に 1〜8 秒間 UI がフリーズする問題を修正しました",
       "prefix": "Fixed",
@@ -249,6 +264,7 @@
       }
     },
     {
+      "id": "69ea3a47e3a0",
       "content": "- Fixed a startup regression where Claude Code would wait ~3s for claude.ai MCP config fetch before proceeding",
       "content_ja": "起動時に claude.ai の MCP 設定取得を待機するために約 3 秒間遅延が発生するデグレを修正しました",
       "prefix": "Fixed",
@@ -265,12 +281,13 @@
         }
       ],
       "inference": {
-        "before": "最近のバージョンにおいて、起動プロセスがクラウド側の MCP 設定（Slack や Gmail 連携など）の応答を同期的に待ってしまい、ローカルでの作業開始が遅れる現象が発生していました。",
+        "before": "最近のバージョンにおいて、起動プロセスがクラウド側の MCP 設定(Slack や Gmail 連携など)の応答を同期的に待ってしまい、ローカルでの作業開始が遅れる現象が発生していました。",
         "after": "この取得プロセスが非同期化または最適化され、ネットワークの状況に関わらず素早くプロンプト入力画面が表示されるようになりました。",
         "benefit": "起動時のストレスが軽減され、オフラインに近い環境やネットワークが不安定な場所でも、ツールが即座に立ち上がるようになります。"
       }
     },
     {
+      "id": "9de3439bac47",
       "content": "- Fixed `--mcp-config` CLI flag bypassing `allowedMcpServers`/`deniedMcpServers` managed policy enforcement",
       "content_ja": "CLI フラグ `--mcp-config` を使用した際に、管理ポリシーによる MCP サーバーの許可/拒否リストが無視される問題を修正しました",
       "prefix": "Fixed",
@@ -288,13 +305,14 @@
       ],
       "inference": {
         "before": "組織の管理者が特定の MCP サーバーのみを利用許可するように設定していても、ユーザーがコマンドライン引数で設定ファイルを指定すると、その制限を回避して任意のサーバーを動かせてしまう不備がありました。",
-        "after": "引数で指定された MCP サーバーに対しても、組織の管理ポリシー（`allowedMcpServers` 等）が厳格に適用されるように修正されました。",
+        "after": "引数で指定された MCP サーバーに対しても、組織の管理ポリシー(`allowedMcpServers` 等)が厳格に適用されるように修正されました。",
         "benefit": "企業の管理者が設定したセキュリティ基準が確実に守られるようになり、組織全体での安全な AI 利用が保証されます。"
       }
     },
     {
+      "id": "b4183502f836",
       "content": "- Fixed claude.ai MCP connectors (Slack, Gmail, etc.) not being available in single-turn `--print` mode",
-      "content_ja": "単発実行用の `--print` モードにおいて、claude.ai の MCP コネクタ（Slack、Gmail 等）が利用できなかった問題を修正しました",
+      "content_ja": "単発実行用の `--print` モードにおいて、claude.ai の MCP コネクタ(Slack、Gmail 等)が利用できなかった問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": ["MCP"],
       "related_docs": [
@@ -315,6 +333,7 @@
       }
     },
     {
+      "id": "96989563103d",
       "content": "- Fixed `caffeinate` process not properly terminating when Claude Code exits, preventing Mac from sleeping",
       "content_ja": "Claude Code の終了時に `caffeinate` プロセスが正しく終了せず、Mac がスリープできなくなる問題を修正しました。",
       "prefix": "Fixed",
@@ -322,6 +341,7 @@
       "related_docs": []
     },
     {
+      "id": "856d753f7f01",
       "content": "- Fixed bash mode not activating when tab-accepting `!`-prefixed command suggestions",
       "content_ja": "Tab キーで `!` 接頭辞付きのコマンド候補を確定した際に、Bash モードが有効にならない問題を修正しました",
       "prefix": "Fixed",
@@ -335,12 +355,13 @@
         }
       ],
       "inference": {
-        "before": "ターミナルコマンドを直接実行する Bash モード（`!` 入力）において、入力補完候補を選択しても、Claude への質問として送信されてしまい、意図したコマンド実行が行われないことがありました。",
+        "before": "ターミナルコマンドを直接実行する Bash モード(`!` 入力)において、入力補完候補を選択しても、Claude への質問として送信されてしまい、意図したコマンド実行が行われないことがありました。",
         "after": "Tab で補完を確定した後も、正しく Bash モードとして認識され、エンターキーで即座にそのコマンドが実行されるようになりました。",
         "benefit": "シェルの直接操作と AI への質問を切り替える際の挙動が安定し、コマンド実行時の操作ミスがなくなります。"
       }
     },
     {
+      "id": "b0f4c3664d8f",
       "content": "- Fixed stale slash command selection showing wrong highlighted command after navigating suggestions",
       "content_ja": "スラッシュコマンドの候補を選択中、古い選択状態が残ってしまい誤ったコマンドが強調表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -348,6 +369,7 @@
       "related_docs": []
     },
     {
+      "id": "afad5a9b2eaa",
       "content": "- Fixed `/config` menu showing both the search cursor and list selection at the same time",
       "content_ja": "`/config` メニューにおいて、検索カーソルとリストの選択状態が同時に表示されてしまう問題を修正しました",
       "prefix": "Fixed",
@@ -364,12 +386,13 @@
         }
       ],
       "inference": {
-        "before": "設定メニュー内で検索（`/`）を行っている際、入力中のフォーカスと項目の選択状態が重なってしまい、どちらを操作しているのか視覚的に分かりにくい状態でした。",
+        "before": "設定メニュー内で検索(`/`)を行っている際、入力中のフォーカスと項目の選択状態が重なってしまい、どちらを操作しているのか視覚的に分かりにくい状態でした。",
         "after": "メニューの UI 状態管理が整理され、検索中と項目選択中のフォーカスが適切に分離されるようになりました。",
         "benefit": "設定の変更やオプションの検索がより直感的に行えるようになり、操作ミスが減少します。"
       }
     },
     {
+      "id": "637a8f6ad64f",
       "content": "- Fixed background subagents becoming invisible after context compaction, which could cause duplicate agents to be spawned",
       "content_ja": "コンテキストの圧縮後にバックグラウンドエージェントが表示されなくなり、同じエージェントが重複して作成されてしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -377,6 +400,7 @@
       "related_docs": []
     },
     {
+      "id": "773d0848352b",
       "content": "- Fixed background agent tasks staying stuck in \"running\" state when git or API calls hang during cleanup",
       "content_ja": "クリーンアップ中の Git 操作や API 呼び出しがハングした際に、バックグラウンドエージェントが「実行中」のまま止まってしまう問題を修正しました",
       "prefix": "Fixed",
@@ -399,6 +423,7 @@
       }
     },
     {
+      "id": "d232a93c0b12",
       "content": "- Fixed `--channels` showing \"Channels are not currently available\" on first launch after upgrade",
       "content_ja": "アップデート後の初回起動時に、`--channels` を使用すると「チャンネルが現在利用できません」と表示される不具合を修正しました",
       "prefix": "Fixed",
@@ -415,12 +440,13 @@
         }
       ],
       "inference": {
-        "before": "新機能のチャンネル機能（Slack/Discord 等の通知受信）を有効にして起動した際、バージョンアップ直後などのタイミングで正常に機能が初期化されず、エラーが表示されてしまう場合がありました。",
+        "before": "新機能のチャンネル機能(Slack/Discord 等の通知受信)を有効にして起動した際、バージョンアップ直後などのタイミングで正常に機能が初期化されず、エラーが表示されてしまう場合がありました。",
         "after": "機能の有効化チェックの順序が修正され、アップデート直後からスムーズに通知の受信を開始できるようになりました。",
         "benefit": "新機能を導入した直後からトラブルなく使い始めることができ、外部イベントへのリアクションをすぐに試せます。"
       }
     },
     {
+      "id": "5ef0df4b85bf",
       "content": "- Fixed uninstalled plugin hooks continuing to fire until the next session",
       "content_ja": "アンインストールされたプラグインのフックが、次のセッションを開始するまで動作し続けてしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -428,6 +454,7 @@
       "related_docs": []
     },
     {
+      "id": "5f4ae77f36e0",
       "content": "- Fixed queued commands flickering during streaming responses",
       "content_ja": "回答のストリーミング中、実行待ちのキューにあるコマンドが表示上でちらつく問題を修正しました。",
       "prefix": "Fixed",
@@ -435,6 +462,7 @@
       "related_docs": []
     },
     {
+      "id": "5e5b5583cca4",
       "content": "- Fixed slash commands being sent to the model as text when submitted while a message is processing",
       "content_ja": "メッセージの処理中にスラッシュコマンドを入力すると、コマンドとして認識されず単なるテキストとしてモデルに送られてしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -442,6 +470,7 @@
       "related_docs": []
     },
     {
+      "id": "87100b5e6c80",
       "content": "- Fixed scrollback jumping when collapsed read/search groups finish after scrolling offscreen",
       "content_ja": "画面外にスクロールした状態で、折りたたまれた読み込み/検索グループが完了した際に表示位置が飛んでしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -449,13 +478,15 @@
       "related_docs": []
     },
     {
+      "id": "b8a095d48dd3",
       "content": "- Fixed scrollback jumping to top when the model starts or stops thinking",
-      "content_ja": "モデルが思考（Thinking）を開始または停止した際に、表示が最上部まで勝手にスクロールする問題を修正しました。",
+      "content_ja": "モデルが思考(Thinking)を開始または停止した際に、表示が最上部まで勝手にスクロールする問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
+      "id": "ca2c69df01b8",
       "content": "- Fixed SDK session history loss on resume caused by hook progress/attachment messages forking the parentUuid chain",
       "content_ja": "フックの進捗・添付メッセージによって親子関係のチェーンが分岐し、再開時に SDK セッションの履歴が失われる問題を修正しました",
       "prefix": "Fixed",
@@ -473,11 +504,12 @@
       ],
       "inference": {
         "before": "フック機能などが生成するシステムメッセージが原因で、会話履歴の ID 管理が複雑になり、一度終了したセッションを `/resume` で再開した際、過去のやり取りの一部が見えなくなることがありました。",
-        "after": "メッセージの親子関係（Uuid チェーン）の管理ロジックが改善され、システム的な副作用があっても会話の整合性が維持されるようになりました。",
+        "after": "メッセージの親子関係(Uuid チェーン)の管理ロジックが改善され、システム的な副作用があっても会話の整合性が維持されるようになりました。",
         "benefit": "長期間にわたるプロジェクトで過去の経緯を振り返りながら作業する際、履歴が欠落する心配なく安心して作業を継続できます。"
       }
     },
     {
+      "id": "70d6ebc12e19",
       "content": "- Fixed copy-on-select not firing when you release the mouse outside the terminal window",
       "content_ja": "ターミナルウィンドウの外でマウスを離した際に、「選択してコピー」機能が動作しない問題を修正しました。",
       "prefix": "Fixed",
@@ -485,6 +517,7 @@
       "related_docs": []
     },
     {
+      "id": "fb02630faf35",
       "content": "- Fixed ghost characters appearing in height-constrained lists when items overflow",
       "content_ja": "高さが制限されたリストにおいて、項目が溢れた際に「ゴースト文字」が表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -492,8 +525,9 @@
       "related_docs": []
     },
     {
+      "id": "cf710094eb8a",
       "content": "- Fixed `Ctrl+B` interfering with readline backward-char at an idle prompt — it now only fires when a foreground task can be backgrounded",
-      "content_ja": "プロンプトがアイドル状態の時に `Ctrl+B` が readline のカーソル移動（後退）と干渉する問題を修正しました",
+      "content_ja": "プロンプトがアイドル状態の時に `Ctrl+B` が readline のカーソル移動(後退)と干渉する問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -508,6 +542,7 @@
       }
     },
     {
+      "id": "4ae7bc51f844",
       "content": "- Fixed tool result files never being cleaned up, ignoring the `cleanupPeriodDays` setting",
       "content_ja": "ツール実行結果のファイルが削除されず、`cleanupPeriodDays` 設定が無視される問題を修正しました",
       "prefix": "Fixed",
@@ -521,12 +556,13 @@
         }
       ],
       "inference": {
-        "before": "Claude がツールを実行した際のログや中間ファイルが蓄積され続け、設定で指定した保持期間（デフォルト 30 日）を過ぎてもディスク上に残り続けていました。",
-        "after": "クリーンアップ処理が正しく全ての関連ファイル（.jsonl 等）に適用されるようになり、古いデータが自動的に削除されるようになりました。",
+        "before": "Claude がツールを実行した際のログや中間ファイルが蓄積され続け、設定で指定した保持期間(デフォルト 30 日)を過ぎてもディスク上に残り続けていました。",
+        "after": "クリーンアップ処理が正しく全ての関連ファイル(.jsonl 等)に適用されるようになり、古いデータが自動的に削除されるようになりました。",
         "benefit": "不要なデータによってディスク容量が圧迫されるのを防ぎ、システムをクリーンな状態に保てます。"
       }
     },
     {
+      "id": "6794f8e07fb7",
       "content": "- Fixed space key being swallowed for up to 3 seconds after releasing voice hold-to-talk",
       "content_ja": "音声入力のボタンを離した直後の最大3秒間、スペースキーが効かなくなる問題を修正しました。",
       "prefix": "Fixed",
@@ -534,8 +570,9 @@
       "related_docs": []
     },
     {
+      "id": "18670827b26a",
       "content": "- Fixed ALSA library errors corrupting the terminal UI when using voice mode on Linux without audio hardware (Docker, headless, WSL1)",
-      "content_ja": "オーディオハードウェアのない Linux 環境（Docker、WSL1等）でボイスモードを使用すると、ALSA ライブラリのエラーでターミナル UI が崩れる問題を修正しました",
+      "content_ja": "オーディオハードウェアのない Linux 環境(Docker、WSL1等)でボイスモードを使用すると、ALSA ライブラリのエラーでターミナル UI が崩れる問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -556,6 +593,7 @@
       }
     },
     {
+      "id": "a8c018638392",
       "content": "- Fixed voice mode SoX detection on Termux/Android where spawning `which` is kernel-restricted",
       "content_ja": "Termux/Android 環境において、`which` コマンドの実行制限によりボイスモードの SoX 検出が失敗する問題を修正しました",
       "prefix": "Fixed",
@@ -578,6 +616,7 @@
       }
     },
     {
+      "id": "dd98a7b4fbcf",
       "content": "- Fixed Remote Control sessions showing as Idle in the web session list while actively running",
       "content_ja": "実際に動作しているリモートコントロールセッションが、Web セッションリスト上で「アイドル」と誤表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -585,6 +624,7 @@
       "related_docs": []
     },
     {
+      "id": "ed21e6ad8b52",
       "content": "- Fixed footer navigation selecting an invisible Remote Control pill in config-driven mode",
       "content_ja": "設定駆動モードにおいて、フッターナビゲーションが非表示のリモートコントロールボタンを選択できてしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -592,6 +632,7 @@
       "related_docs": []
     },
     {
+      "id": "f6c9ec293948",
       "content": "- Fixed memory leak in remote sessions where tool use IDs accumulate indefinitely",
       "content_ja": "リモートセッションにおいて、ツール利用 ID が無制限に蓄積されることによるメモリリークを修正しました。",
       "prefix": "Fixed",
@@ -599,6 +640,7 @@
       "related_docs": []
     },
     {
+      "id": "01c6ea181cd4",
       "content": "- Improved Bedrock SDK cold-start latency by overlapping profile fetch with other boot work",
       "content_ja": "プロファイル取得を他の起動処理と並列化することで、Amazon Bedrock SDK のコールドスタート時のレイテンシを改善しました",
       "prefix": "Improved",
@@ -621,6 +663,7 @@
       }
     },
     {
+      "id": "3a87cc25aa4c",
       "content": "- Improved `--resume` memory usage and startup latency on large sessions",
       "content_ja": "大規模なセッションにおいて、`--resume` 時のメモリ使用量と起動レイテンシを改善しました",
       "prefix": "Improved",
@@ -643,6 +686,7 @@
       }
     },
     {
+      "id": "8ecf4a476fb9",
       "content": "- Improved plugin startup — commands, skills, and agents now load from disk cache without re-fetching",
       "content_ja": "プラグインの起動速度を改善しました。コマンド、スキル、エージェントが再取得なしでディスクキャッシュから読み込まれるようになります。",
       "prefix": "Improved",
@@ -650,6 +694,7 @@
       "related_docs": []
     },
     {
+      "id": "82cc7d8f5b0e",
       "content": "- Improved Remote Control session titles: AI-generated titles now appear within seconds of the first message",
       "content_ja": "リモートコントロールのセッションタイトルを改善し、最初のメッセージ送信から数秒以内に AI 生成のタイトルが表示されるようになりました",
       "prefix": "Improved",
@@ -672,6 +717,7 @@
       }
     },
     {
+      "id": "47ea659c5cd3",
       "content": "- Improved `WebFetch` to identify as `Claude-User` so site operators can recognize and allowlist Claude Code traffic via `robots.txt`",
       "content_ja": "`WebFetch` のユーザーエージェントを `Claude-User` に変更し、サイト運営者が `robots.txt` で Claude Code の通信を識別・許可できるように改善しました",
       "prefix": "Improved",
@@ -694,6 +740,7 @@
       }
     },
     {
+      "id": "b25e53575d92",
       "content": "- Reduced `WebFetch` peak memory usage for large pages",
       "content_ja": "WebFetchツールにおいて、大きなページを読み込む際のピークメモリ使用量を削減しました。",
       "prefix": "Changed",
@@ -716,6 +763,7 @@
       }
     },
     {
+      "id": "eabc6092541a",
       "content": "- Reduced scrollback resets in long sessions from once per turn to once per ~50 messages",
       "content_ja": "長いセッションにおけるスクロールバックの初期化頻度を、1ターンごとから約50メッセージごとに削減しました。",
       "prefix": "Changed",
@@ -723,6 +771,7 @@
       "related_docs": []
     },
     {
+      "id": "a446747a79f2",
       "content": "- Faster `claude -p` startup with unauthenticated HTTP/SSE MCP servers (~600ms saved)",
       "content_ja": "認証不要な HTTP/SSE MCP サーバーを使用している場合の `claude -p` の起動時間を約 0.6 秒短縮しました",
       "prefix": "Changed",
@@ -742,6 +791,7 @@
       }
     },
     {
+      "id": "74ae820f03e5",
       "content": "- Bash ghost-text suggestions now include just-submitted commands immediately",
       "content_ja": "Bash のゴーストテキスト提案に、直前に実行したコマンドが即座に含まれるようになりました。",
       "prefix": "Added",
@@ -749,13 +799,15 @@
       "related_docs": []
     },
     {
+      "id": "cca0d213106b",
       "content": "- Increased non-streaming fallback token cap (21k → 64k) and timeout (120s → 300s local) so fallback requests are less likely to be truncated",
-      "content_ja": "ストリーミング失敗時の非ストリーミング型フォールバックの制限（21k → 64k トークン）とタイムアウト（120秒 → 300秒）を緩和し、中断されにくくしました。",
+      "content_ja": "ストリーミング失敗時の非ストリーミング型フォールバックの制限(21k → 64k トークン)とタイムアウト(120秒 → 300秒)を緩和し、中断されにくくしました。",
       "prefix": "Changed",
       "feature_areas": [],
       "related_docs": []
     },
     {
+      "id": "6fdddab9d0a3",
       "content": "- Interrupting a prompt before any response now automatically restores your input so you can edit and resubmit",
       "content_ja": "回答が始まる前にプロンプトを中断した際、入力したテキストが自動的に復元され、再編集して送り直せるようになりました。",
       "prefix": "Changed",
@@ -763,6 +815,7 @@
       "related_docs": []
     },
     {
+      "id": "b13361f88c6b",
       "content": "- `/status` now works while Claude is responding, instead of being queued until the turn finishes",
       "content_ja": "`/status` コマンドが Claude の回答中であっても実行可能になり、ターンの終了を待たずに状態を確認できるようになりました",
       "prefix": "Changed",
@@ -785,6 +838,7 @@
       }
     },
     {
+      "id": "114602f75618",
       "content": "- Plugin MCP servers that duplicate an org-managed connector are now suppressed instead of running a second connection",
       "content_ja": "組織管理のコネクタと重複するプラグイン MCP サーバーを検出し、二重接続を避けるために自動的に抑制するようになりました",
       "prefix": "Changed",
@@ -807,6 +861,7 @@
       }
     },
     {
+      "id": "7f531b32ee9e",
       "content": "- Linux: respect `XDG_DATA_HOME` when registering the `claude-cli://` protocol handler",
       "content_ja": "Linux環境において、`claude-cli://` プロトコルハンドラーを登録する際に `XDG_DATA_HOME` を尊重するように変更されました。",
       "prefix": "Changed",
@@ -829,6 +884,7 @@
       }
     },
     {
+      "id": "3fa75637c3a5",
       "content": "- Changed \"stop all background agents\" keybinding from `Ctrl+F` to `Ctrl+X Ctrl+K` to stop shadowing readline forward-char",
       "content_ja": "「全バックグラウンドエージェントを停止」のキーバインドを `Ctrl+F` から `Ctrl+X Ctrl+K` に変更し、Readlineのフォワード移動との衝突を解消しました。",
       "prefix": "Changed",
@@ -845,6 +901,7 @@
       }
     },
     {
+      "id": "cea3ea7ee724",
       "content": "- Deprecated `TaskOutput` tool in favor of using `Read` on the background task's output file path",
       "content_ja": "`TaskOutput` ツールを非推奨とし、バックグラウンドタスクの出力ファイルパスに対して `Read` ツールを直接使用する方式に変更しました",
       "prefix": "Deprecated",
@@ -867,6 +924,7 @@
       }
     },
     {
+      "id": "2c905193d014",
       "content": "- Added `CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK` env var to disable the non-streaming fallback when streaming fails",
       "content_ja": "ストリーミング失敗時に非ストリーミング型へのフォールバックを無効化する `CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK` 環境変数を追加しました",
       "prefix": "Added",
@@ -877,14 +935,15 @@
         }
       ],
       "inference": {
-        "before": "ネットワークの問題で回答の逐次表示（ストリーミング）が切れた際、自動的に一括回答（非ストリーミング）でやり直そうとしていましたが、プロキシ環境などではこれが原因で同じコマンドが二回実行されてしまうことがありました。",
+        "before": "ネットワークの問題で回答の逐次表示(ストリーミング)が切れた際、自動的に一括回答(非ストリーミング)でやり直そうとしていましたが、プロキシ環境などではこれが原因で同じコマンドが二回実行されてしまうことがありました。",
         "after": "この変数を設定することで、フォールバックを止めて即座にリトライ層へエラーを渡すことが可能になりました。副作用のあるコマンドの重複実行を防げます。",
         "benefit": "不安定なネットワークや特殊なプロキシ下でも、不慮の「二重実行」を確実に回避でき、より安全な自動化が可能になります。"
       }
     },
     {
+      "id": "7233b8c0bba1",
       "content": "- Plugin options (`manifest.userConfig`) now available externally — plugins can prompt for configuration at enable time, with `sensitive: true` values stored in keychain (macOS) or protected credentials file (other platforms)",
-      "content_ja": "プラグインのオプション設定（`manifest.userConfig`）が外部から利用可能になりました。機密情報は macOS のキーチェーン等に安全に保存されます",
+      "content_ja": "プラグインのオプション設定(`manifest.userConfig`)が外部から利用可能になりました。機密情報は macOS のキーチェーン等に安全に保存されます",
       "prefix": "Changed",
       "feature_areas": ["Plugins"],
       "related_docs": [
@@ -905,6 +964,7 @@
       }
     },
     {
+      "id": "d5d1fbe72bfe",
       "content": "- Claude can now reference the on-disk path of clipboard-pasted images for file operations",
       "content_ja": "クリップボードから貼り付けた画像のディスク上のパスを、Claude がファイル操作の際に参照できるようになりました。",
       "prefix": "Added",
@@ -912,6 +972,7 @@
       "related_docs": []
     },
     {
+      "id": "b0e0c2641f6e",
       "content": "- `Ctrl+L` now clears the screen and forces a full redraw — use this to recover when Cmd+K leaves the UI partially blank. Use `Ctrl+U` or double-Esc to clear prompt input.",
       "content_ja": "`Ctrl+L` による画面クリア時に強制的な再描画を行うようにし、UIの一部が空白になる問題からの復帰を可能にしました。また、入力クリアには `Ctrl+U` 等を使用するよう明確化されました。",
       "prefix": "Changed",
@@ -931,8 +992,9 @@
       }
     },
     {
+      "id": "4904b573f7eb",
       "content": "- `--bare -p` (SDK pattern) is ~14% faster to the API request",
-      "content_ja": "`--bare -p` フラグ（SDKパターン）使用時の、APIリクエストまでの速度が約14%向上しました。",
+      "content_ja": "`--bare -p` フラグ(SDKパターン)使用時の、APIリクエストまでの速度が約14%向上しました。",
       "prefix": "Changed",
       "feature_areas": [],
       "related_docs": [
@@ -953,6 +1015,7 @@
       }
     },
     {
+      "id": "fb0013043619",
       "content": "- Memory: `MEMORY.md` index now truncates at 25KB as well as 200 lines",
       "content_ja": "メモリ機能において、`MEMORY.md` のインデックスが 200 行に加えて 25KB でも切り詰められるようになりました",
       "prefix": "Changed",
@@ -966,14 +1029,15 @@
         }
       ],
       "inference": {
-        "before": "自動メモリ（Claude が学んだこと）を記録する `MEMORY.md` ファイルが肥大化すると、起動時にそれを読み込むだけで大量のトークンを消費し、AI の推論パフォーマンスが低下する原因になっていました。",
+        "before": "自動メモリ(Claude が学んだこと)を記録する `MEMORY.md` ファイルが肥大化すると、起動時にそれを読み込むだけで大量のトークンを消費し、AI の推論パフォーマンスが低下する原因になっていました。",
         "after": "行数制限に加えて容量ベースの制限が導入され、より厳密にコンテキストサイズが管理されるようになりました。制限を超えた場合は古い情報が切り詰められます。",
         "benefit": "長期間使用しても Claude Code の動作が重くならず、常に最新で重要な記憶に焦点を当てた的確なサポートが受けられます。"
       }
     },
     {
+      "id": "91485d034497",
       "content": "- Disabled `AskUserQuestion` and plan-mode tools when `--channels` is active",
-      "content_ja": "チャンネル機能（`--channels`）が有効な間、`AskUserQuestion` とプランモード関連のツールを無効化するように変更しました",
+      "content_ja": "チャンネル機能(`--channels`)が有効な間、`AskUserQuestion` とプランモード関連のツールを無効化するように変更しました",
       "prefix": "Changed",
       "feature_areas": [],
       "related_docs": [
@@ -994,6 +1058,7 @@
       }
     },
     {
+      "id": "dcc39d15fd8e",
       "content": "- Fixed API 400 error when a pasted image was queued during a failing tool call",
       "content_ja": "ツール呼び出しの失敗中に画像がキューに入れられた際、API 400エラーが発生する問題を修正しました。",
       "prefix": "Fixed",
@@ -1016,6 +1081,7 @@
       }
     },
     {
+      "id": "f4f85673e861",
       "content": "- Fixed MCP tool calls hanging indefinitely when an SSE connection drops mid-call and exhausts its reconnection attempts",
       "content_ja": "SSE 接続が中断され、再接続試行も失敗した場合に MCP ツールの呼び出しが無期限にハングする問題を修正しました",
       "prefix": "Fixed",
@@ -1038,6 +1104,7 @@
       }
     },
     {
+      "id": "de356dd5f57f",
       "content": "- Fixed Remote Control session titles showing raw XML when a background agent completed before the first user message",
       "content_ja": "ユーザーの最初のメッセージより前にバックグラウンドエージェントが完了した場合、リモートコントロールのセッション名が生の XML で表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -1045,6 +1112,7 @@
       "related_docs": []
     },
     {
+      "id": "f8a539c0afcb",
       "content": "- Fixed remote sessions forgetting conversation history after a container restart due to progress-message gaps in the resumed transcript chain",
       "content_ja": "コンテナ再起動後のリモートセッションにおいて、進捗メッセージの欠落により会話履歴が失われる問題を修正しました。",
       "prefix": "Fixed",
@@ -1052,6 +1120,7 @@
       "related_docs": []
     },
     {
+      "id": "aa95fdd853d7",
       "content": "- Fixed remote sessions requiring re-login on transient auth errors instead of retrying automatically",
       "content_ja": "一時的な認証エラーが発生した際、自動リトライせずに再ログインを求めてしまうリモートセッションの問題を修正しました。",
       "prefix": "Fixed",
@@ -1059,6 +1128,7 @@
       "related_docs": []
     },
     {
+      "id": "30c17c264693",
       "content": "- Fixed `rg ... | wc -l` and similar piped commands hanging and returning `0` in sandbox mode on Linux",
       "content_ja": "Linux のサンドボックスモードにおいて、`rg ... | wc -l` などのパイプを使ったコマンドが停止し、常に `0` を返す問題を修正しました",
       "prefix": "Fixed",
@@ -1076,13 +1146,14 @@
       ],
       "inference": {
         "before": "サンドボックス保護下で複数のコマンドをパイプでつなぐと、プロセスの通信制御の問題によりデータが正しく流れず、検索結果が正しくカウントされないなどの不具合がありました。",
-        "after": "サンドボックス内のプロセス間通信（パイプ処理）のハンドリングが修正され、通常のシェルと同じように複雑なコマンド列を実行できるようになりました。",
+        "after": "サンドボックス内のプロセス間通信(パイプ処理)のハンドリングが修正され、通常のシェルと同じように複雑なコマンド列を実行できるようになりました。",
         "benefit": "安全なサンドボックスを利用しながらも、パワフルなシェルコマンドを制限なく活用したコード分析が可能になります。"
       }
     },
     {
+      "id": "7ca136110bd7",
       "content": "- Fixed voice input hold-to-talk not activating when a CJK IME inserts a full-width space",
-      "content_ja": "CJK（日本語・中国語・韓国語）のIMEで全角スペースが挿入された際に、音声入力の「ホールドして話す」が起動しない問題を修正しました。",
+      "content_ja": "CJK(日本語・中国語・韓国語)のIMEで全角スペースが挿入された際に、音声入力の「ホールドして話す」が起動しない問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["Settings"],
       "related_docs": [
@@ -1103,8 +1174,9 @@
       }
     },
     {
+      "id": "b75fc7181348",
       "content": "- Fixed `--worktree` hanging silently when the worktree name contained a forward slash",
-      "content_ja": "ワークツリー名にフォワードスラッシュ（/）が含まれていると、`--worktree` が無言で停止する問題を修正しました",
+      "content_ja": "ワークツリー名にフォワードスラッシュ(/)が含まれていると、`--worktree` が無言で停止する問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": ["Plan"],
       "related_docs": [
@@ -1120,11 +1192,12 @@
       ],
       "inference": {
         "before": "「feature/login-fix」のようなスラッシュを含む名前でワークツリーを作成しようとすると、ディレクトリ作成や Git の制限に引っかかり、何の説明もなく処理が中断されていました。",
-        "after": "名前に含まれるスラッシュが適切に処理（置換またはエラー通知）され、プロセスが途中で止まることがなくなりました。",
+        "after": "名前に含まれるスラッシュが適切に処理(置換またはエラー通知)され、プロセスが途中で止まることがなくなりました。",
         "benefit": "標準的なブランチ命名規則をそのままワークツリー名に使用してもトラブルが発生せず、並行作業がスムーズに行えます。"
       }
     },
     {
+      "id": "e817d49c2eca",
       "content": "- [VSCode] Spinner now turns red with \"Not responding\" when the backend hasn't responded for 60 seconds",
       "content_ja": "[VSCode] バックエンドが 60 秒以上応答しない場合、スピナーが赤くなり「応答なし」と表示されるようになりました。",
       "prefix": "Changed",
@@ -1132,6 +1205,7 @@
       "related_docs": []
     },
     {
+      "id": "1e2b9cb36bb5",
       "content": "- [VSCode] Fixed session history not loading correctly when reopening a session via URL or after restart",
       "content_ja": "[VSCode] URL経由でセッションを再開した際や再起動後に、セッション履歴が正しく読み込まれない問題を修正しました。",
       "prefix": "Fixed",
@@ -1154,8 +1228,9 @@
       }
     },
     {
+      "id": "f2972370209d",
       "content": "- [VSCode] Added Esc-twice (or `/rewind`) to open a keyboard-navigable rewind picker",
-      "content_ja": "[VSCode] Esc キーの 2 回押し（または `/rewind`）で、キーボード操作可能な巻き戻しピッカーが開くようになりました",
+      "content_ja": "[VSCode] Esc キーの 2 回押し(または `/rewind`)で、キーボード操作可能な巻き戻しピッカーが開くようになりました",
       "prefix": "Added",
       "feature_areas": ["IDE"],
       "related_docs": [
@@ -1176,6 +1251,7 @@
       }
     },
     {
+      "id": "22b7cb0577b5",
       "content": "- [VSCode] Fixed \"Fork conversation from here\" and rewind actions failing silently after the session cache goes stale",
       "content_ja": "[VSCode] セッションキャッシュが古くなった際に、履歴からの分岐や巻き戻しアクションが音もなく失敗する問題を修正しました。",
       "prefix": "Fixed",

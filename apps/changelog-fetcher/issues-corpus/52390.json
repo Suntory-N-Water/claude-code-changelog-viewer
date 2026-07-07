@@ -1,0 +1,35 @@
+{
+  "number": 52390,
+  "title": "[BUG] CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=50 does not trigger autocompact — context reaches 100% requiring manual /compact",
+  "body": "## Bug\n\n`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` set to `50` in `settings.json` does not trigger automatic compaction. The context window reaches 100% and Claude Code shows the hard limit prompt (`Context limit reached · /compact or /clear to continue`), requiring manual `/compact` every time.\n\n## Version\n\nClaude Code v2.1.118, Sonnet 4.6 (200k context), macOS Darwin 25.4.0\n\n## Reproduction\n\n### Settings (`~/.claude/settings.json`)\n\n```json\n{\n  \"env\": {\n    \"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE\": \"50\"\n  }\n}\n```\n\n### Steps\n\n1. Start a Claude Code session with the above setting\n2. Run a moderately long session with multi-agent tasks and file reads (e.g., 5–10 subagent spawns)\n3. Observe that autocompact never fires at 50% — context grows to 100%\n4. Claude Code shows: `Context limit reached · /compact or /clear to continue`\n5. Must manually type `/compact` to continue\n\n## Expected behavior\n\nAutocompact should trigger when context usage reaches 50%, preventing the hard limit.\n\n## Actual behavior\n\nAutocompact never fires. Context reaches 100% regardless of the configured threshold.\n\n## Notes\n\n- Related to #42394 (same env var unreliable, but that report is about firing *too early*; this is the opposite: never fires)\n- The `PreCompact` hook (`~/.claude/hooks/pre-compact.sh`) runs correctly when *manual* `/compact` is executed, confirming the hook setup itself is not the issue\n- The problem appears to be that `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` is not being read or applied at all in v2.1.118 for Sonnet 4.6 sessions",
+  "labels": ["bug", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-23T13:22:49Z",
+  "updated_at": "2026-07-03T09:06:10Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "taku-me",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/36381\n2. https://github.com/anthropics/claude-code/issues/42817\n3. https://github.com/anthropics/claude-code/issues/42394\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-23T13:28:11Z"
+    },
+    {
+      "author": "wazionapps",
+      "author_association": "NONE",
+      "body": "Running into the same territory from the opposite end — we *want* frequent compactions (our sessions average 59+ per run) and had to build our own compaction lifecycle management because relying solely on `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` was unreliable.\n\nTwo things we found:\n\n1. **The env var seems to be ignored in certain session states** — specifically when subagents are active or when the context is dominated by tool results rather than conversational turns. Our hypothesis is that the autoco",
+      "created_at": "2026-04-23T15:27:12Z"
+    },
+    {
+      "author": "junaidtitan",
+      "author_association": "NONE",
+      "body": "Ran into the same frustration with unreliable autocompact thresholds. Cozempic's guard daemon bypasses this entirely — it monitors the session JSONL directly and applies 18 pruning strategies at 4 progressive thresholds before context ever hits 100%. No reliance on CLAUDE_AUTOCOMPACT_PCT_OVERRIDE. `pip install cozempic && cozempic init` — hooks wire via SessionStart. https://github.com/Ruya-AI/cozempic",
+      "created_at": "2026-04-23T19:09:53Z"
+    }
+  ]
+}

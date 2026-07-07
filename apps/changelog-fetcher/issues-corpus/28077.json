@@ -1,0 +1,35 @@
+{
+  "number": 28077,
+  "title": "Allow scrolling back to view full conversation history in CLI TUI",
+  "body": "## Problem\n\nIn the Claude Code CLI (TUI mode), older messages in a conversation become invisible and cannot be scrolled back to, even before context compression kicks in. The terminal's own scrollback buffer (e.g., Ghostty `scrollback-limit = 100000`) has no effect because Claude Code uses the **alternate screen buffer**, which bypasses terminal scrollback entirely.\n\nThis means critical information is lost from view during a session:\n- Tool call results (file contents, command output, search results)\n- Code diffs and changes made earlier in the conversation\n- Architectural decisions and reasoning from earlier messages\n- Error messages and debugging context\n\nThere is no user-configurable setting (`settings.json`, environment variable, or CLI flag) to control how many messages are rendered in the TUI.\n\n## Proposed Solution\n\n1. **Virtual scrolling in TUI** - Render only visible messages in the viewport, but allow scrolling back through the full conversation history (similar to how terminal multiplexers handle scrollback)\n2. **Configurable render limit** - At minimum, expose a setting (e.g., `maxRenderedMessages` or `tui.scrollbackLines`) so users can control how much history is kept renderable\n3. **Lazy rendering on scroll** - Load and render older messages on demand when the user scrolls up, rather than discarding them\n\n## Environment\n\n- Claude Code v2.1.51\n- Terminal: Ghostty (also reproducible in iTerm2, Terminal.app)\n- OS: macOS\n\n## Related\n\n- #24146 - Virtual scrolling for Web UI (same problem, different platform)",
+  "labels": ["enhancement", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-24T03:43:41Z",
+  "updated_at": "2026-07-02T12:45:42Z",
+  "closed_at": null,
+  "reactions_total": 72,
+  "comments_count": 33,
+  "author": "SunkyYang",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13446\n2. https://github.com/anthropics/claude-code/issues/18204\n3. https://github.com/anthropics/claude-code/issues/9001\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-24T03:47:56Z"
+    },
+    {
+      "author": "SunkyYang",
+      "author_association": "NONE",
+      "body": "This is **not a duplicate** of the three referenced issues. Those are all related to **compaction/compression** clearing the screen:\n\n- #13446 - After **compaction** the terminal resets\n- #18204 - **Compaction** clears screen\n- #9001 - Scroll regression (also tied to context window resets)\n\nMy issue is fundamentally different: **older messages become unviewable even before any compaction occurs.** In a single session with no compression triggered, earlier messages (tool results, code diffs, reas",
+      "created_at": "2026-02-24T03:49:52Z"
+    },
+    {
+      "author": "arkevo",
+      "author_association": "NONE",
+      "body": "I'm having the same issue",
+      "created_at": "2026-03-13T06:51:53Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 3134,
+  "title": "[BUG] Terminal Paste Corruption from Bracketed Paste Mode",
+  "body": "## Summary\n\nLaunching and exiting Claude Code corrupts terminal paste functionality. All subsequent paste operations are prefixed with `00~` and suffixed with `01~`.\n\n## Environment\n\n- **OS**: macOS - Sequoia 15.5\n- **Terminal**: Terminal.app 2.14\n- **Claude Code Version**: 1.0.44\n- **Shell**: bash 5.2.37\n\n## Reproduction\n\n1. Open fresh terminal\n2. Verify paste works normally\n3. Run `claude`\n4. Exit immediately (no commands)\n5. Copy/paste any text\n\n## Expected vs Actual\n\n**Expected**: `adding-mcp-to-your-python-project`\n**Actual**: `00~adding-mcp-to-your-python-project01~`\n\n## Workarounds\n\n- `reset`\n- `printf '\\e[?2004l'`\n- Restart terminal\n\n## Technical Details\n\nClaude Code leaves terminal in corrupted bracketed paste mode. The `00~`/`01~` characters are escape sequences (`\\e[200~`/`\\e[201~`) being displayed instead of processed.\n\n## Impact\n\n- **Frequency**: 100% reproducible\n- **Trigger**: Every Claude Code launch/exit\n- **Effect**: Breaks all terminal paste until manual reset\n\n## Root Cause\n\nClaude Code likely enables bracketed paste mode (`\\e[?2004h`) but fails to disable it (`\\e[?2004l`) on exit.\n\n## Related\n\nRelated:\n- https://gitlab.com/gnachman/iterm2/-/issues/7908\n- https://jdhao.github.io/2021/02/01/bracketed_paste_mode/\n\n\n**Environment Info**\n- Platform: darwin\n- Terminal: Apple_Terminal\n- Version: 1.0.44\n- Feedback ID: b21fac8e-2c0a-4d59-b6a5-9ef693b97ece\n\n**Errors**\n```json\n[{\"error\":\"Error: Command failed: security find-generic-password -a $USER -w -s \\\"Claude Code\\\"\\nsecurity: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.\\n\\n    at genericNodeError (node:internal/errors:983:15)\\n    at wrappedFn (node:internal/errors:537:14)\\n    at checkExecSyncError (node:child_process:892:11)\\n    at execSync (node:child_process:964:15)\\n    at wD (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:702:3921)\\n    at file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:623:9350\\n    at Q (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:526:13327)\\n    at uC (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:623:8496)\\n    at hC (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:623:7361)\\n    at wB (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:623:11970)\",\"timestamp\":\"2025-07-08T05:52:40.983Z\"},{\"error\":\"SyntaxError: Unexpected token '/', \\\"/usr/local\\\"... is not valid JSON\\n    at JSON.parse (<anonymous>)\\n    at file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:618:9971\\n    at Q (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:526:13327)\\n    at gQA.<anonymous> (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:2586:111)\\n    at gQA.B [as _actionHandler] (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:516:528)\\n    at file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:520:3127\\n    at gQA._chainOrCall (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:520:1694)\\n    at gQA._parseCommand (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:520:3103)\\n    at gQA.parseAsync (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:517:4195)\\n    at Cv6 (file:///Users/jason/.npm-global/lib/node_modules/@anthropic-ai/claude-code/cli.js:2598:1217)\",\"timestamp\":\"2025-07-08T05:52:41.063Z\"}]\n```\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-07-08T05:58:42Z",
+  "updated_at": "2026-06-25T19:24:43Z",
+  "closed_at": null,
+  "reactions_total": 33,
+  "comments_count": 22,
+  "author": "jason-riddle",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "danielweinmann",
+      "author_association": "NONE",
+      "body": "Same here",
+      "created_at": "2025-07-08T13:56:58Z"
+    },
+    {
+      "author": "jscalo",
+      "author_association": "NONE",
+      "body": "Dup of #3007 ? FWIW you can temporarily fix this by typing this into the shell\n\n```\nprintf '\\e[?2004l'\n```\n\nMight want to add that as an alias...",
+      "created_at": "2025-07-10T14:33:40Z"
+    },
+    {
+      "author": "thomasnormal",
+      "author_association": "NONE",
+      "body": "Same here!\nHere's how to use @jscalo's workaround automatically.\nIn your `.bashrc` put:\n```\nclaude() {\n    command claude \"$@\"\n    printf '\\e[?2004l'\n}\n```",
+      "created_at": "2025-08-12T11:58:18Z"
+    }
+  ]
+}

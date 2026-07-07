@@ -1,0 +1,35 @@
+{
+  "number": 34925,
+  "title": "Feature: configurable auto-compaction threshold",
+  "body": "## Feature request\n\nAllow users to configure the context window percentage at which auto-compaction triggers, via a setting in `settings.json` (user or project level).\n\n```json\n{\n  \"autoCompactionThreshold\": 80\n}\n```\n\nIf not specified, the current default behavior applies.\n\n## Motivation\n\nWith the `statusLine` feature, users can now monitor context window usage in real time. However, there's no way to control *when* auto-compaction fires. In my experience, compaction triggered at ~76% used (24% remaining) — well before the context window was exhausted.\n\nFor long-running sessions with heavy context (architecture decisions, multi-file reviews), earlier compaction discards useful context prematurely. For other workflows, later compaction might risk losing important state.\n\nA configurable threshold would let users tune the trade-off between context preservation and safety margin based on their workflow.\n\n## Proposed behavior\n\n- New optional setting: `autoCompactionThreshold` (integer, 1–99, percentage of context used)\n- When context usage reaches the threshold, auto-compaction fires as it does today\n- If omitted, current default behavior is unchanged\n- Could be set at user level (`~/.claude/settings.json`) or project level (`.claude/settings.json`)",
+  "labels": ["duplicate", "enhancement", "area:core", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-16T12:28:56Z",
+  "updated_at": "2026-06-25T11:03:47Z",
+  "closed_at": "2026-06-25T11:03:47Z",
+  "reactions_total": 3,
+  "comments_count": 12,
+  "author": "virafb",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "+1 on this. I've been running Claude Code autonomously for 140+ hours and context management is critical.\n\nAs a workaround until this is natively supported, you can build this with a **PostToolUse hook** that monitors context usage after every tool call:\n\n```bash\n#!/bin/bash\n# context-monitor.sh — warn when context window is running low\n# Add to settings.json as a PostToolUse hook\n\nTHRESHOLD_WARN=20   # warn at 20% remaining\nTHRESHOLD_CRITICAL=5 # critical at 5% remaining\n\n# Parse context info f",
+      "created_at": "2026-03-16T13:17:00Z"
+    },
+    {
+      "author": "AbdoKnbGit",
+      "author_association": "NONE",
+      "body": "cc-memory addresses this with a different approach that's already working.\n\nInstead of improving compaction, it moves context outside the window entirely:\n\n- Full conversation turns stored in SQLite + ChromaDB (not summarized, \n  just moved out)\n- Semantic retrieval injects only relevant prior context back when needed\n- Tiered injection: pinned decisions always included, past context \n  scored by relevance\n- Cerebras compresses history for free before hitting Anthropic — \n  no token cost from yo",
+      "created_at": "2026-03-18T12:59:04Z"
+    },
+    {
+      "author": "iuriguilherme",
+      "author_association": "NONE",
+      "body": "`settings.json` should use the same syntax as the [API already uses](https://platform.claude.com/docs/en/build-with-claude/compaction#parameters): \n\n````json\n{\n    \"context_management\": {\n        \"edits\": [\n            {\n                \"type\": \"compact_20260112\",\n                \"trigger\": {\n                    \"type\": \"input_tokens\",\n                    \"value\": 150000\n                },\n            }\n        ]\n    }\n}\n````",
+      "created_at": "2026-03-18T20:27:56Z"
+    }
+  ]
+}

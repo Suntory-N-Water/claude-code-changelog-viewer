@@ -1,0 +1,35 @@
+{
+  "number": 67843,
+  "title": "[BUG] Filesystem extension silently fails to install after Squirrel → MSIX upgrade on Windows",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n### Summary\nAfter upgrading from the Squirrel-based installer to the MSIX package, the Filesystem desktop extension cannot be installed via the Connectors directory. Clicking the Install button triggers a download but the installation never completes — no error is shown and the extension does not appear as installed.\n\n### Environment\n- **OS**: Windows 11\n- **Claude Desktop version**: 1.12603.1.0 (MSIX)\n- **Package family**: `Claude_pzs8sxrjxfjjc`\n- **Upgrade path**: Squirrel installer → MSIX package\n\n### What Should Happen?\n\n### Expected behavior\nThe Filesystem extension installs successfully and appears as an available connector.\n\n### Actual behavior\nThe `.mcpb` file is downloaded to a temp folder and copied to a `dxt-install-*` directory, but installation never completes. Multiple retries leave behind orphaned `dxt-install-*` folders.\n\n### Error Messages/Logs\n\n```shell\n### Root cause (from logs)\n\nOn every app startup, `main.log` shows:\n\n\n[MSIX] Filesystem not virtualized — C:\\Users\\<user>\\AppData\\Local\\Packages\\Claude_pzs8sxrjxfjjc\\LocalCache\\Roaming\\Claude absent (likely Squirrel upgrade)\n\n\nThe MSIX virtualization path is never created by the app on startup, so the extension installer has no valid write target. Manually creating the directory is overwritten/ignored on next launch.\n\nThe install sequence in the log:\n\n[download:N] Starting download from .../ant.dir.ant.anthropic.filesystem/download\n[warn] Installing unsigned extension from C:\\...\\dxt-download-XXXX.mcpb\n\n…followed by silence. No success or failure log entry ever appears after `Installing unsigned extension`.\n```\n\n### Steps to Reproduce\n\n### Steps to reproduce\n\n1. Install Claude Desktop via the Squirrel installer (older method)\n2. Upgrade to the MSIX version (e.g. via Microsoft Store or new installer)\n3. Open Claude Desktop → Code tab → `+` button → Connectors\n4. Select Filesystem → click Install\n5. Nothing happens — no confirmation, no error, no extension installed\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n1.12603.1.0\n\n### Platform\n\nOther\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n### Additional notes\n- `extensions-blocklist.json` has 0 entries — not a blocklist issue\n- Windows Defender shows no blocks related to Claude or `.mcpb` files\n- Manually creating the virtualization path (`AppData\\Local\\Packages\\Claude_pzs8sxrjxfjjc\\LocalCache\\Roaming\\Claude`) does not persist across app restarts\n- Other app functionality (Code sessions, remote connectors) works normally\n- The same issue affects repeated install attempts; each attempt creates a new orphaned `dxt-install-*` folder in both `AppData\\Roaming\\Claude` and the virtualization path",
+  "labels": ["invalid"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-06-12T09:24:39Z",
+  "updated_at": "2026-06-17T15:48:55Z",
+  "closed_at": "2026-06-17T15:48:55Z",
+  "reactions_total": 0,
+  "comments_count": 11,
+  "author": "tkdats1002",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "KunJakob",
+      "author_association": "NONE",
+      "body": "Can confirm this happens for all packaged desktop extensions in our org on machines running msix installs. Installing unpackaged does however work. Seems to suggest it's related to the unzip step. I ran the app's exact extraction logic with the same yauzl version in plain Node and it worked fine. It only ever hangs inside Claude Desktop's Electron runtime, and leaks a dxt-install-* temp dir per attempt.",
+      "created_at": "2026-06-12T12:30:01Z"
+    },
+    {
+      "author": "ChenZHAO-factorial",
+      "author_association": "NONE",
+      "body": "Confirming this issue. After auto-update to Claude Desktop 1.12603.1.0 (Windows MSIX, `PackageFamilyName: Claude_pzs8sxrjxfjjc`):\n\n- Prior builds (1.106xx → 1.10628 → 1.11187) installed `.mcpb` files with no issue — log showed `[warn] Installing unsigned extension from ...` followed by `Successfully installed extension`.\n- On 1.12603: install attempts (both double-click and Settings → Extensions → \"Install Extension\") produce **zero log entries**. No `Installing unsigned extension` line, no dial",
+      "created_at": "2026-06-15T17:49:43Z"
+    },
+    {
+      "author": "AnaCatarino",
+      "author_association": "NONE",
+      "body": "Seeing this too, and a full clean reinstall did not fix it for me.\nEnvironment: Windows 11, personal machine. Claude Desktop 1.12603.1 (3df4fd), build 2026-06-11.\nHistory: Originally installed Claude Desktop from the Microsoft Store (MSIX), then later installed the direct build from claude.ai/download over the top — so I hit the Store→direct migration described here.\nSymptom: Trying to install the Autodesk Fusion desktop extension, the \"Install Extension?\" confirmation dialog appears, but clicki",
+      "created_at": "2026-06-15T22:32:13Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 26073,
+  "title": "[BUG] Windows MSIX: \"Edit Config\" opens wrong claude_desktop_config.json — MCP servers silently fail to load",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Summary\n\nOn Windows, Claude Desktop installed via the official installer (claude.ai/download) uses MSIX packaging. The app's **\"Edit Config\"** button in Developer settings opens a config file at `%APPDATA%\\Claude\\claude_desktop_config.json`, but the app actually reads from a **different location** inside the MSIX virtualized filesystem. This causes MCP server configurations to be silently ignored with no error messages, no logs, and no indication that anything is wrong.\n\n## Environment\n\n- **OS:** Windows 11 Pro (latest version, Build 26100)\n- **Claude Desktop version:** 1.1.3189.0 (MSIX package: `Claude_pzs8sxrjxfjjc`)\n- **Installation method:** Downloaded from claude.ai/download (standard installer)\n- **Hyper-V:** Enabled\n- **Intel Virtualization (VT-x):** Enabled\n- **Node.js:** v24.13.1 (installed via vfox version manager)\n- **npm/npx:** v11.8.0\n\n## Installation Details\n\nThe app installs as an MSIX package at:\n\n```\nC:\\Program Files\\WindowsApps\\Claude_1.1.3189.0_x64__pzs8sxrjxfjjc\\app\\Claude.exe\n```\n\nNote: A second package also exists at `Anthropic.ClaudeDesktop_h6f0761` which may be related to the confusion.\n\n## Root Cause\n\nThis is an **Electron + MSIX filesystem virtualization** issue.\n\nMSIX apps on Windows run inside a lightweight container with a virtualized filesystem. When the Claude Desktop app (running inside the MSIX container) accesses `%APPDATA%\\Claude\\`, Windows silently **redirects** that read/write to the virtualized path:\n\n```\n%LOCALAPPDATA%\\Packages\\Claude_pzs8sxrjxfjjc\\LocalCache\\Roaming\\Claude\\\n```\n\nHowever, the \"Edit Config\" button likely uses an Electron API like `shell.openPath()` or `shell.openExternal()` to launch the user's text editor. This API call resolves to the **real, non-virtualized** `%APPDATA%\\Claude\\` path — bypassing the MSIX redirection.\n\nThe result: the app reads from the virtualized path, but tells the user to edit a completely different file at the real path. These are two separate files on disk that are never synchronized.\n\n## Bug Description\n\n### The Problem\n\nThere are **two** `claude_desktop_config.json` files on the system:\n\n1. **The file \"Edit Config\" opens** (the wrong one):\n\n   ```\n   C:\\Users\\<username>\\AppData\\Roaming\\Claude\\claude_desktop_config.json\n   ```\n\n   → This is the standard `%APPDATA%\\Claude\\` path referenced in all official documentation.\n\n2. **The file the app actually reads** (the correct one):\n\n   ```\n   C:\\Users\\<username>\\AppData\\Local\\Packages\\Claude_pzs8sxrjxfjjc\\LocalCache\\Roaming\\Claude\\claude_desktop_config.json\n   ```\n\n   → This is the MSIX virtualized filesystem path.\n\nWhen a user adds MCP server configuration to file #1 (as instructed by the UI and documentation), the app reads file #2 and finds no MCP servers configured. The MCP servers never start.\n\n### What Makes This Hard to Debug\n\n- **No error messages** are displayed in the app\n- **No logs folder** is created at `%APPDATA%\\Claude\\logs\\` (because the app isn't reading from there)\n- **The logs folder exists** in the virtualized path but users don't know to look there\n- **Developer settings** show no indication that the config was not loaded\n- **\"Edit Config\" button** confidently opens the wrong file, leading users to believe they're editing the right config\n- **All official documentation** references `%APPDATA%\\Claude\\` as the config location\n\n## Steps to Reproduce\n\n1. Install Claude Desktop on Windows from claude.ai/download (results in MSIX installation)\n\n2. Open Claude Desktop → Settings → Developer → click \"Edit Config\"\n\n3. Add any MCP server configuration to the file that opens, for example:\n\n   ```json\n   {\n     \"mcpServers\": {\n       \"filesystem\": {\n         \"command\": \"npx\",\n         \"args\": [\"-y\", \"@modelcontextprotocol/server-file",
+  "labels": ["bug", "invalid"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-16T10:15:23Z",
+  "updated_at": "2026-07-04T10:05:31Z",
+  "closed_at": null,
+  "reactions_total": 31,
+  "comments_count": 19,
+  "author": "0xc4b4l",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/25579\n2. https://github.com/anthropics/claude-code/issues/25600\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-16T10:19:02Z"
+    },
+    {
+      "author": "jphillips59-wq",
+      "author_association": "NONE",
+      "body": "This is the same reason files won't render (like powerpoints), and you can't download files directly in the client - huge issue",
+      "created_at": "2026-02-19T02:40:19Z"
+    },
+    {
+      "author": "peternoyes",
+      "author_association": "NONE",
+      "body": "The fix for this needs to be that Claude reads the stable documented config path of C:\\Users\\%APPDATA%\\Claude. This fix isn't directly related to the switch to MSIX.\n\nIt **is working** in Claude **1.1.2998** (1f1d4d) 2026-02-12T20:50:41.000Z** which is an MSIX build. \nIt is broken in Claude **1.1.3647** (8f7c53) 2026-02-19T15:02:19.000Z\n\nUPDATE: It looks like the above may not be the case. It depends if the computer previously had a non-MSIX version of Claude. This issue appears to only affect f",
+      "created_at": "2026-02-20T00:32:30Z"
+    }
+  ]
+}

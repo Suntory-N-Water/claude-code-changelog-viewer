@@ -1,0 +1,23 @@
+{
+  "number": 73125,
+  "title": "[BUG] AskUserQuestion: \"No response after 60s — continued without an answer\"",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n```\n● Claude asked:\n  ⎿  ·[...]\n     ● No response after 60s — continued without an answer\n```\n[...]\n```\n❯ What is this No response after 60s — continued without an answer??????????                                                                \n\n● Direct answer: that line came from the AskUserQuestion tool itself, not from you. When I posed the three-part question ([...]), the tool call sat unanswered for 60 seconds and the harness returned this verbatim:\n\n  ▎ \"No response after 60s — the user may be away from keyboard. Proceed using your best judgment based on the context so far; you can \n  ▎ re-ask this question later if it's still relevant.\"\n\n  So the mechanism is: AskUserQuestion has a 60-second timeout; if no selection arrives, it auto-returns that \"proceed with best judgment\"\n  result instead of blocking. I did not fabricate or skip anything — that's what the tool handed back.\n```\n[...]\n```\n❯ Is this a tool parameter?                                                                                                                 \n\n● No — it is not. I've just checked the AskUserQuestion schema I was given: its parameters are questions, answers, annotations, metadata.\n  There is no timeout parameter, no \"60s\", nothing about response timing. I passed no such parameter, and none exists to pass.\n```\n\n### What Should Happen?\n\nNot this!!! `AskUserQuestion` is an explicit safety check and I have rules and hooks to make sure the right questions are asked and that scary things do not happen without my input. Suddenly Claude is told to \"proceed with best judgment\"? What?!\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nNo idea.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n2.1.196 (I am guessing)\n\n### Claude Code Version\n\n2.1.198\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nOther Linux\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nNothing in https://code.claude.com/docs/en/changelog to even alert about this!!!",
+  "labels": [
+    "bug",
+    "api:bedrock",
+    "platform:linux",
+    "area:tui",
+    "area:tools",
+    "platform:vscode"
+  ],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-07-02T02:54:20Z",
+  "updated_at": "2026-07-06T07:06:47Z",
+  "closed_at": "2026-07-04T18:04:36Z",
+  "reactions_total": 390,
+  "comments_count": 128,
+  "author": "ANogin",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

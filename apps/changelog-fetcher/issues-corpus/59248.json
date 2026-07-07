@@ -1,0 +1,35 @@
+{
+  "number": 59248,
+  "title": "Silent retention cleanup deletes session transcripts with no warning, opt-in, or recovery",
+  "body": "## Summary\n\nA user actively working in Claude Code (Cursor extension, `anthropic.claude-code-2.1.141-darwin-arm64`) lost the ability to resume, view, or recover **all Claude Code conversation transcripts** in a given workspace older than the current session, including a session from the previous day, because a built-in cleanup process silently deleted those transcripts from disk. The user received no prompt, no warning, and no Trash-style soft-delete. The retention setting (`cleanupPeriodDays`) was never surfaced, never set explicitly, and **the observed retention behavior is inconsistent with the documented 30-day default** — sessions newer than 30 days are still missing. When the user discovered the loss, the Cursor resume picker presented an empty workspace history, leaving the user with no in-product hint that data had ever existed there.\n\n## Specific concerns\n\n1. **No consent prompt.** Cleanup runs out of the box with no install-time disclosure or first-run dialog. Users who treat their conversation history as durable working knowledge are silently mistaken about the persistence model.\n\n2. **No UI surface for retention.** `cleanupPeriodDays` is documentation-only. There is no UI in Cursor's Claude Code extension or the CLI to view current retention, see when next cleanup will run, see what will be deleted, or cancel a pending cleanup.\n\n3. **Hard delete, no Trash.** Deleted transcripts go straight to `unlink()`. No soft-delete folder, no grace period, no `--restore` command, no `claude restore` subcommand. macOS Trash is bypassed.\n\n4. **Observed behavior diverges from documented retention.** With a documented 30-day default and today's date 2026-05-14, sessions from 2026-04-14 onward should survive. In this workspace, the most recent surviving transcript material is **2026-03-04 — 71 days ago**. Either the documented default is wrong, the cleanup uses a different rule (delete-on-extension-update, delete-on-session-end, delete-on-`/clear`, delete-on-cursor-restart), or there's a separate deletion path triggered by something other than the 30-day timer.\n\n5. **Subagent orphan pattern is a smoking gun.** When the parent `<sessionId>.jsonl` is deleted but the `<sessionId>/subagents/` subdirectory is left behind, the result is dead weight: tens of MB of subagent transcripts that reference a parent session that no longer exists, cannot be resumed, and are not surfaced in any UI. Either the cleanup should be transactional (delete the dir AND the subagents together, OR delete neither), or both should be retained.\n\n6. **Cleanup is timed to session start — the worst possible moment.** Running cleanup ~12 minutes after a Claude Code session starts means a user who opens Claude Code today to *look up* what they discussed yesterday triggers the very cleanup that deletes yesterday's transcript. The interaction is destructive at the exact moment the user most needs the data.\n\n7. **Cross-version risk.** The Cursor Claude Code extension updated on 2026-05-13 (the day of the lost session). The user attempted version rollback to recover — which had no effect, because the data lives in `~/.claude/` and is not version-coupled. Anthropic should clarify whether extension upgrades trigger their own cleanup, and whether transcripts written by an older extension version are at risk on first run of a newer version.\n\n8. **No telemetry or audit trail.** No log of what was deleted, when, or why. A user has no way to confirm what they lost or build a case for restoration.\n\n## Suggested fixes\n\n- Surface a retention disclosure on first run; default to longer or infinite retention until the user opts in.\n- Add a soft-delete tier: move deleted transcripts to `~/.claude/projects/<workspace>/.trash/` for N days before unlink, with `claude restore` to recover.\n- Make cleanup transactional: never delete a parent `.jsonl` while its `subagents/` directory still has content.\n- Don't run cleanup at session-start; run it on session-end, or on an idle timer that respects the \"user just opened Claude Code\" signal.\n- Add an explicit log of cleanup actions ",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "data-loss"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-14T22:51:10Z",
+  "updated_at": "2026-07-06T07:31:44Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 20,
+  "author": "FTSBrand",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/46621\n2. https://github.com/anthropics/claude-code/issues/39667\n3. https://github.com/anthropics/claude-code/issues/41458\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-14T22:56:33Z"
+    },
+    {
+      "author": "FTSBrand",
+      "author_association": "NONE",
+      "body": "Thanks for the duplicate suggestions. I've reviewed the three referenced issues and want to flag this report as **same bug family but with materially new evidence** — please keep it open rather than auto-closing.\n\n## Cross-reference\n\n- **#46621** (open, Apr 11) — Linux CLI, v2.1.101. Closest in spirit (silent pruning, asks for warnings + configurable retention).\n- **#39667** (closed as duplicate, Mar 27) — macOS CLI, v2.1.85. Documents the same orphan-subagent pattern this report observes.\n- **#",
+      "created_at": "2026-05-14T23:14:48Z"
+    },
+    {
+      "author": "ghh1111",
+      "author_association": "NONE",
+      "body": "+1, 1800+ husks on macOS, v2.1.150, default settings, May 24 cleanup wiped years of work. Have now spent 9+ hours debugging with no way to get them back. Claude code silently deleted all of my /project session jsonl files with no warning, no asking for permission. Then when claude code suggested filing a bug report here, it immediately got flagged by the bot saying it was a duplicate. So how many more people are living through this who are not being allowed to echo the issue here? This is more t",
+      "created_at": "2026-05-24T22:12:13Z"
+    }
+  ]
+}

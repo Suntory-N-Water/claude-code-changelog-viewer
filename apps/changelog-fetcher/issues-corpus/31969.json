@@ -1,0 +1,35 @@
+{
+  "number": 31969,
+  "title": "Feature: Enter/resume existing worktrees, configurable branch naming, hook removal control",
+  "body": "## Context\n\nI'm building a Claude Code plugin ([benkruger/flow](https://github.com/benkruger/flow)) that manages multi-session feature development through an 8-phase lifecycle. Each feature lives in a git worktree that persists across 2-10+ Claude Code sessions.\n\nI investigated using Claude Code's built-in worktree support (`EnterWorktree`, `isolation: \"worktree\"`, `WorktreeCreate`/`WorktreeRemove` hooks) and found three gaps that prevent integration. The built-in support is designed for ephemeral, single-session agent isolation — which is great for that use case — but doesn't support persistent, multi-session worktree lifecycles.\n\n## Requests\n\n### 1. Enter/resume existing worktree tool\n\n`EnterWorktree` only creates new worktrees. There is no way to switch a session into an already-existing worktree. For multi-session workflows, session 1 creates the worktree, but sessions 2+ have no platform-level mechanism to re-enter it. The main benefit of `EnterWorktree` — platform-level directory tracking that survives context compaction — is lost after the first session.\n\n**Proposed**: A `ResumeWorktree` tool (or a parameter on `EnterWorktree`) that switches the session into an existing worktree by path or branch name without creating a new one.\n\n### 2. Configurable branch naming (no `worktree-` prefix)\n\n`EnterWorktree(name=\"invoice-pdf-export\")` creates branch `worktree-invoice-pdf-export`. The `worktree-` prefix is hardcoded. Plugins and workflows that manage their own branch naming conventions (state files keyed by branch name, PR branch naming, etc.) need to control the full branch name.\n\n**Proposed**: Either a `branch` parameter on `EnterWorktree` to specify the exact branch name, or a configuration option to disable the prefix.\n\n### 3. Hook control over worktree removal\n\n`WorktreeRemove` hooks are informational — they cannot prevent removal. The \"keep or remove?\" prompt on session exit is the only removal mechanism, and it fires every time. For multi-session features, this means:\n- The user is asked to keep/remove on every session exit (noisy)\n- An accidental \"remove\" destroys in-progress work with no recovery\n\n`WorktreeCreate` already supports exit code `2` to abort creation. The same pattern on `WorktreeRemove` would let plugins with multi-session lifecycles block accidental cleanup.\n\n**Proposed**: Let `WorktreeRemove` hooks return exit code `2` to block removal (matching the `WorktreeCreate` pattern). Alternatively, a flag on `EnterWorktree` to opt out of the session-exit removal prompt entirely.\n\n## Impact\n\nWith all three features, plugins could use `EnterWorktree`/`ResumeWorktree` for platform-level directory tracking while keeping their own branch naming, state management, and cleanup lifecycle. The platform-level tracking surviving context compaction is the key benefit — it's something plugins currently can't replicate with instructions alone.",
+  "labels": ["enhancement", "area:hooks", "area:plugins"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-07T23:55:30Z",
+  "updated_at": "2026-06-25T17:07:06Z",
+  "closed_at": null,
+  "reactions_total": 27,
+  "comments_count": 6,
+  "author": "benkruger",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "maks244",
+      "author_association": "NONE",
+      "body": "these would be great additions, working around these limitations is a bit annoying",
+      "created_at": "2026-03-17T10:54:53Z"
+    },
+    {
+      "author": "anilanar",
+      "author_association": "NONE",
+      "body": "@benkruger Does `WorktreeCreate` hook work for you when it comes from a plugin and when user uses `claude --worktree {branch-name}`?",
+      "created_at": "2026-03-24T10:51:50Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "A `PreToolUse` hook on Agent can implement custom worktree management:\n```bash\nINPUT=$(cat)\nISOLATION=$(echo \"$INPUT\" | jq -r '.tool_input.isolation // empty')\n[ \"$ISOLATION\" = \"worktree\" ] || exit 0\nPROMPT=$(echo \"$INPUT\" | jq -r '.tool_input.prompt // empty' | head -c 50)\nSLUG=$(echo \"$PROMPT\" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | head -c 30)\nBRANCH=\"feature/agent-$SLUG-$(date +%H%M%S)\"\nEXISTING=$(git worktree list --porcelain 2>/dev/null | grep \"^branch\" | g",
+      "created_at": "2026-03-29T12:15:36Z"
+    }
+  ]
+}

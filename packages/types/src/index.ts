@@ -35,13 +35,62 @@ export const ImpactAssessmentSchema = z.object({
 });
 export type ImpactAssessment = z.infer<typeof ImpactAssessmentSchema>;
 
+// IssueCorpusEntry (GitHub issue 1件を CHANGELOG 紐付け用に正規化したもの)
+export const IssueCorpusEntrySchema = z.object({
+  number: z.number().int().positive(),
+  title: z.string(),
+  body: z.string(),
+  labels: z.array(z.string()),
+  state: z.enum(['open', 'closed']),
+  state_reason: z.string().nullable().optional(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  closed_at: z.string().nullable().optional(),
+  reactions_total: z.number().int().nonnegative(),
+  comments_count: z.number().int().nonnegative(),
+  author: z.string(),
+  is_maintainer_involved: z.boolean(),
+  duplicate_of: z.number().int().positive().optional(),
+  top_comments: z.array(
+    z.object({
+      author: z.string(),
+      author_association: z.string(),
+      body: z.string(),
+      created_at: z.string(),
+    }),
+  ),
+});
+export type IssueCorpusEntry = z.infer<typeof IssueCorpusEntrySchema>;
+
+// RelatedIssue (CHANGELOG 項目に紐付けられた 1件の判断材料)
+export const RelatedIssueSchema = z.object({
+  number: z.number().int().positive(),
+  title: z.string(),
+  url: z.string(),
+  state: z.enum(['open', 'closed']),
+  reactions_total: z.number().int().nonnegative(),
+  comments_count: z.number().int().nonnegative(),
+  matched_reason: z.enum(['direct_reference', 'strong_token', 'cosine']),
+  is_maintainer_involved: z.boolean(),
+  duplicate_of: z.number().int().positive().optional(),
+  scores: z.object({
+    total: z.number(),
+    has_nnn: z.number(),
+    strong_token: z.number(),
+    cosine: z.number(),
+  }),
+});
+export type RelatedIssue = z.infer<typeof RelatedIssueSchema>;
+
 // ChangelogItem
 export const ChangelogItemSchema = z.object({
+  id: z.string().length(12), // sha256(content)[0:12]
   content: z.string(), // 英語原文
   content_ja: z.string().optional(), // 日本語翻訳
   prefix: z.string(),
   feature_areas: z.array(z.string()).optional(), // 機能領域タグ
   related_docs: z.array(RelatedDocSchema),
+  related_issues: z.array(RelatedIssueSchema).optional(),
   inference: InferenceResultSchema.optional(),
   impact: ImpactAssessmentSchema.optional(),
 });

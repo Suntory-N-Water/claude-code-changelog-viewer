@@ -1,0 +1,35 @@
+{
+  "number": 62476,
+  "title": "[BUG] Claude Code silently deletes conversation transcripts after 30 days by  default",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\ncleanupPeriodDays defaults to 30, causing Claude Code to silently delete\n  ~/.claude/projects/<project>/<sessionId>.jsonl files older than 30 days on\n  startup. There is no first-run disclosure, no warning before deletion, and the\n   setting is not surfaced in /config. I lost months of conversation history\n  before realizing this was happening.\n\n  **Repro:** Use Claude Code for >30 days without setting cleanupPeriodDays. Old\n  transcripts disappear.\n\n  **Evidence on my machine:** ~/.claude/history.jsonl shows 14 sessions / 1,315\n  prompts for one project from March–April. Only the current session's .jsonl\n  survives in ~/.claude/projects/. The cutoff matches the 30-day default\n  exactly. My settings.json does not override the default.\n\n  **Impact:** The code and git history remain, but the reasoning trail — design\n  discussions, debugging context, analysis — is gone. For research work that\n  context is the artifact.\n\n\n### What Should Happen?\n\n  **Requested:**\n  1. Change the default to non-destructive (disabled, or very long retention).\n  2. Disclose at first run; require opt-in for auto-deletion. \n  3. Soft-delete to a trash folder instead of unlink().\n  4. Surface the setting in /config.\n\n  Workaround for others: add \"cleanupPeriodDays\": 3650 to\n  ~/.claude/settings.json immediately.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nUse Claude Code for >30 days without setting cleanupPeriodDays. Old  transcripts disappear.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.150\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-26T12:21:09Z",
+  "updated_at": "2026-07-06T08:12:56Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 10,
+  "author": "joelhochstetter",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "AiTrillium",
+      "author_association": "NONE",
+      "body": "### Adding evidence + an IP-sovereignty framing + a consolidated recommendation\n\n> **Update 2026-06-04:** #59248 is now the more-developed consolidation thread — @ojura's root-cause analysis, cross-platform reports (macOS/Windows/Linux), and several recovery efforts. I've posted our boundary-precise mtime evidence + ~900-session reconstruction datapoint there and recommend consolidating discussion at **#59248**. The cross-reference table below is updated to reflect this.\n\nConfirming this on `cla",
+      "created_at": "2026-05-30T19:36:53Z"
+    },
+    {
+      "author": "AiTrillium",
+      "author_association": "NONE",
+      "body": "Cross-reference for anyone triaging: #59248 has become the more-developed thread on this bug — it carries @ojura's root-cause analysis (`unlinkIfOld` mtime-keying + the `settingSources` override that defeats a high `cleanupPeriodDays`), spans macOS/Windows/Linux, and collects several recovery efforts. I've added our boundary-precise evidence and a reconstruction datapoint there. Suggest consolidating discussion at #59248 so maintainers have one place for root cause + fixes.",
+      "created_at": "2026-06-04T01:57:44Z"
+    },
+    {
+      "author": "blain3white",
+      "author_association": "NONE",
+      "body": "For a stopgap until a native retention option ships: I wrote [Clean My Agent](https://github.com/blain3white/clean-my-agent) to back up Claude Code's session JSONLs on demand — keeps a safe copy before the 30-day window closes.",
+      "created_at": "2026-06-09T03:09:48Z"
+    }
+  ]
+}

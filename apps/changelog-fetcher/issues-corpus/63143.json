@@ -1,0 +1,42 @@
+{
+  "number": 63143,
+  "title": "AskUserQuestion: cancelling during extended thinking poisons the whole session with 400 'thinking blocks cannot be modified' (2.1.153); concurrent prompts overwrite each other",
+  "body": "## Summary\n\nWhen extended thinking is enabled, **cancelling/rejecting an `AskUserQuestion` prompt poisons the entire session**: the next request fails with `API Error: 400 ... 'thinking' or 'redacted_thinking' blocks in the latest assistant message cannot be modified`, and then **every subsequent message returns the same 400**. The session is unrecoverable — the only escape is `/exit`.\n\nThere is a second, contributing bug that makes the cancel far more likely: **multiple `AskUserQuestion` tool calls emitted in a single streamed assistant response render concurrently and overwrite each other on screen**, so the visible question changes while the user is mid-answer — prompting an instinctive Escape/cancel, which then triggers the 400 above.\n\n## Environment\n\n- Claude Code **2.1.153** (native install) — latest at time of filing\n- macOS (Darwin 25.x)\n- Extended thinking enabled, Auto permission mode\n- Reproduced across three consecutive sessions in an ~18-minute window\n\n## Bug 1 — concurrent AskUserQuestion prompts overwrite each other\n\nIn one streamed assistant response, the model emitted **more than one `AskUserQuestion` tool_use** interleaved with other tool calls, without waiting for an answer to the first. Inspecting the session transcript (`~/.claude/projects/<proj>/<id>.jsonl`) via the `uuid`/`parentUuid` chain:\n\n```\nAskUserQuestion (3 questions)   13:17:04   <- prompt A, never answered yet\n  assistant Read                13:17:26   <- continues WITHOUT a tool_result for A\n  assistant (thinking)\nAskUserQuestion (2 questions)   13:17:39   <- prompt B fires; A still pending\n  assistant Read                13:18:03\n...\ntool_result for prompt A        -> \"the tool use was rejected\"\ntool_result for prompt B        -> \"the tool use was rejected\"\n```\n\nBoth `AskUserQuestion` blocks were **pending simultaneously**. The second prompt rendered over the first while the user was still answering it → the question visibly changed mid-interaction.\n\n**Expected:** `AskUserQuestion` should be a hard barrier — ask one, stop, wait for the answer before any further tool call or a second `AskUserQuestion`.\n\n## Bug 2 — cancelling AskUserQuestion during extended thinking → unrecoverable 400\n\nCancelling/rejecting the `AskUserQuestion` produces:\n\n```\nAPI Error: 400 messages.1.content.11: `thinking` or `redacted_thinking` blocks in the\nlatest assistant message cannot be modified. These blocks must remain as they were in\nthe original response.\n```\n\nAfter this, **every subsequent user message returns the identical 400**, because the corrupted assistant turn (with the modified signed thinking block) stays in history and is re-sent on each request. `/exit` is the only way out. (`/clear` or a rewind to before the poisoned turn would also work but most users don't discover that.)\n\n### Repro steps\n\n1. Start a session with extended thinking enabled.\n2. Get the assistant into a flow that emits an `AskUserQuestion` (e.g. an interactive spec/PRD-iteration flow). Bug 1 makes this reliably produce *multiple* prompts.\n3. Cancel/Escape the question (or reject the tool use) — natural reaction when the prompt changes under you.\n4. Send any further message → `400 ... thinking blocks cannot be modified`.\n5. Every message thereafter → same 400. Session dead.\n\n### Expected\n\nCancelling an `AskUserQuestion` should leave the session usable. The client should drop/strip the un-finalised assistant turn (or its stale-signature thinking blocks) rather than re-sending a modified thinking block. This mirrors the **2.1.152** fix (\"sessions getting stuck after a model or login switch left stale thinking-block signatures in history; now stripped proactively\") — but that fix only triggers on a model/login switch, **not** on AskUserQuestion cancel, so this path remains broken in 2.1.153.\n\n## Impact\n\nHigh. A single mis-click/Escape on a question — especially when Bug 1 makes the prompt move under the user — permanently bricks the session and loses in-progress context unless the user knows the `/exit` (or `/clear`/rewind) escape hatch.\n\n## Related\n\n- #101",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "area:core",
+    "stale"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-28T14:04:36Z",
+  "updated_at": "2026-06-25T10:59:45Z",
+  "closed_at": null,
+  "reactions_total": 7,
+  "comments_count": 10,
+  "author": "MMoMM-org",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "AlexErrant",
+      "author_association": "NONE",
+      "body": "Just ran into the same error, except I didn't cancel out of the question or have concurrent questions. Just 1 question, then kablooey.\n\n<img width=\"1896\" height=\"1010\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/1f8e0c17-21a5-4008-a386-8942ec9bdb19\" />",
+      "created_at": "2026-05-28T14:21:34Z"
+    },
+    {
+      "author": "mrz1836",
+      "author_association": "NONE",
+      "body": "I'm getting the same error\n\"API Error: 400 messages.1.content.14: thinking or redacted_thinking blocks in the latest assistant message cannot be modified. These blocks must remain as they were in the original response.\"\n\nThen my session/chat becomes unusable after that state. Just started happening today on VS plugin 2.1.153",
+      "created_at": "2026-05-28T14:34:46Z"
+    },
+    {
+      "author": "Rabusek",
+      "author_association": "NONE",
+      "body": "Same error.",
+      "created_at": "2026-05-28T14:53:02Z"
+    }
+  ]
+}

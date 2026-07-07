@@ -1,0 +1,41 @@
+{
+  "number": 60133,
+  "title": "API Error: The socket connection was closed unexpectedly. + SOLUTION FOR ANTHROPIC DEVS",
+  "body": "# Bug: \"Socket connection was closed unexpectedly\" during long agentic sessions\n\n## Summary\n\nClaude Code CLI throws `API Error: The socket connection was closed unexpectedly` consistently\nduring long agentic tasks. The error is systemic — it occurs across all projects, prompts, and\ndirectories, always mid-session, never at startup. The session must be fully restarted to recover.\n\n---\n\n## Environment\n\n- **Claude Code version:** 2.1.143\n- **OS:** Arch Linux (Manjaro), kernel 6.12.85-1\n- **Install method:** Official installer (`curl | bash`) + pacman/AUR (same binary, both 2.1.143)\n- **Binary runtime:** Bun 1.3.14 / Node v24.3.0 (confirmed via `strings` on the binary)\n\n---\n\n## Error\n\n```\nAPI Error: The socket connection was closed unexpectedly.\nFor more information, pass `verbose: true` in the second argument to fetch()\n```\n\nThe error message itself is a raw Bun/JSC runtime string (hardcoded in the JSC engine section\nof the binary). It surfaces with no actionable guidance and no automatic retry.\n\n---\n\n## Root Cause Analysis\n\n### Finding 1: Bun does not set `SO_KEEPALIVE` on its TCP sockets\n\nConfirmed live via `ss -tnop state established '( dport = :443 )'`:\n\n```\n# Every other application on the system:\nchrome  → 34.194.3.76:443    timer:(keepalive,16sec,0)   ← SO_KEEPALIVE ON\ncode    → 4.228.31.153:443   timer:(keepalive,39sec,0)   ← SO_KEEPALIVE ON\n\n# Claude Code (before workaround):\nclaude  → 160.79.104.10:443  (no timer)                  ← SO_KEEPALIVE NOT SET\nclaude  → 2607:6bc0::10:443  (no timer)                  ← SO_KEEPALIVE NOT SET\n```\n\nWithout `SO_KEEPALIVE`, idle TCP connections receive no probe packets. During agentic tasks,\nthe HTTP/2 connection sits idle while tools execute locally. That idle window is long enough\nfor the Anthropic server, Cloudflare, or intermediate router NAT to silently drop the connection.\nWhen Claude attempts the next API call on the dropped connection, Bun throws the error.\n\n### Finding 2: All application-level keepalives are disabled via GrowthBook feature flags\n\nInspecting `~/.claude.json` (`cachedGrowthBookFeatures`):\n\n```json\n\"tengu_bridge_poll_interval_config\": {\n  \"heartbeat_interval_ms\": 0,\n  \"session_keepalive_interval_ms\": 0,\n  \"session_keepalive_interval_v2_ms\": 0\n}\n```\n\nAll three keepalive/heartbeat intervals are `0`. There is no fallback mechanism at the\napplication layer when the TCP layer provides none.\n\nThe environment variable `CLAUDE_CODE_REMOTE_SEND_KEEPALIVES` exists in the binary and\nappears to override this, but it is not documented and users cannot be expected to discover it.\n\n### Finding 3: Stale connection retry only fires for background agents, not CLI\n\nBinary strings show two distinct code paths:\n\n```\ntengu_streaming_stale_connection_retry   ← exists for background agents\ncli_nonstreaming_fallback_started        ← exists for CLI\nError streaming (non-streaming fallback disabled):\n```\n\nIn practice, the CLI path does not recover — the error propagates directly to the user with\nno retry. Background agents have a retry path; CLI sessions do not.\n\n### Finding 4: `NODE_OPTIONS=--dns-result-order=ipv4first` is not fully honored by Bun\n\nAfter setting `NODE_OPTIONS=--dns-result-order=ipv4first` as a workaround, active connections\nstill include IPv6:\n\n```\n192.168.1.150:36660   → 160.79.104.10:443       ← IPv4 (api.anthropic.com)\n[2804:...]:47658      → [2607:6bc0::10]:443      ← IPv6 (api.anthropic.com) — still present\n[2804:...]:56560      → [2600:1901:0:3084::]:443 ← IPv6 (other Claude service)\n```\n\nBun uses its own native DNS resolution for some code paths, bypassing Node.js's dns module\nsettings. The flag has partial effect only.\n\n### Finding 5: Error persists after forcing `SO_KEEPALIVE` via LD_PRELOAD\n\nAs a workaround, `SO_KEEPALIVE` was forced on all sockets via an LD_PRELOAD shim:\n\n```c\nint socket(int domain, int type, int protocol) {\n    int fd = orig_socket(domain, type, protocol);\n    if (fd >= 0 && (type & 0xf) == SOCK_STREAM) {\n        int opt = 1;\n        setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt));\n    }",
+  "labels": [
+    "bug",
+    "duplicate",
+    "has repro",
+    "platform:linux",
+    "area:networking"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-18T06:30:04Z",
+  "updated_at": "2026-07-05T16:10:30Z",
+  "closed_at": null,
+  "reactions_total": 20,
+  "comments_count": 22,
+  "author": "brunos3d",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/47059\n2. https://github.com/anthropics/claude-code/issues/37078\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-18T06:34:10Z"
+    },
+    {
+      "author": "brunos3d",
+      "author_association": "NONE",
+      "body": "## Cross-issue index + evidence that this is a server-side regression, not a user environment problem\n\nAfter reviewing all related open issues and their workarounds, I want to make the case that **this is a server-side regression affecting all users**, and that the root cause and fix are now fully understood.\n\n---\n\n### Related issues — same root cause, different symptoms\n\n| Issue | Platform | Status | Workaround found by users |\n|---|---|---|---|\n| #5674 | macOS | Open (38 comments, since Aug 20",
+      "created_at": "2026-05-18T06:51:50Z"
+    },
+    {
+      "author": "jshaofa-ui",
+      "author_association": "NONE",
+      "body": "## Proposed Solution\n\n### Root Cause\nTwo independent causes:\n1. **No `SO_KEEPALIVE`** — Bun doesn't set keepalive on TCP sockets, idle connections are silently dropped\n2. **No CLI stale-connection retry** — Background agents have `tengu_streaming_stale_connection_retry`, CLI doesn't\n\n### Fix 1: Set `SO_KEEPALIVE` on API sockets (one line, highest impact)\n```typescript\nsocket.setKeepAlive(true, 30000); // 30s keepalive\n```\n\n### Fix 2: Enable heartbeat keepalive by default for CLI\n```typescript\nco",
+      "created_at": "2026-05-18T07:07:51Z"
+    }
+  ]
+}

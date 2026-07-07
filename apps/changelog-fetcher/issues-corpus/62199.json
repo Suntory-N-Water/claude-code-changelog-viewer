@@ -1,0 +1,43 @@
+{
+  "number": 62199,
+  "title": "Claude Code changed default model to 1M context without notifying Pro users",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**Bug Report / Feature Regression: Claude Code changed default model to 1M context without notifying Pro users**\n\n**Plan:** Pro ($20/month)\n**Platform:** Windows / VSCode\n\n**What happened:**\nClaude Code silently changed its default model to one requiring 1M context (Opus 4.6/4.7 or Sonnet 4.6 with 1M), which requires Usage Credits on Pro plans. This was done without any prior notification or email to affected users.\n\n**What I expected:**\nEither:\n- Keep the previous default model that worked within the Pro plan limits, or\n- Notify users in advance that this breaking change was coming so we could prepare.\n\n**Impact:**\nMy entire workflow in VSCode stopped working overnight. I lost hours trying to debug the issue, applying workarounds (environment variables, settings.json), and ultimately had to downgrade to a smaller context model — losing functionality I was already using and paying for.\n\n**Request:**\n1. Send email notifications to affected Pro users before making breaking changes to default models.\n2. Consider keeping the previous behavior for Pro users who have not opted into Usage Credits.\n3. Provide a clear in-app warning when a model change will require additional payment.\n\nThis kind of silent breaking change erodes trust in the product.\n\n### What Should Happen?\n\nClaude Code should notify Pro users before changing the default model to one that requires additional payment (Usage Credits). The previous behavior should be maintained or users should be warned in advance.\n\n### Error Messages/Logs\n\n```shell\nAPI Error: Usage credits required for 1M context · turn on usage credits at claude.ai/settings/usage, or use --model to switch to standard context\n```\n\n### Steps to Reproduce\n\n1. Have a Pro plan ($20/month)\n2. Open Claude Code in VSCode on Windows\n3. Start a new conversation and send any message\n4. Error appears: \"API Error: Usage credits required for 1M context\"\n\nNote: This started happening after Claude Code updated its default model to one requiring 1M context window, without any prior notification to Pro users.\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nUnknown - worked before May 2026\n\n### Claude Code Version\n\n2.1.150\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:windows",
+    "area:cost",
+    "area:model",
+    "platform:vscode",
+    "api:anthropic"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-25T10:55:09Z",
+  "updated_at": "2026-07-01T16:34:45Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 31,
+  "author": "jotamoraga12-ui",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "cnighswonger",
+      "author_association": "NONE",
+      "body": "Adding a data point from the other side of this same v2.1.148 default-model change.\n\nWe hit a matched-pair regression on Max 5x: bare `claude-opus-4-7` resolved to 200k instead of the documented \"automatically upgraded to 1M context with no additional configuration\" — full timeline at [#39841 (the longstanding Max-5x 1M discrepancy thread)](https://github.com/anthropics/claude-code/issues/39841#issuecomment-4543917749). Same v2.1.131 → v2.1.148 trigger, same first-CC-process-restart-after-the-bi",
+      "created_at": "2026-05-26T13:38:29Z"
+    },
+    {
+      "author": "eilerjc",
+      "author_association": "NONE",
+      "body": "I just hit the same bug where the 1M context started silently using my additional usage credits until I hit my configured monthly spend limit. I would also like to suggest a real-time indicator whenever additional paid credits are being used. I'm primarily using the Claude Code for VS code extension, and an indicator in the same place the \"You've hit your usage limit\" message shows up would be useful.",
+      "created_at": "2026-05-29T17:38:56Z"
+    },
+    {
+      "author": "mcrosiemerson-wq",
+      "author_association": "NONE",
+      "body": "estou começando a usar a IA agora, e me deparei com o erro \n\nAlgo deu errado\nTente enviar sua mensagem novamente. Se continuar acontecendo, compartilhe um feedback para que possamos investigar.\n\nAPI Error: Usage credits required for 1M context · turn on usage credits at claude.ai/settings/usage, or use --model to switch to standard context\nVocê pode reiniciar a conversa a partir de uma mensagem anterior.\n\nmesmo reiniciando a conversa o erro persiste . como posso resolver ?",
+      "created_at": "2026-05-30T02:17:25Z"
+    }
+  ]
+}

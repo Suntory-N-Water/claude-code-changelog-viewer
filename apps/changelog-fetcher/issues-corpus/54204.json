@@ -1,0 +1,35 @@
+{
+  "number": 54204,
+  "title": "[BUG]   Max 5x → Max 20x upgrade stuck in void_invoice loop — server returns same canceled PaymentIntent on every retry",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nCannot upgrade my subscription from Max 5x to Max 20x on claude.ai. Every payment attempt fails with the same Stripe error referencing a canceled PaymentIntent.\n\nEach upgrade attempt:\n- PUT /api/organizations/[id]/upgrade_to_max returns 200 OK\n- POST api.stripe.com/v1/payment_intents/pi_xxx/confirm returns 400 Bad Request\n\nThe server keeps returning the same canceled PaymentIntent ID (pi_3TQlueBjIQrRQnux1gqWfkg6) on every retry, instead of generating a fresh one. Each retry creates a new Stripe request log (different req_xxx), but Anthropic always confirms the same dead pi_xxx.\n\nThe card is never charged (last_payment_error: null, payment_method: null). The PaymentIntent is voided server-side ~140 seconds after creation with cancellation_reason: void_invoice. This is a state corruption on the Anthropic backend, not a card or client issue.\n\nStripe error response:\n\n{\n  \"error\": {\n    \"code\": \"payment_intent_unexpected_state\",\n    \"message\": \"This PaymentIntent's mandate_data could not be updated because it has a status of canceled.\",\n    \"payment_intent\": {\n      \"id\": \"pi_3TQlueBjIQrRQnux1gqWfkg6\",\n      \"status\": \"canceled\",\n      \"cancellation_reason\": \"void_invoice\",\n      \"last_payment_error\": null,\n      \"payment_method\": null,\n      \"amount\": 16566,\n      \"currency\": \"eur\",\n      \"description\": \"Subscription update\"\n    },\n    \"type\": \"invalid_request_error\"\n  }\n}\n\nStripe diagnostic IDs:\n- PaymentIntent: pi_3TQlueBjIQrRQnux1gqWfkg6\n- Stripe account: acct_1MExQ9BjIQrRQnux\n- Latest request log: req_sm0K3k4ukXjU7I\n- Account email: franckdunand@gmail.com\n\nLikely related to: #45890, #43338, #46703, #41499, #32918 (same family of Anthropic/Stripe state desync bugs).\n\n### What Should Happen?\n\nAfter a PaymentIntent is voided, the server should generate a fresh PaymentIntent on the next upgrade attempt.\n\nInstead, the canceled PaymentIntent ID is persisted indefinitely on the Anthropic backend, leaving the account in a state where no upgrade or new subscription attempt can succeed without manual intervention.\n\nRequesting a human reset of the subscription state for this account.\n\n### Error Messages/Logs\n\n```shell\nHTTP 400 Bad Request from api.stripe.com/v1/payment_intents/pi_3TQlueBjIQrRQnux1gqWfkg6/confirm\n\nError code: payment_intent_unexpected_state\nType: invalid_request_error\n```\n\n### Steps to Reproduce\n\n1. Account has active Max 5x subscription (purchased via web ~1 month ago, working normally)\n2. Go to claude.ai Settings → Plan\n3. Click upgrade to Max 20x\n4. Submit payment with any card\n5. Observe: PUT /upgrade_to_max returns 200, then Stripe confirm returns 400 with payment_intent_unexpected_state\n6. Retry: same canceled pi_xxx returned every time\n\nAlready ruled out client-side causes:\n- 4 browsers (Chrome, Safari, Firefox, Brave), private mode\n- Full cache + cookies + storage wipe (claude.ai, js.stripe.com, api.stripe.com)\n- 2 devices (Mac, iPhone)\n- 3 different cards (Revolut, Qonto)\n- VPN off\n- Logged out and back in\n- iOS app blocks subscription management (\"purchased on another platform\")\n- Cancelled Max 5x and retried — same dead PaymentIntent still returned\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nlast\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n- OS: macOS Sequoia + iOS 17\n- Browser: Chrome, Safari, Firefox, Brave (all tested)\n- Claude Code version: latest\n- Plan: Max 5x (active, attempting upgrade to Max 20x)\n- Region: France (billing) / Bali (residence)\n- Currency: EUR\n- Date: April 28, 2026\n\n",
+  "labels": ["invalid", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-28T06:05:28Z",
+  "updated_at": "2026-06-28T10:50:37Z",
+  "closed_at": "2026-06-28T10:50:37Z",
+  "reactions_total": 0,
+  "comments_count": 24,
+  "author": "nusquama",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "pedro-salgueiro",
+      "author_association": "NONE",
+      "body": "I have exactly the same problem, the saddest piece is there is absolutely no support for this. The AI Support bot is useless.",
+      "created_at": "2026-04-29T16:41:06Z"
+    },
+    {
+      "author": "retvobar",
+      "author_association": "NONE",
+      "body": "same here\n",
+      "created_at": "2026-04-29T18:29:19Z"
+    },
+    {
+      "author": "diegojva",
+      "author_association": "NONE",
+      "body": "Me pasa igual... En tratar de pasar de Pro a Max..",
+      "created_at": "2026-04-29T19:10:49Z"
+    }
+  ]
+}

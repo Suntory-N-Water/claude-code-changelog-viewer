@@ -1,0 +1,42 @@
+{
+  "number": 53065,
+  "title": "advisor() tool inflates reported input tokens by forwarding full transcript, triggering premature auto-compaction on extended context models",
+  "body": "## Summary\n\nWhen `advisor()` is called, the full conversation transcript is forwarded to a second model (currently `claude-opus-4-7`). The token usage from both the main executor and the advisor sub-inference are summed in the top-level `usage` fields. If Claude Code's auto-compaction logic uses these summed totals, the advisor call effectively doubles the apparent context usage, triggering compaction when the main model's actual context is only ~50% full.\n\n## Reproduction\n\n1. Start a Claude Code session with `claude-opus-4-6[1m]` (1M context)\n2. Work normally until the main context reaches ~400K-500K input tokens\n3. Call `advisor()` \n4. Observe: auto-compaction fires immediately after the advisor call returns\n\n## Evidence from session JSONL\n\nSession ID: `c3a29188-290f-4af2-be48-8f6fb6929111`\nModel: `claude-opus-4-6[1m]`\nProject: CriticalSkip\n\n### Token progression at the compaction boundary\n\n| JSONL line | Total reported input | Notes |\n|-----------|---------------------|-------|\n| 1972 | 513,354 | Normal turn, main context only |\n| **1979** | **1,028,789** | **advisor() called — reported total doubled** |\n| 1994 | — | `\"Conversation compacted\"` system message |\n| 2012 | 35,693 | Post-compaction context (wiped to ~36K) |\n\n### Iteration breakdown for the advisor turn (line 1979)\n\n```json\n{\n  \"input_tokens\": 4,\n  \"cache_creation_input_tokens\": 1731,\n  \"cache_read_input_tokens\": 1027054,\n  \"iterations\": [\n    {\n      \"type\": \"message\",\n      \"input_tokens\": 3,\n      \"cache_read_input_tokens\": 513353,\n      \"cache_creation_input_tokens\": 348,\n      \"output_tokens\": 35\n    },\n    {\n      \"type\": \"advisor_message\",\n      \"model\": \"claude-opus-4-7\",\n      \"input_tokens\": 701354,\n      \"cache_read_input_tokens\": 0,\n      \"cache_creation_input_tokens\": 0,\n      \"output_tokens\": 5672\n    },\n    {\n      \"type\": \"message\",\n      \"input_tokens\": 1,\n      \"cache_read_input_tokens\": 513701,\n      \"cache_creation_input_tokens\": 1383,\n      \"output_tokens\": 544\n    }\n  ]\n}\n```\n\n**Key observation:** The main model's actual context was **513-515K tokens** (iterations 1 and 3). The advisor sub-inference consumed **701K tokens** (iteration 2 — the full transcript forwarded uncached). The top-level `cache_read_input_tokens` reports **1,027,054** — the sum across all iterations — making it appear the context is at 1M when only half is actually used by the executor.\n\n### The math\n\n- Main executor context: ~513K tokens (well within 1M window)\n- Advisor receives full transcript: ~701K tokens (separate model, separate inference)\n- Reported total: ~1,028K tokens (sum of both)\n- Auto-compaction threshold: likely ~95% of 1M ≈ 950K\n- **Result:** compaction fires at 513K actual context because 1,028K > threshold\n\n## Expected behavior\n\nAdvisor sub-inference tokens should not count toward the auto-compaction threshold. The advisor is a separate model call with its own context window. The executor's context at 513K is well within the 1M budget and should not trigger compaction.\n\n## Actual behavior\n\nThe summed total (executor + advisor) exceeds the compaction threshold, and auto-compaction fires immediately. The session loses ~500K tokens of working context unnecessarily.\n\n## Impact\n\n- **On extended context models (1M):** Any advisor call past ~400K main context will trigger compaction, since `400K main + ~550K advisor = ~950K ≈ threshold`\n- **Effectively halves usable context:** The 1M context window becomes ~400-450K when advisor is used, because the remaining ~550K is reserved for the advisor's copy of the transcript\n- **Inconsistent:** Early-session advisor calls work fine. Late-session calls compact. Users experience this as random/intermittent compaction\n- **Counterproductive:** The advisor is most valuable late in a session (complex decisions with full context), but that's exactly when it triggers compaction and destroys the context it was supposed to help with\n\n## Workaround\n\nSetting `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=98` and/or using a PreCompact hook that blocks auto-compaction:\n\n```json\n{\n  \"hooks\": {\n    \"PreCompact\": [{\n      \"hoo",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "platform:linux",
+    "area:core",
+    "area:agents"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-25T00:10:44Z",
+  "updated_at": "2026-06-30T07:20:59Z",
+  "closed_at": null,
+  "reactions_total": 4,
+  "comments_count": 12,
+  "author": "AttacktheDPoint-com",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "kerneltoast",
+      "author_association": "NONE",
+      "body": "Ditto. I have this exact same issue and even filed an issue (#55702) that turned out to be a duplicate of this one. I'm using Linux with Opus 4.6 [1M] as my main model and Opus 4.7 as the advisor model.",
+      "created_at": "2026-05-03T02:44:20Z"
+    },
+    {
+      "author": "kerneltoast",
+      "author_association": "NONE",
+      "body": "I have auto-compaction disabled. My workaround has been to  `/rewind` to right before the advisor call and ask Claude to generate a session handoff file with the next instruction saying to call the advisor. Then I `/clear` and run `@SESSION_HANDOFF.md`.",
+      "created_at": "2026-05-03T02:50:15Z"
+    },
+    {
+      "author": "kerneltoast",
+      "author_association": "NONE",
+      "body": "This bug still occurs on v2.1.126.\n\nYesterday I started a new session on v2.1.126 with Opus 4.7 and gave it a single complex prompt using a session handoff file. The context window limit was reached before Claude could completely finish my prompt, and it happened because Claude invoked the advisor at around 480K context tokens which triggered this bug; thus, the context size doubled and my prompt died due to hitting the context limit.\n\nSince my session was literally just a single prompt, I could",
+      "created_at": "2026-05-04T18:08:01Z"
+    }
+  ]
+}

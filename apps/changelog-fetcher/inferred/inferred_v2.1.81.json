@@ -3,6 +3,7 @@
   "summary": "スクリプト実行を高速化する `--bare` フラグや、スマートフォン経由で承認が可能なチャンネル権限リレー機能が追加されました。また、MCP ツール呼び出しのログ集約や、Windows 環境でのパス継承およびレンダリングの安定性が向上しています。音声モードやリモートセッションにおける各種不具合も解消され、全体的な操作の快適性と信頼性が強化されました。",
   "items": [
     {
+      "id": "d9c48da0c662",
       "content": "- Added `--bare` flag for scripted `-p` calls — skips hooks, LSP, plugin sync, and skill directory walks; requires `ANTHROPIC_API_KEY` or an `apiKeyHelper` via `--settings` (OAuth and keychain auth disabled); auto-memory fully disabled",
       "content_ja": "スクリプト実行用の `--bare` フラグを追加しました。フック、LSP、プラグイン同期、スキルディレクトリの走査をスキップし、自動メモリ機能も完全に無効化されます。",
       "prefix": "Added",
@@ -19,12 +20,13 @@
         }
       ],
       "inference": {
-        "before": "非インタラクティブモード（`-p`）でスクリプトを実行する際も、通常のセッションと同様にフックの実行やプラグインの同期、メモリの読み込みが行われていました。",
+        "before": "非インタラクティブモード(`-p`)でスクリプトを実行する際も、通常のセッションと同様にフックの実行やプラグインの同期、メモリの読み込みが行われていました。",
         "after": "`--bare` フラグを使用することで、純粋にモデルの推論のみを高速に実行できるようになります。このモードでは OAuth 認証等がバイパスされるため、API キーの設定が必須となります。",
         "benefit": "CI/CD パイプラインや自動化スクリプトにおいて、不要なオーバーヘッドを削減し、起動速度の向上と実行の安定性を確保できます。"
       }
     },
     {
+      "id": "7a25142d78e4",
       "content": "- Added `--channels` permission relay — channel servers that declare the permission capability can forward tool approval prompts to your phone",
       "content_ja": "`--channels` 権限リレー機能を追加しました。パーミッション機能を宣言したチャンネルサーバーを介して、ツールの承認プロンプトをスマートフォンに転送できるようになります。",
       "prefix": "Added",
@@ -42,11 +44,12 @@
       ],
       "inference": {
         "before": "チャンネル機能を利用して離れた場所から Claude に指示を出している際、ツール実行の承認が必要になると、PC のターミナルに戻って操作する必要がありました。",
-        "after": "対応するチャンネル（Telegram や Discord 等）を通じて、外出先からでもスマートフォン上でツールの実行を承認または拒否できるようになります。",
+        "after": "対応するチャンネル(Telegram や Discord 等)を通じて、外出先からでもスマートフォン上でツールの実行を承認または拒否できるようになります。",
         "benefit": "PC の前にいなくても、チャットアプリを通じて安全に自律的なタスクの進行を管理・継続できる柔軟性が得られます。"
       }
     },
     {
+      "id": "641d175078b7",
       "content": "- Fixed multiple concurrent Claude Code sessions requiring repeated re-authentication when one session refreshes its OAuth token",
       "content_ja": "複数の Claude Code セッションを同時に実行している際、一つのセッションで OAuth トークンが更新されると他のセッションでも再認証が必要になる問題を修正しました。",
       "prefix": "Fixed",
@@ -54,6 +57,7 @@
       "related_docs": []
     },
     {
+      "id": "d5fabc57d689",
       "content": "- Fixed voice mode silently swallowing retry failures and showing a misleading \"check your network\" message instead of the actual error",
       "content_ja": "音声モードにおいて、リトライの失敗が無視され、実際のエラーではなく「ネットワークを確認してください」という誤解を招くメッセージが表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -61,6 +65,7 @@
       "related_docs": []
     },
     {
+      "id": "946b8ac85d06",
       "content": "- Fixed voice mode audio not recovering when the server silently drops the WebSocket connection",
       "content_ja": "サーバー側で WebSocket 接続が切断された際、音声モードのオーディオが復旧しない問題を修正しました。",
       "prefix": "Fixed",
@@ -68,6 +73,7 @@
       "related_docs": []
     },
     {
+      "id": "5fca326f8cb3",
       "content": "- Fixed `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` not suppressing the structured-outputs beta header, causing 400 errors on proxy gateways forwarding to Vertex/Bedrock",
       "content_ja": "`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` を設定しても構造化出力のベータヘッダーが抑制されず、Vertex AI や Bedrock のプロキシで 400 エラーが発生する問題を修正しました。",
       "prefix": "Fixed",
@@ -84,8 +90,9 @@
       }
     },
     {
+      "id": "aa69548cb933",
       "content": "- Fixed `--channels` bypass for Team/Enterprise orgs with no other managed settings configured",
-      "content_ja": "他の管理設定（Managed Settings）が構成されていない Team/Enterprise 組織における `--channels` のバイパス問題を修正しました。",
+      "content_ja": "他の管理設定(Managed Settings)が構成されていない Team/Enterprise 組織における `--channels` のバイパス問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["Settings"],
       "related_docs": [
@@ -106,6 +113,7 @@
       }
     },
     {
+      "id": "c85ad5bffa58",
       "content": "- Fixed a crash on Node.js 18",
       "content_ja": "Node.js 18 環境でクラッシュが発生する問題を修正しました。",
       "prefix": "Fixed",
@@ -113,6 +121,7 @@
       "related_docs": []
     },
     {
+      "id": "d0bc63770049",
       "content": "- Fixed unnecessary permission prompts for Bash commands containing dashes in strings",
       "content_ja": "文字列内にダッシュを含む Bash コマンドにおいて、不要な権限確認プロンプトが表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -120,6 +129,7 @@
       "related_docs": []
     },
     {
+      "id": "2785b4f52602",
       "content": "- Fixed plugin hooks blocking prompt submission when the plugin directory is deleted mid-session",
       "content_ja": "セッション中にプラグインディレクトリが削除された場合、プラグインのフックがプロンプトの送信をブロックしてしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -127,6 +137,7 @@
       "related_docs": []
     },
     {
+      "id": "02d617a9c7c2",
       "content": "- Fixed a race condition where background agent task output could hang indefinitely when the task completed between polling intervals",
       "content_ja": "バックグラウンドでのエージェントタスク完了時に、ポーリング間隔のタイミングによって出力が停止したままになるレースコンディションを修正しました。",
       "prefix": "Fixed",
@@ -134,6 +145,7 @@
       "related_docs": []
     },
     {
+      "id": "dc801315010a",
       "content": "- Resuming a session that was in a worktree now switches back to that worktree",
       "content_ja": "Worktree 内で実行されていたセッションを再開する際、自動的にその Worktree に切り替わるよう変更しました。",
       "prefix": "Changed",
@@ -141,6 +153,7 @@
       "related_docs": []
     },
     {
+      "id": "46bb9ac6305d",
       "content": "- Fixed `/btw` not including pasted text when used during an active response",
       "content_ja": "アクティブな応答中に `/btw` を使用した際、ペーストしたテキストが含まれない問題を修正しました。",
       "prefix": "Fixed",
@@ -163,6 +176,7 @@
       }
     },
     {
+      "id": "6590482531cb",
       "content": "- Fixed a race where fast Cmd+Tab followed by paste could beat the clipboard copy under tmux",
       "content_ja": "tmux 環境下で Cmd+Tab による切り替え直後にペーストを行うと、クリップボードのコピー処理が間に合わないことがある問題を修正しました。",
       "prefix": "Fixed",
@@ -170,6 +184,7 @@
       "related_docs": []
     },
     {
+      "id": "405ce02e9d70",
       "content": "- Fixed terminal tab title not updating with an auto-generated session description",
       "content_ja": "自動生成されたセッションの説明が、ターミナルのタブタイトルに反映されない問題を修正しました。",
       "prefix": "Fixed",
@@ -177,6 +192,7 @@
       "related_docs": []
     },
     {
+      "id": "04fa41aabc82",
       "content": "- Fixed invisible hook attachments inflating the message count in transcript mode",
       "content_ja": "不可視のフックアタッチメントによって、トランスクリプトモードのメッセージ数が不必要に増えてしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -184,6 +200,7 @@
       "related_docs": []
     },
     {
+      "id": "011904c90a8d",
       "content": "- Fixed Remote Control sessions showing a generic title instead of deriving from the first prompt",
       "content_ja": "リモートコントロールセッションにおいて、最初のプロンプトからではなく汎用的なタイトルが表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -191,6 +208,7 @@
       "related_docs": []
     },
     {
+      "id": "3479e5b8882b",
       "content": "- Fixed `/rename` not syncing the title for Remote Control sessions",
       "content_ja": "リモートコントロールセッションにおいて、`/rename` によるタイトルの同期が反映されない問題を修正しました。",
       "prefix": "Fixed",
@@ -213,6 +231,7 @@
       }
     },
     {
+      "id": "bbcbe0f2c09f",
       "content": "- Fixed Remote Control `/exit` not reliably archiving the session",
       "content_ja": "リモートコントロールセッションの `/exit` 時に、セッションが確実にアーカイブされない問題を修正しました。",
       "prefix": "Fixed",
@@ -223,14 +242,15 @@
         }
       ],
       "inference": {
-        "before": "リモートセッションを終了しても、履歴が正しく保存（アーカイブ）されず、後から作業を再開しようとした際に見つけにくい状態になることがありました。",
+        "before": "リモートセッションを終了しても、履歴が正しく保存(アーカイブ)されず、後から作業を再開しようとした際に見つけにくい状態になることがありました。",
         "after": "セッションを終了すると確実にアーカイブ処理が行われ、`/resume` コマンドなどで過去のやり取りを正確に参照できるようになります。",
         "benefit": "リモートでの作業内容が失われるリスクが減り、長期間にわたるプロジェクトの履歴管理がより信頼できるものになります。"
       }
     },
     {
+      "id": "6013c315e4df",
       "content": "- Improved MCP read/search tool calls to collapse into a single \"Queried {server}\" line (expand with Ctrl+O)",
-      "content_ja": "MCP の読み取り・検索ツール呼び出しを単一の「Queried {server}」行に折り畳むよう改善しました（Ctrl+O で展開可能）。",
+      "content_ja": "MCP の読み取り・検索ツール呼び出しを単一の「Queried {server}」行に折り畳むよう改善しました(Ctrl+O で展開可能)。",
       "prefix": "Improved",
       "feature_areas": ["MCP"],
       "related_docs": [
@@ -251,6 +271,7 @@
       }
     },
     {
+      "id": "dc462fe8d9f6",
       "content": "- Improved `!` bash mode discoverability — Claude now suggests it when you need to run an interactive command",
       "content_ja": "直接 Bash コマンドを実行する `!` モードの発見しやすさを向上させました。対話型コマンドが必要な際、Claude がこのモードの使用を提案するようになります。",
       "prefix": "Improved",
@@ -270,13 +291,15 @@
       }
     },
     {
+      "id": "b95743e2e2ed",
       "content": "- Improved plugin freshness — ref-tracked plugins now re-clone on every load to pick up upstream changes",
-      "content_ja": "参照（ref）追跡されるプラグインの鮮度を向上させ、ロードのたびに再クローンして最新の変更を取り込むよう改善しました。",
+      "content_ja": "参照(ref)追跡されるプラグインの鮮度を向上させ、ロードのたびに再クローンして最新の変更を取り込むよう改善しました。",
       "prefix": "Improved",
       "feature_areas": ["Plugins"],
       "related_docs": []
     },
     {
+      "id": "cf1835ed1008",
       "content": "- Improved Remote Control session titles to refresh after your third message",
       "content_ja": "リモートコントロールセッションのタイトルが、3 回目のメッセージ送信後に更新されるよう改善しました。",
       "prefix": "Improved",
@@ -284,8 +307,9 @@
       "related_docs": []
     },
     {
+      "id": "42b285f77fb3",
       "content": "- Updated MCP OAuth to support Client ID Metadata Document (CIMD / SEP-991) for servers without Dynamic Client Registration",
-      "content_ja": "動的なクライアント登録に対応していないサーバー向けに、MCP OAuth が Client ID Metadata Document（CIMD / SEP-991）をサポートするように更新されました。",
+      "content_ja": "動的なクライアント登録に対応していないサーバー向けに、MCP OAuth が Client ID Metadata Document(CIMD / SEP-991)をサポートするように更新されました。",
       "prefix": "Updated",
       "feature_areas": ["MCP"],
       "related_docs": [
@@ -300,14 +324,15 @@
         }
       ],
       "inference": {
-        "before": "動的登録（Dynamic Client Registration）をサポートしていない特定の MCP サーバーにおいて、OAuth 認証連携が困難な場合がありました。",
+        "before": "動的登録(Dynamic Client Registration)をサポートしていない特定の MCP サーバーにおいて、OAuth 認証連携が困難な場合がありました。",
         "after": "最新のメタデータ仕様に対応したことで、より幅広い外部サービスや MCP サーバーとのセキュアな認証連携が可能になります。",
         "benefit": "利用できる外部ツールやデータの選択肢が広がり、より高度なエコシステム連携を安全に行えるようになります。"
       }
     },
     {
+      "id": "da969739832c",
       "content": "- Changed plan mode to hide the \"clear context\" option by default (restore with `\"showClearContextOnPlanAccept\": true`)",
-      "content_ja": "プランモードにおいて「コンテキストのクリア」オプションをデフォルトで非表示に変更しました（設定で復元可能）。",
+      "content_ja": "プランモードにおいて「コンテキストのクリア」オプションをデフォルトで非表示に変更しました(設定で復元可能)。",
       "prefix": "Changed",
       "feature_areas": ["Plan"],
       "related_docs": [
@@ -328,8 +353,9 @@
       }
     },
     {
+      "id": "8b77ba18880d",
       "content": "- Disabled line-by-line response streaming on Windows (including WSL in Windows Terminal) due to rendering issues",
-      "content_ja": "レンダリングの問題を回避するため、Windows（Windows ターミナル内の WSL を含む）での応答ストリーミングの行単位表示を無効化しました。",
+      "content_ja": "レンダリングの問題を回避するため、Windows(Windows ターミナル内の WSL を含む)での応答ストリーミングの行単位表示を無効化しました。",
       "prefix": "Changed",
       "feature_areas": [],
       "related_docs": [
@@ -345,8 +371,9 @@
       ]
     },
     {
+      "id": "76ee4084f8f2",
       "content": "- [VSCode] Fixed Windows PATH inheritance for Bash tool when using Git Bash (regression in v2.1.78)",
-      "content_ja": "[VSCode] Git Bash 使用時の Bash ツールにおける Windows PATH 継承の問題を修正しました（v2.1.78 でのデグレードの解消）。",
+      "content_ja": "[VSCode] Git Bash 使用時の Bash ツールにおける Windows PATH 継承の問題を修正しました(v2.1.78 でのデグレードの解消)。",
       "prefix": "Fixed",
       "feature_areas": ["IDE"],
       "related_docs": [

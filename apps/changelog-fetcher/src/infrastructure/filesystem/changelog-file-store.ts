@@ -235,6 +235,7 @@ async function loadInferredFile(
       ? { summary: inferredAnalysisJson.summary }
       : {}),
     items: inferredAnalysisJson.items.map((item) => ({
+      id: item.id,
       content: item.content,
       ...(item.content_ja !== undefined ? { content_ja: item.content_ja } : {}),
       prefix: item.prefix,
@@ -246,7 +247,11 @@ async function loadInferredFile(
         snippets: [],
         hit_count: 0,
       })),
+      ...(item.related_issues !== undefined
+        ? { related_issues: item.related_issues }
+        : {}),
       ...(item.inference !== undefined ? { inference: item.inference } : {}),
+      ...(item.impact !== undefined ? { impact: item.impact } : {}),
     })),
   });
   const analysis = toChangelogAnalysis(analysisJson);

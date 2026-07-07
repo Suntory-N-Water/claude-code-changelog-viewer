@@ -3,6 +3,7 @@
   "summary": "Sonnet 4.6 および Opus 4.6 の出力トークン制限が大幅に緩和され、最大 128k トークンの生成が可能になりました。また、セッション再開の高速化や起動時間の短縮、大規模なセッションでのメモリ使用量の削減など、パフォーマンス面が大きく強化されています。そのほか、Bash コマンドのパーミッション評価の厳格化や tmux/SSH 環境での挙動修正、VS Code 連携の改善など、開発体験と安全性を高める多数の修正が含まれています。",
   "items": [
     {
+      "id": "fe2825f91b8c",
       "content": "- Increased default maximum output token limits for Claude Opus 4.6 to 64k tokens, and the upper bound for Opus 4.6 and Sonnet 4.6 models to 128k tokens",
       "content_ja": "Claude Opus 4.6 のデフォルト出力トークン制限を 64k に引き上げ、Opus 4.6 および Sonnet 4.6 の上限を 128k トークンに拡大しました",
       "prefix": "Changed",
@@ -10,6 +11,7 @@
       "related_docs": []
     },
     {
+      "id": "6ff9d2ba2e13",
       "content": "- Added `allowRead` sandbox filesystem setting to re-allow read access within `denyRead` regions",
       "content_ja": "サンドボックスのファイルシステム設定に、`denyRead` 領域内での読み取りを再許可する `allowRead` を追加しました",
       "prefix": "Added",
@@ -26,6 +28,7 @@
       }
     },
     {
+      "id": "ba4e84c95f2c",
       "content": "- `/copy` now accepts an optional index: `/copy N` copies the Nth-latest assistant response",
       "content_ja": "`/copy` コマンドで引数 N を指定できるようになり、直近から N 番目のアシスタントの回答をコピー可能になりました",
       "prefix": "Changed",
@@ -42,8 +45,9 @@
       }
     },
     {
+      "id": "104b6d2e2ea0",
       "content": "- Fixed \"Always Allow\" on compound bash commands (e.g. `cd src && npm test`) saving a single rule for the full string instead of per-subcommand, leading to dead rules and repeated permission prompts",
-      "content_ja": "複数のコマンドを繋げた Bash 操作（例: `cd src && npm test`）に対して「常に許可」を選択した際、サブコマンドごとにルールが保存されない問題を修正しました",
+      "content_ja": "複数のコマンドを繋げた Bash 操作(例: `cd src && npm test`)に対して「常に許可」を選択した際、サブコマンドごとにルールが保存されない問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": ["Permissions"],
       "related_docs": [
@@ -64,6 +68,7 @@
       }
     },
     {
+      "id": "8bd7236e98ba",
       "content": "- Fixed auto-updater starting overlapping binary downloads when the slash-command overlay repeatedly opened and closed, accumulating tens of gigabytes of memory",
       "content_ja": "スラッシュコマンドのオーバーレイを頻繁に開閉した際、バイナリのダウンロードが重複して大量のメモリを消費する問題を修正しました",
       "prefix": "Fixed",
@@ -71,6 +76,7 @@
       "related_docs": []
     },
     {
+      "id": "fa62ddf4e3b6",
       "content": "- Fixed `--resume` silently truncating recent conversation history due to a race between memory-extraction writes and the main transcript",
       "content_ja": "`--resume` 実行時に、メモリ書き込みと履歴読み込みの競合により直近の会話履歴が消失する問題を修正しました",
       "prefix": "Fixed",
@@ -88,11 +94,12 @@
       ],
       "inference": {
         "before": "セッションを再開する際、バックグラウンドでのメモリ抽出処理とのタイミングによって、最新のやり取りが切り捨てられてしまうことがありました。",
-        "after": "レースコンディション（競合状態）が解消され、すべての会話履歴が確実に復元されるようになりました。",
+        "after": "レースコンディション(競合状態)が解消され、すべての会話履歴が確実に復元されるようになりました。",
         "benefit": "過去の文脈を失うことなく、安心してセッションの中断と再開を繰り返すことができます。"
       }
     },
     {
+      "id": "b3784e762a51",
       "content": "- Fixed PreToolUse hooks returning `\"allow\"` bypassing `deny` permission rules, including enterprise managed settings",
       "content_ja": "`PreToolUse` フックが `\"allow\"` を返した際に、管理設定などの拒否ルールをバイパスしてしまう問題を修正しました",
       "prefix": "Fixed",
@@ -109,12 +116,13 @@
         }
       ],
       "inference": {
-        "before": "フック側で許可（allow）を出すと、エンタープライズの管理ポリシー等で定義された強力な拒否ルールすら上書きされてしまう脆弱な状態でした。",
+        "before": "フック側で許可(allow)を出すと、エンタープライズの管理ポリシー等で定義された強力な拒否ルールすら上書きされてしまう脆弱な状態でした。",
         "after": "パーミッション評価順序が厳格化され、フックの出力に関わらず拒否ルールが常に優先されるようになりました。",
         "benefit": "組織レベルで設定したセキュリティポリシーが確実に適用されるため、安全にフック機能を活用できます。"
       }
     },
     {
+      "id": "7c6660931a18",
       "content": "- Fixed Write tool silently converting line endings when overwriting CRLF files or creating files in CRLF directories",
       "content_ja": "CRLF 改行コードのファイルやディレクトリにおいて、Write ツールが改行コードを勝手に変換してしまう問題を修正しました",
       "prefix": "Fixed",
@@ -122,6 +130,7 @@
       "related_docs": []
     },
     {
+      "id": "7badf087f624",
       "content": "- Fixed memory growth in long-running sessions from progress messages surviving compaction",
       "content_ja": "長時間実行されるセッションで、進捗メッセージが蓄積してメモリを圧迫する問題を修正しました",
       "prefix": "Fixed",
@@ -129,6 +138,7 @@
       "related_docs": []
     },
     {
+      "id": "96d11167d663",
       "content": "- Fixed cost and token usage not being tracked when the API falls back to non-streaming mode",
       "content_ja": "API が非ストリーミングモードにフォールバックした際に、コストとトークン使用量が追跡されない問題を修正しました",
       "prefix": "Fixed",
@@ -151,6 +161,7 @@
       }
     },
     {
+      "id": "9a60a03ce9aa",
       "content": "- Fixed `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` not stripping beta tool-schema fields, causing proxy gateways to reject requests",
       "content_ja": "`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` 有効時、プロキシ経由でツールスキーマのベータフィールドが拒絶される問題を修正しました",
       "prefix": "Fixed",
@@ -167,6 +178,7 @@
       }
     },
     {
+      "id": "f1cd1859548a",
       "content": "- Fixed Bash tool reporting errors for successful commands when the system temp directory path contains spaces",
       "content_ja": "システムの一時ディレクトリパスにスペースが含まれている場合、Bash ツールが正常なコマンドに対してもエラーを報告する問題を修正しました",
       "prefix": "Fixed",
@@ -174,13 +186,15 @@
       "related_docs": []
     },
     {
+      "id": "7b1e8f30b8ca",
       "content": "- Fixed paste being lost when typing immediately after pasting",
-      "content_ja": "貼り付け（ペースト）の直後にタイピングを開始すると、貼り付けた内容が失われる問題を修正しました",
+      "content_ja": "貼り付け(ペースト)の直後にタイピングを開始すると、貼り付けた内容が失われる問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
+      "id": "f05abca538c3",
       "content": "- Fixed Ctrl+D in `/feedback` text input deleting forward instead of the second press exiting the session",
       "content_ja": "`/feedback` の入力中に `Ctrl+D` を押すと、セッション終了ではなく文字の削除が行われてしまう問題を修正しました",
       "prefix": "Fixed",
@@ -191,12 +205,13 @@
         }
       ],
       "inference": {
-        "before": "フィードバック送信画面で `Ctrl+D` を入力した際、CLI の標準的な挙動（2回押しで終了）と異なる動作をしていました。",
-        "after": "通常のテキスト入力フォームと同様に、一貫性のあるキー入力挙動（セッションの終了プロセスへの移行）に修正されました。",
+        "before": "フィードバック送信画面で `Ctrl+D` を入力した際、CLI の標準的な挙動(2回押しで終了)と異なる動作をしていました。",
+        "after": "通常のテキスト入力フォームと同様に、一貫性のあるキー入力挙動(セッションの終了プロセスへの移行)に修正されました。",
         "benefit": "ターミナルの標準的な操作感でフィードバック画面を抜けられるようになり、ストレスを軽減します。"
       }
     },
     {
+      "id": "d9c030ee51db",
       "content": "- Fixed API error when dragging a 0-byte image file into the prompt",
       "content_ja": "プロンプトにサイズが 0 バイトの画像ファイルをドラッグ＆ドロップした際に発生する API エラーを修正しました",
       "prefix": "Fixed",
@@ -219,6 +234,7 @@
       }
     },
     {
+      "id": "2f2028638ed3",
       "content": "- Fixed Claude Desktop sessions incorrectly using the terminal CLI's configured API key instead of OAuth",
       "content_ja": "Claude Desktop セッションが、OAuth ではなくターミナル CLI 用の API キーを誤って使用する問題を修正しました",
       "prefix": "Fixed",
@@ -241,6 +257,7 @@
       }
     },
     {
+      "id": "84fe6b91f1bd",
       "content": "- Fixed `git-subdir` plugins at different subdirectories of the same monorepo commit colliding in the plugin cache",
       "content_ja": "同一コミットの異なるディレクトリにある `git-subdir` プラグインが、キャッシュ内で衝突する問題を修正しました",
       "prefix": "Fixed",
@@ -257,6 +274,7 @@
       }
     },
     {
+      "id": "db2535f9ff76",
       "content": "- Fixed ordered list numbers not rendering in terminal UI",
       "content_ja": "ターミナル UI で番号付きリストの数字が表示されない問題を修正しました",
       "prefix": "Fixed",
@@ -274,6 +292,7 @@
       ]
     },
     {
+      "id": "251d5ecf956e",
       "content": "- Fixed a race condition where stale-worktree cleanup could delete an agent worktree just resumed from a previous crash",
       "content_ja": "クラッシュから再開した直後のエージェント用ワークツリーが、クリーンアップ処理によって誤って削除される競合状態を修正しました",
       "prefix": "Fixed",
@@ -281,6 +300,7 @@
       "related_docs": []
     },
     {
+      "id": "5b4d068a1feb",
       "content": "- Fixed input deadlock when opening `/mcp` or similar dialogs while the agent is running",
       "content_ja": "エージェントの実行中に `/mcp` などのダイアログを開くと入力がデッドロックする問題を修正しました",
       "prefix": "Fixed",
@@ -303,6 +323,7 @@
       }
     },
     {
+      "id": "49702d94c6e1",
       "content": "- Fixed Backspace and Delete keys not working in vim NORMAL mode",
       "content_ja": "Vim の NORMAL モードにおいて Backspace キーと Delete キーが機能しない問題を修正しました",
       "prefix": "Fixed",
@@ -319,6 +340,7 @@
       }
     },
     {
+      "id": "b3fb9bd1e98f",
       "content": "- Fixed status line not updating when vim mode is toggled on or off",
       "content_ja": "Vim モードの切り替え時にステータスラインが即座に更新されない問題を修正しました",
       "prefix": "Fixed",
@@ -326,6 +348,7 @@
       "related_docs": []
     },
     {
+      "id": "490034c4bc9e",
       "content": "- Fixed hyperlinks opening twice on Cmd+click in VS Code, Cursor, and other xterm.js-based terminals",
       "content_ja": "VS Code や Cursor などのターミナルでハイパーリンクを `Cmd+クリック` した際、リンクが2回開く問題を修正しました",
       "prefix": "Fixed",
@@ -348,6 +371,7 @@
       }
     },
     {
+      "id": "75fedf6b29f1",
       "content": "- Fixed background colors rendering as terminal-default inside tmux with default configuration",
       "content_ja": "特定の tmux 設定下で、背景色がターミナルのデフォルト色になってしまう描画問題を修正しました",
       "prefix": "Fixed",
@@ -355,6 +379,7 @@
       "related_docs": []
     },
     {
+      "id": "b540c02aa9a2",
       "content": "- Fixed iTerm2 session crash when selecting text inside tmux over SSH",
       "content_ja": "SSH 経由の tmux 内でテキストを選択した際に iTerm2 セッションがクラッシュする問題を修正しました",
       "prefix": "Fixed",
@@ -377,6 +402,7 @@
       }
     },
     {
+      "id": "5e499532808b",
       "content": "- Fixed clipboard copy silently failing in tmux sessions; copy toast now indicates whether to paste with `⌘V` or tmux `prefix+]`",
       "content_ja": "tmux セッション内でクリップボードへのコピーが失敗する問題を修正し、通知で貼り付け方法を案内するようにしました",
       "prefix": "Fixed",
@@ -399,6 +425,7 @@
       }
     },
     {
+      "id": "18049ef34708",
       "content": "- Fixed `←`/`→` accidentally switching tabs in settings, permissions, and sandbox dialogs while navigating lists",
       "content_ja": "設定やパーミッションのダイアログでリスト移動中に `←`/`→` キーを押すと、誤ってタブが切り替わってしまう問題を修正しました",
       "prefix": "Fixed",
@@ -415,6 +442,7 @@
       }
     },
     {
+      "id": "baa7274e0713",
       "content": "- Fixed IDE integration not auto-connecting when Claude Code is launched inside tmux or screen",
       "content_ja": "tmux や screen 内で起動した際に IDE 連携機能が自動接続されない問題を修正しました",
       "prefix": "Fixed",
@@ -437,6 +465,7 @@
       }
     },
     {
+      "id": "cc0689a3a105",
       "content": "- Fixed CJK characters visually bleeding into adjacent UI elements when clipped at the right edge",
       "content_ja": "日本語などの全角文字が右端で切り詰められる際、隣の UI 要素に重なって表示される問題を修正しました",
       "prefix": "Fixed",
@@ -453,19 +482,21 @@
         }
       ],
       "inference": {
-        "before": "CJK（日中韓）文字の幅計算の不備により、ステータスラインなどの描画が崩れることがありました。",
+        "before": "CJK(日中韓)文字の幅計算の不備により、ステータスラインなどの描画が崩れることがありました。",
         "after": "ターミナルの文字境界におけるレンダリングが修正され、表示が重なる現象が解消されました。",
         "benefit": "日本語を含むステータス表示が常に美しく読みやすい状態に保たれます。"
       }
     },
     {
+      "id": "9f7a3b4b5a06",
       "content": "- Fixed teammate panes not closing when the leader exits",
-      "content_ja": "リーダーが終了した際に、チームメイト（エージェントチーム）のペインが閉じない問題を修正しました",
+      "content_ja": "リーダーが終了した際に、チームメイト(エージェントチーム)のペインが閉じない問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": ["Agent Teams"],
       "related_docs": []
     },
     {
+      "id": "5f042191a2ff",
       "content": "- Fixed iTerm2 auto mode not detecting iTerm2 for native split-pane teammates",
       "content_ja": "iTerm2 の自動モードが、ネイティブ分割ペインを使用するチームメイトを正しく検出できない問題を修正しました",
       "prefix": "Fixed",
@@ -473,6 +504,7 @@
       "related_docs": []
     },
     {
+      "id": "65cc3a477f0d",
       "content": "- Faster startup on macOS (~60ms) by reading keychain credentials in parallel with module loading",
       "content_ja": "macOS において、キーチェーンからの認証情報読み込みを並列化することで起動速度を約 60ms 高速化しました",
       "prefix": "Changed",
@@ -480,8 +512,9 @@
       "related_docs": []
     },
     {
+      "id": "6e7ec193d952",
       "content": "- Faster `--resume` on fork-heavy and very large sessions — up to 45% faster loading and ~100-150MB less peak memory",
-      "content_ja": "大規模なセッションの再開（`--resume`）速度を最大 45% 高速化し、メモリ使用量を大幅に削減しました",
+      "content_ja": "大規模なセッションの再開(`--resume`)速度を最大 45% 高速化し、メモリ使用量を大幅に削減しました",
       "prefix": "Changed",
       "feature_areas": ["Memory", "Settings"],
       "related_docs": [
@@ -502,6 +535,7 @@
       }
     },
     {
+      "id": "b362f14c656d",
       "content": "- Improved Esc to abort in-flight non-streaming API requests",
       "content_ja": "非ストリーミング API リクエストの実行中に `Esc` キーで中断できるよう改善しました",
       "prefix": "Improved",
@@ -524,6 +558,7 @@
       }
     },
     {
+      "id": "493190e45b1b",
       "content": "- Improved `claude plugin validate` to check skill, agent, and command frontmatter plus `hooks/hooks.json`, catching YAML parse errors and schema violations",
       "content_ja": "`claude plugin validate` でスキルやエージェントのフロントマター、およびフックの設定ファイルを検証できるようになりました",
       "prefix": "Improved",
@@ -546,6 +581,7 @@
       }
     },
     {
+      "id": "796212bc101c",
       "content": "- Background bash tasks are now killed if output exceeds 5GB, preventing runaway processes from filling disk",
       "content_ja": "バックグラウンドの Bash タスクの出力が 5GB を超えた場合に自動で強制終了し、ディスクフルを防ぐようにしました",
       "prefix": "Changed",
@@ -553,6 +589,7 @@
       "related_docs": []
     },
     {
+      "id": "679b113c024e",
       "content": "- Sessions are now auto-named from plan content when you accept a plan",
       "content_ja": "プランを承認した際、そのプランの内容からセッション名を自動的に設定するように変更しました",
       "prefix": "Changed",
@@ -560,8 +597,9 @@
       "related_docs": []
     },
     {
+      "id": "c4c1b41bed4b",
       "content": "- Improved headless mode plugin installation to compose correctly with `CLAUDE_CODE_PLUGIN_SEED_DIR`",
-      "content_ja": "ヘッドレスモードでのプラグインインストールが、シードディレクトリ（初期設定）と正しく組み合わさるよう改善しました",
+      "content_ja": "ヘッドレスモードでのプラグインインストールが、シードディレクトリ(初期設定)と正しく組み合わさるよう改善しました",
       "prefix": "Improved",
       "feature_areas": ["Plugins"],
       "related_docs": [
@@ -577,6 +615,7 @@
       ]
     },
     {
+      "id": "152c590d6ee1",
       "content": "- Show a notice when `apiKeyHelper` takes longer than 10s, preventing it from blocking the main loop",
       "content_ja": "API キー取得ヘルパーが 10 秒以上かかる場合に通知を表示し、メインループがブロックされないよう改善しました",
       "prefix": "Changed",
@@ -594,6 +633,7 @@
       ]
     },
     {
+      "id": "216d19fba32b",
       "content": "- The Agent tool no longer accepts a `resume` parameter — use `SendMessage({to: agentId})` to continue a previously spawned agent",
       "content_ja": "Agent ツールで `resume` パラメータを廃止しました。代わりに `SendMessage` を使用して既存エージェントを継続してください",
       "prefix": "Changed",
@@ -608,6 +648,7 @@
       ]
     },
     {
+      "id": "7d50757dd4dd",
       "content": "- `SendMessage` now auto-resumes stopped agents in the background instead of returning an error",
       "content_ja": "停止中のエージェントにメッセージを送った際、エラーを返すのではなくバックグラウンドで自動再開するようにしました",
       "prefix": "Changed",
@@ -615,8 +656,9 @@
       "related_docs": []
     },
     {
+      "id": "1ab7eee5ee9c",
       "content": "- Renamed `/fork` to `/branch` (`/fork` still works as an alias)",
-      "content_ja": "`/fork` コマンドを `/branch` に名称変更しました（`/fork` も引き続き利用可能です）",
+      "content_ja": "`/fork` コマンドを `/branch` に名称変更しました(`/fork` も引き続き利用可能です)",
       "prefix": "Changed",
       "feature_areas": [],
       "related_docs": [
@@ -633,10 +675,11 @@
       "inference": {
         "before": "「フォーク」という用語は Git などの文脈と混同しやすく、会話の分岐を意味することが直感的に伝わりにくい場合がありました。",
         "after": "より馴染みのある「ブランチ」という名称に統一されました。",
-        "benefit": "Git のブランチを切るのと同じ感覚で、会話の分岐（試行錯誤）を管理できるようになります。"
+        "benefit": "Git のブランチを切るのと同じ感覚で、会話の分岐(試行錯誤)を管理できるようになります。"
       }
     },
     {
+      "id": "0e21260c3b96",
       "content": "- [VSCode] Improved plan preview tab titles to use the plan's heading instead of \"Claude's Plan\"",
       "content_ja": "[VSCode] プランプレビューのタブタイトルを、固定の名称ではなくプランの見出しを使用するように改善しました",
       "prefix": "Improved",
@@ -644,6 +687,7 @@
       "related_docs": []
     },
     {
+      "id": "f2ec22786143",
       "content": "- [VSCode] When option+click doesn't trigger native selection on macOS, the footer now points to the `macOptionClickForcesSelection` setting",
       "content_ja": "[VSCode] macOS で Option+クリックによる選択が効かない場合、専用の設定項目を案内するフッターを追加しました",
       "prefix": "Changed",

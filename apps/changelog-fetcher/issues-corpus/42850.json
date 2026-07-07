@@ -1,0 +1,35 @@
+{
+  "number": 42850,
+  "title": "[BUG] Remote Control returns \"disabled by your organization's policy\" on Team plan despite admin toggle being ON",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nDescription\n\n  Remote Control fails with \"disabled by your organization's policy\" on a Team plan, even though:\n  - The Remote Control toggle is enabled in admin settings (claude.ai/admin-settings/claude-code)\n  - Authentication is via OAuth (claude.ai), not API key\n  - Managed settings (settings.json) contains only {\"channelsEnabled\": true}\n  - No telemetry-disabling environment variables are set\n\n  Both claude --remote-control and the /remote-control slash command produce the same error.\n\n  Environment\n\n  - Claude Code version: v2.1.90\n  - Plan: Team\n  - Auth method: OAuth / claude.ai\n  - OS: macOS (Darwin 25.4.0)\n  - Shell: zsh\n\n  Steps to reproduce\n\n  1. Confirm Remote Control toggle is ON in claude.ai/admin-settings/claude-code\n  2. Run claude auth status — confirms authMethod: \"claude.ai\", subscriptionType: \"team\"\n  3. Run claude --remote-control or /remote-control in a session\n  4. Result: \"Remote Control failed · disabled by your organization's policy\"\n\n  Admin settings state\n\n  All toggles on the Claude Code admin page:\n  - Code in the desktop: ON\n  - Remote Control: ON\n  - Claude Code analytics: ON\n  - Allow channel notifications: ON\n  - Code in the web: OFF\n  - Allow bypass permissions mode: OFF\n  - Allow auto permissions mode: OFF\n  - Fast mode: OFF\n  - GitHub analytics: OFF\n\n  Managed settings (settings.json): {\"channelsEnabled\": true}\n\n  Additional context\n\n  - No CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC or DISABLE_TELEMETRY env vars set\n  - Possibly related to #29685, #33327, #38272\n\n### What Should Happen?\n\nThe remote control should activate successfully.\n\n### Error Messages/Logs\n\n```shell\nRemote control is disabled by your organization's policy.\n```\n\n### Steps to Reproduce\n\nSee above.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.90\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:auth", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-02T23:41:44Z",
+  "updated_at": "2026-06-16T11:54:16Z",
+  "closed_at": "2026-06-16T11:54:16Z",
+  "reactions_total": 7,
+  "comments_count": 13,
+  "author": "dholowack",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/33327\n2. https://github.com/anthropics/claude-code/issues/37608\n3. https://github.com/anthropics/claude-code/issues/33182\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-02T23:46:30Z"
+    },
+    {
+      "author": "dholowack",
+      "author_association": "NONE",
+      "body": "This was working for the past few weeks but suddenly stopped working a few days ago.",
+      "created_at": "2026-04-03T00:51:16Z"
+    },
+    {
+      "author": "krzakov",
+      "author_association": "NONE",
+      "body": "I have the same issue in \"Team\" license. Org switch toggled, oauth auth, no stale session, newest Claude Code cli version, same error every time: \"Remote Control is disabled by your organization's policy.\" - looks like anthropic bug \n",
+      "created_at": "2026-04-07T14:25:21Z"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
@@ -36,10 +36,13 @@ async function main(): Promise<void> {
   const analysisDir = join(appDir, 'analysis');
   const inferredDir = join(appDir, 'inferred');
   const analysisPath = join(analysisDir, `analysis_${version}.json`);
+  const tiedPath = join(appDir, 'tied', `tied_${version}.json`);
   const inferredPath = join(inferredDir, `inferred_${version}.json`);
 
-  log.msg('APLG0003', { params: [analysisPath] });
-  const rawAnalysis = readFileSync(analysisPath, 'utf-8');
+  // tie-issue ステージの出力があれば related_issues 付きのそちらを優先する
+  const inputPath = existsSync(tiedPath) ? tiedPath : analysisPath;
+  log.msg('APLG0003', { params: [inputPath] });
+  const rawAnalysis = readFileSync(inputPath, 'utf-8');
   const parsedAnalysis = JSON.parse(rawAnalysis);
   const analysisJson = AnalysisSchema.parse(parsedAnalysis);
   const analysis = toChangelogAnalysis(analysisJson);

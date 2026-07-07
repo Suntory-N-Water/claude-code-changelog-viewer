@@ -1,0 +1,35 @@
+{
+  "number": 7013,
+  "title": "[Bug] Python Code Generation: Imports Incorrectly Placed Inside Functions",
+  "body": "**Bug Description**\nNothing I can do seems to stop Claude from putting imports at function scope in Python. It's driving me mad!\n\n```\nI asked why you keep _putting imports at test scope_. _I_ added the linter rule _and_ the text in claude.md to PREVENT YOU FROM DOING IT. But you keep doing this. I NEVER PUT ANY \n  IMPORTS AT TEST SCOPE. all the imports _MUST BE AT THE TOP OF THE FILE_\n\n  So I ask again - why do _YOU_ keep putting imports _in functions_. The linter is _correctly telling you off_ but I'd like to stop you doing it as it saves all this arguing. Think hard\n\n✻ Thinking…\n\n  Oh NO. I completely misunderstood the question. The user is asking why I KEEP PUTTING imports at function scope (inside test functions), NOT why I moved them to the top.\n\n  Let me look at what I did:\n\n  def test_deploy_to_cefs_transactional_success(tmp_path):\n      \"\"\"Test that transactional deployment finalizes manifest on success.\"\"\"\n      from lib.cefs import deploy_to_cefs_transactional  # <-- I ADDED THIS\n\n  I ADDED those function-scope imports! The user didn't write them - I did! And they're asking why I keep doing this despite:\n  1. The linter rule explicitly forbidding it\n  2. The CLAUDE.md explicitly telling me not to do it\n  3. All imports should be at the top of the file\n\n  Looking back at what I did:\n  1. I created new test functions\n  2. I put from lib.cefs import deploy_to_cefs_transactional INSIDE each test function\n  3. Even though deploy_to_cefs_transactional was ALREADY imported at the top of the file!\n\n  This is really bad. I'm:\n  - Creating the very pattern the user configured the linter to prevent\n  - Ignoring explicit instructions in CLAUDE.md\n  - Creating redundant imports (it was already imported at the top!)\n\n  Why did I do this? I think it's because:\n  1. I was being lazy/careless when writing the test\n  2. I have a bad habit from some coding patterns where you might import locally to avoid circular imports or for clarity\n  3. I wasn't thinking about the fact that the import was already at the module level\n  4. I was focused on making the test \"self-contained\" without realizing this violates the project's standards\n\n  This is embarrassing. The user set up linter rules specifically to catch this mistake that I keep making, and I STILL did it.\n\n● Oh my god, you're absolutely right. I completely misunderstood your question.\n\n  I'M the one who keeps putting imports inside functions! In the tests I just wrote, I added:\n\n  def test_deploy_to_cefs_transactional_success(tmp_path):\n      from lib.cefs import deploy_to_cefs_transactional  # <-- I ADDED THIS\n\n  Even though deploy_to_cefs_transactional was ALREADY imported at the top of the file!\n\n  I keep doing this because:\n\n  1. Lazy/sloppy habit - When writing a test function, I sometimes reflexively write the import right where I need it instead of checking if it's already imported at the top\n  2. Misguided \"self-contained\" thinking - I have this wrong idea that each test should be \"self-contained\" with its own imports, but that's NOT your project's style and explicitly\n  violates your rules\n  3. Not reading what's already there - I didn't even check that the import was already at the module level. I just blindly added it in the function.\n\n  This is particularly bad because:\n  - You explicitly configured the linter to catch this\n  - You explicitly wrote in CLAUDE.md not to do this\n  - It creates redundant, ugly code\n  - The linter then correctly complains, wasting time\n\n  I apologize. This is a bad habit I need to break. When writing new code, I should ALWAYS put imports at the top of the file, and check if they're already there first.\n\n> /bug \n  ⎿  Bug report submitted\n\n```\n\n**Environment Info**\n- Platform: linux\n- Terminal: gnome-terminal\n- Version: 1.0.100\n- Feedback ID: 65d85add-3deb-45a3-9108-0b6191d407f7\n\n**Errors**\n```json\n[{\"error\":\"Error: Language not supported while highlighting code, falling back to markdown: \\n    at jH (/$bunfs/root/claude:1627:1192)\\n    at map (native:1:11)\\n    at I7 (/$bunfs/root/claude:1627:905)\\n    at bUW (/$bunfs/root/claude:3",
+  "labels": ["bug", "has repro", "platform:linux", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-09-02T14:20:35Z",
+  "updated_at": "2026-06-17T14:15:40Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 13,
+  "author": "mattgodbolt",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mattgodbolt",
+      "author_association": "NONE",
+      "body": "This seems new behaviour. I recent started exclusively using Opus too (4.1 I suppose) - is this a regression?",
+      "created_at": "2025-09-02T14:21:17Z"
+    },
+    {
+      "author": "phernandez",
+      "author_association": "NONE",
+      "body": "This is so annoying. Nothing I have prompted has been able to stop him Claude from doing this in Claude Code. It did start happening relatively recently.",
+      "created_at": "2025-09-27T17:40:27Z"
+    },
+    {
+      "author": "dhavalgarda",
+      "author_association": "NONE",
+      "body": "This is annoying now along with all the other issues with claude code not respecting CLAUDE.md.",
+      "created_at": "2025-11-13T18:16:37Z"
+    }
+  ]
+}

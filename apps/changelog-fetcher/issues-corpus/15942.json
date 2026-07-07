@@ -1,0 +1,35 @@
+{
+  "number": 15942,
+  "title": "Add support for Visual Studio 2026 Integration",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n\nI rely on **Visual Studio 2026** for C++ and Win32 system-level development (e.g., global hooks, drivers) because its debugger and toolchain are superior to VS Code/JetBrains for this specific stack.\n\nCurrently, `claude-code` only offers native plugins for VS Code and JetBrains. To use Claude Code with Visual Studio 2026, I am forced to run it in a detached terminal window. This creates significant friction:\n\n1. **No Integrated Diff:** I have to review complex code changes in the terminal text stream instead of Visual Studio's native Diff/Merge GUI.\n2. **No Context Awareness:** Claude cannot automatically see my open files, selected code, or compiler diagnostics (error list). I have to manually copy-paste errors or file contents.\n3. **Context Switching:** Constant Alt-Tab between the IDE and the terminal breaks flow.\n\n### Proposed Solution\n\nCreate a native VSIX extension for Visual Studio 2026 that provides feature parity with the existing VS Code extension:\n\n1. **Integrated Chat Panel:** A dockable tool window within VS 2026.\n2. **Native Diff Viewing:** When Claude proposes changes, show them using Visual Studio's native Diff window for review/accept/reject.\n3. **Context Synchronization:** Automatically share active file content, cursor selection, and build errors/warnings with the agent.\n4. **`/ide` Command Support:** Allow terminal sessions to link to the active VS instance.\n\n### Alternative Solutions\n\n* **Current Workaround:** Running `claude` CLI in an external terminal (Windows Terminal) or the VS Integrated Terminal. This is suboptimal due to the lack of GUI diffs and auto-context.\n* **Switching IDEs:** Trying to move the C++ project to VS Code just for Claude support, but this sacrifices the advanced debugging capabilities of Visual Studio 2026 required for Win32 development.\n\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nOther\n\n### Use Case Example\n\n**Scenario: Debugging a Win32 Keyboard Hook**\n\n1. I am debugging a `SetWindowsHookEx` crash in `hook.cpp` inside Visual Studio 2026.\n2. I hit a breakpoint where a variable `pKey` is null.\n3. **Ideally:** I open the Claude Code panel *inside* VS, select the crashing function, and ask: \"Why is pKey null here?\".\n4. Claude analyzes the selected code and the current file context automatically.\n5. Claude proposes a fix (adding a null check).\n6. I click \"Review\", and VS opens its native Diff window showing the change.\n7. I click \"Accept\", and the code is updated without me ever leaving the IDE.\n\n### Additional Context\n\nVisual Studio remains the de-facto standard for Windows native development. Ignoring it excludes a large portion of systems engineers and C++ game developers.",
+  "labels": ["enhancement", "platform:windows", "area:ide"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-01T02:42:34Z",
+  "updated_at": "2026-06-23T17:42:22Z",
+  "closed_at": null,
+  "reactions_total": 472,
+  "comments_count": 138,
+  "author": "ovftank",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "midgen",
+      "author_association": "NONE",
+      "body": "Yes please, just using the integrated terminal is of limited use, and trying to deal with game projects in VS Code is not a sacrifice worth making.",
+      "created_at": "2026-01-12T09:22:03Z"
+    },
+    {
+      "author": "72degrees",
+      "author_association": "NONE",
+      "body": "I had a long Pro Plan session with Claude CLI trying to do this.. I installed **Claude Code Extension for Visual Studio**. That got me as far as Claude Code window in VS2026. Anything I type pops up the Github Copilot Hub. There it looks as if I can '**Manage Models'** '**Bring my own model' .** Choices include Anthropic. At which point it asks for an API key. I don't have one. A separate billing process involving credits. Might that work?, I don't fancy trying even $5 to find out. Back to CLI .",
+      "created_at": "2026-01-13T21:57:27Z"
+    },
+    {
+      "author": "daijoubu-dev",
+      "author_association": "NONE",
+      "body": "It's hard to pitch Claude Code to my boss without proper VS integration in my .NET environment",
+      "created_at": "2026-01-22T20:26:02Z"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "number": 9628,
+  "title": "[BUG] CC crashes with new release of Nodejs v25",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nError reads: TypeError: Cannot read properties of undefined (reading 'prototype').\n\nCC's dependency chain includes packages that rely on the deprecated SlowBuffer API, which has been removed (marked as \"End-of-Life\") in Node.js v25.0.0 per DEP0030.\n\nNode.js Reference: \n•  Official Deprecation Doc: [DEP0030](https://nodejs.org/api/deprecations.html)\n•  Node.js v25.0.0 just released (October 15, 2025)\n\n\n### What Should Happen?\n\nIt should launch :)\n\n### Error Messages/Logs\n\n```shell\nCommand input:\nclaude \n\nexit_code: 1\n\nCommand output:\nfile:///C:/Users/[username]/scoop/persist/nodejs/bin/node_modules/@anthropic-ai/claude-code/cli.js:634\n`),Q.code=Z.error.code,Q.errors=Z.error.errors;else Q.message=Z.error.message,Q.code=Z.error.code;else if(B&&B.status>=400)Q.message=Z,Q.status=B.status;return Q}}qm2.DefaultTransporter=KI1;KI1.USER_AGENT=`${Em2}/${PW6.version}`});var T21=U((VE0,Lm2)=>{/*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */var Yb1=H1(\"buffer\"),$T=Yb1.Buffer;function Nm2(A,B){for(var Q in A)B[Q]=A[Q]}if($T.from&&$T.alloc&&$T.allocUnsafe&&$T.allocUnsafeSlow)Lm2.exports=Yb1;else Nm2(Yb1,VE0),VE0.Buffer=Cp;function Cp(A,B,Q){return $T(A,B,Q)}Cp.prototype=Object.create($T.prototype);Nm2($T,Cp);Cp.from=function(A,B,Q){if(typeof A===\"number\")throw TypeError(\"Argument must not be a number\");return $T(A,B,Q)};Cp.alloc=function(A,B,Q){if(typeof A!==\"number\")throw TypeError(\"Argument must be a number\");var Z=$T(A);if(B!==void 0)if(typeof Q===\"string\")Z.fill(B,Q);else Z.fill(B);else Z.fill(0);return Z};Cp.allocUnsafe=function(A){if(typeof A!==\"number\")throw TypeError(\"Argument must be a number\");return $T(A)};Cp.allocUnsafeSlow=function(A){if(typeof A!==\"number\")throw TypeError(\"Argument must be a number\");return Yb1.SlowBuffer(A)}});var Om2=U((_T3,Mm2)=>{function DE0(A){var B=(A/8|0)+(A%8===0?0:1);return B}var jW6={ES256:DE0(256),ES384:DE0(384),ES512:DE0(521)};function SW6(A){var B=jW6[A];if(B)return B;throw Error('Unknown algorithm \"'+A+'\"')}Mm2.exports=SW6});var KE0=U((xT3,ym2)=>{var Wb1=T21().Buffer,Tm2=Om2(),Jb1=128,Pm2=0,yW6=32,kW6=16,_W6=2,jm2=kW6|yW6|Pm2<<6,Ib1=_W6|Pm2<<6;function xW6(A){return A.replace(/=/g,\"\").replace(/\\+/g,\"-\").replace(/\\//g,\"_\")}function Sm2(A){if(Wb1.isBuffer(A))return A;else if(typeof A===\"string\")return Wb1.from(A,\"base64\");throw TypeError(\"ECDSA signature must be a Base64 string or a Buffer\")}function vW6(A,B){A=Sm2(A);var Q=Tm2(B),Z=Q+1,G=A.length,Y=0;if(A[Y++]!==jm2)throw Error('Could not find expected \"seq\"');var W=A[Y++];if(W===(Jb1|1))W=A[Y++];if(G-Y<W)throw Error('\"seq\" specified length of \"'+W+'\", only \"'+(G-Y)+'\" remaining');if(A[Y++]!==Ib1)throw Error('Could not find expected \"int\" for \"r\"');var J=A[Y++];if(G-Y-2<J)throw Error('\"r\" specified length of \"'+J+'\", only \"'+(G-Y-2)+'\" available');if(Z<J)throw Error('\"r\" specified length of \"'+J+'\", max of \"'+Z+'\" is acceptable');var I=Y;if(Y+=J,A[Y++]!==Ib1)throw Error('Could not find expected \"int\" for \"s\"');var X=A[Y++];if(G-Y!==X)throw Error('\"s\" specified length of \"'+X+'\", expected \"'+(G-Y)+'\"');if(Z<X)throw Error('\"s\" specified length of \"'+X+'\", max of \"'+Z+'\" is acceptable');var F=Y;if(Y+=X,Y!==G)throw Error('Expected to consume entire buffer, but \"'+(G-Y)+'\" bytes remain');var V=Q-J,D=Q-X,K=Wb1.allocUnsafe(V+J+D+X);for(Y=0;Y<V;++Y)K[Y]=0;A.copy(K,Y,I+Math.max(-V,0),I+J),Y=Q;for(var H=Y;Y<H+D;++Y)K[Y]=0;return A.copy(K,Y,F+Math.max(-D,0),F+X),K=K.toString(\"base64\"),K=xW6(K),K}function Rm2(A,B,Q){var Z=0;while(B+Z<Q&&A[B+Z]===0)++Z;var G=A[B+Z]>=Jb1;if(G)--Z;return Z}function bW6(A,B){A=Sm2(A);var Q=Tm2(B),Z=A.length;if(Z!==Q*2)throw TypeError('\"'+B+'\" signatures must be \"'+Q*2+'\" bytes, saw \"'+Z+'\"');var G=Rm2(A,0,Q),Y=Rm2(A,Q,A.length),W=Q-G,J=Q-Y,I=2+W",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:packaging",
+    "oncall"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-16T02:28:10Z",
+  "updated_at": "2026-06-22T09:08:27Z",
+  "closed_at": null,
+  "reactions_total": 28,
+  "comments_count": 14,
+  "author": "arimxyer",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "wolffiex",
+      "author_association": "COLLABORATOR",
+      "body": "Sorry about this, but it looks like we are stuck waiting on some dependency updates here\nWe are switching to recommending our native builds soon: https://docs.claude.com/en/docs/claude-code/setup#native-binary-installation-beta\n\n  1. ✅ jwa - Already fixed in v1.4.2 and v2.0.1\n  2. ❌ jws - Needs to release v3.2.3 with jwa@^1.4.2 (or users need to use v4.0.0)\n  3. ❌ jsonwebtoken - Needs to update to jws@4.0.0 or jws@3.2.3\n  4. ❌ @azure/msal-node - Will automatically get the fix once jsonwebtoken u",
+      "created_at": "2025-10-23T21:47:11Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/1291\n2. https://github.com/anthropics/claude-code/issues/9247\n3. https://github.com/anthropics/claude-code/issues/1441\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-10-16T02:32:54Z"
+    },
+    {
+      "author": "Farzad-Haghighat",
+      "author_association": "NONE",
+      "body": "This is not a duplicate issue.\n\n```\nPS C:\\Users\\[username]> claude\nfile:///C:/Users/[username]/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/cli.js:634\n`),Q.code=Z.error.code,Q.errors=Z.error.errors;else Q.message=Z.error.message,Q.code=Z.error.code;else if(B&&B.status>=400)Q.message=Z,Q.status=B.status;return Q}}qm2.DefaultTransporter=KI1;KI1.USER_AGENT=`${Em2}/${PW6.version}`});var T21=U((VE0,Lm2)=>{/*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> ",
+      "created_at": "2025-10-16T11:32:15Z"
+    }
+  ]
+}

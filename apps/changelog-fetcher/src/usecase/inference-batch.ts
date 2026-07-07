@@ -1,5 +1,6 @@
 import {
   type AnalyzedChangelogEntry,
+  type AnalyzedChangelogEntryId,
   type ImpactAssessment,
   applyInferenceToAnalyzedEntry,
   needsInference,
@@ -10,7 +11,7 @@ import {
 } from '../domain/analysis/changelog-analysis';
 
 export type InferredBatchItem = {
-  id: number;
+  id: string;
   contentJa: string;
   before: string;
   after: string;
@@ -18,17 +19,17 @@ export type InferredBatchItem = {
 };
 
 export type TranslatedBatchItem = {
-  id: number;
+  id: string;
   contentJa: string;
 };
 
 export type FeatureAreaCorrection = {
-  id: number;
+  id: string;
   featureAreas: string[];
 };
 
 export type ImpactBatchItem = {
-  id: number;
+  id: string;
 } & ImpactAssessment;
 
 export type InferenceBatch = {
@@ -41,7 +42,7 @@ export type InferenceBatch = {
 
 export type IndexedAnalyzedEntry = {
   entry: AnalyzedChangelogEntry;
-  originalIndex: number;
+  id: AnalyzedChangelogEntryId;
 };
 
 /**
@@ -64,13 +65,13 @@ export function createInferenceBatch(input: {
 }
 
 /**
- * AI 再実行が必要な解析項目を元の配列 index 付きで抽出する。
+ * AI 再実行が必要な解析項目を id 付きで抽出する。
  */
 export function findMissingInferenceItems(
   analysis: ChangelogAnalysis,
 ): IndexedAnalyzedEntry[] {
   return analysis.items
-    .map((entry, originalIndex) => ({ entry, originalIndex }))
+    .map((entry) => ({ entry, id: entry.id }))
     .filter(({ entry }) => needsInference(entry));
 }
 
@@ -94,11 +95,11 @@ export function applyInferenceBatch(
     batch.impactItems.map(({ id, ...impact }) => [id, impact]),
   );
 
-  const items = analysis.items.map((entry, index) => {
-    const correction = correctionById.get(index);
+  const items = analysis.items.map((entry) => {
+    const correction = correctionById.get(entry.id);
     const featureAreas = correction?.featureAreas ?? entry.featureAreas;
-    const impact = impactById.get(index);
-    const inferred = inferredById.get(index);
+    const impact = impactById.get(entry.id);
+    const inferred = inferredById.get(entry.id);
 
     if (inferred) {
       return applyInferenceToAnalyzedEntry(entry, {
@@ -113,7 +114,7 @@ export function applyInferenceBatch(
       });
     }
 
-    const translated = translatedById.get(index);
+    const translated = translatedById.get(entry.id);
     if (translated) {
       return applyInferenceToAnalyzedEntry(entry, {
         contentJa: translated.contentJa,

@@ -1,0 +1,35 @@
+{
+  "number": 36477,
+  "title": "[BUG] --channels mode stops processing incoming messages after first response",
+  "body": "# [BUG] --channels mode stops processing incoming messages after first response\n\n## Environment\n- **Claude Code version:** 2.1.80\n- **OS:** Ubuntu 24.04 (also affects other platforms)\n- **Plugin:** telegram@claude-plugins-official v0.0.1\n\n## Description\n\nWhen running Claude Code with `--channels plugin:telegram@claude-plugins-official`, the session correctly receives and responds to the first incoming Telegram message. However, after responding, Claude Code returns to the interactive prompt and stops processing subsequent incoming MCP channel notifications.\n\n## Steps to Reproduce\n\n1. Install the Telegram plugin:\n   ```\n   /plugin install telegram@claude-plugins-official\n   ```\n\n2. Configure the bot token:\n   ```\n   /telegram:configure <BOT_TOKEN>\n   ```\n\n3. Set up access.json with allowlist\n\n4. Launch with channels flag:\n   ```bash\n   claude --channels plugin:telegram@claude-plugins-official\n   ```\n\n5. Send a message to the bot on Telegram → **Works, Claude responds**\n\n6. Send a second message → **Not processed, Claude sits at `❯` prompt**\n\n## Expected Behavior\n\nClaude Code should continuously listen for and process incoming channel notifications without requiring user interaction at the prompt.\n\n## Actual Behavior\n\nAfter responding to one message, Claude Code waits at the interactive prompt (`❯`). The MCP channel notification is received by the Telegram plugin (verified via debug logs and `getUpdates` showing empty after consumption), but Claude Code does not process it until the user interacts with the prompt.\n\n## Debug Log Evidence\n\n```\nMCP server \"plugin:telegram:telegram\": Successfully connected to undefined server in 264ms\nMCP server \"plugin:telegram:telegram\": Channel notifications registered\n```\n\nThe Telegram MCP server connects successfully and registers for channel notifications. The first message arrives and is processed:\n\n```\n← telegram · 8543213592: Are you up?\n● plugin:telegram:telegram - reply (MCP)(chat_id: \"8543213592\", text: \"Yep, I'm here! What's up?\")\n  ⎿  sent (id: 18)\n● Replied to the Telegram message.\n────────────────────────────────────────────────────────────────────────────────\n❯ \n```\n\nSubsequent messages are consumed from Telegram's `getUpdates` but never appear in the Claude session.\n\n## Workaround\n\nNone currently. Running in tmux doesn't help — the session still waits at the prompt.\n\n## Additional Context\n\n- The startup banner correctly notes: \"Experimental · inbound messages will be pushed into this session\"\n- The 409 conflict error (multiple bot instances) is a separate issue and was resolved\n- This appears to be a core issue with how the interactive REPL handles async MCP notifications\n\n## Feature Request\n\nConsider adding a `--daemon` or `--listen` mode that keeps Claude Code in a continuous listening state for channel-based integrations, rather than returning to the interactive prompt after each response.\n",
+  "labels": ["bug", "platform:linux", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-20T04:41:07Z",
+  "updated_at": "2026-06-28T11:28:14Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 23,
+  "author": "mohfoda1982-create",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/36411\n2. https://github.com/anthropics/claude-code/issues/36472\n3. https://github.com/anthropics/claude-code/issues/36431\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-20T04:45:38Z"
+    },
+    {
+      "author": "mohfoda1982-create",
+      "author_association": "NONE",
+      "body": "**Additional context from official plugin docs:**\n\nThe [Telegram plugin README](https://github.com/anthropics/claude-plugins-official/blob/main/external_plugins/telegram/README.md) states:\n\n> *When you message the bot, the server forwards the message to your Claude Code session.*\n\nAnd:\n\n> *Relaunch with the channel flag... The server won't connect without this*\n\nThis confirms the intended usage is exactly what I'm doing: `claude --channels plugin:telegram@claude-plugins-official` should continuo",
+      "created_at": "2026-03-20T12:25:37Z"
+    },
+    {
+      "author": "salty-flower",
+      "author_association": "NONE",
+      "body": "Codex helped me to fix it. FYI.\n\n### Claude Code 2.1.80 Telegram MCP can reply once, then stop receiving inbound messages\n  - Trigger:\n    - Telegram `reply` works, but after that the next Telegram message no longer reaches Claude Code.\n    - `/mcp` shows the Telegram server as `failed`.\n    - The debug log shows a successful `reply` tool call, but the Telegram server later logs clean closes such as:\n      - `UNKNOWN connection closed after 4s (cleanly)`\n      - `UNKNOWN connection closed after ",
+      "created_at": "2026-03-21T06:19:15Z"
+    }
+  ]
+}

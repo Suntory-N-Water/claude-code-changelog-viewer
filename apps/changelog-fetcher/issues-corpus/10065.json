@@ -1,0 +1,35 @@
+{
+  "number": 10065,
+  "title": "[BUG] Claude Desktop Drops/Reverts Long Multi-Step Tasks Without Warning",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**[BUG] Claude Desktop Drops/Reverts Long Multi-Step Tasks Without Warning**\n\n**Environment**\n- Platform: Claude Desktop (Windows)\n- Claude Desktop Version: [0.13.108]  \n- Operating System: Windows 11\n- System Specs: Threadripper CPU, 256GB RAM (no resource constraints)\n\n**Bug Description**\nClaude Desktop completely drops/reverts long multi-step tasks (50-60+ steps) involving multiple tool calls, returning to the previous turn prompt without warning. This happens:\n- During complex tasks with 60+ tool/MCP call \"steps\"\n- At unpredictable points (sometimes early in conversation turns)\n- No context window limit warning is displayed\n- ALL progress from the current turn is lost\n- Can happen repeatedly (3+ times on same task)\n\n**Expected Behavior**\n- Task should complete or show clear error/warning\n- Context window exhaustion should show warning before dropping work\n- Progress should not silently disappear\n\n**Actual Behavior**\n- Claude makes 50-60+ tool calls/steps\n- Suddenly reverts to prior turn with no error message\n- All work from current turn vanishes\n- No indication of what triggered the reversion\n- Pattern repeats if task is retried\n\n**Impact**\n- Opus has adapted to keep rigorous checklists and retrace steps\n- Requires constant user supervision of long tasks\n- Wastes significant time on repeated failed attempts\n\n**Additional Context**\n- System is NOT resource-constrained (200GB free RAM, <1% CPU)\n- Issue appears backend/infrastructure related, not client-side\n- Similar to issues #151, #4228, but specifically about progress reversion\n\n### What Should Happen?\n\nClaude should gracefully fail if it encounters a problem during long chain execution, instead of simply 'dropping' the entire 'turn'.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nStart a conversation with Sonnet 4.5 or Opus 4.1.  Ask it to do a complex task.  My recent examples have been unity debugging escalations from claude code 4.5 because Opus isnt' available via CLI.\n\nSo I paste a complex task in, and it happily spins along for up to 70 (!) 'steps' before just dumping back to the last prompt.  So then I say to it what happened and it re-traces it's steps by looking at prior tool calls, and if I'm lucky the .md breadcrumbs I'm asking it to make since at ANY TIME the session could reset.\n\nThis has cost me a LOT of tokens, particularly with Opus, as escalation chats chew up to 10% of my weekly allocation with EACH RUN.\n\nNOTE: I do NOT have this problem on claude code, only claude Desktop.\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n0.13.108\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nI don't know what's causing this issue.  I'm using Desktop Commander MCP for tool calls, which worked fine.  From watching, it doesn't seem like it's making any edits when it fails,  ",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools", "stale"],
+  "state": "open",
+  "state_reason": "reopened",
+  "created_at": "2025-10-21T20:09:00Z",
+  "updated_at": "2026-06-25T16:09:27Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 22,
+  "author": "Tekgnosis",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "robbiemueller",
+      "author_association": "NONE",
+      "body": "I am seeing this behavior as well. I am also using Desktop Commander MCP and in this case Shopify Dev MCP. Desktop commander worked fine by itself previously, but last night this kept happening to me.",
+      "created_at": "2025-10-25T12:32:50Z"
+    },
+    {
+      "author": "CybotTM",
+      "author_association": "NONE",
+      "body": "Also affected by this, also with Desktop Commander, prompt starts fine ... but after some time the whole prompt and its processing is vanished as never existed.",
+      "created_at": "2025-11-08T15:20:06Z"
+    },
+    {
+      "author": "genetrader",
+      "author_association": "NONE",
+      "body": "I am seeing this behavior when I have asked Claude to summarize a 14mb very large PDF for me - 594 pages of text.  It begins the work and goes for a while, and then the sudden reversion as if I never hit enter on the prompt attached and no history at all - totally gone.  This is using the Claud Code desktop app with Opus 4.5.\n\n**ONE NOTE ON BUG FIX:  I** ran the same prompt again but then had a new prompt in the box to remind it to save its work as it went along but never sent it.  However, the ",
+      "created_at": "2025-11-30T17:41:52Z"
+    }
+  ]
+}

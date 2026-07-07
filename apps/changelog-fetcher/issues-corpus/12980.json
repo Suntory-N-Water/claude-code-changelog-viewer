@@ -1,0 +1,35 @@
+{
+  "number": 12980,
+  "title": "[Feature Request] Add option to skip trust prompt when .claude/settings.local.json allows it",
+  "body": "**Bug Description**\n  Feature request: Option to skip trust prompt when settings.local.json exists\n\n  Use case: I use git worktrees extensively, with a shared settings.local.json symlinked across all worktrees. Each\n  worktree is a different absolute path, so I get the \"Do you trust the files in this folder?\" prompt every time I open\n  Claude in a new worktree - even though I've already explicitly configured my permissions in settings.local.json.\n\n  The problem: The existence of a .claude/settings.local.json file with permissions.allow entries is itself an explicit\n  declaration of trust. Prompting me to confirm trust for a directory where I've already placed a carefully crafted\n  settings file is redundant. I wrote the file - I obviously trust it.\n\n  Proposed solution: Add a setting (in ~/.claude/settings.json or CLI flag) like:\n\n  {\n    \"trustProjectsWithLocalSettings\": true\n  }\n\n  Or a CLI flag: --trust-local-settings\n\n  When enabled, if .claude/settings.local.json exists in the project, skip the trust prompt entirely. The settings file IS\n   the trust declaration.\n\n  Current workaround: Manually accepting the prompt in every new worktree, which defeats the purpose of having shared,\n  pre-configured settings.\n\n**Environment Info**\n- Platform: linux\n- Terminal: gnome-terminal\n- Version: 2.0.57\n- Feedback ID: 78151e3f-2e79-41b7-91b9-a7d8f95748c0\n",
+  "labels": ["enhancement", "platform:linux", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-03T16:31:36Z",
+  "updated_at": "2026-07-03T16:34:46Z",
+  "closed_at": null,
+  "reactions_total": 17,
+  "comments_count": 13,
+  "author": "ahonnecke",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2026-01-04T10:11:02Z"
+    },
+    {
+      "author": "tomgilder",
+      "author_association": "NONE",
+      "body": "This is still occurring, and I would like it too 😊",
+      "created_at": "2026-01-15T10:11:43Z"
+    },
+    {
+      "author": "jtmarmon",
+      "author_association": "NONE",
+      "body": "We ran into this issue trying to use worktrees as well. Took some playing around but it looks like claude trusts all subdirectories of a trusted folder *if* those subdirectories dont have their own .claude. So you can solve this by:\n\n\n1. Stop copying `.claude/` into worktree directories\n2. Put all worktrees inside a directory like `my-app-worktrees/`\n3. Symlink your app's main `.claude/` into the `my-app-worktrees/` and accept the trust prompt once\ni.e the structure will look like:\n```\nmyapp/.cl",
+      "created_at": "2026-01-16T17:14:11Z"
+    }
+  ]
+}

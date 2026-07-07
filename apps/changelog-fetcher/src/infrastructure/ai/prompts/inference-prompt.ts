@@ -13,17 +13,17 @@ export function buildBatchInferencePrompt(
   version: string,
   modelContext: string,
 ): string {
-  const inferenceItems: { item: PromptItem['entry']; index: number }[] = [];
-  const translationItems: { item: PromptItem['entry']; index: number }[] = [];
-  for (const { entry, originalIndex } of indexedItems) {
+  const inferenceItems: { item: PromptItem['entry']; id: string }[] = [];
+  const translationItems: { item: PromptItem['entry']; id: string }[] = [];
+  for (const { entry, id } of indexedItems) {
     (entry.relatedDocs.length >= 1 ? inferenceItems : translationItems).push({
       item: entry,
-      index: originalIndex,
+      id,
     });
   }
 
   const inferenceSection = inferenceItems
-    .map(({ item, index }) => {
+    .map(({ item, id }) => {
       const snippetsText = item.relatedDocs
         .map((doc) => {
           const snippets = doc.snippets.join('\n');
@@ -32,7 +32,7 @@ export function buildBatchInferencePrompt(
         .join('\n\n');
 
       return [
-        ['#### 項目 id=', index].join(''),
+        ['#### 項目 id=', id].join(''),
         ['- prefix: ', item.prefix].join(''),
         ['- content: ', item.content].join(''),
         '- 関連情報:',
@@ -42,9 +42,9 @@ export function buildBatchInferencePrompt(
     .join('\n\n');
 
   const translationSection = translationItems
-    .map(({ item, index }) =>
+    .map(({ item, id }) =>
       [
-        ['#### 項目 id=', index].join(''),
+        ['#### 項目 id=', id].join(''),
         ['- prefix: ', item.prefix].join(''),
         ['- content: ', item.content].join(''),
       ].join('\n'),
@@ -56,8 +56,8 @@ export function buildBatchInferencePrompt(
     .join('\n');
 
   const featureAreaItemsText = indexedItems
-    .map(({ entry, originalIndex }) =>
-      ['- id=', originalIndex, ', content: ', entry.content].join(''),
+    .map(({ entry, id }) =>
+      ['- id=', id, ', content: ', entry.content].join(''),
     )
     .join('\n');
 

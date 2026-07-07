@@ -1,0 +1,16 @@
+{
+  "number": 3599,
+  "title": "[BUG] CLAUDE.md File Not Visible in File Selection",
+  "body": "\n# Claude Code Bug Report: CLAUDE.md Files Not Visible in File Selection\n\n## Summary\nWhen using `@CLAUDE.md` in Claude Code, the file is not visible in the file selection interface if it's listed in `.gitignore`, preventing users from referencing project-specific Claude instructions.\n\n## Environment\n- **Claude Code Version**: [Current version]\n- **Platform**: macOS 15.5 Sequoia\n- **Project Type**: Xcode/Swift project\n- **Git Status**: `CLAUDE.md` is gitignored but exists locally\n\n## Expected Behavior\nWhen typing `@CLAUDE.md` or using file selection in Claude Code, the `CLAUDE.md` file should be visible and selectable even if it's in `.gitignore`, since it's a legitimate project file that users need to reference.\n\n## Actual Behavior\nThe `CLAUDE.md` file does not appear in the file selection interface when it's listed in `.gitignore`, making it impossible to reference project-specific Claude instructions.\n\n## Steps to Reproduce\n1. Create a project with a `CLAUDE.md` file in the root directory\n2. Add `CLAUDE.md` to `.gitignore` (common practice to keep instructions local)\n3. In Claude Code, try to reference the file using `@CLAUDE.md`\n4. Observe that the file is not visible in the file selection interface\n\n## Root Cause Analysis\nClaude Code's file picker appears to filter out gitignored files, but `CLAUDE.md` is a special case that should always be accessible regardless of git status since it contains project-specific instructions for Claude.\n\n## Current Status Verification\n```bash\n# File exists locally\n$ ls -la CLAUDE.md\n-rw-r--r--  1 user  staff  2047 Jul 16 13:48 CLAUDE.md\n\n# But is ignored by Git\n$ git status --ignored | grep CLAUDE.md\n    CLAUDE.md\n\n# And not tracked by Git\n$ git ls-files | grep -i claude.md\n(no results)\n```\n\n## Impact\n- **High User Impact**: Users cannot access project-specific Claude instructions\n- **Workflow Disruption**: Breaks the intended Claude Code workflow with project-specific context\n- **Inconsistent Behavior**: Other tools typically show gitignored files that are needed for functionality\n\n## Proposed Solution\nClaude Code should either:\n1. **Always show CLAUDE.md files** regardless of gitignore status\n2. **Include gitignored files** in file selection with visual indicators\n3. **Add specific handling** for Claude instruction files (.md files starting with CLAUDE)\n\n## Additional Context\nMany projects keep `CLAUDE.md` in `.gitignore` to prevent committing developer-specific instructions while still needing to reference them during development. This is a legitimate use case that Claude Code should support.\n\n## Priority\n**High** - This affects core Claude Code functionality and user workflow with project-specific instructions.\n",
+  "labels": ["bug", "platform:macos", "area:core", "memory", "autoclose"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2025-07-16T06:59:14Z",
+  "updated_at": "2026-06-18T16:43:33Z",
+  "closed_at": "2025-11-30T04:17:04Z",
+  "reactions_total": 1,
+  "comments_count": 3,
+  "author": "MiwiDots",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

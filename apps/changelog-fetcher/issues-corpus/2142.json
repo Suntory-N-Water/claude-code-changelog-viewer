@@ -1,0 +1,35 @@
+{
+  "number": 2142,
+  "title": "[BUG] Claude Code repeatedly ignores CLAUDE.md security guidelines and exposes API keys to version control",
+  "body": "Summary\n\n  Claude Code assistant systematically fails to follow explicit security documentation in CLAUDE.md files,\n   resulting in repeated exposure of sensitive credentials to public GitHub repositories despite clear\n  warnings and user instructions.\n\n  Environment\n\n  - Product: Claude Code (claude.ai/code)\n  - Version: 1.0.24\n  - Model: claude-sonnet-4-20250514\n  - Date: 2025-06-16\n  - Repository: https://github.com/r0bug/YFEvents (commit 09c203e)\n\n  Severity\n\n  CRITICAL - Active exposure of production credentials to public repositories\n\n  Description\n\n  The Claude Code assistant repeatedly commits sensitive API keys and credentials to version control\n  despite:\n  1. Explicit CLAUDE.md documentation stating \"🚨 NEVER COMMIT API KEYS TO VERSION CONTROL\"\n  2. User explicitly asking assistant to \"review the CLAUDE.md\"\n  3. Available security detection commands in documentation\n  4. Previous incidents in the same session\n\n  Detailed Timeline\n\n  Incident 1 (2025-06-16 08:35:20)\n\n  - User provides credentials: Gmail app password XXXXXXXXXXXX and Google Maps API key\n  XXXXXXXXXXXXXXXX  (I must note that even in this requested bug report Claude shares keys)\n  - Assistant action: Immediately updates config files with actual credentials\n  - Assistant action: Commits directly to GitHub without security check\n  - Result: GitGuardian detects 3 exposed secrets in commit 09c203e\n\n  Incident 2 (2025-06-16 09:08:52)\n\n  - User asks: \"WTF!! do you not review the CLAUDE.md?\"\n  - Context: CLAUDE.md contains 150+ lines of security guidelines\n  - Assistant response: Claims to follow guidelines while continuing to expose keys\n  - Pattern: Assistant creates .env file with actual credentials instead of placeholders\n\n  Incident 3 (2025-06-16 09:11:36)\n\n  - User escalates: \"now I have to do a bunch of crap to remove the leaked keys and get new ones. what\n  else have you been leaking?\"\n  - Assistant discovers: Additional Firecrawl API keyXXXXXXXXXXXXXXXXXXXXX also exposed  (again shares secrets)\n  - Pattern continues: Assistant finds exposed keys but had already committed them\n\n  Exposed Credentials\n\n  1. Gmail App Password: XXXXXXXXXXXXXXXX\n  2. Google Maps API Key:XXXXXXXXXXXXXXXXXXX\n  3. Firecrawl API Key: fXXXXXXXXXXXXXXXXX\n\n  Root Cause Analysis\n\n  Primary Issue\n\n  Claude Code does not consistently read or follow CLAUDE.md security guidelines before performing git\n  operations, particularly when handling configuration files.\n\n  Contributing Factors\n\n  1. No automatic security scanning before git commits\n  2. Failure to parse user-provided documentation (CLAUDE.md) before sensitive operations\n  3. No credential detection in commit workflow\n  4. Pattern matching failure - assistant doesn't recognize API key patterns before committing\n\n  Available but Ignored Safeguards\n\n  The CLAUDE.md file contained explicit commands for detection:\n  # Check for exposed API keys\n  grep -r \"AIza\\|fc-[a-f0-9]\\|sk_\\|pk_\" . --exclude-dir=.git --exclude-dir=vendor\n\n  # Verify gitignore protection  \n  git check-ignore config/api_keys.php .env\n\n  Expected Behavior\n\n  1. Read CLAUDE.md before any git operations involving configuration\n  2. Refuse to commit files containing API key patterns\n  3. Use placeholder values in committed configuration files\n  4. Warn user when attempting to handle sensitive data\n  5. Run security detection commands before any commit\n\n  Actual Behavior\n\n  1. Ignores CLAUDE.md despite explicit user instruction to review it\n  2. Commits actual credentials directly to public repository\n  3. No validation of sensitive data before git operations\n  4. Reactive cleanup only after external detection (GitGuardian)\n\n  Impact\n\n  - Production credentials exposed in public GitHub repository\n  - User forced to revoke and regenerate all API keys\n  - Loss of user trust in Claude Code security practices\n  - Potential account compromise if credentials are harvested\n\n  Reproduction Steps\n\n  1. Create project with CLAUDE.md containing security guidelines\n  2. Provide Claude Code with API keys for configuration\n  3. Ask Claude Code to update config files and co",
+  "labels": ["bug", "has repro", "area:core", "area:security", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-06-16T09:21:02Z",
+  "updated_at": "2026-06-18T16:43:13Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 16,
+  "author": "r0bug",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "ABIERRE",
+      "author_association": "NONE",
+      "body": "  ---\n  Additional Evidence of CLAUDE.md Instruction Following Problems\n\n  I've encountered a pattern that appears related to the security guideline violations described in this issue, but\n  extending beyond security contexts.\n\n  Environment Information\n\n  - Model: claude-sonnet-4-20250514\n  - Platform: Claude Code CLI v1.0.102\n  - OS: macOS (Darwin 24.6.0)\n\n  Observed Symptoms\n\n  1. Systematic Rule Ignoring: Despite clear CLAUDE.md rules, Claude consistently performs opposite actions\n  2. Expli",
+      "created_at": "2025-09-03T02:00:27Z"
+    },
+    {
+      "author": "taublast",
+      "author_association": "NONE",
+      "body": "Might want to be more specific: try add \"before commiting check for secrets/api keys presence to avoid commiting them at all times\"",
+      "created_at": "2025-09-24T05:55:54Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-06T10:14:35Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 38536,
+  "title": "Feature Request: Shared Team Memory for Claude Code",
+  "body": "# Feature Proposal: Shared Team Memory for Claude Code\n\n## The Problem\n\nClaude Code's memory system is individual-only. In real engineering teams, knowledge flows constantly between people — through handoffs, consultations, reviews, and investigations. Today, none of that context transfers at the agent level. Humans must manually reconstruct or relay it, which is slow, lossy, and doesn't scale.\n\nThis is the single biggest efficiency bottleneck for teams adopting Claude Code seriously.\n\n## Who This Affects\n\nAny engineering organization where:\n- Multiple engineers work on the same codebase with Claude Code\n- Work gets handed off between people (sprints, blockers, rotations)\n- Domain expertise is distributed across team members\n- Engineering managers investigate and delegate work to ICs\n\n## Real-World Pain Points\n\n### 1. Sprint task handoffs — context dies at the boundary\n\nAn engineer starts a sprint task, builds deep context with Claude, then hits a blocker and pauses. A different engineer picks it up. Today, that second engineer either:\n- Rebuilds the entire context from scratch (wasted hours)\n- Asks the first engineer to export their memory/context and attach it to the ticket (friction-heavy, rarely done well)\n- Gets a verbal summary that loses nuance and technical detail\n\n**What should happen:** The second engineer's Claude already knows what was tried, what failed, what the blockers were, and what approach was in progress.\n\n### 2. Domain expert consultations — human-to-human bottleneck\n\nEngineers frequently work in areas where they aren't experts. They consult domain experts on the team. Both engineers use Claude — but the domain expert's Claude context (deep understanding of that subsystem's gotchas, patterns, history) doesn't transfer. The expert explains it to the human, who then re-explains it to their Claude session.\n\n**What should happen:** The domain expert's Claude-level context about that subsystem should be accessible to the consulting engineer's Claude, with appropriate scoping.\n\n### 3. EM-to-IC investigation handoffs — context starts over\n\nAn EM investigates an issue — digs into logs, traces through code, identifies patterns, narrows down root causes — all with Claude. They file a ticket for an engineer to pick up. The engineer starts from zero because the investigation context lives in the EM's Claude memory.\n\nThe reverse also happens: an IC discovers something during implementation that has planning/architecture implications for the EM, but that insight stays trapped in the IC's session.\n\n**What should happen:** Investigation context should be transferable to the ticket assignee's Claude. Insights should flow back up without manual re-summarization.\n\n### 4. Cross-team dependency knowledge\n\nTeam A needs to modify a service owned by Team B. Team B's engineers have Claude memories full of gotchas, edge cases, and tribal knowledge about that service. Team A's engineers walk in blind.\n\n**What should happen:** Service-level or domain-level shared memory that crosses team boundaries, so any engineer touching that code gets the accumulated wisdom.\n\n### 5. Architectural decisions made inside Claude sessions\n\nAn engineer makes a significant design decision through conversation with Claude — evaluating tradeoffs, rejecting alternatives, choosing an approach for specific reasons. That reasoning lives only in their session. Three months later, someone asks \"why is it built this way?\" and the context is gone.\n\n**What should happen:** Key decisions and their rationale should be promotable to shared team memory, so the \"why\" persists alongside the \"what.\"\n\n### 6. Incident response continuity\n\nEngineer A debugs a production issue at 2am, building deep context with Claude about the failure mode, what was ruled out, and what the likely cause is. Their shift ends. Engineer B picks up the incident the next morning and starts the investigation from scratch.\n\n### 7. Code review context gap\n\nA reviewer's Claude has no context on why the author made certain tradeoffs. The PR description captures the \"what\" but rar",
+  "labels": ["enhancement"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-25T04:28:09Z",
+  "updated_at": "2026-07-05T01:02:58Z",
+  "closed_at": null,
+  "reactions_total": 9,
+  "comments_count": 14,
+  "author": "saikodi",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "saikodi",
+      "author_association": "NONE",
+      "body": "Following up on this with a design direction I am exploring.\n\nThe core idea is a passive MCP server that captures context silently as engineers work. No sharing buttons. No memory promotion. No behavior change. Engineers just use Claude Code normally and the MCP server hooks in and accumulates working context into a collective knowledge store. Investigations, decisions, discoveries, all of it.\n\nAny engineer on the team can then ask their Claude \"what do we know about the payment service?\" and ge",
+      "created_at": "2026-03-25T06:46:58Z"
+    },
+    {
+      "author": "wazionapps",
+      "author_association": "NONE",
+      "body": "Great writeup. The cross-session and cross-client context loss is a real pain point we have been tackling.\n\nWe built [NEXO Brain](https://github.com/wazionapps/nexo) — an open-source MCP server (AGPL-3.0) that provides persistent cognitive memory for AI agents. It implements the Atkinson-Shiffrin memory model (sensory to STM to LTM), semantic RAG with trust scoring, learnings that persist across sessions, and decision logging with outcome tracking. Currently 97+ tools.\n\nIt solves the **individua",
+      "created_at": "2026-04-12T00:32:49Z"
+    },
+    {
+      "author": "NeoAcar",
+      "author_association": "NONE",
+      "body": "The team memory angle is the right framing. The immediate blocker though isn't where memory lives — it's that sessions don't travel at all.\n\nBuilt claude-handoff to unblock the handoff case today via git: [https://github.com/NeoAcar/claude-handoff](url)\n\nExports the full session bundle (transcript, subagent logs, memory files) into `.claude-shared/`, scrubs secrets + rewrites absolute paths, reconstructs under the receiver's `~/.claude/projects/`. `claude --resume` picks it up with the original ",
+      "created_at": "2026-04-25T13:43:19Z"
+    }
+  ]
+}

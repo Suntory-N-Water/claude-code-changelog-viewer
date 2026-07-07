@@ -1,0 +1,42 @@
+{
+  "number": 15921,
+  "title": "[BUG] VSCode Extension: `.claude/settings.local.json` permissions not respected for Bash/Write/Edit operations (even with `bypassPermissions` mode)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# GitHub Issue Draft for Claude Code Team\n\n**Related Work Item:** BUGFIX-003\n**Target Repository:** https://github.com/anthropics/claude-code/issues\n**Created:** 2025-12-31\n**Status:** Draft - Ready to submit\n\n---\n\n## Issue Title\n\n[Bug] VSCode Extension: `.claude/settings.local.json` permissions not respected for Bash/Write/Edit operations (even with `bypassPermissions` mode)\n\n---\n\n## Issue Type\n\nBug Report\n\n---\n\n## Environment\n\n**Claude Code Version:** Latest (VSCode Extension)\n**VSCode Version:** Latest\n**OS:** Windows 11\n**Extension Environment:** VSCode Claude Code Extension\n\n---\n\n## Summary\n\nThe `.claude/settings.local.json` permission configuration system appears to only work for Read-type tools (Read, Glob, Grep) but does NOT respect allow/deny rules for Bash commands, Write operations, or Edit operations in the VSCode extension environment.\n\n**Critical Finding:** Even with `bypassPermissions` mode enabled (which should bypass ALL permission checks), users still receive approval prompts for Bash, Write, and Edit operations.\n\n---\n\n## Expected Behavior\n\nWhen `.claude/settings.local.json` contains:\n\n```json\n{\n  \"permissions\": {\n    \"defaultMode\": \"dontAsk\",\n    \"allow\": [\n      \"Read(**)\",\n      \"Glob\",\n      \"Grep\",\n      \"Task\",\n      \"Bash(dir:*)\"\n    ],\n    \"deny\": [\n      \"Read(.env)\",\n      \"Read(.env.*)\",\n      \"Read(secrets/**)\",\n      \"Read(credentials.json)\",\n      \"Read(.aws/**)\",\n      \"Read(.git/config)\",\n      \"Read(../**)\"\n    ]\n  }\n}\n```\n\nAND VSCode setting `claudeCode.initialPermissionMode` is set to `\"acceptEdits\"` or `\"bypassPermissions\"`,\n\n**Expected:** All allowed operations should execute without approval prompts, including:\n- Bash commands matching `Bash(dir:*)`\n- Write operations (creating files)\n- Edit operations (modifying files)\n\n---\n\n## Actual Behavior\n\n**What Works (No Prompts):**\n- ✅ Read(**) tool\n- ✅ Glob tool\n- ✅ Grep tool\n\n**What Still Prompts (Despite Configuration):**\n- ❌ Bash commands - ALL types (simple commands, pipelines, git operations)\n- ❌ Write tool - Creating new files\n- ❌ Edit tool - Modifying existing files\n\n**Critical Issue:** Even with VSCode `initialPermissionMode` set to `\"bypassPermissions\"` (which should bypass ALL permission checks), the following still prompted:\n- Bash command: `cat thoughts/project/work/doing/.limit`\n- Write operation: Creating new file\n- Edit operation: Modifying existing file\n\n---\n\n## Reproduction Steps\n\n### Configuration Setup\n\n1. Create `.claude/settings.local.json` in project root:\n```json\n{\n  \"permissions\": {\n    \"defaultMode\": \"dontAsk\",\n    \"allow\": [\n      \"Read(**)\",\n      \"Glob\",\n      \"Grep\",\n      \"Task\",\n      \"Bash(dir:*)\"\n    ],\n    \"deny\": [\n      \"Read(.env)\",\n      \"Read(.env.*)\",\n      \"Read(secrets/**)\",\n      \"Read(credentials.json)\",\n      \"Read(.aws/**)\",\n      \"Read(.git/config)\",\n      \"Read(../**)\"\n    ]\n  }\n}\n```\n\n2. Open VSCode Settings (Ctrl+,)\n3. Search for \"claude\"\n4. Set `Claude Code: Initial Permission Mode` to `\"acceptEdits\"`\n5. Restart Claude Code session\n\n### Test Case 1: Read Operations (These Work)\n\n1. Use Read tool to read any project file\n   - **Result:** No prompt ✅\n2. Use Glob tool to search files\n   - **Result:** No prompt ✅\n3. Use Grep tool to search content\n   - **Result:** No prompt ✅\n\n### Test Case 2: Bash Commands (These Fail)\n\n1. Execute: `cat thoughts/project/work/doing/.limit`\n   - **Result:** Approval prompt appears ❌\n2. Execute: `ls -la`\n   - **Result:** Approval prompt appears ❌\n3. Execute: `git status`\n   - **Result:** Approval prompt appears ❌\n\n### Test Case 3: Write/Edit Operations (These Fail)\n\n1. Use Write tool to create new file\n   - **Result:** Approval prompt appears ❌\n2. Use Edit tool to modify existing file\n   - **Resu",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tools",
+    "area:core",
+    "area:ide"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-31T18:49:03Z",
+  "updated_at": "2026-07-02T12:09:18Z",
+  "closed_at": null,
+  "reactions_total": 25,
+  "comments_count": 25,
+  "author": "elliottgaryusa",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/13028\n2. https://github.com/anthropics/claude-code/issues/12261\n3. https://github.com/anthropics/claude-code/issues/13340\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-12-31T18:53:33Z"
+    },
+    {
+      "author": "keithdv",
+      "author_association": "NONE",
+      "body": "No, don't close this is a terrible issue and none of the duplicates have been assigned. ",
+      "created_at": "2026-01-02T15:20:12Z"
+    },
+    {
+      "author": "stewartadam",
+      "author_association": "NONE",
+      "body": "Related to #15772",
+      "created_at": "2026-01-12T09:17:12Z"
+    }
+  ]
+}

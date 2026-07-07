@@ -1,0 +1,35 @@
+{
+  "number": 39161,
+  "title": "[BUG] Cowork ARM64: VM boots but guest never connects — \"VM connection timeout after 60 seconds",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nCowork on Windows ARM64 fails to start. The VM boots successfully, network creates, Plan9 shares are added, but the guest OS inside smol-bin.arm64.vhdx never establishes a connection back to the host. Times out after 60 seconds every attempt.\nThis is on the newly released ARM64 Cowork build \n\nEnvironment\n\nOS: Windows 11 Pro, Build 26200 (upgraded from Home specifically for Cowork)\nArchitecture: ARM64 (Lenovo, Snapdragon)\nClaude Desktop version: 1.1.8629.0\nInstall method: MSIX (manually installed via Add-AppxPackage — the exe installer kept falling back to Squirrel)\nHyper-V: Enabled (full Microsoft-Hyper-V, not just VirtualMachinePlatform)\nDeveloper Mode: Enabled\nServices running: vmms (Hyper-V Virtual Machine Management) ✅, CoworkVMService ✅\n\n### What Should Happen?\n\nCowork workspace starts and is usable.\n\n### Error Messages/Logs\n\n```shell\n2026-03-24 18:52:24 [info] [VM:start] Beginning startup, bundlePath=C:\\Users\\parmb\\AppData\\Roaming\\Claude\\vm_bundles\\claudevm.bundle\n2026-03-24 18:52:24 [info] [VM:start] Bundle version: fb30784dadb34104626c8cf6d8f90dd47cd393cc\n2026-03-24 18:52:24 [info] [VM:start] Copying smol-bin.arm64.vhdx to bundle: C:\\Program Files\\WindowsApps\\Claude_1.1.8629.0_arm64__pzs8sxrjxfjjc\\app\\resources\\smol-bin.arm64.vhdx -> C:\\Users\\parmb\\AppData\\Roaming\\Claude\\vm_bundles\\claudevm.bundle\\smol-bin.vhdx\n2026-03-24 18:52:24 [info] [VM:start] smol-bin.arm64.vhdx copied successfully\n2026-03-24 18:52:24 [info] [VM:start] Configuring Windows VM service...\n2026-03-24 18:52:25 [info] [VM:start] Windows VM service configured\n2026-03-24 18:52:25 [info] [VM:steps] create_network completed (8ms)\n2026-03-24 18:52:25 [info] [VM:steps] create_vm_config completed (51ms)\n2026-03-24 18:52:25 [info] [VM:steps] vm_boot completed (113ms)\n2026-03-24 18:52:25 [info] [VM:steps] add_plan9_shares completed (6ms)\n2026-03-24 18:52:35 [info] [VM:start] Still waiting for guest connection... 10174ms elapsed, 21 polls\n2026-03-24 18:52:45 [info] [VM:start] Still waiting for guest connection... 20348ms elapsed, 41 polls\n2026-03-24 18:52:55 [info] [VM:start] Still waiting for guest connection... 30532ms elapsed, 61 polls\n2026-03-24 18:53:06 [info] [VM:start] Still waiting for guest connection... 40704ms elapsed, 81 polls\n2026-03-24 18:53:16 [info] [VM:start] Still waiting for guest connection... 50867ms elapsed, 101 polls\n2026-03-24 18:53:25 [error] [VM:start] Connection timeout, last completed step: add_plan9_shares\n2026-03-24 18:53:25 [error] [VM:start] Startup failed: Error: VM connection timeout after 60 seconds\n```\n\n### Steps to Reproduce\n\nSteps to Reproduce\n\nInstall Claude Desktop ARM64 as MSIX package\nOpen Claude Desktop, click Cowork tab\nObserve \"Starting Claude's workspace...\" indefinitely\nWorkspace never starts\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nclaude desktop Claude 1.1.8629 (befdfc) 2026-03-24T22:13:01.000Z\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nEarlier attempts also showed EBUSY: resource busy or locked on the vhdx file, but this resolved after killing stale processes. The timeout persists regardless.\nMultiple clean installs attempted (full removal of AppData, MSIX package, CoworkVMService). Same result every time.\nThe exe installer from claude.com/download always installs as Squirrel on ARM64, never MSIX. Had to manually download the MSIX via https://claude.ai/api/desktop/win32/arm64/msix/latest/redirect and install with Add-AppxPackage.",
+  "labels": ["bug", "platform:windows", "area:cowork"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-26T04:20:16Z",
+  "updated_at": "2026-07-02T16:31:54Z",
+  "closed_at": null,
+  "reactions_total": 8,
+  "comments_count": 10,
+  "author": "parm485-create",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/38945\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-26T04:23:42Z"
+    },
+    {
+      "author": "marishimza",
+      "author_association": "NONE",
+      "body": "is there a solution for this issue? i am facing exactly the same issue\n",
+      "created_at": "2026-04-13T10:46:39Z"
+    },
+    {
+      "author": "parm485-create",
+      "author_association": "NONE",
+      "body": "> is there a solution for this issue? i am facing exactly the same issue\n\nNothing yet, developers need to fix it. ",
+      "created_at": "2026-04-13T19:15:12Z"
+    }
+  ]
+}

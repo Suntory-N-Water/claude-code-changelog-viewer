@@ -1,0 +1,35 @@
+{
+  "number": 32693,
+  "title": "Model inserts hard line breaks in MCP tool parameters, breaking Slack/Gmail draft formatting",
+  "body": "When composing text for MCP tool parameters (e.g., slack_send_message_draft, gmail_create_draft), the model inserts hard \\n characters within paragraphs at ~60-70 character intervals. These newlines are passed through by the MCP transport to the downstream APIs (Slack, Gmail), which render them as visible line breaks instead of allowing text to reflow naturally.\n\nThis is particularly bad on mobile, where every mid-paragraph line break becomes a visible new line, making messages look broken.\n\n**Reproduction:**\n1. Use Claude Code with the built-in Slack MCP integration\n2. Ask Claude to draft a Slack message longer than ~70 characters\n3. Observe that the message parameter contains \\n characters mid-paragraph\n4. The resulting Slack draft renders with hard line breaks instead of flowing text\n\nSame behavior occurs with Gmail draft creation and any text output intended for copy-paste into external tools.\n\n**Timeline:**\n- Not observed prior to ~March 7, 2026\n- First noticed March 9, 2026\n- Confirmed March 11, 2026 (affects all drafted comms)\n\n**Investigation:** Reviewed changelogs for Claude Code 2.1.70 through 2.1.72. No changes to MCP transport, tool parameter handling, or text formatting. The issue appears to be a model-side behavior change, not a client-side regression.\n\n**Workaround:** Instructing the model via CLAUDE.md to \"write every paragraph as ONE continuous unbroken string with no mid-paragraph line breaks\" partially mitigates the issue, but compliance is inconsistent.\n\n**Expected behavior:** Text composed for MCP tool string parameters should not contain hard line breaks within paragraphs. Paragraph separation (\\n\\n) is fine; mid-sentence wrapping (\\n at ~70 chars) is not.\n\n**Environment:** Claude Code 2.1.72, macOS, claude-opus-4-6, built-in Slack and Gmail MCP integrations",
+  "labels": ["bug", "platform:macos", "area:model", "area:mcp", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-10T02:44:51Z",
+  "updated_at": "2026-06-22T15:47:46Z",
+  "closed_at": "2026-05-03T22:20:13Z",
+  "reactions_total": 3,
+  "comments_count": 12,
+  "author": "marty-itsec",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/6827\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-10T02:48:53Z"
+    },
+    {
+      "author": "marty-itsec",
+      "author_association": "NONE",
+      "body": "This is **not a duplicate of #6827**. While the root cause may be related (the model's tendency to hard-wrap text at ~70-80 chars), the manifestation and required fix are different:\n\n- **#6827** is about hard line breaks in **terminal/IDE display output** — text rendered in the VS Code panel or CLI terminal that breaks copy-paste workflows. That's a rendering/display layer issue.\n- - **This issue** is about hard line breaks injected into **MCP tool call parameters** — the JSON string values sent",
+      "created_at": "2026-03-10T03:17:08Z"
+    },
+    {
+      "author": "lucasbennington17",
+      "author_association": "NONE",
+      "body": "Please share the script, I am running into this too and it is driving me crazy",
+      "created_at": "2026-03-17T18:52:28Z"
+    }
+  ]
+}

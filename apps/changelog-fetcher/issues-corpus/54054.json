@@ -1,0 +1,35 @@
+{
+  "number": 54054,
+  "title": "[FEATURE] Support Azure DevOps repositories in Claude Code on the web (Cloud Sessions)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nClaude Code on the web (Cloud Sessions) currently requires GitHub for repository cloning and pushing branches back. Per the docs:\n\n> *Platform restrictions: repository cloning and pull request creation require GitHub. [...] GitLab, Bitbucket, and other non-GitHub repositories can be sent to cloud sessions as a local bundle, but the session can't push results back to the remote.*\n\nThis blocks the core async use case for anyone whose code lives on Azure DevOps: kick off a task from the mobile app or browser, let it run in a Cloud Session, come back later to a PR ready for review — without having to keep a workstation running.\n\nThe `CCR_FORCE_BUNDLE=1 claude --remote` fallback uploads a bundle but cannot push back, so I have to manually pull diffs and apply them locally to ADO. That negates the async benefit — I still need my machine on to rebase and push.\n\nAzure DevOps is a major enterprise platform (Microsoft-stack, .NET, regulated industries) and is currently the only major source-control platform without a tracked feature request for Cloud Sessions support.\n\n### Proposed Solution\n\nAllow Cloud Sessions to clone from and push to Azure DevOps repositories, the same way they do today for GitHub.\n\nConcretely:\n- Connect an Azure DevOps organization at claude.ai/code (PAT to start, Entra ID OAuth ideally — Microsoft is already building the [remote ADO MCP Server](https://learn.microsoft.com/en-us/azure/devops/mcp-server/remote-mcp-server) on this pattern)\n- Select an ADO repository when starting a Cloud Session\n- At task completion, Claude pushes a branch and (optionally) opens a PR on Azure Repos\n\nEverything else (Routines, Code Review, Slack integration, Pipelines tasks) can come later as separate requests. This issue is scoped to the Cloud Sessions clone/push capability only.\n\n### Alternative Solutions\n\n- `CCR_FORCE_BUNDLE=1 claude --remote` — uploads a bundle but cannot push back, so I still need my workstation to rebase manually\n- Local Claude Code with the official Microsoft `@azure-devops/mcp` server — works fine, but requires my machine to stay on (the entire point of Cloud Sessions is to avoid this)\n- Mirroring code from ADO to GitHub — not viable for regulated environments where exporting proprietary code raises compliance concerns\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nOther\n\n### Use Case Example\n\nI'm a developer at a mid-size enterprise running on Azure DevOps. I want to kick off a refactor task from my phone in the evening, let it run overnight in a Cloud Session, and review the resulting PR on Azure Repos in the morning — without keeping a workstation running.\n\nToday this is impossible: Cloud Sessions can't push back to ADO, so I either keep my laptop on with a custom orchestrator script, or accept manually rebasing the bundle output every morning.\n\n### Additional Context\n\nRelated GitLab and Bitbucket requests that this issue mirrors:\n- [#12346](https://github.com/anthropics/claude-code/issues/12346) — GitLab integration\n- [#38179](https://github.com/anthropics/claude-code/issues/38179) — Bitbucket integration\n\nThe recent `--from-pr` extension added GitLab, Bitbucket, and GitHub Enterprise — Azure DevOps was the only major platform left out.",
+  "labels": ["enhancement", "area:claude-code-web", "platform:web"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-27T20:00:56Z",
+  "updated_at": "2026-07-03T13:55:00Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 5,
+  "author": "halajarin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mhkolk",
+      "author_association": "NONE",
+      "body": "Spent couple of hours trying to add Azure DevOps MCP (which is supposedly in Preview) to Connectors on claude.ai. Huge issues and was unable to do it. Claude itself saying there is an incompatibility with how claude.ai makes auth requests to login.microsoftonline.com (after setting up App Registration in Azure Entra and dozens of other steps).\n\nAlso there is this document which might explain why this is not yet working\nhttps://learn.microsoft.com/en-us/azure/devops/mcp-server/remote-mcp-server?v",
+      "created_at": "2026-05-04T11:40:00Z"
+    },
+    {
+      "author": "halajarin",
+      "author_association": "NONE",
+      "body": "> Spent couple of hours trying to add Azure DevOps MCP (which is supposedly in Preview) to Connectors on claude.ai. Huge issues and was unable to do it. Claude itself saying there is an incompatibility with how claude.ai makes auth requests to login.microsoftonline.com (after setting up App Registration in Azure Entra and dozens of other steps).\n>\n> Also there is this document which might explain why this is not yet working https://learn.microsoft.com/en-us/azure/devops/mcp-server/remote-mcp-ser",
+      "created_at": "2026-05-04T11:56:35Z"
+    },
+    {
+      "author": "mhkolk",
+      "author_association": "NONE",
+      "body": "Well, there is a route, if you really want it, you can import/sync your AD repos to Github and connect Claude Code Web to Github and then it will work for you but you're left with troubles of syncing back or using git remotes to bring the changes back to AD.",
+      "created_at": "2026-05-04T12:07:43Z"
+    }
+  ]
+}

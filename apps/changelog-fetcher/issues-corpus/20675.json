@@ -1,0 +1,35 @@
+{
+  "number": 20675,
+  "title": "Feature Request: Support LC_TIME locale for /usage command time formatting",
+  "body": "## Description\n\nThe `/usage` command currently displays times in 12-hour format (e.g., \"5am\", \"6pm\") regardless of the system's `LC_TIME` locale setting.\n\n## Current Behavior\n\n```\nCurrent session\n██████████████████████████████████▌   69% used\nResets 5am (Europe/Saratov)\n\nCurrent week (all models)\n███████████████████████████████████████████▌   87% used\nResets 6pm (Europe/Saratov)\n```\n\n## Expected Behavior\n\nWhen `LC_TIME=en_GB.UTF-8` (or other locales that use 24-hour format) is set, the times should be displayed in 24-hour format:\n\n```\nCurrent session\n██████████████████████████████████▌   69% used\nResets 05:00 (Europe/Saratov)\n\nCurrent week (all models)\n███████████████████████████████████████████▌   87% used\nResets 18:00 (Europe/Saratov)\n```\n\n## Environment\n\n- OS: Linux (WSL2)\n- Claude CLI version: 2.1.2\n- `LC_TIME` is properly set in environment: `LC_TIME=en_GB.UTF-8`\n- System locale is configured and generated: `locale-gen en_GB.UTF-8`\n\n## Steps to Reproduce\n\n1. Set `export LC_TIME=en_GB.UTF-8` in `.bashrc`\n2. Generate locale: `sudo locale-gen en_GB.UTF-8`\n3. Verify locale is active: `locale | grep LC_TIME` shows `LC_TIME=en_GB.UTF-8`\n4. Launch Claude CLI\n5. Run `/usage` command\n6. Observe that time is still shown in 12-hour format (5am, 6pm) instead of 24-hour format (05:00, 18:00)\n\n## Proposed Solution\n\nRespect the system's `LC_TIME` locale setting when formatting timestamps in the `/usage` command output. This would make Claude CLI more internationally friendly and consistent with user expectations based on their locale settings.\n\n## Additional Context\n\nMany international users prefer 24-hour time format, which is the standard in most countries outside the US. Respecting the `LC_TIME` locale would make the CLI experience more localized and user-friendly.",
+  "labels": ["enhancement", "has repro", "platform:linux", "area:tui"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-24T22:29:02Z",
+  "updated_at": "2026-06-18T05:10:45Z",
+  "closed_at": "2026-05-29T11:19:22Z",
+  "reactions_total": 10,
+  "comments_count": 4,
+  "author": "errordnk",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "lfarkas",
+      "author_association": "NONE",
+      "body": "how can i vote for it?:-)\nanyway:\n\n★ Insight ─────────────────────────────────────                                                                                                                                                                    \n  **JavaScript locale-aware time formatting**: In JS, toLocaleTimeString() without arguments should respect the runtime's locale. However, if hour12: true is explicitly passed as an option, it overrides the locale and\n   forces AM/PM. The fix is to eith",
+      "created_at": "2026-02-17T07:49:37Z"
+    },
+    {
+      "author": "olemd",
+      "author_association": "NONE",
+      "body": "\nConfirming this still reproduces on Claude Code `2.1.119` (Node `v22.22.2`, Debian Linux) with `LANG=LC_TIME=en_GB.UTF-8`. `/usage` reset times render as \"5am\"/\"6pm\" rather than `05:00`/`18:00` — same as reported at `2.1.2`.\n\nFYI #52214 (opened 2026-04-23, `ru_RU.UTF-8`) looks like the same bug.",
+      "created_at": "2026-04-24T15:18:32Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Closing for now — inactive for too long. Please [open a new issue](https://github.com/anthropics/claude-code/issues/new/choose) if this is still relevant.",
+      "created_at": "2026-05-29T11:19:21Z"
+    }
+  ]
+}

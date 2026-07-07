@@ -1,0 +1,35 @@
+{
+  "number": 45919,
+  "title": "Cannot purchase API credits — Stripe SetupIntent 0 EUR breaks 3D Secure for all European cards (PSD2/SCA)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n**It is impossible to purchase API credits on platform.claude.com for customers with European bank cards.** This has been reported before in #25745 (auto-closed without resolution).\n\n### Root Cause (Technical)\n\nAnthropic's billing uses Stripe **SetupIntent** to verify cards before charging. SetupIntent has no amount — so the 3D Secure challenge is sent as **0.00 EUR**. Under EU PSD2/SCA regulations, all online transactions require Strong Customer Authentication. However, **European banks cannot process 3DS authentication for zero-amount transactions** — their apps show nothing to confirm, or return an error.\n\nThe fix is straightforward: use **PaymentIntent** with the actual purchase amount (e.g., $50) instead of SetupIntent. This way, 3DS would authenticate against a real charge, which banks handle correctly. This is exactly how claude.ai subscriptions (Pro/Max/Team) work — and those payments go through fine with the same cards.\n\n### What I've Tried\n\n| Card / Issuer | Type | Result |\n|---|---|---|\n| Raiffeisenbank CZ Mastercard | Debit | RB key app cannot confirm 0 EUR 3DS |\n| Revolut | Visa | 3DS fails on zero amount |\n| Wise USD virtual card | Visa (US BIN) | Same failure |\n\nAdditional attempts:\n- Multiple browsers (Safari, Chrome, Playwright headless)\n- Cleared cookies, Stripe Link logout\n- Stripe Link email verification → card selection → still fails at 3DS\n\nError message: `\"Cannot upgrade to prepaid without a valid payment method.\"`\n\n### Impact\n\n- Our Make.com automation (DocuMentor — document processing via Claude API) has been **down since April 3rd**\n- We are existing paying customers: Team plan (5 seats) + Max plan (20x) = **~€290/month**\n- We submitted Contact Sales form + support email — AI bot responded with generic advice, no human follow-up\n\n### Environment\n\n- **Org ID:** [redacted — provided via support email]\n- **Account:** maxim@mfcc.cz\n- **Country:** Czech Republic (EU)\n- **Console URL:** platform.claude.com/settings/billing\n\n### Expected Behavior\n\nClicking \"Buy credits\" should charge the card directly (PaymentIntent) or offer alternative payment methods (bank transfer, PayPal, Apple Pay). Zero-amount SetupIntent should not be used for European cards.\n\n### Related Issues\n\n- #25745 (same problem, auto-closed without resolution, 15+ affected users)",
+  "labels": ["invalid", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-09T20:28:08Z",
+  "updated_at": "2026-07-02T10:59:34Z",
+  "closed_at": "2026-07-02T10:59:34Z",
+  "reactions_total": 9,
+  "comments_count": 13,
+  "author": "maximkrusina",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/45361\n2. https://github.com/anthropics/claude-code/issues/25745\n3. https://github.com/anthropics/claude-code/issues/36881\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-09T20:32:49Z"
+    },
+    {
+      "author": "maximkrusina",
+      "author_association": "NONE",
+      "body": "This is **not a duplicate**. The referenced issues (#25745, #45361, #36881) were all auto-closed without any resolution or response from Anthropic.\n\nThis issue provides the **root cause analysis** that was missing from previous reports: Anthropic's billing uses Stripe `SetupIntent` (0 EUR) for card verification, which fails under EU PSD2/SCA because European banks cannot process 3D Secure on zero-amount transactions. The fix is to use `PaymentIntent` with the actual charge amount — exactly how c",
+      "created_at": "2026-04-09T20:33:54Z"
+    },
+    {
+      "author": "dinamati",
+      "author_association": "NONE",
+      "body": "Correct, I have the same issue. Our entire Teams plan is frozen again. We are with 7 people completely blocked ... again.\n\nOur subscriptions renew on the 26th of the month; it happens every time. None of the EU credit cards work; we tried 6 different ones from at least 3 different banks as well.\n\nThe same cards are charged by Anthropic for extra usage. So it is not a card/bank issue as such, except for how they use it for recurring billing. The 0 euro value is not accepted.\n",
+      "created_at": "2026-04-26T11:34:59Z"
+    }
+  ]
+}

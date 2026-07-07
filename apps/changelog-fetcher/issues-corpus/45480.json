@@ -1,0 +1,35 @@
+{
+  "number": 45480,
+  "title": "Cowork: VM connection timeout on Windows ARM64 (Snapdragon X Plus)",
+  "body": "## Description\n\nClaude Cowork fails to start on Windows ARM64 (Snapdragon X Plus) with \"VM connection timeout after 60 seconds.\" **It has never successfully connected** — zero successful guest connections across 30+ attempts from March 26 to April 9, 2026.\n\n## System Info\n\n- **CPU**: Snapdragon X Plus (X1P42100), 8 cores\n- **OS**: Windows 11 Home ARM64, Build 26200\n- **RAM**: 32GB\n- **Disk**: 693GB free\n- **Claude version**: 1.1348.0.0 (arm64, Microsoft Store)\n- **VM config**: 4096MB RAM, 2 CPUs allocated\n\n## Failure Pattern\n\nThe VM boots successfully via HCS, but the Linux guest never establishes an HvSocket connection:\n\n```\n[VM:steps] create_vm_config completed (63ms)\n[VM:steps] vm_boot completed (104ms)\n[VM:steps] add_plan9_shares completed (3ms)\n[VM:start] Still waiting for guest connection... 10130ms elapsed, 21 polls\n[VM:start] Still waiting for guest connection... 20293ms elapsed, 41 polls\n[VM:start] Still waiting for guest connection... 30474ms elapsed, 61 polls\n[VM:start] Still waiting for guest connection... 40645ms elapsed, 81 polls\n[VM:start] Still waiting for guest connection... 50849ms elapsed, 101 polls\n[VM:start] Connection timeout, last completed step: add_plan9_shares\n```\n\n## What I've Tried\n\n- Restarting the computer (multiple times)\n- Deleting `smol-bin.vhdx` and letting it recreate\n- Full workspace reinstall (deleted entire `vm_bundles` directory, fresh re-download) — same timeout\n- Stopping vmcompute service, killing vmwp.exe, restarting services\n- The auto-reinstall ran once on March 26 and failed with the same timeout\n\n## Additional Context\n\n- Hyper-V Host Compute Service (vmcompute) and HvHost are both running correctly\n- The VM boots (vmwp.exe starts), but the ARM64 Linux kernel/init inside the VM appears to fail silently before it can start its agent service\n- Secondary issue: after a failed attempt, `vmwp.exe` holds a lock on `smol-bin.vhdx`, causing EBUSY errors on subsequent attempts until vmcompute is stopped and vmwp is killed\n- Cowork was announced for Windows ARM on 2025-03-25; the first attempt on this machine was March 26 and it has never worked since\n\n## Relevant Logs\n\n- `cowork_vm_node.log`: Every attempt ends with `Connection timeout, last completed step: add_plan9_shares`\n- `cowork-service.log`: HCS initializes correctly, VM session created, network configured — all infrastructure works\n- Boot mode: `UEFI BootThis+VmbFs (ARM64)`\n- Kernel cmdline: `initrd=\\initrd root=/dev/sda1 rootfstype=ext4 rw panic=10`",
+  "labels": ["bug", "duplicate", "platform:windows", "area:cowork"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-08T23:01:26Z",
+  "updated_at": "2026-06-27T04:20:20Z",
+  "closed_at": "2026-05-28T22:41:08Z",
+  "reactions_total": 3,
+  "comments_count": 13,
+  "author": "afram123",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/39161\n2. https://github.com/anthropics/claude-code/issues/39636\n3. https://github.com/anthropics/claude-code/issues/40198\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-08T23:06:22Z"
+    },
+    {
+      "author": "Matt73D",
+      "author_association": "NONE",
+      "body": "👍",
+      "created_at": "2026-04-09T02:11:56Z"
+    },
+    {
+      "author": "Orionx9xx",
+      "author_association": "NONE",
+      "body": "Still failing on v1.1617.0.0 (ARM64)\n\nUpgraded to Claude Desktop v1.1617.0.0\nCowork now reaches \"VM connection timeout after 60 seconds\"\n(previously \"VM service not running\" on older versions)\n\nManual sc.exe start CoworkVMService succeeds (STATE 2 START_PENDING)\nbut Cowork still times out after 60 seconds\n\nDevice: Snapdragon X Plus (X1P42100)\nOS: Windows 11 Pro ARM64\nClaude: v1.1617.0.0",
+      "created_at": "2026-04-10T02:14:28Z"
+    }
+  ]
+}

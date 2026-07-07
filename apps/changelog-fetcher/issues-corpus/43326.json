@@ -1,0 +1,35 @@
+{
+  "number": 43326,
+  "title": "Feature: Auto-select model and effort level based on task complexity",
+  "body": "## Problem\n\nCurrently, users must manually switch model (`/model`) and effort level (`/effort`) depending on task complexity. This creates friction — either you default to a powerful model and waste tokens on simple questions, or default to a lighter model and manually switch for complex tasks.\n\n## Proposed Solution\n\nAllow Claude Code to automatically select (or interactively prompt the user to select) the appropriate model and effort level based on the complexity of the user's input.\n\nPossible approaches:\n\n1. **Auto-select**: Use a lightweight classifier (e.g., Haiku) to evaluate the user's prompt and automatically set the model/effort before the main model processes it.\n\n2. **Interactive prompt**: Before each task, briefly prompt the user with a recommended model/effort choice based on the input, allowing them to confirm or override.\n\n3. **Programmatic API**: Expose model/effort switching via hooks or settings so that `UserPromptSubmit` hooks can dynamically adjust them. For example:\n   ```json\n   {\n     \"hooks\": {\n       \"UserPromptSubmit\": [{\n         \"type\": \"command\",\n         \"command\": \"classify-and-set-model.sh\"\n       }]\n     }\n   }\n   ```\n\n## Use Case\n\n- Simple Q&A, formatting, renaming → Sonnet + low effort\n- Daily feature development, bug fixes → Sonnet + medium effort  \n- Architecture design, complex refactoring → Opus + high effort\n\nUsers shouldn't need to remember to switch manually — the tool should help optimize token consumption automatically.\n\n## Context\n\nIn a Go project with extensive documentation (4,827 lines of standards), session history analysis shows that model selection is one of the highest-leverage optimizations for token cost (20-40% savings). Currently there's no way to automate this via hooks or any other mechanism.",
+  "labels": ["enhancement", "area:model", "area:hooks"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-04T00:12:05Z",
+  "updated_at": "2026-07-03T12:34:15Z",
+  "closed_at": null,
+  "reactions_total": 22,
+  "comments_count": 4,
+  "author": "tidingman",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/39282\n2. https://github.com/anthropics/claude-code/issues/27665\n3. https://github.com/anthropics/claude-code/issues/34874\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-04T00:16:35Z"
+    },
+    {
+      "author": "jmylot",
+      "author_association": "NONE",
+      "body": "## Cowork Scheduled Tasks Use Case\n\nThanks for this detailed feature request. I'd like to add a complementary use case specific to **Cowork scheduled tasks**:\n\n### Problem\nCowork scheduled tasks that perform lightweight, repetitive monitoring/polling operations (e.g., GitHub issue monitoring, health checks, log analysis) currently consume the same tokens as complex reasoning tasks, since all tasks default to the main model (Sonnet/Opus).\n\n**Example**: A GitHub issue monitor that runs every 4-6 h",
+      "created_at": "2026-04-06T11:19:54Z"
+    },
+    {
+      "author": "akshat4165",
+      "author_association": "NONE",
+      "body": "there's no way to automate this via hooks\" — I tested exactly this and can confirm it empirically. A `UserPromptSubmit` hook that rewrites `.claude/settings.json` does **not** change the running session's model: the model is fixed for the lifetime of a session. The rewrite only takes effect on the *next* session start. So a live per-prompt classifier for the main thread isn't reachable from hooks today (which also matches why mid-session switching would be undesirable anyway — it invalidates the",
+      "created_at": "2026-06-11T18:29:53Z"
+    }
+  ]
+}

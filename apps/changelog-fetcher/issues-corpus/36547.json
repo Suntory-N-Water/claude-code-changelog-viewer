@@ -1,0 +1,35 @@
+{
+  "number": 36547,
+  "title": "[FEATURE] Gmail MCP Connector: Add gmail_modify_labels tool for archiving, labeling, and inbox management",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nThe hosted Gmail MCP connector at `gmail.mcp.claude.com` currently only supports read operations and draft creation. There is **no way to modify message labels**, which means common inbox management actions are impossible:\n\n- **Archiving** emails (removing the `INBOX` label)\n- **Marking as read/unread** (removing/adding the `UNREAD` label)\n- **Starring** messages (adding/removing the `STARRED` label)\n- **Categorizing** messages (adding custom labels)\n- **Moving to trash** (adding `TRASH` label)\n\n**My use case:** I'm running a scheduled Cowork task for automated email triage — it searches for unread emails, classifies them (newsletter/spam vs. relevant), and should archive the noise. Currently, the triage can *identify* what should be archived but cannot *act on it* because there's no way to remove the `INBOX` label.\n\nThis is a fundamental gap — the connector can read and create drafts, but cannot manage the inbox itself.\n\n### Current available tools (as of March 2026)\n\n| Tool | Type |\n|------|------|\n| `gmail_search_messages` | Read |\n| `gmail_read_message` | Read |\n| `gmail_read_thread` | Read |\n| `gmail_list_labels` | Read |\n| `gmail_list_drafts` | Read |\n| `gmail_get_profile` | Read |\n| `gmail_create_draft` | Write |\n| **`gmail_modify_labels`** | **Missing** |\n| **`gmail_send_draft`** | **Missing (see #32266)** |\n\n### Proposed Solution\n\nAdd a single `gmail_modify_labels` tool to the hosted Gmail MCP connector. The Gmail API already supports this via [`users.messages.modify`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/modify), which accepts:\n\n```json\n{\n  \"messageId\": \"string (required)\",\n  \"addLabelIds\": [\"string\"],\n  \"removeLabelIds\": [\"string\"]\n}\n```\n\nThis one tool would unlock all of the following workflows:\n- **Archive**: `removeLabelIds: [\"INBOX\"]`\n- **Mark as read**: `removeLabelIds: [\"UNREAD\"]`\n- **Mark as unread**: `addLabelIds: [\"UNREAD\"]`\n- **Star**: `addLabelIds: [\"STARRED\"]`\n- **Categorize**: `addLabelIds: [\"Label_123\"]`\n- **Trash**: `addLabelIds: [\"TRASH\"]`\n\nIt's a lightweight, versatile addition — one tool that enables an entire category of inbox management workflows in Cowork and Claude Code.\n\n### Alternative Solutions\n\nCurrently, the only workaround is to use a third-party Gmail MCP server that provide full Gmail API access including label modification.\n\nHowever, for Cowork users this means abandoning the official hosted connector in favor of self-hosted alternatives, which defeats the purpose of the seamless built-in integration.\n\n### Related issues\n- #28575 — Add file attachment support to `gmail_create_draft` and add `gmail_send_draft` tool- #32266 — `gmail_send_draft` tool missing from hosted server\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nMCP server integration\n\n### Use Case Example\n\nI have a scheduled Cowork task that runs every hour to triage my inbox:\n\n1. `gmail_search_messages` with `is:unread in:inbox newer_than:1h` to find new emails\n2. `gmail_read_message` to read each email and classify it (newsletter/spam vs. relevant)\n3. **Missing step**: `gmail_modify_labels` with `removeLabelIds: [\"INBOX\"]` to archive newsletters and spam\n4. **Missing step**: `gmail_modify_labels` with `removeLabelIds: [\"UNREAD\"]` to mark triaged emails as read\n5. Generate a summary of remaining relevant emails grouped by project\nCurrently, steps 3 and 4 are impossible. The triage identifies what should be archived but I have to manually go into Gmail to do it, which defeats the purpose of the automation.\n\n### Additional Context\n\n_No response_",
+  "labels": ["enhancement", "area:mcp"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-20T08:36:25Z",
+  "updated_at": "2026-07-05T16:03:51Z",
+  "closed_at": null,
+  "reactions_total": 41,
+  "comments_count": 12,
+  "author": "timkley",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mwhitehorn07",
+      "author_association": "NONE",
+      "body": "\n\n+1 - this is blocking a real workflow for me!\n\nI use Cowork to triage emails into Asana tasks (search for labeled emails → extract action items → create tasks). The workflow works great up until the last step: swapping the Gmail label from \"Asana Task\" to \"Asana Done\" so processed emails don't get picked up again on the next run.\n\nMore specifically, I label emails in Gmail with \"Asana Task\" throughout the day as a quick triage step. Then I run a Cowork skill that searches for that label, reads",
+      "created_at": "2026-03-21T04:26:04Z"
+    },
+    {
+      "author": "ck-54388",
+      "author_association": "NONE",
+      "body": "I agree, the GMAIL MCP needs to support more native GMAIL functions. I run an hourly Cowork scheduled task that scans my inbox, identifies client inquiries, and creates draft replies with pricing and product info specific to my business. It works well, but there's a gap once the drafts are created.\n\nThe problem is stale drafts. If a client replies with new information after the task already created a draft in that thread, the draft is now outdated. The task sees an existing draft and skips the t",
+      "created_at": "2026-04-05T00:18:30Z"
+    },
+    {
+      "author": "wolframarnold",
+      "author_association": "NONE",
+      "body": "## +1: Critical for Email Triage Workflows\n\nI'm using Claude Cowork to build an automated email inbox triage system and this feature is blocking that workflow entirely.\n\n### My Use Case\n\nI want to have Claude analyze my emails and apply temporary triage labels (e.g., `flagged_for_deletion`, `flagged_as_read`, `needs_response`) to mark emails for bulk action. The workflow is:\n\n1. Claude Cowork searches and analyzes emails by sender, content, age, etc.\n2. Claude applies triage labels to mark email",
+      "created_at": "2026-04-08T12:46:16Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 10998,
+  "title": "[FEATURE] Add native GitHub Issues integration for reading and implementing issues",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n## Feature Description\nClaude Code should be able to directly read GitHub issues from repositories it has access to, enabling developers to simply say \"implement issue #64\" without manually copying/pasting issue content.\n\n## Current Behavior\n- Claude Code can perform git operations (clone, commit, push) through local proxy\n- Claude Code cannot fetch GitHub issue details via web API or GitHub CLI\n- Users must manually copy/paste issue content for Claude to implement features\n- GitHub CLI (`gh`) is not available in the environment\n\n## Desired Behavior\nWhen a user says \"implement https://github.com/user/repo/issues/64\", Claude Code should:\n1. Automatically fetch the issue title, description, and acceptance criteria\n2. Create a task plan based on the issue requirements\n3. Implement the solution\n4. Commit and push changes\n\n## Why This Matters\n- **Industry standard workflow**: Most software teams track work in issue tracking systems (GitHub Issues, Jira, Linear, etc.)\n- **Reduces friction**: Currently requires context switching and manual copy/paste\n- **Incomplete context**: Users may forget to include important details from comments\n- **Poor developer experience**: Having git access but not issue access feels inconsistent\n\n## Proposed Solutions\n\n### Option 1: GitHub CLI Integration (Preferred)\n- Pre-install `gh` CLI in Claude Code environment\n- Authenticate using the same mechanism that enables git operations\n- Enable commands like: `gh issue view 64 --repo user/repo --json title,body,labels`\n\n### Option 2: Extend Local Proxy\n- Enhance the existing `127.0.0.1:17459` proxy to support GitHub API endpoints\n- Add routes like `/api/repos/:owner/:repo/issues/:number`\n- Reuse existing authentication mechanism\n\n### Option 3: Direct GitHub API Access\n- Enable WebFetch tool to access GitHub API with proper authentication\n- Use existing git credentials for API token\n\n## Use Case Example\n\n\n\n\nimplement https://github.com/anatesan-stream/resume-extract-components/issues/64\n\nI'll help you implement issue #64. Let me first fetch the issue details from GitHub to understand what needs to be done.\n\nWebFetch\nhttps://github.com/anatesan-stream/resume-extract-components/issues/64\nRequest failed with status code 404\nLet me try the GitHub API endpoint instead:\n\nWebFetch\nhttps://api.github.com/repos/anatesan-stream/resume-extract-components/issues/64\nRequest failed with status code 404\nI'm unable to fetch issue #64 from the GitHub API (getting 404 errors). This could be because the repository is private or requires authentication.\n\nCould you please provide the details of issue #64? Specifically:\n\nWhat is the issue title and description?\nWhat are the requirements or acceptance criteria?\nAny implementation details or specific approach mentioned?\nAlternatively, you could paste the issue content directly here, and I'll implement it for you.\n\n\n\n\n\nThe link is https://github.com/anatesan-stream/resume-extract-components/issues/64\n\nWebFetch\nhttps://github.com/anatesan-stream/resume-extract-components/issues/64\nRequest failed with status code 404\nI'm unable to access the GitHub issue directly (getting 404 errors - likely because the repository is private). Let me check if there are any references to issue #64 in the codebase or recent commits:\n\nBash\ngit log --all --grep=\"64\" --oneline | head -20\naca2792 Add Match Level to Executive Summary in HTML match report\n152906a Feature: Add PDF-friendly CSS print styles with A4 page breaks (#87)\nca4cc31 feat: Implement Phase 1 of API endpoint naming rationalization (Issue #51)\nGrep\n#64|issue.*64|64.*issue\nI can see we're on the correct branch for issue #64, but I still cannot access the GitHub issue content directly. Could you please provide the issue details by either:\n\nCopying and pasting the issue content here (title, description, requirem",
+  "labels": ["enhancement", "has repro", "area:tools", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-04T19:10:30Z",
+  "updated_at": "2026-06-16T17:52:44Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 12,
+  "author": "anatesan-stream",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "jolyonbrown",
+      "author_association": "NONE",
+      "body": "This has caught me out today using the web interface - I can work fine with the cli - in fact I've the situation here where the web version of code is unable to view github issues created by the cli version of it!\n",
+      "created_at": "2025-11-09T12:17:05Z"
+    },
+    {
+      "author": "tmm3rd",
+      "author_association": "NONE",
+      "body": "I would like this feature as well.  I would like to have a workflow where I can talk through a feature or design with claude-code on the web (or on my phone/ipad) and then have it create a GH issue.  Not possible with today's OOTB configuration.  No GH cli installed and not possible to install (believe me, claude really tried).  Best I've come up with is a deep link solution from the mobile app to the github app, but it should work.  Shouldn't be a security issue since I've already given access ",
+      "created_at": "2025-11-20T15:21:54Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-21T10:08:22Z"
+    }
+  ]
+}

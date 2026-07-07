@@ -1,0 +1,35 @@
+{
+  "number": 39270,
+  "title": "[BUG]  Claude Code         process exited with code 1",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n### Environment\n - **macOS**: Darwin 25.3.0 (Apple Silicon / arm64)\n - **Claude Desktop**: v1.1.8629\n - **Bundled Claude Code binary**: v2.1.78\n - **CLI Claude Code**: v2.1.84 (works fine)\n - **Node**: v24.14.0\n - **Git**: 2.50.1 (Apple Git-155)\n\n ### Description\n\n Every message sent in Claude Desktop fails silently — the message appears briefly, shows \"working\", then disappears\n with no response. This started on **March 25, 2026**, coinciding with the major Anthropic outage.\n\n The local Claude Code process (v2.1.78) that the Desktop app spawns crashes immediately with exit code 1 on every\n message. The same binary works perfectly when invoked directly from the terminal with identical flags.\n\n ### Logs\n\n **main.log** — repeats on every message attempt:\n ```\n Session local_XXXX query error: Claude Code process exited with code 1\n [CCD CycleHealth] unhealthy cycle for local_XXXX (0s, hadFirstResponse=false, reason=no_response)\n ```\n\n **unknown-window.log** — CSP violation blocking API:\n ```\n Connecting to 'https://a-api.anthropic.com/v1/m' violates the following Content Security Policy directive:\n \"connect-src 'self' https://api.segment.io https://*.segment.io https://*.segment.com https://a-cdn.anthropic.com\n https://*.google.com https://*.facebook.com https://*.facebook.net https://*.doubleclick.net\"\n Fetch API cannot load https://a-api.anthropic.com/v1/m. Refused to connect because it violates the document's Content\n Security Policy.\n ```\n\n ### Steps to Reproduce\n 1. Open Claude Desktop v1.1.8629\n 2. Select any project folder\n 3. Send any message\n 4. Message shows \"working\" briefly, then disappears — no response\n\n ### What I've tried (none resolved the issue)\n - Full quit and restart of Claude Desktop\n - Clearing all caches (`Cache`, `GPUCache`, `Code Cache`, etc.)\n - Deleting and re-downloading Claude Desktop (same version 1.1.8629 served)\n - Clearing all session data and worktrees\n - Removing and letting skills plugin re-download\n - Full reset of `~/Library/Application Support/Claude/` (keeping only login credentials)\n - Re-logging in\n - Accepting Xcode CLI Tools license (`sudo xcode-select --reset`)\n - Enabling Terminal in Developer Tools (Privacy & Security)\n - Installing Rosetta 2\n\n ### Key observation\n\n The bundled binary works when run directly from the terminal:\n ```bash\n \"/Users/.../Claude/claude-code/2.1.78/claude.app/Contents/MacOS/claude\" \\\n   --print \"hi\" --model \"claude-opus-4-6[1m]\" --permission-mode \"acceptEdits\" \\\n   --plugin-dir \"/Users/.../skills-plugin/...\"\n # Output: \"Hi! How can I help you today?\"  ✅\n ```\n\n But when the Desktop app spawns it as a child process, it exits with code 1 immediately. This suggests the issue is in\n  how the Desktop app passes environment/auth/SDK parameters to the Claude Code process — not the binary itself.\n\n ### Additional context\n\n - The CSP policy in `unknown-window.log` does **not** include `a-api.anthropic.com`, which may be blocking telemetry\n or API calls from the webview.\n - The issue began during the March 25 Anthropic outage but persists after services recovered.\n - Claude Code CLI (`claude` in terminal) and claude.ai in the browser both work fine — only the Desktop app's local\n process integration is broken.\n\n\n\n### What Should Happen?\n\n ### Expected behavior\n Messages should be sent and receive a response in Claude Desktop.\n\n ### Actual behavior\n Claude Code process crashes instantly (exit code 1), message disappears, no response is shown.\n\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n Open Claude Desktop v1.1.8629 on macOS (Apple Silicon / arm64, Darwin 25.3.0)                                      \n  2. Select any project folder as the working directory                           \n  3. S",
+  "labels": ["bug", "platform:macos", "area:desktop"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-26T09:19:55Z",
+  "updated_at": "2026-07-03T09:35:15Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 25,
+  "author": "data357",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/38850\n2. https://github.com/anthropics/claude-code/issues/37822\n3. https://github.com/anthropics/claude-code/issues/36419\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-26T09:25:50Z"
+    },
+    {
+      "author": "marketingmei",
+      "author_association": "NONE",
+      "body": "Same issue, happening inside Claude.ai artifacts not just Claude Code desktop. AI-powered artifacts are completely broken since March 25",
+      "created_at": "2026-03-28T03:14:02Z"
+    },
+    {
+      "author": "marketingmei",
+      "author_association": "NONE",
+      "body": "Still broken as of March 31, 2026 – 6 days since the regression started. This is affecting AI-powered artifacts on Claude.ai, not just Claude Code desktop. The fetch to api.anthropic.com hangs indefinitely with a 30-second timeout, no error returned. This is blocking a core advertised feature.",
+      "created_at": "2026-04-01T00:26:56Z"
+    }
+  ]
+}

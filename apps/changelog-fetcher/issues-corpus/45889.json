@@ -1,0 +1,35 @@
+{
+  "number": 45889,
+  "title": "Claude Desktop (Electron) causes NTFS NonPaged Pool kernel memory leak on Windows (~0.5GB/min)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Desktop causes Windows kernel NonPaged Pool to grow at ~0.5GB/min while idle\nPool tag NtFC (ntfs.sys Create.c) — 20M+ allocations, near-zero frees\nLeak stops immediately when all claude.exe processes are killed\nStarted after updating to latest version (Cowork update)\n\n### What Should Happen?\n\nNo leak\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Install Claude Desktop on Windows 11\n2. Open the app (no need to chat or do anything)\n3. Run: \"NonpagedPool: {0:N1} GB\" -f ((Get-CimInstance Win32_PerfFormattedData_PerfOS_Memory).PoolNonpagedBytes / 1GB)\n4. Wait 5 minutes, run again\n5. NonPaged Pool grows ~0.5GB/min even while completely idle\n6. Kill all claude.exe processes — growth stops immediately\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.96.\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nWhat we ruled out:\n\nMCP servers (disabled both, still leaks)\nCloud code execution / VM sandbox (disabled, still leaks)\nGoogle Drive FS driver (uninstalled, still leaks)\nFACEIT anti-cheat (stopped, still leaks)\nHyper-V (disabled, still leaks)\nDefender (exclusions added, still leaks)\nZombie processes (none found, all processes fresh)\nHandle leaks (handles stable, only +7 in 30s)\nClear cache and restart (no effect)\n\nRoot cause: Electron's file I/O pattern triggers NTFS kernel-level NtFC allocation leak. Handles open/close normally but kernel tracking entries never free. Only full PC restart clears it.\nEvidence: PoolMonX screenshots showing NtFC tag dominating NonPaged Pool.\nSystem: Windows 11, 128GB RAM, RTX 3090\n\n![Image](https://github.com/user-attachments/assets/65fdde7a-1c39-4876-b91f-2a5f7d079983)\n![Image](https://github.com/user-attachments/assets/cacc4e34-1c94-4322-af1a-916e60c19fd8)",
+  "labels": ["bug", "platform:windows", "perf:memory", "area:desktop"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-09T19:06:57Z",
+  "updated_at": "2026-06-27T00:41:45Z",
+  "closed_at": "2026-06-02T22:47:27Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "HampeFPV",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/43548\n2. https://github.com/anthropics/claude-code/issues/32870\n3. https://github.com/anthropics/claude-code/issues/30137\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-09T19:12:53Z"
+    },
+    {
+      "author": "HampeFPV",
+      "author_association": "NONE",
+      "body": "> Found 3 possible duplicate issues:\n> \n> 1. [[BUG] Claude Desktop App (Windows): Extreme \"Other\" I/O rate causes kernel nonpaged pool exhaustion #43548](https://github.com/anthropics/claude-code/issues/43548)\n> 2. [[BUG] claude.exe triggers Windows BSOD via Wof.sys during directory listing (NtQueryDirectoryFileEx) #32870](https://github.com/anthropics/claude-code/issues/32870)\n> 3. [[BUG] Claude Code sessions cause Windows kernel BSODs (0x139, 0x1E, 0x50) — not application crashes, full OS cras",
+      "created_at": "2026-04-09T19:15:40Z"
+    },
+    {
+      "author": "lizergic",
+      "author_association": "NONE",
+      "body": "Independently confirmed this in #45921 with ETW tracing and kernel pool tag analysis:\n\n- 97% of file I/O events (262,928/271,387 in a 5-sec capture) are `.wvm-tmp-*` from `claude.exe`\n- Pool tag `NtFC` (NTFS FCB) grows at ~13 GB/hr — math: 27K files/sec × 130 bytes × 3600s = 12.6 GB/hr\n- 178.6M outstanding FCB allocations vs only ~7K open handles — confirms FCBs are cached, never freed\n- Leak stops immediately when Claude Desktop is closed; NonPaged Pool only freed on reboot\n\nAlso related: #4354",
+      "created_at": "2026-04-09T20:42:19Z"
+    }
+  ]
+}

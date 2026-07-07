@@ -1,0 +1,35 @@
+{
+  "number": 44805,
+  "title": "Remote Control: mobile app fails with \"GitHub repository access check failed\" when environment has git_repo_url",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nRunning `claude remote-control` in a git repository directory registers the environment successfully (HTTP 200), but the Claude iOS app fails to send messages with:\n\n> Failed to send message — GitHub repository access check failed — re-authorize GitHub in settings\n\nRunning `claude remote-control` in a non-git directory works without issues — the session connects, `--name` takes effect, and mobile can send messages normally.\n\n### What Should Happen?\n\nRemote Control sessions execute locally — the mobile app should not require GitHub repository access for Remote Control environments.\n\n### Steps to Reproduce\n\n1. `cd` into a directory that is a git repository with a GitHub remote\n2. Run `claude remote-control --name \"test\" --debug-file /tmp/rc-debug.log`\n3. Environment registers successfully (200)\n4. Open Claude iOS app → Code tab → select the environment\n5. Send any message\n6. Error: \"GitHub repository access check failed — re-authorize GitHub in settings\"\n\n**Contrast:**\n\n1. `cd` into a directory that is NOT a git repository\n2. Run `claude remote-control --name \"test\"`\n3. Open Claude iOS app → same flow\n4. Works correctly — session connects, `--name` is displayed, messages can be sent\n\n### Observed Behavior\n\nThe environment registration request includes `git_repo_url`:\n\n```json\n{\n  \"machine_name\": \"<hostname>\",\n  \"directory\": \"/path/to/project\",\n  \"branch\": \"master\",\n  \"git_repo_url\": \"git@github.com:example/example-repo.git\",\n  \"max_sessions\": 32,\n  \"metadata\": {\"worker_type\": \"claude_code\"}\n}\n```\n\nWhen `git_repo_url` is present, the mobile app performs a GitHub repository access check. When it is absent (non-git directory), no check is performed and Remote Control works.\n\nAdditionally, session creation via `POST /v1/sessions` fails with:\n\n```\nSession creation failed with status 400: source: Extra inputs are not permitted\n```\n\nThis causes `--name` to silently not take effect (the session is never created, so the title is lost). This 400 error may be related to #42507.\n\n### Error Messages/Logs\n\n**Debug log (git directory):**\n\n```\n[bridge:init] bridgeId=<uuid> dir=/path/to/project branch=master gitRepoUrl=git@github.com:example/example-repo.git machine=<hostname>\n[bridge:api] POST /v1/environments/bridge -> 200 environment_id=env_<id>\n[bridge] Session creation failed with status 400: source: Extra inputs are not permitted\n```\n\n**Mobile app error:**\n\n> Failed to send message — GitHub repository access check failed — re-authorize GitHub in settings\n\n**Non-git directory (working):**\n\n```\n·✔︎· Connected · GitHub · HEAD\n    Capacity: 2/32 · New sessions will be created in the current directory\n    demo\n```\n\n### Claude Model\n\nOpus 4.6\n\n### Is this a regression?\n\nUnknown — first time using Remote Control on this account.\n\n### Claude Code Version\n\n2.1.92\n\n### Platform\n\nclaude.ai\n\n### Operating System\n\nmacOS (Darwin 25.4.0, arm64)\n\n### Terminal/Shell\n\nzsh\n\n### Additional Information\n\n- Plan: Max\n- Auth: claude.ai OAuth\n- `tengu_ccr_bridge`: true\n- iOS app version: latest\n- Related: #42507 (same 400 \"Extra inputs are not permitted\" error on session creation)\n- Related: #42006 (similar GitHub access check failure on mobile)\n- Related: #41941 (`/remote-control` stuck in git directories)",
+  "labels": ["bug", "has repro", "platform:macos", "platform:ios"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-07T18:30:03Z",
+  "updated_at": "2026-07-06T08:49:09Z",
+  "closed_at": null,
+  "reactions_total": 27,
+  "comments_count": 16,
+  "author": "liby",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/41941\n2. https://github.com/anthropics/claude-code/issues/42507\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-07T18:33:34Z"
+    },
+    {
+      "author": "maxscience",
+      "author_association": "NONE",
+      "body": "This has been an issue for around a couple weeks now, still present in the latest 2.1.96 version. Please fix the bug.\nA workaround is to open the claude remote-control session in the terminal, then open the Claude desktop app, create a new session and select the local remote-control instance. This way the session will show up in the mobile app correctly but I still can't create new sessions via the mobile app. VScode remote-control always gives the error 'Remote control initialization failed' (t",
+      "created_at": "2026-04-08T15:06:49Z"
+    },
+    {
+      "author": "druvv",
+      "author_association": "NONE",
+      "body": "+1 I'm experiencing this issue.",
+      "created_at": "2026-04-09T02:36:37Z"
+    }
+  ]
+}

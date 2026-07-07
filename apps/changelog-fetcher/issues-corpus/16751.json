@@ -1,0 +1,35 @@
+{
+  "number": 16751,
+  "title": "Windows: pyright-lsp plugin fails with ENOENT - cannot spawn .cmd files",
+  "body": "## Bug Description\nThe pyright-lsp plugin fails on Windows with `spawn pyright-langserver ENOENT` error, even though `pyright-langserver` is correctly installed and accessible from the command line.\n\n## Environment\n- OS: Windows 10/11\n- Claude Code Version: Latest\n- Node.js: Installed via official installer\n- Pyright: Installed via `npm install -g pyright`\n\n## Steps to Reproduce\n1. Install pyright globally: `npm install -g pyright`\n2. Verify installation: `pyright --version` works, `pyright-langserver --stdio` works\n3. Enable pyright-lsp plugin in Claude Code\n4. Run `/plugin` command\n\n## Expected Behavior\nThe pyright-lsp plugin should start successfully.\n\n## Actual Behavior\n```\nPlugin Errors\n\n   > plugin:pyright-lsp:pyright\n      spawn pyright-langserver ENOENT\n```\n\n## Root Cause Analysis\nOn Windows, npm installs global packages with `.cmd` wrapper files (e.g., `pyright-langserver.cmd`). Node.js `child_process.spawn()` cannot execute `.cmd` files directly without the `shell: true` option.\n\nThe command exists and works:\n```\n> where pyright-langserver\nC:\\Users\\<user>\\AppData\\Roaming\\npm\\pyright-langserver\nC:\\Users\\<user>\\AppData\\Roaming\\npm\\pyright-langserver.cmd\n\n> pyright-langserver --stdio\n(works - connects to stdin/stdout)\n```\n\n## Suggested Fix\nWhen spawning LSP servers on Windows, either:\n1. Use `shell: true` option in spawn()\n2. Or append `.cmd` extension when on Windows platform\n3. Or use `cross-spawn` package which handles this automatically\n\n## Workaround\nCurrently none - the plugin cannot be used on Windows.",
+  "labels": ["bug", "has repro", "platform:windows", "area:tools", "area:core"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-01-08T01:19:58Z",
+  "updated_at": "2026-06-29T15:14:37Z",
+  "closed_at": "2026-05-10T09:30:11Z",
+  "reactions_total": 17,
+  "comments_count": 10,
+  "author": "hwanoKim",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/15914\n2. https://github.com/anthropics/claude-code/issues/16084\n3. https://github.com/anthropics/claude-code/issues/15836\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-08T01:27:26Z"
+    },
+    {
+      "author": "kfirfer",
+      "author_association": "NONE",
+      "body": "getting also in mac os\nedited:\nmade it work for macos, was my fault.",
+      "created_at": "2026-01-08T14:13:24Z"
+    },
+    {
+      "author": "Erodenn",
+      "author_association": "NONE",
+      "body": "+1 for Windows, this is a separate issue from others\n\n ---\n  Additional diagnostic context:\n\n  - Confirmed pyright-langserver is in both User and System PATH\n  - npm installs two files: pyright-langserver (POSIX shell script) and pyright-langserver.cmd (batch file)\n  - Command works correctly when invoked from Git Bash with --stdio - returns valid JSON-RPC responses\n  - Debug log shows the LSP manager loads the server config correctly (Loaded 1 LSP server(s)), then fails only on spawn\n  - Root c",
+      "created_at": "2026-01-09T04:13:28Z"
+    }
+  ]
+}

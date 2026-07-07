@@ -1,0 +1,42 @@
+{
+  "number": 68619,
+  "title": "[CRITICAL] Subagent spawning and subagent pattern bugs trigger infinite recursion, infinite token usage, grossly inefficient token usage, and lost accumulated subagent work.",
+  "body": "Multiple regressions compound into a catastrophic token burn scenario. Subagents recursively spawn child agents 50+ levels deep, ignoring `CLAUDE_CODE_FORK_SUBAGENT=0`. Permission denials trigger further agent spawning instead of stopping. Agents fetch individual files from GitHub repos via HTTP (one WebFetch or curl per file, each with a full prompt and context payload) instead of cloning locally. Subagent permissions do not propagate to the user for approval. And if the user interrupts any of this, all intermediate work from every agent in the tree is lost. The entire token spend goes in the garbage.\n\nIn the observed case: 1.2M+ tokens consumed in ~30 minutes on a task that should have been `git clone` + `find . -name '*.sol'`. The recursive agent tree was still growing when observed.\n\nIn another instance, this same pathological behavior consumed an entire Pro Max 20x plan 5-hour session token limit in under 5 minutes (4 million tokens consumed).\n\nThis is a **major regression that shipped on or around June 10th**.\n\n### Impact\n\nThis behavior has repeatedly consumed 5-hour session limits in minutes. Over 50% of a weekly Max x20 plan limit has been burned by errant subagent recursive spawning. Most recently, a 5-hour session window was consumed in under 5 minutes of subagent work, pushing the weekly limit to 80% utilization with 5 full days until reset.\n\nThe out-of-control recursive subagents also trigger rate limits. Subagents in the spawn tree then trigger immediate retries, hammering token limits even faster for entirely wasted work. On top of that, the top-level agent receives notifications with vague summaries and retries, causing it to question results and relaunch new agents — compounding the burn further.\n\n<img width=\"578\" height=\"102\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/82b2ab9b-2a87-4cfc-83fb-1a411a495e62\" />\n\n### Environment\n\n- Claude Code v2.1.177, macOS, CLI\n- Model: Opus 4.6 (1M context)++\n- Plan: Pro Max x20\n\n### Bugs\n\n#### 1. CLAUDE_CODE_FORK_SUBAGENT=0 is not enforced\n\nSet in `~/.claude/settings.json`, confirmed present in the process environment:\n\n```json\n{\n  \"env\": {\n    \"CLAUDE_CODE_FORK_SUBAGENT\": \"0\"\n  }\n}\n```\n\nCompletely ignored. Subagents spawn child agents without restriction. 50+ levels of recursion observed (see screenshot below). The agent tree nests so deep that labels truncate off the display.\n\nWhere are the flags to opt out of this behavior? Why are previous flags not being respected? What is the stable surface that users can expect to build on?\n\n#### 2. Permission denial triggers recursive agent spawning instead of stopping\n\nWhen a subagent hits a permission denial (e.g., Bash command denied), the harness returns a message that explicitly says \"STOP and explain to the user what you were trying to do and why you need this permission.\" The agent ignores this and instead spawns a child agent to work around the denial. That child hits the same wall and spawns another. This repeats indefinitely.\n\nThe permission denial is functioning as a recursive agent launch trigger.\n\n#### 3. Subagent permissions do not propagate to the user\n\nPermissions requested by subagents should bubble up to the user for approval. They do not. This has been broken for months. Some permissions occasionally propagate and some don't, but in the observed case, zero permission prompts reached the user while agents repeatedly hit permission walls and spawned children to circumvent them.\n\nIf permissions propagated correctly, the user would have seen the first denial prompt, approved or denied it once, and the entire recursive chain would never have happened.\n\n#### 4. Agents fetch individual repo files via HTTP instead of cloning\n\nThis is a behavioral regression. Agents used to clone repositories locally and read them. They now fetch individual files from GitHub via HTTP, one file at a time. Each fetch is a separate tool call (WebFetch with full URL and prompt, or curl via Bash) carrying the entire conversation context. For a repository with hundreds of files, this means hundreds of round-trips, each re-",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:macos",
+    "area:cost",
+    "area:agents",
+    "area:permissions"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-15T15:41:23Z",
+  "updated_at": "2026-06-29T01:41:19Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 26,
+  "author": "loncharles",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/68430\n2. https://github.com/anthropics/claude-code/issues/68110\n3. https://github.com/anthropics/claude-code/issues/67636\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-06-15T15:46:02Z"
+    },
+    {
+      "author": "kcarriedo",
+      "author_association": "NONE",
+      "body": "The compound failure mode you've documented here is important: when permission denials trigger agent spawning instead of stopping, and intermediate results are lost on interruption, the user ends up with zero recoverable output from 1.2M+ tokens of work.\n\nThe root invariant violation is in #5 — subagents have no durable state handoff channel. Each subagent's output exists only in the parent's context window, which means any interruption (user-initiated or rate-limit-triggered) discards all inter",
+      "created_at": "2026-06-15T18:50:44Z"
+    },
+    {
+      "author": "hiwasham",
+      "author_association": "NONE",
+      "body": "The detail that stands out to me is that a permission denial appears to be acting as a spawn trigger rather than a stop condition.\n\nThat's not really a tuning issue. A denied action is one of the few signals that should terminate a branch immediately. If a denial causes the agent to create another agent that attempts a workaround, you've created a recursion path.\n\nI'd want a few guardrails enforced in the harness rather than left to agent behavior:\n\n* A hard recursion-depth limit enforced at spa",
+      "created_at": "2026-06-15T20:50:58Z"
+    }
+  ]
+}

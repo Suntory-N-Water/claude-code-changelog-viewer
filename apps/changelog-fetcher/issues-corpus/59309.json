@@ -1,0 +1,35 @@
+{
+  "number": 59309,
+  "title": "CLAUDE.md rules not propagated to Agent subagents and weakened after context compaction",
+  "body": "## Summary\n\nCLAUDE.md instructions and skill rules are not reliably followed in two specific scenarios:\n1. **Agent subagents** do not inherit the parent's CLAUDE.md rules\n2. **After context compaction**, rule adherence degrades significantly\n\n## Reproduction\n\nI have a detailed CLAUDE.md with specific tool restrictions:\n- \"Use `rg` or `ugrep` instead of `grep`\" \n- \"Never use `python3 -c` / `perl -e` for inline execution\"\n- \"Use Read/Edit/Write tools instead of Bash for file operations\"\n\nThese rules are followed correctly at the start of a conversation, but are violated in the following conditions:\n\n### Case 1: Agent subagents don't inherit CLAUDE.md rules\n\nWhen spawning subagents via the Agent tool (e.g., `subagent_type: \"Explore\"`), the subagent does not receive the parent's CLAUDE.md instructions. The subagent then uses unrestricted tools (e.g., `grep` instead of `rg`, or `python3 -c` for parsing).\n\nThe coordinator prompt passed to the agent does not and cannot reproduce the full CLAUDE.md rules. This makes any tool restriction rules effectively unenforceable when work is delegated to subagents.\n\n### Case 2: Rules weaken after context compaction\n\nIn long conversations where context is compacted, the detailed behavioral rules in CLAUDE.md (loaded at session start) appear to lose effectiveness. The model falls back to familiar patterns:\n- Using `python3 -c` to parse JSON instead of using the Read tool\n- Using `grep` instead of the configured `rg`/`ugrep`\n\nThis is especially noticeable when the model is focused on completing a task quickly and \"forgets\" the custom tool preferences.\n\n## Expected Behavior\n\n1. Agent subagents should inherit at minimum the CLAUDE.md rules from the parent session, or there should be a mechanism to pass key restrictions to subagents.\n2. After context compaction, CLAUDE.md rules should maintain their priority throughout the entire session, not just in the initial turns.\n\n## Environment\n\n- Claude Code CLI, model: Claude Sonnet 4\n- CLAUDE.md with extensive tool restriction rules and skill plugin rules\n- macOS Darwin 25.5.0\n\n## Workaround\n\nCurrently the only workaround is to manually correct the model each time it violates a rule, which defeats the purpose of having persistent instructions in CLAUDE.md.",
+  "labels": ["bug", "platform:macos", "area:core", "area:agents", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-05-15T05:23:32Z",
+  "updated_at": "2026-06-16T22:45:16Z",
+  "closed_at": "2026-06-16T22:45:16Z",
+  "reactions_total": 1,
+  "comments_count": 12,
+  "author": "phpmac",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/40459\n2. https://github.com/anthropics/claude-code/issues/19471\n3. https://github.com/anthropics/claude-code/issues/29423\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-15T05:30:22Z"
+    },
+    {
+      "author": "hipvlady",
+      "author_association": "NONE",
+      "body": "Confirming both failure modes against Claude Code v2.x with similar CLAUDE.md restrictions on tool selection. The two are the same root cause at different scales.\n\n**Case 1 (subagent inheritance):** the parent session's CLAUDE.md is loaded into the parent's context but isn't propagated into the subagent's context payload. The subagent starts with a fresh context that doesn't include the CLAUDE.md instructions, so tool-restriction rules effectively don't exist for it. This is state-coordination, ",
+      "created_at": "2026-05-16T08:22:59Z"
+    },
+    {
+      "author": "phpmac",
+      "author_association": "NONE",
+      "body": "Interesting diagnosis. The state-coordination vs instruction-following distinction makes sense -- subagent context isolation and compaction priority drift being the same root cause at different scales tracks with what I've observed.\n\nQuick check before I dig into your repo -- is this using Claude Code's hook mechanism (PreToolUse/PostToolUse) to intercept and re-inject CLAUDE.md rules, or a different approach? Curious whether you're solving this at the hook layer or somewhere else in the stack.\n",
+      "created_at": "2026-05-16T08:37:07Z"
+    }
+  ]
+}

@@ -3,6 +3,7 @@
   "summary": "環境変数によるフリッカーフリーな描画オプションや、Autoモードの拒否に対応する新しいフック機能が追加されました。大規模プロジェクトでのメモリリークや履歴データの破損、巨大ファイル編集時のクラッシュなど、長時間のセッションにおける安定性が大幅に向上しています。また、PowerShell環境での動作改善やCJK文字・絵文字の保存問題の解決など、多岐にわたるプラットフォーム固有の修正が行われました。",
   "items": [
     {
+      "id": "45557abf843e",
       "content": "- Added `CLAUDE_CODE_NO_FLICKER=1` environment variable to opt into flicker-free alt-screen rendering with virtualized scrollback",
       "content_ja": "仮想化されたスクロールバックによるフリッカーフリーな代替画面レンダリングを有効にする環境変数 `CLAUDE_CODE_NO_FLICKER=1` を追加しました",
       "prefix": "Added",
@@ -19,12 +20,13 @@
         }
       ],
       "inference": {
-        "before": "特定のターミナル環境において、Claude Codeの出力が更新される際に画面がちらついたり（フリッカー）、スクロールバックの挙動が不安定になることがありました。",
-        "after": "この環境変数を有効にすることで、画面のちらつきを抑えたスムーズな代替画面（alt-screen）レンダリングを利用できるようになります。",
+        "before": "特定のターミナル環境において、Claude Codeの出力が更新される際に画面がちらついたり(フリッカー)、スクロールバックの挙動が不安定になることがありました。",
+        "after": "この環境変数を有効にすることで、画面のちらつきを抑えたスムーズな代替画面(alt-screen)レンダリングを利用できるようになります。",
         "benefit": "ターミナルでの視認性が向上し、長時間のコーディングセッションでも目の疲れを軽減し、集中力を維持しやすくなります。"
       }
     },
     {
+      "id": "e7f11b155fa1",
       "content": "- Added `PermissionDenied` hook that fires after auto mode classifier denials — return `{retry: true}` to tell the model it can retry",
       "content_ja": "Autoモードの判定で拒否された際に実行される `PermissionDenied` フックを追加しました。`{retry: true}` を返すことでモデルに再試行を促せます",
       "prefix": "Added",
@@ -41,12 +43,13 @@
         }
       ],
       "inference": {
-        "before": "Autoモード（研究プレビュー）において、AIの操作がセキュリティポリシー等で拒否された場合、AIがその理由を理解して別の方法でリトライすることが困難でした。",
+        "before": "Autoモード(研究プレビュー)において、AIの操作がセキュリティポリシー等で拒否された場合、AIがその理由を理解して別の方法でリトライすることが困難でした。",
         "after": "このフックを利用して `{retry: true}` を返すと、AIに操作が拒否されたことを伝え、安全な代替案を自律的に考案させることが可能になります。",
         "benefit": "AIが一度の拒否で止まってしまうことを防ぎ、ユーザーが手動で指示し直す手間を省きながら、タスクの完了率を高めることができます。"
       }
     },
     {
+      "id": "61461e545098",
       "content": "- Added named subagents to `@` mention typeahead suggestions",
       "content_ja": "`@` メンションの入力候補に名前付きサブエージェントを追加しました",
       "prefix": "Added",
@@ -65,10 +68,11 @@
       "inference": {
         "before": "特定の役割を持つサブエージェントを呼び出す際、名前を正確に覚えている必要があり、入力の手間がかかっていました。",
         "after": "`@` を入力するだけでファイルやMCPリソースと同様にサブエージェントも候補に表示されるようになり、素早く選択できます。",
-        "benefit": "特定のタスクに特化したサブエージェント（コードレビュアーなど）を即座に呼び出せるようになり、マルチエージェントを活用したワークフローがよりスムーズになります。"
+        "benefit": "特定のタスクに特化したサブエージェント(コードレビュアーなど)を即座に呼び出せるようになり、マルチエージェントを活用したワークフローがよりスムーズになります。"
       }
     },
     {
+      "id": "061f0bc2c1a5",
       "content": "- Fixed prompt cache misses in long sessions caused by tool schema bytes changing mid-session",
       "content_ja": "長いセッション中にツールのスキーマが動的に変化し、プロンプトキャッシュがミスヒットする問題を修正しました。",
       "prefix": "Fixed",
@@ -76,6 +80,7 @@
       "related_docs": []
     },
     {
+      "id": "61db6253f2d3",
       "content": "- Fixed nested CLAUDE.md files being re-injected dozens of times in long sessions that read many files",
       "content_ja": "多数のファイルを読み込む長いセッションで、ネストされた CLAUDE.md ファイルが何度も重複して注入される問題を修正しました",
       "prefix": "Fixed",
@@ -93,18 +98,20 @@
       ],
       "inference": {
         "before": "大規模なプロジェクトや長時間におよぶセッションにおいて、同一の CLAUDE.md の指示がコンテキスト内に何度も重複して読み込まれていました。",
-        "after": "重複した注入が防止され、コンテキストウィンドウ（AIが一度に扱える情報量）が不必要に圧迫されることがなくなりました。",
+        "after": "重複した注入が防止され、コンテキストウィンドウ(AIが一度に扱える情報量)が不必要に圧迫されることがなくなりました。",
         "benefit": "AIが重要な指示を見失うリスクが減り、トークンの節約によって長時間の対話でも一貫したレスポンスを維持できるようになります。"
       }
     },
     {
+      "id": "9d093383fcc6",
       "content": "- Fixed Edit/Write tools doubling CRLF on Windows and stripping Markdown hard line breaks (two trailing spaces)",
-      "content_ja": "WindowsでEdit/Writeツール使用時に改行（CRLF）が二重になったり、Markdownの強制改行（末尾の2スペース）が削除されたりする問題を修正しました。",
+      "content_ja": "WindowsでEdit/Writeツール使用時に改行(CRLF)が二重になったり、Markdownの強制改行(末尾の2スペース)が削除されたりする問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
+      "id": "88f459b5bf87",
       "content": "- Fixed `StructuredOutput` schema cache bug causing ~50% failure rate in workflows with multiple schemas",
       "content_ja": "複数のスキーマを扱うワークフローで、`StructuredOutput` のキャッシュ不具合により約50%の確率で失敗するバグを修正しました。",
       "prefix": "Fixed",
@@ -112,6 +119,7 @@
       "related_docs": []
     },
     {
+      "id": "2dc5f77ade6f",
       "content": "- Fixed memory leak where large JSON inputs were retained as LRU cache keys in long-running sessions",
       "content_ja": "長時間のセッションにおいて、巨大なJSON入力がLRUキャッシュキーとして保持され続け、メモリリークが発生する問題を修正しました",
       "prefix": "Fixed",
@@ -128,6 +136,7 @@
       }
     },
     {
+      "id": "f6ea28904d67",
       "content": "- Fixed a potential out-of-memory crash when the Edit tool was used on very large files (>1 GiB)",
       "content_ja": "1GiBを超える極めて巨大なファイルに対してEditツールを使用した際、メモリ不足でクラッシュする可能性があった問題を修正しました。",
       "prefix": "Fixed",
@@ -135,6 +144,7 @@
       "related_docs": []
     },
     {
+      "id": "3119483c5096",
       "content": "- Fixed a crash when removing a message from very large session files (over 50MB)",
       "content_ja": "50MBを超える巨大なセッションファイルからメッセージを削除する際のクラッシュを修正しました。",
       "prefix": "Fixed",
@@ -142,6 +152,7 @@
       "related_docs": []
     },
     {
+      "id": "d357f32a8ec9",
       "content": "- Fixed `--resume` crash when transcript contains a tool result from an older CLI version or interrupted write",
       "content_ja": "古いバージョンのCLIによる履歴や、書き込みが中断された履歴が含まれる場合に `--resume` でクラッシュする問題を修正しました",
       "prefix": "Fixed",
@@ -164,6 +175,7 @@
       }
     },
     {
+      "id": "8e10636c717c",
       "content": "- Fixed misleading \"Rate limit reached\" message when the API returned an entitlement error — now shows the actual error with actionable hints",
       "content_ja": "APIが権限エラーを返した際に、誤って「レート制限に達しました」と表示される問題を修正し、解決策を含む正確なエラーを表示するようにしました",
       "prefix": "Fixed",
@@ -180,12 +192,13 @@
         }
       ],
       "inference": {
-        "before": "サブスクリプションの権限不足などのエラーが発生した際、実際とは異なる「レート制限」のエラーが表示され、ユーザーが正しい対処法（アップグレードなど）を判断できませんでした。",
+        "before": "サブスクリプションの権限不足などのエラーが発生した際、実際とは異なる「レート制限」のエラーが表示され、ユーザーが正しい対処法(アップグレードなど)を判断できませんでした。",
         "after": "エラーの原因が正確に判別され、ユーザーが次に何をすべきかを示す具体的なヒントとともに正しいメッセージが表示されます。",
         "benefit": "トラブル発生時の原因特定が容易になり、無駄な待ち時間を過ごすことなく、必要な手続きを迅速に行えるようになります。"
       }
     },
     {
+      "id": "fd10b50018cc",
       "content": "- Fixed LSP server zombie state after crash — server now restarts on next request instead of failing until session restart",
       "content_ja": "クラッシュ後にLSPサーバーがゾンビ状態になる問題を修正し、セッションを再起動しなくても次のリクエストでサーバーが自動復旧するようにしました",
       "prefix": "Fixed",
@@ -196,14 +209,15 @@
         }
       ],
       "inference": {
-        "before": "言語サーバー（LSP）が一度クラッシュすると、セッション自体を立ち上げ直さない限り、コード補完や定義ジャンプなどのインテリジェンス機能が使えない状態が続いていました。",
+        "before": "言語サーバー(LSP)が一度クラッシュすると、セッション自体を立ち上げ直さない限り、コード補完や定義ジャンプなどのインテリジェンス機能が使えない状態が続いていました。",
         "after": "LSPサーバーのライフサイクル管理が改善され、クラッシュを検知すると次の操作時に自動で再起動を試みるようになりました。",
         "benefit": "ツールの再起動という中断を挟まずに開発を継続でき、AIによる高度なコード解析機能を常に安定して利用できます。"
       }
     },
     {
+      "id": "774ebf534383",
       "content": "- Fixed hooks `if` condition filtering not matching compound commands (`ls && git push`) or commands with env-var prefixes (`FOO=bar git push`)",
-      "content_ja": "フックの `if` 条件フィルタリングが、複合コマンド（`ls && git push`）や環境変数プレフィックス付きのコマンドにマッチしない問題を修正しました",
+      "content_ja": "フックの `if` 条件フィルタリングが、複合コマンド(`ls && git push`)や環境変数プレフィックス付きのコマンドにマッチしない問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": ["Hooks"],
       "related_docs": [
@@ -217,12 +231,13 @@
       "inference": {
         "before": "`&&` で繋いだ複数のコマンドや、`VAR=val cmd` のように環境変数を指定したコマンドに対して、特定のフックが正しく発火しない場合がありました。",
         "after": "コマンド解析の精度が向上し、より複雑な形式のシェルコマンドに対しても正確にフックが適用されるようになりました。",
-        "benefit": "特定のコマンド実行時に自動で行いたい処理（プッシュ前のバリデーションなど）の確実性が高まり、意図しない操作の防止や自動化の信頼性が向上します。"
+        "benefit": "特定のコマンド実行時に自動で行いたい処理(プッシュ前のバリデーションなど)の確実性が高まり、意図しない操作の防止や自動化の信頼性が向上します。"
       }
     },
     {
+      "id": "a97d7e6b8088",
       "content": "- Fixed prompt history entries containing CJK or emoji being silently dropped when they fall on a 4KB boundary in `~/.claude/history.jsonl`",
-      "content_ja": "`~/.claude/history.jsonl` において、CJK（日中韓）文字や絵文字を含む履歴エントリが4KBの境界にかかると、内容が欠落する問題を修正しました",
+      "content_ja": "`~/.claude/history.jsonl` において、CJK(日中韓)文字や絵文字を含む履歴エントリが4KBの境界にかかると、内容が欠落する問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -243,6 +258,7 @@
       }
     },
     {
+      "id": "777e93488d4d",
       "content": "- Fixed `/stats` losing historical data beyond 30 days when the stats cache format changes",
       "content_ja": "統計情報のキャッシュ形式が変更された際、30日より前の `/stats` 履歴データが失われる問題を修正しました",
       "prefix": "Fixed",
@@ -257,11 +273,12 @@
       ],
       "inference": {
         "before": "ツールのアップデートに伴いデータの保存形式が変わると、過去1ヶ月以上の長期的な利用統計データがリセットされてしまうことがありました。",
-        "after": "古い形式のデータも適切にマイグレーション（移行）されるようになり、長期間の利用履歴が保持されます。",
+        "after": "古い形式のデータも適切にマイグレーション(移行)されるようになり、長期間の利用履歴が保持されます。",
         "benefit": "自分の開発パフォーマンスやAIの利用傾向を長期にわたって正確に振り返ることができ、モチベーションの維持やスキルの可視化に役立ちます。"
       }
     },
     {
+      "id": "5bed0c9ac273",
       "content": "- Fixed `/stats` undercounting tokens by excluding subagent/fork usage",
       "content_ja": "`/stats` において、サブエージェントやフォークされたセッションのトークン使用量がカウントされていない問題を修正しました",
       "prefix": "Fixed",
@@ -281,6 +298,7 @@
       }
     },
     {
+      "id": "71979c97a4dd",
       "content": "- Fixed scrollback disappearing when scrolling up in long sessions",
       "content_ja": "長いセッションで上にスクロールした際に、スクロールバックの内容が消えてしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -288,6 +306,7 @@
       "related_docs": []
     },
     {
+      "id": "98d25fda0f42",
       "content": "- Fixed collapsed search/read group badges duplicating in terminal scrollback during heavy parallel tool use",
       "content_ja": "並列でツールを多用した際、ターミナルの履歴内で折りたたまれた検索/読み込みグループのバッジが重複して表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -295,6 +314,7 @@
       "related_docs": []
     },
     {
+      "id": "66a18fab2ef8",
       "content": "- Fixed notification `invalidates` not clearing the currently-displayed notification immediately",
       "content_ja": "通知の `invalidates` 設定が、現在表示されている通知を即座に消去しない問題を修正しました。",
       "prefix": "Fixed",
@@ -302,6 +322,7 @@
       "related_docs": []
     },
     {
+      "id": "5cd95b0f500c",
       "content": "- Fixed prompt briefly disappearing after submit when background messages arrived during processing",
       "content_ja": "処理中にバックグラウンドメッセージが到着した際、送信直後のプロンプトが一瞬消えてしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -309,6 +330,7 @@
       "related_docs": []
     },
     {
+      "id": "bc9fcc93adb8",
       "content": "- Fixed long `/btw` responses being clipped with no way to scroll — responses now render in a scrollable viewport",
       "content_ja": "`/btw` の長い回答が切り捨てられスクロールできない問題を修正し、スクロール可能なビューポートで表示するようにしました",
       "prefix": "Fixed",
@@ -331,6 +353,7 @@
       }
     },
     {
+      "id": "0f15dbf13127",
       "content": "- Fixed Devanagari and other combining-mark text being truncated in assistant output",
       "content_ja": "アシスタントの出力において、デーヴァナーガリー文字やその他の結合文字が途切れて表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -338,6 +361,7 @@
       "related_docs": []
     },
     {
+      "id": "58876f105a30",
       "content": "- Fixed rendering artifacts on main-screen terminals after layout shifts",
       "content_ja": "レイアウト変更後にメイン画面のターミナルで描画が乱れる問題を修正しました。",
       "prefix": "Fixed",
@@ -345,6 +369,7 @@
       "related_docs": []
     },
     {
+      "id": "bb82692f97dd",
       "content": "- Fixed voice mode failing to request microphone permission on macOS Apple Silicon",
       "content_ja": "Apple Silicon搭載Macにおいて、音声モードがマイクの使用許可を正しく要求できない問題を修正しました。",
       "prefix": "Fixed",
@@ -352,6 +377,7 @@
       "related_docs": []
     },
     {
+      "id": "5925b51406a9",
       "content": "- Fixed voice push-to-talk not activating for some modifier-combo bindings",
       "content_ja": "一部の修飾キーを組み合わせたバインドで、音声のプッシュ・トゥ・トークが起動しない問題を修正しました。",
       "prefix": "Fixed",
@@ -359,6 +385,7 @@
       "related_docs": []
     },
     {
+      "id": "cc13ae75f776",
       "content": "- Fixed voice mode on Windows failing with \"WebSocket upgrade rejected with HTTP 101\"",
       "content_ja": "Windowsにおいて音声モードが「WebSocket upgrade rejected with HTTP 101」エラーで失敗する問題を修正しました",
       "prefix": "Fixed",
@@ -375,12 +402,13 @@
         }
       ],
       "inference": {
-        "before": "Windows環境で音声入力（/voice）を使おうとすると、サーバーとの通信接続に失敗し、音声での指示が送れないことがありました。",
+        "before": "Windows環境で音声入力(/voice)を使おうとすると、サーバーとの通信接続に失敗し、音声での指示が送れないことがありました。",
         "after": "ネットワーク通信の処理がWindows環境に最適化され、安定して音声モードが利用できるようになりました。",
         "benefit": "タイピングの手間を省き、ハンズフリーでAIに指示を出す快適な開発体験が、Windowsユーザーでも確実に得られるようになります。"
       }
     },
     {
+      "id": "3a5f699298b1",
       "content": "- Fixed Shift+Enter submitting instead of inserting a newline on Windows Terminal Preview 1.25",
       "content_ja": "Windows Terminal Preview 1.25において、Shift+Enterが改行ではなく送信になってしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -388,8 +416,9 @@
       "related_docs": []
     },
     {
+      "id": "6d2fe36f0d50",
       "content": "- Fixed periodic UI jitter during streaming in iTerm2 when running inside tmux",
-      "content_ja": "tmux内でiTerm2を使用している際、ストリーミング出力中に発生していた画面の定期的な揺れ（UI jitter）を修正しました",
+      "content_ja": "tmux内でiTerm2を使用している際、ストリーミング出力中に発生していた画面の定期的な揺れ(UI jitter)を修正しました",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -404,12 +433,13 @@
         }
       ],
       "inference": {
-        "before": "特定のターミナル構成（iTerm2 + tmux）で、AIが文字を出力している最中に画面表示が微細にガタつく現象が発生していました。",
+        "before": "特定のターミナル構成(iTerm2 + tmux)で、AIが文字を出力している最中に画面表示が微細にガタつく現象が発生していました。",
         "after": "画面更新のタイミング制御が改善され、ストリーミング中もレイアウトが崩れず安定して表示されるようになりました。",
         "benefit": "出力内容を読み取る際の視覚的なストレスが解消され、AIの思考プロセスをよりスムーズに追跡できるようになります。"
       }
     },
     {
+      "id": "bf9369509a50",
       "content": "- Fixed PowerShell tool incorrectly reporting failures when commands like `git push` wrote progress to stderr on Windows PowerShell 5.1",
       "content_ja": "PowerShell 5.1環境において、`git push` 等のコマンドがstderrにプログレスを出力した際に誤って失敗と判定される問題を修正しました",
       "prefix": "Fixed",
@@ -426,12 +456,13 @@
         }
       ],
       "inference": {
-        "before": "Windowsの標準的なPowerShell 5.1では、エラーでない出力（進捗表示など）が標準エラー出力（stderr）に出るだけで、ツールがコマンドの実行に失敗したと誤認することがありました。",
+        "before": "Windowsの標準的なPowerShell 5.1では、エラーでない出力(進捗表示など)が標準エラー出力(stderr)に出るだけで、ツールがコマンドの実行に失敗したと誤認することがありました。",
         "after": "出力内容の判別ロジックが向上し、進捗表示をエラーと混同することなく、正しくコマンドの成功を認識できるようになりました。",
         "benefit": "WindowsでのGit操作などがAIによって不当に中断されることがなくなり、自動化ワークフローがより円滑に進行します。"
       }
     },
     {
+      "id": "df946cd63fa4",
       "content": "- Fixed SDK error result messages (`error_during_execution`, `error_max_turns`) to correctly set `is_error: true` with descriptive messages",
       "content_ja": "SDKのエラー結果メッセージにおいて、`is_error: true` が正しく設定されず説明メッセージも不足していた問題を修正しました",
       "prefix": "Fixed",
@@ -448,12 +479,13 @@
         }
       ],
       "inference": {
-        "before": "プログラム経由（SDK）でClaude Codeを実行した際、実行時エラーやターン数上限に達した際のエラー情報が不完全で、呼び出し側のプログラムでの例外処理が困難でした。",
+        "before": "プログラム経由(SDK)でClaude Codeを実行した際、実行時エラーやターン数上限に達した際のエラー情報が不完全で、呼び出し側のプログラムでの例外処理が困難でした。",
         "after": "エラーフラグが正確にセットされ、何が起きたかを示す具体的なメッセージが含まれるようになったため、自動化システムでのハンドリングが容易になります。",
         "benefit": "Claude Codeを自作のスクリプトやCIツールに組み込んでいる開発者にとって、デバッグとエラー復旧が大幅に楽になります。"
       }
     },
     {
+      "id": "78d5142d7ce6",
       "content": "- Fixed task notifications being lost when backgrounding a session with Ctrl+B",
       "content_ja": "Ctrl+Bでセッションをバックグラウンドにした際、タスクの通知が失われる問題を修正しました。",
       "prefix": "Fixed",
@@ -461,6 +493,7 @@
       "related_docs": []
     },
     {
+      "id": "07b5f5333c3b",
       "content": "- Fixed PreToolUse/PostToolUse hooks not providing `file_path` as an absolute path for Write/Edit/Read tools",
       "content_ja": "Write/Edit/Readツールにおいて、PreToolUse/PostToolUseフックが `file_path` を絶対パスで提供していなかった問題を修正しました",
       "prefix": "Fixed",
@@ -477,13 +510,15 @@
       }
     },
     {
+      "id": "6eb5876daaed",
       "content": "- Improved PowerShell tool prompt with version-appropriate syntax guidance (5.1 vs 7+)",
-      "content_ja": "PowerShellツールのプロンプトを改善し、バージョン（5.1と7以降）に応じた適切な構文ガイドを表示するようにしました。",
+      "content_ja": "PowerShellツールのプロンプトを改善し、バージョン(5.1と7以降)に応じた適切な構文ガイドを表示するようにしました。",
       "prefix": "Improved",
       "feature_areas": ["Settings"],
       "related_docs": []
     },
     {
+      "id": "e2c9a1a3c70c",
       "content": "- Thinking summaries are no longer generated by default in interactive sessions — set `showThinkingSummaries: true` in settings to restore",
       "content_ja": "対話型セッションにおける思考プロセスの要約(Thinking summaries)のデフォルト表示を無効化",
       "prefix": "Changed",
@@ -506,6 +541,7 @@
       }
     },
     {
+      "id": "2e85393789d5",
       "content": "- Auto mode denied commands now show a notification and appear in `/permissions` → Recent tab",
       "content_ja": "オートモードで拒否されたコマンドの通知機能を追加し、最近のパーミッション履歴で確認可能に",
       "prefix": "Changed",
@@ -528,6 +564,7 @@
       }
     },
     {
+      "id": "1e41550a39eb",
       "content": "- `/env` now applies to PowerShell tool commands (previously only affected Bash)",
       "content_ja": "`/env` 設定がPowerShellツール経由のコマンド実行にも適用されるよう改善",
       "prefix": "Changed",
@@ -550,6 +587,7 @@
       }
     },
     {
+      "id": "80993695f525",
       "content": "- `/usage` now hides redundant \"Current week (Sonnet only)\" bar for Pro and Enterprise plans",
       "content_ja": "ProおよびEnterpriseプランにおいて、`/usage` コマンドの重複した使用量バーを非表示化",
       "prefix": "Changed",
@@ -569,6 +607,7 @@
       }
     },
     {
+      "id": "47597127d17c",
       "content": "- Collapsed tool summary now shows \"Listed N directories\" for ls/tree/du instead of \"Read N files\"",
       "content_ja": "ツール実行の要約表示において、ls/tree/du実行時は「N個のファイルを読んだ」ではなく「N個のディレクトリを一覧表示した」と表示するように変更しました。",
       "prefix": "Changed",
@@ -576,6 +615,7 @@
       "related_docs": []
     },
     {
+      "id": "efdd3e47cac2",
       "content": "- Image paste no longer inserts a trailing space",
       "content_ja": "画像を貼り付けた際、末尾に不要なスペースが挿入されないよう変更しました。",
       "prefix": "Changed",
@@ -583,6 +623,7 @@
       "related_docs": []
     },
     {
+      "id": "7e3318d426fc",
       "content": "- Pasting `!command` into an empty prompt now enters bash mode, matching typed `!` behavior",
       "content_ja": "空のプロンプトに `!command` を貼り付けた際、自動的にBashモードへ移行する挙動を追加",
       "prefix": "Changed",

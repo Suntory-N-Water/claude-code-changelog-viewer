@@ -1,0 +1,35 @@
+{
+  "number": 29716,
+  "title": "[BUG] WorktreeCreate / Remove hooks not called in Claude Desktop",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n- My project has WorktreeCreate and WorktreeRemove hooks setup that change where Git worktrees are managed\n- When I create a worktree via Claude Desktop, it is still creating them in `<project>/.claude/worktrees`, and not using the Hooks\n- I also have log files managed by my hooks, and their absence confirms they are not being called by Claude Desktop. The SessionStart hook seems to be called, but not the worktree ones.\n\n### What Should Happen?\n\n- WorktreeCreate/Remove should be called by Claude Desktop.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1.  Check out https://github.com/clayallsopp/worktree-desktop-repro\n2. run `claude -w worktree-test`\n3. observe the worktree is created in `./custom-worktrees/worktree-test`\n4. observe log entry in `./logs`\n5. Open that repo in Claude Desktop\n6. Ask a question about the with worktree enabled\n7. Observe worktree created in `.claude/worktrees`\n8. Observe no new log entry in `./logs`\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.52\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "has repro", "platform:macos", "area:ide", "area:hooks"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-01T00:41:35Z",
+  "updated_at": "2026-06-30T16:11:35Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 22,
+  "author": "clayallsopp",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "sstklen",
+      "author_association": "NONE",
+      "body": "Spent some time digging into this. Here's what I found:\n\n**What's happening:** WorktreeCreate and WorktreeRemove hooks are only invoked by the Claude Code CLI (`claude -w`), not by Claude Desktop. The SessionStart hook fires in both environments, confirming Desktop does process hooks — but the worktree-specific lifecycle hooks are skipped. This affects any project relying on custom worktree management via hooks when used through Claude Desktop.\n\n\n📊 _We found 5 similar cases in our knowledge bas",
+      "created_at": "2026-03-01T04:51:10Z"
+    },
+    {
+      "author": "skyksandr",
+      "author_association": "NONE",
+      "body": "Reproducible on my end too. Happy to assist on debugging/testing if needed",
+      "created_at": "2026-03-12T04:31:39Z"
+    },
+    {
+      "author": "Aryan-Poonacha",
+      "author_association": "NONE",
+      "body": "Also reproducible on mine, I just did SessionStart cleanup hook to clean up old sessions when starting a new one instead",
+      "created_at": "2026-03-13T18:45:58Z"
+    }
+  ]
+}

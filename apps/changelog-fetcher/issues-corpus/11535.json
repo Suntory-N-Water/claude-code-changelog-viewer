@@ -1,0 +1,35 @@
+{
+  "number": 11535,
+  "title": "Expose token usage data to statusline scripts",
+  "body": "# Feature Request: Expose Token Usage Data to Statusline Scripts\n\n## Summary\n\nRequest to expose granular token usage information (tokens used, tokens remaining, max tokens) to custom statusline scripts via the JSON context object.\n\n## Current Behavior\n\nThe JSON object passed to custom statusline scripts (via `statusLine.command`) currently includes:\n\n```json\n{\n  \"session_id\": \"...\",\n  \"transcript_path\": \"...\",\n  \"cwd\": \"/workspace\",\n  \"model\": {\n    \"id\": \"claude-sonnet-4-5-20250929\",\n    \"display_name\": \"Sonnet 4.5\"\n  },\n  \"workspace\": {\n    \"current_dir\": \"/workspace\",\n    \"project_dir\": \"/workspace\"\n  },\n  \"version\": \"2.0.37\",\n  \"output_style\": {\"name\": \"default\"},\n  \"cost\": {\n    \"total_cost_usd\": 4.267483249999999,\n    \"total_duration_ms\": 2257641,\n    \"total_api_duration_ms\": 951022,\n    \"total_lines_added\": 2109,\n    \"total_lines_removed\": 103\n  },\n  \"exceeds_200k_tokens\": false\n}\n```\n\n### What's Missing\n\nToken usage information is **not included**, despite being:\n1. Tracked internally by Claude Code\n2. Displayed in system warnings to Claude (e.g., \"Token usage: 132107/200000; 67893 remaining\")\n3. Used to determine the `exceeds_200k_tokens` flag\n\nThe only token-related field is the boolean `exceeds_200k_tokens`, which provides insufficient granularity for creating informative statuslines.\n\n## Requested Behavior\n\nAdd token usage fields to the statusline JSON context:\n\n```json\n{\n  \"session_id\": \"...\",\n  \"model\": { ... },\n  \"workspace\": { ... },\n  \"tokens\": {\n    \"used\": 132107,\n    \"max\": 200000,\n    \"remaining\": 67893,\n    \"percentage_used\": 66.0535,\n    \"percentage_remaining\": 33.9465\n  },\n  \"exceeds_200k_tokens\": false,\n  \"cost\": { ... }\n}\n```\n\n### Proposed Fields\n\n| Field | Type | Description | Example |\n|-------|------|-------------|---------|\n| `tokens.used` | number | Total tokens used in current context window | 132107 |\n| `tokens.max` | number | Maximum tokens for the current model | 200000 |\n| `tokens.remaining` | number | Tokens remaining before auto-compact | 67893 |\n| `tokens.percentage_used` | number | Percentage of context used (0-100) | 66.0535 |\n| `tokens.percentage_remaining` | number | Percentage of context remaining (0-100) | 33.9465 |\n\n**Note**: The percentage fields could be optional if consumers prefer to calculate them from `used` and `max`.\n\n## Use Cases\n\n### 1. Context Percentage Display\nShow users exactly how much context remains:\n```bash\n# Statusline output: \"user | project master | 33.9% | Sonnet 4.5\"\ncontext_pct=$(echo \"$input\" | jq -r '.tokens.percentage_remaining')\nprintf \"%s | %s | %.1f%% | %s\" \"$user\" \"$project\" \"$context_pct\" \"$model\"\n```\n\n### 2. Visual Warnings\nChange statusline color/styling when context is running low:\n```bash\ntokens_remaining=$(echo \"$input\" | jq -r '.tokens.remaining')\nif [ \"$tokens_remaining\" -lt 20000 ]; then\n  color=\"\\033[1;31m\"  # Red when < 10% remaining\nelif [ \"$tokens_remaining\" -lt 50000 ]; then\n  color=\"\\033[1;33m\"  # Yellow when < 25% remaining\nelse\n  color=\"\\033[1;32m\"  # Green otherwise\nfi\n```\n\n### 3. Precise Token Count Display\nShow exact token usage for power users:\n```bash\n# Statusline output: \"132K/200K tokens | Sonnet 4.5\"\ntokens_used=$(echo \"$input\" | jq -r '.tokens.used')\ntokens_max=$(echo \"$input\" | jq -r '.tokens.max')\nprintf \"%dK/%dK tokens | %s\" $((tokens_used/1000)) $((tokens_max/1000)) \"$model\"\n```\n\n### 4. Context Budget Awareness\nHelp users manage their context budget more effectively:\n```bash\n# Statusline output: \"67K tokens left\"\ntokens_remaining=$(echo \"$input\" | jq -r '.tokens.remaining')\nprintf \"%dK tokens left\" $((tokens_remaining/1000))\n```\n\n## Benefits\n\n1. **User Experience**: Users can see exactly how much context they have left\n2. **Consistency**: Aligns with the token usage data already shown in system warnings\n3. **Customization**: Enables power users to create sophisticated statuslines\n4. **No Breaking Changes**: Additive change - existing statusline scripts continue to work\n5. **Performance**: No additional computation needed - data is already tracked internally\n\n## Workarounds Attempted\n\n### 1. Parse Transcript File\n**A",
+  "labels": ["enhancement", "has repro", "area:tui", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-13T04:55:26Z",
+  "updated_at": "2026-06-18T14:03:26Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 11,
+  "author": "attaris-base",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "JoMiPeCa",
+      "author_association": "NONE",
+      "body": "Have yoiu notice recently that claude is using a lot more tokens ? \n\nMy sessions have been consuming more tokens than before and claude performance is degraded...",
+      "created_at": "2025-11-17T17:47:56Z"
+    },
+    {
+      "author": "polczak-itt",
+      "author_association": "NONE",
+      "body": "The [ccstatusline](https://github.com/sirmalloc/ccstatusline) project (which is the most popular way of configuring custom complex status lines for Claude Code) uses some inaccurate estimates for showing its users current context usage % and implementing this feature request is the only option to improve the situation (rel: https://github.com/sirmalloc/ccstatusline/issues/109#issuecomment-3544060114)",
+      "created_at": "2025-11-18T16:03:26Z"
+    },
+    {
+      "author": "darnoxx",
+      "author_association": "NONE",
+      "body": " As a Claude Code Max plan user, the inability to display /context data (current context window usage) in the statusline remains a major disappointment.\n\n  Key points:\n  1. The v2.0.65 \"context window info\" feature is misleading - it provides cumulative API call totals, not actual context window state—NOT applicable to Max plan users\n  2. Max plan users with 200k context windows need to monitor how close they are to the limit\n  3. The data exists (shown by /context command) but isn't exposed to ",
+      "created_at": "2025-12-11T18:21:27Z"
+    }
+  ]
+}

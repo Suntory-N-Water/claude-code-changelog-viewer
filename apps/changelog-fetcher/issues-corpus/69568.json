@@ -1,0 +1,35 @@
+{
+  "number": 69568,
+  "title": "[Bug] Resume/fork includes completed-turn thinking signatures, inflating context usage to near limits",
+  "body": "**Bug Description**\nResume/fork replays all completed-turn thinking signatures and counts them against context. Forked session showed 967k/1M Messages; ~700k was thinking signatures (Opus 4.8, text omitted, signatures remain). Stripping all but the last 3 turns' thinking → 195k, and it resumed fine — so completed-turn thinking is droppable. Please omit completed-turn thinking when assembling the request on resume (keep the active round + keep them in the stored transcript for forking), or apply clear_thinking. As-is, usable context on long resumed sessions is far below 1M.\n\n**Environment Info**\n- Platform: linux\n- Terminal: gnome-terminal\n- Version: 2.1.170\n- Feedback ID: d68b3ef1-e9a6-41f9-b10c-e77a1b7414c9\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": ["bug", "platform:linux", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-19T13:06:44Z",
+  "updated_at": "2026-06-30T07:09:34Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "jirikavalik-comgate",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/42260\n2. https://github.com/anthropics/claude-code/issues/45419\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-06-19T13:11:46Z"
+    },
+    {
+      "author": "jirikavalik-comgate",
+      "author_association": "NONE",
+      "body": "The bot's right that #42260 is the same root cause (completed-turn thinking signatures replayed on resume) — credit there for the original diagnosis. But #42260 is closed/stale, and the impact is now far larger than the ~25% it measured: on Opus 4.8 with a 1M window and thinking text omitted by default, the replayed signatures are the dominant cost — ~967k of my 1M context was Messages, ~700k of it pure signature. #45419 (/branch context inflation, ~675k jump) is very likely the same mechanism s",
+      "created_at": "2026-06-19T13:22:39Z"
+    },
+    {
+      "author": "jirikavalik-comgate",
+      "author_association": "NONE",
+      "body": "Worth separating this from the resume cache-regression cluster (#34629, #40524, and the community cache-fix tools): those are about cache reads — cost per turn. This is about window occupancy — cached tokens still count against the 1M window, so even with a perfect resume cache the signatures still consume the bulk of usable context. The two compound; neither fixes the other.\n\nOn \"preserve thinking by design for reasoning continuity\" (Opus 4.5+ docs): agreed that's the intent, and the signature ",
+      "created_at": "2026-06-19T13:40:50Z"
+    }
+  ]
+}

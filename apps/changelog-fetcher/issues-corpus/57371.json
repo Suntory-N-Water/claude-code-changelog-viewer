@@ -1,0 +1,35 @@
+{
+  "number": 57371,
+  "title": "Claude Desktop (Windows): provide a way to disable the bundled Cowork background service (CoworkVMService) for users who don't use Cowork",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nOn Windows, Claude Desktop bundles a packaged Win32 service called `CoworkVMService` (running `app\\resources\\cowork-svc.exe` as `localSystem`) inside its MSIX package. The service is registered with `StartupType=\"auto\"` and starts on every system boot — even when the user has never opened Cowork or has decided not to use it.\n\nI'm primarily a Claude Code user. I tried Cowork once early on, decided Claude Code suits my workflow better, and haven't used Cowork since. But `cowork-svc.exe` still spins up on every boot, takes RAM, and there is no way to turn it off:\n\n- **No in-app toggle** in Claude Desktop to disable Cowork or its background service.\n- **Standard Windows methods are blocked** because it's an MSIX-packaged service:\n  - `sc.exe config CoworkVMService start= disabled` returns `OpenService FAILED 5: Access is denied`, even from an elevated Administrator PowerShell.\n  - `Set-Service -StartupType Disabled` has the same problem.\n- **The package manifest hardcodes** `<desktop6:Service Name=\"CoworkVMService\" StartupType=\"auto\" StartAccount=\"localSystem\">`, so even a clean reinstall would re-register it identically. Uninstalling Claude Desktop is not an option for me — I use it daily.\n- **The only workarounds are user-hostile**: take ownership of `HKLM\\SYSTEM\\CurrentControlSet\\Services\\CoworkVMService` and force `Start=4`, or schedule a `Stop-Service` task at logon. Both may break on package updates and feel wrong on a system level.\n\n**Separate but related issue:** the Claude Desktop in-app *Run on startup* toggle (Settings → General desktop settings) does not persist when toggled off — switching to another tab in Settings and back shows the toggle back ON without the user touching it. (In Windows Settings → Apps → Startup and Task Manager's Startup tab, Claude is correctly Disabled and stays Disabled. The persistence bug is only inside Claude Desktop's own Settings UI.)\n\n### Proposed Solution\n\nAny one of these would solve the core problem:\n\n1. **Change the service to trigger-only** in the package manifest — drop `StartupType=\"auto\"` so the service only spins up when the user actually invokes Cowork, and stays out of the boot path otherwise. The manifest already declares trigger events (`\\pipe\\cowork-vm-service`), so this should be a small change.\n2. **Add an in-app toggle** in Claude Desktop Settings: *Enable Cowork background service* (default ON). When OFF, the app stops the service and keeps it from auto-starting on next boot. Because user-side `sc.exe` can't modify packaged services, this needs to be done by code shipping inside the package (which has the rights).\n3. **Make Cowork an optional component at install time**, or expose an *Uninstall Cowork component* action for users who only use Claude Code CLI / Claude Desktop chat.\n\nAlso, please fix the in-app *Run on startup* toggle so the OFF state persists across tab navigation and app restarts.\n\n### Alternative Solutions\n\nWhat I currently do (none of these are real solutions):\n\n- Take ownership of `HKLM\\SYSTEM\\CurrentControlSet\\Services\\CoworkVMService` and force `Start=4` — risky and may be reverted on package update; also feels wrong to modify package-protected registry from the user side.\n- Schedule a `Stop-Service CoworkVMService` task at user logon — service still spins up on every boot, just gets killed within a couple seconds. Wastes resources.\n- Manually stop the service in services.msc each boot — won't survive reboot, has to be repeated daily.\n\nThere is no acceptable user-side workaround.\n\n### Priority\n\nMedium - Would be very helpful\n\n### Feature Category\n\nOther\n\n### Use Case Example\n\n1. I install Claude Desktop on Windows 11.\n2. Out of curiosity I open Cowork once, decide it's not for my workflow, and stop using it. (Or alternatively: I never open Cowork ",
+  "labels": ["enhancement", "platform:windows", "area:cowork", "area:desktop"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-08T18:24:52Z",
+  "updated_at": "2026-06-24T04:16:50Z",
+  "closed_at": null,
+  "reactions_total": 28,
+  "comments_count": 8,
+  "author": "itutar",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "j1mmie",
+      "author_association": "NONE",
+      "body": "This is absolutely shady. I either have to uninstall Claude, or run my computer with cowork-svc.exe in memory at startup. Nasty",
+      "created_at": "2026-05-26T05:32:42Z"
+    },
+    {
+      "author": "hanzov69",
+      "author_association": "NONE",
+      "body": "I noticed this today and came here as part of a search on the issue.\nAgree with @itutar's analysis and recommendations.\n\nCommenting here to keep issue fresh.",
+      "created_at": "2026-05-31T17:57:36Z"
+    },
+    {
+      "author": "NicolasPerego",
+      "author_association": "NONE",
+      "body": "To deactivate Cowork, on Windows, I killed all Claude instances, then modified the ``claude_desktop_config.json`` file by adding this in the ``\"Preferences\"`` section: ``\"secureVmFeaturesEnabled\": false,``. It then disabled the Cowork feature:\n\n<img width=\"419\" height=\"149\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/02d2cf0b-f09e-4357-b60f-9da00dec9321\" />\n\n<img width=\"539\" height=\"291\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/dedc9d47-447b-4697-ba58-e4e739f0e",
+      "created_at": "2026-06-05T16:00:30Z"
+    }
+  ]
+}

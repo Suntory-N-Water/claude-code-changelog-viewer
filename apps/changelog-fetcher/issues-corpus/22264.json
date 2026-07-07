@@ -1,0 +1,35 @@
+{
+  "number": 22264,
+  "title": "Sibling tool call errored: parallel tool calls cascade-fail when one fails",
+  "body": "## Description\n\nWhen Claude Code makes multiple tool calls in parallel (in a single message) and one of them fails, **all remaining sibling calls in that batch are automatically cancelled** with the error:\n\n```\nError: Sibling tool call errored\n```\n\nThis forces a retry of all the cancelled calls individually, adding unnecessary round-trips and context usage.\n\n## Steps to Reproduce\n\n1. Claude sends a single message with multiple parallel `Edit` tool calls (e.g., 5 edits across different files)\n2. One edit fails (e.g., `old_string` not found due to a prior edit changing the file)\n3. All other edit calls in the same batch — even those targeting completely different files — are cancelled with `Sibling tool call errored`\n\n## Expected Behavior\n\nIndependent tool calls that target different files should succeed or fail independently. A failure in one `Edit` call to `file_a.js` should not cancel an `Edit` call to `file_b.js`.\n\n## Actual Behavior\n\nAll sibling tool calls are cancelled regardless of whether they would have succeeded. Claude then has to re-read files and retry each call individually.\n\n## Impact\n\n- Extra round-trips and increased latency\n- Wasted context window (re-reading files, retrying edits)\n- Higher token usage / cost for users\n- Particularly noticeable when making broad changes across many files (e.g., adding a new model/feature across a codebase)\n\n## Environment\n\n- Claude Code CLI\n- Model: claude-opus-4-5-20251101\n- Platform: macOS (Darwin 24.6.0)",
+  "labels": ["bug", "has repro", "area:tools", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-31T21:55:18Z",
+  "updated_at": "2026-06-27T04:12:28Z",
+  "closed_at": null,
+  "reactions_total": 64,
+  "comments_count": 34,
+  "author": "ilanoh",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "mrw1986",
+      "author_association": "NONE",
+      "body": "+1 I've been having the same exact issue for the last few days.",
+      "created_at": "2026-02-04T17:08:25Z"
+    },
+    {
+      "author": "kerim",
+      "author_association": "NONE",
+      "body": "same here, didn't used to happen...",
+      "created_at": "2026-02-05T01:42:03Z"
+    },
+    {
+      "author": "carrotRakko",
+      "author_association": "NONE",
+      "body": "**Additional reproduction case: WebFetch parallel calls**\n\nI'm experiencing the same cascade failure with `WebFetch` tool calls.\n\n**Reproduction:**\n1. Claude sends 3 parallel `WebFetch` calls to different URLs\n2. One URL returns HTTP 403\n3. The other 2 calls are cancelled with `Sibling tool call errored`, even though they would likely have succeeded independently\n\n```\nWebFetch(site_a.com) → \"Sibling tool call errored\"\nWebFetch(site_b.com) → \"Sibling tool call errored\"\nWebFetch(site_c.com) → \"Req",
+      "created_at": "2026-02-06T13:27:43Z"
+    }
+  ]
+}

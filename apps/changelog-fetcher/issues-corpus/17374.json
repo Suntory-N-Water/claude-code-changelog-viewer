@@ -1,0 +1,41 @@
+{
+  "number": 17374,
+  "title": "Sandbox (bubblewrap) fails in git worktrees due to .git file structure",
+  "body": "## Preflight Checklist\n- [x] I searched existing issues and this bug hasn't been reported\n- [x] This is a single bug report (not multiple bugs)\n- [x] I am using the latest version of Claude Code\n\n## What's Wrong?\n\nThe bubblewrap sandbox fails when Claude Code runs in a git worktree. All sandboxed bash commands fail with:\n\n```\nbwrap: Can't mkdir parents for /path/to/worktree/.git/hooks: Not a directory\n```\n\nThis forces `dangerouslyDisableSandbox: true` for every bash command in worktrees, degrading security.\n\n## What Should Happen?\n\nSandboxed bash commands should work in git worktrees the same as in regular repositories.\n\n## Steps to Reproduce\n\n1. Enable sandbox (default on Linux with AppArmor userns workaround)\n2. Verify sandboxed bash works in main repo: `cd /path/to/repo && claude` → run any bash command\n3. Create worktree: `git worktree add .worktrees/test -b test HEAD`\n4. Run claude in worktree: `cd .worktrees/test && claude`\n5. Execute any sandboxed bash command (e.g., `ls`)\n6. **Result:** Fails with \"Can't mkdir parents for .git/hooks: Not a directory\"\n\n## Root Cause\n\nGit worktrees use a `.git` **file** (not directory) containing a pointer:\n```\ngitdir: /path/to/main/repo/.git/worktrees/worktree-name\n```\n\nbwrap tries to bind mount `.git/hooks` but fails because `.git` is a file. Since bwrap is fail-closed (correct security behavior), the entire sandbox aborts with exit code 1.\n\n## Is this a regression?\n\nNo, this never worked\n\n## Claude Code Version\n\n2.1.3\n\n## Platform\n\nAnthropic API\n\n## Operating System\n\nUbuntu/Debian Linux (Ubuntu 24.04)\n\n## Terminal/Shell\n\nOther (Gnome Terminal, also reproduced in VS Code integrated terminal)\n\n## Additional Information\n\n- `kernel.apparmor_restrict_unprivileged_userns = 1` (Ubuntu 24.04 default)\n- Custom `/etc/apparmor.d/bwrap-userns` to enable bwrap (standard workaround)\n- Sandbox works correctly in main repo, only fails in worktrees\n- Workaround: Manually approve `dangerouslyDisableSandbox: true` for all bash commands\n\n**Suggested fix:** Detect worktree `.git` file structure and either resolve to actual `.git` directory via the `gitdir:` pointer, or skip `.git/hooks` bind mounting for worktrees.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:core",
+    "area:security"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-10T20:54:34Z",
+  "updated_at": "2026-06-17T10:35:28Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 5,
+  "author": "jcorbettfrank",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "Passeli",
+      "author_association": "NONE",
+      "body": "Please fix this as currently it's impossible to set the bash command permissions such that those would actually work without constant permissions dialog interruptions. Workflow like this is such basic stuff that it's really strange that it does not work.",
+      "created_at": "2026-01-29T13:22:04Z"
+    },
+    {
+      "author": "qte77",
+      "author_association": "NONE",
+      "body": "Still hitting this in Claude Code v2.1.52 (Feb 2026). The built-in EnterWorktree tool creates worktrees under .claude/worktrees/ but then all git operations (merge, commit) fail because bwrap's denyWithinAllow blocks writes to .git/worktrees/<name>/HEAD, ORIG_HEAD, etc. The rules match bare path suffixes regardless of directory depth, so there's no way to exclude .git/worktrees/ subdirectories. The EnterWorktree tool and sandbox are incompatible — worktrees can be created but no git write operat",
+      "created_at": "2026-02-28T19:10:30Z"
+    },
+    {
+      "author": "3f6a",
+      "author_association": "NONE",
+      "body": "Friendly bump. I'm hitting this now.",
+      "created_at": "2026-03-27T10:02:57Z"
+    }
+  ]
+}

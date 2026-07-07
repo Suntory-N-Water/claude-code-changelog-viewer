@@ -1,5 +1,8 @@
 import type { ChangelogEntry } from '../changelog/changelog-entry';
-import type { AnalyzedChangelogEntry } from './analyzed-changelog-entry';
+import {
+  type AnalyzedChangelogEntry,
+  toAnalyzedChangelogEntryId,
+} from './analyzed-changelog-entry';
 import type { ChangelogAnalysis } from './changelog-analysis';
 
 export type AnalysisEntryMergeDecision =
@@ -21,16 +24,21 @@ export function mergeAnalysisEntries(
   currentEntries: ChangelogEntry[],
   existingAnalysis: ChangelogAnalysis | null,
 ): AnalysisMergeResult {
+  const existingById = new Map<string, AnalyzedChangelogEntry>();
+  for (const entry of existingAnalysis?.items ?? []) {
+    if (!existingById.has(entry.id)) {
+      existingById.set(entry.id, entry);
+    }
+  }
+
   const entriesNeedingSearch: ChangelogEntry[] = [];
   const decisions: AnalysisEntryMergeDecision[] = [];
 
-  for (const [index, entry] of currentEntries.entries()) {
-    const existingEntry = existingAnalysis?.items[index];
+  for (const entry of currentEntries) {
+    const id = toAnalyzedChangelogEntryId(entry.content);
+    const existingEntry = existingById.get(id);
 
-    if (
-      existingEntry !== undefined &&
-      existingEntry.content === entry.content
-    ) {
+    if (existingEntry !== undefined) {
       decisions.push({ kind: 'existing', entry: existingEntry });
       continue;
     }

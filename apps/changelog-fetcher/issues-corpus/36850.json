@@ -1,0 +1,35 @@
+{
+  "number": 36850,
+  "title": "feat: terminal bell (BEL) when Claude Code is waiting for tool approval",
+  "body": "\n## Summary\n\nRing the terminal bell (`\\a` / `BEL`) when Claude Code pauses and is waiting for the user to approve a tool use. This is distinct from a completion bell — it's a \"I need you right now\" signal, not a \"I'm done\" notification.\n\n## Motivation\n\nWhen Claude Code is running in a buried terminal or tmux pane, there's no way to know it's blocked on an approval prompt without switching to it and looking. The session silently waits, the user is doing something else, and minutes pass.\n\nA terminal bell on the approval prompt solves this without any external tooling — it works in tmux, screen, iTerm2, Wezterm, Ghostty, and every terminal that supports the standard BEL character. Most terminals can translate BEL into a visual bell, a dock badge, or a desktop notification depending on user preference. The user controls what \"bell\" means to them.\n\n## Proposed behavior\n\nWhen the approval prompt is displayed (the \"Allow / Deny\" dialog for tool use), emit a single `\\a` (BEL, `\\x07`) to stderr before or alongside the prompt text.\n\nOptionally, make this configurable:\n\n```json\n// ~/.claude/settings.json\n{\n  \"bellOnApproval\": true  // default: true\n}\n```\n\n## Why not just use the existing Notification hook?\n\nThe `Notification` hook fires for general notifications, not specifically for approval prompts. Wiring a bell through a hook requires the user to write and maintain a shell script for something that could be a one-liner in the core UI.\n\n## Related\n\n- #32610 — terminal bell on completion (different use case — \"I'm done\" vs \"I need you\")\n- #13922 — configurable idle_prompt notification hook\n\n---\n\n*Drafted with AI assistance. [AI-G](https://1angdon.com/ai-attribution) — fully AI-generated, human-reviewed.*\n",
+  "labels": ["enhancement", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-20T22:37:19Z",
+  "updated_at": "2026-06-30T17:13:18Z",
+  "closed_at": null,
+  "reactions_total": 9,
+  "comments_count": 12,
+  "author": "langdon",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34654\n2. https://github.com/anthropics/claude-code/issues/10532\n3. https://github.com/anthropics/claude-code/issues/652\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-20T22:42:49Z"
+    },
+    {
+      "author": "VoxCore84",
+      "author_association": "NONE",
+      "body": "We solved this with a `Notification` hook that fires Windows toast notifications via BurntToast (PowerShell module). It classifies the event type and adjusts urgency:\n\n- **Permission needed** → sound + 30s toast\n- **Task complete** → silent 8s toast\n- **Tool failure** → sound + 15s toast\n\nThe hook is ~90 lines of Python that spawns a detached `powershell.exe` process with a BurntToast command, falling back to `System.Windows.Forms.NotifyIcon` if BurntToast isn't installed.\n\nWorks well for the \"I",
+      "created_at": "2026-03-20T23:07:40Z"
+    },
+    {
+      "author": "langdon",
+      "author_association": "NONE",
+      "body": "These issues overlap in motivation but differ in proposed solution. #34654, #10532, and #652 request general notification or sound alerts — none proposes emitting `\\a` (BEL) specifically. The terminal bell is zero-dependency, terminal-universal, and already user-configurable (visual bell, dock badge, desktop notification) — it's the primitive that hook-based workarounds like the one in the sibling comment are trying to approximate. This issue is specifically proposing BEL as the correct minimal ",
+      "created_at": "2026-03-20T23:30:41Z"
+    }
+  ]
+}

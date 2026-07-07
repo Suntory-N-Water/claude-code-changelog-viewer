@@ -1,0 +1,35 @@
+{
+  "number": 37836,
+  "title": "Allow configuring protected directories in bypass permissions mode",
+  "body": "## Problem\n\nWhen using `bypassPermissions` mode (or `--dangerously-skip-permissions`), writes to `.claude/`, `.git/`, `.vscode/`, and `.idea/` directories still prompt for confirmation. While the intent is safety, this creates friction in two scenarios:\n\n### 1. Autonomous agent workflows (NightShift / Ralph loops)\n\nWorkers running in bypass mode need to write review/communication files to `.claude/nightshift/`. Every write triggers a permission prompt, breaking autonomous execution. The current exemptions (`.claude/commands/`, `.claude/agents/`, `.claude/skills/`) don't cover this.\n\n### 2. Power user sessions with heavy `.claude/rules/` editing\n\nUsers who frequently edit `.claude/CLAUDE.md` or `.claude/rules/*.md` get prompted repeatedly despite explicitly opting into bypass mode. The user already accepted the risk by enabling bypass — re-prompting for every `.claude/` write undermines that choice.\n\n## Proposed Solution\n\nAdd a configurable setting to extend the exemption list:\n\n```json\n{\n  \"permissions\": {\n    \"defaultMode\": \"bypassPermissions\",\n    \"bypassProtectedPaths\": [\n      \".claude/\"\n    ]\n  }\n}\n```\n\nOr alternatively, a broader toggle:\n\n```json\n{\n  \"skipProtectedDirectoryPrompts\": true\n}\n```\n\n### Alternatives considered\n\n- **Moving files out of `.claude/`** — works but forces architectural compromises to work around a CLI limitation\n- **Using option 2 (\"allow all edits in dir\")** — only lasts per-session, resets on restart, and doesn't help headless/autonomous workers\n- **`skipDangerousModePermissionPrompt: true`** — already set, but this only skips the initial bypass mode confirmation, not the per-directory protections\n\n## Context\n\n- Claude Code v2.1.81\n- Platform: Windows 11 (Git Bash)\n- Use case: Monorepo with extensive `.claude/` configuration (rules, skills, nightshift state, hooks)\n- The `.claude/skills/` exemption already proves this is safe to configure — extending it to other `.claude/` subdirs follows the same pattern\n\n## Who benefits\n\n- Anyone using `bypassPermissions` mode who edits `.claude/` files frequently\n- Autonomous agent frameworks (NightShift, Ralph loops, CI pipelines) that need to write state files\n- Teams with custom `.claude/` directory structures beyond commands/agents/skills\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "labels": ["enhancement", "platform:windows", "area:permissions", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-23T14:26:58Z",
+  "updated_at": "2026-06-24T15:04:30Z",
+  "closed_at": "2026-05-05T10:41:25Z",
+  "reactions_total": 2,
+  "comments_count": 11,
+  "author": "floraldo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "A PreToolUse hook can selectively unlock specific protected directories while keeping others locked:\n\\`\\`\\`bash\nINPUT=\\$(cat)\nTOOL=\\$(echo \"\\$INPUT\" | jq -r '.tool_name // empty' 2>/dev/null)\nFILE=\\$(echo \"\\$INPUT\" | jq -r '.tool_input.file_path // empty' 2>/dev/null)\n[[ \"\\$TOOL\" != \"Edit\" && \"\\$TOOL\" != \"Write\" ]] && exit 0\n[[ -z \"\\$FILE\" ]] && exit 0\nUNLOCKED=(\n    \".claude/commands\"\n    \".claude/skills\"\n    \".claude/agents\"\n    \".claude/rules\"\n    \".claude/todo.md\"\n)\nfor pattern in \"\\${UNLOCK",
+      "created_at": "2026-03-23T14:29:56Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/35942\n2. https://github.com/anthropics/claude-code/issues/36044\n3. https://github.com/anthropics/claude-code/issues/36282\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-23T14:30:41Z"
+    },
+    {
+      "author": "lightrow",
+      "author_association": "NONE",
+      "body": "> A PreToolUse hook can selectively unlock specific protected directories while keeping others locked: ```bash INPUT=$(cat) TOOL=$(echo \"$INPUT\" | jq -r '.tool_name // empty' 2>/dev/null) FILE=$(echo \"$INPUT\" | jq -r '.tool_input.file_path // empty' 2>/dev/null) [[ \"$TOOL\" != \"Edit\" && \"$TOOL\" != \"Write\" ]] && exit 0 [[ -z \"$FILE\" ]] && exit 0 UNLOCKED=( \".claude/commands\" \".claude/skills\" \".claude/agents\" \".claude/rules\" \".claude/todo.md\" ) for pattern in \"${UNLOCKED[@]}\"; do if [[ \"$FILE\" == _",
+      "created_at": "2026-03-24T16:52:13Z"
+    }
+  ]
+}

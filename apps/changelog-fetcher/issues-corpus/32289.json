@@ -1,0 +1,35 @@
+{
+  "number": 32289,
+  "title": "[Bug] Claude generates incorrect code/SQL and reports it as complete without validation",
+  "body": "## Bug Description\n\nClaude Code generates code or SQL with structural errors (wrong column counts, missing fields, incorrect syntax) and reports the output as successfully written and correct — without ever validating the generated artifact against the actual target schema or environment.\n\n## Concrete Example\n\nA Claude Code session was asked to write a SQL INSERT for `gameobject_template`. The table has 49 columns including `Data0` through `Data34` (35 data columns). Claude generated the INSERT with only 32 data values instead of 35, producing a 3-column mismatch.\n\nThe session reported:\n> \"SQL written successfully. 7 gameobject_template entries INSERTED.\"\n\nThe bug was only discovered in a **later session** when the SQL was actually executed:\n```\nERROR 1136 (21S01) at line 29: Column count doesn't match value count at row 1\n```\n\n## Root Cause\n\nClaude writes SQL/code by pattern-matching or counting from memory rather than:\n1. Reading the actual table schema (`DESCRIBE table`)\n2. Counting the generated values against the column list\n3. Doing a dry-run or syntax check\n\nThe model has no self-verification step between \"generate code\" and \"report success.\"\n\n## Impact\n\n- Broken artifacts sit undetected until a human or later session tries to use them\n- The confident completion message (\"successfully written\") creates false trust\n- In CI/CD or automation pipelines, this class of bug could propagate downstream\n\n## Related\n\n- #32281 — Claude reports task completion without executing operations (same confidence pattern, different failure mode)\n\n## Environment\n\n- Claude Code 2.1.71\n- Windows 11",
+  "labels": ["bug", "platform:windows", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-09T02:22:39Z",
+  "updated_at": "2026-06-27T14:35:13Z",
+  "closed_at": "2026-05-07T22:30:03Z",
+  "reactions_total": 0,
+  "comments_count": 10,
+  "author": "VoxCore84",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/23801\n2. https://github.com/anthropics/claude-code/issues/32291\n3. https://github.com/anthropics/claude-code/issues/12369\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-09T02:27:52Z"
+    },
+    {
+      "author": "VoxCore84",
+      "author_association": "NONE",
+      "body": "## Additional Detail: The Broken SQL File\n\n### The file that was generated incorrectly\n\n`sql/updates/world/master/2026_03_08_00_world.sql`, Section 2 — `gameobject_template` INSERT.\n\n### What Claude generated (wrong)\n\n```sql\nINSERT IGNORE INTO `gameobject_template`\n  (`entry`,`type`,`displayId`,`name`,`IconName`,`castBarCaption`,`unk1`,`size`,\n   `Data0`,`Data1`,`Data2`,`Data3`,`Data4`,`Data5`,`Data6`,`Data7`,`Data8`,`Data9`,\n   `Data10`,`Data11`,`Data12`,`Data13`,`Data14`,`Data15`,`Data16`,`Dat",
+      "created_at": "2026-03-09T02:33:20Z"
+    },
+    {
+      "author": "VoxCore84",
+      "author_association": "NONE",
+      "body": "## This Is Not a Duplicate\n\n### vs #23801 (\"Opus 4.6 reports success without verifying outcomes\") — CLOSED\n**Closed issue.** #23801 is about reporting success without verification — a behavioral pattern. #32289 is about a different failure mode: Claude **generates structurally incorrect code** (wrong column count in SQL) and reports it as correct. The artifact itself is broken, not just the verification. Even if Claude had perfect verification behavior, the code generation bug would still exist ",
+      "created_at": "2026-03-09T03:02:18Z"
+    }
+  ]
+}

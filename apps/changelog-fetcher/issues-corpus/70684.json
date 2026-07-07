@@ -1,0 +1,41 @@
+{
+  "number": 70684,
+  "title": "[BUG] sandbox: SOCKS5 proxy requires authentication that BSD nc cannot negotiate, breaking SSH git operations",
+  "body": "## Preflight Checklist\n- [x] I have searched existing issues and this hasn't been reported yet\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n## What's Wrong?\n\nWhen `sandbox.enabled: true` is set (via managed settings), Claude Code injects `GIT_SSH_COMMAND` into the shell to route SSH traffic through its SOCKS5 proxy:\n\n```\nGIT_SSH_COMMAND=ssh -o ControlMaster=no -o ControlPath=none -o ProxyCommand='nc -X 5 -x localhost:<PORT> %h %p'\n```\n\nThe sandbox's SOCKS5 proxy requires authentication, but BSD netcat (`/usr/bin/nc` on macOS) only supports unauthenticated SOCKS5. No credentials are provided in the injected `GIT_SSH_COMMAND`. The authentication negotiation fails and every SSH git operation (`git pull`, `git push`, `git fetch`) fails.\n\n## What Should Happen?\n\nSSH git operations should succeed through the sandbox proxy. Either the proxy should not require SOCKS5 authentication, or credentials should be embedded in the injected `GIT_SSH_COMMAND`.\n\n## Error Messages/Logs\n\n```\nnc: authentication method negotiation failed\nConnection closed by UNKNOWN port 65535\nfatal: Could not read from remote repository.\nPlease make sure you have the correct access rights and the repository exists.\n```\n\n## Steps to Reproduce\n\n1. Enable sandbox via managed settings (`sandbox.enabled: true`)\n2. Open Claude Code\n3. Run `git pull` on any repo with an SSH remote (`git@github.com:org/repo.git`)\n4. Observe the error above\n\nTo confirm the injected proxy is the cause:\n```sh\n# Inside a Claude Code bash session:\necho $GIT_SSH_COMMAND\n# Shows: ssh ... -o ProxyCommand='nc -X 5 -x localhost:PORT %h %p'\n\n# Workaround that confirms root cause:\nenv -u GIT_SSH_COMMAND git pull  # succeeds\n```\n\n## Claude Model\n\nNot applicable (sandbox/tooling bug)\n\n## Is this a regression?\n\nYes — previously worked, broke with a recent sandbox update\n\n## Claude Code Version\n\n2.1.190\n\n## Platform\n\nAnthropic API\n\n## Operating System\n\nmacOS\n\n## Terminal\n\niTerm2\n\n## Additional Information\n\n`/usr/bin/nc` on macOS does support SOCKS5 (`-X 5`) but only without authentication — there are no flags for SOCKS5 credentials. The proxy is requiring an auth method nc cannot satisfy.\n\nWorkaround: `export GIT_SSH_COMMAND=\"\"` before launching Claude Code bypasses the proxy injection.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "regression",
+    "area:sandbox"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-24T22:09:01Z",
+  "updated_at": "2026-06-26T23:30:15Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 3,
+  "author": "tylerodonnell",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "cflee",
+      "author_association": "NONE",
+      "body": "I think this is an issue that exists in 2.1.186 and higher. I am still seeing it in 2.1.191. \n\nThe authentication token is injected into `HTTP_PROXY`, `ALL_PROXY` but it is not set into `GIT_SSH_COMMAND` (and probably doesn't get supported as pointed out in the issue above).",
+      "created_at": "2026-06-25T07:01:04Z"
+    },
+    {
+      "author": "cblecker",
+      "author_association": "NONE",
+      "body": "The root cause is in [`sandbox-utils.ts` `generateProxyEnvVars()`](https://github.com/anthropic-experimental/sandbox-runtime/blob/433a67df/src/sandbox/sandbox-utils.ts#L279-L284). On macOS, `GIT_SSH_COMMAND` is set unconditionally with `nc -X 5`, even when `proxyAuthToken` is set:\n\n```typescript\nif (platform === 'macos') {\n  // macOS: use BSD nc SOCKS5 proxy support (-X 5 -x). nc has no SOCKS5\n  // auth, so when proxyAuthToken is set, git-over-ssh fails at the SOCKS\n  // handshake — use git-over",
+      "created_at": "2026-06-25T19:55:34Z"
+    },
+    {
+      "author": "jthurne",
+      "author_association": "NONE",
+      "body": "I tried the workaround suggested by @cblecker , but it did not work for me. ~Instead, I found I needed to unset the env var:~  Actually, this is also not a viable workaround.\n\n```json\n{\n  \"hooks\": {\n    \"SessionStart\": [\n      {\n        \"matcher\": \"\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'unset GIT_SSH_COMMAND' >> \\\"$CLAUDE_ENV_FILE\\\"\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```",
+      "created_at": "2026-06-26T15:57:50Z"
+    }
+  ]
+}

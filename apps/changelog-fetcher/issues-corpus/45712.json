@@ -1,0 +1,35 @@
+{
+  "number": 45712,
+  "title": "[BUG] Opus produces garbled multi-script output (Cyrillic/CJK/Tibetan mixed into English), triggers misleading usage policy violation",
+  "body": "### Preflight Checklist\n\n- [ ] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nTwo separate Claude Code sessions produced garbled output within 3 minutes of each other, both followed by a usage policy violation error. The garbled text contains wrong-script token substitutions (Cyrillic, CJK, Tibetan, Katakana mixed into English) — the model's semantic intent was coherent but token selection was broken.\n\n**Environment:**\n- Claude Code v2.1.97\n- Model: `opus[1m]` (claude-opus-4-6)\n- Account: Claude Max\n- Platform: macOS (Darwin 25.4.0)\n- Date: April 9, 2026, ~11:32-11:35 UTC\n\n#### Session 1 (`d63daf8e-7b05-460b-bf26-77291a5dc392`)\n\nMid-conversation during a skill/plugin symlink cleanup task. The model had just received an 8.5KB Bash tool result listing ~50 symlinks and was generating an analysis of the inventory.\n\nGarbled output (raw Unicode from transcript, line 110):\n\n```\n[U+0430][U+043F]own [U+043E][U+0444][U+0438][U+0446][U+0438][U+5BA4]OstTopontB I\n[U+043A][U+0435][U+043B]elinggrapp own and officialoot[U+043E][U+0444][U+0438][U+0446][U+0438]\nupdupd[U+9805]App old[U+0F53] sildebIt[U+30AA]app App montApp[U+0430][U+0449]ossma\n(app App originapp, originprecIt[U+0430][U+0449]amdaret app [U+0440][U+0435][U+043B]originet\napp et dar10dar2Val[U+00E8]ncia updependsil[U+89C2]debdar[U+89C2]motdebsildarsilmur\ndebdebsilare[U+8CA0]silliterdebpropobservdarsilnegsilide[U+6FC0]\n```\n\nWrong-script characters: Cyrillic (а, п, о, ф, и, ц, к, е, л, щ, р), CJK (室, 項, 观, 負, 激), Tibetan (ན), Katakana (オ). The Cyrillic sequence `офици` is the Russian transliteration of \"ofitsi-\" (beginning of \"official\") — suggesting the model intended to write \"official\" but selected Cyrillic phonetic equivalents instead of Latin tokens.\n\nThe API returned a usage policy violation and the session entered a cooldown (~1 min). On the next user prompt, the model recovered — it acknowledged the issue as \"a model-side generation glitch\" and completed the original task successfully. The corruption was transient, not persistent.\n\n#### Session 2 (`cdc036c9-d368-4bb5-a498-f38585e6a4dc`)\n\nA separate session opened to investigate Session 1's garbled output. The model had been running mundane `find` and `ls` commands searching for `.jsonl` session files. No repetitive or unusual content.\n\nGarbled output (line 39, ~3 minutes after Session 1's incident, as rendered in terminal):\n\n```\nheadI between upd\n\ntApp app spwidown10check non Nalready official updsil\n\nownect\n\nIt5check apanject80网, yfOta err006bI get more The a hupdown perform\nown的get servining。.\n\napp waddon A1 Dan ection apopofPlcial uen for\napp this official wen headlglocalchra observlongoroDcKirowaesameClled\n```\n\nWrong-script characters: CJK 网 (U+7F51), 的 (U+7684), full-width period 。(U+3002). The text also contains recognizable English fragments contextually relevant to the task (\"project\", \"check\", \"ID\", \"error\", \"connect\", \"serving\", \"local\", \"observe\") — the model's semantic reasoning was intact but token selection was scrambled. Same usage policy violation followed.\n\n#### Analysis performed\n\nA deterministic (non-LLM) Python script was run against both session transcripts to check for prompt injection:\n\n1. **No invisible/control Unicode characters found** — scanned 770K+ characters across both transcripts for zero-width, bidi override, control characters. Zero hits.\n2. **No adversarial content in tool results** — all consumed content was benign (symlink paths, directory listings, settings files, a SKILL.md file).\n3. **Character frequency analysis** — only non-ASCII character in all tool results was U+2014 (em dash, 5 occurrences).\n4. **The garbled output was contextually coherent** — in both sessions, the semantic intent of the garbled text matched what the model should have been writing about i",
+  "labels": ["bug", "duplicate", "platform:macos", "area:model", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-09T12:28:34Z",
+  "updated_at": "2026-06-18T22:46:24Z",
+  "closed_at": "2026-06-18T22:46:24Z",
+  "reactions_total": 1,
+  "comments_count": 10,
+  "author": "cyrusrc",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/44662\n2. https://github.com/anthropics/claude-code/issues/45711\n3. https://github.com/anthropics/claude-code/issues/45589\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-09T12:32:33Z"
+    },
+    {
+      "author": "cyrusrc",
+      "author_association": "NONE",
+      "body": "Related: #45711 — same symptoms (garbled output + usage policy violation on Opus 4.6 1M) on the same day, also affecting two simultaneous sessions. Different character substitution patterns (mathematical/symbolic characters in #45711 vs. Cyrillic/CJK/Tibetan in this issue), but same underlying token-sampling corruption.\n\nThis issue includes detailed forensic analysis (transcript Unicode inspection, deterministic scanning for prompt injection, character-level identification of wrong-script substi",
+      "created_at": "2026-04-09T12:34:22Z"
+    },
+    {
+      "author": "cyrusrc",
+      "author_association": "NONE",
+      "body": "Also likely related: #45703 — \"CLI Output Displays Corrupted or Unreadable Text\" filed at 12:01 UTC on the same day (macOS, v2.1.97, \"gibberish on my screen\"). Three independent reports of garbled output within a ~30-minute window on April 9.",
+      "created_at": "2026-04-09T12:36:06Z"
+    }
+  ]
+}

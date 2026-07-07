@@ -1,0 +1,35 @@
+{
+  "number": 21051,
+  "title": "[FEATURE] Display message timestamps in Claude Code CLI interface",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n## Summary\nAdd visible timestamps to all messages in the Claude Code CLI interface to help users track conversation chronology, debug issues, measure performance, and create timestamped documentation.\n\n## Environment\n- **OS**: WSL2 Ubuntu 24.04 on Windows 11 (applicable to all platforms)\n- **Claude Code Version**: Current as of 2026-01-26\n- **Use Case**: Professional development workflows requiring session tracking, debugging, documentation, and multi-day collaboration\n\n## Current Behavior\n\n### What Users See Now\nMessages appear in the Claude Code CLI with **no timestamp information**:\n\n```\nUser: Run the backup script\n\n[Assistant response appears with no visible time]\n\nUser: Check the logs\n[Assistant response appears with no visible time]\n\nUser: What time did that error occur?\n[No way to know without checking external logs or exporting session]\n```\n\n### Hidden Timestamp Data\nTimestamps **already exist** in the session .jsonl files but are **not displayed** in the live CLI interface:\n\n```jsonl\n{\"type\":\"userMessage\",\"text\":\"Run the backup script\",\"timestamp\":\"2026-01-26T09:15:23.456Z\"}\n{\"type\":\"assistantMessage\",\"text\":\"Running backup...\",\"timestamp\":\"2026-01-26T09:15:24.123Z\"}\n{\"type\":\"userMessage\",\"text\":\"Check the logs\",\"timestamp\":\"2026-01-26T09:18:45.789Z\"}\n```\n\nUsers can only see these timestamps by:\n1. Exporting session using session export tool\n2. Manually opening .jsonl files at `~/.claude/projects/[project]/[session-id].jsonl`\n3. Parsing with external tools\n\n**This creates a disconnect between available data and user experience.**\n\n## Desired Behavior\n\nDisplay timestamps for each message in the CLI interface, similar to how professional messaging applications (Teams, Slack, Discord) show message times.\n\n### Visual Examples\n\n#### Option A: Inline Timestamps (Compact)\n```\n[09:15:23] User: Run the backup script\n\n[09:15:24] Assistant: Running backup script...\n[Output appears here]\n\n[09:18:45] User: Check the logs\n```\n\n#### Option B: Right-Aligned Timestamps\n```\nUser: Run the backup script                                    09:15:23 AM\n\nAssistant: Running backup script...                            09:15:24 AM\n[Output appears here]\n\nUser: Check the logs                                           09:18:45 AM\n```\n\n#### Option C: Hover/Toggle\n```\nUser: Run the backup script     [timestamp visible on hover or toggle]\n```\n\n#### Option D: Full Date-Time for Session History\n```\n[2026-01-26 09:15:23] User: Run the backup script\n[2026-01-26 09:15:24] Assistant: Running backup...\n```\n\n## Use Cases: Why Timestamps Are Valuable\n\n### 1. Session Management\n- **Track when conversations happened**: Know if a session is from 2 hours ago or 2 days ago\n- **Resume work context**: \"I was working on backups yesterday afternoon around 3pm\"\n- **Session continuity**: Understand breaks between conversation segments\n- **Long-running sessions**: Track work across multi-day sessions (especially with laptop sleep mode)\n\n### 2. Debugging & Troubleshooting\n- **Error correlation**: \"The error occurred at 9:15am, let me check system logs from that time\"\n- **Timeline reconstruction**: Map Claude Code actions to external system events\n- **Performance tracking**: \"That command took from 9:15 to 9:18 (3 minutes)\"\n- **Identify bottlenecks**: See which operations take unusually long\n\n### 3. Productivity & Time Management\n- **Response time measurement**: How long did Claude take to respond?\n- **Session duration tracking**: How much time spent on a task?\n- **Work session boundaries**: Clear markers for when work started/stopped\n- **Billing/time tracking**: Professional users billing clients for development time\n\n### 4. Documentation & Knowledge Sharing\n- **Timestamped records**: Create documentation with temporal context\n- **Team collaboration**: Share conversations with \"This happen",
+  "labels": ["enhancement", "has repro", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-26T19:14:28Z",
+  "updated_at": "2026-06-18T10:28:00Z",
+  "closed_at": null,
+  "reactions_total": 36,
+  "comments_count": 17,
+  "author": "tlelekas-cloud",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/2441\n2. https://github.com/anthropics/claude-code/issues/9921\n3. https://github.com/anthropics/claude-code/issues/20739\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-26T19:18:52Z"
+    },
+    {
+      "author": "tlelekas-cloud",
+      "author_association": "NONE",
+      "body": "What other proposed 'master' tickets are missing, is the use case included here which also requires some obvious DATE differentiation/separator, simply because a user might have a long session open for days and/or their machine open (not rebooted, or in and out of sleep mode) for days as well.\n\nThis is not uncommon at all, the DATE + TIME 'timestamp' must be smart and accurate enough to accommodate all such scenarios and present the much needed correct timestamp always of 'smartly' periodically ",
+      "created_at": "2026-01-26T19:29:55Z"
+    },
+    {
+      "author": "acron0",
+      "author_association": "NONE",
+      "body": "> What other proposed 'master' tickets are missing, is the use case included here which also requires some obvious DATE differentiation/separator, simply because a user might have a long session open for days and/or their machine open (not rebooted, or in and out of sleep mode) for days as well.\n> \n> This is not uncommon at all, the DATE + TIME 'timestamp' must be smart and accurate enough to accommodate all such scenarios and present the much needed correct timestamp always of 'smartly' periodi",
+      "created_at": "2026-02-24T14:02:03Z"
+    }
+  ]
+}

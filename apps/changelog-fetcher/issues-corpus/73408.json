@@ -1,0 +1,35 @@
+{
+  "number": 73408,
+  "title": "AFK auto-continue on unanswered AskUserQuestion (`afkTimeoutMs`) is undocumented and has no opt-out",
+  "body": "## Environment\n- Claude Code version: 2.1.198 (Homebrew native binary)\n- OS: macOS (darwin 25.5.0)\n- Install: `brew install --cask claude-code` (`/opt/homebrew/bin/claude`)\n\n## Summary\nAs of a recent 2.1.x release, when Claude asks a question via `AskUserQuestion` and the user doesn't respond within ~60 seconds, the harness injects a **synthetic user tool_result** with empty `answers` and instructs the model to proceed without the answer. The model then continues working - including running tools - without the user's input.\n\nThis behavior is:\n1. **Undocumented** - it appears in no changelog entry, no settings/env reference, and no existing issue.\n2. **Not opt-out-able** - there is no boolean disable, and no `settings.json` key. It is only tunable via an **undocumented environment variable** (`CLAUDE_AFK_TIMEOUT_MS`) that a user cannot discover without reverse-engineering the bundle.\n\n## Expected behavior\nWhen Claude asks the user a question, it waits for the user to answer (as in earlier versions). If an AFK/auto-continue timeout exists, it should be documented and have a first-class opt-out.\n\n## Actual behavior\n~60s after an unanswered `AskUserQuestion`, a synthetic `user` tool_result is injected:\n\n```\ncontent: \"No response after 60s - the user may be away from keyboard. Proceed using\n          your best judgment based on the context so far; you can re-ask this question\n          later if it's still relevant.\"\nanswers:  {}\nafkTimeoutMs: 60000\n```\n\nThe model treats this as permission to proceed and continues acting without the user, who was simply thinking / reading and not \"away from keyboard.\"\n\n## Reproduction\n1. On 2.1.198, get Claude into a flow where it calls `AskUserQuestion` (e.g. a clarifying/scoping question with multiple options).\n2. Do not answer for ~60 seconds.\n3. Observe: the countdown banner appears, then Claude proceeds on its own best guess and may start running tools - no answer was provided.\n\n## Findings (from the shipped bundle)\nThe timeout is env-var controlled, defaulting to 60000ms; it is not a `settings.json` key:\n\n- `CLAUDE_AFK_TIMEOUT_MS` - ms before auto-continue fires (default `60000`)\n- `CLAUDE_AFK_COUNTDOWN_MS` - ms before the timeout that the \"auto-continue in Ns\" banner shows (default `20000`)\n\nAuto-continue is suppressed when a screen reader is active or in background/daemon sessions, but there is no general boolean off-switch.\n\n## Requests\n1. **Document** `CLAUDE_AFK_TIMEOUT_MS` and `CLAUDE_AFK_COUNTDOWN_MS` (and the AFK/auto-continue behavior itself) in the settings + environment-variable reference and the changelog entry for the release that introduced it.\n2. **Provide a first-class opt-out** - e.g. a `settings.json` key (`afkAutoContinue: false` or similar) or a documented sentinel value meaning \"never auto-continue.\"\n3. **Fix the disable footgun:** setting `CLAUDE_AFK_TIMEOUT_MS=0` currently makes it fire *immediately* (0 is a valid int that overrides the default), so the only way to \"disable\" today is a very large integer (e.g. `2147483647`). A value of `0` (or `-1`) meaning \"never\" would match user expectations.\n\n## Related\n- #13922 (configurable timeout for the idle_prompt notification hook - related but about notifications, not auto-continue)\n- #22597 (auto-continue after user timeout - was closed as \"not planned\", yet the behavior now ships)\n- #29733 / #29889 (AskUserQuestion returning empty answers without waiting - likely the same mechanism observed before it had the `afkTimeoutMs` marker)\n",
+  "labels": ["documentation", "enhancement", "platform:macos", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-07-02T12:01:34Z",
+  "updated_at": "2026-07-03T11:43:03Z",
+  "closed_at": null,
+  "reactions_total": 14,
+  "comments_count": 3,
+  "author": "LukaPrebil",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "rlmumford",
+      "author_association": "NONE",
+      "body": "See #73125 ",
+      "created_at": "2026-07-02T12:20:42Z"
+    },
+    {
+      "author": "area51tazz",
+      "author_association": "NONE",
+      "body": "Independent confirmation from static analysis of the shipped 2.1.198 binary (macOS arm64, `/Users/.../claude`, same install path shape as OP):\n\n- The npm publish timestamp for `2.1.198` is `2026-07-01T16:50:16Z`, and the changelog entry for that release (background agent notifications) makes no mention of AFK/auto-continue — so this is confirmed to have shipped with zero changelog line, not just an omission in this issue's writeup.\n- The auto-continue path is instrumented with its own telemetry ",
+      "created_at": "2026-07-02T20:48:30Z"
+    },
+    {
+      "author": "fkarg",
+      "author_association": "NONE",
+      "body": "Thank you for the precise write-up — this matches what I found grepping the 2.1.198 binary myself, down to `CLAUDE_AFK_TIMEOUT_MS` / `CLAUDE_AFK_COUNTDOWN_MS` and the `=0` fires-immediately footgun. Strong +1 on all three asks.\n\nThe bit that bothers me most is the one the comments here already nailed: this isn't a bug or a rushed accident. A `afk-mode-2026-01-31` feature gate plus dedicated telemetry means it was a deliberate, staged decision to change a default users depend on — and it *still* ",
+      "created_at": "2026-07-03T11:43:03Z"
+    }
+  ]
+}

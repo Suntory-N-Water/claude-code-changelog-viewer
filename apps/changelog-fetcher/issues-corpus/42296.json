@@ -1,0 +1,35 @@
+{
+  "number": 42296,
+  "title": "Output uses hard newlines for word wrap, breaking tmux copy mode",
+  "body": "## Problem\n\nClaude Code wraps its text output by measuring the terminal/pane width and emitting actual newline characters at wrap points. This means tmux's copy mode treats every wrapped line as a separate line, because tmux sees hard newlines rather than soft wraps.\n\nWhen copying Claude Code output in tmux copy mode, the yanked text includes newlines and leading whitespace at every wrap point, even though the content is logically a single paragraph.\n\n## Expected behavior\n\nLong lines should be emitted as-is (without inserted newlines), allowing the terminal emulator to handle soft wrapping. This way, tmux's `GRID_LINE_WRAPPED` flag is preserved and copy mode yields the logical line.\n\n## Reproduction\n\n1. Run `claude` inside tmux\n2. Get a response with paragraphs of text\n3. Enter tmux copy mode (`prefix + [`)\n4. Select and yank a paragraph\n5. Paste — the text contains newlines at the pane width boundaries\n\nCompare with:\n```\nstring repeat -n 300 '='\n```\nCopying this in tmux copy mode correctly yields one line, because the terminal soft-wrapped it.\n\n## Environment\n\n- Claude Code CLI (latest)\n- tmux 3.5+ with `set -g mouse on` and vi copy mode\n- kitty terminal on Wayland (Hyprland)\n- Arch Linux\n\n## Possible solution\n\nProvide an option (e.g., `outputWrapping: \"soft\"` in settings.json) to emit long lines without inserted newlines, delegating word wrap to the terminal emulator. This would make tmux copy mode, terminal reflow on resize, and other terminal features work correctly with Claude Code output.",
+  "labels": ["enhancement", "platform:linux", "area:tui", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-01T23:43:03Z",
+  "updated_at": "2026-07-02T14:50:39Z",
+  "closed_at": "2026-05-12T22:37:00Z",
+  "reactions_total": 10,
+  "comments_count": 4,
+  "author": "jaehho",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/35905\n2. https://github.com/anthropics/claude-code/issues/26016\n3. https://github.com/anthropics/claude-code/issues/32190\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-01T23:46:51Z"
+    },
+    {
+      "author": "jfdube",
+      "author_association": "NONE",
+      "body": "This is an important issues, especially for multiplexer tools that allows docking Claude sessions.",
+      "created_at": "2026-04-03T14:25:01Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Closing for now — inactive for too long. Please [open a new issue](https://github.com/anthropics/claude-code/issues/new/choose) if this is still relevant.",
+      "created_at": "2026-05-12T22:36:59Z"
+    }
+  ]
+}

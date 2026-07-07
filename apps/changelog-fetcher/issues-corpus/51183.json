@@ -1,0 +1,35 @@
+{
+  "number": 51183,
+  "title": "[BUG] Bedrock: Claude Opus 4.7 returns permission_error despite AUTHORIZED entitlement status",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Summary\n\nClaude Opus 4.7 on Amazon Bedrock returns a `permission_error` at runtime despite the account being fully authorized according to AWS's control plane APIs.\n\n## Environment\n\n- **Regions tested:** us-east-1, us-east-2, us-west-2\n- **Model ID:** anthropic.claude-opus-4-7\n- **Inference Profiles:** us.anthropic.claude-opus-4-7, global.anthropic.claude-opus-4-7\n- **AWS CLI:** 2.34.32\n- **IAM Role:** AdministratorAccess (full permissions)\n- **Date:** 2026-04-20\n\n## Control Plane Says AUTHORIZED\n\n```bash\naws bedrock get-foundation-model-availability \\\n  --model-id anthropic.claude-opus-4-7 \\\n  --region us-east-1\n\n{\n    \"modelId\": \"anthropic.claude-opus-4-7\",\n    \"agreementAvailability\": { \"status\": \"AVAILABLE\" },\n    \"authorizationStatus\": \"AUTHORIZED\",\n    \"entitlementAvailability\": \"AVAILABLE\",\n    \"regionAvailability\": \"AVAILABLE\"\n}\nInference profiles also show ACTIVE:\n\n\naws bedrock list-inference-profiles --region us-east-1 \\\n  --query \"inferenceProfileSummaries[?contains(inferenceProfileId, 'opus-4-7')].{id:inferenceProfileId, status:status}\"\n\n[\n    { \"id\": \"us.anthropic.claude-opus-4-7\", \"status\": \"ACTIVE\" },\n    { \"id\": \"global.anthropic.claude-opus-4-7\", \"status\": \"ACTIVE\" }\n]\n\n### What Should Happen?\n\nInvoking `us.anthropic.claude-opus-4-7` via Bedrock should return a model response, consistent with the account's entitlement status (AUTHORIZED, AVAILABLE) as reported by `get-foundation-model-availability`. The same invocation pattern works for Claude Opus 4.6 on the same account.\n\n### Error Messages/Logs\n\n```shell\nBoth invoke-model and converse APIs fail:\n\naws bedrock-runtime converse \\\n  --model-id us.anthropic.claude-opus-4-7 \\\n  --messages '[{\"role\":\"user\",\"content\":[{\"text\":\"hi\"}]}]' \\\n  --inference-config '{\"maxTokens\":10}' \\\n  --region us-east-1\n\n{\n  \"type\": \"error\",\n  \"error\": {\n    \"type\": \"permission_error\",\n    \"message\": \"anthropic.claude-opus-4-7 is not available for this account. You can explore other available models on Amazon Bedrock. For additional access options, contact AWS Sales at https://aws.amazon.com/contact-us/sales-support/\"\n  }\n}\n```\n\n### Steps to Reproduce\n\n## Steps to Reproduce\n\n1. Confirm model entitlement shows AUTHORIZED:\n```bash\naws bedrock get-foundation-model-availability \\\n  --model-id anthropic.claude-opus-4-7 \\\n  --region us-east-1\nExpected output:\n\n\n{\n    \"modelId\": \"anthropic.claude-opus-4-7\",\n    \"agreementAvailability\": { \"status\": \"AVAILABLE\" },\n    \"authorizationStatus\": \"AUTHORIZED\",\n    \"entitlementAvailability\": \"AVAILABLE\",\n    \"regionAvailability\": \"AVAILABLE\"\n}\nConfirm inference profile is ACTIVE:\n\naws bedrock list-inference-profiles --region us-east-1 \\\n  --query \"inferenceProfileSummaries[?contains(inferenceProfileId, 'opus-4-7')].{id:inferenceProfileId, status:status}\"\nAttempt to invoke the model:\n\naws bedrock-runtime converse \\\n  --model-id us.anthropic.claude-opus-4-7 \\\n  --messages '[{\"role\":\"user\",\"content\":[{\"text\":\"hi\"}]}]' \\\n  --inference-config '{\"maxTokens\":10}' \\\n  --region us-east-1\nObserve permission_error despite step 1 and 2 confirming access:\n\n{\n  \"type\": \"error\",\n  \"error\": {\n    \"type\": \"permission_error\",\n    \"message\": \"anthropic.claude-opus-4-7 is not available for this account.\"\n  }\n}\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nClaude Opus 4.6 (us.anthropic.claude-opus-4-6-v1)\n\n### Claude Code Version\n\n2.1.113\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\nThe same permission_error occurs in the AWS Bedrock Console Model Playground when selecting Claude Opus 4.7, confirming this is not a CLI or SDK issue but an account-level entitlement ",
+  "labels": ["bug", "api:bedrock", "external"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-20T15:26:02Z",
+  "updated_at": "2026-07-03T05:12:53Z",
+  "closed_at": null,
+  "reactions_total": 11,
+  "comments_count": 34,
+  "author": "monumental-smm",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 1 possible duplicate issue:\n\n1. https://github.com/anthropics/claude-code/issues/49238\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-20T15:29:15Z"
+    },
+    {
+      "author": "monumental-smm",
+      "author_association": "NONE",
+      "body": "Why this is not a duplicate of #49238:\n\nIssue #49238 was a 400 invalid_request_error: \"invalid beta flag\" — a client-side request formatting problem (Claude Code was sending a beta header that Bedrock didn't recognize). That was resolved by fixing the client.\n\nOur issue is a permission_error: \"anthropic.claude-opus-4-7 is not available for this account\" — an account-level entitlement/authorization problem on Anthropic's runtime side. The request format is valid (same request works for Opus 4.6).",
+      "created_at": "2026-04-20T15:38:42Z"
+    },
+    {
+      "author": "monumental-smm",
+      "author_association": "NONE",
+      "body": "## Addendum: Quotas and Entitlements Confirmed\n\nAll AWS-side checks pass — the block is on Anthropic's runtime layer.\n\n### Service Quotas (non-zero, healthy)\n\n```\naws service-quotas list-service-quotas --service-code bedrock --region us-east-1 \\\n  --query \"Quotas[?contains(QuotaName, 'Opus') && contains(QuotaName, '4.7')]\"\n```\n\n```\nQuota                                                                                                                              Value\nCross-region model inference ",
+      "created_at": "2026-04-20T17:12:12Z"
+    }
+  ]
+}

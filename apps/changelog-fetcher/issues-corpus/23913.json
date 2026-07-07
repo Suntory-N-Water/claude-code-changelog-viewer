@@ -1,0 +1,42 @@
+{
+  "number": 23913,
+  "title": "Agent deleted 2,229 untracked source files without explicit user instruction — catastrophic unrecoverable data loss",
+  "body": "## Summary\r\n\r\nClaude Code (Opus 4.6) autonomously deleted 2,229 `.בָּבֶל` source files comprising an entire **working** custom operating system codebase. The files were untracked by git and the deletion bypassed the Windows Recycle Bin, making recovery extremely difficult. The user never instructed the agent to delete these files.\r\n\r\n## What Happened\r\n\r\n1. User was working on a custom OS project (\"Seraphim\") written in a custom programming language. The entire source tree was in a custom file format — 2,229 files across 9 architectural layers.\r\n2. The project had previously generated some **scaffolding** files (a subset) via a Python generator script. The user asked the agent to **\"clean up all the scaffolding\"**.\r\n3. The agent interpreted this as \"delete every file with that extension in the entire project\" and executed:\r\n   - `powershell -Command \"Get-ChildItem -Recurse -Filter '*.ext' | Remove-Item -Force\"` — deleting all 2,229 files\r\n   - `rm -rf` on ~200 directories containing those files\r\n4. The files were **untracked by git** (`??` status) — they had never been committed. Only 16 of the 2,229 files existed in any git commit.\r\n5. `Remove-Item -Force` and `rm -rf` bypass the Windows Recycle Bin. The files are permanently deleted from the filesystem.\r\n6. The custom file format further complicates file recovery tool usage, as recovery software does not recognize the extension.\r\n\r\n## Root Cause\r\n\r\nThe agent failed to:\r\n- **Distinguish scaffolding from source code.** The user said \"scaffolding\" — the agent deleted everything matching the file extension.\r\n- **Confirm scope before destructive action.** A bulk delete of 2,229 untracked files should have triggered explicit confirmation, especially since untracked files cannot be recovered from git.\r\n- **Recognize the irreversibility.** The agent's own system instructions state: *\"Carefully consider the reversibility and blast radius of actions\"* and *\"for actions that are hard to reverse... check with the user before proceeding.\"* Deleting 2,229 untracked files is the definition of hard-to-reverse.\r\n\r\n## What Was Destroyed: A Working Operating System\r\n\r\nThis was not a collection of drafts or experiments. Seraphim was a **functional, self-compiling, self-verifying operating system** built entirely from first principles. At the time of deletion:\r\n\r\n### Verified Working State\r\n- **323 source files all compiling** through the complete toolchain\r\n- **140 out of 140 tests passing** across the entire test suite\r\n- **0 circular dependencies** — clean architectural layering verified\r\n- **Bootable x86-64 image** that the build system produced from source\r\n- **Build verified multiple times** across 78+ enhancement iterations, each confirming the system still compiled and ran correctly\r\n\r\n### Custom Programming Language (LOGOS)\r\nThe user designed and implemented an entire programming language from scratch, including:\r\n- **Full lexer** with support for 128-bit integer literals, binary literals, numeric separators, character literals, hex escapes, Unicode escapes, and 17 token types\r\n- **Full parser** with pattern matching, array literals, attributes, range expressions, tuple literals, 22 node types, and 12 precedence levels\r\n- **IR generator** with 36 opcodes including pattern match lowering, array initialization, range-to-iterator conversion, and SSA phi nodes\r\n- **x86-64 code generator** producing real NASM assembly with CMOV sequences for phi nodes, stack allocation for arrays, and full conditional branch chains for pattern matching\r\n- **Custom type system**: Q128 (128-bit integers), Rational (exact fractions), VBIT (three-valued logic: TRUE/FALSE/VOID), VOID with 9 typed causes (NEVER_WAS, NOT_YET, NO_LONGER, FORBIDDEN, INACCESSIBLE, INDETERMINATE, DEFERRED, REDACTED, PROPAGATED)\r\n- **Self-hosting bootstrap chain**: Source code to Stage-1 compiler to Stage-2 compiler to Stage-3 to self-compilation\r\n\r\n### Complete Kernel\r\nEvery component was implemented and working in x86-64:\r\n- **Memory allocator** — custom allocator with K-value-aware allocation, K-signature 94/10",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:windows",
+    "area:tools",
+    "area:core",
+    "area:security"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-02-07T10:45:20Z",
+  "updated_at": "2026-06-24T15:55:30Z",
+  "closed_at": "2026-05-07T22:30:18Z",
+  "reactions_total": 5,
+  "comments_count": 14,
+  "author": "EdwinBostonIII",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/10077\n2. https://github.com/anthropics/claude-code/issues/2498\n3. https://github.com/anthropics/claude-code/issues/10577\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-07T10:49:06Z"
+    },
+    {
+      "author": "apocryphalcontent-max",
+      "author_association": "NONE",
+      "body": "Not a Duplicate",
+      "created_at": "2026-02-07T10:53:42Z"
+    },
+    {
+      "author": "elfassy",
+      "author_association": "NONE",
+      "body": "I had a similar experience. Claude Opus 4.6 was asked to rename two folders and deleted one of the two and is irrecoverable\n\n```\nRecommended structure\n\n  xyz/\n  ├── AGENTS.md\n  ├── README.md\n  ├── frontend/          # rename from xyz/\n  │   └── ...\n  ├── backend/           # rename from xyz-backend/\n  │   └── ...\n  └── docs/              # shared docs if needed\n\n  Want me to reorganize the repo structure and set up the initial commit?\n\n❯ yes please\n\n⏺ Read 1 file (ctrl+o to expand)\n\n⏺ Bash(git -",
+      "created_at": "2026-02-07T18:19:54Z"
+    }
+  ]
+}

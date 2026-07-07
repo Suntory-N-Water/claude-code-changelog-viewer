@@ -1,0 +1,23 @@
+{
+  "number": 68721,
+  "title": "2.1.178: native team-management tools TeamCreate / TeamDelete no longer surfaced (regression from 2.1.177)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n On Claude Code 2.1.178, the native agent-team tools TeamCreate and TeamDelete are missing from the session, even though CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 is set (the flag the docs say gates them). They cannot be loaded or called: ToolSearch select:TeamCreate,TeamDelete returns \"No matching deferred tools found,\"\n  and a broad search turns up SendMessage, TaskCreate, TaskList, TaskUpdate, and Agent but no Team* tool of any spelling. The session also reports these two tools as coming from an \"MCP server\" that \"disconnected,\" even though they are native Claude Code tools, not MCP-provided.\n\n  The result: there is no way to create a named agent team on 2.1.178. Agent with a team_name still runs, but it ignores the name and drops the member into the implicit session-<id> team. Only TeamCreate/TeamDelete are affected — the rest of the agent-teams surface (messaging, tasks, Agent spawning) still works, so\n  it's a targeted drop of the two team-management tools, not the whole feature.\n\n  The exact same machine, user, settings.json, and flag work correctly on 2.1.177 — TeamCreate/TeamDelete are present and functional — so this is a regression introduced in 2.1.178.\n\n### What Should Happen?\n\n  With CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 set, TeamCreate and TeamDelete should be present and callable in the session — exactly as documented in the tools reference, and exactly as they behave on 2.1.177. ToolSearch select:TeamCreate,TeamDelete should resolve and return their schemas, and calling TeamCreate {\n  team_name: \"...\" } should create the named team on disk (~/.claude/teams/<name>/config.json plus its task-list dir) and bind the session as that team's lead, so members can then be added with Agent using that team_name.\n\n  They are native Claude Code tools, so they should be surfaced as native tools that are reliably present whenever the flag is set — never reported as an \"MCP server\" that can \"disconnect,\" and never silently dropped while the rest of the agent-teams surface (SendMessage, Task*, Agent) stays available.\n\n### Error Messages/Logs\n\n```shell\nOn 2.1.178, attempting to load the tools:\n\n  ToolSearch  query: select:TeamCreate,TeamDelete\n  -> No matching deferred tools found\n\n  On 2.1.178, the session announced the tools as a disconnected MCP server (these are native tools, so this message itself is part of the defect):\n\n  The following deferred tools are no longer available (their MCP server disconnected).\n  Do not search for them — ToolSearch will return no match:\n  TeamCreate\n  TeamDelete\n  mcp__ide__executeCode\n  mcp__ide__getDiagnostics\n\n  A broad keyword search on 2.1.178 returned the rest of the agent-teams surface but no Team* tool:\n\n  ToolSearch  query: TeamCreate TeamDelete create agent team roster member\n  -> returns: TaskCreate, SendMessage, TaskList, agent_persona_launcher, ... (no TeamCreate / TeamDelete)\n\n  After rolling back to 2.1.177 (no other change), the same load succeeds:\n\n  ToolSearch  query: select:TeamCreate,TeamDelete\n  -> resolves; returns full JSON schemas for both TeamCreate and TeamDelete\n\n  And the call that was impossible on 2.1.178 succeeds on 2.1.177:\n\n  TeamCreate  { \"team_name\": \"xxxxx_test\" }\n  -> {\"team_name\":\"xxxxx_test\",\n      \"team_file_path\":\"/home/xxxxx/.claude/teams/xxxxx-test/config.json\",\n      \"lead_agent_id\":\"team-lead@xxxxx_test\"}\n\n  Note: there is no stack trace or thrown exception — the failure mode is a silent absence of the tools (and the misleading \"MCP server disconnected\" notice), not an error code. The \"proof\" is the presence/absence contrast between 2.1.177 and 2.1.178 on identical config.\n```\n\n### Steps to Reproduce\n\n 1. Use a native Claude Code install with tool search enabled (tools loaded via ToolSearch).",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "area:agents",
+    "regression"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-16T01:17:10Z",
+  "updated_at": "2026-06-23T02:22:32Z",
+  "closed_at": null,
+  "reactions_total": 7,
+  "comments_count": 17,
+  "author": "cjmsync",
+  "is_maintainer_involved": true,
+  "top_comments": []
+}

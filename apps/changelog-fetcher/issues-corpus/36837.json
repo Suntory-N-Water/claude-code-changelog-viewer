@@ -1,0 +1,35 @@
+{
+  "number": 36837,
+  "title": "[BUG] Discord plugin shows connected under --channels but does not receive gateway messages on Linux",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen running `claude --channels plugin:discord@claude-plugins-official` on Linux, the Discord plugin reports `✔ connected` in `/mcp`, but the bot never receives Discord DMs. No pairing codes are issued, and no messages are delivered to the Claude session.\n\nThe same bot token works immediately on macOS. Running the plugin's bun server standalone on the same Linux machine also works correctly — DMs are received and MCP notifications are generated.\n\n**Evidence:**\n- Plugin status in `/mcp`: `✔ connected` ✅\n- Discord gateway TCP connection established (ESTAB to 162.159.x.x) ✅\n- DMs received by bot: ❌ (access.json `pending` stays empty, no messages delivered)\n- Standalone `bun run start` on same machine: ✅ (DMs received, MCP notifications output to stdout)\n- Same token on macOS `claude --channels`: ✅ (works immediately)\n\n**Standalone test output (works):**\n```\ndiscord channel: gateway connected as ControlClaude#9927\n{\"method\":\"notifications/claude/channel\",\"params\":{\"content\":\"testing\",\"meta\":{\"chat_id\":\"...\",\"message_id\":\"...\",\"user\":\"keezer\",\"user_id\":\"713558987664130068\",\"ts\":\"2026-03-20T21:54:33.645Z\"}},\"jsonrpc\":\"2.0\"}\n```\n\n**Via `claude --channels` (broken):**\n- `/mcp` shows plugin as `✔ connected`\n- Sending DMs produces no output, no access.json changes, no Claude response\n\n### What Should Happen?\n\nDMs sent to the bot should be received and delivered to the Claude session, same as on macOS.\n\n### Steps to Reproduce\n\n1. Configure Discord bot token: `/discord:configure <token>`\n2. On Linux, run: `claude --channels plugin:discord@claude-plugins-official`\n3. Confirm plugin shows `✔ connected` in `/mcp`\n4. DM the bot from Discord\n5. Observe: no response, no pairing code, access.json unchanged\n\n**Contrast with working standalone:**\n```bash\ncd ~/.claude/plugins/cache/claude-plugins-official/discord/0.0.1\nsource ~/.claude/channels/discord/.env\nDISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN bun run start 2>&1\n# → \"discord channel: gateway connected as BotName#XXXX\"\n# → DMs received immediately\n```\n\n### Hypothesis\n\nThe Discord plugin's MCP transport connects successfully (explaining the `✔ connected` status), but the Discord.js WebSocket gateway session is not functioning when the plugin is spawned as a subprocess by `claude --channels`. The TCP connection to Discord's Cloudflare IPs appears established but messages are not delivered — possibly the gateway session is authenticating but not properly receiving dispatch events in this subprocess context.\n\n### Error Messages/Logs\n\nNo errors visible. The plugin shows as connected and produces no stderr output. The Discord gateway TCP connection shows as ESTAB but no messages arrive.\n\n### Claude Code Version\n\n2.1.80\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux (kernel 6.8.0-100-generic)\n\n### Terminal/Shell\n\nbash\n\n### Additional Information\n\n- macOS with same token and same plugin version works immediately\n- The bot process spawned by `claude --channels` (bun subprocess) has an ESTAB TCP connection to `162.159.130.234:443` (Discord/Cloudflare), suggesting the gateway connection is established at the TCP level but not functioning at the application layer\n- No competing instances running during testing\n",
+  "labels": ["bug", "platform:linux", "area:plugins", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-20T22:05:16Z",
+  "updated_at": "2026-06-25T11:04:28Z",
+  "closed_at": "2026-06-25T11:04:28Z",
+  "reactions_total": 1,
+  "comments_count": 14,
+  "author": "keezppc",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/36825\n2. https://github.com/anthropics/claude-code/issues/36503\n3. https://github.com/anthropics/claude-code/issues/36836\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-20T22:10:33Z"
+    },
+    {
+      "author": "salty-flower",
+      "author_association": "NONE",
+      "body": "See if this helps\n\nhttps://github.com/anthropics/claude-code/issues/36503#issuecomment-4102449083",
+      "created_at": "2026-03-21T06:21:21Z"
+    },
+    {
+      "author": "tjvjbtwbnk-star",
+      "author_association": "NONE",
+      "body": "Adding findings from a related issue (#37748) that may help diagnose this:\n\n**Environment**: Ubuntu Linux, headless tmux session, bun 1.3.11, discord.js 14.25.1, plugin v0.0.1\n\n**Symptom**: After extended idle periods, outbound tools (`reply`, `fetch_messages`) fail with `channel <id> is not allowlisted`. Inbound messages sometimes still arrive (gateway partially alive). `access.json` is correct on disk.\n\n**Root cause analysis**: The `fetchAllowedChannel()` function in `server.ts` (line ~392) ca",
+      "created_at": "2026-03-23T10:17:11Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 36205,
+  "title": "[Bug] EnterWorktree tool ignores WorktreeCreate/WorktreeRemove hooks",
+  "body": "**Bug Description**\n**`EnterWorktree` tool does not invoke `WorktreeCreate`/`WorktreeRemove` hooks**\n\nWhen `WorktreeCreate` and `WorktreeRemove` hooks are configured in `.claude/settings.json`, the `claude --worktree` CLI flag correctly invokes them. However, the in-session `EnterWorktree` tool (used when asking Claude to switch to a worktree mid-conversation, or via `Agent(isolation: \"worktree\")`) ignores these hooks entirely and uses built-in `git worktree add` instead.\n\nThis means any repo that needs custom worktree setup (e.g. git-crypt key symlinking, sparse checkout, post-checkout dependency installation) works with `--worktree` but fails mid-session.\n\n**Repro:**\n1. Configure a `WorktreeCreate` hook in `.claude/settings.json`\n2. Start Claude normally (without `--worktree`)\n3. Ask Claude to switch to a worktree – `EnterWorktree` runs built-in `git worktree add`, hook is never called\n\n**Expected:** `EnterWorktree` should invoke `WorktreeCreate`/`WorktreeRemove` hooks the same way the `--worktree` CLI flag does.\n\n**Environment Info**\n- Platform: darwin\n- Terminal: WarpTerminal\n- Version: 2.1.79\n- Feedback ID: 0f4e09a9-eb11-4fa5-bd88-7bf08c6261ea\n\n**Errors**\n```json\n[]\n```\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:hooks"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-19T13:23:38Z",
+  "updated_at": "2026-06-19T07:43:40Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 10,
+  "author": "plindberg",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Workaround: use a `PreToolUse` hook on `EnterWorktree` to trigger your own lifecycle hooks:\n```bash\nINPUT=$(cat)\nWORKTREE_PATH=$(echo \"$INPUT\" | jq -r '.tool_input.path // empty')\nif [ -n \"$WORKTREE_PATH\" ]; then\n    echo \"[WorktreeLifecycle] Entering worktree: $WORKTREE_PATH\" >&2\n    if [ -f \"$WORKTREE_PATH/.claude/worktree-setup.sh\" ]; then\n        bash \"$WORKTREE_PATH/.claude/worktree-setup.sh\" 2>&1\n    fi\nfi\nexit 0\n```\nSimilarly for cleanup:\n```bash\nINPUT=$(cat)\necho \"[WorktreeLifecycle] Exi",
+      "created_at": "2026-03-29T12:15:27Z"
+    },
+    {
+      "author": "yrichardson-talvy",
+      "author_association": "NONE",
+      "body": "Still reproduces as of Claude Code 2.1.x with Opus 4.7 (1M). Adding one data point: the `yurukusa` `PreToolUse` workaround only covers user-initiated `EnterWorktree` calls. Auto-spawned side sessions (whose worktree is pre-created by the harness before the session starts) never fire an `EnterWorktree` tool use, so there's no tool event to hook onto — the session just boots inside a `.claude/worktrees/<random>` path with the user's `WorktreeCreate` hook silently skipped. A `SessionStart` hook cou",
+      "created_at": "2026-04-20T20:38:15Z"
+    },
+    {
+      "author": "yrichardson-talvy",
+      "author_association": "NONE",
+      "body": "**Adding a permissioning angle**\n\nThis bug also has a subtle safety implication for users who scope dangerous capabilities by path glob in `permissions.deny`.\n\nMy `~/.claude/settings.json` denies things like:\n\n```jsonc\n\"Bash(*repos/sensitive_terraform_repo/*)\",\n\"Bash(*repos/sensitive_terraform_repo.worktrees/*)\"\n```\n\nThe intent: Claude can write Terraform inside that repo or its sibling worktrees, nowhere else. When `EnterWorktree` / harness-isolation creates a worktree of that repo under `<repo",
+      "created_at": "2026-04-26T13:34:46Z"
+    }
+  ]
+}

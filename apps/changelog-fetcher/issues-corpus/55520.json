@@ -1,0 +1,35 @@
+{
+  "number": 55520,
+  "title": "[BUG] npm install now ships Bun binary (v2.1.126) — npm workaround for non-AVX VPS is dead, no upgrade path",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAs of version 2.1.x, `npm install -g @anthropic-ai/claude-code` ships a Bun ELF binary (`claude.exe`) instead of a Node.js-based entry point. This means the npm installation path — the documented workaround for non-AVX environments — no longer works.\n\nI am a paying subscriber using Claude Code professionally for server administration and development across multiple dedicated servers and VPS instances (OpenStack, Proxmox KVM). I was forced to downgrade to version 2.0.62, which is the last version that actually runs on Node.js. I am now frozen on an outdated version with no upgrade path.\n\nThis affects all common virtualized environments: OpenStack, Proxmox KVM, Docker, LXC — any platform where AVX is not exposed to guests, which is the default for the vast majority of VPS providers and hypervisors worldwide.\n\nPrevious issues (#19904, #19967, #19981, #20611) all recommended npm install as the workaround. That workaround is now dead.\n\nBun itself publishes baseline builds without AVX dependency. The fix is straightforward.\n\n### What Should Happen?\n\nOne of the following:\n\n1. `npm install -g @anthropic-ai/claude-code` should install a version that runs on Node.js (as it did up to v2.0.62), OR\n2. The shipped Bun binary should be a baseline build without AVX dependency (Bun officially provides these), OR\n3. Runtime CPU detection should select the appropriate binary automatically\n\nUsers on virtualized infrastructure should not be locked out of updates. \"Upgrade your CPU\" is not actionable for VPS customers.\n\n### Error Messages/Logs\n\n```shell\n============================================================\nBun v1.3.14 (0a466a11) Linux x64 (baseline)\nLinux Kernel v6.1.0 | glibc v2.36\n\nArgs: \"claude\" \"--resume\"\nFeatures: jsc no_avx2 no_avx standalone_executable claude_code\nBuiltins: \"bun:main\"\n\nElapsed: 7956ms | User: 6200ms | Sys: 1758ms\nRSS: 4.56GB | Peak: 4.03GB | Commit: 4.56GB\n\nCPU lacks AVX support. Please consider upgrading to a newer CPU.\npanic(main thread): Segmentation fault at address 0x3063D000000\noh no: Bun has crashed. This indicates a bug in Bun, not your code.\n```\n\n### Steps to Reproduce\n\n1. Use any Linux VPS or VM where AVX is not available (OpenStack, Proxmox with default kvm64 CPU type, Docker, LXC — this is the default for most virtualized environments)\n2. Install Node.js 18+ via nvm\n3. Run: `npm install -g @anthropic-ai/claude-code` (installs v2.1.126)\n4. Verify the binary: `file $(which claude)` → shows ELF binary (Bun), not a Node.js script\n5. Run: `claude --version` → Segmentation fault / SIGILL\n\nWorkaround: `npm install -g @anthropic-ai/claude-code@2.0.62` — last version using Node.js runtime. But this locks the user out of all updates.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNo, this never worked\n\n### Last Working Version\n\n2.0.62\n\n### Claude Code Version\n\n2.1.126 (crashes) / 2.0.62 (works)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nImpact: I use Claude Code daily across multiple production servers for Laravel development, server administration, email infrastructure, and database operations. Being locked to v2.0.62 means I am paying for a product I cannot fully use.\n\nKey facts:\n- This is not exotic hardware. The majority of VPS instances worldwide do not expose AVX.\n- OpenStack, Proxmox (default kvm64), Docker, LXC — all affected by default.\n- Bun publishes official baseline builds without AVX: https://github.com/oven-sh/bun/releases\n- Tested on Debian 12, Debian 13, Ubuntu 22.04, Ubuntu 24.04 — same result everywhere.\n- The npm package at v2.1.126 contains `bin/claude.exe` which is a Bun ELF binary, not a Node.js entry point.\n- DISABLE_AUTOUPDATER=1 is require",
+  "labels": ["bug", "has repro", "platform:linux", "area:packaging"],
+  "state": "open",
+  "state_reason": "reopened",
+  "created_at": "2026-05-02T07:20:31Z",
+  "updated_at": "2026-06-23T08:24:18Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 13,
+  "author": "Nonabz",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/51976\n2. https://github.com/anthropics/claude-code/issues/50384\n3. https://github.com/anthropics/claude-code/issues/33153\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-02T07:24:06Z"
+    },
+    {
+      "author": "Nonabz",
+      "author_association": "NONE",
+      "body": "This is NOT a duplicate. The linked issues (#51976, #50384, #33153) describe the original AVX/Bun crash. My issue documents a NEW regression: as of v2.1.x, the npm installation path — which was the recommended workaround in ALL those issues — now ALSO ships a Bun ELF binary. The documented workaround is dead and there is no upgrade path for non-AVX environments.\n\nAdditionally, downgrading to the last Node.js-based version (2.0.62-2.0.76) no longer works because these versions are incompatible wi",
+      "created_at": "2026-05-02T08:06:58Z"
+    },
+    {
+      "author": "fulsdavid",
+      "author_association": "NONE",
+      "body": "Same issue. We're not able to expose AVX for security reasons on our VMs. We're forced to use a much older model with reduced functionality until this is fixed.",
+      "created_at": "2026-05-08T14:33:31Z"
+    }
+  ]
+}

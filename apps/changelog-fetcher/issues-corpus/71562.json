@@ -1,0 +1,35 @@
+{
+  "number": 71562,
+  "title": "[BUG] hasTrustDialogAccepted never persisted to ~/.claude.json despite repeated interactive sessions",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter months of interactive use in a project directory, the hasTrustDialogAccepted flag in ~/.claude.json remains false. On every new session, Claude Code warns:\n\nIgnoring 20 permissions.allow entries from .claude/settings.local.json:\nthis workspace has not been trusted. Run Claude Code interactively here\nonce and accept the trust dialog, or set\nprojects[\"/path/to/project\"].hasTrustDialogAccepted: true in ~/.claude.json.\n\nFlag stays false indefinitely. projectOnboardingSeenCount increments correctly (value: 4), proving the project was opened interactively multiple times - but the trust acceptance is never written.\n\nEnvironment:\n\n- OS: Linux (Debian 13, kernel 6.12)\n- Claude Code: 2.1.193 \n- Project path: /home/username/workdir/projectname\n\n### What Should Happen?\n\nAfter accepting the trust dialog once, hasTrustDialogAccepted is set to true and persists across sessions.\n\n\n\n\n\n### Error Messages/Logs\n\n```shell\nIgnoring 20 permissions.allow entries from .claude/settings.local.json:\nthis workspace has not been trusted. Run Claude Code interactively here\nonce and accept the trust dialog, or set\nprojects[\"/path/to/project\"].hasTrustDialogAccepted: true in ~/.claude.json.\n```\n\n### Steps to Reproduce\n\n1. Open a project directory with Claude Code interactively\n2. Proceed through any trust/onboarding dialog\n3. Close and reopen the project multiple times\n4. Observe hasTrustDialogAccepted in ~/.claude.json\n\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nversion before latest\n\n### Claude Code Version\n\n2.1.193\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nWorkaround:\n\nManually set hasTrustDialogAccepted: true in ~/.claude.json.",
+  "labels": ["bug", "platform:linux", "area:security"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-26T09:37:49Z",
+  "updated_at": "2026-07-04T03:39:47Z",
+  "closed_at": null,
+  "reactions_total": 7,
+  "comments_count": 11,
+  "author": "SecBurg",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "The detail that `projectOnboardingSeenCount` increments to 4 while `hasTrustDialogAccepted` stays `false` is actually the most useful clue here, because it rules out the explanation people usually reach for first.\n**What it rules out — path-key mismatch.** Both fields live under the *same* object: `projects[\"/home/username/workdir/projectname\"]`. If the onboarding counter is incrementing, then Claude Code *is* locating and writing that exact project key on every run. So this is not the classic \"",
+      "created_at": "2026-06-26T09:49:08Z"
+    },
+    {
+      "author": "SecBurg",
+      "author_association": "NONE",
+      "body": "Hi @yurukusa ,\n\nthanks for investigating!\n\nTo answer your questions:\n\n1. trust dialog is _accepted_\n2. echo \"$CLAUDE_CONFIG_DIR\" <- outputs nothing (as expected, I don't set this variable anywhere),\n3.  ~/.claude.json is writable and is NOT synced by any tools:\n\nbefore session:\n``` \nstat ~/.claude.json  \n  File: /home/username/.claude.json\n  Size: 90613           Blocks: 184        IO Block: 4096   regular file\nDevice: 8,1     Inode: 16258919    Links: 1\nAccess: (0600/-rw-------)  Uid: ( 1000/  ",
+      "created_at": "2026-06-26T16:05:54Z"
+    },
+    {
+      "author": "eparis",
+      "author_association": "NONE",
+      "body": "I'm having the same message - though on startup claude isn't asking me to trust it and projectOnboardingSeenCount stays 0.  I know .claude.json is writable, because the directory/project shows up in the file at all. So mine is even worse.",
+      "created_at": "2026-06-26T18:52:45Z"
+    }
+  ]
+}

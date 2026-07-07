@@ -1,0 +1,35 @@
+{
+  "number": 54670,
+  "title": "[FEATURE] VSCode extension: Copy chat response as markdown source",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nIn the Claude Code **VSCode native extension**, selecting text in the chat panel and pressing `Cmd+C` / `Ctrl+C` copies only the rendered visible text. All markdown formatting is lost — code fences, bullets, headings, bold/italic, links, file-path hyperlinks, tables, etc. all collapse into plain prose.\n\nUnlike the terminal CLI, the VSCode extension does **not** expose the `/copy` slash command (running it returns `copy isn't available in this environment`), and there's no context-menu item, toolbar button, or setting to copy the raw markdown instead.\n\nThis is distinct from existing request #48489, which targets the Windows desktop app and whose workaround is presumably `/copy` in the CLI. In the VSCode extension there is no equivalent escape hatch — the chat panel is the only surface and it strips formatting unconditionally. #12413 (closed as duplicate) covered the same VSCode-specific concern but never received a targeted resolution.\n\n### Proposed Solution\n\nAny one of the following would solve it, in order of preference:\n\n1. **Context-menu action on assistant messages:** Right-click an assistant message (or a selection within it) → \"Copy as markdown\" → raw markdown source goes to the clipboard.\n2. **Per-message copy button:** A small copy icon on hover over each assistant message that copies the raw markdown of that message.\n3. **Setting:** `claudeCode.copyRawMarkdown: true` that makes the existing `Cmd+C` on a selection return markdown source instead of rendered text.\n4. **Keybinding:** A distinct shortcut such as `Cmd+Shift+C` that performs \"copy as markdown\" alongside the default plain-text copy.\n\nOption 2 matches the pattern used by most LLM chat UIs (ChatGPT, Claude.ai web) and is the most discoverable.\n\n### Alternative Solutions\n\nCurrent workarounds, all unsatisfying:\n\n- **Ask Claude to wrap the response in a fenced code block** so the raw markdown is visible — adds turns, wastes tokens, and is forgotten between conversations.\n- **Open the VSCode integrated terminal, run `claude`, and use `/copy` there** — requires switching surfaces and loses the context of the ongoing VSCode-extension session.\n- **Manually re-type markdown** when pasting into PR descriptions, GitHub issues, or docs.\n- **Switch chat mode from 'CLAUDE CODE' to 'CHAT' (VSCode's built-in):** This still lists Claude chat sessions in it's session list and provides superior C&P functionality. Both Copy and Copy Final Response include markdown. This is the best workaround I've identified, but it is still a faff.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nOther\n\n### Use Case Example\n\n1. I ask Claude Code (in the VSCode extension) to summarize a bug investigation, and it replies with a nicely-formatted response containing headings, bullet lists, inline code, fenced code blocks, and `[filename.ts:42](path#L42)` links.\n2. I want to paste that summary into a GitHub PR description, a Linear ticket, or a Slack message with markdown mode enabled.\n3. Today: I select the text, `Cmd+C`, paste — and get a wall of plain prose. Headings gone, code blocks gone, links gone, file-path hyperlinks gone. I have to either manually reformat or ask Claude to regenerate as a fenced block (wasting context and tokens).\n4. With this feature: I click \"Copy as markdown\" on the message, paste into the PR — and the formatting is preserved end-to-end.\n\n### Additional Context\n\n- Environment: Claude Code VSCode native extension.\n- The terminal CLI already supports this via `/copy <N>`; the VSCode extension does not expose that command.\n- Related: #48489 (desktop app, Windows), #12413 (closed as duplicate without resolution), #5512 (CLI `/copy` — already shipped in the CLI).",
+  "labels": ["enhancement", "area:ide", "platform:vscode"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-29T13:19:00Z",
+  "updated_at": "2026-07-06T11:52:25Z",
+  "closed_at": null,
+  "reactions_total": 12,
+  "comments_count": 8,
+  "author": "Matt-Ebury",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12413\n2. https://github.com/anthropics/claude-code/issues/45607\n3. https://github.com/anthropics/claude-code/issues/24993\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-29T13:25:12Z"
+    },
+    {
+      "author": "Matt-Ebury",
+      "author_association": "NONE",
+      "body": "https://github.com/anthropics/claude-code/issues/45607 Captures the core request here, but it would be good to see the C&P features be built out to parity with VSCode's own chat solution.",
+      "created_at": "2026-04-29T13:45:50Z"
+    },
+    {
+      "author": "markheath",
+      "author_association": "NONE",
+      "body": "Very disappointing that this doesn't exist, given that multiple other issues have been raised about this and closed. Some mention a `/copy` command, but that is not recognized in the VS Code extension. A workaround is that the VS Code \"CHAT\" view does seem to be able to show your \"CLAUDE CODE\" sessions, so you can find them in there and copy from that",
+      "created_at": "2026-05-04T12:28:47Z"
+    }
+  ]
+}

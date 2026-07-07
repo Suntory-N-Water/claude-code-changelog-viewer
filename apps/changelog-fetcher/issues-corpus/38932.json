@@ -1,0 +1,42 @@
+{
+  "number": 38932,
+  "title": "Agent Teams: lead session stops processing teammate responses until manual keystroke (interactive TTY, default mode)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using Agent Teams in **default mode** (interactive TTY, not tmux), the **lead session** stops processing teammate responses after teammates finish their work. The teammate completes, goes idle (\"Crunched for Xm\"), and the lead remains stuck at \"Idle · Waiting for results...\" indefinitely.\n\n**The moment I click into the lead's terminal window and press any key (even without submitting), the teammate's response is immediately processed and the lead continues.**\n\nThis happens consistently across sessions. In one test, a teammate sat in \"Crunched\" state for **30+ minutes** before I manually clicked into the window and pressed a key to unstick the lead.\n\nThis is the **lead-side counterpart** to #34668 (which reports the teammate side stalling) and is likely caused by the same root issue identified in #26426: the `InboxPoller` is implemented as a React hook (`setInterval` inside the Ink TUI component tree) and only fires when the Ink render loop is active. When the lead is idle (no tool calls, no stdin events), the render loop throttles and inbox polling stalls.\n\n### What Should Happen?\n\nThe lead should process teammate responses immediately when they arrive, regardless of whether the user is actively interacting with the lead's terminal window.\n\n### Steps to Reproduce\n\n1. Start Claude Code in default teammate mode (interactive TTY, no tmux)\n2. Create a team and dispatch a teammate via `TeamCreate` + `Task`\n3. Switch focus to a different terminal window/tab (do not interact with the lead's terminal)\n4. Wait for the teammate to complete its work and go idle\n5. Observe the lead remains at \"Idle\" / \"Waiting for results...\" for 5-30+ minutes\n6. Click into the lead's terminal and press any key\n7. The lead immediately processes the teammate's response and continues\n\n### Workarounds We Tested (None Worked)\n\n| Approach | Result |\n|----------|--------|\n| **iTerm2 anti-idle** (ASCII 0 null byte every 60s) | ❌ No effect — null byte doesn't trigger Ink's keypress handler |\n| **`SIGWINCH` signal** (`pkill -SIGWINCH`) to lead process | ❌ No effect — signal is delivered but doesn't wake inbox polling |\n| **Direct PTY write** (`echo -ne '\\x1d' > /dev/ttysXXX`) | ❌ No effect — byte reaches PTY but doesn't trigger Ink re-render |\n| **`PostToolUse:SendMessage` hook** sending SIGWINCH | ❌ Hook may not fire (Task tool uses internal completion path, not SendMessage) |\n| **Manual keystroke** in focused terminal | ✅ **Only thing that works** — immediate response |\n\n### Root Cause Analysis\n\nThe `InboxPoller` is a React hook using `setInterval(1000ms)` inside the Ink TUI (per #26426's analysis). When the lead session is idle:\n\n1. No stdin events → Ink's render loop enters low-frequency mode\n2. `setInterval` callbacks are starved (timer coalescing + render loop throttling)\n3. Teammate messages accumulate in inbox JSON files, unread\n4. Manual keystroke → stdin event → Ink re-render → `setInterval` fires → messages delivered\n\n**Why signals and PTY writes don't work:** The issue is not simply that the Node.js event loop is sleeping. If it were, `SIGWINCH` would wake it. The fact that signals are delivered but don't trigger inbox polling suggests the stall is specifically in Ink's rendering/timer scheduling layer, not the underlying event loop. Only a genuine stdin keypress event triggers Ink's full input processing pipeline, which re-activates the render cycle and associated timers.\n\n### Suggested Fix\n\nDecouple `InboxPoller` from the React render loop. Run inbox polling as a standalone `setInterval` in the main Node.js event loop (not as a React hook), or use `fs.watch` on the inbox directory for push-based notification instead of timer-based polling.\n\n### Claude Model\n\nOpus\n\n### Is ",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:tui",
+    "area:agents",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-25T19:21:10Z",
+  "updated_at": "2026-06-25T11:04:22Z",
+  "closed_at": "2026-06-25T11:04:22Z",
+  "reactions_total": 7,
+  "comments_count": 11,
+  "author": "magiusdarrigo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/34668\n2. https://github.com/anthropics/claude-code/issues/36418\n3. https://github.com/anthropics/claude-code/issues/26426\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-25T19:25:35Z"
+    },
+    {
+      "author": "zzelner",
+      "author_association": "NONE",
+      "body": "This has become a nightmare for us. Please help!! @bcherny ",
+      "created_at": "2026-03-25T19:31:01Z"
+    },
+    {
+      "author": "jasonswearingen",
+      "author_association": "NONE",
+      "body": "i see this also, on Windows, along with general agent-teams stop sending updates to team-lead.\n",
+      "created_at": "2026-03-25T21:39:02Z"
+    }
+  ]
+}

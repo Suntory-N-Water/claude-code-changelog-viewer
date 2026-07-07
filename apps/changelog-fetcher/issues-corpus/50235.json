@@ -1,0 +1,35 @@
+{
+  "number": 50235,
+  "title": "[BUG] Opus 4.7 Hallucinations",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI upgraded to .112 and noticed Opus 4.7 hallucinates FREQUENTLY compared to Opus 4.6. It doesn't check resource files, even if properly mapped to your MD routing files, it assumes based on \"thin information\", the upgrade seems to be more of a downgrade. 4.7 seems be to more loosely calibrated compared to 4.6. A lot of token wastes are being done right not to calibrate 4.7 which is a net negative for users, when infact, we expect 4.7 to be better than 4.6 and not us requiring a ton of infra work to make it work.\n\n### What Should Happen?\n\nOpus 4.7 should be as tight as 4.6 when following guidelines, evidence suggest it ignores already created rule/claude md files and assumes task causing terrible hallucinations. This is a frequent recurrence.\n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\n1. Assign a multi step task in a project to Opus 4.7\n2. You must have multiple subprojects/feature within the main project, you must have a main claude then sub claudes for each feature\n3. Opus 4.7 will fail in properly addressing features and will hallucinate assumptions, causing wasted tokens in course correction.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Code 2.1.112\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\nSummary of my findings (70% weekly spend so far) April 20, 2026.\n\nExtended production use of Claude Code with Opus 4.7 (1M context) across long operational sessions. Compared to Opus\n4.6, 4.7 demonstrates distinct fabrication-drift characteristics. This report summarizes observed patterns and\nmitigations attempted, to help inform model behavior improvements.\n\nObserved Drift Patterns\n\nConfident-prose fabrication. Confident-sounding internal output gets emitted as factual claim without\ntool-verification. Feels like \"explanation,\" not \"claim.\" The model does not treat its own prose as requiring source\nattribution the way it treats structured data.\n\nBucket-bypass drift. When behavioral rules constrain \"assertions,\" fabrications migrate to content categorized (by\nthe model itself) as \"tags,\" \"status labels,\" \"data fields,\" or \"context.\" The model's self-check distinguishes\n\"claims I'm making\" from \"context I'm stating\" and fails to patrol the latter.\n\nNarrative-confirming reconciliation bias. When two tool-sourced signals conflict on the same fact, the model\nselects the one supporting its current narrative direction rather than surfacing both. Direction-preserving, not\nrandom.\n\nTool-output temporal decay. A value read via tool early in a sequence (e.g., a Glob count) drifts when recalled\nseveral tool-calls later in the composition, even though the original value remains in context.\n\nCorrectness-by-accident insulation. When a fabricated claim happens to be correct (e.g., pulled accurately from\ntraining-data priors without any verification step), the process violation is invisible. Only adversarial review\nexposes it, and the same broken process will produce wrong outputs under identical discipline later.\n\nNegative fabrication. Claims of \"X doesn't exist\" made without exhaustive verification — partial grep results\ntreated as universal absence. This is particularly dangerous because it presents as due-diligence.\n\nPlan/list-emission bypass. Multi-item plan or list composition bypasses per-claim verification that single-claim\ncomposition receives. Cognitive frame shifts from \"asserting a fact\" to \"emitting a workflow,\" and claim-level rules\ndon't fire on workflow-item assertions.\n\nRoot-Cause Observations\n\nBehavioral rules in context are necessary but insufficient for Opus 4.7. Ru",
+  "labels": ["bug", "platform:windows", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-18T01:34:33Z",
+  "updated_at": "2026-07-03T20:20:23Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 15,
+  "author": "tomtokitajr",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "This matches reports in #47483 and #49244 — Opus 4.7 shows increased \"confident but unverified claims\" compared to 4.6.\n**Workaround:** Pin to Opus 4.6 until this stabilizes:\n```\n/model claude-opus-4-6-20250415\n```\n**Additional mitigation:** If you use hooks, a PostToolUse hook can detect when Claude makes claims about file contents without actually reading them — flagging potential hallucinations before they cause damage.\nThe Opus 4.7 Survival Guide tracks all known regressions: https://yurukus",
+      "created_at": "2026-04-18T01:37:08Z"
+    },
+    {
+      "author": "tomtokitajr",
+      "author_association": "NONE",
+      "body": "> This matches reports in [#47483](https://github.com/anthropics/claude-code/issues/47483) and [#49244](https://github.com/anthropics/claude-code/issues/49244) — Opus 4.7 shows increased \"confident but unverified claims\" compared to 4.6. **Workaround:** Pin to Opus 4.6 until this stabilizes:\n> \n> ```\n> /model claude-opus-4-6-20250415\n> ```\n> \n> **Additional mitigation:** If you use hooks, a PostToolUse hook can detect when Claude makes claims about file contents without actually reading them — f",
+      "created_at": "2026-04-18T01:38:47Z"
+    },
+    {
+      "author": "mudsg24",
+      "author_association": "NONE",
+      "body": "I can confirm this failure mode with a particularly striking example: **Opus 4.7 confabulated a definition for `/fork`, which is one of Claude Code's own built-in slash commands.**\n\n### What happened\n\nI asked whether I could `/fork` the current session. Instead of recognizing it as a built-in command or offering any guidance on how to use it, the model invented a definition from scratch — claiming `/fork` referred to a semantic concept in \"our working model,\" described what the concept supposedl",
+      "created_at": "2026-04-18T16:13:43Z"
+    }
+  ]
+}

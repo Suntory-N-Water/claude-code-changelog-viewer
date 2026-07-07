@@ -1,0 +1,35 @@
+{
+  "number": 38183,
+  "title": "[BUG] SendMessage tool referenced but not available — agent continuation broken since resume parameter removal",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe Agent tool's `resume` parameter was removed (around v2.1.77). The documented replacement is `SendMessage`, but this tool does not exist at runtime. This breaks multi-round sub-agent conversations — there is no working mechanism to continue a previously spawned agent with its context preserved.\n\nThe system actively tells you to use SendMessage:\n- The Agent tool description says: *\"To continue a previously spawned agent, use SendMessage with the agent's ID or name as the `to` field.\"*\n- Every agent result prints: `\"use SendMessage with to: 'agentId' to continue this agent\"`\n- The `claude-code-guide` agent type description references it: *\"check if there is already a running or recently completed claude-code-guide agent that you can continue via SendMessage\"*\n\nBut `SendMessage` is not a built-in tool, not a deferred tool (ToolSearch returns nothing), and calling it directly errors.\n\n### What Should Happen?\n\nEither `SendMessage` should be available as a tool at runtime, or the `resume` parameter should be restored on the Agent tool. Multi-round sub-agent conversations (sparring, expert sub-agents for complex research, iterative review) need a working continuation mechanism.\n\n### Error Messages/Logs\n\n```shell\nCalling SendMessage directly:\n\nError: No such tool available: SendMessage\n\n\nSearching via ToolSearch:\n\n> ToolSearch(\"select:SendMessage\")\nNo matching deferred tools found\n\n\nThe Agent tool schema has `additionalProperties: false`, so the old `resume` parameter cannot be passed either — it would be rejected.\n```\n\n### Steps to Reproduce\n\n1. Spawn a sub-agent:\n   ```\n   Agent(description: \"Test agent\", prompt: \"Remember the phrase 'purple elephant'. Say 'Ready'.\")\n   ```\n2. Note the returned agent ID (e.g., `a09a8b95659e9120e`) and the message saying `\"use SendMessage with to: 'a09a8b95659e9120e' to continue this agent\"`.\n3. Attempt to call SendMessage:\n   ```\n   SendMessage(to: \"a09a8b95659e9120e\", message: \"What was the phrase?\")\n   ```\n4. Observe error: `\"No such tool available: SendMessage\"`\n5. Search for it via ToolSearch — not found.\n6. The agent has no way to continue the sub-agent.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\nUnknown exactly. The `resume` parameter worked in sessions from earlier in 2026. The claude-code-guide agent suggests the change happened around v2.1.77 (March 17, 2026).\n\n### Claude Code Version\n\n2.1.81\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\n- The `resume` parameter on the Agent tool was confirmed working via session history logs in `~/.claude/projects/`.\n- `SendMessage` has never successfully executed — all past attempts in session logs also show `\"No such tool available: SendMessage\"`.\n- Workflows that relied on multi-round agent conversations (e.g., a `/spar` skill that goes 2-3 rounds with the same sub-agent, or research workflows using sub-agents as persistent \"experts\") are broken.\n- The only workaround is spawning fresh agents each round and manually re-passing context in the prompt, which is wasteful and loses deep context from file reads.",
+  "labels": ["bug", "has repro", "area:agents"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-24T10:41:41Z",
+  "updated_at": "2026-06-23T20:01:57Z",
+  "closed_at": null,
+  "reactions_total": 26,
+  "comments_count": 23,
+  "author": "chdausgaard",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "cedral",
+      "author_association": "NONE",
+      "body": "This is happening to me. I work on agent definitions for my company and when they don't work I need to I need to be able to talk to them about what happened. I went on vacation for a week and my whole process broke. I can no longer resume agents. ",
+      "created_at": "2026-03-24T21:05:10Z"
+    },
+    {
+      "author": "NickSdot",
+      "author_association": "NONE",
+      "body": "Same issue. 2.1.84 on macOS.\n\n```                                                                                                                                                                 \n I don't have a SendMessage tool available in this environment, so I can't resume the previous agent. The tool described in the Agent documentation isn't present here. \n```",
+      "created_at": "2026-03-26T10:17:06Z"
+    },
+    {
+      "author": "NickSdot",
+      "author_association": "NONE",
+      "body": "Bump.\n\n## Problem\n\n```\n∴ Thinking…\n\n  The user is asking whether I have access to a SendMessage tool. Let me check what tools I have available.\n\n  Looking at my available tools: Agent, Bash, Edit, Glob, Grep, Read, Skill, ToolSearch, Write.\n\n  I don't see SendMessage listed directly, but it might be a deferred tool. Let me check.\n\n  The deferred tools listed are: AskUserQuestion, CronCreate, CronDelete, CronList, EnterPlanMode, EnterWorktree, ExitPlanMode, ExitWorktree, NotebookEdit, RemoteTrigg",
+      "created_at": "2026-04-08T01:31:20Z"
+    }
+  ]
+}

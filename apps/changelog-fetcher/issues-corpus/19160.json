@@ -1,0 +1,35 @@
+{
+  "number": 19160,
+  "title": "Claude Code OAuth flow redirects to /onboarding pricing page instead of /login - no way to authenticate existing Max subscriber",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe OAuth redirect goes to /onboarding with pricing plans instead of /login. That's Anthropic's code, their redirect logic, their UX decision. Google account priority is just salt in the wound - the real problem is:\n\nNo way to force email/password login in Claude Code CLI\nOAuth redirects to onboarding instead of login for existing subscribers\nNo account switcher in the OAuth flow\nNo --account or --email flag to specify which account to use\nExisting Max 5x subscribers get shown \"Get Max plan\" - that's broken\nCannot download chat history for auditing hallucinations in documentation\n\nSteps to Reproduce:\n\nHave multiple Google accounts in browser (personal Gmail + Google Workspace business account)\nHave existing Max 5x subscription on personal Gmail account\nRun claude in terminal\nOAuth URL opens browser to claude.ai/onboarding\nSee pricing page with \"Get Max plan\" - no login option\nCannot authenticate with existing Max account\nExpected Behavior:\nOAuth should redirect to /login with account picker, not /onboarding pricing page\n\nEnvironment:\n\nClaude Code v2.1.12\nWindows Server 2025\nInstalled via WinGet\nReproduced on multiple machines\nWorkarounds Attempted (all failed):\n\nclaude /logout\nDeleted oauth:tokenCache from %APPDATA%\\Claude\\config.json\nCleared cookies in %APPDATA%\\Claude\\Network\\\nManually navigating to /login redirects back to onboarding\nImpact:\nPaying Max 5x subscriber locked out of Claude Code CLI. Cannot use the product I'm paying for.\n\n### What Should Happen?\n\nClaude should allow email access at all steps, no forcing OAuth. Take ownership of the login experience. There's more ways to fix this, ESPECIALLY when I am logged into the Desktop App successfully, but cannot get CLI to connect. Cannot get download of chat history for parsing. \n\n### Error Messages/Logs\n\n```shell\n\n```\n\n### Steps to Reproduce\n\nRun claude in terminal\nOAuth URL is generated: https://claude.ai/oauth/authorize?code=true&client_id=...\nBrowser opens to claude.ai/onboarding showing pricing plans (Free / Pro / Max)\nNo login option appears - only \"Get Max plan\" buttons\nCannot authenticate even though I already have a Max subscription\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Code v2.1.12\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\nI was able to get Claude Code CLI working on one other machine previously, but cannot reproduce whatever auth state made that work. The working machine still has OAuth but authenticates correctly - suggesting this is a session/state issue in the OAuth flow, not a fundamental account problem.\n\nA simple fix would be adding a --email flag or respecting ANTHROPIC_API_KEY without requiring OAuth first.\n\n",
+  "labels": ["bug", "has repro", "platform:windows", "area:auth", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-19T05:08:09Z",
+  "updated_at": "2026-06-22T12:09:03Z",
+  "closed_at": "2026-06-22T12:09:03Z",
+  "reactions_total": 4,
+  "comments_count": 22,
+  "author": "edwinpope",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/12379\n2. https://github.com/anthropics/claude-code/issues/17966\n3. https://github.com/anthropics/claude-code/issues/12383\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-19T05:14:24Z"
+    },
+    {
+      "author": "edwinpope",
+      "author_association": "NONE",
+      "body": "Those are not the same. This is Google OAuth locking as a login issue.",
+      "created_at": "2026-01-19T16:58:59Z"
+    },
+    {
+      "author": "edwinpope",
+      "author_association": "NONE",
+      "body": "### Troubleshooting Attempted\n\n#### Authentication & Credential Cleanup\n- [ ] Deleted `~/.claude` directory completely\n- [ ] Deleted `~/.claude.json`\n- [ ] Cleared browser cookies for `claude.ai` and `anthropic.com`\n- [ ] Cleared macOS Keychain entries for \"Claude\" / Windows Credential Manager\n- [ ] Tried `/logout` then `/login` cycle\n- [ ] Logged out of claude.ai in browser before attempting CLI auth\n\n#### Network & Environment\n- [ ] Disabled VPN\n- [ ] Disabled firewall temporarily\n- [ ] Tested",
+      "created_at": "2026-01-19T17:04:50Z"
+    }
+  ]
+}

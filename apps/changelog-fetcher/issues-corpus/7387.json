@@ -1,0 +1,35 @@
+{
+  "number": 7387,
+  "title": "[BUG] Shell script occasionally fails due to crazy escaping",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nI have not found a way to reliably reproduce this, but from time to time, Claude Code submits wildly incorrect code to the shell even though the commands are printed with completely the right syntax.\n\nHere is a captured example:\n\n```\n⏺ Bash(for f in $(find . -type f -exec tail -c 1 {} \\; -print | grep -v '^$');\n       do awk 1 \"$f\" > tmp && mv tmp \"$f\"; done)\n  ⎿  Error: /opt/homebrew/bin/bash: eval: line 1: syntax error near unexpected \n     token `('\n     /opt/homebrew/bin/bash: eval: line 1: `for f in \\$ ( find . -type f -exec \n     tail -c 1 \\{\\} \\; -print < /dev/null | grep -v \\^\\$ ) ; do awk 1 '' > tmp \n     && mv tmp '' ; done'\n```\n\n(I had separately tried to tell Claude to not [use find in command substitutions](https://www.iki.fi/era/unix/award.html#backticks) but that's tangential here.)\n\nYou'll notice that not only has Claude inserted a spurious `</dev/null`  (which I think is already reported multiple times, though I could quickly find only https://github.com/anthropics/claude-code/issues/4315) but also, the dollar sign in the command substitution has been escaped and weirdly followed by a space.\n\n### What Should Happen?\n\nCommand lines should not be weirdly escaped when sent to the shell. It would probably be better if Claude Code showed _exactly_ what it's going to try to run so that users who understand this language can intervene and correct (including then any spurious additions of `</dev/null` etc).\n\n### Error Messages/Logs\n\n```shell\nError: /opt/homebrew/bin/bash: eval: line 1: syntax error near unexpected token `('\n```\n\n### Steps to Reproduce\n\nLike I wrote above, I have not been able to reliably reproduce this. It seems to happen in spurts and then go away again. Perhaps there is something in Claude's internal state which triggers this behavior?\n\nPerforming a task where you need Claude Code to do things in the shell seems to exhibit this sooner or later.\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n1.0.110 (Claude Code)\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\nThis is probably just another aspect of a more fundamental problem around how Claude Code runs commands. I have found related bugs such as\n* https://github.com/anthropics/claude-code/issues/3839 which is however specifically about problems with single-quoted strings containing pipe symbols\n* https://github.com/anthropics/claude-code/issues/2941 which is however specifically about exclamation marks (and not only in shell, but in any language). I have observed weird backslashing of exclamation marks in shell snippets, too.\n* https://github.com/anthropics/claude-code/issues/841 which seems overtly broad but thematically similar, in that it complains about the amount of unnecessary backslashes\n* The insertion of `</dev/null` redirections is something I have seen in multiple bug reports, but see e.g. https://github.com/anthropics/claude-code/issues/4315",
+  "labels": ["bug", "has repro", "api:bedrock", "platform:macos", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-09-10T06:14:49Z",
+  "updated_at": "2026-06-29T13:14:42Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 19,
+  "author": "fsc-eriker",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/3839\n2. https://github.com/anthropics/claude-code/issues/1132\n3. https://github.com/anthropics/claude-code/issues/4315\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2025-09-10T06:21:13Z"
+    },
+    {
+      "author": "Buggy-McBugFace",
+      "author_association": "NONE",
+      "body": "I frequently encounter bash tool errors like this across my two main environments (macOS & RHEL). When I asked Claude to search my conversation history for examples to add to this issue, it ironically hit this exact error:\n\n```\n⏺  Bash(file=\"$HOME/.claude/projects/-Users-x-phd/<redacted>.jsonl\"; cutoff_date=\"2025-10-17T00:00:00Z\"; timestamp=$(sed -n '404p' \"$file\" | jq -r\n      '.timestamp // empty'); echo \"Timestamp: $timestamp\"; echo \"Cutoff: $cutoff_date\"; if [[ \"$timestamp\" > \"$cutoff_date\" ",
+      "created_at": "2025-11-06T01:48:34Z"
+    },
+    {
+      "author": "skawaji",
+      "author_association": "NONE",
+      "body": "## Additional Reproduction Case: Variable Expansion Fails in For Loop\n\nI encountered a similar issue where variable expansion completely fails in a for loop when combined with certain commands.\n\n### Command Attempted\n\n```bash\nfor pr_num in 1736 1729; do echo \"=== PR #$pr_num ===\"; gh pr view $pr_num --json body --jq '.body' 2>&1 | head -1; done\n```\n\n### Expected Behavior\n\n```\n=== PR #1736 ===\n(output from gh pr view 1736)\n=== PR #1729 ===\n(output from gh pr view 1729)\n```\n\n### Actual Behavior\n\n`",
+      "created_at": "2025-11-14T02:02:42Z"
+    }
+  ]
+}

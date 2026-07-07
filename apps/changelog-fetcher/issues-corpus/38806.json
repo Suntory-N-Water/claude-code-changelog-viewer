@@ -1,0 +1,35 @@
+{
+  "number": 38806,
+  "title": "[FEATURE] Allow bypassPermissions mode to fully bypass .claude/ directory protections (or provide an opt-in override)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue+label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nSince v2.1.78, `bypassPermissions` mode blocks or prompts for edits to the `.claude/` directory — **and explicit permission rules like `Edit(.claude/**)` and `Write(.claude/**)` do not override this protection.** We have both of these configured in our settings.json and they are ignored for `.claude/` paths. At least 5 issues have been filed about this (#35908, #35915, #35646, #35718, #35895), all closed as duplicates or \"working as intended.\"\n\nThis breaks a core workflow for teams running automated Claude Code agents. Our agents need to edit files in `.claude/` constantly — specifically `.claude/skills/*/SKILL.md` files. We use PostToolUse hooks that automatically update skill documentation when agents modify files in related code systems. With `.claude/` writes blocked and no permission rule able to override the protection, this entire automated documentation pipeline breaks, and unattended agent execution becomes impossible.\n\nThe current behavior also **contradicts the official documentation**, which explicitly states:\n\n> `bypassPermissions` mode skips permission prompts. Writes to `.git`, `.claude`, `.vscode`, and `.idea` directories still prompt for confirmation to prevent accidental corruption of repository state and local configuration. **Writes to `.claude/commands`, `.claude/agents`, and `.claude/skills` are exempt and do not prompt**, because Claude routinely writes there when creating skills, subagents, and commands.\n\n— [code.claude.com/docs/en/permissions](https://code.claude.com/docs/en/permissions)\n\nThe documented exemption for `.claude/commands`, `.claude/agents`, and `.claude/skills` is not honored in practice. Edits to these subdirectories are also blocked or prompt for confirmation despite the docs saying they shouldn't.\n\nBeyond the documentation contradiction, there is no escape hatch. Even explicit `Edit(.claude/**)` and `Write(.claude/**)` allow rules in settings.json are ignored for `.claude/` paths. Users who have deliberately opted into `bypassPermissions` mode and configured explicit allow rules for these paths have no way to make this work.\n\n### Proposed Solution\n\nAny of the following would resolve this (in order of preference):\n\n**Option A (Preferred): Allow explicit permission rules to override `.claude/` protection**\nHonor `Edit(.claude/**)` and `Write(.claude/**)` allow rules when configured in settings.json. These rules already exist in the permission system's syntax — they just don't work for `.claude/` paths. Alternatively, add a setting like `\"protectClaudeDir\": false`. This preserves the default protection while giving teams an explicit opt-out.\n\n**Option B: New permission mode with zero restrictions**\nAdd a mode (e.g., `\"unrestricted\"` or `\"fullBypass\"`) that truly skips all permission checks including `.claude/` directory protection. This preserves the current `bypassPermissions` behavior for users who want it while giving power users a way to fully automate.\n\n**Option C (Minimum): Honor the documented exemptions**\nMake the actual behavior match the documentation. Writes to `.claude/commands`, `.claude/agents`, and `.claude/skills` should not prompt in `bypassPermissions` mode, as already documented.\n\n### Alternative Solutions\n\nThere is no viable workaround. The only option is manually approving each `.claude/` edit, which:\n- Defeats the purpose of `bypassPermissions` mode\n- Makes unattended agent execution impossible\n- Breaks hook-driven automation (hooks can't pause for manual approval)\n\nWe've tried adding explicit allow rules (`Edit(.claude/**)`, `Write(.claude/**)`) to settings.json — these are ignored for `.claude/` paths.\n\n### Priority\n\nCritical - Blocking my work\n\n### Feature Category\n\nConfiguration and settings\n\n### Use Case Example\n\nOur team's concrete workflow that this blocks:\n\n1. We docum",
+  "labels": ["enhancement", "area:permissions"],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-03-25T15:08:01Z",
+  "updated_at": "2026-06-30T15:03:02Z",
+  "closed_at": "2026-05-11T17:23:52Z",
+  "reactions_total": 15,
+  "comments_count": 6,
+  "author": "oconnorjoseph",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/37765\n2. https://github.com/anthropics/claude-code/issues/37939\n3. https://github.com/anthropics/claude-code/issues/35908\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-25T15:11:58Z"
+    },
+    {
+      "author": "gentritbiba",
+      "author_association": "NONE",
+      "body": "![image](https://github.com/user-attachments/assets/1e2c16ff-e42d-44b1-b871-03f4923b3daa)\nThe agents seem to be able to bypass this limitation anyways so this limitation is just an annoyance... Really hope they remove it",
+      "created_at": "2026-03-27T11:19:59Z"
+    },
+    {
+      "author": "dannomayernotabot",
+      "author_association": "NONE",
+      "body": "Plus 1 to this feature request!",
+      "created_at": "2026-03-29T18:03:05Z"
+    }
+  ]
+}

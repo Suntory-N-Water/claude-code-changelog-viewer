@@ -1,0 +1,42 @@
+{
+  "number": 47104,
+  "title": "[BUG] indows 11 Pro: Cowork, Connectors, and Claude Code all broken after latest auto-update — ERR_CONNECTION_RESET + OAuthError",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhat's Wrong?\nAfter the latest Claude Desktop auto-update, all three premium features stopped working simultaneously on Windows 11 Pro. Only basic Chat still functions.\nError 1 — Cowork:\nFailed to start Claude's workspace\nRequest error: net::ERR_CONNECTION_RESET\nSometimes alternates with net::ERR_CONNECTION_ABORTED.\nError 2 — Connectors:\nCould not load connectors directory\nCould not attach to MCP server Kapture Browser Automation\nError 3 — Claude Code (in Desktop):\nError invoking remote method '$eipc_message$_45a8c035-be9c-4c52-b315-81a10e384931_$_claude.web_$_LocalSessions_$_start':\nOAuthError: Unable to start session. Check your internet connection and try again.\nImportant context: Everything was working perfectly before the last auto-update. The update broke all three features simultaneously.\nEnvironment\n\nOS: Windows 11 Pro (latest)\nClaude Desktop: Latest version (auto-updated)\nPlan: Max ($100/month)\nInternet: Working perfectly — Chat mode works fine\nAntivirus: Kaspersky (tested with it completely disabled — same errors)\nNo VPN active\n\nEverything I've tried (all failed):\n\nRestarting Claude Desktop multiple times\nReinstalling workspace from in-app prompt\nFull uninstall + reinstall of Claude Desktop (got 0x80073CF6 AddPackage failed during reinstall due to residual packages)\nRestarting PC and router\nEnabling Hyper-V (vmms service now running)\nManually starting CoworkVMService via PowerShell (service shows as Running)\nManually creating WinNAT rule: New-NetNat -Name \"cowork-vm-nat\" -InternalIPInterfaceAddressPrefix \"172.16.0.0/24\" (created successfully, Active: True)\nDisabling Kaspersky antivirus entirely\nCleaning residual files from %APPDATA%\\Claude, %LOCALAPPDATA%\\Claude\nDeleting CoworkVMService from registry and reinstalling\n\nDiagnostic output:\npowershellPS> Get-Service vmms\nStatus: Running\n\nPS> Get-Service CoworkVMService\nStatus: Running\n\nPS> hcsdiag list\n(empty — no VM running)\n\nPS> Get-HnsNetwork | Format-List Name, Id, Subnets\nName: Default Switch only (no cowork-vm-nat network)\nLogs show repeated TypeError: Failed to fetch against assets-proxy.anthropic.com and api.anthropic.com, plus [MCP Registry] fetch failed with diagnostics.\nImpact: 3+ working days of lost productivity. I run a digital marketing agency and rely on Cowork and Claude Code daily. I am paying $100/month for what is currently a $20 Chat-only experience.\nExpected behavior: Cowork workspace starts, Connectors load, Claude Code authenticates — as they did before the update.\nRelated issues: #24918, #25136, #27801, #42591, #27010\n\n### What Should Happen?\n\nCowork workspace should start successfully, Connectors Directory should load, and Claude Code should authenticate — as they all did before the latest auto-update.\n\n### Error Messages/Logs\n\n```shell\nError 1 — Cowork:\nFailed to start Claude's workspace\nRequest error: net::ERR_CONNECTION_RESET\nSometimes alternates with net::ERR_CONNECTION_ABORTED.\nError 2 — Connectors:\nCould not load connectors directory\nCould not attach to MCP server Kapture Browser Automation\nError 3 — Claude Code (in Desktop):\nError invoking remote method '$eipc_message$_45a8c035-be9c-4c52-b315-81a10e384931_$_claude.web_$_LocalSessions_$_start':\nOAuthError: Unable to start session. Check your internet connection and try again.\n```\n\n### Steps to Reproduce\n\n1. Have a working Claude Desktop installation on Windows 11 Pro with Cowork, Connectors, and Claude Code all functioning normally\n2. Receive the latest Claude Desktop auto-update\n3. Open Claude Desktop → switch to Cowork tab\n4. Observe: \"Failed to start Claude's workspace — Request error: net::ERR_CONNECTION_RESET\"\n5. Observe: \"Could not load connectors directory\" banner\n6. Open Claude Code in Desktop → Observe: \"OAu",
+  "labels": [
+    "bug",
+    "platform:windows",
+    "area:auth",
+    "area:cowork",
+    "area:desktop",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-12T20:16:34Z",
+  "updated_at": "2026-07-03T11:00:07Z",
+  "closed_at": "2026-07-03T11:00:07Z",
+  "reactions_total": 4,
+  "comments_count": 15,
+  "author": "jehielrb-ai",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/46818\n2. https://github.com/anthropics/claude-code/issues/46123\n3. https://github.com/anthropics/claude-code/issues/39225\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-12T20:22:09Z"
+    },
+    {
+      "author": "lionglan624-blip",
+      "author_association": "NONE",
+      "body": "Same repro on Windows 11 + latest Claude Desktop auto-update.\n\n- **Connector:** custom remote MCP server (OAuth 2.1 + PKCE, stateless HMAC tokens, deployed as a Cloudflare Worker).\n- **UI error:** \"Couldn't reach the MCP server\" — reference `ofid_6520722aaff2b914`.\n- **Console:** `TypeError: Failed to fetch` originating from `assets-proxy.anthropic.com/claude-ai/v2/...` (same asset-proxy fetch failure you listed), plus the unrelated `No handler registered for ...BuddyBleTransport_$_reportState` ",
+      "created_at": "2026-04-16T00:38:33Z"
+    },
+    {
+      "author": "DeeBeeJason",
+      "author_association": "NONE",
+      "body": " ([#47104](https://github.com/anthropics/claude-code/issues/47104)) and ask Anthropic directly for the last known good installer URL. They host installers at predictable paths like `https://storage.googleapis.com/osprey-downloads-c02f6a0d-347c-492b-a752-3e0651722e97/nsis-updater/Claude-Setup-x64.exe` — but the versioned URLs aren't public.",
+      "created_at": "2026-04-16T16:44:03Z"
+    }
+  ]
+}

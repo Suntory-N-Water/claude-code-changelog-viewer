@@ -1,0 +1,41 @@
+{
+  "number": 28508,
+  "title": "[BUG] Remote Control: AskUserQuestion selections made on mobile not received by CLI — causes infinite wait",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using Remote Control from a mobile device (claude.ai/code), selecting options in an `AskUserQuestion` tool call does not propagate back to the CLI session running on PC.\n\n**Specific scenario:**\n1. Claude Code CLI on PC invokes `AskUserQuestion` with multiple-choice options\n2. The question renders correctly on the mobile Remote Control interface\n3. User selects an option and submits on mobile\n4. The CLI on PC **never receives** the selection — the AskUserQuestion prompt remains displayed, waiting for input indefinitely\n5. The session is effectively stuck with no way to proceed other than manually intervening on the PC (pressing Escape / rejecting the tool call)\n\nThis appears to be a **state synchronization issue** between the Remote Control web client and the CLI process — the mobile client believes the answer was submitted, but the CLI never acknowledges it.\n\nNote: Regular text messages sent via Remote Control work fine. The issue is specifically with **interactive tool prompts** (AskUserQuestion selections / permission approvals).\n\n### What Should Happen?\n\nWhen the user selects an option in AskUserQuestion via Remote Control on mobile, the selection should be delivered to the CLI session and the conversation should proceed normally — identical to selecting the option directly in the terminal.\n\n### Error Messages/Logs\n\n```shell\nNo error messages — the CLI simply remains in a waiting state showing the AskUserQuestion prompt.\n```\n\n### Steps to Reproduce\n\n1. Start a Claude Code CLI session on PC (e.g., via terminal or VS Code)\n2. Connect to the session via Remote Control on a mobile device (claude.ai/code)\n3. Trigger a workflow that invokes `AskUserQuestion` (e.g., a skill/agent that asks user preferences with multiple-choice options)\n4. On mobile, select one or more options and submit\n5. Observe: Mobile shows the selection was submitted, but the PC CLI still displays the unanswered question prompt\n6. The session is stuck in an infinite wait state\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nNot sure — Remote Control is relatively new\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.56 (Claude Code)\n\n### Platform\n\nAnthropic API (Max)\n\n### Operating System\n\nWindows 11 + WSL2 (Ubuntu) — CLI side\nMobile (Android / iOS) — Remote Control side\n\n### Terminal/Shell\n\nBash running inside **tmux** on WSL2 (Windows host)\n\n### Additional Information\n\n- **Environment detail**: Claude Code is running inside a **tmux session on WSL2** (Windows 11 host). The tmux multiplexer may be relevant to the state synchronization issue — the CLI receives Remote Control text messages fine, but interactive prompts (AskUserQuestion) fail to receive responses submitted from mobile.\n- The issue is specific to **interactive tool prompts** (AskUserQuestion). Normal text input via Remote Control works correctly.\n- Permission approval prompts (e.g., tool execution approvals) may also be affected, but AskUserQuestion is the confirmed case.\n- Workaround: Reject the tool call on the PC side manually, or type the response directly in the PC terminal.",
+  "labels": [
+    "bug",
+    "platform:linux",
+    "area:claude-code-web",
+    "platform:wsl",
+    "area:cli"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-25T12:06:46Z",
+  "updated_at": "2026-06-29T12:53:51Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 20,
+  "author": "treylom",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/28488\n2. https://github.com/anthropics/claude-code/issues/28427\n3. https://github.com/anthropics/claude-code/issues/28330\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-25T12:12:17Z"
+    },
+    {
+      "author": "treylom",
+      "author_association": "NONE",
+      "body": "This is **not a duplicate** of the suggested issues. Here's why:\n\n| Suggested duplicate | What it reports | How this issue differs |\n|---|---|---|\n| #28488 | Permission **mode toggles** (plan/ask) not syncing from Desktop to CLI | Our issue is about **AskUserQuestion tool responses** not reaching CLI |\n| #28427 | Permission prompts **not rendering** on iOS | Our issue: prompts **render correctly** on mobile, selections are submitted, but CLI **never receives** the response |\n| #28330 | Plan mode",
+      "created_at": "2026-02-25T12:15:06Z"
+    },
+    {
+      "author": "treylom",
+      "author_association": "NONE",
+      "body": "## Related Issues — Interactive Prompt Sync Failures\n\nAfter investigating remote-control issues, I found several reports that share the same root cause pattern: **mobile ↔ CLI state synchronization failure for interactive prompts**.\n\n### Directly related (same symptom family)\n\n| Issue | Symptom | Overlap with this issue |\n|-------|---------|------------------------|\n| #28427 | Tool permission prompts **intermittently missing** on iOS | Interactive prompt delivery failure (theirs is rendering; ou",
+      "created_at": "2026-02-26T23:59:18Z"
+    }
+  ]
+}

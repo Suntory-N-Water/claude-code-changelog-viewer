@@ -1,0 +1,35 @@
+{
+  "number": 59736,
+  "title": "Desktop 3p Code sessions disappear from UI after restart while JSONL transcripts remain on disk",
+  "body": "### Preflight Checklist\n\n- [x] I have searched existing issues and found related reports, but this case is specifically about Desktop 3p-created sessions not reappearing after restart even though their JSONL transcripts exist.\n- [x] This is a single bug report.\n\n### What's Wrong?\n\nClaude Code Desktop 3p sessions created from the Desktop UI do not appear to persist in the Desktop Code UI after closing and restarting the app.\n\nThe underlying transcript data is not lost: valid `.jsonl` transcript files remain on disk and contain the expected user/assistant messages plus session metadata. However, after restarting Desktop, the previous Code sessions are not shown/restored in the Desktop UI, which makes it look like the conversation history was lost.\n\nThis appears to be a Desktop UI / session index discovery issue rather than transcript data loss.\n\n### What Should Happen?\n\nAfter restarting Claude Code Desktop 3p, sessions created from the Desktop Code UI should still be visible and resumable in the Desktop UI.\n\nIf Desktop uses a separate app-side session index, it should either:\n\n1. persist index records for Desktop-created sessions reliably, or\n2. rebuild/adopt them from the existing JSONL transcript files on startup.\n\nAt minimum, Desktop should surface that transcript files exist on disk and provide a repair/import/resume path instead of presenting an empty or missing history state.\n\n### Steps to Reproduce\n\n1. On Windows, open Claude Code Desktop 3p.\n2. Start a Code session from the Desktop UI in a local project directory such as `<drive>:\\path\\to\\project`.\n3. Ask questions / use the session normally.\n4. Confirm that a transcript file is written under the Claude Code projects transcript directory, e.g. `<claude-code-data>\\projects\\<encoded-project-path>\\<session-id>.jsonl`.\n5. Fully close Claude Code Desktop.\n6. Reopen Claude Code Desktop and return to the Code UI for the same project.\n7. Observe that the prior session is not shown/restored in the Desktop UI, even though the JSONL transcript still exists and contains the conversation.\n\n### Local Evidence (Sanitized)\n\nOn my machine, multiple valid JSONL transcripts exist under a Claude Code project transcript directory like:\n\n```text\n<claude-code-data>\\projects\\<encoded-project-path>\\<session-id>.jsonl\n```\n\nEach transcript includes metadata similar to:\n\n```text\ncwd: <drive>:\\path\\to\\project\nentrypoint: claude-desktop-3p\nversion: 2.1.x\ngitBranch: <branch-name>\n```\n\nThe transcript files contain full user/assistant messages, so the data is present on disk.\n\nHowever, the Desktop 3p app-side session index directory exists but does not contain corresponding session wrapper/index files for these sessions. As a result, Desktop does not list or restore them after restart.\n\n### Why This Seems Related To Existing Reports But Distinct\n\nThere are existing issues about Desktop not showing CLI/VS Code sessions because Desktop does not adopt pre-existing JSONL transcripts.\n\nThis report is slightly different: the affected sessions were created from Claude Code Desktop 3p itself (`entrypoint: claude-desktop-3p`), not only from the standalone CLI or VS Code extension. Desktop writes the JSONL transcripts, but after restart the Desktop UI still does not show the sessions.\n\n### Impact\n\nUsers may believe their Claude Code Desktop conversation history was lost after restart, even though transcripts are still on disk. This is especially confusing because the data exists but the Desktop UI provides no visible recovery/import path.\n\n### Environment\n\n- Platform: Windows\n- Product area: Claude Code Desktop 3p / Code UI session history\n- Claude Code CLI installed: yes\n- Claude Code version family observed in transcripts: 2.1.x\n\n### Additional Information\n\nPlease avoid requiring users to move JSONL transcripts into project directories or manually edit internal session metadata. The expected behavior is that Desktop-created sessions remain visible across Desktop restarts, or that Desktop can rebuild its UI/session index from the existing transcript store.",
+  "labels": ["bug", "platform:windows", "area:desktop"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-16T17:05:14Z",
+  "updated_at": "2026-06-30T17:51:17Z",
+  "closed_at": null,
+  "reactions_total": 1,
+  "comments_count": 12,
+  "author": "jianminYa",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/54759\n2. https://github.com/anthropics/claude-code/issues/58847\n3. https://github.com/anthropics/claude-code/issues/38691\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-16T17:09:17Z"
+    },
+    {
+      "author": "jianminYa",
+      "author_association": "NONE",
+      "body": "## Workaround / additional diagnosis\n\nThis issue looks closely related to the same family of Desktop session-history problems reported in, for example:\n\n- #54759 — Sessions disappear from recent conversations on desktop app restart (Windows)\n- #58847 — Claude Code section sidebar empty on cold start; renderer reports `setFocusedSession: sessionId=null` despite session store loading\n- #38691 — All sessions lost after Claude Desktop update on Windows (data intact on disk)\n- #58670 — Desktop Code t",
+      "created_at": "2026-05-16T17:51:08Z"
+    },
+    {
+      "author": "mike161078-afk",
+      "author_association": "NONE",
+      "body": "## Same issue after 2.1.142 → 2.1.146 update (Windows) — with a detailed on-disk diagnostic\n\nAfter the **2.1.142 → 2.1.146** auto-update, most coding sessions in the sidebar show **\"Session not found on disk\" / \"Session introuvable sur le disque\"** when clicked. The sidebar still lists them (titles render), but opening any of them fails. Restarting Claude Desktop does not help.\n\nI dug into the on-disk state. **The session data is not lost** — the app's index simply fails to resolve it:\n\n1. **Ses",
+      "created_at": "2026-05-22T09:28:21Z"
+    }
+  ]
+}

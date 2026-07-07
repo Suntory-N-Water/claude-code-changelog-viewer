@@ -1,0 +1,42 @@
+{
+  "number": 48973,
+  "title": "[BUG] REGRESSION: Cannot switch between Opus and Sonnet mid-thread in Cowork after April 15 desktop redesign",
+  "body": "## Description\n\n**After the April 15, 2026 desktop app redesign, mid-thread model switching is broken in Cowork.** Previously, users could freely switch between Opus and Sonnet within the same Cowork thread — including within Projects. After relaunching the app post-update, this capability is gone.\n\nThis may be related to the regression in #40095 (automatic model switching from Opus to Sonnet), but the behavior here is different: the option to manually switch models mid-thread appears to be entirely removed, not just silently failing.\n\n## Environment\n\n- **Product:** Claude Desktop (Cowork mode)\n- **Platform:** macOS\n- **Subscription:** Max plan\n- **App version:** Post-April 15, 2026 update (desktop redesign)\n\n## Steps to Reproduce\n\n1. Open a Cowork session\n2. Start a conversation on one model (e.g., Opus)\n3. Attempt to switch to a different model (e.g., Sonnet) mid-thread\n4. Model switching is no longer available mid-thread\n\n## Expected Behavior\n\nAbility to switch between Opus and Sonnet mid-thread in Cowork, as was possible before the April 15 update.\n\n## Actual Behavior\n\nModel cannot be changed mid-thread in Cowork after the update.\n\n## Notes\n\n- This worked reliably in previous versions of the desktop app\n- Mid-thread switching was never available in Chat mode (expected), but was available in Cowork\n- Likely a regression introduced by the April 14-15 desktop redesign\n- Related: #40095\n",
+  "labels": [
+    "bug",
+    "platform:macos",
+    "area:model",
+    "area:cowork",
+    "regression",
+    "area:desktop"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-16T05:24:44Z",
+  "updated_at": "2026-06-17T23:17:20Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 5,
+  "author": "gh-vs",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "draktheas",
+      "author_association": "NONE",
+      "body": "This is not just macOS btw, this is also an issue on Windows version. Also, this is a particularly bad bug given how most people use Cowork. Many use one model to plan and another to execute pieces of given tasks to maximize usage limits and quality of results. This should be a high priority fix.",
+      "created_at": "2026-05-11T16:39:11Z"
+    },
+    {
+      "author": "ogermer",
+      "author_association": "NONE",
+      "body": "This is a really bad regression that significantly lowers the usefulness of Claude Cowork. Switching between models during a session helps to make efficient use of the token budget - probably something that Anthropic would like to see as well as it lowers the load on their inference infrastructure. It makes sense to use opus for planning and sonnet for execution - just as I am doing in Claude Code. Being stuck on Opus just unnecessarily burns tokens and lowers customer experience / customer sati",
+      "created_at": "2026-05-22T08:51:43Z"
+    },
+    {
+      "author": "agonzalez-abti",
+      "author_association": "NONE",
+      "body": "what's going on with this?, it really hurts in token consumption, i need to plan with opus and execute with sonnet or haiku in same session so not to loose context. please fix it.",
+      "created_at": "2026-06-12T18:40:23Z"
+    }
+  ]
+}

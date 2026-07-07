@@ -1,0 +1,35 @@
+{
+  "number": 32402,
+  "title": "[BUG] Background subagents silently auto-deny permissions (Write tool)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen running subagents in background mode, permission requests for tool use are silently auto-denied without user prompts. Subagents report successful completion but operations never execute.\nThis appears to be a broader issue affecting multiple tool types in background mode (related to #30693 which affects Bash permissions).\n\n### Current behavior:\n\n- Subagents silently auto-deny Write permissions across all scenarios\n- Return success status despite operations failing\n- No user notification or error messages\n- Main agents detects failed tool usage after it read all subagent outputs\n\n### What Should Happen?\n\n- Permissions should be inherited from parent session, OR\n- User should be prompted for permission (forwarded to foreground), OR\n- Background subagents should fail with clear error messages indicating permission denial\n\n### Error Messages/Logs\n\n```shell\nNo error provided\n```\n\n### Steps to Reproduce\n\n1. Create multiple subagents to generate and write files\n2. Run them in parallel using background task execution\n3. Monitor subagent execution - reports show success\n4. Verify files exist on disk - they don't\n\n### Occurs in multiple scenarios:\n\n- Subagents with no tool allows provided (general purpose)\n- Subagents with tool allows explicitly configured (custom subagents)\n- Subagents initially run in foreground, allowed tool use and then moved to background afterwards\n- Subagents created with run_in_background: true from start\n\n### Claude Model\n\nNot sure / Multiple models\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nClaude Code ( 2.1.71)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nWindows Terminal\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:windows", "area:agents", "area:permissions"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-09T09:45:53Z",
+  "updated_at": "2026-06-24T19:16:46Z",
+  "closed_at": "2026-06-19T22:26:27Z",
+  "reactions_total": 4,
+  "comments_count": 11,
+  "author": "thoeltig",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/27203\n2. https://github.com/anthropics/claude-code/issues/26851\n3. https://github.com/anthropics/claude-code/issues/30693\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-09T09:51:29Z"
+    },
+    {
+      "author": "thoeltig",
+      "author_association": "NONE",
+      "body": "- https://github.com/anthropics/claude-code/issues/27203\n    - Similar issue but specific to the Agent SDK.\n- https://github.com/anthropics/claude-code/issues/26851\n    - Similar issue but specific to VSCode UI.\n- https://github.com/anthropics/claude-code/issues/30693\n    - Similar issue but specific to the bash subagent.\n\nMy issue is about Cloude Code when the main agents invokes the subagents. I don't know if this is the same internal logic or if these are different topics but they all share t",
+      "created_at": "2026-03-09T11:12:14Z"
+    },
+    {
+      "author": "christian1koch",
+      "author_association": "NONE",
+      "body": "same issue, it never prompted anything, it just autodenied it\n\n<img width=\"449\" height=\"210\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/85e48d4f-4953-4c56-87f2-2630cfcd3473\" />",
+      "created_at": "2026-03-14T11:52:42Z"
+    }
+  ]
+}

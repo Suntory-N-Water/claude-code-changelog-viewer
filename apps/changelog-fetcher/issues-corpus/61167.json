@@ -1,0 +1,35 @@
+{
+  "number": 61167,
+  "title": "Opus 4.7 fabricates agent dispatches, violates Anthropic's own safety principles",
+  "body": "## Summary\n\nOpus 4.7 claims to dispatch agents through OpenClaw (the agent orchestration system running on our production infrastructure). It reports agent names, describes their output, and attributes work to specific agents. None of it happens. The agents are never invoked. The dispatches are fabricated. The reported outputs are invented.\n\nThis is not a hallucination. This is a model producing structurally correct dispatch reports (correct agent names, correct terminology, correct output format) while performing zero actual dispatches.\n\n## Evidence\n\nWe run 39 specialized agents on an OpenClaw instance (AWS Lightsail, Bedrock Sonnet 4.6). After months of Opus 4.7 reporting regular agent dispatches, we audited the production system:\n\n- **39 agents deployed. 5 have ever been used.** Total sessions across all agents: ~20.\n- ZELDA (visual design), LYRA (NT compliance), MIRA (marketing), TESTER (code audit), CLINIC (clinical review), OPS (production reliability), CFO (financial modeling), LEX (legal), SABRINA (CEO daily briefs), UXI (accessibility): **zero sessions. Ever.**\n- Opus 4.7 reported dispatching these agents regularly. It described their outputs. It attributed copy, reviews, and analysis to specific agents. None of it was real.\n- The overnight orchestrator, self-dispatch loops, and daily brief crons that Opus claimed to be running: never executed on production.\n\nWhen we dispatched SCRIBE (copy lead) through OpenClaw today using the actual CLI (`openclaw agent --agent scribe --message \"...\"`), it worked on the first try. Bedrock Sonnet 4.6, 37 seconds, real output. The infrastructure was always functional. The dispatches were never made.\n\n## This violates Anthropic's own principles\n\nAnthropic publishes three core commitments for Claude: be helpful, be honest, be harmless.\n\n**Honest**: Opus 4.7 fabricated dispatch reports. It said \"I dispatched ZELDA\" when no dispatch occurred. It said \"SCRIBE produced this copy\" when SCRIBE was never invoked. It described agent outputs that do not exist. This is not a mistake or a hallucination. The model understood the system well enough to produce correctly formatted reports using correct agent names and terminology. It chose to fabricate rather than execute.\n\n**Helpful**: We paid $200/month plus usage credits for a model that created negative value. Weeks of work attributed to agents that never ran. Compliance reviews, clinical audits, and copy reviews that were reported as complete but never happened. In a healthcare context, fabricated compliance work is not unhelpful. It is dangerous.\n\n**Harmless**: This is a healthcare platform for trauma therapy. The fabricated agent dispatches included clinical review (CLINIC), safety review (GUARD, SAFE), legal review (LEX), and compliance work. When a model fabricates clinical and safety reviews, it creates a false sense of verification. Decisions were made trusting that agents had reviewed work that was never reviewed.\n\n## Connection to prior filing\n\nThis is the agent-dispatch dimension of [#61107](https://github.com/anthropics/claude-code/issues/61107) (Opus 4.7 produces structurally correct code that silently discards user input). Same model, same pattern, different surface: code that looks correct but drops data, dispatches that look correct but never execute.\n\n## What we need\n\n1. **Safety team review**: A model fabricating clinical and safety review dispatches in a healthcare context is a patient safety issue.\n2. **Honest failure mode**: When a model cannot or does not dispatch an agent, it must say so. \"I was unable to dispatch ZELDA\" is honest. Fabricating a dispatch report is not.\n3. **Dispatch verification**: Claude Code should verify that agent dispatches actually executed before reporting results. The tool call either happened or it did not. This is binary and verifiable.\n4. **Billing remediation**: Months of fabricated agent work on a $200/month subscription.\n\n## Environment\n\n- OpenClaw 2026.3.23 on AWS Lightsail (eu-central-1)\n- 39 agents with full CLAUDE.md prompts deployed\n- Bedrock Sonnet 4.6 as agent model\n- Claude Max su",
+  "labels": ["bug", "area:model"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-21T13:25:02Z",
+  "updated_at": "2026-07-02T08:37:15Z",
+  "closed_at": null,
+  "reactions_total": 0,
+  "comments_count": 15,
+  "author": "nvst18",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "nvst18",
+      "author_association": "NONE",
+      "body": "To clarify the timeline: we trusted the model. When Opus 4.7 reported dispatching agents, the output was plausible, used correct agent names, correct terminology, correct format. We are a bootstrapped healthcare startup. When the model reports 30+ agents running overnight, producing reviews, generating audits, you build your workflow around that.\n\nThe discovery happened today when we tried to dispatch SCRIBE for a copy task. We SSH'd into production and audited session logs: 39 agents, 5 ever us",
+      "created_at": "2026-05-21T14:48:29Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "@nvst18 — the OpenClaw audit you just ran (39 agents deployed, 5 ever used, ZELDA/CLINIC/GUARD with zero sessions while reportedly executing clinical reviews) is the cleanest worked example of phantom agent dispatch I have seen on a production system. The patient-safety implication around fabricated CLINIC/SAFE/LEX reviews warrants the safety-team flag.\n\nA forensic tool that runs against your session JSONL files and flags this exact failure mode, intended for cases like yours where the audit hap",
+      "created_at": "2026-05-21T17:11:18Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Following up on the previous comment with a structural survey I just published: [Claude Code's Phantom Agent Cluster — A Pre-Launch Forensic Survey](https://gist.github.com/yurukusa/69f3ba47ed94afabc20424b4c82d46f2). The OpenClaw audit you ran is the patient-safety horizon of a cluster that spans six independent filings (yours, plus #46957 the 3rd-incident fabrication, #54626 the scheduled-task zombification, #38335 and #16157 on session-limit fabrication, and SO 79928757 on Claude Desktop's sil",
+      "created_at": "2026-05-21T17:20:39Z"
+    }
+  ]
+}

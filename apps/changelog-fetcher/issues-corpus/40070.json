@@ -1,0 +1,35 @@
+{
+  "number": 40070,
+  "title": "Dispatch session collisions cause message loss and transport failures",
+  "body": "# Bug: Dispatch session collisions cause message loss and transport failures\n\n## Environment\n\n- **App**: Claude Desktop (macOS)\n- **Date observed**: 2026-03-27\n- **Log source**: `~/Library/Logs/Claude/main.log`\n\n## Summary\n\nWhen using Dispatch mode (Cowork), the sessions-bridge encounters repeated **session collisions** where multiple cloud session IDs (CSEs) attempt to bind to the same local Dispatch parent session. This creates a rapid displacement loop that prevents messages from being delivered, causes transport initialization failures, and results in user messages being silently dropped or routed incorrectly.\n\nThe user-visible symptom is that replies typed into a Dispatch thread are either lost entirely or \"passed off\" into a different Copilot chat session that then fails to respond.\n\n## Reproduction\n\n1. Open a Cowork/Dispatch session with several child tasks spawned.\n2. Send follow-up messages in the Dispatch thread while child sessions are active.\n3. Observe that the reply either never arrives or surfaces in the wrong session context.\n\nExact trigger conditions are unclear, but the collision loop began immediately after a prior session query completed with `isError=true`.\n\n## Error Details\n\n### 1. Session collision loop (11 collisions in ~2 minutes)\n\nStarting at `17:03:58`, pairs of CSE sessions repeatedly displace each other on the same local parent (`local_ditto_6cf1aa12-...`):\n\n```\n[error] [sessions-bridge] Session collision: cse_016UUj8Mj7XJAUsMEAWAw5hW is displacing cse_01DPeFSKvZkbvD3heTsfDWzN (both bound to local_ditto_6cf1aa12-..., displaced pendingTurns=0)\n[error] [sessions-bridge] Session collision: cse_01DPeFSKvZkbvD3heTsfDWzN is displacing cse_016UUj8Mj7XJAUsMEAWAw5hW (both bound to local_ditto_6cf1aa12-..., displaced pendingTurns=0)\n```\n\nThis pattern repeated with at least 6 different CSE IDs cycling against each other (`cse_01DPeF...`, `cse_016UUj...`, `cse_01NLWFp...`, `cse_015zc5...`, `cse_01Dbz...`, `cse_01Qtic...`).\n\n### 2. Transport initialization failure during collision\n\nA collision triggered a `deleteBridgeSession` which wiped the local parent while a new CSE transport was still attaching:\n\n```\n[warn] [sessions-bridge] Failed to post final result for cse_01DPeFSKvZkbvD3heTsfDWzN; server DELETE may 409: write() before transport initialized\n[error] [sessions-bridge] Failed to connect transport for session cse_01DPeFSKvZkbvD3heTsfDWzN: transport closed during attachBridgeSession\n```\n\nThe sequence was: collision detected -> `deleteBridgeSession` wipes local parent -> OAuth cache cleared -> fresh OAuth exchange started -> but transport was already closed -> `attachBridgeSession` fails.\n\n### 3. Stale pendingTurns\n\nThroughout the session, there are recurring warnings about stale pending turns suggesting the bridge loses track of in-flight work:\n\n```\n[warn] [sessions-bridge] Stale pendingTurns detected for session cse_01A2W7aptb5XBXZXwLsrc7Bx (pendingTurns=2), resetting counter and keeping transport open\n[warn] [sessions-bridge] Stale pendingTurns detected for session cse_01PJkqGu6XntvdWGT7r4uG2v (pendingTurns=1), resetting counter and reconnecting transport\n```\n\n### 4. User-reported symptoms in-log\n\nThe logs capture the user's own messages describing the failure:\n\n- `17:25:31` — \"Something is going on with your messaging system in dispatch mode. Your replies are being sent via s...\"\n- `18:15:21` — \"You're having problems responding in this dispatch thread. I can see you kicked off a claude code se...\"\n- `18:21:07` — \"I'm typing in a dispatch thread, but its literally just passing it off into a copilot chat and faili...\"\n\n## Root Cause Hypothesis\n\nThe sessions-bridge poll API is returning **duplicate or recycled work items** for the same local Dispatch parent. When a new CSE arrives while an existing CSE is already bound, the bridge displaces the old one. But the displaced session re-appears in the next poll cycle, creating a ping-pong loop. This loop:\n\n1. Prevents any single transport from staying connected long enough to relay messages.\n2. Can trigger `deleteBridgeSession` which wipes the loca",
+  "labels": ["bug", "has repro", "platform:macos", "area:cowork", "stale"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-28T00:59:05Z",
+  "updated_at": "2026-06-27T14:35:03Z",
+  "closed_at": "2026-05-07T22:29:54Z",
+  "reactions_total": 1,
+  "comments_count": 13,
+  "author": "jkdavies",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/40032\n2. https://github.com/anthropics/claude-code/issues/37473\n3. https://github.com/anthropics/claude-code/issues/38049\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-28T01:04:27Z"
+    },
+    {
+      "author": "Vgccorner",
+      "author_association": "NONE",
+      "body": "Yeah this happens to me too",
+      "created_at": "2026-03-28T04:36:30Z"
+    },
+    {
+      "author": "jkdavies",
+      "author_association": "NONE",
+      "body": "Still reproducing after full uninstall/reinstall of Claude Desktop. The same session collision loop is happening on the fresh install (2026-03-28 ~21:45-21:48 UTC):\n\n```\n[error] [sessions-bridge] Failed to connect transport for session cse_01PJkqGu6XntvdWGT7r4uG2v: Request failed with status code 404\n[error] [sessions-bridge] Session collision: cse_01YAYXMajbLXoy2XpCV78SDi is displacing cse_01QticnqBeE9qLLLrERHHTtX\n)both bound to local_ditto_6cf1aa12-..., displaced pendingTurns=3)\n[error] [sessi",
+      "created_at": "2026-03-29T01:52:35Z"
+    }
+  ]
+}

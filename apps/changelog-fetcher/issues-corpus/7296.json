@@ -1,0 +1,42 @@
+{
+  "number": 7296,
+  "title": "[BUG] Agents Don't Inherit MCP Tool Access Despite Connected MCP Servers",
+  "body": "# Claude Code Bug Report: Agent MCP Tool Access Inheritance Issue\n\n## Summary\nAgents launched via the Task tool do not inherit access to MCP (Model Context Protocol) tools, despite MCP servers being properly installed, connected, and accessible to the main Claude instance.\n\n## Environment\n- **Claude Code Version**: Latest (as of 2025-01-08)\n- **Platform**: Linux 6.15.8-zen1-1-zen\n- **Project Path**: /home/persist/repos/work/vazio/gateway-coin\n- **Date Reported**: 2025-01-08\n\n## Expected Behavior\nAccording to the Task tool description, specialized agents should have access to specific MCP tools:\n\n- **Project Manager**: Should have access to `mcp__pdl__*`, `mcp__nabu__*`, `mcp__telos__*`, `mcp__worktree__*`\n- **Engineering Manager**: Should have access to `mcp__pdl__*`, `mcp__nabu__*`, `mcp__telos__*`, `mcp__serena__*`, `mcp__context7__*`, `mcp__worktree__*`, `mcp__shamash__*`\n- **Software Engineer**: Should have access to `mcp__pdl__*`, `mcp__nabu__*`, `mcp__telos__*`, `mcp__serena__*`, `mcp__context7__*`, `mcp__worktree__*`\n\n## Actual Behavior\nAll agents launched via Task tool report they only have access to basic file operations:\n- ✅ Read, Write, Edit, MultiEdit\n- ✅ Bash, Glob, Grep\n- ❌ NO access to any MCP tools (`mcp__pdl__*`, `mcp__nabu__*`, `mcp__telos__*`, etc.)\n\n## Evidence\n\n### MCP Servers Are Properly Installed and Connected\n```bash\n$ claude mcp list\nChecking MCP server health...\n\nplaywright: npx @playwright/mcp@latest - ✓ Connected\ncontext7: https://mcp.context7.com/mcp (HTTP) - ✓ Connected\nnabu: node /home/persist/repos/lib/mcp_nabu/dist/index.js - ✓ Connected\ntelos: uvx --from /home/persist/repos/lib/mcp_telos telos - ✓ Connected\npdl: /usr/bin/node /home/persist/repos/lib/mcp_pdl/dist/server.js - ✓ Connected\nshamash: node /home/persist/repos/lib/mcp_shamash/dist/index.js - ✓ Connected\nworktree: node /home/persist/repos/lib/mcp-worktree/server.js - ✓ Connected\nscribe: /home/persist/repos/lib/mcp_scribe/dist/index.js - ✓ Connected\nkr8: node /home/persist/repos/lib/mcp_kr8/mcp-server/dist/index.js - ✓ Connected\n```\n\n### Main Claude Instance Has Full MCP Access\n- ✅ Can use `mcp__pdl__get_status`\n- ✅ Can use `mcp__nabu__active_ports`\n- ✅ Can use `mcp__telos__telos_store`\n- ✅ Can use all other MCP functions\n\n### Agent Test Results\n**Project Manager Agent Test:**\n```\n❌ NO PDL Functions Available - I do not have access to mcp__pdl__* functions\n❌ NO Nabu Functions Available - I do not have access to mcp__nabu__* functions  \n❌ NO Telos Memory Functions Available - I do not have access to mcp__telos__* functions\n❌ NO Other MCP Tools Available - Context7, Serena, Worktree, Playwright, Shamash not accessible\n\n✅ Basic file operations (Read, Write, Edit, MultiEdit)\n✅ Bash command execution  \n✅ File searching (Glob, Grep)\n```\n\n**Engineering Manager Agent Test:**\n```\n❌ NO PDL Functions Available - I do not have access to mcp__pdl__* functions\n❌ NO Nabu Functions Available - I do not have access to mcp__nabu__* functions  \n❌ NO Telos Memory Functions Available - I do not have access to mcp__telos__* functions\n❌ NO Other MCP Tools Available - Context7, Serena, Worktree, Playwright, Shamash not accessible\n```\n\n## Reproduction Steps\n1. Install and configure MCP servers (PDL, Nabu, Telos, etc.)\n2. Verify MCP servers are connected with `claude mcp list`\n3. Verify main Claude instance can access MCP functions\n4. Use Task tool to launch any specialized agent (Project Manager, Engineering Manager, etc.)\n5. Ask agent to test access to MCP functions they should have according to their description\n6. Observe that agents report no MCP access\n\n## Impact\nThis issue breaks the entire agent delegation workflow described in project documentation:\n- Project Manager cannot coordinate PDL phases\n- Agents cannot communicate via Nabu\n- No memory persistence via Telos\n- No feature branch management via Worktree\n- Forces workarounds that bypass the intended agent architecture\n\n## Configuration Details\n\n### Critical Configuration Information\n- **MCP Servers**: Installed at **USER LEVEL** (scope: us",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:linux",
+    "area:tools",
+    "area:core",
+    "area:mcp"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2025-09-08T09:42:03Z",
+  "updated_at": "2026-06-25T15:03:22Z",
+  "closed_at": "2026-05-06T00:21:14Z",
+  "reactions_total": 19,
+  "comments_count": 9,
+  "author": "alephpt",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thank you for your report — we are currently in the process of triaging MCP-related issues and this one appears to describe the same problem as #30280. To keep the discussion and any fix in one place, we're consolidating into that issue and closing this one. If you have logs, repro steps, or environment details that aren't already covered in #30280, please add them there — it'll help us track this down faster.\n",
+      "created_at": "2026-05-06T00:21:13Z"
+    },
+    {
+      "author": "FellowTraveler",
+      "author_association": "NONE",
+      "body": "I thought I was going crazy but I guess it's just a bug. Subagents can't be given tools I guess.",
+      "created_at": "2025-11-01T22:35:01Z"
+    },
+    {
+      "author": "AgathaCrystal",
+      "author_association": "NONE",
+      "body": "I have the same issue. My research agent defaults to websearch and refuses to use context7 or deepwiki.",
+      "created_at": "2025-11-05T21:38:18Z"
+    }
+  ]
+}

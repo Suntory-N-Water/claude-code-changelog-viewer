@@ -1,0 +1,35 @@
+{
+  "number": 59844,
+  "title": "`showThinkingSummaries: true` silently no-ops on Opus 4.7 in non-interactive surfaces (VS Code extension, SDK, `--print`): one-line CLI fix or one-line extension fix",
+  "body": "## Summary\n\n`~/.claude/settings.json` → `\"showThinkingSummaries\": true` is the documented, official way to surface thinking summaries in the VS Code / Antigravity chat panel. On `claude-opus-4-7[1m]` and any 4.7+ model, the setting silently no-ops: the API returns thinking content blocks with empty `thinking` field plus multi-KB signature only, and the webview falls back to its static `<div class=\"thinkingStatic\">Thinking</div>` stub because its `thinking.length > 0` branch can't fire.\n\nCloses the symptom side of: #49902, #49322, #49268, #51131, #49757, #48065, #49739, #33163, #8477, #30958.\nCross-references the failure mode of the env-var workaround: #56984.\n\n## Root cause\n\nTwo independent special cases in the harness combine to silently drop thinking summaries for IDE users on Opus 4.7:\n\n1. **The CLI binary gates the `showThinkingSummaries` → `display=\"summarized\"` propagation on interactive mode.** Build site at offset 230510599 in the v2.1.142 bundled binary:\n\n   ```js\n   if (K3.type !== \"disabled\") {\n     if (z.thinkingDisplay === \"summarized\" || z.thinkingDisplay === \"omitted\")\n       K3.display = z.thinkingDisplay;\n     else if (!T6() && m6().showThinkingSummaries === !0)   // <-- branch B\n       K3.display = \"summarized\";\n   }\n   ```\n\n   `T6()` is `getIsNonInteractiveSession()`. Branch B requires interactive mode. The IDE spawns the CLI subprocess as `--print --input-format stream-json --output-format stream-json`, which makes `T6() === true`, so branch B never fires for chat-panel subprocesses. The setting in `settings.json` is silently ignored in the place it matters most.\n\n   Per [Anthropic's own Opus 4.7 migration guide](https://platform.claude.com/docs/en/about-claude/models/migration-guide#migrating-to-claude-opus-4-7), the API default for `thinking.display` flipped to `\"omitted\"` on 4.7, so without explicit `display: \"summarized\"`, the API returns nothing user-visible.\n\n2. **The IDE doesn't read `showThinkingSummaries` when constructing its chat-panel spawn.** In `extension.js`'s `spawnClaude`, `q.thinking` is never set; only `q.maxThinkingTokens: Z` is. Downstream in `jW` this lifts to `{type: \"enabled\", budgetTokens: Z}` without `display`. So even if the CLI gate didn't exist, the IDE's own `q.thinking.display` would be undefined.\n\nThe same architectural shape produces both special cases: model-quality knobs that the IDE doesn't persist through `settings.json` the way `model` and `effortLevel` already do.\n\n## The four model-quality settings and how each surface handles them\n\n| Setting | settings.json key | Terminal CLI mechanism | IDE chat-panel mechanism |\n|---|---|---|---|\n| Model | `model` | `/model` slash command + `/config` panel → `writeUserSettingsAndPush` | \"Switch model…\" menu → `writeUserSettingsAndPush` |\n| Effort | `effortLevel` | `/effort` slash command + `/config` panel → `writeUserSettingsAndPush` | \"Effort\" menu → `writeUserSettingsAndPush` |\n| Thinking on/off | `alwaysThinkingEnabled` | `/config` panel \"Thinking mode\" toggle + Shift+Tab → `writeUserSettingsAndPush` | \"Thinking\" menu → **`context.globalState.update(\"thinkingLevel\", ...)`** (Antigravity-local, NOT settings.json) |\n| Show thinking summaries | `showThinkingSummaries` | Read at K3 build, honored only via the `!getIsNonInteractiveSession() && setting === true` gate | **Not exposed as a control; not read at spawn time; never propagated to `q.thinking.display`** |\n\nThe first two rows have one persistence policy. The last two each have a different one. The asymmetry is the bug.\n\n## Proposed fix (uniform rule)\n\n> Every model-quality setting that affects the API request shape lives in `settings.json`. The surface that exposes a UI for it reads from `settings.json` at construction time and writes back via `writeUserSettingsAndPush` on user change. The running CLI subprocess gets live updates via `applyFlagSettings`. There is no parallel globalState for these knobs.\n\n`model` and `effortLevel` already follow this rule. To bring the last two rows in line:\n\n1. **IDE `spawnClaude` builds `q.thinking.display` from merged",
+  "labels": ["bug", "has repro", "area:core", "area:ide", "platform:vscode"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-16T23:11:40Z",
+  "updated_at": "2026-06-28T01:46:20Z",
+  "closed_at": null,
+  "reactions_total": 7,
+  "comments_count": 10,
+  "author": "ojura",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/49268\n2. https://github.com/anthropics/claude-code/issues/49322\n3. https://github.com/anthropics/claude-code/issues/56356\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-05-16T23:15:16Z"
+    },
+    {
+      "author": "ojura",
+      "author_association": "NONE",
+      "body": "Not a duplicate of any of the three flagged candidates; this is a specific code-level fix proposal that builds on (and explicitly cross-references in the body above) the diagnoses in #49268 and #49322.\n\n- **#49268** is the root-cause diagnosis (harness doesn't set `display: \"summarized\"` on 4.7). Their proposed remediation is \"promote `--thinking-display` out of `.hideHelp()` + add a `thinkingDisplay` settings.json key\" (adds API surface, two knobs for one decision). This issue proposes a narrow",
+      "created_at": "2026-05-16T23:17:15Z"
+    },
+    {
+      "author": "ojura",
+      "author_association": "NONE",
+      "body": "**Empirical verification of the proposed fix**, referenced from the issue body's \"Safety against the #56984 failure mode\" section.\n\nMethod: byte-patched the bundled CLI binary at offset 230510690, replacing `!T6()&&` with 7 spaces in `else if(!T6()&&m6().showThinkingSummaries===!0)K3.display=\"summarized\"`. Length-preserving so the SEA stays intact. Ran the patched binary in an interactive tmux session with `ANTHROPIC_LOG=debug` + `--debug --debug-to-stderr`, exercising every settings-mutation su",
+      "created_at": "2026-05-17T09:30:44Z"
+    }
+  ]
+}

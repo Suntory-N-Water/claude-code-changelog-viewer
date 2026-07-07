@@ -1,0 +1,42 @@
+{
+  "number": 41722,
+  "title": "[BUG] Bash Commands do not execute, Return No Output",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAll bash commands executed through the Bash tool return `(Bash completed with no output)` regardless of the command. This affects even the simplest commands like `echo`, `pwd`, and `ls`.\n\n\n### What Should Happen?\n\nBash commands should return their standard output, for example:\n- `echo \"test\"` should return: `test`\n- `pwd` should return the current working directory path\n- `ls` should return directory contents\n\n\n### Error Messages/Logs\n\n```shell\n`(Bash completed with no output)`\n```\n\n### Steps to Reproduce\n\n1. Start Claude Code session\n2. Ask Claude to run any bash command, for example:\n   - `echo \"test\"`\n   - `pwd`\n   - `ls`\n   - `which bash`\n3. Observe result: `(Bash completed with no output)`\n\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.81 (Claude Code) stable channel, confirmed up to date as of 2026-03-31\n\n### Platform\n\nAWS Bedrock\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n## Additional Observations\n- **Other tools work normally:**\n  - Read tool ✓\n  - Write tool ✓\n  - Glob tool ✓\n  - Grep tool ✓\n\n- **Issue is consistent:**\n  - Occurs across multiple environments (Docker and native macOS)\n  - Persists across sessions\n  - Affects ALL bash commands without exception\n\n- **User's terminal works normally:**\n  - User can run bash commands directly in terminal successfully\n  - Issue is isolated to Claude Code's bash execution/capture\n\n- **No obvious configuration issues:**\n  - Checked `~/.claude/settings.json` - no bash-specific redirections\n  - No unusual environment variables that would suppress output\n\n## Impact\n- **Severity:** Medium-High\n- Users cannot use Claude to run bash commands for diagnostics, system operations, or automation\n- Workaround exists: Ask user to run commands manually, but this defeats the purpose of Claude Code automation\n\n## Suggested Investigation Areas\n1. Bash stdout capture mechanism in Claude Code\n2. Pipe/buffer handling for bash subprocess output\n3. TTY/PTY allocation for bash subprocess\n4. Shell initialization or profile loading that might redirect stdout\n\n## Configuration Files\nSettings from `~/.claude/settings.json`:\n```json\n{\n  \"apiKeyHelper\": \"/Users/djbyrne/Desktop/genAI/genai_api/claude_code_apikeyhelper.sh\",\n  \"env\": {\n    \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": \"1\",\n    \"CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS\": \"1\",\n    \"CLAUDE_CODE_API_KEY_HELPER_TTL_MS\": \"1800000\",\n    \"ENABLE_TOOL_SEARCH\": \"0\",\n    \"ANTHROPIC_BASE_URL\": \"https://gov.genai-api.jpl.nasa.gov/sub-id-djbyrne-timecard-govcloud\",\n    \"ANTHROPIC_MODEL\": \"us-gov.anthropic.claude-sonnet-4-5-20250929-v1:0\"\n  }\n}\n```\n\n## Session Information\n- Project: `/Users/dj_pastlives/2026_genAI/claude/20260331_pdf_and_plantuml`\n- Session occurred: 2026-03-31\n\n## Contact\n- User: djbyrne\n- Organization: JPL (Jet Propulsion Laboratory)\n\n---\n\n**Note:** This issue was discovered and documented with assistance from Claude during an active debugging session where we attempted to diagnose the problem using non-bash tools.\n",
+  "labels": [
+    "bug",
+    "has repro",
+    "api:bedrock",
+    "platform:macos",
+    "area:bash",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-04-01T00:08:39Z",
+  "updated_at": "2026-06-29T22:29:17Z",
+  "closed_at": "2026-06-29T22:29:17Z",
+  "reactions_total": 3,
+  "comments_count": 15,
+  "author": "djbyrne17",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/19663\n2. https://github.com/anthropics/claude-code/issues/41124\n3. https://github.com/anthropics/claude-code/issues/32778\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-01T00:13:37Z"
+    },
+    {
+      "author": "djbyrne17",
+      "author_association": "NONE",
+      "body": "It's not just the output; bash commands are not executing at all.  Snippet of session below.\n\n⏺ Bash(pwd > /Users/dj_pastlives/2026_genAI/claude/20260331_pdf_and_plantuml/test_output.txt)        \n  ⎿  (No output)                                                                                     \n                                                                                                     \n  Read 1 file (ctrl+o to expand)                                                                    ",
+      "created_at": "2026-04-01T01:24:36Z"
+    },
+    {
+      "author": "djbyrne17",
+      "author_association": "NONE",
+      "body": "In addition to seeing this on macOS Tahoe 26.3.1, I have the same problem in a docker environment on linux\n`Linux 4.18.0-553.72.1.el8_10.x86_64 #1 SMP Sat Aug 23 20:13:38 EDT 2025 x86_64 x86_64 x86_64 GNU/Linux`\nbut not on the same linux box outside of docker.",
+      "created_at": "2026-04-01T01:31:52Z"
+    }
+  ]
+}

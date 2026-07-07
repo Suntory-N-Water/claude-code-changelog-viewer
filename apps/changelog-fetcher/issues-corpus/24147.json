@@ -1,0 +1,43 @@
+{
+  "number": 24147,
+  "title": "Cache read tokens consume 99.93% of usage quota - architectural scaling issue with CLAUDE.md re-reads",
+  "body": "**Describe the bug**\n\nEvery message in a Claude Code session re-sends the full instruction set (CLAUDE.md files, system prompts, conversation history) as cached context. Cache read tokens count against the usage quota. As CLAUDE.md files grow, cache read token consumption scales linearly with both file size and message count, causing quota to deplete far faster than actual productive I/O would suggest.\n\n**Data**\n\nI parsed 30 days of Claude Code session transcripts (JSONL files) and extracted token usage from every API response.\n\n30-day totals (Jan 9 - Feb 8, 2026):\n\n```\nI/O tokens (actual work):        3,887,759\nCache read tokens:           5,092,500,074\nCache creation tokens:         176,498,498\n\nRatio: 1,310 cache reads per 1 I/O token\nCache reads as % of total:       99.93%\n```\n\nWeekly breakdown showing cache reads scaling with CLAUDE.md growth, not workload:\n\n```\nWeek of Jan 11:   276,151,498 cache reads\nWeek of Jan 18:   967,624,068 cache reads  (3.5x increase)\nWeek of Jan 25: 1,192,316,036 cache reads\nWeek of Feb  1: 1,474,919,498 cache reads  (peak)\nWeek of Feb  8: 1,181,488,974 cache reads  (ongoing)\n```\n\nSingle-day comparison showing non-linear scaling in longer sessions:\n\n```\nFeb 7:  78,312,699 cache reads |  70,533 I/O tokens\nFeb 8: 218,548,562 cache reads | 118,663 I/O tokens\n\nCache reads increased 2.8x while I/O only increased 1.7x\n```\n\n**Environment**\n\n- Claude Code version: 2.1.37\n- Models tested: Opus 4.5, Opus 4.6 (identical patterns on both)\n- OS: macOS Darwin 25.2.0\n- CLAUDE.md total size: ~57KB (~15,000 tokens) across global + project files\n- Typical session length: 50-150 messages\n\n**To reproduce**\n\n1. Create CLAUDE.md files with detailed project instructions (any size - larger files make the effect more visible)\n2. Run a Claude Code session with 50+ messages\n3. Parse the session transcript JSONL for `cache_read_input_tokens` in the usage object of each assistant message\n4. Compare cache read total to input + output token total\n\nToken usage is available in each assistant message entry in the JSONL transcript at:\n`~/.claude/projects/<project>/<session-id>.jsonl`\n\nEach entry contains:\n```json\n\"usage\": {\n  \"input_tokens\": ...,\n  \"output_tokens\": ...,\n  \"cache_creation_input_tokens\": ...,\n  \"cache_read_input_tokens\": ...\n}\n```\n\n**Expected behavior**\n\nCache read tokens should either:\n1. Not count against usage quota (since they represent re-reading the same context the user already provided), or\n2. Count at a significantly reduced weight, or\n3. Be minimized architecturally (e.g., don't re-send unchanged CLAUDE.md content every message, use deltas, or load instruction files on-demand)\n\n**Actual behavior**\n\nCache read tokens count fully against quota. Every message re-sends the complete instruction set regardless of whether it changed. This means:\n\n- A 15k-token CLAUDE.md costs 15k cache reads per message\n- A 100-message session costs 1.5M cache reads just from instructions\n- Multiple sessions per day compound this to hundreds of millions\n- Users have no control over the re-send behavior\n\n**Why this matters**\n\nThis explains the widespread \"$100 feels like $20\" feedback. Users are not consuming more productive tokens. Their quota is being consumed by the architectural overhead of re-reading cached context on every message. As users naturally grow their CLAUDE.md files (the intended workflow for tuning Claude Code), their quota depletion accelerates even with identical workloads.\n\n**Additional context**\n\n- This is model-agnostic. Opus 4.5 and 4.6 produce identical cache patterns.\n- My CLAUDE.md setup (~57KB) is larger than average. But the architecture affects all users proportionally - a 5KB CLAUDE.md has the same pattern at smaller scale.\n- I have reported this separately to Anthropic support with the full dataset.\n\nDisclaimer: I used my own AI tool to help parse the token data from session transcripts. The data is real, pulled directly from Claude Code JSONL session logs.",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:cost",
+    "area:core",
+    "area:api",
+    "memory"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-08T10:18:55Z",
+  "updated_at": "2026-06-24T19:37:12Z",
+  "closed_at": null,
+  "reactions_total": 13,
+  "comments_count": 14,
+  "author": "RedhatEnt",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/20223\n2. https://github.com/anthropics/claude-code/issues/24044\n3. https://github.com/anthropics/claude-code/issues/22607\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-08T10:23:21Z"
+    },
+    {
+      "author": "RedhatEnt",
+      "author_association": "NONE",
+      "body": "This is not a duplicate of the linked issues:\n\n  - #20223 is about line number formatting overhead in file loading (Read tool). Different mechanism.\n  - #24044 is about MEMORY.md being loaded twice by two loaders. Specific duplication bug.\n  - #22607 is a feature request for cumulative cache token display in status line.\n\n  This issue is about the fundamental architecture of re-sending the full instruction set (CLAUDE.md + system prompts + conversation history) as cached context on every single ",
+      "created_at": "2026-02-08T13:37:15Z"
+    },
+    {
+      "author": "RedhatEnt",
+      "author_association": "NONE",
+      "body": "## Token Usage Analyzer Script\n\nSince there's no built-in way to see cache vs I/O breakdown, here's the script I used to generate the data in this issue. Drop it anywhere and run it against your own session transcripts.\n\n**Usage:**\n```bash\npython3 claude_token_analyzer.py                  # Today's usage\npython3 claude_token_analyzer.py --days 7         # Last 7 days\npython3 claude_token_analyzer.py --days 30        # Last 30 days\npython3 claude_token_analyzer.py --weekly          # Weekly break",
+      "created_at": "2026-02-08T13:48:39Z"
+    }
+  ]
+}

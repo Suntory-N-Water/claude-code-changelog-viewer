@@ -1,0 +1,35 @@
+{
+  "number": 35150,
+  "title": "Allow tools/skills to programmatically clear context and inject a continuation prompt",
+  "body": "## Context\n\nWhen working on long, multi-step tasks, the context window fills up and performance degrades. The natural response is to clear and continue, but this destroys all accumulated context — decisions made, files identified, progress tracked, corrections given.\n\n## Problem / Motivation\n\nThere is no programmatic way for a skill or tool to:\n1. Summarize the current session context\n2. Clear the conversation\n3. Inject a continuation prompt into the fresh session\n\nThis means the human must manually orchestrate the \"save context → clear → restore context\" bridge every time. It's error-prone, breaks flow, and is exactly the kind of repetitive task that should be automatable.\n\n**Real-world use case:** A `/cls` skill that the user invokes when context is getting heavy. The skill gathers git state, conversation decisions, active tasks, and the user's gist of what's next — then clears the conversation and injects the summary so Claude picks up seamlessly. Today this is impossible because:\n\n- Skills cannot invoke `/clear`\n- There is no `PostClear` hook event\n- `SessionStart` hooks cannot inject prompt content\n- Hooks generally cannot submit text into the conversation\n\nThe workaround is for the skill to save a summary to a file, then the user manually runs `/clear`, then manually types \"read the file and continue.\" This defeats the purpose of having a skill.\n\nRelated: #32861\n\n## Proposed Solution\n\nEnable one or more of these mechanisms (in order of preference):\n\n### Option A: Tool-invocable clear with continuation\nA tool like `ClearContext` that a skill can call programmatically:\n```\nClearContext({ continuation_prompt: \"I'm continuing from a previous session...\" })\n```\nThis clears the conversation and injects the continuation as the opening message.\n\n### Option B: PostClear hook with prompt injection\nAdd a `PostClear` hook event that fires after `/clear`. Allow hooks of type `\"prompt\"` to inject text into the fresh session:\n```json\n{\n  \"hooks\": {\n    \"PostClear\": [{\n      \"hooks\": [{ \"type\": \"prompt\", \"promptTemplate\": \"Read {{file}} and continue\" }]\n    }]\n  }\n}\n```\n\n### Option C: `/clear --run <prompt-or-file>`\nA built-in flag that clears and then submits a prompt or reads a file:\n```\n/clear --run \"read local/cls-prompt.md and continue\"\n```\nThis is the simplest to implement but limits automation to what the human types.\n\n**Any of these would unblock the use case.** Option A is the most powerful (skills can fully orchestrate the flow). Option C is the simplest to ship.\n\n## Acceptance Criteria\n\n- [ ] A skill or tool can programmatically trigger a context clear\n- [ ] A continuation prompt can be injected into the fresh session without user action\n- [ ] The user initiates the flow (not automatic) — this is a human-in-the-loop bridge action\n- [ ] Works in both CLI and IDE integrations",
+  "labels": ["enhancement", "area:core", "area:hooks", "area:skills", "stale"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-17T02:32:19Z",
+  "updated_at": "2026-06-23T22:29:24Z",
+  "closed_at": null,
+  "reactions_total": 2,
+  "comments_count": 11,
+  "author": "peterdrier",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "A `UserPromptSubmit` hook can implement continuation prompts:\n```bash\nPROMPT=$(cat | jq -r '.userPrompt // empty' 2>/dev/null)\nif echo \"$PROMPT\" | grep -qiE '(/continue|resume from|pick up where)'; then\n    LAST_STATE=\"/tmp/cc-last-state.json\"\n    if [ -f \"$LAST_STATE\" ]; then\n        STATE=$(cat \"$LAST_STATE\")\n        jq -n --arg s \"$STATE\" '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Continuation context from previous state: \" + $s}}'\n    fi\nfi\nexit 0\n```\nSav",
+      "created_at": "2026-03-29T13:01:27Z"
+    },
+    {
+      "author": "peterdrier",
+      "author_association": "NONE",
+      "body": "> A `UserPromptSubmit` hook can implement continuation prompts:\n\nHow would that work?  Is this basically a magic file that gets checked post a /clear for content to auto load?    Interesting thought, but doesn't feel very stable in a multiple agent environment.  ",
+      "created_at": "2026-03-29T16:22:24Z"
+    },
+    {
+      "author": "mianamiana",
+      "author_association": "NONE",
+      "body": "+1 on this. I'm building a custom `/compact-d` skill for discussion-heavy sessions (brainstorming, design decisions). It compresses the conversation into a structured XML handoff file, but then the user still has to manually type `/clear 继续` to resume — which defeats the purpose of automating the flow.\n\n**My use case:** As I create more skills that need to orchestrate context resets (not just compact-d, but potentially any skill that hits context limits), the number of manual steps the user must",
+      "created_at": "2026-04-01T01:32:56Z"
+    }
+  ]
+}

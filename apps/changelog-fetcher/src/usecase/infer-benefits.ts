@@ -68,7 +68,7 @@ export async function inferBenefits(input: {
   }
 
   log.info(`未処理項目あり: ${missingAfterInitial.length}件、リトライ開始`, {
-    missingIds: missingAfterInitial.map((item) => item.originalIndex),
+    missingIds: missingAfterInitial.map((item) => item.id),
   });
 
   await pRetry(
@@ -97,7 +97,7 @@ export async function inferBenefits(input: {
       const stillMissing = findMissingInferenceItems(analysis);
       if (stillMissing.length > 0) {
         throw new Error(
-          `未処理項目が残存: ${stillMissing.length}件 (ids: ${stillMissing.map((item) => item.originalIndex).join(', ')})`,
+          `未処理項目が残存: ${stillMissing.length}件 (ids: ${stillMissing.map((item) => item.id).join(', ')})`,
         );
       }
     },
@@ -113,7 +113,7 @@ export async function inferBenefits(input: {
   ).catch(() => {
     const stillMissing = findMissingInferenceItems(analysis);
     log.info(`リトライ上限到達、未処理項目が残存: ${stillMissing.length}件`, {
-      missingIds: stillMissing.map((item) => item.originalIndex),
+      missingIds: stillMissing.map((item) => item.id),
     });
   });
 

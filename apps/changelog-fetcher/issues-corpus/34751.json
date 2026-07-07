@@ -1,0 +1,35 @@
+{
+  "number": 34751,
+  "title": "[BUG] \"Request too large (max 20MB)\" error on small files (99KB PNG)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter extended multi-day session with compaction, Claude Code triggers\n  \"Request too large (max 20MB)\" on operations involving small files. Observed\n  when writing a 160-line (~8KB) markdown file and when reading small PNG\n  screenshots (99KB-224KB). Files are confirmed small via ls -la. The error\n  appears to be a false positive from degraded context state, not actual file\n  size. Closing and reopening the session is the only workaround.\n\n\n### What Should Happen?\n\nClaude should read and write small files without size errors regardless of  \n  session length. If the session context has grown too large from extended \n  multi-day use or many file operations/screenshots, Claude should either       \n  auto-compact proactively before hitting limits, or surface a helpful message \n  like \"Session context is full — compacting now\" instead of the misleading\n  \"Request too large (max 20MB)\" error, which implies the file itself is too\n  large when it isn't.\n\n\n### Error Messages/Logs\n\n```shell\nRequest too large (max 20MB). Double press esc to go back and try with a\n  smaller file.\n```\n\n### Steps to Reproduce\n\n1. Keep a Claude Code session open for extended period (multiple days, with   \n  automatic compaction occurring)                                 \n  2. Continue working — writing files, reading files, normal operations\n  3. Eventually any file operation (Write, Read, drag-and-drop) triggers the\n  error\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.76\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nUbuntu/Debian Linux\n\n### Terminal/Shell\n\nOther\n\n### Additional Information\n\nBug correlates with long-running sessions (multi-day with compaction). Fresh\n   sessions work fine. Not file-type specific — happens with both .md and .png\n  files. Only workaround is closing and restarting the session.\n",
+  "labels": ["bug", "platform:linux", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-15T20:52:32Z",
+  "updated_at": "2026-06-15T09:58:09Z",
+  "closed_at": null,
+  "reactions_total": 24,
+  "comments_count": 29,
+  "author": "biznmo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/8092\n2. https://github.com/anthropics/claude-code/issues/26018\n3. https://github.com/anthropics/claude-code/issues/30542\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-15T20:56:54Z"
+    },
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "The error is misleading — it's not the individual file that's too large. It's the total API request payload (conversation history + compacted summaries + all tool outputs) that's approaching the 20MB limit. After multiple compaction cycles in a multi-day session, residual context accumulates.\n\nWhat helps:\n\n1. **`/clear` instead of restarting.** Resets conversation history while keeping CLAUDE.md loaded. Faster than a full restart and immediately resolves the size issue.\n\n2. **Avoid drag-and-drop",
+      "created_at": "2026-03-16T00:02:15Z"
+    },
+    {
+      "author": "biznmo",
+      "author_association": "NONE",
+      "body": "Thanks for the quick and thorough breakdown! The distinction between\r\nindividual file size vs total API payload context was exactly the \"aha\"\r\nmoment —\r\nthe error message really had me thinking it was the file itself.\r\n\r\nAlready implemented your suggestions:\r\n- Added context management rules to my CLAUDE.md (avoid drag-drop images,\r\nuse file paths + Read tool, proactive /clear, handoff docs before clearing)\r\n- Starting fresh sessions per logical task instead of multi-day marathons\r\n\r\nThe error m",
+      "created_at": "2026-03-16T01:56:45Z"
+    }
+  ]
+}

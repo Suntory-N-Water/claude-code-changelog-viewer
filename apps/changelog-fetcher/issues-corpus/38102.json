@@ -1,0 +1,35 @@
+{
+  "number": 38102,
+  "title": "MCP OAuth: \"does not support dynamic client registration\" despite clientId configured",
+  "body": "## Bug Description\n\nWhen connecting to an HTTP MCP server with OAuth authentication, Claude Code fails with:\n\n```\nError: Incompatible auth server: does not support dynamic client registration\n```\n\nThis occurs even when `clientId` is explicitly configured in `.mcp.json` and via `claude mcp add --client-id`.\n\n## Expected Behavior\n\nWhen a `clientId` is provided (either in `.mcp.json` `oauth.clientId` or via `--client-id` flag), Claude Code should use it directly for the OAuth authorization code flow instead of attempting dynamic client registration (RFC 7591).\n\n## Reproduction\n\n1. Set up an MCP server with OAuth 2.0 behind AWS Cognito (which does not support dynamic client registration)\n2. Serve `/.well-known/oauth-authorization-server` metadata (RFC 8414) without a `registration_endpoint`\n3. Serve `/.well-known/oauth-protected-resource` metadata (RFC 9728)\n4. Configure `.mcp.json`:\n```json\n{\n  \"mcpServers\": {\n    \"my-server\": {\n      \"type\": \"http\",\n      \"url\": \"https://my-server.example.com/mcp/\",\n      \"oauth\": {\n        \"clientId\": \"my-cognito-client-id\",\n        \"callbackPort\": 19876\n      }\n    }\n  }\n}\n```\n5. Run `/mcp` → Authenticate → Error: \"does not support dynamic client registration\"\n\nAlso tried: `claude mcp add --transport http --client-id <id> --callback-port 19876 my-server https://...`\n\nSame error.\n\n## Additional Notes\n\n- If `registration_endpoint` is set to `null` in the metadata response, Claude Code also fails with a Zod validation error: `\"expected string, received null\"` on `registration_endpoint` path. Removing the field entirely avoids this but triggers the dynamic registration error above.\n- AWS Cognito is a widely used OAuth provider that does NOT support dynamic client registration. The pre-registered `clientId` approach is the standard pattern for CLI tools (similar to `gh auth login`, `gcloud auth login`).\n- PKCE (S256) is supported by both the server and Cognito.\n\n## Environment\n\n- Claude Code CLI (latest)\n- macOS Darwin 25.3.0\n- OAuth provider: AWS Cognito (custom domain)",
+  "labels": ["bug", "duplicate", "platform:macos", "area:auth", "area:mcp"],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-24T06:14:55Z",
+  "updated_at": "2026-06-25T15:02:44Z",
+  "closed_at": "2026-05-05T23:45:01Z",
+  "reactions_total": 6,
+  "comments_count": 10,
+  "author": "shivarammysore",
+  "is_maintainer_involved": true,
+  "top_comments": [
+    {
+      "author": "localden",
+      "author_association": "COLLABORATOR",
+      "body": "Thank you for your report — we are currently in the process of triaging MCP-related issues and this one appears to describe the same problem as #3273. To keep the discussion and any fix in one place, we're consolidating into that issue and closing this one. If you have logs, repro steps, or environment details that aren't already covered in #3273, please add them there — it'll help us track this down faster.\n",
+      "created_at": "2026-05-05T23:45:00Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/26675\n2. https://github.com/anthropics/claude-code/issues/3273\n3. https://github.com/anthropics/claude-code/issues/18009\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-24T06:18:10Z"
+    },
+    {
+      "author": "shivarammysore",
+      "author_association": "NONE",
+      "body": "## Additional finding: workaround and UX issue\n\n### Workaround\nWe got it working using the `${ENV_VAR}` expansion in `.mcp.json` headers:\n\n```json\n{\n  \"mcpServers\": {\n    \"my-server\": {\n      \"type\": \"http\",\n      \"url\": \"https://my-mcp-server.example.com/mcp/\",\n      \"headers\": {\n        \"Authorization\": \"Bearer ${MY_TOKEN}\"\n      }\n    }\n  }\n}\n```\n\nWith a helper script that completes the OAuth PKCE flow (opens browser → captures callback on localhost → exchanges code for token) and exports the",
+      "created_at": "2026-03-24T06:27:39Z"
+    }
+  ]
+}

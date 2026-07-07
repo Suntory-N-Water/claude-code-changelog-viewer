@@ -1,0 +1,35 @@
+{
+  "number": 11008,
+  "title": "[FEATURE] Expose token usage and cost data in hook inputs",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nCurrently, hooks receive session metadata (session_id, transcript_path, cwd, permission_mode) but NO token usage or cost information. This limitation prevents:\n\n1. **Real-time budget monitoring**: Cannot trigger warnings when approaching token limits\n2. **Context-aware decisions**: Cannot adapt behavior based on current token consumption\n3. **Automated session management**: Cannot implement intelligent save/compact strategies based on cost\n4. **Integration with external systems**: Cannot automatically log usage metrics to monitoring tools\n\nUsers must manually run `/cost` or `/usage` commands, or parse transcript JSONL files post-session, neither of which supports real-time automation.\n\nUse Case: my tool for context monitoring\nI'm building a tool (semantic memory system for engineering context) that needs to monitor Claude Code's 200k token window. A `PostToolUse` hook could automatically:\n\n```bash\n#!/bin/bash\n# PostToolUse hook for my tool context monitoring\n\ninput=$(cat)\ncurrent_tokens=$(echo \"$input\" | jq -r '.usage.total_tokens')\nsession_cost=$(echo \"$input\" | jq -r '.usage.total_cost_usd')\n\n# Alert if approaching context limit (80% threshold)\nif [ \"$current_tokens\" -gt 160000 ]; then\n  echo '{\"type\": \"warning\", \"message\": \"Context usage at 80% ('\"$current_tokens\"'/200k tokens). Consider /compact or saving.\"}'\nfi\n\n Log to external monitoring system\ncurl -s -X POST http://localhost:8081/context/monitor \\\n  -H 'Content-Type: application/json' \\\n  -d \"{\\\"current_tokens\\\": $current_tokens, \\\"cost\\\": $session_cost}\"\n```\n\nCurrently impossible because hooks don't receive token/cost data.\n\nRelated Issues\n- #8861: Requests token data in status line API (different feature)\n- #9293: Pre-Exit hook for cost display (closed as duplicate)\n- #10593: Real-time token usage indicator\n- #8832: Customizable status bar with token widgets\n\n**None of these specifically address exposing token data TO hooks as input.**\n\n### Proposed Solution\n\nAdd token usage and cost fields to the JSON input passed to hooks via stdin:\n\n```json\n{\n  \"session_id\": \"abc123\",\n  \"transcript_path\": \"/path/to/transcript.jsonl\",\n  \"cwd\": \"/project/path\",\n  \"permission_mode\": \"ask\",\n  \"hook_event_name\": \"PostToolUse\",\n  \"usage\": {\n    \"total_tokens\": 45230,\n    \"input_tokens\": 38000,\n    \"output_tokens\": 7230,\n    \"cache_read_tokens\": 12000,\n    \"cache_creation_tokens\": 5000,\n    \"total_cost_usd\": 0.87,\n    \"percentage_of_context_window\": 22.6\n  },\n  \"limits\": {\n    \"context_window_tokens\": 200000,\n    \"session_remaining_tokens\": 1250000,\n    \"weekly_remaining_tokens\": 8500000\n  }\n}\n```\n\n### Implementation Notes\n- Token data is already tracked internally (visible via `/cost` and `/usage`)\n- Status line API already receives token data (per #8861 discussion)\n- Extending hook inputs to include this data should be straightforward\n- All hook types would benefit, but `PostToolUse` and `PreCompact` are highest priority\n\n## Benefits\n1. **Proactive context management**: Hooks can trigger compaction before hitting limits\n2. **Budget enforcement**: Organizations can implement hard spending caps\n3. **Usage analytics**: Stream metrics to external monitoring/observability platforms\n4. **Intelligent session management**: Auto-save expensive sessions to memory systems\n5. **User experience**: Automated warnings prevent surprise context window errors\n\n## Alternative Workarounds (Why They're Insufficient)\n1. **Parse transcript JSONL**: Requires file I/O, complex parsing, only works post-session\n2. **Status line API**: Display-only, not accessible to hooks\n3. **Manual /cost command**: Requires user intervention, not automatable in hooks\n\n## Community Interest\nMultiple issues (#8861, #10593, #7111) demonstrate strong demand for better token visibility. Exposing this data to hooks would enable the community to buil",
+  "labels": ["enhancement", "has repro", "area:cost", "area:tools"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-11-04T20:59:20Z",
+  "updated_at": "2026-06-22T04:03:26Z",
+  "closed_at": null,
+  "reactions_total": 28,
+  "comments_count": 23,
+  "author": "cassiodias",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "MarvDann76",
+      "author_association": "NONE",
+      "body": "I think this would be a great addition to the status line. Context and Cost awareness is key as we are working. /context and /usage is great but I think more a persistent reminder would be even more valuable as an option to switch on / off easily. I did try implementing this myself but it wasn't giving me accurate real-time info.\n",
+      "created_at": "2025-11-26T23:30:28Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-27T10:08:35Z"
+    },
+    {
+      "author": "cassiodias",
+      "author_association": "NONE",
+      "body": "Hey, do you have any response? This is interesting to the community.",
+      "created_at": "2026-01-01T21:07:30Z"
+    }
+  ]
+}

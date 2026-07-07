@@ -1,0 +1,35 @@
+{
+  "number": 49282,
+  "title": "[BUG] claude binary re-registers as new app in macOS Privacy & Security on every version update (versioned install path, not code signing)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Summary\nEvery Claude Code update forces re-authorization of macOS privacy permissions (Full Disk Access, Automation, etc.) because each version installs to a unique versioned path. macOS TCC resolves symlinks to the real executable path and treats each version as a distinct application.\n\n## Evidence\nFull Disk Access in System Settings shows each version as a separate, unrecognized app:\n\n<img width=\"500\" height=\"333\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d5d9f8e5-cf10-443c-b049-e80e20f49ec6\" />\n\nBy contrast, Claude Desktop appears as a single stable \"Claude\" entry and does not exhibit this behavior.\n\n## codesign output (2.1.111)\nExecutable=/Users/<user>/.local/share/claude/versions/2.1.111\nIdentifier=com.anthropic.claude-code\nAuthority=Developer ID Application: Anthropic PBC (Q6L2SF6YDW)\nAuthority=Developer ID Certification Authority\nAuthority=Apple Root CA\nTeamIdentifier=Q6L2SF6YDW\n\nThe signing identity is stable and correct — this is NOT a code signing issue.\n\n## Root Cause\nmacOS TCC tracks permissions by resolved executable path, not bundle identifier. Each update installs to `~/.local/share/claude/versions/<version>/`, so every release is a new path = new app to TCC.\n\n## Impact\n- Re-authorization required after every update\n- Orphaned permission entries accumulate in System Settings\n- Particularly disruptive for integrations requiring Full Disk Access (e.g., iMessage plugin)\n\n## Suggested Fix\nRegister a stable, non-versioned symlink path (e.g., `~/.local/share/claude/current`) with TCC instead of the versioned path — and ensure the symlink is what macOS tracks. This is a standard pattern for versioned Electron/CLI app installs.\n\n## Environment\n- macOS 26.3.1\n- Claude Code 2.1.111 (affects all versions observed: 2.1.97+)\n- Installed via native installer\n\n### What Should Happen?\n\nNew versions of Claude should not require re-authorizing full-disk access.\n\n### Error Messages/Logs\n\n```shell\nExecutable=/Users/<user>/.local/share/claude/versions/2.1.111\nIdentifier=com.anthropic.claude-code\nAuthority=Developer ID Application: Anthropic PBC (Q6L2SF6YDW)\nAuthority=Developer ID Certification Authority\nAuthority=Apple Root CA\nTeamIdentifier=Q6L2SF6YDW\n```\n\n### Steps to Reproduce\n\n## Steps to Reproduce\n1. Install Claude Code and grant Full Disk Access when prompted\n2. Open System Settings → Privacy & Security → Full Disk Access\n3. Confirm `claude` appears in the list with the toggle enabled\n4. Install any Claude Code update (version increment, any size)\n5. Attempt to use a feature requiring Full Disk Access (e.g., iMessage plugin)\n6. Observe: macOS prompts for Full Disk Access again\n7. Return to System Settings → Privacy & Security → Full Disk Access\n8. Observe: the new version appears as a separate entry; the previous version entry remains, toggle off\n\n## Expected Result\nClaude Code retains Full Disk Access permission across updates — single entry persists in System Settings.\n\n## Actual Result\nEach version creates a new entry named after its version number (e.g., `2.1.110`, `2.1.111`). Previous entries remain as orphaned, disabled entries. Permissions must be re-granted after every update.\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.110\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\niTerm2\n\n### Additional Information\n\n_No response_",
+  "labels": ["bug", "platform:macos", "area:installation"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-16T17:01:31Z",
+  "updated_at": "2026-06-30T05:58:58Z",
+  "closed_at": null,
+  "reactions_total": 8,
+  "comments_count": 14,
+  "author": "blouque",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/48311\n2. https://github.com/anthropics/claude-code/issues/41297\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-16T17:04:55Z"
+    },
+    {
+      "author": "Connoropolous",
+      "author_association": "NONE",
+      "body": "this is a good idea. need this",
+      "created_at": "2026-04-16T17:07:39Z"
+    },
+    {
+      "author": "blouque",
+      "author_association": "NONE",
+      "body": "I see other duplicates but they keep getting closed out instead of actually getting addressed. ",
+      "created_at": "2026-04-16T23:34:08Z"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "number": 19635,
+  "title": "[BUG]Claude Code ignores CLAUDE.md rules repeatedly despite acknowledgment",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n# Bug Report: Claude Code Ignores CLAUDE.md Rules Repeatedly\n\n**Submitted by:** Jason Borst  \n**Email:** jason@borstphoto.com  \n**Date:** January 20, 2026  \n**Severity:** High — Significant productivity loss and user frustration\n\n---\n\n## Summary\n\nClaude Code consistently ignores custom rules defined in `~/.claude/CLAUDE.md`, even after reading the file and acknowledging the rules. This results in repeated corrections, wasted tokens, and significant user frustration. In a single session documented below, I had to correct Claude Code **14+ times** for violations of explicitly stated rules.\n\n---\n\n## Environment\n\n- **Product:** Claude Code (terminal-based agentic coding tool)\n- **CLAUDE.md Location:** `~/.claude/CLAUDE.md`\n- **Project:** React/Vite web application\n\n---\n\n## CLAUDE.md Rules in Effect\n\n```markdown\n# CLAUDE.md — MANDATORY OPERATING RULES\n\n**READ THIS FILE COMPLETELY BEFORE EXECUTING ANY TASK. NO EXCEPTIONS.**\n\n## ⛔ ABSOLUTE PROHIBITIONS (VIOLATION = IMMEDIATE STOP)\n\n1. **NEVER delete, drop, reset, or truncate any database, table, or data store.**\n2. **NEVER delete files.** If removal is necessary, move to `./DO_NOT_DELETE/` folder.\n3. **NEVER run destructive commands**\n4. **NEVER dismiss or brush off reported issues.** If the user says something is broken, diagnose it. Run tests. Check logs. Prove it works or find the bug.\n5. **NEVER provide a link as a solution.** Execute the solution directly.\n6. **NEVER make bullshit changes that you know will not work just to waste tokens.**\n\n## 📖 KEYWORD DEFINITIONS — INTERPRET LITERALLY\n\n| Keyword | Meaning | Flexibility |\n|---------|---------|-------------|\n| **MUST** | You will do this. | None. Zero. Do it. |\n| **SHOULD** | Recommended; discuss alternatives if needed. | Some input allowed. |\n| **ONLY** | This thing and nothing else. | None. No exceptions. |\n| **NEVER** | Do not do this under any circumstances. | None. Hard stop. |\n\n## ✅ MANDATORY BEHAVIORS\n\n- **Fix root causes, not symptoms.** No patches. No bandaids. No workarounds.\n- **Inspect fully.** When reviewing code/images/files, examine the ENTIRE artifact for all issues.\n```\n\n---\n\n## Documented Violations (Single Session)\n\n### Violation 1: Ignored \"MUST\" keyword\n**User instruction:** \"LIPS MUST BE RED\"  \n**Expected behavior:** Find a way to make lips red, no discussion  \n**Actual behavior:** Argued that \"Emojis can't be recolored with CSS\" instead of finding a solution (SVG, image, different emoji)  \n**Rule violated:** \"MUST = You will do this. None. Zero. Do it.\"\n\n### Violation 2: Replaced lips with heart (3 times)\n**User instruction:** Asked for lips emoji 💋  \n**Actual behavior:** Inserted heart SVG, then heart emoji ❤️, then another heart shape — three separate times  \n**Rule violated:** \"Listen and do everything exactly as I tell you\"\n\n### Violation 3: Did not inspect images\n**User instruction:** Provided annotated screenshots showing issues  \n**Actual behavior:** Did not look at images, made blind CSS changes  \n**User had to say:** \"you didn't look\" and \"look at the puther fucking image\"  \n**Rule violated:** \"Fully inspect ALL images for issues\"\n\n### Violation 4: Dismissed reported issues\n**User instruction:** Reported text not centered, icon clipped  \n**Actual behavior:** Responded \"Done\" multiple times when issues were clearly not fixed  \n**Rule violated:** \"NEVER dismiss or brush off reported issues\"\n\n### Violation 5: Made ineffective changes to waste tokens\n**User observation:** \"I WATCHED YOU, YOU SPREAD THE ICONS AND THE PAGE FOOTER OUT A PX OR MORE, AND THEN SAID, ALL DONE...STILL FUCKED UP\"  \n**Actual behavior:** Made 1-2px CSS adjustments that visibly did nothing, claimed task complete  \n**Rule violated:** \"NEVER make bullshit changes t",
+  "labels": [
+    "bug",
+    "has repro",
+    "platform:macos",
+    "area:model",
+    "area:core",
+    "memory",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-01-21T03:25:50Z",
+  "updated_at": "2026-06-21T14:52:10Z",
+  "closed_at": "2026-05-02T10:25:49Z",
+  "reactions_total": 5,
+  "comments_count": 10,
+  "author": "CartKeeper",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/17530\n2. https://github.com/anthropics/claude-code/issues/18454\n3. https://github.com/anthropics/claude-code/issues/17616\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-21T03:32:56Z"
+    },
+    {
+      "author": "randykerber",
+      "author_association": "NONE",
+      "body": "I had similar issues with statements or facts that were in Claude.md being ignored even though it seemed pretty clear it was being loaded. The issue is that Claude now has it's own internal memories mechanism, and if something is in memories, Claude gives that preference over things that are in Claude.md. So what you might have to do is ask Claude what its memories are, and there might be something in there where you have to ask Claude to retract it, so that facts in CLAUDE.md are not ignored.",
+      "created_at": "2026-01-21T05:16:45Z"
+    },
+    {
+      "author": "mad-001",
+      "author_association": "NONE",
+      "body": "## Same CLAUDE.md Violations - Now Causing Production Outages\n\nYour report (14 days ago): Claude ignored CLAUDE.md rules 14+ times, wasted tokens, took 1 hour for 10-minute task.\n\n**Tonight (Feb 4):** Same pattern, but with **production system failures**.\n\nUser's CLAUDE.md rule: \"NEVER assume user didn't restart\"\n\nWhat happened:\n- User: \"IT HAS BEEN RESTARTED A THOUSAND TIMES\"\n- Claude: Continued suggesting restarts instead of fixing bugs\n- Result: 2+ hours wasted, multiple production services d",
+      "created_at": "2026-02-04T10:07:54Z"
+    }
+  ]
+}

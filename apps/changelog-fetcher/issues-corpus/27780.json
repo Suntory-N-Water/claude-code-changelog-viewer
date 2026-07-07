@@ -1,0 +1,35 @@
+{
+  "number": 27780,
+  "title": "Claude Code Analytics Admin API does not return subscription/OAuth users",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nThe Claude Code Analytics Admin API (`GET /v1/organizations/usage_report/claude_code`) only returns records with `customer_type: \"api\"`. Users who authenticate to Claude Code via OAuth (claude.ai subscription login) do not appear in the API response at all.\n\nThe [official documentation](https://platform.claude.com/docs/en/api/claude-code-analytics-api) states that `customer_type` can be `\"api\"` or `\"subscription\"` and the FAQ explicitly says:\n\n> **How are users identified in the data?**\n> - `user_actor`: Contains `email_address` for users who authenticate via OAuth (most common)\n> - The `customer_type` field indicates whether the usage is from `api` customers (API PAYG) or `subscription` customers (Pro/Team plans).\n\nHowever, no `subscription` records are ever returned. This has been reported before in #9700 and #20819, both of which were auto-closed by a bot without any response from Anthropic.\n\n### What Should Happen?\n\nThe API should return usage records for all Claude Code users in the organization, including those who authenticate via OAuth with their Claude.ai Team/Max subscriptions. These records should have `customer_type: \"subscription\"`.\n\n### Evidence\n\nOur organization (\"Fi\", org ID `0fb033ef-a1f3-466e-a534-70ff75162401`) has 7 admin users and previously had ~15+ engineers using Claude Code via per-user API keys. We can confirm:\n\n- **December 2025**: When engineers used API keys, we saw 9+ unique users in the API response (all `customer_type: \"api\"`)\n- **February 2026**: After migrating engineers to OAuth/subscription auth (and archiving the API keys), the API only returns 1-2 actors — effectively losing visibility into the entire team's usage\n- **Zero `subscription` records** have ever been returned across any date range we've queried\n\nWe confirmed the org has active users via the `/v1/organizations/users` endpoint — the users exist, they're using Claude Code daily, but their usage simply doesn't appear in the analytics API.\n\n### Impact\n\nThis bug makes the Analytics API unusable for organizations whose engineers authenticate via OAuth, which the docs describe as \"most common.\" The only workaround is to switch engineers back to API key auth, which bills against API credits instead of their subscription allowances — defeating the purpose of having subscriptions.\n\n### Steps to Reproduce\n\n1. Have org members authenticate to Claude Code via Claude.ai (OAuth/subscription)\n2. Use Claude Code throughout the day\n3. Query `GET /v1/organizations/usage_report/claude_code?starting_at=<date>` with an Admin API key\n4. Observe: only `customer_type: \"api\"` records appear; subscription users are missing\n\n### Previous Issues\n\n- #9700 — auto-closed after 60 days with no Anthropic response\n- #20819 — auto-closed as duplicate of #9700\n\n### Claude Model\n\nOpus (claude-opus-4-6)\n\n### Claude Code Version\n\nLatest\n\n### Platform\n\nmacOS",
+  "labels": [],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-23T01:13:57Z",
+  "updated_at": "2026-06-21T04:53:48Z",
+  "closed_at": null,
+  "reactions_total": 23,
+  "comments_count": 19,
+  "author": "jbensamo",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/9700\n2. https://github.com/anthropics/claude-code/issues/20819\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-23T01:17:11Z"
+    },
+    {
+      "author": "nagliyvred",
+      "author_association": "NONE",
+      "body": "we are seeing a similar issue, and this makes it really hard to understand spending. would be great to have this resolved",
+      "created_at": "2026-03-12T02:51:40Z"
+    },
+    {
+      "author": "nanno77",
+      "author_association": "NONE",
+      "body": "Tripling down on this.... Went to build a spending reporting app and was shocked to find this information isn't available",
+      "created_at": "2026-03-16T19:00:02Z"
+    }
+  ]
+}

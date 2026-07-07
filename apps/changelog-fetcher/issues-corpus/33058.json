@@ -1,0 +1,35 @@
+{
+  "number": 33058,
+  "title": "[FEATURE] VSCode: Support adding multiple code selections to chat context incrementally via shortcut",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\nCurrently in the Claude Code VSCode extension, when you select code and use the shortcut to add it to chat, only one selection can be referenced at a time. There is no way to accumulate multiple code ranges from different files into the chat context.\n\nThis makes it difficult to ask Claude about interactions between code spread across multiple files or locations, as you can't reference `f1.ts:100-200` and `f2.ts:200-300` simultaneously without manually typing the references.\n\n### Proposed Solution\n\nAdd a \"Add selection to chat\" shortcut (similar to Cursor's behavior) that appends the current code selection to the chat context rather than replacing it.\n\nWorkflow:\n1. Select code in file A → press shortcut → selection appended to chat (e.g. `f1.ts:100-200`)\n2. Navigate to file B → select another range → press shortcut → appended alongside first (`f1.ts:100-200 f2.ts:200-300`)\n3. Type your question and send\n\nThe accumulated selections should be clearly visible in the chat input, and each one should be individually removable.\n\n### Alternative Solutions\n\n- Manually typing file paths and line ranges — tedious and error-prone\n- Adding entire files as context — adds too much noise, especially for large files\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nInteractive mode (TUI)\n\n### Use Case Example\n\n1. I'm debugging a bug that spans a utility function in `utils.ts` and its caller in `service.ts`\n2. I select the utility function (`utils.ts:45-80`) and press the shortcut to add it to chat\n3. I navigate to `service.ts`, select the relevant caller code (`service.ts:120-145`), and press the shortcut again\n4. Both selections appear in the chat input as context\n5. I type \"Why does this cause a null reference error?\" and send\n6. Claude can see both code segments and give an accurate answer\n\n### Additional Context\n\nCursor IDE supports this workflow natively and it significantly improves the experience when working across multiple files. The feature would make Claude Code's VSCode integration much more competitive for multi-file analysis tasks.",
+  "labels": ["enhancement", "area:ide", "platform:vscode"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-03-11T02:59:50Z",
+  "updated_at": "2026-06-16T03:05:16Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 7,
+  "author": "Sherlockedb",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "passionworkeer",
+      "author_association": "NONE",
+      "body": "Great feature request! This would significantly improve the workflow for adding multiple code selections to Claude Code. I'd love to see this implemented. 👍",
+      "created_at": "2026-03-11T03:04:36Z"
+    },
+    {
+      "author": "akostmOR",
+      "author_association": "NONE",
+      "body": "This really needs to happen! ",
+      "created_at": "2026-03-13T09:20:27Z"
+    },
+    {
+      "author": "Dishrin",
+      "author_association": "NONE",
+      "body": "My use case: I work with large files (10,000+ lines) where only 100–300 lines are actually relevant to my question. The current IDE selection works great for one file but when I navigate to a second file and select code, it replaces the first selection instead of adding to it.\nA small \"+\" button next to the \"N lines selected\" indicator would solve this perfectly, letting you accumulate selections from multiple files before sending. This would make Claude's answers more precise and significantly ",
+      "created_at": "2026-03-23T11:42:07Z"
+    }
+  ]
+}

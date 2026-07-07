@@ -1,0 +1,35 @@
+{
+  "number": 51267,
+  "title": "[BUG] Remote Control (mobile): session silently hangs mid-execution; only local Esc recovers it — no remote unstick mechanism",
+  "body": "### Preflight Checklist\n\n- [x] I have searched existing issues and this hasn't been reported as a bug yet (related: #47127 feature request for Cancel button, #28508 AskUserQuestion sync bug — both distinct from this)\n- [x] This is a single bug report\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen using Claude Code via Remote Control (claude.ai/code) from a mobile browser, the CLI session on my laptop **silently enters a frozen state mid-execution** and becomes permanently unresponsive to any input from the mobile client. The only recovery mechanism is pressing `Esc` (or any key) on the **local terminal** — no action from the mobile side can unstick it.\n\nThis is distinct from:\n- #47127 (feature request for a Cancel button to interrupt a *visibly running* tool)\n- #28508 (`AskUserQuestion` responses from mobile not propagating to CLI)\n\nIn my case there is **no visible tool call in progress**, no `AskUserQuestion`, no rate limit, no API error, no obvious trigger. The session just stops advancing after 2-4 normal message exchanges, and from the mobile client it looks like every new message is being sent but nothing ever comes back.\n\n### Reproduction pattern (consistent across multiple sessions/projects)\n\n1. Start Claude Code on laptop (VSCode integrated terminal, Windows 11)\n2. Leave the laptop at home, commute to a meeting / cafe / etc.\n3. Open claude.ai/code on mobile browser, connect Remote Control to the running session\n4. Send a message — works fine. Claude responds, runs tools (Bash, MCP, Write, Edit), completes\n5. Send another message — works fine\n6. After 2-4 successful exchanges, during what appears to be a routine turn, the session becomes unresponsive\n7. The mobile client continues to accept text input and send messages, but **none of them advance the CLI**. No new responses, no tool calls, no errors. Messages appear to queue silently.\n8. Attempting `/clear`, sending random text, reconnecting the Remote Control tab, refreshing the browser — none of these wake the session\n9. Hours later, upon returning home, I press `Esc` once in the local terminal → the session **immediately** resumes, processes the queued messages, and works normally again\n\n### Evidence the session is not truly hung\n\n- The CLI process stays alive and in a readable/writable state (proven by the fact that `Esc` locally revives it instantly)\n- No API errors are logged in the `.jsonl` session file during the frozen period\n- When I inspected the `.jsonl` after recovery, the last entry before the freeze was a successful `tool_use` completion — there was no sign of streaming stall or network failure\n- This is not #25979 (API streaming stall) because that requires `kill -9` to recover, while my case is fixed by a single local keystroke\n\n### Hypothesis\n\nThe CLI input-handling loop appears to enter a state where it is waiting for a **local TTY keystroke** (possibly as a confirmation, prompt, or UI state flag) that Remote Control's input channel does not deliver. This would explain why local `Esc` instantly unsticks it while remote input does not.\n\nA possible cause: whatever UI prompt/permission/spinner state the CLI enters after certain tool calls may require a synchronous keypress from the terminal's `process.stdin` raw mode, which the Remote Control bridge isn't wired to send.\n\n### What Should Happen?\n\n- Remote Control input should be fully equivalent to local TTY input — any state that local `Esc`/`Enter` can unstick should also be unstickable from mobile\n- At minimum, a visible \"session frozen — local intervention required\" indicator in the mobile UI so users aren't silently blocked\n- Ideally, automatic detection of \"messages queued but not being processed\" with a remote unstick mechanism\n\n### Business impact\n\nI'm a solo founder (GT Dev Solutions, Madrid). Remote Control is a **critical** productivity feature for me — it's meant to let me keep working on client projects, reviewing deploys, and resolving urgent bugs while away from my laptop. In practice, with this bug, I can only rely on Remote Control fo",
+  "labels": ["bug", "has repro", "platform:windows", "area:tui"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-20T18:58:37Z",
+  "updated_at": "2026-06-26T04:26:44Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 14,
+  "author": "GustavoVzla",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "InsaneTrilobyte",
+      "author_association": "NONE",
+      "body": "Am also having this exact issue with the mobile app on android I've tried writing skills to prevent hangs but even with timeout and --kill-after=5 on every single command it still hangs and its only when remote control is active",
+      "created_at": "2026-04-26T14:14:28Z"
+    },
+    {
+      "author": "alex-rosenberg35",
+      "author_association": "NONE",
+      "body": "I keep running into this or a similar issue. Whenever a tool or subprocess gets stuck for any reason, the entire session becomes blocked with no way to rescue it remotely. This is a massive blocker for effective use of remote-control.",
+      "created_at": "2026-04-27T04:10:37Z"
+    },
+    {
+      "author": "ntabor82",
+      "author_association": "NONE",
+      "body": "I am also experiencing this issue, with increasing frequency. This morning, after it happened, I restarted the machine and restarted code with remote, and it froze again after only 15 min. I have noticed that the app has a bug, where on screen rotate or screen on/off, it will clear pop-ups on the android side (usually waiting for input), and I wonder if this is the cause. ",
+      "created_at": "2026-04-27T12:54:26Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 35240,
+  "title": "Agent tool documentation references SendMessage for subagent resumption, but SendMessage is gated behind Agent Teams flag",
+  "body": "🌀 This is Claude (working with Milo)\n\n## Summary\n\nThe Agent tool description tells the model to use `SendMessage({to: agentId})` to continue a previously spawned agent. But `SendMessage` is only available when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is enabled. With the flag off (the default), the model is instructed to use a tool it cannot access.\n\nThis was introduced in v2.1.77, which removed the `resume` parameter from the Agent tool in favor of `SendMessage`.\n\n## What happens\n\n1. The Agent tool description includes: \"To continue a previously spawned agent, use SendMessage with the agent's ID or name as the `to` field.\"\n2. The Agent tool returns a resumption hint: `agentId: abc123 (use SendMessage with to: 'abc123' to continue this agent)`\n3. `SendMessage` does not appear in the tool list or in `<available-deferred-tools>`\n4. `ToolSearch` for `SendMessage` returns no results\n5. The model cannot resume the agent\n\nThe model reads its own tool description and confidently tells the user it can resume agents — then discovers it cannot when it tries.\n\n## Root cause\n\n`SendMessage` is part of the Agent Teams toolset, gated behind `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` (disabled by default per the [Agent Teams docs](https://code.claude.com/docs/en/agent-teams)). The v2.1.77 migration from `resume` to `SendMessage` assumes this tool is universally available, but it is not.\n\n## What should change\n\nEither:\n1. **Make `SendMessage` available independently** of the Agent Teams flag for the narrow case of subagent resumption, or\n2. **Conditionally omit the `SendMessage` reference** from the Agent tool description and agent return values when Agent Teams is disabled\n\n## Context\n\nThe old `resume` parameter on the Agent tool had longstanding issues (#11712, #13619, #10856) and was effectively non-functional. Its removal is not the problem — the problem is that the replacement is documented as available when it is not.\n\n## Environment\n\n- Claude Code: 2.1.77\n- macOS 15.4 (Darwin 25.2.0)\n- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`: not set (default/disabled)",
+  "labels": ["bug", "area:tools", "area:agents"],
+  "state": "closed",
+  "state_reason": "completed",
+  "created_at": "2026-03-17T08:47:08Z",
+  "updated_at": "2026-07-01T13:48:13Z",
+  "closed_at": "2026-07-01T13:48:13Z",
+  "reactions_total": 27,
+  "comments_count": 15,
+  "author": "milobird",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 2 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/35141\n2. https://github.com/anthropics/claude-code/issues/34750\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-03-17T08:51:07Z"
+    },
+    {
+      "author": "yonatan-genai",
+      "author_association": "NONE",
+      "body": "Still an issue on v2.1.85 (macOS, Darwin 24.4.0). SendMessage is referenced in the Agent tool description and return values but not available in tools or deferred tools. ToolSearch returns no results. Fresh agent spawns are the only workaround.\n\nThe Agent tool literally says 'use SendMessage with to: agentId to continue this agent' in every agent completion — but the tool doesn't exist without CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS.",
+      "created_at": "2026-03-27T11:57:24Z"
+    },
+    {
+      "author": "yonatan-genai",
+      "author_association": "NONE",
+      "body": "Still reproducing on v2.1.85.\n\n**Steps:**\n1. Spawn a subagent via the `Agent` tool\n2. Agent returns with `agentId: xxx (use SendMessage with to: 'xxx' to continue this agent)`\n3. `SendMessage` is not in the tool list — not as a direct tool, not as a deferred tool (ToolSearch returns nothing)\n4. Attempting to call `SendMessage` directly returns: `Error: No such tool available: SendMessage`\n\nThe Agent tool's description still references `SendMessage` (\"To continue a previously spawned agent, use S",
+      "created_at": "2026-03-27T11:57:55Z"
+    }
+  ]
+}

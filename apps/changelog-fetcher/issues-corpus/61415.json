@@ -1,0 +1,41 @@
+{
+  "number": 61415,
+  "title": "[BUG] Desktop: Bypass Permissions mode can't be enabled on macOS — reverts to Accept Edits, \"Permission mode couldn't be changed\" (2.1.148)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nBypass Permissions mode cannot be activated in the Claude Code Desktop app even though \"Allow bypass permissions mode\" is enabled in Settings → Claude Code.\n\nNew sessions start in Accept Edits with the banner _\"Bypass Permissions mode isn't enabled. The session started in Accept Edits - enable Bypass Permissions in Settings to use it.\"_ \n\nAttempting to switch the mode manually fails with the toast _\"Permission mode couldn't be changed. You can try again,\"_ and any mode change reverts to Accept Edits after the first prompt.\n\nThe same bypass workflow works correctly in the Claude Code CLI (`--dangerously-skip-permissions`) on the same machine, so this is Desktop-specific.\n\n### What Should Happen?\n\nWith the setting enabled, a new session can enter Bypass Permissions and stay there.\n\n### Error Messages/Logs\n\n```shell\nBypass Permissions mode isn't enabled. The session started in Accept Edits - enable Bypass Permissions in Settings to use it.\n\nPermission mode couldn't be changed. You can try again\n```\n\n### Steps to Reproduce\n\n1. Open Claude Code Desktop (embedded Claude Code 2.1.148), macOS.\n2. Settings → Claude Code → enable \"Allow bypass permissions mode\".\n3. Fully quit (⌘Q) and relaunch.\n4. Start a new session → banner reports bypass isn't enabled; session opens in Accept Edits.\n5. Try to switch to Bypass Permissions via the mode selector / Shift+Tab.\n6. Toast appears: _\"Permission mode couldn't be changed. You can try again.\"_ Mode stays on / reverts to Accept Edits after the first prompt.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.148\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n**Environment**\n\n- **Claude Code:** 2.1.148 (embedded in Desktop app)\n- **Desktop app version:** Claude for Mac1.8555.0 (8245b7) 2026-05-21T05:49:11.000Z\n- **Platform:** Claude Code Desktop (macOS app)\n- **OS:** macOS 26.4.1 (25E253)\n- **Plan:** Max\n- **CLI comparison:** bypass works via claude `--dangerously-skip-permissions` on the same machine\n\n<img width=\"1072\" height=\"1162\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/b1f00824-f129-44c9-ac38-cca183dd005e\" />\n\n<img width=\"1072\" height=\"1162\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/74b53cd0-a8bd-4360-9877-a02cb54946af\" />",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:macos",
+    "area:permissions",
+    "area:desktop"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-22T09:51:17Z",
+  "updated_at": "2026-06-26T00:24:54Z",
+  "closed_at": null,
+  "reactions_total": 26,
+  "comments_count": 63,
+  "author": "prudentmildew",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "LikeDreamwalker",
+      "author_association": "NONE",
+      "body": "same issue here and I am windows 11",
+      "created_at": "2026-05-22T17:51:46Z"
+    },
+    {
+      "author": "dnikolayev",
+      "author_association": "NONE",
+      "body": "Can confirm the same on mac os, Claude 1.8555.1 (cfe7d4) 2026-05-22T17:41:12.000Z",
+      "created_at": "2026-05-22T20:42:25Z"
+    },
+    {
+      "author": "martinkallstrom",
+      "author_association": "NONE",
+      "body": "Confirmed. Fresh install, fresh macos 26.4 (25E246), Claude 1.8555.2 (a476c3) 2026-05-22T23:04:37.000Z",
+      "created_at": "2026-05-23T02:20:35Z"
+    }
+  ]
+}

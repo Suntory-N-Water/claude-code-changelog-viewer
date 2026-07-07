@@ -1,0 +1,35 @@
+{
+  "number": 49917,
+  "title": "[BUG] Claude Desktop Windows installer fails with AddPackage HRESULT 0x80073CF6 after an earlier \"successful\" install left the package in an inconsistent state",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Environment\n- **OS**: Windows 11 Professional, build 10.0.22631\n- **Architecture**: x64\n- **Installer**: `Claude Setup (1).exe` (downloads `https://api.anthropic.com/api/desktop/win32/x64/msix/latest/redirect`)\n- **MSIX**: 223,023,064 bytes, SHA256 `4c664c5390a4d5b46286158f67e21102431a1c9863dc5edb2b8683ef69e1e300`\n- **Package family**: `Claude_pzs8sxrjxfjjc`\n- **Previously installed version**: `Claude_1.3109.0.0_x64__pzs8sxrjxfjjc`\n\n## What's wrong\n\nOn an existing install, trying to update or reinstall Claude Desktop fails repeatedly. The user-facing dialogs show:\n\n1. `Installation failed: AddPackage failed: AddPackage failed with HRESULT 0x80073CF6`\n2. `App installation failed with error message: An internal error occurred with error 0x80073D05.`\n3. `Administrator access is required to install Claude with full features. You can try again or install without Cowork.` (misleading — the process is already elevated)\n\n\n### What Should Happen?\n\n## Suggested fixes on the installer side\n\n1. **Do not claim success when `RemovePackage` fails.** When the existing package can't be removed, the installer should either retry with force flags (e.g., `DeploymentOptions.ForceApplicationShutdown | ForceTargetApplicationShutdown | RemoveForAllUsers`) or abort with a clear error and a remediation link. Silently calling `AddPackage` on a non-removed package produces the wedged state reproduced here.\n2. **Surface `CoworkVMService` access-denied failures properly.** \"Administrator access is required\" is misleading when `Is elevated: true` is already in the log — the real cause is the service-handle ACL or another process holding it. Please report the underlying `OpenSCManager`/`OpenService` error code in the dialog.\n3. **Offer a recovery flow.** Once the package is wedged, neither `Remove-AppxPackage`, `Remove-AppxPackage -AllUsers`, nor the installer can clear it (same finding in #47877). A \"repair\" / \"force clean\" option in the installer would unblock affected users.\n4. **Investigate the `0x80073D05` in the user-facing dialog.** It doesn't appear literally in the log (log shows `0x80073CF6`) — the mapping between the dialog code and the log code should be consistent.\n\n## What worked around it\n\nNothing so far — all `Remove-AppxPackage` attempts, registry cleanup, and fresh installer runs fail identically.\n\n### Error Messages/Logs\n\n```shell\n## Full log\n\nUploaded as `ClaudeSetup.log` (attach the file in the GitHub UI — sanitized: only paths contain the Windows username `admin`).\n```\n\n### Steps to Reproduce\n\n\n## Reproduction\n\n1. Windows 11 Pro with an existing `Claude_1.3109.0.0_x64__pzs8sxrjxfjjc` install and a `CoworkVMService` present\n2. Run `Claude Setup (1).exe` to update/reinstall\n3. First run *appears* to succeed but leaves the package wedged\n4. Every subsequent run fails with `AddPackage HRESULT 0x80073CF6`\n\n## Log analysis (key excerpts)\n\n### Run 1 — \"successfully installed\" but likely left the package broken\n\n```\n2026/04/17 15:29:26.772280 Removing conflicting CoworkVMService...\n2026/04/17 15:29:26.772280 WARNING: failed to remove conflicting service: could not open CoworkVMService: Access is denied.\n2026/04/17 15:29:26.784544 Removing: Claude_1.3109.0.0_x64__pzs8sxrjxfjjc\n2026/04/17 15:29:26.790294 WARNING: Remove failed for Claude_1.3109.0.0_x64__pzs8sxrjxfjjc: RemovePackage failed with HRESULT 0x80073CFA\n2026/04/17 15:29:26.798289 Removing (user): Claude_1.3109.0.0_x64__pzs8sxrjxfjjc\n2026/04/17 15:29:26.803317 WARNING: Remove failed for Claude_1.3109.0.0_x64__pzs8sxrjxfjjc: RemovePackage failed with HRESULT 0x80073CFA\n2026/04/17 15:29:26.803317 Installing MSIX: ...\n2026/04/17 15:29:26.804561 Standard install (not split-account), using AddPackage\n2026/04/17 15:29:27.555410 MSIX p",
+  "labels": ["bug", "platform:windows", "area:installation", "area:desktop"],
+  "state": "open",
+  "state_reason": "reopened",
+  "created_at": "2026-04-17T12:48:55Z",
+  "updated_at": "2026-07-05T22:29:10Z",
+  "closed_at": null,
+  "reactions_total": 6,
+  "comments_count": 28,
+  "author": "ARHAEEM",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/48437\n2. https://github.com/anthropics/claude-code/issues/49655\n3. https://github.com/anthropics/claude-code/issues/47877\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-04-17T12:53:42Z"
+    },
+    {
+      "author": "ARHAEEM",
+      "author_association": "NONE",
+      "body": "\n\n# Workaround: Claude Desktop install fails on Windows 11 with `0x80073CF6` (and `0x80073D05`)\n\n<img width=\"2752\" height=\"1536\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/ba95cf32-500a-46cd-bee7-3b0aafa3114c\" />\n\n\n‌\n\n> TL;DR — If the Anthropic Squirrel/MSIX installer keeps failing with `AddPackage failed with HRESULT 0x80073CF6`, the cause is almost always a half-removed previous install that left:\n> 1. A stale `CoworkVMService` service (non-removable by the installer without a",
+      "created_at": "2026-04-17T13:21:27Z"
+    },
+    {
+      "author": "starkideal",
+      "author_association": "NONE",
+      "body": "Thank you for this and I have successfully completed all the phases, However in the desktop app, I still do not see a button for co work. There is a \"Cowork\" tab in the settings menu where I can turn on dispatch and assign global settings, but not button to start using the function of cowork",
+      "created_at": "2026-04-17T14:41:54Z"
+    }
+  ]
+}

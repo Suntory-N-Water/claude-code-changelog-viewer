@@ -1,0 +1,41 @@
+{
+  "number": 63873,
+  "title": "[BUG] Auto mode blocks all Bash actions with endless retries when Opus 4.8 classifier is temporarily unavailable",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nWhen the selected model (Opus 4.8) is temporarily unavailable due to capacity, the auto-mode safety classifier — which itself runs on the same model — cannot evaluate Bash actions. Instead of failing gracefully or falling back, every Bash command enters an endless retry loop (\"Retrying in Ns · attempt x/10\") and the session hangs for minutes at a time.\n\nThe blocking error is:\n\n  claude-opus-4-8[1m] is temporarily unavailable, so auto mode cannot determine the safety of Bash right now. Wait briefly and then try this action again. If it keeps failing, continue with other tasks that don't require this action and come back to it later.\n\nThis effectively makes the whole session unusable for any task involving Bash, even though it's a transient capacity issue and not an account/request problem. The status page showed \"All Systems Operational\" the entire time, so there was no incident to wait on. Switching to an Opus variant (4.7) did not help since it shares the same capacity pool; only switching to Sonnet resolved it.\n\n### What Should Happen?\n\nWhen the model backing the auto-mode safety classifier is temporarily unavailable, Claude Code should:\n1. Not enter a silent 10-attempt retry loop that hangs the session for minutes.\n2. Fail fast with a clear, actionable message after 1–2 attempts.\n3. Ideally fall back to an available model for the safety classification (or offer to), so Bash actions aren't fully blocked just because the chat model is at capacity.\n4. Make it obvious that switching to a model on a different capacity pool (e.g. Sonnet) is the workaround.\n\n### Error Messages/Logs\n\n```shell\nError: claude-opus-4-8[1m] is temporarily unavailable, so auto mode cannot determine the safety of Bash right now. Wait briefly and then try this action again. If it keeps failing, continue with other tasks that don't require this action and come back to it later.\nNote: reading files, searching code, and other read-only operations do not require the classifier and can still be used.\n\nSpinner: Retrying in 0s · attempt 1/10\n```\n\n### Steps to Reproduce\n\n1. Set the model to Opus 4.8 (/model claude-opus-4-8) during a period when Opus is at capacity.\n2. Ask Claude Code to run any Bash command (e.g. a git/worktree inspection).\n3. Observe that the auto-mode safety classifier cannot evaluate the action.\n4. Observe the session entering \"Retrying in Ns · attempt x/10\" loops and hanging for 30s–2min per attempt.\n5. Note: switching to Opus 4.7 does not help (same capacity pool); switching to Sonnet 4.6 resolves it immediately.\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.158\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n- claude --version: 2.1.158 (well above the v2.1.154 minimum for Opus 4.8)\n- Anthropic status page showed \"All Systems Operational\" throughout, so this transient capacity condition is not surfaced as an incident.\n- Core issue is the coupling between the auto-mode safety classifier and the chat model: when the chat model is at capacity, the classifier is too, which blocks even unrelated Bash work. Decoupling the classifier model (or a fallback) would prevent full-session blocking.",
+  "labels": [
+    "bug",
+    "platform:macos",
+    "area:bash",
+    "area:permissions",
+    "api:anthropic"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-05-30T05:59:36Z",
+  "updated_at": "2026-07-02T15:14:23Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 11,
+  "author": "EnricosCodes",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "EnricosCodes",
+      "author_association": "NONE",
+      "body": "**Update / correction:** This is not caused by auto mode.\n\nI disabled auto mode entirely and the problem persists. With auto mode off, a plain Bash command still enters the \"Retrying in Ns · attempt 1/10\" loop and the session hangs for 2+ minutes (spinner: \"Combobulating… 2m 9s\").\n\nSo the safety classifier is not the trigger. The retries come from the chat model itself (Opus 4.8) being temporarily at capacity — the request goes out, the model doesn't respond in time, and Claude Code retries. Aut",
+      "created_at": "2026-05-30T06:01:12Z"
+    },
+    {
+      "author": "EnricosCodes",
+      "author_association": "NONE",
+      "body": "**Further update:** Also reproduces on Sonnet 4.6, so this is not Opus-specific.\n\nAfter switching to Sonnet 4.6 (confirmed in the status bar), a slash command still triggered \"Retrying in Ns · attempt 1/10\" and hung (~20s, spinner \"Meandering…\").",
+      "created_at": "2026-05-30T06:05:43Z"
+    },
+    {
+      "author": "shadyamr",
+      "author_association": "NONE",
+      "body": "Since yesterday's update, I've been encountering an issue where token consumption continues indefinitely after a task fails. Even when a task repeatedly errors out and produces no successful result, the session keeps utilizing tokens without stopping.\n\nThis behavior appears to persist across multiple failed task attempts, leading to unnecessary token usage. Beyond the impact on individual users, this may also affect overall resource consumption if others are experiencing the same issue without r",
+      "created_at": "2026-05-30T14:21:23Z"
+    }
+  ]
+}

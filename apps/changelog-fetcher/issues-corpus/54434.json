@@ -1,0 +1,35 @@
+{
+  "number": 54434,
+  "title": "[Bug] SSE stream stalls in long-running sessions without message_stop event",
+  "body": "# SSE stream from `/v1/messages` stalls mid-response main-thread requests (no `message_stop`, no error event)\n\n## Summary\n\nIn long-running interactive Claude Code sessions, SSE responses from `/v1/messages` repeatedly **stop emitting events mid-response** without sending `message_stop` or any error event. The connection stays open and the client correctly waits — but no further bytes arrive. Most stalls recover on their own after ~50–70s; some never recover and only resolve when the user presses ESC. Subagent streams in the same session are unaffected.\n\nClaude Code's own `[Stall]` telemetry (`stream_idle_partial`, `Streaming stall detected`, `Streaming completed with N stall(s)`) cleanly captures the behavior — this issue is filing what that telemetry is reporting.\n\n## Environment\n\n- **Claude Code version**: `2.1.119` (native install, `cc_version=2.1.119.9c7`, entrypoint `cli`)\n- **Model**: `claude-opus-4-7` and `claude-sonnet-4-6`\n- **Subscription**: Team, `rateLimitTier=default_claude_max_5x`\n- **OS**: Linux 7.0.0-1-cachyos, terminal Konsole 26.04.0\n- **Relevant env**:\n  - `CLAUDE_STREAM_IDLE_TIMEOUT_MS=900000`\n  - `API_TIMEOUT_MS=600000`\n  - `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1`\n  - `CLAUDE_CODE_DISABLE_1M_CONTEXT=1`\n\n## Reproduction\n\nNot deterministic but very high frequency: in a single 26-minute working session (`b3ad7516-35cd-47cb-9e98-6916ee362882`), **5 distinct stalls** occurred — roughly one every five minutes of active use. Behavior reproduces across sessions.\n\nThe stalls happen during normal multi-turn coding work (tool calls + bash + edits). No special conditions required.\n\n## Observed behavior (from debug log)\n\nAll five stalls were on `source=repl_main_thread`, each with a different `x-client-request-id`. All stalled **early in the response** (under ~5.4KB / ~1000 tokens streamed), and then went silent with the connection still open.\n\n| # | Stall start (UTC) | `x-client-request-id` | Bytes when frozen | Outcome |\n|---|---|---|---|---|\n| 1 | `2026-04-26T19:25:46Z` | `721d0de1-200f-422e-b7c8-c90dd211f62c` | 737 | Recovered after **51.8s** |\n| 2 | `2026-04-26T19:28:45Z` | `2f671a02-f62f-433a-8cae-6ac3afdb1832` | 4336 | Recovered after **67.6s** |\n| 3a | `2026-04-26T19:40:43Z` | `2f39599a-9ce9-4d65-ba2d-6476635db3b4` | 659 | Recovered after ~16s |\n| 3b | `2026-04-26T19:41:17Z` | `307a8268-8e8a-4afd-ab90-8ac8efc4c722` | 653 | Recovered after ~8s |\n| 4 | `2026-04-26T19:45:57Z` | `28380ec8-29ba-4e2e-8818-f4a2af125182` | 5373 | **Did not recover** (≥120s of zero bytes when log was captured; user had to ESC) |\n\nThe 51.8s and 67.6s recovery times look like they line up with a 60s server-side internal timeout/retry boundary.\n\n### Representative log excerpt (stall # 4, the one that didn't recover)\n\n```\n2026-04-26T19:45:26.603Z [DEBUG] [API REQUEST] /v1/messages x-client-request-id=28380ec8-29ba-4e2e-8818-f4a2af125182 source=repl_main_thread\n2026-04-26T19:45:28.731Z [DEBUG] Stream started - received first chunk\n2026-04-26T19:45:42.866Z [DEBUG] (last activity from this stream)\n2026-04-26T19:45:57.864Z [WARN] [Stall] stream_idle_partial lastChunkAgeMs=15000 bytesTotal=5373 idleDeadlineMs=900000\n2026-04-26T19:46:12.863Z [WARN] [Stall] stream_idle_partial lastChunkAgeMs=30000 bytesTotal=5373 idleDeadlineMs=900000\n2026-04-26T19:46:42.864Z [WARN] [Stall] stream_idle_partial lastChunkAgeMs=60001 bytesTotal=5373 idleDeadlineMs=900000\n2026-04-26T19:47:42.864Z [WARN] [Stall] stream_idle_partial lastChunkAgeMs=120000 bytesTotal=5373 idleDeadlineMs=900000\n```\n\n`bytesTotal=5373` is unchanged across all four warnings — i.e. zero bytes received during the 2-minute window. No `message_stop`, no `error` event, no TCP-level disconnect.\n\n### Representative log excerpt (stall # 1, which recovered)\n\n```\n2026-04-26T19:25:27.805Z [DEBUG] [API REQUEST] /v1/messages x-client-request-id=721d0de1-200f-422e-b7c8-c90dd211f62c source=repl_main_thread\n2026-04-26T19:25:30.445Z [DEBUG] Stream started - received first chunk\n2026-04-26T19:25:46.135Z [WARN] [Stall] stream_idle_partial lastChunkAgeMs=15001 bytesTotal=737 idleDeadlineMs=900",
+  "labels": ["bug", "has repro", "platform:linux", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-28T19:43:51Z",
+  "updated_at": "2026-07-05T03:27:18Z",
+  "closed_at": null,
+  "reactions_total": 4,
+  "comments_count": 13,
+  "author": "KingPin",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "datus1982",
+      "author_association": "NONE",
+      "body": "**Independent second confirmation on macOS arm64 + complementary OpenClaw-side observation.**\n\nHitting the same SSE mid-stream stall pattern, identical claude version (`2.1.119`), but on a different OS (macOS Tahoe, arm64). Different invocation path: `claude` is being spawned as a subprocess by [OpenClaw](https://github.com/openclaw/openclaw) `2026.4.24` with `claude -p --output-format stream-json --verbose --permission-mode bypassPermissions ...` rather than the interactive REPL.\n\n## What I obs",
+      "created_at": "2026-04-28T22:57:09Z"
+    },
+    {
+      "author": "0xbrainkid",
+      "author_association": "NONE",
+      "body": "This is stream-completion integrity failure.\n\nIf SSE streams stall in long-running sessions without a `message_stop` event, then the product loses the event that tells operators and downstream logic whether a turn actually reached a completed state. That breaks more than UI polish — it breaks the contract around turn finality.\n\nWhy it matters:\n- users cannot tell whether to wait, retry, or intervene\n- clients that depend on `message_stop` for cleanup or state transitions can hang indefinitely\n- ",
+      "created_at": "2026-04-28T23:10:36Z"
+    },
+    {
+      "author": "KingPin",
+      "author_association": "NONE",
+      "body": "this is getting really bad now, with hours of uselessness at a time. havent gotten anything out of Claude in past 3 hours so far. and this is happening for multiple hours every single day now. Intermittent small amounts of output with the majority of the tasks timing out with `API Error: Stream idle timeout - partial response received`",
+      "created_at": "2026-04-30T17:36:47Z"
+    }
+  ]
+}

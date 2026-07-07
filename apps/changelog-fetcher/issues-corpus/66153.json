@@ -1,0 +1,41 @@
+{
+  "number": 66153,
+  "title": "[BUG] Tool-use markup generated as \"court\" instead of \"antml:invoke\" (malformed/parse error, tool not executed)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code repeatedly emitted tool calls starting with the wrong token \"court\" instead of the correct \"antml:invoke\", causing \"Your tool call was malformed and could not be parsed\" and the tool not being executed. It looked frozen until the user typed \"再開\" (resume), which made Claude rewrite the call.\n\nFrequency: 30+ times in a single long session.\nTriggers (observed): long sessions with many tool calls; multiple tools in one message; a tool call placed right after prose.\nSymptom: output shows a literal \"court\" line followed by <invoke name=\"...\"> instead of the proper antml namespaced tag.\nImpact: severe drop in efficiency; user had to repeatedly type \"再開\" or send screenshots.\nRequest: auto-correct the malformed token, or detect \"court\"-prefixed tool calls and auto-retry.\n\n### What Should Happen?\n\n下記「court」を行い、CLAUDE CODEが止まる。本来、自動で実行してほしい。\n\n### Error Messages/Logs\n\n```shell\ncourt\n<invoke name=\"Read\">\n<parameter name=\"file_path\">C:\\Users\\tetsuya.shirado.claude\\projects\\C--Users-tetsuya-shirado\\memory\\MEMORY.md</parameter>\n<parameter name=\"limit\">12</parameter>\n</invoke>\n```\n\n### Steps to Reproduce\n\n毎回プログラム作成時に再現（ファイルの Editやread時）\n\n### Claude Model\n\nOpus\n\n### Is this a regression?\n\nYes, this worked in a previous version\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.143 (Claude Code)\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nVS Code integrated terminal\n\n### Additional Information\n\n_No response_",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:windows",
+    "area:model",
+    "platform:vscode"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-08T02:10:59Z",
+  "updated_at": "2026-07-01T02:07:37Z",
+  "closed_at": null,
+  "reactions_total": 10,
+  "comments_count": 3,
+  "author": "tshirado1",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "kevinfaulhaber",
+      "author_association": "NONE",
+      "body": "Encountering the same issue on with Opus on Claude Code.\n\n```\ncourt\n  <invoke name=\"Bash\">\n  ...\n  </invoke>\n```\n\nKilling the claude session and regenerating a new one can temporarily fix the issue, but for some reason it eventually goes back to breaking the antml formatting with the `court` keyword.",
+      "created_at": "2026-06-17T16:07:52Z"
+    },
+    {
+      "author": "lovelime47",
+      "author_association": "NONE",
+      "body": "Same issue, adding fresh data points — still occurring as of Claude Code 2.1.183.\n\n**Environment**\n- Model: Claude Opus 4.8, 1M context (`claude-opus-4-8[1m]`)\n- Claude Code CLI 2.1.183\n- Platform: Windows 11, PowerShell (also using the Bash tool)\n\n**Occurrence**\n- Single long session, heavy sequential tool use. Onset around ~50% context fill (~520k / 1M tokens); clean before that point.\n- Tool-agnostic: hit `Read`, `Edit`, `Write`, `Bash`, and `PowerShell` calls alike.\n- Once it started it recu",
+      "created_at": "2026-06-22T06:51:04Z"
+    },
+    {
+      "author": "wanhongqing123",
+      "author_association": "NONE",
+      "body": "claude Code repeatedly emitted tool calls starting with the wrong token \"court\"  in 2.1.197.  (claude code cli). \n```\n court\n  <invoke name=\"mcp__chrome-devtools__evaluate_script\">\n  <parameter name=\"function\">() => {\n    const btn = [...document.querySelectorAll('button')].find(b=>/^合\\s*并$/.test((b.textContent||'').trim()));\n    if (btn) btn.click();\n    return 'clicked merge: ' + !!btn;\n  }</parameter>\n  </invoke>\n```\n",
+      "created_at": "2026-07-01T02:04:59Z"
+    }
+  ]
+}

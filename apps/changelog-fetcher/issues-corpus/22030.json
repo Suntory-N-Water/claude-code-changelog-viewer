@@ -1,0 +1,35 @@
+{
+  "number": 22030,
+  "title": "Resume shows only partial conversation history due to stale sessions-index.json",
+  "body": "## Description\n\nWhen using `--resume` to resume a conversation, only a few recent messages appear instead of the full conversation history. The conversation data file contains the complete history, but `sessions-index.json` has incorrect/stale metadata.\n\n## Steps to Reproduce\n\n1. Have a long conversation with many messages\n2. Exit the session\n3. Resume with `claude --resume` and select the conversation\n4. Only the last few messages appear, earlier conversation history is missing\n\n## Investigation Findings\n\nExamined the conversation files in `~/.claude/projects/<project>/`:\n\n- **Conversation file** (`*.jsonl`): Contains 1480 lines with 678 user messages and 741 assistant messages\n- **sessions-index.json**: Shows `messageCount: 3` and has incorrect `firstPrompt`\n\nExample discrepancy:\n```\nActual first message: \"i want to run a detailed security review on this code base...\"\nsessions-index.json firstPrompt: \"i want you to create a html file that look like a ppt...\"\n```\n\nThe `firstPrompt` in the index corresponds to a message from much later in the conversation, and `messageCount` is drastically underreported.\n\n## Expected Behaviour\n\n- `sessions-index.json` should accurately reflect the conversation's message count and first prompt\n- Resume should restore the full conversation history as stored in the `.jsonl` file\n\n## Actual Behaviour\n\n- `sessions-index.json` metadata becomes stale/out of sync with actual conversation file\n- Resume uses the incorrect index metadata, showing only partial history\n- Full conversation data IS preserved in the `.jsonl` file but not loaded\n\n## Environment\n\n- macOS (Darwin 24.6.0)\n- Issue occurred on multiple separate conversations\n\n## Workaround\n\nThe conversation data is intact. Deleting `sessions-index.json` may force a rebuild, though this hasn't been tested.",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-30T20:49:32Z",
+  "updated_at": "2026-06-30T21:19:17Z",
+  "closed_at": null,
+  "reactions_total": 15,
+  "comments_count": 5,
+  "author": "bryan-zxc",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/21610\n2. https://github.com/anthropics/claude-code/issues/18619\n3. https://github.com/anthropics/claude-code/issues/20102\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-01-30T20:53:58Z"
+    },
+    {
+      "author": "tamasarpad",
+      "author_association": "NONE",
+      "body": "> Found 3 possible duplicate issues:\n> \n> 1. [[BUG] /resume index suddenly missing 80% of sessions #21610](https://github.com/anthropics/claude-code/issues/21610)\n> 2. [[BUG] Past conversations not showing in dropdown - sessions-index.json not being updated. #18619](https://github.com/anthropics/claude-code/issues/18619)\n> 3. [[BUG] Sessions index has wrong path information #20102](https://github.com/anthropics/claude-code/issues/20102)\n> \n> This issue will be automatically closed as a duplicate",
+      "created_at": "2026-02-01T09:46:30Z"
+    },
+    {
+      "author": "shovel-kun",
+      "author_association": "NONE",
+      "body": "Occurs on Arch Linux too",
+      "created_at": "2026-02-01T09:55:55Z"
+    }
+  ]
+}

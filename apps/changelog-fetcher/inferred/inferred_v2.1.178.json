@@ -3,6 +3,7 @@
   "summary": "権限ルール構文の拡張やサブエージェントの動作改善により、より精緻なツール制御と安定した並列タスク実行が可能になりました。あわせて、エディタ連携の強化やVimモードのUndo挙動、非対話環境でのスキル実行など、開発体験を損なう細かい不具合が多数修正されています。",
   "items": [
     {
+      "id": "6cfaf9ab7cf7",
       "content": "- Agent teams: removed the `TeamCreate` and `TeamDelete` tools. With `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` set, every session now has one implicit team — spawn teammates directly with the Agent tool's `name` parameter, no setup step needed. The `team_name` parameter on the Agent tool is still accepted but ignored.",
       "content_ja": "エージェントチームの管理を簡略化: `TeamCreate` および `TeamDelete` ツールを廃止し、セッション開始時に暗黙的なチームが自動生成されるようになりました。",
       "prefix": "Changed",
@@ -19,12 +20,13 @@
         }
       ],
       "inference": {
-        "before": "エージェントチーム（実験的機能）を利用する際、まず `TeamCreate` ツールを使用してチームを作成し、名前を付けるセットアップ工程が必要でした。",
+        "before": "エージェントチーム(実験的機能)を利用する際、まず `TeamCreate` ツールを使用してチームを作成し、名前を付けるセットアップ工程が必要でした。",
         "after": "セットアップ工程が不要になり、`Agent` ツールの `name` パラメータを指定するだけで即座にチームメイトを起動できるようになりました。セッション終了時のクリーンアップも自動で行われます。",
         "benefit": "複雑なチーム管理ツールの操作から解放され、自然言語の指示だけで並列作業を行うエージェントチームをよりスムーズに開始・運用できるようになります。"
       }
     },
     {
+      "id": "7db6a33dc5e3",
       "content": "- Added `Tool(param:value)` syntax for permission rules to match a tool's input parameters (with `*` wildcard), e.g. `Agent(model:opus)` to block Opus subagents",
       "content_ja": "パーミッションルールに `ツール名(パラメータ:値)` 形式の構文を追加し、特定の引数に基づく制限が可能になりました。",
       "prefix": "Added",
@@ -42,11 +44,12 @@
       ],
       "inference": {
         "before": "パーミッションの設定では、ツール名全体を許可または禁止することしかできず、特定のモデルの使用や特定の引数での実行を細かく制限することが困難でした。",
-        "after": "`Agent(model:opus)` のようにツール名とパラメータを組み合わせた指定が可能になりました。ワイルドカード（`*`）もサポートされており、より柔軟なアクセス制御が実現します。",
+        "after": "`Agent(model:opus)` のようにツール名とパラメータを組み合わせた指定が可能になりました。ワイルドカード(`*`)もサポートされており、より柔軟なアクセス制御が実現します。",
         "benefit": "「Opus モデルのサブエージェントだけを禁止する」といった高度なセキュリティポリシーやコスト管理ルールを、環境に合わせて精密に設定できるようになります。"
       }
     },
     {
+      "id": "9078fb66cc11",
       "content": "- Skills in nested `.claude/skills` directories now load when working on files there; on a name clash, the nested skill appears as `<dir>:<name>` so both stay available",
       "content_ja": "ネストされた `.claude/skills` ディレクトリ内のスキルが、そのディレクトリ以下のファイルでの作業時に自動ロードされるようになりました。",
       "prefix": "Changed",
@@ -69,6 +72,7 @@
       }
     },
     {
+      "id": "fcd29a3df640",
       "content": "- Nested `.claude/` directories: the agent, workflow, and output-style closest to the working directory now wins when names collide; project-scope workflow saves now target the closest existing `.claude/workflows/`",
       "content_ja": "ネストされた `.claude/` ディレクトリの優先順位を改善し、作業ディレクトリに最も近いエージェント、ワークフロー、出力スタイルが優先されるようになりました。",
       "prefix": "Changed",
@@ -91,6 +95,7 @@
       }
     },
     {
+      "id": "a634966430bd",
       "content": "- Improved auto mode: subagent spawns are now evaluated by the classifier before launch, closing a gap where a subagent could request a blocked action without review",
       "content_ja": "オートモードの改善：サブエージェントの起動が実行前に分類器で評価されるようになり、レビューなしで禁止アクションが実行される隙間を解消しました。",
       "prefix": "Improved",
@@ -98,6 +103,7 @@
       "related_docs": []
     },
     {
+      "id": "6eeb1153260b",
       "content": "- Improved `/doctor` with consistent flat tree layout across all sections, clearer section status icons, and highlighted command names",
       "content_ja": "`/doctor` コマンドの表示を改善し、フラットなツリーレイアウトの採用とステータスアイコンの明確化、コマンド名の強調表示を行いました。",
       "prefix": "Improved",
@@ -116,10 +122,11 @@
       "inference": {
         "before": "診断結果のレイアウトがセクションごとに一貫しておらず、どの項目が正常でどこに修正が必要かの視覚的な判断がしづらい場合がありました。",
         "after": "すべてのセクションで一貫したフラットツリー形式が採用され、ステータスアイコンが見やすくなりました。また、実行すべきコマンド名がハイライトされるようになりました。",
-        "benefit": "環境の不整合や設定ミスをより素早く発見でき、提示された修正コマンド（`f` キーで実行可能）を使って迅速に正常な状態へ復旧できます。"
+        "benefit": "環境の不整合や設定ミスをより素早く発見でき、提示された修正コマンド(`f` キーで実行可能)を使って迅速に正常な状態へ復旧できます。"
       }
     },
     {
+      "id": "3e3dccf8aae5",
       "content": "- Improved the skill listing truncation warning to show how many skill descriptions are affected",
       "content_ja": "スキルのリスト表示が省略される際の警告を改善し、影響を受けるスキルの説明文の数を表示するようにしました。",
       "prefix": "Improved",
@@ -127,6 +134,7 @@
       "related_docs": []
     },
     {
+      "id": "fb084e18c339",
       "content": "- Changed the workflow prompt keyword to use a purple shimmer highlight and trigger only on explicit phrases like \"run a workflow\" or \"workflow:\", not on any mention of the word",
       "content_ja": "ワークフロープロンプトのキーワード表示を変更し、紫色の光るハイライトを採用しました。また、「run a workflow」などの明示的なフレーズにのみ反応するように改善されました。",
       "prefix": "Changed",
@@ -134,13 +142,15 @@
       "related_docs": []
     },
     {
+      "id": "8e3b31c2338a",
       "content": "- Improved Remote Control error messages: connection failures now show a persistent red \"/rc failed\" indicator in the footer, and the \"not yet enabled\" error now explains whether it's a gate, a check failure, stale entitlement, or org policy",
-      "content_ja": "Remote Control のエラーメッセージを改善し、接続失敗時にフッターに赤い「/rc failed」インジケータを常駐させ、有効化されていない際の原因（組織ポリシーやチェック失敗など）を詳しく説明するようにしました。",
+      "content_ja": "Remote Control のエラーメッセージを改善し、接続失敗時にフッターに赤い「/rc failed」インジケータを常駐させ、有効化されていない際の原因(組織ポリシーやチェック失敗など)を詳しく説明するようにしました。",
       "prefix": "Improved",
       "feature_areas": [],
       "related_docs": []
     },
     {
+      "id": "215a3bb6bc3a",
       "content": "- `/bug` now requires a description before submitting, and no longer uses model-refusal text as the GitHub issue title",
       "content_ja": "`/bug` コマンドの動作を改善し、送信前の説明入力を必須化するとともに、Issue タイトルにモデルの拒否文言が使われないよう修正しました。",
       "prefix": "Changed",
@@ -157,8 +167,9 @@
       }
     },
     {
+      "id": "1f6c14d7f56d",
       "content": "- Fixed a crash (out-of-memory) when the CLI inherits a stale websocket/OAuth file-descriptor environment variable from a parent process",
-      "content_ja": "親プロセスから古い websocket/OAuth 関連の環境変数を引き継いだ際に CLI がメモリ不足（OOM）でクラッシュする問題を修正しました。",
+      "content_ja": "親プロセスから古い websocket/OAuth 関連の環境変数を引き継いだ際に CLI がメモリ不足(OOM)でクラッシュする問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -179,6 +190,7 @@
       }
     },
     {
+      "id": "2102fe190be1",
       "content": "- Fixed Claude in Chrome silently failing to connect when the OAuth token belongs to a different account than the Claude Code login",
       "content_ja": "Chrome 内の Claude において、OAuth トークンのアカウントとログインアカウントが異なる場合に接続が黙って失敗する問題を修正しました。",
       "prefix": "Fixed",
@@ -186,6 +198,7 @@
       "related_docs": []
     },
     {
+      "id": "580d2a3775e4",
       "content": "- Fixed nested `.claude/skills` skills with directory-qualified names being blocked by permission prompts in non-interactive runs",
       "content_ja": "非インタラクティブ実行において、ディレクトリ名で修飾されたネストスキルの呼び出しがパーミッション確認でブロックされる問題を修正しました。",
       "prefix": "Fixed",
@@ -208,15 +221,17 @@
       }
     },
     {
+      "id": "4174ea6b68bc",
       "content": "- Fixed several subagent issues: viewing a subagent's transcript now shows tool results and live progress, messages sent while it finishes its turn are no longer dropped, and backgrounding a running subagent (ctrl+b) no longer restarts it from scratch",
-      "content_ja": "サブエージェントに関する複数の問題を修正：トランスクリプトでツール結果やライブ進行が表示されるようになり、ターン終了間際のメッセージ消失や、バックグラウンド化（Ctrl+B）時のリセットが解消されました。",
+      "content_ja": "サブエージェントに関する複数の問題を修正：トランスクリプトでツール結果やライブ進行が表示されるようになり、ターン終了間際のメッセージ消失や、バックグラウンド化(Ctrl+B)時のリセットが解消されました。",
       "prefix": "Fixed",
       "feature_areas": ["Sub-agents"],
       "related_docs": []
     },
     {
+      "id": "5d183fe70ff9",
       "content": "- Fixed `claude agents` workers failing with `401 Invalid bearer token` when the daemon was started from a shell with a custom API gateway via `ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN`",
-      "content_ja": "カスタム API ゲートウェイ利用時に、バックグラウンドワーカーが認証エラー（401）で失敗する問題を修正しました。",
+      "content_ja": "カスタム API ゲートウェイ利用時に、バックグラウンドワーカーが認証エラー(401)で失敗する問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -232,13 +247,14 @@
       ],
       "inference": {
         "before": "`ANTHROPIC_BASE_URL` などを設定してカスタムゲートウェイ経由で利用している際、バックグラウンドで動作する `claude agents` がトークンを正しく処理できず失敗することがありました。",
-        "after": "バックグラウンドの監視プロセス（デーモン）がカスタムゲートウェイの認証情報を正しく継承し、安定して動作するようになりました。",
+        "after": "バックグラウンドの監視プロセス(デーモン)がカスタムゲートウェイの認証情報を正しく継承し、安定して動作するようになりました。",
         "benefit": "独自のプロキシやエンタープライズ向けのゲートウェイを使用している環境でも、バックグラウンドタスクやエージェントビュー機能を制限なく利用できます。"
       }
     },
     {
+      "id": "8e14b80acccc",
       "content": "- Fixed compaction not honoring `--fallback-model`: compaction now falls back to the configured fallback model chain on overload or model-availability errors",
-      "content_ja": "コンテキストの圧縮（compaction）処理において `--fallback-model` の設定が尊重されるよう修正しました。",
+      "content_ja": "コンテキストの圧縮(compaction)処理において `--fallback-model` の設定が尊重されるよう修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -259,6 +275,7 @@
       }
     },
     {
+      "id": "c9fefc1c2fdd",
       "content": "- Fixed model requests continuing to fail with auth errors after credentials were refreshed outside the session, due to a stale cached request configuration",
       "content_ja": "認証情報の更新後に、古いキャッシュ設定が原因でモデルのリクエストが認証エラーで失敗し続ける問題を修正しました。",
       "prefix": "Fixed",
@@ -266,6 +283,7 @@
       "related_docs": []
     },
     {
+      "id": "f28a913d4291",
       "content": "- Fixed background sessions created with `/bg` or `←←` after a turn finished showing \"Working\" forever in the agents list",
       "content_ja": "`/bg` や `←←` でバックグラウンド化したセッションが、タスク完了後もエージェントリストで「Working」のままになる問題を修正しました。",
       "prefix": "Fixed",
@@ -281,10 +299,11 @@
       "inference": {
         "before": "ターンが終了した直後にセッションをバックグラウンドへ移動させると、内部的には完了しているにもかかわらず UI 上は「実行中」と表示され続けることがありました。",
         "after": "バックグラウンド化したセッションのステータスが正確に反映されるようになりました。",
-        "benefit": "エージェントビュー（`claude agents`）で各タスクの正確な進捗を把握でき、どのエージェントが次の入力を待っているかが一目で分かります。"
+        "benefit": "エージェントビュー(`claude agents`)で各タスクの正確な進捗を把握でき、どのエージェントが次の入力を待っているかが一目で分かります。"
       }
     },
     {
+      "id": "17d6be4151ba",
       "content": "- Fixed Linux sandbox failing to start when `.claude/skills` or `.claude/hooks` is a symlink",
       "content_ja": "Linux のサンドボックス環境において、スキルやフックのディレクトリがシンボリックリンクの場合に起動できない問題を修正しました。",
       "prefix": "Fixed",
@@ -307,6 +326,7 @@
       }
     },
     {
+      "id": "432baecd02f4",
       "content": "- Fixed `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1` preventing fresh marketplace installs from cloning",
       "content_ja": "環境変数 `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1` が設定されている際に、新規プラグインのクローンが妨げられる問題を修正しました。",
       "prefix": "Fixed",
@@ -323,8 +343,9 @@
       }
     },
     {
+      "id": "562b69eece2b",
       "content": "- Fixed MCP server-level specs (`mcp__server`, `mcp__server__*`, `mcp__*`) in subagent `disallowedTools` being silently ignored",
-      "content_ja": "サブエージェントの `disallowedTools` において、MCPサーバーレベルの指定（`mcp__server` など）が無視される問題を修正",
+      "content_ja": "サブエージェントの `disallowedTools` において、MCPサーバーレベルの指定(`mcp__server` など)が無視される問題を修正",
       "prefix": "Fixed",
       "feature_areas": ["Sub-agents", "MCP", "Permissions"],
       "related_docs": [
@@ -339,14 +360,15 @@
         }
       ],
       "inference": {
-        "before": "サブエージェントの定義ファイルで `disallowedTools` を使用して特定のMCPサーバー全体（例：`mcp__github`）を拒否しようとしても、その設定が静かに無視されていました。その結果、サブエージェントが本来禁止されるべきMCPツールにアクセスできてしまう可能性がありました。",
+        "before": "サブエージェントの定義ファイルで `disallowedTools` を使用して特定のMCPサーバー全体(例：`mcp__github`)を拒否しようとしても、その設定が静かに無視されていました。その結果、サブエージェントが本来禁止されるべきMCPツールにアクセスできてしまう可能性がありました。",
         "after": "サブエージェントのフロントマターにおける `disallowedTools` フィールドで、`mcp__*` 形式のワイルドカードやサーバー名による指定が正しく認識されるようになりました。",
         "benefit": "サブエージェントに許可するツールの制限をより確実に、かつサーバー単位で一括して行えるようになり、セキュリティと制御の精度が向上します。"
       }
     },
     {
+      "id": "1c41cc079018",
       "content": "- Fixed vim mode undo: `u` now steps through NORMAL/VISUAL-mode commands one at a time instead of merging commands in quick succession into a single undo step",
-      "content_ja": "vim モードの undo（元に戻す）操作において、連続した操作が不適切にまとめられてしまう問題を修正しました。",
+      "content_ja": "vim モードの undo(元に戻す)操作において、連続した操作が不適切にまとめられてしまう問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -364,6 +386,7 @@
       }
     },
     {
+      "id": "999784240bda",
       "content": "- Fixed statusline links with custom URI schemes (e.g. `vscode://`) not opening when clicked in `claude agents`",
       "content_ja": "エージェントビューにおいて、ステータスライン内の `vscode://` などのカスタム URI スキームを持つリンクが動作しない問題を修正しました。",
       "prefix": "Fixed",
@@ -386,6 +409,7 @@
       }
     },
     {
+      "id": "d5acd339a5b8",
       "content": "- [VSCode] Fixed pressing Esc to dismiss a CJK IME candidate window canceling the running Claude task",
       "content_ja": "[VS Code] 日本語などの IME 候補ウィンドウを Esc キーで閉じた際に、実行中のタスクまでキャンセルされてしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -402,7 +426,7 @@
         }
       ],
       "inference": {
-        "before": "VS Code の統合ターミナルで日本語入力中、変換候補を消そうとして Esc キーを押すと、エージェントの処理全体が中断（キャンセル）されてしまう不便がありました。",
+        "before": "VS Code の統合ターミナルで日本語入力中、変換候補を消そうとして Esc キーを押すと、エージェントの処理全体が中断(キャンセル)されてしまう不便がありました。",
         "after": "IME の候補キャンセルとエージェントへの指示中断が正しく区別され、変換候補だけを閉じられるようになりました。",
         "benefit": "日本語入力を多用する環境においても、不意なタスク中断に煩わされることなく快適にプロンプトを入力できます。"
       }

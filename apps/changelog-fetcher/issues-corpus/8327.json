@@ -1,0 +1,42 @@
+{
+  "number": 8327,
+  "title": "[Bug/Documentation] 'Organization has been disabled' error when ANTHROPIC_API_KEY overrides Max/Pro subscription",
+  "body": "# [Bug/Documentation] \"Organization has been disabled\" error when ANTHROPIC_API_KEY overrides Max/Pro subscription\r\n\r\n## Problem Description\r\n\r\nUsers with valid Claude Pro/Max subscriptions are receiving `\"This organization has been disabled\"` error when using Claude Code CLI, despite having active subscriptions that work fine on claude.ai.\r\n\r\n## Root Cause\r\n\r\nWhen an `ANTHROPIC_API_KEY` environment variable is set (especially from a previously disabled organization), it overrides the user's valid Max/Pro subscription authentication, causing Claude Code to attempt authentication with the disabled API key instead of the active subscription.\r\n\r\n## Steps to Reproduce\r\n\r\n1. Have a valid Claude Max/Pro subscription\r\n2. Have `ANTHROPIC_API_KEY` environment variable set to a key from a disabled organization\r\n3. Run `claude --print \"test\"` or `npx @anthropic-ai/claude-code@latest --print \"test\"`\r\n4. Receive error: `API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"This organization has been disabled.\"}}`\r\n\r\n## Solution\r\n\r\nRemove or unset the `ANTHROPIC_API_KEY` environment variable:\r\n\r\n```bash\r\n# Temporary fix\r\nunset ANTHROPIC_API_KEY\r\nclaude --print \"test\"  # Now works!\r\n\r\n# Permanent fix - remove from shell config\r\n# Remove any line like: export ANTHROPIC_API_KEY=\"sk-ant-...\"\r\n```\r\n\r\n## Evidence\r\n\r\n### Test Results\r\n```bash\r\n# With API key from disabled org\r\n$ export ANTHROPIC_API_KEY=\"sk-ant-api03-[disabled-key]\"\r\n$ claude --print \"What is 2+2?\"\r\nAPI Error: 400 \"This organization has been disabled\"\r\n\r\n# Without API key (using Max subscription)\r\n$ unset ANTHROPIC_API_KEY\r\n$ claude --print \"What is 2+2?\"\r\n4  # Works perfectly!\r\n```\r\n\r\n## Impact\r\n\r\nThis affects users who:\r\n- Have valid Pro/Max subscriptions\r\n- Previously used API keys from organizations (work, school, etc.)\r\n- Have those organizations now disabled\r\n- Don't realize the old API key overrides their personal subscription\r\n\r\n## Suggested Improvements\r\n\r\n1. **Better Error Message**: Instead of `\"This organization has been disabled\"`, show:\r\n   ```\r\n   \"API key from disabled organization detected.\r\n    You have a valid Max subscription.\r\n    Run 'unset ANTHROPIC_API_KEY' to use your subscription instead.\"\r\n   ```\r\n\r\n2. **Add Warning**: When Claude Code detects both subscription and API key:\r\n   ```\r\n   \"Warning: ANTHROPIC_API_KEY is overriding your Max subscription.\r\n    Remove the environment variable to use your subscription benefits.\"\r\n   ```\r\n\r\n3. **Update Documentation**: Add a troubleshooting section specifically for this scenario in:\r\n   - https://support.claude.com/en/articles/11145838-using-claude-code-with-your-pro-or-max-plan\r\n   - The main Claude Code README\r\n\r\n4. **Add `--use-subscription` Flag**: Allow explicit override:\r\n   ```bash\r\n   claude --use-subscription --print \"test\"  # Ignores ANTHROPIC_API_KEY\r\n   ```\r\n\r\n## Additional Context\r\n\r\n- This is **not** a bug in the traditional sense - it's documented behavior that API keys override subscriptions\r\n- However, the error message is misleading and doesn't help users understand the actual problem\r\n- Many users may have old API keys in their environment from previous projects/employers\r\n- The current documentation doesn't explicitly warn about disabled organization keys\r\n\r\n## Environment\r\n\r\n- OS: Windows 10 (Git Bash/MINGW64)\r\n- Claude Code Version: 1.0.128\r\n- Subscription: Claude Max (Individual)\r\n- Issue discovered: September 29, 2025\r\n\r\n## Related Issues\r\n\r\nThis may explain some cases in:\r\n- #5088 (though that also has billing-related issues)\r\n- #1651 (API key vs subscription confusion)\r\n- #4733 (persistent warnings about API keys)\r\n\r\n## Reproducible Example\r\n\r\nI've created a complete test suite showing this issue and the solution:\r\nhttps://gist.github.com/[would-create-gist-with-full-test-results]\r\n\r\n---\r\n\r\nI discovered this after extensive debugging and wanted to document it for others experiencing the same confusing error. Happy to provide more details or help test fixes.",
+  "labels": [
+    "bug",
+    "enhancement",
+    "has repro",
+    "platform:windows",
+    "area:auth",
+    "oncall"
+  ],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-09-29T01:10:58Z",
+  "updated_at": "2026-06-30T06:00:41Z",
+  "closed_at": null,
+  "reactions_total": 21,
+  "comments_count": 121,
+  "author": "Toowiredd",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "tkluza",
+      "author_association": "NONE",
+      "body": "Same issue happens to me. After renew of Max subscription I cannot use Claude Code, since it shows always:\n\n> This organization has been disabled.\n\nUnfortunately, provided temporal fix `claude --use-subscription --print \"test\"` or `unset ANTHROPIC_API_KEY` doesn't work.\n\nThings I've tried:\n\n1. `claude --use-subscription --print \"test\"`\n2. `unset ANTHROPIC_API_KEY`\n3. logout + login",
+      "created_at": "2025-10-09T09:19:55Z"
+    },
+    {
+      "author": "Toowiredd",
+      "author_association": "NONE",
+      "body": "That wasn’t the solution mate. That was a suggestion for the anthropic team\r\nto implement As the solution. Here is the trick that worked for me.\r\nSolution\r\n\r\nRemove or unset the ANTHROPIC_API_KEYenvironment variable:\r\n\r\n# Temporary fixunset ANTHROPIC_API_KEY\r\nclaude --print \"test\"  # Now works!\r\n# Permanent fix - remove from shell config# Remove any line like:\r\nexport ANTHROPIC_API_KEY=\"sk-ant-...\"\r\n\r\n\r\nOn Thu, 9 Oct 2025 at 8:20 PM, tkluza ***@***.***> wrote:\r\n\r\n> *tkluza* left a comment (anthr",
+      "created_at": "2025-10-09T17:03:37Z"
+    },
+    {
+      "author": "pianostringquartet",
+      "author_association": "NONE",
+      "body": "I'm encountering this issue as well.",
+      "created_at": "2025-10-12T23:59:28Z"
+    }
+  ]
+}

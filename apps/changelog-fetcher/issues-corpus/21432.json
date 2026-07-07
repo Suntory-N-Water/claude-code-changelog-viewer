@@ -1,0 +1,35 @@
+{
+  "number": 21432,
+  "title": "Add setting to disable automatic caffeinate/sleep prevention",
+  "body": "## Summary\n\nClaude Code spawns `caffeinate -i -t 300` repeatedly during active sessions, preventing macOS sleep — including lid-close sleep. There is no setting to disable this behavior.\n\n## User Stories\n\n**Story 1: Disable sleep prevention**\nAs a developer using Claude Code on a laptop, I want to disable the automatic `caffeinate` spawning so that my Mac sleeps when I close the lid, even during an active session.\n\n## Current Behavior\n\n- Claude Code spawns `caffeinate -i -t 300` as a child process during active sessions\n- The process respawns after each 300s expiry, so `killall caffeinate` is ineffective\n- The source is shipped as a minified `cli.js` bundle so users cannot patch it\n- Community tools ([cc-caffeine](https://github.com/samber/cc-caffeine), [cc-caffeinated](https://github.com/Rendann/cc-caffeinated)) exist to *add* caffeinate support for headless/remote use cases, but none provide a way to *disable* the built-in behavior\n\n## Acceptance Criteria\n\n- [ ] A user-configurable setting (e.g. `disableCaffeinate` in `~/.claude/settings.json`) disables automatic `caffeinate` spawning\n- [ ] When disabled, no `caffeinate` child processes are spawned during sessions\n- [ ] When enabled (default), current behavior is preserved\n\n## Edge Cases\n\n- [ ] Setting should be respected across session restarts\n- [ ] Existing community hooks that add their own caffeinate should not conflict\n",
+  "labels": ["enhancement", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-01-28T10:47:40Z",
+  "updated_at": "2026-06-25T06:41:07Z",
+  "closed_at": null,
+  "reactions_total": 32,
+  "comments_count": 6,
+  "author": "shyal",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "somiandras",
+      "author_association": "NONE",
+      "body": "It seems Claude Code sometimes spawns these caffeinate processes even when idle (eg. stopped at a user question or finished the task). I just had a couple of sessions on, one completely idle one went rogue and kept my laptop awake. After exiting it the others seem to work as intended: spawn caffeinate while working, letting sleep when idle (I couldn't find any documentation around this behaviour so I just assume what is intended and what not). This happened multiple times in the past week or so.",
+      "created_at": "2026-02-16T16:57:55Z"
+    },
+    {
+      "author": "sai3563",
+      "author_association": "NONE",
+      "body": "I'm too facing the same issue.\n\nEven if the claude session isn't doing anything (all prompts replied & nothing being processed), it still keeps running `caffeinate -i -t 300` frequently preventing my macbook from going to sleep.\n\nWe use a corporate oauth login that auto-refreshes every 8 hours by opening a new chrome tab. If this expires at night, it launches a new tab for oauth login every 5 minutes so I wake up to like 20+ tabs in the morning.\n\nThere needs to be an option to disable this, this",
+      "created_at": "2026-02-26T06:29:44Z"
+    },
+    {
+      "author": "qiuruiyu",
+      "author_association": "NONE",
+      "body": "I am also facing the same issue. My mac always keeps awake after closing the lid, and the battery drops to zero fast ",
+      "created_at": "2026-04-10T16:05:06Z"
+    }
+  ]
+}

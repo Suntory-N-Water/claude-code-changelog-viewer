@@ -1,0 +1,35 @@
+{
+  "number": 28795,
+  "title": "[FEATURE] Support AWS Bedrock + AWS SSO in `claude remote-control`",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n### Current Behavior\n\nWhen a user running Claude Code via AWS Bedrock attempts to start a Remote Control session, they are blocked at the authentication layer. The Remote Control handshake requires an Anthropic account session token — which Bedrock users do not have, and cannot obtain without signing up for a separate consumer plan.\n\n**Blocked flow**\n`aws sso login → CLAUDE_CODE_USE_BEDROCK=1 → claude remote-control → ❌ Requires Anthropic login`\n\n### Who Is Affected\n\nEnterprise and team users who access Claude Code through AWS Bedrock under corporate AWS accounts\nDevelopers and data engineers using AWS SSO / IAM Identity Center for unified credential management\nOrganizations with security policies that prohibit direct Anthropic account creation for individual developers\nAWS-native teams who have already invested in Bedrock-based Claude Code setup and want feature parity\n\n### Business Impact\n\nRemote Control is a high-value feature — it enables developers to monitor and steer long-running agentic tasks from mobile devices without being physically present at their workstation. Blocking Bedrock users from this feature creates a significant capability gap and undermines the value proposition of the AWS Bedrock integration.\n\n### Proposed Solution\n\n### Decoupled Auth Backend\n\nExtend the Remote Control session registration to accept AWS Bedrock credentials in addition to Anthropic account tokens. When CLAUDE_CODE_USE_BEDROCK=1 is set, the Remote Control handshake should authenticate against AWS STS rather than the Anthropic account system.\n\n\n```\n# Desired flow\nexport CLAUDE_CODE_USE_BEDROCK=1\nexport AWS_PROFILE=my-sso-profile\nexport AWS_REGION=us-east-1\n\naws sso login --profile my-sso-profile\nclaude remote-control   # ✅ Should work with Bedrock credentials\n```\n\n### SSO Token Refresh in Remote Sessions\n\nSince AWS SSO credentials have a finite TTL, the Remote Control session should honour the existing awsAuthRefresh mechanism — automatically triggering re-authentication when credentials expire, without dropping the active remote session.\n\n```\n// ~/.claude/settings.json\n{\n  \"env\": {\n    \"CLAUDE_CODE_USE_BEDROCK\": \"1\",\n    \"AWS_PROFILE\": \"my-sso-profile\",\n    \"AWS_REGION\": \"us-east-1\"\n  },\n  \"awsAuthRefresh\": \"aws sso login --profile my-sso-profile --no-browser\"\n}\n```\n\n### Suggested Implementation Approach\n\n1. Abstract the Remote Control auth layer behind an interface that supports multiple identity providers (Anthropic account, AWS STS, and potentially others in future).\n2. When CLAUDE_CODE_USE_BEDROCK=1 is detected, use the AWS SDK credential chain to obtain a caller 3. identity via sts:GetCallerIdentity and use this as the session identity for Remote Control registration.\n4. Issue a short-lived Remote Control session token scoped to the AWS ARN, refreshable via awsAuthRefresh.\nEnsure the Remote Control relay server can validate both Anthropic-issued and AWS STS-backed session tokens.\n\n\n\n### Alternative Solutions\n\n| Alternative | Why It Falls Short |\n|---|---|\n| Use tmux over SSH | Requires always-on SSH connection; no mobile-friendly UI; not equivalent to native Remote Control UX |\n| Dual auth (Anthropic + Bedrock) | Forces enterprise users to create personal Anthropic accounts, which may violate corporate security policies |\n| `claude --print` for automation | Headless only; no interactive remote monitoring; not a substitute for Remote Control |\n| Wait for Team/Enterprise RC support | Does not address the Bedrock auth gap; Team/Enterprise plans may still require Anthropic account login |\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nCLI commands and flags\n\n### Use Case Example\n\n`claude remote-control` currently requires authentication via an Anthropic account (`/login` → claude.ai). This prevents user",
+  "labels": ["enhancement", "api:bedrock", "area:auth"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-26T00:56:03Z",
+  "updated_at": "2026-06-15T12:03:58Z",
+  "closed_at": null,
+  "reactions_total": 116,
+  "comments_count": 10,
+  "author": "jxhuang-godaddy",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "josheche",
+      "author_association": "NONE",
+      "body": "Need this yesterday.",
+      "created_at": "2026-02-26T15:18:42Z"
+    },
+    {
+      "author": "Aflous",
+      "author_association": "NONE",
+      "body": "Needed this last year 🥲",
+      "created_at": "2026-02-27T09:27:47Z"
+    },
+    {
+      "author": "jayson-gallardo",
+      "author_association": "NONE",
+      "body": "I'm having to try and build a bridge to Microsoft Teams when we could just have this!",
+      "created_at": "2026-03-12T02:37:34Z"
+    }
+  ]
+}

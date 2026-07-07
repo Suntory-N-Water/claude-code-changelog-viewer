@@ -1,0 +1,35 @@
+{
+  "number": 25979,
+  "title": "[BUG] Claude Code hangs indefinitely when API streaming connection stalls (no read timeout)",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nClaude Code hangs permanently when the API streaming response stalls mid-delivery. The process stays alive (epoll_wait in kernel) but makes no progress. The UI shows a spinner (\"Accomplishing…\",\n  \"Ruminating…\", etc.) indefinitely. No error is surfaced. The session cannot recover — the only fix is kill -9.\n\n  Two distinct hang patterns observed:\n\n  Pattern 1 — Mid-turn stream freeze: The API response starts streaming (thinking block received, \"thought for 3s\" renders), then the stream silently stops. No more tokens arrive. The JSONL session\n  log shows no new entries after the last progress update. The process is stuck waiting for bytes that never come.\n\n  Pattern 2 — Tool result delivery stall: A Bash tool executes and completes (e.g., curl --max-time 5), but the tool result is never delivered back to the conversation state. The last tool_use ID in\n  the JSONL has no matching tool_result. The UI shows the spinner as if the tool is still running.\n\n  Both patterns correlate with background agent (Task with run_in_background: true) notifications arriving between or during turns.\n\n### What Should Happen?\n\n1. Claude Code should have a read timeout on the SSE/streaming HTTP response. If no data arrives within N seconds (e.g., 60–120s), it should abort the request and surface a retryable error to the\n  user.\n  2. Tool result delivery should have a timeout. If a tool completes but the result isn't consumed within N seconds, the session should error rather than hang.\n  3. The UI should detect \"no progress for N seconds\" and offer the user an escape (e.g., \"Session appears stuck. Press Enter to retry or Esc to cancel\").\n\n### Error Messages/Logs\n\n```shell\nSession 1: Mid-turn stream freeze (fff87be2)\n\n  JSONL timeline:\n  21:43:28 UTC  Turn 1 ends (system/turn_duration logged)\n  21:43:28      Background agent notification injected as user message\n                → Triggers Turn 2\n  21:44:44      Turn 2 ends (system/turn_duration logged, stop hooks run)\n                Background agent notification for a DIFFERENT agent arrives\n                → Triggers Turn 3\n                API call starts, \"thought for 3s\" renders in UI\n                *** No more JSONL entries. Stream froze. ***\n                UI stuck on \"Accomplishing… (thought for 3s)\" for 10+ minutes\n\n  Process state during hang:\n  $ ps -p 843072 -o pid,state,wchan\n      PID S WCHAN\n   843072 S do_epoll_wait\n\n  $ kill -TERM 843072   # no effect\n  $ kill -KILL 843072   # required to terminate\n\n  Session 2: Tool result delivery stall (06d50a72)\n\n  JSONL shows:\n  Last tool_use ID:    toolu_vrtx_01JqgVUPZLrMyudEQaAQhx1x  (Bash: curl)\n  Last tool_result ID: toolu_vrtx_01LJscxroh9R7tsDQUL6AhuF  (different, earlier tool)\n  → Mismatch: the curl's result was never delivered\n\n  The curl command had --max-time 5 so it completed, but the result never made it back to the conversation. UI showed \"Ruminating…\" indefinitely.\n```\n\n### Steps to Reproduce\n\nDifficult to reproduce deterministically — it appears to be a race condition or network-level issue. But the following pattern triggers it frequently:\n\n  1. Start Claude Code on a remote Linux server via SSH + tmux\n  2. Give it a complex task that spawns multiple background agents (Task with run_in_background: true)\n  3. Wait for background agents to complete and deliver notifications\n  4. When a notification arrives right as a turn is ending or between turns, the next API call has a high chance of hanging\n\n  Environment factors that may contribute:\n  - Remote server (high-latency network path to API)\n  - tmux (terminal multiplexing)\n  - Multiple concurrent Claude Code sessions in different tmux panes\n  - Heavy hook infrastructure (6 hook events, though all complete in <120ms p",
+  "labels": ["bug", "api:vertex"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-15T22:11:02Z",
+  "updated_at": "2026-06-16T10:04:05Z",
+  "closed_at": null,
+  "reactions_total": 16,
+  "comments_count": 34,
+  "author": "esuleman",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "Found 3 possible duplicate issues:\n\n1. https://github.com/anthropics/claude-code/issues/24688\n2. https://github.com/anthropics/claude-code/issues/20572\n3. https://github.com/anthropics/claude-code/issues/25442\n\nThis issue will be automatically closed as a duplicate in 3 days.\n\n- If your issue is a duplicate, please close it and 👍 the existing issue instead\n- To prevent auto-closure, add a comment or 👎 this comment\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+      "created_at": "2026-02-15T22:14:02Z"
+    },
+    {
+      "author": "reski-rukmantiyo",
+      "author_association": "NONE",
+      "body": "I also experience the same. how to downgrade it?",
+      "created_at": "2026-02-16T00:20:05Z"
+    },
+    {
+      "author": "fmallet",
+      "author_association": "NONE",
+      "body": "### Experiencing the same issue — all models affected, not just Opus 4.6\n\n**Environment:**\n- macOS, Claude Code via CLI and Claude Desktop (Code tab)\n- Subscription: **Max plan**\n- Auth method: `claude.ai` (first-party)\n- Claude Code version: 2.1.62\n\n**Symptoms:**\n- Every prompt (even trivial ones like `\"are you there?\"`) hangs indefinitely on spinner messages (`shlepping`, `channeling`, `pondering`…)\n- Token count does not increase — no work is happening server-side\n- Sending a follow-up messag",
+      "created_at": "2026-02-27T07:43:16Z"
+    }
+  ]
+}

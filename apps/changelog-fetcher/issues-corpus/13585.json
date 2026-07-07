@@ -1,0 +1,35 @@
+{
+  "number": 13585,
+  "title": "Add Quota Information Access to Claude Code CLI",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing requests](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20label%3Aenhancement) and this feature hasn't been requested yet\n- [x] This is a single feature request (not multiple features)\n\n### Problem Statement\n\n## Description\n\n### Problem\nClaude Desktop displays quota information (session %, weekly %) in the UI, but this data is not accessible to Claude Code CLI users or automation scripts. This forces users to manually check the desktop app and record values, preventing automated monitoring and workflow optimization.\n\n### Request\nExpose quota information via Claude Code CLI through one of these methods:\n1. **New `claude quota` command** (recommended)\n2. API endpoint that CLI can query\n3. Environment variables set by Claude Code\n4. Local configuration file that gets updated\n\n### Example Use Cases\n```bash\n# Get current quota\n$ claude quota\nSession: 78%\nWeekly (All): 17%\nWeekly (Sonnet): 5%\n\n# JSON for scripting\n$ claude quota --json\n{\"session\": 78, \"weekly_all\": 17, \"weekly_sonnet\": 5}\n\n# Enable/disable features based on quota\nif [ $(claude quota --session) -gt 80 ]; then\n  export ALWAYS_THINKING=false\nelse\n  export ALWAYS_THINKING=true\nfi\n```\n\n### Why This Matters\n- ✅ Enables automated quota monitoring\n- ✅ Allows workflow optimization based on resource limits\n- ✅ Reduces manual, repetitive checking\n- ✅ Enables third-party tool integration\n- ✅ Data already exists; just needs exposure\n\n### Proposed Solution\n\n## Proposed Solution\n\n### Option 1: CLI Command (Recommended)\n```bash\n# Basic usage\nclaude quota\n\n# Output:\n# Session: 78% (resets in 3h 20m)\n# Weekly (All): 17% (resets in 6 days)\n# Weekly (Sonnet): 5% (resets in 6 days)\n\n# JSON output\nclaude quota --json\n# { \"session_percent\": 78, \"weekly_all_percent\": 17, \"weekly_sonnet_percent\": 5 }\n\n# Individual values\nclaude quota --session    # 78\nclaude quota --weekly-all # 17\nclaude quota --weekly-sonnet # 5\n\n# With reset times\nclaude quota --json --with-reset-times\n```\n\n### Option 2: Environment Variables\n```bash\n# Set by Claude Code when running\nexport CLAUDE_QUOTA_SESSION=78\nexport CLAUDE_QUOTA_WEEKLY_ALL=17\nexport CLAUDE_QUOTA_WEEKLY_SONNET=5\n```\n\n### Option 3: Config File\n```json\n// ~/.claude/quota.json (auto-updated)\n{\n  \"session\": {\n    \"percent\": 78,\n    \"resets_in_seconds\": 12600\n  },\n  \"weekly_all\": {\n    \"percent\": 17,\n    \"resets_at\": \"2025-12-16T13:59:00Z\"\n  },\n  \"weekly_sonnet\": {\n    \"percent\": 5,\n    \"resets_at\": \"2025-12-16T19:59:00Z\"\n  }\n}\n```\n\n## Benefits\n\n### For Users\n- Automated quota monitoring without manual checking\n- Ability to build quota-aware workflows\n- Better resource management\n- Integration with terminal tools (statusline, etc.)\n\n### For Anthropic\n- Improved user experience\n- Enables ecosystem of tools\n- Reduces support burden\n- Competitive advantage\n\n### No Downsides\n- No security issues (quota is per-user, already in UI)\n- No breaking changes (new feature only)\n- Low implementation effort (data already exists)\n\n### Alternative Solutions\n\n### Current Workaround (User Experience)\n```\nEvery 3-4 hours:\n1. Open Claude Desktop\n2. Check quota percentages\n3. Manually run script: cq update 78 17 5\n4. Continue work\n```\n\nThis is tedious, error-prone, and prevents automation.\n\n### Priority\n\nHigh - Significant impact on productivity\n\n### Feature Category\n\nInteractive mode (TUI)\n\n### Use Case Example\n\n### Example Use Cases\n```bash\n# Get current quota\n$ claude quota\nSession: 78%\nWeekly (All): 17%\nWeekly (Sonnet): 5%\n\n# JSON for scripting\n$ claude quota --json\n{\"session\": 78, \"weekly_all\": 17, \"weekly_sonnet\": 5}\n\n# Enable/disable features based on quota\nif [ $(claude quota --session) -gt 80 ]; then\n  export ALWAYS_THINKING=false\nelse\n  export ALWAYS_THINKING=true\nfi\n```\n\n### Additional Context\n\n## Technical Notes\n\n### Data Already Exists\n- Claude Desktop displays this data\n- Calculated server-side\n- Just needs CLI exposure\n\n### Implementation Considerations\n- Rate limiting (if needed) - recommend none (local data)\n- Backwards compatibility - not an issue (new feature)\n- Cross-p",
+  "labels": ["enhancement", "area:cost", "area:tui", "area:api"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-12-10T18:54:33Z",
+  "updated_at": "2026-07-03T22:04:23Z",
+  "closed_at": null,
+  "reactions_total": 103,
+  "comments_count": 22,
+  "author": "Data-Wise",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "blarvin",
+      "author_association": "NONE",
+      "body": "## Cross-Platform Usage Visibility Gap\n\nThis request is even more critical when you consider that **Claude Pro usage is shared across all platforms** (web, mobile, desktop apps, and Claude Code CLI).\n\n### The Problem\nCurrently, Claude Code has **zero visibility** into the user's total Claude Pro usage, even though:\n- Every message sent via Claude Code counts toward the same Pro quota as web/mobile/desktop\n- The web interface at claude.ai shows a usage bar with remaining allowance and reset time\n",
+      "created_at": "2026-01-10T14:53:42Z"
+    },
+    {
+      "author": "mloureiro",
+      "author_association": "NONE",
+      "body": "+1 for this feature!\n\nOne additional idea that could complement the proposed `claude quota` command: a **watch/live mode** for real-time monitoring:\n\n```bash\n# Live mode - continuously updates (for dashboards/widgets)\nclaude quota --watch\nclaude quota --watch --interval 30   # refresh every 30 seconds\n```\n\n**Watch mode behavior:**\n- Clears and redraws the output on each refresh (like `watch` or `htop`)\n- Default refresh interval: 30-60 seconds (to avoid excessive API calls)\n- Could be used in a ",
+      "created_at": "2026-01-23T16:51:15Z"
+    },
+    {
+      "author": "rcontrerasv",
+      "author_association": "NONE",
+      "body": "+1 on this. The cross-platform visibility gap is the biggest pain point. Local JSONL parsing can approximate CLI usage, but it completely misses consumption from claude.ai, mobile, and desktop apps — so any local tool will always show inaccurate percentages compared to `/usage`.\n\nAn official API endpoint or MCP server exposing the same data as `/usage` (current %, reset times, per-window breakdown) would be extremely valuable. Even a simple JSON output from `claude quota --json` would unlock a w",
+      "created_at": "2026-01-30T22:27:57Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "number": 9796,
+  "title": "[BUG]  Context compaction erases .claude/project-context.md instructions",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nAfter context compaction occurs during long conversations, the assistant completely forgets all instructions from `.claude/project-context.md`.\n\nThis causes critical project rules to be violated:\n- Uses TodoWrite when project requires Beads\n- Apologizes when project explicitly forbids apologies\n- Forgets to activate venv when project requires it\n- Ignores other critical workflow instructions\n\nThe assistant follows these rules perfectly before compaction, then violates them 100% of the time after compaction.\n\n### What Should Happen?\n\nThe `.claude/project-context.md` file should be treated as non-optional, always-present context that survives compaction. Instructions marked \"CRITICAL\" should remain available throughout the entire conversation, just like git status and project structure are preserved.\n\n### Error Messages/Logs\n\n```shell\nNo error messages - the assistant silently ignores project-context.md instructions after compaction without any indication that something is wrong.\n```\n\n### Steps to Reproduce\n\n1. Create `.claude/project-context.md` in your project with critical instructions:\n   ```markdown\n   **CRITICAL: We track work in Beads instead of Markdown. Run `bd quickstart` to see how.**\n   **CRITICAL: Do NOT apologize about anything for any reason.**\n   **CRITICAL: Always activate venv before running Python scripts.**\n   ```\n\n2. Start a conversation with Claude Code in this project\n\n3. Test that instructions are followed:\n   - Ask Claude to track a task → Uses Beads correctly\n   - Correct Claude on something → Doesn't apologize\n   - Ask to run Python script → Activates venv first\n\n4. Continue conversation until context compaction triggers (usually after ~15-20 turns with tool use)\n\n5. After compaction, test again:\n   - Ask Claude to track a task → Uses TodoWrite (violates Beads rule)\n   - Correct Claude on something → Apologizes (violates no-apology rule)\n   - Ask to run Python script → Forgets venv (violates venv rule)\n\n6. Instructions that were 100% followed pre-compaction are now 100% ignored post-compaction\n\n### Claude Model\n\nSonnet (default)\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\nLatest as of 2025-10-17\n\n### Platform\n\nAnthropic API\n\n### Operating System\n\nmacOS\n\n### Terminal/Shell\n\nTerminal.app (macOS)\n\n### Additional Information\n\n**Impact:** This is a critical bug that breaks the primary mechanism for project-specific configuration. Users rely on project-context.md for:\n- Workflow preferences (which tools to use)\n- Communication style (technical, concise, no apologies)\n- Environment setup (venv, paths, etc.)\n- Project-specific conventions\n\n**Consistency:** This occurs 100% of the time after compaction in every project that uses project-context.md.\n\n**Root cause:** The compaction summary does not preserve or reference project-context.md content. It needs to be treated as system-level context (like gitStatus) that's always included.\n\n**Suggested fix:**\n1. Mark project-context.md as non-compactable\n2. Always include full contents in context even after compaction\n3. Treat it with same priority as git status and project structure\n\n**Pre-compaction behavior:**\n```\nUser: \"Track this task\"\nClaude: [Uses Beads as specified] ✅\n\nUser: \"You made a mistake\"\nClaude: [Explains without apologizing] ✅\n\nUser: \"Run test script\"\nClaude: [Activates venv first] ✅\n```\n\n**Post-compaction behavior:**\n```\nUser: \"Track this task\"\nClaude: [Uses TodoWrite instead of Beads] ❌\n\nUser: \"You made a mistake\"\nClaude: \"I apologize for the error...\" ❌\n\nUser: \"Run test script\"\nClaude: [Runs without activating venv] ❌\n```\n\nThe same rules that were followed perfectly before compaction are completely forgotten after.\n",
+  "labels": ["bug", "has repro", "platform:macos", "area:core", "memory"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2025-10-17T22:58:53Z",
+  "updated_at": "2026-06-29T17:35:18Z",
+  "closed_at": null,
+  "reactions_total": 4,
+  "comments_count": 25,
+  "author": "nickfox",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "WGSTecnologia",
+      "author_association": "NONE",
+      "body": "Any updates on This Antropic?\n",
+      "created_at": "2025-11-19T01:55:52Z"
+    },
+    {
+      "author": "nickfox",
+      "author_association": "NONE",
+      "body": "One thing I do know, this doesn't happen in Cursor.",
+      "created_at": "2025-11-29T14:10:16Z"
+    },
+    {
+      "author": "github-actions[bot]",
+      "author_association": "NONE",
+      "body": "This issue has been inactive for 30 days. If the issue is still occurring, please comment to let us know. Otherwise, this issue will be automatically closed in 30 days for housekeeping purposes.",
+      "created_at": "2025-12-30T10:09:44Z"
+    }
+  ]
+}

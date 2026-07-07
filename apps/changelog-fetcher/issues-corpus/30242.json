@@ -1,0 +1,42 @@
+{
+  "number": 30242,
+  "title": "Remote Control not enabled for Max plan account",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\nRunning `claude remote-control` returns:\n\n> Error: Remote Control is not yet enabled for your account.\n\nAccording to the official documentation at https://code.claude.com/docs/en/remote-control, this feature should be available for Max subscribers.\n\nI have re-authenticated using `/login` (selected option 1: Claude account with subscription) and confirmed my account is on the Max plan. `/feedback` also fails with \"Could not submit feedback. Please try again later.\"\n\n### What Should Happen?\n\n`claude remote-control` should work correctly for Max plan subscribers as documented at https://code.claude.com/docs/en/remote-control. The `/feedback` command should also be able to submit feedback successfully.\n\n### Error Messages/Logs\n\n```shell\nError: Remote Control is not yet enabled for your account.\n\n# /feedback also fails:\nCould not submit feedback. Please try again later.\n```\n\n### Steps to Reproduce\n\n1. Install Claude Code v2.1.63 via npm globally (`npm install -g @anthropic-ai/claude-code`)\n2. Run `/login` and select option 1 (Claude account with subscription - Max plan)\n3. Run `/doctor` — all checks pass, no issues found\n4. Run `claude remote-control`\n5. Observe error: \"Error: Remote Control is not yet enabled for your account.\"\n6. Additionally, run `/feedback` — it fails with \"Could not submit feedback. Please try again later.\"\n\n### Claude Model\n\nNone\n\n### Is this a regression?\n\nI don't know\n\n### Last Working Version\n\n_No response_\n\n### Claude Code Version\n\n2.1.63\n\n### Platform\n\nOther\n\n### Operating System\n\nWindows\n\n### Terminal/Shell\n\nPowerShell\n\n### Additional Information\n\n- Install method: npm-global\n- Login method: Claude subscription (option 1, Max plan)\n- `/doctor` reports all OK, no issues found\n- The issue also affects `/feedback`, which fails with \"Could not submit feedback. Please try again later.\"",
+  "labels": [
+    "bug",
+    "duplicate",
+    "platform:windows",
+    "area:auth",
+    "area:cli",
+    "stale"
+  ],
+  "state": "closed",
+  "state_reason": "not_planned",
+  "created_at": "2026-03-03T01:37:07Z",
+  "updated_at": "2026-06-23T11:09:43Z",
+  "closed_at": "2026-06-23T11:09:43Z",
+  "reactions_total": 7,
+  "comments_count": 10,
+  "author": "successldlgo-del",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "karimStekelenburg",
+      "author_association": "NONE",
+      "body": "Hi there! I was running into the same issue with my 20x Max subscription and nothing seemed to work for me. Then I noticed that the output of `claude auth status` did not change, even after running `claude code logout`.\n\nSo then I did the following:\n- Run `claude auth status` to check your login status. For me, it only showed: `{ loggedIn: true, authMethod: OAuth, apiProvider: firstParty}`\n- Remove `CLAUDE_CODE_OAUTH_TOKEN` from your `.zshrc` if set (I had previously set this myself)\n- Open up a",
+      "created_at": "2026-03-03T10:50:54Z"
+    },
+    {
+      "author": "dcryan",
+      "author_association": "NONE",
+      "body": "@karimStekelenburg \nThis solved my issue! Thanks!\nHad the same `authMethod: OAuth` as you and forgot I had `CLAUDE_CODE_OAUTH_TOKEN` set for something I was toying with before. Didn't realize that was the culprit. Remote Control works for me now after following your steps.",
+      "created_at": "2026-03-05T15:32:25Z"
+    },
+    {
+      "author": "successldlgo-del",
+      "author_association": "NONE",
+      "body": "Hi, I'm the issue author. I've followed @karimStekelenburg's steps and successfully fixed the OAuth issue. Here's my current status:\n\n  $ claude auth status\n  {\n    \"loggedIn\": true,\n    \"authMethod\": \"claude.ai\",\n    \"apiProvider\": \"firstParty\",\n    \"email\": \"successldlgc@gmail.com\",\n    \"orgId\": \"7dde4b68-23f2-456f-9862-ac2428e17a19\",\n    \"orgName\": \"successldlgc@gmail.com's Organization\",\n    \"subscriptionType\": \"max\"\n  }\n\n  However, claude remote-control still returns:\n  Error: Remote Contro",
+      "created_at": "2026-03-06T10:31:18Z"
+    }
+  ]
+}

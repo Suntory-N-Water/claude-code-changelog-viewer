@@ -1,0 +1,35 @@
+{
+  "number": 65863,
+  "title": "Claude Code v2.1.167: Agent() spawn fails with \"400 thinking options type cannot be disabled when reasoning_effort is set\" on DeepSeek Anthropic-compatible endpoint",
+  "body": "### Preflight Checklist\n\n- [x] I have searched [existing issues](https://github.com/anthropics/claude-code/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) and this hasn't been reported yet\n- [x] This is a single bug report (please file separate reports for different bugs)\n- [x] I am using the latest version of Claude Code\n\n### What's Wrong?\n\n## Environment\n- **Claude Code**: v2.1.167 (npm global install)\n- **OS**: Windows 11 x64\n- **API Endpoint**: `ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic`\n- **Main model**: `ANTHROPIC_MODEL=deepseek-v4-pro` (works fine for main conversation)\n- **Sub-agent models**: `ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-flash`, `ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash` (set at Windows User env level)\n\n## Steps to Reproduce\n1. Configure Claude Code to use DeepSeek's Anthropic-compatible endpoint\n2. `ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic`\n3. `ANTHROPIC_MODEL=deepseek-v4-pro`\n4. Run any Agent spawn: `Agent({ model: \"sonnet\", subagent_type: \"general-purpose\", ... })`\n5. Observe error: `API Error: 400 thinking options type cannot be disabled when reasoning_effort is set`\n\nSame error occurs with:\n- WebSearch tool\n- WebFetch tool\n- All three Agent model tiers (sonnet/haiku/opus)\n\n## What Works\n- Main conversation on `deepseek-v4-pro` → ✅ perfect\n- All non-subprocess tools (Read, Write, Edit, Bash, Grep, Glob, etc.) → ✅\n\n## What We Tested (Direct API Verification)\n\nWe ran 11 direct curl tests to DeepSeek's `/anthropic/v1/messages` endpoint with `thinking: {type: \"disabled\"}` combined with various parameters. **All returned 200**:\n\n| # | model | extra params | Result |\n|---|-------|-------------|--------|\n| 1 | v4-pro | — | ✅ |\n| 2 | v4-pro | `tools:[...]` | ✅ |\n| 3 | v4-pro | `tools + system` | ✅ |\n| 4 | v4-pro | `tools + system + tool_choice:{type:\"auto\"}` | ✅ |\n| 5 | v4-pro | `reasoning_effort:\"high\"` | ✅ |\n| 6 | v4-pro | `budget_tokens:0` | ✅ |\n| 7 | v4-flash | — | ✅ |\n| 8 | v4-flash | `tools + system` | ✅ |\n| 9 | `claude-sonnet-4-20250514` | Anthropic model ID (mapped to v4-flash by DeepSeek) | ✅ |\n\nThis demonstrates that DeepSeek's Anthropic-compatible endpoint **fully supports** `thinking: disabled` — the 400 error is specific to Claude Code's Agent subprocess API request path.\n\n## Environment Variable Investigation\n\nWe tried setting `ANTHROPIC_DEFAULT_SONNET/HAIKU_MODEL=deepseek-v4-flash` via three different paths:\n1. settings.json `env` block\n2. Windows User-level registry (permanent)\n3. Post-restart process inheritance\n\nAll three correctly set the env vars (confirmed via `echo` in subprocesses), but Agent spawn still fails with the same 400 — suggesting the Agent subprocess mechanism bypasses these env vars entirely.\n\n## Hypothesis\n\nClaude Code's Agent subprocess API request construction differs from the main conversation path. The subprocess may:\n- Send a parameter or header combination not covered by our direct API tests\n- Use a different HTTP endpoint path\n- Use a different SDK code path that triggers the error\n\n## Workaround\n\nDirect execution by Team Lead (no Agent spawn). Quality is unaffected — verified with Critic review scoring 9.0/10 on directly-executed page reviews.\n\n## Additional Context\n\nThis bug was discovered during systematic `/lint --system` auditing of a production Obsidian knowledge base (~41K files). The Agent system (Writer/Critic/Researcher with state files, memory, and inter-agent cache channels) was fully deployed but had zero usage over 5 days because every spawn attempt failed silently. The knowledge base has comprehensive self-monitoring protocols that detected the anomaly.\n\n### What Should Happen?\n\n## Environment\n- **Claude Code**: v2.1.167 (npm global install)\n- **OS**: Windows 11 x64\n- **API Endpoint**: `ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic`\n- **Main model**: `ANTHROPIC_MODEL=deepseek-v4-pro` (works fine for main conversation)\n- **Sub-agent models**: `ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-flash`, `ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash` (set at Windows User env le",
+  "labels": ["bug", "platform:windows", "area:agents", "area:providers"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-06-06T13:34:09Z",
+  "updated_at": "2026-06-18T10:16:58Z",
+  "closed_at": null,
+  "reactions_total": 6,
+  "comments_count": 13,
+  "author": "lzllget5154321-gif",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yurukusa",
+      "author_association": "NONE",
+      "body": "Your test matrix is excellent and it actually contains the answer — there's one cell missing that I think is the whole bug.\nLook at what you proved vs. what the subprocess does:\n- **v4-pro** + `thinking:{type:\"disabled\"}` + `reasoning_effort:\"high\"` → 200 (your test #5). So *v4-pro* tolerates the combo.\n- **v4-flash** + `thinking:{type:\"disabled\"}` alone → 200 (#7, #8). So v4-flash tolerates `thinking:disabled` *when reasoning_effort is absent*.\n- **v4-flash** + `thinking:{type:\"disabled\"}` + `r",
+      "created_at": "2026-06-06T13:48:32Z"
+    },
+    {
+      "author": "PxYu",
+      "author_association": "NONE",
+      "body": "Replying to @yurukusa's workaround suggestion:\n\n**The workaround does not work.** We set every subagent tier to `deepseek-v4-pro[1m]` (not flash), removed `CLAUDE_CODE_EFFORT_LEVEL`, verified the env — and Agent spawn still returns the same 400:\n\n```\nANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro[1m]\nANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro[1m]\nANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-pro[1m]   # v4-pro, not flash\nCLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-pro[1m]\n# CLAUDE_CODE_EFFORT_LEVEL not",
+      "created_at": "2026-06-07T04:22:38Z"
+    },
+    {
+      "author": "Xuanpei-Zhai",
+      "author_association": "NONE",
+      "body": "I also encountered the same problem. All the solutions were ineffective. So I decided to roll back the version.",
+      "created_at": "2026-06-08T02:32:27Z"
+    }
+  ]
+}

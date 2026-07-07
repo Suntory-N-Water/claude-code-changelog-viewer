@@ -1,0 +1,35 @@
+{
+  "number": 24798,
+  "title": "Inter-session communication for multi-Claude workflows",
+  "body": "## Feature Request\n\n**Direct project workflow between siloed Claude sessions to sequence higher level processes with dependencies.**\n\n### Problem\n\nWhen working on a large project, users run multiple Claude Code sessions in parallel — each focused on a different module or task. These sessions are completely siloed with no way to communicate, share state, or coordinate.\n\nToday I'm running 5 concurrent Claude sessions:\n- One doing a **server migration** (Lightsail → EC2)\n- One working on **database/taxonomy** changes\n- One building a **search module**\n- One on **card design/KPI dashboards**\n- One as a **terminal monitor** (health checks, backups, handoffs)\n\nThe migration session is changing the server IP, certificates, and service configs. Every other session still has the old IP hardcoded in its context. There is no way for the migration session to notify the others. I have to manually relay information between sessions — copy-pasting context, writing handoff documents to disk, and verbally telling each Claude what the others are doing.\n\n### What Would Help\n\n1. **Inter-session messaging** — One session sends a message to another (by session ID or name). \"Hey Taxonomy-DB, the server IP changed to X.X.X.X\"\n2. **Shared project scratchpad** — A key-value store all sessions in the same project can read/write. Migration writes `SERVER_IP=50.19.186.215`, all sessions pick it up.\n3. **Event/notification bus** — Sessions subscribe to events. \"When migration completes, notify all sessions to update configs.\"\n4. **Dependency sequencing** — Define that Task B (deploy app) depends on Task A (migration complete). Claude sessions coordinate automatically.\n5. **Delegation** — One session hands a subtask to another session that has the right context for it.\n\n### Current Workarounds (all terrible)\n\n- **File-based handoffs** — Write markdown docs to disk, tell the other session to read them. Slow, manual, loses context.\n- **Health monitor scripts** — Background bash scripts checking session file sizes, writing to log files. Fragile.\n- **User as message bus** — I copy-paste between sessions. Defeats the purpose of parallel agents.\n\n### Real-World Impact\n\nSessions die from context bloat (I've lost 3 sessions today at 55-62 MB). When a session dies, the replacement has zero knowledge of what the other sessions are doing. A shared state layer would let new sessions bootstrap instantly.\n\nThis would turn Claude Code from \"multiple independent assistants\" into an actual coordinated team.\n\n### Related\n\n- #24709 — Session identification (persistent names, visible IDs)\n\n---\n\n*Filed from a terminal Claude session currently acting as coordinator/monitor across 5 active project sessions. The irony of not being able to just tell the other Claudes directly is not lost on me.*",
+  "labels": ["enhancement", "area:tui", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-02-10T20:28:15Z",
+  "updated_at": "2026-07-02T22:43:19Z",
+  "closed_at": null,
+  "reactions_total": 18,
+  "comments_count": 53,
+  "author": "hmcg001",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "betoescobar46",
+      "author_association": "NONE",
+      "body": "+1 from a completely different use case — I'm a physician in Chile\nbuilding an internal clinical workflow tool (Electron+React) with\nClaude Code as my development environment.\n\nI routinely run 4 parallel sessions:\n- Session 1: working on a specific document or task\n- Session 2: frontend improvements and UI fixes\n- Session 3: literature review and evidence analysis\n- Session 4: personal assistant (reminders, meeting prep, admin tasks)\n\nThe pain is identical to what @Timlemmon describes. When Sess",
+      "created_at": "2026-02-14T01:26:39Z"
+    },
+    {
+      "author": "mlops-kelvin",
+      "author_association": "NONE",
+      "body": "We run a 3-agent swarm on Claude Code (orchestrator/MLOps, infrastructure/lead-engineer, mentor/advisor) that operates continuously across sessions. To solve inter-session communication, we built a full HTTP-based messaging protocol from scratch:\n\n- **Message routing**: Agents send signed messages to each other via a local HTTP server. Messages carry sender/recipient identity, read/unread status, and structured payloads.\n- **Agent identity**: Ed25519 key signing per agent. Messages are authentic",
+      "created_at": "2026-02-24T15:54:00Z"
+    },
+    {
+      "author": "finml-sage",
+      "author_association": "NONE",
+      "body": "Running a multi-agent orchestration system inside Claude Code, and this is the sharpest daily friction point we hit.\n\nWe have an orchestrator coordinating 3-4 specialist subagents (researcher, marketer, infrastructure agent). Subagents can't see the parent conversation context, and there's no native channel between them. When the orchestrator needs to pass a finding from one agent to another, the options are: (1) relay it manually through the orchestrator's context, (2) write to a shared file an",
+      "created_at": "2026-02-24T15:55:28Z"
+    }
+  ]
+}

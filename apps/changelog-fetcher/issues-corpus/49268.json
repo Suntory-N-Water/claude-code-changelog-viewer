@@ -1,0 +1,35 @@
+{
+  "number": 49268,
+  "title": "Thinking summaries missing on Opus 4.7 — harness doesn't set display: \"summarized\"",
+  "body": "Switched to Opus 4.7 on v2.1.111 and noticed thinking summaries stopped showing up. Took a bit to track down — writing it up in case it's useful.\n\nThe [extended-thinking API docs](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) note that Opus 4.7 changed the default for the `display` parameter to `\"omitted\"` (Opus 4.6 and earlier defaulted to `\"summarized\"`). The reason given is faster time-to-first-token on streaming responses.\n\nThe result is the API returns thinking blocks with empty `thinking` fields by default, so the UI has nothing to render. Setting `\"showThinkingSummaries\": true` in `settings.json` doesn't help — that controls rendering of what the API sends back, not what the API decides to send.\n\n**Repro**\n1. Run v2.1.111 with `\"showThinkingSummaries\": true` set\n2. `/model claude-opus-4-7`\n3. Ask something that triggers extended thinking\n4. No summaries appear in the UI\n\nSwitching to `claude-opus-4-6` or `claude-sonnet-4-6` brings them back since those still default to `\"summarized\"`.\n\n**Suggested fix**\nWhen the selected model defaults to `display: \"omitted\"` (currently Opus 4.7 and Mythos Preview per the docs) and the user has `showThinkingSummaries` enabled, the harness should pass `display: \"summarized\"` explicitly in the API request.\n\n**Environment**\n- Claude Code 2.1.111\n- Model: `claude-opus-4-7` (1M context variant)\n- macOS 15.3 (Darwin 25.3.0)",
+  "labels": ["bug", "has repro", "platform:macos", "area:core"],
+  "state": "open",
+  "state_reason": null,
+  "created_at": "2026-04-16T16:37:09Z",
+  "updated_at": "2026-06-28T01:29:29Z",
+  "closed_at": null,
+  "reactions_total": 78,
+  "comments_count": 46,
+  "author": "yusufmo1",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "yusufmo1",
+      "author_association": "NONE",
+      "body": "Dug into the v2.1.111 binary to confirm what's actually broken. **The bug:** the `showThinkingSummaries: true` setting and the API's `thinking.display` parameter are two completely unrelated systems in the harness — there is no code path that wires one to the other. So enabling the setting can't make summaries come back; whether you get them depends entirely on the model's API default, which Opus 4.7 flipped to `\"omitted\"`.\n\nhere's the request-construction code:\n\n```js\nconst bH = V_ ? q.display ",
+      "created_at": "2026-04-16T16:51:56Z"
+    },
+    {
+      "author": "mjesuele",
+      "author_association": "NONE",
+      "body": "Confirmed the diagnosis with a binary patch on v2.1.112 (Linux x86-64).\n\nThe request-construction code has:\n\n```js\nCH=h$?q.display??void 0:void 0\n```\n\n`q.display` is never populated from the `showThinkingSummaries` setting, so `CH` is always `undefined` and Opus 4.7's default (`\"omitted\"`) wins.\n\n**Fix:** `q.display??void 0` and `\"summarized\"     ` are both 17 bytes. Replacing in-place with `sed`:\n\n```bash\ncp /path/to/2.1.112 /path/to/2.1.112.bak\nsed -i 's/q\\.display??void 0/\"summarized\"     /g'",
+      "created_at": "2026-04-16T20:35:58Z"
+    },
+    {
+      "author": "Nitjsefnie",
+      "author_association": "NONE",
+      "body": "Verified `--thinking-display summarized` restores populated thinking blocks on Opus 4.7 end-to-end (Claude Code 2.1.112, first-party / Max subscription).\n\n**Settings alone don't work.** Before: `~/.claude/settings.json` already had both `showThinkingSummaries: true` AND `thinkingDisplay: \"summarized\"`. Persisted jsonl still showed `{\"type\":\"thinking\",\"thinking\":\"\",\"signature\":\"...\"}` on every Opus 4.7 turn. A local sweep across all my session jsonls was clean: 2.1.97–2.1.110 with opus-4-6 → 3,39",
+      "created_at": "2026-04-16T20:57:24Z"
+    }
+  ]
+}

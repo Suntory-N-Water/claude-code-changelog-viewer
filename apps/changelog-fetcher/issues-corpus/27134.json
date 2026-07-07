@@ -1,0 +1,35 @@
+{
+  "number": 27134,
+  "title": "[Bug] EnterWorktree creates worktree from default branch instead of HEAD",
+  "body": "**Bug Description**\nBug: EnterWorktree creates worktree from default branch instead of HEAD\n\n The EnterWorktree tool description says \"Creates a new git worktree branched from HEAD\",\n but the actual implementation creates the worktree from `origin/<defaultBranch>` (e.g., origin/main).\n\n The internal function fetches the default branch and uses it as the base:\n   1. getDefaultBranch() → \"main\" or \"master\"\n   2. git fetch origin main\n   3. If fetch succeeds → base = origin/main (NOT HEAD)\n   4. Only falls back to HEAD if fetch fails\n\n This means if you're on a feature branch and use EnterWorktree, the worktree\n starts from origin/main instead of your current branch's HEAD.\n\n Expected: Worktree should be based on the current HEAD as documented.\n\n**Environment Info**\n- Platform: darwin\n- Terminal: iTerm.app\n- Version: 2.1.49\n- Feedback ID: 9763749b-9256-44c9-bc28-1713e78d63b6\n\n**Errors**\n```json\n[{\"error\":\"Error: ENOENT: no such file or directory, open '/Users/kamitsukasa/.claude/remote-settings.json'\\n    at openSync (unknown)\\n    at readSync (/$bunfs/root/claude:12:1441)\\n    at I2 (/$bunfs/root/claude:6070:113)\\n    at k5 (/$bunfs/root/claude:6072:226)\\n    at dZA (/$bunfs/root/claude:2058:49788)\\n    at aLR (/$bunfs/root/claude:2058:49951)\\n    at AY8 (/$bunfs/root/claude:6057:1234)\\n    at Z$T (/$bunfs/root/claude:6057:2112)\\n    at IB (/$bunfs/root/claude:6057:2039)\\n    at xT0 (/$bunfs/root/claude:6089:5361)\",\"timestamp\":\"2026-02-20T12:15:21.404Z\"},{\"error\":\"Error: ENOENT: no such file or directory, open '/Users/kamitsukasa/.claude/remote-settings.json'\\n    at openSync (unknown)\\n    at readSync (/$bunfs/root/claude:12:1441)\\n    at I2 (/$bunfs/root/claude:6070:113)\\n    at k5 (/$bunfs/root/claude:6072:226)\\n    at dZA (/$bunfs/root/claude:2058:49788)\\n    at rZA (/$bunfs/root/claude:2058:53056)\\n    at jAB (/$bunfs/root/claude:2058:53961)\\n    at <anonymous> (/$bunfs/root/claude:11359:510)\\n    at <anonymous> (/$bunfs/root/claude:6105:1974)\\n    at forEach (native:1:11)\",\"timestamp\":\"2026-02-20T12:15:21.406Z\"},{\"error\":\"Error: ENOENT: no such file or directory, open '/Users/kamitsukasa/.claude/remote-settings.json'\\n    at openSync (unknown)\\n    at readSync (/$bunfs/root/claude:12:1441)\\n    at I2 (/$bunfs/root/claude:6070:113)\\n    at k5 (/$bunfs/root/claude:6072:226)\\n    at dZA (/$bunfs/root/claude:2058:49788)\\n    at aLR (/$bunfs/root/claude:2058:49951)\\n    at B_ (/$bunfs/root/claude:6056:6721)\\n    at JPT (/$bunfs/root/claude:262:20610)\\n    at W4R (/$bunfs/root/claude:262:21105)\\n    at psB (/$bunfs/root/claude:5713:11993)\",\"timestamp\":\"2026-02-20T12:15:21.406Z\"},{\"error\":\"Error: ENOENT: no such file or directory, open '/Users/kamitsukasa/.claude/remote-settings.json'\\n    at openSync (unknown)\\n    at readSync (/$bunfs/root/claude:12:1441)\\n    at I2 (/$bunfs/root/claude:6070:113)\\n    at k5 (/$bunfs/root/claude:6072:226)\\n    at dZA (/$bunfs/root/claude:2058:49788)\\n    at aLR (/$bunfs/root/claude:2058:49951)\\n    at B_ (/$bunfs/root/claude:6056:6721)\\n    at CPT (/$bunfs/root/claude:262:21215)\\n    at W4R (/$bunfs/root/claude:262:21177)\\n    at psB (/$bunfs/root/claude:5713:11993)\",\"timestamp\":\"2026-02-20T12:15:21.407Z\"},{\"error\":\"Error: ENOENT: no such file or directory, open '/Users/kamitsukasa/.claude/remote-settings.json'\\n    at openSync (unknown)\\n    at readSync (/$bunfs/root/claude:12:1441)\\n    at I2 (/$bunfs/root/claude:6070:113)\\n    at k5 (/$bunfs/root/claude:6072:226)\\n    at dZA (/$bunfs/root/claude:2058:49788)\\n    at aLR (/$bunfs/root/claude:2058:49951)\\n    at B_ (/$bunfs/root/claude:6056:6721)\\n    at ws (/$bunfs/root/claude:6057:2322)\\n    at o4 (/$bunfs/root/claude:6074:3328)\\n    at <anonymous> (/$bunfs/root/claude:6068:11411)\",\"timestamp\":\"2026-02-20T12:15:21.407Z\"},{\"error\":\"Error: ENOENT: no such file or directory, open '/Users/kamitsukasa/.claude/remote-settings.json'\\n    at openSync (unknown)\\n    at readSync (/$bunfs/root/claude:12:1441)\\n    at I2 (/$bunfs/root/claude:6070:113)\\n    at k5 (/$bunfs/root/claude:6072:226)\\n    at dZA (/$bunfs/root/claude:2058:49788)\\n    at ",
+  "labels": [],
+  "state": "closed",
+  "state_reason": "duplicate",
+  "created_at": "2026-02-20T12:35:04Z",
+  "updated_at": "2026-06-23T15:12:52Z",
+  "closed_at": "2026-05-05T00:21:40Z",
+  "reactions_total": 42,
+  "comments_count": 8,
+  "author": "paper2",
+  "is_maintainer_involved": false,
+  "top_comments": [
+    {
+      "author": "codemile",
+      "author_association": "NONE",
+      "body": "Yup, this is pretty frustrating when you want to explore different approaches on a feature branch",
+      "created_at": "2026-03-01T11:00:28Z"
+    },
+    {
+      "author": "shrektan",
+      "author_association": "NONE",
+      "body": "Yes, I vote for this feature. \n\nThis is very frustrating: whenever you are developing a feature branch and you want to develop a different approach for this branch, you surprisingly find out after a while that you are working on the main branch instead of the HEAD feature branch, which is extremely frustrating.",
+      "created_at": "2026-03-23T14:01:29Z"
+    },
+    {
+      "author": "viktorius007",
+      "author_association": "NONE",
+      "body": "## Also affects `Agent` tool with `isolation: \"worktree\"` — not just `EnterWorktree`\n\nThis bug propagates through the Agent tool's `isolation: \"worktree\"` parameter, meaning subagents launched in parallel all silently operate on the wrong branch.\n\n### Reproduction\n\n```\n# On branch: dev-env (diverged from main with ~50 file changes)\n# Launch 5 parallel agents, each modifying disjoint files:\n\nAgent(isolation: \"worktree\", prompt: \"Add tests to src/core/set.rs ...\")\nAgent(isolation: \"worktree\", prom",
+      "created_at": "2026-03-29T00:19:05Z"
+    }
+  ]
+}
