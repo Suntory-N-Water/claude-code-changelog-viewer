@@ -1,0 +1,1176 @@
+{
+  "id": "20260707-155951",
+  "timestamp": "2026-07-07T15:59:51.297Z",
+  "aiSummary": "プラグインが提供するMCPサーバーの命名規則およびスコープ指定に関するドキュメントが大幅に拡充されました。ツールハンドラーでのエラーハンドリングにおけるClaudeへの伝達方法が明確化され、より詳細なコンテキスト制御が可能になりました。また、Python SDKでのフック引数の仕様変更や、ストリーミングモードにおける権限コールバックの挙動が整理されました。CLIコマンドの引数に短縮形が追加されるなど、操作性の改善も行われています。",
+  "files": [
+    {
+      "filename": "agent-sdk/agent-loop.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Autoモードの利用可能性に関する記述からTypeScript限定の注釈が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -203,7 +203,7 @@ The permission mode option (`permission_mode` in Python, `permissionMode` in Typ",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `\"acceptEdits\"` | Auto-approves file edits and common filesystem commands (`mkdir`, `touch`, `mv`, `cp`, etc.); other Bash commands follow default rules |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"plan\"` | Claude explores and plans without editing your source files; file edits are never auto-approved and prompt through your `canUseTool` callback |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"dontAsk\"` | Never prompts. Tools pre-approved by [permission rules](/en/settings#permission-settings) run, everything else is denied |"
+            },
+            {
+              "type": "removed",
+              "content": "| `\"auto\"` (TypeScript only) | Uses a model classifier to approve or deny each tool call. See [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) for availability and behavior |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"auto\"` | Uses a model classifier to approve or deny each tool call. See [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) for availability and behavior |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"bypassPermissions\"` | Runs all allowed tools without asking, unless an explicit [`ask` rule](/en/settings#permission-settings) matches; see [How permissions are evaluated](/en/agent-sdk/permissions#how-permissions-are-evaluated) for where ask rules sit in the precedence order. Cannot be used when running as root on Unix. Use only in isolated environments where the agent's actions cannot affect systems you care about |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For interactive applications, use `\"default\"` with a tool approval callback to surface approval prompts. For autonomous agents on a dev machine, `\"acceptEdits\"` auto-approves file edits and common filesystem commands (`mkdir`, `touch`, `mv`, `cp`, etc.) while still gating other `Bash` commands behind allow rules. Reserve `\"bypassPermissions\"` for CI, containers, or other isolated environments. See [Permissions](/en/agent-sdk/permissions) for full details."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/custom-tools.md",
+      "additions": 13,
+      "deletions": 11,
+      "explanation": "エラーハンドリングのベストプラクティスが更新され、例外を投げずにエラー結果を返すことでClaudeへ詳細なコンテキストを渡す方法が解説されました。",
+      "hunks": [
+        {
+          "header": "@@ -20,7 +20,7 @@ This guide covers how to define tools with input schemas and handlers, bundle th",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Pre-approve a tool | Add to your allowed tools. See [Configure allowed tools](#configure-allowed-tools). |"
+            },
+            {
+              "type": "context",
+              "content": "| Remove a built-in tool from Claude's context | Pass a `tools` array listing only the built-ins you want. See [Configure allowed tools](#configure-allowed-tools). |"
+            },
+            {
+              "type": "context",
+              "content": "| Let Claude call tools in parallel | Set `readOnlyHint: true` on tools with no side effects. See [Add tool annotations](#add-tool-annotations). |"
+            },
+            {
+              "type": "removed",
+              "content": "| Handle errors without stopping the loop | Return `isError: true` instead of throwing. See [Handle errors](#handle-errors). |"
+            },
+            {
+              "type": "added",
+              "content": "| Control the error message Claude reads | Return `isError: true` to compose the message instead of surfacing the raw exception. See [Handle errors](#handle-errors). |"
+            },
+            {
+              "type": "context",
+              "content": "| Return images or files | Use `image` or `resource` blocks in the content array. See [Return images and resources](#return-images-and-resources). |"
+            },
+            {
+              "type": "context",
+              "content": "| Return a machine-readable JSON result | Set `structuredContent` on the result. See [Return structured data](#return-structured-data). |"
+            },
+            {
+              "type": "context",
+              "content": "| Scale to many tools | Use [tool search](/en/agent-sdk/tool-search) to load tools on demand. |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -321,14 +321,16 @@ To remove a built-in entirely, omit it from `tools` or list its bare name in `di",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Handle errors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "How your handler reports errors determines whether the agent loop continues or stops:"
+            },
+            {
+              "type": "added",
+              "content": "A handler error doesn't stop the agent loop. The SDK's in-process MCP server catches uncaught exceptions and returns them as error results, so how you report an error determines what Claude reads, not whether the query fails:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| What happens | Result |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Handler throws an uncaught exception | Agent loop stops. Claude never sees the error, and the `query` call fails. |"
+            },
+            {
+              "type": "removed",
+              "content": "| Handler catches the error and returns `isError: true` (TS) / `\"is_error\": True` (Python) | Agent loop continues. Claude sees the error as data and can retry, try a different tool, or explain the failure. |"
+            },
+            {
+              "type": "added",
+              "content": "| Handler throws an uncaught exception | The MCP server converts it to an error result carrying the raw exception message. Claude sees that message, and the agent loop continues. |"
+            },
+            {
+              "type": "added",
+              "content": "| Handler catches the error and returns `isError: true` (TS) / `\"is_error\": True` (Python) | Claude sees the message you compose. You can add context the raw exception lacks, such as which request failed or what to try instead. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The example below catches two kinds of failures inside the handler instead of letting them throw. A non-200 HTTP status is caught from the response and returned as an error result. A network error or invalid JSON is caught by the surrounding `try/except` (Python) or `try/catch` (TypeScript) and also returned as an error result. In both cases the handler returns normally and the agent loop continues."
+            },
+            {
+              "type": "added",
+              "content": "In both cases Claude can retry, try a different tool, or explain the failure. Catch errors yourself when the raw exception message isn't enough for Claude to act on."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The example below catches two kinds of failures inside the handler and composes the error message Claude reads. A non-200 HTTP status is caught from the response and returned as an error result. A network error or invalid JSON is caught by the surrounding `try/except` (Python) or `try/catch` (TypeScript) and also returned as an error result. In both cases Claude receives a message that describes the failure instead of a bare exception string."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "import json"
+            }
+          ]
+        },
+        {
+          "header": "@@ -360,8 +362,8 @@ async def fetch_data(args: dict[str, Any]) -> dict[str, Any]:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "            data = response.json()"
+            },
+            {
+              "type": "context",
+              "content": "            return {\"content\": [{\"type\": \"text\", \"text\": json.dumps(data, indent=2)}]}"
+            },
+            {
+              "type": "context",
+              "content": "    except Exception as e:"
+            },
+            {
+              "type": "removed",
+              "content": "        # Catching here keeps the agent loop alive. An uncaught exception"
+            },
+            {
+              "type": "removed",
+              "content": "        # would end the whole query() call."
+            },
+            {
+              "type": "added",
+              "content": "        # Composes the message Claude reads. An uncaught exception would"
+            },
+            {
+              "type": "added",
+              "content": "        # reach Claude as the raw str(e) with no context."
+            },
+            {
+              "type": "context",
+              "content": "        return {"
+            },
+            {
+              "type": "context",
+              "content": "            \"content\": [{\"type\": \"text\", \"text\": f\"Failed to fetch data: {str(e)}\"}],"
+            },
+            {
+              "type": "context",
+              "content": "            \"is_error\": True,"
+            }
+          ]
+        },
+        {
+          "header": "@@ -403,8 +405,8 @@ tool(",
+          "lines": [
+            {
+              "type": "context",
+              "content": "        ]"
+            },
+            {
+              "type": "context",
+              "content": "      };"
+            },
+            {
+              "type": "context",
+              "content": "    } catch (error) {"
+            },
+            {
+              "type": "removed",
+              "content": "      // Catching here keeps the agent loop alive. An uncaught throw"
+            },
+            {
+              "type": "removed",
+              "content": "      // would end the whole query() call."
+            },
+            {
+              "type": "added",
+              "content": "      // Composes the message Claude reads. An uncaught throw would"
+            },
+            {
+              "type": "added",
+              "content": "      // reach Claude as the raw error message with no context."
+            },
+            {
+              "type": "context",
+              "content": "      return {"
+            },
+            {
+              "type": "context",
+              "content": "        content: ["
+            },
+            {
+              "type": "context",
+              "content": "          {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -421,7 +423,7 @@ tool(",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Return images and resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `content` array in a tool result accepts `text`, `image`, `audio`, `resource`, and `resource_link` blocks. You can mix them in the same response. Audio blocks are saved to disk and Claude receives a text block with the saved file path. Resource link blocks are converted to a text block containing the link's name, URI, and description."
+            },
+            {
+              "type": "added",
+              "content": "The `content` array in a tool result accepts `text`, `image`, `audio`, `resource`, and `resource_link` blocks. You can mix them in the same response. In TypeScript, audio blocks are saved to disk and Claude receives a text block with the saved file path; in Python, the SDK drops audio blocks from the tool result and logs a warning. Resource link blocks are converted to a text block containing the link's name, URI, and description."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Images"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -492,7 +494,7 @@ A resource block embeds a piece of content identified by a URI. The URI is a lab",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `type` | `\"resource\"` | |"
+            },
+            {
+              "type": "context",
+              "content": "| `resource.uri` | `string` | Identifier for the content. Any URI scheme |"
+            },
+            {
+              "type": "context",
+              "content": "| `resource.text` | `string` | The content, if it's text. Provide this or `blob`, not both |"
+            },
+            {
+              "type": "removed",
+              "content": "| `resource.blob` | `string` | The content base64-encoded, if it's binary |"
+            },
+            {
+              "type": "added",
+              "content": "| `resource.blob` | `string` | The content base64-encoded, if it's binary. TypeScript only: the Python SDK drops binary resources from the tool result and logs a warning |"
+            },
+            {
+              "type": "context",
+              "content": "| `resource.mimeType` | `string` | Optional |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example shows a resource block returned from inside a tool handler. The URI `file:///tmp/report.md` is a label that Claude can reference later; the SDK does not read from that path."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/hooks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サブエージェント内のフックにおけるagent_idとagent_typeのフィールド要件がPython版の各フックタイプ別に詳細化されました。",
+      "hunks": [
+        {
+          "header": "@@ -218,7 +218,7 @@ Every hook callback receives three arguments:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Input data:** a typed object containing event details. Each hook type has its own input shape. For example, `PreToolUseHookInput` includes `tool_name` and `tool_input`, while `NotificationHookInput` includes `message`. See the full type definitions in the [TypeScript](/en/agent-sdk/typescript#hookinput) and [Python](/en/agent-sdk/python#hookinput) SDK references."
+            },
+            {
+              "type": "context",
+              "content": "  - All hook inputs share `session_id`, `cwd`, and `hook_event_name`."
+            },
+            {
+              "type": "removed",
+              "content": "  - `agent_id` and `agent_type` are populated when the hook fires inside a subagent. In TypeScript, these are on the base hook input and available to all hook types. In Python, they are on `PreToolUse`, `PostToolUse`, and `PostToolUseFailure` only."
+            },
+            {
+              "type": "added",
+              "content": "  - `agent_id` and `agent_type` are populated when the hook fires inside a subagent. In TypeScript, these are on the base hook input and available to all hook types. In Python, they are optional fields on `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, and `PermissionRequest`, and required fields on `SubagentStart` and `SubagentStop`."
+            },
+            {
+              "type": "context",
+              "content": "- **Tool use ID** (`str | None` / `string | undefined`): correlates `PreToolUse` and `PostToolUse` events for the same tool call."
+            },
+            {
+              "type": "context",
+              "content": "- **Context:** in TypeScript, contains a `signal` property (`AbortSignal`) for cancellation. In Python, this argument is reserved for future use."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/permissions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Autoモードの説明からTypeScript限定の表記が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -86,7 +86,7 @@ The SDK supports these permission modes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `acceptEdits` | Auto-accept file edits | File edits and [filesystem operations](#accept-edits-mode-acceptedits) (`mkdir`, `rm`, `mv`, etc.) are automatically approved |"
+            },
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Bypass permission checks | Tools run without permission prompts, unless an explicit [`ask` rule](#how-permissions-are-evaluated) matches (use with caution) |"
+            },
+            {
+              "type": "context",
+              "content": "| `plan` | Planning mode | Claude explores and plans without editing your source files; file edits are never auto-approved and prompt through your `canUseTool` callback |"
+            },
+            {
+              "type": "removed",
+              "content": "| `auto` (TypeScript only) | Model-classified approvals | A model classifier approves or denies each tool call. See [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) for availability |"
+            },
+            {
+              "type": "added",
+              "content": "| `auto` | Model-classified approvals | A model classifier approves or denies each tool call. See [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) for availability |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Subagent inheritance:** When the parent uses `bypassPermissions`, `acceptEdits`, or `auto`, all subagents inherit that mode and it cannot be overridden per subagent. Subagents may have different system prompts and less constrained behavior than your main agent, so inheriting `bypassPermissions` grants them full, autonomous system access. An explicit [`ask` rule](#how-permissions-are-evaluated) still forces a prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 5,
+      "deletions": 0,
+      "explanation": "Autoモードの定数定義と、サブエージェント情報を保持するagent_idおよびagent_typeフィールドの型定義が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1047,6 +1047,7 @@ PermissionMode = Literal[",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    \"plan\",  # Planning mode - explore without editing"
+            },
+            {
+              "type": "context",
+              "content": "    \"dontAsk\",  # Deny anything not pre-approved instead of prompting"
+            },
+            {
+              "type": "context",
+              "content": "    \"bypassPermissions\",  # Bypass permission checks; explicit ask rules still prompt (use with caution)"
+            },
+            {
+              "type": "added",
+              "content": "    \"auto\",  # A model classifier approves or denies each tool call"
+            },
+            {
+              "type": "context",
+              "content": "]"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -2113,6 +2114,8 @@ class PermissionRequestHookInput(BaseHookInput):",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    tool_name: str"
+            },
+            {
+              "type": "context",
+              "content": "    tool_input: dict[str, Any]"
+            },
+            {
+              "type": "context",
+              "content": "    permission_suggestions: NotRequired[list[Any]]"
+            },
+            {
+              "type": "added",
+              "content": "    agent_id: NotRequired[str]"
+            },
+            {
+              "type": "added",
+              "content": "    agent_type: NotRequired[str]"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Type | Description |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2121,6 +2124,8 @@ class PermissionRequestHookInput(BaseHookInput):",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `tool_name` | `str` | Name of the tool requesting permission |"
+            },
+            {
+              "type": "context",
+              "content": "| `tool_input` | `dict[str, Any]` | Input parameters for the tool |"
+            },
+            {
+              "type": "context",
+              "content": "| `permission_suggestions` | `list[Any]` (optional) | Suggested permission updates from the CLI |"
+            },
+            {
+              "type": "added",
+              "content": "| `agent_id` | `str` (optional) | Subagent identifier, present when the hook fires inside a subagent |"
+            },
+            {
+              "type": "added",
+              "content": "| `agent_type` | `str` (optional) | Subagent type, present when the hook fires inside a subagent |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `HookJSONOutput`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/quickstart.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Autoモードの概要説明からTypeScript環境への限定的な表現が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -306,7 +306,7 @@ With `Bash` enabled, try: `\"Write unit tests for utils.py, run them, and fix any",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `acceptEdits` | Auto-approves file edits and common filesystem commands, asks for other actions | Trusted development workflows |"
+            },
+            {
+              "type": "context",
+              "content": "| `plan` | Runs read-only tools; file edits are never auto-approved and reach your `canUseTool` callback | Scoping a task before approving execution |"
+            },
+            {
+              "type": "context",
+              "content": "| `dontAsk` | Denies anything not in `allowedTools` | Locked-down headless agents |"
+            },
+            {
+              "type": "removed",
+              "content": "| `auto` (TypeScript only) | A model classifier approves or denies each tool call | Autonomous agents with safety guardrails |"
+            },
+            {
+              "type": "added",
+              "content": "| `auto` | A model classifier approves or denies each tool call | Autonomous agents with safety guardrails |"
+            },
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Runs every tool without prompting, unless an explicit [`ask` rule](/en/agent-sdk/permissions#how-permissions-are-evaluated) matches | Sandboxed CI, fully trusted environments |"
+            },
+            {
+              "type": "context",
+              "content": "| `default` | Requires a `canUseTool` callback to handle approval | Custom approval flows |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/user-input.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Pythonにおけるストリーミングモード中の権限コールバック実行タイミングと、ストリームを維持するためのフック活用方法が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -182,7 +182,7 @@ for await (const message of query({",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In Python, `can_use_tool` requires [streaming mode](/en/agent-sdk/streaming-vs-single-mode) and a `PreToolUse` hook that returns `{\"continue_\": True}` to keep the stream open. Without this hook, the stream closes before the permission callback can be invoked."
+            },
+            {
+              "type": "added",
+              "content": "In Python, `can_use_tool` requires [streaming mode](/en/agent-sdk/streaming-vs-single-mode). When you pass a finite message stream through `query(prompt=generator)` or `ClaudeSDKClient.connect(prompt=async_iterable)`, the SDK closes the input stream after the last message, before the permission callback can be invoked, unless a registered hook or in-process MCP server is keeping it open. The example above keeps it open with a `PreToolUse` hook that returns `{\"continue_\": True}`. Connecting with no prompt and sending messages through `ClaudeSDKClient.query()` keeps the stream open on its own and needs no hook."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example uses a `y/n` flow where any input other than `y` is treated as a denial. In practice, you might build a richer UI that lets users modify the request, provide feedback, or redirect Claude entirely. See [Respond to tool requests](#respond-to-tool-requests) for all the ways you can respond."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "プラグインバンドルされたサーバー用のMCPツール命名規則が追記され、スコープ付きツール名の指定方法が解説されました。",
+      "hunks": [
+        {
+          "header": "@@ -622,7 +622,7 @@ Match only `Bash` tool calls and log each command to a file. The `PostToolUse` e",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "MCP tools use a different naming convention than built-in tools: `mcp__<server>__<tool>`, where `<server>` is the MCP server name and `<tool>` is the tool it provides. For example, `mcp__github__search_repositories` or `mcp__filesystem__read_file`. Use a regex matcher to target all tools from a specific server, or match across servers with a pattern like `mcp__.*__write.*`. See [Match MCP tools](/en/hooks#match-mcp-tools) in the reference for the full list of examples."
+            },
+            {
+              "type": "added",
+              "content": "MCP tools use a different naming convention than built-in tools: `mcp__<server>__<tool>`, where `<server>` is the MCP server name and `<tool>` is the tool it provides. For example, `mcp__github__search_repositories` or `mcp__filesystem__read_file`. Tools from a [plugin-bundled server](/en/mcp#plugin-provided-mcp-servers) use a scoped server segment instead, such as `mcp__plugin_my-plugin_db__query`. Use a regex matcher to target all tools from a specific server, or match across servers with a pattern like `mcp__.*__write.*`. See [Match MCP tools](/en/hooks#match-mcp-tools) in the reference for the full list of examples."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The command below extracts the tool name from the hook's JSON input with `jq` and writes it to stderr. Writing to stderr keeps stdout clean for JSON output and sends the message to the [debug log](/en/hooks#debug-hooks):"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 5,
+      "deletions": 3,
+      "explanation": "プラグイン経由のMCPサーバーに対するスコープ指定形式と、トランスクリプトファイルとlast_assistant_messageの使い分けが詳細化されました。",
+      "hunks": [
+        {
+          "header": "@@ -245,6 +245,8 @@ To match every tool from a server, append `.*` to the server prefix. The `.*` is",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Hyphens in the exact-match set require Claude Code v2.1.195 or later. On earlier versions a bare hyphenated prefix like `mcp__brave-search` is evaluated as an unanchored regular expression and matches every tool from that server. The `mcp__brave-search__.*` form works on every version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Tools from a [plugin-bundled MCP server](/en/mcp#plugin-provided-mcp-servers) use a scoped server segment that includes the plugin name: `mcp__plugin_<plugin-name>_<server-name>__<tool>`. A matcher written against the bare server key never fires for these tools. For a plugin named `my-plugin` that bundles a server under the key `db`, a `query` tool appears as `mcp__plugin_my-plugin_db__query`, so the matcher for every tool from that server is `mcp__plugin_my-plugin_db__.*`. Use the same scoped tool name in a handler's [`if` field](#common-fields). See [Plugin-provided MCP servers](/en/mcp#plugin-provided-mcp-servers) for how the scoped name is built."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example logs all memory server operations and validates write operations from any MCP server:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            }
+          ]
+        },
+        {
+          "header": "@@ -404,7 +406,7 @@ In addition to the [common fields](#common-fields), MCP tool hooks accept these",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Required | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `server` | yes | Name of a configured MCP server. The server must already be connected; the hook never triggers an OAuth or connection flow |"
+            },
+            {
+              "type": "added",
+              "content": "| `server` | yes | Name of a configured MCP server. For a [plugin-bundled server](/en/mcp#plugin-provided-mcp-servers), this is the scoped name `plugin:<plugin-name>:<server-name>`, such as `plugin:my-plugin:db`, not the bare server key. The server must already be connected; the hook never triggers an OAuth or connection flow |"
+            },
+            {
+              "type": "context",
+              "content": "| `tool` | yes | Name of the tool to call on that server |"
+            },
+            {
+              "type": "context",
+              "content": "| `input` | no | Arguments passed to the tool. String values support `${path}` substitution from the hook's [JSON input](#hook-input-and-output), such as `\"${tool_input.file_path}\"` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -565,7 +567,7 @@ Hook events receive these fields as JSON, in addition to event-specific fields d",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `session_id` | Current session identifier |"
+            },
+            {
+              "type": "context",
+              "content": "| `prompt_id` | UUID identifying the user prompt currently being processed. Matches the [`prompt.id` attribute on OpenTelemetry events](/en/monitoring-usage#event-correlation-attributes), so you can correlate hook output with telemetry for a single prompt. Absent until the first user input. Requires Claude Code v2.1.196 or later |"
+            },
+            {
+              "type": "removed",
+              "content": "| `transcript_path` | Path to conversation JSON |"
+            },
+            {
+              "type": "added",
+              "content": "| `transcript_path` | Path to conversation JSON. The transcript file is written asynchronously and may lag the in-memory conversation, so it may not yet include the current turn's most recent messages when a hook fires. Hooks that need the final assistant text of the current turn should use `last_assistant_message` on [Stop](#stop) and [SubagentStop](#subagentstop) instead of reading the transcript |"
+            },
+            {
+              "type": "context",
+              "content": "| `cwd` | Current working directory when the hook is invoked |"
+            },
+            {
+              "type": "context",
+              "content": "| `permission_mode` | Current [permission mode](/en/permissions#permission-modes): `\"default\"`, `\"plan\"`, `\"acceptEdits\"`, `\"auto\"`, `\"dontAsk\"`, or `\"bypassPermissions\"`. The mode labeled **Manual** arrives as `\"default\"`, never as `\"manual\"`, so scripts that match `\"default\"` keep working. Not all events receive this field. Check the JSON example in each [hook event](#hook-events) section |"
+            },
+            {
+              "type": "context",
+              "content": "| `effort` | Object with a `level` field holding the active [effort level](/en/model-config#adjust-effort-level) for the turn: `\"low\"`, `\"medium\"`, `\"high\"`, `\"xhigh\"`, or `\"max\"`. If the requested model effort exceeds what the current model supports, this is the downgraded level the model actually used. Ultracode is not a distinct level and reports as `\"xhigh\"`. The object matches the [status line](/en/statusline#available-data) `effort` field. Present for events that fire within a tool-use context, such as `PreToolUse`, `PostToolUse`, `Stop`, and `SubagentStop`, when the current model supports the effort parameter. The level is also available to hook commands and the Bash tool as the `$CLAUDE_EFFORT` environment variable. |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2056,7 +2058,7 @@ The [`/goal`](/en/goal) command is a built-in shortcut for a session-scoped prom",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In addition to the [common input fields](#common-input-fields), Stop hooks receive `stop_hook_active`, `last_assistant_message`, `background_tasks`, and `session_crons`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to avoid blocking on a condition that will never resolve. Claude Code overrides the hook and ends the turn after 8 consecutive blocks."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `last_assistant_message` field contains the text content of Claude's final response, so hooks can access it without parsing the transcript file."
+            },
+            {
+              "type": "added",
+              "content": "The `last_assistant_message` field contains the text content of Claude's final response, so hooks can access it without parsing the transcript file. For hooks that act on the just-completed turn, such as read-aloud or notification hooks, use this field rather than reading `transcript_path`: the transcript file isn't guaranteed to include the final message at Stop time on all versions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `background_tasks` and `session_crons` arrays, available in Claude Code v2.1.145 or later, let hooks distinguish \"session is done\" from \"session is paused waiting for background work to wake it back up\". Both arrays are present when the task registry is reachable and are empty when nothing is in flight or scheduled."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 6,
+      "deletions": 3,
+      "explanation": "CLIの設定コマンドにおける短いフラグ引数(-s, -e, -t, -H)が追加され、プラグイン環境下でのサーバー命名規則が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -188,11 +188,12 @@ An MCP server can also push messages directly into your session so Claude can re",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Tips:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Use the `--scope` flag to specify where the configuration is stored:"
+            },
+            {
+              "type": "added",
+              "content": "- Use the `-s` or `--scope` flag to specify where the configuration is stored:"
+            },
+            {
+              "type": "context",
+              "content": "  - `local` (default): available only to you in the current project. Older versions called this scope `project`"
+            },
+            {
+              "type": "context",
+              "content": "  - `project`: shared with everyone in the project via the `.mcp.json` file"
+            },
+            {
+              "type": "context",
+              "content": "  - `user`: available to you across all projects. Older versions called this scope `global`"
+            },
+            {
+              "type": "removed",
+              "content": "- Set environment variables with `--env` flags (for example, `--env KEY=value`)"
+            },
+            {
+              "type": "added",
+              "content": "- Set environment variables with `-e` or `--env` flags (for example, `-e KEY=value`)"
+            },
+            {
+              "type": "added",
+              "content": "- The `--transport` and `--header` flags also accept `-t` and `-H` short forms"
+            },
+            {
+              "type": "context",
+              "content": "- Configure MCP server startup timeout using the `MCP_TIMEOUT` environment variable (for example, `MCP_TIMEOUT=10000 claude` sets a 10-second timeout)"
+            },
+            {
+              "type": "context",
+              "content": "- Set a per-server tool execution timeout by adding a `timeout` field in milliseconds to that server's `.mcp.json` entry, for example `\"timeout\": 600000` for ten minutes. This overrides the `MCP_TOOL_TIMEOUT` environment variable for that server only"
+            },
+            {
+              "type": "context",
+              "content": "- Claude Code displays a warning when MCP tool output exceeds 10,000 tokens. To increase this limit, set the `MAX_MCP_OUTPUT_TOKENS` environment variable (for example, `MAX_MCP_OUTPUT_TOKENS=50000`)"
+            }
+          ]
+        },
+        {
+          "header": "@@ -271,7 +272,9 @@ Tools from a plugin-bundled MCP server include both the plugin name and the serv",
+          "lines": [
+            {
+              "type": "context",
+              "content": "mcp__plugin_my-plugin_database-tools__query"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use this full name when referencing the tool in [permission rules](/en/permissions), a skill's `allowed-tools` list, or a [subagent's `tools` field](/en/sub-agents#available-tools)."
+            },
+            {
+              "type": "added",
+              "content": "Use this full name when referencing the tool in [permission rules](/en/permissions), a skill's `allowed-tools` list, a [subagent's `tools` field](/en/sub-agents#available-tools), or a [hook matcher](/en/hooks#match-mcp-tools). A hook matcher written against the bare server key, such as `mcp__database-tools__.*`, never fires for a plugin-bundled server."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The server itself registers under the scoped name `plugin:<plugin-name>:<server-name>`, such as `plugin:my-plugin:database-tools`. Use that name where a configured server name is expected, such as an [`mcp_tool` hook's `server` field](/en/hooks#mcp-tool-hook-fields)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Benefits of plugin MCP servers**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "プラグイン専用MCPサーバーに対するツールマッチングやサーバー参照時のスコープ命名規則が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -150,6 +150,8 @@ Plugin hooks respond to the same lifecycle events as [user-defined hooks](/en/ho",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `prompt`: evaluate a prompt with an LLM (uses `$ARGUMENTS` placeholder for context)"
+            },
+            {
+              "type": "context",
+              "content": "- `agent`: run an agentic verifier with tools for complex verification tasks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Hooks that target the plugin's own [bundled MCP server](#mcp-servers) must use its scoped names. Tool matchers and `if` fields take the scoped tool name `mcp__plugin_<plugin-name>_<server-name>__<tool>`, and an `mcp_tool` hook's `server` field takes `plugin:<plugin-name>:<server-name>`. A matcher written against the bare server key never fires. See [Match MCP tools](/en/hooks#match-mcp-tools) and [Plugin-provided MCP servers](/en/mcp#plugin-provided-mcp-servers)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### MCP servers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Plugins can bundle Model Context Protocol (MCP) servers to connect Claude Code with external tools and services."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "setup.md",
+      "additions": 5,
+      "deletions": 5,
+      "explanation": "コードブロック内の冗長なテーマ属性指定が整理され、スッキリとした記述に修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -38,19 +38,19 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**macOS, Linux, WSL:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.sh | bash"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows PowerShell:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows CMD:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```batch theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```batch theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -62,7 +62,7 @@ If the install command fails with `syntax error near unexpected token '<'`, a `4",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -70,7 +70,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "winget install Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
