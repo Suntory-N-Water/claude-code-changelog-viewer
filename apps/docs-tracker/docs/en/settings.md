@@ -325,6 +325,7 @@ Versions before v2.1.119 also store a number of `/config` preference keys here i
 | `autoInstallIdeExtension` | **Default**: `true`. Automatically install the Claude Code IDE extension when running from a VS Code terminal. Appears in `/config` as **Auto-install IDE extension** when running inside a VS Code or JetBrains terminal. You can also set the [`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/en/env-vars) environment variable to `1` | `false` |
 | `externalEditorContext` | **Default**: `false`. Prepend Claude's previous response as `#`-commented context when you open the external editor with `Ctrl+G`. Appears in `/config` as **Show last response in external editor** | `true` |
 | `teammateDefaultModel` | Default model for [agent team](/en/agent-teams) teammates when the spawn prompt doesn't specify one. Set to a model alias such as `"sonnet"`, or `null` to inherit the lead's current `/model` selection. Appears in `/config` as **Default teammate model** | `"sonnet"` |
+| `workflowSizeGuideline` | **Default**: `unrestricted`, which sends no guideline. Sets the [agent count Claude aims for](/en/workflows#set-a-size-guideline) in the dynamic workflows it writes. Claude Code sends the value to Claude as advice, not an enforced cap. Accepts `unrestricted`, `small`, `medium`, or `large`. Appears in `/config` as **Dynamic workflow size**. You can also set it directly with `/config workflowSizeGuideline=small`. Requires Claude Code v2.1.202 or later | `"small"` |
 
 ### Worktree settings
 
