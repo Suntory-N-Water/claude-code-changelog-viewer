@@ -1,0 +1,97 @@
+{
+  "id": "20260708-183238",
+  "timestamp": "2026-07-08T18:32:38.319Z",
+  "aiSummary": "MCPサーバー設定ファイルの正しいパスに関する説明が強化され、誤った設置場所の具体例が追加されました。ユーザー権限でサーバーを追加するための専用コマンドと、設定が書き込まれる場所が明確に記載されています。プラグインルートディレクトリの定義が明確化され、設定ファイルを配置すべきではないディレクトリについても言及されています。プロジェクト固有の設定とユーザー共通の設定の使い分けがより詳細に説明されるようになりました。",
+  "files": [
+    {
+      "filename": "mcp-quickstart.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "設定ファイルの誤ったパスの例に~/.claude/.mcp.jsonが追加され、ユーザー権限でサーバーを追加する際のclaude mcp add --scope userコマンドの使い方が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -254,7 +254,7 @@ If a server doesn't connect, check its status with `/mcp` inside a session or `c",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Claude Code didn't find any servers for the current directory. The most common causes:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- You ran `claude mcp add` from a different project. Local-scoped servers are tied to the project where you added them: the repository root, or the exact directory if you weren't in a git repository. Re-add the server from the project you're in now, or add it with `--scope user` so it isn't tied to a project."
+            },
+            {
+              "type": "removed",
+              "content": "- You edited a configuration file at the wrong path. The correct files are `~/.claude.json` and `<project>/.mcp.json`. Claude Code doesn't read paths such as `~/.claude/config/mcp.json`, `~/.claude/mcp.json`, or `%APPDATA%\\Claude\\mcp.json`."
+            },
+            {
+              "type": "added",
+              "content": "- You edited a configuration file at the wrong path. The correct files are `~/.claude.json` and `<project>/.mcp.json`. Claude Code doesn't read paths such as `~/.claude/.mcp.json`, `~/.claude/config/mcp.json`, `~/.claude/mcp.json`, or `%APPDATA%\\Claude\\mcp.json`. For user-scoped servers, run `claude mcp add --scope user`, which writes to the `mcpServers` key in `~/.claude.json`; for project-scoped servers, edit `.mcp.json` at the project root."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Both statuses mean the server didn't start or the URL didn't respond. They can also appear for HTTP servers that expect a token rather than the browser sign-in covered in [Connect a server that requires sign-in](#connect-a-server-that-requires-sign-in)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "プラグインルートの定義が.claude-plugin/plugin.jsonを含むディレクトリであることを明示し、~/.claude/直下に設定ファイルを置いても読み込まれない制限が説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -172,6 +172,8 @@ You've created a plugin with a skill, but plugins can include much more: custom",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Common mistake**: Don't put `commands/`, `agents/`, `skills/`, or `hooks/` inside the `.claude-plugin/` directory. Only `plugin.json` goes inside `.claude-plugin/`. All other directories must be at the plugin root level."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The plugin root is the individual plugin's own directory: the one containing `.claude-plugin/plugin.json`. It is never `~/.claude/`. For example, Claude Code doesn't read a `.mcp.json` placed at `~/.claude/.mcp.json`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Directory | Location | Purpose |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `.claude-plugin/` | Plugin root | Contains `plugin.json` manifest (optional if components use default locations) |"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
