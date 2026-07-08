@@ -1,0 +1,2559 @@
+{
+  "version": "2.1.205",
+  "summary": "自動運用時の安全確認強化やエージェント操作状況の可視化改善を中心に、全体的な安定性と使いやすさを高めるアップデートが行われました。システム診断ツールの拡充やメモリ使用量の削減、各種OS固有のクラッシュ修正などにより、より安定した運用環境が提供されます。",
+  "items": [
+    {
+      "id": "6330369be878",
+      "content": "- Added an auto mode rule that blocks tampering with session transcript files",
+      "content_ja": "セッションのトランスクリプトファイルを改ざんから保護するauto modeのルールを追加",
+      "prefix": "Added",
+      "feature_areas": ["Permissions"],
+      "related_issues": [
+        {
+          "number": 61185,
+          "title": "[BUG] Cyber safeguards false positive: routine sysadmin audit commands blocked, write-only reporting blocked in new session, context poisoning breaks session recovery",
+          "url": "https://github.com/anthropics/claude-code/issues/61185",
+          "state": "open",
+          "reactions_total": 8,
+          "comments_count": 16,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.68388341528473,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.6838834152847298
+          }
+        },
+        {
+          "number": 36497,
+          "title": "`.claude/skills/` edits prompt for permission despite being documented as exempt (regression in 2.1.79)",
+          "url": "https://github.com/anthropics/claude-code/issues/36497",
+          "state": "open",
+          "reactions_total": 11,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.6545619031616274,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.6545619031616274
+          }
+        },
+        {
+          "number": 49535,
+          "title": "[BUG] Auto mode blocked by persistent \"safety classifier temporarily unavailable\" outage — Edit/Write/Bash   all fail",
+          "url": "https://github.com/anthropics/claude-code/issues/49535",
+          "state": "open",
+          "reactions_total": 22,
+          "comments_count": 2,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.6407100072122818,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.6407100072122817
+          }
+        },
+        {
+          "number": 38806,
+          "title": "[FEATURE] Allow bypassPermissions mode to fully bypass .claude/ directory protections (or provide an opt-in override)",
+          "url": "https://github.com/anthropics/claude-code/issues/38806",
+          "state": "closed",
+          "reactions_total": 15,
+          "comments_count": 6,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.6372888293595835,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.6372888293595834
+          }
+        },
+        {
+          "number": 37765,
+          "title": "[BUG] --dangerously-skip-permissions does not bypass \"edit its own settings\" prompt for .claude/ directory writes",
+          "url": "https://github.com/anthropics/claude-code/issues/37765",
+          "state": "closed",
+          "reactions_total": 12,
+          "comments_count": 13,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.6351711596704477,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.6351711596704477
+          }
+        }
+      ],
+      "inference": {
+        "before": "セッション記録用トランスクリプトファイルに対する不適切な操作が、自動モード（auto mode）のセキュリティ制御外で行われる可能性がありました。",
+        "after": "トランスクリプトファイルへの改ざんを防ぐための明示的なルールがauto modeに導入されました。",
+        "benefit": "セッション履歴の整合性が保たれ、自動エージェントの操作がより安全かつ信頼できるものになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "セッション履歴保護のための安全ルール追加であり、auto mode運用に直結する変更であるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/auto-mode-config.md"
+        }
+      ]
+    },
+    {
+      "id": "899ccccb0669",
+      "content": "- Fixed `--json-schema` silently producing unstructured output when the schema was invalid, and schemas using the `format` keyword being rejected",
+      "content_ja": "--json-schemaのバリデーションを修正し、無効なスキーマ使用時のエラーハンドリングを改善",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "related_issues": [
+        {
+          "number": 41361,
+          "title": "[BUG] [regression] MCP tool results invisible in 2.1.88 — outputSchema safeParse guard returns null on schema mismatch",
+          "url": "https://github.com/anthropics/claude-code/issues/41361",
+          "state": "closed",
+          "reactions_total": 14,
+          "comments_count": 20,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6431497563117305,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6431497563117305
+          }
+        },
+        {
+          "number": 63604,
+          "title": "[BUG] Opus 4.8 repeatedly emits malformed tool_use blocks, entire response discarded (4.7 works fine)",
+          "url": "https://github.com/anthropics/claude-code/issues/63604",
+          "state": "open",
+          "reactions_total": 15,
+          "comments_count": 12,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6310993013280012,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6310993013280012
+          }
+        },
+        {
+          "number": 52312,
+          "title": "[BUG] `output_config` sent to Vertex AI causes `invalid_request_error` on session title generation",
+          "url": "https://github.com/anthropics/claude-code/issues/52312",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 6,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 0.6303811636738262,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6303811636738262
+          }
+        },
+        {
+          "number": 49747,
+          "title": "[BUG] Opus 4.7 mixes legacy XML tool-use format into JSON tool calls on longer payloads",
+          "url": "https://github.com/anthropics/claude-code/issues/49747",
+          "state": "open",
+          "reactions_total": 34,
+          "comments_count": 32,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.615239281853142,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.615239281853142
+          }
+        },
+        {
+          "number": 16294,
+          "title": "[BUG] API Error 400 \"no low surrogate in string\" when Bash output contains invalid Unicode",
+          "url": "https://github.com/anthropics/claude-code/issues/16294",
+          "state": "open",
+          "reactions_total": 1,
+          "comments_count": 18,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6147712550605313,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6147712550605313
+          }
+        }
+      ],
+      "inference": {
+        "before": "--json-schemaオプションで無効なスキーマを指定した場合に、構造化されていない出力が生成されたり、formatキーワードを含むスキーマが拒否されたりしていました。",
+        "after": "スキーマバリデーションが強化され、不正な指定時には適切にエラーが処理されるようになりました。",
+        "benefit": "エージェントから予期せぬ非構造化データが返されるリスクが減り、安定したデータ連携が可能になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "構造化出力の安定化を図る修正であり、型安全な開発を行うユーザーに有益なためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/structured-outputs.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "65a799f37d99",
+      "content": "- Fixed a message sent while Claude was working being silently lost when the turn ended at the `--max-turns` limit",
+      "content_ja": "--max-turns制限によるループ終了時に、処理中のメッセージが消失する問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "related_issues": [
+        {
+          "number": 28077,
+          "title": "Allow scrolling back to view full conversation history in CLI TUI",
+          "url": "https://github.com/anthropics/claude-code/issues/28077",
+          "state": "open",
+          "reactions_total": 72,
+          "comments_count": 33,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7170221144334583,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7170221144334583
+          }
+        },
+        {
+          "number": 66807,
+          "title": "[FEATURE] context-health monitoring",
+          "url": "https://github.com/anthropics/claude-code/issues/66807",
+          "state": "open",
+          "reactions_total": 0,
+          "comments_count": 12,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7123120519590004,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7123120519590004
+          }
+        },
+        {
+          "number": 40903,
+          "title": "Max Plan (00/mo) usage limits significantly reduced compared to 2 weeks ago",
+          "url": "https://github.com/anthropics/claude-code/issues/40903",
+          "state": "closed",
+          "reactions_total": 6,
+          "comments_count": 14,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7019229380013602,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7019229380013602
+          }
+        },
+        {
+          "number": 2301,
+          "title": "[BUG] Can't inspect previously generated content. Key up, key down and mouse scroll are not working.",
+          "url": "https://github.com/anthropics/claude-code/issues/2301",
+          "state": "open",
+          "reactions_total": 41,
+          "comments_count": 31,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.701843910479661,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.701843910479661
+          }
+        },
+        {
+          "number": 65620,
+          "title": "Pre-tool-call assistant text never emitted (prose stays in thinking) — onset ~2026-06-04, not CLI-version-bound",
+          "url": "https://github.com/anthropics/claude-code/issues/65620",
+          "state": "open",
+          "reactions_total": 6,
+          "comments_count": 16,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7012997121738175,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7012997121738175
+          }
+        }
+      ],
+      "inference": {
+        "before": "設定された最大ターン数（--max-turns）に達してループが終了する際、直前に送信されたメッセージが保存されずに失われるケースがありました。",
+        "after": "ループ終了時のメッセージ処理が修正され、メッセージが確実に記録されるようになりました。",
+        "benefit": "重要な処理結果やメッセージが消失せず、デバッグや履歴確認が容易になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "処理結果の消失を防ぐ堅牢化のための修正であり、重要な修正であるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/agent-loop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/security-guidance.md"
+        }
+      ]
+    },
+    {
+      "id": "fa20ef3f2817",
+      "content": "- Fixed Windows worktree removal deleting files outside the worktree when an NTFS junction or directory symlink existed inside it",
+      "content_ja": "NTFSジャンクションやシンボリックリンクを含むWindows上のワークツリー削除時の誤削除を修正",
+      "prefix": "Fixed",
+      "feature_areas": ["Settings"],
+      "related_issues": [
+        {
+          "number": 55206,
+          "title": "[BUG] Cowork on Windows: bash sandbox can create files on mounted host folder but unlink is denied — breaks all git write operations",
+          "url": "https://github.com/anthropics/claude-code/issues/55206",
+          "state": "open",
+          "reactions_total": 10,
+          "comments_count": 13,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6960772809127356,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6960772809127356
+          }
+        },
+        {
+          "number": 36182,
+          "title": "Worktree: Edit/Read tools use main workspace paths instead of worktree paths",
+          "url": "https://github.com/anthropics/claude-code/issues/36182",
+          "state": "open",
+          "reactions_total": 22,
+          "comments_count": 12,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.664360400087108,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.664360400087108
+          }
+        },
+        {
+          "number": 31969,
+          "title": "Feature: Enter/resume existing worktrees, configurable branch naming, hook removal control",
+          "url": "https://github.com/anthropics/claude-code/issues/31969",
+          "state": "open",
+          "reactions_total": 27,
+          "comments_count": 6,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.653785075344991,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.653785075344991
+          }
+        },
+        {
+          "number": 29716,
+          "title": "[BUG] WorktreeCreate / Remove hooks not called in Claude Desktop",
+          "url": "https://github.com/anthropics/claude-code/issues/29716",
+          "state": "open",
+          "reactions_total": 23,
+          "comments_count": 22,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.650259370714902,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.650259370714902
+          }
+        },
+        {
+          "number": 27134,
+          "title": "[Bug] EnterWorktree creates worktree from default branch instead of HEAD",
+          "url": "https://github.com/anthropics/claude-code/issues/27134",
+          "state": "closed",
+          "reactions_total": 42,
+          "comments_count": 8,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6432658032977008,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6432658032977009
+          }
+        }
+      ],
+      "inference": {
+        "before": "ワークツリー内にNTFSジャンクションやディレクトリシンボリックリンクが存在する場合、削除処理がワークツリーの外側のファイルを誤って削除してしまう不具合がありました。",
+        "after": "削除処理のパス判定が改善され、ワークツリー内のみを対象とするようになりました。",
+        "benefit": "Windows環境でのファイル管理が安全になり、大切なデータが誤って消去されるリスクが排除されました。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "システムファイルの誤削除を防止する安全性向上の修正であるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/large-codebases.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        }
+      ]
+    },
+    {
+      "id": "da965aea6a1d",
+      "content": "- Fixed background agents staying shown as \"failed\" or \"completed\" in the agent list after being resumed with `SendMessage`",
+      "content_ja": "SendMessageで再開したバックグラウンドエージェントが「失敗」や「完了」と誤表示される問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "related_issues": [
+        {
+          "number": 35240,
+          "title": "Agent tool documentation references SendMessage for subagent resumption, but SendMessage is gated behind Agent Teams flag",
+          "url": "https://github.com/anthropics/claude-code/issues/35240",
+          "state": "closed",
+          "reactions_total": 27,
+          "comments_count": 15,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7305725419629643,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7305725419629642
+          }
+        },
+        {
+          "number": 38183,
+          "title": "[BUG] SendMessage tool referenced but not available — agent continuation broken since resume parameter removal",
+          "url": "https://github.com/anthropics/claude-code/issues/38183",
+          "state": "open",
+          "reactions_total": 26,
+          "comments_count": 23,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7293021420048986,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7293021420048987
+          }
+        },
+        {
+          "number": 58284,
+          "title": "Agent View hard-disabled on AWS Bedrock / Vertex / Foundry backends",
+          "url": "https://github.com/anthropics/claude-code/issues/58284",
+          "state": "closed",
+          "reactions_total": 14,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.706961057818709,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7069610578187091
+          }
+        },
+        {
+          "number": 54528,
+          "title": "[BUG] Remote agent runs stuck on \"Setting up a cloud container\" — cannot cancel",
+          "url": "https://github.com/anthropics/claude-code/issues/54528",
+          "state": "open",
+          "reactions_total": 6,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6900685109243954,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6900685109243954
+          }
+        },
+        {
+          "number": 41461,
+          "title": "[Critical] Background agents cannot be stopped, Claude lies about stopping, massive token waste (~1.4M tokens), inconsistent statements",
+          "url": "https://github.com/anthropics/claude-code/issues/41461",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 15,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6710247700746295,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6710247700746296
+          }
+        }
+      ],
+      "inference": {
+        "before": "SendMessageツールを使ってバックグラウンドエージェントを再開させても、エージェントリスト上のステータスが「失敗」または「完了」のまま更新されない状態でした。",
+        "after": "再開処理とエージェント状態の同期が改善され、正確なステータスが表示されるようになりました。",
+        "benefit": "進行中のバックグラウンド作業状況を正しく把握できるようになり、運用効率が向上します。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エージェントの動作状況を正しく把握できるようにするUI/UXのバグ修正であり、日常運用を改善するためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "10e1398c786b",
+      "content": "- Fixed background jobs flipping from \"needs input\" back to \"working\" in the agent list when the agent's turn contained no readable text",
+      "content_ja": "読み取り可能なテキストがないターンでバックグラウンドジョブのステータスが「needs input」から「working」に戻る問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "related_issues": [
+        {
+          "number": 58284,
+          "title": "Agent View hard-disabled on AWS Bedrock / Vertex / Foundry backends",
+          "url": "https://github.com/anthropics/claude-code/issues/58284",
+          "state": "closed",
+          "reactions_total": 14,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.6831899297805235,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6831899297805235
+          }
+        },
+        {
+          "number": 59979,
+          "title": "[BUG] 2.1.143 regression: mouse wheel scrolls input history instead of chat transcript (Windows)",
+          "url": "https://github.com/anthropics/claude-code/issues/59979",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 11,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6822337775945098,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6822337775945099
+          }
+        },
+        {
+          "number": 41461,
+          "title": "[Critical] Background agents cannot be stopped, Claude lies about stopping, massive token waste (~1.4M tokens), inconsistent statements",
+          "url": "https://github.com/anthropics/claude-code/issues/41461",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 15,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6646625486905937,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6646625486905936
+          }
+        },
+        {
+          "number": 54528,
+          "title": "[BUG] Remote agent runs stuck on \"Setting up a cloud container\" — cannot cancel",
+          "url": "https://github.com/anthropics/claude-code/issues/54528",
+          "state": "open",
+          "reactions_total": 6,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6588697854749865,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6588697854749865
+          }
+        },
+        {
+          "number": 61107,
+          "title": "Opus 4.7 produces structurally correct code that silently discards user input",
+          "url": "https://github.com/anthropics/claude-code/issues/61107",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6578362845010033,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6578362845010032
+          }
+        }
+      ],
+      "inference": {
+        "before": "特定の条件下で、エージェントのターンで新しいテキスト出力がない場合に、エージェントリストの表示ステータスが「needs input」から「working」へ誤って変化する挙動がありました。",
+        "after": "ジョブのステータス更新ロジックが見直され、不要なステータスの反転が発生しないようになりました。",
+        "benefit": "UI上のステータスが安定し、現在エージェントが入力待ちの状態なのか処理中なのかを混乱なく判断できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エージェントの状態表示を修正するUI改善であり、ユーザーの混乱を防ぐためlowとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w20.md"
+        }
+      ]
+    },
+    {
+      "id": "03d4c6f0cb28",
+      "content": "- Fixed `claude attach` erroring when a background agent was mid-upgrade restart instead of waiting for it to come back",
+      "content_ja": "バックグラウンドエージェントのアップグレードによる再起動時にclaude attachが待機するように修正",
+      "prefix": "Fixed",
+      "feature_areas": ["IDE"],
+      "related_issues": [
+        {
+          "number": 58284,
+          "title": "Agent View hard-disabled on AWS Bedrock / Vertex / Foundry backends",
+          "url": "https://github.com/anthropics/claude-code/issues/58284",
+          "state": "closed",
+          "reactions_total": 14,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.726022753610493,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7260227536104931
+          }
+        },
+        {
+          "number": 25979,
+          "title": "[BUG] Claude Code hangs indefinitely when API streaming connection stalls (no read timeout)",
+          "url": "https://github.com/anthropics/claude-code/issues/25979",
+          "state": "open",
+          "reactions_total": 16,
+          "comments_count": 34,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7178268929094092,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.717826892909409
+          }
+        },
+        {
+          "number": 32982,
+          "title": "[BUG] Remote Control sessions die after ~20 min idle — server TTL ignores keepalives",
+          "url": "https://github.com/anthropics/claude-code/issues/32982",
+          "state": "open",
+          "reactions_total": 67,
+          "comments_count": 13,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7057172927844109,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.705717292784411
+          }
+        },
+        {
+          "number": 54528,
+          "title": "[BUG] Remote agent runs stuck on \"Setting up a cloud container\" — cannot cancel",
+          "url": "https://github.com/anthropics/claude-code/issues/54528",
+          "state": "open",
+          "reactions_total": 6,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7054578680606851,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7054578680606852
+          }
+        },
+        {
+          "number": 41973,
+          "title": "[BUG] MCP Agent tool reports an empty available-agent list in mcp serve mode",
+          "url": "https://github.com/anthropics/claude-code/issues/41973",
+          "state": "open",
+          "reactions_total": 12,
+          "comments_count": 14,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6995281238193254,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6995281238193253
+          }
+        }
+      ],
+      "inference": {
+        "before": "アップグレードに伴うバックグラウンドエージェントの再起動中にclaude attachを実行すると、エラーが発生して接続できませんでした。",
+        "after": "再起動完了までattachコマンドが待機するようになり、再接続がスムーズに行えるようになりました。",
+        "benefit": "エージェント更新中であっても、ユーザーはコマンドを再実行することなくシームレスにセッションへ復帰できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッション復帰時の接続性を向上させる利便性の改善であり、mediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        }
+      ]
+    },
+    {
+      "id": "113981cbf795",
+      "content": "- Fixed session-to-PR linking missing a PR created in a Bash call whose output exceeded the 30K inline limit",
+      "content_ja": "Bash出力が30K制限を超えた場合にPRとセッションのリンクが失敗する問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "related_issues": [
+        {
+          "number": 63870,
+          "title": "[BUG] Bash tool calls emitted as raw <invoke> text instead of executing",
+          "url": "https://github.com/anthropics/claude-code/issues/63870",
+          "state": "open",
+          "reactions_total": 38,
+          "comments_count": 23,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7158055316889798,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7158055316889798
+          }
+        },
+        {
+          "number": 29355,
+          "title": "Feature request: Allow Claude to programmatically rename sessions",
+          "url": "https://github.com/anthropics/claude-code/issues/29355",
+          "state": "open",
+          "reactions_total": 79,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6914184367277652,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6914184367277652
+          }
+        },
+        {
+          "number": 65662,
+          "title": "Assistant text before an AskUserQuestion dialog in the same turn is not displayed",
+          "url": "https://github.com/anthropics/claude-code/issues/65662",
+          "state": "open",
+          "reactions_total": 11,
+          "comments_count": 11,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6906643363131932,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6906643363131932
+          }
+        },
+        {
+          "number": 63797,
+          "title": "Bash/Read tool results intermittently return empty (then flush late, redundantly) on Linux — NOT length/concurrency-correlated; same symptom as stale-closed #36038",
+          "url": "https://github.com/anthropics/claude-code/issues/63797",
+          "state": "closed",
+          "reactions_total": 2,
+          "comments_count": 12,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6889741019843729,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6889741019843729
+          }
+        },
+        {
+          "number": 63909,
+          "title": "Task runner reports ENOSPC on subprocess output despite disk having free space",
+          "url": "https://github.com/anthropics/claude-code/issues/63909",
+          "state": "open",
+          "reactions_total": 23,
+          "comments_count": 12,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6870281203481419,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6870281203481419
+          }
+        }
+      ],
+      "inference": {
+        "before": "Bashコマンドの出力が長すぎてインライン表示制限（30K）を超えた際、PR生成後のセッションとの紐付けが行われないことがありました。",
+        "after": "出力制限を超過した場合でも、セッションとPRのリンク処理が正常に機能するよう修正されました。",
+        "benefit": "大規模なBashコマンドの結果から生成されたPRでも、生成元のセッションへ簡単にジャンプして状況を確認できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッションとPRの紐付けという重要な追跡機能の修正であるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/code-review.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/web-quickstart.md"
+        }
+      ]
+    },
+    {
+      "id": "69791a4b9c32",
+      "content": "- Fixed `claude mcp add-from-claude-desktop` getting stuck when a server name contains unsupported characters; invalid names are now reported and remaining servers still import",
+      "content_ja": "サポート外文字を含むMCPサーバー名でadd-from-claude-desktopが停止する問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP"],
+      "related_issues": [
+        {
+          "number": 69313,
+          "title": "claude_design MCP fails: 404 from api.anthropic.com/v1/design/mcp (harness-injected, unremovable)",
+          "url": "https://github.com/anthropics/claude-code/issues/69313",
+          "state": "closed",
+          "reactions_total": 12,
+          "comments_count": 5,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 0.7435756747021435,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7435756747021435
+          }
+        },
+        {
+          "number": 38102,
+          "title": "MCP OAuth: \"does not support dynamic client registration\" despite clientId configured",
+          "url": "https://github.com/anthropics/claude-code/issues/38102",
+          "state": "closed",
+          "reactions_total": 6,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 0.7409890024896545,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7409890024896545
+          }
+        },
+        {
+          "number": 34008,
+          "title": "[BUG] MCP server with SSE/HTTP transport fails with OAuth discovery error — no way to disable OAuth",
+          "url": "https://github.com/anthropics/claude-code/issues/34008",
+          "state": "closed",
+          "reactions_total": 6,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7385443530813598,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7385443530813598
+          }
+        },
+        {
+          "number": 20412,
+          "title": "Claude.ai MCP servers auto-injected into Claude Code without opt-in — causes OOM crashes on resource-constrained systems",
+          "url": "https://github.com/anthropics/claude-code/issues/20412",
+          "state": "closed",
+          "reactions_total": 140,
+          "comments_count": 38,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 0.736139641235567,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.736139641235567
+          }
+        },
+        {
+          "number": 12164,
+          "title": "[BUG] MCP servers connect successfully but tools are not exposed to assistant",
+          "url": "https://github.com/anthropics/claude-code/issues/12164",
+          "state": "open",
+          "reactions_total": 4,
+          "comments_count": 14,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7314680948556116,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7314680948556116
+          }
+        }
+      ],
+      "inference": {
+        "before": "Claude DesktopからのMCPインポート時、サーバー名にサポート外の文字が含まれていると処理がフリーズすることがありました。",
+        "after": "不正な名前のサーバーを適切に報告し、他の有効なサーバーのインポートを継続するように変更されました。",
+        "benefit": "一部の不正な設定に阻害されず、一括で多くのサーバー設定を安定してインポートできます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "MCPサーバーインポート時のエラー耐性を強化する修正であり、利便性の向上に寄与するためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        }
+      ]
+    },
+    {
+      "id": "c6e220712adf",
+      "content": "- Fixed a plugin LSP server that fails to initialize preventing a valid LSP server from another plugin handling the same file extension",
+      "content_ja": "プラグインのLSPサーバー初期化失敗が、他のプラグインのLSPサーバー動作を阻害しないよう修正",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins"],
+      "related_issues": [
+        {
+          "number": 15148,
+          "title": "LSP plugin lspServers config not being processed from marketplace.json",
+          "url": "https://github.com/anthropics/claude-code/issues/15148",
+          "state": "open",
+          "reactions_total": 71,
+          "comments_count": 19,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.741253853024767,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.741253853024767
+          }
+        },
+        {
+          "number": 15168,
+          "title": "[BUG] LSP plugin system not connecting to language servers - always returns \"No LSP server available\"",
+          "url": "https://github.com/anthropics/claude-code/issues/15168",
+          "state": "open",
+          "reactions_total": 15,
+          "comments_count": 22,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.731796021547419,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.731796021547419
+          }
+        },
+        {
+          "number": 16751,
+          "title": "Windows: pyright-lsp plugin fails with ENOENT - cannot spawn .cmd files",
+          "url": "https://github.com/anthropics/claude-code/issues/16751",
+          "state": "closed",
+          "reactions_total": 17,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7138514286824108,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7138514286824108
+          }
+        },
+        {
+          "number": 29501,
+          "title": "clangd LSP plugin: all operations fail with 'trying to get AST for non-added document'",
+          "url": "https://github.com/anthropics/claude-code/issues/29501",
+          "state": "closed",
+          "reactions_total": 8,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7078523379011553,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7078523379011553
+          }
+        },
+        {
+          "number": 16849,
+          "title": "Feature Request: Add Dart/Flutter LSP support",
+          "url": "https://github.com/anthropics/claude-code/issues/16849",
+          "state": "open",
+          "reactions_total": 133,
+          "comments_count": 13,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6879030537030439,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6879030537030439
+          }
+        }
+      ],
+      "inference": {
+        "before": "あるプラグインのLSPサーバーが初期化に失敗すると、同一ファイル拡張子を扱う他の正常なLSPサーバーまで機能しなくなる問題がありました。",
+        "after": "個々のLSPサーバーのライフサイクルが分離され、失敗が連鎖しないよう改善されました。",
+        "benefit": "開発環境の信頼性が向上し、1つのプラグインの不具合がコーディング支援全体を止めることを防ぎます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プラグイン開発環境の堅牢性を高めるための重要なバグ修正であるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md"
+        }
+      ]
+    },
+    {
+      "id": "df3cb711f6be",
+      "content": "- Fixed a Windows crash when the directory Claude was launched from is deleted, locked, or unmounted while a command is running",
+      "content_ja": "ディレクトリが削除・ロックされた際にWindowsで発生するクラッシュを修正",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_issues": [
+        {
+          "number": 54461,
+          "title": "Desktop app: cannot change primary working directory or open new chat",
+          "url": "https://github.com/anthropics/claude-code/issues/54461",
+          "state": "open",
+          "reactions_total": 7,
+          "comments_count": 12,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7173239948135115,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7173239948135114
+          }
+        },
+        {
+          "number": 3473,
+          "title": "Feature Request: Ability to change working directory during Claude session",
+          "url": "https://github.com/anthropics/claude-code/issues/3473",
+          "state": "open",
+          "reactions_total": 101,
+          "comments_count": 34,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7157403257427846,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7157403257427847
+          }
+        },
+        {
+          "number": 18236,
+          "title": "[BUG] Bash tool fails permanently after working directory is deleted",
+          "url": "https://github.com/anthropics/claude-code/issues/18236",
+          "state": "closed",
+          "reactions_total": 10,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7108041861887513,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7108041861887513
+          }
+        },
+        {
+          "number": 50318,
+          "title": "[BUG]",
+          "url": "https://github.com/anthropics/claude-code/issues/50318",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 16,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7102911494221145,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7102911494221145
+          }
+        },
+        {
+          "number": 16751,
+          "title": "Windows: pyright-lsp plugin fails with ENOENT - cannot spawn .cmd files",
+          "url": "https://github.com/anthropics/claude-code/issues/16751",
+          "state": "closed",
+          "reactions_total": 17,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7066973292792444,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7066973292792446
+          }
+        }
+      ],
+      "inference": {
+        "before": "Claude Codeの起動ディレクトリが外部要因（削除、ロック、アンマウント）で利用不可になった際、コマンド実行中にクラッシュが発生していました。",
+        "after": "ディレクトリアクセスの消失を適切に検出し、クラッシュせずに終了処理を行うようになりました。",
+        "benefit": "実行環境が不安定な状況でもツールが唐突に落ちず、エラーを把握しやすくなりました。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows環境でのクラッシュを防止する安定性向上であるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/chrome.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
+    },
+    {
+      "id": "699a3ae16478",
+      "content": "- Fixed a crash when a file watcher was closed while a directory scan was still in flight",
+      "content_ja": "ディレクトリ走査中にファイル監視が終了した場合のクラッシュを修正",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_issues": [
+        {
+          "number": 52819,
+          "title": "ultrareview crashed before producing findings — free credit consumed",
+          "url": "https://github.com/anthropics/claude-code/issues/52819",
+          "state": "open",
+          "reactions_total": 6,
+          "comments_count": 18,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6178040892215316,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6178040892215316
+          }
+        },
+        {
+          "number": 14088,
+          "title": "[BUG] Chat history not persisting for projects on mapped drives / OneDrive",
+          "url": "https://github.com/anthropics/claude-code/issues/14088",
+          "state": "open",
+          "reactions_total": 13,
+          "comments_count": 39,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6176167448059163,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6176167448059163
+          }
+        },
+        {
+          "number": 41949,
+          "title": "Cowork: Add ability to remove individual entries from the recent folders list",
+          "url": "https://github.com/anthropics/claude-code/issues/41949",
+          "state": "open",
+          "reactions_total": 24,
+          "comments_count": 4,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6164115882847757,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6164115882847757
+          }
+        },
+        {
+          "number": 38993,
+          "title": "[BUG] Cowork: virtiofs FUSE mount serves truncated/stale files — host-side file changes not reflected in VM",
+          "url": "https://github.com/anthropics/claude-code/issues/38993",
+          "state": "open",
+          "reactions_total": 26,
+          "comments_count": 39,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.613296128993506,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.613296128993506
+          }
+        },
+        {
+          "number": 64366,
+          "title": "[BUG] Unbounded MCP server fan-out across Cowork/agent sessions exhausts RAM and kernel-panics macOS (4 panics + forced power-off on M2 Max / 32 GB)",
+          "url": "https://github.com/anthropics/claude-code/issues/64366",
+          "state": "open",
+          "reactions_total": 0,
+          "comments_count": 17,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6123439753374573,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6123439753374573
+          }
+        }
+      ],
+      "inference": {
+        "before": "ディレクトリのバックグラウンド走査中にファイル監視設定が閉じられると、整合性の不一致によりクラッシュするケースがありました。",
+        "after": "ファイル監視と走査処理の間の同期処理を堅牢にし、予期せぬ終了を防ぎました。",
+        "benefit": "IDEやエディタのファイルシステム操作が頻繁な環境下でも、安定して動作し続けます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ファイルシステム操作中のクラッシュを防止する安定化修正であるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/chrome.md"
+        }
+      ]
+    },
+    {
+      "id": "3a37e690aedf",
+      "content": "- Fixed project verify skills being rewritten on every session instead of only when a documented command changed",
+      "content_ja": "project verifyスキルがコマンド変更時のみ再生成されるよう修正",
+      "prefix": "Fixed",
+      "feature_areas": ["Skills"],
+      "related_issues": [
+        {
+          "number": 36497,
+          "title": "`.claude/skills/` edits prompt for permission despite being documented as exempt (regression in 2.1.79)",
+          "url": "https://github.com/anthropics/claude-code/issues/36497",
+          "state": "open",
+          "reactions_total": 11,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7114442540721067,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7114442540721067
+          }
+        },
+        {
+          "number": 58265,
+          "title": "[BUG] Model auto-invokes `commands/` entries the same way as `skills/`, defeating the purpose of the distinction",
+          "url": "https://github.com/anthropics/claude-code/issues/58265",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 2,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.6892918179197292,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6892918179197292
+          }
+        },
+        {
+          "number": 18950,
+          "title": "Skills/subagents do not inherit user-level permissions from settings.json",
+          "url": "https://github.com/anthropics/claude-code/issues/18950",
+          "state": "open",
+          "reactions_total": 65,
+          "comments_count": 29,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.681750688042153,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.681750688042153
+          }
+        },
+        {
+          "number": 37765,
+          "title": "[BUG] --dangerously-skip-permissions does not bypass \"edit its own settings\" prompt for .claude/ directory writes",
+          "url": "https://github.com/anthropics/claude-code/issues/37765",
+          "state": "closed",
+          "reactions_total": 12,
+          "comments_count": 13,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.669008040116891,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6690080401168911
+          }
+        },
+        {
+          "number": 19471,
+          "title": "[BUG] CLAUDE.md instructions completely ignored after context compaction",
+          "url": "https://github.com/anthropics/claude-code/issues/19471",
+          "state": "closed",
+          "reactions_total": 9,
+          "comments_count": 27,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6676317244921601,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6676317244921601
+          }
+        }
+      ],
+      "inference": {
+        "before": "セッションのたびにプロジェクトの検証用スキルが再生成されており、効率が悪くなっていました。",
+        "after": "関連コマンドに変更があった場合のみ再生成するようにロジックを最適化しました。",
+        "benefit": "不要なオーバーヘッドが削減され、セッション開始時のレスポンスが高速化します。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "スキルの再生成ロジックの最適化であり、パフォーマンス向上に寄与するためlowとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        }
+      ]
+    },
+    {
+      "id": "a5b41d9984b0",
+      "content": "- Fixed the agent view rendering one line too high and clipping its header when the job list slightly overflowed the screen",
+      "content_ja": "エージェントビューのヘッダー表示を修正し、リスト溢れによるクリッピングを解消",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_issues": [
+        {
+          "number": 58284,
+          "title": "Agent View hard-disabled on AWS Bedrock / Vertex / Foundry backends",
+          "url": "https://github.com/anthropics/claude-code/issues/58284",
+          "state": "closed",
+          "reactions_total": 14,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.6628702519787224,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6628702519787224
+          }
+        },
+        {
+          "number": 24537,
+          "title": "[FEATURE] Agent Hierarchy Dashboard — unified real-time visualization for multi-agent workflows (TUI + Desktop)",
+          "url": "https://github.com/anthropics/claude-code/issues/24537",
+          "state": "open",
+          "reactions_total": 15,
+          "comments_count": 13,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6458716772979516,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6458716772979517
+          }
+        },
+        {
+          "number": 58380,
+          "title": "[FEATURE] Agent view dispatch should support --allow-dangerously-skip-permissions",
+          "url": "https://github.com/anthropics/claude-code/issues/58380",
+          "state": "closed",
+          "reactions_total": 4,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.645056537972092,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.645056537972092
+          }
+        },
+        {
+          "number": 59979,
+          "title": "[BUG] 2.1.143 regression: mouse wheel scrolls input history instead of chat transcript (Windows)",
+          "url": "https://github.com/anthropics/claude-code/issues/59979",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 11,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6405654944392276,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6405654944392276
+          }
+        },
+        {
+          "number": 41973,
+          "title": "[BUG] MCP Agent tool reports an empty available-agent list in mcp serve mode",
+          "url": "https://github.com/anthropics/claude-code/issues/41973",
+          "state": "open",
+          "reactions_total": 12,
+          "comments_count": 14,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6347716695239918,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6347716695239918
+          }
+        }
+      ],
+      "inference": {
+        "before": "リストが画面を少し超える場合に、エージェントビューのレンダリングが1行分ずれてヘッダーが欠けて表示されていました。",
+        "after": "レイアウト計算を修正し、リストが溢れてもヘッダーが見切れないようにしました。",
+        "benefit": "エージェントビューの視認性が向上し、並行して実行しているエージェントの管理がスムーズになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "レイアウト表示の微修正であり、利用に大きな影響はないためlowとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/computer-use.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        }
+      ]
+    },
+    {
+      "id": "a6acc47079c2",
+      "content": "- Fixed background tasks in the web and mobile Remote Control panels showing stale \"Running\" status by forwarding full task state on every membership change",
+      "content_ja": "Remote Controlパネルでのバックグラウンドタスク状態の同期を改善",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "related_issues": [
+        {
+          "number": 28765,
+          "title": "Feature: Push notifications for completed tasks in remote-control mode",
+          "url": "https://github.com/anthropics/claude-code/issues/28765",
+          "state": "open",
+          "reactions_total": 42,
+          "comments_count": 15,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6673314338704095,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6673314338704095
+          }
+        },
+        {
+          "number": 73553,
+          "title": "[BUG] Desktop sidebar keeps showing session \"running\" dot after all background tasks have exited",
+          "url": "https://github.com/anthropics/claude-code/issues/73553",
+          "state": "closed",
+          "reactions_total": 1,
+          "comments_count": 2,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 0.6515108954638289,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6515108954638289
+          }
+        },
+        {
+          "number": 34255,
+          "title": "[BUG] Remote Control: automatic reconnection doesn't work -- connection drops silently with no recovery",
+          "url": "https://github.com/anthropics/claude-code/issues/34255",
+          "state": "open",
+          "reactions_total": 95,
+          "comments_count": 52,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6507192312405381,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6507192312405381
+          }
+        },
+        {
+          "number": 51267,
+          "title": "[BUG] Remote Control (mobile): session silently hangs mid-execution; only local Esc recovers it — no remote unstick mechanism",
+          "url": "https://github.com/anthropics/claude-code/issues/51267",
+          "state": "open",
+          "reactions_total": 16,
+          "comments_count": 14,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6478501544869919,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6478501544869919
+          }
+        },
+        {
+          "number": 63924,
+          "title": "Remote Control: /clear command does not work from remote device",
+          "url": "https://github.com/anthropics/claude-code/issues/63924",
+          "state": "open",
+          "reactions_total": 11,
+          "comments_count": 3,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.643588609699245,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.643588609699245
+          }
+        }
+      ],
+      "inference": {
+        "before": "WebやモバイルからのRemote Control利用時に、実際のタスク状態よりも古い「Running」ステータスが表示され続けることがありました。",
+        "after": "タスク参加状態の変化をトリガーに最新の状態を転送するように変更しました。",
+        "benefit": "外出先からWeb/モバイルでタスク状況を確認する際、常に正確なステータスを確認でき、判断のズレを防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Remote Controlのタスク状態表示を正しく同期させる改善であり、利便性を向上させるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/platforms.md"
+        }
+      ]
+    },
+    {
+      "id": "c90995140761",
+      "content": "- Improved auto mode to ask before running `rm -rf` on a variable it can't resolve from context",
+      "content_ja": "解決不可能な変数を伴うrm -rfコマンド実行時の確認プロンプトを改善",
+      "prefix": "Improved",
+      "feature_areas": ["Permissions"],
+      "related_issues": [
+        {
+          "number": 53799,
+          "title": "[FEATURE] PermissionRequest hook: allow setting custom description when returning permissionDecision: \"ask\"",
+          "url": "https://github.com/anthropics/claude-code/issues/53799",
+          "state": "closed",
+          "reactions_total": 13,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6759743817493495,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6759743817493497
+          }
+        },
+        {
+          "number": 49535,
+          "title": "[BUG] Auto mode blocked by persistent \"safety classifier temporarily unavailable\" outage — Edit/Write/Bash   all fail",
+          "url": "https://github.com/anthropics/claude-code/issues/49535",
+          "state": "open",
+          "reactions_total": 22,
+          "comments_count": 2,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6614732221416562,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.661473222141656
+          }
+        },
+        {
+          "number": 73394,
+          "title": "[Feature Request] Make AskUserQuestion timeout configurable",
+          "url": "https://github.com/anthropics/claude-code/issues/73394",
+          "state": "open",
+          "reactions_total": 23,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.659453106568123,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6594531065681231
+          }
+        },
+        {
+          "number": 73416,
+          "title": "[BUG] Autocontinue after 60s not possible to be disabled",
+          "url": "https://github.com/anthropics/claude-code/issues/73416",
+          "state": "open",
+          "reactions_total": 15,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.659077399440705,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6590773994407051
+          }
+        },
+        {
+          "number": 55854,
+          "title": "[FEATURE] Permission prompts: never use a number for \"No\"; treat stray digits as \"Yes\" fallback",
+          "url": "https://github.com/anthropics/claude-code/issues/55854",
+          "state": "open",
+          "reactions_total": 10,
+          "comments_count": 4,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6588221587731136,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6588221587731135
+          }
+        }
+      ],
+      "inference": {
+        "before": "auto modeにおいて、コンテキストから解決できない変数を対象としたrm -rfコマンドが自動実行されるリスクがありました。",
+        "after": "解決不可な変数を含む削除コマンドに対して、実行前に必ずユーザーの確認を求めるようになりました。",
+        "benefit": "意図しないファイル削除を未然に防ぐことができ、自動エージェント運用の安全性が大幅に高まります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "自動削除処理の安全性向上のためのルール追加であり、ユーザーが意図しない操作を防止するためhighとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        }
+      ]
+    },
+    {
+      "id": "f65d1c55a25a",
+      "content": "- Auto-update binary downloads now stream to disk instead of buffering in memory, cutting the updater's peak memory usage by roughly 400 MB",
+      "content_ja": "アップデート時のバイナリダウンロード方式を改善し、ピークメモリ使用量を約400MB削減",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "related_issues": [
+        {
+          "number": 63903,
+          "title": "[BUG] autoMemoryEnabled=false does not suppress the ~11-16k memory preamble (re: closed #44829)",
+          "url": "https://github.com/anthropics/claude-code/issues/63903",
+          "state": "open",
+          "reactions_total": 0,
+          "comments_count": 23,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6691566551662784,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6691566551662784
+          }
+        },
+        {
+          "number": 45889,
+          "title": "Claude Desktop (Electron) causes NTFS NonPaged Pool kernel memory leak on Windows (~0.5GB/min)",
+          "url": "https://github.com/anthropics/claude-code/issues/45889",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6423862842188339,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6423862842188339
+          }
+        },
+        {
+          "number": 29045,
+          "title": "[BUG] Claude Desktop spawns 1.8 GB Hyper-V VM on every launch, even for chat-only use",
+          "url": "https://github.com/anthropics/claude-code/issues/29045",
+          "state": "open",
+          "reactions_total": 75,
+          "comments_count": 28,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6395767047265914,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6395767047265914
+          }
+        },
+        {
+          "number": 4953,
+          "title": "Claude Code Memory Leak - Process Grows to 120+ GB RAM and Gets OOM Killed",
+          "url": "https://github.com/anthropics/claude-code/issues/4953",
+          "state": "open",
+          "reactions_total": 73,
+          "comments_count": 94,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6350245893266131,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6350245893266131
+          }
+        },
+        {
+          "number": 40614,
+          "title": "[FEATURE] Hierarchical memory to prevent silent loss at 200-line MEMORY.md limit",
+          "url": "https://github.com/anthropics/claude-code/issues/40614",
+          "state": "closed",
+          "reactions_total": 1,
+          "comments_count": 11,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6331974326910834,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6331974326910834
+          }
+        }
+      ],
+      "inference": {
+        "before": "アップデートのダウンロード時に、バイナリ全体をメモリに一度ロードしてからディスクに書き込んでいたため、大量のメモリを消費していました。",
+        "after": "ストリームダウンロード方式に切り替え、ディスクへ直接書き込むように変更しました。",
+        "benefit": "メモリ消費が激しい環境や低スペックなマシンでも、Claude Codeのアップデートが安定して行えるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "アップデート時のメモリ効率を大幅に改善する内部的なパフォーマンス改善であるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "id": "a2219268d5c8",
+      "content": "- Background task notifications now explicitly state that no human input has occurred, preventing fabricated in-transcript approvals from being acted on",
+      "content_ja": "バックグラウンドタスクの通知内容を明確化し、誤った自動承認を防ぐ対策を追加",
+      "prefix": "Changed",
+      "feature_areas": ["Hooks", "Permissions"],
+      "related_issues": [
+        {
+          "number": 39027,
+          "title": "Background task notifications trigger autonomous API calls — model responds as if it were the user",
+          "url": "https://github.com/anthropics/claude-code/issues/39027",
+          "state": "closed",
+          "reactions_total": 9,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7204771932835333,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7204771932835333
+          }
+        },
+        {
+          "number": 65982,
+          "title": "[FEATURE] A \"fact-check gate\" at response-commit time: verify a verification action ran before the model asserts facts",
+          "url": "https://github.com/anthropics/claude-code/issues/65982",
+          "state": "open",
+          "reactions_total": 0,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6882880144161229,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6882880144161229
+          }
+        },
+        {
+          "number": 40176,
+          "title": "Task Reminder System Creates Persistent Attention Bias That Overrides User Direction",
+          "url": "https://github.com/anthropics/claude-code/issues/40176",
+          "state": "closed",
+          "reactions_total": 5,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6755346195551813,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6755346195551813
+          }
+        },
+        {
+          "number": 61167,
+          "title": "Opus 4.7 fabricates agent dispatches, violates Anthropic's own safety principles",
+          "url": "https://github.com/anthropics/claude-code/issues/61167",
+          "state": "open",
+          "reactions_total": 0,
+          "comments_count": 15,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6617899236341165,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6617899236341165
+          }
+        },
+        {
+          "number": 26581,
+          "title": "Feature Request: System notifications when Claude needs attention or completes tasks",
+          "url": "https://github.com/anthropics/claude-code/issues/26581",
+          "state": "open",
+          "reactions_total": 24,
+          "comments_count": 6,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6609215578591445,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6609215578591445
+          }
+        }
+      ],
+      "inference": {
+        "before": "通知が人間からの入力がない場合でも「承認」を意味する文脈で表示されることがあり、誤解を招く可能性がありました。",
+        "after": "通知内容に「人間からの入力がない」旨を明記するようにし、トランスクリプト上の自動的な承認動作を制限しました。",
+        "benefit": "エージェントの自律的な動作を人間が誤って承認済みとみなす事故を防止できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エージェント動作の安全性と誤解防止に繋がる重要な修正であり、mediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "id": "6bcc8536585c",
+      "content": "- Improved agent view: sessions that edit, merge, comment on, or push to an existing PR now link it in `claude agents`",
+      "content_ja": "エージェントビューの連携を強化し、既存PRに関連する操作をリンク表示するように改善",
+      "prefix": "Improved",
+      "feature_areas": ["IDE"],
+      "related_issues": [
+        {
+          "number": 58284,
+          "title": "Agent View hard-disabled on AWS Bedrock / Vertex / Foundry backends",
+          "url": "https://github.com/anthropics/claude-code/issues/58284",
+          "state": "closed",
+          "reactions_total": 14,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.7344939213066628,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7344939213066628
+          }
+        },
+        {
+          "number": 66504,
+          "title": "[FEATURE] Session URL appended to commit messages and PR descriptions by default — should be opt-in",
+          "url": "https://github.com/anthropics/claude-code/issues/66504",
+          "state": "open",
+          "reactions_total": 23,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7314533918757817,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7314533918757818
+          }
+        },
+        {
+          "number": 24798,
+          "title": "Inter-session communication for multi-Claude workflows",
+          "url": "https://github.com/anthropics/claude-code/issues/24798",
+          "state": "open",
+          "reactions_total": 18,
+          "comments_count": 53,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7249094228318462,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7249094228318461
+          }
+        },
+        {
+          "number": 24537,
+          "title": "[FEATURE] Agent Hierarchy Dashboard — unified real-time visualization for multi-agent workflows (TUI + Desktop)",
+          "url": "https://github.com/anthropics/claude-code/issues/24537",
+          "state": "open",
+          "reactions_total": 15,
+          "comments_count": 13,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7232187444782352,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7232187444782351
+          }
+        },
+        {
+          "number": 31969,
+          "title": "Feature: Enter/resume existing worktrees, configurable branch naming, hook removal control",
+          "url": "https://github.com/anthropics/claude-code/issues/31969",
+          "state": "open",
+          "reactions_total": 27,
+          "comments_count": 6,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7177649965358954,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7177649965358955
+          }
+        }
+      ],
+      "inference": {
+        "before": "エージェントビューで複数のエージェントを操作している際、既存のPRに対する編集やコメント、プッシュとPRの紐付けが視覚的にわかりにくい状態でした。",
+        "after": "claude agentsの一覧画面で、各セッションがどのPRと連携しているかを直接表示するリンクが追加されました。",
+        "benefit": "どのPRをどのエージェントが担当しているかが一目で分かり、コンテキスト切り替えが迅速になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッションとPRの関係性が可視化され、ワークフローが整理されるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/code-review.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "70ace11ee63a",
+      "content": "- Improved agent view: rows now show a colored state word and a classifier-written headline instead of raw tool call text, and the peek opens with full status including the exact ask for blocked sessions",
+      "content_ja": "エージェントビューの表示を改善し、ツール呼び出しテキストに代わりClassifierの要約を表示",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "related_issues": [
+        {
+          "number": 24537,
+          "title": "[FEATURE] Agent Hierarchy Dashboard — unified real-time visualization for multi-agent workflows (TUI + Desktop)",
+          "url": "https://github.com/anthropics/claude-code/issues/24537",
+          "state": "open",
+          "reactions_total": 15,
+          "comments_count": 13,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.7053918107372197,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7053918107372197
+          }
+        },
+        {
+          "number": 58284,
+          "title": "Agent View hard-disabled on AWS Bedrock / Vertex / Foundry backends",
+          "url": "https://github.com/anthropics/claude-code/issues/58284",
+          "state": "closed",
+          "reactions_total": 14,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.7030880244042534,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.7030880244042536
+          }
+        },
+        {
+          "number": 58380,
+          "title": "[FEATURE] Agent view dispatch should support --allow-dangerously-skip-permissions",
+          "url": "https://github.com/anthropics/claude-code/issues/58380",
+          "state": "closed",
+          "reactions_total": 4,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.682992555507343,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6829925555073431
+          }
+        },
+        {
+          "number": 32514,
+          "title": "[FEATURE] Provide agent identity context to MCP tool calls for sub-agent resource isolation",
+          "url": "https://github.com/anthropics/claude-code/issues/32514",
+          "state": "closed",
+          "reactions_total": 0,
+          "comments_count": 11,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.66547164500767,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6654716450076701
+          }
+        },
+        {
+          "number": 48965,
+          "title": "Feature: Multi-session coordination primitives (cross-session messaging, session registry, compaction-resistant state, shared task board)",
+          "url": "https://github.com/anthropics/claude-code/issues/48965",
+          "state": "open",
+          "reactions_total": 0,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6650813979260224,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6650813979260224
+          }
+        }
+      ],
+      "inference": {
+        "before": "エージェントビューの一覧では、生のツール呼び出しテキストがそのまま表示されており、内容が理解しにくい状態でした。",
+        "after": "Classifier（分類器）が生成した読みやすいヘッドラインを表示し、peek表示でもブロックされた理由やリクエスト詳細を即座に確認可能にしました。",
+        "benefit": "状況確認のためにトランスクリプトを開く手間が減り、エージェントからの質問への回答がより迅速に行えます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エージェントビューの可読性が大幅に向上し、エージェントとの対話がスムーズになるためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "7e657e70b0aa",
+      "content": "- `/doctor` is now a full setup checkup that can diagnose and fix issues; `/checkup` is its alias",
+      "content_ja": "/doctorコマンドをセットアップ診断ツールに拡充し、/checkupという別名を追加",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "related_issues": [
+        {
+          "number": 56448,
+          "title": "[BUG] 2.1.129 prints \"47 skill descriptions dropped\" — same files load clean on 2.1.128",
+          "url": "https://github.com/anthropics/claude-code/issues/56448",
+          "state": "closed",
+          "reactions_total": 3,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.647286628529236,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.647286628529236
+          }
+        },
+        {
+          "number": 69313,
+          "title": "claude_design MCP fails: 404 from api.anthropic.com/v1/design/mcp (harness-injected, unremovable)",
+          "url": "https://github.com/anthropics/claude-code/issues/69313",
+          "state": "closed",
+          "reactions_total": 12,
+          "comments_count": 5,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 1.6410168205866642,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6410168205866642
+          }
+        },
+        {
+          "number": 30242,
+          "title": "Remote Control not enabled for Max plan account",
+          "url": "https://github.com/anthropics/claude-code/issues/30242",
+          "state": "closed",
+          "reactions_total": 7,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6122927758206753,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6122927758206752
+          }
+        },
+        {
+          "number": 41924,
+          "title": "[Bug] `/buddy` command not executing actions",
+          "url": "https://github.com/anthropics/claude-code/issues/41924",
+          "state": "closed",
+          "reactions_total": 4,
+          "comments_count": 43,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 0.6532563330259035,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6532563330259035
+          }
+        },
+        {
+          "number": 62072,
+          "title": "[BUG] Cowork on macOS 1.8555.2 — zero MCP tools bind in any install path (.mcpb + SDK bridge + Custom Connectors + project .mcp.json); spawn pipeline missing --mcp-config since 2026-05-23 auto-update",
+          "url": "https://github.com/anthropics/claude-code/issues/62072",
+          "state": "open",
+          "reactions_total": 0,
+          "comments_count": 17,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6275598845058636,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6275598845058636
+          }
+        }
+      ],
+      "inference": {
+        "before": "/doctorは限定的な機能であり、トラブルシューティングには不十分な場合がありました。",
+        "after": "診断から自動修正までをカバーする統合的なセットアップチェック機能に強化し、覚えやすい/checkupという別名も追加しました。",
+        "benefit": "インストールや環境設定のトラブルが起きた際、複雑な手順を追うことなく、コマンド一つで迅速に自己修復を試みることが可能になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "トラブルシューティング体験の核となる診断機能を拡充したためmediumとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/debug-your-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "7afa39644049",
+      "content": "- Reserved the \"Claude Browser\" MCP server name (alongside \"Claude Preview\") ahead of the Claude Desktop pane rename; user-configured MCP servers can no longer register under either name",
+      "content_ja": "「Claude Browser」というMCPサーバー名を予約名称に追加",
+      "prefix": "Changed",
+      "feature_areas": ["MCP"],
+      "related_issues": [
+        {
+          "number": 38102,
+          "title": "MCP OAuth: \"does not support dynamic client registration\" despite clientId configured",
+          "url": "https://github.com/anthropics/claude-code/issues/38102",
+          "state": "closed",
+          "reactions_total": 6,
+          "comments_count": 10,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 0.751324274738719,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.751324274738719
+          }
+        },
+        {
+          "number": 26073,
+          "title": "[BUG] Windows MSIX: \"Edit Config\" opens wrong claude_desktop_config.json — MCP servers silently fail to load",
+          "url": "https://github.com/anthropics/claude-code/issues/26073",
+          "state": "open",
+          "reactions_total": 31,
+          "comments_count": 19,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7477641923807445,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7477641923807445
+          }
+        },
+        {
+          "number": 69313,
+          "title": "claude_design MCP fails: 404 from api.anthropic.com/v1/design/mcp (harness-injected, unremovable)",
+          "url": "https://github.com/anthropics/claude-code/issues/69313",
+          "state": "closed",
+          "reactions_total": 12,
+          "comments_count": 5,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": true,
+          "scores": {
+            "total": 0.7436568451609884,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7436568451609884
+          }
+        },
+        {
+          "number": 42765,
+          "title": "[BUG] OAuth redirect_uri uses localhost instead of 127.0.0.1, violating RFC 8252 Section 7.3",
+          "url": "https://github.com/anthropics/claude-code/issues/42765",
+          "state": "open",
+          "reactions_total": 15,
+          "comments_count": 5,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.733321527859121,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.733321527859121
+          }
+        },
+        {
+          "number": 64366,
+          "title": "[BUG] Unbounded MCP server fan-out across Cowork/agent sessions exhausts RAM and kernel-panics macOS (4 panics + forced power-off on M2 Max / 32 GB)",
+          "url": "https://github.com/anthropics/claude-code/issues/64366",
+          "state": "open",
+          "reactions_total": 0,
+          "comments_count": 17,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.7313151315096958,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.7313151315096958
+          }
+        }
+      ],
+      "inference": {
+        "before": "ユーザー設定によって、システムで予約が必要な機能名と同じ名前でMCPサーバーが登録可能でした。",
+        "after": "「Claude Browser」を予約名称とし、競合を防ぐためにユーザー登録できないようにしました。",
+        "benefit": "今後の機能改修とのネーミング衝突が回避され、安定した機能提供が可能になります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "名前空間の確保であり、機能の将来的な競合を防ぐための地味だが必要な調整であるためlowとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/security.md"
+        }
+      ]
+    },
+    {
+      "id": "af6f15a38ceb",
+      "content": "- Fixed Cowork VM-mode local-agent sessions failing to start with \"Not logged in · Please run /login\" on CLI 2.1.203+",
+      "content_ja": "CLI v2.1.203+において、Cowork VMローカルエージェントのログインエラーを修正",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_issues": [
+        {
+          "number": 45480,
+          "title": "Cowork: VM connection timeout on Windows ARM64 (Snapdragon X Plus)",
+          "url": "https://github.com/anthropics/claude-code/issues/45480",
+          "state": "closed",
+          "reactions_total": 3,
+          "comments_count": 13,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.73913871897644,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.7391387189764398
+          }
+        },
+        {
+          "number": 40495,
+          "title": "[BUG] Cowork sessions ignore user hooks and managed settings — sandbox platform mismatch breaks all settings resolution",
+          "url": "https://github.com/anthropics/claude-code/issues/40495",
+          "state": "open",
+          "reactions_total": 15,
+          "comments_count": 15,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.7254228313330766,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.7254228313330765
+          }
+        },
+        {
+          "number": 48827,
+          "title": "Cowork downloads Linux binary instead of macOS on Intel Mac (exit code 132)",
+          "url": "https://github.com/anthropics/claude-code/issues/48827",
+          "state": "open",
+          "reactions_total": 4,
+          "comments_count": 21,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.719635048802661,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.7196350488026609
+          }
+        },
+        {
+          "number": 62072,
+          "title": "[BUG] Cowork on macOS 1.8555.2 — zero MCP tools bind in any install path (.mcpb + SDK bridge + Custom Connectors + project .mcp.json); spawn pipeline missing --mcp-config since 2026-05-23 auto-update",
+          "url": "https://github.com/anthropics/claude-code/issues/62072",
+          "state": "open",
+          "reactions_total": 0,
+          "comments_count": 17,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.712716455295266,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.712716455295266
+          }
+        },
+        {
+          "number": 29045,
+          "title": "[BUG] Claude Desktop spawns 1.8 GB Hyper-V VM on every launch, even for chat-only use",
+          "url": "https://github.com/anthropics/claude-code/issues/29045",
+          "state": "open",
+          "reactions_total": 75,
+          "comments_count": 28,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 2.7090243726735648,
+            "has_nnn": 0,
+            "strong_token": 2,
+            "cosine": 0.7090243726735647
+          }
+        }
+      ],
+      "inference": {
+        "before": "特定バージョン移行後、VMベースのローカルエージェントセッションが認証エラーで開始できない不具合がありました。",
+        "after": "セッション起動時の認証フローを調整し、正しくログイン状態が認識されるよう修正しました。",
+        "benefit": "クラウド環境での開発作業を再開できるようになり、作業の継続性が確保されました。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定の環境下でログインができない致命的なバグを修正するものであるためhighとした。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/desktop-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        }
+      ]
+    }
+  ]
+}
