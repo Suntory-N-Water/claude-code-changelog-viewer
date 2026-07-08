@@ -1,0 +1,117 @@
+{
+  "version": "2.1.204",
+  "summary": "ヘッドレスセッションにおけるSessionStartフックのイベントストリーミングが改善されました。この修正により、CI環境などで長時間実行される初期化フックが、アイドル判定によってリモートワーカーから強制終了される問題が解消され、自動化ワークフローの安定性が向上します。",
+  "items": [
+    {
+      "id": "4bb13970b15f",
+      "content": "- Fixed hook events not streaming during SessionStart hooks in headless sessions, which could cause remote workers to be idle-reaped mid-hook",
+      "content_ja": "ヘッドレスセッションのSessionStartフックにおいて、フックイベントがストリーミングされない問題を修正しました。これにより、フックの実行中にリモートワーカーがアイドル状態とみなされて強制終了される問題が解消されます。",
+      "prefix": "Fixed",
+      "feature_areas": ["Hooks"],
+      "related_issues": [
+        {
+          "number": 16288,
+          "title": "Plugin hooks not loaded from external hooks.json file",
+          "url": "https://github.com/anthropics/claude-code/issues/16288",
+          "state": "open",
+          "reactions_total": 18,
+          "comments_count": 23,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6539278476123822,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6539278476123822
+          }
+        },
+        {
+          "number": 36205,
+          "title": "[Bug] EnterWorktree tool ignores WorktreeCreate/WorktreeRemove hooks",
+          "url": "https://github.com/anthropics/claude-code/issues/36205",
+          "state": "open",
+          "reactions_total": 12,
+          "comments_count": 10,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6513411602420673,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.6513411602420673
+          }
+        },
+        {
+          "number": 25642,
+          "title": "Feature: Expose session ID as $CLAUDE_SESSION_ID environment variable",
+          "url": "https://github.com/anthropics/claude-code/issues/25642",
+          "state": "closed",
+          "reactions_total": 15,
+          "comments_count": 7,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.640454501436075,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.640454501436075
+          }
+        },
+        {
+          "number": 16886,
+          "title": "Feature Request: PreSessionEnd Hook",
+          "url": "https://github.com/anthropics/claude-code/issues/16886",
+          "state": "closed",
+          "reactions_total": 6,
+          "comments_count": 11,
+          "matched_reason": "strong_token",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 1.6366290376955699,
+            "has_nnn": 0,
+            "strong_token": 1,
+            "cosine": 0.63662903769557
+          }
+        },
+        {
+          "number": 19627,
+          "title": "High latency in hook invocation for Notification events",
+          "url": "https://github.com/anthropics/claude-code/issues/19627",
+          "state": "open",
+          "reactions_total": 21,
+          "comments_count": 4,
+          "matched_reason": "cosine",
+          "is_maintainer_involved": false,
+          "scores": {
+            "total": 0.6554327313554386,
+            "has_nnn": 0,
+            "strong_token": 0,
+            "cosine": 0.6554327313554386
+          }
+        }
+      ],
+      "inference": {
+        "before": "CI環境などのヘッドレスセッションでSessionStartフックを実行する際、イベントが適切にストリーミングされませんでした。そのため、長時間かかるフック処理の途中でリモートワーカーが「通信なし」と判定され、処理が完了する前に接続が切断されることがありました。",
+        "after": "SessionStartフックの実行中もイベントが正しくストリーミングされるようになり、アクティブな状態が維持されます。",
+        "benefit": "自動化されたワークフローやCI/CDパイプラインにおいて、初期化フックが途中でタイムアウトしたり中断されたりする心配がなくなり、大規模なプロジェクトのセットアップを安定して行えるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ヘッドレス環境におけるフックの安定性を向上させる修正であり、特定の自動化ユースケースにおいて重要です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        }
+      ]
+    }
+  ]
+}
