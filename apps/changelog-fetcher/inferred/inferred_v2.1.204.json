@@ -1,0 +1,36 @@
+{
+  "version": "2.1.204",
+  "summary": "ヘッドレスセッションにおけるSessionStartフックのイベントストリーミングが改善されました。この修正により、CI環境などで長時間実行される初期化フックが、アイドル判定によってリモートワーカーから強制終了される問題が解消され、自動化ワークフローの安定性が向上します。",
+  "items": [
+    {
+      "id": "4bb13970b15f",
+      "content": "- Fixed hook events not streaming during SessionStart hooks in headless sessions, which could cause remote workers to be idle-reaped mid-hook",
+      "content_ja": "ヘッドレスセッションのSessionStartフックにおいて、フックイベントがストリーミングされない問題を修正しました。これにより、フックの実行中にリモートワーカーがアイドル状態とみなされて強制終了される問題が解消されます。",
+      "prefix": "Fixed",
+      "feature_areas": ["Hooks"],
+      "related_issues": [],
+      "inference": {
+        "before": "CI環境などのヘッドレスセッションでSessionStartフックを実行する際、イベントが適切にストリーミングされませんでした。そのため、長時間かかるフック処理の途中でリモートワーカーが「通信なし」と判定され、処理が完了する前に接続が切断されることがありました。",
+        "after": "SessionStartフックの実行中もイベントが正しくストリーミングされるようになり、アクティブな状態が維持されます。",
+        "benefit": "自動化されたワークフローやCI/CDパイプラインにおいて、初期化フックが途中でタイムアウトしたり中断されたりする心配がなくなり、大規模なプロジェクトのセットアップを安定して行えるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ヘッドレス環境におけるフックの安定性を向上させる修正であり、特定の自動化ユースケースにおいて重要です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        }
+      ]
+    }
+  ]
+}
