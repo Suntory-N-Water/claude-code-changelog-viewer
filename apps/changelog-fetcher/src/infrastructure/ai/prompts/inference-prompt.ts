@@ -1,18 +1,14 @@
+import type { MaintainerCandidate } from '../../../usecase/extract-maintainer-declared-issues';
 import type { IndexedAnalyzedEntry } from '../../../usecase/inference-batch';
 
 type PromptItem = IndexedAnalyzedEntry;
 
-/**
- * 一括推論・翻訳・サマリー生成プロンプトを構築
- *
- * 入力: 全 CHANGELOG 項目 + バージョン番号
- * 出力: inferred_items(推論+翻訳)/ translated_items(翻訳のみ)/ summary
- */
 export function buildBatchInferencePrompt(
   indexedItems: PromptItem[],
   version: string,
-  modelContext: string,
+  options: { modelContext: string; candidates?: MaintainerCandidate[] },
 ): string {
+  const { modelContext, candidates } = options;
   const inferenceItems: { item: PromptItem['entry']; id: string }[] = [];
   const translationItems: { item: PromptItem['entry']; id: string }[] = [];
   for (const { entry, id } of indexedItems) {
@@ -201,5 +197,37 @@ export function buildBatchInferencePrompt(
     '## 対象項目',
     '',
     featureAreaItemsText,
+    ...(candidates && candidates.length > 0
+      ? [
+          '',
+          '---',
+          '',
+          '# タスク6: 候補 issue の対応付け (matched_issues_items)',
+          '',
+          '## 動機 (Motive)',
+          'maintainer が「fixed in vX.X.X」と宣言した issue の候補リストがある。各 CHANGELOG 項目に対し、どの候補 issue が対応するかを判定する。',
+          '',
+          '## 候補 issue 一覧',
+          '',
+          ...candidates.map(
+            (c) =>
+              `- #${c.number}: ${c.title}\n  宣言: ${c.maintainerDeclaration.body.slice(0, 200)}`,
+          ),
+          '',
+          '## 制約',
+          '- **inferenceItems (推論+翻訳対象) のみ** を対象とする',
+          '- 各項目について、候補 issue の中から関連する issue 番号を `issue_numbers` 配列で返す',
+          '- 候補リストにない issue 番号は絶対に返さない',
+          '- 複数の候補が該当する場合は複数返してよい',
+          '- 該当なしの場合は空配列 `[]` を返す',
+          '- id は入力値をそのまま返すこと',
+          '',
+          '## 対象項目',
+          '',
+          ...inferenceItems.map(
+            ({ item, id }) => `- id=${id}, content: ${item.content}`,
+          ),
+        ]
+      : []),
   ].join('\n');
 }

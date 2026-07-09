@@ -176,10 +176,8 @@ jobs:
 
       - name: Tie issues to changelog items
         if: steps.detect-updates.outputs.has_updates == 'true'
-        # issue corpus 未整備や embedding 失敗時も推論本体は継続させる
-        continue-on-error: true
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
           CHANGED_VERSIONS: ${{ steps.detect-updates.outputs.changed_versions }}
         run: |
           for version in $CHANGED_VERSIONS; do
