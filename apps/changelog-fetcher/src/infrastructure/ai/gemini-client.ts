@@ -36,6 +36,14 @@ const InferenceBatchResultSchema = z.object({
       level: z.enum(['high', 'medium', 'low']),
     }),
   ),
+  matched_issues_items: z
+    .array(
+      z.object({
+        id: z.string(),
+        issue_numbers: z.array(z.number()),
+      }),
+    )
+    .optional(),
   summary: z.string(),
 });
 
@@ -293,6 +301,28 @@ export class GeminiClient {
                         ],
                       },
                     },
+                    matched_issues_items: {
+                      type: Type.ARRAY,
+                      description:
+                        '候補 issue の対応付け(inference 項目のみ対象)',
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          id: {
+                            type: Type.STRING,
+                            description: '入力項目の id (12桁の16進文字列)',
+                          },
+                          issue_numbers: {
+                            type: Type.ARRAY,
+                            description:
+                              '対応する候補 issue の番号(候補外は含めない)',
+                            items: { type: Type.NUMBER },
+                          },
+                        },
+                        propertyOrdering: ['id', 'issue_numbers'],
+                        required: ['id', 'issue_numbers'],
+                      },
+                    },
                     summary: {
                       type: Type.STRING,
                       description: 'バージョン全体のサマリー(日本語、2-3文)',
@@ -303,6 +333,7 @@ export class GeminiClient {
                     'translated_items',
                     'feature_area_corrections',
                     'impact_items',
+                    'matched_issues_items',
                     'summary',
                   ],
                   required: [

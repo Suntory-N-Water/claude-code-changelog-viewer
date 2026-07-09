@@ -3,8 +3,10 @@ import { join } from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { inferBenefits, type InferencePort } from './usecase/infer-benefits';
+import type { MaintainerCandidate } from './usecase/extract-maintainer-declared-issues';
 import { GeminiInferenceClient } from './infrastructure/ai/gemini-inference-client';
 import { createInferredFileStore } from './infrastructure/filesystem/changelog-file-store';
+import { createTiedFileStore } from './infrastructure/filesystem/tied-store';
 import {
   toInferredJson,
   toChangelogAnalysis,
@@ -39,13 +41,29 @@ async function main(): Promise<void> {
   const tiedPath = join(appDir, 'tied', `tied_${version}.json`);
   const inferredPath = join(inferredDir, `inferred_${version}.json`);
 
-  // tie-issue ステージの出力があれば related_issues 付きのそちらを優先する
-  const inputPath = existsSync(tiedPath) ? tiedPath : analysisPath;
-  log.msg('APLG0003', { params: [inputPath] });
-  const rawAnalysis = readFileSync(inputPath, 'utf-8');
-  const parsedAnalysis = JSON.parse(rawAnalysis);
-  const analysisJson = AnalysisSchema.parse(parsedAnalysis);
-  const analysis = toChangelogAnalysis(analysisJson);
+  const tiedStore = createTiedFileStore(appDir);
+  const tiedData = await tiedStore.load(version);
+
+  const { analysis, candidates } = await (async () => {
+    if (tiedData) {
+      log.info(
+        `tied ファイルから読込: tied_${version}.json (候補 ${tiedData.maintainerCandidates.length}件)`,
+      );
+      return {
+        analysis: tiedData.analysis,
+        candidates: tiedData.maintainerCandidates,
+      };
+    }
+    const inputPath = existsSync(tiedPath) ? tiedPath : analysisPath;
+    log.msg('APLG0003', { params: [inputPath] });
+    const rawAnalysis = readFileSync(inputPath, 'utf-8');
+    const parsedAnalysis = JSON.parse(rawAnalysis);
+    const analysisJson = AnalysisSchema.parse(parsedAnalysis);
+    return {
+      analysis: toChangelogAnalysis(analysisJson),
+      candidates: undefined as MaintainerCandidate[] | undefined,
+    };
+  })();
 
   const inference: InferencePort = skipAI
     ? {
@@ -65,6 +83,7 @@ async function main(): Promise<void> {
     skipAI,
     inference,
     store,
+    ...(candidates !== undefined ? { candidates } : {}),
   });
   const inferred = toInferredJson(inferredAnalysis);
 
