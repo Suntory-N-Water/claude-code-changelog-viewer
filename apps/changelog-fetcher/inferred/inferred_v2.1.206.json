@@ -1,0 +1,789 @@
+{
+  "version": "2.1.206",
+  "summary": "エージェント管理画面の視認性が向上し、削除操作やステータス表示が改善されました。また、本体アップデート後にバックグラウンドエージェントも即座に更新されるようになり、再接続時の待ち時間が解消されています。コードレビューの品質向上や Windows 環境での入力不具合の修正など、信頼性と快適性を高める多くの調整が行われました。",
+  "items": [
+    {
+      "id": "76ff21230437",
+      "content": "- Added directory path suggestions to `/cd`, matching `/add-dir` behavior",
+      "content_ja": "`/cd` コマンドで `/add-dir` と同様にディレクトリパスの補完候補が表示されるようになりました",
+      "prefix": "Added",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "`/cd` コマンドを使用する際、`/add-dir` のようなディレクトリパスのサジェスト機能がありませんでした。",
+        "after": "`/cd` でも `/add-dir` と同じ挙動でパスの候補が表示されるようになり、移動先を素早く選択できます。",
+        "benefit": "長いパスを正確に手入力する手間が省け、プロジェクト間のディレクトリ移動がよりスムーズになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ディレクトリ移動の利便性が向上する標準的な改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/large-codebases.md"
+        }
+      ]
+    },
+    {
+      "id": "c06a269c0bcc",
+      "content": "- Added a `/doctor` check that proposes trimming checked-in `CLAUDE.md` files by cutting content Claude could derive from the codebase",
+      "content_ja": "`/doctor` に、コードベースから推論可能な内容を `CLAUDE.md` から削除して整理するチェック項目を追加しました",
+      "prefix": "Added",
+      "feature_areas": ["Memory"],
+      "inference": {
+        "before": "`CLAUDE.md` が肥大化すると、AI のコンテキストを圧迫し指示への忠実度が下がる問題がありました。",
+        "after": "`/doctor` を実行することで、AI がコードから自分で判断できる不要な記述を特定し、ファイルを軽量化する提案が受けられます。",
+        "benefit": "重要な指示だけにコンテキストを絞り込めるため、AI のパフォーマンスと応答の正確性が向上します。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "CLAUDE.mdの最適化を促すことで、AIの応答精度向上に寄与します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/memory.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/debug-your-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        }
+      ]
+    },
+    {
+      "id": "0707efd0558c",
+      "content": "- `/commit-push-pr` now auto-allows `git push` to the repo's configured push remote (`remote.pushDefault`, or the sole remote when only one is configured) in addition to `origin`",
+      "content_ja": "`/commit-push-pr` が、`origin` に加えて設定済みのプッシュ先リモート (`remote.pushDefault` 等) への `git push` を自動的に許可するようになりました",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "プッシュ先が `origin` 以外の場合、コマンド実行中にプッシュの許可を求めるプロンプトが表示されることがありました。",
+        "after": "Git 設定で定義されたデフォルトのプッシュ先リモートが信頼済みとして扱われ、追加の承認なしでプッシュが進行します。",
+        "benefit": "独自のワークフローや複数のリモートを使用している環境でも、PR 作成までの流れが中断されず迅速になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "デフォルトのリモート設定を自動許可することで、プッシュ時の承認フローが簡略化されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-enterprise-server.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        }
+      ]
+    },
+    {
+      "id": "1396cf694e2e",
+      "content": "- Gateway: `/login` now supports Anthropic-operated public gateway endpoints",
+      "content_ja": "`/login` コマンドが Anthropic が運営するパブリックゲートウェイのエンドポイントをサポートしました",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "エンタープライズ向けのゲートウェイログインは、主に組織のプライベートネットワーク内のホストに限定されていました。",
+        "after": "Anthropic が管理するパブリックなゲートウェイエンドポイントを介したログインが可能になりました。",
+        "benefit": "組織外からアクセスする場合や、特別なインフラ構成を持つチームでも、一貫した認証フローを利用できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エンタープライズユーザーのログインオプションが拡充されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-deploy.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-on-gcp.md"
+        }
+      ]
+    },
+    {
+      "id": "e5d3239742f6",
+      "content": "- `EnterWorktree` now asks for confirmation before entering a git worktree outside the project's `.claude/worktrees/` directory",
+      "content_ja": "`EnterWorktree` ツールが、プロジェクトの `.claude/worktrees/` 以外にある Git ワークツリーに入る前に確認を求めるようになりました",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "ワークツリーの場所に関わらず AI が自動的に移動できていたため、予期せぬディレクトリへの操作のリスクがありました。",
+        "after": "標準的な隔離場所以外のワークツリーにアクセスする際はユーザーに確認を求めるステップが追加されました。",
+        "benefit": "AI による不透明なディレクトリ移動を防ぎ、開発環境の安全性が高まります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "セキュリティ強化のため、標準場所以外への移動に確認が必要になる重要な挙動変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "cbb448facd5f",
+      "content": "- Background agents now upgrade to a new version in the background right after a Claude Code update, instead of paying a slow stale-session upgrade when you attach",
+      "content_ja": "バックグラウンドエージェントが、Claude Code のアップデート直後にバックグラウンドで自動更新されるようになりました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "本体を更新しても、バックグラウンドのエージェントに再接続 (attach) するまで更新が適用されず、接続時に長い待ち時間が発生していました。",
+        "after": "アップデート直後に背後でエージェントも更新されるため、再接続時の待ち時間が解消されます。",
+        "benefit": "常に最新のツール定義や機能が反映された状態で、中断することなくエージェントとの作業を再開できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "バックグラウンドエージェントの更新に伴う待ち時間が解消され、利便性が大きく向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "1e750de970f5",
+      "content": "- Fixed an expired login failing every model with a misleading \"There's an issue with the selected model\" error instead of prompting to run `/login`",
+      "content_ja": "ログイン期限切れの際、不明瞭なエラーが出る代わりに `/login` の実行を促すように修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "認証が切れていると「選択されたモデルに問題があります」という誤解を招くエラーが表示されていました。",
+        "after": "認証切れを正しく検知し、具体的に `/login` を実行して再ログインするよう案内が表示されます。",
+        "benefit": "トラブルの原因が明確になり、無駄な調査時間をかけずに問題を解決できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "エラーメッセージが適切になり、ユーザーの混乱を防ぎます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        }
+      ]
+    },
+    {
+      "id": "fa04db28481f",
+      "content": "- Fixed `claude --resume` and `--continue` not responding to keyboard input on startup",
+      "content_ja": "起動時に `claude --resume` や `--continue` がキーボード入力を受け付けなくなる問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッションを再開する際、特定の状況下で入力を一切受け付けず、操作不能になることがありました。",
+        "after": "再開コマンド使用時でも、起動直後から正しくキーボード入力が反映されるようになります。",
+        "benefit": "中断した作業をレジュームする際のストレスがなくなり、すぐにタスクを続行できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定の起動条件下での操作不能バグを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        }
+      ]
+    },
+    {
+      "id": "2914d3d19c27",
+      "content": "- Fixed MCP servers configured via `--mcp-config` or `.mcp.json` ignoring a per-server `request_timeout_ms`, which caused long-running MCP tool calls to time out at the 60s default in fresh sessions",
+      "content_ja": "MCP 設定の `request_timeout_ms` が無視され、60秒でタイムアウトしてしまう問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP", "Settings"],
+      "inference": {
+        "before": "長時間かかる MCP ツールの呼び出しを行っても、設定値に関わらずデフォルトの60秒で一律タイムアウトしていました。",
+        "after": "サーバーごとに設定したタイムアウト時間が正しく適用されるようになります。",
+        "benefit": "複雑なデータ取得や重い処理を行う MCP ツールを確実に完了させることができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "MCP サーバーのタイムアウト設定が反映されない重要なバグを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "10eca805aef2",
+      "content": "- Fixed `CLAUDE_CODE_EXTRA_BODY` being silently ignored by `claude agents` / `--bg` background workers; the shell-exported override now follows the dispatching session",
+      "content_ja": "`CLAUDE_CODE_EXTRA_BODY` 環境変数がバックグラウンドワーカーでも正しく継承されるよう修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "シェルで設定した API リクエスト用のカスタムボディ設定が、`claude agents` 等のバックグラウンド処理で無視されていました。",
+        "after": "ディスパッチ元のセッションの設定がバックグラウンドワーカーにも正しく引き継がれます。",
+        "benefit": "カスタムプロバイダーや特殊なゲートウェイ設定を使用している環境でも、バックグラウンドタスクが正常に動作します。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "カスタムリクエスト設定の継承不備を修正し、ゲートウェイ利用時の安定性を高めます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "38297eed67d6",
+      "content": "- Fixed OAuth MCP servers requiring manual re-authentication after a single failed token refresh",
+      "content_ja": "OAuth 認証が必要な MCP サーバーで、一度トークンのリフレッシュに失敗すると手動の再認証が必要になる問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "リフレッシュの失敗が一時的であっても、手動で `/mcp` から操作し直す必要がありました。",
+        "after": "リフレッシュ処理の堅牢性が向上し、不要な手動再ログインの頻度が減ります。",
+        "benefit": "外部ツールとの連携が中断されにくくなり、開発効率が維持されます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "MCP 連携の認証トラブルが軽減されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "2687f5420db5",
+      "content": "- Fixed `--permission-prompt-tool` pointing at an MCP server crashing with \"MCP tool not found\" on cold start before the server finishes connecting",
+      "content_ja": "`--permission-prompt-tool` が MCP サーバーの接続完了前に「ツールが見つからない」とエラーになる問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP", "Permissions"],
+      "inference": {
+        "before": "コールドスタート時に MCP サーバーの起動が間に合わず、許可プロンプト用ツールが見つからずにクラッシュしていました。",
+        "after": "サーバーの接続を待機してからツールを呼び出すようになり、起動時の安定性が向上しました。",
+        "benefit": "自動化されたスクリプトや CI 上での Claude Code 実行がより確実になります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "起動時のレースコンディションによるクラッシュを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "d7cdc9446b9a",
+      "content": "- Fixed `/model` picker rows printing a price for a different model than the row named, and stopped quoting first-party list prices on providers that don't bill them",
+      "content_ja": "`/model` 選択画面での価格表示の誤りを修正し、不要なプロバイダー価格の引用を停止しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "選択したモデルとは別のモデルの価格が表示されたり、課金体系が異なる外部プロバイダーで Anthropic 直販価格が表示される混乱がありました。",
+        "after": "各モデルに対応した正確な価格が表示され、直接課金されないプロバイダーでは不適切な引用が控えられるようになります。",
+        "benefit": "コスト見積もりを正しく把握した上でモデルを選択できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "表示情報の正確性が向上しますが、機能自体への影響は軽微です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-spend-limits.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-protocol.md"
+        }
+      ]
+    },
+    {
+      "id": "d1025da3821d",
+      "content": "- Fixed server-provided model rows being misplaced in the `/model` picker when an entitlement or allowlist restriction drops the row they were positioned against",
+      "content_ja": "モデル制限がある場合に、`/model` リスト内でゲートウェイ提供のモデル行がズレる問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "組織ポリシーで一部のモデルが非表示になると、カスタムモデルの表示位置が乱れることがありました。",
+        "after": "制限設定に関わらず、利用可能なモデルが常に正しい位置に整理されて表示されます。",
+        "benefit": "複雑な制限がある組織環境でも、目的のモデルを迷わず選択できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "モデル選択画面の UI 崩れを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-protocol.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "75f9ebce03ca",
+      "content": "- Fixed desktop sessions getting stuck showing \"running\" after a slash command was sent mid-turn",
+      "content_ja": "デスクトップアプリで、処理中にスラッシュコマンドを送ると「実行中」のまま固まる問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "AI が回答を生成している途中にコマンドを入力すると、UI のステータスが更新されず停止したように見えていました。",
+        "after": "ターンの途中でもスラッシュコマンドが適切に処理され、UI の整合性が保たれます。",
+        "benefit": "デスクトップアプリでの操作性が改善され、AI の挙動を柔軟にコントロールできます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "デスクトップアプリがハングする特定の不具合を修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/communications-kit.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/slash-commands.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop-quickstart.md"
+        }
+      ]
+    },
+    {
+      "id": "7509c16d7870",
+      "content": "- Fixed keyboard input being ignored in the agents view when a setup prompt appeared before a bare `claude --resume` on Windows",
+      "content_ja": "Windows で `claude --resume` 実行時のセットアップ画面でキー入力が効かなくなる問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Windows 環境において、セッション再開前の設定確認プロンプト等でキーボードが反応しないケースがありました。",
+        "after": "Windows のターミナルでも、初期プロンプトに対して正しく応答できるようになりました。",
+        "benefit": "Windows ユーザーがスムーズに過去の作業を再開できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows ターミナルでの入力不能問題を解消します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        }
+      ]
+    },
+    {
+      "id": "b50ed126ee87",
+      "content": "- Fixed `claude rm` leaving the removed job in the daemon roster, causing the row to reappear in `claude agents`",
+      "content_ja": "`claude rm` で削除したジョブがエージェント一覧に再表示される問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "削除コマンドを実行してもデーモン側のリストに残ってしまい、`/agents` を開くと削除したはずの行が復活していました。",
+        "after": "管理リストから完全に抹消され、UI にも反映されるようになります。",
+        "benefit": "不要なバックグラウンドタスクを確実に整理でき、一覧の見通しが良くなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ジョブ管理の整合性が保たれるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "7e63dc08332f",
+      "content": "- Fixed `/remote-control` showing \"Unknown command\" when logged out — it now explains how to sign in",
+      "content_ja": "未ログイン時に `/remote-control` を実行すると「不明なコマンド」ではなくログインを案内するように変更しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "認証が必要なコマンドであるにも関わらず、存在しないコマンドのようにエラーが出て混乱させていました。",
+        "after": "機能を利用するためにログインが必要である旨が正しく説明されるようになります。",
+        "benefit": "エラーの理由が明確になり、機能のセットアップ方法に迷わなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "未ログイン時の案内が親切になります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/web-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        }
+      ]
+    },
+    {
+      "id": "856f3c236628",
+      "content": "- Fixed left arrow not stepping back out of a phase or agent in the workflow detail view",
+      "content_ja": "ワークフローの詳細画面において、左矢印キーで前の階層に戻れない問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "特定のフェーズやエージェントの詳細を確認した後、キーボード操作で一覧に戻ることができませんでした。",
+        "after": "左矢印キーで直感的かつスムーズに階層を戻れるようになります。",
+        "benefit": "大規模なワークフローの進捗確認がより快適に行えるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ワークフロービューでのナビゲーション不具合を修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/overview.md"
+        }
+      ]
+    },
+    {
+      "id": "68eb8a4cbb8c",
+      "content": "- Fixed `/status` listing the same broken-install warning twice",
+      "content_ja": "`/status` コマンドでインストール破損の警告が重複して表示される問題を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "一つの問題に対して同じ警告文が2回リストアップされ、出力が見づらくなっていました。",
+        "after": "警告が重複排除され、クリーンなステータス情報が表示されます。",
+        "benefit": "システムの状態をより迅速かつ正確に把握できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "重複した警告表示の微修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-dependencies.md"
+        }
+      ]
+    },
+    {
+      "id": "830a6cb7d2a7",
+      "content": "- Fixed false \"disused plugin\" tips and skewed disuse telemetry for LSP plugins",
+      "content_ja": "LSP プラグインにおける「使用されていないプラグイン」という誤った通知とテレメトリの歪みを修正しました",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "実際にはバックグラウンドで動作している LSP プラグインが、誤って未使用と判定され削除を推奨されることがありました。",
+        "after": "LSP の稼働状況を正しく判定するようになり、不適切な通知が抑制されます。",
+        "benefit": "必要なツールを誤って削除してしまう心配がなくなり、正確な利用状況が把握されます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "プラグインの管理状態に関する誤判定を修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-relevance.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "666438142113",
+      "content": "- Fixed `/doctor`'s update check to compare Homebrew installs against their cask's channel instead of the settings channel",
+      "content_ja": "Homebrew でインストールした場合の `/doctor` の更新確認ロジックを修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Homebrew の cask チャンネルではなく、一般的な設定チャンネルと比較していたため、誤った更新通知が出ることがありました。",
+        "after": "インストール方法に合わせた適切なチャンネルで最新バージョンを確認するようになります。",
+        "benefit": "Homebrew ユーザーが正確なアップデート情報を得られるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Homebrew ユーザー向けの更新チェック精度が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/quickstart.md"
+        }
+      ]
+    },
+    {
+      "id": "cfe81e67d8de",
+      "content": "- Fixed the fullscreen jump-to-bottom pill suggesting Ctrl+End on macOS, not showing rebound chords, and wrapping over the transcript",
+      "content_ja": "フルスクリーンモードの「下へジャンプ」ボタンの表記や挙動に関する複数の不具合を修正しました",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "macOS で不適切なショートカットが表示されたり、キー割り当ての変更が反映されない、表示が重なる等の問題がありました。",
+        "after": "OS に適した案内が表示され、カスタムしたキー設定も正しく反映されるようになります。",
+        "benefit": "フルスクリーン表示での長い会話のナビゲーションがより安定し、使いやすくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "フルスクリーン表示での UI 表示ミスを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        }
+      ]
+    },
+    {
+      "id": "a17f674661b5",
+      "content": "- Bedrock: fixed a multi-minute startup hang when using an `awsCredentialExport` helper on networks with restricted egress",
+      "content_ja": "制限されたネットワーク環境での Bedrock 利用時、起動時に数分間ハングする問題を修正しました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "`awsCredentialExport` 使用時に、外部への通信制限があるとタイムアウトまで処理が停止していました。",
+        "after": "認証情報の取得プロセスが最適化され、厳しい制限下でも素早く起動します。",
+        "benefit": "セキュリティの厳しいエンタープライズ環境でも、待ち時間なしで作業を開始できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "制限されたネットワーク環境での致命的な待ち時間を解消します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-connect.md"
+        }
+      ]
+    },
+    {
+      "id": "4dbc48b0fd24",
+      "content": "- Improved `/code-review` findings quality on claude-opus-4-8 across all effort levels",
+      "content_ja": "`claude-opus-4-8` モデルを使用した `/code-review` の指摘精度を向上させました",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "Opus モデルでのローカルレビューにおいて、設定した労力レベル (effort level) によっては結果の質にばらつきがありました。",
+        "after": "すべての労力レベルにおいて、より的確で高品質なレビューコメントが生成されるようチューニングされました。",
+        "benefit": "より高度な設計判断や複雑なバグの指摘を AI から得られるようになり、コード品質が向上します。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "中核機能であるコードレビューの品質向上であり、影響が大きいです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/code-review.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/ultrareview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-config.md"
+        }
+      ]
+    },
+    {
+      "id": "0d4791ee2cbe",
+      "content": "- Improved agents view: status column now uses full terminal width instead of truncating at 64 characters",
+      "content_ja": "エージェント一覧画面のステータス列が、ターミナルの全幅を使用して表示されるようになりました",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "画面の幅に関わらず 64 文字で切り捨てられていたため、詳細な進捗状況が読み取れないことがありました。",
+        "after": "ターミナルの横幅を最大限活かしてステータスを表示するため、より多くの情報が一目で確認できます。",
+        "benefit": "バックグラウンドで動いている複数のタスクの状況を、詳細画面を開かずに把握しやすくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "エージェント一覧の視認性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-relevance.md"
+        }
+      ]
+    },
+    {
+      "id": "5d17330da1bd",
+      "content": "- Changed agents view: Ctrl+X now permanently removes a completed session, and sessions no longer render twice; deleted background jobs stay deleted",
+      "content_ja": "エージェント一覧画面で `Ctrl+X` による完了済みセッションの完全削除と表示の不具合を修正しました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "削除しても再起動後に復活したり、セッションが二重に描画される表示の乱れがありました。",
+        "after": "削除操作が永続的に反映され、UI の描画もクリーンに保たれます。",
+        "benefit": "完了した大量のタスクを確実に整理でき、作業画面を常に整理された状態に維持できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "エージェント管理 UI の不備を修正し、信頼性を高めます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/web-quickstart.md"
+        }
+      ]
+    }
+  ]
+}
