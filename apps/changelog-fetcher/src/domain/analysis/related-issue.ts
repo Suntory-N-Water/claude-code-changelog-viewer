@@ -1,13 +1,8 @@
-export type RelatedIssueMatchedReason =
-  | 'direct_reference'
-  | 'strong_token'
-  | 'cosine';
-
-export type RelatedIssueScores = {
-  total: number;
-  hasNnn: number;
-  strongToken: number;
-  cosine: number;
+export type MaintainerDeclaration = {
+  user: string;
+  publishedAt: string;
+  body: string;
+  url: string;
 };
 
 export type RelatedIssue = {
@@ -17,8 +12,6 @@ export type RelatedIssue = {
   state: 'open' | 'closed';
   reactionsTotal: number;
   commentsCount: number;
-  matchedReason: RelatedIssueMatchedReason;
   isMaintainerInvolved: boolean;
-  duplicateOf?: number;
-  scores: RelatedIssueScores;
+  maintainerDeclaration: MaintainerDeclaration;
 };

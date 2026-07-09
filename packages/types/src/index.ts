@@ -35,32 +35,27 @@ export const ImpactAssessmentSchema = z.object({
 });
 export type ImpactAssessment = z.infer<typeof ImpactAssessmentSchema>;
 
-// IssueCorpusEntry (GitHub issue 1件を CHANGELOG 紐付け用に正規化したもの)
-export const IssueCorpusEntrySchema = z.object({
+// MaintainerDeclaration (maintainer が「fixed in vX.X.X」と宣言したコメント)
+export const MaintainerDeclarationSchema = z.object({
+  user: z.string(),
+  published_at: z.string(),
+  body: z.string(),
+  url: z.string(),
+});
+export type MaintainerDeclaration = z.infer<typeof MaintainerDeclarationSchema>;
+
+// MaintainerCandidate (Stage 1 で抽出されたリリース単位の候補 issue)
+export const MaintainerCandidateSchema = z.object({
   number: z.number().int().positive(),
   title: z.string(),
-  body: z.string(),
-  labels: z.array(z.string()),
+  url: z.string(),
   state: z.enum(['open', 'closed']),
-  state_reason: z.string().nullable().optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
-  closed_at: z.string().nullable().optional(),
   reactions_total: z.number().int().nonnegative(),
   comments_count: z.number().int().nonnegative(),
-  author: z.string(),
   is_maintainer_involved: z.boolean(),
-  duplicate_of: z.number().int().positive().optional(),
-  top_comments: z.array(
-    z.object({
-      author: z.string(),
-      author_association: z.string(),
-      body: z.string(),
-      created_at: z.string(),
-    }),
-  ),
+  maintainer_declaration: MaintainerDeclarationSchema,
 });
-export type IssueCorpusEntry = z.infer<typeof IssueCorpusEntrySchema>;
+export type MaintainerCandidate = z.infer<typeof MaintainerCandidateSchema>;
 
 // RelatedIssue (CHANGELOG 項目に紐付けられた 1件の判断材料)
 export const RelatedIssueSchema = z.object({
@@ -70,15 +65,8 @@ export const RelatedIssueSchema = z.object({
   state: z.enum(['open', 'closed']),
   reactions_total: z.number().int().nonnegative(),
   comments_count: z.number().int().nonnegative(),
-  matched_reason: z.enum(['direct_reference', 'strong_token', 'cosine']),
   is_maintainer_involved: z.boolean(),
-  duplicate_of: z.number().int().positive().optional(),
-  scores: z.object({
-    total: z.number(),
-    has_nnn: z.number(),
-    strong_token: z.number(),
-    cosine: z.number(),
-  }),
+  maintainer_declaration: MaintainerDeclarationSchema,
 });
 export type RelatedIssue = z.infer<typeof RelatedIssueSchema>;
 
@@ -99,7 +87,8 @@ export type ChangelogItem = z.infer<typeof ChangelogItemSchema>;
 // Analysis (最終出力)
 export const AnalysisSchema = z.object({
   version: z.string(),
-  summary: z.string().optional(), // バージョン全体のサマリー(日本語)
+  summary: z.string().optional(),
+  maintainer_candidates: z.array(MaintainerCandidateSchema).optional(),
   items: z.array(ChangelogItemSchema),
 });
 export type Analysis = z.infer<typeof AnalysisSchema>;

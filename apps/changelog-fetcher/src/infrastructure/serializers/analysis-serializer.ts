@@ -155,16 +155,12 @@ function toRelatedIssueJson(issue: RelatedIssue): RelatedIssueJson {
     state: issue.state,
     reactions_total: issue.reactionsTotal,
     comments_count: issue.commentsCount,
-    matched_reason: issue.matchedReason,
     is_maintainer_involved: issue.isMaintainerInvolved,
-    ...(issue.duplicateOf !== undefined
-      ? { duplicate_of: issue.duplicateOf }
-      : {}),
-    scores: {
-      total: issue.scores.total,
-      has_nnn: issue.scores.hasNnn,
-      strong_token: issue.scores.strongToken,
-      cosine: issue.scores.cosine,
+    maintainer_declaration: {
+      user: issue.maintainerDeclaration.user,
+      published_at: issue.maintainerDeclaration.publishedAt,
+      body: issue.maintainerDeclaration.body,
+      url: issue.maintainerDeclaration.url,
     },
   };
 }
@@ -177,16 +173,12 @@ function fromRelatedIssueJson(issue: RelatedIssueJson): RelatedIssue {
     state: issue.state,
     reactionsTotal: issue.reactions_total,
     commentsCount: issue.comments_count,
-    matchedReason: issue.matched_reason,
     isMaintainerInvolved: issue.is_maintainer_involved,
-    ...(issue.duplicate_of !== undefined
-      ? { duplicateOf: issue.duplicate_of }
-      : {}),
-    scores: {
-      total: issue.scores.total,
-      hasNnn: issue.scores.has_nnn,
-      strongToken: issue.scores.strong_token,
-      cosine: issue.scores.cosine,
+    maintainerDeclaration: {
+      user: issue.maintainer_declaration.user,
+      publishedAt: issue.maintainer_declaration.published_at,
+      body: issue.maintainer_declaration.body,
+      url: issue.maintainer_declaration.url,
     },
   };
 }
