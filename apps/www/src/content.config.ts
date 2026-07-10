@@ -29,6 +29,14 @@ const changelogCollection = defineCollection({
             benefit: z.string().min(10).max(500),
           })
           .optional(),
+        impact: z
+          .object({
+            level: z.enum(['high', 'medium', 'low']),
+            default_behavior_change: z.boolean(),
+            breaking: z.boolean(),
+            reason: z.string(),
+          })
+          .optional(),
       }),
     ),
   }),
