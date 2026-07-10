@@ -76,11 +76,6 @@ const MODEL_RATE_LIMITS: Record<string, number> = {
   'gemini-2.5-flash-lite': 10 * 1000, // 6 RPM
 };
 
-const EMBEDDING_MODEL = 'gemini-embedding-2';
-const EMBEDDING_FREE_TIER_RPM = 100;
-const EMBEDDING_PAID_TIER_RPM = 3000;
-const EMBEDDING_BATCH_MAX_TEXTS = 100;
-
 /**
  * 推論タスク用のフォールバックモデル順序
  */
@@ -103,8 +98,6 @@ export class GeminiClient {
   private ai: GoogleGenAI;
   private log: AppLogger;
   private lastRequestTimes: Map<string, number> = new Map();
-  private lastEmbeddingBatchAt = 0;
-  private readonly embeddingRpm: number;
 
   constructor(apiKey: string, logger: AppLogger) {
     if (!apiKey) {
@@ -113,10 +106,6 @@ export class GeminiClient {
 
     this.ai = new GoogleGenAI({ apiKey });
     this.log = logger;
-    this.embeddingRpm =
-      process.env['GEMINI_BILLING_TIER'] === 'paid'
-        ? EMBEDDING_PAID_TIER_RPM
-        : EMBEDDING_FREE_TIER_RPM;
   }
 
   /**
@@ -570,72 +559,5 @@ export class GeminiClient {
     throw new Error(
       `All models failed for settings translate task. Last error: ${lastError?.message}`,
     );
-  }
-
-  async batchEmbedContents(texts: string[]): Promise<number[][]> {
-    if (texts.length === 0) {
-      return [];
-    }
-    if (texts.length > EMBEDDING_BATCH_MAX_TEXTS) {
-      throw new Error(
-        `batchEmbedContents は 1 リクエストあたり最大 ${EMBEDDING_BATCH_MAX_TEXTS} 件までです (received=${texts.length})`,
-      );
-    }
-
-    return await pRetry(
-      async () => {
-        // free tier のクォータはリクエスト数ではなく embed 対象のテキスト数を消費するため、
-        // バッチサイズ分を考慮した間隔を空ける
-        await this.waitForEmbeddingRateLimit(texts.length);
-        const response = await this.ai.models.embedContent({
-          model: EMBEDDING_MODEL,
-          // gemini-embedding-2 は contents に文字列配列をそのまま渡すと
-          // 全文字列が1つの Content に集約され単一 embedding になる。
-          // Content オブジェクトでラップすることで個別 embedding を得る。
-          contents: texts.map((text) => ({ parts: [{ text }] })),
-        });
-        const embeddings = response.embeddings;
-        if (!embeddings || embeddings.length !== texts.length) {
-          throw new Error(
-            `embedContent 応答の埋め込み数が不一致: expected=${texts.length} actual=${embeddings?.length ?? 0}`,
-          );
-        }
-        return embeddings.map((embedding, index) => {
-          const values = embedding.values;
-          if (!values || values.length === 0) {
-            throw new Error(
-              `embedContent 応答に values が無い (index=${index})`,
-            );
-          }
-          return values;
-        });
-      },
-      {
-        retries: MAX_RETRIES_PER_MODEL,
-        onFailedAttempt: async ({ error, attemptNumber }) => {
-          if (!this.isRetryableError(error)) {
-            throw new AbortError(error.message);
-          }
-          const status = error instanceof ApiError ? error.status : undefined;
-          this.log.warn(
-            `埋め込みリトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1}) status=${status} message=${error.message}`,
-            { method: 'batchEmbedContents' },
-          );
-          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-        },
-      },
-    );
-  }
-
-  private async waitForEmbeddingRateLimit(textCount: number): Promise<void> {
-    const minIntervalMs = Math.ceil((60_000 * textCount) / this.embeddingRpm);
-    const now = Date.now();
-    const elapsed = now - this.lastEmbeddingBatchAt;
-    if (elapsed < minIntervalMs) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, minIntervalMs - elapsed),
-      );
-    }
-    this.lastEmbeddingBatchAt = Date.now();
   }
 }
