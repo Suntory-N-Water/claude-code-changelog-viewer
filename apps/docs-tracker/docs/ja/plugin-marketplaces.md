@@ -142,7 +142,9 @@ Be concise and actionable.
 | `owner` | object | マーケットプレイスメンテナー情報（[以下のフィールドを参照](#owner-fields)） | |
 | `plugins` | array | 利用可能なプラグインのリスト | 以下を参照 |
 
-**予約名**：以下のマーケットプレイス名は Anthropic の公式使用のために予約されており、サードパーティのマーケットプレイスでは使用できません：`claude-code-marketplace`、`claude-code-plugins`、`claude-plugins-official`、`claude-plugins-community`、`claude-community`、`anthropic-marketplace`、`anthropic-plugins`、`agent-skills`、`anthropic-agent-skills`、`knowledge-work-plugins`、`life-sciences`、`claude-for-legal`、`claude-for-financial-services`、`financial-services-plugins`。公式マーケットプレイスになりすましている名前（`official-claude-plugins` や `anthropic-tools-v2` など）もブロックされています。
+**予約名**：以下のマーケットプレイス名は Anthropic の公式使用のために予約されており、サードパーティのマーケットプレイスでは使用できません：`claude-code-marketplace`、`claude-code-plugins`、`claude-plugins-official`、`claude-plugins-community`、`claude-community`、`anthropic-marketplace`、`anthropic-plugins`、`agent-skills`、`anthropic-agent-skills`、`knowledge-work-plugins`、`life-sciences`、`claude-for-legal`、`claude-for-financial-services`、`financial-services-plugins`、`first-party-plugins`、`healthcare`。公式マーケットプレイスになりすましている名前（`official-claude-plugins` や `anthropic-plugins-v2` など）もブロックされています。これらの名前を予約することで、サードパーティのマーケットプレイスが Anthropic 公開ソースとして自らを提示することを防ぎます。
+
+Claude Code は、マーケットプレイスを追加するときだけでなく、マーケットプレイスをロードするたびに予約名を再チェックします。これらの名前の 1 つの下に登録されていたマーケットプレイスが、その名前が予約されるようになると、ロードが停止し、[信頼できないソースから登録されている](/ja/errors#marketplace-is-registered-from-an-untrusted-source)ことを報告します。そのマーケットプレイスを削除し、公式 Anthropic ソースから再度追加してください。新しく予約された名前の影響を受けるサードパーティのマーケットプレイスは、別の名前の下で再度追加するとすぐにロードされます。v2.1.205 より前では、`first-party-plugins` と `healthcare` は予約されておらず、予約名の下に既に登録されているマーケットプレイスはロードされ続けていました。
 
 所有者フィールド
 

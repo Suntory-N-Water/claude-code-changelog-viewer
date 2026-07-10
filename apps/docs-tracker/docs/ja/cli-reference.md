@@ -21,7 +21,7 @@ CLI コマンド
 | `claude -c -p "query"` | SDK 経由で続行 | `claude -c -p "Check for type errors"` |
 | `claude -r "<session>" "query"` | セッション ID または名前でセッションを再開 | `claude -r "auth-refactor" "Finish this PR"` |
 | `claude update` | 最新バージョンに更新 | `claude update` |
-| `claude gateway` | 自己ホスト型 [Claude apps gateway](/ja/claude-apps-gateway) サーバーを開始します。Bedrock、Vertex AI、または Foundry 上の Claude Code の前に SSO とポリシーをデプロイする管理者向けです。`--config` で [`gateway.yaml`](/ja/claude-apps-gateway-config) を指す必要があります。Claude Code v2.1.195 以降で利用可能です。 | `claude gateway --config gateway.yaml` |
+| `claude gateway` | 自己ホスト型 [Claude apps gateway](/ja/claude-apps-gateway) サーバーを開始します。Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry 上の Claude Code の前に SSO とポリシーをデプロイする管理者向けです。`--config` で [`gateway.yaml`](/ja/claude-apps-gateway-config) を指す必要があります。Claude Code v2.1.195 以降で利用可能です。 | `claude gateway --config gateway.yaml` |
 | `claude install [version]` | ネイティブバイナリをインストールまたは再インストールします。`2.1.118` のようなバージョン、または `stable` または `latest` を受け入れます。[特定のバージョンをインストール](/ja/setup#install-a-specific-version) を参照してください | `claude install stable` |
 | `claude auth login` | Anthropic アカウントにサインインします。`--email` を使用してメールアドレスを事前入力し、`--sso` を使用して SSO 認証を強制し、`--console` を使用して Claude サブスクリプションの代わりに Anthropic Console で API 使用料金をサインインできます | `claude auth login --console` |
 | `claude auth logout` | Anthropic アカウントからログアウト | `claude auth logout` |
@@ -31,6 +31,7 @@ CLI コマンド
 | `claude auto-mode defaults` | 組み込み [auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode) 分類器ルールを JSON として出力します。`claude auto-mode config` を使用して、設定が適用された有効な設定を確認してください | `claude auto-mode defaults > rules.json` |
 | `claude daemon status` | バックグラウンドセッション [スーパーバイザー](/ja/agent-view#the-supervisor-process) の状態、バージョン、ソケットディレクトリ、および診断用のワーカー数を出力します。スーパーバイザーが実行されていない場合は 1 で終了します | `claude daemon status` |
 | `claude daemon stop --any` | バックグラウンドセッション [スーパーバイザー](/ja/agent-view#the-supervisor-process) とそれがホストするセッションを停止します。`--keep-workers` を渡して、バックグラウンドセッションを実行したままにして、次のスーパーバイザーが再接続できるようにします。`--any` はオンデマンドスーパーバイザーの停止を確認します。これはデフォルトです。これを使用して、[応答しないスーパーバイザー](/ja/agent-view#agent-view-says-the-background-service-did-not-respond) から回復します | `claude daemon stop --any --keep-workers` |
+| `claude doctor` | セッションを開始せずにターミナルから読み取り専用のインストールおよび設定診断を出力します。インストール正常性、設定ファイル検証エラー、およびリモートコントロール適格性を含みます。セッション内のセットアップチェックアップで修正を適用することもできます。[`/doctor`](/ja/commands#all-commands) を実行してください | `claude doctor` |
 | `claude logs <id>` | [バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) からの最近の出力を出力します | `claude logs 7c5dcf5d` |
 | `claude mcp` | Model Context Protocol（MCP）サーバーを設定 | [Claude Code MCP ドキュメント](/ja/mcp) を参照してください。 |
 | `claude mcp login <name>` | 設定済み MCP サーバーの OAuth フローを実行します。インタラクティブな `/mcp` パネルを開きません。HTTP、SSE、および claude.ai コネクタサーバーで機能します。SSH 経由で `--no-browser` を追加して、ブラウザを開く代わりに認可 URL を出力し、リダイレクト URL をプロンプトに貼り付けます。Claude Code v2.1.186 以降が必要です。[コマンドラインから認証](/ja/mcp#authenticate-from-the-command-line) を参照してください | `claude mcp login sentry` |
@@ -46,7 +47,7 @@ CLI コマンド
 
 サブコマンドを誤入力した場合、Claude Code は最も近い一致を提案して、セッションを開始せずに終了します。たとえば、`claude udpate` は `Did you mean claude update?` と出力します。
 
-v2.1.199 以降、`claude --dangerously-skip-permissions daemon <subcommand>` は `daemon` サブコマンドを実行します。以前のバージョンでは、`daemon <subcommand>` を新しいインタラクティブセッションのプロンプトとして扱ったため、フラグが最初に来た場合、サブコマンドは実行されませんでした。これは `claude` が フラグを含むようにエイリアスされている場合の一般的なセットアップです。先頭の `--dangerously-skip-permissions` または `--allow-dangerously-skip-permissions` のみが `daemon` にこの方法でルーティングされます。他の先頭フラグはまだインタラクティブセッションを開始します。
+v2.1.199 以降、`claude --dangerously-skip-permissions daemon <subcommand>` は `daemon` サブコマンドを実行します。以前のバージョンでは、`daemon <subcommand>` を新しいインタラクティブセッションのプロンプトとして扱ったため、フラグが最初に来た場合、サブコマンドは実行されませんでした。これは `claude` がフラグを含むようにエイリアスされている場合の一般的なセットアップです。先頭の `--dangerously-skip-permissions` または `--allow-dangerously-skip-permissions` のみが `daemon` にこの方法でルーティングされます。他の先頭フラグはまだインタラクティブセッションを開始します。
 
 CLI フラグ
 
@@ -60,6 +61,7 @@ CLI フラグ
 | `--agents` | JSON 経由でカスタム subagents を動的に定義します。subagent [frontmatter](/ja/sub-agents#supported-frontmatter-fields) と同じフィールド名を使用し、さらにエージェントの指示用の `prompt` フィールドを追加します | `claude --agents '{"reviewer":{"description":"Reviews code","prompt":"You are a code reviewer"}}'` |
 | `--allow-dangerously-skip-permissions` | `Shift+Tab` モードサイクルに `bypassPermissions` を追加します。これを開始時に有効にしません。`plan` のような別のモードで開始し、後で `bypassPermissions` に切り替えることができます。[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode) を参照してください | `claude --permission-mode plan --allow-dangerously-skip-permissions` |
 | `--allowedTools`、`--allowed-tools` | 権限を求めずに実行するツール。パターンマッチングについては [権限ルール構文](/ja/settings#permission-rule-syntax) を参照してください。利用可能なツールを制限するには、代わりに `--tools` を使用してください | `"Bash(git log *)" "Bash(git diff *)" "Read"` |
+| `--append-subagent-system-prompt` | ネストされた subagents を含むすべての [subagent](/ja/sub-agents) のシステムプロンプトの末尾にカスタムテキストを追加します。`-p` を使用した非インタラクティブモードでのみ適用されます。Claude Code v2.1.205 以降が必要です | `claude -p --append-subagent-system-prompt "Cite file paths in every answer" "query"` |
 | `--append-system-prompt` | デフォルトシステムプロンプトの末尾にカスタムテキストを追加します | `claude --append-system-prompt "Always use TypeScript"` |
 | `--append-system-prompt-file` | ファイルから追加のシステムプロンプトテキストを読み込み、デフォルトプロンプトに追加します | `claude --append-system-prompt-file ./extra-rules.txt` |
 | `--ax-screen-reader` | スクリーンリーダーフレンドリーな出力をレンダリングします：装飾的なボーダーやアニメーションなしのフラットテキスト。クラシックレンダラーを強制するため、このセッションでは [`tui`](/ja/settings#available-settings) 設定は効果がありません。[`CLAUDE_AX_SCREEN_READER`](/ja/env-vars) と [`axScreenReader`](/ja/settings#available-settings) 設定より優先されます。Claude Code v2.1.181 以降が必要です | `claude --ax-screen-reader` |
@@ -68,6 +70,7 @@ CLI フラグ
 | `--bg`、`--background` | セッションを [バックグラウンドエージェント](/ja/agent-view) として開始し、すぐに戻ります。セッション ID と管理コマンドを出力します。`--exec` と組み合わせて、Claude セッションの代わりにシェルコマンドをバックグラウンドジョブとして実行するか、`--agent` と組み合わせて特定の subagent を実行します。`-p`/`--print` と組み合わせることはできません。[エラーリファレンス](/ja/errors#command-line-errors) を参照してください | `claude --bg "investigate the flaky test"` |
 | `--channels` | （研究プレビュー）Claude がこのセッションでリッスンすべき [channel](/ja/channels) 通知を持つ MCP サーバー。`plugin:<name>@<marketplace>` エントリのスペース区切りリスト。Claude.ai 認証が必要です | `claude --channels plugin:my-notifier@my-marketplace` |
 | `--chrome` | Web 自動化とテストのための [Chrome ブラウザ統合](/ja/chrome) を有効にします | `claude --chrome` |
+| `--cloud` | 提供されたタスク説明で claude.ai に新しい [Web セッション](/ja/claude-code-on-the-web) を作成します | `claude --cloud "Fix the login bug"` |
 | `--continue`、`-c` | 現在のディレクトリで最新の会話を読み込みます。このディレクトリを `/add-dir` で追加したセッションを含みます | `claude --continue` |
 | `--dangerously-load-development-channels` | 承認されたアローリストにない [channels](/ja/channels-reference#test-during-the-research-preview) をローカル開発用に有効にします。`plugin:<name>@<marketplace>` および `server:<name>` エントリを受け入れます。確認を求めます | `claude --dangerously-load-development-channels server:webhook` |
 | `--dangerously-skip-permissions` | すべての権限プロンプトをスキップします。`--permission-mode bypassPermissions` と同等です。[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode) を参照して、これが何をスキップし、何をスキップしないかを確認してください | `claude --dangerously-skip-permissions` |
@@ -75,7 +78,7 @@ CLI フラグ
 | `--debug-file <path>` | デバッグログを特定のファイルパスに書き込みます。暗黙的にデバッグモードを有効にします。`CLAUDE_CODE_DEBUG_LOGS_DIR` より優先されます | `claude --debug-file /tmp/claude-debug.log` |
 | `--disable-slash-commands` | このセッションのすべてのスキルとコマンドを無効にします | `claude --disable-slash-commands` |
 | `--disallowedTools`、`--disallowed-tools` | 拒否ルール。ベアツール名はそのツールをモデルのコンテキストから削除します：`"Edit"` は Edit を削除し、`"*"` はすべてのツールを削除し、`"mcp__*"` はすべての MCP ツールを削除します。`Bash(rm *)` のようなスコープ付きルールはツールを利用可能なままにし、一致する呼び出しのみを拒否します | `"Bash(git log *)" "Bash(git diff *)" "Edit"` |
-| `--effort` | 現在のセッションの [努力レベル](/ja/model-config#adjust-effort-level) を設定します。オプション：`low`、`medium`、`high`、`xhigh`、`max`。利用可能なレベルはモデルによって異なります。[`effortLevel`](/ja/settings#available-settings) 設定をこのセッションでオーバーライドし、永続化されません | `claude --effort high` |
+| `--effort` | 現在のセッションの [努力レベル](/ja/model-config#adjust-effort-level) を設定します。オプション：`low`、`medium`、`high`、`xhigh`、`max`、または `ultracode`。利用可能なレベルはモデルによって異なります。`ultracode` は [ultracode](/ja/workflows#let-claude-decide-with-ultracode) をオンにして `xhigh` 努力でセッションを開始し、Claude Code v2.1.203 以降が必要です。このセッションの [`effortLevel`](/ja/settings#available-settings) 設定をオーバーライドし、永続化されません | `claude --effort high` |
 | `--enable-auto-mode` | v2.1.111 で削除されました。Auto mode は現在 `Shift+Tab` サイクルにデフォルトで含まれています。`--permission-mode auto` を使用して開始してください | `claude --permission-mode auto` |
 | `--exclude-dynamic-system-prompt-sections` | システムプロンプトからマシンごとのセクション（作業ディレクトリ、環境情報、メモリパス、git リポジトリフラグ）を最初のユーザーメッセージに移動します。異なるユーザーとマシンで同じタスクを実行する場合、prompt-cache の再利用を改善します。デフォルトシステムプロンプトにのみ適用されます。`--system-prompt` または `--system-prompt-file` が設定されている場合は無視されます。スクリプト化された複数ユーザーのワークロードの場合は `-p` と一緒に使用してください | `claude -p --exclude-dynamic-system-prompt-sections "query"` |
 | `--exec` | シェルコマンドを PTY バックアップのバックグラウンドジョブとして実行します。Claude セッションを開始する代わりに `--bg` と一緒に使用してください | `claude --bg --exec 'pytest -x'` |
@@ -88,23 +91,23 @@ CLI フラグ
 | `--include-hook-events` | すべてのフックライフサイクルイベントを出力ストリームに含めます。`--output-format stream-json` が必要です | `claude -p --output-format stream-json --verbose --include-hook-events "query"` |
 | `--include-partial-messages` | 部分的なストリーミングイベントを出力に含めます。`--print` と `--output-format stream-json` が必要です | `claude -p --output-format stream-json --verbose --include-partial-messages "query"` |
 | `--input-format` | プリントモードの入力形式を指定します（オプション：`text`、`stream-json`） | `claude -p --output-format json --input-format stream-json` |
-| `--json-schema` | エージェントがワークフローを完了した後、JSON Schema に一致する検証済み JSON 出力を取得します（プリントモードのみ。[構造化出力](/ja/agent-sdk/structured-outputs) を参照） | `claude -p --json-schema '{"type":"object","properties":{...}}' "query"` |
+| `--json-schema` | エージェントがワークフローを完了した後、JSON Schema に一致する検証済み JSON 出力を取得します（プリントモードのみ）。[構造化出力](/ja/agent-sdk/structured-outputs) を参照してください。Claude Code は無効なスキーマでエラーで終了し、`format` キーワードをクライアント側の検証なしで注釈として受け入れます。v2.1.205 より前は、無効なスキーマはエラーなしで非構造化出力を生成し、`format` を使用するスキーマは無効として扱われました | `claude -p --json-schema '{"type":"object","properties":{...}}' "query"` |
 | `--maintenance` | セッション開始前に `maintenance` マッチャーで [Setup hooks](/ja/hooks#setup) を実行します（プリントモードのみ） | `claude -p --maintenance "query"` |
 | `--max-budget-usd` | 停止する前に API 呼び出しに費やす最大ドル金額（プリントモードのみ） | `claude -p --max-budget-usd 5.00 "query"` |
-| `--max-turns` | agentic ターンの数を制限します（プリントモードのみ）。制限に達するとエラーで終了します。デフォルトでは制限なし | `claude -p --max-turns 3 "query"` |
+| `--max-turns` | agentic ターンの数を制限します（プリントモードのみ）。制限に達するとエラーで終了します。デフォルトでは制限なし。`--input-format stream-json` を使用する場合、Claude が作業中に送信されたメッセージはキューに入り、制限が現在のターンを終了するときに独自のターンとして実行されます。独自の制限があります。v2.1.205 より前は、Claude Code はそのメッセージを破棄しました | `claude -p --max-turns 3 "query"` |
 | `--mcp-config` | JSON ファイルまたは文字列から MCP サーバーを読み込みます（スペース区切り） | `claude --mcp-config ./mcp.json` |
 | `--model` | 現在のセッションのモデルを、最新モデルのエイリアス（`sonnet`、`opus`、`haiku`、または `fable`）またはモデルの完全な名前で設定します。[`model`](/ja/settings#available-settings) 設定と [`ANTHROPIC_MODEL`](/ja/model-config#environment-variables) をオーバーライドします | `claude --model claude-sonnet-5` |
 | `--name`、`-n` | セッションの表示名を設定します。`/resume` とターミナルタイトルに表示されます。`claude --resume <name>` で名前付きセッションを再開できます。[`/rename`](/ja/commands) はセッション中に名前を変更し、プロンプトバーにも表示します | `claude -n "my-feature-work"` |
 | `--no-chrome` | このセッションの [Chrome ブラウザ統合](/ja/chrome) を無効にします | `claude --no-chrome` |
 | `--no-session-persistence` | セッション永続化を無効にして、セッションがディスクに保存されず、再開できないようにします（プリントモードのみ）。[`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/ja/env-vars) 環境変数は任意のモードで同じことを行います | `claude -p --no-session-persistence "query"` |
 | `--output-format` | プリントモードの出力形式を指定します（オプション：`text`、`json`、`stream-json`） | `claude -p "query" --output-format json` |
-| `--permission-mode` | 指定された [権限モード](/ja/permission-modes) で開始します。`default`、`acceptEdits`、`plan`、`auto`、`dontAsk`、または `bypassPermissions` を受け入れます。設定ファイルの `defaultMode` をオーバーライドします | `claude --permission-mode plan` |
+| `--permission-mode` | 指定された [権限モード](/ja/permission-modes) で開始します。`default`、`acceptEdits`、`plan`、`auto`、`dontAsk`、`bypassPermissions`、または `manual` を `default` のエイリアスとして受け入れます。`manual` エイリアスは UI が Manual とラベル付けするモードを選択し、Claude Code v2.1.200 以降が必要です。`claude --help` は `default` の代わりにそれをリストし、両方の値が機能します。設定ファイルの `defaultMode` をオーバーライドします | `claude --permission-mode plan` |
 | `--permission-prompt-tool` | 非インタラクティブモードで権限プロンプトを処理する MCP ツールを指定します。v2.1.199 以降、プロンプトツールは [ユーザーインタラクションが必要](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールを承認できません：そのようなツールの `allow` 結果は拒否に変換されます | `claude -p --permission-prompt-tool mcp_auth_tool "query"` |
 | `--plugin-dir` | このセッションのみのプラグインをディレクトリまたは `.zip` アーカイブから読み込みます。各フラグは 1 つのパスを取ります。複数のプラグインの場合はフラグを繰り返します：`--plugin-dir A --plugin-dir B.zip` | `claude --plugin-dir ./my-plugin` |
 | `--plugin-url` | このセッションのみのプラグイン `.zip` アーカイブを URL から取得します。複数のプラグインの場合はフラグを繰り返すか、スペース区切りの URL を単一の引用符で囲まれた値で渡します | `claude --plugin-url https://example.com/plugin.zip` |
 | `--print`、`-p` | インタラクティブモードなしで応答を出力します（プログラムによる使用の詳細については [Agent SDK ドキュメント](/ja/agent-sdk/overview) を参照） | `claude -p "query"` |
 | `--prompt-suggestions` | 各ターンの後に、予測される次のユーザープロンプトを含む `prompt_suggestion` メッセージを発行します。`--print`、`--output-format stream-json`、および `--verbose` が必要です。[プロンプト提案](/ja/interactive-mode#prompt-suggestions) を参照してください | `claude -p --prompt-suggestions --output-format stream-json --verbose "query"` |
-| `--remote` | 提供されたタスク説明で claude.ai に新しい [Web セッション](/ja/claude-code-on-the-web) を作成します | `claude --remote "Fix the login bug"` |
+| `--remote` | `--cloud` の廃止されたエイリアス | `claude --remote "Fix the login bug"` |
 | `--remote-control`、`--rc` | [Remote Control](/ja/remote-control#start-a-remote-control-session) を有効にしてインタラクティブセッションを開始し、claude.ai または Claude アプリからも制御できるようにします。オプションでセッションの名前を渡すことができます | `claude --remote-control "My Project"` |
 | `--remote-control-session-name-prefix <prefix>` | 明示的な名前が設定されていない場合、自動生成される [Remote Control](/ja/remote-control) セッション名のプレフィックス。デフォルトはマシンのホスト名で、`myhost-graceful-unicorn` のような名前が生成されます。同じ効果を得るには `CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` を設定してください | `claude remote-control --remote-control-session-name-prefix dev-box` |
 | `--replay-user-messages` | stdin からのユーザーメッセージを stdout に再発行して確認します。`--input-format stream-json` と `--output-format stream-json` が必要です | `claude -p --input-format stream-json --output-format stream-json --verbose --replay-user-messages` |

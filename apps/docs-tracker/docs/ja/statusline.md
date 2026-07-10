@@ -949,7 +949,9 @@ echo "$dirname [$model]"
 }
 ```
 
-コマンドは、すべての表示されているサブエージェント行が stdin で単一の JSON オブジェクトとして渡される各リフレッシュティックで実行されます。入力には [基本フックフィールド](/ja/hooks#common-input-fields) に加えて、`columns`（使用可能な行幅）と `tasks` 配列が含まれます。各タスクには `id`、`name`、`type`、`status`、`description`、`label`、`startTime`、`tokenCount`、`tokenSamples`、`cwd` があります。
+コマンドは、すべての表示されているサブエージェント行が stdin で単一の JSON オブジェクトとして渡される各リフレッシュティックで実行されます。入力には [基本フックフィールド](/ja/hooks#common-input-fields)、使用可能な行幅を示す `columns` フィールド、および `tasks` 配列が含まれます。各タスクには `id`、`name`、`type`、`status`、`description`、`label`、`startTime`、`model`、`contextWindowSize`、`tokenCount`、`tokenSamples`、`cwd` があります。
+
+タスクごとの `model` フィールドは、タスクが実行される解決済みモデル ID です。`contextWindowSize` はそのモデルのコンテキストウィンドウ（トークン単位）で、メインステータスラインの `context_window.context_window_size` と同じ方法で計算されるため、`tokenCount` から行ごとのパーセンテージをレンダリングできます。両方のフィールドには Claude Code v2.1.205 以降が必要で、モデルがまだ解決されていないタスクでは省略されます。
 
 オーバーライドしたい各行に対して stdout に 1 つの JSON 行を書き込みます。形式は `{"id": "<task id>", "content": "<row body>"}` です。`content` 文字列はそのままレンダリングされます。ANSI 色と OSC 8 ハイパーリンクを含みます。タスクの `id` を省略して、その行のデフォルトレンダリングを保持します。空の `content` 文字列を出力して、その行を非表示にします。
 

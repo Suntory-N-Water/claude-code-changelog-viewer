@@ -16,7 +16,7 @@ VS Code 拡張機能は、Claude Code 用のネイティブグラフィカルイ
 インストール前に、以下があることを確認してください。
 
 - VS Code 1.98.0 以上
-- Anthropic アカウント：任意の有料 Claude サブスクリプション（Pro、Max、Team、または Enterprise）または Claude Console アカウントが機能し、API キーは不要です。拡張機能を初めて開くときに、このアカウントで[サインイン](/ja/authentication#log-in-to-claude-code)します。Amazon Bedrock や Google Vertex AI などのサードパーティプロバイダーを通じて Claude にアクセスする場合は、セットアップ手順について[サードパーティプロバイダーを使用する](#use-third-party-providers)を参照してください。
+- Anthropic アカウント：任意の有料 Claude サブスクリプション（Pro、Max、Team、または Enterprise）または Claude Console アカウントが機能し、API キーは不要です。拡張機能を初めて開くときに、このアカウントで[サインイン](/ja/authentication#log-in-to-claude-code)します。Amazon Bedrock や Google Cloud の Agent Platform などのサードパーティプロバイダーを通じて Claude にアクセスする場合は、セットアップ手順について[サードパーティプロバイダーを使用する](#use-third-party-providers)を参照してください。
 
 拡張機能には、チャットパネル用の CLI（コマンドラインインターフェース）の独自コピーが含まれています。VS Code の統合ターミナルで `claude` を実行するには、[スタンドアロン CLI インストール](/ja/setup)も必要です。詳細については、[VS Code 拡張機能と Claude Code CLI](#vs-code-extension-vs-claude-code-cli)を参照してください。
 
@@ -73,11 +73,15 @@ Claude Code でできることについてのアイデアについては、[一�
 
 プロンプトボックスは複数の機能をサポートしています。
 
-- **許可モード**：プロンプトボックスの下部のモード指示器をクリックしてモードを切り替えます。通常モードでは、Claude は各アクション前に許可を求めます。Plan モードでは、Claude は実行内容を説明し、変更を加える前に承認を待ちます。VS Code は自動的にプランをフルマークダウンドキュメントとして開き、Claude が開始する前にフィードバックを提供するためのインラインコメントを追加できます。自動受け入れモードでは、Claude は許可を求めずに編集を行います。VS Code 設定の `claudeCode.initialPermissionMode` でデフォルトを設定します。
+- **権限モード**：プロンプトボックスの下部のモード指示器をクリックしてモードを切り替えるか、VS Code 設定の `claudeCode.initialPermissionMode` でデフォルトを設定します。指示器が提供するすべてのモードについては、[権限モード](/ja/permission-modes#switch-permission-modes)を参照してください。
+  - **Manual**：Claude は各アクション前に許可を求めます。
+  - **Plan**：Claude は実行内容を説明し、変更を加える前に承認を待ちます。VS Code は自動的にプランをフル Markdown ドキュメントとして開き、Claude が開始する前にフィードバックを提供するためのインラインコメントを追加できます。
+  - **Edit automatically**：Claude は許可を求めずに編集を行います。
 - **コマンドメニュー**：`/` をクリックするか `/` と入力してコマンドメニューを開きます。オプションには、ファイルの添付、モデルの切り替え、拡張思考の切り替え、プラン使用状況の表示（`/usage`）、および [Remote Control](/ja/remote-control) セッションの開始（`/remote-control`）が含まれます。カスタマイズセクションは、MCP サーバー、hooks、メモリ、権限、プラグインへのアクセスを提供します。ターミナルアイコン付きのアイテムは統合ターミナルで開きます。
+  - 設定セクションには **Enable Remote Control for all sessions** が含まれており、これは [`remoteControlAtStartup`](/ja/settings#available-settings) を設定して、[すべての新しいインタラクティブセッションが Remote Control に自動的に接続](/ja/remote-control#enable-remote-control-for-all-sessions)されるようにします。Claude Code v2.1.203 以降が必要です。
 - **コンテキスト指示器**：プロンプトボックスは、Claude のコンテキストウィンドウをどの程度使用しているかを表示します。Claude は必要に応じて自動的にコンパクト化するか、`/compact` を手動で実行できます。
 - **拡張思考**：Claude が複雑な問題を推論するためにより多くの時間を費やすことができます。コマンドメニュー（`/`）を使用してオンに切り替えます。Claude の推論は会話に折りたたまれたブロックとして表示されます。ブロックをクリックして読むか、`Ctrl+O` を押してセッション内のすべての思考ブロックを展開または折りたたみます。詳細については、[拡張思考](/ja/model-config#extended-thinking)を参照してください。
-- **複数行入力**：`Shift+Enter` を押して送信せずに新しい行を追加します。これは質問ダイアログの'その他'フリーテキスト入力でも機能します。
+- **複数行入力**：`Shift+Enter` を押して送信せずに新しい行を追加します。これは質問ダイアログの「その他」フリーテキスト入力でも機能します。
 
 ファイルとフォルダを参照する
 
@@ -271,7 +275,7 @@ vscode://anthropic.claude-code/open?prompt=review%20my%20changes
 | 設定 | デフォルト | 説明 |
 | - | - | - |
 | `useTerminal` | `false` | グラフィカルパネルの代わりにターミナルモードで Claude を起動します。 |
-| `initialPermissionMode` | `default` | 新しい会話の承認プロンプトを制御します。`default`、`plan`、`acceptEdits`、または `bypassPermissions`。[permission modes](/ja/permission-modes) を参照してください。 |
+| `initialPermissionMode` | `default` | 新しい会話の承認プロンプトを制御します。`default`、`plan`、`acceptEdits`、または `bypassPermissions`。`manual` は `default` のエイリアスであり、モード表示器で **Manual** というラベルが付いたモードを選択します。Claude Code v2.1.200 以降が必要です。[permission modes](/ja/permission-modes) を参照してください。 |
 | `preferredLocation` | `panel` | Claude が開く場所：`sidebar`（右）または `panel`（新しいタブ） |
 | `autosave` | `true` | Claude が読み取りまたは書き込みする前にファイルを自動保存します。 |
 | `useCtrlEnterToSend` | `false` | Enter の代わりに Ctrl/Cmd+Enter を使用してプロンプトを送信します。 |
@@ -370,7 +374,7 @@ claude --worktree feature-auth
 
 サードパーティプロバイダーを使用する
 
-デフォルトでは、Claude Code は Anthropic の API に直接接続します。組織が Amazon Bedrock、Google Vertex AI、または Microsoft Foundry を使用して Claude にアクセスする場合は、代わりにプロバイダーを使用するように拡張機能を設定します。
+デフォルトでは、Claude Code は Anthropic の API に直接接続します。組織が Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry を使用して Claude にアクセスする場合は、代わりにプロバイダーを使用するように拡張機能を設定してください。
 
 [Disable Login Prompt 設定](vscode://settings/claudeCode.disableLoginPrompt)を開いてボックスをチェックします。
 
@@ -379,7 +383,7 @@ VS Code 設定（Mac で `Cmd+,` または Windows/Linux で `Ctrl+,`）を開�
 プロバイダーのセットアップガイドに従います。
 
 - [Claude Code on Amazon Bedrock](/ja/amazon-bedrock)
-- [Claude Code on Google Vertex AI](/ja/google-vertex-ai)
+- [Claude Code on Google Cloud's Agent Platform](/ja/google-vertex-ai)
 - [Claude Code on Microsoft Foundry](/ja/microsoft-foundry)
 
 これらのガイドは、`~/.claude/settings.json` でプロバイダーを設定することをカバーしており、VS Code 拡張機能と CLI 間で設定が共有されることを保証します。

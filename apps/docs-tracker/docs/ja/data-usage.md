@@ -18,7 +18,7 @@ source: https://code.claude.com/docs/ja/data-usage.md
 
 Development Partner Program
 
-[Development Partner Program](https://support.claude.com/ja/articles/11174108-about-the-development-partner-program) などを通じて、トレーニング用の資料を提供する方法に明示的にオプトインした場合、提供された資料を使用してモデルをトレーニングする可能性があります。組織管理者は、組織の Development Partner Program に明示的にオプトインできます。このプログラムは Anthropic ファーストパーティ API でのみ利用可能であり、Bedrock または Vertex ユーザーは利用できないことに注意してください。
+[Development Partner Program](https://support.claude.com/ja/articles/11174108-about-the-development-partner-program) などを通じて、トレーニング用の資料を提供する方法に明示的にオプトインした場合、提供された資料を使用してモデルをトレーニングする可能性があります。組織管理者は、組織の Development Partner Program に明示的にオプトインできます。このプログラムは Anthropic ファーストパーティ API でのみ利用可能であり、Amazon Bedrock または Google Cloud の Agent Platform ユーザーは利用できないことに注意してください。
 
 `/feedback` コマンドを使用したフィードバック
 
@@ -30,7 +30,7 @@ Claude Code で「How is Claude doing this session?」プロンプトが表示�
 
 数値評価プロンプトの後、「Can Anthropic look at your session transcript to help us improve Claude Code?」と尋ねる別の追加フォローアップが表示される場合があります。これは数値評価とは異なるオプションの 2 番目のステップです。
 
-- **Yes**：会話トランスクリプト、サブエージェントトランスクリプト、ディスクからの生のセッションログファイルを Anthropic にアップロードします。既知の API キーとトークンパターンはアップロード前に削除されます。ソースコード、ファイルコンテンツ、およびその他の会話コンテンツはそのままアップロードされます。共有されたトランスクリプトは最大 6 ヶ月間保持されます。Bedrock、Vertex AI、Foundry、およびサインイン済みの [Claude apps gateway](/ja/claude-apps-gateway) セッションでは、Yes は同じペイロードを `~/.claude/feedback-bundles/` の下のローカルアーカイブに書き込みます。アップロードの代わりに、ファイルを転送するまで何もマシンから出ません。
+- **Yes**：会話トランスクリプト、サブエージェントトランスクリプト、ディスクからの生のセッションログファイルを Anthropic にアップロードします。既知の API キーとトークンパターンはアップロード前に削除されます。ソースコード、ファイルコンテンツ、およびその他の会話コンテンツはそのままアップロードされます。共有されたトランスクリプトは最大 6 ヶ月間保持されます。Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、およびサインイン済みの [Claude apps gateway](/ja/claude-apps-gateway) セッションでは、Yes は同じペイロードを `~/.claude/feedback-bundles/` の下のローカルアーカイブに書き込みます。アップロードの代わりに、ファイルを転送するまで何もマシンから出ません。
 - **No**：何も送信せずに拒否します
 - **Don't ask again**：拒否し、今後のセッションでこのフォローアップが表示されなくなります
 
@@ -76,7 +76,7 @@ Claude Code はローカルで実行されます。LLM と対話するために�
 | - | - |
 | Anthropic API | インフラストラクチャレベルのディスク暗号化（AES-256）。サーバー側の永続化がない場合は [Zero Data Retention](/ja/zero-data-retention) を有効にしてください。 |
 | Amazon Bedrock | AWS 管理キーを使用した AES-256。AWS KMS を通じてカスタマー管理キーが利用可能です。 |
-| Google Cloud Vertex AI | Google 管理の暗号化キー。CMEK が利用可能です。 |
+| Google Cloud's Agent Platform | Google 管理の暗号化キー。CMEK が利用可能です。 |
 | Microsoft Foundry | リクエストは AES-256 ディスク暗号化を備えた Anthropic インフラストラクチャにルーティングされます。 |
 
 Claude Code は Anthropic の API 上に構築されています。API のセキュリティ制御（API ロギング手順を含む）の詳細については、[Anthropic Trust Center](https://trust.anthropic.com) のコンプライアンスアーティファクトを参照してください。
@@ -100,13 +100,13 @@ Claude Code はユーザーのマシンから Sentry に接続して、運用エ
 
 `/feedback` コマンドを実行すると、コードを含む会話履歴のコピーが Anthropic に送信されます。送信前に、含める履歴の量を選択できます。デフォルトは現在のセッションのみですが、同じプロジェクトの過去 24 時間または 7 日間の他のセッションも含めることができます。データは TLS 経由で転送中に暗号化され、Google Cloud Storage に保存されます。Google Cloud Storage はデフォルトで保存時のデータを暗号化します。オプションで、公開リポジトリに GitHub イシューが作成されます。オプトアウトするには、`DISABLE_FEEDBACK_COMMAND` 環境変数を `1` に設定します。
 
-Bedrock や Vertex などのサードパーティプロバイダーを使用している場合、または Anthropic 認証情報が設定されていない場合、`/feedback` はレポートを Anthropic に送信する代わりに、`~/.claude/feedback-bundles/` の下のローカルアーカイブに書き込みます。既知の API キーおよびトークンパターンは、アーカイブが書き込まれる前に削除されます。Anthropic アカウント担当者にファイルを送信するか、サポートリクエストに添付するまで、何もマシンから出ません。
+Amazon Bedrock や Google Cloud の Agent Platform などのサードパーティプロバイダーを使用している場合、または Anthropic 認証情報が設定されていない場合、`/feedback` はレポートを Anthropic に送信する代わりに、`~/.claude/feedback-bundles/` の下のローカルアーカイブに書き込みます。既知の API キーおよびトークンパターンは、アーカイブが書き込まれる前に削除されます。Anthropic アカウント担当者にファイルを送信するか、サポートリクエストに添付するまで、何もマシンから出ません。
 
 API プロバイダーのデフォルト動作
 
-デフォルトでは、Bedrock、Vertex、Foundry、または Claude Platform on AWS を使用する場合、エラーレポート、テレメトリ、およびバグレポートは無効になります。セッション品質調査と WebFetch ドメインセーフティチェックは例外であり、プロバイダーに関係なく実行されます。署名済みの [Claude apps gateway](/ja/claude-apps-gateway) セッションでは、Anthropic への使用分析、エラーレポート、および調査評価はゲートウェイ認証情報自体によって無効になり、それらを再度有効にする設定はありません。`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` を設定することで、調査を含むすべての非必須トラフィックをオプトアウトできます。この変数は WebFetch チェックに影響を与えません。WebFetch チェックには独自のオプトアウトがあります。以下は完全なデフォルト動作です：
+デフォルトでは、Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、または Claude Platform on AWS を使用する場合、エラーレポート、テレメトリ、およびバグレポートは無効になります。セッション品質調査と WebFetch ドメインセーフティチェックは例外であり、プロバイダーに関係なく実行されます。署名済みの [Claude apps gateway](/ja/claude-apps-gateway) セッションでは、Anthropic への使用分析、エラーレポート、および調査評価はゲートウェイ認証情報自体によって無効になり、それらを再度有効にする設定はありません。`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` を設定することで、調査を含むすべての非必須トラフィックをオプトアウトできます。この変数は WebFetch チェックに影響を与えません。WebFetch チェックには独自のオプトアウトがあります。以下は完全なデフォルト動作です：
 
-| サービス | Claude API | Vertex API | Bedrock API | Foundry API | Claude Platform on AWS |
+| サービス | Claude API | Google Cloud の Agent Platform API | Amazon Bedrock API | Microsoft Foundry API | Claude Platform on AWS |
 | - | - | - | - | - | - |
 | **Anthropic（メトリクス）** | デフォルトオン。`DISABLE_TELEMETRY=1` で無効にします。 | デフォルトオフ。`CLAUDE_CODE_USE_VERTEX` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_BEDROCK` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_FOUNDRY` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_ANTHROPIC_AWS` は 1 である必要があります。 |
 | **Sentry（エラー）** | デフォルトオン。`DISABLE_ERROR_REPORTING=1` で無効にします。 | デフォルトオフ。`CLAUDE_CODE_USE_VERTEX` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_BEDROCK` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_FOUNDRY` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_ANTHROPIC_AWS` は 1 である必要があります。 |
@@ -116,7 +116,7 @@ API プロバイダーのデフォルト動作
 
 すべての環境変数は `settings.json` にチェックインできます（[settings reference](/ja/settings) を参照）。
 
-v2.1.126 以降、ホストプラットフォームが `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` を設定する場合、メトリクスは Vertex、Bedrock、および Foundry でデフォルトでオンになり、標準の `DISABLE_TELEMETRY` オプトアウトに従います。Sentry エラーレポートと `/feedback` レポートは、これらのプロバイダーではデフォルトでオフのままです。
+v2.1.126 以降、ホストプラットフォームが `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` を設定する場合、メトリクスは Google Cloud の Agent Platform、Amazon Bedrock、および Microsoft Foundry でデフォルトでオンになり、標準の `DISABLE_TELEMETRY` オプトアウトに従います。Sentry エラーレポートと `/feedback` レポートは、これらのプロバイダーではデフォルトでオフのままです。
 
 WebFetch ドメインセーフティチェック
 

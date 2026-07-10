@@ -98,7 +98,7 @@ Microsoft Foundry で Claude Code を構成する前に、以下を確認して�
   2) Azure 認証情報を構成する
 </h3>
 
-Claude Code は Microsoft Foundry の 2 つの認証方法をサポートしています。セキュリティ要件に最適な方法を選択してください。
+Claude Code は Microsoft Foundry の 3 つの認証方法をサポートしています。セキュリティ要件に最適な方法を選択してください。
 
 **オプション A：API キー認証**
 
@@ -113,7 +113,7 @@ export ANTHROPIC_FOUNDRY_API_KEY=your-azure-api-key
 
 **オプション B：Microsoft Entra ID 認証**
 
-`ANTHROPIC_FOUNDRY_API_KEY` が設定されていない場合、Claude Code は Azure SDK [デフォルト認証情報チェーン](https://learn.microsoft.com/en-us/azure/developer/javascript/sdk/authentication/credential-chains#defaultazurecredential-overview)を自動的に使用します。
+`ANTHROPIC_FOUNDRY_API_KEY` も `ANTHROPIC_FOUNDRY_AUTH_TOKEN` も設定されていない場合、Claude Code は Azure SDK [デフォルト認証情報チェーン](https://learn.microsoft.com/en-us/azure/developer/javascript/sdk/authentication/credential-chains#defaultazurecredential-overview)を自動的に使用します。
 これは、ローカルおよびリモートワークロードを認証するためのさまざまな方法をサポートしています。
 
 ローカル環境では、一般的に Azure CLI を使用できます：
@@ -121,6 +121,18 @@ export ANTHROPIC_FOUNDRY_API_KEY=your-azure-api-key
 ```bash
 az login
 ```
+
+**オプション C：ベアラートークン認証**
+
+{/* min-version: 2.1.203 */}Claude Code は、すべてのリクエストで `ANTHROPIC_FOUNDRY_AUTH_TOKEN` の値を `Authorization: Bearer` ヘッダーとして送信します。ホストアプリケーションやサインインスクリプトなど、別のプロセスがすでにアクセストークンを取得している場合に、このオプションを使用します。Claude Code v2.1.203 以降が必要です。
+
+変数を、Microsoft Entra ID がリソース用に発行したベアラートークンに設定します：
+
+```bash
+export ANTHROPIC_FOUNDRY_AUTH_TOKEN=your-entra-access-token
+```
+
+`ANTHROPIC_FOUNDRY_AUTH_TOKEN` は `ANTHROPIC_FOUNDRY_API_KEY` およびデフォルト認証情報チェーンより優先されます。
 
 <Note>
   Microsoft Foundry を使用する場合、認証が Azure 認証情報を通じて処理されるため、`/logout` コマンドは利用できません。
@@ -180,7 +192,7 @@ export ENABLE_PROMPT_CACHING_1H=1
 claude
 ```
 
-Claude Code は環境から `CLAUDE_CODE_USE_FOUNDRY` およびその他の Foundry 変数を読み込み、最初のプロンプトで Azure リソースに接続します。Bedrock および Vertex AI とは異なり、Foundry には対話型セットアップウィザードがないため、ステップ 3 およびステップ 4 の環境変数が唯一の構成パスです。
+Claude Code は環境から `CLAUDE_CODE_USE_FOUNDRY` およびその他の Foundry 変数を読み込み、最初のプロンプトで Azure リソースに接続します。Amazon Bedrock および Google Cloud の Agent Platform とは異なり、Foundry には対話型セットアップウィザードがないため、ステップ 3 およびステップ 4 の環境変数が唯一の構成パスです。
 
 <h2 id="azure-rbac-configuration">
   Azure RBAC 構成

@@ -87,7 +87,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
       <th>Anthropic Console</th>
       <th>Amazon Bedrock</th>
       <th>Claude Platform on AWS</th>
-      <th>Google Vertex AI</th>
+      <th>Google Cloud の Agent Platform（旧 Vertex AI）</th>
       <th>Microsoft Foundry</th>
     </tr>
   </thead>
@@ -181,10 +181,10 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 
 * [Claude for Teams または Enterprise](/ja/authentication#claude-for-teams-or-enterprise)
 * [Anthropic Console](/ja/authentication#claude-console-authentication)
-* [Claude apps gateway](/ja/claude-apps-gateway)、Amazon Bedrock、Google Vertex AI、Microsoft Foundry、または Anthropic API の前に IdP サインインを追加するセルフホスト型ゲートウェイ
+* [Claude apps gateway](/ja/claude-apps-gateway)、Amazon Bedrock、Claude Platform on AWS、Google Cloud の Agent Platform、Microsoft Foundry、または Anthropic API の前に IdP サインインを追加するセルフホスト型ゲートウェイ
 * [Amazon Bedrock](/ja/amazon-bedrock)
 * [Claude Platform on AWS](/ja/claude-platform-on-aws)
-* [Google Vertex AI](/ja/google-vertex-ai)
+* [Google Cloud の Agent Platform](/ja/google-vertex-ai)
 * [Microsoft Foundry](/ja/microsoft-foundry)
 
 <h2 id="configure-proxies-and-gateways">
@@ -204,7 +204,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 
 <Tabs>
   <Tab title="企業プロキシ">
-    以下の[環境変数](/ja/env-vars)を設定して、Bedrock トラフィックを企業プロキシを通じてルーティングします。
+    以下の[環境変数](/ja/env-vars)を設定して、Amazon Bedrock トラフィックを企業プロキシを通じてルーティングします。
 
     ```bash theme={null}
     # Bedrock を有効化
@@ -217,7 +217,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
   </Tab>
 
   <Tab title="LLM ゲートウェイ">
-    以下の[環境変数](/ja/env-vars)を設定して、Bedrock トラフィックを LLM ゲートウェイを通じてルーティングします。
+    以下の[環境変数](/ja/env-vars)を設定して、Amazon Bedrock トラフィックを LLM ゲートウェイを通じてルーティングします。
 
     ```bash theme={null}
     # Bedrock を有効化
@@ -236,7 +236,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 
 <Tabs>
   <Tab title="企業プロキシ">
-    以下の[環境変数](/ja/env-vars)を設定して、Foundry トラフィックを企業プロキシを通じてルーティングします。
+    以下の[環境変数](/ja/env-vars)を設定して、Microsoft Foundry トラフィックを企業プロキシを通じてルーティングします。
 
     ```bash theme={null}
     # Microsoft Foundry を有効化
@@ -250,7 +250,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
   </Tab>
 
   <Tab title="LLM ゲートウェイ">
-    以下の[環境変数](/ja/env-vars)を設定して、Foundry トラフィックを LLM ゲートウェイを通じてルーティングします。
+    以下の[環境変数](/ja/env-vars)を設定して、Microsoft Foundry トラフィックを LLM ゲートウェイを通じてルーティングします。
 
     ```bash theme={null}
     # Microsoft Foundry を有効化
@@ -263,16 +263,16 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
   </Tab>
 </Tabs>
 
-<h3 id="google-vertex-ai">
-  Google Vertex AI
+<h3 id="google-cloud’s-agent-platform">
+  Google Cloud の Agent Platform
 </h3>
 
 <Tabs>
   <Tab title="企業プロキシ">
-    以下の[環境変数](/ja/env-vars)を設定して、Vertex AI トラフィックを企業プロキシを通じてルーティングします。
+    以下の[環境変数](/ja/env-vars)を設定して、Google Cloud の Agent Platform トラフィックを企業プロキシを通じてルーティングします。
 
     ```bash theme={null}
-    # Vertex を有効化
+    # Agent Platform を有効化
     export CLAUDE_CODE_USE_VERTEX=1
     export CLOUD_ML_REGION=us-east5
     export ANTHROPIC_VERTEX_PROJECT_ID=your-project-id
@@ -283,10 +283,10 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
   </Tab>
 
   <Tab title="LLM ゲートウェイ">
-    以下の[環境変数](/ja/env-vars)を設定して、Vertex AI トラフィックを LLM ゲートウェイを通じてルーティングします。
+    以下の[環境変数](/ja/env-vars)を設定して、Google Cloud の Agent Platform トラフィックを LLM ゲートウェイを通じてルーティングします。
 
     ```bash theme={null}
-    # Vertex を有効化
+    # Agent Platform を有効化
     export CLAUDE_CODE_USE_VERTEX=1
 
     # LLM ゲートウェイを構成
@@ -333,7 +333,7 @@ Claude Code がコードベースを理解できるようにドキュメント�
   クラウドプロバイダーのモデルバージョンをピン留めする
 </h3>
 
-[Bedrock](/ja/amazon-bedrock)、[Vertex AI](/ja/google-vertex-ai)、[Foundry](/ja/microsoft-foundry)、または [Claude Platform on AWS](/ja/claude-platform-on-aws) を通じてデプロイする場合は、`ANTHROPIC_DEFAULT_FABLE_MODEL`、`ANTHROPIC_DEFAULT_OPUS_MODEL`、`ANTHROPIC_DEFAULT_SONNET_MODEL`、および `ANTHROPIC_DEFAULT_HAIKU_MODEL` を使用して特定のモデルバージョンをピン留めします。ピン留めしない場合、モデルエイリアスは Claude Code のそのプロバイダーの組み込みデフォルトに解決され、最新リリースより遅れる可能性があり、アカウントでまだ有効になっていない可能性があります。ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。各プロバイダーがデフォルトが利用できない場合に何を行うかについては、[モデル構成](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
+[Amazon Bedrock](/ja/amazon-bedrock)、[Google Cloud の Agent Platform](/ja/google-vertex-ai)、[Microsoft Foundry](/ja/microsoft-foundry)、または [Claude Platform on AWS](/ja/claude-platform-on-aws) を通じてデプロイする場合は、`ANTHROPIC_DEFAULT_FABLE_MODEL`、`ANTHROPIC_DEFAULT_OPUS_MODEL`、`ANTHROPIC_DEFAULT_SONNET_MODEL`、および `ANTHROPIC_DEFAULT_HAIKU_MODEL` を使用して特定のモデルバージョンをピン留めします。ピン留めしない場合、モデルエイリアスは Claude Code のそのプロバイダーの組み込みデフォルトに解決され、最新リリースより遅れる可能性があり、アカウントでまだ有効になっていない可能性があります。ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。各プロバイダーがデフォルトが利用できない場合に何を行うかについては、[モデル構成](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
 
 <h3 id="configure-security-policies">
   セキュリティポリシーを構成する

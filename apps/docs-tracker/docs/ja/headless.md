@@ -53,7 +53,7 @@ claude --bare -p "Summarize this file" --allowedTools "Read"
 | カスタムエージェント | `--agents <json>` |
 | プラグイン | `--plugin-dir <path>`、`--plugin-url <url>` |
 
-ベアモードは OAuth とキーチェーン読み取りをスキップします。Anthropic 認証は `ANTHROPIC_API_KEY` または `--settings` に渡される JSON の `apiKeyHelper` から取得する必要があります。Bedrock、Vertex、および Foundry は通常のプロバイダー認証情報を使用します。
+ベアモードは OAuth とキーチェーン読み取りをスキップします。Anthropic 認証は `ANTHROPIC_API_KEY` または `--settings` に渡される JSON の `apiKeyHelper` から取得する必要があります。Amazon Bedrock、Google Cloud の Agent Platform、および Microsoft Foundry は通常のプロバイダー認証情報を使用します。
 
 `--bare` はスクリプトおよび SDK 呼び出しの推奨モードであり、将来のリリースで `-p` のデフォルトになります。
 
@@ -119,6 +119,8 @@ claude -p "Extract the main function names from auth.py" \
   --json-schema '{"type":"object","properties":{"functions":{"type":"array","items":{"type":"string"}}},"required":["functions"]}'
 ```
 
+値が有効な JSON Schema でない場合、`claude` は `Error: --json-schema is not a valid JSON Schema` で終了し、その後にバリデータの診断が続きます。Claude Code は `format` キーワード（例：`"format": "email"`）を使用するスキーマを受け入れますが、`format` を注釈として扱い、強制しません。v2.1.205 より前では、Claude Code は無効なスキーマを黙って無視し、構造化されていないテキストを返し、`format` を含むスキーマを無効として扱いました。
+
 [jq](https://jqlang.github.io/jq/) などのツールを使用して応答を解析し、特定のフィールドを抽出します。
 
 ```bash theme={null}
@@ -161,7 +163,11 @@ API リクエストが再試行可能なエラーで失敗すると、Claude Cod
 | `uuid` | 文字列 | 一意のイベント識別子 |
 | `session_id` | 文字列 | イベントが属するセッション |
 
-`system/init` イベントは、モデル、ツール、MCP サーバー、および読み込まれたプラグインを含むセッションメタデータを報告します。[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/ja/env-vars) が設定されていない限り、ストリームの最初のイベントです。その場合、`plugin_install` イベントがそれより前にあります。プラグインフィールドを使用して、プラグインが読み込まれなかった場合に CI を失敗させます。
+`system/init` イベントは、モデル、ツール、MCP サーバー、および読み込まれたプラグインを含むセッションメタデータを報告します。[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/ja/env-vars) が設定されていない限り、ストリームの最初のイベントです。その場合、`plugin_install` イベントがそれより前にあります。
+
+イベントは、このバージョンの Claude Code が実装するプロトコル動作（例：`interrupt_receipt_v1`）の名前を付けるオプションの `capabilities` 文字列配列も含みます。バージョン文字列を比較する代わりに、機能検出に使用し、認識しない値は無視してください。このフィールドは Claude Code v2.1.205 以降が必要であり、以前のバージョンでは存在しません。機能リストについては、[`SDKSystemMessage`](/ja/agent-sdk/typescript#sdksystemmessage) を参照してください。
+
+プラグインフィールドを使用して、プラグインが読み込まれなかった場合に CI を失敗させます。
 
 | フィールド | 型 | 説明 |
 | - | - | - |
@@ -208,7 +214,7 @@ claude -p "Look at my staged changes and create an appropriate commit" \
 
 `--allowedTools` フラグは [パーミッションルール構文](/ja/settings#permission-rule-syntax) を使用します。末尾の ` *` はプレフィックスマッチングを有効にするため、`Bash(git diff *)` は `git diff` で始まるすべてのコマンドを許可します。スペースは重要です。スペースがない場合、`Bash(git diff*)` は `git diff-index` にも一致します。
 
-ユーザーが呼び出した [skills](/ja/skills) およびカスタムコマンドは `-p` モードで機能します。プロンプト文字列に `/skill-name` を含めると、Claude Code は実行前にそれを展開します。`/login` などの対話ダイアログを開く組み込みコマンドは、`-p` モードでは利用できません。`-p` 呼び出しから設定を変更するには、`/config` に `key=value` を渡します。例えば `/config thinking=false` です。
+ユーザーが呼び出した [skills](/ja/skills) およびカスタムコマンドは `-p` モードで機能します。プロンプト文字列に `/skill-name` を含めると、Claude Code は実行前にそれを展開します。`/login` などの対話ダイアログを開く組み込みコマンドは、`-p` モードでは利用できません。`/model`、`/effort`、`/fast`、`/color`、および `/rename` は値を引数として受け入れます。例えば `/model sonnet` のように、`/mcp` は引数なしでサーバーステータスのテキスト概要を出力します。これらの形式は Claude Code v2.1.205 以降が必要であり、各コマンドの [利用可能性に関する注記](/ja/commands#all-commands) に従います。`-p` 呼び出しから設定を変更するには、`/config` に `key=value` を渡します。例えば `/config thinking=false` です。
 
 システムプロンプトをカスタマイズする
 

@@ -3,9 +3,9 @@ title: google-vertex-ai
 source: https://code.claude.com/docs/ja/google-vertex-ai.md
 ---
 
-# Google Vertex AI 上の Claude Code
+# Google Cloud の Agent Platform 上の Claude Code
 
-> Google Vertex AI を通じた Claude Code の設定方法について学びます。セットアップ、IAM 設定、トラブルシューティングを含みます。
+> Google Cloud の Agent Platform（旧 Vertex AI）を通じた Claude Code の設定方法について学びます。セットアップ、IAM 設定、トラブルシューティングを含みます。
 
 .dark .cc-cs {
   --cs-slate: #f0eee6;
@@ -67,33 +67,33 @@ source: https://code.claude.com/docs/ja/google-vertex-ai.md
   前提条件
 </h2>
 
-Claude Code を Vertex AI で設定する前に、以下を確認してください。
+Claude Code を Google Cloud の Agent Platform（旧 Vertex AI）で設定する前に、以下を確認してください。
 
 * 請求が有効になっている Google Cloud Platform（GCP）アカウント
-* Vertex AI API が有効になっている GCP プロジェクト
+* Google Cloud の Agent Platform API が有効になっている GCP プロジェクト
 * 目的の Claude モデルへのアクセス（例：Claude Sonnet 4.6）
 * Google Cloud SDK（`gcloud`）がインストールされ、設定されていること
 * 目的の GCP リージョンに割り当てられたクォータ
 
-Vertex AI 認証情報でサインインするには、以下の[Vertex AI でサインイン](#sign-in-with-vertex-ai)に従ってください。チーム全体に Claude Code をデプロイするには、[手動セットアップ](#set-up-manually)の手順を使用し、ロールアウト前に[モデルバージョンをピン留めして](#5-pin-model-versions)ください。
+Google Cloud の Agent Platform 認証情報でサインインするには、以下の[Agent Platform でサインイン](#sign-in-with-agent-platform)に従ってください。チーム全体に Claude Code をデプロイするには、[手動セットアップ](#set-up-manually)の手順を使用し、ロールアウト前に[モデルバージョンをピン留めして](#5-pin-model-versions)ください。
 
-<h2 id="sign-in-with-vertex-ai">
-  Vertex AI でサインイン
+<h2 id="sign-in-with-agent-platform">
+  Agent Platform でサインイン
 </h2>
 
-Google Cloud 認証情報を持っていて、Vertex AI を通じて Claude Code の使用を開始したい場合、ログインウィザードがそれをガイドします。GCP 側の前提条件はプロジェクトごとに 1 回完了します。ウィザードが Claude Code 側を処理します。
+Google Cloud 認証情報を持っていて、Google Cloud の Agent Platform を通じて Claude Code の使用を開始したい場合、ログインウィザードがそれをガイドします。GCP 側の前提条件はプロジェクトごとに 1 回完了します。ウィザードが Claude Code 側を処理します。
 
 <Note>
-  Vertex AI セットアップウィザードには Claude Code v2.1.98 以降が必要です。`claude --version` を実行して確認してください。
+  Google Cloud の Agent Platform セットアップウィザードには Claude Code v2.1.98 以降が必要です。`claude --version` を実行して確認してください。
 </Note>
 
 <Steps>
   <Step title="GCP プロジェクトで Claude モデルを有効にする">
-    プロジェクトの[Vertex AI API を有効にして](#1-enable-vertex-ai-api)、[Vertex AI Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)で必要な Claude モデルへのアクセスをリクエストしてください。アカウントに必要な権限については、[IAM 設定](#iam-configuration)を参照してください。
+    プロジェクトの[Google Cloud の Agent Platform API を有効にして](#1-enable-agent-platform-api)、[Google Cloud の Agent Platform Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)で必要な Claude モデルへのアクセスをリクエストしてください。アカウントに必要な権限については、[IAM 設定](#iam-configuration)を参照してください。
   </Step>
 
-  <Step title="Claude Code を起動して Vertex AI を選択する">
-    `claude` を実行します。ログインプロンプトで、**3rd-party platform**、次に **Google Vertex AI** を選択します。
+  <Step title="Claude Code を起動して Google Cloud の Agent Platform を選択する">
+    `claude` を実行します。ログインプロンプトで、**3rd-party platform**、次に **Google Vertex AI** を選択します。これはログインプロンプトが Google Cloud の Agent Platform に対して使用しているラベルです。
   </Step>
 
   <Step title="ウィザードプロンプトに従う">
@@ -107,29 +107,29 @@ Google Cloud 認証情報を持っていて、Vertex AI を通じて Claude Code
   リージョン設定
 </h2>
 
-Claude Code は Vertex AI の[グローバル](https://cloud.google.com/blog/products/ai-machine-learning/global-endpoint-for-claude-models-generally-available-on-vertex-ai)、マルチリージョン、および地域別エンドポイントをサポートしています。`CLOUD_ML_REGION` を `global`、`eu` または `us` などのマルチリージョンロケーション、または `us-east5` などの特定のリージョンに設定します。Claude Code は各フォームの正しい Vertex AI ホスト名を選択します。これには、マルチリージョンロケーション用の `aiplatform.eu.rep.googleapis.com` および `aiplatform.us.rep.googleapis.com` ホストが含まれます。
+Claude Code は Google Cloud の Agent Platform の[グローバル](https://cloud.google.com/blog/products/ai-machine-learning/global-endpoint-for-claude-models-generally-available-on-vertex-ai)、マルチリージョン、および地域別エンドポイントをサポートしています。`CLOUD_ML_REGION` を `global`、`eu` または `us` などのマルチリージョンロケーション、または `us-east5` などの特定のリージョンに設定します。Claude Code は各フォームの正しい Google Cloud の Agent Platform ホスト名を選択します。これには、マルチリージョンロケーション用の `aiplatform.eu.rep.googleapis.com` および `aiplatform.us.rep.googleapis.com` ホストが含まれます。
 
 <Note>
-  Vertex AI は、すべてのエンドポイントタイプで Claude Code デフォルトモデルをサポートしていない場合があります。モデルの可用性は、[特定のリージョン](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations#genai-partner-models)、マルチリージョンロケーション、および[グローバルエンドポイント](https://cloud.google.com/vertex-ai/generative-ai/docs/partner-models/use-partner-models#supported_models)によって異なります。サポートされているロケーションに切り替えるか、サポートされているモデルを指定する必要がある場合があります。
+  Google Cloud の Agent Platform は、すべてのエンドポイントタイプで Claude Code デフォルトモデルをサポートしていない場合があります。モデルの可用性は、[特定のリージョン](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations#genai-partner-models)、マルチリージョンロケーション、および[グローバルエンドポイント](https://cloud.google.com/vertex-ai/generative-ai/docs/partner-models/use-partner-models#supported_models)によって異なります。サポートされているロケーションに切り替えるか、サポートされているモデルを指定する必要がある場合があります。
 </Note>
 
 <h2 id="set-up-manually">
   手動でセットアップする
 </h2>
 
-ウィザードの代わりに環境変数を通じて Vertex AI を設定するには、例えば CI またはスクリプト化されたエンタープライズロールアウトで、以下の手順に従ってください。
+ウィザードの代わりに環境変数を通じて Google Cloud の Agent Platform を設定するには、例えば CI またはスクリプト化されたエンタープライズロールアウトで、以下の手順に従ってください。
 
-<h3 id="1-enable-vertex-ai-api">
-  1. Vertex AI API を有効にする
+<h3 id="1-enable-agent-platform-api">
+  1. Agent Platform API を有効にする
 </h3>
 
-GCP プロジェクトで Vertex AI API を有効にします。
+GCP プロジェクトで Google Cloud の Agent Platform API を有効にします。
 
 ```bash
 # プロジェクト ID を設定
 gcloud config set project YOUR-PROJECT-ID
 
-# Vertex AI API を有効にする
+# Agent Platform API を有効にする
 gcloud services enable aiplatform.googleapis.com
 ```
 
@@ -137,9 +137,9 @@ gcloud services enable aiplatform.googleapis.com
   2. モデルアクセスをリクエストする
 </h3>
 
-Vertex AI で Claude モデルへのアクセスをリクエストします。
+Google Cloud の Agent Platform で Claude モデルへのアクセスをリクエストします。
 
-1. [Vertex AI Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)に移動します
+1. [Google Cloud の Agent Platform Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)に移動します
 2. 'Claude'モデルを検索します
 3. 目的の Claude モデルへのアクセスをリクエストします（例：Claude Sonnet 4.6）
 4. 承認を待ちます（24 ～ 48 時間かかる場合があります）
@@ -155,7 +155,7 @@ Claude Code は標準的な Google Cloud 認証を使用します。
 Claude Code v2.1.121 以降は、同じ Application Default Credentials チェーンを通じて [X.509 証明書ベースのワークロード ID フェデレーション](https://cloud.google.com/iam/docs/workload-identity-federation-with-x509-certificates)をサポートしています。`GOOGLE_APPLICATION_CREDENTIALS` を認証情報設定ファイルのパスに設定します。
 
 <Note>
-  Claude Code は Vertex AI リクエストのプロジェクト ID として `ANTHROPIC_VERTEX_PROJECT_ID` を使用します。`GCLOUD_PROJECT` および `GOOGLE_CLOUD_PROJECT` 環境変数と `GOOGLE_APPLICATION_CREDENTIALS` で参照される認証情報ファイルがこれより優先されます。これらのいずれも設定されていない場合、プロジェクト ID は `gcloud` 設定またはアタッチされたサービスアカウントから解決されます。
+  Claude Code は Google Cloud の Agent Platform リクエストのプロジェクト ID として `ANTHROPIC_VERTEX_PROJECT_ID` を使用します。`GCLOUD_PROJECT` および `GOOGLE_CLOUD_PROJECT` 環境変数と `GOOGLE_APPLICATION_CREDENTIALS` で参照される認証情報ファイルがこれより優先されます。これらのいずれも設定されていない場合、プロジェクト ID は `gcloud` 設定またはアタッチされたサービスアカウントから解決されます。
 </Note>
 
 <h4 id="advanced-credential-configuration">
@@ -182,12 +182,12 @@ Claude Code は `gcpAuthRefresh` 設定を通じて GCP の自動認証情報更
 次の環境変数を設定します。
 
 ```bash
-# Vertex AI 統合を有効にする
+# Agent Platform 統合を有効にする
 export CLAUDE_CODE_USE_VERTEX=1
 export CLOUD_ML_REGION=global
 export ANTHROPIC_VERTEX_PROJECT_ID=YOUR-PROJECT-ID
 
-# オプション：カスタムエンドポイントまたはゲートウェイ用に Vertex エンドポイント URL をオーバーライドする
+# オプション：カスタムエンドポイントまたはゲートウェイ用に Agent Platform エンドポイント URL をオーバーライドする
 # export ANTHROPIC_VERTEX_BASE_URL=https://aiplatform.googleapis.com
 
 # オプション：必要に応じてプロンプトキャッシングを無効にする
@@ -201,23 +201,23 @@ export VERTEX_REGION_CLAUDE_HAIKU_4_5=us-east5
 export VERTEX_REGION_CLAUDE_4_6_SONNET=europe-west1
 ```
 
-ほとんどのモデルバージョンには、対応する `VERTEX_REGION_CLAUDE_*` 変数があります。完全なリストについては、[環境変数リファレンス](/ja/env-vars)を参照してください。どのモデルがグローバルエンドポイントをサポートしているか、または地域別のみをサポートしているかを確認するには、[Vertex Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)を確認してください。
+ほとんどのモデルバージョンには、対応する `VERTEX_REGION_CLAUDE_*` 変数があります。完全なリストについては、[環境変数リファレンス](/ja/env-vars)を参照してください。どのモデルがグローバルエンドポイントをサポートしているか、または地域別のみをサポートしているかを確認するには、[Google Cloud の Agent Platform Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)を確認してください。
 
-[prompt caching](/ja/prompt-caching)は自動的に有効になります。これを無効にするには、`DISABLE_PROMPT_CACHING=1` を設定します。デフォルトの 5 分ではなく 1 時間のキャッシュ TTL をリクエストするには、`ENABLE_PROMPT_CACHING_1H=1` を設定します。1 時間の TTL でのキャッシュ書き込みはより高いレートで課金されます。レート制限を高くするには、Google Cloud サポートに連絡してください。Vertex AI を使用する場合、Google Cloud 認証情報を通じて認証が処理されるため、`/logout` コマンドは無効になります。
+[prompt caching](/ja/prompt-caching)は自動的に有効になります。これを無効にするには、`DISABLE_PROMPT_CACHING=1` を設定します。デフォルトの 5 分ではなく 1 時間のキャッシュ TTL をリクエストするには、`ENABLE_PROMPT_CACHING_1H=1` を設定します。1 時間の TTL でのキャッシュ書き込みはより高いレートで課金されます。レート制限を高くするには、Google Cloud サポートに連絡してください。Google Cloud の Agent Platform を使用する場合、Google Cloud 認証情報を通じて認証が処理されるため、`/logout` コマンドは無効になります。
 
-Claude Code は Vertex AI でデフォルトで [MCP tool search](/ja/mcp#scale-with-mcp-tool-search)を無効にしているため、MCP ツール定義は事前にロードされます。Vertex AI は Claude Sonnet 4.5 以降および Claude Opus 4.5 以降のツール検索をサポートしています。`ENABLE_TOOL_SEARCH=true` を設定して、これらのモデルで有効にします。Vertex AI の以前のモデルは必要なベータヘッダーを受け入れず、これらのモデルでツール検索を有効にするとリクエストが失敗します。
+Claude Code は Google Cloud の Agent Platform でデフォルトで [MCP tool search](/ja/mcp#scale-with-mcp-tool-search)を無効にしているため、MCP ツール定義は事前にロードされます。Google Cloud の Agent Platform は Claude Sonnet 4.5 以降および Claude Opus 4.5 以降のツール検索をサポートしています。`ENABLE_TOOL_SEARCH=true` を設定して、これらのモデルで有効にします。Google Cloud の Agent Platform の以前のモデルは必要なベータヘッダーを受け入れず、これらのモデルでツール検索を有効にするとリクエストが失敗します。
 
 <h3 id="5-pin-model-versions">
   5. モデルバージョンをピン留めする
 </h3>
 
 <Warning>
-  複数のユーザーにデプロイする場合は、特定のモデルバージョンをピン留めしてください。ピン留めなしでは、`sonnet` および `opus` などのモデルエイリアスは Claude Code の Vertex AI 用の組み込みデフォルトに解決され、最新リリースより遅れる可能性があり、プロジェクトでまだ有効になっていない可能性があります。Claude Code は、デフォルトが利用できない場合、起動時に[前のバージョンにフォールバック](#startup-model-checks)しますが、ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。
+  複数のユーザーにデプロイする場合は、特定のモデルバージョンをピン留めしてください。ピン留めなしでは、`sonnet` および `opus` などのモデルエイリアスは Claude Code の Google Cloud の Agent Platform 用の組み込みデフォルトに解決され、最新リリースより遅れる可能性があり、プロジェクトでまだ有効になっていない可能性があります。Claude Code は、デフォルトが利用できない場合、起動時に[前のバージョンにフォールバック](#startup-model-checks)しますが、ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。
 </Warning>
 
-これらの環境変数を特定の Vertex AI モデル ID に設定します。
+これらの環境変数を特定の Google Cloud の Agent Platform モデル ID に設定します。
 
-`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Vertex 上の `opus` エイリアスは Opus 4.6 に解決されます。最新モデルを使用するには、Opus 4.8 ID に設定します。
+`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Google Cloud の Agent Platform 上の `opus` エイリアスは Opus 4.6 に解決されます。最新モデルを使用するには、Opus 4.8 ID に設定します。
 
 ```bash
 export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'
@@ -234,7 +234,7 @@ Claude Code は、ピン留め変数が設定されていない場合、これ�
 | プライマリモデル | `claude-sonnet-4-5@20250929` |
 | 小型/高速モデル | プライマリモデルと同じ                  |
 
-セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Vertex AI では、Haiku がすべてのプロジェクトまたはリージョンで有効になっていない可能性があるため、Claude Code はこれをプライマリモデルにデフォルト設定します。バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をプロジェクトで利用可能なモデル ID に設定します。
+セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Google Cloud の Agent Platform では、Haiku がすべてのプロジェクトまたはリージョンで有効になっていない可能性があるため、Claude Code はこれをプライマリモデルにデフォルト設定します。バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をプロジェクトで利用可能なモデル ID に設定します。
 
 モデルをさらにカスタマイズするには、以下を実行します。
 
@@ -247,7 +247,7 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'
   起動時のモデルチェック
 </h2>
 
-Claude Code が Vertex AI で設定されて起動すると、使用するモデルがプロジェクトでアクセス可能であることを確認します。このチェックには Claude Code v2.1.98 以降が必要です。
+Claude Code が Google Cloud の Agent Platform で設定されて起動すると、使用するモデルがプロジェクトでアクセス可能であることを確認します。このチェックには Claude Code v2.1.98 以降が必要です。
 
 Claude Code デフォルトより古いモデルバージョンをピン留めしていて、プロジェクトが新しいバージョンを呼び出せる場合、Claude Code はピンを更新するよう促します。受け入れると、新しいモデル ID が[ユーザー設定ファイル](/ja/settings)に書き込まれ、Claude Code が再起動されます。拒否すると、次のデフォルトバージョン変更まで記憶されます。
 
@@ -265,7 +265,7 @@ Claude Code デフォルトより古いモデルバージョンをピン留め�
 
 より制限的な権限については、上記の権限のみを持つカスタムロールを作成してください。
 
-詳細については、[Vertex IAM ドキュメント](https://cloud.google.com/vertex-ai/docs/general/access-control)を参照してください。
+詳細については、[Google Cloud の Agent Platform IAM ドキュメント](https://cloud.google.com/vertex-ai/docs/general/access-control)を参照してください。
 
 <Note>
   Claude Code 用に専用の GCP プロジェクトを作成して、コスト追跡とアクセス制御を簡素化してください。
@@ -275,9 +275,9 @@ Claude Code デフォルトより古いモデルバージョンをピン留め�
   100 万トークンコンテキストウィンドウ
 </h2>
 
-Claude Sonnet 5、Opus 4.6 以降、および Sonnet 4.6 は、Vertex AI で[100 万トークンコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。Sonnet 5 は常に 100 万ウィンドウで実行され、選択する `[1m]` バリアントはありません。その他のモデルについては、Claude Code は 100 万トークンモデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
+Claude Sonnet 5、Opus 4.6 以降、および Sonnet 4.6 は、Google Cloud の Agent Platform で[100 万トークンコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。Sonnet 5 は常に 100 万ウィンドウで実行され、選択する `[1m]` バリアントはありません。その他のモデルについては、Claude Code は 100 万トークンモデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
 
-[セットアップウィザード](#sign-in-with-vertex-ai)は、モデルをピン留めするときに 100 万トークンコンテキストオプションを提供します。手動でピン留めされたモデルの代わりに有効にするには、モデル ID に `[1m]` を追加します。詳細については、[サードパーティデプロイメント用のモデルをピン留めする](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
+[セットアップウィザード](#sign-in-with-agent-platform)は、モデルをピン留めするときに 100 万トークンコンテキストオプションを提供します。手動でピン留めされたモデルの代わりに有効にするには、モデル ID に `[1m]` を追加します。詳細については、[サードパーティデプロイメント用のモデルをピン留めする](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
 
 <h2 id="troubleshooting">
   トラブルシューティング
@@ -310,6 +310,6 @@ Claude Sonnet 5、Opus 4.6 以降、および Sonnet 4.6 は、Vertex AI で[100
   追加リソース
 </h2>
 
-* [Vertex AI ドキュメント](https://cloud.google.com/vertex-ai/docs)
-* [Vertex AI 価格](https://cloud.google.com/vertex-ai/pricing)
-* [Vertex AI クォータと制限](https://cloud.google.com/vertex-ai/docs/quotas)
+* [Google Cloud の Agent Platform ドキュメント](https://cloud.google.com/vertex-ai/docs)
+* [Google Cloud の Agent Platform 価格](https://cloud.google.com/vertex-ai/pricing)
+* [Google Cloud の Agent Platform クォータと制限](https://cloud.google.com/vertex-ai/docs/quotas)

@@ -83,7 +83,7 @@ Claude Code は、Bash ツール、フック、MCP サーバー、言語サー�
 | `OTEL_LOGS_EXPORT_INTERVAL` | ログエクスポート間隔 (ミリ秒単位、デフォルト: 5000) | `1000`、`10000` |
 | `OTEL_LOG_USER_PROMPTS` | ユーザープロンプトコンテンツのログを有効にする (デフォルト: 無効) | `1` で有効化 |
 | `OTEL_LOG_ASSISTANT_RESPONSES` | `assistant_response` イベントでアシスタント応答テキストのログを有効にする (デフォルト: 無効)。設定されていない場合、`OTEL_LOG_USER_PROMPTS` の値にフォールバックします。Claude Code v2.1.193 以降が必要です | `1` で有効化、`0` でマスク状態を保持 |
-| `OTEL_LOG_TOOL_DETAILS` | ツールイベントでツールパラメーターと入力引数のログを有効にする: Bash コマンド、MCP サーバーとツール名、スキル名、ツール入力。また、`user_prompt` イベントでカスタム、プラグイン、MCP コマンド名を有効にします (デフォルト: 無効) | `1` で有効化 |
+| `OTEL_LOG_TOOL_DETAILS` | ツールイベントでツールパラメーターと入力引数のログを有効にする: Bash コマンド、MCP サーバーとツール名、スキル名、ユーザー作成ワークフロー名、ツール入力。また、`user_prompt` イベントでカスタム、プラグイン、MCP コマンド名を有効にします (デフォルト: 無効) | `1` で有効化 |
 | `OTEL_LOG_TOOL_CONTENT` | スパンイベントでツール入力と出力コンテンツのログを有効にする (デフォルト: 無効)。[トレース](#traces-beta)が必要です。コンテンツは 60 KB で切り詰められます | `1` で有効化 |
 | `OTEL_LOG_RAW_API_BODIES` | Anthropic Messages API リクエストとレスポンス JSON 全体を `api_request_body` / `api_response_body` ログイベントとして出力します (デフォルト: 無効)。ボディには会話履歴全体が含まれます。これを有効にすることは、`OTEL_LOG_USER_PROMPTS`、`OTEL_LOG_TOOL_DETAILS`、および `OTEL_LOG_TOOL_CONTENT` が明かすすべてのものに同意することを意味します | `1` で 60 KB で切り詰められたインラインボディ、または `file:<dir>` でディスク上の切り詰められていないボディと、イベント内の `body_ref` ポインター |
 | `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | メトリクスの時間性設定 (デフォルト: `delta`)。バックエンドが累積時間性を期待する場合は `cumulative` に設定 | `delta`、`cumulative` |
@@ -177,6 +177,8 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | `query_source` | リクエストを発行したサブシステム。例: `repl_main_thread` またはサブエージェント名 | |
 | `agent_id` | リクエストを発行したサブエージェントまたはチームメイトの識別子。メインセッションでは存在しません | |
 | `parent_agent_id` | このエージェントを生成したエージェントの識別子。メインセッションおよびそこから直接生成されたエージェントでは存在しません | |
+| `workflow.run_id` | このエージェントを生成した [Workflow](/ja/workflows) ツール実行の実行識別子。`wf_` で始まります。ワークフローによって生成されていないエージェントでは存在しません | |
+| `workflow.name` | このエージェントを生成したワークフローの名前。ユーザー作成名はゲートが設定されていない限り `custom` に置き換えられます | `OTEL_LOG_TOOL_DETAILS` |
 | `speed` | `fast` または `normal` | |
 | `llm_request.context` | 親スパンに応じて `interaction`、`tool`、または `standalone` | |
 | `duration_ms` | 再試行を含む実時間 | |
@@ -207,6 +209,8 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | `result_tokens` | ツール結果のおおよそのトークンサイズ | |
 | `agent_id` | ツールを実行したサブエージェントまたはチームメイトの識別子。メインセッションでは存在しません | |
 | `parent_agent_id` | このエージェントを生成したエージェントの識別子。メインセッションおよびそこから直接生成されたエージェントでは存在しません | |
+| `workflow.run_id` | このエージェントを生成した Workflow ツール実行の実行識別子。`wf_` で始まります。ワークフローによって生成されていないエージェントでは存在しません | |
+| `workflow.name` | このエージェントを生成したワークフローの名前。ユーザー作成名はゲートが設定されていない限り `custom` に置き換えられます | `OTEL_LOG_TOOL_DETAILS` |
 | `tool_use_id` | このコールのモデルの `tool_use` ブロック ID。[tool\_result](#tool-result-event) および [tool\_decision](#tool-decision-event) イベントおよびフックペイロード内の `tool_use_id` と一致するため、スパンをこれらのレコードに結合できます | |
 | `gen_ai.tool.call.id` | `tool_use_id` と同じ値。OpenTelemetry GenAI セマンティック規約 | |
 | `file_path` | Read、Edit、Write ツールのターゲットファイルパス | `OTEL_LOG_TOOL_DETAILS` |
@@ -280,7 +284,7 @@ echo "{\"Authorization\": \"Bearer $(get-token.sh)\", \"X-API-Key\": \"$(get-api
 
 ヘルパーが失敗するか、これらの要件を満たさない出力を出力する場合、Claude Code は以下のエラーを報告します:
 
-- `/doctor` 出力
+- `/status` 出力
 - [`--debug`](/ja/cli-reference#cli-flags) で実行するか、セッション内で `/debug` を実行した後のデバッグログ
 - stderr、`-p` で開始された非対話型セッション内
 
@@ -402,6 +406,8 @@ Claude Code が [Claude apps gateway](/ja/claude-apps-gateway) にサインイ�
 
 - `prompt.id`: ユーザープロンプトを次のプロンプトまでのすべての後続イベントと相関させる UUID。[イベント相関属性](#event-correlation-attributes)を参照してください。
 - `workspace.host_paths`: デスクトップアプリで選択されたホストワークスペースディレクトリ (文字列配列として)
+- `workflow.run_id`: 実行識別子。プレフィックス `wf_` が付いており、API とツールイベントで出力されます。[Workflow](/ja/workflows) ツール実行に属するエージェントによって出力されます。1 つの `workflow.run_id` でイベントをフィルタリングすると、その実行の API リクエストとツール結果が再構成されます。識別子は、ワークフロースクリプトがスポーンするエージェントと、それらがスポーンするエージェント (スキル呼び出しなど) をカバーします。Workflow ツール結果で報告される実行識別子と一致します。他のすべてのイベントには存在しません。Claude Code v2.1.202 以降が必要です
+- `workflow.name`: ワークフローの名前。スクリプトの `meta.name`。`workflow.run_id` と一緒に出力されます。組み込みワークフロー名は、実行が変更されていない組み込みスクリプトを実行する場合、そのまま表示されます。ユーザー作成の名前 (組み込みスクリプトの編集されたコピーを含む) は、`OTEL_LOG_TOOL_DETAILS=1` が設定されていない限り `custom` に置き換えられます。Claude Code v2.1.202 以降が必要です
 
 メトリクス
 
@@ -791,7 +797,7 @@ MCP サーバーが接続、切断、または接続に失敗するときにロ�
 
 内部エラーイベント
 
-Claude Code が予期しない内部エラーをキャッチするときにログされます。エラークラス名と errno スタイルコードのみが記録されます。エラーメッセージとスタックトレースは含まれません。このイベントは、Bedrock、Vertex、Foundry に対して実行している場合、または `DISABLE_ERROR_REPORTING` が設定されている場合は出力されません。
+Claude Code が予期しない内部エラーをキャッチするときにログされます。エラークラス名と errno スタイルコードのみが記録されます。エラーメッセージとスタックトレースは含まれません。このイベントは、Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry に対して実行している場合、または `DISABLE_ERROR_REPORTING` が設定されている場合は出力されません。
 
 **イベント名**: `claude_code.internal_error`
 
@@ -1041,7 +1047,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - 最適化のための高使用セッションを特定する
 - `skill.name`、`plugin.name`、および `agent.name` 属性を介して、特定のスキル、プラグイン、またはサブエージェントタイプへの支出を属性付けする
 
-コストメトリクスは概算です。公式な請求データについては、API プロバイダー (Claude Console、Amazon Bedrock、または Google Cloud Vertex) を参照してください。
+コストメトリクスは概算です。公式な請求データについては、API プロバイダー (Claude Console、Amazon Bedrock、または Google Cloud の Agent Platform) を参照してください。
 
 アラートとセグメンテーション
 
@@ -1084,7 +1090,7 @@ OpenTelemetry イベントは Claude Code アクティビティの監査デー�
 
 MCP ツール呼び出し、Bash コマンド、ファイル編集は、セッションを開始した開発者に属性付けられます。Claude Code は個別のサービスアカウントの下では機能しません。各イベントに記録される ID は、開発者自身の Claude アカウント、または [Claude apps gateway](/ja/claude-apps-gateway) セッションでの開発者の IdP ID です。
 
-Claude Code が直接 API キーで認証する場合、または Bedrock、Vertex AI、または Microsoft Foundry に対して認証する場合、セッションに Claude アカウントはなく、`user.id` と `session.id` のみが入力されます。これらのデプロイメントでは、`OTEL_RESOURCE_ATTRIBUTES` を使用してユーザー ID を自分で添付し、[管理設定](#administrator-configuration) ファイルまたはローンチラッパーを通じてユーザーごとに設定します。Claude apps gateway セッションはこれを必要としません：CLI は [標準属性](#standard-attributes) で説明されているように、IdP ID を自動的にスタンプします。
+Claude Code が直接 API キーで認証する場合、または Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry に対して認証する場合、セッションに Claude アカウントはなく、`user.id` と `session.id` のみが入力されます。これらのデプロイメントでは、`OTEL_RESOURCE_ATTRIBUTES` を使用してユーザー ID を自分で添付し、[管理設定](#administrator-configuration) ファイルまたはローンチラッパーを通じてユーザーごとに設定します。Claude apps gateway セッションはこれを必要としません：CLI は [標準属性](#standard-attributes) で説明されているように、IdP ID を自動的にスタンプします。
 
 ```bash
 export OTEL_RESOURCE_ATTRIBUTES="enduser.id=jdoe@example.com,enduser.directory_id=S-1-5-21-..."
@@ -1197,4 +1203,4 @@ ROI 測定リソース
 
 Amazon Bedrock での Claude Code の監視
 
-Amazon Bedrock での Claude Code 使用状況監視ガイダンスの詳細については、[Claude Code 監視実装 (Bedrock)](https://github.com/aws-solutions-library-samples/guidance-for-claude-code-with-amazon-bedrock/blob/main/assets/docs/MONITORING.md)を参照してください。
+Amazon Bedrock での Claude Code 使用状況監視ガイダンスの詳細については、[Claude Code 監視実装（Amazon Bedrock）](https://github.com/aws-solutions-library-samples/guidance-for-claude-code-with-amazon-bedrock/blob/main/assets/docs/MONITORING.md)を参照してください。

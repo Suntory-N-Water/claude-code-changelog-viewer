@@ -34,7 +34,7 @@ Claude Code を Chrome で使用する前に、以下が必要です。
 - [Claude Code](/ja/quickstart#step-1-install-claude-code) バージョン 2.0.73 以上
 - 直接 Anthropic プラン（Pro、Max、Team、または Enterprise）
 
-Chrome 統合は Amazon Bedrock、Google Cloud Vertex AI、Microsoft Foundry などのサードパーティプロバイダーを通じては利用できません。Claude にサードパーティプロバイダーを通じてのみアクセスする場合、この機能を使用するには別の claude.ai アカウントが必要です。
+Chrome 統合は Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry などのサードパーティプロバイダーを通じては利用できません。Claude にサードパーティプロバイダーを通じてのみアクセスする場合、この機能を使用するには別の claude.ai アカウントが必要です。
 
 CLI で開始する
 
