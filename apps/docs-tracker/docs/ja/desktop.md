@@ -61,43 +61,68 @@ Claude に実行させたいことを入力して**Enter**キーを押して送�
 
 権限モードを選択する
 
-権限モードは、セッション中に Claude がどの程度の自律性を持つかを制御します：ファイルの編集、コマンドの実行、またはその両方の前に確認するかどうかです。送信ボタンの横のモードセレクタを使用して、いつでもモードを切り替えることができます。Ask permissions で開始して Claude が実行する内容を正確に確認してから、慣れてきたら Auto accept edits または Plan mode に移動します。
+権限モードは、セッション中に Claude がどの程度の自律性を持つかを制御します：ファイルの編集、コマンドの実行、またはその両方の前に確認するかどうかです。送信ボタンの横のモードセレクタを使用して、いつでもモードを切り替えることができます。Manual で開始して Claude が実行する内容を正確に確認してから、慣れてきたら Accept edits または Plan に移動します。
 
 | モード | 設定キー | 動作 |
 | - | - | - |
-| **Ask permissions** | `default` | Claude はファイルの編集またはコマンドの実行の前に確認を求めます。diff を確認し、各変更を受け入れるか拒否できます。新規ユーザーに推奨されます。 |
-| **Auto accept edits** | `acceptEdits` | Claude はファイル編集と`mkdir`、`touch`、`mv`などの一般的なファイルシステムコマンドを自動的に受け入れますが、他のターミナルコマンドの実行前には確認を求めます。ファイル変更を信頼し、より高速な反復を望む場合に使用します。 |
-| **Plan mode** | `plan` | Claude はファイルを読み取り、コマンドを実行して探索してから、ソースコードを編集せずにプランを提案します。アプローチを最初に確認したい複雑なタスクに適しています。 |
+| **Manual** | `default` | Claude はファイルの編集またはコマンドの実行の前に確認を求めます。diff を確認し、各変更を受け入れるか拒否できます。新規ユーザーに推奨されます。 |
+| **Accept edits** | `acceptEdits` | Claude はファイル編集と`mkdir`、`touch`、`mv`などの一般的なファイルシステムコマンドを自動的に受け入れますが、他のターミナルコマンドの実行前には確認を求めます。ファイル変更を信頼し、より高速な反復を望む場合に使用します。 |
+| **Plan** | `plan` | Claude はファイルを読み取り、コマンドを実行して探索してから、ソースコードを編集せずにプランを提案します。アプローチを最初に確認したい複雑なタスクに適しています。 |
 | **Auto** | `auto` | Claude はすべてのアクションをバックグラウンド安全チェック付きで実行し、リクエストとの整合性を確認します。権限プロンプトを削減しながら監視を維持します。Settings → Claude Code で有効にします。[利用可能性要件](#auto-mode-availability)以下を参照してください。 |
 | **Bypass permissions** | `bypassPermissions` | Claude は権限プロンプトなしで実行され、明示的な[ask ルール](/ja/permissions#manage-permissions)によって強制されるもの以外は、CLI の`--dangerously-skip-permissions`と同等です。Settings → Claude Code の「Allow bypass permissions mode」で有効にします。サンドボックス化されたコンテナまたは VM でのみ使用してください。エンタープライズ管理者はこのオプションを無効にできます。 |
 
+Code タブの以前のバージョンでは、これらのモードを Ask permissions、Auto accept edits、および Plan mode というラベルが付けられていました。
+
 `dontAsk`権限モードは[CLI](/ja/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)でのみ利用可能です。
 
-Auto mode は Anthropic API のすべてのユーザーが利用できる研究プレビューです。Claude Opus 4.6 以降、または Sonnet 4.6 以降が必要です。Google Cloud Vertex AI にルーティングするエンタープライズデプロイメントでは、[`CLAUDE_CODE_ENABLE_AUTO_MODE`を設定](/ja/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry)するまで auto mode はオフになり、そこでは Claude Sonnet 5、Opus 4.7、および Opus 4.8 のみがサポートされています。
+Auto mode は Anthropic API のすべてのユーザーが利用できる研究プレビューです。Claude Opus 4.6 以降、または Sonnet 4.6 以降が必要です。Google Cloud の Agent Platform にルーティングするエンタープライズデプロイメントでは、[`CLAUDE_CODE_ENABLE_AUTO_MODE`を設定](/ja/permission-modes#enable-auto-mode-on-bedrock-agent-platform-or-foundry)するまで auto mode はオフになり、そこでは Claude Sonnet 5、Opus 4.7、および Opus 4.8 のみがサポートされています。
 
-複雑なタスクを Plan mode で開始して、Claude が変更を加える前にアプローチをマップアウトするようにします。プランを承認したら、Auto accept edits または Ask permissions に切り替えて実行します。このワークフローの詳細については、[最初に探索してからプランしてからコード化する](/ja/best-practices#explore-first-then-plan-then-code)を参照してください。
+複雑なタスクを Plan で開始して、Claude が変更を加える前にアプローチをマップアウトするようにします。プランを承認したら、Accept edits または Manual に切り替えて実行します。このワークフローの詳細については、[最初に探索してからプランしてからコード化する](/ja/best-practices#explore-first-then-plan-then-code)を参照してください。
 
-クラウドセッションは Accept edits、Plan mode、および Auto mode をサポートしています。Accept edits は`default`モードに対応しています：クラウドセッションはファイル編集を事前に承認するため、セレクタは Ask permissions ではなく Accept edits を表示します。Bypass permissions はクラウド環境が既にサンドボックス化されているため利用できません。
+クラウドセッションは Accept edits、Plan、および Auto をサポートしています。Accept edits は`default`モードに対応しています：クラウドセッションはファイル編集を事前に承認するため、セレクタは Manual ではなく Accept edits を表示します。Bypass permissions はクラウド環境が既にサンドボックス化されているため利用できません。
 
 エンタープライズ管理者は利用可能な権限モードを制限できます。詳細については、[エンタープライズ設定](#enterprise-configuration)を参照してください。
 
 アプリをプレビューする
 
-Claude は dev サーバーを起動し、埋め込みブラウザを開いて変更を確認できます。これはフロントエンド Web アプリとバックエンドサーバーの両方で機能します：Claude は API エンドポイントをテストし、サーバーログを表示し、見つけた問題を反復処理できます。ほとんどの場合、Claude はプロジェクトファイルを編集した後、サーバーを自動的に起動します。いつでも Claude にプレビューを要求することもできます。デフォルトでは、Claude は編集後に[変更を自動検証](#auto-verify-changes)します。
+Claude は dev サーバーを起動し、Browser ペインで開いて変更を確認できます。これはフロントエンド Web アプリとバックエンドサーバーの両方で機能します：Claude は API エンドポイントをテストし、サーバーログを表示し、見つけた問題を反復処理できます。ほとんどの場合、Claude はプロジェクトファイルを編集した後、サーバーを自動的に起動します。いつでも Claude にプレビューを要求することもできます。デフォルトでは、Claude は編集後に[変更を自動検証](#auto-verify-changes)します。
 
-プレビューペインは、プロジェクトから静的 HTML ファイル、PDF、画像、およびビデオを開くこともできます。チャットで HTML、PDF、画像、またはビデオパスをクリックして、プレビューで開きます。
+Browser ペインは、プロジェクトから静的 HTML ファイル、PDF、画像、およびビデオを開くこともできます。チャットで HTML、PDF、画像、またはビデオパスをクリックして、Browser ペインで開きます。
 
-プレビューペインから、以下を実行できます：
+Browser ペインから、以下を実行できます：
 
-- 埋め込みブラウザで実行中のアプリと直接対話する
+- Browser ペインで実行中のアプリと直接対話する
 - Claude が自動的に独自の変更を検証するのを監視する：スクリーンショットを撮影し、DOM を検査し、要素をクリックし、フォームに入力し、見つけた問題を修正します
-- セッションツールバーの**Preview**ドロップダウンからサーバーを開始または停止する
+- セッションツールバーのサーバードロップダウンからサーバーを開始または停止する
 - ドロップダウンで**Persist sessions**を選択して、サーバーの再起動時にクッキーとローカルストレージを保持し、開発中に再度ログインする必要がないようにする
 - サーバー設定を編集するか、すべてのサーバーを一度に停止する
 
 Claude はプロジェクトに基づいて初期サーバー設定を作成します。アプリがカスタム dev コマンドを使用する場合、`.claude/launch.json`を編集してセットアップに合わせます。完全なリファレンスについては、[プレビューサーバーを設定する](#configure-preview-servers)を参照してください。
 
-保存されたセッションデータをクリアするには、Settings → Claude Code で**Persist preview sessions**をオフに切り替えます。プレビューを完全に無効にするには、Settings → Claude Code で**Preview**をオフに切り替えます。
+保存されたセッションデータをクリアするには、Settings → Claude Code で**Persist sessions**をオフに切り替えます。Browser を完全に無効にするには、Settings → Claude Code で**Browser**をオフに切り替えます。
+
+外部サイトを閲覧する
+
+Browser ペインはタブ付きブラウザなので、ドキュメント、issue トラッカー、または実行中のアプリの横に他のサイトを開くことができます。Browser を開くには、macOS で**Cmd+Shift+B**、Windows で**Ctrl+Shift+B**を押すか、**Views**メニューから選択します。チャットで外部リンクをクリックすると、Browser ペインを使用する**Open in app**または自分のブラウザを使用する**Default browser**を提供するチューザーが表示されます。macOS で**Cmd**キーを押しながらクリックするか、Windows で**Ctrl**キーを押しながらクリックすると、システムブラウザでリンクが直接開きます。Google OAuth などのポップアップサインインフローを含む、ペインのサイトにサインインできます。
+
+Claude は[アプリを検証](#preview-your-app)するために使用するのと同じツールを使用して外部ページを読み取り、対話できます。2 つの追加の安全チェックがあります：
+
+- 安全分類器は、すべての権限モードで、クリックやタイピングなど、外部ページでの Claude の書き込みアクションを確認します。これらは[auto mode](#choose-a-permission-mode)が使用するのと同じ分類器であり、アクションにフラグが立てられた場合、モードに関係なく権限プロンプトが表示されます。
+- Auto および Bypass permissions 以外の権限モードでは、Claude が新しいサイトに移動する前にドメイン許可リストチェックも適用されます。
+
+サイトで Claude のアクションを承認する
+
+Claude が外部サイトで初めてアクションを実行すると、権限カードが表示され、Claude は選択を待ちます：**Allow once**、**Always allow**、または**Deny**。**Allow once**は何も保存せずにアクションを承認します。**Always allow**はそのサイトの承認をデバイスに保存し、Settings で取り消すことができます。サブドメインを含む各サイトは独自の承認が必要です。ローカル dev サーバーとプロジェクトファイルは承認が不要なため、[auto-verify](#auto-verify-changes)はプロンプトなしで機能し続けます。
+
+承認されたサイトでも、Claude はあなたの入力なしに商品を購入したり、アカウントを作成したり、CAPTCHA をバイパスしたりしません。Browser ペインでの閲覧は、[Claude in Chrome 拡張機能](/ja/chrome)と同じ安全モデルを使用します。Claude が機密サイトとリスクのあるアクションをどのように処理するかについては、[Claude in Chrome を安全に使用する](https://support.claude.com/en/articles/12902428-using-claude-in-chrome-safely)を参照してください。
+
+Browser と Chrome 拡張機能を選択する
+
+Browser ペインは、個人用ブラウザとは別の、保存されたログインや履歴がないクリーンなブラウザプロファイルを使用します。アプリの構築とテスト、および ID が不要なサイトに使用します。Claude があなたのログイン済みセッションであなたとして機能するようにしたい場合は、代わりにブラウザのログイン状態を共有する[Claude in Chrome 拡張機能](/ja/chrome)を使用します。
+
+組織の外部閲覧を制限する
+
+Browser は、Claude in Chrome 拡張機能と同じ[サイト許可リストとブロックリストコントロール](https://support.claude.com/en/articles/13065128-claude-in-chrome-admin-controls)に従います。組織が既に拡張機能用にこれらのリストを設定している場合、Browser は自動的にそれらを尊重します。管理者は、[`browserExternalPageTools`マネージド設定](#managed-settings)で外部ページの Claude のツールをオフにすることもできます。ツールが無効になっている場合、ユーザーは外部サイトに移動できます。Claude のツールはそれらを読み取ったり、アクションを実行したりできません。
 
 diff ビューで変更を確認する
 
@@ -131,7 +156,7 @@ PR 監視には、[GitHub CLI（`gh`）](https://cli.github.com/)がマシンに
 
 ワークスペースを配置する
 
-Code タブはペインを任意のレイアウトで配置できるように構築されています：チャット、diff、プレビュー、ターミナル、ファイル、プラン、タスク、およびサブエージェント。ペインをヘッダーでドラッグして位置を変更するか、ペインエッジをドラッグしてサイズを変更します。macOS では**Cmd+\\**を、Windows では**Ctrl+\\**を押してフォーカスされたペインを閉じます。セッションツールバーの**Views**メニューから追加のペインを開きます。
+Code タブはペインを任意のレイアウトで配置できるように構築されています：チャット、diff、ブラウザ、ターミナル、ファイル、プラン、タスク、およびサブエージェント。ペインをヘッダーでドラッグして位置を変更するか、ペインエッジをドラッグしてサイズを変更します。macOS では**Cmd+\\**を、Windows では**Ctrl+\\**を押してフォーカスされたペインを閉じます。セッションツールバーの**Views**メニューから追加のペインを開きます。
 
 このセクションのペインレイアウト、ターミナル、ファイルエディタ、およびビューモードには Claude Desktop v1.2581.0 以降が必要です。macOS では**Claude → Check for Updates**を、Windows では**Help → Check for Updates**を開いて更新してください。
 
@@ -141,7 +166,7 @@ Code タブはペインを任意のレイアウトで配置できるように構
 
 ファイルを開いて編集する
 
-チャットまたは diff ビューアのファイルパスをクリックして、ファイルペインで開きます。HTML、PDF、画像、およびビデオパスは代わりに[プレビューペイン](#preview-your-app)で開きます。スポット編集を行い、**Save**をクリックして書き戻します。ファイルを開いてからディスク上で変更された場合、ペインは警告を表示し、オーバーライドまたは破棄できます。**Discard**をクリックして編集を元に戻すか、ペインヘッダーのパスをクリックして絶対パスをコピーします。
+チャットまたは diff ビューアのファイルパスをクリックして、ファイルペインで開きます。HTML、PDF、画像、およびビデオパスは代わりに[ブラウザペイン](#preview-your-app)で開きます。スポット編集を行い、**Save**をクリックして書き戻します。ファイルを開いてからディスク上で変更された場合、ペインは警告を表示し、オーバーライドまたは破棄できます。**Discard**をクリックして編集を元に戻すか、ペインヘッダーのパスをクリックして絶対パスをコピーします。
 
 ファイルペインはローカルおよび SSH セッションで利用可能です。クラウドセッションの場合、Claude に変更を加えるよう依頼します。
 
@@ -179,8 +204,8 @@ macOS で**Cmd+/**を、Windows で**Ctrl+/**を押して、Code タブで利用
 | `Cmd` `Shift` `]` / `Cmd` `Shift` `[` | 次または前のセッション |
 | `Esc` | Claude の応答を停止 |
 | `Cmd` `Shift` `D` | diff ペインを切り替え |
-| `Cmd` `Shift` `P` | プレビューペインを切り替え |
-| `Cmd` `Shift` `S` | プレビューで要素を選択 |
+| `Cmd` `Shift` `B` | ブラウザペインを切り替え |
+| `Cmd` `Shift` `S` | ブラウザで要素を選択 |
 | `Ctrl` `` ` `` | ターミナルペインを切り替え |
 | `Cmd` `\` | フォーカスされたペインを閉じる |
 | `Cmd` `;` | サイドチャットを開く |
@@ -344,7 +369,7 @@ Claude Code を拡張する
 
 Claude は dev サーバーセットアップを自動的に検出し、セッションを開始するときに選択したフォルダのルートの`.claude/launch.json`に設定を保存します。Preview はこのフォルダを作業ディレクトリとして使用するため、親フォルダを選択した場合、独自の dev サーバーを持つサブフォルダは自動的に検出されません。サブフォルダのサーバーで作業するには、そのフォルダで直接セッションを開始するか、設定を手動で追加します。
 
-サーバーの起動方法をカスタマイズするには、たとえば`npm run dev`の代わりに`yarn dev`を使用するか、ポートを変更するには、ファイルを手動で編集するか、Preview ドロップダウンの**Edit configuration**をクリックしてコードエディタで開きます。ファイルはコメント付き JSON をサポートしています。
+サーバーの起動方法をカスタマイズするには、たとえば`npm run dev`の代わりに`yarn dev`を使用するか、ポートを変更するには、ファイルを手動で編集するか、サーバードロップダウンの**Edit configuration**をクリックしてコードエディタで開きます。ファイルはコメント付き JSON をサポートしています。
 
 ```json
 {
@@ -366,7 +391,7 @@ Claude は dev サーバーセットアップを自動的に検出し、セッ�
 
 `autoVerify`が有効な場合、Claude はファイルを編集した後、コード変更を自動的に検証します。スクリーンショットを撮影し、エラーをチェックし、応答を完了する前に変更が機能することを確認します。
 
-Auto-verify はデフォルトで有効です。`.claude/launch.json`に`"autoVerify": false`を追加してプロジェクトごとに無効にするか、**Preview**ドロップダウンメニューから切り替えます。
+Auto-verify はデフォルトで有効です。`.claude/launch.json`に`"autoVerify": false`を追加してプロジェクトごとに無効にするか、サーバードロップダウンメニューから切り替えます。
 
 ```json
 {
@@ -564,13 +589,14 @@ Team または Enterprise プランの組織は、管理コンソールコント
 
 管理設定
 
-管理設定はプロジェクトおよびユーザー設定をオーバーライドし、Claude Code セッションに Desktop で適用されます。これらのキーを組織の[管理設定](/ja/settings#settings-precedence)ファイルで設定するか、管理コンソールを通じてリモートでプッシュできます。
+管理設定はプロジェクトおよびユーザー設定をオーバーライドし、Desktop の Claude Code セッションに適用されます。これらのキーを組織の[管理設定](/ja/settings#settings-precedence)ファイルで設定するか、管理コンソールを通じてリモートでプッシュできます。
 
 | キー | 説明 |
 | - | - |
 | `permissions.disableBypassPermissionsMode` | ユーザーが Bypass permissions モードを有効にするのを防ぐには`"disable"`に設定します。 |
 | `disableAutoMode` | ユーザーが[Auto](/ja/permission-modes#eliminate-prompts-with-auto-mode)モードを有効にするのを防ぐには`"disable"`に設定します。モードセレクタから Auto を削除します。`permissions`の下でも受け入れられます。 |
 | `autoMode` | 組織全体で auto mode 分類器が信頼およびブロックするものをカスタマイズします。[auto mode を設定する](/ja/auto-mode-config)を参照してください。 |
+| `browserExternalPageTools` | Claude が[Browser ペイン](#browse-external-sites)の外部ページを読み取るまたは操作するためのツールを使用するのを防ぐには`"disabled"`に設定します。ユーザーは引き続き外部サイトに自分でナビゲートできます。ローカル開発サーバープレビューは影響を受けません。 |
 | `sshConfigs` | 環境ドロップダウンに表示される[SSH 接続](#pre-configure-ssh-connections-for-your-team)を事前設定します。ユーザーは管理接続を編集または削除できません。 |
 | `sshHostAllowlist` | [SSH セッション](#restrict-which-ssh-hosts-users-can-connect-to)を、解決されたホスト名がこれらのパターンのいずれかと一致するホストに制限します。空の配列は SSH セッションを無効にします。管理設定からのみ読み取られます。 |
 | `managedMcpServers` | MCP サーバー設定をサードパーティデプロイメント内のすべてのユーザーにプッシュします。各エントリは`"http"`、`"sse"`、または`"stdio"`のトランスポート、接続詳細、およびオプションで、そのサーバー内のどのツールをユーザーが呼び出せるかを制限する`toolPolicy`マップを指定します。サードパーティ（3P）Desktop デプロイメントでのみ利用可能です。管理設定ファイルまたは MDM を通じてこのキーを配信してください。サードパーティデプロイメントは管理コンソール設定を受け取らないためです。 |
@@ -613,7 +639,7 @@ CLI から来ましたか？
 
 既に Claude Code CLI を使用している場合、Desktop は同じ基盤となるエンジンをグラフィカルインターフェイスで実行します。同じマシン上で、同じプロジェクト上でも、両方を同時に実行できます。各々は個別のセッション履歴を保持しますが、CLAUDE.md ファイルを通じて設定とプロジェクトメモリを共有します。
 
-CLI セッションを Desktop に移動するには、ターミナルで `/desktop` を実行します。Claude はセッションを保存し、デスクトップアプリで開いてから CLI を終了します。このコマンドは macOS と Windows でのみ利用可能です。Claude サブスクリプションでサインインしている場合に利用できます。API キー認証では利用できず、Bedrock、Vertex、Foundry でも利用できません。
+CLI セッションを Desktop に移動するには、ターミナルで `/desktop` を実行します。Claude はセッションを保存し、デスクトップアプリで開いてから CLI を終了します。このコマンドは macOS と Windows でのみ利用可能です。Claude サブスクリプションでサインインしている場合に利用できます。API キー認証では利用できず、Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry でも利用できません。
 
 Desktop と CLI をいつ使用するか：並列セッションをウィンドウで管理したい場合、ペインを並べて配置したい場合、または変更をビジュアルで確認したい場合は Desktop を使用します。スクリプト、自動化、またはターミナルワークフローが必要な場合は CLI を使用します。
 
@@ -654,9 +680,9 @@ Desktop と CLI は同じ設定ファイルを読み取るため、セットア�
 
 | 機能 | CLI | Desktop |
 | - | - | - |
-| 権限モード | `dontAsk` を含むすべてのモード | Ask permissions、Auto accept edits、Plan mode、Auto、および Settings 経由の Bypass permissions |
+| 権限モード | `dontAsk` を含むすべてのモード | Manual、Accept edits、および Plan。Auto と Bypass permissions は Settings で有効にした後、モードセレクタに表示されます |
 | `--dangerously-skip-permissions` | CLI フラグ | Bypass permissions モード。Settings → Claude Code → 「Allow bypass permissions mode」で有効にします |
-| [サードパーティプロバイダー](/ja/third-party-integrations) | Bedrock、Vertex AI、Foundry | Anthropic の API がデフォルト。エンタープライズデプロイメントは Vertex AI とゲートウェイプロバイダーを設定できます。[エンタープライズ設定ガイド](https://support.claude.com/en/articles/12622667-enterprise-configuration)を参照してください。Bedrock、Vertex AI、Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行するには、[Cowork on 3P research preview](https://claude.com/docs/cowork/3p/overview)を参照してください。 |
+| [サードパーティプロバイダー](/ja/third-party-integrations) | Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry | Anthropic の API がデフォルト。エンタープライズデプロイメントは Google Cloud の Agent Platform とゲートウェイプロバイダーを設定できます。[エンタープライズ設定ガイド](https://support.claude.com/en/articles/12622667-enterprise-configuration)を参照してください。Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行するには、[Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview)を参照してください。 |
 | [MCP サーバー](/ja/mcp) | 設定ファイルで設定 | ローカルおよび SSH セッションの Connectors UI、または設定ファイル |
 | [Plugins](/ja/plugins) | `/plugin` コマンド | プラグインマネージャー UI |
 | @mention ファイル | テキストベース | オートコンプリート付き；ローカルおよび SSH セッションのみ |
@@ -672,11 +698,11 @@ Desktop では利用できないもの
 
 以下の機能は CLI または VS Code 拡張機能でのみ利用可能です。ただし、以下の場合を除きます：
 
-- **サードパーティプロバイダー**：Desktop は Anthropic の API に直接接続します。エンタープライズデプロイメントは Vertex AI とゲートウェイプロバイダーを [管理設定](https://support.claude.com/en/articles/12622667-enterprise-configuration)経由で設定できます。Bedrock または Foundry の場合は、[クイックスタート](/ja/quickstart)を参照してください。上記のセクションの例外として、[Cowork on 3P research preview](https://claude.com/docs/cowork/3p/overview)は Bedrock、Vertex AI、Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行します。
+- **サードパーティプロバイダー**：Desktop は Anthropic の API に直接接続します。エンタープライズデプロイメントは Google Cloud の Agent Platform とゲートウェイプロバイダーを [管理設定](https://support.claude.com/en/articles/12622667-enterprise-configuration)経由で設定できます。Amazon Bedrock または Microsoft Foundry の場合は、[クイックスタート](/ja/quickstart)を参照してください。上記のセクションの例外として、[Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview)は Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行します。
 - **Linux（ベータ版）**：Linux デスクトップアプリではコンピュータ使用はまだ利用できません。[Claude Desktop on Linux](/ja/desktop-linux)を参照してください。
 - **インラインコード提案**：Desktop はオートコンプリートスタイルの提案を提供しません。会話型プロンプトと明示的なコード変更を通じて機能します。
 - **エージェントチーム**：並列 Claude Code セッションが互いにメッセージを送信するのは [CLI](/ja/agent-teams) で利用可能であり、Desktop では利用できません。1 つのセッション内でマルチエージェント作業を行う場合は、[動的ワークフロー](/ja/workflows)を使用します。これは Desktop で実行されます。
-- **ターミナルダイアログコマンド**：`/permissions`、`/config`、`/doctor` などのターミナルで対話型パネルを開く組み込みコマンドは、Code タブでは利用できず、`isn't available in this environment` で応答します。[設定ファイル](/ja/settings)を直接編集して権限ルールと設定を管理するか、スタンドアロン CLI からコマンドを実行します。
+- **ターミナルダイアログコマンド**：`/permissions` や `/config` などのターミナルで対話型パネルを開く組み込みコマンドは、Code タブでは利用できず、`isn't available in this environment` で応答します。`/config` は `key=value` を渡すときに設定を設定します。例えば `/config theme=dark`；ピッカーフォームのみが利用できません。[設定ファイル](/ja/settings)を直接編集して権限ルールと設定を管理するか、スタンドアロン CLI からコマンドを実行します。
 
 トラブルシューティング
 

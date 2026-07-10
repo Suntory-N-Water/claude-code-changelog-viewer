@@ -56,9 +56,9 @@ Mac では `Cmd+Shift+P`、Windows と Linux では `Ctrl+Shift+P` で VS Code �
 認証プロンプトで表示される内容は、プロバイダーによって異なります：
 
 - **Anthropic**：Claude または Anthropic Console アカウントでブラウザ経由でサインイン
-- **[Amazon Bedrock、Google Vertex AI、または Microsoft Foundry](/ja/third-party-integrations)**：Claude Code はクラウドプロバイダーの認証情報を使用し、ブラウザプロンプトはありません
+- **[Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry](/ja/third-party-integrations)**：Claude Code はクラウドプロバイダーの認証情報を使用し、ブラウザプロンプトはありません
 
-クラウドプロバイダーの場合、ホストから認証情報ファイルをマウントするのではなく、`containerEnv`、Codespaces シークレット、またはクラウドのワークロード ID を通じて認証情報をコンテナに渡します。Claude Code が読み取る認証情報チェーンについては、[Amazon Bedrock](/ja/amazon-bedrock)、[Google Vertex AI](/ja/google-vertex-ai)、または [Microsoft Foundry](/ja/microsoft-foundry) を参照してください。
+クラウドプロバイダーの場合、ホストから認証情報ファイルをマウントするのではなく、`containerEnv`、Codespaces シークレット、またはクラウドのワークロード ID を通じて認証情報をコンテナに渡します。Claude Code が読み取る認証情報チェーンについては、[Amazon Bedrock](/ja/amazon-bedrock)、[Google Cloud の Agent Platform](/ja/google-vertex-ai)、または [Microsoft Foundry](/ja/microsoft-foundry) を参照してください。
 
 どのパスが組織に適しているかを決定するには、[API プロバイダーを選択する](/ja/admin-setup#choose-your-api-provider)を参照してください。
 

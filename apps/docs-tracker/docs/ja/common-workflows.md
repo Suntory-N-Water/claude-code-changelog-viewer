@@ -178,7 +178,7 @@ create a pr
 enhance the PR description with more context about the security improvements
 ```
 
-`gh pr create` を使用して PR を作成すると、セッションはその PR に自動的にリンクされます。後で `claude --from-pr <number>` で再開するか、[`/resume` ピッカー](/ja/sessions#use-the-session-picker)の検索に PR URL を貼り付けることで再開できます。
+`gh pr create` を使用して PR を作成すると、セッションはその PR に自動的にリンクされます。後で `claude --from-pr 123` で再開するか（123 を PR 番号に置き換えます）、[`/resume` ピッカー](/ja/sessions#use-the-session-picker)の検索に PR URL を貼り付けることで再開できます。
 
 Claude が生成した PR を送信する前にレビューし、Claude に潜在的なリスクや考慮事項を強調するよう依頼してください。
 

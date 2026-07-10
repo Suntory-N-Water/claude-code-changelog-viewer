@@ -159,7 +159,7 @@ claude doctor
 
 認証
 
-Claude Code には、Pro、Max、Team、Enterprise、または Console アカウントが必要です。無料の Claude.ai プランには Claude Code アクセスは含まれていません。[Amazon Bedrock](/ja/amazon-bedrock)、[Google Vertex AI](/ja/google-vertex-ai)、または[Microsoft Foundry](/ja/microsoft-foundry)などのサードパーティ API プロバイダーで Claude Code を使用することもできます。
+Claude Code には、Pro、Max、Team、Enterprise、または Console アカウントが必要です。無料の Claude.ai プランには Claude Code アクセスは含まれていません。[Amazon Bedrock](/ja/amazon-bedrock)、[Google Cloud の Agent Platform](/ja/google-vertex-ai)、または[Microsoft Foundry](/ja/microsoft-foundry)などのサードパーティ API プロバイダーで Claude Code を使用することもできます。
 
 インストール後、`claude` を実行してブラウザーのプロンプトに従ってログインします。すべてのアカウントタイプとチームセットアップオプションについては、[認証](/ja/authentication)を参照してください。
 
@@ -301,7 +301,13 @@ Claude Code は署名付き apt、dnf、および apk リポジトリを公開�
 
 すべてのリポジトリは [Claude Code リリース署名キー](#binary-integrity-and-code-signing)で署名されています。キーを信頼する前に、各タブで説明されているとおりに検証してください。
 
-Debian および Ubuntu 用です。以下のコマンドは `stable` チャネルを構成します:
+Debian および Ubuntu 用です。以下のインストールコマンドは `curl` で署名キーをダウンロードします。新しい Debian および Ubuntu インストールには `curl` が含まれていない場合があります。ダウンロードが `sudo: curl: command not found` で失敗する場合は、まず curl をインストールしてください:
+
+```bash theme={null}
+sudo apt install curl
+```
+
+以下のコマンドは `stable` チャネルを構成します:
 
 ```bash theme={null}
 sudo install -d -m 0755 /etc/apt/keyrings
@@ -429,7 +435,7 @@ gpg --verify manifest.json.sig manifest.json
 
 `gpg` は新しくインポートされたキーに対して `WARNING: This key is not certified with a trusted signature!` も出力します。これは予想されています。`Good signature` 行は暗号化チェックが成功したことを確認します。ステップ 1 のフィンガープリント比較はキー自体が本物であることを確認します。
 
-ダウンロードしたバイナリの SHA256 チェックサムを `manifest.json` の `platforms.<platform>.checksum` の下にリストされている値と比較します。
+バイナリの SHA256 チェックサムを `manifest.json` の `platforms.<platform>.checksum` の下にリストされている値と比較します。以下のコマンドは、現在のディレクトリに `claude` バイナリがあることを想定しています。代わりにインストールされたネイティブバイナリを検証するには、`~/.local/share/claude/versions/VERSION` に対してコマンドを実行します。VERSION をステップ 2 で設定したリリースに置き換えます。
 
 ```bash theme={null}
 sha256sum claude

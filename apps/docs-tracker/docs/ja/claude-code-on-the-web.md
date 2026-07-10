@@ -5,7 +5,7 @@ source: https://code.claude.com/docs/ja/claude-code-on-the-web.md
 
 # ウェブ上の Claude Code を使用する
 
-> Anthropic のサンドボックスでクラウド環境、セットアップスクリプト、ネットワークアクセス、Docker を設定します。`--remote` と `--teleport` を使用してウェブとターミナル間でセッションを移動します。
+> Anthropic のサンドボックスでクラウド環境、セットアップスクリプト、ネットワークアクセス、Docker を設定します。`--cloud` と `--teleport` を使用してウェブとターミナル間でセッションを移動します。
 
 ウェブ上の Claude Code は Pro、Max、Team ユーザー、およびプレミアムシートまたは Chat + Claude Code シートを持つ Enterprise ユーザーを対象としたリサーチプレビュー段階です。
 
@@ -19,7 +19,7 @@ source: https://code.claude.com/docs/ja/claude-code-on-the-web.md
 - [クラウド環境](#the-cloud-environment)：どの設定が引き継がれるか、どのツールがインストールされているか、環境を設定する方法
 - [セットアップスクリプト](#setup-scripts)と依存関係管理
 - [ネットワークアクセス](#network-access)：レベル、プロキシ、デフォルト許可リスト
-- [`--remote` と `--teleport` を使用してウェブとターミナル間でタスクを移動](#move-tasks-between-web-and-terminal)
+- [`--cloud` と `--teleport` を使用してウェブとターミナル間でタスクを移動](#move-tasks-between-web-and-terminal)
 - [セッションの操作](#work-with-sessions)：確認、共有、アーカイブ、削除
 - [プルリクエストの自動修正](#auto-fix-pull-requests)：CI 失敗とレビューコメントに自動的に応答
 - [セキュリティと分離](#security-and-isolation)：セッションの分離方法
@@ -153,7 +153,7 @@ Docker はコンテナ化されたサービスを実行するために利用可�
 | 環境を追加 | 現在の環境を選択して環境セレクターを開き、**Add environment** を選択します。ダイアログには名前、ネットワークアクセスレベル、環境変数、セットアップスクリプトが含まれます。 |
 | 環境を編集 | クラウドアイコンを選択して現在の環境の名前を表示し、セレクターを開き、環境にマウスを合わせて、右側に表示される設定アイコンをクリックします。 |
 | 環境をアーカイブ | 環境を編集用に開き、**Archive** を選択します。アーカイブされた環境はセレクターから非表示になりますが、既存のセッションは実行を続けます。 |
-| `--remote` のデフォルトを設定 | ターミナルで `/remote-env` を実行します。単一の環境がある場合、このコマンドは現在の設定を表示します。`/remote-env` はデフォルトのみを選択します。ウェブインターフェースから環境を追加、編集、アーカイブします。 |
+| CLI クラウドセッションのデフォルト環境を設定 | ターミナルで `/remote-env` を実行します。単一の環境がある場合、このコマンドは現在の設定を表示します。`/remote-env` はデフォルトのみを選択します。ウェブインターフェースから環境を追加、編集、アーカイブしてください。 |
 
 環境変数は `.env` 形式を使用し、1 行に 1 つの `KEY=value` ペアです。値を引用符で囲まないでください。引用符は値の一部として保存されるためです。この例は 3 つの変数を定義しています：
 
@@ -533,21 +533,21 @@ GitHub プロキシ
 
 これらのワークフローには [Claude Code CLI](/ja/quickstart) が同じ claude.ai アカウントにサインインしている必要があります。ターミナルから新しいクラウドセッションを開始するか、クラウドセッションをターミナルにプルしてローカルで続行できます。クラウドセッションはラップトップを閉じても保持され、Claude モバイルアプリを含む任意の場所から監視できます。
 
-CLI からのセッションハンドオフは一方向です：`--teleport` でクラウドセッションをターミナルにプルできますが、既存のターミナルセッションをウェブにプッシュすることはできません。`--remote` フラグは現在のリポジトリの新しいクラウドセッションを作成します。[Desktop アプリ](/ja/desktop#continue-in-another-surface)は別のサーフェスに送信できる Continue in メニューを提供します。
+CLI からのセッションハンドオフは一方向です：`--teleport` でクラウドセッションをターミナルにプルできますが、既存のターミナルセッションをウェブにプッシュすることはできません。`--cloud` フラグは現在のリポジトリの新しいクラウドセッションを作成します。[Desktop アプリ](/ja/desktop#continue-in-another-surface)は別のサーフェスに送信できる Continue in メニューを提供します。
 
 ターミナルからウェブへ
 
-`--remote` フラグを使用してコマンドラインからクラウドセッションを開始します：
+`--cloud` フラグを使用してコマンドラインからクラウドセッションを開始します：
 
 ```bash
-claude --remote "Fix the authentication bug in src/auth/login.ts"
+claude --cloud "Fix the authentication bug in src/auth/login.ts"
 ```
 
-これにより claude.ai 上に新しいクラウドセッションが作成されます。セッションは現在のディレクトリの GitHub リモートを現在のブランチでクローンするため、VM は GitHub からクローンするため、ローカルコミットがある場合は最初にプッシュしてください。`--remote` は一度に 1 つのリポジトリで機能します。タスクはクラウドで実行され、ローカルで作業を続行できます。
+これにより claude.ai 上に新しいクラウドセッションが作成されます。セッションは現在のディレクトリの GitHub リモートを現在のブランチでクローンするため、VM は GitHub からクローンするため、ローカルコミットがある場合は最初にプッシュしてください。`--cloud` は一度に 1 つのリポジトリで機能します。タスクはクラウドで実行され、ローカルで作業を続行できます。古い `--remote` スペルは `--cloud` の非推奨エイリアスとしてまだ機能します。
 
 v2.1.195 以降、CLI はリポジトリのクローンや [セットアップスクリプト](#setup-scripts)の実行などのセットアップステップのライブチェックリストを表示し、クラウドコンテナが起動します。コンテナがプロビジョニング中に入力したメッセージはキューに入れられ、セッションの準備ができたら送信されます。
 
-`--remote` はクラウドセッションを作成します。`--remote-control` は無関係です：ウェブから監視するためにローカル CLI セッションを公開します。[Remote Control](/ja/remote-control)を参照してください。
+`--cloud` はクラウドセッションを作成します。`--remote-control` は無関係です：ウェブから監視するためにローカル CLI セッションを公開します。[Remote Control](/ja/remote-control)を参照してください。
 
 Claude Code CLI で `/tasks` を使用して進捗をチェックするか、claude.ai または Claude モバイルアプリでセッションを開いて直接対話します。そこから Claude を操舵し、フィードバックを提供するか、他のすべての会話と同じように質問に答えることができます。
 
@@ -562,31 +562,31 @@ claude --permission-mode plan
 プランモードでは、Claude はファイルを読み取り、コマンドを実行して探索し、ソースコードを編集せずにプランを提案します。計画に満足したら、リポジトリにプランを保存し、コミットしてプッシュし、クラウド VM がそれをクローンできるようにします。その後、自律実行のためにクラウドセッションを開始します：
 
 ```bash
-claude --remote "Execute the migration plan in docs/migration-plan.md"
+claude --cloud "Execute the migration plan in docs/migration-plan.md"
 ```
 
 このパターンにより、戦略を制御しながら Claude がクラウドで自律的に実行できます。
 
 **クラウドで ultraplan を使用してプランを作成**：ウェブセッション自体でプランを起案およびレビューするには、[ultraplan](/ja/ultraplan)を使用します。Claude はウェブ上の Claude Code でプランを生成し、作業を続行し、ブラウザでセクションにコメントし、リモートで実行するか、プランをターミナルに送り返すことを選択します。
 
-**タスクを並列で実行**：各 `--remote` コマンドは独立して実行される独自のクラウドセッションを作成します。複数のタスクを開始でき、すべて別々のセッションで同時に実行されます：
+**タスクを並列で実行**：各 `--cloud` コマンドは独立して実行される独自のクラウドセッションを作成します。複数のタスクを開始でき、すべて別々のセッションで同時に実行されます：
 
 ```bash
-claude --remote "Fix the flaky test in auth.spec.ts"
-claude --remote "Update the API documentation"
-claude --remote "Refactor the logger to use structured output"
+claude --cloud "Fix the flaky test in auth.spec.ts"
+claude --cloud "Update the API documentation"
+claude --cloud "Refactor the logger to use structured output"
 ```
 
 Claude Code CLI で `/tasks` を使用してすべてのセッションを監視します。セッションが完了したら、ウェブインターフェースから PR を作成するか、[セッションをテレポート](#from-web-to-terminal)してターミナルで作業を続行できます。
 
 GitHub なしでローカルリポジトリを送信
 
-GitHub に接続されていないリポジトリから `claude --remote` を実行する場合、Claude Code はローカルリポジトリをバンドルしてクラウドセッションに直接アップロードします。バンドルにはすべてのブランチ全体のリポジトリ履歴と、追跡されたファイルへのコミットされていない変更が含まれます。
+GitHub に接続されていないリポジトリから `claude --cloud` を実行する場合、Claude Code はローカルリポジトリをバンドルしてクラウドセッションに直接アップロードします。バンドルにはすべてのブランチ全体のリポジトリ履歴と、追跡されたファイルへのコミットされていない変更が含まれます。
 
 GitHub アクセスが利用できない場合、このフォールバックは自動的にアクティブになります。GitHub が接続されている場合でも強制するには、`CCR_FORCE_BUNDLE=1` を設定します：
 
 ```bash
-CCR_FORCE_BUNDLE=1 claude --remote "Run the test suite and fix any failures"
+CCR_FORCE_BUNDLE=1 claude --cloud "Run the test suite and fix any failures"
 ```
 
 バンドルされたリポジトリはこれらの制限を満たす必要があります：
@@ -622,7 +622,7 @@ CCR_FORCE_BUNDLE=1 claude --remote "Run the test suite and fix any failures"
 
 `--teleport` が利用できない
 
-テレポートには claude.ai サブスクリプション認証が必要です。API キー、Bedrock、Vertex AI、または Microsoft Foundry 経由で認証されている場合は、代わりに claude.ai アカウントでサインインするために `/login` を実行してください。claude.ai 経由で既にサインインしており、`--teleport` がまだ利用できない場合は、組織がクラウドセッションを無効にしている可能性があります。
+テレポートには claude.ai サブスクリプション認証が必要です。API キー、Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry 経由で認証されている場合は、代わりに claude.ai アカウントでサインインするために `/login` を実行してください。claude.ai 経由で既にサインインしており、`--teleport` がまだ利用できない場合は、組織がクラウドセッションを無効にしている可能性があります。
 
 セッションの操作
 
@@ -630,7 +630,7 @@ CCR_FORCE_BUNDLE=1 claude --remote "Run the test suite and fix any failures"
 
 コンテキストを管理
 
-クラウドセッションは[組み込みコマンド](/ja/commands)をサポートしており、テキスト出力を生成します。`/model` や `/config` のようなインタラクティブターミナルピッカーを開くコマンドは利用できません。
+クラウドセッションは[組み込みコマンド](/ja/commands)をサポートしており、テキスト出力を生成します。ターミナルインターフェイスでのみ実行されるコマンド（`/plugin` や `/resume` など）は利用できません。}`/model`、`/effort`、`/fast`、`/color`、`/rename` はターミナルピッカーまたはスライダーを開く代わりに、引数として値を使用して機能します。例えば `/model sonnet` のように使用します。引数形式はセッションの環境で Claude Code v2.1.205 以降が必要であり、各コマンドの[利用可能性に関する注記](/ja/commands#all-commands)に従います。そのため、`/effort` はモデルの[起動デフォルト努力保持](/ja/model-config#adjust-effort-level)が有効な場合は `Not applied` を報告し、`/fast` はファストモードを有効にして開始されたセッションでのみ機能します。`/config` は `key=value` を渡すときに設定を設定します。
 
 コンテキスト管理の場合：
 
@@ -642,7 +642,9 @@ CCR_FORCE_BUNDLE=1 claude --remote "Run the test suite and fix any failures"
 
 自動圧縮はコンテキストウィンドウが容量に近づくと自動的に実行されます。より早くトリガーするには、[環境変数](#configure-your-environment)で [`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`](/ja/env-vars)を設定します。例えば、`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` はウィンドウがほぼいっぱいになるまで待つのではなく、70% 容量で圧縮します。圧縮計算の有効なウィンドウサイズを変更するには、[`CLAUDE_CODE_AUTO_COMPACT_WINDOW`](/ja/env-vars)を使用します。
 
-[Subagents](/ja/sub-agents)はローカルと同じように機能します。Claude は Task ツールでそれらをスポーンして、研究または並列作業を別のコンテキストウィンドウにオフロードし、メイン会話を軽くすることができます。リポジトリの `.claude/agents/` で定義された Subagents は自動的にピックアップされます。[Agent teams](/ja/agent-teams)はデフォルトでオフですが、[環境変数](#configure-your-environment)に `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` を追加することで有効にできます。
+[Subagents](/ja/sub-agents)はローカルと同じように機能します。Claude は Task ツールでそれらをスポーンして、研究または並列作業を別のコンテキストウィンドウにオフロードし、メイン会話を軽くすることができます。リポジトリの `.claude/agents/` で定義された Subagents は自動的にピックアップされます。
+
+[Agent teams](/ja/agent-teams)はデフォルトでオフですが、[環境変数](#configure-your-environment)に `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` を追加することで有効にできます。
 
 変更を確認
 

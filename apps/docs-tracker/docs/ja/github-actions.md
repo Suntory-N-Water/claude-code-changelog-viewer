@@ -39,7 +39,7 @@ GitHub App がインストールされた後、コマンドは GitHub Actions �
 
 - GitHub アプリをインストールしてシークレットを追加するには、リポジトリ管理者である必要があります
 - GitHub アプリは、Contents、Issues、Pull requests に対する読み取りと書き込みのアクセス許可をリクエストします
-- このクイックスタート方法は、直接 Claude API ユーザーのみが利用できます。Amazon Bedrock または Google Vertex AI を使用している場合は、[Amazon Bedrock と Google Vertex AI での使用](#using-with-amazon-bedrock-%26-google-vertex-ai) セクションを参照してください。
+- このクイックスタート方法は、直接 Claude API ユーザーのみが利用できます。Amazon Bedrock または Google Cloud の Agent Platform を使用している場合は、[Amazon Bedrock と Google Cloud での使用](#using-with-amazon-bedrock-and-google-cloud) セクションを参照してください。
 
 手動セットアップ
 
@@ -267,7 +267,7 @@ Claude Code Action v1 は、統一されたパラメータで設定を簡素化�
 
 イシューまたは PR コメントに応答する場合、Claude は自動的に @claude メンションに応答します。その他のイベントについては、`prompt` パラメータを使用して指示を提供します。
 
-Amazon Bedrock と Google Vertex AI での使用
+Amazon Bedrock と Google Cloud での使用
 
 エンタープライズ環境では、Claude Code GitHub Actions を独自のクラウドインフラストラクチャで使用できます。このアプローチにより、データレジデンシーと請求を制御しながら、同じ機能を維持できます。
 
@@ -275,9 +275,9 @@ Amazon Bedrock と Google Vertex AI での使用
 
 クラウドプロバイダーで Claude Code GitHub Actions をセットアップする前に、以下が必要です。
 
-Google Cloud Vertex AI の場合：
+Google Cloud の Agent Platform の場合：
 
-1. Vertex AI が有効な Google Cloud プロジェクト
+1. Google Cloud の Agent Platform が有効な Google Cloud プロジェクト
 2. GitHub Actions 用に設定された Workload Identity Federation
 3. 必要なアクセス許可を持つサービスアカウント
 4. GitHub App（推奨）または デフォルトの GITHUB\_TOKEN を使用
@@ -286,10 +286,10 @@ Amazon Bedrock の場合：
 
 1. Amazon Bedrock が有効な AWS アカウント
 2. AWS で設定された GitHub OIDC Identity Provider
-3. Bedrock アクセス許可を持つ IAM ロール
+3. Amazon Bedrock アクセス許可を持つ IAM ロール
 4. GitHub App（推奨）または デフォルトの GITHUB\_TOKEN を使用
 
-Vertex AI や Bedrock などの 3P プロバイダーを使用する場合、最適な制御とセキュリティのために、独自の GitHub App を作成することをお勧めします。
+Google Cloud の Agent Platform や Amazon Bedrock などの 3P プロバイダーを使用する場合、最適な制御とセキュリティのために、独自の GitHub App を作成することをお勧めします。
 
 1. [https://github.com/settings/apps/new](https://github.com/settings/apps/new) にアクセスします
 2. 基本情報を入力します。
@@ -365,7 +365,7 @@ OIDC は、認証情報が一時的で自動的にローテーションされる
 1. **Google Cloud プロジェクトで API を有効にします**:
    - IAM Credentials API
    - Security Token Service（STS）API
-   - Vertex AI API
+   - Google Cloud の Agent Platform API
 
 2. **Workload Identity Federation リソースを作成します**:
    - Workload Identity Pool を作成します
@@ -404,7 +404,7 @@ Workload Identity Federation により、ダウンロード可能なサービス
    - `APP_ID`: GitHub App の ID
    - `APP_PRIVATE_KEY`: プライベートキー（.pem）の内容
 
-#### Google Cloud Vertex AI の場合
+#### Google Cloud の Agent Platform の場合
 
 1. **GCP 認証の場合**:
    - `GCP_WORKLOAD_IDENTITY_PROVIDER`
@@ -423,19 +423,19 @@ Workload Identity Federation により、ダウンロード可能なサービス
    - `APP_ID`: GitHub App の ID
    - `APP_PRIVATE_KEY`: プライベートキー（.pem）の内容
 
-クラウドプロバイダーと統合する GitHub Actions ワークフローファイルを作成します。以下の例は、Amazon Bedrock と Google Vertex AI の両方の完全な設定を示しています。
+クラウドプロバイダーと統合する GitHub Actions ワークフローファイルを作成します。以下の例は、Amazon Bedrock と Google Cloud の Agent Platform の両方の完全な設定を示しています。
 
 **前提条件:**
 
 - Amazon Bedrock アクセスが有効で、Claude モデルのアクセス許可がある
 - GitHub が AWS で OIDC ID プロバイダーとして設定されている
-- Bedrock アクセス許可を持つ IAM ロールが GitHub Actions を信頼している
+- Amazon Bedrock アクセス許可を持つ IAM ロールが GitHub Actions を信頼している
 
 **必要な GitHub シークレット:**
 
 | Secret Name | Description |
 | - | - |
-| `AWS_ROLE_TO_ASSUME` | Bedrock アクセス用の IAM ロールの ARN |
+| `AWS_ROLE_TO_ASSUME` | Amazon Bedrock アクセス用の IAM ロールの ARN |
 | `APP_ID` | GitHub App ID（アプリ設定から） |
 | `APP_PRIVATE_KEY` | GitHub App 用に生成したプライベートキー |
 
@@ -489,20 +489,20 @@ jobs:
           claude_args: '--model us.anthropic.claude-sonnet-4-6 --max-turns 10'
 ```
 
-Bedrock のモデル ID 形式には、リージョンプレフィックスが含まれます（例：`us.anthropic.claude-sonnet-4-6`）。
+Amazon Bedrock のモデル ID 形式には、リージョンプレフィックスが含まれます（例：`us.anthropic.claude-sonnet-4-6`）。
 
 **前提条件:**
 
-- GCP プロジェクトで Vertex AI API が有効
+- GCP プロジェクトで Google Cloud の Agent Platform API が有効
 - GitHub 用に Workload Identity Federation が設定されている
-- Vertex AI アクセス許可を持つサービスアカウント
+- Google Cloud の Agent Platform アクセス許可を持つサービスアカウント
 
 **必要な GitHub シークレット:**
 
 | Secret Name | Description |
 | - | - |
 | `GCP_WORKLOAD_IDENTITY_PROVIDER` | Workload identity provider リソース名 |
-| `GCP_SERVICE_ACCOUNT` | Vertex AI アクセス権を持つサービスアカウントメール |
+| `GCP_SERVICE_ACCOUNT` | Google Cloud の Agent Platform アクセス権を持つサービスアカウントメール |
 | `APP_ID` | GitHub App ID（アプリ設定から） |
 | `APP_PRIVATE_KEY` | GitHub App 用に生成したプライベートキー |
 
@@ -574,7 +574,7 @@ GitHub App またはカスタムアプリを使用していることを確認し
 
 認証エラー
 
-API キーが有効で十分なアクセス許可があることを確認します。Bedrock/Vertex の場合、認証情報の設定を確認し、シークレットがワークフロー内で正しく名前付けされていることを確認します。
+API キーが有効で十分なアクセス許可があることを確認します。Amazon Bedrock または Google Cloud の Agent Platform の場合、認証情報の設定を確認し、シークレットがワークフロー内で正しく名前付けされていることを確認します。
 
 高度な設定
 
@@ -592,10 +592,10 @@ Claude Code Action v1 は、簡素化された設定を使用します。
 | `github_token` | API アクセス用の GitHub トークン | いいえ |
 | `trigger_phrase` | カスタムトリガーフレーズ（デフォルト：「@claude」） | いいえ |
 | `use_bedrock` | Claude API の代わりに Amazon Bedrock を使用 | いいえ |
-| `use_vertex` | Claude API の代わりに Google Vertex AI を使用 | いいえ |
+| `use_vertex` | Claude API の代わりに Google Cloud の Agent Platform を使用 | いいえ |
 
 \*プロンプトはオプションです。イシュー/PR コメントで省略された場合、Claude はトリガーフレーズに応答します\
-\*\*直接 Claude API に必要です。Bedrock/Vertex には不要です
+\*\*直接 Claude API に必要です。Amazon Bedrock または Google Cloud の Agent Platform には不要です
 
 CLI 引数を渡す
 

@@ -84,7 +84,7 @@ Claude サブスクリプションまたは Console アカウントの場合は�
 
 - [Claude Pro、Max、Team、または Enterprise](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=quickstart_login)（推奨）
 - [Claude Console](https://console.anthropic.com/)（プリペイドクレジット付き API アクセス）。初回ログイン時に、コスト追跡を一元化するために「Claude Code」ワークスペースが Console に自動的に作成されます。
-- [Amazon Bedrock、Google Vertex AI、または Microsoft Foundry](/ja/third-party-integrations)（エンタープライズクラウドプロバイダー）
+- [Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry](/ja/third-party-integrations)（エンタープライズクラウドプロバイダー）
 - 組織が実行している自己ホスト型の [Claude apps gateway](/ja/claude-apps-gateway)：管理者がゲートウェイ URL を事前に設定し、`/login` で **Cloud gateway** 画面が直接開き、企業 SSO でサインインできます
 
 ログイン後、認証情報が保存され、再度ログインする必要はありません。

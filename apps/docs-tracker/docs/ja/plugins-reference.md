@@ -150,6 +150,8 @@ Hooks
 - `prompt`: LLM でプロンプトを評価（コンテキストの `$ARGUMENTS` プレースホルダーを使用）
 - `agent`: 複雑な検証タスク用のツール付き agentic verifier を実行
 
+プラグイン自体の[バンドルされた MCP server](#mcp-servers)をターゲットとする Hooks は、スコープ付き名を使用する必要があります。ツールマッチャーと `if` フィールドはスコープ付きツール名 `mcp__plugin_<plugin-name>_<server-name>__<tool>` を取り、`mcp_tool` hook の `server` フィールドは `plugin:<plugin-name>:<server-name>` を取ります。ベアサーバーキーに対して記述されたマッチャーは発火しません。[MCP ツールをマッチ](/ja/hooks#match-mcp-tools)および[プラグイン提供 MCP servers](/ja/mcp#plugin-provided-mcp-servers)を参照してください。
+
 MCP servers
 
 プラグインは Model Context Protocol（MCP）servers をバンドルして、Claude Code を外部ツールおよびサービスに接続できます。
@@ -251,8 +253,18 @@ LSP 統合は以下を提供します:
 | `settings` | `workspace/didChangeConfiguration` 経由で渡される設定 |
 | `workspaceFolder` | サーバーのワークスペースフォルダーパス |
 | `startupTimeout` | サーバー起動を待つ最大時間（ミリ秒） |
+| `shutdownTimeout` | グレースフルシャットダウンを待つ最大時間（ミリ秒）。タイムアウトが経過すると、Claude Code はサーバープロセスを終了します。設定されていない場合、タイムアウトは適用されません |
+| `restartOnCrash` | クラッシュ後にサーバーを再起動するかどうか。デフォルトは `true` です。クラッシュしたサーバーを再起動する代わりに停止したままにするには `false` に設定します |
 | `maxRestarts` | 諦める前の最大再起動試行回数 |
 | `diagnostics` | 編集後に診断を Claude のコンテキストにプッシュするかどうか（デフォルト `true`）。コードナビゲーションは保持しながら自動診断注入を抑制するには `false` に設定します。 |
+
+`restartOnCrash` と `shutdownTimeout` には Claude Code v2.1.205 以降が必要です。v2.1.205 より前では、設定スキーマは両方のオプションを受け入れていましたが、どちらかを設定すると Claude Code は起動時にその LSP サーバーをスキップしていました。理由は `claude --debug` 出力でのみ表示されます。
+
+**同じ拡張子に対する複数のサーバー**: 複数の有効な LSP サーバーが `extensionToLanguage` で同じファイル拡張子を宣言する場合、サーバーが 1 つのプラグインから来ているか異なるプラグインから来ているかに関わらず、最初に登録されたサーバーがその拡張子を持つファイルを処理し、他のサーバーは起動しません。`/plugin` インターフェイスは、アクティブなサーバーを持つプラグインに名前を付ける警告を表示します。
+
+**初期化に失敗するサーバー**: Claude Code は、`command` または `extensionToLanguage` が欠落しているなど、設定が無効なサーバーをスキップし、他の設定されたサーバーは引き続き起動します。`claude --debug` を実行して、サーバーがスキップされた理由を確認してください。
+
+スキップされたサーバーはそのファイル拡張子を要求しないため、同じ拡張子を宣言する別の有効なサーバーが、同じプラグインまたは異なるプラグインから来ていても、引き続きそれらのファイルを処理します。v2.1.205 より前では、初期化に失敗したサーバーは引き続きその拡張子を要求し、同じ拡張子に対する別の有効なサーバーをブロックしていました。
 
 **言語サーバーバイナリを別途インストールする必要があります。** LSP プラグインは Claude Code が言語サーバーに接続する方法を設定しますが、サーバー自体は含まれていません。`/plugin` Errors タブに `Executable not found in $PATH` が表示される場合は、言語に必要なバイナリをインストールしてください。
 
@@ -580,7 +592,7 @@ claude plugin validate ./my-plugin --strict
 - **デフォルトに追加**: `skills`。デフォルト `skills/` ディレクトリは常にスキャンされ、`skills` にリストされているディレクトリはそれと一緒に読み込まれます。例外: [マーケットプレイスエントリの `source` がマーケットプレイスルートに解決される](/ja/plugin-marketplaces#advanced-plugin-entries)場合、特定のサブディレクトリを宣言するとスキャンが置き換えられます
 - **独自のマージルール**: [hooks](#hooks)、[MCP servers](#mcp-servers)、[LSP servers](#lsp-servers)。各セクションで複数のソースがどのように結合されるかを参照してください
 
-プラグインがデフォルトフォルダと一致するマニフェストキーの両方を持つ場合、Claude Code v2.1.140 以降は無視されたフォルダを `/doctor`、`claude plugin list`、および `/plugin` 詳細ビューでフラグします。プラグインはマニフェストパスを使用して読み込まれます。マニフェストキーがデフォルトフォルダを指す場合（例: `"commands": ["./commands/deploy.md"]`）は警告は表示されません。その場合、フォルダは明示的にアドレス指定されているためです。
+プラグインがデフォルトフォルダと一致するマニフェストキーの両方を持つ場合、Claude Code v2.1.140 以降は無視されたフォルダを `claude plugin list` および `/plugin` 詳細ビューで警告します。プラグインはマニフェストパスを使用して読み込まれます。マニフェストキーがデフォルトフォルダを指す場合（例: `"commands": ["./commands/deploy.md"]`）は警告は表示されません。その場合、フォルダは明示的にアドレス指定されているためです。
 
 すべてのパスフィールドについて:
 
@@ -616,7 +628,7 @@ Claude Code は、プラグインパスを参照するための 3 つの変数�
 
 **`${CLAUDE_PLUGIN_DATA}`**: 更新後も保持される永続ディレクトリ。`node_modules` または Python 仮想環境などのインストール済み依存関係、生成されたコード、キャッシュ、およびプラグインバージョン全体で保持する必要があるその他のファイルに使用します。このディレクトリは、この変数が最初に参照されるときに自動的に作成されます。
 
-**`${CLAUDE_PROJECT_DIR}`**: プロジェクトルート。これは hook が `CLAUDE_PROJECT_DIR` 変数で受け取るのと同じディレクトリです。プロジェクトローカルスクリプトまたは設定ファイルを参照するために使用します。スペースを含むパスを処理するためにクォートで囲みます。たとえば `"${CLAUDE_PROJECT_DIR}/scripts/server.sh"`。MCP サーバーは MCP `roots/list` リクエストを呼び出すこともでき、Claude Code が起動されたディレクトリを返します。
+**`${CLAUDE_PROJECT_DIR}`**: プロジェクトルート。これは hook が `CLAUDE_PROJECT_DIR` 変数で受け取るのと同じディレクトリです。プロジェクトローカルスクリプトまたは設定ファイルを参照するために使用します。スペースを含むパスを処理するためにクォートで囲みます。たとえば `"${CLAUDE_PROJECT_DIR}/scripts/server.sh"`。MCP サーバーは `roots/list` リクエストを呼び出すこともでき、セッションの作業ディレクトリを実行時に読み取ることができます。[`roots/list` が返すもの、および Claude Code がサーバーに変更を通知するタイミング](/ja/mcp#option-3-add-a-local-stdio-server)を参照してください。
 
 ```json
 {

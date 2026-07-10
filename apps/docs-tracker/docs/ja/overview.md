@@ -11,7 +11,7 @@ Claude Code は AI を活用したコーディングアシスタントで、機�
 
 はじめに
 
-環境を選択してはじめましょう。ほとんどのサーフェスには [Claude サブスクリプション](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=overview_pricing)または [Anthropic Console](https://console.anthropic.com/) アカウントが必要です。Terminal CLI と VS Code は [サードパーティプロバイダー](/ja/third-party-integrations)もサポートしています。
+Claude Code は複数のサーフェスで実行されます。ターミナル、IDE 拡張機能、デスクトップアプリ、Web です。下のタブから 1 つを選択してはじめましょう。ほとんどのサーフェスには [Claude サブスクリプション](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=overview_pricing)または [Anthropic Console](https://console.anthropic.com/) アカウントが必要です。Terminal CLI と VS Code は [サードパーティプロバイダー](/ja/third-party-integrations)もサポートしています。
 
 ターミナルで Claude Code を直接操作するための機能豊富な CLI です。ファイルを編集し、コマンドを実行し、コマンドラインからプロジェクト全体を管理できます。
 
@@ -168,9 +168,9 @@ git diff main --name-only | claude -p "review these changed files for security i
 
 Claude Code をどこでも使用する
 
-各サーフェスは同じ基盤となる Claude Code エンジンに接続するため、CLAUDE.md ファイル、設定、MCP サーバーはすべてのサーフェスで機能します。
+各 [サーフェス](/ja/glossary#surface) は同じ基盤となる Claude Code エンジンに接続するため、CLAUDE.md ファイル、設定、MCP サーバーはすべてのサーフェスで機能します。
 
-上記の [Terminal](/ja/quickstart)、[VS Code](/ja/vs-code)、[JetBrains](/ja/jetbrains)、[Desktop](/ja/desktop)、[Web](/ja/claude-code-on-the-web) 環境を超えて、Claude Code は CI/CD、チャット、ブラウザワークフローと統合します：
+上記の [Terminal](/ja/quickstart)、[VS Code](/ja/vs-code)、[JetBrains](/ja/jetbrains)、[Desktop](/ja/desktop)、[Web](/ja/claude-code-on-the-web) サーフェスを超えて、Claude Code は CI/CD、チャット、ブラウザワークフローと統合します：
 
 | 実現したいこと | 最適なオプション |
 | - | - |

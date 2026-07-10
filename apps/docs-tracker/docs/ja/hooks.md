@@ -135,12 +135,12 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 フックは JSON 設定ファイルで定義されます。設定には 3 つのネストレベルがあります。
 
 1. 応答する[フック イベント](#hook-events)を選択します（`PreToolUse` や `Stop` など）
-2. 発火するタイミングをフィルタリングする[マッチャー グループ](#matcher-patterns)を追加します（'Bash ツールのみ'など）
+2. 発火するタイミングをフィルタリングする[マッチャー グループ](#matcher-patterns)を追加します（「Bash ツールのみ」など）
 3. マッチしたときに実行する 1 つ以上の[フック ハンドラー](#hook-handler-fields)を定義します
 
 完全なウォークスルーと注釈付きの例については、上記の[フックがどのように解決されるか](#how-a-hook-resolves)を参照してください。
 
-このページでは各レベルに特定の用語を使用しています。**フック イベント**はライフサイクル ポイント、**マッチャー グループ**はフィルター、**フック ハンドラー**はシェル コマンド、HTTP エンドポイント、MCP ツール、プロンプト、または実行されるエージェントです。'フック'単独は一般的な機能を指します。
+このページでは各レベルに特定の用語を使用しています。**フック イベント**はライフサイクル ポイント、**マッチャー グループ**はフィルター、**フック ハンドラー**はシェル コマンド、HTTP エンドポイント、MCP ツール、プロンプト、または実行されるエージェントです。「フック」単独は一般的な機能を指します。
 
 フック位置
 
@@ -243,6 +243,8 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 
 完全一致セット内のハイフンには Claude Code v2.1.195 以降が必要です。以前のバージョンでは、`mcp__brave-search` のようなベアのハイフン付きプレフィックスはアンカーなしの正規表現として評価され、そのサーバーのすべてのツールにマッチします。`mcp__brave-search__.*` 形式はすべてのバージョンで機能します。
 
+[プラグイン バンドル MCP サーバー](/ja/mcp#plugin-provided-mcp-servers)からのツールは、プラグイン名を含むスコープ付きサーバー セグメントを使用します。`mcp__plugin_<plugin-name>_<server-name>__<tool>`。ベア サーバー キーに対して記述されたマッチャーは、これらのツールに対して発火しません。`db` キーの下でサーバーをバンドルする `my-plugin` という名前のプラグインの場合、`query` ツールは `mcp__plugin_my-plugin_db__query` として表示されるため、そのサーバーのすべてのツールのマッチャーは `mcp__plugin_my-plugin_db__.*` です。ハンドラーの [`if` フィールド](#common-fields)で同じスコープ付きツール名を使用します。スコープ付き名がどのように構築されるかについては、[プラグイン提供 MCP サーバー](/ja/mcp#plugin-provided-mcp-servers)を参照してください。
+
 この例は、すべてのメモリ サーバー操作をログし、任意の MCP サーバーからの書き込み操作を検証します。
 
 ```json
@@ -282,7 +284,9 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 - **[プロンプト フック](#prompt-and-agent-hook-fields)** （`type: "prompt"`）: Claude モデルにプロンプトを送信して、単一ターンの評価を行います。モデルは yes/no 決定を JSON として返します。[プロンプト ベースのフック](#prompt-based-hooks)を参照してください。
 - **[エージェント フック](#prompt-and-agent-hook-fields)** （`type: "agent"`）: Read、Grep、Glob などのツールを使用して条件を検証してから決定を返すことができるサブエージェントを生成します。エージェント フックは実験的であり、変更される可能性があります。[エージェント ベースのフック](#agent-based-hooks)を参照してください。
 
-すべてのマッチング フックは並列で実行され、同一のハンドラーは自動的に重複排除されます。コマンド フックはコマンド文字列と `args` で重複排除され、HTTP フックは URL で重複排除されます。ハンドラーは Claude Code の環境を持つ現在のディレクトリで実行されます。`$CLAUDE_CODE_REMOTE` 環境変数はリモート Web 環境で `"true"` に設定され、ローカル CLI では設定されません。v2.1.199 以降、[`$CLAUDE_CODE_BRIDGE_SESSION_ID`](/ja/env-vars)は、ローカル セッションがアクティブな Remote Control 接続を持つ間、[Remote Control](/ja/remote-control)セッション ID に設定されます。
+すべてのマッチング フックは並列で実行され、同一のハンドラーは自動的に重複排除されます。コマンド フックはコマンド文字列と `args` で重複排除され、HTTP フックは URL で重複排除されます。
+
+ハンドラーは Claude Code の環境を持つ現在のディレクトリで実行されます。`$CLAUDE_CODE_REMOTE` 環境変数はリモート Web 環境で `"true"` に設定され、ローカル CLI では設定されません。v2.1.199 以降、[`$CLAUDE_CODE_BRIDGE_SESSION_ID`](/ja/env-vars)は、ローカル セッションがアクティブな Remote Control 接続を持つ間、[Remote Control](/ja/remote-control)セッション ID に設定されます。
 
 共通フィールド
 
@@ -400,7 +404,7 @@ MCP ツール フック フィールド
 
 | フィールド | 必須 | 説明 |
 | :- | :- | :- |
-| `server` | はい | 設定された MCP サーバーの名前。サーバーは既に接続されている必要があります。フックは OAuth または接続フローをトリガーしません |
+| `server` | はい | 設定された MCP サーバーの名前。[プラグイン バンドル サーバー](/ja/mcp#plugin-provided-mcp-servers)の場合、これはスコープ付き名前 `plugin:<plugin-name>:<server-name>`（例：`plugin:my-plugin:db`）であり、ベア サーバー キーではありません。サーバーは既に接続されている必要があります。フックは OAuth または接続フローをトリガーしません |
 | `tool` | はい | そのサーバー上で呼び出すツールの名前 |
 | `input` | いいえ | ツールに渡される引数。文字列値は、フックの[JSON 入力](#hook-input-and-output)から `${path}` 置換をサポートします（例：`"${tool_input.file_path}"`） |
 
@@ -561,9 +565,9 @@ macOS と Linux では、コマンド フックは v2.1.139 以降、制御端�
 | :- | :- |
 | `session_id` | 現在のセッション識別子 |
 | `prompt_id` | 現在処理中のユーザー プロンプトを識別する UUID。[OpenTelemetry イベントの `prompt.id` 属性](/ja/monitoring-usage#event-correlation-attributes)と一致するため、単一のプロンプトのテレメトリでフック出力を相関させることができます。最初のユーザー入力まで存在しません。Claude Code v2.1.196 以降が必要です |
-| `transcript_path` | 会話 JSON へのパス |
+| `transcript_path` | 会話 JSON へのパス。トランスクリプト ファイルは非同期に書き込まれ、メモリ内の会話に遅れる可能性があるため、フックが発火するときに現在のターンの最新メッセージがまだ含まれていない可能性があります。現在のターンの最終的なアシスタント テキストが必要なフックは、トランスクリプトを読む代わりに[Stop](#stop)と[SubagentStop](#subagentstop)の `last_assistant_message` を使用する必要があります |
 | `cwd` | フックが呼び出されるときの現在の作業ディレクトリ |
-| `permission_mode` | 現在の[権限モード](/ja/permissions#permission-modes): `"default"`、`"plan"`、`"acceptEdits"`、`"auto"`、`"dontAsk"`、または `"bypassPermissions"`。すべてのイベントがこのフィールドを受け取るわけではありません。各イベントの JSON 例を確認してください |
+| `permission_mode` | 現在の[権限モード](/ja/permissions#permission-modes): `"default"`、`"plan"`、`"acceptEdits"`、`"auto"`、`"dontAsk"`、または `"bypassPermissions"`。**Manual** というラベルが付いたモードは `"default"` として到着し、`"manual"` として到着することはないため、`"default"` と一致するスクリプトは引き続き機能します。すべてのイベントがこのフィールドを受け取るわけではありません。各[フック イベント](#hook-events)セクションの JSON 例を確認してください |
 | `effort` | アクティブな[努力レベル](/ja/model-config#adjust-effort-level)を保持する `level` フィールドを持つオブジェクト。ターンの場合: `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。リクエストされたモデル努力が現在のモデルがサポートしているものを超える場合、これはモデルが実際に使用したダウングレードされたレベルです。Ultracode は異なるレベルではなく、`"xhigh"` として報告されます。オブジェクトは[ステータス ライン](/ja/statusline#available-data)の `effort` フィールドと一致します。`PreToolUse`、`PostToolUse`、`Stop`、`SubagentStop` などのツール使用コンテキスト内で発火するイベント、および現在のモデルが努力パラメータをサポートする場合に存在します。レベルは、フック コマンドと Bash ツールに `$CLAUDE_EFFORT` 環境変数として利用可能です。 |
 | `hook_event_name` | 発火したイベントの名前 |
 
@@ -1408,13 +1412,13 @@ AskUserQuestion
 
 ExitPlanMode
 
-Claude が[プラン モード](/ja/permission-modes#analyze-before-you-edit-with-plan-mode)を離れる前にプランを提示し、ユーザーに承認を求めます。Claude はツールを呼び出す前にプランをディスク上のファイルに書き込むため、モデルからのリテラル `tool_input` は `allowedPrompts` のみを含みます。Claude Code はプラン コンテンツとファイル パスをフックに渡す前に注入します。
+Claude が[プラン モード](/ja/permission-modes#analyze-before-you-edit-with-plan-mode)を離れる前にプランを提示し、ユーザーに承認を求めます。Claude はツールを呼び出す前にプランをディスク上のファイルに書き込むため、モデルからのリテラル `tool_input` は通常空です。Claude Code はプラン コンテンツとファイル パスをフックに渡す前に注入します。
 
 | フィールド | タイプ | 例 | 説明 |
 | :- | :- | :- | :- |
 | `plan` | 文字列 | `"## Refactor auth\n1. Extract..."` | Markdown のプラン コンテンツ。ディスク上のプラン ファイルから注入 |
 | `planFilePath` | 文字列 | `"/Users/.../plans/refactor-auth.md"` | プラン ファイルへのパス。注入 |
-| `allowedPrompts` | 配列 | `[{"tool": "Bash", "prompt": "run tests"}]` | オプション。Claude がプランを実装するために要求しているプロンプト ベースの権限。各エントリは `tool` 名とアクションのカテゴリを説明する `prompt` を含みます |
+| `allowedPrompts` | 配列 | `[{"tool": "Bash", "prompt": "run tests"}]` | 非推奨。Claude Code はフィールドを受け入れますが無視します。v2.1.205 より前では、プランを実装するために Claude が要求していたプロンプト ベースの権限を含みました |
 
 `PostToolUse` では、`tool_response` は `plan` と `filePath` フィールドを含むオブジェクトで、承認されたプランと内部ステータス フラグを保持します。ディスクからファイルを再度読み取るのではなく、`tool_response.plan` でプラン コンテンツを読み取ります。
 
@@ -1560,7 +1564,7 @@ PermissionRequest 決定制御
 | `addRules` | `rules`、`behavior`、`destination` | 権限ルールを追加します。`rules` は `{toolName, ruleContent?}` オブジェクトの配列です。ツール全体にマッチするには `ruleContent` を省略します。`behavior` は `"allow"`、`"deny"`、または `"ask"` |
 | `replaceRules` | `rules`、`behavior`、`destination` | `destination` で指定された `behavior` のすべてのルールを提供されたルールに置き換えます |
 | `removeRules` | `rules`、`behavior`、`destination` | 指定された `behavior` の一致するルールを削除 |
-| `setMode` | `mode`、`destination` | 権限モードを変更します。有効なモードは `default`、`auto`、`acceptEdits`、`dontAsk`、`bypassPermissions`、`plan` |
+| `setMode` | `mode`、`destination` | 権限モードを変更します。有効なモードは `default`、`auto`、`acceptEdits`、`dontAsk`、`bypassPermissions`、`plan`、`manual`（`default` のエイリアス）です。`manual` エイリアスには Claude Code v2.1.200 以降が必要です |
 | `addDirectories` | `directories`、`destination` | 作業ディレクトリを追加します。`directories` はパス文字列の配列 |
 | `removeDirectories` | `directories`、`destination` | 作業ディレクトリを削除 |
 
@@ -2381,7 +2385,7 @@ WorktreeCreate
 
 WorktreeCreate 入力
 
-[共通入力フィールド](#common-input-fields)に加えて、Workt reeCreate フックは `name` フィールドを受け取ります。これは新しいワークツリーのスラッグ識別子で、ユーザーが指定するか自動生成されます（例えば、`bold-oak-a3f2`）。
+[共通入力フィールド](#common-input-fields)に加えて、WorktreeCreate フックは `name` フィールドを受け取ります。これは新しいワークツリーのスラッグ識別子で、ユーザーが指定するか自動生成されます（例えば、`bold-oak-a3f2`）。
 
 ```json
 {
@@ -2401,6 +2405,8 @@ WorktreeCreate フックは標準的な許可/ブロック決定モデルを使�
 - **HTTP フック** (`type: "http"`): レスポンス本体で `{ "hookSpecificOutput": { "hookEventName": "WorktreeCreate", "worktreePath": "/absolute/path" } }` を返します。
 
 フックが失敗するか出力を生成しない場合、ワークツリー作成はエラーで失敗します。
+
+Claude Code は相対パスを、フックが実行されたディレクトリに対して解決します。結果のパスが Claude Code が入力できるディレクトリでない場合、セッションはパスを名前付けするエラーを出力し、終了コード 1 で終了します。v2.1.205 より前では、相対パスまたはディスク上に存在しないパスはセッション スタートアップでクラッシュし、`-p` を使用すると約 30 秒停止してから終了コード 0 で終了しました。
 
 WorktreeRemove
 
@@ -2868,6 +2874,8 @@ LLM は以下を含む JSON で応答する必要があります：
 非同期フックが発火すると、Claude Code はフック プロセスを開始し、完了を待たずにすぐに続行します。フックは同期フックと同じ JSON 入力を stdin 経由で受け取ります。
 
 バックグラウンド プロセスが終了した後、フックが `additionalContext` フィールドを含む JSON レスポンスを生成した場合、そのコンテンツは次の会話ターンで Claude にコンテキストとして配信されます。`systemMessage` フィールドは Claude ではなく、あなたに表示されます。
+
+Claude Code は JSON レスポンスを同期フックと同じ[出力スキーマ](#json-output)に対して検証し、`systemMessage` が文字列でないなど、値の型が間違っているフィールドをドロップします。これは配信する代わりに行われます。`--debug` で実行すると、ドロップされた各フィールドに名前を付けた警告が表示されます。v2.1.202 より前では、非同期フックからの不正な形式の JSON 出力はセッションをクラッシュさせる可能性があり、セッションが再開されるたびにクラッシュが再発生していました。
 
 非同期フック完了通知はデフォルトで抑制されます。これらを表示するには、`Ctrl+O` で詳細モードを有効にするか、`--verbose` で Claude Code を開始します。
 
