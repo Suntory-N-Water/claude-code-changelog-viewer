@@ -1,0 +1,314 @@
+{
+  "id": "20260711-064446",
+  "timestamp": "2026-07-11T06:44:46.680Z",
+  "aiSummary": "デフォルトの許可設定における動作がより具体的に定義され、ファイル編集や一部のシェルコマンド実行前に確認を求める仕様が明文化されました。lsやcat、git statusといった特定の読み取り専用Bashコマンドは、ユーザーへの確認なしで実行される仕組みが導入されています。作業ディレクトリ外のファイル読み取りに対するプロンプトの挙動や、サンドボックス機能を用いたアクセス制限方法についての詳細が追加されました。全体として、ツール実行時の権限管理とセキュリティ境界に関する説明が強化されています。",
+  "files": [
+    {
+      "filename": "communications-kit.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "デフォルト設定時のプロンプト発生条件にファイル編集と大部分のシェルコマンドが含まれることが明記され、読み取り専用コマンドは例外であることが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -290,7 +290,7 @@ Sometimes you want Claude to ask before every edit. Sometimes you just want",
+          "lines": [
+            {
+              "type": "context",
+              "content": "it to ship. You shouldn't have to pick one forever."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "*Shift+Tab* cycles through how much Claude can do without asking: *Manual* (the"
+            },
+            {
+              "type": "removed",
+              "content": "`default` setting value) asks before each action, *acceptEdits* lets file"
+            },
+            {
+              "type": "added",
+              "content": "`default` setting value) asks before file edits and most shell commands, *acceptEdits* lets file"
+            },
+            {
+              "type": "context",
+              "content": "edits and common filesystem commands"
+            },
+            {
+              "type": "context",
+              "content": "flow through while still checking before other shell commands, and *plan*"
+            },
+            {
+              "type": "context",
+              "content": "proposes changes for your approval before anything is touched. Plan mode is"
+            }
+          ]
+        },
+        {
+          "header": "@@ -493,7 +493,7 @@ One-line replies for the questions you will be asked most.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| \"Does it work in VS Code?\" | Yes. There is a VS Code extension and a JetBrains plugin with the same features, embedded in your editor. [VS Code →](/en/vs-code) |"
+            },
+            {
+              "type": "context",
+              "content": "| \"Do I have to configure anything first?\" | No. Install, then run `claude` in any repo. Run `/init` once and you're set. [Quickstart →](/en/quickstart) |"
+            },
+            {
+              "type": "context",
+              "content": "| \"Where does my code go?\" | The CLI runs in your terminal and sends context to Anthropic's API for inference, with no third-party servers. Under your Enterprise plan, your code and prompts are not used to train models. [Data usage →](/en/data-usage) |"
+            },
+            {
+              "type": "removed",
+              "content": "| \"Can it see my whole repo?\" | It reads what you give it access to. File reads inside your working directory don't prompt; permission prompts gate edits, shell commands, and anything outside that directory. [Permissions →](/en/permissions) |"
+            },
+            {
+              "type": "added",
+              "content": "| \"Can it see my whole repo?\" | It reads what you give it access to. File reads inside your working directory don't prompt; permission prompts gate edits, non-read-only shell commands, and file-tool reads outside that directory. A built-in set of read-only shell commands such as `ls` and `cat` runs without prompting; restrict it with [sandbox `denyRead` rules](/en/sandboxing#filesystem-isolation). [Permissions →](/en/permissions) |"
+            },
+            {
+              "type": "context",
+              "content": "| \"How is this different from Copilot?\" | Copilot autocompletes lines. Claude Code is an agent that reads files, runs commands, and makes multi-file edits. [Overview →](/en/overview) |"
+            },
+            {
+              "type": "context",
+              "content": "| \"What should I try first?\" | A bug you've been putting off because it's tedious. \"The test in \\[file] is flaky, figure out why.\" [Quickstart →](/en/quickstart) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "作業ディレクトリ内での読み取り権限と、許可なしで実行可能な読み取り専用Bashコマンドの定義が表に追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -15,8 +15,8 @@ Claude Code uses a tiered permission system to balance power and safety:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Tool type | Example | Approval required | \"Yes, don't ask again\" behavior |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Read-only | File reads, Grep | No | N/A |"
+            },
+            {
+              "type": "removed",
+              "content": "| Bash commands | Shell execution | Yes | Permanently per project directory and command |"
+            },
+            {
+              "type": "added",
+              "content": "| Read-only | File reads, Grep | No, within the [working directory and additional directories](#working-directories) | N/A |"
+            },
+            {
+              "type": "added",
+              "content": "| Bash commands | Shell execution | Yes, except a built-in set of [read-only commands](#read-only-commands) | Permanently per project directory and command |"
+            },
+            {
+              "type": "context",
+              "content": "| File modification | Edit/write files | Yes | Until session end |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage permissions"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "security.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "書き込み制限の境界線に関する説明が更新され、作業ディレクトリ外の読み取りに対する承認フローやサンドボックスによる制限方法が補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -17,7 +17,7 @@ Your code's security is paramount. Claude Code is built with security at its cor",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code uses strict read-only permissions by default. When additional actions are needed (editing files, running tests, executing commands), Claude Code requests explicit permission. Users control whether to approve actions once or allow them automatically."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code requires approval before running Bash commands that can modify your system. A built-in set of read-only commands such as `ls`, `cat`, and `git status` runs without a prompt. This approach lets users and organizations configure permissions directly."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code requires approval before running Bash commands that can modify your system. A built-in set of [read-only commands](/en/permissions#read-only-commands) such as `ls`, `cat`, and `git status` runs without a prompt. This approach lets users and organizations configure permissions directly."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For detailed permission configuration, see [Permissions](/en/permissions)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -26,7 +26,7 @@ For detailed permission configuration, see [Permissions](/en/permissions).",
+          "lines": [
+            {
+              "type": "context",
+              "content": "To mitigate risks in agentic systems:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Sandboxed bash tool**: [Sandbox](/en/sandboxing) bash commands with filesystem and network isolation, reducing permission prompts while maintaining security. Enable with `/sandbox` to define boundaries where Claude Code can work autonomously"
+            },
+            {
+              "type": "removed",
+              "content": "- **Write access restriction**: Claude Code can only write to the folder where it was started and its subfolders—it cannot modify files in parent directories without explicit permission. While Claude Code can read files outside the working directory (useful for accessing system libraries and dependencies), write operations are strictly confined to the project scope, creating a clear security boundary"
+            },
+            {
+              "type": "added",
+              "content": "- **Working directory boundary**: Claude Code can only write to the folder where it was started and its subfolders, and cannot modify files in parent directories without explicit permission. Reading paths outside this boundary with the Read, Grep, and Glob tools is possible after an approval prompt. Extend the boundary with [additional directories](/en/permissions#working-directories) to skip the prompt, or restrict the broader read access available to read-only Bash commands with [sandbox `denyRead` rules](/en/sandboxing#filesystem-isolation), which apply only when sandboxing is enabled"
+            },
+            {
+              "type": "context",
+              "content": "- **Prompt fatigue mitigation**: Support for allowlisting frequently used safe commands per-user, per-codebase, or per-organization"
+            },
+            {
+              "type": "context",
+              "content": "- **Accept Edits mode**: Auto-approves file edits and a fixed set of filesystem Bash commands like `mkdir`, `touch`, `rm`, `mv`, `cp`, and `sed` for paths in the working directory. Other Bash commands and out-of-scope paths still prompt"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "各ツールがデフォルトの許可モードでプロンプトを表示するかどうかの基準と、読み取り専用コマンドの例外措置に関する注釈が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -11,6 +11,8 @@ Claude Code has access to a set of built-in tools that help it understand and mo",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To add custom tools, connect an [MCP server](/en/mcp). To extend Claude with reusable prompt-based workflows, write a [skill](/en/skills), which runs through the existing `Skill` tool rather than adding a new tool entry."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The Permission required column shows whether the tool prompts in the default permission mode for paths inside the working directory. File-access tools marked No, including `Read`, `Grep`, and `Glob`, still prompt for paths outside the [working directory and additional directories](/en/permissions#working-directories). `Bash` is marked Yes but runs a built-in set of [read-only commands](/en/permissions#read-only-commands) without prompting."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Tool | Description | Permission required |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `Agent` | Spawns a [subagent](/en/sub-agents) with its own context window to handle a task. See [Agent tool behavior](#agent-tool-behavior) | No |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "vs-code.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "マニュアル設定時において、ファイル編集とほとんどのシェルコマンドの実行前に確認が必要であるという具体的な動作説明に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -74,7 +74,7 @@ Run \"Claude Code: Open Walkthrough\" from the Command Palette for a guided tour o",
+          "lines": [
+            {
+              "type": "context",
+              "content": "The prompt box supports several features:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Permission modes**: click the mode indicator at the bottom of the prompt box to switch modes, or set the default in VS Code settings under `claudeCode.initialPermissionMode`. See [permission modes](/en/permission-modes#switch-permission-modes) for every mode the indicator offers."
+            },
+            {
+              "type": "removed",
+              "content": "  - **Manual**: Claude asks permission before each action."
+            },
+            {
+              "type": "added",
+              "content": "  - **Manual**: Claude asks permission before file edits and most shell commands."
+            },
+            {
+              "type": "context",
+              "content": "  - **Plan**: Claude describes what it will do and waits for approval before making changes. VS Code automatically opens the plan as a full Markdown document where you can add inline comments to give feedback before Claude begins."
+            },
+            {
+              "type": "context",
+              "content": "  - **Edit automatically**: Claude makes edits without asking."
+            },
+            {
+              "type": "context",
+              "content": "- **Command menu**: click `/` or type `/` to open the command menu. Options include attaching files, switching models, toggling extended thinking, viewing plan usage (`/usage`), and starting a [Remote Control](/en/remote-control) session (`/remote-control`). The Customize section provides access to MCP servers, hooks, memory, permissions, and plugins. Items with a terminal icon open in the integrated terminal."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
