@@ -252,7 +252,7 @@ Claude Code で Amazon Bedrock を有効にする場合は、以下に注意し�
 
 これらの環境変数を特定の Amazon Bedrock モデル ID に設定します。
 
-`ANTHROPIC_DEFAULT_OPUS_MODEL` なしでは、Amazon Bedrock の `opus` エイリアスは Opus 4.6 に解決されます。最新モデルを使用するには、Opus 4.8 ID に設定します。
+これらの変数がない場合、Amazon Bedrock の `opus` エイリアスは Opus 4.8 に解決され、`sonnet` エイリアスは Sonnet 4.5 に解決されます。各変数を設定して、そのエイリアスを特定のバージョンにピン留めします。
 
 ```bash
 export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-8'
@@ -264,10 +264,10 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='us.anthropic.claude-haiku-4-5-20251001-v1:
 
 ピン留め変数が設定されていない場合、Claude Code はこれらのデフォルトモデルを使用します。
 
-| モデルタイプ   | デフォルト値                                         |
-| :------- | :--------------------------------------------- |
-| プライマリモデル | `us.anthropic.claude-sonnet-4-5-20250929-v1:0` |
-| 小型/高速モデル | プライマリモデルと同じ                                    |
+| モデルタイプ   | デフォルト値                         |
+| :------- | :----------------------------- |
+| プライマリモデル | `us.anthropic.claude-opus-4-8` |
+| 小型/高速モデル | プライマリモデルと同じ                    |
 
 セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Amazon Bedrock では、すべてのアカウントまたはリージョンで Haiku が有効になっていない可能性があるため、Claude Code はこれをプライマリモデルにデフォルト設定します。バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をアカウントで利用可能なモデル ID に設定してください。
 
