@@ -245,6 +245,7 @@ async function loadInferredFile(
       related_docs: item.related_docs.map((doc) => ({
         file: doc.file,
         snippets: [],
+        snippet_scores: [],
         hit_count: 0,
       })),
       ...(item.related_issues !== undefined

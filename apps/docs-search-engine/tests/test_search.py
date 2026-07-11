@@ -50,7 +50,7 @@ def test_search_batch_orders_files_by_score_descending(tmp_path: Path, nlp) -> N
             "unrelated3.md": "# Networking\n\nProxy configuration and firewall rules overview.\n",
         },
     )
-    engine = DocsSearchEngine(docs_dir, nlp=nlp)
+    engine = DocsSearchEngine(docs_dir, nlp=nlp, min_file_score=0)
 
     [results] = engine.search_batch(["How does session resume work?"])
 
@@ -65,7 +65,7 @@ def test_search_batch_limits_to_top_three_files(tmp_path: Path, nlp) -> None:
     files["unrelated1.md"] = "# Billing\n\nInvoices and payment methods overview.\n"
     files["unrelated2.md"] = "# Themes\n\nColor schemes and font choices overview.\n"
     docs_dir = _write_docs(tmp_path, files)
-    engine = DocsSearchEngine(docs_dir, nlp=nlp)
+    engine = DocsSearchEngine(docs_dir, nlp=nlp, min_file_score=0)
 
     [results] = engine.search_batch(["subagent configuration"])
 
@@ -80,7 +80,7 @@ def test_search_batch_caps_snippets_per_file_at_five(tmp_path: Path, nlp) -> Non
     files["unrelated1.md"] = "# Billing\n\nInvoices and payment methods overview.\n"
     files["unrelated2.md"] = "# Themes\n\nColor schemes and font choices overview.\n"
     docs_dir = _write_docs(tmp_path, files)
-    engine = DocsSearchEngine(docs_dir, nlp=nlp)
+    engine = DocsSearchEngine(docs_dir, nlp=nlp, min_file_score=0)
 
     [results] = engine.search_batch(["subagent configuration"])
 
@@ -100,7 +100,7 @@ def test_search_batch_expands_synonyms_to_find_harness_via_cli_query(
             "unrelated2.md": "# Themes\n\nColor schemes and font choices for the editor.\n",
         },
     )
-    engine = DocsSearchEngine(docs_dir, nlp=nlp)
+    engine = DocsSearchEngine(docs_dir, nlp=nlp, min_file_score=0)
 
     [results] = engine.search_batch(["What does the harness support?"])
 

@@ -27,12 +27,12 @@ def test_doc_file_to_url_keeps_subdirectories_and_removes_md_suffix() -> None:
 def test_official_urls_from_results_excludes_generic_docs_and_deduplicates() -> None:
     urls, excluded = official_urls_from_results(
         [
-            RelatedDocResult("agent-sdk/overview.md", [], 1),
-            RelatedDocResult("features-overview.md", [], 1),
-            RelatedDocResult("whats-new/2026-01-01.md", [], 1),
-            RelatedDocResult("agent-sdk/hooks.md", [], 1),
-            RelatedDocResult("agent-sdk/hooks.md", [], 1),
-            RelatedDocResult("settings.md", [], 1),
+            RelatedDocResult("agent-sdk/overview.md", [], [], 1),
+            RelatedDocResult("features-overview.md", [], [], 1),
+            RelatedDocResult("whats-new/2026-01-01.md", [], [], 1),
+            RelatedDocResult("agent-sdk/hooks.md", [], [], 1),
+            RelatedDocResult("agent-sdk/hooks.md", [], [], 1),
+            RelatedDocResult("settings.md", [], [], 1),
         ]
     )
 
@@ -104,8 +104,8 @@ def test_cli_dry_run_does_not_write_and_logs_excluded_files(
     fake_engine = FakeEngine(
         [
             [
-                RelatedDocResult("agent-sdk/overview.md", [], 1),
-                RelatedDocResult("settings.md", [], 1),
+                RelatedDocResult("agent-sdk/overview.md", [], [], 1),
+                RelatedDocResult("settings.md", [], [], 1),
             ]
         ]
     )
@@ -155,7 +155,7 @@ def test_cli_writes_only_official_doc_urls_after_doc_snippets(
         + "\n",
         encoding="utf-8",
     )
-    fake_engine = FakeEngine([[RelatedDocResult("settings.md", [], 1)]])
+    fake_engine = FakeEngine([[RelatedDocResult("settings.md", [], [], 1)]])
     monkeypatch.setattr(
         "docs_search_engine.settings_doc_urls.DocsSearchEngine",
         lambda _: fake_engine,

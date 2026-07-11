@@ -17,15 +17,20 @@ export const pythonDocsSearcher: DocsSearchPort = {
     });
 
     return output.results.map((docs) =>
-      docs.map(
-        (doc): RelatedDoc => ({
+      docs.map((doc): RelatedDoc => {
+        const pairs = doc.snippets
+          .map((s, i) => ({
+            text: normalizeMarkdownForAi(s),
+            score: doc.snippetScores[i] ?? 0,
+          }))
+          .filter((p) => p.text.length > 0);
+        return {
           file: toRelativePath(path.join(DOCS_DIR, doc.file)),
-          snippets: doc.snippets
-            .map(normalizeMarkdownForAi)
-            .filter((snippet) => snippet.length > 0),
+          snippets: pairs.map((p) => p.text),
+          snippetScores: pairs.map((p) => p.score),
           hitCount: doc.hitCount,
-        }),
-      ),
+        };
+      }),
     );
   },
 };

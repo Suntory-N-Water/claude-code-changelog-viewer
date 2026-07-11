@@ -18,6 +18,7 @@ export const DOCS_DIR = path.join(
 export type PythonRelatedDoc = {
   file: string;
   snippets: string[];
+  snippetScores: number[];
   hitCount: number;
 };
 
