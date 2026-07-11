@@ -5,6 +5,7 @@ export const RelatedDocSchema = z.object({
   file: z.string(),
   hit_count: z.number(),
   snippets: z.array(z.string()),
+  snippet_scores: z.array(z.number()).optional(),
 });
 export type RelatedDoc = z.infer<typeof RelatedDocSchema>;
 

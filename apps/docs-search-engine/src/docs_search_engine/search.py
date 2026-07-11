@@ -16,12 +16,16 @@ from .chunker import Chunk, chunk_docs
 
 MAX_FILES = 3
 MAX_SNIPPETS_PER_FILE = 5
+# v2.1.205-207 の 222 件を目視判定した結果、max < 18 のファイルは
+# 31 件中 30 件がノイズだった (関連ありは 1 件のみ)
+MIN_FILE_SCORE = 18
 
 
 @dataclass(frozen=True)
 class RelatedDocResult:
     file: str
     snippets: list[str]
+    snippet_scores: list[float]
     hit_count: int
 
 
@@ -41,8 +45,15 @@ def tokenize(doc: Doc) -> list[str]:
 
 
 class DocsSearchEngine:
-    def __init__(self, docs_dir: Path, nlp: Language | None = None) -> None:
+    def __init__(
+        self,
+        docs_dir: Path,
+        nlp: Language | None = None,
+        *,
+        min_file_score: float = MIN_FILE_SCORE,
+    ) -> None:
         self._nlp = nlp if nlp is not None else load_nlp()
+        self._min_file_score = min_file_score
         self._chunks: list[Chunk] = chunk_docs(docs_dir)
         tokenized_chunks = [
             tokenize(doc) for doc in self._nlp.pipe(c.text for c in self._chunks)
@@ -67,7 +78,11 @@ class DocsSearchEngine:
                 hits_by_file[self._chunks[index].file].append((score, index))
 
         top_files = sorted(
-            hits_by_file,
+            (
+                file
+                for file in hits_by_file
+                if max(score for score, _ in hits_by_file[file]) >= self._min_file_score
+            ),
             key=lambda file: max(score for score, _ in hits_by_file[file]),
             reverse=True,
         )[:MAX_FILES]
@@ -75,10 +90,15 @@ class DocsSearchEngine:
         results = []
         for file in top_files:
             hits = sorted(hits_by_file[file], key=lambda hit: hit[0], reverse=True)
-            snippets = [
-                self._chunks[index].text for _, index in hits[:MAX_SNIPPETS_PER_FILE]
-            ]
+            top_hits = hits[:MAX_SNIPPETS_PER_FILE]
+            snippets = [self._chunks[index].text for _, index in top_hits]
+            snippet_scores = [round(score, 4) for score, _ in top_hits]
             results.append(
-                RelatedDocResult(file=file, snippets=snippets, hit_count=len(hits))
+                RelatedDocResult(
+                    file=file,
+                    snippets=snippets,
+                    snippet_scores=snippet_scores,
+                    hit_count=len(hits),
+                )
             )
         return results

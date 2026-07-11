@@ -33,6 +33,7 @@ export function toChangelogAnalysis(analysis: Analysis): ChangelogAnalysis {
         relatedDocs: item.related_docs.map((doc) => ({
           file: doc.file,
           snippets: doc.snippets,
+          snippetScores: doc.snippet_scores ?? [],
           hitCount: doc.hit_count,
         })),
         relatedIssues: (item.related_issues ?? []).map(fromRelatedIssueJson),
@@ -76,6 +77,7 @@ export function toAnalysisJson(analysis: ChangelogAnalysis): Analysis {
       related_docs: entry.relatedDocs.map((doc) => ({
         file: doc.file,
         snippets: [...doc.snippets],
+        snippet_scores: [...doc.snippetScores],
         hit_count: doc.hitCount,
       })),
       ...(entry.relatedIssues.length > 0

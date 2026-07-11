@@ -29,6 +29,7 @@ def main() -> None:
                 {
                     "file": doc.file,
                     "snippets": doc.snippets,
+                    "snippetScores": doc.snippet_scores,
                     "hitCount": doc.hit_count,
                 }
                 for doc in docs
