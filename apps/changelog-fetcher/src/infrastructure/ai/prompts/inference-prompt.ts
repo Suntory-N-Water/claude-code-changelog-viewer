@@ -3,6 +3,53 @@ import type { IndexedAnalyzedEntry } from '../../../usecase/inference-batch';
 
 type PromptItem = IndexedAnalyzedEntry;
 
+/**
+ * タスク1(推論+翻訳: inferred_items)のプロンプトセクションを構築する。
+ *
+ * 対象は relatedDocs が1件以上ある項目(inferenceItems)のみ。
+ * dry-run 出力と buildBatchInferencePrompt の両方から利用する。
+ */
+export function buildInferenceTaskSection(indexedItems: PromptItem[]): string {
+  const inferenceSection = indexedItems
+    .filter(({ entry }) => entry.relatedDocs.length >= 1)
+    .map(({ entry, id }) => {
+      const snippetsText = entry.relatedDocs
+        .map((doc) => {
+          const snippets = doc.snippets.join('\n');
+          return [['### ', doc.file].join(''), snippets].join('\n');
+        })
+        .join('\n\n');
+
+      return [
+        ['#### 項目 id=', id].join(''),
+        ['- prefix: ', entry.prefix].join(''),
+        ['- content: ', entry.content].join(''),
+        '- 関連情報:',
+        snippetsText,
+      ].join('\n');
+    })
+    .join('\n\n');
+
+  return [
+    '# タスク1: 推論+翻訳 (inferred_items)',
+    '',
+    '以下の各項目について、content_ja / before / after / benefit を生成する。',
+    '',
+    '## 制約',
+    '- content_ja: 技術用語を適切に日本語化し、開発者にとって分かりやすい自然な日本語で翻訳する',
+    '- 専門用語を使う場合は必ず文脈で意味が分かるように説明する',
+    '- before / after / benefit は各2-3文で簡潔に',
+    '- snippets に記載がない推測は避ける',
+    '- バグ修正(prefix: "Fixed")の場合、before はバグの症状を CHANGELOG の記述から推測してよい',
+    '- 機能追加(prefix: "Added", "Enabled")の場合、before は snippets から変更前の状態を推測する',
+    '- id は入力値をそのまま返すこと',
+    '',
+    '## 対象項目',
+    '',
+    inferenceSection || '(対象なし)',
+  ].join('\n');
+}
+
 export function buildBatchInferencePrompt(
   indexedItems: PromptItem[],
   version: string,
@@ -17,25 +64,6 @@ export function buildBatchInferencePrompt(
       id,
     });
   }
-
-  const inferenceSection = inferenceItems
-    .map(({ item, id }) => {
-      const snippetsText = item.relatedDocs
-        .map((doc) => {
-          const snippets = doc.snippets.join('\n');
-          return [['### ', doc.file].join(''), snippets].join('\n');
-        })
-        .join('\n\n');
-
-      return [
-        ['#### 項目 id=', id].join(''),
-        ['- prefix: ', item.prefix].join(''),
-        ['- content: ', item.content].join(''),
-        '- 関連情報:',
-        snippetsText,
-      ].join('\n');
-    })
-    .join('\n\n');
 
   const translationSection = translationItems
     .map(({ item, id }) =>
@@ -87,22 +115,7 @@ export function buildBatchInferencePrompt(
     '',
     '---',
     '',
-    '# タスク1: 推論+翻訳 (inferred_items)',
-    '',
-    '以下の各項目について、content_ja / before / after / benefit を生成する。',
-    '',
-    '## 制約',
-    '- content_ja: 技術用語を適切に日本語化し、開発者にとって分かりやすい自然な日本語で翻訳する',
-    '- 専門用語を使う場合は必ず文脈で意味が分かるように説明する',
-    '- before / after / benefit は各2-3文で簡潔に',
-    '- snippets に記載がない推測は避ける',
-    '- バグ修正(prefix: "Fixed")の場合、before はバグの症状を CHANGELOG の記述から推測してよい',
-    '- 機能追加(prefix: "Added", "Enabled")の場合、before は snippets から変更前の状態を推測する',
-    '- id は入力値をそのまま返すこと',
-    '',
-    '## 対象項目',
-    '',
-    inferenceSection || '(対象なし)',
+    buildInferenceTaskSection(indexedItems),
     '',
     '---',
     '',

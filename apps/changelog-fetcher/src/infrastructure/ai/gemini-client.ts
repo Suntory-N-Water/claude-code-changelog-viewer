@@ -63,6 +63,56 @@ export type SettingsTranslateResult = z.infer<
   typeof SettingsTranslateResultSchema
 >;
 
+/**
+ * タスク1(推論+翻訳)の inferred_items スキーマ。
+ * inferAll の responseSchema と dry-run(--with-schema)出力の両方で参照する。
+ */
+const INFERRED_ITEMS_SCHEMA = {
+  type: Type.ARRAY,
+  description: '関連ドキュメントがある項目の推論+翻訳結果',
+  items: {
+    type: Type.OBJECT,
+    properties: {
+      id: {
+        type: Type.STRING,
+        description: '入力項目の id (12桁の16進文字列)',
+      },
+      content_ja: {
+        type: Type.STRING,
+        description: 'CHANGELOG項目の日本語翻訳',
+      },
+      before: {
+        type: Type.STRING,
+        description: '変更前の状況(何が不便だったか)',
+      },
+      after: {
+        type: Type.STRING,
+        description: '変更後の状況(何が改善されたか)',
+      },
+      benefit: {
+        type: Type.STRING,
+        description: 'ユーザーへの恩恵(なぜこれが嬉しいのか)',
+      },
+    },
+    propertyOrdering: ['id', 'content_ja', 'before', 'after', 'benefit'],
+    required: ['id', 'content_ja', 'before', 'after', 'benefit'],
+  },
+};
+
+/**
+ * dry-run(--with-schema)で出力するタスク1のみの responseSchema。
+ * タスク1 のプロンプトは inferred_items のみを生成させるため、
+ * バッチ全体ではなく inferred_items に絞ったスキーマを AI Studio 用に出力する。
+ */
+export const INFERENCE_TASK_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    inferred_items: INFERRED_ITEMS_SCHEMA,
+  },
+  propertyOrdering: ['inferred_items'],
+  required: ['inferred_items'],
+};
+
 const RETRY_DELAY_MS = 60 * 1000;
 const MAX_RETRIES_PER_MODEL = 3;
 
@@ -161,50 +211,7 @@ export class GeminiClient {
                 responseSchema: {
                   type: Type.OBJECT,
                   properties: {
-                    inferred_items: {
-                      type: Type.ARRAY,
-                      description: '関連ドキュメントがある項目の推論+翻訳結果',
-                      items: {
-                        type: Type.OBJECT,
-                        properties: {
-                          id: {
-                            type: Type.STRING,
-                            description: '入力項目の id (12桁の16進文字列)',
-                          },
-                          content_ja: {
-                            type: Type.STRING,
-                            description: 'CHANGELOG項目の日本語翻訳',
-                          },
-                          before: {
-                            type: Type.STRING,
-                            description: '変更前の状況(何が不便だったか)',
-                          },
-                          after: {
-                            type: Type.STRING,
-                            description: '変更後の状況(何が改善されたか)',
-                          },
-                          benefit: {
-                            type: Type.STRING,
-                            description:
-                              'ユーザーへの恩恵(なぜこれが嬉しいのか)',
-                          },
-                        },
-                        propertyOrdering: [
-                          'id',
-                          'content_ja',
-                          'before',
-                          'after',
-                          'benefit',
-                        ],
-                        required: [
-                          'id',
-                          'content_ja',
-                          'before',
-                          'after',
-                          'benefit',
-                        ],
-                      },
-                    },
+                    inferred_items: INFERRED_ITEMS_SCHEMA,
                     translated_items: {
                       type: Type.ARRAY,
                       description: '関連ドキュメントがない項目の翻訳結果',
