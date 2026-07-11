@@ -36,7 +36,14 @@ Claude Code の `model` 設定では、以下のいずれかを設定できま�
 | **`opus[1m]`** | 長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) を備えた Opus を使用 |
 | **`opusplan`** | Plan Mode 中は `opus` を使用し、実行中は `sonnet` に自動的に切り替わる特別なモード |
 
-Anthropic API では、`opus` は Opus 4.8 に解決され、`sonnet` は Sonnet 5 に解決されます。[Claude Platform on AWS](/ja/claude-platform-on-aws) では、`opus` は Opus 4.7 に解決され、`sonnet` は Sonnet 4.6 に解決されます。Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry では、`opus` は Opus 4.6 に解決され、`sonnet` は Sonnet 4.5 に解決されます。より新しいモデルは、完全なモデル名を明示的に選択するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` または `ANTHROPIC_DEFAULT_SONNET_MODEL` を設定することで、これらのプロバイダーで利用可能です。
+各エイリアスがどのように解決されるかは、プロバイダーによって異なります。
+
+- **Anthropic API**：`opus` は Opus 4.8 に解決され、`sonnet` は Sonnet 5 に解決されます。
+- **[Claude Platform on AWS](/ja/claude-platform-on-aws)**：`opus` は Opus 4.8 に解決され、`sonnet` は Sonnet 4.6 に解決されます。
+- **Amazon Bedrock および Google Cloud の Agent Platform**：`opus` は Opus 4.8 に解決され、`sonnet` は Sonnet 4.5 に解決されます。
+- **Microsoft Foundry**：`opus` は Opus 4.6 に解決され、`sonnet` は Sonnet 4.5 に解決されます。
+
+エイリアスが古いモデルに解決される場合、より新しいモデルは完全なモデル名を明示的に選択するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` または `ANTHROPIC_DEFAULT_SONNET_MODEL` を設定することで利用可能です。
 
 エイリアスはプロバイダーの推奨バージョンを指し、時間とともに更新されます。特定のバージョンに固定するには、完全なモデル名（例：`claude-opus-4-8`）を使用するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` などの対応する環境変数を設定します。
 
@@ -92,7 +99,7 @@ v2.1.144 から v2.1.152 では、`/model` は現在のセッションにのみ�
 
 Claude Code は認識されない文字列を `Model "<name>" is not a recognized model id.` で拒否し、セッションは現在のモデルを保持します。文字列を保存して次のリクエストで失敗する代わりに。回復手順については [エラーリファレンス](/ja/errors#model-is-not-a-recognized-model-id) を参照してください。
 
-チェックは Anthropic API でのみ実行されます。Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、[Claude Platform on AWS](/ja/claude-platform-on-aws)、および [LLM ゲートウェイ](/ja/llm-gateway) またはカスタム `ANTHROPIC_BASE_URL` の背後では、プロバイダーまたはゲートウェイがモデル名を定義するため、Claude Code はチェックなしで任意の文字列を通します。チェックは `--model` フラグ、`ANTHROPIC_MODEL` 環境変数、または `model` 設定もカバーしません。そこでの入力ミスは、最初のリクエストで代わりに [There's an issue with the selected model](/ja/errors#there%E2%80%99s-an-issue-with-the-selected-model) を生成します。
+チェックは Anthropic API でのみ実行されます。Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、[Claude Platform on AWS](/ja/claude-platform-on-aws)、および [LLM ゲートウェイ](/ja/llm-gateway) またはカスタム `ANTHROPIC_BASE_URL` の背後では、プロバイダーまたはゲートウェイがモデル名を定義するため、Claude Code はチェックなしで任意の文字列を通します。チェックは `--model` フラグ、`ANTHROPIC_MODEL` 環境変数、または `model` 設定もカバーしません。そこでの入力ミスは、最初のリクエストで代わりに [There's an issue with the selected model](/ja/errors#theres-an-issue-with-the-selected-model) を生成します。
 
 要求されたモデルにスケジュール済みの廃止日がある場合、または自動的に新しいバージョンに再マップされる場合、Claude Code は要求されたモデルに名前を付ける警告を表示します。インタラクティブセッションはそれをスタートアップ通知として表示します。v2.1.182 以降では、デフォルトのテキスト出力形式を使用して [非インタラクティブモード](/ja/headless) で stderr に同じ警告が書き込まれます。チェックは [サブエージェントフロントマター](/ja/sub-agents) に設定された `model` もカバーします。stderr 警告は `--output-format json` および `stream-json` に対して抑制されます。代わりに [結果メッセージ](/ja/headless#get-structured-output) の `modelUsage` フィールドから実際のモデルを読み取ります。
 
@@ -297,9 +304,10 @@ Claude Enterprise プランの組織管理者は、ロールレベルの [組織
 `default` の動作はアカウントタイプによって異なります。
 
 - **Max、Team Premium、Enterprise 従量課金、Anthropic API**：Opus 4.8 がデフォルト
-- **AWS 上の Claude Platform**：Opus 4.7 がデフォルト
+- **AWS 上の Claude Platform**：Opus 4.8 がデフォルト
 - **Pro、Team Standard、Enterprise サブスクリプションシート**：Sonnet 5 がデフォルト
-- **Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry**：Sonnet 4.5 がデフォルト
+- **Amazon Bedrock、Google Cloud の Agent Platform**：Opus 4.8 がデフォルト
+- **Microsoft Foundry**：Sonnet 4.5 がデフォルト
 
 Enterprise 従量課金とは、サブスクリプションシートではなく使用量で請求される Enterprise 組織を意味します。
 
@@ -316,9 +324,9 @@ Fable 5 はどのアカウントタイプでもデフォルトモデルではあ
 - **Plan Mode 中**：複雑な推論とアーキテクチャの決定用に `opus` を使用
 - **実行モード中**：コード生成と実装用に自動的に `sonnet` に切り替わり
 
-これにより、両方の長所が得られます。計画用の Opus の優れた推論と、実行用の Sonnet の効率性です。
+これにより、計画用の Opus の優れた推論と、実行用の Sonnet の効率性が組み合わされます。
 
-Plan Mode の Opus フェーズは `opus` モデル設定と同じコンテキストウィンドウを使用します。[自動アップグレード](#extended-context)で Opus が 1M コンテキストに自動アップグレードされるサブスクリプション層では、`opusplan` も Plan Mode でアップグレードを受け取ります。自動アップグレード層にない場合に両方のフェーズで 1M コンテキストを強制するには、モデルを `opusplan[1m]` に設定します。
+Plan Mode の Opus フェーズは `opus` モデル設定と同じコンテキストウィンドウを使用します。[自動アップグレード](#extended-context) で Opus が 1M コンテキストに自動アップグレードされるサブスクリプション層では、`opusplan` も Plan Mode でアップグレードを受け取ります。自動アップグレード層にない場合に両方のフェーズで 1M コンテキストを強制するには、モデルを `opusplan[1m]` に設定します。
 
 [`availableModels`](#restrict-model-selection) が最新の Opus を除外しますが、古いバージョン（例えば `["sonnet", "claude-opus-4-6"]`）を許可する場合、`opusplan` は計画用に許可された最新の Opus を使用し、すべての Opus が除外されている場合のみ Sonnet に留まります。通常は Plan Mode で Sonnet にアップグレードする Haiku セッションは同様に、許可された最新の Sonnet を使用し、すべての Sonnet が除外されている場合のみ Haiku に留まります。v2.1.205 より前では、許可リストが古いバージョンを許可していても、アップグレードファミリーの最新バージョンが除外されている場合、Plan Mode はセッションのモデルに留まっていました。
 
@@ -357,7 +365,7 @@ claude --fallback-model sonnet,haiku
 
 このセクションは Fable 5 からのコンテンツベースのフォールバックをカバーしています。モデルが過負荷状態または利用不可の場合の可用性ベースのフォールバックについては、[フォールバックモデルチェーン](#fallback-model-chains) を参照してください。
 
-Fable 5 はサイバーセキュリティと生物学コンテンツ用のセーフティ分類器で実行されます。分類器がリクエストにフラグを立てると、Claude Code はそのリクエストをデフォルト Opus モデルで再実行し、トランスクリプトに通知を表示します。Anthropic API と [LLM gateway](/ja/llm-gateway) デプロイメント上の Opus 4.8、または [Claude Platform on AWS](/ja/claude-platform-on-aws) 上の Opus 4.7。
+Fable 5 はサイバーセキュリティと生物学コンテンツ用のセーフティ分類器で実行されます。分類器がリクエストにフラグを立てると、Claude Code はそのリクエストを Opus 4.8 で再実行し、トランスクリプトに通知を表示します。
 
 セッションはその Opus モデルで続行されます。Fable 5 に戻るには、`/model fable` を実行します。
 

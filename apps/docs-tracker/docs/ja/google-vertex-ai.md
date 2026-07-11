@@ -217,7 +217,7 @@ Claude Code は Google Cloud の Agent Platform でデフォルトで [MCP tool 
 
 これらの環境変数を特定の Google Cloud の Agent Platform モデル ID に設定します。
 
-`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Google Cloud の Agent Platform 上の `opus` エイリアスは Opus 4.6 に解決されます。最新モデルを使用するには、Opus 4.8 ID に設定します。
+これらの変数がない場合、Google Cloud の Agent Platform 上の `opus` エイリアスは Opus 4.8 に解決され、`sonnet` エイリアスは Sonnet 4.5 に解決されます。各変数をエイリアスを特定のバージョンにピン留めするように設定します。
 
 ```bash
 export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'
@@ -229,10 +229,10 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'
 
 Claude Code は、ピン留め変数が設定されていない場合、これらのデフォルトモデルを使用します。
 
-| モデルタイプ   | デフォルト値                       |
-| :------- | :--------------------------- |
-| プライマリモデル | `claude-sonnet-4-5@20250929` |
-| 小型/高速モデル | プライマリモデルと同じ                  |
+| モデルタイプ   | デフォルト値            |
+| :------- | :---------------- |
+| プライマリモデル | `claude-opus-4-8` |
+| 小型/高速モデル | プライマリモデルと同じ       |
 
 セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Google Cloud の Agent Platform では、Haiku がすべてのプロジェクトまたはリージョンで有効になっていない可能性があるため、Claude Code はこれをプライマリモデルにデフォルト設定します。バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をプロジェクトで利用可能なモデル ID に設定します。
 

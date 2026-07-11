@@ -16,7 +16,7 @@ source: https://code.claude.com/docs/ja/troubleshooting.md
 | ログインループ、OAuth エラー、`403 Forbidden`、「organization disabled」、Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry 認証情報 | [インストールとログインのトラブルシューティング](/ja/troubleshoot-install#login-and-authentication) |
 | 設定が適用されない、hooks が実行されない、MCP サーバーがロードされない | [設定をデバッグする](/ja/debug-your-config) |
 | `API Error: 5xx`、`529 Overloaded`、`429`、リクエスト検証エラー | [エラーリファレンス](/ja/errors) |
-| `model not found` または `you may not have access to it` | [エラーリファレンス](/ja/errors#there%E2%80%99s-an-issue-with-the-selected-model) |
+| `model not found` または `you may not have access to it` | [エラーリファレンス](/ja/errors#theres-an-issue-with-the-selected-model) |
 | VS Code 拡張機能が接続されていない、または Claude を検出していない | [VS Code 統合](/ja/vs-code#fix-common-issues) |
 | JetBrains プラグインまたは IDE が検出されない | [JetBrains 統合](/ja/jetbrains#troubleshooting) |
 | CPU またはメモリ使用量が多い、応答が遅い、ハング、検索がファイルを見つけられない | [パフォーマンスと安定性](#performance-and-stability)（下記） |

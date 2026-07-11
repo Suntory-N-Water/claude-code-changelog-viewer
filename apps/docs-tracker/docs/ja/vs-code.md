@@ -74,9 +74,9 @@ Claude Code でできることについてのアイデアについては、[一�
 プロンプトボックスは複数の機能をサポートしています。
 
 - **権限モード**：プロンプトボックスの下部のモード指示器をクリックしてモードを切り替えるか、VS Code 設定の `claudeCode.initialPermissionMode` でデフォルトを設定します。指示器が提供するすべてのモードについては、[権限モード](/ja/permission-modes#switch-permission-modes)を参照してください。
-  - **Manual**：Claude は各アクション前に許可を求めます。
+  - **Manual**：Claude はファイル編集とほとんどのシェルコマンドの前に権限を求めます。
   - **Plan**：Claude は実行内容を説明し、変更を加える前に承認を待ちます。VS Code は自動的にプランをフル Markdown ドキュメントとして開き、Claude が開始する前にフィードバックを提供するためのインラインコメントを追加できます。
-  - **Edit automatically**：Claude は許可を求めずに編集を行います。
+  - **Edit automatically**：Claude は権限を求めずに編集を行います。
 - **コマンドメニュー**：`/` をクリックするか `/` と入力してコマンドメニューを開きます。オプションには、ファイルの添付、モデルの切り替え、拡張思考の切り替え、プラン使用状況の表示（`/usage`）、および [Remote Control](/ja/remote-control) セッションの開始（`/remote-control`）が含まれます。カスタマイズセクションは、MCP サーバー、hooks、メモリ、権限、プラグインへのアクセスを提供します。ターミナルアイコン付きのアイテムは統合ターミナルで開きます。
   - 設定セクションには **Enable Remote Control for all sessions** が含まれており、これは [`remoteControlAtStartup`](/ja/settings#available-settings) を設定して、[すべての新しいインタラクティブセッションが Remote Control に自動的に接続](/ja/remote-control#enable-remote-control-for-all-sessions)されるようにします。Claude Code v2.1.203 以降が必要です。
 - **コンテキスト指示器**：プロンプトボックスは、Claude のコンテキストウィンドウをどの程度使用しているかを表示します。Claude は必要に応じて自動的にコンパクト化するか、`/compact` を手動で実行できます。
