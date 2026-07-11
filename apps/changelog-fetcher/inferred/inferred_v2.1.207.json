@@ -1,0 +1,702 @@
+{
+  "version": "2.1.207",
+  "summary": "BedrockやVertex AIなどの外部プロバイダーでClaude Opus 4.8がデフォルトモデルとなり、同時にオートモードが事前の環境変数設定なしで利用可能になるなど、導入のハードルが大きく下がりました。また、非常に長いレスポンス時のターミナルのフリーズ解消や、プラグインにおけるシェルインジェクション脆弱性の対策など、パフォーマンスと安全性の両面で重要な改善が行われています。そのほか、agent viewでの進捗表示の視認性向上や、Windows環境での認証プロセスのタイムアウト監視など、日常的な使い勝手を高める修正が多数含まれています。",
+  "items": [
+    {
+      "id": "fc891c1455a8",
+      "content": "- Auto mode is now available without `CLAUDE_CODE_ENABLE_AUTO_MODE` opt-in on Bedrock, Vertex AI, and Foundry; disable via `disableAutoMode` in settings",
+      "content_ja": "Bedrock、Vertex AI、Foundryにおいて、環境変数の設定なしでオートモードが利用可能になりました。設定の`disableAutoMode`から無効化も可能です。",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions", "Settings"],
+      "inference": {
+        "before": "Amazon BedrockやGoogle Cloud Vertex AIなどの外部プロバイダーを利用する場合、オートモードを有効にするには`CLAUDE_CODE_ENABLE_AUTO_MODE=1`という環境変数を明示的に設定する必要がありました。このオプトインがない限り、Shift+Tabでのモード切り替え候補にオートモードが表示されませんでした。",
+        "after": "環境変数の設定なしで、デフォルトでオートモードが利用可能になりました。これにより、セットアップの手間が省け、すぐに自律的な実行モードを開始できます。無効にしたい場合は、設定ファイルで`disableAutoMode`を指定することで制御可能です。",
+        "benefit": "追加の設定なしで強力なオートモードを使い始められるようになり、プロバイダーを問わず一貫した利便性が得られます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "主要クラウドプロバイダーでのオートモード利用が容易になり、多くのユーザーの利便性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/feature-availability.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "4f7389595e3e",
+      "content": "- Fixed the terminal freezing and keystrokes lagging while streaming responses containing very long lists, tables, paragraphs, or code blocks",
+      "content_ja": "非常に長いリスト、テーブル、段落、またはコードブロックを含むレスポンスのストリーミング中に、ターミナルがフリーズしたりキー入力が遅延したりする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "大量のデータを含むレスポンスがストリーミング出力される際、ターミナルのレンダリング負荷が高まり、画面が固まったりユーザーのキー入力が反映されるまでに大幅なラグが発生したりすることがありました。",
+        "after": "レンダリングプロセスが最適化され、レスポンスの内容がどれほど長く複雑であっても、ターミナルの応答性が維持されるようになりました。",
+        "benefit": "大規模なコード生成やデータ解析の結果を待っている間でも、ストレスなく操作を継続したり、必要に応じて出力を中断したりできます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "大量データ生成時のターミナルのハングを解消する、ユーザー体験に直結する重要な修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/agent-loop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/artifacts.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-spend-limits.md"
+        }
+      ]
+    },
+    {
+      "id": "91f20b84cab3",
+      "content": "- Fixed remote managed settings from a non-interactive run (`claude -p`, the SDK) being permanently recorded as consented without ever showing the security consent dialog",
+      "content_ja": "非インタラクティブ実行（`claude -p`やSDK）において、リモート管理設定がセキュリティ同意ダイアログを表示せずに永続的に同意済みとして記録される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Settings", "Permissions"],
+      "inference": {
+        "before": "`-p`フラグを使用した際やSDK経由の実行ではセキュリティダイアログがスキップされるため、管理設定で配信された強力な設定（シェルコマンド実行など）がユーザーの明示的な確認なしに「同意済み」としてキャッシュに記録されてしまうリスクがありました。",
+        "after": "非インタラクティブ実行時であっても、適切な確認ステップを踏まずにセキュリティ上の懸念がある設定が永続的に承諾されることがなくなりました。",
+        "benefit": "組織のポリシー管理機能を利用する際、意図しない設定変更が勝手に行われることを防ぎ、セキュリティの透明性が向上します。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "非インタラクティブ実行時におけるセキュリティ同意の永続化問題を修正する重要な安全性の改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/server-managed-settings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/goal.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        }
+      ]
+    },
+    {
+      "id": "a2ccfae75dfc",
+      "content": "- Fixed spurious prompt-injection warnings triggered by benign system-generated conversation updates",
+      "content_ja": "システムが生成する会話の更新によって、誤ったプロンプト・インジェクション警告が表示される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "会話履歴の要約（コンパクション）などの内部的なシステムメッセージが、誤ってプロンプト・インジェクション（悪意のある指示の上書き）として検知され、ユーザーに不必要な警告が表示されることがありました。",
+        "after": "システム由来の更新とユーザー入力が正しく区別され、通常の操作中に邪魔な誤警報が出なくなりました。",
+        "benefit": "安全性を損なうことなく、作業の中断や混乱を防ぎ、AIとの会話に集中できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "通常の操作を妨げていた誤ったセキュリティ警告が解消され、スムーズな会話が可能になります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/computer-use.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        }
+      ]
+    },
+    {
+      "id": "20228b1d24da",
+      "content": "- Fixed the auto-updater overwriting a custom launcher script or symlink at `~/.local/bin/claude` on every release; `/doctor` now reports an externally managed launcher",
+      "content_ja": "自動アップデートが実行されるたびに、`~/.local/bin/claude`にあるカスタムランチャースクリプトやシンボリックリンクが上書きされる問題を修正しました。また、`/doctor`が外部管理のランチャーを報告するようになりました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ユーザーが特定の起動オプションを含めた独自のスクリプトを`~/.local/bin/claude`として配置していても、Claude Codeの自動アップデート機能によってバイナリが強制的に上書きされ、カスタマイズが消失していました。",
+        "after": "外部で管理されているランチャーが検出された場合はアップデート時に尊重されるようになり、`/doctor`コマンドでその状況を確認・診断できるようになりました。",
+        "benefit": "独自の環境設定を維持したまま常に最新バージョンの恩恵を受けることができ、アップデートのたびに再設定する手間がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "独自のスクリプトでClaudeを起動しているユーザーのカスタマイズが破壊される問題を修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/debug-your-config.md"
+        }
+      ]
+    },
+    {
+      "id": "9762b0e42f6c",
+      "content": "- Fixed compound commands with `cd` prompting for permission when the only output redirect was to `/dev/null`",
+      "content_ja": "出力リダイレクトが`/dev/null`のみである`cd`を含む複合コマンドにおいて、権限の確認プロンプトが表示される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "`cd packages/api && ls > /dev/null` のような、実質的に副作用のない読み取り専用の複合コマンドであっても、`cd`とリダイレクトの組み合わせによって書き込み権限の確認プロンプトが表示されることがありました。",
+        "after": "`/dev/null`への出力リダイレクトは安全であると正しく認識されるようになり、不要な権限確認が削減されました。",
+        "benefit": "「はい、今後聞かないでください」と答える回数が減り、定型的なコマンド実行がスムーズになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "副作用のない一般的なコマンドでの不要な権限プロンプトが削減され、効率が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w15.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "6940f7106dc5",
+      "content": "- Fixed the transcript jumping above the start of the answer when a response finishes streaming",
+      "content_ja": "レスポンスのストリーミング終了時に、会話履歴（トランスクリプト）が回答の開始位置より上にジャンプしてしまう表示上の問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Claudeが長い回答を生成し終えた直後、ターミナルの表示位置が勝手にスクロールし、回答の冒頭部分を見失ってしまうことがありました。",
+        "after": "回答が終わっても表示位置が固定され、生成された内容をそのままスムーズに読み進められるようになりました。",
+        "benefit": "スクロールで戻る手間が省け、AIの回答をすぐに確認して次のアクションに移れます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "レスポンス終了時の表示の飛びを防ぎ、UIの快適性を高める改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/streaming-output.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "e938abcdb5cf",
+      "content": "- Fixed `extensions.worktreeConfig` being left in the repo's `.git/config` (breaking go-git tools like `tea`) after the last `worktree.sparsePaths` worktree was removed",
+      "content_ja": "`worktree.sparsePaths`を使用した最後のワークティが削除された後、リポジトリの`.git/config`に`extensions.worktreeConfig`が残ってしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "並列作業用のワークツリーを削除した後もGitの設定ファイル（`.git/config`）に不要なエントリが残り続け、これが原因で`tea`などの`go-git`ベースのツールが正常に動作しなくなることがありました。",
+        "after": "ワークツリーのクリーンアップ処理が改善され、関連するGit設定も適切に削除されるようになりました。",
+        "benefit": "Claude Codeを使用した並列開発を行っても他の開発ツールと干渉しなくなり、既存の開発環境を壊す心配がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Git設定の汚れが原因で他の開発ツールが壊れるのを防ぐ重要なクリーンアップの修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        }
+      ]
+    },
+    {
+      "id": "3ded8ae9c422",
+      "content": "- Fixed malformed bracket patterns in rules globs, skill paths, `.ignore`, and `.worktreeinclude` breaking file reads, file suggestions, and worktree creation",
+      "content_ja": "rules、skillパス、`.ignore`、`.worktreeinclude`内の誤ったブラケット（括弧）パターンによって、ファイルの読み取りや提案、ワークツリー作成が失敗する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Memory", "Skills"],
+      "inference": {
+        "before": "設定ファイル内で`[a-z]`のようなパターンを記述する際に形式が不適切だと、ファイル検索やワークツリーへのファイルコピーが予期せず失敗したり、不完全な結果になったりすることがありました。",
+        "after": "パターンの解析処理が堅牢になり、多少の記述の不備があっても致命的なエラーを避け、正しくファイルが読み込まれるようになりました。",
+        "benefit": "ファイルの除外設定やスキル定義が意図通りに機能するようになり、リポジトリ構成の不整合によるエラーに悩まされることがなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "設定ファイルの記述ミスによるファイル読み込み失敗を減らし、安定性を向上させます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/large-codebases.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/memory.md"
+        }
+      ]
+    },
+    {
+      "id": "c2d94c635c9e",
+      "content": "- Fixed a crash loop in agent teams where a malformed teammate mailbox message caused repeated errors every second until the mailbox file was manually deleted",
+      "content_ja": "エージェントチームにおいて、不正な形式のメールボックスメッセージが原因で毎秒エラーが発生し、手動でファイルを削除するまでクラッシュループが続く問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "エージェント間通信用のメッセージファイルが破損または不正な形式になると、システムがそれを読み込もうとして失敗し、無限にエラーを吐き続けるクラッシュループに陥ることがありました。",
+        "after": "不正なメッセージに対するエラーハンドリングが強化され、一時的なデータの不整合によってセッション全体が機能不全に陥ることがなくなりました。",
+        "benefit": "複数のAIを連携させる複雑なタスクを実行している最中に、回復不能なエラーで作業が台無しになるリスクが軽減されます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エージェントチーム機能における無限エラーループを解消し、機能の信頼性を高めます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        }
+      ]
+    },
+    {
+      "id": "35350b3133a2",
+      "content": "- Fixed background sessions auto-named by accepting a plan not showing that name on their agent-view row",
+      "content_ja": "プランを承認して自動生成されたバックグラウンドセッションの名前が、agent viewの行に表示されない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plan"],
+      "inference": {
+        "before": "プランモードで提案を承認してバックグラウンドで実行を開始した際、セッションに自動的に分かりやすい名前が付けられても、一覧画面（agent view）ではその名前が表示されず、どのタスクか判別しにくいことがありました。",
+        "after": "自動付与されたセッション名が一覧画面でも正しく表示されるようになりました。",
+        "benefit": "複数のバックグラウンドタスクを並行して進める際に、一覧から目的のセッションを即座に見つけ出せるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "タスク一覧画面での視認性を改善する軽微な修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sessions.md"
+        }
+      ]
+    },
+    {
+      "id": "f3864944636c",
+      "content": "- Fixed background sessions that entered a git worktree resuming blank after a cold reopen from the agent list",
+      "content_ja": "Gitワークツリーに移動したバックグラウンドセッションを中断後に再開した際、画面が真っ白な状態で復帰してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Gitワークツリーを利用したバックグラウンドセッションを再開（resume）した際、読み込みの不備によって会話履歴が表示されず、作業を継続できない状態になることがありました。",
+        "after": "ワークツリー上でのセッション管理が改善され、中断した場所から確実に会話を再開できるようになりました。",
+        "benefit": "長時間かかる並列タスクを安心して中断・再開でき、作業の継続性が保証されます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ワークツリーを利用した高度な並列タスクの再開機能を安定させます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        }
+      ]
+    },
+    {
+      "id": "2a39fc89cdea",
+      "content": "- Fixed Remote Control task status updates being lost when the connection recovered from a network interruption or credential refresh",
+      "content_ja": "ネットワークの中断や認証情報の更新から回復した際、リモートコントロールのタスクステータス更新が失われる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["IDE"],
+      "inference": {
+        "before": "スマートフォンのブラウザやモバイルアプリから操作している際、ネットワークが一時的に切断されたり認証が再試行されたりすると、AIが進めている作業の最新状況が画面に反映されなくなることがありました。",
+        "after": "接続の復旧後にステータスが正しく同期されるようになり、リモート環境でも最新の進捗を正確に把握できるようになりました。",
+        "benefit": "移動中や外出先からでも、AIの作業進捗をリアルタイムで安心して見守ることができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "リモート操作時のネットワーク耐性を高め、ステータス同期を確実なものにします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        }
+      ]
+    },
+    {
+      "id": "002f608766aa",
+      "content": "- Fixed Remote Control sessions hosted by the desktop app not showing background agent and workflow progress on mobile and web",
+      "content_ja": "デスクトップアプリ版でホストされているリモートコントロールセッションにおいて、バックグラウンドエージェントやワークフローの進捗がモバイル/Webに表示されない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["IDE", "Agent Teams"],
+      "inference": {
+        "before": "デスクトップアプリからリモートコントロールを利用している際、一部のバックグラウンドタスクの進行状況がモバイル端末のアプリなどに正しく転送されず、リモートから進捗を確認できない制限がありました。",
+        "after": "デスクトップアプリ経由でも全ての進捗情報がモバイル/Webと同期されるようになりました。",
+        "benefit": "PCの前にいなくても、あらゆる種類のAIタスクの状態をモバイルから漏れなく確認できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "デスクトップアプリとモバイルの連携機能を強化し、進捗の把握を容易にします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/platforms.md"
+        }
+      ]
+    },
+    {
+      "id": "f6b4114d5777",
+      "content": "- Fixed Deep research runs labeling every Fetch-phase agent \"unknown\" — chips now show the source hostname",
+      "content_ja": "Deep research実行時に、Fetchフェーズのエージェントがすべて\"unknown\"と表示される問題を修正し、ソースのホスト名が表示されるようになりました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "詳細調査（Deep research）ワークフローを実行中、情報を取得しているエージェントの名前がすべて一律に\"unknown\"となっており、どこから情報を得ているのか一目で分かりませんでした。",
+        "after": "エージェントのチップに情報の取得元であるドメイン（ホスト名）が表示されるようになり、進捗画面がより具体的になりました。",
+        "benefit": "調査がどの程度多様なソースをカバーしているかを視覚的に把握でき、調査の信頼性を判断しやすくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Deep research機能の進捗表示をより具体化し、ユーザーに安心感を与えます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        }
+      ]
+    },
+    {
+      "id": "e634683b6b61",
+      "content": "- Fixed Bedrock repeatedly requesting fresh AWS SSO credentials from IAM Identity Center on every API request",
+      "content_ja": "Bedrockにおいて、APIリクエストのたびにIAM Identity CenterにAWS SSOの新しい認証情報を繰り返し要求してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Amazon Bedrockを使用している際、認証情報のキャッシュが適切に機能せず、通信のたびにSSOの認証プロセスが走るため、パフォーマンスの低下や不要な認証エラーを招くことがありました。",
+        "after": "認証情報の有効期限とキャッシュ管理が最適化され、必要なときだけ認証が更新されるようになりました。",
+        "benefit": "APIレスポンスが高速化し、頻繁な認証確認による作業の中断がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "不要なSSO認証の繰り返しを防ぎ、APIアクセスのパフォーマンスを大幅に改善します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md"
+        }
+      ]
+    },
+    {
+      "id": "9a1099ae08e9",
+      "content": "- Improved agent view: pasting the same text again now expands the collapsed `[Pasted text #N]` placeholder instead of adding a second one",
+      "content_ja": "agent viewにおいて、同じテキストを再度貼り付けた際に、2つ目のプレースホルダーを追加する代わりに既存の`[Pasted text #N]`を更新するように改善しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "長いテキストを何度も貼り付けると、入力欄が`[Pasted text]`という表示で埋め尽くされ、履歴が読みづらくなっていました。",
+        "after": "同一のテキスト入力はスマートに集約され、連番付きのプレースホルダーとして分かりやすく表示されるようになりました。",
+        "benefit": "プロンプト作成中の視認性が向上し、整理された画面で作業を進められます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "貼り付けテキストの表示をスマートに集約し、画面の乱雑さを解消します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/artifacts.md"
+        }
+      ]
+    },
+    {
+      "id": "2a36287f8c52",
+      "content": "- Improved agent view: blocked session peeks now lead with the question and show a worded staleness clock (`waiting 3m`) instead of the same timestamp twice",
+      "content_ja": "agent viewにおいて、中断されているセッションのピーク表示が、質問を先頭に表示し、`waiting 3m`のような経過時間を分かりやすく表示するように改善されました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "ユーザーの入力を待っているセッションを確認した際、AIが何を求めているのかが埋もれていたり、待機時間がタイムスタンプ形式で読み取りにくかったりしました。",
+        "after": "最も重要な情報である「AIからの質問」が一番上に表示され、待機時間も「3分待機中」のように相対時間で直感的に表示されるようになりました。",
+        "benefit": "複数のタスクを並行していても、どれにすぐ対応すべきか、何を聞かれているかを瞬時に判断できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "一覧画面での待機理由と時間を分かりやすくし、マルチタスク管理を容易にします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/scheduled-tasks.md"
+        }
+      ]
+    },
+    {
+      "id": "20409185c2b0",
+      "content": "- Changed Bedrock, Vertex, and Claude Platform on AWS to default to Claude Opus 4.8",
+      "content_ja": "Bedrock、Vertex AI、Claude Platform on AWSにおけるデフォルトモデルが Claude Opus 4.8 に変更されました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "クラウドプロバイダー（AWS, Google Cloud）経由での利用時には、デフォルトで以前のバージョン（Opus 4.7等）が使用されていました。",
+        "after": "最新かつ最も高性能な Claude Opus 4.8 が標準で使用されるようになりました。複雑なコーディングやエンタープライズ用途において、より高い精度を発揮します。",
+        "benefit": "設定を変更することなく、最高峰の推論・コーディング能力を即座に利用できるようになります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "デフォルトモデルが最新・最高性能のものに昇格し、多くのユーザーが恩恵を受けます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/about-claude/models/overview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w22.md"
+        }
+      ]
+    },
+    {
+      "id": "4cf13503de28",
+      "content": "- Changed auto mode to no longer read `autoMode` from `.claude/settings.local.json` (repo-resident); use `~/.claude/settings.json` instead",
+      "content_ja": "オートモードにおいて、リポジトリ内の`.claude/settings.local.json`から`autoMode`設定を読み込まないようになりました。今後は`~/.claude/settings.json`を使用してください。",
+      "prefix": "Changed",
+      "feature_areas": ["Settings", "Permissions"],
+      "inference": {
+        "before": "プロジェクトローカルな`.claude/settings.local.json`にオートモードの信頼設定を記述できましたが、これはリポジトリ間で設定の管理が分散する原因になっていました。",
+        "after": "オートモードに関する個人設定は、ホームディレクトリの共通設定ファイル（`~/.claude/settings.json`）に集約されるようになりました。",
+        "benefit": "リポジトリごとにオートモードの設定を書き直す必要がなくなり、自分の信頼設定を一箇所で一元管理できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "設定の優先順位が変更され、プロジェクト個別の設定が無視されるようになるため注意が必要です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/auto-mode-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/memory.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        }
+      ]
+    },
+    {
+      "id": "fba4cb066ebf",
+      "content": "- Fixed an indefinite hang on Windows when AWS credential resolution stalls (e.g. a stuck `credential_process`): the 60-second stall guard now fires instead of waiting forever.",
+      "content_ja": "WindowsにおいてAWSの認証情報の解決が停止（`credential_process`のハングなど）した際、無限に待機する代わりに60秒のガードが作動して中断するようになりました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "認証プロセスが背後で固まってしまった場合、Claude Codeもそのまま応答を停止し、ユーザーは何が起きているか分からず待ち続けるしかありませんでした。",
+        "after": "60秒間のタイムアウト監視が導入され、プロセスがハングした場合にはエラーとして切り離されるようになりました。",
+        "benefit": "ツールがフリーズして操作不能になるのを防ぎ、エラーメッセージを見てすぐに対処（再ログインなど）できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows環境でのフリーズを防ぐ重要なウォッチドッグの追加です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/web-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/python.md"
+        }
+      ]
+    },
+    {
+      "id": "39675da51f04",
+      "content": "- Plugin hooks/monitors/MCP headersHelper: `${user_config.*}` in shell-form commands is now rejected (shell-injection fix). Hooks: use exec form (`args` array) or `$CLAUDE_PLUGIN_OPTION_<KEY>`; monitors and headersHelper: read the value inside the script (config file or the server's `env` block).",
+      "content_ja": "プラグインのフック/モニター等において、シェル形式コマンドでの`${user_config.*}`の使用が禁止されました。シェルインジェクション対策のため、今後はexec形式（`args`配列）または環境変数を使用してください。",
+      "prefix": "Changed",
+      "feature_areas": ["Plugins", "Hooks", "MCP"],
+      "inference": {
+        "before": "ユーザー設定値をシェルの文字列として直接展開していたため、設定値に悪意のある文字が含まれていた場合に予期しないコマンドが実行されるセキュリティリスク（シェルインジェクション）がありました。",
+        "after": "変数の展開がより安全な方法（環境変数や直接の引数渡し）に限定され、不正なコマンド実行が防止されるようになりました。",
+        "benefit": "プラグインをより安全に利用できるようになり、セキュリティを維持しつつ便利なカスタマイズが可能になります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "プラグイン開発におけるセキュリティのベストプラクティスを強制する重要な変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        }
+      ]
+    },
+    {
+      "id": "a7f19519c98b",
+      "content": "- Plugin option values (`pluginConfigs`) are no longer read from project-level `.claude/settings.json`; only user, `--settings`, and managed settings are honored",
+      "content_ja": "プラグインのオプション設定（`pluginConfigs`）がプロジェクトレベルの`.claude/settings.json`から読み込まれなくなりました。ユーザー設定、`--settings`、または管理設定のみが適用されます。",
+      "prefix": "Changed",
+      "feature_areas": ["Plugins", "Settings"],
+      "inference": {
+        "before": "共有のリポジトリ設定ファイルにプラグインのオプションが記述されていると、開発者ごとの個別の設定が上書きされたり、意図しない設定が強制されたりすることがありました。",
+        "after": "プラグインの挙動を決定する重要なオプションは、ユーザー自身が管理する設定か、組織による強制設定に限定されるようになりました。",
+        "benefit": "個人の好みの設定がプロジェクト共有設定によって勝手に変更されることがなくなり、各開発者に最適な環境を保てます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "プラグイン設定の読み込み範囲が制限されるため、既存の設定が効かなくなる可能性があります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/memory.md"
+        }
+      ]
+    },
+    {
+      "id": "10a74631ffdc",
+      "content": "- Fixed `/usage-credits` amount inputs silently stripping malformed values (e.g. a pasted timestamp) to digits; malformed amounts are now rejected with an error, and amounts over $1,000 require a typed confirmation",
+      "content_ja": "`/usage-credits`での金額入力において、誤った形式の値を自動的に数字のみに削る挙動を廃止し、エラーとして拒否するようになりました。また、$1,000を超える場合は確認入力が必要です。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "例えば\"10.50\"と入力すべきところに誤ってタイムスタンプなどを貼り付けても、システムが無理やり数字だけを抜き出して処理しようとし、意図しない金額のチャージが行われるリスクがありました。",
+        "after": "不正な形式の入力は即座にエラーとして弾かれるようになり、また高額なチャージには追加の確認ステップが導入されました。",
+        "benefit": "誤操作による高額請求を確実に防ぐことができ、安心してクレジットの追加操作を行えます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "不適切な金額の入力を防ぐ安全策が導入され、誤課金のリスクが軽減されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    }
+  ]
+}
