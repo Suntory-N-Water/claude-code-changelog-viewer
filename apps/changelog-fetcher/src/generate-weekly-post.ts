@@ -24,7 +24,9 @@ function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
   const isoWeekValue = args.find((arg) => !arg.startsWith('--'));
   if (!isoWeekValue) {
-    log.error('Usage: tsx src/generate-weekly-post.ts <iso-week> [--dry-run]');
+    log.error(
+      'Usage: tsx src/generate-weekly-post.ts <yyyy-mm-dd|yyyy-wWW> [--dry-run]',
+    );
     process.exit(1);
   }
 
@@ -52,7 +54,14 @@ async function main(): Promise<void> {
     releaseInfo: new GitHubReleaseDateClient(),
     inferredFile: {
       async load(version) {
-        const filePath = join(appDir, 'inferred', `inferred_${version}.json`);
+        const inferredVersion = version.startsWith('v')
+          ? version
+          : `v${version}`;
+        const filePath = join(
+          appDir,
+          'inferred',
+          `inferred_${inferredVersion}.json`,
+        );
         if (!existsSync(filePath)) {
           return null;
         }
@@ -76,7 +85,7 @@ async function main(): Promise<void> {
       highImpactItems: result.highImpactItems,
     });
     const dryRunDir = join(appDir, 'dry-run', isoWeek);
-    const promptPath = join(dryRunDir, 'weekly-post-prompt.md');
+    const promptPath = join(dryRunDir, 'prompt.md');
     await mkdir(dryRunDir, { recursive: true });
     await writeFile(promptPath, prompt, 'utf-8');
     log.info(`プロンプトを出力: ${promptPath}`);
