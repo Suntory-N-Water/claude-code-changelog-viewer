@@ -93,20 +93,15 @@ const IMPACT_LEVEL_ORDER: Record<string, number> = {
 };
 const IMPACT_UNSET = 3;
 
-const itemsWithIndex = items.map((item, index) => ({
-  item,
-  originalIndex: index,
-}));
-
-const groupMap = new Map<string, typeof itemsWithIndex>();
-for (const entry of itemsWithIndex) {
-  const key = entry.item.prefix;
+const groupMap = new Map<string, typeof items>();
+for (const item of items) {
+  const key = item.prefix;
   if (!groupMap.has(key)) {
     groupMap.set(key, []);
   }
   const group = groupMap.get(key);
   if (group) {
-    group.push(entry);
+    group.push(item);
   }
 }
 
@@ -116,10 +111,8 @@ const prefixGroups = [...groupMap.entries()]
     prefix,
     label: PREFIX_LABELS[prefix as Prefix] ?? prefix,
     items: groupItems.toSorted((a, b) => {
-      const aOrder =
-        IMPACT_LEVEL_ORDER[a.item.impact?.level ?? ''] ?? IMPACT_UNSET;
-      const bOrder =
-        IMPACT_LEVEL_ORDER[b.item.impact?.level ?? ''] ?? IMPACT_UNSET;
+      const aOrder = IMPACT_LEVEL_ORDER[a.impact?.level ?? ''] ?? IMPACT_UNSET;
+      const bOrder = IMPACT_LEVEL_ORDER[b.impact?.level ?? ''] ?? IMPACT_UNSET;
       return aOrder - bOrder;
     }),
   }));
@@ -355,10 +348,10 @@ const totalItemCount = items.length;
                   </h3>
                 </div>
                 <div class='space-y-6'>
-                  {group.items.map(({ item, originalIndex }) => (
+                  {group.items.map((item) => (
                     <ChangelogItemCard
                       item={item}
-                      anchorId={`item-${originalIndex}`}
+                      anchorId={`item-${item.id}`}
                       linkedAreas={linkedAreas}
                     />
                   ))}
