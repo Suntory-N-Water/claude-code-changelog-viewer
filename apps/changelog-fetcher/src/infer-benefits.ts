@@ -133,7 +133,14 @@ async function main(): Promise<void> {
       const schemaPath = join(dryRunDir, 'schema.json');
       writeFileSync(
         schemaPath,
-        JSON.stringify(INFERENCE_TASK_SCHEMA, null, 2),
+        JSON.stringify(
+          INFERENCE_TASK_SCHEMA,
+          (key, value) =>
+            key === 'type' && typeof value === 'string'
+              ? value.toLowerCase()
+              : value,
+          2,
+        ),
         'utf-8',
       );
       log.info(`スキーマを出力: ${schemaPath}`);

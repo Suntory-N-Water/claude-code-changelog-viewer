@@ -16,15 +16,16 @@ export function buildInferenceTaskSection(indexedItems: PromptItem[]): string {
       const snippetsText = entry.relatedDocs
         .map((doc) => {
           const snippets = doc.snippets.join('\n');
-          return [['### ', doc.file].join(''), snippets].join('\n');
+          return [['#### ', doc.file].join(''), snippets].join('\n');
         })
         .join('\n\n');
 
       return [
-        ['#### 項目 id=', id].join(''),
+        ['### 項目 id=', id].join(''),
         ['- prefix: ', entry.prefix].join(''),
         ['- content: ', entry.content].join(''),
-        '- 関連情報:',
+        '',
+        '### 関連情報',
         snippetsText,
       ].join('\n');
     })
@@ -33,15 +34,28 @@ export function buildInferenceTaskSection(indexedItems: PromptItem[]): string {
   return [
     '# タスク1: 推論+翻訳 (inferred_items)',
     '',
-    '以下の各項目について、content_ja / before / after / benefit を生成する。',
+    '## 前提',
+    '- 各項目には関連ドキュメント(snippets)が付属しており、これが推論の根拠となる',
+    '- 技術用語を適切に日本語化し、開発者にとって分かりやすい自然な日本語で表現する',
+    '- 専門用語を使う場合は必ず文脈で意味が分かるように説明する',
+    '',
+    '## 目的',
+    '各項目の content_ja / before / after / benefit を生成する。',
+    '',
+    '## 動機',
+    'ユーザーは「何が変わったか」の事実よりも「自分の作業がどう変わるか」を知りたい。',
+    'before/after で変更前後の具体的な差分を	描写し、benefit で得られる恩恵を示すことで、各変更を試す価値があるか即座に判断できるようにする。',
     '',
     '## 制約',
-    '- content_ja: 技術用語を適切に日本語化し、開発者にとって分かりやすい自然な日本語で翻訳する',
-    '- 専門用語を使う場合は必ず文脈で意味が分かるように説明する',
-    '- before / after / benefit は各2-3文で簡潔に',
     '- snippets に記載がない推測は避ける',
-    '- バグ修正(prefix: "Fixed")の場合、before はバグの症状を CHANGELOG の記述から推測してよい',
-    '- 機能追加(prefix: "Added", "Enabled")の場合、before は snippets から変更前の状態を推測する',
+    '- バグ修正(prefix: "Fixed")は CHANGELOG の記述から症状を推測してよい',
+    '- 機能追加(prefix: "Added", "Enabled")は snippets から変更前の状態を推測してよい',
+    '- before / after は各2-3文で簡潔に',
+    '- benefit は1文で「ユーザーが何をしなくてよくなるか / 何だけで済むようになるか」を書く(行動変化に限定)',
+    '  - 良い例: 「CLAUDE.md のどこを削るか自分で判断する必要がなくなります」',
+    '  - 悪い例: 「CLAUDE.md を効率的にスリム化でき、AIのパフォーマンスを維持できます」',
+    '- benefit 禁止表現: 「〜が向上します」「〜を維持できます」「〜のリスクを減らせます」「〜が可能になります」「〜を確保できます」のような結果の抽象化は不可',
+    '- content_ja / benefit は体言止めにしない。動詞の終止形(「〜した」「〜になる」)で終えること',
     '- id は入力値をそのまま返すこと',
     '',
     '## 対象項目',
@@ -68,7 +82,7 @@ export function buildBatchInferencePrompt(
   const translationSection = translationItems
     .map(({ item, id }) =>
       [
-        ['#### 項目 id=', id].join(''),
+        ['### 項目 id=', id].join(''),
         ['- prefix: ', item.prefix].join(''),
         ['- content: ', item.content].join(''),
       ].join('\n'),
