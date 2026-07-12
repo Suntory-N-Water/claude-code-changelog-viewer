@@ -101,6 +101,7 @@ const postsCollection = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
   schema: z.object({
     title: z.string(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     period_start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     period_end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     versions: z.array(z.string()),

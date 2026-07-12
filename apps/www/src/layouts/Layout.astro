@@ -32,9 +32,10 @@ type Props = {
   jsonLd?: JsonLdData;
   breadcrumbs?: BreadcrumbItem[];
   faqItems?: FAQItem[];
+  noindex?: boolean;
 };
 
-const { title, description, image, jsonLd, breadcrumbs, faqItems } =
+const { title, description, image, jsonLd, breadcrumbs, faqItems, noindex } =
   Astro.props;
 const isDocsPage = Astro.url.pathname.startsWith('/docs');
 const isReferencePage = Astro.url.pathname.startsWith('/reference');
@@ -130,7 +131,9 @@ if (jsonLd?.type === 'website') {
 
     <meta
       name='robots'
-      content='index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'
+      content={noindex
+        ? 'noindex'
+        : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'}
     />
     <link
       rel='alternate'
