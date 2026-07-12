@@ -51,8 +51,15 @@ def main():
         "<!-- intro -->",
         "",
     ]
+    # items は extract.py で version 昇順・同一 version が連続するよう整列済み。
+    # version を ## セクション、content_ja を ### 見出しにしてバージョンごとにまとめる。
+    current_version = None
     for item in data["items"]:
-        lines.append(f"## {item['content_ja']}")
+        if item["version"] != current_version:
+            lines.append(f"## v{item['version']}")
+            lines.append("")
+            current_version = item["version"]
+        lines.append(f"### {item['content_ja']}")
         lines.append("")
         lines.append("<!-- body -->")
         lines.append("")

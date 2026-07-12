@@ -48,6 +48,9 @@ def main():
             }
         )
 
+    # 古い→新しいバージョンが上から下に流れるよう昇順に揃える(同一バージョン内は入力順を維持)
+    out_items.sort(key=lambda it: version_key(it["version"]))
+
     versions = sorted({s["version"] for s in week["items"]}, key=version_key)
     result = {
         "week": week["week"],
