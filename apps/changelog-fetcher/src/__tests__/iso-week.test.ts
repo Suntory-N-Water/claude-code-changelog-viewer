@@ -4,12 +4,14 @@ import { createIsoWeek, toWeekDateRange } from '../domain/weekly-post/iso-week';
 describe('createIsoWeek', () => {
   test('YYYY-wWW 形式のISO週を受け付ける', () => {
     expect(createIsoWeek('2026-w28')).toBe('2026-w28');
+    expect(createIsoWeek('2026-W28')).toBe('2026-w28');
+    expect(createIsoWeek('2026-07-12')).toBe('2026-w28');
   });
 
   test('不正な形式と範囲外の週を拒否する', () => {
-    expect(() => createIsoWeek('2026-W28')).toThrow();
     expect(() => createIsoWeek('2026-w00')).toThrow();
     expect(() => createIsoWeek('2026-w54')).toThrow();
+    expect(() => createIsoWeek('2026-02-31')).toThrow();
   });
 });
 

@@ -19,11 +19,30 @@ export type WeekPostPeriod = {
 };
 
 export function createIsoWeek(value: string): IsoWeek {
-  if (!/^\d{4}-w(0[1-9]|[1-4]\d|5[0-3])$/.test(value)) {
-    throw new Error(`ISO週の形式が不正です: ${value}`);
+  const normalized = value.replace('-W', '-w');
+  if (/^\d{4}-w(0[1-9]|[1-4]\d|5[0-3])$/.test(normalized)) {
+    return normalized as IsoWeek;
   }
 
-  return value as IsoWeek;
+  const [, yearValue, monthValue, dayValue] =
+    value.match(/^(\d{4})-(\d{2})-(\d{2})$/) ?? [];
+  if (
+    yearValue !== undefined &&
+    monthValue !== undefined &&
+    dayValue !== undefined
+  ) {
+    const date = new TZDate(
+      Number(yearValue),
+      Number(monthValue) - 1,
+      Number(dayValue),
+      'UTC',
+    );
+    if (format(date, 'yyyy-MM-dd') === value) {
+      return createIsoWeek(`${format(date, 'RRRR')}-w${format(date, 'II')}`);
+    }
+  }
+
+  throw new Error(`ISO週または日付の形式が不正です: ${value}`);
 }
 
 export function toWeekDateRange(week: IsoWeek): WeekDateRange {
