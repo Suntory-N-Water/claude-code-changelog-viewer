@@ -6,50 +6,13 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 import pagefind from 'astro-pagefind';
 import { seoValidate } from './src/integrations/seo-validate.ts';
+import { getReleaseMap } from './src/lib/release-map.ts';
 
 // ルート package.json からアプリバージョンを取得
 const rootPkg = JSON.parse(
   readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'),
 );
 const appVersion = rootPkg.version;
-
-// GitHub Releases の公開日時キャッシュ(ビルド中に1回だけ fetch)
-/** @type {Map<string, string> | null} */
-let releaseMap = null;
-
-/** @returns {Promise<Map<string, string>>} */
-async function getReleaseMap() {
-  if (releaseMap) {
-    return releaseMap;
-  }
-  releaseMap = new Map();
-  try {
-    // ページネーションで全リリースを取得(最大300件)
-    for (let page = 1; page <= 3; page += 1) {
-      const res = await fetch(
-        `https://api.github.com/repos/anthropics/claude-code/releases?per_page=100&page=${page}`,
-        { headers: { 'User-Agent': 'claude-code-changelog-viewer' } },
-      );
-      if (!res.ok) {
-        throw new Error(`GitHub API: ${res.status}`);
-      }
-      /** @type {Array<{ tag_name: string; published_at: string }>} */
-      const releases = await res.json();
-      if (releases.length === 0) {
-        break;
-      }
-      for (const r of releases) {
-        releaseMap.set(r.tag_name.replace(/^v/, ''), r.published_at);
-      }
-      if (releases.length < 100) {
-        break;
-      }
-    }
-  } catch (e) {
-    console.warn('[sitemap] GitHub API fetch failed:', e);
-  }
-  return releaseMap;
-}
 
 // https://astro.build/config
 export default defineConfig({
@@ -73,6 +36,9 @@ export default defineConfig({
           return false;
         }
         if (path.startsWith('/schema/')) {
+          return false;
+        }
+        if (path.startsWith('/admin/')) {
           return false;
         }
         return true;

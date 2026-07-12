@@ -4,6 +4,7 @@ const getRobotsTxt = (sitemapURL: URL, schemamapURL: URL) => `\
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /admin/
 
 User-agent: GPTBot
 Allow: /
