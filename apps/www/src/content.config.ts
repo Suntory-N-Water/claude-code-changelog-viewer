@@ -97,6 +97,16 @@ const blogCollection = defineCollection({
   }),
 });
 
+const postsCollection = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
+  schema: z.object({
+    title: z.string(),
+    period_start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    period_end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    versions: z.array(z.string()),
+  }),
+});
+
 const youtubeCollection = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/youtube' }),
   schema: z.object({
@@ -136,6 +146,7 @@ export const collections = {
   changelog: changelogCollection,
   diff: diffCollection,
   docsDiff: docsDiffCollection,
+  posts: postsCollection,
   settingsReference: settingsReferenceCollection,
   youtube: youtubeCollection,
 };
