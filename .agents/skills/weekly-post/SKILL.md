@@ -62,27 +62,28 @@ python3 <skill_dir>/scripts/snippets.py <version> <id>
 ```markdown
 ---
 title: "Claude Code 週次アップデート (v{version_min}–v{version_max})"
-date: {period_end}
-period_start: {period_start}
-period_end: {period_end}
+date: "{period_end}"
+period_start: "{period_start}"
+period_end: "{period_end}"
 versions:
   - {version_min}
   - {version_max}
 ---
 
-（冒頭ひとこと — コメント群から全体感を1〜2文）
+(冒頭ひとこと — コメント群から全体感を1〜2文)
 
-## （何が変わったかを述語で言い切る見出し）
+## (何が変わったかを述語で言い切る見出し)
 
-（体験ベースの本文 2〜3文、約100字）
+(体験ベースの本文 2〜3文、約100字)
 
-## （次のアイテムの見出し）
+## (次のアイテムの見出し)
 
-（本文）
+(本文)
 ```
 
 - `title` は `Claude Code 週次アップデート (v{version_min}–v{version_max})` で固定。バージョンが1つなら片方だけでよい。
 - `date` は `period_end` を使う。
+- `date` / `period_start` / `period_end` は、YAML で Date 型に解釈されないようダブルクォートで囲む。
 - `versions` は `version_min` と `version_max` を並べる(同一なら1つ)。
 - セクションは入力 item の順で並べる。アイテム数に制限はない。
 - frontmatter の区切りは全角ダッシュではなく半角の en dash `–` を使う(タイトル内)。

@@ -18,8 +18,9 @@ export class WeeklyPostStore implements WeeklyPostStorePort {
     const content = [
       '---',
       `title: ${JSON.stringify(input.title)}`,
-      `period_start: ${period.start}`,
-      `period_end: ${period.end}`,
+      `date: ${JSON.stringify(period.end)}`,
+      `period_start: ${JSON.stringify(period.start)}`,
+      `period_end: ${JSON.stringify(period.end)}`,
       'versions:',
       ...input.versions.map((version) => `  - ${version}`),
       '---',
