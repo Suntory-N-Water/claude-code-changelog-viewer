@@ -14,7 +14,19 @@ description: Claude Code 週次アップデート記事を、管理画面で選�
 引数として次の形の JSON を受け取る。
 
 ```json
-{"week":"2026-w28","period_start":"2026-07-06","period_end":"2026-07-12","total_items":12,"items":[{"id":"ea64434ed3ad","version":"2.1.205","comment":"8階層になったことある"}]}
+{
+	"week": "2026-w28",
+	"period_start": "2026-07-06",
+	"period_end": "2026-07-12",
+	"total_items": 12,
+	"items": [
+		{
+			"id": "ea64434ed3ad",
+			"version": "2.1.205",
+			"comment": "8階層になったことある"
+		}
+	]
+}
 ```
 
 ## 手順
@@ -39,7 +51,9 @@ id 不一致や version ファイル欠落があればスクリプトがエラ�
 python3 <skill_dir>/scripts/skeleton.py /tmp/extracted.json
 ```
 
-extract.py の出力 JSON を渡すと、`apps/changelog-fetcher/posts/weekly/{week}.md` に frontmatter・冒頭の定型文(`{期間}の変更で、個人的に気になったものをピックアップしました。`)・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・プレースホルダ(`<!-- intro -->` と item ごとの `<!-- body -->`)を書き出す。frontmatter には選定時の全アイテム数(`total_items`)と、選定した各 item の ID・version・コメント(`selected_items`)も保存する。items は古い→新しいバージョンの昇順で並び、同一バージョンの複数項目は1つの `## v{version}` 下にまとまる。**`### 見出し = content_ja` はここで byte 単位で確定する。以降 content_ja は一切タイプしない**(更新履歴カードと1文字も違わないことをこれで保証する)。
+extract.py の出力 JSON を渡すと、`apps/changelog-fetcher/posts/weekly/{week}.md` に frontmatter・冒頭の定型文(`{期間}の変更で、個人的に気になったものをピックアップしました。`)・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・英語原文の引用・締めの定型文と公式 CHANGELOG リンク・プレースホルダ(空の `description`、`<!-- intro -->`、item ごとの `<!-- body -->`)を書き出す。
+英語原文は各 `###` 見出しの直後へ blockquote として出力する。このとき先頭の Markdown リストマーカー(`- ` など)はスクリプトが除去する(blockquote 内で引用がリスト表示されるのを防ぐため)。
+frontmatter には選定時の全アイテム数(`total_items`)と、選定した各 item の ID・version・コメント(`selected_items`)も保存する。items は古い→新しいバージョンの昇順で並び、同一バージョンの複数項目は1つの `## v{version}` 下にまとまる。**`### 見出し = content_ja` はここで byte 単位で確定する。以降 content_ja は一切タイプしない**(更新履歴カードと1文字も違わないことをこれで保証する)。
 
 ### 4. 必要な item だけ snippets を追加取得
 
@@ -53,10 +67,11 @@ python3 <skill_dir>/scripts/snippets.py <version> <id>
 
 ### 5. プレースホルダを埋める
 
-skeleton の `<!-- intro -->` と各 `<!-- body -->` だけを Edit で置き換える。frontmatter とバージョン見出し・変更内容の見出しには一切触れない(見出しはスクリプトが確定済み)。
+skeleton の `<!-- intro -->` と各 `<!-- body -->`、そして frontmatter の空の `description` を Edit で置き換える。この3種類以外(バージョン見出し・変更内容の見出し・締めの定型文)には一切触れない(スクリプトが確定済み)。
 
-- `<!-- intro -->` → 冒頭の定型文の直後に続く一言。**大量の changelog から自分が拾った数件についての印象を1〜2文**(定型文とは別に書く。日付や「ピックアップしました」の言い換えはしない)。**その週の changelog 全体を要約・代表してはいけない**。「今週は〜な変更が目立った」のように書くと、拾った数件がその週の全変更であるかのように誤読される。あくまで自分が拾った範囲の話だと分かる書き方にする。
+- `<!-- intro -->` → 冒頭の定型文の直後に続く一言。**大量の changelog から自分が選択した数件についての印象を1〜2文**(定型文とは別に書く。日付や「ピックアップしました」の言い換えはしない)。**その週の changelog 全体を要約・代表してはいけない**。「今週は〜な変更が目立った」のように書くと、選択した数件がその週の全変更であるかのように誤読される。あくまで自分が選択した範囲の話だと分かる書き方にする。
 - 各 `<!-- body -->` → 直前の `### 見出し`(content_ja)の本文。体験ベースの散文 2〜3文、約100字。
+- frontmatter の `description` → 記事一覧カードと検索結果・OGP に出る meta description。選択した変更のうち代表的なものを名指しした1〜2文(約80〜120字)。intro/body を書き終えてから、記事の中身に合わせて埋める。空のまま残さない。
 
 文体・トーンは `<skill_dir>/references/` の各ファイルに従う。埋める前に読むこと。
 
@@ -76,21 +91,22 @@ skeleton の `<!-- intro -->` と各 `<!-- body -->` だけを Edit で置き換
 
 ## skeleton とプレースホルダ規約
 
-skeleton.py が書き出す `.md` は次の形になる。編集してよいのは `<!-- intro -->` と `<!-- body -->` の2種類のプレースホルダだけ。
+skeleton.py が書き出す `.md` は次の形になる。編集してよいのは frontmatter の空 `description`・`<!-- intro -->`・`<!-- body -->` の3種類だけ。
 
 ```markdown
 ---
 title: "Claude Code 週次アップデート (v{version_min}–v{version_max})"
+description: ""
 date: "{period_end}"
 period_start: "{period_start}"
 period_end: "{period_end}"
-total_items: {対象週の全アイテム数}
+total_items: { 対象週の全アイテム数 }
 selected_items:
   - id: "{選定したID}"
     version: "{選定したversion}"
     comment: "{選定時のコメント}"
 versions:
-  - {version}
+  - { version }
   - ...
 ---
 
@@ -102,6 +118,8 @@ versions:
 
 ### {content_ja そのまま}
 
+> {content 英語原文(先頭リストマーカー除去済み)}
+
 <!-- body -->
 
 ## v{次のバージョン}
@@ -112,10 +130,21 @@ versions:
 
 ### {同一バージョンの次の item の content_ja そのまま}
 
+> {content 英語原文(先頭リストマーカー除去済み)}
+
 <!-- body -->
+
+---
+
+最後まで読んでいただきありがとうございました。
+今回ピックアップしたのは一部です。全ての変更は公式の CHANGELOG で確認できます。
+
+https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
 ```
 
-- frontmatter・冒頭の定型文・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)はスクリプトが確定済み。**Edit で書き換えない**(content_ja verbatim と versions 全件、定型文の期間表記がここで保証されている)。
+- frontmatter(空 `description` を除く)・冒頭の定型文・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・英語原文の引用・末尾の締めの定型文と公式 CHANGELOG リンクはスクリプトが確定済み。**Edit で書き換えない**(content_ja と英語原文 verbatim、versions 全件、定型文の期間表記がここで保証されている)。
+- 英語原文の引用は先頭の Markdown リストマーカー(`- ` など)がスクリプトで除去された状態で出力される。
+- 空の `description` は手順5で埋める(唯一 frontmatter で書き換えてよいフィールド)。
 - バージョンは古い→新しいの昇順で `## v{version}` セクションになり、同一バージョンの複数項目はその下に `### {content_ja}` として並ぶ。
 - 各 `<!-- body -->` は直前の `### 見出し` に対応する。プレースホルダの位置・個数は変えない。
 - item 順・アイテム数・バージョンの区切りはスクリプト側で決まる。増減しない。

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -39,6 +40,8 @@ def main():
     lines = [
         "---",
         f"title: {q(title)}",
+        # description は生成後に人手/LLM が埋めるプレースホルダ。空のまま出力する。
+        'description: ""',
         f"date: {q(data['period_end'])}",
         f"period_start: {q(data['period_start'])}",
         f"period_end: {q(data['period_end'])}",
@@ -69,8 +72,28 @@ def main():
             current_version = item["version"]
         lines.append(f"### {item['content_ja']}")
         lines.append("")
+        # 英語原文の先頭にある Markdown リストマーカー(- / * / +)を除去する。
+        # blockquote 内で `> - ...` になると引用がリスト表示されてしまうため。
+        lines.extend(
+            f"> {re.sub(r'^[-*+]\\s+', '', line)}" if line else ">"
+            for line in item["content"].splitlines()
+        )
+        lines.append("")
         lines.append("<!-- body -->")
         lines.append("")
+
+    # 締めの定型文と公式 CHANGELOG へのリンク(全記事共通・編集不可)
+    lines.extend(
+        [
+            "---",
+            "",
+            "最後まで読んでいただきありがとうございました。",
+            "今回ピックアップしたのは一部です。全ての変更は公式の CHANGELOG で確認できます。",
+            "",
+            "https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md",
+            "",
+        ]
+    )
 
     WEEKLY_DIR.mkdir(parents=True, exist_ok=True)
     out_path = WEEKLY_DIR / f"{data['week']}.md"
