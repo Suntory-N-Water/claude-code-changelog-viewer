@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 # LLM に content_ja を一度もタイプさせないため、frontmatter・見出しはこのスクリプトが直接書き出す。
-# LLM が埋めるのはプレースホルダ(冒頭ひとこと・各本文)だけに限定する。
+# LLM が埋めるのはプレースホルダ(冒頭ひとこと・各本文・description の要点)だけに限定する。
 REPO_ROOT = Path(__file__).resolve().parents[4]
 WEEKLY_DIR = REPO_ROOT / "apps/changelog-fetcher/posts/weekly"
 
@@ -36,12 +36,19 @@ def main():
         f"{sy}年{sm}月{sd}日~{end_str}の変更で、"
         "個人的に気になったものをピックアップしました。"
     )
+    # description は「要点(手動で埋める)＋定型文」の半自動方式。
+    # 期間は年跨ぎでも両端に年を入れる(intro_line と違い省略しない)。
+    period_full = f"{sy}年{sm}月{sd}日〜{ey}年{em}月{ed}日"
+    description = (
+        f"<!-- desc -->など、{period_full}の Claude Code "
+        "アップデートから気になった変更をまとめました。"
+    )
 
     lines = [
         "---",
         f"title: {q(title)}",
-        # description は生成後に人手/LLM が埋めるプレースホルダ。空のまま出力する。
-        'description: ""',
+        # 定型文＋期間はここで確定。要点部分の <!-- desc --> だけを手順5で埋める。
+        f"description: {q(description)}",
         f"date: {q(data['period_end'])}",
         f"period_start: {q(data['period_start'])}",
         f"period_end: {q(data['period_end'])}",
