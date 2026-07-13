@@ -70,6 +70,15 @@ def main():
         "week": week["week"],
         "period_start": week["period_start"],
         "period_end": week["period_end"],
+        "total_items": week["total_items"],
+        "selected_items": [
+            {
+                "id": item["id"],
+                "version": item["version"],
+                "comment": item.get("comment", ""),
+            }
+            for item in week["items"]
+        ],
         "version_min": versions[0],
         "version_max": versions[-1],
         "versions": versions,

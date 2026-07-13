@@ -42,6 +42,14 @@ def main():
         f"date: {q(data['period_end'])}",
         f"period_start: {q(data['period_start'])}",
         f"period_end: {q(data['period_end'])}",
+        f"total_items: {data['total_items']}",
+        "selected_items:",
+        *[
+            f"  - id: {q(item['id'])}\n"
+            f"    version: {q(item['version'])}\n"
+            f"    comment: {q(item['comment'])}"
+            for item in data["selected_items"]
+        ],
         "versions:",
         *[f"  - {v}" for v in data["versions"]],
         "---",

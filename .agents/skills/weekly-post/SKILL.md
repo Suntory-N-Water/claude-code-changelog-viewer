@@ -14,7 +14,7 @@ description: Claude Code 週次アップデート記事を、管理画面で選�
 引数として次の形の JSON を受け取る。
 
 ```json
-{"week":"2026-w28","period_start":"2026-07-06","period_end":"2026-07-12","items":[{"id":"ea64434ed3ad","version":"2.1.205","comment":"8階層になったことある"}]}
+{"week":"2026-w28","period_start":"2026-07-06","period_end":"2026-07-12","total_items":12,"items":[{"id":"ea64434ed3ad","version":"2.1.205","comment":"8階層になったことある"}]}
 ```
 
 ## 手順
@@ -39,7 +39,7 @@ id 不一致や version ファイル欠落があればスクリプトがエラ�
 python3 <skill_dir>/scripts/skeleton.py /tmp/extracted.json
 ```
 
-extract.py の出力 JSON を渡すと、`apps/changelog-fetcher/posts/weekly/{week}.md` に frontmatter・冒頭の定型文(`{期間}の変更で、個人的に気になったものをピックアップしました。`)・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・プレースホルダ(`<!-- intro -->` と item ごとの `<!-- body -->`)を書き出す。items は古い→新しいバージョンの昇順で並び、同一バージョンの複数項目は1つの `## v{version}` 下にまとまる。**`### 見出し = content_ja` はここで byte 単位で確定する。以降 content_ja は一切タイプしない**(更新履歴カードと1文字も違わないことをこれで保証する)。
+extract.py の出力 JSON を渡すと、`apps/changelog-fetcher/posts/weekly/{week}.md` に frontmatter・冒頭の定型文(`{期間}の変更で、個人的に気になったものをピックアップしました。`)・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・プレースホルダ(`<!-- intro -->` と item ごとの `<!-- body -->`)を書き出す。frontmatter には選定時の全アイテム数(`total_items`)と、選定した各 item の ID・version・コメント(`selected_items`)も保存する。items は古い→新しいバージョンの昇順で並び、同一バージョンの複数項目は1つの `## v{version}` 下にまとまる。**`### 見出し = content_ja` はここで byte 単位で確定する。以降 content_ja は一切タイプしない**(更新履歴カードと1文字も違わないことをこれで保証する)。
 
 ### 4. 必要な item だけ snippets を追加取得
 
@@ -84,6 +84,11 @@ title: "Claude Code 週次アップデート (v{version_min}–v{version_max})"
 date: "{period_end}"
 period_start: "{period_start}"
 period_end: "{period_end}"
+total_items: {対象週の全アイテム数}
+selected_items:
+  - id: "{選定したID}"
+    version: "{選定したversion}"
+    comment: "{選定時のコメント}"
 versions:
   - {version}
   - ...
