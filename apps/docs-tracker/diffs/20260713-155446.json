@@ -1,0 +1,528 @@
+{
+  "id": "20260713-155446",
+  "timestamp": "2026-07-13T15:54:46.228Z",
+  "aiSummary": "Windows環境のWSL 2ディストリビューション内でClaude Codeを実行する機能が追加されました。この更新により、Linuxのファイルシステムやツールチェーンを直接利用した効率的な開発が可能になります。管理者向けのガバナンス設定や、WSL環境におけるセキュリティソフトの推奨構成についても詳細なガイドが提供されています。一方で、WSLセッションでは@メンションやコネクタ、プラグインなど一部の機能が現状制限されている点に注意が必要です。",
+  "files": [
+    {
+      "filename": "admin-setup.md",
+      "additions": 11,
+      "deletions": 0,
+      "explanation": "WSLセッションにおける管理設定の継承方法や、CrowdStrikeなどのエンドポイントセキュリティ製品を適切に動作させるための設定手順が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -64,6 +64,17 @@ Whichever mechanism you choose, managed values take precedence over user and pro",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "See [Server-managed settings](/en/server-managed-settings) and [Settings files and precedence](/en/settings#settings-files)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### WSL sessions in Claude Code Desktop"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Windows, [Claude Code Desktop can run Code sessions inside a WSL 2 distribution](/en/desktop-wsl). The session's Claude Code process runs inside the distribution, so it resolves managed settings through the WSL discovery path above: Windows-only sources don't reach it unless `wslInheritsWindowsSettings: true` is deployed."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On devices where managed settings are present, Desktop WSL sessions are unavailable by default. If your organization wants to enable them, contact your Anthropic account team. When they're enabled:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Deploy `wslInheritsWindowsSettings: true` through the HKLM registry or the `C:\\Program Files\\ClaudeCode` file so WSL sessions inherit the same policy as host sessions."
+            },
+            {
+              "type": "added",
+              "content": "- Verify by running `/status` inside a WSL session: the `Setting sources` line should show `Enterprise managed settings` with the Windows source you deployed, `(HKLM)` or `(file)`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Processes inside the WSL 2 utility VM aren't visible to Windows-side endpoint detection sensors. If you use CrowdStrike Falcon, enable the Falcon sensor for Linux on WSL 2 with the two exclusions CrowdStrike's WSL documentation requires, for the WSL virtual machine process and the VM disk image, so in-distro process and file activity is observable. Claude Code's [OpenTelemetry tool-execution telemetry](/en/monitoring-usage) is emitted identically for WSL and native sessions."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Decide what to enforce"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Managed settings can lock down tools, sandbox execution, restrict MCP servers and plugin sources, and control which hooks run. Each row is a control surface with the setting keys that drive it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop-quickstart.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "クイックスタートガイドの環境選択肢にWSLが追加され、Linux側でネイティブにツールを実行できる旨が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -49,6 +49,7 @@ You can also select:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Remote**: Run sessions on Anthropic's cloud infrastructure that continue even if you close the app. Cloud sessions use the same infrastructure as [Claude Code on the web](/en/claude-code-on-the-web)."
+            },
+            {
+              "type": "context",
+              "content": "- **SSH**: Connect to a remote machine over SSH, such as your own servers, cloud VMs, or dev containers. Desktop installs Claude Code on the remote machine automatically the first time you connect."
+            },
+            {
+              "type": "added",
+              "content": "- **WSL** (Windows): Run the session inside a [WSL 2 distribution](/en/desktop-wsl); Claude Code, tools, and git execute on the Linux side with native paths."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Select a model from the dropdown next to the send button. See [models](/en/model-config#available-models) for a comparison of the available models. You can change the model later from the same dropdown."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop-wsl.md",
+      "additions": 40,
+      "deletions": 0,
+      "explanation": "WSL 2環境でセッションを開始するためのシステム要件、起動方法、および現時点で利用可能な機能と制限事項をまとめた新しい専用ガイドです。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,40 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: desktop-wsl"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/desktop-wsl.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Claude Code Desktop in WSL"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> Run Code sessions inside a WSL 2 distribution on Windows"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Windows, the Code tab can run a session inside a WSL 2 distribution instead of on Windows itself. The session's Claude Code process, its tools, and git all execute inside the distribution, using its Linux toolchain and native Linux paths, the same environment your project targets."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Use a WSL session when your repository lives inside the distribution's filesystem. Working on those files from Windows goes through a network filesystem, which is slow and breaks file watching; running the session inside the distribution avoids both."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Requirements"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Windows 10 or 11 with [WSL 2](https://learn.microsoft.com/windows/wsl/install). WSL 1 isn't supported."
+            },
+            {
+              "type": "added",
+              "content": "- At least one installed distribution (for example, Ubuntu)."
+            },
+            {
+              "type": "added",
+              "content": "- `git` installed inside the distribution."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Start a WSL session"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Start a new session in the Code tab and open the environment picker. Your installed WSL 2 distributions appear in a **WSL** section. Pick one."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The session starts in the distribution's home directory. Use the folder picker to choose a project folder. Browsing happens inside the distribution, with Linux paths like `/home/you/project`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The first session in a folder shows the workspace trust dialog. Trust is granted per distribution and folder; trusting a folder in one distribution doesn't apply to another distribution or to the same path on Windows."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The first session in a distribution takes a little longer while Claude sets up inside it. You can also open a `\\\\wsl.localhost\\...` folder from the normal folder picker, and it reopens inside that distribution."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Folders you've used recently appear in the picker per distribution, so reconnecting to a project is one click."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## What works in a WSL session"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Parallel sessions, side chats, visual diff review, branch and pull request status, and worktrees all work, backed by the git and toolchain inside the distribution. \"Open in editor\" opens VS Code connected to the distribution through [Remote - WSL](https://code.visualstudio.com/docs/remote/wsl)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A few features aren't available in WSL sessions yet: the integrated terminal, connectors and plugins, session forking, the file browser pane, and file suggestions when you type `@` in the composer."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Managed devices"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On devices managed by an organization, WSL sessions may be unavailable. If session start fails with a message that the device is managed, that's controlled by your administrator. Administrators: see [how settings reach devices](/en/admin-setup#decide-how-settings-reach-devices) in the deployment guide."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 6,
+      "deletions": 5,
+      "explanation": "デスクトップ版の環境選択肢にWSLが追加されたことに伴い、サイドチャットの対応状況や、WSLでは未対応となる@メンション・プラグイン機能の制約事項が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -35,7 +35,7 @@ For [scheduled recurring work](/en/desktop-scheduled-tasks), [keyboard shortcuts",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Before you send your first message, configure four things in the prompt area:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Environment**: choose where Claude runs. Select **Local** for your machine, **Remote** for Anthropic-hosted cloud sessions, or an [**SSH connection**](#ssh-sessions) for a remote machine you manage. See [environment configuration](#environment-configuration)."
+            },
+            {
+              "type": "added",
+              "content": "- **Environment**: choose where Claude runs. Select **Local** for your machine, **Remote** for Anthropic-hosted cloud sessions, an [**SSH connection**](#ssh-sessions) for a remote machine you manage, or on Windows a [**WSL distribution**](/en/desktop-wsl). See [environment configuration](#environment-configuration)."
+            },
+            {
+              "type": "context",
+              "content": "- **Project folder**: select the folder or repository Claude works in. For cloud sessions, you can add [multiple repositories](#run-long-running-tasks-remotely)."
+            },
+            {
+              "type": "context",
+              "content": "- **Model**: pick a [model](/en/model-config#available-models) from the dropdown next to the send button. You can change this during the session."
+            },
+            {
+              "type": "context",
+              "content": "- **Permission mode**: choose how much autonomy Claude has from the [mode selector](#choose-a-permission-mode). You can change this during the session."
+            }
+          ]
+        },
+        {
+          "header": "@@ -56,7 +56,7 @@ The **+** button next to the prompt box gives you access to file attachments, [s",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The prompt box supports two ways to bring in external context:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **@mention files**: type `@` followed by a filename to add a file to the conversation context. Claude can then read and reference that file. @mention is not available in cloud sessions."
+            },
+            {
+              "type": "added",
+              "content": "- **@mention files**: type `@` followed by a filename to add a file to the conversation context. Claude can then read and reference that file. @mention is not available in cloud or WSL sessions."
+            },
+            {
+              "type": "context",
+              "content": "- **Attach files**: attach images, PDFs, and other files to your prompt using the attachment button, or drag and drop files directly into the prompt. This is useful for sharing screenshots of bugs, design mockups, or reference documents."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Choose a permission mode"
+            }
+          ]
+        },
+        {
+          "header": "@@ -302,7 +302,7 @@ The desktop app sends an OS notification when a Code session finishes a task and",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A side chat lets you ask Claude a question that uses your session's context but doesn't add anything back to the main conversation. Use it when you want to understand a piece of code, check an assumption, or explore an idea without steering the session off course."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Press **Cmd+;** on macOS or **Ctrl+;** on Windows to open a side chat, or type `/btw` in the prompt box. The side chat can read everything in the main thread up to that point. When you're done, close the side chat and continue the main session where you left off. Side chats are available in local and SSH sessions."
+            },
+            {
+              "type": "added",
+              "content": "Press **Cmd+;** on macOS or **Ctrl+;** on Windows to open a side chat, or type `/btw` in the prompt box. The side chat can read everything in the main thread up to that point. When you're done, close the side chat and continue the main session where you left off. Side chats are available in local, SSH, and WSL sessions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Watch background tasks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -345,7 +345,7 @@ Connect external services, add reusable workflows, customize Claude's behavior,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Connect external tools"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For local and [SSH](#ssh-sessions) sessions, click the **+** button next to the prompt box and select **Connectors** to add integrations like Google Calendar, Slack, GitHub, Linear, Notion, and more. You can add connectors before or during a session. The **+** button is not available in cloud sessions, but [routines](/en/routines) configure connectors at routine creation time."
+            },
+            {
+              "type": "added",
+              "content": "For local and [SSH](#ssh-sessions) sessions, click the **+** button next to the prompt box and select **Connectors** to add integrations like Google Calendar, Slack, GitHub, Linear, Notion, and more. You can add connectors before or during a session. The **+** button is not available in cloud or WSL sessions, but [routines](/en/routines) configure connectors at routine creation time."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To manage or disconnect connectors, go to Settings → Connectors in the desktop app, or select **Manage connectors** from the Connectors menu in the prompt box."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -363,7 +363,7 @@ Connectors are [MCP servers](/en/mcp) with a graphical setup flow. Use them for",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For local and [SSH](#ssh-sessions) sessions, click the **+** button next to the prompt box and select **Plugins** to see your installed plugins and their skills. To add a plugin, select **Add plugin** from the submenu to open the plugin browser, which shows available plugins from your configured [marketplaces](/en/plugin-marketplaces) including the official Anthropic marketplace. Select **Manage plugins** to enable, disable, or uninstall plugins."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Plugins can be scoped to your user account, a specific project, or local-only. If your organization manages plugins centrally, those plugins are available in desktop sessions the same way they are in the CLI. Plugins are not available for cloud sessions. For the full plugin reference including creating your own plugins, see [plugins](/en/plugins)."
+            },
+            {
+              "type": "added",
+              "content": "Plugins can be scoped to your user account, a specific project, or local-only. If your organization manages plugins centrally, those plugins are available in desktop sessions the same way they are in the CLI. Plugins are not available for cloud or WSL sessions. For the full plugin reference including creating your own plugins, see [plugins](/en/plugins)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Configure preview servers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -505,6 +505,7 @@ The environment you pick when [starting a session](#start-a-session) determines",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Local**: runs on your machine with direct access to your files"
+            },
+            {
+              "type": "context",
+              "content": "- **Remote**: runs on Anthropic's cloud infrastructure. Sessions continue even if you close the app."
+            },
+            {
+              "type": "context",
+              "content": "- **SSH**: runs on a remote machine you connect to over SSH, such as your own servers, cloud VMs, or dev containers"
+            },
+            {
+              "type": "added",
+              "content": "- **WSL** (Windows): runs inside a [WSL 2 distribution](/en/desktop-wsl) on your machine, using its Linux toolchain and native paths"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Local sessions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
