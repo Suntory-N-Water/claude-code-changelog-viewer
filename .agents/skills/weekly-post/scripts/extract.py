@@ -6,6 +6,7 @@ from pathlib import Path
 # inferred JSON を丸ごと context に載せるとトークンを浪費するので、該当 id の item だけに絞る。
 REPO_ROOT = Path(__file__).resolve().parents[4]
 INFERRED_DIR = REPO_ROOT / "apps/changelog-fetcher/inferred"
+ANALYSIS_DIR = REPO_ROOT / "apps/changelog-fetcher/analysis"
 
 
 def version_key(v):
@@ -19,32 +20,45 @@ def main():
     week = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 
     # 同じ version を item ごとに開き直さないよう索引をキャッシュする
-    cache = {}
+    inferred_cache = {}
+    analysis_cache = {}
     out_items = []
     for sel in week["items"]:
         version = sel["version"]
-        if version not in cache:
+        if version not in inferred_cache:
             path = INFERRED_DIR / f"inferred_v{version}.json"
             if not path.exists():
                 sys.exit(f"inferred file not found: {path}")
             data = json.loads(path.read_text(encoding="utf-8"))
-            cache[version] = {it["id"]: it for it in data["items"]}
+            inferred_cache[version] = {it["id"]: it for it in data["items"]}
+        if version not in analysis_cache:
+            path = ANALYSIS_DIR / f"analysis_v{version}.json"
+            if not path.exists():
+                sys.exit(f"analysis file not found: {path}")
+            data = json.loads(path.read_text(encoding="utf-8"))
+            analysis_cache[version] = {it["id"]: it for it in data["items"]}
 
-        item = cache[version].get(sel["id"])
+        item = inferred_cache[version].get(sel["id"])
         if item is None:
             sys.exit(f"id not found in v{version}: {sel['id']}")
+
+        # snippets は analysis JSON にのみ含まれる(inferred JSON の related_docs は file のみ)
+        analysis_item = analysis_cache[version].get(sel["id"])
+        has_snippets = bool(
+            analysis_item
+            and any(d.get("snippets") for d in analysis_item.get("related_docs", []))
+        )
 
         out_items.append(
             {
                 "id": sel["id"],
                 "version": version,
                 "prefix": item.get("prefix"),
+                "content": item.get("content"),
                 "content_ja": item.get("content_ja"),
                 "comment": sel.get("comment", ""),
                 "inference": item.get("inference"),
-                "has_snippets": bool(
-                    any(d.get("snippets") for d in item.get("related_docs", []))
-                ),
+                "has_snippets": has_snippets,
             }
         )
 

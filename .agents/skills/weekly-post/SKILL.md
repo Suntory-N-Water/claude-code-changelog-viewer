@@ -29,7 +29,7 @@ description: Claude Code 週次アップデート記事を、管理画面で選�
 python3 <skill_dir>/scripts/extract.py /tmp/weekly-input.json > /tmp/extracted.json
 ```
 
-`inferred_v{version}.json` は1件30KB超になることがあり、丸ごと読むとトークンを浪費する。このスクリプトは選定された `id` に該当する item だけを取り出し、`content_ja` / `inference`(before/after/benefit) / `comment` / `prefix` / `has_snippets` と、frontmatter 用の `version_min` / `version_max` / `versions`(全件) を返す。出力 JSON は次の手順で skeleton.py にそのまま渡す。**inferred JSON を直接 Read してはいけない。** 必ずこのスクリプト経由で取得する。
+`inferred_v{version}.json` は1件30KB超になることがあり、丸ごと読むとトークンを浪費する。このスクリプトは選定された `id` に該当する item だけを取り出し、`content`(英語原文) / `content_ja` / `inference`(before/after/benefit) / `comment` / `prefix` / `has_snippets` と、frontmatter 用の `version_min` / `version_max` / `versions`(全件) を返す。`has_snippets` は `analysis_v{version}.json` 側の `related_docs[].snippets` を見て判定する(inferred JSON の `related_docs` には `file` しかなく `snippets` は含まれない)。`content_ja` や `inference` の記載内容に疑問が生じたら、まず出力済みの `content`(英語原文)で裏取りする。出力 JSON は次の手順で skeleton.py にそのまま渡す。**inferred JSON を直接 Read してはいけない。** 必ずこのスクリプト経由で取得する。
 
 id 不一致や version ファイル欠落があればスクリプトがエラーで止まる。その場合は入力 JSON を確認する。
 
