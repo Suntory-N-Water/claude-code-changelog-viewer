@@ -3188,7 +3188,7 @@ Run `claude --version` to check your installed version.
 * Fixed session titles on the resume screen not respecting the user's language setting
 * \[IDE] Fixed a race condition on Windows where the Claude Code sidebar view container would not appear on start
 
-- Added deprecation notification for npm installations - run `claude install` or see [https://docs.anthropic.com/en/docs/claude-code/getting-started](https://docs.anthropic.com/en/docs/claude-code/getting-started) for more options
+- Added deprecation notification for npm installations - run `claude install` or see [https://code.claude.com/docs/en/setup](https://code.claude.com/docs/en/setup) for more options
 - Improved UI rendering performance with React Compiler
 - Fixed the "Context left until auto-compact" warning not disappearing after running `/compact`
 - Fixed MCP stdio server timeout not killing child process, which could cause UI freezes
