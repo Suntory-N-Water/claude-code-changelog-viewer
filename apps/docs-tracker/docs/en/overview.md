@@ -19,19 +19,19 @@ To install Claude Code, use one of the following methods:
 
 **macOS, Linux, WSL:**
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 **Windows PowerShell:**
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null}
 irm https://claude.ai/install.ps1 | iex
 ```
 
 **Windows CMD:**
 
-```batch theme={null}
+```batch theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
@@ -43,7 +43,7 @@ If the install command fails with `syntax error near unexpected token '<'`, a `4
 
 Native installations automatically update in the background to keep you on the latest version.
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null}
 brew install --cask claude-code
 ```
 
@@ -51,7 +51,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic
 
 Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes.
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null}
 winget install Anthropic.ClaudeCode
 ```
 
@@ -191,6 +191,7 @@ Once you've installed Claude Code, these guides help you go deeper.
 - [Quickstart](/en/quickstart): walk through your first real task, from exploring a codebase to committing a fix
 - [Store instructions and memories](/en/memory): give Claude persistent instructions with CLAUDE.md files and auto memory
 - [Common workflows](/en/common-workflows) and [best practices](/en/best-practices): patterns for getting the most out of Claude Code
+- [A harness for every task](https://claude.com/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code): how the Claude Code team uses [dynamic workflows](/en/workflows) to orchestrate subagents at scale
 - [Settings](/en/settings): customize Claude Code for your workflow
 - [Troubleshooting](/en/troubleshooting): solutions for common issues
 - [code.claude.com](https://code.claude.com/): demos, pricing, and product details
