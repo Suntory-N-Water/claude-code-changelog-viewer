@@ -13,9 +13,11 @@ import {
 export async function GET(context: APIContext) {
   const site = context.site?.href.replace(/\/$/, '') ?? '';
 
-  const [changelogs, docsDiffEntries] = await Promise.all([
+  const [changelogs, docsDiffEntries, posts, settings] = await Promise.all([
     getCollection('changelog'),
     getCollection('docsDiff'),
+    getCollection('posts'),
+    getCollection('settingsReference'),
   ]);
 
   // changelog: バージョン降順
@@ -41,6 +43,19 @@ export async function GET(context: APIContext) {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
 
+  // 週次まとめ: 投稿日降順
+  const weeklyPosts = posts
+    .filter((entry) => entry.id.startsWith('weekly/'))
+    .sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+  // 設定リファレンス: key 昇順(settings → env)
+  const sortedSettings = [...settings].sort((a, b) => {
+    if (a.data.source !== b.data.source) {
+      return a.data.source === 'settings' ? -1 : 1;
+    }
+    return a.data.key.localeCompare(b.data.key);
+  });
+
   const lines: string[] = [
     `# ${SITE_TITLE}`,
     '',
@@ -50,6 +65,8 @@ export async function GET(context: APIContext) {
     '',
     `- [Home](${site}/): Latest changelog entries`,
     `- [Feature Areas](${site}/features): Browse changelog history by feature category`,
+    `- [Weekly Posts](${site}/posts/weekly): Weekly roundups of notable Claude Code updates`,
+    `- [Settings Reference](${site}/reference/settings): Look up Claude Code settings and environment variables`,
     `- [Docs Diff](${site}/docs): Official documentation change history`,
     `- [About](${site}/about): About this service`,
     `- [Notifications](${site}/notify): Subscribe to update notifications via LINE Notify`,
@@ -67,6 +84,25 @@ export async function GET(context: APIContext) {
   lines.push('', '## Feature Areas', '');
   for (const { slug, label } of areas) {
     lines.push(`- [${label}](${site}/features/${slug})`);
+  }
+
+  lines.push('', '## Weekly Posts', '');
+  for (const entry of weeklyPosts) {
+    const slug = entry.id.split('/').pop();
+    const summary = entry.data.description ? `: ${entry.data.description}` : '';
+    lines.push(
+      `- [${entry.data.title}](${site}/posts/weekly/${slug})${summary}`,
+    );
+  }
+
+  lines.push('', '## Settings Reference', '');
+  for (const entry of sortedSettings) {
+    const summary = entry.data.description_ja
+      ? `: ${entry.data.description_ja}`
+      : '';
+    lines.push(
+      `- [${entry.data.key}](${site}/reference/settings/${entry.data.slug})${summary}`,
+    );
   }
 
   lines.push('', '## Docs Diff', '');
