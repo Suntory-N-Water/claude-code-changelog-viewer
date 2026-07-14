@@ -56,7 +56,7 @@ CLI フラグ
 | フラグ | 説明 | 例 |
 | :- | :- | :- |
 | `--add-dir` | Claude がファイルを読み取り、編集するための追加の作業ディレクトリを追加します。ファイルアクセスを許可します。ほとんどの `.claude/` 設定は [これらのディレクトリから検出されません](/ja/permissions#additional-directories-grant-file-access-not-configuration)。各パスがディレクトリとして存在することを検証します。これらのディレクトリをセッション全体で永続化するには、設定で [`permissions.additionalDirectories`](/ja/settings#permission-settings) を設定してください | `claude --add-dir ../apps ../lib` |
-| `--advisor <model>` | このセッションのサーバーサイド [advisor ツール](/ja/advisor) をモデルエイリアス `opus`、`sonnet`、または `fable`（v2.1.170+）、または完全なモデル ID で有効にします。このセッションの `advisorModel` 設定より優先されます。Claude Code v2.1.98 以降が必要です | `claude --advisor opus` |
+| `--advisor <model>` | このセッションのサーバーサイド [advisor ツール](/ja/advisor) をモデルエイリアス `opus`、`sonnet`、または `fable`（v2.1.170+）、または完全なモデル ID で有効にします。このセッションの `advisorModel` 設定より優先されます | `claude --advisor opus` |
 | `--agent` | 現在のセッションのエージェントを指定します（`agent` 設定をオーバーライドします） | `claude --agent my-custom-agent` |
 | `--agents` | JSON 経由でカスタム subagents を動的に定義します。subagent [frontmatter](/ja/sub-agents#supported-frontmatter-fields) と同じフィールド名を使用し、さらにエージェントの指示用の `prompt` フィールドを追加します | `claude --agents '{"reviewer":{"description":"Reviews code","prompt":"You are a code reviewer"}}'` |
 | `--allow-dangerously-skip-permissions` | `Shift+Tab` モードサイクルに `bypassPermissions` を追加します。これを開始時に有効にしません。`plan` のような別のモードで開始し、後で `bypassPermissions` に切り替えることができます。[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode) を参照してください | `claude --permission-mode plan --allow-dangerously-skip-permissions` |
@@ -64,7 +64,7 @@ CLI フラグ
 | `--append-subagent-system-prompt` | ネストされた subagents を含むすべての [subagent](/ja/sub-agents) のシステムプロンプトの末尾にカスタムテキストを追加します。`-p` を使用した非インタラクティブモードでのみ適用されます。Claude Code v2.1.205 以降が必要です | `claude -p --append-subagent-system-prompt "Cite file paths in every answer" "query"` |
 | `--append-system-prompt` | デフォルトシステムプロンプトの末尾にカスタムテキストを追加します | `claude --append-system-prompt "Always use TypeScript"` |
 | `--append-system-prompt-file` | ファイルから追加のシステムプロンプトテキストを読み込み、デフォルトプロンプトに追加します | `claude --append-system-prompt-file ./extra-rules.txt` |
-| `--ax-screen-reader` | スクリーンリーダーフレンドリーな出力をレンダリングします：装飾的なボーダーやアニメーションなしのフラットテキスト。クラシックレンダラーを強制するため、このセッションでは [`tui`](/ja/settings#available-settings) 設定は効果がありません。[`CLAUDE_AX_SCREEN_READER`](/ja/env-vars) と [`axScreenReader`](/ja/settings#available-settings) 設定より優先されます。Claude Code v2.1.181 以降が必要です | `claude --ax-screen-reader` |
+| `--ax-screen-reader` | スクリーンリーダーフレンドリーな出力をレンダリングします：装飾的なボーダーやアニメーションなしのフラットテキスト。クラシックレンダラーを強制するため、このセッションでは [`tui`](/ja/settings#available-settings) 設定は効果がありません。アタッチされた [バックグラウンドセッション](/ja/agent-view) は引き続きフルスクリーンでレンダリングされます。[`CLAUDE_AX_SCREEN_READER`](/ja/env-vars) と [`axScreenReader`](/ja/settings#available-settings) 設定より優先されます。Claude Code v2.1.181 以降が必要です | `claude --ax-screen-reader` |
 | `--bare` | 最小限モード：hooks、skills、plugins、MCP サーバー、自動メモリ、CLAUDE.md の自動検出をスキップして、スクリプト化された呼び出しをより高速に開始します。Claude は Bash、ファイル読み取り、ファイル編集ツールにアクセスできます。[`CLAUDE_CODE_SIMPLE`](/ja/env-vars) を設定します。[bare mode](/ja/headless#start-faster-with-bare-mode) を参照してください | `claude --bare -p "query"` |
 | `--betas` | API リクエストに含めるベータヘッダー（API キーユーザーのみ） | `claude --betas interleaved-thinking` |
 | `--bg`、`--background` | セッションを [バックグラウンドエージェント](/ja/agent-view) として開始し、すぐに戻ります。セッション ID と管理コマンドを出力します。`--exec` と組み合わせて、Claude セッションの代わりにシェルコマンドをバックグラウンドジョブとして実行するか、`--agent` と組み合わせて特定の subagent を実行します。`-p`/`--print` と組み合わせることはできません。[エラーリファレンス](/ja/errors#command-line-errors) を参照してください | `claude --bg "investigate the flaky test"` |

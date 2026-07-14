@@ -249,7 +249,7 @@ Diff レンダリング
 
 Claude が作業中に表示がちらつくか、スクロール位置がジャンプする場合は、[フルスクリーンレンダリングモード](/ja/fullscreen) に切り替えます。ターミナルが通常のスクロールバックに追加する代わりに、フルスクリーンアプリ用に予約されている別のスクリーンに描画します。これにより、メモリ使用量が一定に保たれ、スクロールと選択のマウスサポートが追加されます。このモードでは、ターミナルのネイティブスクロールバックではなく、マウスまたは PageUp で Claude Code 内をスクロールします。検索とコピーの方法については、[フルスクリーンページ](/ja/fullscreen#search-and-review-the-conversation) を参照してください。
 
-`/tui fullscreen` を実行して、会話をそのままにして現在のセッションで切り替えます。デフォルトにするには、Claude Code を開始する前に `CLAUDE_CODE_NO_FLICKER` 環境変数を設定します。
+`/tui fullscreen` を実行して、設定を切り替えて保存します。会話はそのままで再起動され、今後のセッションはフルスクリーンで開始されます。Claude Code を開始する前に `CLAUDE_CODE_NO_FLICKER` 環境変数を設定することもできます。
 
 ```bash Bash と Zsh theme={null}
 CLAUDE_CODE_NO_FLICKER=1 claude

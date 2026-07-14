@@ -11,7 +11,7 @@ Claude Code は API トークン消費によって課金されます。サブス
 
 エンタープライズ展開全体では、平均コストは開発者 1 人あたり 1 日約 13 ドル、開発者 1 人あたり月額 150～250 ドルで、90% のユーザーの 1 日あたりのコストは 30 ドル以下です。自分のチームの支出を見積もるには、小規模なパイロットグループから始めて、以下の追跡ツールを使用してベースラインを確立してから、より広い展開を行ってください。
 
-このページでは、[コストを追跡する方法](#track-your-costs)、[チームのコストを管理する方法](#managing-costs-for-teams)、および [トークン使用量を削減する方法](#reduce-token-usage) について説明します。
+このページでは、[コストを追跡する方法](#track-your-costs)、[チームのコストを管理する方法](#manage-costs-for-your-organization)、および [トークン使用量を削減する方法](#reduce-token-usage) について説明します。
 
 コストを追跡する
 
@@ -32,17 +32,44 @@ Pro、Max、Team、または Enterprise プランでは、`/usage` はプラン�
 
 [VS Code 拡張機能](/ja/vs-code#check-account-and-usage) では、同じ内訳が Account & usage ダイアログに Day および Week トグルとともに表示されます。Claude Code v2.1.174 以降が必要です。
 
-チームのコストを管理する
+Pro および Max で支出制限を設定する
 
-Claude API を使用する場合、Claude Code ワークスペース支出の合計に対して [ワークスペース支出制限を設定](https://platform.claude.com/docs/ja/build-with-claude/workspaces#workspace-limits) できます。管理者は Console で [コストと使用状況レポートを表示](https://platform.claude.com/docs/ja/build-with-claude/workspaces#usage-and-cost-tracking) できます。
+Pro および Max プランでは、`/usage-credits` コマンドを使用して使用量クレジットの月間支出制限を設定できます。制限に達しても使用量クレジットがまだ利用可能な場合、Claude Code は制限を引き上げるか削除するよう促し、CLI を離れることなく続行できます。制限の変更にはアカウントの請求アクセスが必要です。
 
-Pro および Max プランでは、`/usage-credits` コマンドを使用して使用クレジットの月間支出制限を設定できます。その制限に達しても使用クレジットがまだ利用可能な場合、Claude Code はプロンプトを表示して、制限を引き上げるか削除するよう促し、CLI を離れることなく続行できるようにします。制限の変更にはアカウントの請求アクセスが必要です。
+組織のコストを管理する
+
+Claude Code にアクセスする方法によって、利用可能なコントロールが異なります。Claude for Teams または Enterprise プラン、Claude Console、またはクラウドプロバイダーです。Teams および Enterprise プランでは、使用量は各メンバーのシート割り当てから引き出されます。Console およびクラウドプロバイダーでは、使用量はトークンごとに組織に請求されます。組織がサインイン方法を混在させている場合、各開発者は認証した方法に従ってメーター化されます。
+
+次の表は、各セットアップを、支出を確認する場所、支出をキャップする場所、およびユーザーごとの数値を取得する方法にマップしています。
+
+| セットアップ | 支出を確認 | 支出をキャップ | ユーザーごとのレポート |
+| :- | :- | :- | :- |
+| [Claude for Teams または Enterprise](#claude-for-teams-and-enterprise) | [org analytics の支出レポート](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans) | 管理者設定の支出制限 | [支出レポート CSV](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans)、Enterprise の [Enterprise Analytics API](https://support.claude.com/en/articles/13703965-claude-enterprise-analytics-api-reference-guide) |
+| [Claude Console（API）](#claude-console) | [Console 使用状況ページ](https://platform.claude.com/usage) | ワークスペース支出制限 | [Console ダッシュボード](https://platform.claude.com/claude-code)、[Claude Code Analytics API](https://platform.claude.com/docs/en/build-with-claude/claude-code-analytics-api) |
+| [Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry](#cloud-providers) | クラウド請求コンソール | クラウドの予算コントロール | [OpenTelemetry](/ja/monitoring-usage) または [LLM gateway](/ja/llm-gateway) |
+
+[OpenTelemetry エクスポート](/ja/monitoring-usage) はすべてのセットアップで機能し、ユーザーごとのトークンおよびコストメトリクスをほぼリアルタイムで独自の可観測性スタックにストリーミングする唯一のオプションです。
+
+Claude for Teams および Enterprise
+
+Claude for Teams および Enterprise プランでは、各メンバーの Claude Code 使用量は、ローリング 5 時間ウィンドウと週間ウィンドウでリセットされるシート単位の割り当てから引き出されます。割り当ては Claude チャットおよび Cowork と共有され、そのサイズは [シート層](https://support.claude.com/en/articles/11845131-use-claude-code-with-your-team-or-enterprise-plan) に依存します。コントロールは Claude Console ではなく claude.ai 管理コンソールにあります。
+
+- **支出を確認**: [org analytics の支出レポート](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans) は、ユーザーごとおよびモデルごとの推定支出を CSV エクスポート付きで表示し、毎日更新されます。レポートは使用クレジット支出をカバーし、使用クレジットがオンになると表示されます。シート割り当て内の使用量はドルでメーター化されません。
+- **採用を確認**: [analytics ダッシュボード](https://claude.ai/analytics/claude-code) は、日次アクティブユーザー、セッション、および貢献メトリクスを表示し、貢献データの CSV エクスポート付きです。[analytics でチーム使用状況を追跡](/ja/analytics) を参照してください。
+- **支出をキャップ**: シート割り当てはデフォルトの上限です。メンバーがそれを超えて続行できるようにするには、[使用クレジット](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) をオンにして、組織、グループ、または個別メンバーレベルで支出制限を設定します。
+- **ユーザーごとの数値を取得**: Enterprise プランでは、[Enterprise Analytics API](https://support.claude.com/en/articles/13703965-claude-enterprise-analytics-api-reference-guide) は Claude Code を含む Claude サーフェス全体のユーザーごとの使用状況およびコストレポートを返します。Primary Owner は [claude.ai/analytics/api-keys](https://claude.ai/analytics/api-keys) で `read:analytics` スコープを持つキーを作成します。Teams プランでは、[支出レポート CSV](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans) をエクスポートします。これはユーザーごとおよびモデルごとのトークン使用量と推定支出をリストします。
+
+[Claude Enterprise 消費ガイド](https://support.claude.com/en/articles/14782391-claude-enterprise-consumption-guide) は管理者向けの計画リファレンスです。Claude チャット、Claude Code、および Cowork 全体で消費がどのように異なるかを説明し、予算編成のためのユーザーごとのドル開始点を提供します。コーディングシートのチャットシートより多くの予算を計上してください。各 Claude Code ターンはファイルコンテンツ、ツール呼び出し、および多段階推論を含むため、1 つのデバッグセッションはチャットの 1 日分以上を消費できます。
+
+Claude Console
+
+API 組織は [ワークスペース](https://platform.claude.com/docs/en/build-with-claude/workspaces) を通じて Claude Code 支出を管理します。[ワークスペース支出制限を設定](https://platform.claude.com/docs/en/build-with-claude/workspaces#workspace-limits) して Claude Code 支出の合計をキャップし、Console で [コストと使用状況レポートを表示](https://platform.claude.com/docs/en/build-with-claude/workspaces#usage-and-cost-tracking) できます。
 
 Claude Code を Claude Console アカウントで初めて認証すると、「Claude Code」というワークスペースが自動的に作成されます。このワークスペースは、組織内のすべての Claude Code 使用量の一元化されたコスト追跡と管理を提供します。このワークスペースの API キーを作成することはできません。これは Claude Code 認証と使用量専用です。
 
 カスタムレート制限を持つ組織の場合、このワークスペースの Claude Code トラフィックは組織全体の API レート制限にカウントされます。Claude Console の Limits ページでこのワークスペースに [ワークスペースレート制限](https://platform.claude.com/docs/ja/api/rate-limits#setting-lower-limits-for-workspaces) を設定して、Claude Code の共有をキャップし、他の本番ワークロードを保護できます。
 
-Amazon Bedrock、Google Cloud の Agent Platform、および Microsoft Foundry では、Claude Code はクラウドからメトリクスを送信しません。セルフホストされた [Claude apps gateway](/ja/claude-apps-gateway) は、ユーザーごとの使用状況の帰属、トークンカウント付きの OTLP メトリクス、およびこれらのプロバイダーの [ユーザーごとの支出制限](/ja/claude-apps-gateway-spend-limits) を提供します。別の [LLM gateway](/ja/llm-gateway) を通じて Claude Code をルーティングしている組織は、ゲートウェイがすべてのリクエストを確認するため、そこでコストを追跡できます。
+ユーザーごとのレポートについては、[Console ダッシュボード](https://platform.claude.com/claude-code) はメンバーごとの支出と受け入れられた行を表示し、[Claude Code Analytics API](https://platform.claude.com/docs/en/build-with-claude/claude-code-analytics-api) は [Admin API キー](https://platform.claude.com/settings/admin-keys) を使用してプログラムで同じ日次ユーザーごとのメトリクスを返します。[API カスタマー向けの analytics](/ja/analytics#access-analytics-for-api-customers) を参照してください。
 
 レート制限の推奨事項
 
@@ -62,6 +89,24 @@ Amazon Bedrock、Google Cloud の Agent Platform、および Microsoft Foundry �
 チームサイズが大きくなるにつれて、ユーザーあたりの TPM は減少します。これは、より大きな組織では Claude Code を同時に使用するユーザーが少ない傾向があるためです。これらのレート制限は個別ユーザーレベルではなく組織レベルで適用されます。つまり、他のユーザーが積極的にサービスを使用していない場合、個別ユーザーは計算された共有量を一時的に超えて消費できます。
 
 大規模グループとのライブトレーニングセッションなど、異常に高い同時使用シナリオが予想される場合は、ユーザーあたりのより高い TPM 割り当てが必要になる場合があります。
+
+クラウドプロバイダー
+
+Amazon Bedrock、Google Cloud の Agent Platform、および Microsoft Foundry では、Claude Code はトークンごとにクラウドアカウントに請求され、支出コントロールはクラウドプロバイダーの請求コンソールにあります。Claude Code はクラウドからメトリクスを Anthropic に送信しないため、[analytics ダッシュボード](/ja/analytics) および Claude Code Analytics API はこの使用量をカバーしません。
+
+ユーザーごとのコスト帰属については、3 つのオプションがあります。
+
+- **OpenTelemetry**: 各開発者のマシンから [メトリクスをエクスポート](/ja/monitoring-usage) して、独自の可観測性スタックに送信します。これにより、プロバイダーに関係なく、ユーザーごとのトークンカウント、コスト、およびツールアクティビティが得られます。
+- **Claude apps gateway**: セルフホストされた [Claude apps gateway](/ja/claude-apps-gateway) は、ユーザーごとの使用状況帰属、トークンカウント付きの OTLP メトリクス、およびこれらのプロバイダーの [ユーザーごとの支出制限](/ja/claude-apps-gateway-spend-limits) を提供します。
+- **LLM gateway**: すべての Claude Code トラフィックをキーごとに支出を追跡するプロキシを通じてルーティングします。複数の大規模企業は [LiteLLM](/ja/llm-gateway) を使用していると報告しており、これはオープンソースツールで [キーごとに支出を追跡](https://docs.litellm.ai/docs/proxy/virtual_keys#tracking-spend) します。このプロジェクトは Anthropic と提携していないため、セキュリティについて監査されていません。
+
+開発者が制限について質問する場合
+
+開発者は通常、制限に関する質問を管理者に持ち込むため、どの上限に達したかを知ることが役立ちます。3 つの状況は異なることを意味します。
+
+- **「セッション制限に達しました」または「週間制限に達しました」**: サブスクリプションプランのシートベースの使用ウィンドウ。これらのウィンドウはすべてのモデル全体で共有されるため、`/model` でモデルを切り替えてもアクセスは復元されませんが、モデル固有の「Opus 制限に達しました」メッセージの後、開発者は作業を続けることができます。メッセージはウィンドウがリセットされるときを表示し、開発者は [使用クレジット](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) がオンになっている場合、`/usage-credits` を実行して割り当てを超えた使用をリクエストできます。[使用制限エラー](/ja/errors#youve-hit-your-session-limit) を参照してください。
+- **コンテキストまたは auto-compact 警告**: 使用制限ではありません。会話がモデルの最大入力サイズに近づいており、Claude Code は古い履歴を要約して領域を解放します。開発者を [トークン使用量を削減](#reduce-token-usage) に指してください。
+- **API またはクラウドプロバイダープランで予期しない高い支出**: 通常、クリアされたことのない長いセッション、または Opus がデフォルトモデルとして残されていることに遡ります。共有する最も影響の大きい習慣は、関連のないタスク間でクリアすることとジョブにモデルを一致させることの両方で、[トークン使用量を削減](#reduce-token-usage) でカバーされています。
 
 エージェントチームのトークンコスト
 

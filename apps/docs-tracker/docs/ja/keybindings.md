@@ -7,8 +7,6 @@ source: https://code.claude.com/docs/ja/keybindings.md
 
 > キーボードショートカットをカスタマイズして、Claude Code でキーバインディング設定ファイルを使用します。
 
-カスタマイズ可能なキーボードショートカットには Claude Code v2.1.18 以降が必要です。`claude --version` でバージョンを確認してください。
-
 Claude Code はカスタマイズ可能なキーボードショートカットをサポートしています。`/keybindings` を実行して、`~/.claude/keybindings.json` に設定ファイルを作成または開きます。
 
 設定ファイル

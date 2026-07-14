@@ -191,7 +191,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 
 | キー | 説明 | 例 |
 | :- | :- | :- |
-| `advisorModel` | サーバー側[advisor ツール](/ja/advisor)用のモデル。`"opus"`、`"sonnet"`、または `"fable"`（v2.1.170 以降）などのモデルエイリアス、または完全なモデル ID を受け入れます。`/advisor` を実行すると自動的に書き込まれます。advisor を無効にするには未設定のままにします。Claude Code v2.1.98 以降が必要です | `"opus"` |
+| `advisorModel` | サーバー側[advisor ツール](/ja/advisor)用のモデル。`"opus"`、`"sonnet"`、または `"fable"`（v2.1.170 以降）などのモデルエイリアス、または完全なモデル ID を受け入れます。`/advisor` を実行すると自動的に書き込まれます。advisor を無効にするには未設定のままにします | `"opus"` |
 | `agent` | メインスレッドを名前付き subagent として実行し、`claude agents` から派遣されたセッションのデフォルト agent を設定します。その subagent のシステムプロンプト、ツール制限、およびモデルを適用します。[subagents を明示的に呼び出す](/ja/sub-agents#invoke-subagents-explicitly)を参照してください | `"code-reviewer"` |
 | `agentPushNotifEnabled` | **デフォルト**：`false`。[リモートコントロール](/ja/remote-control)が接続されている場合、Claude がプロアクティブなプッシュ通知をスマートフォンに送信することを許可します。たとえば、長いタスクが完了したときなど。`/config` に**Claude が決定したときにプッシュ**として表示されます。[モバイルプッシュ通知](/ja/remote-control#mobile-push-notifications)を参照してください。Claude Code v2.1.119 以降が必要です | `true` |
 | `allowAllClaudeAiMcps` | （Managed 設定のみ）デプロイされた `managed-mcp.json` と共に claude.ai コネクタを読み込みます。これ以外の場合は排他的な制御を取得し、それらを抑制します。[Managed MCP 構成](/ja/managed-mcp)を参照してください | `true` |
@@ -788,6 +788,8 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
 - `hostPattern`：マーケットプレイスホストに一致する正規表現パターン（`hostPattern` を使用）
 - `settings`：ホストされたリポジトリなしで settings.json に直接宣言されたインラインマーケットプレイス（`name` と `plugins` を使用）
 
+`git` ソースタイプは、自己ホストされた GitLab や Bitbucket を含む任意の git ホスティングサービスで機能します。Claude Code は、そのマシンで `git clone` が使用するのと同じ認証でリポジトリをクローンします：構成された認証情報ヘルパーまたは SSH キー。`GITHUB_TOKEN` などのプロバイダートークンは、それを読み取る認証情報ヘルパーを通じてのみ有効になります。セットアップの詳細については、[プライベートリポジトリ](/ja/plugin-marketplaces#private-repositories)を参照してください。
+
 `github` および `git` ソースの場合、`source` オブジェクト内（`repo` または `url` と並行して）に `"skipLfs": true` を設定して、Claude Code がマーケットプレイスリポジトリをクローンまたは更新するときに Git LFS ダウンロードをスキップします。LFS ポインターファイルはポインターのままで、コンテンツをダウンロードしません。リポジトリにプラグインコンテンツに関連しない大規模な LFS オブジェクトが含まれている場合に使用します。Claude Code v2.1.153 以降が必要です。
 
 各マーケットプレイスエントリは、オプションの `autoUpdate` ブール値も受け入れます。`source` と並行して `"autoUpdate": true` を設定して、Claude Code がそのマーケットプレイスをリフレッシュし、起動時にインストール済みプラグインを更新するようにします。省略した場合、公式 Anthropic マーケットプレイスはデフォルトで `true` に設定され、その他すべてのマーケットプレイスはデフォルトで `false` に設定されます。[自動更新の構成](/ja/discover-plugins#configure-auto-updates)を参照してください。
@@ -818,7 +820,7 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
 
 `strictKnownMarketplaces`
 
-**Managed 設定のみ**：ユーザーが追加できるプラグインマーケットプレイスを制御します。この設定は [managed 設定](/ja/settings#settings-files)でのみ構成でき、管理者にマーケットプレイスソースに対する厳密な制御を提供します。
+**Managed 設定のみ**：ユーザーが追加してプラグインをインストールできるプラグインマーケットプレイスを制御します。この設定は [managed 設定](/ja/settings#settings-files)でのみ構成でき、管理者にマーケットプレイスソースに対する厳密な制御を提供します。
 
 **Managed 設定ファイルの場所**：
 
@@ -1066,8 +1068,6 @@ URL ベースのマーケットプレイスは `marketplace.json` ファイル�
 `strictPluginOnlyCustomization`
 
 **Managed 設定のみ**：skills、agents、hooks、および MCP サーバーをユーザーおよびプロジェクトソースからブロックするため、プラグインまたは managed 設定からのみ取得できます。`strictKnownMarketplaces` と組み合わせて、カスタマイズサプライチェーン全体を制御します：マーケットプレイスホワイトリストはユーザーがインストールできるプラグインを制御し、この設定はプラグインまたは managed 設定から来ていないすべてをブロックします。
-
-`strictPluginOnlyCustomization` には Claude Code v2.1.82 以降が必要です。以前のバージョンはキーを無視し、ユーザーおよびプロジェクトのカスタマイズを読み込み続けるため、クライアントが更新されるまでロックダウンは強制されません。
 
 値は、すべての 4 つのサーフェスをロックするための `true`、またはロックするサーフェスを名前付けする配列です：
 

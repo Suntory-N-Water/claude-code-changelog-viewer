@@ -83,10 +83,6 @@ Google Cloud の Agent Platform 認証情報でサインインするには、以
 
 Google Cloud 認証情報を持っていて、Google Cloud の Agent Platform を通じて Claude Code の使用を開始したい場合、ログインウィザードがそれをガイドします。GCP 側の前提条件はプロジェクトごとに 1 回完了します。ウィザードが Claude Code 側を処理します。
 
-<Note>
-  Google Cloud の Agent Platform セットアップウィザードには Claude Code v2.1.98 以降が必要です。`claude --version` を実行して確認してください。
-</Note>
-
 <Steps>
   <Step title="GCP プロジェクトで Claude モデルを有効にする">
     プロジェクトの[Google Cloud の Agent Platform API を有効にして](#1-enable-agent-platform-api)、[Google Cloud の Agent Platform Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)で必要な Claude モデルへのアクセスをリクエストしてください。アカウントに必要な権限については、[IAM 設定](#iam-configuration)を参照してください。
@@ -247,7 +243,7 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'
   起動時のモデルチェック
 </h2>
 
-Claude Code が Google Cloud の Agent Platform で設定されて起動すると、使用するモデルがプロジェクトでアクセス可能であることを確認します。このチェックには Claude Code v2.1.98 以降が必要です。
+Claude Code が Google Cloud の Agent Platform で設定されて起動すると、使用するモデルがプロジェクトでアクセス可能であることを確認します。
 
 Claude Code デフォルトより古いモデルバージョンをピン留めしていて、プロジェクトが新しいバージョンを呼び出せる場合、Claude Code はピンを更新するよう促します。受け入れると、新しいモデル ID が[ユーザー設定ファイル](/ja/settings)に書き込まれ、Claude Code が再起動されます。拒否すると、次のデフォルトバージョン変更まで記憶されます。
 
