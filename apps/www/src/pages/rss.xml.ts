@@ -86,9 +86,9 @@ export async function GET(context: APIContext) {
 
   const items = latest.flatMap((entry) => {
     const version = entry.data.version;
-    return entry.data.items.map((item, itemIndex) => ({
+    return entry.data.items.map((item) => ({
       title: `[v${version}] [${item.prefix}] ${item.content_ja ?? item.content}`,
-      link: `${context.site}changelog/v${version}#item-${itemIndex}`,
+      link: `${context.site}changelog/v${version}#item-${item.id}`,
       pubDate,
       description: item.content_ja ?? item.content,
       content: buildContentHtml(item, version),

@@ -1,12 +1,27 @@
 // @ts-check
 
 import { readFileSync } from 'node:fs';
+import { unified } from '@astrojs/markdown-remark';
 import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 import pagefind from 'astro-pagefind';
+import remarkLinkCardPlus from 'remark-link-card-plus';
 import { seoValidate } from './src/integrations/seo-validate.ts';
 import { getReleaseMap } from './src/lib/release-map.ts';
+
+// 週次記事の本文中で段落単独の URL をリンクカード化する。
+// リンク先の OG 画像を使い、取得できない/相対パスのときだけ自サイトの OG 画像にフォールバックする。
+const commonThumbnail = 'https://claude-code-log.com/og-image.png';
+const linkCardOptions = {
+  shortenUrl: true,
+  /** @param {import('remark-link-card-plus').OgData} og */
+  ogTransformer: (og) => ({
+    ...og,
+    imageUrl:
+      og.imageUrl && URL.canParse(og.imageUrl) ? og.imageUrl : commonThumbnail,
+  }),
+};
 
 // ルート package.json からアプリバージョンを取得
 const rootPkg = JSON.parse(
@@ -27,6 +42,11 @@ export default defineConfig({
     },
   },
   output: 'static',
+  markdown: {
+    processor: unified({
+      remarkPlugins: [[remarkLinkCardPlus, linkCardOptions]],
+    }),
+  },
   integrations: [
     sitemap({
       // OG 画像・RSS・llms.txt・robots.txt 等を除外

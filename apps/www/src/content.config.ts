@@ -101,6 +101,7 @@ const postsCollection = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/posts' }),
   schema: z.object({
     title: z.string(),
+    description: z.string().optional(), // meta description / 一覧カードの説明文(生成時は空、後から補足)
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     period_start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     period_end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

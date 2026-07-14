@@ -1,0 +1,225 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPathsOptions } from 'astro';
+import { format, parseISO } from 'date-fns';
+import { ja } from 'date-fns/locale';
+import Icon from '../../../components/Icon.astro';
+import Layout from '../../../layouts/Layout.astro';
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const posts = (await getCollection('posts'))
+    .filter((entry) => entry.id.startsWith('weekly/'))
+    .sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+  const articles = posts.map((entry) => {
+    const period = `${format(parseISO(entry.data.period_start), 'M月d日')}〜${format(parseISO(entry.data.period_end), 'M月d日')}`;
+    return {
+      slug: entry.id.split('/').pop(),
+      title: entry.data.title,
+      date: entry.data.date,
+      formattedDate: format(parseISO(entry.data.date), 'yyyy年M月d日', {
+        locale: ja,
+      }),
+      description:
+        entry.data.description ||
+        `${period} の Claude Code アップデートから注目の変更をピックアップして解説します。`,
+    };
+  });
+
+  return paginate(articles, { pageSize: 10 });
+}
+
+type Article = {
+  slug: string;
+  title: string;
+  date: string;
+  formattedDate: string;
+  description: string;
+};
+
+type Props = {
+  page: {
+    data: Article[];
+    currentPage: number;
+    lastPage: number;
+    url: { first?: string; prev?: string; next?: string };
+  };
+};
+
+const { page } = Astro.props;
+
+const firstPageUrl = page.url.first ?? '/posts/weekly';
+const pageUrlBase = firstPageUrl.replace(/\/$/, '');
+const paginationPages = Array.from({ length: page.lastPage }, (_, index) => {
+  const pageNumber = index + 1;
+  return {
+    number: pageNumber,
+    url: pageNumber === 1 ? firstPageUrl : `${pageUrlBase}/${pageNumber}`,
+  };
+});
+
+const pageNum = page.currentPage > 1 ? ` (${page.currentPage}ページ目)` : '';
+const pageTitle = `週次まとめ${pageNum}`;
+const pageDescription =
+  'Claude Code の 1 週間分のアップデートから、注目の変更をピックアップして日本語で解説する週次まとめ記事の一覧です。';
+---
+
+<Layout
+  title={`${pageTitle} - CCログ超訳: Claude Codeの変更履歴`}
+  description={pageDescription}
+  jsonLd={{
+    type: 'collection',
+    title: '週次まとめ',
+    description: 'Claude Code 週次アップデートまとめ記事一覧',
+  }}
+  breadcrumbs={[
+    { name: 'ホーム', url: 'https://claude-code-log.com/' },
+    { name: '週次まとめ', url: 'https://claude-code-log.com/posts/weekly' },
+  ]}
+>
+  <div class='min-h-dvh py-12 sm:py-16 px-4'>
+    <div class='max-w-3xl mx-auto'>
+      <header class='mb-12'>
+        <nav aria-label='パンくずリスト' class='text-sm text-gray-400 mb-6'>
+          <a
+            href='/'
+            class='hover:text-[hsl(var(--cc-main-orange))] transition-colors duration-150'
+            >ホーム</a
+          >
+          <span class='mx-2 select-none'>/</span>
+          <span class='text-[hsl(var(--cc-main-black)/0.7)]'>週次まとめ</span>
+        </nav>
+        <h1
+          class='text-3xl sm:text-4xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-3'
+        >
+          週次まとめ
+        </h1>
+        <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] leading-relaxed'>
+          1 週間分の Claude Code
+          アップデートから、注目の変更をピックアップして解説します。
+        </p>
+      </header>
+
+      {
+        page.data.length === 0 ? (
+          <p class='py-16 text-center text-sm text-[hsl(var(--cc-main-black)/0.5)]'>
+            まだ記事がありません。
+          </p>
+        ) : (
+          <ul class='space-y-4'>
+            {page.data.map((article) => (
+              <li>
+                <a
+                  href={`/posts/weekly/${article.slug}`}
+                  class='group flex items-center gap-4 rounded-xl border border-[hsl(var(--cc-gray))] px-5 py-6 sm:px-6 hover:border-[hsl(var(--cc-main-orange)/0.5)] hover:bg-[hsl(var(--cc-gray)/0.15)] transition-colors'
+                >
+                  <div class='min-w-0 flex-1'>
+                    <p class='text-xs text-[hsl(var(--cc-main-black)/0.5)] tabular-nums mb-1.5'>
+                      投稿日{' '}
+                      <time datetime={article.date}>
+                        {article.formattedDate}
+                      </time>
+                    </p>
+                    <h2 class='text-xl sm:text-2xl font-bold [word-break:auto-phrase] text-[hsl(var(--cc-main-black))] group-hover:text-[hsl(var(--cc-main-orange))] transition-colors mb-2 leading-snug'>
+                      {article.title}
+                    </h2>
+                    <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] leading-relaxed line-clamp-2'>
+                      {article.description}
+                    </p>
+                  </div>
+                  <Icon
+                    name='chevron-right'
+                    class='w-5 h-5 shrink-0 text-[hsl(var(--cc-main-black)/0.3)] group-hover:text-[hsl(var(--cc-main-orange))] group-hover:translate-x-1 transition-[color,transform]'
+                    aria-hidden='true'
+                  />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      {
+        page.lastPage > 1 && (
+          <nav
+            aria-label='ページナビゲーション'
+            class='flex items-center justify-between gap-3 mt-12 pt-6 border-t border-[hsl(var(--cc-gray))]'
+          >
+            <div class='shrink-0'>
+              {page.url.prev ? (
+                <a
+                  href={page.url.prev}
+                  class='inline-flex items-center justify-center w-11 h-11 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.55)] hover:border-[hsl(var(--cc-main-orange)/0.45)] hover:text-[hsl(var(--cc-main-orange))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange)/0.45)] transition-colors'
+                >
+                  <span class='sr-only'>新しい記事へ</span>
+                  <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
+                </a>
+              ) : (
+                <span class='block w-11 h-11' aria-hidden='true' />
+              )}
+            </div>
+
+            <div class='relative min-w-0'>
+              <label for='weekly-page-select' class='sr-only'>
+                表示するページ
+              </label>
+              <select
+                id='weekly-page-select'
+                data-weekly-pagination-select
+                class='w-36 sm:w-40 h-11 appearance-none rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] px-4 pr-10 text-center text-sm font-medium tabular-nums text-[hsl(var(--cc-main-black)/0.72)] cursor-pointer hover:border-[hsl(var(--cc-main-orange)/0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange)/0.45)] transition-colors'
+              >
+                {paginationPages.map((paginationPage) => (
+                  <option
+                    value={paginationPage.url}
+                    selected={paginationPage.number === page.currentPage}
+                  >
+                    {paginationPage.number} / {page.lastPage} ページ
+                  </option>
+                ))}
+              </select>
+              <Icon
+                name='chevron-down'
+                class='pointer-events-none absolute right-3 top-1/2 w-4 h-4 -translate-y-1/2 text-[hsl(var(--cc-main-black)/0.42)]'
+                aria-hidden='true'
+              />
+            </div>
+
+            <div class='shrink-0'>
+              {page.url.next ? (
+                <a
+                  href={page.url.next}
+                  class='inline-flex items-center justify-center w-11 h-11 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.55)] hover:border-[hsl(var(--cc-main-orange)/0.45)] hover:text-[hsl(var(--cc-main-orange))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange)/0.45)] transition-colors'
+                >
+                  <span class='sr-only'>古い記事へ</span>
+                  <Icon
+                    name='chevron-right'
+                    class='w-4 h-4'
+                    aria-hidden='true'
+                  />
+                </a>
+              ) : (
+                <span class='block w-11 h-11' aria-hidden='true' />
+              )}
+            </div>
+          </nav>
+        )
+      }
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('change', (event) => {
+      const target = event.target;
+      if (
+        !(target instanceof HTMLSelectElement) ||
+        !target.matches('[data-weekly-pagination-select]')
+      ) {
+        return;
+      }
+
+      if (target.value) {
+        window.location.href = target.value;
+      }
+    });
+  </script>
+</Layout>

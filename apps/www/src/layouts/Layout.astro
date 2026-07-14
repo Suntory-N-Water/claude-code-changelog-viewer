@@ -39,6 +39,7 @@ const { title, description, image, jsonLd, breadcrumbs, faqItems, noindex } =
   Astro.props;
 const isDocsPage = Astro.url.pathname.startsWith('/docs');
 const isReferencePage = Astro.url.pathname.startsWith('/reference');
+const isWeeklyPage = Astro.url.pathname.startsWith('/posts/weekly');
 const defaultDescription =
   'Claude Codeの変更履歴をAIが分析。各アップデートの新機能・バグ修正・改善点を日本語で分かりやすく解説し、ユーザーへの具体的な恩恵をまとめています。';
 const pageDescription = description || defaultDescription;
@@ -227,7 +228,13 @@ if (jsonLd?.type === 'website') {
         </a>
 
         <div class='flex items-center gap-2'>
-          <!-- デスクトップ用ナビリンク -->
+          <a
+            href='/posts/weekly'
+            class={`hidden sm:inline text-sm transition-colors ${isWeeklyPage ? 'text-[hsl(var(--cc-main-orange))] font-medium' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))]'}`}
+            aria-current={isWeeklyPage ? 'page' : undefined}
+          >
+            週次まとめ
+          </a>
           <a
             href='/docs'
             class={`hidden sm:inline text-sm transition-colors ${isDocsPage ? 'text-[hsl(var(--cc-main-orange))] font-medium' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))]'}`}
@@ -245,6 +252,7 @@ if (jsonLd?.type === 'website') {
 
           <SearchModal />
           <MobileMenu
+            isWeeklyPage={isWeeklyPage}
             isDocsPage={isDocsPage}
             isReferencePage={isReferencePage}
           />
