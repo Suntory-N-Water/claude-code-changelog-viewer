@@ -6,7 +6,7 @@ resource "cloudflare_zero_trust_access_application" "weekly_admin" {
   name                 = "週次アップデート記事の選定"
   domain               = "${var.domain}/admin/weekly"
   type                 = "self_hosted"
-  session_duration     = "24h"
+  session_duration     = "168h"
   app_launcher_visible = false
 
   policies = [
