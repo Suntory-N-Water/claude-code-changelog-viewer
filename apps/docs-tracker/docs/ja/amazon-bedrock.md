@@ -317,7 +317,7 @@ export ENABLE_PROMPT_CACHING_1H=1
   スタートアップモデルチェック
 </h2>
 
-Claude Code が Amazon Bedrock で設定されて起動すると、使用するモデルがアカウントでアクセス可能であることを確認します。このチェックには Claude Code v2.1.94 以降が必要です。
+Claude Code が Amazon Bedrock で設定されて起動すると、使用するモデルがアカウントでアクセス可能であることを確認します。
 
 現在の Claude Code デフォルトより古いモデルバージョンをピン留めしていて、アカウントが新しいバージョンを呼び出せる場合、Claude Code はピンを更新するよう促します。受け入れると、新しいモデル ID が [user settings file](/ja/settings) に書き込まれ、Claude Code が再起動されます。拒否すると、次のデフォルトバージョン変更まで記憶されます。[アプリケーション推論プロファイル ARN](#map-each-model-version-to-an-inference-profile)を指す PIN は、管理者によって管理されるため、スキップされます。
 
@@ -419,10 +419,6 @@ Claude Code は、各リクエストで `X-Amzn-Bedrock-Service-Tier` ヘッダ�
 </h2>
 
 Mantle は、Bedrock Invoke API ではなく、ネイティブ Anthropic API シェイプを通じて Claude モデルを提供する Amazon Bedrock エンドポイントです。同じ AWS 認証情報、IAM 権限、および `awsAuthRefresh` 設定を使用します。このページで前述したものです。
-
-<Note>
-  Mantle には Claude Code v2.1.94 以降が必要です。確認するには `claude --version` を実行してください。
-</Note>
 
 <h3 id="enable-mantle">
   Mantle を有効にする

@@ -817,7 +817,9 @@ Continue that code review and now analyze the authorization logic
 [Claude resumes the subagent with full context from previous conversation]
 ```
 
-停止したサブエージェントが `SendMessage` を受け取った場合、新しい `Agent` 呼び出しを必要とせずにバックグラウンドで自動再開します。
+停止したサブエージェントが `SendMessage` を受け取った場合、新しい `Agent` 呼び出しを必要とせずにバックグラウンドで自動再開します。Claude が `TaskStop` ツールで停止したサブエージェントにも同じことが適用されます。
+
+v2.1.191 以降、`/tasks` で `x` を使用して自分で停止したサブエージェント、または SDK `stop_task` リクエストは自動再開しません。`SendMessage` 呼び出しは、エージェントがキャンセルされたことを示す拒否を返します。サブエージェントパネルのそのサブエージェントのトランスクリプトに入力して、自分で再開します。これにより停止がクリアされ、後の `SendMessage` 呼び出しが再度自動再開できます。
 
 v2.1.205 以降、再開は同じ ID の下でエージェントの新しい実行を開始するため、既に失敗または完了していたサブエージェントはタスクリストと Agent SDK のタスクイベントで再度実行中として表示されます。v2.1.205 より前は、再開実行が動作している間、以前の失敗または完了ステータスを表示し続けていました。
 

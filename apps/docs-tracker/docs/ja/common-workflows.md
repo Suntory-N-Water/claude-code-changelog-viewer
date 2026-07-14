@@ -225,7 +225,7 @@ Claude Code はどのディレクトリでも機能します。ノートボル�
 次のいずれかの方法を使用できます：
 
 1. Claude Code ウィンドウに画像をドラッグアンドドロップする
-2. 画像をコピーして、CLI に ctrl+v で貼り付ける（cmd+v は使用しないでください）
+2. 画像をコピーして、CLI に Ctrl+V で貼り付ける。macOS では、iTerm2 でも Cmd+V が機能します。
 3. Claude に画像パスを提供する。例：「Analyze this image: /path/to/your/image.png」
 
 ```text theme={null}

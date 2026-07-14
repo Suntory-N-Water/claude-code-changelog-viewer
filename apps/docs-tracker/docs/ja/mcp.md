@@ -625,7 +625,7 @@ Claude Code を特定の OAuth 認可サーバーメタデータ URL に指定�
 }
 ```
 
-URL は `https://` を使用する必要があります。`authServerMetadataUrl` には Claude Code v2.1.64 以降が必要です。メタデータ URL の `scopes_supported` は、アップストリームサーバーがアドバタイズするスコープをオーバーライドします。
+URL は `https://` を使用する必要があります。メタデータ URL の `scopes_supported` は、アップストリームサーバーがアドバタイズするスコープをオーバーライドします。
 
 OAuth スコープを制限する
 

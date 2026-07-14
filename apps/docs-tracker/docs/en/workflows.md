@@ -82,7 +82,7 @@ The progress view shows each phase with its agent counts, token totals, and elap
 | :- | :- |
 | `↑` / `↓` | Select a phase or agent |
 | `Enter` or `→` | Drill into the selected phase, then into an agent to read its prompt, recent tool calls, and result |
-| `Esc` | Back out one level |
+| `Esc` or `←` | Back out one level. In v2.1.203 through v2.1.205, `←` didn't step back out of a phase or agent; use `Esc` on those versions |
 | `j` / `k` | Scroll within the agent detail when it overflows |
 | `f` | Filter the agent list in the selected phase by status. Press again to cycle |
 | `p` | Pause or resume the run |
