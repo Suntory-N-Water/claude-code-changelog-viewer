@@ -1,0 +1,930 @@
+{
+  "version": "2.1.210",
+  "summary": "エージェントビューの利便性が大幅に強化され、フッターで待機中のエージェント数が確認できるようになったほか、長時間実行されるツールの経過時間がリアルタイムで表示されるようになりました。また、ワークツリー隔離モードにおける git コマンド実行の厳格化や、人間以外からの入力による高コストワークフローの誤作動防止など、安全性と安定性が向上しています。さらに、オートモードの判定モデルが Sonnet 5 へアップグレードされるなど、中核機能のパフォーマンスも改善されました。",
+  "items": [
+    {
+      "id": "64d26b7b4449",
+      "content": "- Added a live elapsed-time counter to the collapsed tool summary line so long-running tool calls visibly tick instead of looking stuck",
+      "content_ja": "ツール呼び出しの経過時間を表示するライブカウンターをサマリー行に追加した。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "実行に時間がかかるツールの呼び出し中、サマリー行には具体的な進捗が表示されなかった。そのため、処理が進行中なのかフリーズしているのかを判断しづらい状況があった。",
+        "after": "折りたたまれたツールのサマリー行にリアルタイムで経過時間が表示されるようになる。これにより、バックグラウンドでの処理が秒単位で進行していることを視覚的に確認できる。",
+        "benefit": "長時間かかる処理が動いているかどうかを確認するために詳細ログを開く必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "長時間実行されるツールの進捗が視覚化されることで、UXが向上する。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        }
+      ]
+    },
+    {
+      "id": "e07c60607bca",
+      "content": "- Added a startup warning for `Write(path)`, `NotebookEdit(path)`, and `Glob(path)` permission rules — use `Edit(path)` or `Read(path)` instead",
+      "content_ja": "非推奨のパーミッションルールである Write、NotebookEdit、Glob に対する起動時の警告を追加した。",
+      "prefix": "Added",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "パーミッション設定で Write(path) や Glob(path) などの古い形式が使用されていても、より適切な Edit(path) や Read(path) への移行を促す仕組みがなかった。",
+        "after": "起動時にこれらの古いルールを検出すると、推奨される新しいツール名への置き換えを促す警告が表示されるようになる。",
+        "benefit": "最新のセキュリティモデルに合わせた正しいパーミッション設定への修正が容易になります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "非推奨のパーミッション設定への警告により、ユーザーに設定修正を促す。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "f1449c64d2b4",
+      "content": "- Fixed `isolation: 'worktree'` subagents being able to run git-mutating commands against the main repo checkout instead of their own isolated worktree",
+      "content_ja": "ワークツリー隔離モードのサブエージェントが、自身のワークツリーではなくメインリポジトリに対して git コマンドを実行できてしまう問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents", "Permissions"],
+      "inference": {
+        "before": "isolation: 'worktree' を設定したサブエージェントが、隔離された環境内ではなく、誤ってメインのチェックアウトディレクトリに対して git 操作を行ってしまうリスクがあった。",
+        "after": "サブエージェントが実行する git コマンドが、必ず自身に割り当てられた隔離ワークツリー内で動作するように厳格化された。",
+        "benefit": "並列作業中のサブエージェントがメイン作業中のファイルを誤って書き換えてしまう心配がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ワークツリー隔離の重大な欠陥を修正し、並列実行時の安全性を確保する。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md"
+        }
+      ]
+    },
+    {
+      "id": "0df91ab0234b",
+      "content": "- Fixed the `ultracode` keyword opt-in firing on non-human-originated input such as webhook payloads and relayed PR comments",
+      "content_ja": "ウェブフックのペイロードや PR コメントなど、人間以外からの入力で ultracode キーワードが反応してしまう問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "GitHub アプリ経由などでリレーされたコメント内に ultracode という文字列が含まれていると、ユーザーが意図していなくても高コストなワークフローが自動的に開始されてしまうことがあった。",
+        "after": "ultracode によるワークフローの自動オプトインは、ターミナルからの直接入力などの人間による明示的な操作に限定されるようになる。",
+        "benefit": "自動化されたコメントなどによって意図せずトークンを大量消費してしまう事態を防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "外部入力による意図しない高コストワークフローの開始を防止する重要なセキュリティ修正。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-enterprise-server.md"
+        }
+      ]
+    },
+    {
+      "id": "82551de683a3",
+      "content": "- Fixed a rendered text fragment leaking into crash telemetry when a UI component returned content outside a styled text element",
+      "content_ja": "UI コンポーネントがスタイルのないテキストを返した際に、レンダリングされたテキストの断片がクラッシュテレメトリに漏洩する問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "UI のレンダリング中にエラーが発生した際、表示内容の一部が意図せず Anthropic に送信される診断ログに含まれてしまう可能性があった。",
+        "after": "すべての UI コンポーネントの出力が適切にカプセル化され、クラッシュ時のテレメトリにユーザーのテキスト内容が含まれないよう修正された。",
+        "benefit": "ツールが異常終了した際でも、コードや機密情報の断片が診断データとして外部に送信される心配がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "診断データへのプライバシー情報漏洩を防ぐための内部修正。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        }
+      ]
+    },
+    {
+      "id": "b4db1d5634e7",
+      "content": "- Fixed paste markers leaking into external editors opened from Claude Code, which could appear as stray È/É characters around pasted text",
+      "content_ja": "外部エディタで開いた際に、貼り付けたテキストの周囲に不要な È/É 文字が表示される問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ターミナルの貼り付けマーカーが外部エディタ（Vim や VS Code など）に引き継がれてしまい、ペーストした箇所に È や É といったノイズ文字が混入することがあった。",
+        "after": "外部エディタを起動する前に、貼り付け制御文字が適切に除去されるように改善された。",
+        "benefit": "外部エディタでコードを編集する際に、手動で文字化けした不要な文字を削除する手間がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "外部エディタでのペースト時に発生していた表示ノイズを取り除くUX改善。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/artifacts.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "ee689d02dac9",
+      "content": "- Fixed `claude attach` sometimes failing with \"job not found\" or \"agent is still starting\" errors during session transitions — attach now waits for the daemon to settle, and terminal resizes during a slow attach are applied once it completes",
+      "content_ja": "セッション遷移中に claude attach が失敗する問題を修正し、ターミナルのリサイズが遅延適用されるように改善した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "バックグラウンドセッションへの接続（attach）時に、エージェントの起動中エラーなどで失敗することがあった。また、接続中にターミナルをリサイズしても、接続完了後に正しく反映されないことがあった。",
+        "after": "attach コマンドがデーモンの状態が安定するまで待機するようになり、接続中のターミナルリサイズも接続完了後に正しく同期されるようになる。",
+        "benefit": "バックグラウンド作業の復帰時に接続エラーで再試行を繰り返す必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッション復帰時の安定性とターミナルリサイズの整合性が向上する。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "id": "19aadc6a8167",
+      "content": "- Fixed a session crash when a tool's result renderer returned a numeric bigint value or plain text instead of a UI element",
+      "content_ja": "ツールの結果レンダラーが数値（bigint）やプレーンテキストを返した際にセッションがクラッシュする問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "カスタムツールや MCP ツールが特定のデータ型（非常に大きな数値など）を直接返した場合、UI 描画エンジンが対応できず CLI 自体が終了してしまうことがあった。",
+        "after": "レンダラーが UI 要素以外の値を返した場合でも、適切に文字列化して表示するように堅牢化された。",
+        "benefit": "特定のツールの出力内容によって会話が中断されることがなくなり、安定して作業を継続できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ツール出力のデータ型に起因するクラッシュを防止し、安定性を高める。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/deep-links.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md"
+        }
+      ]
+    },
+    {
+      "id": "b0a94cee9b8d",
+      "content": "- Fixed a hook callback timeout being misreported to the model as a user rejection, which made unattended sessions stop and wait",
+      "content_ja": "フックのコールバックタイムアウトが「ユーザーによる拒否」と誤報され、自動セッションが停止してしまう問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["Hooks"],
+      "inference": {
+        "before": "フックスクリプトの処理に時間がかかりタイムアウトが発生した際、モデルに対して「ユーザーがその操作を拒否した」という間違った信号が送られていた。これにより、自動実行中のエージェントが混乱し、作業を中断してユーザーの入力を待ってしまうことがあった。",
+        "after": "タイムアウトが実行エラーとして正しく区別され、モデルに対して適切な状況が伝えられるようになる。",
+        "benefit": "バックグラウンドで実行中のエージェントが、タイムアウトのたびに不要に停止しなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "自動実行中のエージェントが誤った信号で停止する問題を修正する。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/user-input.md"
+        }
+      ]
+    },
+    {
+      "id": "64a25f18827a",
+      "content": "- Fixed Claude assuming a `cd` took effect after its command was moved to the background; the tool result now states the working directory is unchanged",
+      "content_ja": "バックグラウンドに移動した cd コマンドが成功したと Claude が誤認する問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "コマンドをバックグラウンド実行（!cd ...）した際、カレントディレクトリは変更されていないにもかかわらず、Claude は移動に成功したものとして後続の処理を進めてしまい、ファイルが見つからないなどのエラーを誘発していた。",
+        "after": "ディレクトリ変更を伴うコマンドがバックグラウンドに送られた場合、ディレクトリは変更されていないことをツール結果として明示的に返すようになった。",
+        "benefit": "Claude が現在の作業ディレクトリを正確に把握できるようになり、コマンド実行失敗の連鎖を防げます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ディレクトリ移動の成功/失敗を Claude が正確に認識できるようになる中核挙動の修正。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "ea787b70e0c8",
+      "content": "- Fixed plugin-provided MCP servers being torn down when MCP servers are re-synced mid-session",
+      "content_ja": "セッション中に MCP サーバーを再同期した際、プラグイン提供のサーバーが切断されてしまう問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP", "Plugins"],
+      "inference": {
+        "before": "/mcp コマンドなどで設定をリロードすると、インストール済みのプラグインが提供している MCP サーバーまで誤ってシャットダウンされてしまうことがあった。",
+        "after": "サーバーの再同期プロセスにおいて、プラグイン由来のサーバーとユーザー設定のサーバーが正しく区別され、プラグイン側の接続が維持されるようになった。",
+        "benefit": "MCP ツールを使用するプラグインを有効にしている際、設定変更のたびにプラグインが動作しなくなる問題を回避できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "リロード時のプラグイン切断を防ぎ、拡張機能の利便性を維持する。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp-quickstart.md"
+        }
+      ]
+    },
+    {
+      "id": "56039a66cbf9",
+      "content": "- Fixed plan approvals without edits being labeled \"(edited by user)\" and overwriting the plan file with a stale snapshot",
+      "content_ja": "変更のないプラン承認が「ユーザーによる編集」と誤認され、古い状態でプランファイルが上書きされる問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plan"],
+      "inference": {
+        "before": "プランモードで Claude の提案をそのまま承認しただけなのに、ユーザーが編集したと判定されてしまうことがあった。この際、内部の古いキャッシュでプランファイルが上書きされ、指示が先祖返りすることがあった。",
+        "after": "編集の有無が正確に検知され、無編集での承認時は最新のプランが正しく保持されるようになった。",
+        "benefit": "プランの承認時に、意図せず以前のバージョンの計画に戻ってしまうリスクがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プラン内容の先祖返りを防ぐ、プランニング機能の重要な修正。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        }
+      ]
+    },
+    {
+      "id": "f3cd79e2c4ae",
+      "content": "- Fixed `/doctor` skipping its auto-mode-default proposal on Bedrock, Vertex, and Foundry, where auto mode no longer needs an opt-in",
+      "content_ja": "Bedrock などの外部プロバイダーにおいて、/doctor がオートモードの有効化提案をスキップしていた問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Amazon Bedrock、Google Cloud Vertex AI、Microsoft Foundry を使用している際、オートモード（自動承認）の前提条件が満たされていても、診断コマンド /doctor がその設定を案内してくれなかった。",
+        "after": "これらのプロバイダーでもオプトインなしでオートモードが利用可能になったことに合わせ、/doctor が適切に設定を提案するようになった。",
+        "benefit": "自分で複雑な環境変数を調べなくても、/doctor の提案に従うだけで便利なオートモードを使い始められます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "外部クラウドプロバイダー利用者のオートモード導入を容易にする。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w23.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/auto-mode-config.md"
+        }
+      ]
+    },
+    {
+      "id": "d5c49c1666bb",
+      "content": "- Fixed Grep content mode claiming \"No matches found\" when paginating past the end of results",
+      "content_ja": "Grep ツールでページネーションした際、結果の終端で誤って「一致なし」と表示される問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "大量の検索結果を分割して表示（ページネーション）している際、最後のページを読み飛ばそうとすると、実際には結果が存在するのに「一致するファイルが見つかりません」という紛らわしいメッセージが表示されていた。",
+        "after": "結果の終端に達したことが正確に通知され、検索自体の失敗と混同されないようになった。",
+        "benefit": "検索結果が本当に存在しないのか、単に表示が終わっただけなのかを正確に判断できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "検索ツールの結果表示における混乱を解消する修正。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/subagents.md"
+        }
+      ]
+    },
+    {
+      "id": "f20c24004490",
+      "content": "- Fixed unmatched `$1`/`$2` positional placeholders in skills and commands being silently stripped; they are now preserved verbatim",
+      "content_ja": "スキルやコマンド内で一致する引数がない $1/$2 プレースホルダーが削除されず、そのまま保持されるよう修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["Skills"],
+      "inference": {
+        "before": "スキル定義の中に $1 や $2 と記述しており、呼び出し時にその引数が渡されなかった場合、その文字列自体が消えてしまっていた。これにより、ドキュメント内の正規表現やシェルの変数記述が壊れることがあった。",
+        "after": "対応する引数がないプレースホルダーは、置換されずにそのままの文字列として残されるようになった。",
+        "benefit": "スキル内でシェル変数や正規表現のパターンを記述する際、意図せぬ文字列の消失を気にする必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "スキル定義内での文字列消失を防ぎ、正規表現などの記述を保護する。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/slash-commands.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        }
+      ]
+    },
+    {
+      "id": "b0f180ce6bdc",
+      "content": "- Fixed plugin cache writes leaving temp files behind on failure and failing on locked-file renames on Windows and network filesystems",
+      "content_ja": "Windows やネットワークファイルシステムにおいて、プラグインのキャッシュ書き込みが失敗する問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "Windows 環境やネットワークドライブ上でプラグインを更新・インストールする際、ファイルがロックされているとリネームに失敗し、一時ファイルが残骸として残ってしまうことがあった。",
+        "after": "ファイルロックに対する堅牢なリトライ処理と、失敗時の一時ファイル削除が実装された。",
+        "benefit": "Windows 環境でプラグインのインストールや更新が失敗して環境が汚れる心配がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows環境でのプラグイン管理の信頼性を向上させる。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/subagents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop-wsl.md"
+        }
+      ]
+    },
+    {
+      "id": "1104fbc4bc7e",
+      "content": "- Fixed background workers crash-looping when a client resets its connection to the background service",
+      "content_ja": "バックグラウンドサービスへの接続リセット時に、ワーカープロセスがクラッシュループに陥る問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "クライアント側から接続をリセットした際、背後のワーカープロセスが異常終了を繰り返し、CPU 負荷が上がったり新しいエージェントを起動できなくなったりすることがあった。",
+        "after": "接続切断時の例外処理が改善され、ワーカーが安定して再利用可能な状態を維持できるようになった。",
+        "benefit": "多数のバックグラウンドタスクを切り替えて使用する際の安定性が向上し、CLI の再起動回数が減ります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "バックグラウンドプロセスのクラッシュループを修正し、リソース消費を抑える。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/chrome.md"
+        }
+      ]
+    },
+    {
+      "id": "ad71f831e93c",
+      "content": "- Fixed `claude agents --effort ultracode` not reaching dispatched sessions; the value was silently dropped",
+      "content_ja": "claude agents --effort ultracode で指定した設定が、個別のセッションに反映されない問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "エージェントダッシュボード起動時に ultracode を指定しても、そこから新しく開始される各エージェントにはその設定が引き継がれず、通常の思考レベルで動作してしまっていた。",
+        "after": "ダッシュボードのフラグが、そこからディスパッチされるすべてのバックグラウンドセッションに正しく伝播するようになった。",
+        "benefit": "複数のタスクを一度に高度な思考・自動ワークフロー設定で開始できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ディスパッチ時のフラグ伝播を修正し、意図した思考レベルでの並列実行を可能にする。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "64f3b20ef2e4",
+      "content": "- Fixed pressing ← to open the agents view dropping the task tracker when returning to the session",
+      "content_ja": "矢印キーでエージェントビューを開いて戻った際、タスクトラッカーが表示されなくなる問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "左矢印キーでエージェント一覧を確認し、元の会話セッションに戻ると、画面下部のタスク進行状況（tracker）が消えてしまうことがあった。",
+        "after": "セッションへの復帰時に UI の状態が正しく復元され、進行中のタスクが引き続き表示されるようになった。",
+        "benefit": "セッションを切り替えても、元の画面に戻ってすぐにタスクの進捗を確認できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "画面遷移時のUI表示バグを修正し、作業継続性を高める。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "aa6e5f252bd2",
+      "content": "- Fixed the agents dashboard retaining pasted images from abandoned reply drafts after their session was deleted",
+      "content_ja": "セッション削除後も、返信の下書きに貼り付けられていた画像がダッシュボードに残ってしまう問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "エージェントへの返信欄に画像を貼り付けたまま送信せず、そのセッション自体を削除しても、画像データが内部キャッシュに残り続け、ダッシュボードの表示に影響することがあった。",
+        "after": "セッションの削除に伴い、関連する未送信の貼り付けデータも完全にクリーンアップされるようになった。",
+        "benefit": "不要になったセッションの画像データがディスク容量を無駄に消費したり、管理画面を汚したりすることを防げます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ダッシュボード上の不要な残像データをクリーンアップする修正。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-directory.md"
+        }
+      ]
+    },
+    {
+      "id": "a5a4933f3a47",
+      "content": "- Fixed killed background sessions leaving a permanent `git worktree lock` behind; the periodic sweep now releases locks whose owning process is gone",
+      "content_ja": "強制終了されたバックグラウンドセッションが git worktree のロックを残してしまう問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "エージェントプロセスが異常終了した際、使用していたワークツリーに `git worktree lock` が残ったままになることがあった。このロックにより、後続のクリーンアップ処理が失敗し、不要なディレクトリが残り続けていた。",
+        "after": "定期的なクリーンアップ処理において、所有プロセスが存在しないロックを自動的に検知して解除するようになった。",
+        "benefit": "エージェントがクラッシュした後に、手動で git コマンドを叩いてロックを解除する必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "孤立したワークツリーロックを自動解除し、git操作の失敗を未然に防ぐ。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/computer-use.md"
+        }
+      ]
+    },
+    {
+      "id": "77b2977d8bc4",
+      "content": "- Fixed SDK MCP servers registered via an `initialize` control request waiting until the next turn to start connecting",
+      "content_ja": "initialize リクエストで登録された SDK MCP サーバーの接続開始が、次のターンまで遅延する問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "Agent SDK を介して MCP サーバーを登録した際、最初のプロンプトを送信するまで接続プロセスが開始されず、最初のツール実行時に待ち時間が発生することがあった。",
+        "after": "サーバー登録と同時に非同期で接続が開始されるようになり、準備時間が短縮された。",
+        "benefit": "SDK を利用したアプリケーションにおいて、MCP ツールを必要とする初回のレスポンスが高速化されます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "SDK利用時のMCPサーバー準備を非同期化し、レスポンスを改善する。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "1d2688408699",
+      "content": "- Fixed returning to the agents view from a session leaving overlapping ghost frames with `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1`",
+      "content_ja": "代替スクリーンを無効化している際、エージェントビューに戻ると画面表示が重なる問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 を設定している場合、会話からダッシュボードに戻る際に前の画面の残像（ゴーストフレーム）が重なって表示され、UI が崩れることがあった。",
+        "after": "画面遷移時の描画バッファのクリア処理が適切に行われるよう修正された。",
+        "benefit": "スクロールバック履歴を重視してフルスクリーン設定を切っているユーザーでも、快適にダッシュボードを利用できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "フルスクリーン無効設定時の表示崩れを修正する描画改善。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        }
+      ]
+    },
+    {
+      "id": "ecd08a3d8c5a",
+      "content": "- Fixed late-appearing `.claude/*` symlinks not being reconciled into the sandbox deny-write list",
+      "content_ja": "後から作成された .claude/* ディレクトリ内のシンボリックリンクがサンドボックスの書き込み禁止リストに反映されない問題を修正した。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "セッション開始後に作成された .claude フォルダ内のシンボリックリンクが、サンドボックスの保護対象として認識されず、誤って書き換えられてしまうリスクがあった。",
+        "after": "シンボリックリンクの変更を動的に検知し、サンドボックスの書き込み制限をリアルタイムに更新するようになった。",
+        "benefit": "設定ファイルや管理データに対する意図せぬ上書きをより確実に防ぐことができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "サンドボックスの保護範囲を動的に更新し、管理データの安全性を高める。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandbox-environments.md"
+        }
+      ]
+    },
+    {
+      "id": "7bb85a45f793",
+      "content": "- Hardened the Agent tool against indirect prompt injection via content a subagent read",
+      "content_ja": "サブエージェントが読み取ったコンテンツによる間接的なプロンプトインジェクションに対する防御を強化した。",
+      "prefix": "Changed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "サブエージェントが信頼できないファイル（README やウェブページなど）を読み取った際、その中に含まれる悪意ある指示に従ってしまう可能性があった。",
+        "after": "Agent ツールにおいて、読み取ったデータと元の指示をより厳格に分離して処理するよう内部処理を堅牢化した。",
+        "benefit": "外部のコードベースやドキュメントを調査させる際のセキュリティ上の安全性が高まります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "間接的な命令注入への耐性を高め、エージェント実行の信頼性を向上させる。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/secure-deployment.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        }
+      ]
+    },
+    {
+      "id": "b452629698f0",
+      "content": "- Improved the Bash/PowerShell tool message when a command hits its timeout and is auto-backgrounded, so the model can distinguish a hang from an explicit background request",
+      "content_ja": "シェル実行がタイムアウトして自動的にバックグラウンドへ移行した際のメッセージを改善し、AIが「ハングアップ」と「意図的なバックグラウンド化」を区別できるようにした",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "コマンドがタイムアウトに達して自動でバックグラウンド実行に切り替わった際、AIに対してその状況が明確に伝わっていませんでした。そのため、AIはコマンドがまだ実行中なのか、それともプロセスが固まってしまった（ハングアップ）のかを正確に判断できない場合がありました。",
+        "after": "BashやPowerShellツールからのメッセージが改善され、タイムアウトによる自動バックグラウンド移行が明示的にAIへ通知されます。これにより、AIは現在のコマンドの状態を正しく認識し、ハングアップと誤認せずに次のアクションへ進むことが可能になります。",
+        "benefit": "AIがコマンドの停止とバックグラウンド移行を正確に区別できるため、不必要なリトライや待機を繰り返すのを待つ必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "シェルの実行状態をAIが正確に理解できるようになることで、タイムアウト時の不要なリトライが減り、対話の効率が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        }
+      ]
+    },
+    {
+      "id": "4d38031d01e0",
+      "content": "- Improved auto mode: the permission classifier now defaults to Sonnet 5 for external sessions, validated on the session's first request and pinned for the session",
+      "content_ja": "オートモードを改善し、外部セッションの権限判定モデルをデフォルトで Sonnet 5 に設定するように変更した",
+      "prefix": "Improved",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "オートモードでの権限判定（クラスシファイア）に使用されるモデルが外部セッションにおいて固定されておらず、セッションごとに検証が必要でした。また、特定のプロバイダーや環境では判定の安定性にばらつきがありました。",
+        "after": "外部セッションの権限判定モデルとしてデフォルトで Sonnet 5 が使用されるようになり、セッションの最初の要求で検証された後はそのセッション中固定されます。これにより、安定した権限判定が維持されるようになります。",
+        "benefit": "オートモード使用時に、どのモデルが権限判定を行っているかを気にしたり、判定の不安定さに煩わされたりすることがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "オートモードの背後で動く判定モデルが Sonnet 5 に固定されることで、権限昇格などの検知精度と速度が安定します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        }
+      ]
+    },
+    {
+      "id": "dc53e56b7aed",
+      "content": "- Improved the bundled dataviz skill's chart color validation with perceptual OKLab color difference and recalibrated color-blindness thresholds",
+      "content_ja": "データ可視化スキルのチャート色の検証ロジックを改善し、色の識別しやすさと色覚多様性への対応を強化した",
+      "prefix": "Improved",
+      "feature_areas": ["Skills"],
+      "inference": {
+        "before": "標準搭載のデータ可視化スキルにおいて、チャートの色の違いが視覚的に十分でない場合や、色覚多様性の観点での閾値設定が最適化されていませんでした。そのため、生成されたグラフが一部のユーザーにとって読み取りにくいことがありました。",
+        "after": "OKLab表色系を用いた知覚的な色差判定を導入し、色覚多様性に対応するための閾値を再調整しました。これにより、より多くのユーザーにとって判別しやすく、視覚的に洗練されたパレットでグラフが描画されるようになります。",
+        "benefit": "生成されたチャートの色が見づらいときに、手動で配色を指定し直す手間がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "標準スキルの品質改善であり、グラフ生成機能を利用するユーザーの利便性が高まります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/artifacts.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-library.md"
+        }
+      ]
+    },
+    {
+      "id": "7ffd2fc442cb",
+      "content": "- Memory writes that leave a MEMORY.md index over its read limit now produce an explicit error instead of silent truncation",
+      "content_ja": "MEMORY.md インデックスの読み込み制限を超えて書き込みを行おうとした際、暗黙的な切り捨てではなく明示的なエラーを表示するように変更した",
+      "prefix": "Changed",
+      "feature_areas": ["Memory"],
+      "inference": {
+        "before": "AIが自動メモリー（auto memory）を書き込む際、MEMORY.md のサイズ制限（200行または25KB）を超えると、古い内容が音もなく切り捨てられていました。ユーザーはどのメモリーが失われたかに気づくことが困難でした。",
+        "after": "読み込み制限を超える書き込みが発生した場合、サイレントにデータを消去するのではなく、明示的なエラーメッセージを生成します。これにより、インデックスの肥大化に気づき、手動での整理やトピックファイルへの移行を検討できるようになります。",
+        "benefit": "重要なメモリーが知らない間に削除され、AIの記憶が不安定になるのを防ぐために自分で頻繁にファイルを確認しなくて済みます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "メモリー制限時の挙動が「無言のデータ削除」から「通知」に変わるため、重要なコンテキストの喪失を防ぐ重要な変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/memory.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "3291e64506db",
+      "content": "- Screen reader mode now announces permission mode changes aloud when cycling modes with Shift+Tab",
+      "content_ja": "スクリーンリーダーモードにおいて、Shift+Tab キーで許可モードを切り替えた際に新しいモード名を読み上げるように改善した",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "スクリーンリーダーモードを使用中、Shift+Tab キーでパーミッションモード（Manual, Plan, Autoなど）を切り替えても、現在のモードが何に変わったのかが音声で通知されませんでした。ユーザーは現在の動作モードを確認するために別の操作を行う必要がありました。",
+        "after": "モードが切り替わるたびに、スクリーンリーダーが新しいモード名を即座に読み上げるようになります。これにより、視覚的なフィードバックがなくてもキー操作だけで確実にモード変更を把握できます。",
+        "benefit": "パーミッションモードを切り替えるたびに、現在の設定が正しく反映されたかを手動で確認しなくてよくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "アクセシビリティの改善であり、特定のモードを利用するユーザーにとっての操作性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/accessibility.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        }
+      ]
+    },
+    {
+      "id": "20dcea0bf994",
+      "content": "- The agents footer hint now shows how many background agents are waiting on your input, with a brief color emphasis when the count changes",
+      "content_ja": "フッターのヒント表示を改善し、入力を待機しているバックグラウンドエージェントの数と状態の変化を視覚的に強調するようにした",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "複数のバックグラウンドタスクを実行している際、現在いくつのエージェントがユーザーの入力を待っているのかを把握するには、エージェントビューを開くなどの確認が必要でした。また、状態が変わった際の変化も地味で気づきにくいものでした。",
+        "after": "フッターに「← 2 agents」のように待機中のエージェント数が常時表示され、カウントが変化した際には色が一時的に変わって強調されます。これにより、メインの対話を続けながらバックグラウンドの進捗を直感的に把握できます。",
+        "benefit": "バックグラウンドで動かしている作業が進んでいるか、自分の入力を待っているかを、わざわざ画面を切り替えて確認しなくて済むようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "バックグラウンドタスクの待機状態がメイン画面から容易に把握できるようになり、並行作業の効率が改善されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "e41e08e3adb6",
+      "content": "- Agent view: the session you pressed ← from stays visibly marked even after mouse hover or arrow keys move the selection",
+      "content_ja": "エージェントビューにおいて、アタッチ元となったセッションの選択状態が維持されるようにUIを改善した",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "エージェントビューから特定のセッションにアタッチし、その後デタッチして一覧に戻った際、マウスホバーや矢印キーの操作によって直前に操作していたセッションの場所を見失うことがありました。",
+        "after": "アタッチ操作を行った元のセッションが視覚的にマークされ続け、マウス操作やキー移動が行われた後でも、どのタスクを扱っていたかが一目で分かるようになります。リスト内での視認性が向上し、スムーズなコンテキストの復帰が可能です。",
+        "benefit": "複数の並行タスクを切り替えて作業する際に、直前にどのセッションを操作していたかを探し直す手間がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エージェントビューのUI改善であり、複数のセッションを頻繁に切り替えるユーザーの認知負荷を下げます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        }
+      ]
+    },
+    {
+      "id": "fdf09c8080ed",
+      "content": "- Fable temporarily shows as unavailable in the advisor picker while a server-side issue causing Fable advisor failures is fixed",
+      "content_ja": "Fable モデルのアドバイザー機能で発生していたサーバー側の問題を修正するため、一時的に選択肢から Fable を除外した",
+      "prefix": "Changed",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "アドバイザーモデルとして Fable 5 を使用した際に、サーバー側の不具合によってアドバイザー機能が正常に動作しない（失敗する）問題が発生していました。",
+        "after": "問題が解決されるまでの間、/advisor の選択リストから Fable が一時的に非表示になります。これにより、ユーザーが意図せず不安定な構成を選択してエラーに遭遇することを回避します。修正完了後に再び利用可能になる予定です。",
+        "benefit": "不具合のあるモデル構成を選択してしまい、タスクが途中で失敗して時間を無駄にすることがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "特定モデルの利用制限ですが、不具合回避のための暫定措置であり、ユーザーの混乱を防ぐためのものです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/zero-data-retention.md"
+        }
+      ]
+    }
+  ]
+}
