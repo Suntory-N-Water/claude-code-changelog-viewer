@@ -135,6 +135,7 @@ The SDK provides hooks for different stages of agent execution. Some hooks are a
 | `PostToolUseFailure` | Yes | Yes | Tool execution failure | Handle or log tool errors |
 | `PostToolBatch` | No | Yes | A full batch of tool calls resolves, once per batch before the next model call | Inject conventions once for the whole batch |
 | `UserPromptSubmit` | Yes | Yes | User prompt submission | Inject additional context into prompts |
+| [`UserPromptExpansion`](/en/hooks#userpromptexpansion) | No | Yes | A user-typed command expands into a prompt before it reaches Claude | Block a command from direct invocation or add context when a skill is typed |
 | `MessageDisplay` | No | Yes | An assistant message with text completes, once per message with the full message text | Redact or reformat the displayed text without changing the transcript |
 | `Stop` | Yes | Yes | Agent execution stop | Save session state before exit |
 | `SubagentStart` | Yes | Yes | Subagent initialization | Track parallel task spawning |
@@ -723,6 +724,8 @@ const myHook: HookCallback = async (input, toolUseID, { signal }) => {
 
 - Increase the `timeout` value in the `HookMatcher` configuration
 - Use the `AbortSignal` from the third callback argument to handle cancellation gracefully in TypeScript
+
+A `UserPromptSubmit` or [`UserPromptExpansion`](/en/hooks#userpromptexpansion) callback that exceeds its timeout blocks that prompt with a timeout message and the session continues. Interrupting the query while a callback is pending cancels the pending tool call. Before v2.1.208, a callback timeout on those events ended the query with `error_during_execution`, and an interrupt during a pending `PreToolUse` callback could let the tool call proceed.
 
 ### Tool blocked unexpectedly
 
