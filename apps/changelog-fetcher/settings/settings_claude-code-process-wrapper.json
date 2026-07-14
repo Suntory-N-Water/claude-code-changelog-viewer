@@ -1,0 +1,16 @@
+{
+  "key": "CLAUDE_CODE_PROCESS_WRAPPER",
+  "leaf_name": "CLAUDE_CODE_PROCESS_WRAPPER",
+  "slug": "claude-code-process-wrapper",
+  "source": "env",
+  "description_en": "Launch the processes Claude Code starts from its own binary through a wrapper executable, given as an argv prefix such as /opt/corp/launcher. Covers the background service that hosts agent view sessions, every session it spawns, and the relaunch Claude Code performs of itself to finish installing an update. The first token must be the absolute path of an executable that ends by running exec \"$@\", and most launchers are that single path. The value is an argument list, not a shell command: whitespace separates tokens, double quotes group a path that contains spaces, and a value that starts with ` is read as a JSON string array. Set it in the env block of user or [managed settings, not as a shell export, so the detached background service inherits it; project and local settings can't set it. The VS Code extension configures its own launcher separately through its claudeProcessWrapper setting. Ignored on Windows. CLAUDE_CODE_SHELL_PREFIX` is a separate control: it wraps the shell commands Claude runs as a single quoted string, while this variable wraps Claude Code's own processes as an argv prefix. See Run Claude Code behind a corporate launcher",
+  "description_ja": "Claude Code が起動するプロセスを、指定したラッパー実行ファイルを介して実行するように設定します。",
+  "use_case_ja": "- 企業のランチャー経由で実行する必要がある環境で使用し、設定値には実行ファイルの絶対パスを指定します\n- エージェントビューをホストするバックグラウンドサービスや、更新後の再起動プロセスなど、すべてのプロセスに適用されます\n- Windows は対象外であり、シェルエクスポートではなくユーザー設定または管理設定の env ブロックに記述する必要があります",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "| would be spawned with zero tools — refusing | Tool errors | | File is covered by a Read deny rule in your permission settings | Tool errors | | Can't open MCP settings in a background session | Background session errors | | CLAUDE_CODE_PROCESS_WRAPPER: launcher ... | Background session errors | | Ignoring N permissions.allow entries from ... this workspace has not been trusted | Configuration warnings | | Responses seem lower quality than usual | Response quality |",
+    "CLAUDE_CODE_PROCESS_WRAPPER launcher errors CLAUDE_CODE_PROCESS_WRAPPER is set, and its value can't be used, so Claude Code refuses to start the affected process rather than run it without the launcher. Configuration problems are reported with a message that starts with the variable name and states the reason, for example: A launcher that starts but exits without replacing itself with Claude Code fails the session it was starting, and the session's row in agent view reports that the launcher must exec, not daemonize , followed by anything the launcher printed. A session that can't start or reach the background service because of the launcher reports the launcher problem as the reason inside Couldn't reach the background service (...) ."
+  ],
+  "fetched_at": "2026-07-15",
+  "related_changelog": []
+}
