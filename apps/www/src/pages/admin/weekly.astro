@@ -89,13 +89,22 @@ const weeks = [
               }
             </select>
           </label>
-          <button
-            id='copy-button'
-            type='button'
-            class='rounded-md bg-[hsl(var(--cc-main-orange))] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[hsl(var(--cc-orange-hover))] disabled:cursor-not-allowed disabled:opacity-50'
-          >
-            選定内容をコピー
-          </button>
+          <div class='flex gap-2'>
+            <button
+              id='clear-button'
+              type='button'
+              class='rounded-md border border-[hsl(var(--cc-gray))] bg-white px-4 py-2 text-sm font-semibold text-[hsl(var(--cc-main-black))] transition-colors hover:bg-[hsl(var(--cc-gray)/0.15)]'
+            >
+              一括削除
+            </button>
+            <button
+              id='copy-button'
+              type='button'
+              class='rounded-md bg-[hsl(var(--cc-main-orange))] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[hsl(var(--cc-orange-hover))] disabled:cursor-not-allowed disabled:opacity-50'
+            >
+              選定内容をコピー
+            </button>
+          </div>
         </div>
       </section>
 
@@ -148,7 +157,34 @@ const weeks = [
 <script is:inline define:vars={{ weeks }}>
   const weekSelect = document.querySelector('#week-select');
   const copyButton = document.querySelector('#copy-button');
+  const clearButton = document.querySelector('#clear-button');
   const emptyMessage = document.querySelector('#empty-message');
+
+  const STORAGE_KEY = 'weekly-admin-selection';
+
+  let state = {};
+  try {
+    state = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {};
+  } catch {
+    state = {};
+  }
+
+  function updateState(itemId, checked, comment) {
+    if (checked || comment) {
+      state[itemId] = { checked, comment };
+    } else {
+      delete state[itemId];
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function syncComment(checkbox) {
+    const comment = checkbox
+      .closest('.weekly-item')
+      .querySelector('[data-comment]');
+    comment.hidden = !checkbox.checked;
+    comment.querySelector('textarea').disabled = !checkbox.checked;
+  }
 
   function filterItems() {
     const week = weekSelect.value;
@@ -166,18 +202,42 @@ const weeks = [
   weekSelect.addEventListener('change', filterItems);
   filterItems();
 
-  document
-    .querySelectorAll('.weekly-item input[type="checkbox"]')
-    .forEach((checkbox) => {
-      checkbox.addEventListener('change', () => {
-        const comment = checkbox
-          .closest('.weekly-item')
-          .querySelector('[data-comment]');
-        const textarea = comment.querySelector('textarea');
-        comment.hidden = !checkbox.checked;
-        textarea.disabled = !checkbox.checked;
-      });
+  document.querySelectorAll('.weekly-item').forEach((section) => {
+    const checkbox = section.querySelector('input[type="checkbox"]');
+    const textarea = section.querySelector('textarea');
+    const itemId = checkbox.dataset.itemId;
+    const saved = state[itemId];
+    if (saved) {
+      checkbox.checked = saved.checked;
+      textarea.value = saved.comment;
+    }
+    syncComment(checkbox);
+
+    checkbox.addEventListener('change', () => {
+      syncComment(checkbox);
+      updateState(itemId, checkbox.checked, textarea.value);
     });
+    textarea.addEventListener('input', () => {
+      updateState(itemId, checkbox.checked, textarea.value);
+    });
+  });
+
+  clearButton.addEventListener('click', () => {
+    if (!confirm('入力した選定内容をすべて削除します。よろしいですか？')) {
+      return;
+    }
+    document
+      .querySelectorAll('.weekly-item input[type="checkbox"]')
+      .forEach((checkbox) => {
+        checkbox.checked = false;
+        document.querySelector(
+          `[data-comment-for="${checkbox.dataset.itemId}"]`,
+        ).value = '';
+        syncComment(checkbox);
+      });
+    state = {};
+    localStorage.removeItem(STORAGE_KEY);
+  });
 
   copyButton.addEventListener('click', async () => {
     const selectedWeek = weeks.find(({ week }) => week === weekSelect.value);
