@@ -201,8 +201,6 @@ When Remote Control is active, Claude can send push notifications to your phone.
 
 Claude decides when to push. It typically sends one when a long-running task finishes or when it needs a decision from you to continue. You can also request a push in your prompt, for example `notify me when the tests finish`. Beyond the two on/off toggles below, there is no per-event configuration.
 
-Mobile push notifications require Claude Code v2.1.110 or later.
-
 To set up mobile push notifications:
 
 Download the Claude app for [iOS](https://apps.apple.com/us/app/claude-by-anthropic/id6473753684) or [Android](https://play.google.com/store/apps/details?id=com.anthropic.claude).
