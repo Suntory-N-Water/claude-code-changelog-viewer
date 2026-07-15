@@ -1,0 +1,2234 @@
+{
+  "id": "20260715-212647",
+  "timestamp": "2026-07-15T21:26:47.778Z",
+  "aiSummary": "Artifacts機能が強化され、閲覧時にMCPコネクタを通じて最新データを動的に取得できるようになりました。Desktopアプリにおいて、管理者による配布だけでなくアプリ内のフォームからLLMゲートウェイのベースURLを直接設定できる機能が追加されています。また、複数のプラグインを一括でインストール・配布するためのバンドル機能や、GitHubプロキシを介した認証フローの詳細が新たに明文化されました。",
+  "files": [
+    {
+      "filename": "advisor.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "advisorツールがClaude Platform on AWSで利用不可である旨の制限事項が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/advisor.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Pair your main model with a stronger advisor model that Claude consults at key moments during a task."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The advisor tool is experimental and requires the Anthropic API. It is not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry. Behavior, pricing, and availability may change."
+            },
+            {
+              "type": "added",
+              "content": "The advisor tool is experimental and requires the Anthropic API. It is not available on Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, or Microsoft Foundry. Behavior, pricing, and availability may change."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The advisor tool lets Claude consult a second, typically stronger model at key moments during a task, such as before committing to an approach, when stuck on a recurring error, or before declaring a task complete. The advisor receives the full conversation, including every tool call and result, and returns guidance that Claude applies before continuing."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -132,7 +132,7 @@ The advisor model's own read of the conversation is not cached. Each advisor cal",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The advisor tool requires all of the following:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Anthropic API only**: the advisor is a server-executed tool. It is not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry. Through an [LLM gateway](/en/llm-gateway) configured with `ANTHROPIC_BASE_URL`, availability depends on whether the gateway forwards the request intact to the Anthropic API."
+            },
+            {
+              "type": "added",
+              "content": "- **Anthropic API only**: the advisor is a server-executed tool. It is not available on Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, or Microsoft Foundry. Through an [LLM gateway](/en/llm-gateway) configured with `ANTHROPIC_BASE_URL`, availability depends on whether the gateway forwards the request intact to the Anthropic API."
+            },
+            {
+              "type": "context",
+              "content": "- **Supported main model**: Opus 4.6 or later, Sonnet 4.6 or later, or Haiku 4.5. Fable 5 also qualifies on Claude Code v2.1.170 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Turn the advisor off"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "セッション一覧を取得する際のページネーション用のoffsetパラメータについての説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -243,6 +243,7 @@ Lists past sessions with metadata. Filter by project directory or list sessions",
+          "lines": [
+            {
+              "type": "context",
+              "content": "def list_sessions("
+            },
+            {
+              "type": "context",
+              "content": "    directory: str | None = None,"
+            },
+            {
+              "type": "context",
+              "content": "    limit: int | None = None,"
+            },
+            {
+              "type": "added",
+              "content": "    offset: int = 0,"
+            },
+            {
+              "type": "context",
+              "content": "    include_worktrees: bool = True"
+            },
+            {
+              "type": "context",
+              "content": ") -> list[SDKSessionInfo]"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -253,6 +254,7 @@ def list_sessions(",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `directory` | `str \\| None` | `None` | Directory to list sessions for. When omitted, returns sessions across all projects |"
+            },
+            {
+              "type": "context",
+              "content": "| `limit` | `int \\| None` | `None` | Maximum number of sessions to return |"
+            },
+            {
+              "type": "added",
+              "content": "| `offset` | `int` | `0` | Number of sessions to skip from the start of the sorted results. Use with `limit` for pagination |"
+            },
+            {
+              "type": "context",
+              "content": "| `include_worktrees` | `bool` | `True` | When `directory` is inside a git repository, include sessions from all worktree paths |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Return type: `SDKSessionInfo`"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "サンドボックス外のコマンド実行を許可する際の権限チェックの例示と、次のターンで適用される設定項目から一部の項目が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -540,7 +540,7 @@ Changes [settings](/en/settings) on a running session without restarting the que",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Only some keys take effect mid-session:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Applied on the next turn**: `model`, `effortLevel`, `ultracode`, `permissions`, `hooks`, `skillOverrides`, `fastMode`, `awaySummaryEnabled`, `agent`. Switching `agent` also applies that agent's model override, hooks, and system prompt on the next turn."
+            },
+            {
+              "type": "added",
+              "content": "- **Applied on the next turn**: `model`, `effortLevel`, `ultracode`, `permissions`, `hooks`, `skillOverrides`, `fastMode`, `agent`. Switching `agent` also applies that agent's model override, hooks, and system prompt on the next turn."
+            },
+            {
+              "type": "context",
+              "content": "- **No effect mid-session**: the system prompt options. These are resolved once at startup, so the running session keeps the original value even though the call succeeds. To change them, start a new session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`effortLevel` accepts an [effort level](/en/model-config#adjust-effort-level) name. It also accepts `\"ultracode\"`, which runs the session at `xhigh` effort and turns on [ultracode](/en/workflows#let-claude-decide-with-ultracode). The `Settings` type declares `effortLevel` without that value, so pass the equivalent `{ ultracode: true }` in TypeScript. The `ultracode` value requires Claude Code v2.1.203 or later and is accepted only by `applyFlagSettings()`, not by the `effortLevel` key in a settings file."
+            }
+          ]
+        },
+        {
+          "header": "@@ -3593,7 +3593,7 @@ type SandboxFilesystemConfig = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Permissions Fallback for Unsandboxed Commands"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When `allowUnsandboxedCommands` is enabled, the model can request to run commands outside the sandbox by setting `dangerouslyDisableSandbox: true` in the tool input. These requests fall back to the existing permissions system, meaning your `canUseTool` handler is invoked, allowing you to implement custom authorization logic."
+            },
+            {
+              "type": "added",
+              "content": "When `allowUnsandboxedCommands` is enabled, the model can request to run commands outside the sandbox by setting `dangerouslyDisableSandbox: true` in the tool input. These requests fall back to the existing permissions system, meaning your `canUseTool` handler is invoked, allowing you to implement custom authorization logic. In the example below, `isCommandAuthorized` stands in for an authorization check you define."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**`excludedCommands` vs `allowUnsandboxedCommands`:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "AWSプロファイル名を使用する際のsso loginコマンドの記述がより正確な形式に修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -129,8 +129,10 @@ export AWS_SESSION_TOKEN=your-session-token",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Option C: Environment variables (SSO profile)**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Replace `your-profile-name` with the name of your AWS profile before running these commands."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "aws sso login --profile=<your-profile-name>"
+            },
+            {
+              "type": "added",
+              "content": "aws sso login --profile=your-profile-name"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "export AWS_PROFILE=your-profile-name"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "artifacts.md",
+      "additions": 44,
+      "deletions": 5,
+      "explanation": "ページ閲覧時にMCPコネクタからライブデータを取得する新機能と、その権限管理や組織レベルでの制御方法について詳細な解説が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -20,12 +20,13 @@ Use an artifact when terminal text is the wrong medium for what Claude produced:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Lay out several design or implementation options side by side"
+            },
+            {
+              "type": "context",
+              "content": "- Keep an investigation timeline that fills in while a long task runs"
+            },
+            {
+              "type": "context",
+              "content": "- Send a teammate a link instead of pasting output into Slack"
+            },
+            {
+              "type": "added",
+              "content": "- Publish a status board that [pulls fresh data through MCP connectors](#pull-live-data-with-mcp-connectors) each time someone opens it"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "See [What you can build](#what-you-can-build) for prompts that match each of these."
+            },
+            {
+              "type": "added",
+              "content": "See [What you can build](#what-you-can-build) for prompts that match these, and [Pull live data with MCP connectors](#pull-live-data-with-mcp-connectors) for the connector-backed board's prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### What an artifact is not"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "An artifact is a capture of work, not an application. It is one self-contained page with no backend, so it cannot store form input, call an API at view time, or serve multiple routes. For a hosted internal tool with a backend, deploy it on your own infrastructure instead. See [Page constraints](#page-constraints) for the full set of limits."
+            },
+            {
+              "type": "added",
+              "content": "An artifact is a capture of work, not an application. It is one self-contained page with no backend, so it can't store form input or serve multiple routes, and its only path to outside data when someone views it is [calling MCP connectors](#pull-live-data-with-mcp-connectors). For a hosted internal tool with a backend, deploy it on your own infrastructure instead. See [Page constraints](#page-constraints) for the full set of limits."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Create an artifact"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -80,6 +81,40 @@ People you share with are viewers by default: they see each version you publish",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "An editor publishes new versions the same way you [update the artifact from another session](#update-an-artifact): they give Claude the artifact's URL in their own session, and Claude pulls the current content and republishes with their changes. Everyone with the page open sees each update live."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Pull live data with MCP connectors"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "An artifact can call [MCP connectors](/en/mcp#use-mcp-servers-from-claude-ai) each time someone views it, so the page shows current data rather than a snapshot from the session that built it. Connector calls from artifacts are available on Pro, Max, Team, and Enterprise plans and require Claude Code v2.1.209 or later. On earlier versions, Claude publishes the page with whatever data the session gathered while building it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To create a connector-backed page, name the connector and the data you want in your prompt:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "added",
+              "content": "Build a dashboard artifact of our open pull requests that pulls the live list through my GitHub connector when the page loads."
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude declares which connectors the page may call as part of publishing, and the page can't call connectors outside that declaration. Only connectors from your claude.ai account qualify: Claude names them in the declaration, and when someone views the page, each call [runs through the viewing account's own connection](#how-connector-calls-work-for-viewers) to that connector. Local MCP servers you configure in Claude Code, such as servers from `.mcp.json`, can supply data while Claude builds the page, but the published page can't call them."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The page fetches data when it loads and can refresh on an interval or when a viewer uses a refresh control on the page. Responses are cached in the viewer's browser, so a reopened page renders from the cached responses immediately, then updates with fresh results."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### How connector calls work for viewers"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When a published page calls a connector, the call uses the account of the person viewing the page, not the account of the person who published it:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Each viewer uses their own connectors**: calls go through the viewing account's connected tools, so two people opening the same dashboard can see different data depending on what their accounts can access. The page never sees anyone's credentials; claude.ai makes the calls on the page's behalf."
+            },
+            {
+              "type": "added",
+              "content": "- **Viewers approve access first**: claude.ai asks each viewer for permission before the page's first connector call. A viewer who declines, or who hasn't connected a connector the page uses, still sees the page without its live sections."
+            },
+            {
+              "type": "added",
+              "content": "- **Actions use the viewer's account too**: a page can offer controls that invoke connector tools with side effects, such as posting a message or updating an issue. The action goes through the account of whoever selects the control."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When you plan to share a connector-backed page, ask Claude to include a fallback message in each live section that names the connector it needs. A viewer who's missing the connection then sees what to connect instead of an empty section."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "An artifact that calls connectors can't be shared to a public link on any plan. On Team and Enterprise plans, you can keep it private or [share it within your organization](#share-an-artifact). On Pro and Max plans, where a public link is the only way to share, a connector-backed artifact stays private to you."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### The page shows no live data for a viewer"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When a connector-backed page renders but its live sections stay empty for someone you shared it with, work through these causes:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **The viewer hasn't connected the connector**: connectors are per-account, so each viewer needs their own connection to every connector the page calls. They can add one under **Settings > Connectors** on claude.ai, then reload the page."
+            },
+            {
+              "type": "added",
+              "content": "- **The viewer declined the permission ask**: a denial lasts for the rest of that page load. Reloading the page brings the permission ask back."
+            },
+            {
+              "type": "added",
+              "content": "- **Connector calls are turned off for the organization**: an Owner controls the [**Enable artifact connectors** toggle](#control-connector-calls-from-artifacts) in admin settings."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## What you can build"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "An artifact is a single HTML page, so anything you can express in HTML, CSS, and inline JavaScript is in scope. The patterns below come up most often."
+            }
+          ]
+        },
+        {
+          "header": "@@ -144,8 +179,8 @@ Each artifact is one self-contained page. Claude Code wraps the file you publish",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Constraint | Effect |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| No external requests | The CSP blocks scripts, stylesheets, fonts, and images loaded from any other host, along with `fetch`, XHR, and WebSocket calls. Claude inlines CSS and JavaScript and embeds images as data URIs so the page renders without any external request. |"
+            },
+            {
+              "type": "removed",
+              "content": "| No backend | An artifact is a static page. It cannot store data submitted through a form, authenticate viewers itself, or call an API at view time. |"
+            },
+            {
+              "type": "added",
+              "content": "| No external requests | The CSP blocks scripts, stylesheets, fonts, and images loaded from any other host, along with `fetch`, XHR, and WebSocket calls. Claude inlines CSS and JavaScript and embeds images as data URIs so the page renders without any external request. [Connector calls](#pull-live-data-with-mcp-connectors) are the exception: the page hands them to claude.ai, which makes the network call itself. |"
+            },
+            {
+              "type": "added",
+              "content": "| No backend | An artifact is a static page. It can't store data submitted through a form or authenticate viewers itself. Its only way to fetch data when someone views it is [calling MCP connectors](#pull-live-data-with-mcp-connectors), not an API of its own. |"
+            },
+            {
+              "type": "context",
+              "content": "| Single page | Relative links do not resolve, because nothing is deployed alongside the page. For multi-section content, Claude uses in-page anchors rather than separate files. |"
+            },
+            {
+              "type": "context",
+              "content": "| Source file types | The published file must be `.html`, `.htm`, or `.md`. Markdown files render as styled HTML. |"
+            },
+            {
+              "type": "context",
+              "content": "| Rendered size | The rendered page must be 16 MiB or smaller. Large embedded images are the usual cause when a publish fails for size. |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -186,6 +221,10 @@ Owners on Team and Enterprise plans control artifacts from [claude.ai admin sett",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To enable or disable artifacts for the whole organization, go to **Settings > Claude Code > Capabilities** and use the **Artifacts** toggle. On Enterprise plans with role-based access control, you can additionally scope artifacts to specific roles: go to **Settings > Roles**, edit a role, and set the **Artifacts** permission under the **Claude Code** group."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Control connector calls from artifacts"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "[Connector calls from artifacts](#pull-live-data-with-mcp-connectors) have their own toggle, separate from the **Artifacts** toggle that turns artifacts on or off. Go to [**Settings > Capabilities**](https://claude.ai/admin-settings/capabilities) and use the **Enable artifact connectors** toggle. The same toggle governs connector calls from artifacts created in claude.ai conversations, which is why it sits under **Settings > Capabilities** rather than **Settings > Claude Code**."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Control public sharing"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Public sharing is off by default on Team and Enterprise plans, so members can share artifacts only within the organization until an Owner turns it on. To let members publish artifacts to public links that anyone can view without signing in, go to **Settings > Claude Code > Capabilities** and turn on **External sharing** under the **Artifacts** toggle. Turning it back off blocks access through existing public links without changing each artifact's audience; access resumes if you re-enable it."
+            }
+          ]
+        },
+        {
+          "header": "@@ -218,4 +257,4 @@ For the request and response schemas, see the [Compliance API reference](https:/",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Browse [prompting patterns and workflows](/en/prompt-library) that pair with artifacts"
+            },
+            {
+              "type": "context",
+              "content": "- Turn an artifact prompt you reuse into a [skill](/en/skills) so you can invoke it as a command"
+            },
+            {
+              "type": "removed",
+              "content": "- [Connect MCP servers](/en/mcp) so Claude can pull live data into an artifact"
+            },
+            {
+              "type": "added",
+              "content": "- [Connect MCP servers](/en/mcp) so Claude can pull data into an artifact while it builds the page"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "authentication.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サードパーティ製インフェレンス構成を使用する際の認証情報の扱いに関する記述が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -106,7 +106,7 @@ Claude Code securely manages your authentication credentials:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Slow helper notice**: if `apiKeyHelper` takes longer than 10 seconds to return a key, Claude Code displays a warning notice in the prompt bar showing the elapsed time. If you see this notice regularly, check whether your credential script can be optimized."
+            },
+            {
+              "type": "context",
+              "content": "- **Helper failures**: when the script exits with an error, times out, or prints nothing, requests fail with [`Your apiKeyHelper script is failing`](/en/errors#your-apikeyhelper-script-is-failing) within three attempts. Before v2.1.208, helper failures surfaced as a generic 401 after about ten silent retries."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`apiKeyHelper`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_AUTH_TOKEN` apply to the CLI and the surfaces that wrap it, including the VS Code extension, the Agent SDK, and GitHub Actions. Claude Desktop and cloud sessions do not call `apiKeyHelper` or read these environment variables: they use OAuth, except desktop sessions running an [organization-distributed third-party inference configuration](/en/llm-gateway-connect#desktop-app), which authenticate with that configuration's credential."
+            },
+            {
+              "type": "added",
+              "content": "`apiKeyHelper`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_AUTH_TOKEN` apply to the CLI and the surfaces that wrap it, including the VS Code extension, the Agent SDK, and GitHub Actions. Claude Desktop and cloud sessions do not call `apiKeyHelper` or read these environment variables: they use OAuth, except desktop sessions running a [third-party inference configuration](/en/llm-gateway-connect#desktop-app), which authenticate with that configuration's credential."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Renew an expiring login"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "auto-mode-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "soft_deny設定において、デフォルト値を上書きした際にオートモードのバイパスルールも破棄される旨の警告が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -196,7 +196,7 @@ The following example keeps the defaults in all four lists and adds organization",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Setting any of `environment`, `allow`, `soft_deny`, or `hard_deny` without `\"$defaults\"` replaces the entire default list for that section. A `soft_deny` array without `\"$defaults\"` discards every built-in soft block rule, including force push, `curl | bash`, and production deploys. A `hard_deny` array without `\"$defaults\"` discards the built-in data exfiltration and auto-mode bypass rules."
+            },
+            {
+              "type": "added",
+              "content": "Setting any of `environment`, `allow`, `soft_deny`, or `hard_deny` without `\"$defaults\"` replaces the entire default list for that section. A `soft_deny` array without `\"$defaults\"` discards every built-in soft block rule, including force push, `curl | bash`, production deploys, and auto-mode bypass. A `hard_deny` array without `\"$defaults\"` discards the built-in data exfiltration rule."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each section is evaluated independently, so setting `environment` alone leaves the default `allow`, `soft_deny`, and `hard_deny` lists intact."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "chrome.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "claude-in-chromeスキルの初回利用時の許可承認プロセスと、利用可能なツール一覧の確認手順が具体化されました。",
+      "hunks": [
+        {
+          "header": "@@ -53,6 +53,8 @@ Go to code.claude.com/docs, click on the search box,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "type \"hooks\", and tell me what results appear"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The first browser action asks for permission to use the `claude-in-chrome` skill. Approve it and Claude opens a new tab and starts the task."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run `/chrome` at any time to check the connection status, manage permissions, reconnect the extension, or choose which connected browser to use. If more than one browser is connected when a browser action starts, Claude prompts you to pick one."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For VS Code, see [browser automation in VS Code](/en/vs-code#automate-browser-tasks-with-chrome)."
+            }
+          ]
+        },
+        {
+          "header": "@@ -80,7 +82,7 @@ As of v2.1.199, an otherwise read-only call that sets a state-changing input fla",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Example workflows"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "These examples show common ways to combine browser actions with coding tasks. Run `/mcp` and select `claude-in-chrome` to see the full list of available browser tools."
+            },
+            {
+              "type": "added",
+              "content": "These examples show common ways to combine browser actions with coding tasks. Run `/mcp`, select `claude-in-chrome`, then select **View tools** to see the full list of available browser tools."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Test a local web application"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 15,
+      "deletions": 6,
+      "explanation": "GitHubプロキシを利用した認証の仕組みと、GH_TOKEN環境変数が自動設定される場合の挙動について詳細な説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -98,11 +98,18 @@ For exact versions, ask Claude to run `check-tools` in a cloud session. This com",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Cloud sessions include built-in GitHub tools that let Claude read issues, list pull requests, fetch diffs, and post comments without any setup. These tools authenticate through the [GitHub proxy](#github-proxy) using whichever method you configured under [GitHub authentication options](#github-authentication-options), so your token never enters the container."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can set `GH_TOKEN` or `GITHUB_TOKEN` yourself in [environment settings](#configure-your-environment), or leave both unset and let the [GitHub proxy](#github-proxy) authenticate for you:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- If you set a token, it passes through to the container unchanged, so `gh` and your scripts use it directly."
+            },
+            {
+              "type": "added",
+              "content": "- If you set neither, the container sets both variables to the placeholder string `proxy-injected` and the proxy substitutes your real credentials on outbound GitHub requests. `gh` works without a token of your own, but a script that reads `GITHUB_TOKEN` directly gets the placeholder, not a usable token."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To check which case applies to your session, ask Claude to run `echo $GH_TOKEN`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `gh` CLI isn't pre-installed. If you need a `gh` command the built-in tools don't cover, like `gh release` or `gh workflow run`, install and authenticate it yourself:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Add `apt update && apt install -y gh` to your [setup script](#setup-scripts)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Add a `GH_TOKEN` environment variable to your [environment settings](#configure-your-environment) with a GitHub personal access token. `gh` reads `GH_TOKEN` automatically, so no `gh auth login` step is needed."
+            },
+            {
+              "type": "added",
+              "content": "If `echo $GH_TOKEN` prints `proxy-injected`, the [GitHub proxy](#github-proxy) authenticates `gh` for you and this step is unnecessary. Otherwise, add a `GH_TOKEN` environment variable to your [environment settings](#configure-your-environment) with a GitHub personal access token. `gh` reads `GH_TOKEN` automatically, so no `gh auth login` step is needed."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Link output back to the session"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -308,12 +315,14 @@ Allowed domains are configured per environment. There's no organization-level al",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### GitHub proxy"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For security, all GitHub operations go through a dedicated proxy service that transparently handles all git interactions. Inside the sandbox, the git client authenticates using a custom-built scoped credential. This proxy:"
+            },
+            {
+              "type": "added",
+              "content": "For security, all GitHub operations go through a dedicated proxy service that keeps your real GitHub credentials outside the sandbox. The proxy authenticates two kinds of traffic:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Git interactions: the git client inside the sandbox uses a custom-built scoped credential, which the proxy verifies and translates to your actual GitHub authentication token"
+            },
+            {
+              "type": "added",
+              "content": "- GitHub API requests: the proxy substitutes your real credentials on requests from the built-in GitHub tools, and from `gh` when your session sets the `proxy-injected` placeholder described in [Work with GitHub issues and pull requests](#work-with-github-issues-and-pull-requests)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The proxy also restricts git push operations to the current working branch for safety, and enables cloning, fetching, and PR operations while maintaining security boundaries."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Manages GitHub authentication securely: the git client uses a scoped credential inside the sandbox, which the proxy verifies and translates to your actual GitHub authentication token"
+            },
+            {
+              "type": "removed",
+              "content": "- Restricts git push operations to the current working branch for safety"
+            },
+            {
+              "type": "removed",
+              "content": "- Enables cloning, fetching, and PR operations while maintaining security boundaries"
+            },
+            {
+              "type": "removed",
+              "content": "- Limits GitHub API and release-asset requests to repositories attached to the session, regardless of the environment's [network access level](#access-levels). Setup scripts that download release assets from unattached repositories return a 403. Committed files from public repositories are fetched through `raw.githubusercontent.com`, which the [security proxy](#security-proxy) handles instead. That domain is in the default [Trusted list](#default-allowed-domains), so the files stay reachable unless the environment's [access level](#access-levels) excludes it"
+            },
+            {
+              "type": "added",
+              "content": "The proxy limits GitHub API and release-asset requests to repositories attached to the session, regardless of the environment's [network access level](#access-levels). Setup scripts that download release assets from unattached repositories return a 403. Committed files from public repositories are fetched through `raw.githubusercontent.com`, which the [security proxy](#security-proxy) handles instead. That domain is in the default [Trusted list](#default-allowed-domains), so the files stay reachable unless the environment's [access level](#access-levels) excludes it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Security proxy"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-platform-on-aws.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Anthropicが運営するAWS経由のAPIにおいて、advisorツールや一部のクライアント側機能が制限されることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -63,7 +63,7 @@ source: https://code.claude.com/docs/en/claude-platform-on-aws.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "<Experiment flag=\"docs-contact-sales-cta\" treatment={<ContactSalesCard surface=\"claude_platform_on_aws\" />} />"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Platform on AWS is the Anthropic-operated Claude API with AWS authentication, IAM access control, and AWS Marketplace billing. Requests reach Anthropic's API directly, so you get the same models and features as the [Claude API](https://platform.claude.com/docs) on the same release schedule. You authenticate with AWS credentials or a workspace API key, and you pay through AWS Marketplace."
+            },
+            {
+              "type": "added",
+              "content": "Claude Platform on AWS is the Anthropic-operated Claude API with AWS authentication, IAM access control, and AWS Marketplace billing. Requests reach Anthropic's API directly, so you get the same models and API features as the [Claude API](https://platform.claude.com/docs) on the same release schedule. Client-side features that Claude Code turns on through Anthropic's feature-flag service, such as [`/loop` self-pacing](/en/scheduled-tasks#let-claude-choose-the-interval), are off by default, and the [advisor tool](/en/advisor) is not available. See the [feature availability matrix](/en/feature-availability#summary-by-provider) for the full list. You authenticate with AWS credentials or a workspace API key, and you pay through AWS Marketplace."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use this guide to point Claude Code at a workspace you've already provisioned through Claude Platform on AWS. For the AWS subscription and workspace setup that comes before this, see the [Claude Platform on AWS documentation](https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "/design-syncおよび/radioコマンドがClaude Platform on AWSでは利用できない制約が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -69,7 +69,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/debug [description]` | **[Skill](/en/skills#bundled-skills).** Enable debug logging for the current session and troubleshoot issues by reading the session debug log. Debug logging is off by default unless you started with `claude --debug`, so running `/debug` mid-session starts capturing logs from that point forward. Optionally describe the issue to focus the analysis |"
+            },
+            {
+              "type": "context",
+              "content": "| `/deep-research <question>` | **[Workflow](/en/workflows#bundled-workflows).** Fan out web searches on a question, fetch and cross-check sources, and synthesize a cited report |"
+            },
+            {
+              "type": "context",
+              "content": "| `/design-login` | Authorize design-system access for `/design-sync` with your claude.ai account |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/design-sync [hint]` | **[Skill](/en/skills#bundled-skills).** Convert your repo's React design system and upload it to [Claude Design](https://claude.ai/design), so designs it produces use your real components. Optionally name the design system, for example `/design-sync Acme DS`. A first-time sync verifies every component and can take a few hours on a large repo. Available on the Anthropic API; on Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry the underlying tool can't reach claude.ai, so the command is unavailable |"
+            },
+            {
+              "type": "added",
+              "content": "| `/design-sync [hint]` | **[Skill](/en/skills#bundled-skills).** Convert your repo's React design system and upload it to [Claude Design](https://claude.ai/design), so designs it produces use your real components. Optionally name the design system, for example `/design-sync Acme DS`. A first-time sync verifies every component and can take a few hours on a large repo. Available on the Anthropic API; on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and Claude Platform on AWS the underlying tool can't reach claude.ai, so the command is unavailable |"
+            },
+            {
+              "type": "context",
+              "content": "| `/desktop` | Continue the current session in the Claude Code Desktop app. Requires macOS or Windows and a Claude subscription. Alias: `/app` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files. Press Enter to open the selected file's diff, scroll it with up/down or PageUp/PageDown, and press Esc to return to the file list. As of v2.1.198, the open viewer also refreshes automatically when the repository's git state changes outside the session, such as a branch switch or commit in another terminal |"
+            },
+            {
+              "type": "context",
+              "content": "| `/doctor` | **[Skill](/en/skills#bundled-skills).** Run a setup checkup that diagnoses issues and can fix them. Checks installation health, including duplicate or leftover installs, `PATH` problems, and unparseable settings files. Finds unused skills, MCP servers, and plugins versus their context cost, flags slow [hooks](/en/hooks), and checks for a newer version on your release channel. Deduplicates local `CLAUDE.md` files against checked-in ones, trims checked-in [`CLAUDE.md`](/en/memory) files by cutting content Claude could derive from the codebase, and migrates the always-loaded guidance that remains into [skills](/en/skills) and nested `CLAUDE.md` files that load on demand. The trim cuts sections such as directory layouts, dependency lists, and architecture overviews, and keeps pitfalls, rationale, and conventions that differ from tool defaults. Also offers to make [auto mode](/en/permissions#permission-modes) your default and to [pre-approve](/en/permissions) frequently denied read-only commands. Reports findings first and asks for confirmation before changing anything. From the terminal, `claude doctor` prints read-only installation diagnostics without starting a session. Alias: `/checkup`. The `CLAUDE.md` trim check requires Claude Code v2.1.206 or later. Before v2.1.206, the version check compared Homebrew installs against the `autoUpdatesChannel` setting rather than the [installed cask's channel](/en/setup#configure-release-channel). Before v2.1.205, `/doctor` opened a read-only diagnostics screen and pressing `f` sent the report to Claude |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -105,7 +105,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/powerup` | Discover Claude Code features through quick interactive lessons with animated demos |"
+            },
+            {
+              "type": "context",
+              "content": "| `/pr-comments [PR]` | Removed in v2.1.91. Ask Claude directly to view pull request comments instead. On earlier versions, fetches and displays comments from a GitHub pull request; automatically detects the PR for the current branch, or pass a PR URL or number. Requires the `gh` CLI |"
+            },
+            {
+              "type": "context",
+              "content": "| `/privacy-settings` | View and update your privacy settings. Only available for Pro and Max plan subscribers |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/radio` | Open Claude FM lo-fi radio in your browser. Prints the stream URL when no browser is available. Not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry |"
+            },
+            {
+              "type": "added",
+              "content": "| `/radio` | Open Claude FM lo-fi radio in your browser. Prints the stream URL when no browser is available. Not available on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or Claude Platform on AWS |"
+            },
+            {
+              "type": "context",
+              "content": "| `/recap` | Generate a one-line summary of the current session on demand. See [Session recap](/en/interactive-mode#session-recap) for the automatic recap that appears after you've been away |"
+            },
+            {
+              "type": "context",
+              "content": "| `/release-notes` | View the changelog in an interactive version picker. Select a specific version to see its release notes, or choose to show all versions. The notes appear in your transcript without entering the conversation Claude sees. Before v2.1.208, the viewed notes entered the conversation, including the entire changelog when showing all versions |"
+            },
+            {
+              "type": "context",
+              "content": "| `/reload-plugins [--force]` | Reload all active [plugins](/en/plugins) to apply pending changes without restarting. Reports counts for each reloaded component and flags any load errors. When the reload would change which MCP tools are loaded and invalidate the prompt cache, the command warns and skips unless you pass `--force` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "デスクトップアプリからゲートウェイへ接続するための設定手順や、サードパーティプロバイダ利用時の構成方法が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -739,7 +739,7 @@ This table compares core capabilities between the CLI and Desktop. For a full li",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| Permission modes | All modes including `dontAsk` | Manual, Accept edits, Plan, and Auto. Bypass permissions appears in the mode selector once enabled: through the Settings toggle on Pro and Max plans, or through organization policy on Team and Enterprise plans |"
+            },
+            {
+              "type": "context",
+              "content": "| `--dangerously-skip-permissions` | CLI flag | Bypass permissions mode. On Pro and Max plans, enable it in Settings → Claude Code → \"Allow bypass permissions mode\"; on Team and Enterprise plans, organization policy controls it |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Third-party providers](/en/third-party-integrations) | Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry | Anthropic's API by default. To run the Code tab on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or a self-hosted LLM gateway, see [Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview). |"
+            },
+            {
+              "type": "added",
+              "content": "| [Third-party providers](/en/third-party-integrations) | Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry | Anthropic's API by default. For gateway routing, see [connect the desktop app to a gateway](/en/llm-gateway-connect#desktop-app). To run the Code tab on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or a self-hosted LLM gateway, see [Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview). |"
+            },
+            {
+              "type": "context",
+              "content": "| [MCP servers](/en/mcp) | Configure in settings files | Connectors UI for local and SSH sessions, or settings files |"
+            },
+            {
+              "type": "context",
+              "content": "| [Plugins](/en/plugins) | `/plugin` command | Plugin manager UI |"
+            },
+            {
+              "type": "context",
+              "content": "| @mention files | Text-based | With autocomplete; local and SSH sessions only |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -755,7 +755,7 @@ This table compares core capabilities between the CLI and Desktop. For a full li",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The following features are only available in the CLI or VS Code extension, except where noted:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Third-party providers**: Desktop connects to Anthropic's API by default. Enterprise deployments can configure Google Cloud's Agent Platform and gateway providers via [managed settings](https://claude.com/docs/third-party/claude-desktop/configuration). For Amazon Bedrock or Microsoft Foundry in the CLI, see the [quickstart](/en/quickstart). As an exception to the section above, [Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview) runs the Code tab on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or a self-hosted LLM gateway."
+            },
+            {
+              "type": "added",
+              "content": "- **Third-party providers**: Desktop connects to Anthropic's API by default. To route Desktop through a gateway, see [connect the desktop app to a gateway](/en/llm-gateway-connect#desktop-app). Enterprise deployments can configure Google Cloud's Agent Platform and gateway providers via [managed settings](https://claude.com/docs/third-party/claude-desktop/configuration). For Amazon Bedrock or Microsoft Foundry in the CLI, see the [quickstart](/en/quickstart). As an exception to the section above, [Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview) runs the Code tab on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or a self-hosted LLM gateway."
+            },
+            {
+              "type": "context",
+              "content": "- **Linux (beta)**: Computer Use isn't yet available in the Linux desktop app. See [Claude Desktop on Linux](/en/desktop-linux)."
+            },
+            {
+              "type": "context",
+              "content": "- **Inline code suggestions**: Desktop does not provide autocomplete-style suggestions. It works through conversational prompts and explicit code changes."
+            },
+            {
+              "type": "context",
+              "content": "- **Agent teams**: parallel Claude Code sessions that message each other are available in the [CLI](/en/agent-teams), not in Desktop. For multi-agent work inside one session, use [dynamic workflows](/en/workflows), which run in Desktop."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "feature-availability.md",
+      "additions": 9,
+      "deletions": 5,
+      "explanation": "プロバイダごとの機能提供表にClaude Platform on AWSが追加され、/loopコマンドの動作制限などが詳しく記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -54,7 +54,7 @@ These require signing in with a claude.ai account and are not reachable with an",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- [Artifacts](/en/artifacts): Pro, Max, Team, and Enterprise plans"
+            },
+            {
+              "type": "context",
+              "content": "- [Voice dictation](/en/voice-dictation)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Desktop is the partial exception: Enterprise deployments can route Desktop to Google Cloud's Agent Platform or a gateway provider via [managed settings](https://claude.com/docs/third-party/claude-desktop/configuration), and [Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview) runs the Code tab on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or a self-hosted LLM gateway. For per-plan availability of these features, see [Availability by subscription plan](#availability-by-subscription-plan)."
+            },
+            {
+              "type": "added",
+              "content": "Desktop is the partial exception: [gateway routing can be configured in the app or by an administrator](/en/llm-gateway-connect#desktop-app), Enterprise deployments can route Desktop to Google Cloud's Agent Platform or a gateway provider via [managed settings](https://claude.com/docs/third-party/claude-desktop/configuration), and [Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview) runs the Code tab on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or a self-hosted LLM gateway. For per-plan availability of these features, see [Availability by subscription plan](#availability-by-subscription-plan)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### CLI capabilities that vary by provider"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -112,7 +112,7 @@ See note 2",
+          "lines": [
+            {
+              "type": "context",
+              "content": "✓"
+            },
+            {
+              "type": "context",
+              "content": "✓"
+            },
+            {
+              "type": "context",
+              "content": "See note 3"
+            },
+            {
+              "type": "removed",
+              "content": "✓"
+            },
+            {
+              "type": "added",
+              "content": "See note 3"
+            },
+            {
+              "type": "context",
+              "content": "See note 3"
+            },
+            {
+              "type": "context",
+              "content": "See note 3"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -162,7 +162,7 @@ See note 4",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "1 On Google Cloud's Agent Platform, web search is available for Claude 4 models and later."
+            },
+            {
+              "type": "context",
+              "content": "2 On these providers, auto mode supports only Claude Sonnet 5, Opus 4.7, and Opus 4.8. See [Auto mode configuration](/en/auto-mode-config). In v2.1.158 through v2.1.206, auto mode on these providers also required setting `CLAUDE_CODE_ENABLE_AUTO_MODE=1`; v2.1.207 removed the requirement."
+            },
+            {
+              "type": "removed",
+              "content": "3 Explicit intervals such as `/loop every 2 hours` work on every provider. On Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry, `/loop` cannot pick its own interval or supply the default maintenance prompt, so a prompt with no interval runs every 10 minutes, and `/loop` with no arguments shows the usage message. See [Scheduled tasks](/en/scheduled-tasks)."
+            },
+            {
+              "type": "added",
+              "content": "3 Explicit intervals such as `/loop every 2 hours` work on every provider. On Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, and Microsoft Foundry, `/loop` cannot pick its own interval or supply the default maintenance prompt, so a prompt with no interval runs every 10 minutes, and `/loop` with no arguments shows the usage message. See [Scheduled tasks](/en/scheduled-tasks)."
+            },
+            {
+              "type": "context",
+              "content": "4 Subject to your agreement with the cloud provider."
+            },
+            {
+              "type": "context",
+              "content": "5 Dashboard and API only. [Contribution metrics](/en/analytics#enable-contribution-metrics) requires a claude.ai Team or Enterprise organization."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -185,9 +185,13 @@ Each tab lists what is unavailable or partially supported on that provider, with",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), the [analytics dashboard](/en/analytics), [server-managed settings](/en/server-managed-settings), and the [`/design-sync` and `/radio` commands](/en/commands#all-commands)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Available where Amazon Bedrock is not:** [web search](/en/tools-reference#websearch-tool-behavior) and [`/loop` self-pacing](/en/scheduled-tasks)."
+            },
+            {
+              "type": "added",
+              "content": "**Available where Amazon Bedrock is not:** [web search](/en/tools-reference#websearch-tool-behavior)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Partial support:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Alternatives:** for scheduling, use [`/loop`](/en/scheduled-tasks) instead of `/schedule`. For cloud sessions, use [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd)."
+            },
+            {
+              "type": "added",
+              "content": "- [`/loop`](/en/scheduled-tasks): explicit intervals only"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Alternatives:** for scheduling, use [`/loop`](/en/scheduled-tasks) with an explicit interval instead of `/schedule`. For cloud sessions, use [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), the [analytics dashboard](/en/analytics), [server-managed settings](/en/server-managed-settings), and the [`/design-sync` and `/radio` commands](/en/commands#all-commands)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fullscreen.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "フルスクリーン表示への切り替え方法として、古いバージョン向けの環境変数設定に関する記述が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/fullscreen.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Enable a smoother, flicker-free rendering mode with mouse support and stable memory usage in long conversations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Fullscreen rendering is an opt-in [research preview](#research-preview). Run `/tui fullscreen` to switch in your current conversation, or set `CLAUDE_CODE_NO_FLICKER=1` on versions before v2.1.110. Behavior may change based on feedback."
+            },
+            {
+              "type": "added",
+              "content": "Fullscreen rendering is an opt-in [research preview](#research-preview). Run `/tui fullscreen` to switch in your current conversation. Behavior may change based on feedback."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fullscreen rendering is an alternative rendering path for the Claude Code CLI that eliminates flicker, keeps memory usage flat in long conversations, and adds mouse support. It draws the interface on the terminal's alternate screen buffer, like `vim` or `htop`, and only renders messages that are currently visible. This reduces the amount of data sent to your terminal on each update."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 12,
+      "deletions": 1,
+      "explanation": "UserPromptSubmitフックでコンテキストを注入する際、hookSpecificOutput内にネストして記述する必要があるという具体的なJSON構造が示されました。",
+      "hunks": [
+        {
+          "header": "@@ -552,7 +552,18 @@ Returning `\"allow\"` skips the interactive prompt but doesn't override [permissio",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Other events use different decision patterns. For example, `PostToolUse` and `Stop` hooks use a top-level `decision: \"block\"` field, while `PermissionRequest` uses `hookSpecificOutput.decision.behavior`. See the [summary table](/en/hooks#decision-control) in the reference for a full breakdown by event."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For `UserPromptSubmit` hooks, use `additionalContext` instead to inject text into Claude's context."
+            },
+            {
+              "type": "added",
+              "content": "For `UserPromptSubmit` hooks, use `hookSpecificOutput.additionalContext` instead to inject text into Claude's context. Nest `additionalContext` inside `hookSpecificOutput`; if you place it at the top level of the JSON, Claude Code silently ignores it. For example, this output adds the current branch state to every prompt:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"hookSpecificOutput\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"hookEventName\": \"UserPromptSubmit\","
+            },
+            {
+              "type": "added",
+              "content": "    \"additionalContext\": \"Current branch: release-42. Deploy freeze until Friday.\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "See [UserPromptSubmit decision control](/en/hooks#userpromptsubmit-decision-control) for the full output shape, including blocking prompts and setting the session title."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Hooks with `type: \"prompt\"` handle output differently: see [Prompt-based hooks](#prompt-based-hooks)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway-connect.md",
+      "additions": 5,
+      "deletions": 2,
+      "explanation": "デスクトップアプリのデベロッパーモードを有効化することで、GUIから直接ゲートウェイURLを設定できる手順が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -5,7 +5,7 @@ source: https://code.claude.com/docs/en/llm-gateway-connect.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Connect Claude Code to an LLM gateway"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "> Point Claude Code at your organization's LLM gateway. Check whether your admin already configured it, or set the base URL and credential yourself for the CLI, VS Code, GitHub Actions, and the Agent SDK, then verify the connection and fix gateway errors."
+            },
+            {
+              "type": "added",
+              "content": "> Point Claude Code at your organization's LLM gateway. Check whether your admin already configured it, or set the base URL and credential yourself, then verify the connection and fix gateway errors."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "An [LLM gateway](/en/llm-gateway) is a proxy your organization runs between Claude Code and the model provider. When your organization uses one, Claude Code authenticates to the gateway with a credential your organization issues instead of your personal claude.ai login."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -160,7 +160,10 @@ Set the gateway variables for the [VS Code extension](/en/vs-code) in `claudeCod",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Desktop app"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The desktop app reads gateway routing from an [administrator-distributed configuration](https://claude.com/docs/third-party/claude-desktop/gateway), not from `ANTHROPIC_BASE_URL` or `settings.json`. If your organization has distributed it, the desktop app routes through the gateway with no setup on your part; if not, use the terminal CLI or VS Code extension for gateway sessions. Administrators distribute the configuration as described in the [organization rollout](/en/llm-gateway-rollout#distribute-through-managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": "The desktop app reads gateway routing from its [third-party inference configuration](https://claude.com/docs/third-party/claude-desktop/gateway), not from `ANTHROPIC_BASE_URL` or `settings.json`. That configuration can come from your organization or from a form in the app itself:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Distributed by an administrator**: if your organization has [deployed the configuration](/en/llm-gateway-rollout#distribute-through-managed-settings), the desktop app routes through the gateway with no setup on your part"
+            },
+            {
+              "type": "added",
+              "content": "- **Configured locally**: for devices without an administrator-distributed configuration, open Help → Troubleshooting → Enable Developer Mode, which restarts the app with a Developer menu. Then open Developer → Configure Third-Party Inference and enter your gateway base URL. An administrator-distributed configuration takes precedence and makes this form read-only"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "With the gateway configuration active, the desktop app runs sessions on your local machine only: the environment picker doesn't offer SSH sessions or Anthropic-hosted cloud environments, and [Remote Control](/en/remote-control) is unavailable. To use Claude Code on a remote host through the gateway, run the CLI on that host with [`ANTHROPIC_BASE_URL` and the gateway credential](#set-the-base-url-and-credential) set there."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway-rollout.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "デスクトップアプリ向けのゲートウェイ設定ファイルがMDM経由で配布可能である旨の解説が補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -175,7 +175,7 @@ For the credential, distribute one [`apiKeyHelper`](/en/llm-gateway-connect#rota",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Some environments need separate delivery:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- The desktop app reads gateway routing only from its MDM-delivered third-party inference configuration; deploy that file alongside managed settings so desktop sessions route through the gateway too. See the [desktop third-party configuration docs](https://claude.com/docs/third-party/claude-desktop/configuration) and the [desktop gateway docs](https://claude.com/docs/third-party/claude-desktop/gateway)"
+            },
+            {
+              "type": "added",
+              "content": "- The desktop app reads gateway routing from its third-party inference configuration, not from managed settings; deploy that file through MDM alongside managed settings so desktop sessions route through the gateway too. See the [desktop third-party configuration docs](https://claude.com/docs/third-party/claude-desktop/configuration) and the [desktop gateway docs](https://claude.com/docs/third-party/claude-desktop/gateway)"
+            },
+            {
+              "type": "context",
+              "content": "- CI runners need `ANTHROPIC_BASE_URL` and the credential set in the [runner's environment](/en/llm-gateway-connect#configure-each-surface)"
+            },
+            {
+              "type": "context",
+              "content": "- WSL on managed Windows machines reads the Windows managed settings only when [`wslInheritsWindowsSettings`](/en/settings#available-settings) is `true`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "platforms.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "デスクトップアプリにおけるゲートウェイプロバイダのサポート状況に関する記述が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -22,7 +22,7 @@ Choose a platform based on how you like to work and where your project lives.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [Web](/en/claude-code-on-the-web) | Long-running tasks that don't need much steering, or work that should continue when you're offline | Anthropic-managed cloud, continues after you disconnect |"
+            },
+            {
+              "type": "context",
+              "content": "| Mobile | Starting and monitoring tasks while away from your computer | Cloud sessions from the Claude app for iOS and Android, [Remote Control](/en/remote-control) for local sessions, [Dispatch](/en/desktop#sessions-from-dispatch) to Desktop on Pro and Max |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The CLI is the most complete surface for terminal-native work: scripting and the Agent SDK are CLI-only. Third-party providers also work in [VS Code](/en/vs-code#use-third-party-providers). Enterprise [Desktop](/en/desktop) deployments support Google Cloud's Agent Platform and gateway providers; for Amazon Bedrock or Microsoft Foundry, use the CLI or VS Code, or [Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview), which runs the Code tab on those providers. Desktop and the IDE extensions trade some CLI-only features for visual review and tighter editor integration. The web runs in Anthropic's cloud, so tasks keep going after you disconnect. Mobile is a thin client into those same cloud sessions or into a local session via Remote Control, and can send tasks to Desktop with Dispatch."
+            },
+            {
+              "type": "added",
+              "content": "The CLI is the most complete surface for terminal-native work: scripting and the Agent SDK are CLI-only. Third-party providers also work in [VS Code](/en/vs-code#use-third-party-providers). Enterprise [Desktop](/en/desktop) deployments support Google Cloud's Agent Platform, and Desktop supports [gateway providers](/en/llm-gateway-connect#desktop-app); for Amazon Bedrock or Microsoft Foundry, use the CLI or VS Code, or [Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview), which runs the Code tab on those providers. Desktop and the IDE extensions trade some CLI-only features for visual review and tighter editor integration. The web runs in Anthropic's cloud, so tasks keep going after you disconnect. Mobile is a thin client into those same cloud sessions or into a local session via Remote Control, and can send tasks to Desktop with Dispatch."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can mix surfaces on the same project. Configuration, project memory, and MCP servers are shared across the local surfaces."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-dependencies.md",
+      "additions": 30,
+      "deletions": 3,
+      "explanation": "複数のプラグインを1つのパッケージとしてまとめてインストール・配布できる「バンドル機能」の定義方法が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -5,7 +5,7 @@ source: https://code.claude.com/docs/en/plugin-dependencies.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Constrain plugin dependency versions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "> Declare version constraints on plugin dependencies so your plugin keeps working when an upstream plugin ships a breaking change."
+            },
+            {
+              "type": "added",
+              "content": "> Declare version constraints on plugin dependencies, and bundle a curated plugin set behind one install."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A plugin can depend on other plugins by listing them in `plugin.json` or in its marketplace entry. By default, a dependency tracks the latest available version, so an upstream release can change the dependency under your plugin without warning. Version constraints let you hold a dependency at a tested version range until you choose to move."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -13,8 +13,6 @@ When you install a plugin that declares dependencies, Claude Code resolves and i",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This guide is for plugin authors who declare dependencies in `plugin.json` and for marketplace maintainers who tag releases. To install plugins that have dependencies, see [Discover and install plugins](/en/discover-plugins). For the full manifest schema, see the [Plugins reference](/en/plugins-reference)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Dependency version constraints require Claude Code v2.1.110 or later."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Why constrain dependency versions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Consider an internal marketplace where two teams publish plugins. The platform team maintains `secrets-vault`, an MCP server that wraps a secrets backend. The deploy team maintains `deploy-kit`, which calls `secrets-vault` to fetch credentials during deploys."
+            }
+          ]
+        },
+        {
+          "header": "@@ -50,6 +48,35 @@ An entry can be a bare string with only the plugin name, like `\"audit-logger\"` i",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `version` field accepts any expression supported by Node's `semver` package, including caret, tilde, hyphen, and comparator ranges. Pre-release versions such as `2.0.0-beta.1` are excluded unless your range opts in with a pre-release suffix like `^2.0.0-0`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Bundle plugins for a team"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Besides the required `name`, a plugin manifest can consist of only a `dependencies` array. Installing it pulls in every dependency, which makes it a way to package a curated plugin set behind one install."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For example, a platform team can publish role-specific bundles in an internal marketplace so engineers run one `claude plugin install` instead of installing each tool separately:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json .claude-plugin/plugin.json theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"name\": \"backend-standard\","
+            },
+            {
+              "type": "added",
+              "content": "  \"version\": \"1.0.0\","
+            },
+            {
+              "type": "added",
+              "content": "  \"description\": \"Standard plugin set for backend engineers\","
+            },
+            {
+              "type": "added",
+              "content": "  \"dependencies\": ["
+            },
+            {
+              "type": "added",
+              "content": "    \"secrets-vault\","
+            },
+            {
+              "type": "added",
+              "content": "    \"deploy-kit\","
+            },
+            {
+              "type": "added",
+              "content": "    { \"name\": \"db-migrate\", \"version\": \"^3.0\" },"
+            },
+            {
+              "type": "added",
+              "content": "    \"oncall-runbook\""
+            },
+            {
+              "type": "added",
+              "content": "  ]"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Installing `backend-standard` resolves and installs all four dependencies."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To add a tool to the standard set later, publish a new `backend-standard` version with the extra dependency. Auto-update is off by default for non-Anthropic marketplaces, so engineers pick up the new version in one of two ways:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Enable auto-update for the marketplace in `/plugin`. The next auto-update moves the bundle to the new version and installs any dependencies it adds."
+            },
+            {
+              "type": "added",
+              "content": "- Run `claude plugin update backend-standard`, then `/reload-plugins` to install the newly added dependencies."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To roll bundles out across an organization, add the bundle plugin to `enabledPlugins` in [managed settings](/en/settings#enabledplugins)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Depend on a plugin from another marketplace"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "By default, Claude Code refuses to auto-install a dependency that lives in a different marketplace than the plugin declaring it. This prevents one marketplace from silently pulling in plugins from a source you have not reviewed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-hints.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "プラグインのヒントプロンプト機能が、公式マーケットプレイスに登録されたプラグインのみで動作する制約が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -28,6 +28,8 @@ Claude Code never installs a plugin automatically. The user always confirms.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Emit the hint"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Hint prompts only fire for plugins listed in the official Anthropic marketplace. See [Get your plugin into the official marketplace](#get-your-plugin-into-the-official-marketplace) before you ship the integration."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Gate emission on an environment variable so the marker is unlikely to appear when a human runs your CLI directly, then write the tag to stderr on its own line. Choose which variable to check:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `CLAUDECODE`: set on every Claude Code version, so it reaches the most sessions. It is also set in tmux sessions and stdio MCP server subprocesses that Claude Code starts. IDE extensions also set it in their integrated terminals, where a human may be running your CLI directly."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "remote-control.md",
+      "additions": 0,
+      "deletions": 2,
+      "explanation": "特定のバージョン以降で必要となるプッシュ通知に関する注釈が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -201,8 +201,6 @@ When Remote Control is active, Claude can send push notifications to your phone.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude decides when to push. It typically sends one when a long-running task finishes or when it needs a decision from you to continue. You can also request a push in your prompt, for example `notify me when the tests finish`. Beyond the two on/off toggles below, there is no per-event configuration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Mobile push notifications require Claude Code v2.1.110 or later."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To set up mobile push notifications:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Download the Claude app for [iOS](https://apps.apple.com/us/app/claude-by-anthropic/id6473753684) or [Android](https://play.google.com/store/apps/details?id=com.anthropic.claude)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "scheduled-tasks.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "Claude Platform on AWS利用時の/loopコマンドにおいて、実行間隔の自動選択が機能しない制限が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -72,7 +72,7 @@ When you ask for a dynamic `/loop` schedule, Claude may use the [Monitor tool](/",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A dynamically scheduled loop appears in your [scheduled task list](#manage-scheduled-tasks) like any other task, so you can list or cancel it the same way. The [jitter rules](#jitter) don't apply to it, but the [seven-day expiry](#seven-day-expiry) does: the loop ends automatically seven days after you start it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry, a prompt with no interval runs on a fixed 10-minute schedule instead."
+            },
+            {
+              "type": "added",
+              "content": "On Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, and Microsoft Foundry, a prompt with no interval runs on a fixed 10-minute schedule instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Run the built-in maintenance prompt"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -90,7 +90,7 @@ Claude does not start new initiatives outside that scope, and irreversible actio",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A bare `/loop` runs this prompt at a [dynamically chosen interval](#let-claude-choose-the-interval). Add an interval, for example `/loop 15m`, to run it on a fixed schedule instead. To replace the built-in prompt with your own default, see [Customize the default prompt with loop.md](#customize-the-default-prompt-with-loop-md)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry, `/loop` with no prompt prints the usage message instead of running the maintenance prompt."
+            },
+            {
+              "type": "added",
+              "content": "On Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, and Microsoft Foundry, `/loop` with no prompt prints the usage message instead of running the maintenance prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Customize the default prompt with loop.md"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -114,7 +114,7 @@ quiet, say so in one line.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Edits to `loop.md` take effect on the next iteration, so you can refine the instructions while a loop is running. When no `loop.md` exists in either location, the loop falls back to the built-in maintenance prompt. Keep the file concise: content beyond 25,000 bytes is truncated."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry, `loop.md` isn't read and `/loop` with no prompt prints the usage message instead."
+            },
+            {
+              "type": "added",
+              "content": "On Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, and Microsoft Foundry, `loop.md` isn't read and `/loop` with no prompt prints the usage message instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Stop a loop"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "slack.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Slack版の代替となるClaude Tagの紹介URLが製品ページのものに更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/slack.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Delegate coding tasks directly from your Slack workspace"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code in Slack is being replaced by [Claude Tag](https://claude.com/docs/claude-tag/overview) for Team and Enterprise workspaces. Claude Tag runs @Claude as your organization's shared identity with admin-configured access, under the same Slack app, so there is nothing to reinstall and existing setups continue to work during the transition. To switch a workspace, see [Migrate from the earlier Claude in Slack](https://claude.com/docs/claude-tag/admins/migrate-from-earlier)."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code in Slack is being replaced by [Claude Tag](https://claude.com/product/tag) for Team and Enterprise workspaces. Claude Tag runs @Claude as your organization's shared identity with admin-configured access, under the same Slack app, so there is nothing to reinstall and existing setups continue to work during the transition. To switch a workspace, see [Migrate from the earlier Claude in Slack](https://claude.com/docs/claude-tag/admins/migrate-from-earlier)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code in Slack brings the power of Claude Code directly into your Slack workspace. When you mention `@Claude` with a coding task, Claude automatically detects the intent and creates a Claude Code session on the web, allowing you to delegate development work without leaving your team conversations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "自動ループの再スケジュールを行うScheduleWakeupツールが、Claude Platform on AWSでは利用できないことが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -39,7 +39,7 @@ The Permission required column shows whether the tool prompts in the default per",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ReadMcpResourceTool` | Reads a specific MCP resource by URI | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `RemoteTrigger` | Creates, updates, runs, and lists [Routines](/en/routines) on claude.ai. Backs the `/schedule` command. Routines live on claude.ai and require a Pro, Max, Team, or Enterprise plan, so this tool is not accessible from Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `ReportFindings` | Reports code-review findings as a structured list, with a file, summary, and failure scenario per finding, so Claude Code can render them instead of printing them as text. Claude calls it when active code-review instructions tell it to. Requires Claude Code v2.1.196 or later. As of v2.1.199, a finding can also carry an optional `category` slug, such as `correctness` or `test-coverage`, shown next to the file location in the rendered list | No |"
+            },
+            {
+              "type": "removed",
+              "content": "| `ScheduleWakeup` | Reschedules the next iteration of a [self-paced `/loop`](/en/scheduled-tasks#let-claude-choose-the-interval). Claude calls this at the end of each iteration to pick when the next one runs, between one minute and one hour out; you don't call it directly. To end the loop instead, Claude calls it with `stop: true`, which cancels the pending wakeup. The `stop` field requires Claude Code v2.1.202 or later. The pending wakeup appears in `session_crons` in [Stop hook input](/en/hooks#stop-input). Not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry, where a `/loop` prompt with no interval runs on a fixed schedule instead | No |"
+            },
+            {
+              "type": "added",
+              "content": "| `ScheduleWakeup` | Reschedules the next iteration of a [self-paced `/loop`](/en/scheduled-tasks#let-claude-choose-the-interval). Claude calls this at the end of each iteration to pick when the next one runs, between one minute and one hour out; you don't call it directly. To end the loop instead, Claude calls it with `stop: true`, which cancels the pending wakeup. The `stop` field requires Claude Code v2.1.202 or later. The pending wakeup appears in `session_crons` in [Stop hook input](/en/hooks#stop-input). Not available on Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, or Microsoft Foundry, where a `/loop` prompt with no interval runs on a fixed schedule instead | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `SendMessage` | Sends a message to an [agent team](/en/agent-teams) teammate, or [resumes a subagent](/en/sub-agents#resume-subagents) by its agent ID or name. A completed subagent auto-resumes in the background; a subagent you stopped from `/tasks` doesn't and the call returns a refusal. Structured team-protocol messages require agent teams. A receiver never treats a message from another agent as your consent or approval. As of v2.1.198, a subagent treats a message from the agent that launched it as normal task direction rather than as a peer request. As of v2.1.199, a send to a name that now resolves to a different agent than it did earlier in the conversation is refused instead of delivered; see [Resume subagents](/en/sub-agents#resume-subagents) | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `SendUserFile` | Sends files from the session to you with an optional caption, so a generated report, diagram, screenshot, or built artifact reaches your device instead of only being mentioned in the transcript. As of v2.1.196, the optional `display` input controls presentation: `render` opens the file inline in the client, `attach` shows a download card only, and when unset the client decides by file type. Available when a [Remote Control](/en/remote-control) client is connected or the session runs in a managed cloud environment such as [Claude Code on the web](/en/claude-code-on-the-web). Delivery runs through Anthropic-hosted infrastructure, so the tool is not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `ShareOnboardingGuide` | Uploads `ONBOARDING.md` and returns a share link teammates can open in Claude Code. Called from `/team-onboarding` after the guide is written. Available to claude.ai subscribers on Pro, Max, Team, and Enterprise plans | Yes |"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
