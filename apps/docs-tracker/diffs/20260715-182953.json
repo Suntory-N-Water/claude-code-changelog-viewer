@@ -1,0 +1,2344 @@
+{
+  "id": "20260715-182953",
+  "timestamp": "2026-07-15T18:29:53.710Z",
+  "aiSummary": "Amazon BedrockやGoogle Vertex AI向けの対話型セットアップウィザードが追加され、サードパーティプラットフォームでの初期設定が容易になりました。管理者向けの設定オプションが拡充され、特定のログイン方法の強制や外部ブラウジングの制限、プラグイン推奨マーケットプレイスの制御が可能になっています。MCPツールの出力制限が25,000トークンに設定され、制限を超えた際の挙動や環境変数による調整方法が明文化されました。各種コマンドやツールにおいて、/diffの操作性向上やワークツリー使用時のGit挙動、サンドボックス環境での動作仕様が詳しく追記されています。",
+  "files": [
+    {
+      "filename": "about-claude/models/overview.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Claudeモデルの提供プラットフォーム一覧において、Amazon Bedrockなどの記載順序が変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -8,7 +8,7 @@ Claude is a family of state-of-the-art large language models developed by Anthro",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you're unsure which model to use, start with **Claude Opus 4.8** for complex agentic coding and enterprise work. For workloads that need the highest available capability, use [Claude Fable 5](#claude-fable-5-and-claude-mythos-5)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "All current Claude models support text and image input, text output, multilingual capabilities, and vision. Models are available through the Claude API, [Claude Platform on AWS](/docs/en/build-with-claude/claude-platform-on-aws), [Amazon Bedrock](/docs/en/build-with-claude/claude-in-amazon-bedrock), [Google Cloud](/docs/en/build-with-claude/claude-on-vertex-ai), and [Microsoft Foundry](/docs/en/build-with-claude/claude-in-microsoft-foundry)."
+            },
+            {
+              "type": "added",
+              "content": "All current Claude models support text and image input, text output, multilingual capabilities, and vision. Models are available through the Claude API, [Amazon Bedrock](/docs/en/build-with-claude/claude-in-amazon-bedrock), [Claude Platform on AWS](/docs/en/build-with-claude/claude-platform-on-aws), [Google Cloud](/docs/en/build-with-claude/claude-on-vertex-ai), and [Microsoft Foundry](/docs/en/build-with-claude/claude-in-microsoft-foundry)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Once you've picked a model, [learn how to make your first API call](/docs/en/get-started)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -16,7 +16,7 @@ Once you've picked a model, [learn how to make your first API call](/docs/en/get",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Fable 5 (`claude-fable-5`) is Anthropic's most capable widely released model. Claude Mythos 5 (`claude-mythos-5`) shares Claude Fable 5's specs and pricing and joins the invitation-only Claude Mythos Preview (`claude-mythos-preview`) within [Project Glasswing](https://anthropic.com/glasswing). See [Introducing Claude Fable 5 and Claude Mythos 5](/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5) for launch details and API changes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Fable 5 is generally available on the Claude API, Claude Platform on AWS, Amazon Bedrock, Google Cloud, and Microsoft Foundry beginning June 9, 2026. Claude Mythos 5 is not generally available: it is offered in limited availability to approved customers in [Project Glasswing](https://anthropic.com/glasswing), beginning the same day. For access, contact your Anthropic, AWS, or Google Cloud account team."
+            },
+            {
+              "type": "added",
+              "content": "Claude Fable 5 is generally available on the Claude API, Amazon Bedrock, Claude Platform on AWS, Google Cloud, and Microsoft Foundry beginning June 9, 2026. Claude Mythos 5 is not generally available: it is offered in limited availability to approved customers in [Project Glasswing](https://anthropic.com/glasswing), beginning the same day. For access, contact your Anthropic, AWS, or Google Cloud account team."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Latest models comparison"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "admin-setup.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "管理者設定にログイン方法の強制やプラグイン推奨マーケットプレイスの制御に関する項目が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -86,9 +86,10 @@ Managed settings can lock down tools, sandbox execution, restrict MCP servers an",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [Sandboxing](/en/sandboxing) | OS-level filesystem and network isolation with domain allowlists | `sandbox.enabled`, `sandbox.network.allowedDomains` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Managed policy CLAUDE.md](/en/memory#deploy-organization-wide-claude-md) | Org-wide instructions loaded in every session, can't be excluded | File at the managed policy path |"
+            },
+            {
+              "type": "context",
+              "content": "| [MCP server control](/en/managed-mcp) | Restrict which MCP servers users can add or connect to, or deploy a fixed set | `allowedMcpServers`, `deniedMcpServers`, `allowManagedMcpServersOnly`, or a deployed `managed-mcp.json` file |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Plugin marketplace control](/en/plugin-marketplaces#managed-marketplace-restrictions) | Restrict which marketplace sources users can add and install from, and reject the CLI flags that sideload plugins, agents, and MCP servers for a single run | `strictKnownMarketplaces`, `blockedMarketplaces`, `disableSideloadFlags` |"
+            },
+            {
+              "type": "added",
+              "content": "| [Plugin marketplace control](/en/plugin-marketplaces#managed-marketplace-restrictions) | Restrict which marketplace sources users can add and install from, reject the CLI flags that sideload plugins, agents, and MCP servers for a single run, and allowlist which marketplaces' plugins can be suggested | `strictKnownMarketplaces`, `blockedMarketplaces`, `disableSideloadFlags`, `pluginSuggestionMarketplaces` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Customization lockdown](/en/settings#strictpluginonlycustomization) | Block skills, agents, hooks, and MCP servers from user and project sources, so they can only come from plugins or managed settings | `strictPluginOnlyCustomization` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Hook restrictions](/en/settings#hook-configuration) | Only managed hooks load; restrict HTTP hook URLs | `allowManagedHooksOnly`, `allowedHttpHookUrls` |"
+            },
+            {
+              "type": "added",
+              "content": "| [Login enforcement](/en/settings#available-settings) | Restrict interactive login to a specific method or Anthropic organization. When set, sessions authenticated by `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper` are blocked at startup; cloud provider sessions aren't affected | `forceLoginMethod`, `forceLoginOrgUUID` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Disable agent view](/en/agent-view#how-background-sessions-are-hosted) | Turn off `claude agents`, `--bg`, `/background`, and the on-demand supervisor | `disableAgentView` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Model restrictions](/en/model-config#restrict-model-selection) | `availableModels` filters which models appear in the picker. Adding `enforceAvailableModels` also constrains the auto-selected default model. See [surface coverage](/en/model-config#surface-coverage) for how this setting reaches the CLI, web, and IDE | `availableModels`, `enforceAvailableModels` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Version floor](/en/settings) | Prevent auto-update from installing below an org-wide minimum | `minimumVersion` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/mcp.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "MCPツールの出力がトークン制限を超えた際の、ファイル保存とエラーメッセージによる通知の仕組みが解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -720,6 +720,10 @@ MCP server connections time out after 30 seconds by default. If your server take",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Pre-warming the server before starting your agent"
+            },
+            {
+              "type": "context",
+              "content": "- Checking server logs for slow initialization causes"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Tool output exceeds maximum allowed tokens"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The SDK applies the same MCP output limit as Claude Code. When a tool result is larger than 25,000 tokens, the full output is saved to a file and the tool result is replaced with an error message that names the file path, so the agent can read the output back in portions. Raise the limit with the [`MAX_MCP_OUTPUT_TOKENS`](/en/env-vars) environment variable. See [MCP output limits and warnings](/en/mcp#mcp-output-limits-and-warnings) for the full behavior, including how a server can declare a higher per-tool limit."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **[Custom tools guide](/en/agent-sdk/custom-tools)**: Build your own MCP server that runs in-process with your SDK application"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/permissions.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "ReadおよびEditルールにおけるパスパターンの指定方法と、絶対パスおよび相対パスの解釈ルールが詳細化されました。",
+      "hunks": [
+        {
+          "header": "@@ -56,6 +56,10 @@ This page focuses on **allow and deny rules** and **permission modes**. For the",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Allow rules accept tool-name globs only after a literal `mcp__<server>__` prefix. The server segment must be glob-free so the rule names a specific server you configured: `mcp__puppeteer__*` matches every tool from the `puppeteer` server, and `mcp__github__get_*` matches its `get_` tools. An unanchored entry like `allowed_tools=[\"*\"]` or `allowed_tools=[\"mcp__*\"]` is ignored with a startup warning and does not auto-approve anything."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Scoped rules for `Read` and `Edit` take a path pattern. `Edit(path)` rules govern all built-in tools that write files, including `Write` and `NotebookEdit`; a `Write(path)` rule is never matched by the file permission checks."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Use `//path` for an absolute filesystem path: a deny rule of `Edit(//secrets/**)` blocks writes anywhere under `/secrets` on disk. With a single leading slash, `Edit(/secrets/**)` anchors at the rule's source instead. For rules passed through `allowed_tools` or `disallowed_tools`, that means the session's working directory, so the rule doesn't block `/secrets` on disk. See [Read and Edit rules](/en/permissions#read-and-edit) for the four anchor forms and how rules from settings files resolve."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Auto-approved tools never reach `canUseTool`.** A tool call approved at any earlier step, by `acceptEdits` or `bypassPermissions`, or by an allow rule, skips your `canUseTool` callback, so permission checks you put there are silently bypassed for that tool. The exception is tools that require user interaction, `AskUserQuestion` and MCP tools marked with [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool), which reach the callback even when an allow rule matches. Coverage depends on the entry's form: a bare name like `Read` or `mcp__github__get_issue` auto-approves every call to that tool, while a scoped rule like `Bash(ls *)` auto-approves only matching calls and other `Bash` calls still fall through to the callback. For checks that must run on every tool call, use a [`PreToolUse` hook](/en/agent-sdk/hooks): hooks run before every other step, and a hook deny applies even in `bypassPermissions` mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For a locked-down agent, pair `allowedTools` with `permissionMode: \"dontAsk\"`. Listed tools are approved; anything else is denied outright instead of prompting:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Python SDKのタイムアウト設定において、最大値を超えた場合は最大値に固定される仕様が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -2374,7 +2374,7 @@ Asks the user clarifying questions during execution. See [Handle approvals and u",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```python"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "    \"command\": str,  # The command to execute"
+            },
+            {
+              "type": "removed",
+              "content": "    \"timeout\": int | None,  # Optional timeout in milliseconds (max 600000)"
+            },
+            {
+              "type": "added",
+              "content": "    \"timeout\": int | None,  # Optional timeout in milliseconds (max 600000; higher values are clamped to the max)"
+            },
+            {
+              "type": "context",
+              "content": "    \"description\": str | None,  # Clear, concise description (5-10 words)"
+            },
+            {
+              "type": "context",
+              "content": "    \"run_in_background\": bool | None,  # Set to true to run in background"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/tool-search.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "試験的機能を無効化する環境変数がツール検索機能に与える影響について説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -38,6 +38,8 @@ Tool search is on by default. It is disabled by default on Google Cloud's Agent",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `auto:N` | Same as `auto` with a custom percentage. `auto:5` activates when tool definitions exceed 5% of the context window. Lower values activate sooner. |"
+            },
+            {
+              "type": "context",
+              "content": "| `false` | Tool search is off. All tool definitions are loaded into context on every turn. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Setting [`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`](/en/env-vars) keeps tool search off, and `ENABLE_TOOL_SEARCH` can't override it. The variable strips the beta header that `defer_loading` tool definitions and `tool_reference` content blocks require."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Tool search applies to all registered tools, whether they come from remote MCP servers or [custom SDK MCP servers](/en/agent-sdk/custom-tools). When using `auto`, the threshold is based on the combined size of all tool definitions across all servers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Set the value in the `env` option on `query()`. This example connects to a remote MCP server that exposes many tools, pre-approves all of them with a wildcard, and uses `auto:5` so tool search activates when their definitions exceed 5% of the context window:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "TypeScript SDKのタイムアウト設定にミリ秒単位であることと最大値に関する注釈が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1853,7 +1853,7 @@ Asks the user clarifying questions during execution. See [Handle approvals and u",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```typescript"
+            },
+            {
+              "type": "context",
+              "content": "type BashInput = {"
+            },
+            {
+              "type": "context",
+              "content": "  command: string;"
+            },
+            {
+              "type": "removed",
+              "content": "  timeout?: number;"
+            },
+            {
+              "type": "added",
+              "content": "  timeout?: number; // milliseconds, max 600000; higher values are clamped to the max"
+            },
+            {
+              "type": "context",
+              "content": "  description?: string;"
+            },
+            {
+              "type": "context",
+              "content": "  run_in_background?: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "  dangerouslyDisableSandbox?: boolean;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "セットアップウィザードが現在のピン留めモデルを保持することや、設定の書き込み先ディレクトリに関する情報が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -92,7 +92,7 @@ If you have AWS credentials and want to start using Claude Code through Amazon B",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  </Step>"
+            },
+            {
+              "type": "context",
+              "content": "</Steps>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "After you've signed in, run `/setup-bedrock` any time to reopen the wizard and change your credentials, region, or model pins."
+            },
+            {
+              "type": "added",
+              "content": "After you've signed in, run `/setup-bedrock` any time to reopen the wizard and change your credentials, region, or model pins. The model pin step starts from your currently pinned models. The wizard writes to `~/.claude/settings.json`, or to `$CLAUDE_CONFIG_DIR/settings.json` when [`CLAUDE_CONFIG_DIR`](/en/env-vars#variables) is set."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Set up manually"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "authentication.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Amazon BedrockおよびVertex AI向けの対話型セットアップウィザードの存在と、管理者によるログイン制限機能について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -24,9 +24,11 @@ You can authenticate with any of these account types:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Claude Pro or Max subscription**: log in with your Claude.ai account. Subscribe at [claude.com/pricing](https://claude.com/pricing?utm_source=claude_code\\&utm_medium=docs\\&utm_content=authentication_pro_max)."
+            },
+            {
+              "type": "context",
+              "content": "- **Claude for Teams or Enterprise**: log in with the Claude.ai account your team admin invited you to."
+            },
+            {
+              "type": "context",
+              "content": "- **Claude Console**: log in with your Console credentials. Your admin must have [invited you](#claude-console-authentication) first."
+            },
+            {
+              "type": "removed",
+              "content": "- **Cloud providers**: if your organization uses [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud's Agent Platform](/en/google-vertex-ai), or [Microsoft Foundry](/en/microsoft-foundry), set the required environment variables before running `claude`. No browser login is needed."
+            },
+            {
+              "type": "added",
+              "content": "- **Cloud providers**: if your organization uses [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud's Agent Platform](/en/google-vertex-ai), or [Microsoft Foundry](/en/microsoft-foundry), set the required environment variables before running `claude`, or select **3rd-party platform** at the login prompt, which launches an interactive setup wizard for Bedrock and Vertex AI. No browser login is needed."
+            },
+            {
+              "type": "context",
+              "content": "- **Cloud gateway**: if your organization runs a self-hosted [Claude apps gateway](/en/claude-apps-gateway), sign in with corporate SSO through `/login`. The gateway-issued token is the session's only credential."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Admins can restrict interactive login with the [`forceLoginMethod` and `forceLoginOrgUUID`](/en/settings#available-settings) managed settings. When either is set, sessions authenticated by `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper` are blocked at startup; cloud provider sessions aren't affected."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To log out and re-authenticate, type `/logout` at the Claude Code prompt. Logging out also resets your first-launch setup state, so the next time you run `claude` it walks you through login and setup again."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you're having trouble logging in, see [authentication troubleshooting](/en/troubleshoot-install#login-and-authentication)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-directory.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "shell-snapshotsディレクトリが、エイリアスや関数などのシェル環境をBashツールに適用するために使用される旨が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -102,7 +102,7 @@ Files in the paths below are deleted on startup once they're older than [`cleanu",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `paste-cache/`, `image-cache/` | Contents of large pastes and attached images |"
+            },
+            {
+              "type": "context",
+              "content": "| `session-env/` | Per-session environment metadata |"
+            },
+            {
+              "type": "context",
+              "content": "| `tasks/` | Per-session task lists written by the task tools |"
+            },
+            {
+              "type": "removed",
+              "content": "| `shell-snapshots/` | Captured shell environment used by the Bash tool. Removed on clean exit. The sweep clears any left after a crash. |"
+            },
+            {
+              "type": "added",
+              "content": "| `shell-snapshots/` | Aliases, functions, and shell options captured at startup and applied by the [Bash tool](/en/tools-reference#bash-tool-behavior) to each command. Removed on clean exit. The sweep clears any left after a crash. |"
+            },
+            {
+              "type": "context",
+              "content": "| `backups/` | Timestamped copies of `~/.claude.json` taken before config migrations |"
+            },
+            {
+              "type": "context",
+              "content": "| `feedback-bundles/` | Redacted transcript archives written by `/feedback` on third-party providers or when no Anthropic credentials are configured, for sending to your Anthropic account team |"
+            },
+            {
+              "type": "context",
+              "content": "| `todos/`, `statsig/`, `logs/` | Legacy directories from older versions. No longer written. The sweep removes their contents and then the empty directory. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "バックグラウンドセッションにおけるパーミッションモードの持続性について言及が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -73,7 +73,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--cloud` | Create a new [web session](/en/claude-code-on-the-web) on claude.ai with the provided task description | `claude --cloud \"Fix the login bug\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--continue`, `-c` | Load the most recent conversation in the current directory. Includes sessions that added this directory with `/add-dir` | `claude --continue` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--dangerously-load-development-channels` | Enable [channels](/en/channels-reference#test-during-the-research-preview) that are not on the approved allowlist, for local development. Accepts `plugin:<name>@<marketplace>` and `server:<name>` entries. Prompts for confirmation | `claude --dangerously-load-development-channels server:webhook` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--dangerously-skip-permissions` | Skip permission prompts. Equivalent to `--permission-mode bypassPermissions`. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for what this does and does not skip | `claude --dangerously-skip-permissions` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--dangerously-skip-permissions` | Skip permission prompts. Equivalent to `--permission-mode bypassPermissions`. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for what this does and does not skip. For sessions started with `--bg`, the mode [persists when the supervisor restarts the session](/en/agent-view#permission-mode-model-and-effort) | `claude --dangerously-skip-permissions` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--debug` | Enable debug mode with optional category filtering (for example, `\"api,hooks\"` or `\"!statsig,!file\"`) | `claude --debug \"api,mcp\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--debug-file <path>` | Write debug logs to a specific file path. Implicitly enables debug mode. Takes precedence over `CLAUDE_CODE_DEBUG_LOGS_DIR` | `claude --debug-file /tmp/claude-debug.log` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--disable-slash-commands` | Disable all skills and commands for this session | `claude --disable-slash-commands` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "/clearコマンド後のレジューム方法の拡充と、/diffコマンドでのキーボード操作によるファイル閲覧の詳細が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -57,7 +57,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/cd <path>` | Move this session to a new working directory. The conversation's prompt cache is preserved: the new directory's [`CLAUDE.md`](/en/memory) is appended as a message instead of rebuilding the system prompt. The session is relocated to the new directory's project storage, so `--resume` and `--continue` find it from there. Prompts you to trust the directory if you haven't worked in it before. Typing a partial path shows matching directory suggestions; press `Tab` to accept one. The suggestions require Claude Code v2.1.206 or later. To grant access to an extra directory without moving the session, use `/add-dir`. Restrict or disable `/cd` targets with [`Cd` permission rules](/en/permissions#cd). Requires Claude Code v2.1.169 or later; earlier versions report `Unknown command: /cd` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/chrome` | Configure [Claude in Chrome](/en/chrome) settings |"
+            },
+            {
+              "type": "context",
+              "content": "| `/claude-api [migrate\\|managed-agents-onboard]` | **[Skill](/en/skills#bundled-skills).** Load Claude API reference material for your project's language (Python, TypeScript, Java, Go, Ruby, C#, PHP, or cURL) and Managed Agents reference. Covers tool use, streaming, batches, structured outputs, and common pitfalls. Also activates automatically when your code imports `anthropic` or `@anthropic-ai/sdk`. Run `/claude-api migrate` to upgrade existing Claude API code to a newer model: Claude asks which files to scan and which model to target, then updates model IDs, thinking configuration, and other parameters that changed between versions. Run `/claude-api managed-agents-onboard` for an interactive walkthrough that creates a new Managed Agent from scratch |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/clear [name]` | Start a new conversation with empty context. The previous conversation stays available in `/resume`. Pass a name to label the previous conversation in the `/resume` picker. To free up context while continuing the same conversation, use `/compact` instead. Aliases: `/reset`, `/new` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/clear [name]` | Start a new conversation with empty context. Pass a name to label the previous conversation in the `/resume` picker. To free up context while continuing the same conversation, use `/compact` instead. Resume the previous conversation with `/resume`, or, in the same Claude Code process, restore it from [the rewind menu's previous-session entry](/en/checkpointing#rewind-past-a-cleared-conversation). Aliases: `/reset`, `/new` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/code-review [low\\|medium\\|high\\|xhigh\\|max\\|ultra] [--fix] [--comment] [target]` | **[Skill](/en/skills#bundled-skills).** Review the current diff for correctness bugs and for reuse, simplification, and efficiency cleanups. Pass `--fix` to apply findings to your working tree, `--comment` to post them as inline GitHub PR comments, or `ultra` to run a deep [cloud review](/en/ultrareview). From v2.1.154, `/simplify` runs a separate cleanup-only review that applies fixes without hunting for bugs. See [Review a diff locally](/en/code-review#review-a-diff-locally) for effort levels and targeting |"
+            },
+            {
+              "type": "context",
+              "content": "| `/color [color\\|default]` | Set the prompt bar color for the current session. Available colors: `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`. Use `default` to reset, or run with no argument to pick a random color. When [Remote Control](/en/remote-control) is connected, the color syncs to claude.ai/code. Also available in non-interactive mode (`-p`); requires Claude Code v2.1.205 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `/compact [instructions]` | Free up context by summarizing the conversation so far. Optionally pass focus instructions for the summary. See [how compaction handles rules, skills, and memory files](/en/context-window#what-survives-compaction) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -71,7 +71,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/design-login` | Authorize design-system access for `/design-sync` with your claude.ai account |"
+            },
+            {
+              "type": "context",
+              "content": "| `/design-sync [hint]` | **[Skill](/en/skills#bundled-skills).** Convert your repo's React design system and upload it to [Claude Design](https://claude.ai/design), so designs it produces use your real components. Optionally name the design system, for example `/design-sync Acme DS`. A first-time sync verifies every component and can take a few hours on a large repo. Available on the Anthropic API; on Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry the underlying tool can't reach claude.ai, so the command is unavailable |"
+            },
+            {
+              "type": "context",
+              "content": "| `/desktop` | Continue the current session in the Claude Code Desktop app. Requires macOS or Windows and a Claude subscription. Alias: `/app` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files. As of v2.1.198, the open viewer also refreshes automatically when the repository's git state changes outside the session, such as a branch switch or commit in another terminal |"
+            },
+            {
+              "type": "added",
+              "content": "| `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files. Press Enter to open the selected file's diff, scroll it with up/down or PageUp/PageDown, and press Esc to return to the file list. As of v2.1.198, the open viewer also refreshes automatically when the repository's git state changes outside the session, such as a branch switch or commit in another terminal |"
+            },
+            {
+              "type": "context",
+              "content": "| `/doctor` | **[Skill](/en/skills#bundled-skills).** Run a setup checkup that diagnoses issues and can fix them. Checks installation health, including duplicate or leftover installs, `PATH` problems, and unparseable settings files. Finds unused skills, MCP servers, and plugins versus their context cost, flags slow [hooks](/en/hooks), and checks for a newer version on your release channel. Deduplicates local `CLAUDE.md` files against checked-in ones, trims checked-in [`CLAUDE.md`](/en/memory) files by cutting content Claude could derive from the codebase, and migrates the always-loaded guidance that remains into [skills](/en/skills) and nested `CLAUDE.md` files that load on demand. The trim cuts sections such as directory layouts, dependency lists, and architecture overviews, and keeps pitfalls, rationale, and conventions that differ from tool defaults. Also offers to make [auto mode](/en/permissions#permission-modes) your default and to [pre-approve](/en/permissions) frequently denied read-only commands. Reports findings first and asks for confirmation before changing anything. From the terminal, `claude doctor` prints read-only installation diagnostics without starting a session. Alias: `/checkup`. The `CLAUDE.md` trim check requires Claude Code v2.1.206 or later. Before v2.1.206, the version check compared Homebrew installs against the `autoUpdatesChannel` setting rather than the [installed cask's channel](/en/setup#configure-release-channel). Before v2.1.205, `/doctor` opened a read-only diagnostics screen and pressing `f` sent the report to Claude |"
+            },
+            {
+              "type": "context",
+              "content": "| `/effort [level\\|auto]` | Set the model [effort level](/en/model-config#adjust-effort-level). Accepts `low`, `medium`, `high`, `xhigh`, `max`, or `ultracode`; available levels depend on the model, and `max` and `ultracode` are session-only. `ultracode` is a Claude Code setting that combines `xhigh` reasoning with automatic [workflow](/en/workflows#let-claude-decide-with-ultracode) orchestration. `auto` resets to the model default. Without an argument, opens an interactive slider; use left and right arrows to pick a level and `Enter` to apply. Takes effect immediately without waiting for the current response to finish. Also available in non-interactive mode (`-p`) with a level argument, where it applies to the current session only and isn't saved as your default; requires Claude Code v2.1.205 or later. On Fable 5, Opus 4.8, and Opus 4.7, a non-interactive `/effort` reports `Not applied` while the [model-default effort hold](/en/model-config#adjust-effort-level) is in force, so pass `--effort` at launch instead |"
+            },
+            {
+              "type": "context",
+              "content": "| `/exit` | Exit the CLI. In an attached [background session](/en/agent-view#attach-to-a-session), this detaches and the session keeps running. Alias: `/quit` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 3,
+      "deletions": 0,
+      "explanation": "外部サイトへのブラウジングを完全に無効化する管理者設定オプションについて新設されました。",
+      "hunks": [
+        {
+          "header": "@@ -128,6 +128,8 @@ The Browser pane uses a clean browser profile, separate from your personal brows",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The Browser follows the same [site allowlist and blocklist controls](https://support.claude.com/en/articles/13065128-claude-in-chrome-admin-controls) as the Claude in Chrome extension. If your organization already configured those lists for the extension, the Browser respects them automatically. Administrators can also turn off Claude's tools on external pages with the [`browserExternalPageTools` managed setting](#managed-settings). With tools disabled, users can still navigate to external sites; Claude's tools can't read or act on them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To turn off external browsing entirely, set the [`disableBrowserExternalNavigation` managed setting](#managed-settings) to `true`. This blocks all external navigation in the Browser, including sites on your organization's allowlist; localhost dev servers and file previews keep working. Use `browserExternalPageTools` to let users keep browsing external sites without Claude's tools, and `disableBrowserExternalNavigation` to block external sites for both users and Claude."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Review changes with diff view"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "After Claude makes changes to your code, the diff view lets you review modifications file by file before creating a pull request."
+            }
+          ]
+        },
+        {
+          "header": "@@ -604,6 +606,7 @@ Managed settings override project and user settings and apply to Claude Code ses",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `disableAutoMode` | set to `\"disable\"` to prevent users from enabling [Auto](/en/permission-modes#eliminate-prompts-with-auto-mode) mode. Removes Auto from the mode selector. Also accepted under `permissions`. |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoMode` | customize what the auto mode classifier trusts and blocks across your organization. See [Configure auto mode](/en/auto-mode-config). |"
+            },
+            {
+              "type": "context",
+              "content": "| `browserExternalPageTools` | set to `\"disabled\"` to prevent Claude from using tools to read or act on external pages in the [Browser pane](#browse-external-sites). Users can still navigate to external sites themselves, and local dev server previews are unaffected. |"
+            },
+            {
+              "type": "added",
+              "content": "| `disableBrowserExternalNavigation` | set to `true` to turn off external browsing in the [Browser pane](#browse-external-sites) entirely. Neither users nor Claude can navigate to external sites, and localhost dev server previews are unaffected. The value must be the JSON boolean `true`; the string `\"true\"` is ignored. |"
+            },
+            {
+              "type": "context",
+              "content": "| `sshConfigs` | pre-configure [SSH connections](#pre-configure-ssh-connections-for-your-team) that appear in the environment dropdown. Users cannot edit or delete managed connections. |"
+            },
+            {
+              "type": "context",
+              "content": "| `sshHostAllowlist` | restrict [SSH sessions](#restrict-which-ssh-hosts-users-can-connect-to) to hosts whose resolved hostname matches one of these patterns. An empty array disables SSH sessions. Read from managed settings only. |"
+            },
+            {
+              "type": "context",
+              "content": "| `managedMcpServers` | push MCP server configurations to all users in a third-party deployment. Each entry specifies a transport of `\"http\"`, `\"sse\"`, or `\"stdio\"`, connection details, and optionally a `toolPolicy` map that restricts which tools in that server users can invoke. Available in third-party (3P) Desktop deployments only. Deliver this key through the managed settings file or MDM, since third-party deployments do not receive admin-console settings. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 4,
+      "deletions": 3,
+      "explanation": "ハイパーリンクの強制有効化フラグや、既存の環境変数がツール検索や同期出力に与える影響の詳細が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -177,7 +177,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` | Set to `1` to disable the [skills](/en/skills) and workflows included with Claude Code: bundled skills and workflows are removed entirely, while built-in commands like `/init` stay typable but are hidden from the model. `/doctor` stays typable like the built-in commands; hide it with `DISABLE_DOCTOR_COMMAND` instead. Skills from plugins, `.claude/skills/`, and `.claude/commands/` are unaffected. Equivalent to the [`disableBundledSkills`](/en/settings#available-settings) setting; `0` doesn't override it |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_CLAUDE_MDS` | Set to `1` to prevent loading any CLAUDE.md memory files into context, including user, project, and auto-memory files |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_CRON` | Set to `1` to disable [scheduled tasks](/en/scheduled-tasks). The `/loop` skill and cron tools become unavailable and any already-scheduled tasks stop firing, including tasks that are already running mid-session |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` | Set to `1` to strip Anthropic-specific `anthropic-beta` request headers and beta tool-schema fields (such as `defer_loading` and `eager_input_streaming`) from API requests. Use this when a proxy gateway rejects requests with errors like \"Unexpected value(s) for the `anthropic-beta` header\" or \"Extra inputs are not permitted\". Standard fields (`name`, `description`, `input_schema`, `cache_control`) are preserved |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` | Set to `1` to strip Anthropic-specific `anthropic-beta` request headers and beta tool-schema fields (such as `defer_loading` and `eager_input_streaming`) from API requests. Use this when a proxy gateway rejects requests with errors like \"Unexpected value(s) for the `anthropic-beta` header\" or \"Extra inputs are not permitted\". Standard fields (`name`, `description`, `input_schema`, `cache_control`) are preserved. [MCP tool search](/en/mcp#scale-with-mcp-tool-search) is disabled and all MCP tools load upfront, even when `ENABLE_TOOL_SEARCH` is set |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS` | Set to `1` to disable the built-in [Explore and Plan subagents](/en/sub-agents#built-in-subagents). Claude explores with its search tools or the general-purpose subagent instead, and [plan mode](/en/permission-modes#analyze-before-you-edit-with-plan-mode) reads files directly rather than launching Explore and Plan agents. Custom subagents named `Explore` or `Plan` are unaffected. To remove every built-in subagent type in the Agent SDK or non-interactive mode, use `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS` instead. Requires Claude Code v2.1.198 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_FAST_MODE` | Set to `1` to disable [fast mode](/en/fast-mode) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY` | Set to `1` to disable the \"How is Claude doing?\" session quality surveys. Surveys are also disabled when `DISABLE_TELEMETRY`, `DO_NOT_TRACK`, or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is set, unless `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` opts back in. To set a sample rate instead of disabling outright, use the [`feedbackSurveyRate`](/en/settings#available-settings) setting. See [Session quality surveys](/en/data-usage#session-quality-surveys) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -213,7 +213,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` | Override the default token limit for file reads. Useful when you need to read larger files in full |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORCE_SESSION_PERSISTENCE` | Set to `1` to force transcript persistence, prompt history, and `claude agents` registration even when this `claude` was launched from inside another Claude Code session. Use when an inherited `CLAUDE_CODE_CHILD_SESSION` value, for example from a `screen` session or a background launcher first started by Claude Code's Bash tool, causes a genuine top-level session to be misclassified as nested. As of v2.1.178, Claude Code detects the tmux case automatically and ignores the inherited marker, so tmux no longer needs this variable. Also honored on v2.1.169 and earlier; has no effect on v2.1.170 and v2.1.171, where the nested-session detection it overrides was removed |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORCE_STRIKETHROUGH` | Set to `1` to force strikethrough rendering for `~~text~~` in Claude's responses when your terminal supports it but is not auto-detected, such as over SSH without `TERM_PROGRAM` forwarded. Without this, undetected terminals show the literal `~~` markers instead of rendering the text as strikethrough. Requires Claude Code v2.1.186 or later |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_FORCE_SYNC_OUTPUT` | Set to `1` to force-enable DEC private mode 2026 [synchronized output](https://gist.github.com/christianparpart/d8a62cc1ab659194337d73e399004036) when your terminal supports it but is not auto-detected. Useful for emulators such as Emacs `eat` that implement BSU/ESU but do not reply to the capability probe. Has no effect under tmux |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_FORCE_SYNC_OUTPUT` | Set to `1` to force-enable DEC private mode 2026 [synchronized output](https://gist.github.com/christianparpart/d8a62cc1ab659194337d73e399004036) when your terminal supports it but is not auto-detected. Useful for emulators such as Emacs `eat` that implement BSU/ESU but do not reply to the capability probe. Has no effect under tmux. Unlike `CLAUDE_CODE_NO_FLICKER`, which switches to [fullscreen rendering](/en/fullscreen), this doesn't change the renderer |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORK_SUBAGENT` | Set to `1` to let Claude spawn [forked subagents](/en/sub-agents#fork-the-current-conversation), or `0` to disable them, overriding any server-side rollout. When enabled, Claude can request the `fork` subagent type to spawn a fork, a subagent that inherits the full conversation context instead of starting fresh. Spawns without a subagent type still use the general-purpose subagent, and all subagent spawns run in the background. The explicit [`/fork`](/en/commands) command works without this variable. Works in interactive mode and via the SDK or `claude -p` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GIT_BASH_PATH` | Windows only: path to the Git Bash executable (`bash.exe`). Use when Git Bash is installed but not in your PATH. See [Windows setup](/en/setup#set-up-on-windows) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GLOB_HIDDEN` | Set to `false` to exclude dotfiles from results when Claude invokes the [Glob tool](/en/tools-reference#glob-tool-behavior). Included by default. Does not affect `@` file autocomplete, `ls`, Grep, or Read |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -332,9 +332,10 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ENABLE_CLAUDEAI_MCP_SERVERS` | Set to `false` to disable [claude.ai MCP servers](/en/mcp#use-mcp-servers-from-claude-ai) in Claude Code. Enabled by default for logged-in users. To disable per-project or per-org, set [`disableClaudeAiConnectors`](/en/settings#available-settings) in settings instead |"
+            },
+            {
+              "type": "context",
+              "content": "| `ENABLE_PROMPT_CACHING_1H` | Set to `1` to request a 1-hour [prompt cache TTL](/en/prompt-caching#cache-lifetime) instead of the default 5 minutes. Intended for API key, [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud's Agent Platform](/en/google-vertex-ai), [Microsoft Foundry](/en/microsoft-foundry), and [Claude Platform on AWS](/en/claude-platform-on-aws) users. Subscription users within included usage receive 1-hour TTL automatically. 1-hour cache writes are billed at a higher rate |"
+            },
+            {
+              "type": "context",
+              "content": "| `ENABLE_PROMPT_CACHING_1H_BEDROCK` | Deprecated. Use `ENABLE_PROMPT_CACHING_1H` instead |"
+            },
+            {
+              "type": "removed",
+              "content": "| `ENABLE_TOOL_SEARCH` | Controls [MCP tool search](/en/mcp#scale-with-mcp-tool-search). Unset: all MCP tools deferred by default, but loaded upfront on Google Cloud's Agent Platform or when `ANTHROPIC_BASE_URL` points to a non-first-party host. Values: `true` (always defer and send the beta header, requests fail on Google Cloud's Agent Platform models earlier than Sonnet 4.5 or Opus 4.5, or on proxies that do not support `tool_reference`), `auto` (threshold mode: load upfront if tools fit within 10% of context), `auto:N` (custom threshold, e.g., `auto:5` for 5%), `false` (load all upfront) |"
+            },
+            {
+              "type": "added",
+              "content": "| `ENABLE_TOOL_SEARCH` | Controls [MCP tool search](/en/mcp#scale-with-mcp-tool-search). Unset: all MCP tools deferred by default, but loaded upfront on Google Cloud's Agent Platform or when `ANTHROPIC_BASE_URL` points to a non-first-party host. Values: `true` (always defer and send the beta header, requests fail on Google Cloud's Agent Platform models earlier than Sonnet 4.5 or Opus 4.5, or on proxies that do not support `tool_reference`), `auto` (threshold mode: load upfront if tools fit within 10% of context), `auto:N` (custom threshold, e.g., `auto:5` for 5%), `false` (load all upfront). Ignored when `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` is set, which forces all tools to load upfront |"
+            },
+            {
+              "type": "context",
+              "content": "| `FALLBACK_FOR_ALL_PRIMARY_MODELS` | Set to any non-empty value to make all models, not only Opus, stop retrying with a repeated-overload error when no fallback model is configured. As of v2.1.160, a configured [fallback model chain](/en/model-config#fallback-model-chains) triggers on repeated overload errors for any primary model, so this variable does not affect switching to a fallback model |"
+            },
+            {
+              "type": "context",
+              "content": "| `FORCE_AUTOUPDATE_PLUGINS` | Set to `1` to force plugin auto-updates even when the main auto-updater is disabled via `DISABLE_AUTOUPDATER` |"
+            },
+            {
+              "type": "added",
+              "content": "| `FORCE_HYPERLINK` | Set to `1` to enable clickable OSC 8 hyperlinks when your terminal supports them but isn't auto-detected, or `0` to disable them |"
+            },
+            {
+              "type": "context",
+              "content": "| `FORCE_PROMPT_CACHING_5M` | Set to `1` to force the 5-minute prompt cache TTL even when 1-hour TTL would otherwise apply. Overrides `ENABLE_PROMPT_CACHING_1H` |"
+            },
+            {
+              "type": "context",
+              "content": "| `HTTP_PROXY` | Specify HTTP proxy server for network connections |"
+            },
+            {
+              "type": "context",
+              "content": "| `HTTPS_PROXY` | Specify HTTPS proxy server for network connections |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "セッションごとの利用枠と週間利用枠が同時に消費される仕様についての注意喚起が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -276,6 +276,8 @@ You've hit your Opus limit · resets 3:45pm",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code blocks further requests until the reset time shown in the message. The session and weekly limits are shared across all models, so switching models doesn't restore access. The Opus limit applies only to Opus requests, so switching to another model with `/model` keeps you working."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Usage counts against the session and weekly allowances at the same time. A single burst of heavy activity, such as a large workflow fanout, can exhaust the weekly allowance before the session window resets."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Wait for the reset time shown in the error"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "feature-availability.md",
+      "additions": 14,
+      "deletions": 8,
+      "explanation": "プロバイダーごとの機能差分として、特定のコマンドの利用不可設定やMCPサーバーの動作の違いが整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/feature-availability.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Compare which Claude Code features are available across Anthropic subscription plans, the Anthropic Console, Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, and Microsoft Foundry."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The Claude Code CLI and everything that runs locally work identically on every provider. For setup instructions per provider, see the [Enterprise deployment overview](/en/third-party-integrations). To skip straight to what is missing on your provider, see the [summary by provider](#summary-by-provider) tabs."
+            },
+            {
+              "type": "added",
+              "content": "The Claude Code CLI and everything that runs locally work on every provider. For setup instructions per provider, see the [Enterprise deployment overview](/en/third-party-integrations). To skip straight to what is missing on your provider, see the [summary by provider](#summary-by-provider) tabs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In the tables below, ✓ means available, ✗ means not available, and \"See note\" links to a footnote for partial support. A qualifier after ✓ narrows availability to that subset, and \"Admin-enabled\" means the feature is off until an organization admin turns it on."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -24,7 +24,7 @@ How you authenticate determines which features Claude Code can reach. For a sing",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Features available on every provider"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "These work identically on every provider:"
+            },
+            {
+              "type": "added",
+              "content": "These work on every provider:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [CLI](/en/quickstart) and [Agent SDK](/en/agent-sdk/overview)"
+            },
+            {
+              "type": "context",
+              "content": "- [VS Code](/en/vs-code) and [JetBrains](/en/jetbrains) extensions"
+            }
+          ]
+        },
+        {
+          "header": "@@ -33,6 +33,12 @@ These work identically on every provider:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- [Checkpoints](/en/checkpointing), [sandboxing](/en/sandboxing), and [Workflows](/en/workflows)"
+            },
+            {
+              "type": "context",
+              "content": "- [OpenTelemetry metrics](/en/monitoring-usage) and the [managed settings file](/en/settings#settings-files)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Three of these have provider-specific differences:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **MCP servers**: [connectors from claude.ai](/en/mcp#use-mcp-servers-from-claude-ai) load only when your claude.ai subscription is the active authentication method, and [tool search](/en/mcp#configure-tool-search) is off by default on Google Cloud's Agent Platform and when `ANTHROPIC_BASE_URL` points to a non-first-party host"
+            },
+            {
+              "type": "added",
+              "content": "- **Subagents**: the built-in [Explore subagent](/en/sub-agents#built-in-subagents) caps its inherited model at Opus on the Claude API, and inherits the main conversation's model directly on any other provider, including Claude Platform on AWS"
+            },
+            {
+              "type": "added",
+              "content": "- **[Commands](/en/commands#all-commands)**: `/design-sync` and `/radio` are unavailable on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and Claude Platform on AWS, and `/voice` requires a claude.ai account"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Features that require a Claude subscription"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These require signing in with a claude.ai account and are not reachable with an Anthropic Console API key or from a third-party provider:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -164,9 +170,9 @@ If you authenticate through an [LLM gateway](/en/llm-gateway), feature availabil",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Summary by provider"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each tab lists what is unavailable or partially supported on that provider, with alternatives where one exists. Everything not listed works the same as on a Claude subscription. On Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and Claude Platform on AWS, error reporting and telemetry to Anthropic are off by default. See [default behaviors by API provider](/en/data-usage#default-behaviors-by-api-provider) for what traffic still reaches Anthropic and how to opt out."
+            },
+            {
+              "type": "added",
+              "content": "Each tab lists what is unavailable or partially supported on that provider, with alternatives where one exists. Everything not listed works the same as on a Claude subscription, apart from the [provider-specific differences](#features-available-on-every-provider) noted above. On Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and Claude Platform on AWS, error reporting and telemetry to Anthropic are off by default. See [default behaviors by API provider](/en/data-usage#default-behaviors-by-api-provider) for what traffic still reaches Anthropic and how to opt out."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [web search](/en/tools-reference#websearch-tool-behavior), [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), the [analytics dashboard](/en/analytics), and [server-managed settings](/en/server-managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [web search](/en/tools-reference#websearch-tool-behavior), [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), the [analytics dashboard](/en/analytics), [server-managed settings](/en/server-managed-settings), and the [`/design-sync` and `/radio` commands](/en/commands#all-commands)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Partial support:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -177,13 +183,13 @@ Each tab lists what is unavailable or partially supported on that provider, with",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Alternatives:** for scheduling, use [`/loop`](/en/scheduled-tasks) with an explicit interval instead of `/schedule`. For cloud sessions, use [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd). For web lookups, use the [WebFetch tool](/en/tools-reference#webfetch-tool-behavior) with a specific URL."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), the [analytics dashboard](/en/analytics), and [server-managed settings](/en/server-managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), the [analytics dashboard](/en/analytics), [server-managed settings](/en/server-managed-settings), and the [`/design-sync` and `/radio` commands](/en/commands#all-commands)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Available where Amazon Bedrock is not:** [web search](/en/tools-reference#websearch-tool-behavior) and [`/loop` self-pacing](/en/scheduled-tasks)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Alternatives:** for scheduling, use [`/loop`](/en/scheduled-tasks) instead of `/schedule`. For cloud sessions, use [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), the [analytics dashboard](/en/analytics), and [server-managed settings](/en/server-managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), the [analytics dashboard](/en/analytics), [server-managed settings](/en/server-managed-settings), and the [`/design-sync` and `/radio` commands](/en/commands#all-commands)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Partial support:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -195,7 +201,7 @@ Each tab lists what is unavailable or partially supported on that provider, with",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Alternatives:** for scheduling, use [`/loop`](/en/scheduled-tasks) with an explicit interval instead of `/schedule`. For cloud sessions, use [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), [GitHub Actions](/en/github-actions) and [GitLab CI/CD](/en/gitlab-ci-cd), the [analytics dashboard](/en/analytics), and [server-managed settings](/en/server-managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": "**Not available:** all [features that require a Claude subscription](#features-that-require-a-claude-subscription), plus [fast mode](/en/fast-mode), [Advisor](/en/advisor), [Channels](/en/channels), [GitHub Actions](/en/github-actions) and [GitLab CI/CD](/en/gitlab-ci-cd), the [analytics dashboard](/en/analytics), [server-managed settings](/en/server-managed-settings), and the [`/design-sync` and `/radio` commands](/en/commands#all-commands)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Partial support:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -229,7 +235,7 @@ If you authenticate through Amazon Bedrock, Google Cloud's Agent Platform, Micro",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [Server-managed settings](/en/server-managed-settings) | ✗ | ✗ | ✓ | ✓ |"
+            },
+            {
+              "type": "context",
+              "content": "| [SSO](https://support.claude.com/en/articles/9266767-what-is-the-team-plan) | ✗ | ✗ | ✓ | ✓ |"
+            },
+            {
+              "type": "context",
+              "content": "| SCIM | ✗ | ✗ | ✗ | ✓ |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Compliance API](https://platform.claude.com/docs/en/api/admin-api/compliance/overview) | ✗ | ✗ | ✗ | ✓ |"
+            },
+            {
+              "type": "added",
+              "content": "| [Compliance API](https://platform.claude.com/docs/en/api/compliance) | ✗ | ✗ | ✗ | ✓ |"
+            },
+            {
+              "type": "context",
+              "content": "| [Zero Data Retention](/en/zero-data-retention) | ✗ | ✗ | ✗ | ✓ 7 |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "6 On Enterprise, requires a premium seat or a Chat + Claude Code seat. See [Claude Code on the web](/en/claude-code-on-the-web)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "google-vertex-ai.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "セットアップウィザードの挙動と、設定ファイルが保存されるパスに関する詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -93,7 +93,7 @@ If you have Google Cloud credentials and want to start using Claude Code through",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  </Step>"
+            },
+            {
+              "type": "context",
+              "content": "</Steps>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "After you've signed in, run `/setup-vertex` any time to reopen the wizard and change your credentials, project, region, or model pins."
+            },
+            {
+              "type": "added",
+              "content": "After you've signed in, run `/setup-vertex` any time to reopen the wizard and change your credentials, project, region, or model pins. The model pin step starts from your currently pinned models. The wizard writes to `~/.claude/settings.json`, or to `$CLAUDE_CONFIG_DIR/settings.json` when [`CLAUDE_CONFIG_DIR`](/en/env-vars#variables) is set."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Region configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "フックのMatcherパターンにおいて、カンマ区切りで複数のツールを指定できるようになったことが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -575,7 +575,7 @@ Without a matcher, a hook fires on every occurrence of its event. Matchers let y",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `\"Edit|Write\"` matcher fires only when Claude uses the `Edit` or `Write` tool, not when it uses `Bash`, `Read`, or any other tool. See [Matcher patterns](/en/hooks#matcher-patterns) for how plain names and regular expressions are evaluated."
+            },
+            {
+              "type": "added",
+              "content": "The `\"Edit|Write\"` matcher fires only when Claude uses the `Edit` or `Write` tool, not when it uses `Bash`, `Read`, or any other tool. On Claude Code v2.1.191 or later, a comma separates alternatives the same way, so `\"Edit, Write\"` is equivalent. See [Matcher patterns](/en/hooks#matcher-patterns) for how plain names and regular expressions are evaluated."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude can also create or modify files by running shell commands through the `Bash` tool. If your hook must see every file change, such as for compliance scanning or audit logging, add a [`Stop`](/en/hooks#stop) hook that scans the working tree once per turn. For per-call coverage instead, also match `Bash` and have your script list modified and untracked files with `git status --porcelain`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "フックの子プロセスに継承されない環境変数と、タイムアウト設定の最大値制限についての説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -584,7 +584,7 @@ When running with `--agent` or inside a subagent, two additional fields are incl",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `agent_id` | Unique identifier for the subagent. Present only when the hook fires inside a subagent call. Use this to distinguish subagent hook calls from main-thread calls. |"
+            },
+            {
+              "type": "context",
+              "content": "| `agent_type` | Agent name (for example, `\"Explore\"` or `\"security-reviewer\"`). Present when the session uses `--agent` or the hook fires inside a subagent. For subagents, the subagent's type takes precedence over the session's `--agent` value. For [custom subagents](/en/sub-agents), this is the `name` field from the agent's frontmatter, not the filename. For subagents shipped by a [plugin](/en/plugins), this is the plugin-scoped identifier such as `my-plugin:reviewer`, not the bare frontmatter name. See [SubagentStart](#subagentstart) for how to write a matcher against a plugin-scoped name. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Only [`SessionStart`](#sessionstart) hooks can receive a `model` field, and it is not guaranteed to be present. There is no `$CLAUDE_MODEL` environment variable. A hook process inherits the parent environment, so it can read `$ANTHROPIC_MODEL` if you set it in your shell, but that value doesn't change when you switch models with `/model` during a session."
+            },
+            {
+              "type": "added",
+              "content": "Only [`SessionStart`](#sessionstart) hooks can receive a `model` field, and it is not guaranteed to be present. There is no `$CLAUDE_MODEL` environment variable. A hook process inherits the parent environment, so it can read `$ANTHROPIC_MODEL` if you set it in your shell, but that value doesn't change when you switch models with `/model` during a session. One set of variables is not inherited: Claude Code [removes `OTEL_*` exporter variables from every subprocess it spawns](/en/monitoring-usage#administrator-configuration), including hooks."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For example, a `PreToolUse` hook for a Bash command receives this on stdin:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1309,7 +1309,7 @@ Executes shell commands.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `command` | string | `\"npm test\"` | The shell command to execute |"
+            },
+            {
+              "type": "context",
+              "content": "| `description` | string | `\"Run test suite\"` | Optional description of what the command does |"
+            },
+            {
+              "type": "removed",
+              "content": "| `timeout` | number | `120000` | Optional timeout in milliseconds |"
+            },
+            {
+              "type": "added",
+              "content": "| `timeout` | number | `120000` | Optional timeout in milliseconds. Values above the [maximum](/en/tools-reference#bash-tool-behavior) are reduced to the maximum rather than rejected |"
+            },
+            {
+              "type": "context",
+              "content": "| `run_in_background` | boolean | `false` | Whether to run the command in background |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "##### Write"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "フルスクリーンレンダリングモードにおいて、コマンドやファイル候補の選択にマウス操作が対応したことが記されています。",
+      "hunks": [
+        {
+          "header": "@@ -105,6 +105,8 @@ When the transcript viewer is open (toggled with `Ctrl+O`), these shortcuts are",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Type `/` in Claude Code to see all available commands, or type `/` followed by any letters to filter. The `/` menu shows everything you can invoke: built-in commands, bundled and user-authored [skills](/en/skills), and commands contributed by [plugins](/en/plugins) and [MCP servers](/en/mcp#use-mcp-prompts-as-commands). Not all built-in commands are visible to every user since some depend on your platform or plan."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In [fullscreen rendering](/en/fullscreen#use-the-mouse), the `/` command and `@` file suggestion lists also respond to the mouse: hovering highlights a row and clicking accepts it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "See the [commands reference](/en/commands) for the full list of commands included in Claude Code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Vim editor mode"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "managed-mcp.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "MCPサーバーの許可リストがCLIフラグ経由の設定にも適用される点と、検証エラー時の挙動について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -116,7 +116,7 @@ Claude Code reads this setting only from admin-controlled policy tiers: server-m",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Policy-based control with allowlists and denylists"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Allowlists and denylists filter which configured servers are allowed to load. They aren't a registry: a server still has to be added by a user, a plugin, or `managed-mcp.json` before the allowlist or denylist applies to it. To deploy servers to users, use [`managed-mcp.json`](#exclusive-control-with-managed-mcp-json)."
+            },
+            {
+              "type": "added",
+              "content": "Allowlists and denylists filter which configured servers are allowed to load. They aren't a registry: a server still has to be added by a user, a plugin, or `managed-mcp.json` before the allowlist or denylist applies to it. To deploy servers to users, use [`managed-mcp.json`](#exclusive-control-with-managed-mcp-json). Both lists also filter servers passed with the [`--mcp-config` CLI flag](/en/cli-reference#cli-flags); `--strict-mcp-config` limits which configuration files load and doesn't bypass either list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To make the allowlist authoritative, set `allowedMcpServers` and `allowManagedMcpServersOnly: true` together in a [managed settings source](/en/admin-setup#decide-how-settings-reach-devices), such as server-managed settings or a deployed `managed-settings.json` file. [Restrict the allowlist to managed settings only](#restrict-the-allowlist-to-managed-settings-only) shows the configuration. Without `allowManagedMcpServersOnly`, allowlists from every settings source merge, including a user's own `~/.claude/settings.json`, so a user can broaden what your allowlist permits. Denylists merge from every source regardless."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -139,6 +139,8 @@ Leaving `allowedMcpServers` unset is different from setting it to an empty array",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `allowedMcpServers` | All servers allowed | No servers allowed | Only matching servers allowed |"
+            },
+            {
+              "type": "context",
+              "content": "| `deniedMcpServers` | No servers blocked | No servers blocked | Matching servers blocked |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "See [Invalid entries in managed settings](/en/settings#invalid-entries-in-managed-settings) for what happens when an entry fails schema validation."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A `serverName` entry, in either list, is not a security control. The name is the label a user assigns when running `claude mcp add` or editing a config file, not the underlying server, so a user can call any server `github`. For claude.ai connectors the name is the display name returned by claude.ai, which can change. To enforce which servers actually run, add `serverCommand` or `serverUrl` entries."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `serverName` validation differs between the two lists:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "MCPツールの出力制限の具体的な数値（25,000トークン）と、試験的機能の無効化による影響が説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -203,7 +203,7 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- The `--transport` and `--header` flags also accept `-t` and `-H` short forms"
+            },
+            {
+              "type": "context",
+              "content": "- Configure MCP server startup timeout using the `MCP_TIMEOUT` environment variable (for example, `MCP_TIMEOUT=10000 claude` sets a 10-second timeout)"
+            },
+            {
+              "type": "context",
+              "content": "- Set a per-server tool execution timeout by adding a `timeout` field in milliseconds to that server's `.mcp.json` entry, for example `\"timeout\": 600000` for ten minutes. This overrides the `MCP_TOOL_TIMEOUT` environment variable for that server only"
+            },
+            {
+              "type": "removed",
+              "content": "- Claude Code displays a warning when MCP tool output exceeds 10,000 tokens. To increase this limit, set the `MAX_MCP_OUTPUT_TOKENS` environment variable (for example, `MAX_MCP_OUTPUT_TOKENS=50000`)"
+            },
+            {
+              "type": "added",
+              "content": "- Claude Code displays a warning when MCP tool output exceeds 10,000 tokens and limits output to 25,000 tokens by default. To raise the limit, set the `MAX_MCP_OUTPUT_TOKENS` environment variable (for example, `MAX_MCP_OUTPUT_TOKENS=50000`); the warning threshold is fixed. See [MCP output limits and warnings](#mcp-output-limits-and-warnings)"
+            },
+            {
+              "type": "context",
+              "content": "- Use `/mcp` to authenticate with remote servers that require OAuth 2.0 authentication"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The per-server `timeout` is a hard wall-clock limit per tool call, and progress notifications from the server don't extend it. Values below 1000 are ignored and fall through to `MCP_TOOL_TIMEOUT`, or to its default of about 28 hours when that variable is unset. For an HTTP, SSE, or [claude.ai connector](/en/mcp#use-mcp-servers-from-claude-ai) server there is also a second, per-request timer that covers each request through to the server's first response byte. That timer is 60 seconds unless you set the per-server `timeout` or `MCP_TOOL_TIMEOUT`; setting either to 60 seconds or higher raises the per-request timer to that value, a lower value doesn't shorten it, and the 28-hour default of an unset `MCP_TOOL_TIMEOUT` never feeds it. Stdio and WebSocket servers have no per-request timer. Before v2.1.162, values below 1000 were floored to one second instead."
+            }
+          ]
+        },
+        {
+          "header": "@@ -1021,6 +1021,8 @@ Claude Code truncates tool descriptions and server instructions at 2KB each. Kee",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Tool search is enabled by default: MCP tools are deferred and discovered on demand. Claude Code disables it by default on Google Cloud's Agent Platform. It is also disabled when `ANTHROPIC_BASE_URL` points to a non-first-party host, since most proxies don't forward `tool_reference` blocks. Set `ENABLE_TOOL_SEARCH` explicitly to override either fallback."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Setting [`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`](/en/env-vars) keeps tool search off, and `ENABLE_TOOL_SEARCH` can't override it. The variable strips the beta header that `defer_loading` tool definitions and `tool_reference` content blocks require."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Tool search requires a model that supports `tool_reference` blocks. Haiku models don't support it. On Google Cloud's Agent Platform, tool search is supported for Claude Sonnet 4.5 and later and Claude Opus 4.5 and later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Control tool search behavior with the `ENABLE_TOOL_SEARCH` environment variable:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "acceptEditsモードにおいて自動承認されるBashコマンドの範囲と、読み取り専用コマンドの扱いが明確化されました。",
+      "hunks": [
+        {
+          "header": "@@ -120,7 +120,7 @@ claude remote-control --permission-mode acceptEdits",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`acceptEdits` mode lets Claude create and edit files in your working directory without prompting. The status bar shows `⏵⏵ accept edits on` while this mode is active."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In addition to file edits, `acceptEdits` mode auto-approves common filesystem Bash commands: `mkdir`, `touch`, `rm`, `rmdir`, `mv`, `cp`, and `sed`. These commands are also auto-approved when prefixed with safe environment variables such as `LANG=C` or `NO_COLOR=1`, or process wrappers such as `timeout`, `nice`, or `nohup`. Like file edits, auto-approval applies only to paths inside your working directory or `additionalDirectories`. Paths outside that scope, writes to [protected paths](#protected-paths), and all other Bash commands still prompt."
+            },
+            {
+              "type": "added",
+              "content": "In addition to file edits, `acceptEdits` mode auto-approves common filesystem Bash commands: `mkdir`, `touch`, `rm`, `rmdir`, `mv`, `cp`, and `sed`. These commands are also auto-approved when prefixed with safe environment variables such as `LANG=C` or `NO_COLOR=1`, or process wrappers such as `timeout`, `nice`, or `nohup`. Like file edits, auto-approval applies only to paths inside your working directory or `additionalDirectories`. Paths outside that scope, writes to [protected paths](#protected-paths), and all other Bash commands except the [built-in read-only set](/en/permissions#read-only-commands) still prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When the [PowerShell tool](/en/tools-reference#powershell-tool) is enabled, `acceptEdits` mode also auto-approves `Set-Content`, `Add-Content`, `Clear-Content`, and `Remove-Item` on in-scope paths, along with their common aliases. The same scope and protected-path rules apply."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "macOSのバックグラウンドセッションにおいて、デスクトップなどの保護されたフォルダへのアクセス許可が必要なケースについて追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -355,6 +355,8 @@ By default, Claude has access to files in the directory where you launched it. Y",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Files in additional directories follow the same permission rules as the original working directory: they become readable without prompts, and file editing permissions follow the current permission mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In background sessions on macOS, the session host requests access to protected folders such as `~/Desktop`, `~/Documents`, and `~/Downloads` separately from your terminal when Claude needs to read or write files there; if reads there fail with `Operation not permitted`, see [how to grant folder access to background sessions](/en/agent-view#background-sessions-can’t-read-desktop-documents-or-downloads-on-macos)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To change the session's primary working directory instead of adding another, use [`/cd`](/en/commands). The `/cd` command requires Claude Code v2.1.169 or later. Unlike `/add-dir`, it relocates the session: the new directory's `CLAUDE.md` is loaded and `--resume` finds the session from there."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Additional directories grant file access, not configuration"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-marketplaces.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "GitHubリポジトリからのクローン時のプロトコル選択や、マーケットプレイスの推奨設定に関する説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -508,7 +508,7 @@ Any git hosting service works, such as GitLab, Bitbucket, and self-hosted server",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Private repositories"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code supports installing plugins from private repositories. For manual installation and updates, Claude Code uses your existing git credential helpers, so HTTPS access via `gh auth login`, macOS Keychain, or `git-credential-store` works the same as in your terminal. SSH access works as long as the host is already in your `known_hosts` file and the key is loaded in `ssh-agent`, since Claude Code suppresses interactive SSH prompts for the host fingerprint and key passphrase."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code supports installing plugins from private repositories. For manual installation and updates, Claude Code uses your existing git credential helpers, so HTTPS access via `gh auth login`, macOS Keychain, or `git-credential-store` works the same as in your terminal. SSH access works as long as the host is already in your `known_hosts` file and the key is loaded in `ssh-agent`, since Claude Code suppresses interactive SSH prompts for the host fingerprint and key passphrase. GitHub `owner/repo` shorthand sources clone over SSH by default; set [`CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`](/en/env-vars#variables) to clone them over HTTPS instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Background auto-updates work differently. By default, the background refresh disables git credential helpers for its `git pull`, so the pull can't authenticate to private repositories over HTTPS even when a helper is configured. SSH remotes aren't affected: a key loaded in `ssh-agent` authenticates background pulls the same way as manual operations. When the background pull fails, Claude Code falls back to re-cloning the marketplace from scratch. The re-clone does use your stored git credentials, but it can [time out on large repositories](#git-operations-time-out), so private-marketplace auto-updates may fail intermittently."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -620,7 +620,7 @@ Behavior details:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Managed marketplace restrictions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For organizations requiring strict control over plugin sources, administrators can restrict which plugin marketplaces users are allowed to add using the [`strictKnownMarketplaces`](/en/settings#strictknownmarketplaces) setting in managed settings. To also reject the CLI flags that sideload plugins, agents, and MCP servers for a single run, pair it with [`disableSideloadFlags`](/en/settings#available-settings)."
+            },
+            {
+              "type": "added",
+              "content": "For organizations requiring strict control over plugin sources, administrators can restrict which plugin marketplaces users are allowed to add using the [`strictKnownMarketplaces`](/en/settings#strictknownmarketplaces) setting in managed settings. To also reject the CLI flags that sideload plugins, agents, and MCP servers for a single run, pair it with [`disableSideloadFlags`](/en/settings#available-settings). To allowlist which marketplaces' plugins can appear as contextual install suggestions, set [`pluginSuggestionMarketplaces`](/en/settings#available-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When `strictKnownMarketplaces` is configured in managed settings, the restriction behavior depends on the value:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -970,7 +970,7 @@ Removing a marketplace from its last remaining scope also uninstalls any plugins",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Plugin marketplace update"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Refresh marketplaces from their sources to retrieve new plugins and version changes."
+            },
+            {
+              "type": "added",
+              "content": "Refresh marketplaces from their sources to retrieve new plugins and version changes. A marketplace added with a branch or tag `ref` updates to the latest commit of that ref, not the repository's default branch."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "claude plugin marketplace update [name]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "server-managed-settings.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "シェルで設定された環境変数がサーバー管理設定の取得をスキップさせる仕様と、その回避方法が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -220,6 +220,10 @@ Server-managed settings are not available when using third-party model providers",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- [Claude Platform on AWS](/en/claude-platform-on-aws)"
+            },
+            {
+              "type": "context",
+              "content": "- Custom API endpoints via `ANTHROPIC_BASE_URL` or third-party [LLM gateways](/en/llm-gateway)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you export a `CLAUDE_CODE_USE_*` provider variable or a non-default `ANTHROPIC_BASE_URL` in your shell, Claude Code skips the settings fetch for your sessions. You can't clear the export with a server-managed `env` block, because the block arrives through the fetch that the export prevents. An [endpoint-managed settings](/en/settings#settings-files) `env` block doesn't restore the fetch either: Claude Code checks eligibility before it applies managed `env` blocks, so the override changes the session's provider selection but the fetch stays skipped."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To restore server-managed delivery, remove the export from your shell, or set the variable to `\"\"` in your user settings `env` block, which applies before the eligibility check. To enforce policy without relying on users to change their shells, deliver the settings through the endpoint-managed channel instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry deployments, a self-hosted [Claude apps gateway](/en/claude-apps-gateway) provides the equivalent remote managed-settings delivery: gateway-signed-in clients fetch managed settings from the gateway instead of `api.anthropic.com`. The failure semantics differ at startup: a gateway client that can't reach the gateway exits with an error instead of falling back to cached settings, while the hourly background refresh is fail-open on both channels."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Audit logging"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sessions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/clearコマンドでクリアした会話を、リワインドメニューから復元できるようになったことが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -104,7 +104,7 @@ For checkpoint-based rewind within a single session, see [Checkpointing](/en/che",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These commands control what's in the context window without leaving the session:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **`/clear`**: start fresh with an empty context. The previous conversation is saved and resumable"
+            },
+            {
+              "type": "added",
+              "content": "- **`/clear`**: start fresh with an empty context. The previous conversation is saved and resumable with `/resume`, or, in the same Claude Code process, from [the rewind menu's previous-session entry](/en/checkpointing#rewind-past-a-cleared-conversation)"
+            },
+            {
+              "type": "context",
+              "content": "- **`/compact [instructions]`**: replace history with a summary, optionally focused on what you specify"
+            },
+            {
+              "type": "context",
+              "content": "- **`/context`**: show what is currently consuming context"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 4,
+      "deletions": 3,
+      "explanation": "外部ブラウジングの制限や、環境変数での空文字による設定上書き、ワークツリーのベース参照に関する詳細が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -162,7 +162,7 @@ A few keys are read once at session start and apply on the next restart instead:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Invalid entries in managed settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Managed settings parse tolerantly. When a managed configuration contains an entry that fails schema validation, Claude Code strips that entry, records a warning, and enforces every remaining valid policy. A single typo cannot disable the rest of your organization's policy."
+            },
+            {
+              "type": "added",
+              "content": "Managed settings parse tolerantly. When a managed configuration contains an entry that fails schema validation, Claude Code strips that entry, records a warning, and enforces every remaining valid policy. A single typo cannot disable the rest of your organization's policy. Run [`/doctor`](/en/debug-your-config#check-resolved-settings) to list stripped entries with their source file and field."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This behavior is consistent across all three delivery mechanisms: [server-managed settings](/en/server-managed-settings), plist and registry policies deployed through MDM, and `managed-settings.json` files. Requires Claude Code v2.1.169 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -235,6 +235,7 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `disableAllHooks` | Disable all [hooks](/en/hooks) and any custom [status line](/en/statusline) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableArtifact` | Set to `true` to disable the [Artifact](/en/artifacts) tool, which publishes session output as a private web page on claude.ai. Equivalent to setting `CLAUDE_CODE_DISABLE_ARTIFACT` to `1` | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableAutoMode` | Set to `\"disable\"` to prevent [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) from being activated. Removes `auto` from the `Shift+Tab` cycle and rejects `--permission-mode auto` at startup. Most useful in [managed settings](/en/permissions#managed-settings) where users cannot override it | `\"disable\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `disableBrowserExternalNavigation` | (Managed settings only) Set to `true` to turn off external browsing in the desktop app's [Browser pane](/en/desktop#browse-external-sites). Neither users nor Claude can navigate to external sites, and localhost dev server previews are unaffected. The value must be the JSON boolean `true`; the string `\"true\"` is ignored | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableBundledSkills` | Set to `true` to disable the [skills](/en/skills) and workflows included with Claude Code: bundled skills and workflows are removed entirely, while built-in commands like `/init` stay typable but are hidden from the model. `/doctor` stays typable like the built-in commands; hide it with [`DISABLE_DOCTOR_COMMAND`](/en/env-vars) instead. Skills from plugins, `.claude/skills/`, and `.claude/commands/` are unaffected. Equivalent to setting `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` to `1` | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableClaudeAiConnectors` | Disable [claude.ai MCP connectors](/en/mcp#use-mcp-servers-from-claude-ai) so they are not auto-fetched or connected. Set in any settings scope. `true` in any source takes precedence, so a checked-in project `.claude/settings.json` can opt a repo out of cloud connectors, but a project-level `false` cannot override a user- or policy-level `true`. Servers passed explicitly via `--mcp-config` are unaffected. To deny individual connectors instead of all of them, use [`deniedMcpServers`](/en/managed-mcp). Requires Claude Code v2.1.182 or later | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableDeepLinkRegistration` | Set to `\"disable\"` to prevent Claude Code from registering the `claude-cli://` protocol handler with the operating system on startup. [Deep links](/en/deep-links) let external tools open a Claude Code session with a pre-filled prompt. Useful in environments where protocol handler registration is restricted or managed separately | `\"disable\"` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -249,7 +250,7 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `enableArtifact` | Enable or disable the [Artifact](/en/artifacts) tool for this user. When unset, the default follows the feature's [availability](/en/artifacts#availability) for your account. The **Artifacts** row in `/config` writes this key. A managed `disableArtifact` and your organization's [admin setting](/en/artifacts#manage-artifacts-for-your-organization) take precedence, and the key is ignored in project and local settings (`.claude/settings.json`, `.claude/settings.local.json`), which a repository could otherwise commit. Requires Claude Code v2.1.196 or later | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `enabledMcpjsonServers` | List of specific MCP servers from `.mcp.json` files to approve. As of v2.1.196, `claude mcp list` and `claude mcp get` honor this key in an untrusted folder only from [settings files that aren't checked into the repository](/en/mcp#managing-your-servers) | `[\"memory\", \"github\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `enforceAvailableModels` | Extend the `availableModels` allowlist to the Default model. When `true` in managed settings and `availableModels` is a non-empty array, the Default option falls back to the first allowlisted entry that is available, but only when the model Default would resolve to (the [organization default](/en/model-config#organization-default-model) when one applies, otherwise the account-type default) is not in the allowlist; an allowlisted default is kept as-is. Has no effect when `availableModels` is unset or empty. See [Enforce the allowlist for the Default model](/en/model-config#enforce-the-allowlist-for-the-default-model). Requires Claude Code v2.1.175 or later | `true` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `env` | Environment variables applied to every session and to subprocesses Claude Code spawns from it. As of v2.1.143, `NO_COLOR` and `FORCE_COLOR` set here are passed to subprocesses but do not change Claude Code's own interface colors. Set those in your shell before launching `claude` to change interface colors. As of v2.1.195, identity variables that Claude Code's hosting environments set, for example `CLAUDE_CODE_REMOTE` and `CLAUDE_CODE_ACCOUNT_UUID`, are ignored when set here | `{\"FOO\": \"bar\"}` |"
+            },
+            {
+              "type": "added",
+              "content": "| `env` | Environment variables applied to every session and to subprocesses Claude Code spawns from it. Set a variable to `\"\"` to override a shell export with an empty string, which Claude Code treats as unset for provider selection. Subprocesses still inherit the empty value. `NO_COLOR` and `FORCE_COLOR` set here reach only subprocesses; to change Claude Code's own interface colors, set them in your shell before launching `claude`. As of v2.1.195, identity variables that Claude Code's hosting environments set, for example `CLAUDE_CODE_REMOTE` and `CLAUDE_CODE_ACCOUNT_UUID`, are ignored when set here | `{\"FOO\": \"bar\"}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `fallbackModel` | Fallback model(s) to try in order when the primary model is overloaded or unavailable. Claude Code switches to the next available model in the chain for the rest of the turn and shows a notice. `\"default\"` expands to the default model. Chains are capped at three models; extra entries are ignored. Unlike most array settings, this key does not merge across settings files: the highest-precedence file that defines it supplies the entire chain. The [`--fallback-model`](/en/cli-reference#cli-flags) flag overrides this for one session. See [Fallback model chains](/en/model-config#fallback-model-chains) | `[\"claude-sonnet-5\", \"claude-haiku-4-5\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `fastMode` | Turn [fast mode](/en/fast-mode) on for sessions where it's available. Toggling with `/fast` writes `true` here in user settings and removes the key when you turn fast mode off | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `fastModePerSessionOptIn` | When `true`, fast mode does not persist across sessions. Each session starts with fast mode off, requiring users to enable it with `/fast`. The user's fast mode preference is still saved. See [Require per-session opt-in](/en/fast-mode#require-per-session-opt-in) | `true` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -337,7 +338,7 @@ Configure how `--worktree` creates and manages git worktrees.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Key | Description | Example |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `worktree.baseRef` | Which ref new worktrees branch from. `\"fresh\"` (default) branches from `origin/<default-branch>` for a clean tree matching the remote. `\"head\"` branches from your current local `HEAD`, so unpushed commits and feature-branch state are present in the worktree. Applies to `--worktree`, the `EnterWorktree` tool, and subagent isolation | `\"head\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `worktree.baseRef` | Which ref new worktrees branch from. `\"fresh\"` (default) branches from `origin/<default-branch>` for a clean tree matching the remote. `\"head\"` branches from your current local `HEAD`, so unpushed commits and feature-branch state are present in the worktree. Inside a linked worktree, `\"head\"` resolves to that worktree's `HEAD`, not the main checkout's. Applies to `--worktree`, the `EnterWorktree` tool, and subagent isolation | `\"head\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `worktree.symlinkDirectories` | Directories to symlink from the main repository into each worktree to avoid duplicating large directories on disk. No directories are symlinked by default | `[\"node_modules\", \".cache\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `worktree.sparsePaths` | Directories to check out in each worktree via git sparse-checkout. Only the listed directories plus root-level files are written to disk, which is faster in large monorepos. While a sparse worktree exists, git enables `extensions.worktreeConfig` in the repository's shared `.git/config`; see [Check out only the directories you need](/en/large-codebases#check-out-only-the-directories-you-need) | `[\"packages/my-app\", \"shared/utils\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `worktree.bgIsolation` | Isolation mode for [background sessions](/en/agent-view#how-file-edits-are-isolated). `\"worktree\"` (default) blocks `Edit`/`Write` in the main checkout until `EnterWorktree` is called. Outside a git repository, a [`WorktreeCreate` hook](/en/worktrees#non-git-version-control) that fails releases the block so the session can edit the working directory in place; requires Claude Code v2.1.203 or later. `\"none\"` lets background jobs edit the working copy directly. Requires Claude Code v2.1.143 or later | `\"none\"` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "terminal-config.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "特定の端末で発生する画面のちらつきを、レンダラーを変更せずに同期出力設定で解決する方法が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -249,6 +249,8 @@ The [`ultrathink`](/en/model-config#use-ultrathink-for-one-off-deep-reasoning) a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the display flickers or the scroll position jumps while Claude is working, switch to [fullscreen rendering mode](/en/fullscreen). It draws to a separate screen the terminal reserves for full-screen apps instead of appending to your normal scrollback, which keeps memory usage flat and adds mouse support for scrolling and selection. In this mode you scroll with the mouse or PageUp inside Claude Code rather than with your terminal's native scrollback; see the [fullscreen page](/en/fullscreen#search-and-review-the-conversation) for how to search and copy."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If flicker is the only problem and your terminal supports synchronized output but isn't auto-detected, such as Emacs `eat`, set [`CLAUDE_CODE_FORCE_SYNC_OUTPUT=1`](/en/env-vars) to stop the flicker without changing renderers."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run `/tui fullscreen` to switch and save the preference. Your conversation relaunches intact and future sessions start in fullscreen. You can also set the `CLAUDE_CODE_NO_FLICKER` environment variable before starting Claude Code:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash Bash and Zsh theme={null}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "third-party-integrations.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "BedrockおよびVertex AI向けの対話型セットアップウィザードをログインプロンプトから起動できる旨が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -185,6 +185,8 @@ Select a deployment option to view setup instructions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "* [Google Cloud's Agent Platform](/en/google-vertex-ai)"
+            },
+            {
+              "type": "context",
+              "content": "* [Microsoft Foundry](/en/microsoft-foundry)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For Amazon Bedrock and Google Vertex AI, you can also run `claude` and select **3rd-party platform** at the login prompt to launch an interactive setup wizard."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configure proxies and gateways"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Most organizations can use a cloud provider directly without additional configuration. However, you may need to configure a corporate proxy or LLM gateway if your organization has specific network or management requirements. These are different configurations that can be used together:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "非対話モードにおいて、バックグラウンドタスクが実行終了直後に終了する挙動について明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -131,7 +131,7 @@ Two limits bound each command:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Timeout**: two minutes by default. Claude can request up to 10 minutes per command with the `timeout` parameter. Override the default and ceiling with [`BASH_DEFAULT_TIMEOUT_MS` and `BASH_MAX_TIMEOUT_MS`](/en/env-vars)."
+            },
+            {
+              "type": "context",
+              "content": "- **Output length**: 30,000 characters by default. When a command produces more than that, Claude Code saves the full output to a file in the session directory and gives Claude the file path plus a short preview from the start. Claude reads or searches that file when it needs the rest. Raise the limit with [`BASH_MAX_OUTPUT_LENGTH`](/en/env-vars), up to a hard ceiling of 150,000 characters."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For long-running processes such as dev servers or watch builds, Claude can set `run_in_background: true` to start the command as a background task and continue working while it runs. List and stop background tasks with `/tasks`."
+            },
+            {
+              "type": "added",
+              "content": "For long-running processes such as dev servers or watch builds, Claude can set `run_in_background: true` to start the command as a background task and continue working while it runs. List and stop background tasks with `/tasks`. In non-interactive mode with the `-p` flag, [background tasks end shortly after the run's final result](/en/headless#background-tasks-at-exit)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Edit tool behavior"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "vs-code.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サポート対象外のプラットフォームで拡張機能を起動した際のエラーに関する補足が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -287,7 +287,7 @@ Add `\"$schema\": \"https://json.schemastore.org/claude-code-settings.json\"` to you",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `environmentVariables` | `[]` | Set environment variables for the Claude process. Use Claude Code settings instead for shared config. |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableLoginPrompt` | `false` | Skip authentication prompts (for third-party provider setups) |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowDangerouslySkipPermissions` | `false` | Adds Bypass permissions to the mode selector. Use it only in sandboxes with no internet access. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claudeProcessWrapper` | - | Executable used to launch the Claude process. The bundled binary path is passed as an argument when present. Set this to a separately installed `claude` binary if the extension build doesn't include one for your platform. |"
+            },
+            {
+              "type": "added",
+              "content": "| `claudeProcessWrapper` | - | Executable used to launch the Claude process. The bundled binary path is passed as an argument when present. Set this to a separately installed `claude` binary if the extension build doesn't include one for your platform. An \"Unsupported platform\" error at activation means no binary is bundled for your platform; see [which platforms have prebuilt binaries](/en/troubleshoot-install#native-binary-not-found-after-npm-install). |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## VS Code extension vs. Claude Code CLI"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "worktrees.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "サンドボックス有効時でもワークツリーが動作する仕組みと、ネストされたワークツリー内でのHEADの解釈について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -39,6 +39,8 @@ Entering a path outside the repository's `.claude/worktrees/` directory asks for",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "As of v2.1.198, entering or exiting a worktree also relocates the session transcript to that directory's project storage, the same way [`/cd`](/en/commands) does, so `/desktop` and `--resume` find the session there afterward. Worktrees created by a [`WorktreeCreate` hook](#non-git-version-control) are excluded and keep the transcript at the launch directory."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Worktrees work with [sandboxing](/en/sandboxing#filesystem-isolation) enabled: the sandbox allows writes to the main repository's shared `.git` directory so commands such as `git commit` can update refs and the index from inside a linked worktree."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Before using `--worktree` interactively in a directory for the first time, accept the workspace trust dialog by running `claude` once in that directory. If trust has not yet been accepted, `--worktree` exits with an error and prompts you to run `claude` in the directory first. Non-interactive runs with `-p` skip the [trust check](/en/security), so `claude -p --worktree` proceeds without it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code can't enter the worktree directory at startup, for example because a [`WorktreeCreate` hook](/en/hooks#worktreecreate) printed something other than the directory it created, or because the directory was deleted after it was set up, Claude Code prints an error naming the path and exits with code 1. Before v2.1.205, this crashed the session, and with `-p` it stalled for about 30 seconds before exiting with code 0."
+            }
+          ]
+        },
+        {
+          "header": "@@ -53,7 +55,7 @@ Worktrees branch from your repository's default branch, `origin/HEAD`, so they s",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The refresh requires Claude Code v2.1.208 or later; before that, a fresh worktree used whatever `origin/HEAD` was already cached locally."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To always branch from local `HEAD` instead, set `worktree.baseRef` to `\"head\"` in [settings](/en/settings#worktree-settings). Setting `baseRef` to `\"head\"` makes new worktrees carry your unpushed commits and feature-branch state, which is useful when isolating subagents that need to operate on in-progress work. The setting accepts only `\"fresh\"` or `\"head\"`, not arbitrary git refs:"
+            },
+            {
+              "type": "added",
+              "content": "To always branch from local `HEAD` instead, set `worktree.baseRef` to `\"head\"` in [settings](/en/settings#worktree-settings). Setting `baseRef` to `\"head\"` makes new worktrees carry your unpushed commits and feature-branch state, which is useful when isolating subagents that need to operate on in-progress work. When the session runs inside a linked worktree, `\"head\"` resolves to that worktree's `HEAD`, not the main checkout's. The setting accepts only `\"fresh\"` or `\"head\"`, not arbitrary git refs:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

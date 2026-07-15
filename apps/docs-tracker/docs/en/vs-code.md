@@ -287,7 +287,7 @@ Add `"$schema": "https://json.schemastore.org/claude-code-settings.json"` to you
 | `environmentVariables` | `[]` | Set environment variables for the Claude process. Use Claude Code settings instead for shared config. |
 | `disableLoginPrompt` | `false` | Skip authentication prompts (for third-party provider setups) |
 | `allowDangerouslySkipPermissions` | `false` | Adds Bypass permissions to the mode selector. Use it only in sandboxes with no internet access. |
-| `claudeProcessWrapper` | - | Executable used to launch the Claude process. The bundled binary path is passed as an argument when present. Set this to a separately installed `claude` binary if the extension build doesn't include one for your platform. |
+| `claudeProcessWrapper` | - | Executable used to launch the Claude process. The bundled binary path is passed as an argument when present. Set this to a separately installed `claude` binary if the extension build doesn't include one for your platform. An "Unsupported platform" error at activation means no binary is bundled for your platform; see [which platforms have prebuilt binaries](/en/troubleshoot-install#native-binary-not-found-after-npm-install). |
 
 ## VS Code extension vs. Claude Code CLI
 
