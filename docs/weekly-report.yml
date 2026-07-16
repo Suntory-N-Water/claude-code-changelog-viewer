@@ -1,0 +1,221 @@
+name: Weekly Report
+
+on:
+  issues:
+    types: [labeled]
+
+permissions: {}
+
+concurrency:
+  group: weekly-report-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: >
+      github.event.label.name == 'weekly-report'
+      && github.actor == 'Suntory-N-Water'
+      && github.event.issue.user.login == 'Suntory-N-Water'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    env:
+      TZ: Asia/Tokyo
+
+    outputs:
+      week: ${{ steps.parse.outputs.week }}
+      period_start: ${{ steps.parse.outputs.period_start }}
+      period_end: ${{ steps.parse.outputs.period_end }}
+      selected_count: ${{ steps.parse.outputs.selected_count }}
+      total_items: ${{ steps.parse.outputs.total_items }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Parse issue body
+        id: parse
+        env:
+          # Issue body は untrusted。必ず env 経由で受け、run script に直接埋め込まない。
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          INPUT_FILE_PATH: ${{ runner.temp }}/weekly-input.json
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import re
+          import sys
+
+          body = os.environ["ISSUE_BODY"]
+
+          # Issue Forms の render: json は ```json ... ``` フェンスで囲まれた 1 ブロックのみを取り出す。
+          match = re.search(r"```json\n(.*?)\n```", body, re.DOTALL)
+          if not match:
+              print("::error::Issue body に ```json ... ``` ブロックが見つかりません", file=sys.stderr)
+              sys.exit(1)
+
+          try:
+              data = json.loads(match.group(1))
+          except json.JSONDecodeError as exc:
+              print(f"::error::JSON パースに失敗しました: {exc}", file=sys.stderr)
+              sys.exit(1)
+
+          required = {
+              "week": str,
+              "period_start": str,
+              "period_end": str,
+              "total_items": int,
+              "items": list,
+          }
+          for key, typ in required.items():
+              if key not in data:
+                  print(f"::error::必須フィールド {key} がありません", file=sys.stderr)
+                  sys.exit(1)
+              if not isinstance(data[key], typ):
+                  print(f"::error::{key} の型が不正です(期待: {typ.__name__})", file=sys.stderr)
+                  sys.exit(1)
+
+          if not data["items"]:
+              print("::error::items が空です", file=sys.stderr)
+              sys.exit(1)
+
+          for i, item in enumerate(data["items"]):
+              for key in ("id", "version"):
+                  if key not in item or not isinstance(item[key], str):
+                      print(f"::error::items[{i}].{key} が不正です", file=sys.stderr)
+                      sys.exit(1)
+
+          input_path = os.environ["INPUT_FILE_PATH"]
+          with open(input_path, "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False)
+
+          # GITHUB_OUTPUT にはメタデータのみ載せ、生 JSON 本体は載せない。
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"week={data['week']}\n")
+              out.write(f"period_start={data['period_start']}\n")
+              out.write(f"period_end={data['period_end']}\n")
+              out.write(f"selected_count={len(data['items'])}\n")
+              out.write(f"total_items={data['total_items']}\n")
+
+          print(f"parsed week={data['week']} items={len(data['items'])}")
+          PY
+
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/setup-uv
+
+      - name: Generate weekly report with Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@1298632ce7736903d02a1435002705aa2a594a6c # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: /weekly-post --input-file ${{ runner.temp }}/weekly-input.json
+          claude_args: --model claude-opus-4-7 --max-turns 50
+
+      - name: Upload generated artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: weekly-report-${{ github.event.issue.number }}
+          path: apps/changelog-fetcher/posts/weekly/**/*.md
+          retention-days: 7
+          if-no-files-found: warn
+
+  publish:
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download generated artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: weekly-report-${{ github.event.issue.number }}
+          path: apps/changelog-fetcher/posts/weekly/
+
+      - name: Prepare PR metadata
+        id: pr-meta
+        env:
+          WEEK: ${{ needs.generate.outputs.week }}
+          PERIOD_START: ${{ needs.generate.outputs.period_start }}
+          PERIOD_END: ${{ needs.generate.outputs.period_end }}
+          SELECTED_COUNT: ${{ needs.generate.outputs.selected_count }}
+          TOTAL_ITEMS: ${{ needs.generate.outputs.total_items }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "branch=docs/weekly-${WEEK}-issue-${ISSUE_NUMBER}"
+            echo "title=docs: 週次アップデート (${WEEK})"
+            echo "body<<PR_BODY_EOF"
+            echo "Issue #${ISSUE_NUMBER} で選定された changelog から週次記事を生成しました。"
+            echo ""
+            echo "- 対象週: ${WEEK}"
+            echo "- 期間: ${PERIOD_START} ~ ${PERIOD_END}"
+            echo "- 選定件数: ${SELECTED_COUNT} / 全 ${TOTAL_ITEMS} 件"
+            echo ""
+            echo "生成後の推敲は人が担当してください(skill の手順は下書きまでです)。"
+            echo ""
+            echo "Actions run: ${RUN_URL}"
+            echo ""
+            echo "Closes #${ISSUE_NUMBER}"
+            echo "PR_BODY_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        id: create-pr
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ github.token }}
+          branch: ${{ steps.pr-meta.outputs.branch }}
+          commit-message: ${{ steps.pr-meta.outputs.title }}
+          title: ${{ steps.pr-meta.outputs.title }}
+          body: ${{ steps.pr-meta.outputs.body }}
+          delete-branch: true
+
+      - name: Post success comment on source issue
+        if: success() && steps.create-pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: |
+          BODY="週次記事の PR を作成しました: #${PR_NUMBER}
+          マージすると本 Issue も自動 close されます。"
+          gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+
+  notify-failure:
+    needs: [generate, publish]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+
+    steps:
+      - name: Post failure comment on source issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          BODY="週次記事の生成に失敗しました。
+          Actions run: ${RUN_URL}"
+          gh issue comment "$ISSUE_NUMBER" --body "$BODY"
