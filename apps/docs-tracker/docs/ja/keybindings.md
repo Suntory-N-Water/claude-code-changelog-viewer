@@ -141,7 +141,7 @@ v2.1.205 より前では、`Doctor` コンテキストと `/doctor` 診断スク
 | `confirm:previousField` | （アンバインド） | 前のフィールド |
 | `confirm:toggle` | Space | 選択を切り替え |
 | `confirm:cycleMode` | Shift+Tab | 権限モードをサイクル |
-| `confirm:toggleExplanation` | Ctrl+E | 権限説明を切り替え |
+| `confirm:toggleExplanation` | Ctrl+E | Bash および PowerShell 権限プロンプトでモデルが生成した[コマンドの説明](/ja/permissions#permission-system)を切り替え |
 
 権限アクション
 
@@ -247,13 +247,13 @@ Diff アクション
 
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
-| `diff:dismiss` | Escape | Diff ビューアを閉じる |
+| `diff:dismiss` | Escape | Diff ビューアを閉じます。詳細ビューからは、ファイルリストに戻ります |
 | `diff:previousSource` | Left | 前の Diff ソース |
 | `diff:nextSource` | Right | 次の Diff ソース |
 | `diff:previousFile` | Up、K | ファイルリストの前のファイル。詳細ビューで 1 行上にスクロール |
 | `diff:nextFile` | Down、J | ファイルリストの次のファイル。詳細ビューで 1 行下にスクロール |
 | `diff:viewDetails` | Enter | Diff の詳細を表示 |
-| `diff:back` | （コンテキスト固有） | Diff ビューアで戻る |
+| `diff:back` | （アンバインド） | Diff ビューアで戻ります。Escape は `diff:dismiss` を通じて戻るアクションを実行します。詳細ビューの Left の以前のデフォルトは v2.1.203 で削除されました |
 
 Diff 詳細ビューは、ページャースタイルのキーを標準的な[スクロールアクション](#scroll-actions)にバインドします。これらのバインディングは `DiffDialog` コンテキストの一部であり、詳細ビューにのみ適用されます。[スクロールアクション](#scroll-actions)の下に記載されている `Scroll` コンテキストのデフォルトは変わりません。
 
@@ -459,6 +459,7 @@ Vim モードが `/config` → エディタモードで有効な場合、キー�
 - **キーバインディング** はコンポーネントレベルでアクションを処理します（todos を切り替え、送信など）
 - Vim モードの Escape キーは INSERT から NORMAL モードに切り替わります。`chat:cancel` をトリガーしません
 - ほとんどの Ctrl+key ショートカットは Vim モードを通過してキーバインディングシステムに渡されます
+- Vim キーはキーバインディングファイルを通じて再マップできません。`jj` を Escape にマップするような 2 キーの INSERT モードシーケンスをマップするには、[`vimInsertModeRemaps`](/ja/interactive-mode#remap-insert-mode-key-sequences) 設定を使用してください
 - Vim NORMAL モードでは、`?` はヘルプメニューを表示します（Vim の動作）
 - Vim NORMAL モードでは、`/` は履歴検索を開きます。標準モードの Ctrl+R と同じです
 

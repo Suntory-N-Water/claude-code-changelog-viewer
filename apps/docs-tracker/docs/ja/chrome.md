@@ -53,6 +53,8 @@ Go to code.claude.com/docs, click on the search box,
 type "hooks", and tell me what results appear
 ```
 
+最初のブラウザアクションは、`claude-in-chrome` スキルを使用する権限を求めます。それを承認すると、Claude は新しいタブを開いてタスクを開始します。
+
 いつでも `/chrome` を実行して接続ステータスを確認し、権限を管理し、拡張機能を再接続するか、使用する接続されたブラウザを選択できます。ブラウザアクションが開始されるときに複数のブラウザが接続されている場合、Claude はいずれかを選択するよう促します。
 
 VS Code については、[VS Code でのブラウザ自動化](/ja/vs-code#automate-browser-tasks-with-chrome) を参照してください。
@@ -80,7 +82,7 @@ v2.1.199 以降、`tabs_context_mcp` の `createIfEmpty`、コンソールおよ
 
 ワークフロー例
 
-これらの例は、ブラウザアクションとコーディングタスクを組み合わせる一般的な方法を示しています。`/mcp` を実行して `claude-in-chrome` を選択すると、利用可能なブラウザツールの完全なリストが表示されます。
+これらの例は、ブラウザアクションとコーディングタスクを組み合わせる一般的な方法を示しています。`/mcp` を実行して `claude-in-chrome` を選択し、**View tools** を選択すると、利用可能なブラウザツールの完全なリストが表示されます。
 
 ローカル Web アプリケーションをテストする
 

@@ -64,7 +64,7 @@ Claude Code は、コードについて推論するモデルと、ファイル�
 
 類似機能を比較する
 
-一部の機能は似ているように見えることがあります。ここでは、それらを区別する方法を説明します。
+一部の機能は似ているように見えることがあります。より詳しい説明については、[Steering Claude Code: when to use CLAUDE.md, skills, hooks, and subagents](https://claude.com/blog/steering-claude-code-skills-hooks-rules-subagents-and-more) をブログで参照してください。ここでは、それらを区別する方法を説明します。
 
 スキルと subagents は異なる問題を解決します。
 

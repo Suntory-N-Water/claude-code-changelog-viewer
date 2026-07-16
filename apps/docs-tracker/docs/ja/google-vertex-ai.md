@@ -97,7 +97,7 @@ Google Cloud 認証情報を持っていて、Google Cloud の Agent Platform �
   </Step>
 </Steps>
 
-サインイン後、いつでも `/setup-vertex` を実行してウィザードを再度開き、認証情報、プロジェクト、リージョン、またはモデルピンを変更できます。
+サインイン後、いつでも `/setup-vertex` を実行してウィザードを再度開き、認証情報、プロジェクト、リージョン、またはモデルピンを変更できます。モデルピンステップは、現在ピン留めされているモデルから開始します。ウィザードは `~/.claude/settings.json` に書き込むか、[`CLAUDE_CONFIG_DIR`](/ja/env-vars#variables)が設定されている場合は `$CLAUDE_CONFIG_DIR/settings.json` に書き込みます。
 
 <h2 id="region-configuration">
   リージョン設定
@@ -208,12 +208,12 @@ Claude Code は Google Cloud の Agent Platform でデフォルトで [MCP tool 
 </h3>
 
 <Warning>
-  複数のユーザーにデプロイする場合は、特定のモデルバージョンをピン留めしてください。ピン留めなしでは、`sonnet` および `opus` などのモデルエイリアスは Claude Code の Google Cloud の Agent Platform 用の組み込みデフォルトに解決され、最新リリースより遅れる可能性があり、プロジェクトでまだ有効になっていない可能性があります。Claude Code は、デフォルトが利用できない場合、起動時に[前のバージョンにフォールバック](#startup-model-checks)しますが、ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。
+  複数のユーザーにデプロイする場合は、特定のモデルバージョンをピン留めしてください。ピン留めなしでは、`sonnet` および `opus` などのモデルエイリアスは Claude Code の Google Cloud の Agent Platform 用の組み込みデフォルトに解決され、最新リリースより遅れる可能性があり、プロジェクトでまだ有効になっていない可能性があります。Claude Code は、デフォルトが利用できない場合、起動時に前のバージョンにフォールバックしますが、ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。
 </Warning>
 
 これらの環境変数を特定の Google Cloud の Agent Platform モデル ID に設定します。
 
-これらの変数がない場合、Google Cloud の Agent Platform 上の `opus` エイリアスは Opus 4.8 に解決され、`sonnet` エイリアスは Sonnet 4.5 に解決されます。各変数をエイリアスを特定のバージョンにピン留めするように設定します。
+`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Google Cloud の Agent Platform 上の `opus` エイリアスは Opus 4.8 に解決され、`ANTHROPIC_DEFAULT_SONNET_MODEL` がない場合、`sonnet` エイリアスは Sonnet 4.5 に解決されます。この例では、各エイリアスを特定のバージョンにピン留めします。
 
 ```bash
 export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'
@@ -225,12 +225,21 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'
 
 Claude Code は、ピン留め変数が設定されていない場合、これらのデフォルトモデルを使用します。
 
-| モデルタイプ   | デフォルト値            |
-| :------- | :---------------- |
-| プライマリモデル | `claude-opus-4-8` |
-| 小型/高速モデル | プライマリモデルと同じ       |
+| モデルタイプ   | デフォルト値                       |
+| :------- | :--------------------------- |
+| プライマリモデル | `claude-opus-4-8`            |
+| 小型/高速モデル | `claude-sonnet-4-5@20250929` |
 
-セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Google Cloud の Agent Platform では、Haiku がすべてのプロジェクトまたはリージョンで有効になっていない可能性があるため、Claude Code はこれをプライマリモデルにデフォルト設定します。バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をプロジェクトで利用可能なモデル ID に設定します。
+セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Google Cloud の Agent Platform では、Haiku がすべてのプロジェクトまたはリージョンで有効になっていない可能性があるため、Claude Code はバックグラウンドタスクにデフォルトの Sonnet モデルを使用します。2 つの選択がどのモデルがバックグラウンドタスクを実行するかを変更します。
+
+* `--model`、`ANTHROPIC_MODEL`、または `model` 設定でプライマリモデルを選択すると、バックグラウンドタスクはそのモデルを使用します。`ANTHROPIC_DEFAULT_SONNET_MODEL` なしで `ANTHROPIC_DEFAULT_OPUS_MODEL` を設定することも、組み込み Sonnet モデルがプロジェクトで有効になっていない可能性があるため、選択としてカウントされます。
+* バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をプロジェクトで利用可能なモデル ID に設定します。
+
+<Warning>
+  Opus モデルは Sonnet モデルより高いトークンあたりの価格を持つため、プライマリモデルをピン留めしないデプロイメントは v2.1.207 以降に更新されると Opus レートで課金されます。Sonnet 4.5 をプライマリモデルとして保つには、`ANTHROPIC_MODEL` をその完全なモデル ID に設定します。`ANTHROPIC_DEFAULT_SONNET_MODEL` でデフォルトを制御し、`ANTHROPIC_DEFAULT_OPUS_MODEL` を設定しないデプロイメントは、制御された Sonnet モデルをデフォルトとして保ちます。
+</Warning>
+
+{/* min-version: 2.1.207 */}v2.1.207 より前は、Google Cloud の Agent Platform 上のプライマリモデルは Sonnet 4.5 にデフォルト設定され、`opus` エイリアスは Opus 4.6 に解決され、バックグラウンドタスクは常にプライマリモデルを使用していました。
 
 モデルをさらにカスタマイズするには、以下を実行します。
 
@@ -247,7 +256,7 @@ Claude Code が Google Cloud の Agent Platform で設定されて起動する�
 
 Claude Code デフォルトより古いモデルバージョンをピン留めしていて、プロジェクトが新しいバージョンを呼び出せる場合、Claude Code はピンを更新するよう促します。受け入れると、新しいモデル ID が[ユーザー設定ファイル](/ja/settings)に書き込まれ、Claude Code が再起動されます。拒否すると、次のデフォルトバージョン変更まで記憶されます。
 
-モデルをピン留めしていなくて、現在のデフォルトがプロジェクトで利用できない場合、Claude Code は現在のセッション用に前のバージョンにフォールバックし、通知を表示します。フォールバックは永続化されません。[Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)で新しいモデルを有効にするか、[バージョンをピン留めして](#5-pin-model-versions)選択を永続化してください。
+モデルをピン留めしていなくて、現在のデフォルトがプロジェクトで利用できない場合、Claude Code は現在のセッション用にフォールバックし、通知を表示します。デフォルトモデルの以前のバージョンを最初に試し、デフォルトが Opus モデルで Opus バージョンが利用できない場合は、デフォルト Sonnet モデルにフォールバックします。フォールバックは永続化されません。[Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)で新しいモデルを有効にするか、[バージョンをピン留めして](#5-pin-model-versions)選択を永続化してください。
 
 <h2 id="iam-configuration">
   IAM 設定
@@ -271,7 +280,7 @@ Claude Code デフォルトより古いモデルバージョンをピン留め�
   100 万トークンコンテキストウィンドウ
 </h2>
 
-Claude Sonnet 5、Opus 4.6 以降、および Sonnet 4.6 は、Google Cloud の Agent Platform で[100 万トークンコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。Sonnet 5 は常に 100 万ウィンドウで実行され、選択する `[1m]` バリアントはありません。その他のモデルについては、Claude Code は 100 万トークンモデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
+Claude Sonnet 5、Opus 4.6 以降、および Sonnet 4.6 は、Google Cloud の Agent Platform で[100 万トークンコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#context-window-sizes-by-model)をサポートしています。Sonnet 5 は常に 100 万ウィンドウで実行され、選択する `[1m]` バリアントはありません。その他のモデルについては、Claude Code は 100 万トークンモデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
 
 [セットアップウィザード](#sign-in-with-agent-platform)は、モデルをピン留めするときに 100 万トークンコンテキストオプションを提供します。手動でピン留めされたモデルの代わりに有効にするには、モデル ID に `[1m]` を追加します。詳細については、[サードパーティデプロイメント用のモデルをピン留めする](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
 

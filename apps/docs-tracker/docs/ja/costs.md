@@ -30,11 +30,28 @@ Total code changes:    0 lines added, 0 lines removed
 
 Pro、Max、Team、または Enterprise プランでは、`/usage` はプラン制限に対してカウントされるものの内訳も表示します。最近の使用量をスキル、サブエージェント、プラグイン、および個別の MCP サーバーに属性付けし、それぞれが合計のパーセンテージとして表示されます。`d` または `w` を押して、過去 24 時間と過去 7 日間を切り替えることができます。数値は概算であり、このマシン上のローカルセッション履歴から計算されるため、他のデバイスまたは claude.ai からの使用量は含まれていません。
 
+プラン制限のリクエストが失敗した場合（ほとんどの場合、使用量エンドポイントがレート制限されているため）、`/usage` は過去 60 分以内にこのマシンで読み込んだ最後の使用量バーを表示し、そのデータがいつ取得されたかを示す `Showing last-known usage` ノートが表示されます。`r` を押して再試行します。再試行が成功すると、最後に認識されたバーが新しいデータに置き換わります。過去 60 分以内のスナップショットがない場合、`/usage` は使用量エンドポイントがレート制限されていることを報告し、同じ再試行ショートカットを提供します。v2.1.208 より前では、使用量をまだ読み込んでいないセッションでレート制限されたリクエストは常にバーなしでエラーを表示していました。
+
 [VS Code 拡張機能](/ja/vs-code#check-account-and-usage) では、同じ内訳が Account & usage ダイアログに Day および Week トグルとともに表示されます。Claude Code v2.1.174 以降が必要です。
 
 Pro および Max で支出制限を設定する
 
-Pro および Max プランでは、`/usage-credits` コマンドを使用して使用量クレジットの月間支出制限を設定できます。制限に達しても使用量クレジットがまだ利用可能な場合、Claude Code は制限を引き上げるか削除するよう促し、CLI を離れることなく続行できます。制限の変更にはアカウントの請求アクセスが必要です。
+Pro および Max プランでは、`/usage-credits` コマンドを使用して CLI でダイアログを開き、[使用量クレジット](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) を管理できます。ダイアログから以下を実行できます。
+
+- アカウントの使用量クレジットをオンにする
+- より多くの使用量クレジットを購入する（リストされたバンドルまたはカスタム金額）
+- 月間支出制限を設定、変更、または削除する
+- オートリロードを設定する。これにより、残高が設定したしきい値を下回ると、自動的により多くの使用量クレジットが購入されます
+
+Claude Code v2.1.207 より前のバージョンおよび CLI 内ダイアログが利用できないアカウントでは、`/usage-credits` はブラウザで使用量クレジット請求ページを開きます。Team および Enterprise プランでは、請求アクセス権を持つメンバーは同じブラウザページを取得し、請求アクセス権を持たないメンバーは CLI から使用量クレジットをオンにするか制限を引き上げるよう管理者に要求を送信します。
+
+月間支出制限の変更にはアカウントの請求アクセスが必要です。制限に達しても使用量クレジットがまだ利用可能な場合、Claude Code は制限を引き上げるか削除するよう促し、CLI を離れることなく続行できます。
+
+カスタム購入金額、月間支出制限、またはオートリロードしきい値とターゲットなど、ダイアログに入力する金額は、数字である必要があり、オプションでピリオドと 1 つまたは 2 つの小数点以下の数字が続きます。例えば `20` または `20.50` です。コンマを含むその他の入力は、インラインエラーを表示し、保存されません。v2.1.207 より前のバージョンはダイアログを表示せず、代わりに請求ページを開きます。
+
+Claude Code は、金額に関係なく、すべての購入とすべてのオートリロード変更を確認するために `yes` を入力するよう求め、購入確認は承認する税後の合計を表示します。月間支出制限の変更は、$1,000 を超える場合、または米国ドル以外の請求通貨の 1,000 ユニットを超える場合にのみ、同じ入力確認を求めます。v2.1.208 より前では、購入とオートリロード変更はそのしきい値も使用していたため、より小さい金額は追加の入力 `yes` ステップなしで標準ダイアログフローを通過していました。
+
+金額フィールドは提案値で事前に入力された状態で開き、入力する最初の数字は提案に追加するのではなく、提案を置き換えます。使用量クレジットをオンにする画面は Cancel が選択された状態で開くため、それらをオンにするには意図的な選択が必要です。どちらも Claude Code v2.1.208 以降が必要です。
 
 組織のコストを管理する
 
@@ -44,7 +61,7 @@ Claude Code にアクセスする方法によって、利用可能なコント�
 
 | セットアップ | 支出を確認 | 支出をキャップ | ユーザーごとのレポート |
 | :- | :- | :- | :- |
-| [Claude for Teams または Enterprise](#claude-for-teams-and-enterprise) | [org analytics の支出レポート](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans) | 管理者設定の支出制限 | [支出レポート CSV](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans)、Enterprise の [Enterprise Analytics API](https://support.claude.com/en/articles/13703965-claude-enterprise-analytics-api-reference-guide) |
+| [Claude for Teams または Enterprise](#claude-for-teams-and-enterprise) | [org analytics の支出レポート](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans) | 管理者設定の支出制限 | [支出レポート CSV](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans)、Enterprise の [Enterprise Analytics API](https://platform.claude.com/docs/en/api/admin/analytics) |
 | [Claude Console（API）](#claude-console) | [Console 使用状況ページ](https://platform.claude.com/usage) | ワークスペース支出制限 | [Console ダッシュボード](https://platform.claude.com/claude-code)、[Claude Code Analytics API](https://platform.claude.com/docs/en/build-with-claude/claude-code-analytics-api) |
 | [Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry](#cloud-providers) | クラウド請求コンソール | クラウドの予算コントロール | [OpenTelemetry](/ja/monitoring-usage) または [LLM gateway](/ja/llm-gateway) |
 
@@ -52,12 +69,12 @@ Claude Code にアクセスする方法によって、利用可能なコント�
 
 Claude for Teams および Enterprise
 
-Claude for Teams および Enterprise プランでは、各メンバーの Claude Code 使用量は、ローリング 5 時間ウィンドウと週間ウィンドウでリセットされるシート単位の割り当てから引き出されます。割り当ては Claude チャットおよび Cowork と共有され、そのサイズは [シート層](https://support.claude.com/en/articles/11845131-use-claude-code-with-your-team-or-enterprise-plan) に依存します。コントロールは Claude Console ではなく claude.ai 管理コンソールにあります。
+Claude for Teams および Enterprise プランでは、各メンバーの Claude Code 使用量は、ローリング 5 時間ウィンドウと週間ウィンドウでリセットされるシート単位の割り当てから引き出されます。割り当ては Claude チャットおよび Cowork と共有され、そのサイズはメンバーの [シート層](https://support.claude.com/en/articles/11845131-use-claude-code-with-your-team-or-enterprise-plan)（Standard または Premium）に依存します。コントロールは Claude Console ではなく claude.ai 管理コンソールにあります。
 
 - **支出を確認**: [org analytics の支出レポート](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans) は、ユーザーごとおよびモデルごとの推定支出を CSV エクスポート付きで表示し、毎日更新されます。レポートは使用クレジット支出をカバーし、使用クレジットがオンになると表示されます。シート割り当て内の使用量はドルでメーター化されません。
 - **採用を確認**: [analytics ダッシュボード](https://claude.ai/analytics/claude-code) は、日次アクティブユーザー、セッション、および貢献メトリクスを表示し、貢献データの CSV エクスポート付きです。[analytics でチーム使用状況を追跡](/ja/analytics) を参照してください。
 - **支出をキャップ**: シート割り当てはデフォルトの上限です。メンバーがそれを超えて続行できるようにするには、[使用クレジット](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) をオンにして、組織、グループ、または個別メンバーレベルで支出制限を設定します。
-- **ユーザーごとの数値を取得**: Enterprise プランでは、[Enterprise Analytics API](https://support.claude.com/en/articles/13703965-claude-enterprise-analytics-api-reference-guide) は Claude Code を含む Claude サーフェス全体のユーザーごとの使用状況およびコストレポートを返します。Primary Owner は [claude.ai/analytics/api-keys](https://claude.ai/analytics/api-keys) で `read:analytics` スコープを持つキーを作成します。Teams プランでは、[支出レポート CSV](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans) をエクスポートします。これはユーザーごとおよびモデルごとのトークン使用量と推定支出をリストします。
+- **ユーザーごとの数値を取得**: Enterprise プランでは、[Enterprise Analytics API](https://platform.claude.com/docs/en/api/admin/analytics) は Claude Code を含む Claude サーフェス全体のユーザーごとの使用状況およびコストレポートを返します。Primary Owner は [claude.ai/analytics/api-keys](https://claude.ai/analytics/api-keys) で `read:analytics` スコープを持つキーを作成します。Teams プランでは、[支出レポート CSV](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans) をエクスポートします。これはユーザーごとおよびモデルごとのトークン使用量と推定支出をリストします。
 
 [Claude Enterprise 消費ガイド](https://support.claude.com/en/articles/14782391-claude-enterprise-consumption-guide) は管理者向けの計画リファレンスです。Claude チャット、Claude Code、および Cowork 全体で消費がどのように異なるかを説明し、予算編成のためのユーザーごとのドル開始点を提供します。コーディングシートのチャットシートより多くの予算を計上してください。各 Claude Code ターンはファイルコンテンツ、ツール呼び出し、および多段階推論を含むため、1 つのデバッグセッションはチャットの 1 日分以上を消費できます。
 

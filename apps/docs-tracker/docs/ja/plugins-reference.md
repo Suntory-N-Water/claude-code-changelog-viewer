@@ -174,8 +174,7 @@ MCP servers
     },
     "plugin-api-client": {
       "command": "npx",
-      "args": ["@company/mcp-server", "--plugin-mode"],
-      "cwd": "${CLAUDE_PLUGIN_ROOT}"
+      "args": ["@company/mcp-server", "--plugin-mode"]
     }
   }
 }
@@ -284,8 +283,6 @@ Monitors
 
 プラグイン monitors は[Monitor tool](/ja/tools-reference#monitor-tool)と同じメカニズムを使用し、その可用性制約を共有します。これらはインタラクティブ CLI セッションでのみ実行され、[hooks](#hooks)と同じ信頼レベルでサンドボックス化されずに実行され、Monitor tool が利用できないホストではスキップされます。
 
-プラグイン monitors には Claude Code v2.1.105 以降が必要です。
-
 **場所**: プラグインルートの `monitors/monitors.json`、または plugin.json 内のインライン
 
 **形式**: monitor エントリの JSON 配列
@@ -296,7 +293,7 @@ Monitors
 [
   {
     "name": "deploy-status",
-    "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/poll-deploy.sh ${user_config.api_endpoint}",
+    "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/poll-deploy.sh",
     "description": "Deployment status changes"
   },
   {
@@ -324,7 +321,9 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 | :- | :- |
 | `when` | monitor がいつ開始するかを制御します。`"always"` はセッション開始時とプラグイン再読み込み時に開始し、デフォルトです。`"on-skill-invoke:<skill-name>"` はこのプラグイン内の名前付き skill が最初にディスパッチされるときに開始します |
 
-`command` 値は MCP および LSP サーバー設定と同じ[変数置換](#environment-variables)をサポートします: `${CLAUDE_PLUGIN_ROOT}`、`${CLAUDE_PLUGIN_DATA}`、`${CLAUDE_PROJECT_DIR}`、`${user_config.*}`、および環境からの任意の `${ENV_VAR}`。スクリプトがプラグイン自体のディレクトリから実行される必要がある場合は、コマンドの前に `cd "${CLAUDE_PLUGIN_ROOT}" && ` を付けます。
+`command` 値は[パス置換](#environment-variables) `${CLAUDE_PLUGIN_ROOT}`、`${CLAUDE_PLUGIN_DATA}`、`${CLAUDE_PROJECT_DIR}`、および環境からの任意の `${ENV_VAR}` をサポートします。スクリプトがプラグイン自体のディレクトリから実行される必要がある場合は、コマンドの前に `cd "${CLAUDE_PLUGIN_ROOT}" && ` を付けます。
+
+monitor `command` は[`${user_config.*}`](#user-configuration)値を参照することはできません。コマンドはシェルを通じて実行されるため、Claude Code は値を置換する代わりに[エラー](/ja/errors#plugin-command-references-user-config)でプラグインを拒否します。Monitor プロセスは `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数を受け取らないため、monitor スクリプトが所有する設定ファイルから値を読み取るようにしてください。v2.1.207 より前では、monitor コマンドは `${user_config.*}` 値を置換していました。
 
 セッション中にプラグインを無効にしても、既に実行中の monitors は停止しません。セッションが終了するときに停止します。
 
@@ -551,9 +550,21 @@ claude plugin validate ./my-plugin --strict
 | `multiple` | いいえ | `string` タイプの場合、文字列の配列を許可 |
 | `min` / `max` | いいえ | `number` タイプの境界 |
 
-各値は MCP および LSP サーバー設定、hook コマンド、monitor コマンド、および skill とエージェントコンテンツ（機密でない値のみ）で `${user_config.KEY}` として置換可能です。すべての値はプラグインサブプロセスに `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数としてエクスポートされます。
+各値は MCP および LSP サーバー設定と hook コマンドで `${user_config.KEY}` として置換可能です。機密でない値は skill とエージェントコンテンツでも置換できます。すべての値はプラグインサブプロセスに `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数としてエクスポートされます。ここで `<KEY>` はオプションキーを大文字にしたものです。
 
-機密でない値は `settings.json` の `pluginConfigs[<plugin-id>].options` に保存されます。機密値はシステムキーチェーン（またはキーチェーンが利用できない場合は `~/.claude/.credentials.json`）に移動します。キーチェーンストレージは OAuth トークンと共有され、約 2 KB の合計制限があるため、機密値は小さく保ってください。
+シェルで実行されるフィールドは `${user_config.*}` を拒否します: 設定された値をシェルコマンドに置換すると、シェルはその値が含むものを実行できるため、コンポーネントは[エラー](/ja/errors#plugin-command-references-user-config)で失敗します。拒否された各フィールドには、値を渡す別の方法があります:
+
+| 拒否されたフィールド | 値を渡す方法 |
+| :- | :- |
+| Shell-form hook コマンド | [exec form](/ja/hooks#exec-form-and-shell-form)を `args` で使用するか、hook の環境から `CLAUDE_PLUGIN_OPTION_<KEY>` を読み取ります |
+| [Monitor](#monitors)コマンド | スクリプトの設定ファイルから値を読み取ります |
+| MCP [`headersHelper`](/ja/mcp#use-dynamic-headers-for-custom-authentication) | スクリプトの設定ファイルから値を読み取ります |
+
+v2.1.207 より前は、これらのフィールドは `${user_config.KEY}` 値を置換していました。これに依存していたプラグインを更新してください。
+
+機密でない値は `settings.json` の [`pluginConfigs`](/ja/settings#pluginconfigs) キーの下に `pluginConfigs[<plugin-id>].options` として保存されます。Claude Code はキーをユーザー設定に書き込み、ユーザー設定、`--settings` フラグ、および管理設定からそれを読み取ります。プロジェクトの `.claude/settings.json` または `.claude/settings.local.json` のエントリは無視されます。v2.1.207 より前は、Claude Code はプロジェクトおよびローカル設定も読み取っていました。
+
+機密値は macOS Keychain、またはサポートされているキーチェーンが利用できないプラットフォームでは `~/.claude/.credentials.json` に移動します。キーチェーンストレージは OAuth トークンと共有され、約 2 KB の合計制限があるため、機密値は小さく保ってください。
 
 チャネル
 
@@ -620,15 +631,25 @@ claude plugin validate ./my-plugin --strict
 
 環境変数
 
-Claude Code は、プラグインパスを参照するための 3 つの変数を提供します。すべては skill コンテンツ、エージェントコンテンツ、hook コマンド、monitor コマンド、MCP または LSP サーバー設定に表示される場所にインラインで置換されます。すべては hook プロセスおよび MCP または LSP サーバーサブプロセスに環境変数としてエクスポートされます。
+Claude Code は、プラグインパスを参照するための 3 つの変数を提供します:
 
-**`${CLAUDE_PLUGIN_ROOT}`**: プラグインのインストールディレクトリへの絶対パス。プラグインにバンドルされたスクリプト、バイナリ、設定ファイルを参照するために使用します。hook コマンドでは、[exec form](/ja/hooks#exec-form-and-shell-form)を `args` で使用して、パスが 1 つの引数として引用符なしで渡されるようにしてください。shell-form hooks および monitor コマンドでは、`"${CLAUDE_PLUGIN_ROOT}"` のようにダブルクォートで囲みます。このパスはプラグインが更新されると変更されます。前のバージョンのディレクトリは更新後約 7 日間ディスク上に残りますが、これを一時的なものとして扱い、ここに状態を書き込まないでください。
+| 変数 | 解決先 | 用途 |
+| :- | :- | :- |
+| `${CLAUDE_PLUGIN_ROOT}` | プラグインのインストールディレクトリへの絶対パス | プラグインにバンドルされたスクリプト、バイナリ、設定ファイル |
+| `${CLAUDE_PLUGIN_DATA}` | [永続ディレクトリ](#persistent-data-directory)は最初の参照時に作成され、プラグイン更新後も保持されます | `node_modules` または Python 仮想環境などのインストール済み依存関係、生成されたコード、キャッシュ |
+| `${CLAUDE_PROJECT_DIR}` | プロジェクトルート | プロジェクトローカルスクリプトと設定ファイル |
 
-プラグインがセッション中に更新されると、hook コマンド、monitors、MCP サーバー、LSP サーバーは前のバージョンのパスを使用し続けます。`/reload-plugins` を実行して、hook、MCP サーバー、LSP サーバーを新しいパスに切り替えます。monitors はセッション再起動が必要です。
+3 つすべてが hook プロセスおよび MCP と LSP サーバーサブプロセスに環境変数としてエクスポートされます。どのフィールドがそれらをインラインで置換するかは、プラグインコンポーネントによって異なります:
 
-**`${CLAUDE_PLUGIN_DATA}`**: 更新後も保持される永続ディレクトリ。`node_modules` または Python 仮想環境などのインストール済み依存関係、生成されたコード、キャッシュ、およびプラグインバージョン全体で保持する必要があるその他のファイルに使用します。このディレクトリは、この変数が最初に参照されるときに自動的に作成されます。
+| プラグインコンポーネント | プレースホルダーが解決されるフィールド |
+| :- | :- |
+| Skill とエージェントコンテンツ | プレースホルダーが表示される任意の場所 |
+| Hook と monitor コマンド | プレースホルダーが表示される任意の場所 |
+| MCP `stdio` サーバー | `command`、`args`、`env` |
+| MCP `http`、`sse`、`ws` サーバー | `url`、`headers`、`headersHelper` |
+| LSP サーバー | `command`、`args`、`env`、`workspaceFolder` |
 
-**`${CLAUDE_PROJECT_DIR}`**: プロジェクトルート。これは hook が `CLAUDE_PROJECT_DIR` 変数で受け取るのと同じディレクトリです。プロジェクトローカルスクリプトまたは設定ファイルを参照するために使用します。スペースを含むパスを処理するためにクォートで囲みます。たとえば `"${CLAUDE_PROJECT_DIR}/scripts/server.sh"`。MCP サーバーは `roots/list` リクエストを呼び出すこともでき、セッションの作業ディレクトリを実行時に読み取ることができます。[`roots/list` が返すもの、および Claude Code がサーバーに変更を通知するタイミング](/ja/mcp#option-3-add-a-local-stdio-server)を参照してください。
+hook コマンドでは、[exec form](/ja/hooks#exec-form-and-shell-form)を `args` で使用して、各パスが 1 つの引数として引用符なしで渡されるようにしてください。shell-form hooks と monitor コマンドでは、`"${CLAUDE_PROJECT_DIR}/scripts/server.sh"` のようにダブルクォートで囲みます。この shell-form hook はプラグインにバンドルされたスクリプトを実行します:
 
 ```json
 {
@@ -646,6 +667,12 @@ Claude Code は、プラグインパスを参照するための 3 つの変数�
   }
 }
 ```
+
+`${CLAUDE_PLUGIN_ROOT}` はプラグインが更新されると変更されます。前のバージョンのディレクトリは更新後約 7 日間ディスク上に残りますが、これを一時的なものとして扱い、ここに状態を書き込まないでください。
+
+プラグインがセッション中に更新されると、hook コマンド、monitors、MCP サーバー、LSP サーバーは前のバージョンのパスを使用し続けます。`/reload-plugins` を実行して、hook、MCP サーバー、LSP サーバーを新しいパスに切り替えます。monitors はセッション再起動が必要です。
+
+MCP サーバーは `roots/list` リクエストを呼び出すこともでき、セッションの作業ディレクトリを実行時に読み取ることができます。[`roots/list` が返すもの、および Claude Code がサーバーに変更を通知するタイミング](/ja/mcp#option-3-add-a-local-stdio-server)を参照してください。
 
 永続データディレクトリ
 

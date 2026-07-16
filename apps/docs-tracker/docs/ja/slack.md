@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/slack.md
 
 > Slack ワークスペースから直接コーディングタスクを委任する
 
-Claude Code in Slack は、Team および Enterprise ワークスペース向けに [Claude Tag](https://claude.com/docs/claude-tag/overview) に置き換わります。Claude Tag は、管理者が設定したアクセス権限を持つ組織の共有 ID として @Claude を実行し、同じ Slack アプリの下で動作するため、再インストールする必要がなく、既存のセットアップは移行中も機能し続けます。ワークスペースを切り替えるには、[Claude in Slack の以前のバージョンから移行する](https://claude.com/docs/claude-tag/admins/migrate-from-earlier)を参照してください。
+Claude Code in Slack は、Team および Enterprise ワークスペース向けに [Claude Tag](https://claude.com/product/tag) に置き換わります。Claude Tag は、管理者が設定したアクセス権限を持つ組織の共有 ID として @Claude を実行し、同じ Slack アプリの下で動作するため、再インストールする必要がなく、既存のセットアップは移行中も機能し続けます。ワークスペースを切り替えるには、[Claude in Slack の以前のバージョンから移行する](https://claude.com/docs/claude-tag/admins/migrate-from-earlier)を参照してください。
 
 Slack での Claude Code は、Claude Code の機能を Slack ワークスペースに直接もたらします。`@Claude` にコーディングタスクをメンションすると、Claude は自動的に意図を検出し、ウェブ上で Claude Code セッションを作成します。これにより、チームの会話を離れることなく開発作業を委任できます。
 

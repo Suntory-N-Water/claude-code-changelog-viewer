@@ -452,7 +452,9 @@ npm パッケージとして配布されるプラグインは、`npm install` �
 注目すべき重要な点：
 
 - **`commands` と `agents`**：複数のディレクトリまたは個別のファイルを指定できます。パスはプラグインルートに相対的です。
-- **`${CLAUDE_PLUGIN_ROOT}`**：hooks と MCP サーバー設定でこの変数を使用して、プラグインのインストールディレクトリ内のファイルを参照します。プラグインはインストール時にキャッシュロケーションにコピーされるため、これは必要です。永続的なデータまたはプラグイン更新後も保持する必要がある状態については、代わりに [`${CLAUDE_PLUGIN_DATA}`](/ja/plugins-reference#persistent-data-directory) を使用します。
+- **`${CLAUDE_PLUGIN_ROOT}`**：hooks と MCP サーバー設定でこの変数を使用して、プラグインのインストールディレクトリ内のファイルを参照します。プラグインはインストール時にキャッシュロケーションにコピーされるため、これは必要です。
+  - サーバータイプごとにどの設定フィールドがそれを置換するかについては、[置換テーブル](/ja/plugins-reference#environment-variables)を参照してください
+  - 依存関係またはプラグイン更新後も保持する必要がある状態については、代わりに [`${CLAUDE_PLUGIN_DATA}`](/ja/plugins-reference#persistent-data-directory) を使用します
 - **`strict: false`**：これが false に設定されているため、プラグインは独自の `plugin.json` を必要としません。マーケットプレイスエントリがすべてを定義します。以下の[厳密モード](#strict-mode)を参照してください。
 
 デフォルトでは、プラグインの skills は、その `source` の下の `skills/` ディレクトリから読み込まれます。`skills` フィールドに一覧表示されているパスはそのスキャンに追加されます。
@@ -506,7 +508,7 @@ GitLab、Bitbucket、自己ホスト型サーバーなど、任意の Git ホス
 
 プライベートリポジトリ
 
-Claude Code はプライベートリポジトリからプラグインをインストールすることをサポートしています。手動インストールと更新の場合、Claude Code は既存の Git 認証情報ヘルパーを使用するため、HTTPS アクセスは `gh auth login`、macOS キーチェーン、または `git-credential-store` 経由で機能し、ターミナルと同じように動作します。SSH アクセスは、ホストが既に `known_hosts` ファイルにあり、キーが `ssh-agent` に読み込まれている限り機能します。Claude Code はホストフィンガープリントとキーパスフレーズの対話的な SSH プロンプトを抑制するためです。
+Claude Code はプライベートリポジトリからプラグインをインストールすることをサポートしています。手動インストールと更新の場合、Claude Code は既存の Git 認証情報ヘルパーを使用するため、HTTPS アクセスは `gh auth login`、macOS キーチェーン、または `git-credential-store` 経由で機能し、ターミナルと同じように動作します。SSH アクセスは、ホストが既に `known_hosts` ファイルにあり、キーが `ssh-agent` に読み込まれている限り機能します。Claude Code はホストフィンガープリントとキーパスフレーズの対話的な SSH プロンプトを抑制するためです。GitHub の `owner/repo` ショートハンドソースはデフォルトで SSH 経由でクローンされます。代わりに HTTPS 経由でクローンするには、[`CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`](/ja/env-vars#variables) を設定します。
 
 バックグラウンド自動更新は異なる方法で機能します。デフォルトでは、バックグラウンドリフレッシュは `git pull` の Git 認証情報ヘルパーを無効にするため、ヘルパーが設定されている場合でも、プルは HTTPS 経由でプライベートリポジトリに認証できません。SSH リモートは影響を受けません。`ssh-agent` に読み込まれたキーは、手動操作と同じ方法でバックグラウンドプルを認証します。バックグラウンドプルが失敗すると、Claude Code はマーケットプレイスをゼロから再クローンすることにフォールバックします。再クローンは保存された Git 認証情報を使用しますが、大規模なリポジトリでは[タイムアウトする可能性があります](#git-operations-time-out)ため、プライベートマーケットプレイスの自動更新は断続的に失敗する可能性があります。
 
@@ -618,7 +620,7 @@ CLAUDE_CODE_PLUGIN_CACHE_DIR=/opt/claude-seed claude plugin install my-tool@your
 
 管理マーケットプレイスの制限
 
-プラグインソースを厳密に制御する必要がある組織の場合、管理者は管理設定の [`strictKnownMarketplaces`](/ja/settings#strictknownmarketplaces) 設定を使用して、ユーザーが追加できるプラグインマーケットプレイスを制限できます。また、単一実行のために CLI フラグをサイドロードするプラグイン、エージェント、MCP サーバーを拒否するには、[`disableSideloadFlags`](/ja/settings#available-settings) と組み合わせます。
+プラグインソースを厳密に制御する必要がある組織の場合、管理者は管理設定の [`strictKnownMarketplaces`](/ja/settings#strictknownmarketplaces) 設定を使用して、ユーザーが追加できるプラグインマーケットプレイスを制限できます。また、単一実行のために CLI フラグをサイドロードするプラグイン、エージェント、MCP サーバーを拒否するには、[`disableSideloadFlags`](/ja/settings#available-settings) と組み合わせます。コンテキストインストール提案として表示できるマーケットプレイスのプラグインをホワイトリストに登録するには、[`pluginSuggestionMarketplaces`](/ja/settings#available-settings) を設定します。
 
 `strictKnownMarketplaces` が管理設定で設定されている場合、制限動作は値によって異なります。
 
@@ -968,7 +970,7 @@ claude plugin marketplace remove <name> [options]
 
 プラグインマーケットプレイス更新
 
-マーケットプレイスをソースから更新して、新しいプラグインとバージョン変更を取得します。
+マーケットプレイスをソースから更新して、新しいプラグインとバージョン変更を取得します。ブランチまたはタグ `ref` で追加されたマーケットプレイスは、リポジトリのデフォルトブランチではなく、その ref の最新コミットに更新されます。
 
 ```bash
 claude plugin marketplace update [name]

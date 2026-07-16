@@ -355,7 +355,9 @@ Windows では、exec フォームは `command` が `.exe` などの実際の実
 }
 ```
 
-両方のフォームは同じ[パス プレースホルダー](#reference-scripts-by-path)をサポートし、両方とも生成されたプロセスで環境変数 `CLAUDE_PROJECT_DIR`、`CLAUDE_PLUGIN_ROOT`、`CLAUDE_PLUGIN_DATA` としてエクスポートするため、スクリプトは起動方法に関係なく `process.env.CLAUDE_PLUGIN_ROOT` を読み取ることができます。プラグイン フックは追加で `${user_config.*}` 値を置換します。[ユーザー設定](/ja/plugins-reference#user-configuration)を参照してください。
+両方のフォームは同じ[パス プレースホルダー](#reference-scripts-by-path)をサポートし、両方とも生成されたプロセスで環境変数 `CLAUDE_PROJECT_DIR`、`CLAUDE_PLUGIN_ROOT`、`CLAUDE_PLUGIN_DATA` としてエクスポートするため、スクリプトは起動方法に関係なく `process.env.CLAUDE_PLUGIN_ROOT` を読み取ることができます。プラグイン フックは追加で [`${user_config.*}`](/ja/plugins-reference#user-configuration) 値を置換します。exec フォームのみ: 値は `command` と各 `args` 要素にプレーン文字列として置換されるため、シェルは再解析しません。
+
+`${user_config.*}` を参照するシェル フォーム プラグイン フック コマンドは、実行する代わりに[エラー](/ja/errors#plugin-command-references-user-config)で失敗します。シェル フォーム フックからオプション値を使用するには、`$CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数（`webhook_url` オプションの場合は `$CLAUDE_PLUGIN_OPTION_WEBHOOK_URL` など）を読み取るか、`args` を設定してフックを exec フォームに切り替えます。v2.1.207 より前では、シェル フォーム プラグイン フック コマンドも `${user_config.*}` を置換していました。
 
 Exec フォームでは、`command` は実行可能ファイル名またはパスのみです。`command` が空白を含むパス区切りなしの名前であり、`args` と一緒に空白を含む場合、Claude Code は警告をログします。生成が失敗するためです。`node script.js` という名前の実行可能ファイルはありません。余分なトークンを `args` に移動します。`C:\Program Files\nodejs\node.exe` などのスペースを含む絶対パスは、単一の有効な実行可能ファイルであり、警告をトリガーしません。
 
@@ -578,7 +580,7 @@ macOS と Linux では、コマンド フックは v2.1.139 以降、制御端�
 | `agent_id` | サブエージェントの一意の識別子。フックがサブエージェント呼び出し内で発火する場合にのみ存在します。これを使用して、サブエージェント フック呼び出しをメイン スレッド呼び出しから区別します。 |
 | `agent_type` | エージェント名（例えば、`"Explore"` または `"security-reviewer"`）。セッションが `--agent` を使用するか、フックがサブエージェント内で発火する場合に存在します。サブエージェントの場合、サブエージェントのタイプがセッションの `--agent` 値よりも優先されます。[カスタム サブエージェント](/ja/sub-agents)の場合、これはエージェントのフロントマターの `name` フィールドであり、ファイル名ではありません。[プラグイン](/ja/plugins)によって提供されるサブエージェントの場合、これは `my-plugin:reviewer` などのプラグイン スコープ識別子であり、フロントマター名ではありません。[SubagentStart](#subagentstart)を参照して、プラグイン スコープ名に対するマッチャーを記述する方法を確認してください。 |
 
-[`SessionStart`](#sessionstart) フックのみが `model` フィールドを受け取ることができ、存在することは保証されません。`$CLAUDE_MODEL` 環境変数はありません。フック プロセスは親環境を継承するため、シェルで `$ANTHROPIC_MODEL` を設定した場合はそれを読み取ることができますが、セッション中に `/model` でモデルを切り替えるときにその値は変わりません。
+[`SessionStart`](#sessionstart) フックのみが `model` フィールドを受け取ることができ、存在することは保証されません。`$CLAUDE_MODEL` 環境変数はありません。フック プロセスは親環境を継承するため、シェルで `$ANTHROPIC_MODEL` を設定した場合はそれを読み取ることができますが、セッション中に `/model` でモデルを切り替えるときにその値は変わりません。1 つのセット変数は継承されません。Claude Code は[すべてのサブプロセスから `OTEL_*` エクスポーター変数を削除](/ja/monitoring-usage#administrator-configuration)します。これにはフックが含まれます。
 
 例えば、Bash コマンドの `PreToolUse` フックは stdin で以下を受け取ります。
 
@@ -1055,6 +1057,8 @@ UserPromptSubmit
 
 タイムアウトに達した `UserPromptSubmit` フックはキャンセルされ、`additionalContext` を含むその出力は破棄されます。プロンプトは引き続き Claude に到達しますが、そのコンテキストなしで。v2.1.196 以降では、トランスクリプトはフックの名前、発火したタイムアウト、出力が破棄されたことを示す通知を表示します。以前のバージョンはフックを通知なしでキャンセルします。
 
+[Agent SDK コールバック フック](/ja/agent-sdk/hooks)が `UserPromptSubmit` でタイムアウトに達した場合、プロンプトをブロックします。フックの名前とタイムアウトを示すメッセージが表示されます。コールバックはそこで失敗してはいけないポリシー ゲートとして機能する可能性があるためです。セッションは続行されます。v2.1.208 より前では、コールバック タイムアウトはそのイベントでターンを実行エラーで終了させました。
+
 UserPromptSubmit 入力
 
 [共通入力フィールド](#common-input-fields)に加えて、UserPromptSubmit フックはユーザーが送信したテキストを含む `prompt` フィールドを受け取ります。
@@ -1299,7 +1303,7 @@ Bash
 | :- | :- | :- | :- |
 | `command` | 文字列 | `"npm test"` | 実行するシェル コマンド |
 | `description` | 文字列 | `"Run test suite"` | コマンドが何をするかのオプション説明 |
-| `timeout` | 数値 | `120000` | ミリ秒単位のオプション タイムアウト |
+| `timeout` | 数値 | `120000` | ミリ秒単位のオプション タイムアウト。[最大値](/ja/tools-reference#bash-tool-behavior)を超える値は最大値に削減されます |
 | `run_in_background` | ブール値 | `false` | コマンドをバックグラウンドで実行するかどうか |
 
 Write
@@ -1428,7 +1432,7 @@ PreToolUse 決定制御
 
 | フィールド | 説明 |
 | :- | :- |
-| `permissionDecision` | `"allow"` はツール呼び出しをスキップします。`"deny"` はツール呼び出しを防止します。`"ask"` はユーザーに確認を促します。`"defer"` は優雅に終了して、ツールを後で再開できるようにします。[拒否と質問ルール](/ja/permissions#manage-permissions)は、フックが返す内容に関係なく引き続き評価されます |
+| `permissionDecision` | `"allow"` はツール呼び出しをスキップします。[ユーザー操作が必要なツール](#pretooluse-decision-control)と、組織が [`ask`](/ja/mcp#organization-controls-on-connector-tools)に設定したコネクター ツールを除きます。`"deny"` はツール呼び出しを防止します。`"ask"` はユーザーに確認を促します。`"defer"` は優雅に終了して、ツールを後で再開できるようにします。[拒否と質問ルール](/ja/permissions#manage-permissions)は、フックが返す内容に関係なく引き続き評価されます |
 | `permissionDecisionReason` | `"allow"` と `"ask"` の場合、ユーザーに表示されますが Claude には表示されません。`"deny"` の場合、Claude に表示されます。`"defer"` の場合、無視されます |
 | `updatedInput` | 実行前にツールの入力パラメーターを変更します。入力オブジェクト全体を置き換えるため、変更されていないフィールドを変更されたフィールドと一緒に含めます。`"allow"` と組み合わせて自動承認するか、`"ask"` と組み合わせて変更された入力をユーザーに表示します。`"defer"` の場合、無視されます |
 | `additionalContext` | ツール実行前に Claude のコンテキストに追加される文字列。`"defer"` の場合、無視されます。[Claude のコンテキストを追加](#add-context-for-claude)を参照してください |
@@ -1452,6 +1456,8 @@ PreToolUse 決定制御
 ```
 
 `AskUserQuestion` と `ExitPlanMode` はユーザー操作が必要で、通常は[非対話型モード](/ja/headless)で `-p` フラグでブロックします。`permissionDecision: "allow"` を `updatedInput` と一緒に返すことでその要件を満たします。フックは stdin からツールの入力を読み取り、独自の UI を通じて回答を収集し、ツールがプロンプトなしで実行されるように `updatedInput` で返します。`"allow"` のみを返すことはこれらのツールには十分ではありません。`AskUserQuestion` の場合、元の `questions` 配列をエコーバックし、各質問のテキストを選択された回答にマップする [`answers`](#askuserquestion) オブジェクトを追加します。
+
+コネクター ツール[組織が `ask`](/ja/mcp#organization-controls-on-connector-tools)に設定したツールはプロンプトを表示します。`"allow"` を返す場合でも。
 
 v2.1.199 以降では、サーバーが [`_meta["anthropic/requiresUserInteraction"]`](/ja/mcp#require-approval-for-a-specific-tool) でマークした MCP ツールはより厳密です。フックは `"allow"` で承認プロンプトをスキップできません。`updatedInput` の有無にかかわらず、Claude Code はフックがツールが必要とする操作を収集したことを確認できないためです。
 
@@ -1652,6 +1658,8 @@ PostToolUseFailure
 ツール実行が失敗するときに実行されます。このイベントはエラーをスロー、または失敗結果を返すツール呼び出しに対して発火します。これを使用して失敗をログ、アラートを送信、または Claude に是正フィードバックを提供します。
 
 ツール名でマッチします。PreToolUse と同じ値。
+
+このイベントはツール呼び出しが実行前に拒否された場合には発火しません。不明なツール名、スキーマまたはツール固有の検証に失敗した入力、または権限拒否。検証拒否は `tool_use_error` 結果として返され、フックが実行される前に発生するため、`PreToolUse` も `PostToolUseFailure` も発火しません。権限拒否は `PreToolUse` を発火させますが、このイベントは発火しません。[PermissionDenied](#permissiondenied)を参照してください。
 
 PostToolUseFailure 入力
 
@@ -2356,7 +2364,7 @@ WorktreeCreate
 
 `claude --worktree` を実行するか、[サブエージェントが `isolation: "worktree"` を使用](/ja/sub-agents#choose-the-subagent-scope)する場合、Claude Code は `git worktree` を使用して分離された作業コピーを作成します。WorktreeCreate フックを設定する場合、デフォルトの git 動作を置き換え、SVN、Perforce、Mercurial などの別のバージョン管理システムを使用できます。
 
-フックは作成されたワークツリー ディレクトリへの絶対パスを返す必要があります。Claude Code はこのパスを分離されたセッションの作業ディレクトリとして使用します。コマンド フックは stdout にパスを出力します。HTTP フックは `hookSpecificOutput.worktreePath` 経由で返します。
+フックは作成されたワークツリー ディレクトリへの絶対パスを返す必要があります。Claude Code はこ のパスを分離されたセッションの作業ディレクトリとして使用します。コマンド フックは stdout にパスを出力します。HTTP フックは `hookSpecificOutput.worktreePath` 経由で返します。
 
 フックはデフォルトの git 動作を完全に置き換えるため、[`.worktreeinclude`](/ja/worktrees#copy-gitignored-files-into-worktrees)は処理されません。`.env` などのローカル設定ファイルを新しいワークツリーにコピーする必要がある場合は、フック スクリプト内で実行してください。
 

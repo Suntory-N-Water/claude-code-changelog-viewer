@@ -173,6 +173,12 @@ Claude Code は起動時と実行中に定期的に更新をチェックしま�
 
 `claude doctor` を実行して、最新の更新試行の結果を確認します。
 
+macOS と Linux では、ネイティブインストーラーは `~/.local/bin/claude` のランチャーを `~/.local/share/claude/versions/` へのシンボリックリンクとして管理します。そのランチャーを独自のスクリプトまたはシンボリックリンクに置き換えた場合、自動更新と `claude update` はそれをそのまま保持します。新しいバージョンは引き続き `versions/` ディレクトリの下にインストールされ、ランチャーはどのバージョンを実行するかを決定します。v2.1.207 より前では、自動アップデーターは毎回の更新時にそのパスのカスタムランチャーを独自のシンボリックリンクに置き換えていました。
+
+カスタムランチャーを使用する場合、Claude Code はランチャーがどのバージョンを必要とするかを判断できないため、インストール済みのすべてのバージョンをディスク上に保持します。`claude doctor` はネイティブインストーラーが作成しなかったランチャーを報告します。
+
+Claude Code にランチャーを再度管理させるには、`~/.local/bin/claude` を削除して `claude update` を実行します。
+
 npm グローバルインストールが npm グローバルディレクトリが書き込み可能でないため自動更新できない場合、Claude Code は起動時に 1 回限りの通知を表示し、`claude doctor` は利用可能な修正を一覧表示します。詳細については、[インストール中の権限エラー](/ja/troubleshoot-install#permission-errors-during-installation)を参照してください。
 
 Homebrew、WinGet、apt、dnf、および apk インストールはデフォルトでは自動更新されません。Homebrew と WinGet でオプトインするには、以下を参照してください。Homebrew を手動でアップグレードするには、`brew upgrade claude-code` または `brew upgrade claude-code@latest` を実行します（インストールした cask によって異なります）。WinGet の場合は、`winget upgrade Anthropic.ClaudeCode` を実行します。Linux パッケージマネージャーの場合は、[Linux パッケージマネージャーでインストール](#install-with-linux-package-managers)のアップグレードコマンドを参照してください。

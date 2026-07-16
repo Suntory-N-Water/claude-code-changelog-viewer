@@ -18,6 +18,8 @@ Claude Code の `model` 設定では、以下のいずれかを設定できま�
   - Microsoft Foundry：デプロイメント名
   - Google Cloud の Agent Platform：バージョン名
 
+どのモデルと努力レベルがさまざまな種類の作業に適しているかについてのガイダンスについては、ブログの [Claude Code での Claude モデルと努力レベルの選択](https://claude.com/blog/claude-model-and-effort-level-in-claude-code) を参照してください。
+
 `ANTHROPIC_BASE_URL` は、リクエストの送信先を変更しますが、どのモデルが応答するかは変更しません。Claude を LLM ゲートウェイ経由でルーティングするには、[LLM ゲートウェイ](/ja/llm-gateway)を参照してください。
 
 モデルエイリアス
@@ -32,18 +34,22 @@ Claude Code の `model` 設定では、以下のいずれかを設定できま�
 | **`sonnet`** | 日常的なコーディングタスク用に最新の Sonnet モデルを使用 |
 | **`opus`** | 複雑な推論タスク用に最新の Opus モデルを使用 |
 | **`haiku`** | シンプルなタスク用に高速で効率的な Haiku モデルを使用 |
-| **`sonnet[1m]`** | 長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) を備えた Sonnet を使用。`sonnet` がすでにネイティブの 1M ウィンドウを持つ Sonnet 5 に解決される場合は効果がありません。[LLM ゲートウェイ](/ja/llm-gateway)経由の場合は、Sonnet 5 の 1M ウィンドウを選択します |
-| **`opus[1m]`** | 長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) を備えた Opus を使用 |
+| **`sonnet[1m]`** | 長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#context-window-sizes-by-model) を備えた Sonnet を使用。`sonnet` がすでにネイティブの 1M ウィンドウを持つ Sonnet 5 に解決される場合は効果がありません。[LLM ゲートウェイ](/ja/llm-gateway)経由の場合は、Sonnet 5 の 1M ウィンドウを選択します |
+| **`opus[1m]`** | 長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#context-window-sizes-by-model) を備えた Opus を使用 |
 | **`opusplan`** | Plan Mode 中は `opus` を使用し、実行中は `sonnet` に自動的に切り替わる特別なモード |
 
-各エイリアスがどのように解決されるかは、プロバイダーによって異なります。
+`opus` と `sonnet` エイリアスが解決するバージョンは、プロバイダーによって異なります。
 
-- **Anthropic API**：`opus` は Opus 4.8 に解決され、`sonnet` は Sonnet 5 に解決されます。
-- **[Claude Platform on AWS](/ja/claude-platform-on-aws)**：`opus` は Opus 4.8 に解決され、`sonnet` は Sonnet 4.6 に解決されます。
-- **Amazon Bedrock および Google Cloud の Agent Platform**：`opus` は Opus 4.8 に解決され、`sonnet` は Sonnet 4.5 に解決されます。
-- **Microsoft Foundry**：`opus` は Opus 4.6 に解決され、`sonnet` は Sonnet 4.5 に解決されます。
+| プロバイダー | `opus` | `sonnet` |
+| :- | :- | :- |
+| Anthropic API | Opus 4.8 | Sonnet 5 |
+| [Claude Platform on AWS](/ja/claude-platform-on-aws) | Opus 4.8 | Sonnet 4.6 |
+| Amazon Bedrock、Google Cloud の Agent Platform | Opus 4.8 | Sonnet 4.5 |
+| Microsoft Foundry | Opus 4.6 | Sonnet 4.5 |
 
 エイリアスが古いモデルに解決される場合、より新しいモデルは完全なモデル名を明示的に選択するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` または `ANTHROPIC_DEFAULT_SONNET_MODEL` を設定することで利用可能です。
+
+v2.1.207 より前では、`opus` は Claude Platform on AWS では Opus 4.7 に解決され、Amazon Bedrock および Google Cloud の Agent Platform では Opus 4.6 に解決されました。
 
 エイリアスはプロバイダーの推奨バージョンを指し、時間とともに更新されます。特定のバージョンに固定するには、完全なモデル名（例：`claude-opus-4-8`）を使用するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` などの対応する環境変数を設定します。
 
@@ -83,6 +89,8 @@ v2.1.153 以降では、`/model` はあなたの選択をデフォルトとし�
 v2.1.144 から v2.1.152 では、`/model` は現在のセッションにのみ適用され、ピッカーで `d` を押すとデフォルトが保存されました。
 
 `--model` フラグと `ANTHROPIC_MODEL` 環境変数は、それらで起動したセッションにのみ適用されます。異なるターミナルで異なるモデルを同時に実行するには、`/model` で切り替えるのではなく、各ターミナルを独自の `--model` フラグで起動します。
+
+`/model` ピッカーの価格は、Claude Code が Anthropic API と通信する場合、直接または [LLM ゲートウェイ](/ja/llm-gateway) を通じてそれをプロキシする場合に表示され、行の価格はその行が選択するモデルの価格です。Amazon Bedrock などの [サードパーティプロバイダー](/ja/third-party-integrations) および [Claude アプリゲートウェイ](/ja/claude-apps-gateway) では、プロバイダーまたはゲートウェイが支払う金額を決定するため、ピッカー行に価格は表示されません。価格は表示ラベルのみです。どのモデルを行が選択するか、またはプロバイダーが請求する内容には影響しません。v2.1.206 より前では、[Claude Platform on AWS](/ja/claude-platform-on-aws) およびゲートウェイセッションは Anthropic リスト価格を表示し、行は選択したモデルとは異なるモデルの価格を表示できました。
 
 `claude --resume`、`--continue`、または `/resume` ピッカーで開始された再開セッションは、現在の `model` 設定に関係なく、トランスクリプトが保存されたときに使用していたモデルを保持します。そのモデルが廃止されている場合、または [`availableModels`](#restrict-model-selection) によって除外されている場合、セッションは通常の優先度順序にフォールスルーします。これにより、別のセッションの `/model` 選択が再開時のモデルを変更するのを防ぎます。
 
@@ -304,12 +312,13 @@ Claude Enterprise プランの組織管理者は、ロールレベルの [組織
 `default` の動作はアカウントタイプによって異なります。
 
 - **Max、Team Premium、Enterprise 従量課金、Anthropic API**：Opus 4.8 がデフォルト
-- **AWS 上の Claude Platform**：Opus 4.8 がデフォルト
+- **AWS 上の Claude Platform、Amazon Bedrock、Google Cloud の Agent Platform**：Opus 4.8 がデフォルト
 - **Pro、Team Standard、Enterprise サブスクリプションシート**：Sonnet 5 がデフォルト
-- **Amazon Bedrock、Google Cloud の Agent Platform**：Opus 4.8 がデフォルト
 - **Microsoft Foundry**：Sonnet 4.5 がデフォルト
 
 Enterprise 従量課金とは、サブスクリプションシートではなく使用量で請求される Enterprise 組織を意味します。
+
+v2.1.207 より前では、`default` は AWS 上の Claude Platform では Opus 4.7 に、Amazon Bedrock と Google Cloud の Agent Platform では Sonnet 4.5 に解決されていました。
 
 管理者が [組織デフォルトモデル](#organization-default-model) を設定している場合、`default` は上記のアカウントタイプのデフォルトではなく、そのモデルに解決されます。Claude Code v2.1.196 以降が必要です。
 
@@ -365,7 +374,7 @@ claude --fallback-model sonnet,haiku
 
 このセクションは Fable 5 からのコンテンツベースのフォールバックをカバーしています。モデルが過負荷状態または利用不可の場合の可用性ベースのフォールバックについては、[フォールバックモデルチェーン](#fallback-model-chains) を参照してください。
 
-Fable 5 はサイバーセキュリティと生物学コンテンツ用のセーフティ分類器で実行されます。分類器がリクエストにフラグを立てると、Claude Code はそのリクエストを Opus 4.8 で再実行し、トランスクリプトに通知を表示します。
+Fable 5 はサイバーセキュリティと生物学コンテンツ用のセーフティ分類器で実行されます。分類器がリクエストにフラグを立てると、Claude Code はそのリクエストをプロバイダーのデフォルト Opus モデルで再実行し、トランスクリプトに通知を表示します。Anthropic API、[LLM gateway](/ja/llm-gateway) デプロイメント、[Claude Platform on AWS](/ja/claude-platform-on-aws) では、そのモデルは Opus 4.8 です。[Claude apps gateway](/ja/claude-apps-gateway) では、[`opus` エイリアス](#environment-variables) を別のモデルで指す場合を除き、Opus 4.7 です。
 
 セッションはその Opus モデルで続行されます。Fable 5 に戻るには、`/model fable` を実行します。
 
@@ -495,7 +504,7 @@ Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を�
 
 拡張コンテキスト
 
-Fable 5、Sonnet 5、Opus 4.6 以降、Sonnet 4.6 は、大規模なコードベースを持つ長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) をサポートしています。
+Fable 5、Sonnet 5、Opus 4.6 以降、Sonnet 4.6 は、大規模なコードベースを持つ長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#context-window-sizes-by-model) をサポートしています。
 
 利用可能性はモデルとプランによって異なります。Anthropic API では、Fable 5、Sonnet 5、Opus 4.8、Opus 4.7 は常に 1M ウィンドウで実行されます。Max、Team、Enterprise プランでは、Opus は追加設定なしで自動的に 1M コンテキストにアップグレードされます。これは Team Standard と Team Premium の両方のシートに適用されます。Sonnet 4.6 with 1M context は自動アップグレードの一部ではなく、Max を含むすべてのサブスクリプションプランで [使用クレジット](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans) が必要です。
 
@@ -564,7 +573,7 @@ Claude Code は `ANTHROPIC_CUSTOM_MODEL_OPTION` で設定されたモデル ID �
 | `ANTHROPIC_DEFAULT_OPUS_MODEL` | `opus` に使用するモデル、または Plan Mode がアクティブな場合の `opusplan` に使用するモデル |
 | `ANTHROPIC_DEFAULT_SONNET_MODEL` | `sonnet` に使用するモデル、または Plan Mode がアクティブでない場合の `opusplan` に使用するモデル |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | `haiku` に使用するモデル、または [バックグラウンド機能](/ja/costs#background-token-usage) に使用するモデル |
-| `CLAUDE_CODE_SUBAGENT_MODEL` | すべての [subagents](/ja/sub-agents#choose-a-model) と [agent teams](/ja/agent-teams) に使用するモデル。呼び出しごとの `model` パラメータと subagent 定義の `model` frontmatter をオーバーライドします。`inherit` に設定して、代わりに通常のモデル解決を使用します |
+| `CLAUDE_CODE_SUBAGENT_MODEL` | すべての [subagents](/ja/sub-agents#choose-a-model)、[agent teams](/ja/agent-teams)、および [workflow](/ja/workflows) が実行するエージェントに使用するモデル。`haiku` などのエイリアスまたは完全なモデル名を受け入れ、呼び出しごとの `model` パラメータと subagent 定義の `model` frontmatter をオーバーライドします。通常のモデル解決を使用するには `inherit` に設定します |
 
 注：`ANTHROPIC_SMALL_FAST_MODEL` は `ANTHROPIC_DEFAULT_HAIKU_MODEL` の代わりに非推奨です。
 
@@ -572,7 +581,7 @@ Claude Code は `ANTHROPIC_CUSTOM_MODEL_OPTION` で設定されたモデル ID �
 
 [Amazon Bedrock](/ja/amazon-bedrock)、[Google Cloud の Agent Platform](/ja/google-vertex-ai)、[Microsoft Foundry](/ja/microsoft-foundry)、または [Claude Platform on AWS](/ja/claude-platform-on-aws) を通じて Claude Code をデプロイする場合、ユーザーへのロールアウト前にモデルバージョンをピン留めします。
 
-ピン留めなしでは、Claude Code は `fable`、`opus`、`sonnet`、`haiku` などのモデルエイリアスを使用し、各プロバイダーの組み込みデフォルトモデル ID に解決されます。そのデフォルトは最新の Anthropic リリースより遅れる可能性があり、それが指すモデルはまだユーザーのアカウントで有効になっていない可能性があります。デフォルトが利用できない場合、Amazon Bedrock と Google Cloud の Agent Platform ユーザーは通知を見て、そのセッションの以前のバージョンにフォールバックしますが、Microsoft Foundry ユーザーはエラーを見ます。Microsoft Foundry には同等のスタートアップチェックがないためです。
+ピン留めなしでは、Claude Code は `fable`、`opus`、`sonnet`、`haiku` などのモデルエイリアスを使用し、各プロバイダーの組み込みデフォルトモデル ID に解決されます。そのデフォルトは最新の Anthropic リリースより遅れる可能性があり、それが指すモデルはまだユーザーのアカウントで有効になっていない可能性があります。デフォルトが利用できない場合、Amazon Bedrock と Google Cloud の Agent Platform ユーザーは通知を見て、そのセッションは以前のバージョンのデフォルトモデルにフォールバックするか、デフォルトが Opus モデルで利用可能な Opus バージョンがない場合はデフォルト Sonnet モデルにフォールバックします。Microsoft Foundry ユーザーはエラーを見ます。Microsoft Foundry には同等のスタートアップチェックがないためです。
 
 初期セットアップの一部として、モデル環境変数を特定のバージョン ID に設定します。ピン留めにより、ユーザーが新しいモデルに移行するタイミングを制御できます。
 
@@ -595,7 +604,7 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8[1m]'
 `[1m]` サフィックスは、`opus` と `sonnet` エイリアスのすべての使用に 1M コンテキストウィンドウを適用します。これには [`opusplan`](#opusplan-model-setting) の plan-mode Opus フェーズが含まれます。
 
 - Claude Code は、モデル ID をプロバイダーに送信する前にサフィックスを削除します。
-- 基盤となるモデルが [1M コンテキストをサポート](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) する場合にのみ `[1m]` を追加します。
+- 基盤となるモデルが [1M コンテキストをサポート](https://platform.claude.com/docs/ja/build-with-claude/context-windows#context-window-sizes-by-model) する場合にのみ `[1m]` を追加します。
 - サフィックスはモデルごとではなく、変数ごとに読み取られます。Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry では、1 つの変数で `[1m]` なしのモデル ID は、別の変数が同じモデルをサフィックス付きで設定している場合でも、200K コンテキストを使用します。Sonnet 5 は常にこれらのプロバイダーで 1M ウィンドウで実行され、サフィックスは必要ありません。
 
 `availableModels` アローリストは、サードパーティプロバイダーを使用する場合でも適用されます。[サーバー管理設定はそこに配信されません](/ja/server-managed-settings#platform-availability)。フィルタリングは `opus` などのモデルエイリアス、`claude-opus-4-8` などのバージョンプレフィックス、または完全なプロバイダー形式のモデル ID で一致します。`us.anthropic.` などのプロバイダー固有のプレフィックスは削除されないため、特定のモデルを許可するには、ピッカーが表示する同じプロバイダー形式 ID をリストするか、[`modelOverrides`](#override-model-ids-per-version) を通じてマップします。任意の `[1m]` サフィックスはアローリストエントリと要求されたモデルの両方から削除されます。

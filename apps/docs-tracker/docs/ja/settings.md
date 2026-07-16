@@ -159,7 +159,9 @@ Claude Code は設定ファイルを監視し、変更時に再読み込みす�
 
 Managed 設定の無効なエントリ
 
-Managed 設定は寛容に解析されます。managed 構成にスキーマ検証に失敗するエントリが含まれている場合、Claude Code はそのエントリを削除し、警告を記録し、残りのすべての有効なポリシーを強制します。単一のタイプミスが組織のポリシーの残りを無効にすることはできません。この動作は、3 つすべての配信メカニズム全体で一貫しています：[サーバー管理設定](/ja/server-managed-settings)、MDM を通じてデプロイされた plist およびレジストリポリシー、および `managed-settings.json` ファイル。Claude Code v2.1.169 以降が必要です。
+Managed 設定は寛容に解析されます。managed 構成にスキーマ検証に失敗するエントリが含まれている場合、Claude Code はそのエントリを削除し、警告を記録し、残りのすべての有効なポリシーを強制します。単一のタイプミスが組織のポリシーの残りを無効にすることはできません。[`/doctor`](/ja/debug-your-config#check-resolved-settings)を実行して、削除されたエントリをそのソースファイルとフィールドとともにリストします。
+
+この動作は、3 つすべての配信メカニズム全体で一貫しています：[サーバー管理設定](/ja/server-managed-settings)、MDM を通じてデプロイされた plist およびレジストリポリシー、および `managed-settings.json` ファイル。Claude Code v2.1.169 以降が必要です。
 
 セキュリティ強制フィールドは、存在するが無効な場合、全体的に削除されるのではなく、フィールドごとに処理されます：
 
@@ -168,7 +170,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `allowedMcpServers` | 空のホワイトリストとして強制されるため、値が修正されるまで MCP サーバーは許可されません。個別の無効なエントリは削除され、有効なサブセットが強制されます。 |
 | `allowManagedMcpServersOnly` | `true` として扱われます。 |
 | `availableModels` | 空のホワイトリストとして強制されるため、値が修正されるまでデフォルトモデルのみが利用可能です。文字列以外の個別エントリは削除され、有効なサブセットが強制されます。v2.1.175 以降に適用されます。 |
-| `enforceAvailableModels` | `true` として扱われます。v2.1.175 以降に適用されます。 |
+| `enforceAvailableModels` | }`true` として扱われます。v2.1.175 以降に適用されます。 |
 | `forceLoginOrgUUID` | 値が修正されるまで、どの組織もログインを許可されません。 |
 | `deniedMcpServers` | 個別の無効なエントリは削除され、有効なサブセットが強制されます。完全に無効な値は警告とともに削除されます。すべてのサーバーを拒否するとポリシーが名前を付けなかったサーバーをブロックするため。 |
 | `sandbox.credentials` | 個別の無効なエントリが `files` または `envVars` に含まれている場合は、警告とともに削除され、有効なサブセットが強制されます。完全に無効な `credentials` 値は警告とともに削除されますが、`sandbox` の残りは引き続き適用されます。v2.1.191 以降に適用されます。 |
@@ -208,7 +210,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `autoCompactEnabled` | **デフォルト**：`true`。コンテキストが制限に近づくと、会話を自動的にコンパクトにします。`/config` に**自動コンパクト**として表示されます。環境変数で無効にするには、`env` で [`DISABLE_AUTO_COMPACT`](/ja/env-vars)を設定します | `false` |
 | `autoMemoryDirectory` | [自動メモリ](/ja/memory#storage-location)ストレージ用のカスタムディレクトリ。絶対パスまたは `~/` プレフィックス付きパスを受け入れます。プロジェクトまたはローカル設定からは、ワークスペース信頼ダイアログを受け入れた後にのみ尊重されます。クローンされたリポジトリがこのファイルを提供できるため | `"~/my-memory-dir"` |
 | `autoMemoryEnabled` | **デフォルト**：`true`。[自動メモリ](/ja/memory#enable-or-disable-auto-memory)を有効にします。`false` の場合、Claude は自動メモリディレクトリから読み込んだり、書き込んだりしません。セッション中に `/memory` でこれを切り替えることもできます。環境変数で無効にするには、`env` で [`CLAUDE_CODE_DISABLE_AUTO_MEMORY`](/ja/env-vars)を設定します | `false` |
-| `autoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がブロックおよび許可するものをカスタマイズします。`environment`、`allow`、`soft_deny`、および `hard_deny` 配列の散文ルールを含みます。リテラル文字列 `"$defaults"` を配列に含めて、その位置で組み込みルールを継承します。[自動モードを構成](/ja/auto-mode-config)を参照してください。共有プロジェクト設定から読み込まれません | `{"soft_deny": ["$defaults", "Never run terraform apply"]}` |
+| `autoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がブロックおよび許可するものをカスタマイズします。`environment`、`allow`、`soft_deny`、および `hard_deny` 配列の散文ルールを含みます。リテラル文字列 `"$defaults"` を配列に含めて、その位置で組み込みルールを継承します。[自動モードを構成](/ja/auto-mode-config)を参照してください。ユーザー設定、`--settings` フラグ、および managed 設定からのみ読み込まれます。プロジェクト `.claude/settings.json` およびローカル `.claude/settings.local.json` では無視されます。v2.1.207 より前では、`.claude/settings.local.json` も読み込まれました | `{"soft_deny": ["$defaults", "Never run terraform apply"]}` |
 | `autoMode.classifyAllShell` | **デフォルト**：`false`。`true` の場合、自動モードがアクティブな間、すべての Bash および PowerShell allow ルールを一時停止して、すべてのシェルコマンドが分類器を通じてルーティングされるようにします。任意のコード実行パターンに一致するルールだけではなく。[すべてのシェルコマンドを分類器を通じてルーティング](/ja/auto-mode-config#route-all-shell-commands-through-the-classifier)を参照してください。Claude Code v2.1.193 以降が必要です | `true` |
 | `autoScrollEnabled` | **デフォルト**：`true`。[フルスクリーンレンダリング](/ja/fullscreen)で、新しい出力を会話の下部に追従します。`/config` に**自動スクロール**として表示されます。権限プロンプトはこれがオフの場合でもビューにスクロールします | `false` |
 | `autoUpdatesChannel` | **デフォルト**：`"latest"`。更新に従うリリースチャネル。約 1 週間古いバージョンで、大きな回帰のあるバージョンをスキップする `"stable"` を使用するか、最新リリースの `"latest"` を使用します。自動更新を完全に無効にするには、`env` で [`DISABLE_AUTOUPDATER`](/ja/setup#disable-auto-updates)を設定します | `"stable"` |
@@ -222,7 +224,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `channelsEnabled` | （Managed 設定のみ）組織に対して[チャネル](/ja/channels)を許可します。Claude.ai Team および Enterprise プランでは、これが未設定または `false` の場合、チャネルはブロックされます。[Anthropic Console](/ja/authentication#claude-console-authentication)アカウントで API キー認証を使用している場合、チャネルはデフォルトで許可されます。ただし、組織が managed 設定をデプロイしている場合は、このキーを `true` に設定する必要があります | `true` |
 | `claudeMd` | （Managed 設定のみ）CLAUDE.md スタイルの命令が組織管理メモリとして注入されます。managed またはポリシー設定で設定されている場合のみ尊重され、ユーザー、プロジェクト、およびローカル設定では無視されます。[組織全体の CLAUDE.md](/ja/memory#deploy-organization-wide-claude-md)を参照してください | `"Always run make lint before committing."` |
 | `claudeMdExcludes` | [メモリ](/ja/memory)を読み込むときにスキップする `CLAUDE.md` ファイルの Glob パターンまたは絶対パス。パターンは絶対ファイルパスに対してマッチします。ユーザー、プロジェクト、およびローカルメモリのみに適用されます。managed ポリシーファイルは除外できません | `["**/vendor/**/CLAUDE.md"]` |
-| `cleanupPeriodDays` | **デフォルト**：`30` 日、最小 `1`。この期間より長く非アクティブなセッションは起動時に削除されます。`0` に設定するとバリデーションエラーで拒否されます。また、起動時に[孤立した worktrees](/ja/worktrees#clean-up-worktrees)の自動削除の年齢カットオフも制御します。Claude Code が設定ファイルを読み込めないか解析できない場合、保持クリーンアップスイープを一時停止し、ファイルを修正するまで `/status` に警告を表示します。ただし、[managed 設定](/ja/server-managed-settings)が `cleanupPeriodDays` を提供する場合は、スイープは managed 値で実行されます。v2.1.203 より前では、クリーンアップは 30 日のデフォルトでその状態で実行され、より長い `cleanupPeriodDays` が保持することを意図していたトランスクリプトを削除できました。30 日より新しいファイルは削除されませんでした。トランスクリプト書き込みを完全に無効にするには、[`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/ja/env-vars)環境変数を設定するか、非インタラクティブモード（`-p`）で `--no-session-persistence` フラグまたは `persistSession: false` SDK オプションを使用します。 | `20` |
+| `cleanupPeriodDays` | **デフォルト**：`30` 日、最小 `1`。Claude Code はこの期間より古い[セッションファイルおよびその他のアプリケーションデータ](/ja/claude-directory#cleaned-up-automatically)を起動時に削除します。`0` に設定するとバリデーションエラーで拒否されます。また、起動時に[孤立した worktrees](/ja/worktrees#clean-up-worktrees)の自動削除の年齢カットオフも制御します。Claude Code が設定ファイルを読み込めないか解析できない場合、保持クリーンアップスイープを一時停止し、ファイルを修正するまで `/status` に警告を表示します。ただし、[managed 設定](/ja/server-managed-settings)が `cleanupPeriodDays` を提供する場合は、スイープは managed 値で実行されます。v2.1.203 より前では、クリーンアップは 30 日のデフォルトでその状態で実行され、より長い `cleanupPeriodDays` が保持することを意図していたトランスクリプトを削除できました。30 日より新しいファイルは削除されませんでした。トランスクリプト書き込みを完全に無効にするには、[`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/ja/env-vars)環境変数を設定するか、非インタラクティブモード（`-p`）で `--no-session-persistence` フラグまたは `persistSession: false` SDK オプションを使用します。 | `20` |
 | `companyAnnouncements` | 起動時にユーザーに表示するアナウンス。複数のアナウンスが提供される場合、ランダムにサイクルされます。 | `["Welcome to Acme Corp! Review our code guidelines at docs.acme.com"]` |
 | `defaultShell` | **デフォルト**：`"bash"`、または Bash が利用できない場合は Windows で `"powershell"`。入力ボックス `!` コマンドのデフォルトシェル。`"bash"` または `"powershell"` を受け入れます。`"powershell"` を設定すると、インタラクティブ `!` コマンドが Windows 上の PowerShell を通じてルーティングされます。`CLAUDE_CODE_USE_POWERSHELL_TOOL=1` が必要です。[PowerShell ツール](/ja/tools-reference#powershell-tool)を参照してください | `"powershell"` |
 | `deniedMcpServers` | managed-settings.json で設定されている場合、明示的にブロックされた MCP サーバーの拒否リスト。managed サーバーを含むすべてのスコープに適用されます。拒否リストがホワイトリストよりも優先されます。[Managed MCP 構成](/ja/managed-mcp)を参照してください | `[{ "serverName": "filesystem" }]` |
@@ -230,7 +232,8 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `disableAllHooks` | すべての [hooks](/ja/hooks) とカスタム [ステータスライン](/ja/statusline)を無効にします | `true` |
 | `disableArtifact` | [Artifact](/ja/artifacts)ツールを無効にするために `true` に設定します。このツールはセッション出力を claude.ai 上のプライベート Web ページとして公開します。`CLAUDE_CODE_DISABLE_ARTIFACT` を `1` に設定するのと同等です | `true` |
 | `disableAutoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)の有効化を防ぐために `"disable"` に設定します。`Shift+Tab` サイクルから `auto` を削除し、起動時に `--permission-mode auto` を拒否します。[managed 設定](/ja/permissions#managed-settings)で最も役立ちます。ユーザーはこれをオーバーライドできません | `"disable"` |
-| `disableBundledSkills` | [skills](/ja/skills)とワークフローをオフにするために `true` に設定します。Claude Code に付属しています：バンドルされた skills とワークフローは完全に削除されますが、`/init` などの組み込みスラッシュコマンドは入力可能なままですが、モデルから非表示になります。プラグイン、`.claude/skills/`、および `.claude/commands/` からの Skills は影響を受けません。`CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` を `1` に設定するのと同等です | `true` |
+| `disableBrowserExternalNavigation` | （Managed 設定のみ）デスクトップアプリの [Browser ペイン](/ja/desktop#browse-external-sites)で外部ブラウジングをオフにするために `true` に設定します。ユーザーも Claude も外部サイトに移動できず、localhost 開発サーバープレビューは影響を受けません。値は JSON ブール値 `true` である必要があります。文字列 `"true"` は無視されます | `true` |
+| `disableBundledSkills` | [skills](/ja/skills)とワークフローをオフにするために `true` に設定します。Claude Code に付属しています：バンドルされた skills とワークフローは完全に削除されますが、`/init` などの組み込みスラッシュコマンドは入力可能なままですが、モデルから非表示になります。`/doctor` は組み込みコマンドのように入力可能なままです。[`DISABLE_DOCTOR_COMMAND`](/ja/env-vars)環境変数で非表示にします。プラグイン、`.claude/skills/`、および `.claude/commands/` からの Skills は影響を受けません。`CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` を `1` に設定するのと同等です | `true` |
 | `disableClaudeAiConnectors` | [claude.ai MCP コネクタ](/ja/mcp#use-mcp-servers-from-claude-ai)を無効にして、自動フェッチまたは接続されないようにします。任意の設定スコープで設定します。任意のソースの `true` が優先されるため、チェックインされたプロジェクト `.claude/settings.json` はリポジトリをクラウドコネクタから除外できますが、プロジェクトレベルの `false` はユーザーまたはポリシーレベルの `true` をオーバーライドできません。`--mcp-config` を通じて明示的に渡されたサーバーは影響を受けません。[個別のコネクタを拒否する](/ja/managed-mcp)には、代わりに [`deniedMcpServers`](/ja/managed-mcp)を使用します。Claude Code v2.1.182 以降が必要です | `true` |
 | `disableDeepLinkRegistration` | Claude Code が起動時にオペレーティングシステムで `claude-cli://` プロトコルハンドラーを登録するのを防ぐために `"disable"` に設定します。[ディープリンク](/ja/deep-links)を使用すると、外部ツールは事前入力されたプロンプトで Claude Code セッションを開くことができます。プロトコルハンドラー登録が制限されているか、別途管理されている環境で役立ちます | `"disable"` |
 | `disabledMcpjsonServers` | `.mcp.json` ファイルから拒否する特定の MCP サーバーのリスト | `["filesystem"]` |
@@ -243,9 +246,10 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `enableAllProjectMcpServers` | プロジェクト `.mcp.json` ファイルで定義されたすべての MCP サーバーを自動的に承認します。v2.1.196 以降、`claude mcp list` と `claude mcp get` は [リポジトリにチェックインされていない設定ファイル](/ja/mcp#managing-your-servers)からのみ信頼されていないフォルダでこのキーを尊重します | `true` |
 | `enableArtifact` | このユーザーの [Artifact](/ja/artifacts)ツールを有効または無効にします。未設定の場合、デフォルトはあなたのアカウントの機能の[可用性](/ja/artifacts#availability)に従います。`/config` の **Artifacts** 行がこのキーを書き込みます。managed `disableArtifact` とあなたの組織の [管理者設定](/ja/artifacts#manage-artifacts-for-your-organization)が優先され、キーはプロジェクトおよびローカル設定（`.claude/settings.json`、`.claude/settings.local.json`）では無視されます。リポジトリはこれをコミットできます。Claude Code v2.1.196 以降が必要です | `true` |
 | `enabledMcpjsonServers` | `.mcp.json` ファイルから承認する特定の MCP サーバーのリスト。v2.1.196 以降、`claude mcp list` と `claude mcp get` は [リポジトリにチェックインされていない設定ファイル](/ja/mcp#managing-your-servers)からのみ信頼されていないフォルダでこのキーを尊重します | `["memory", "github"]` |
-| `enforceAvailableModels` | managed 設定で `true` で `availableModels` が空でないリストの場合、デフォルトモデルもホワイトリストに制限されます。利用可能なモデルが最初のホワイトリストエントリにフォールバックします。`availableModels` が未設定または空の場合は効果がありません。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください。Claude Code v2.1.175 以降が必要です | `true` |
-| `env` | すべてのセッションに適用される環境変数。v2.1.143 以降、`NO_COLOR` と `FORCE_COLOR` がここで設定されている場合、サブプロセスに渡されますが、Claude Code 自体のインターフェイスの色は変更されません。インターフェイスの色を変更するには、`claude` を起動する前にシェルでこれらを設定します。v2.1.195 以降、Claude Code のホスティング環境が設定する ID 変数（`CLAUDE_CODE_REMOTE` や `CLAUDE_CODE_ACCOUNT_UUID` など）は、ここで設定されている場合は無視されます | `{"FOO": "bar"}` |
+| `enforceAvailableModels` | managed 設定で `true` で `availableModels` が空でないリストの場合、デフォルトモデルもホワイトリストに制限されます。利用可能なモデルが最初のホワイトリストエントリにフォールバックします。ただし、モデル Default が解決する場合のみ（[組織デフォルト](/ja/model-config#organization-default-model)が適用される場合、それ以外の場合はアカウントタイプのデフォルト）がホワイトリストに含まれていない場合。ホワイトリストされたデフォルトはそのまま保持されます。`availableModels` が未設定または空の場合は効果がありません。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください。Claude Code v2.1.175 以降が必要です | `true` |
+| `env` | すべてのセッションに適用される環境変数。変数を `""` に設定して、シェルエクスポートを空の文字列でオーバーライドします。Claude Code はこれを未設定として扱います。サブプロセスは引き続き空の値を継承します。`NO_COLOR` と `FORCE_COLOR` がここで設定されている場合、サブプロセスのみに到達します。Claude Code 自体のインターフェイスの色を変更するには、`claude` を起動する前にシェルでこれらを設定します。v2.1.195 以降、Claude Code のホスティング環境が設定する ID 変数（`CLAUDE_CODE_REMOTE` や `CLAUDE_CODE_ACCOUNT_UUID` など）は、ここで設定されている場合は無視されます | `{"FOO": "bar"}` |
 | `fallbackModel` | プライマリモデルがオーバーロードされているか利用できない場合に順番に試すフォールバックモデル。Claude Code はチェーン内の次の利用可能なモデルに切り替え、ターンの残りを表示し、通知を表示します。`"default"` はデフォルトモデルに展開されます。チェーンは 3 つのモデルに制限されます。余分なエントリは無視されます。ほとんどの配列設定とは異なり、このキーはスコープ全体でマージされません：これを定義する最高優先度ファイルが全体の値を提供します。[`--fallback-model`](/ja/cli-reference#cli-flags)フラグはこれを 1 セッション間オーバーライドします。[フォールバックモデルチェーン](/ja/model-config#fallback-model-chains)を参照してください | `["claude-sonnet-5", "claude-haiku-4-5"]` |
+| `fastMode` | セッションで利用可能な場合、[高速モード](/ja/fast-mode)をオンにします。`/fast` でトグルすると、ユーザー設定で `true` がここに書き込まれ、高速モードをオフにするときはキーが削除されます | `true` |
 | `fastModePerSessionOptIn` | `true` の場合、高速モードはセッション全体で永続化されません。各セッションは高速モードがオフで開始され、ユーザーが `/fast` で有効にする必要があります。ユーザーの高速モード設定は引き続き保存されます。[セッションごとのオプトインを要求](/ja/fast-mode#require-per-session-opt-in)を参照してください | `true` |
 | `feedbackSurveyRate` | [セッション品質調査](/ja/data-usage#session-quality-surveys)が適格な場合に表示される確率（0～1）。完全に抑制するには `0` に設定するか、`env` で [`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`](/ja/env-vars)を設定します。Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry を使用する場合に役立ちます。デフォルトのサンプルレートは適用されません | `0.05` |
 | `fileCheckpointingEnabled` | **デフォルト**：`true`。各編集の前にファイルをスナップショットして、[`/rewind`](/ja/checkpointing)でそれらを復元できるようにします。`/config` に\*\*コードを巻き戻す（チェックポイント）\*\*として表示されます。環境変数で無効にするには、`env` で [`CLAUDE_CODE_DISABLE_FILE_CHECKPOINTING`](/ja/env-vars)を設定します | `false` |
@@ -283,8 +287,8 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `showClearContextOnPlanAccept` | **デフォルト**：`false`。プラン受け入れ画面に「コンテキストをクリア」オプションを表示します。`true` に設定してオプションを復元します | `true` |
 | `showThinkingSummaries` | **デフォルト**：`false`。[拡張思考](/ja/model-config#extended-thinking)サマリーをインタラクティブセッションに表示します。未設定または `false` の場合、思考ブロックは API によって編集され、折りたたまれたスタブとして表示されます。編集は表示内容のみを変更し、モデルが生成するものは変更しません：思考支出を削減するには、[予算を低下させるか思考を無効にする](/ja/model-config#extended-thinking)代わりに。この設定は非インタラクティブモード（`-p`）、Agent SDK、または VS Code などの IDE 拡張機能には影響しません | `true` |
 | `showTurnDuration` | **デフォルト**：`true`。レスポンス後のターン期間メッセージを表示します（例：「Cooked for 1m 6s」）。`/config` に**ターン期間を表示**として表示されます | `false` |
-| `skillListingBudgetFraction` | **デフォルト**：`0.01`（1%）。[スキルリスティング](/ja/skills#skill-descriptions-are-cut-short)Claude が各ターンで見るモデルのコンテキストウィンドウ用に予約されたフラクション。リスティングが予算を超える場合、最も使用頻度の低いスキルの説明は、Claude が引き続き呼び出すことができるが理由を見ることができないように、ベアネームに折りたたまれます。より多くの説明を表示するために上げるか、より多くのスキルを収めるために下げます。`/doctor` は現在の切り詰めカウントと影響を受けるスキルを表示します。Claude Code v2.1.105 以降が必要です | `0.02` |
-| `skillListingMaxDescChars` | **デフォルト**：`1536`。[スキルリスティング](/ja/skills#skill-descriptions-are-cut-short)Claude が各ターンで見る `description` と `when_to_use` テキストの結合されたスキルごとの文字上限。この長さより長いテキストは切り詰められます。長い説明を保持するために上げるか、より多くのスキルを [`skillListingBudgetFraction`](#available-settings)の下に収めるために下げます。Claude Code v2.1.105 以降が必要です | `2048` |
+| `skillListingBudgetFraction` | **デフォルト**：`0.01`。[スキルリスティング](/ja/skills#skill-descriptions-are-cut-short)Claude が各ターンで見るモデルのコンテキストウィンドウ用に予約されたフラクション。リスティングが予算を超える場合、最も使用頻度の低いスキルの説明は、Claude が引き続き呼び出すことができるが理由を見ることができないように、ベアネームに折りたたまれます。より多くの説明を表示するために上げるか、より多くのスキルを収めるために下げます。`/doctor` は現在の切り詰めカウントと影響を受けるスキルを表示します | `0.02` |
+| `skillListingMaxDescChars` | **デフォルト**：`1536`。[スキルリスティング](/ja/skills#skill-descriptions-are-cut-short)Claude が各ターンで見る `description` と `when_to_use` テキストの結合されたスキルごとの文字上限。この長さより長いテキストは切り詰められます。長い説明を保持するために上げるか、より多くのスキルを [`skillListingBudgetFraction`](#available-settings)の下に収めるために下げます | `2048` |
 | `skillOverrides` | スキル名でキー付けされたスキルごとの可視性オーバーライド。値は `"on"`、`"name-only"`、`"user-invocable-only"`、または `"off"` です。スキルの SKILL.md を編集することなく、スキルを非表示または折りたたむことができます。プラグインスキルには適用されません。これらは `/plugin` を通じて管理されます。`/skills` メニューはこれらを `.claude/settings.local.json` に書き込みます。[設定からスキルの可視性をオーバーライド](/ja/skills#override-skill-visibility-from-settings)を参照してください。Claude Code v2.1.129 以降が必要です | `{"legacy-context": "name-only", "deploy": "off"}` |
 | `skipWebFetchPreflight` | [WebFetch ドメイン安全チェック](/ja/data-usage#webfetch-domain-safety-check)をスキップします。このチェックは、フェッチ前に各リクエストされたホスト名を `api.anthropic.com` に送信します。Amazon Bedrock、Google Cloud の Agent Platform、または制限的な出力を持つ Microsoft Foundry デプロイメントなど、Anthropic へのトラフィックをブロックする環境で `true` に設定します。スキップされた場合、WebFetch はブロックリストを参照せずに任意の URL を試みます | `true` |
 | `spinnerTipsEnabled` | **デフォルト**：`true`。Claude が作業中にスピナーにヒントを表示します。ヒントを無効にするには `false` に設定します | `false` |
@@ -303,6 +307,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `useAutoModeDuringPlan` | **デフォルト**：`true`。プラン モードが自動モードが利用可能な場合に自動モードセマンティクスを使用するかどうか。共有プロジェクト設定から読み込まれません。`/config` に「プラン中に自動モードを使用」として表示されます | `false` |
 | `verbose` | **デフォルト**：`false`。切り詰められたサマリーの代わりに完全なツール出力を表示します。`/config` に**詳細出力**として表示されます。`--verbose` フラグはこれを 1 セッション間オーバーライドします | `true` |
 | `viewMode` | 起動時のデフォルトトランスクリプトビューモード：`"default"`、`"verbose"`、または `"focus"`。設定されている場合、スティッキー `/focus` 選択をオーバーライドします。`--verbose` フラグはこれを 1 セッション間オーバーライドします | `"verbose"` |
+| `vimInsertModeRemaps` | }[vim エディターモード](/ja/interactive-mode#vim-editor-mode)で 2 キーの INSERT モードシーケンスを Escape にマップします。各キーは正確に 2 つの印字可能文字で、順序で入力され、`"<Esc>"` は唯一のサポートされているターゲットです。他のエントリは無視されます。ユーザー、`--settings` フラグ、および managed 設定からのみ読み込まれるため、リポジトリのチェックイン設定はキーストロークを再マップできません。`editorMode` が `"vim"` でない限り効果がありません。[INSERT モードキーシーケンスを再マップ](/ja/interactive-mode#remap-insert-mode-key-sequences)を参照してください。Claude Code v2.1.208 以降が必要です | `{"jj": "<Esc>"}` |
 | `voice` | [音声ディクテーション](/ja/voice-dictation)設定：`enabled` はディクテーションをオンにし、`mode` は `"hold"` または `"tap"` を選択し、`autoSubmit` はホールドモードでキーリリース時にプロンプトを送信します。`/voice` を実行すると自動的に書き込まれます。Claude.ai アカウントが必要です | `{ "enabled": true, "mode": "tap" }` |
 | `voiceEnabled` | `voice.enabled` のレガシーエイリアス。`voice` オブジェクトを優先します | `true` |
 | `wheelScrollAccelerationEnabled` | **デフォルト**：`true`。[フルスクリーンレンダリング](/ja/fullscreen#mouse-wheel-scrolling)で、高速スクロール中にマウスホイールスクロール速度を加速します。ホイールノッチごとに一定のスクロール速度を使用するには `false` に設定します。Claude Code v2.1.174 以降が必要です | `false` |
@@ -320,6 +325,7 @@ v2.1.119 より前のバージョンでは、`theme`、`verbose`、`editorMode`�
 | `autoConnectIde` | **デフォルト**：`false`。Claude Code が外部ターミナルから起動するときに、実行中の IDE に自動的に接続します。VS Code または JetBrains ターミナルの外で実行する場合、`/config` に\*\*IDE に自動接続（外部ターミナル）\*\*として表示されます。[`CLAUDE_CODE_AUTO_CONNECT_IDE`](/ja/env-vars)環境変数が設定されている場合、これをオーバーライドします | `true` |
 | `autoInstallIdeExtension` | **デフォルト**：`true`。VS Code ターミナルから実行するときに Claude Code IDE 拡張機能を自動的にインストールします。VS Code または JetBrains ターミナル内で実行する場合、`/config` に**IDE 拡張機能を自動インストール**として表示されます。[`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/ja/env-vars)環境変数を設定することもできます | `false` |
 | `externalEditorContext` | **デフォルト**：`false`。`Ctrl+G` で外部エディターを開くときに Claude の前の応答を `#` コメント付きコンテキストとして先頭に追加します。`/config` に**外部エディターに最後の応答を表示**として表示されます | `true` |
+| `permissionExplainerEnabled` | **デフォルト**：`true`。Bash または PowerShell 権限プロンプトで `Ctrl+E` を押すときに、モデル生成の[コマンドの説明](/ja/permissions#permission-system)を表示します。ショートカットをオフにするには `false` に設定します | `false` |
 | `teammateDefaultModel` | [エージェントチーム](/ja/agent-teams)チームメイトのデフォルトモデル。spawn プロンプトが指定しない場合。`"sonnet"` などのモデルエイリアスに設定するか、リーダーの現在の `/model` 選択を継承するために `null` に設定します。`/config` に**デフォルトチームメイトモデル**として表示されます | `"sonnet"` |
 | `workflowSizeGuideline` | **デフォルト**：`unrestricted`。ガイドラインを送信しません。[エージェント数 Claude が目指す](/ja/workflows#set-a-size-guideline)動的ワークフローで書き込みます。Claude Code は値を Claude にアドバイスとして送信し、強制されたキャップではありません。`unrestricted`、`small`、`medium`、または `large` を受け入れます。`/config` に**動的ワークフローサイズ**として表示されます。`/config workflowSizeGuideline=small` で直接設定することもできます。Claude Code v2.1.202 以降が必要です。ガイドラインのエージェント数は、[`Large workflow` 警告](/ja/workflows#cost)のデフォルト閾値も置き換えます。その動作は Claude Code v2.1.203 以降が必要です | `"small"` |
 
@@ -512,7 +518,7 @@ src/components/Form.tsx
 ```bash
 #!/bin/bash
 query=$(cat | jq -r '.query')
-# your-repo-file-index をあなた自身のファイル検索コマンドに置き換えます
+# your-repo-file-index をあなた自身のファイル検索コマ​​ンドに置き換えます
 your-repo-file-index --query "$query" | head -20
 ```
 
@@ -747,6 +753,26 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
   }
 }
 ```
+
+`pluginConfigs`
+
+プラグインの [`userConfig`](/ja/plugins-reference#user-configuration) プロンプトが収集する機密性の低いオプション値を保存します。プラグイン ID でキー付けされます。Claude Code は、プラグインの構成ダイアログに入力すると、このキーをユーザー設定に書き込むため、手動で編集する必要はありません。機密オプションは、macOS Keychain に保存されるか、サポートされているキーチェーンがないプラットフォームでは `~/.claude/.credentials.json` に保存されます。
+
+この例は、`acme-tools` マーケットプレイスからインストールされたプラグインの 1 つのオプションを保存します：
+
+```json
+{
+  "pluginConfigs": {
+    "deployer@acme-tools": {
+      "options": {
+        "api_endpoint": "https://api.example.com"
+      }
+    }
+  }
+}
+```
+
+`pluginConfigs` はユーザー設定、`--settings` フラグ、および managed 設定からのみ読み込まれます。プロジェクトの `.claude/settings.json` または `.claude/settings.local.json` 内のエントリは無視されます。これらの値はプラグイン hook、MCP、および LSP 構成に置き換えられるため、クローンされたリポジトリはそれらを提供できません。v2.1.207 より前は、プロジェクトおよびローカル設定も読み込まれていました。
 
 `extraKnownMarketplaces`
 

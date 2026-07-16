@@ -96,7 +96,7 @@ AWS 認証情報を持っていて、Amazon Bedrock を通じて Claude Code の
   </Step>
 </Steps>
 
-サインイン後、いつでも `/setup-bedrock` を実行してウィザードを再度開き、認証情報、リージョン、またはモデルピンを変更できます。
+サインイン後、いつでも `/setup-bedrock` を実行してウィザードを再度開き、認証情報、リージョン、またはモデルピンを変更できます。モデルピンステップは、現在ピン留めされているモデルから開始されます。ウィザードは `~/.claude/settings.json` に書き込むか、[`CLAUDE_CONFIG_DIR`](/ja/env-vars#variables) が設定されている場合は `$CLAUDE_CONFIG_DIR/settings.json` に書き込みます。
 
 <h2 id="set-up-manually">
   手動でセットアップ
@@ -139,11 +139,15 @@ export AWS_SESSION_TOKEN=your-session-token
 
 **オプション C：環境変数（SSO プロファイル）**
 
+`your-profile-name` をこれらのコマンドを実行する前に AWS プロファイルの名前に置き換えてください。
+
 ```bash
-aws sso login --profile=<your-profile-name>
+aws sso login --profile=your-profile-name
 
 export AWS_PROFILE=your-profile-name
 ```
+
+Claude Code は、IAM Identity Center リージョンから役割認証情報をリクエストします。このリージョンはプロファイルの `sso_region` で指定されており、Amazon Bedrock を実行するリージョンと一致する必要はありません。{/* min-version: 2.1.208 */}v2.1.207 では、Amazon Bedrock リージョンが `sso_region` をオーバーライドしていたため、IAM Identity Center インスタンスが別のリージョンにあるプロファイルは `Session token not found or invalid` エラーで認証に失敗しました。
 
 **オプション D：AWS Management Console 認証情報**
 
@@ -160,6 +164,18 @@ export AWS_BEARER_TOKEN_BEDROCK=your-bedrock-api-key
 ```
 
 Amazon Bedrock API キーは、完全な AWS 認証情報を必要としない、より簡単な認証方法を提供します。[Amazon Bedrock API キーについて詳しく学習](https://aws.amazon.com/blogs/machine-learning/accelerate-ai-development-with-amazon-bedrock-api-keys/)してください。
+
+<h4 id="credential-caching-and-resolution-timeout">
+  認証情報キャッシングと解決タイムアウト
+</h4>
+
+Claude Code は AWS デフォルト認証情報プロバイダーチェーンを 1 回解決し、解決された認証情報をメモリに保持します。有効期限の 5 分前まで、または有効期限がない場合は 1 時間の間、それらを再利用するため、SSO バックアップ プロファイルは IAM Identity Center から認証情報を約 1 回リクエストします。API からの認証情報エラーはキャッシュをクリアし、再試行は新しい認証情報を解決します。
+
+{/* min-version: 2.1.207 */}v2.1.207 より前では、Claude Code は API リクエストのたびにチェーンを解決していたため、SSO バックアップ プロファイルは毎回 IAM Identity Center から新しい認証情報をリクエストでき、大規模なデプロイメントでスロットルされる可能性がありました。
+
+キャッシュは上記のすべての認証情報オプションをカバーしていますが、Amazon Bedrock API キーはプロバイダーチェーンを使用しないため除外されます。代わりにすべてのリクエストでチェーンを解決するには、[`CLAUDE_CODE_SKIP_AWS_CRED_CACHE=1`](/ja/env-vars) を設定してください。
+
+{/* min-version: 2.1.207 */}チェーンの各解決は 60 秒後にタイムアウトします。チェーン内のステップが停止した場合、例えば受け取ることができない入力を待つ `credential_process` ヘルパーの場合、リクエストは [`AWS default-chain credential resolve timed out`](/ja/errors#aws-default-chain-credential-resolve-timed-out) で失敗します。チェーンが `aws-vault` などのラッパーを通じた MFA を使用したブラウザベースの SSO など、正当に長い時間が必要な対話的サインインを実行する場合は、[`CLAUDE_CODE_AWS_CHAIN_RESOLVE_TIMEOUT_MS`](/ja/env-vars) でミリ秒単位で制限を上げてください。v2.1.207 より前では、停止した認証情報解決はリクエストを無期限に待機させていました。
 
 <h4 id="advanced-credential-configuration">
   高度な認証情報設定
@@ -208,6 +224,8 @@ Claude Code は、AWS SSO および企業 ID プロバイダーの自動認証�
 
 `Expiration` はオプションです。{/* min-version: 2.1.176 */}Claude Code v2.1.176 以降では、コマンドが有効な ISO 8601 `Expiration` を返す場合、Claude Code はその時刻の 5 分前までの認証情報をキャッシュします。それがない場合、または以前のバージョンでは、認証情報は 1 時間キャッシュされます。
 
+`awsCredentialExport` を `awsAuthRefresh` なしで設定する場合、Claude Code はエクスポートされた認証情報を直接使用し、スタートアップで AWS デフォルト認証情報プロバイダーチェーンを再解決しません。v2.1.206 より前では、スタートアップはデフォルトプロバイダーチェーンも再解決していたため、プロキシ設定外でライブ SSO または STS 呼び出しを行い、制限されたエグレスを持つネットワークで最初のプロンプトを数分間ブロックする可能性がありました。
+
 <h3 id="3-configure-claude-code">
   3. Claude Code を設定
 </h3>
@@ -252,7 +270,7 @@ Claude Code で Amazon Bedrock を有効にする場合は、以下に注意し�
 
 これらの環境変数を特定の Amazon Bedrock モデル ID に設定します。
 
-これらの変数がない場合、Amazon Bedrock の `opus` エイリアスは Opus 4.8 に解決され、`sonnet` エイリアスは Sonnet 4.5 に解決されます。各変数を設定して、そのエイリアスを特定のバージョンにピン留めします。
+`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Amazon Bedrock の `opus` エイリアスは Opus 4.8 に解決され、`ANTHROPIC_DEFAULT_SONNET_MODEL` がない場合、`sonnet` エイリアスは Sonnet 4.5 に解決されます。この例は各エイリアスを特定のバージョンにピン留めします。
 
 ```bash
 export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-8'
@@ -264,12 +282,21 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='us.anthropic.claude-haiku-4-5-20251001-v1:
 
 ピン留め変数が設定されていない場合、Claude Code はこれらのデフォルトモデルを使用します。
 
-| モデルタイプ   | デフォルト値                         |
-| :------- | :----------------------------- |
-| プライマリモデル | `us.anthropic.claude-opus-4-8` |
-| 小型/高速モデル | プライマリモデルと同じ                    |
+| モデルタイプ   | デフォルト値                                         |
+| :------- | :--------------------------------------------- |
+| プライマリモデル | `us.anthropic.claude-opus-4-8`                 |
+| 小型/高速モデル | `us.anthropic.claude-sonnet-4-5-20250929-v1:0` |
 
-セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Amazon Bedrock では、すべてのアカウントまたはリージョンで Haiku が有効になっていない可能性があるため、Claude Code はこれをプライマリモデルにデフォルト設定します。バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をアカウントで利用可能なモデル ID に設定してください。
+セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Amazon Bedrock では、すべてのアカウントまたはリージョンで Haiku が有効になっていない可能性があるため、Claude Code はバックグラウンドタスク用にデフォルト Sonnet モデルを使用します。バックグラウンドタスクを実行するモデルを変更する 2 つの選択肢があります。
+
+* `--model`、`ANTHROPIC_MODEL`、または `model` 設定でプライマリモデルを選択すると、バックグラウンドタスクはそのモデルを使用します。`ANTHROPIC_DEFAULT_SONNET_MODEL` なしで `ANTHROPIC_DEFAULT_OPUS_MODEL` を設定することも、組み込み Sonnet モデルが独自の Opus を操舵するアカウントで有効になっていない可能性があるため、選択としてカウントされます。
+* バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をアカウントで利用可能なモデル ID に設定してください。
+
+<Warning>
+  Opus モデルは Sonnet モデルより高いトークンあたりの価格を持つため、プライマリモデルをピン留めしないデプロイメントは v2.1.207 以降に更新されると Opus レートで課金されます。Sonnet 4.5 をプライマリモデルとして保つには、`ANTHROPIC_MODEL` をその完全なモデル ID に設定してください。`ANTHROPIC_DEFAULT_SONNET_MODEL` で デフォルトを操舵し、`ANTHROPIC_DEFAULT_OPUS_MODEL` を設定しないデプロイメントは、操舵された Sonnet モデルをデフォルトとして保持します。
+</Warning>
+
+{/* min-version: 2.1.207 */}v2.1.207 より前では、Amazon Bedrock のプライマリモデルは Sonnet 4.5 にデフォルト設定され、`opus` エイリアスは Opus 4.6 に解決され、バックグラウンドタスクは常にプライマリモデルを使用していました。
 
 モデルをさらにカスタマイズするには、以下のいずれかの方法を使用します。
 
@@ -321,7 +348,7 @@ Claude Code が Amazon Bedrock で設定されて起動すると、使用する�
 
 現在の Claude Code デフォルトより古いモデルバージョンをピン留めしていて、アカウントが新しいバージョンを呼び出せる場合、Claude Code はピンを更新するよう促します。受け入れると、新しいモデル ID が [user settings file](/ja/settings) に書き込まれ、Claude Code が再起動されます。拒否すると、次のデフォルトバージョン変更まで記憶されます。[アプリケーション推論プロファイル ARN](#map-each-model-version-to-an-inference-profile)を指す PIN は、管理者によって管理されるため、スキップされます。
 
-モデルをピン留めしていなくて、現在のデフォルトがアカウントで利用できない場合、Claude Code は現在のセッションで前のバージョンにフォールバックし、通知を表示します。フォールバックは永続化されません。Amazon Bedrock アカウントで新しいモデルを有効にするか、[バージョンをピン留め](#4-pin-model-versions)して選択を永続化してください。
+モデルをピン留めしていなくて、現在のデフォルトがアカウントで利用できない場合、Claude Code は現在のセッションでフォールバックし、通知を表示します。デフォルトモデルの以前のバージョンを最初に試し、デフォルトが Opus モデルで Opus バージョンが利用できない場合は、デフォルト Sonnet モデルにフォールバックします。フォールバックは永続化されません。Amazon Bedrock アカウントで新しいモデルを有効にするか、[バージョンをピン留め](#4-pin-model-versions)して選択を永続化してください。
 
 <h2 id="iam-configuration">
   IAM 設定
@@ -382,7 +409,7 @@ Claude Code に必要な権限を持つ IAM ポリシーを作成します。
   1M トークンコンテキストウィンドウ
 </h2>
 
-Claude Sonnet 5、Opus 4.6 以降、および Sonnet 4.6 は、Amazon Bedrock で [1M トークンコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。Sonnet 5 は [Mantle エンドポイント](#use-the-mantle-endpoint)を通じて提供され、常に 1M ウィンドウで実行されます。選択する `[1m]` バリアントはありません。その他のモデルについては、Claude Code は 1M モデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
+Claude Sonnet 5、Opus 4.6 以降、および Sonnet 4.6 は、Amazon Bedrock で [1M トークンコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#context-window-sizes-by-model)をサポートしています。Sonnet 5 は [Mantle エンドポイント](#use-the-mantle-endpoint)を通じて提供され、常に 1M ウィンドウで実行されます。選択する `[1m]` バリアントはありません。その他のモデルについては、Claude Code は 1M モデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
 
 [セットアップウィザード](#sign-in-with-bedrock)は、モデルをピン留めするときに 1M コンテキストオプションを提供します。手動でピン留めされたモデルの代わりに有効にするには、モデル ID に `[1m]` を追加します。詳細については、[サードパーティデプロイメント用のモデルをピン留めする](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
 
@@ -522,6 +549,16 @@ AWS SSO を使用する場合にブラウザタブが繰り返し生成される
 * モデルを [inference profile](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html) ID として指定します
 
 Claude Code は Amazon Bedrock [Invoke API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModelWithResponseStream.html) を使用し、Converse API はサポートしていません。
+
+<h3 id="streaming-errors-behind-a-gateway-or-proxy">
+  ゲートウェイまたはプロキシの背後でのストリーミングエラー
+</h3>
+
+ストリーミングリクエストが `Bedrock streaming response has content-type` で始まるエラーで失敗する場合、Claude Code と Amazon Bedrock の間のゲートウェイまたはプロキシがストリーミングレスポンスを変換しています。Amazon Bedrock はバイナリイベントストリーム形式でレスポンスをストリーミングし、content-type は `application/vnd.amazon.eventstream` であり、Claude Code は読み取ることができないボディをデコードする代わりに、異なる content-type を報告する成功したストリーミングレスポンスを拒否します。エラーは受け取った content-type を名前付けます。一般的には Amazon API Gateway と Lambda 統合からの `text/event-stream` で、ストリームをサーバー送信イベントとして再発行します。
+
+v2.1.208 より前では、同じ設定ミスは、レスポンス全体がバッファリングされた後に `API Error: Truncated event message received` として表示されていました。
+
+これを修正するには、ゲートウェイを設定して `InvokeModelWithResponseStream` レスポンスボディとその `Content-Type` ヘッダーを変更されずに通すようにしてください。ゲートウェイがヘッダーのみを書き換え、バイナリボディをそのまま通す場合は、[`CLAUDE_CODE_DISABLE_BEDROCK_CONTENT_TYPE_GUARD=1`](/ja/env-vars) を設定してチェックをスキップし、ゲートウェイが修正されるまで待ってください。チェックをオフにすると、変換されたレスポンスボディは再び `Truncated event message received` で失敗します。
 
 <h3 id="zero-token-counts-in-/context">
   /context でのゼロトークンカウント

@@ -187,6 +187,8 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 * [Google Cloud の Agent Platform](/ja/google-vertex-ai)
 * [Microsoft Foundry](/ja/microsoft-foundry)
 
+Amazon Bedrock と Google Vertex AI の場合、ログインプロンプトで `claude` を実行して**3rd-party platform** を選択し、インタラクティブセットアップウィザードを起動することもできます。
+
 <h2 id="configure-proxies-and-gateways">
   プロキシとゲートウェイの構成
 </h2>
@@ -194,7 +196,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 ほとんどの組織は、追加の構成なしでクラウドプロバイダーを直接使用できます。ただし、組織に特定のネットワークまたは管理要件がある場合は、企業プロキシまたは LLM ゲートウェイを構成する必要がある場合があります。これらは一緒に使用できる異なる構成です。
 
 * **企業プロキシ**: HTTP/HTTPS プロキシを通じてトラフィックをルーティングします。組織がセキュリティ監視、コンプライアンス、またはネットワークポリシー実装のためにすべての送信トラフィックをプロキシサーバーを通じて渡す必要がある場合に使用します。`HTTPS_PROXY` または `HTTP_PROXY` 環境変数で構成します。[エンタープライズネットワーク構成](/ja/network-config)で詳細をご覧ください。
-* **LLM ゲートウェイ**: Claude Code とクラウドプロバイダーの間に位置して、認証とルーティングを処理するサービスです。チーム全体の一元化された使用状況追跡、カスタムレート制限または予算、または一元化された認証管理が必要な場合に使用します。`ANTHROPIC_BASE_URL`、`ANTHROPIC_BEDROCK_BASE_URL`、`ANTHROPIC_AWS_BASE_URL`、または `ANTHROPIC_VERTEX_BASE_URL` 環境変数で構成します。[LLM ゲートウェイ](/ja/llm-gateway)で詳細をご覧ください。
+* **LLM ゲートウェイ**: Claude Code とクラウドプロバイダーの間に位置して、認証とルーティングを処理するサービスです。チーム全体の一元化された使用状況追跡、カスタムレート制限または予算、または一元化された認証管理が必要な場合に使用します。`ANTHROPIC_BASE_URL`、`ANTHROPIC_BEDROCK_BASE_URL`、`ANTHROPIC_AWS_BASE_URL`、`ANTHROPIC_VERTEX_BASE_URL`、または `ANTHROPIC_FOUNDRY_BASE_URL` 環境変数で構成します。[LLM ゲートウェイ](/ja/llm-gateway)で詳細をご覧ください。
 
 以下の例は、シェルまたはシェルプロファイル（`.bashrc`、`.zshrc`）で設定する環境変数を示しています。その他の構成方法については、[設定](/ja/settings)を参照してください。
 
@@ -299,7 +301,16 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 </Tabs>
 
 <Tip>
-  Claude Code で `/status` を使用して、プロキシとゲートウェイの構成が正しく適用されていることを確認します。
+  Claude Code で `/status` を使用して、プロキシとゲートウェイの構成が正しく適用されていることを確認します。例えば、上記の Bedrock ゲートウェイ構成では、出力に以下のような行が含まれます。
+
+  ```
+  API provider: Amazon Bedrock
+  Bedrock base URL: https://your-llm-gateway.com/bedrock
+  AWS region: us-east-1
+  AWS auth skipped
+  ```
+
+  企業プロキシを構成した場合、`/status` はプロキシ URL を含む `Proxy` 行も表示します。
 </Tip>
 
 <h2 id="best-practices-for-organizations">
@@ -312,7 +323,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 
 Claude Code がコードベースを理解できるようにドキュメントに投資することを強くお勧めします。組織は複数のレベルで CLAUDE.md ファイルをデプロイできます。
 
-* **組織全体**: macOS の `/Library/Application Support/ClaudeCode/CLAUDE.md` などのシステムディレクトリにデプロイして、会社全体の標準を設定します
+* **組織全体**: macOS の `/Library/Application Support/ClaudeCode/CLAUDE.md`、Linux と WSL の `/etc/claude-code/CLAUDE.md`、Windows の `C:\Program Files\ClaudeCode\CLAUDE.md` などのシステムディレクトリにデプロイして、会社全体の標準を設定します
 * **リポジトリレベル**: プロジェクトアーキテクチャ、ビルドコマンド、貢献ガイドラインを含むリポジトリルートに `CLAUDE.md` ファイルを作成します。ソース管理にチェックインして、すべてのユーザーが利益を得られるようにします
 
 [メモリと CLAUDE.md ファイル](/ja/memory)で詳細をご覧ください。

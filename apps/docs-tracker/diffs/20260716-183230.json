@@ -1,0 +1,211 @@
+{
+  "id": "20260716-183230",
+  "timestamp": "2026-07-16T18:32:30.413Z",
+  "aiSummary": "管理者設定により、特定のAnthropic組織へのログインを強制し、それ以外の認証方法を制限できる機能が追加されました。組織IDを指定することで、APIキー等による未検証のセッションを起動時にブロックし、セキュリティを強化することが可能です。ゼロデータ保持（ZDR）設定を確実に適用させるための組織制限手順も詳しく明記されました。あわせて、ステータスラインにおけるセッションコストの計算挙動に関する記述が整理されています。",
+  "files": [
+    {
+      "filename": "authentication.md",
+      "additions": 9,
+      "deletions": 1,
+      "explanation": "特定の組織へのログインを強制するforceLoginMethodおよびforceLoginOrgUUID設定の具体的な構成手順と、APIキー等による認証が制限される挙動が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -27,7 +27,7 @@ You can authenticate with any of these account types:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Cloud providers**: if your organization uses [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud's Agent Platform](/en/google-vertex-ai), or [Microsoft Foundry](/en/microsoft-foundry), set the required environment variables before running `claude`, or select **3rd-party platform** at the login prompt, which launches an interactive setup wizard for Bedrock and Vertex AI. No browser login is needed."
+            },
+            {
+              "type": "context",
+              "content": "- **Cloud gateway**: if your organization runs a self-hosted [Claude apps gateway](/en/claude-apps-gateway), sign in with corporate SSO through `/login`. The gateway-issued token is the session's only credential."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Admins can restrict interactive login with the [`forceLoginMethod` and `forceLoginOrgUUID`](/en/settings#available-settings) managed settings. When either is set, sessions authenticated by `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper` are blocked at startup; cloud provider sessions aren't affected."
+            },
+            {
+              "type": "added",
+              "content": "Admins can restrict which login methods and organizations are accepted; see [Restrict login to your organization](#restrict-login-to-your-organization)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To log out and re-authenticate, type `/logout` at the Claude Code prompt. Logging out also resets your first-launch setup state, so the next time you run `claude` it walks you through login and setup again."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -90,6 +90,14 @@ Distribute the environment variables and instructions for generating cloud crede",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Users can [install Claude Code](/en/setup#install-claude-code)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Restrict login to your organization"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To require that developer sessions authenticate into a specific Anthropic organization, set [`forceLoginMethod` and `forceLoginOrgUUID`](/en/settings#available-settings) in [managed settings](/en/settings#settings-files). Set `forceLoginOrgUUID` to your organization ID, shown in [claude.ai admin settings](https://claude.ai/admin-settings/organization) for Claude for Teams or Enterprise organizations, or at [platform.claude.com/settings/organization](https://platform.claude.com/settings/organization) for Console organizations. With both keys set, Claude Code restricts login to the listed organization and exits at startup if the active credential belongs to a different one."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Deploy the keys through your device management tooling. [Server-managed settings](/en/server-managed-settings) reach only accounts that are already authenticated into your organization, so they can't redirect a developer's first login. If your organization distributes server-managed settings as well, set the keys in both places: managed-settings sources [don't merge](/en/server-managed-settings#settings-precedence), and cached server-managed settings replace the device-managed file entirely."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The keys also block sessions authenticated by `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper`, since organization membership can't be verified for an environment credential. Cloud provider sessions such as Amazon Bedrock authenticate against your cloud provider and aren't blocked; restrict those through your cloud IAM policies. See [`forceLoginOrgUUID`](/en/settings#available-settings) in the settings reference for the full behavior. Before v2.1.146, the pin applied only to the login flow and didn't block API-key credentials."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Credential management"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code securely manages your authentication credentials:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "セッションコストを表示するcost.total_cost_usd変数について、以前のバージョンに関する古い注釈が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -149,7 +149,7 @@ Claude Code sends the following JSON fields to your script via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `workspace.added_dirs` | Additional directories added via `/add-dir` or `--add-dir`. Empty array if none have been added |"
+            },
+            {
+              "type": "context",
+              "content": "| `workspace.git_worktree` | Git worktree name when the current directory is inside a linked worktree created with `git worktree add`. Absent in the main working tree. Populated for any git worktree, unlike `worktree.*` which applies only to `--worktree` sessions |"
+            },
+            {
+              "type": "context",
+              "content": "| `workspace.repo.host`, `workspace.repo.owner`, `workspace.repo.name` | Repository identity parsed from the `origin` remote, for example `\"github.com\"`, `\"anthropics\"`, `\"claude-code\"`. Absent outside a git repository or when no `origin` remote is configured |"
+            },
+            {
+              "type": "removed",
+              "content": "| `cost.total_cost_usd` | Estimated session cost in USD, computed client-side. May differ from your actual bill. Resets to $0 when `/clear` starts a new session. Before v2.1.211, the total kept accumulating across `/clear` |"
+            },
+            {
+              "type": "added",
+              "content": "| `cost.total_cost_usd` | Estimated session cost in USD, computed client-side. May differ from your actual bill. Resets to $0 when `/clear` starts a new session |"
+            },
+            {
+              "type": "context",
+              "content": "| `cost.total_duration_ms` | Total wall-clock time since the session started, in milliseconds |"
+            },
+            {
+              "type": "context",
+              "content": "| `cost.total_api_duration_ms` | Total time spent waiting for API responses in milliseconds |"
+            },
+            {
+              "type": "context",
+              "content": "| `cost.total_lines_added`, `cost.total_lines_removed` | Lines of code changed |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "zero-data-retention.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "ZDRを有効にした組織へトラフィックを誘導するために、管理設定を用いてログイン先を制限する必要性についての説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -26,6 +26,10 @@ ZDR covers Claude Code inference on Claude for Enterprise.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "ZDR is enabled on a per-organization basis. Each new organization requires ZDR to be enabled separately by your Anthropic account team. ZDR does not automatically apply to new organizations created under the same account. Contact your account team to enable ZDR for any new organizations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Route Claude Code traffic to your ZDR organization"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "ZDR applies to requests that authenticate into a ZDR-enabled organization. If a developer signs in to Claude Code with a personal account or with an API key from a different organization, those sessions are not covered. To restrict login to your ZDR organization, deploy the `forceLoginMethod` and `forceLoginOrgUUID` managed settings; see [Restrict login to your organization](/en/authentication#restrict-login-to-your-organization)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### What ZDR covers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "ZDR covers model inference calls made through Claude Code on Claude for Enterprise. When you use Claude Code in your terminal, the prompts you send and the responses Claude generates are not retained by Anthropic. This applies to every model available to ZDR organizations. Some models require data retention and are not available under ZDR; see [Model availability under ZDR](#model-availability-under-zdr)."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
