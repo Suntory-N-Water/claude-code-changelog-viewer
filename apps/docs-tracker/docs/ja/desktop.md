@@ -63,19 +63,23 @@ Claude に実行させたいことを入力して**Enter**キーを押して送�
 
 権限モードは、セッション中に Claude がどの程度の自律性を持つかを制御します：ファイルの編集、コマンドの実行、またはその両方の前に確認するかどうかです。送信ボタンの横のモードセレクタを使用して、いつでもモードを切り替えることができます。Manual で開始して Claude が実行する内容を正確に確認してから、慣れてきたら Accept edits または Plan に移動します。
 
+新しいローカルセッションのデフォルトモードを設定するには、[設定ファイル](/ja/settings#settings-files)に`permissions.defaultMode`を追加します。デスクトップアプリは CLI と同じ設定ファイルを読み取ります。セレクタで選択したモードはフォルダごとに記憶され、そのフォルダの`defaultMode`より優先されます。ただし Plan は現在のセッションにのみ適用されます。
+
 | モード | 設定キー | 動作 |
 | - | - | - |
 | **Manual** | `default` | Claude はファイルの編集またはコマンドの実行の前に確認を求めます。diff を確認し、各変更を受け入れるか拒否できます。新規ユーザーに推奨されます。 |
 | **Accept edits** | `acceptEdits` | Claude はファイル編集と`mkdir`、`touch`、`mv`などの一般的なファイルシステムコマンドを自動的に受け入れますが、他のターミナルコマンドの実行前には確認を求めます。ファイル変更を信頼し、より高速な反復を望む場合に使用します。 |
 | **Plan** | `plan` | Claude はファイルを読み取り、コマンドを実行して探索してから、ソースコードを編集せずにプランを提案します。アプローチを最初に確認したい複雑なタスクに適しています。 |
-| **Auto** | `auto` | Claude はすべてのアクションをバックグラウンド安全チェック付きで実行し、リクエストとの整合性を確認します。権限プロンプトを削減しながら監視を維持します。Settings → Claude Code で有効にします。[利用可能性要件](#auto-mode-availability)以下を参照してください。 |
-| **Bypass permissions** | `bypassPermissions` | Claude は権限プロンプトなしで実行され、明示的な[ask ルール](/ja/permissions#manage-permissions)によって強制されるもの以外は、CLI の`--dangerously-skip-permissions`と同等です。Settings → Claude Code の「Allow bypass permissions mode」で有効にします。サンドボックス化されたコンテナまたは VM でのみ使用してください。エンタープライズ管理者はこのオプションを無効にできます。 |
+| **Auto** | `auto` | Claude はすべてのアクションをバックグラウンド安全チェック付きで実行し、リクエストとの整合性を確認します。権限プロンプトを削減しながら監視を維持します。下記の[利用可能性要件](#auto-mode-availability)を参照してください。自動モードは、アカウントが利用可能性要件を満たす場合に表示されます。設定用の個別トグルはありません。 |
+| **Bypass permissions** | `bypassPermissions` | Claude は権限プロンプトなしで実行されます。ただし、明示的な[ask ルール](/ja/permissions#manage-permissions)、コネクタツール[組織が`ask`に設定](/ja/mcp#organization-controls-on-connector-tools)、MCP ツール[`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool)、または Claude が[外部サイトで機能する](#browse-external-sites)場合の安全分類器によって強制されるものは除きます。CLI の`--dangerously-skip-permissions`と同等です。Pro および Max プランでは、Settings → Claude Code の「Allow bypass permissions mode」で有効にします。Team および Enterprise プランでは設定トグルはなく、組織ポリシーで制御されます。サンドボックス化されたコンテナまたは VM でのみ使用してください。 |
 
 Code タブの以前のバージョンでは、これらのモードを Ask permissions、Auto accept edits、および Plan mode というラベルが付けられていました。
 
 `dontAsk`権限モードは[CLI](/ja/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)でのみ利用可能です。
 
-Auto mode は Anthropic API のすべてのユーザーが利用でき、Claude Opus 4.6 以降、または Sonnet 4.6 以降が必要です。Google Cloud の Agent Platform にルーティングするエンタープライズデプロイメントでは、[`CLAUDE_CODE_ENABLE_AUTO_MODE`を設定](/ja/permission-modes#enable-auto-mode-on-bedrock-agent-platform-or-foundry)するまで auto mode はオフになり、そこでは Claude Sonnet 5、Opus 4.7、および Opus 4.8 のみがサポートされています。
+Auto mode は Anthropic API のすべてのユーザーが利用でき、Claude Opus 4.6 以降、または Sonnet 4.6 以降が必要です。組織管理者は[マネージド設定](#managed-settings)の`disableAutoMode`キーで auto mode をオフにできます。
+
+Google Cloud の Agent Platform にルーティングするエンタープライズデプロイメントでは、auto mode は[デフォルトで利用可能](/ja/permission-modes#enable-auto-mode-on-bedrock-agent-platform-or-foundry)であり、そこでは Claude Sonnet 5、Opus 4.7、および Opus 4.8 のみがサポートされています。Claude Code v2.1.207 より前では、Google Cloud の Agent Platform 上のエンタープライズデプロイメントは auto mode を有効にするために`CLAUDE_CODE_ENABLE_AUTO_MODE`を設定する必要がありました。
 
 複雑なタスクを Plan で開始して、Claude が変更を加える前にアプローチをマップアウトするようにします。プランを承認したら、Accept edits または Manual に切り替えて実行します。このワークフローの詳細については、[最初に探索してからプランしてからコード化する](/ja/best-practices#explore-first-then-plan-then-code)を参照してください。
 
@@ -123,6 +127,8 @@ Browser ペインは、個人用ブラウザとは別の、保存されたログ
 組織の外部閲覧を制限する
 
 Browser は、Claude in Chrome 拡張機能と同じ[サイト許可リストとブロックリストコントロール](https://support.claude.com/en/articles/13065128-claude-in-chrome-admin-controls)に従います。組織が既に拡張機能用にこれらのリストを設定している場合、Browser は自動的にそれらを尊重します。管理者は、[`browserExternalPageTools`マネージド設定](#managed-settings)で外部ページの Claude のツールをオフにすることもできます。ツールが無効になっている場合、ユーザーは外部サイトに移動できます。Claude のツールはそれらを読み取ったり、アクションを実行したりできません。
+
+外部閲覧を完全に無効にするには、[`disableBrowserExternalNavigation`マネージド設定](#managed-settings)を`true`に設定します。これは Browser 内のすべての外部ナビゲーションをブロックします。組織の許可リストのサイトを含みます。localhost dev サーバーとファイルプレビューは機能し続けます。`browserExternalPageTools`を使用して、ユーザーが Claude のツールなしで外部サイトの閲覧を続けられるようにし、`disableBrowserExternalNavigation`を使用して、ユーザーと Claude の両方に対して外部サイトをブロックします。
 
 diff ビューで変更を確認する
 
@@ -246,7 +252,7 @@ Claude はアプリまたはサービスと対話するための複数の方法�
 
 コンピュータ使用はデフォルトでオフです。それが必要な何かをするよう Claude に依頼し、それがオフの場合、Claude は Settings でコンピュータ使用を有効にすれば、タスクを実行できることを伝えます。
 
-Claude Desktop の最新バージョンがあることを確認してください。[claude.com/download](https://claude.com/download)でダウンロードまたは更新してから、アプリを再起動します。
+Claude Desktop の最新バージョンがあることを確認してください。macOS と Windows では、[claude.com/download](https://claude.com/download)でダウンロードまたは更新してください。Linux では、パッケージマネージャーを通じて更新してください（[手順](/ja/desktop-linux)）。その後、アプリを再起動します。
 
 デスクトップアプリで、**Settings > General**（**Desktop app**の下）に移動します。**Computer use**トグルを見つけてオンにします。Windows では、トグルはすぐに有効になり、セットアップは完了です。macOS では、次のステップに進みます。
 
@@ -327,7 +333,7 @@ macOS で\*\*Cmd+;**を、Windows で**Ctrl+;\*\*を押してサイドチャッ�
 
 Dispatch からのセッション
 
-[Dispatch](https://support.claude.com/en/articles/13947068)は、[Cowork](https://claude.com/product/cowork#dispatch-and-computer-use)タブに存在する Claude との永続的な会話です。Dispatch にタスクをメッセージで送信すると、それをどのように処理するかを決定します。
+[Dispatch](https://support.claude.com/en/articles/13947068)は、[Cowork](https://claude.com/product/cowork)タブに存在する Claude との永続的な会話です。Dispatch にタスクをメッセージで送信すると、それをどのように処理するかを決定します。
 
 タスクは 2 つの方法で Code セッションになります：「Claude Code セッションを開いてログインバグを修正する」など直接要求するか、Dispatch がタスクが開発作業であると判断して自動的に生成するかです。通常 Code にルーティングされるタスクには、バグの修正、依存関係の更新、テストの実行、またはプルリクエストの開くが含まれます。研究、ドキュメント編集、スプレッドシート作業は Cowork に留まります。
 
@@ -356,6 +362,8 @@ Claude Code を拡張する
 スキルを使用する
 
 [スキル](/ja/skills)は Claude ができることを拡張します。Claude は関連する場合に自動的にロードするか、直接呼び出すことができます：プロンプトボックスで`/`を入力するか、**+**ボタンをクリックして**Slash commands**を選択して、利用可能なものを参照します。これには[組み込みコマンド](/ja/commands)、[カスタムスキル](/ja/skills#create-your-first-skill)、コードベースからのプロジェクトスキル、および[インストール済みプラグイン](/ja/plugins)からのスキルが含まれます。1 つを選択すると、入力フィールドで強調表示されます。その後にタスクを入力して、通常どおり送信します。
+
+Claude が作業中でも、他のメッセージと同じようにコマンドを送信でき、ターンが終了するとセッションはアイドル状態に戻ります。v2.1.206 より前では、ターン中に送信されたコマンドはセッションを実行中として表示したままにし、その後に送信したメッセージは配信されませんでした。
 
 プラグインをインストールする
 
@@ -598,6 +606,7 @@ Team または Enterprise プランの組織は、管理コンソールコント
 | `disableAutoMode` | ユーザーが[Auto](/ja/permission-modes#eliminate-prompts-with-auto-mode)モードを有効にするのを防ぐには`"disable"`に設定します。モードセレクタから Auto を削除します。`permissions`の下でも受け入れられます。 |
 | `autoMode` | 組織全体で auto mode 分類器が信頼およびブロックするものをカスタマイズします。[auto mode を設定する](/ja/auto-mode-config)を参照してください。 |
 | `browserExternalPageTools` | Claude が[Browser ペイン](#browse-external-sites)の外部ページを読み取るまたは操作するためのツールを使用するのを防ぐには`"disabled"`に設定します。ユーザーは引き続き外部サイトに自分でナビゲートできます。ローカル開発サーバープレビューは影響を受けません。 |
+| `disableBrowserExternalNavigation` | [Browser ペイン](#browse-external-sites)の外部ブラウジングを完全にオフにするには`true`に設定します。ユーザーも Claude も外部サイトにナビゲートできません。localhost 開発サーバープレビューは影響を受けません。値は JSON ブール値`true`である必要があります。文字列`"true"`は無視されます。 |
 | `sshConfigs` | 環境ドロップダウンに表示される[SSH 接続](#pre-configure-ssh-connections-for-your-team)を事前設定します。ユーザーは管理接続を編集または削除できません。 |
 | `sshHostAllowlist` | [SSH セッション](#restrict-which-ssh-hosts-users-can-connect-to)を、解決されたホスト名がこれらのパターンのいずれかと一致するホストに制限します。空の配列は SSH セッションを無効にします。管理設定からのみ読み取られます。 |
 | `managedMcpServers` | MCP サーバー設定をサードパーティデプロイメント内のすべてのユーザーにプッシュします。各エントリは`"http"`、`"sse"`、または`"stdio"`のトランスポート、接続詳細、およびオプションで、そのサーバー内のどのツールをユーザーが呼び出せるかを制限する`toolPolicy`マップを指定します。サードパーティ（3P）Desktop デプロイメントでのみ利用可能です。管理設定ファイルまたは MDM を通じてこのキーを配信してください。サードパーティデプロイメントは管理コンソール設定を受け取らないためです。 |
@@ -608,7 +617,11 @@ Desktop セッションがどこで実行されるかに応じて、どの管理
 - **[クラウドセッション](#cloud-sessions)**：Anthropic が管理する VM で実行され、[サーバー管理設定](/ja/server-managed-settings)のみを受け取ります。
 - **[SSH セッション](#ssh-sessions)**：セッションはリモートホストから管理設定ファイルを読み取ります。Desktop 自体は接続を作成するときに、ローカルマシンの管理設定から`sshConfigs`と`sshHostAllowlist`を読み取ります。
 
-`permissions.disableBypassPermissionsMode`と`disableAutoMode`はユーザーおよびプロジェクト設定でも機能しますが、管理設定に配置するとユーザーがそれらをオーバーライドするのを防ぎます。`autoMode`はユーザー設定、`.claude/settings.local.json`、および管理設定から読み取られますが、チェックイン済みの`.claude/settings.json`からは読み取られません：クローンされたリポジトリは独自の分類器ルールを注入できません。`allowManagedPermissionRulesOnly`と`allowManagedHooksOnly`を含む管理専用設定の完全なリストについては、[管理専用設定](/ja/permissions#managed-only-settings)を参照してください。
+`permissions.disableBypassPermissionsMode`と`disableAutoMode`はユーザーおよびプロジェクト設定でも機能しますが、管理設定に配置するとユーザーがそれらをオーバーライドするのを防ぎます。
+
+Claude Code は`autoMode`をユーザー設定、`--settings`フラグ、および管理設定から読み取りますが、`.claude/settings.json`または`.claude/settings.local.json`からは読み取りません：両方のファイルはリポジトリディレクトリに存在するため、クローンされたリポジトリまたはビルドステップは独自の分類器ルールを注入できません。v2.1.207 より前は、Claude Code は`.claude/settings.local.json`も読み取っていました。
+
+`allowManagedPermissionRulesOnly`と`allowManagedHooksOnly`を含む管理専用設定の完全なリストについては、[管理専用設定](/ja/permissions#managed-only-settings)を参照してください。
 
 デバイス管理ポリシー
 
@@ -617,9 +630,52 @@ IT チームは、macOS の MDM または Windows のグループポリシーを
 - **macOS**：Jamf または Kandji などのツールを使用して`com.anthropic.claudefordesktop`プリファレンスドメインを通じて設定します
 - **Windows**：`SOFTWARE\Policies\Claude`のレジストリを通じて設定します
 
+ネットワークアクセス要件
+
+Desktop はアプリケーションコードとユーザーコンテンツを Anthropic CDN ホストから読み込みます。
+
+```text
+anthropic.com
+*.anthropic.com
+claude.ai
+*.claude.ai
+claude.com
+*.claude.com
+claude.app
+*.claude.app
+*.claudeusercontent.com
+*.claudemcpcontent.com
+```
+
+トラフィックは HTTPS ポート 443 です。ただし、[OTLP](/ja/monitoring-usage)、LLM ゲートウェイ、または MCP サーバーのカスタムポートを設定する場合を除きます。
+
+プロキシサーバー、カスタム認証局、mTLS、およびスタンドアロン CLI が必要とするドメインについては、[ネットワーク設定](/ja/network-config)を参照してください。
+
+ファイアウォールワイルドカードの数を減らすために、代わりにこれらの Anthropic ホストを許可してください。特定のサブドメインは動的に生成されるため、ワイルドカードのままである必要があります。
+
+```text
+anthropic.com
+api.anthropic.com
+a-api.anthropic.com
+a-cdn.anthropic.com
+s-cdn.anthropic.com
+assets-proxy.anthropic.com
+claude.ai
+a.claude.ai
+a-cdn.claude.ai
+assets.claude.ai
+downloads.claude.ai
+*.livepreview.claude.ai
+claude.com
+platform.claude.com
+*.livepreview.claude.app
+*.claudeusercontent.com
+*.claudemcpcontent.com
+```
+
 認証と SSO
 
-エンタープライズ組織はすべてのユーザーに SSO を要求できます。プランレベルの詳細については[認証](/ja/authentication)を参照し、SAML および OIDC 設定については[Setting up SSO](https://support.claude.com/en/articles/13132885-setting-up-single-sign-on-sso)を参照してください。
+エンタープライズ組織はすべてのユーザーに SSO を要求できます。プランレベルの詳細については[認証](/ja/authentication)を参照し、[Setting up SSO](https://support.claude.com/en/articles/13132885-setting-up-single-sign-on-sso)で SAML 設定を参照してください。OIDC セットアップは[Claude Enterprise Administrator Guide](https://claude.com/resources/tutorials/claude-enterprise-administrator-guide)で説明されています。
 
 データ処理
 
@@ -630,9 +686,9 @@ Claude Code はローカルセッションではコードをローカルで処�
 Desktop はエンタープライズデプロイメントツールを通じて配布できます：
 
 - **macOS**：Jamf または Kandji などの MDM を使用して`.dmg`インストーラーを通じて配布します
-- **Windows**：MSIX パッケージまたは`.exe`インストーラーを通じてデプロイします。サイレントインストールを含むエンタープライズデプロイメントオプションについては、[Deploy Claude Desktop for Windows](https://support.claude.com/en/articles/12622703-deploy-claude-desktop-for-windows)を参照してください。
+- **Windows**：MSIX パッケージを通じてデプロイします。サイレントインストールを含むエンタープライズデプロイメントオプションについては、[Deploy Claude Desktop for Windows](https://support.claude.com/en/articles/12622703-deploy-claude-desktop-for-windows)を参照してください。
 
-プロキシ設定、ファイアウォール許可リスト、LLM ゲートウェイなどのネットワーク設定については、[ネットワーク設定](/ja/network-config)を参照してください。
+ファイアウォールで許可リストに登録するドメインについては、上記の[ネットワークアクセス要件](#network-access-requirements)を参照してください。プロキシ設定、カスタム認証局、および LLM ゲートウェイについては、[ネットワーク設定](/ja/network-config)を参照してください。
 
 完全なエンタープライズ設定リファレンスについては、[エンタープライズ設定ガイド](https://support.claude.com/en/articles/12622667-enterprise-configuration)を参照してください。
 
@@ -653,7 +709,7 @@ CLI フラグの同等物
 | `--model sonnet` | 送信ボタンの横のモデルドロップダウン |
 | `--resume`、`--continue` | サイドバーのセッションをクリック |
 | `--permission-mode` | 送信ボタンの横のモードセレクタ |
-| `--dangerously-skip-permissions` | Bypass permissions モード。Settings → Claude Code → 「Allow bypass permissions mode」で有効にします。エンタープライズ管理者はこの設定を無効にできます。 |
+| `--dangerously-skip-permissions` | Bypass permissions モード。Pro と Max プランでは Settings → Claude Code → 「Allow bypass permissions mode」で有効にします。Team と Enterprise プランでは、組織ポリシーがこれを制御します |
 | `--add-dir` | クラウドセッションで **+** ボタンで複数のリポジトリを追加 |
 | `--allowedTools`、`--disallowedTools` | セッションごとの同等物はありません。[設定ファイル](/ja/settings)の権限ルールは引き続き適用されます。 |
 | `--verbose` | [Verbose ビューモード](#switch-view-modes)（Transcript view ドロップダウン） |
@@ -681,9 +737,9 @@ Desktop と CLI は同じ設定ファイルを読み取るため、セットア�
 
 | 機能 | CLI | Desktop |
 | - | - | - |
-| 権限モード | `dontAsk` を含むすべてのモード | Manual、Accept edits、および Plan。Auto と Bypass permissions は Settings で有効にした後、モードセレクタに表示されます |
-| `--dangerously-skip-permissions` | CLI フラグ | Bypass permissions モード。Settings → Claude Code → 「Allow bypass permissions mode」で有効にします |
-| [サードパーティプロバイダー](/ja/third-party-integrations) | Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry | Anthropic の API がデフォルト。エンタープライズデプロイメントは Google Cloud の Agent Platform とゲートウェイプロバイダーを設定できます。[エンタープライズ設定ガイド](https://support.claude.com/en/articles/12622667-enterprise-configuration)を参照してください。Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行するには、[Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview)を参照してください。 |
+| 権限モード | `dontAsk` を含むすべてのモード | Manual、Accept edits、Plan、および Auto。Bypass permissions はモードセレクタに表示されます。Pro と Max プランでは Settings トグルで有効にします。Team と Enterprise プランでは、組織ポリシーがこれを制御します |
+| `--dangerously-skip-permissions` | CLI フラグ | Bypass permissions モード。Pro と Max プランでは Settings → Claude Code → 「Allow bypass permissions mode」で有効にします。Team と Enterprise プランでは、組織ポリシーがこれを制御します |
+| [サードパーティプロバイダー](/ja/third-party-integrations) | Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry | デフォルトでは Anthropic の API。ゲートウェイルーティングについては、[デスクトップアプリをゲートウェイに接続](/ja/llm-gateway-connect#desktop-app)を参照してください。Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行するには、[Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview)を参照してください。 |
 | [MCP サーバー](/ja/mcp) | 設定ファイルで設定 | ローカルおよび SSH セッションの Connectors UI、または設定ファイル |
 | [Plugins](/ja/plugins) | `/plugin` コマンド | プラグインマネージャー UI |
 | @mention ファイル | テキストベース | オートコンプリート付き；ローカルおよび SSH セッションのみ |
@@ -699,11 +755,13 @@ Desktop では利用できないもの
 
 以下の機能は CLI または VS Code 拡張機能でのみ利用可能です。ただし、以下の場合を除きます：
 
-- **サードパーティプロバイダー**：Desktop は Anthropic の API に直接接続します。エンタープライズデプロイメントは Google Cloud の Agent Platform とゲートウェイプロバイダーを [管理設定](https://support.claude.com/en/articles/12622667-enterprise-configuration)経由で設定できます。Amazon Bedrock または Microsoft Foundry の場合は、[クイックスタート](/ja/quickstart)を参照してください。上記のセクションの例外として、[Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview)は Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行します。
+- **サードパーティプロバイダー**：Desktop はデフォルトで Anthropic の API に接続します。Desktop をゲートウェイ経由でルーティングするには、[デスクトップアプリをゲートウェイに接続](/ja/llm-gateway-connect#desktop-app)を参照してください。エンタープライズデプロイメントは Google Cloud の Agent Platform とゲートウェイプロバイダーを[管理設定](https://claude.com/docs/third-party/claude-desktop/configuration)経由で設定できます。Amazon Bedrock または Microsoft Foundry の場合は、[クイックスタート](/ja/quickstart)を参照してください。上記のセクションの例外として、[Claude Desktop on 3P](https://claude.com/docs/third-party/claude-desktop/overview)は Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行します。
 - **Linux（ベータ版）**：Linux デスクトップアプリではコンピュータ使用はまだ利用できません。[Claude Desktop on Linux](/ja/desktop-linux)を参照してください。
 - **インラインコード提案**：Desktop はオートコンプリートスタイルの提案を提供しません。会話型プロンプトと明示的なコード変更を通じて機能します。
 - **エージェントチーム**：並列 Claude Code セッションが互いにメッセージを送信するのは [CLI](/ja/agent-teams) で利用可能であり、Desktop では利用できません。1 つのセッション内でマルチエージェント作業を行う場合は、[動的ワークフロー](/ja/workflows)を使用します。これは Desktop で実行されます。
-- **ターミナルダイアログコマンド**：`/permissions` や `/config` などのターミナルで対話型パネルを開く組み込みコマンドは、Code タブでは利用できず、`isn't available in this environment` で応答します。`/config` は `key=value` を渡すときに設定を設定します。例えば `/config theme=dark`；ピッカーフォームのみが利用できません。[設定ファイル](/ja/settings)を直接編集して権限ルールと設定を管理するか、スタンドアロン CLI からコマンドを実行します。
+- **ターミナルダイアログコマンド**：ターミナルで対話型パネルを開く組み込みコマンドは、Code タブでは異なる動作をします。権限ルールと設定を管理するには、[設定ファイル](/ja/settings)を直接編集するか、スタンドアロン CLI からコマンドを実行します。
+  - `/permissions` などの引数形式がないコマンドは、`isn't available in this environment` で応答します。
+  - `/config` は Settings → Claude Code を開きます。コマンドの後のテキストは無視されるため、`/config theme=dark` はテーマを設定しません。
 
 トラブルシューティング
 
@@ -733,7 +791,8 @@ Code タブを使用するときに`Error 403: Forbidden`またはその他の�
 
 1. アプリを再起動します。
 2. 保留中の更新を確認します。macOS と Windows ではアプリは起動時に自動更新されます。Linux では、[Claude Desktop on Linux](/ja/desktop-linux)で説明されているように apt を使用して更新します。
-3. Windows では、**Windows Logs → Application**の Event Viewer でクラッシュログを確認します。
+3. マネージドネットワーク上では、ファイアウォールが[ネットワークアクセス要件](#network-access-requirements)の CDN ホストを許可していることを確認します。
+4. Windows では、**Windows Logs → Application**の Event Viewer でクラッシュログを確認します。
 
 「Failed to load session」
 

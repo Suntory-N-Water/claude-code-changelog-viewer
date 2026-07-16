@@ -89,7 +89,7 @@ Microsoft Foundry で Claude Code を構成する前に、以下を確認して�
 
 1. [Microsoft Foundry ポータル](https://ai.azure.com/)に移動します
 2. 新しいリソースを作成し、リソース名をメモします
-3. Claude モデルのデプロイメントを作成します：
+3. Claude モデルのデプロイメントを作成します。各デプロイメントに付与する名前をメモしてください。ステップ 4 でこれらの名前をモデル変数として設定します：
    * Claude Opus
    * Claude Sonnet
    * Claude Haiku
@@ -105,7 +105,7 @@ Claude Code は Microsoft Foundry の 3 つの認証方法をサポートして�
 1. Microsoft Foundry ポータルでリソースに移動します
 2. **エンドポイントとキー**セクションに移動します
 3. **API キー**をコピーします
-4. 環境変数を設定します：
+4. 環境変数を設定します。`your-azure-api-key` をコピーしたキーに置き換えます：
 
 ```bash
 export ANTHROPIC_FOUNDRY_API_KEY=your-azure-api-key
@@ -194,6 +194,8 @@ claude
 
 Claude Code は環境から `CLAUDE_CODE_USE_FOUNDRY` およびその他の Foundry 変数を読み込み、最初のプロンプトで Azure リソースに接続します。Amazon Bedrock および Google Cloud の Agent Platform とは異なり、Foundry には対話型セットアップウィザードがないため、ステップ 3 およびステップ 4 の環境変数が唯一の構成パスです。
 
+セットアップを確認するには、Claude Code 内で `/status` を実行します。API プロバイダー行に `Microsoft Foundry` が表示され、構成したリソース名またはベース URL が表示されます。
+
 <h2 id="azure-rbac-configuration">
   Azure RBAC 構成
 </h2>
@@ -223,6 +225,10 @@ Claude Code は環境から `CLAUDE_CODE_USE_FOUNDRY` およびその他の Foun
 「Failed to get token from azureADTokenProvider: ChainedTokenCredential authentication failed」というエラーが表示される場合：
 
 * 環境で Entra ID を構成するか、`ANTHROPIC_FOUNDRY_API_KEY` を設定してください。
+
+最初のプロンプトで接続エラーが繰り返される場合、リクエストが失敗する場合：
+
+* `ANTHROPIC_FOUNDRY_RESOURCE` がプレースホルダーではなく、実際のリソース名に設定されていることを確認してください。Claude Code はこの値からエンドポイント URL を構築するため、不正な名前は存在しないホストを指します。
 
 <h2 id="additional-resources">
   その他のリソース

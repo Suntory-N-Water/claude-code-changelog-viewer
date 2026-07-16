@@ -191,6 +191,7 @@ Claude Code をインストールしたら、これらのガイドでさらに�
 - [クイックスタート](/ja/quickstart)：コードベースの探索から修正のコミットまで、最初の実際のタスクを実行します
 - [指示とメモリを保存する](/ja/memory)：CLAUDE.md ファイルと自動メモリで Claude に永続的な指示を与えます
 - [一般的なワークフロー](/ja/common-workflows) と [ベストプラクティス](/ja/best-practices)：Claude Code から最大限の価値を得るためのパターン
+- [すべてのタスクのためのハーネス](https://claude.com/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code)：Claude Code チームが [動的ワークフロー](/ja/workflows) を使用して大規模にサブエージェントを調整する方法
 - [設定](/ja/settings)：ワークフローに合わせて Claude Code をカスタマイズします
 - [トラブルシューティング](/ja/troubleshooting)：一般的な問題の解決策
 - [code.claude.com](https://code.claude.com/)：デモ、価格設定、製品の詳細

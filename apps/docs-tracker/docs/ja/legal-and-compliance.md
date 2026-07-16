@@ -36,7 +36,7 @@ Claude Code の使用は、[Anthropic 使用ポリシー](https://www.anthropic.
 
 Claude Code は、OAuth トークンまたは API キーを使用して Anthropic のサーバーで認証します。これらの認証方法は異なる目的に対応しています。
 
-- **OAuth 認証**は、Claude Free、Pro、Max、Team、および Enterprise サブスクリプションプランの購入者専用に設計されており、Claude Code および他のネイティブ Anthropic アプリケーションの通常の使用をサポートするために設計されています。ユーザーが OAuth トークンで認証する方法の詳細については、[Claude アカウントへのログイン](https://support.claude.com/en/articles/13189465-logging-in-to-your-claude-account)を参照してください。
+- **OAuth 認証**は、Claude Free、Pro、Max、Team、および Enterprise サブスクリプションプランの購入者専用に設計されており、Claude Code および他のネイティブ Anthropic アプリケーションの通常の使用をサポートするために設計されています。ログインの手順については、[Claude アカウントへのログイン](https://support.claude.com/en/articles/13189465-logging-in-to-your-claude-account)を参照してください。Claude Code が OAuth 認証を実行する方法については、[認証](/ja/authentication)を参照してください。
 - **開発者**が Claude の機能と相互作用する製品またはサービスを構築している場合（[Agent SDK](/ja/agent-sdk/overview)を使用している場合を含む）、[Claude Console](https://platform.claude.com/)またはサポートされているクラウドプロバイダーを通じて API キー認証を使用する必要があります。Anthropic は、サードパーティの開発者が Claude.ai ログインを提供したり、ユーザーに代わって Free、Pro、または Max プランの認証情報を通じてリクエストをルーティングしたりすることを許可していません。
 
 Anthropic は、これらの制限を実施するための措置を講じる権利を留保し、事前通知なしにそうする場合があります。

@@ -62,7 +62,7 @@ Web 上の個別の Claude Code セッションはいつでも削除できます
 
 データアクセス
 
-すべてのファーストパーティユーザーの場合、[ローカル Claude Code](#local-claude-code-data-flow-and-dependencies) および [リモート Claude Code](#cloud-execution-data-flow-and-dependencies) に対してログされるデータについて詳しく知ることができます。[Remote Control](/ja/remote-control) セッションは、すべての実行がマシン上で行われるため、ローカルデータフローに従います。リモート Claude Code の場合、Claude は Claude Code セッションを開始するリポジトリにアクセスします。Claude は接続したが、セッションを開始していないリポジトリにはアクセスしません。
+すべてのファーストパーティユーザーの場合、[ローカル Claude Code](#local-claude-code-data-flow-and-dependencies) および [リモート Claude Code](#cloud-execution-data-flow-and-dependencies) に対してログされるデータについて詳しく知ることができます。[Remote Control](/ja/remote-control) セッションは、すべての実行がマシン上で行われるため、ローカルデータフローに従います。接続中、セッショントランスクリプトは [Connection and security](/ja/remote-control#connection-and-security) に記載されているように、デバイス間で会話を同期するために Anthropic サーバーにも保存されます。リモート Claude Code の場合、Claude は Claude Code セッションを開始するリポジトリにアクセスします。Claude は接続したが、セッションを開始していないリポジトリにはアクセスしません。
 
 ローカル Claude Code：データフローと依存関係
 
@@ -94,9 +94,18 @@ Claude Code は Anthropic の API 上に構築されています。API のセキ
 
 テレメトリサービス
 
-Claude Code はユーザーのマシンから Anthropic に接続して、レイテンシ、信頼性、使用パターンなどの運用メトリックをログします。このログには、コードまたはファイルパスは含まれません。データは転送中に暗号化され、保存時に暗号化されます。テレメトリをオプトアウトするには、`DISABLE_TELEMETRY` 環境変数を設定します。
+Claude Code は 2 種類の運用テレメトリを送信します。使用メトリクスとエラーレポートです。以下の環境変数を使用して各々をオフにすることができます。または `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` を設定することで、すべての非必須トラフィックを一度に無効にできます。
 
-Claude Code はユーザーのマシンから Sentry に接続して、運用エラーログを記録します。データは TLS を使用して転送中に暗号化され、256 ビット AES 暗号化を使用して保存時に暗号化されます。詳細については、[Sentry security documentation](https://sentry.io/security/) を参照してください。エラーログをオプトアウトするには、`DISABLE_ERROR_REPORTING` 環境変数を設定します。
+**メトリクス**：レイテンシ、信頼性、使用パターンは、Anthropic およびサードパーティのログインフラストラクチャに TLS 経由で送信されます。メトリクスにはコード、プロンプト、またはファイルパスが含まれることはありません。`DISABLE_TELEMETRY=1` を設定してオプトアウトします。
+
+**エラーレポート**：Claude Code の内部からのエラーメッセージとスタックトレースは、TLS 経由でサードパーティのエラー追跡サービスに送信されます。Claude Code は、マシンから何かが出ていく前に、既知のシークレット、ファイルパス、メールアドレス、およびその他の個人情報のパターンを削除します。`DISABLE_ERROR_REPORTING=1` を設定してオプトアウトします。
+
+エラーレポートは、以下のすべてが当てはまる場合にのみオンになります。
+
+- Claude Pro または Max サブスクリプションでサインインしている
+- Claude Code v2.1.198 以降を実行している
+- Claude API に直接接続している
+- 組織がゼロデータ保持または HIPAA 契約を持っていない
 
 `/feedback` コマンドを実行すると、コードを含む会話履歴のコピーが Anthropic に送信されます。送信前に、含める履歴の量を選択できます。デフォルトは現在のセッションのみですが、同じプロジェクトの過去 24 時間または 7 日間の他のセッションも含めることができます。データは TLS 経由で転送中に暗号化され、Google Cloud Storage に保存されます。Google Cloud Storage はデフォルトで保存時のデータを暗号化します。オプションで、公開リポジトリに GitHub イシューが作成されます。オプトアウトするには、`DISABLE_FEEDBACK_COMMAND` 環境変数を `1` に設定します。
 
@@ -108,15 +117,15 @@ API プロバイダーのデフォルト動作
 
 | サービス | Claude API | Google Cloud の Agent Platform API | Amazon Bedrock API | Microsoft Foundry API | Claude Platform on AWS |
 | - | - | - | - | - | - |
-| **Anthropic（メトリクス）** | デフォルトオン。`DISABLE_TELEMETRY=1` で無効にします。 | デフォルトオフ。`CLAUDE_CODE_USE_VERTEX` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_BEDROCK` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_FOUNDRY` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_ANTHROPIC_AWS` は 1 である必要があります。 |
-| **Sentry（エラー）** | デフォルトオン。`DISABLE_ERROR_REPORTING=1` で無効にします。 | デフォルトオフ。`CLAUDE_CODE_USE_VERTEX` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_BEDROCK` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_FOUNDRY` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_ANTHROPIC_AWS` は 1 である必要があります。 |
+| **メトリクス** | デフォルトオン。`DISABLE_TELEMETRY=1` で無効にします。 | デフォルトオフ。`CLAUDE_CODE_USE_VERTEX` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_BEDROCK` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_FOUNDRY` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_ANTHROPIC_AWS` は 1 である必要があります。 |
+| **エラーレポート** | v2.1.198 以降の Pro および Max サインインではオン、それ以外はオフ。`DISABLE_ERROR_REPORTING=1` で無効にします。 | デフォルトオフ。`CLAUDE_CODE_USE_VERTEX` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_BEDROCK` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_FOUNDRY` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_ANTHROPIC_AWS` は 1 である必要があります。 |
 | **Claude API（`/feedback` レポート）** | デフォルトオン。`DISABLE_FEEDBACK_COMMAND=1` で無効にします。 | デフォルトオフ。`CLAUDE_CODE_USE_VERTEX` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_BEDROCK` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_FOUNDRY` は 1 である必要があります。 | デフォルトオフ。`CLAUDE_CODE_USE_ANTHROPIC_AWS` は 1 である必要があります。 |
 | **セッション品質調査** | デフォルトオン。`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` で無効にします。 | デフォルトオン。`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` で無効にします。 | デフォルトオン。`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` で無効にします。 | デフォルトオン。`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` で無効にします。 | デフォルトオン。`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` で無効にします。 |
 | **WebFetch ドメインセーフティチェック** | デフォルトオン。[settings](/ja/settings) で `skipWebFetchPreflight: true` で無効にします。 | デフォルトオン。[settings](/ja/settings) で `skipWebFetchPreflight: true` で無効にします。 | デフォルトオン。[settings](/ja/settings) で `skipWebFetchPreflight: true` で無効にします。 | デフォルトオン。[settings](/ja/settings) で `skipWebFetchPreflight: true` で無効にします。 | デフォルトオン。[settings](/ja/settings) で `skipWebFetchPreflight: true` で無効にします。 |
 
 すべての環境変数は `settings.json` にチェックインできます（[settings reference](/ja/settings) を参照）。
 
-v2.1.126 以降、ホストプラットフォームが `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` を設定する場合、メトリクスは Google Cloud の Agent Platform、Amazon Bedrock、および Microsoft Foundry でデフォルトでオンになり、標準の `DISABLE_TELEMETRY` オプトアウトに従います。Sentry エラーレポートと `/feedback` レポートは、これらのプロバイダーではデフォルトでオフのままです。
+v2.1.126 以降、ホストプラットフォームが `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` を設定する場合、メトリクスは Google Cloud の Agent Platform、Amazon Bedrock、および Microsoft Foundry でデフォルトでオンになり、標準の `DISABLE_TELEMETRY` オプトアウトに従います。エラーレポートと `/feedback` レポートは、これらのプロバイダーではデフォルトでオフのままです。
 
 WebFetch ドメインセーフティチェック
 

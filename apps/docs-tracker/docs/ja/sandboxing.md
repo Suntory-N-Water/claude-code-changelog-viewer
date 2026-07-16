@@ -92,7 +92,7 @@ WSL2 では、サンドボックス化されたコマンドは `cmd.exe`、`powe
 
 Claude Code は 2 つのサンドボックスモードを提供します。
 
-**自動許可モード**：Bash コマンドはサンドボックス内で実行を試みられ、許可なしに自動的に許可されます。サンドボックス化できないコマンド（許可されていないホストへのネットワークアクセスが必要なコマンドなど）は、通常の許可フローにフォールバックします。そこで Claude Code は [許可ルール](/ja/permissions)を確認し、それらのルールが既に許可していないコマンドについてプロンプトを表示します。
+**自動許可モード**：Bash コマンドはサンドボックス内で実行を試みられ、許可なしに自動的に許可されます。サンドボックス化できないコマンド（許可されていないホストへのネットワークアクセスが必要なコマンドなど）は、通常の許可フローにフォールバックします。そこで Claude Code は [許可ルール](/ja/permissions)を確認し、それらのルールが既に許可していないコマンドについてゲートを設定します。デフォルトモードではプロンプトが表示されるか、[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)では分類器が使用されます。
 
 自動許可モードでも、以下が適用されます。
 
@@ -107,7 +107,7 @@ Claude Code は 2 つのサンドボックスモードを提供します。
 
 セッション一時ディレクトリは、デフォルトで作業ディレクトリと並んでサンドボックス内で書き込み可能です。Claude Code はサンドボックス化されたコマンドに対して `$TMPDIR` をこのディレクトリに設定するため、一時ファイルを書き込むツールは追加の設定なしで動作します。サンドボックス化されていないコマンドは、シェルの `$TMPDIR` を変更されずに継承します。つまり、サンドボックス化されたコマンドとサンドボックス化されていないコマンドは `$TMPDIR` を異なるディレクトリに解決します。2 つの間で一時ファイルを渡すには、代わりに作業ディレクトリの下に書き込んでください。
 
-一部のコマンドはサンドボックス内でまったく実行できません。これは、それと互換性がないツール、または許可していないホストが必要なツールなどです。タスクを失敗させたり、サンドボックス化をオフにするよう要求したりするのではなく、Claude Code には意図的なエスケープハッチが含まれています。サンドボックス制限のためにコマンドが失敗した場合、Claude は失敗を分析し、`dangerouslyDisableSandbox` パラメータでコマンドを再試行する可能性があります。再試行されたコマンドはサンドボックス外で実行されるため、通常の許可フローが適用されます。[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)では、分類器はプロンプトを表示する代わりに基礎となるコマンドを評価します。
+一部のコマンドはサンドボックス内でまったく実行できません。これは、それと互換性がないツール、または許可していないホストが必要なツールなどです。タスクを失敗させたり、サンドボックス化をオフにするよう要求したりするのではなく、Claude Code には意図的なエスケープハッチが含まれています。サンドボックス制限のためにコマンドが失敗した場合、Claude は失敗を分析し、`dangerouslyDisableSandbox` パラメータでコマンドを再試行する可能性があります。再試行されたコマンドはサンドボックス外で実行されるため、通常の許可フローが適用されます。デフォルトモードでは確認プロンプトが表示されます。[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)では、分類器はプロンプトを表示する代わりに基礎となるコマンドを評価します。自動モードでもサンドボックス化されていない再試行のたびにプロンプトが表示されるようにするには、`Bash(dangerouslyDisableSandbox:true)` の [ask ルール](/ja/permissions#match-by-input-parameter)を追加してください。
 
 このエスケープハッチは、[サンドボックス設定](/ja/settings#sandbox-settings)で `"allowUnsandboxedCommands": false` を設定することで無効化できます。無効化されると、`/sandbox` Overrides タブに **Strict sandbox mode** として表示されます。`dangerouslyDisableSandbox` パラメータは完全に無視され、すべてのコマンドはサンドボックス化されるか、`excludedCommands` に明示的にリストされている必要があります。
 
@@ -144,7 +144,12 @@ Claude Code は 2 つのサンドボックスモードを提供します。
 
 この構文は [Read と Edit 許可ルール](/ja/permissions#read-and-edit) とは異なります。これらは絶対パスに `//path` を使用し、プロジェクト相対に `/path` を使用します。サンドボックスファイルシステムパスは標準的な規則を使用します。`/tmp/build` は絶対パスです。
 
-`sandbox.filesystem.denyWrite` と `sandbox.filesystem.denyRead` を使用して書き込みまたは読み取りアクセスを拒否することもでき、`sandbox.filesystem.allowRead` を使用して拒否された領域内の特定のパスの読み取りを再度許可できます。
+`sandbox.filesystem.denyWrite` と `sandbox.filesystem.denyRead` を使用して書き込みまたは読み取りアクセスを拒否することもでき、`sandbox.filesystem.allowRead` を使用して拒否された領域内の特定のパスの読み取りを再度許可できます。読み取りルールが重複する場合、より具体的なパスが優先されます。
+
+| ルール例 | 結果 |
+| :- | :- |
+| `"denyRead": ["~/"]` と `"allowRead": ["~/projects"]` | `~/projects` は読み取り可能で、ホームディレクトリの残りはブロックされたままです。より狭い許可がその拒否された領域の部分を再度開きます |
+| `"allowRead": ["~/"]` と `"denyRead": ["~/.env"]` | `~/.env` はブロックされたままで、ホームディレクトリの残りは読み取り可能です。正確な拒否はより広い許可内で保持されるため、広い許可はシークレットを静かに再度公開することはできません |
 
 以下の例は、ホームディレクトリ全体からの読み取りをブロックしながら、現在のプロジェクトからの読み取りを許可します。プロジェクトの `.claude/settings.json` に配置してください。相対パス `.` はプロジェクト設定に存在する場合にのみプロジェクトルートに解決されるためです。
 
@@ -301,7 +306,7 @@ WSL1 は bubblewrap が WSL2 でのみ利用可能なカーネル機能を必要
 | :- | :- | :- |
 | `/sandbox` | Bash コマンドが実行されたら何にアクセスできるか | [自動許可モード](#sandbox-modes)のサンドボックス境界自体 |
 | [Auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode) | 各ツール呼び出しが実行されるかどうか | アクションをレビューする分類器 |
-| `--dangerously-skip-permissions` | 各ツール呼び出しが実行されるかどうか | なし。[Protected path](/ja/permission-modes#protected-paths) チェックもスキップされます。`/` またはホームディレクトリを削除することだけがプロンプトを表示します |
+| `--dangerously-skip-permissions` | 各ツール呼び出しが実行されるかどうか | なし。[Protected path](/ja/permission-modes#protected-paths) チェックもスキップされます。明示的な [ask ルール](/ja/permissions#manage-permissions)、コネクタツール [組織が `ask` に設定](/ja/mcp#organization-controls-on-connector-tools)、MCP ツール [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) でマークされたもの、および `/` またはホームディレクトリを削除することだけがプロンプトを表示します |
 
 サンドボックスの [自動許可モード](#sandbox-modes)は [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)とは別です。自動許可はサンドボックス境界がそれらを含むため Bash コマンドを承認し、自動モードは分類器を使用してアクションをレビューします。2 つは独立して動作し、組み合わせることができます。無人実行の分離境界を選択するには、[Sandbox environments](/ja/sandbox-environments#how-isolation-relates-to-permission-modes) を参照してください。
 

@@ -96,11 +96,18 @@ GitHub の問題とプルリクエストを操作する
 
 クラウドセッションには、Claude がセットアップなしで問題を読み取り、プルリクエストをリストし、diff を取得し、コメントを投稿できる組み込み GitHub ツールが含まれています。これらのツールは [GitHub プロキシ](#github-proxy)を通じて認証され、[GitHub 認証オプション](#github-authentication-options)で設定した方法を使用するため、トークンはコンテナに入りません。
 
+[環境設定](#configure-your-environment)で `GH_TOKEN` または `GITHUB_TOKEN` を自分で設定するか、両方を設定しないままにして [GitHub プロキシ](#github-proxy)に認証を任せることができます：
+
+- トークンを設定した場合、コンテナに変更されずに渡されるため、`gh` とスクリプトは直接それを使用します。
+- どちらも設定しない場合、コンテナは両方の変数をプレースホルダー文字列 `proxy-injected` に設定し、プロキシは送信 GitHub リクエストで実際の認証情報を置き換えます。`gh` は独自のトークンなしで機能しますが、`GITHUB_TOKEN` を直接読み取るスクリプトはプレースホルダーを取得し、使用可能なトークンは取得しません。
+
+セッションにどちらが適用されるかを確認するには、Claude に `echo $GH_TOKEN` を実行するよう依頼してください。
+
 `gh` CLI はプリインストールされていません。組み込みツールがカバーしていない `gh` コマンド（`gh release` や `gh workflow run` など）が必要な場合は、自分でインストールして認証してください：
 
 [セットアップスクリプト](#setup-scripts)に `apt update && apt install -y gh` を追加します。
 
-[環境設定](#configure-your-environment)に GitHub 個人アクセストークンを持つ `GH_TOKEN` 環境変数を追加します。`gh` は `GH_TOKEN` を自動的に読み取るため、`gh auth login` ステップは不要です。
+`echo $GH_TOKEN` が `proxy-injected` を出力する場合、[GitHub プロキシ](#github-proxy)が `gh` を認証し、このステップは不要です。それ以外の場合は、GitHub 個人アクセストークンを持つ `GH_TOKEN` 環境変数を [環境設定](#configure-your-environment)に追加してください。`gh` は `GH_TOKEN` を自動的に読み取るため、`gh auth login` ステップは不要です。
 
 セッションに出力をリンク
 
@@ -162,6 +169,19 @@ NODE_ENV=development
 LOG_LEVEL=debug
 DATABASE_URL=postgres://localhost:5432/myapp
 ```
+
+組織共有環境
+
+Team および Enterprise プランのオーナーと管理者は、組織のすべてのメンバーと共有されるクラウド環境を作成できます。共有環境は各メンバーの環境セレクターに個人環境と一緒に表示されるため、チームは各メンバーが再作成する代わりに 1 つの設定で標準化できます。
+
+[管理設定](https://claude.ai/admin-settings)の **Cloud environments** ページから共有環境を管理します。そこから以下を実行できます：
+
+- 共有環境を作成、編集、アーカイブします。各環境は個人環境と同じフィールドを持ちます：名前、[ネットワークアクセスレベル](#access-levels)、`.env` 形式の[環境変数](#configure-your-environment)、[セットアップスクリプト](#setup-scripts)。
+- 組織のデフォルト環境を設定します。
+
+共有環境の値はその環境のすべてのメンバーのセッションに到達します。個人環境と同様に、共有環境には専用シークレットストアがないため、シークレットを含めないでください。
+
+セルフホストランナープログラムの組織は、同じページからランナープールも管理します。
 
 セットアップスクリプト
 
@@ -289,13 +309,18 @@ registry.example.com
 
 ワイルドカードサブドメインマッチングに `*.` を使用します。**Also include default list of common package managers** をチェックして [Trusted ドメイン](#default-allowed-domains)をカスタムエントリと一緒に保つか、リストしたものだけを許可するためにチェックを外します。
 
+許可ドメインは環境ごとに設定されます。Owner がすべてのユーザーの環境にプッシュできる組織レベルの許可リストはありません。[server-managed settings](/ja/server-managed-settings)はクラウドセッションを制限できますが、許可ドメインを追加することはできません。
+
 GitHub プロキシ
 
-セキュリティのため、すべての GitHub 操作は、すべての git インタラクションを透過的に処理する専用プロキシサービスを通じて行われます。サンドボックス内では、git クライアントはカスタムビルトのスコープ付き認証情報を使用して認証します。このプロキシは：
+セキュリティのため、すべての GitHub 操作は専用プロキシサービスを通じて行われ、実際の GitHub 認証情報をサンドボックスの外に保ちます。プロキシは 2 種類のトラフィックを認証します：
 
-- GitHub 認証をセキュアに管理します：git クライアントはサンドボックス内のスコープ付き認証情報を使用し、プロキシはそれを検証して実際の GitHub 認証トークンに変換します
-- 安全性のため git push 操作を現在のワーキングブランチに制限します
-- セキュリティ境界を維持しながらシームレスなクローン、フェッチ、PR 操作を有効にします
+- Git インタラクション：サンドボックス内の git クライアントはカスタムビルトのスコープ付き認証情報を使用し、プロキシはそれを検証して実際の GitHub 認証トークンに変換します
+- GitHub API リクエスト：プロキシは組み込み GitHub ツールからのリクエストおよび [Work with GitHub issues and pull requests](#work-with-github-issues-and-pull-requests) で説明されている `proxy-injected` プレースホルダーをセッションが設定する場合の `gh` からのリクエストで実際の認証情報を置き換えます
+
+プロキシはセキュリティのため git push 操作を現在のワーキングブランチに制限し、セキュリティ境界を維持しながらクローン、フェッチ、PR 操作を有効にします。
+
+プロキシは GitHub API およびリリースアセットリクエストを環境の[アクセスレベル](#access-levels)に関係なくセッションに接続されたリポジトリに制限します。接続されていないリポジトリからリリースアセットをダウンロードするセットアップスクリプトは 403 を返します。公開リポジトリからコミットされたファイルは `raw.githubusercontent.com` を通じてフェッチされ、[security proxy](#security-proxy)が代わりに処理します。そのドメインはデフォルト[Trusted リスト](#default-allowed-domains)にあるため、環境の[アクセスレベル](#access-levels)がそれを除外しない限りファイルは到達可能なままです。
 
 セキュリティプロキシ
 
@@ -630,7 +655,10 @@ CCR_FORCE_BUNDLE=1 claude --cloud "Run the test suite and fix any failures"
 
 コンテキストを管理
 
-クラウドセッションは[組み込みコマンド](/ja/commands)をサポートしており、テキスト出力を生成します。ターミナルインターフェイスでのみ実行されるコマンド（`/plugin` や `/resume` など）は利用できません。}`/model`、`/effort`、`/fast`、`/color`、`/rename` はターミナルピッカーまたはスライダーを開く代わりに、引数として値を使用して機能します。例えば `/model sonnet` のように使用します。引数形式はセッションの環境で Claude Code v2.1.205 以降が必要であり、各コマンドの[利用可能性に関する注記](/ja/commands#all-commands)に従います。そのため、`/effort` はモデルの[起動デフォルト努力保持](/ja/model-config#adjust-effort-level)が有効な場合は `Not applied` を報告し、`/fast` はファストモードを有効にして開始されたセッションでのみ機能します。`/config` は `key=value` を渡すときに設定を設定します。
+クラウドセッションは[組み込みコマンド](/ja/commands)をサポートしており、テキスト出力を生成します。ターミナルインターフェイスでのみ実行されるコマンド（`/plugin` や `/resume` など）は利用できません。ターミナルでピッカーまたはパネルを開くコマンドはクラウドセッションで異なる動作をします：
+
+- **`/model`、`/effort`、`/fast`、`/color`、`/rename`**：ターミナルピッカーまたはスライダーを開く代わりに、引数として値を渡します。例えば `/model sonnet` のように使用します。引数形式はセッションの環境で Claude Code v2.1.205 以降が必要であり、各コマンドの[利用可能性に関する注記](/ja/commands#all-commands)に従います。`/effort` はモデルの[起動デフォルト努力保持](/ja/model-config#adjust-effort-level)が有効な場合は `Not applied` を報告し、`/fast` はファストモードを有効にして開始されたセッションでのみ機能します。
+- **`/config`**：ウェブ上では、値を設定する代わりに Claude Code セクションの設定を開き、`key=value` を含むコマンド後のテキストは無視されます。クラウドセッションの設定を変更するには、[環境変数](#configure-your-environment)を使用するか、[設定ファイル](/ja/settings)をリポジトリにコミットします。
 
 コンテキスト管理の場合：
 

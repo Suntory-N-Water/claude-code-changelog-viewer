@@ -314,6 +314,8 @@ disallowedTools: Write, Edit
 
 両方が設定されている場合、`disallowedTools` が最初に適用され、その後 `tools` が残りのプールに対して解決されます。両方にリストされているツールは削除されます。
 
+`tools` リストのどの項目もツールに解決されない場合（例えば、すべてのエントリが誤字であるか、サブエージェントで利用できないツールに名前を付けている場合）、Claude Code はサブエージェントの起動を拒否し、Agent ツールは解決されていないエントリに名前を付けるエラーを返します。v2.1.208 より前では、そのサブエージェントはツールなしで起動し、空または混乱した結果を返す可能性がありました。
+
 両方のフィールドは、正確なツール名に加えて MCP サーバーレベルのパターンを受け入れます：`mcp__<server>` または `mcp__<server>__*` は、指定されたサーバーからすべてのツールを付与または削除します。`disallowedTools` では、`mcp__*` はすべてのサーバーからすべての MCP ツールも削除します。この例は、`github` MCP サーバーからすべてのツールを削除しながら、他のサーバーのツールと組み込みツールをすべて保持します：
 
 ```yaml
@@ -403,11 +405,13 @@ v2.1.153 以降、メインセッションに適用される MCP 制限は、サ
 | `default` | プロンプト付きの標準権限チェック |
 | `acceptEdits` | ファイル編集と作業ディレクトリまたは `additionalDirectories` 内のパスの一般的なファイルシステムコマンドを自動受け入れ |
 | `auto` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)：バックグラウンド分類器がコマンドと保護されたディレクトリ書き込みを確認 |
-| `dontAsk` | 権限プロンプトを自動拒否（明示的に許可されたツールは引き続き機能） |
+| `dontAsk` | 権限プロンプトを自動拒否。明示的に許可されたツールは引き続き機能します。`AskUserQuestion`、組織が [`ask`](/ja/mcp#organization-controls-on-connector-tools)に設定したコネクタツール、および [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool)とマークされた MCP ツールは、許可されている場合でも拒否されます |
 | `bypassPermissions` | すべての権限チェックをスキップ |
 | `plan` | プランモード（読み取り専用探索） |
 
-`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.config/git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo`、`.devcontainer`、`.yarn`、および `.mvn` ディレクトリへの書き込みを含みます。明示的な [`ask` ルール](/ja/permissions#manage-permissions)およびルートおよびホームディレクトリの削除（`rm -rf /` など）は引き続きプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
+`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.config/git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo`、`.devcontainer`、`.yarn`、および `.mvn` ディレクトリへの書き込みを含みます。
+
+明示的な [`ask` ルール](/ja/permissions#manage-permissions)、組織が [`ask`](/ja/mcp#organization-controls-on-connector-tools)に設定したコネクタツール、[`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool)とマークされた MCP ツール、およびルートおよびホームディレクトリの削除（`rm -rf /` など）は引き続きプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
 
 親が `bypassPermissions` または `acceptEdits` を使用する場合、これが優先され、オーバーライドできません。親が[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)を使用する場合、サブエージェントは自動モードを継承し、フロントマター内の `permissionMode` は無視されます：分類器は、親セッションと同じブロックおよび許可ルールを使用してサブエージェントのツール呼び出しを評価します。
 
@@ -699,6 +703,8 @@ v2.1.198 以降、サブエージェントはデフォルトでバックグラ�
 - Claude に「run this in the background」と依頼する
 - **Ctrl+B** を押して実行中のタスクをバックグラウンドにする
 
+v2.1.208 以降、完了したバックグラウンドサブエージェントは [`/tasks`](/ja/commands)にリストされたままで、完了とマークされ、実行中の作業の下にソートされます。セッションがタスクリストをクリーンアップするまで、その詳細ビューは開いたままです。失敗したサブエージェント、または停止したサブエージェントはリストから削除されます。v2.1.208 より前は、完了したサブエージェントは完了した瞬間にリストから削除され、その詳細ビューが閉じられました。
+
 すべてのバックグラウンドタスク機能を無効にするには、`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` 環境変数を `1` に設定します。[環境変数](/ja/env-vars)を参照してください。
 
 [`CLAUDE_CODE_FORK_SUBAGENT`](#fork-the-current-conversation)が `1` に設定されている場合、すべてのサブエージェント生成はバックグラウンドで実行され、フロントマター `background` フィールドは効果がありません。これは、フォークモードが `Agent` ツールから `run_in_background` パラメータを削除するためです。`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` はフォークモードより優先され、サブエージェント生成をフォアグラウンドに保ちます。
@@ -792,6 +798,7 @@ Claude Code v2.1.187 以降、バックグラウンドサブエージェント�
 - **CLAUDE.md とメモリ**：メイン会話が読み込む[メモリ階層](/ja/memory#how-claude-md-files-load)のすべてのレベル。`~/.claude/CLAUDE.md`、プロジェクトルール、`CLAUDE.local.md`、および管理ポリシーファイルを含みます。組み込みの Explore および Plan エージェントはこれをスキップします。
 - **Git ステータス**：親セッションの開始時に取得されたスナップショット。ワーキングディレクトリが Git リポジトリでない場合、または [`includeGitInstructions`](/ja/settings#available-settings)が `false` の場合は不在です。Explore および Plan はそれに関係なくスキップします。
 - **プリロードされたスキル**：エージェントの [`skills` フィールド](#preload-skills-into-subagents)で名前が付けられたスキルの完全なコンテンツ。組み込みエージェントはスキルをプリロードしません。
+- **兄弟名簿**：`main` と、セッション内のすべての他の名前付きエージェントをリストするシステムリマインダー。各エージェントは [`SendMessage`](#resume-subagents)の有効な `to` 値です。Claude Code v2.1.206 以降が必要です。名簿は、サブエージェントのツールに `SendMessage` が含まれ、少なくとも 1 つの他のエージェントに名前がある場合にのみ表示されます。Claude がそれを生成するときに名前を付けたか、[エージェントチーム](/ja/agent-teams)チームメイトとして実行されるかは関係ありません。これはサブエージェントが開始するときに取得されたスナップショットであるため、後で名前が付けられたエージェントは表示されません。
 
 Explore および Plan は、CLAUDE.md と git ステータスを省略する唯一のサブエージェントです。どのエージェントがそれらをスキップするかを変更するフロントマターフィールドまたはエージェント単位の設定はありません。
 

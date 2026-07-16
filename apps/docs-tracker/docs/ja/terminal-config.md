@@ -249,6 +249,8 @@ Diff レンダリング
 
 Claude が作業中に表示がちらつくか、スクロール位置がジャンプする場合は、[フルスクリーンレンダリングモード](/ja/fullscreen) に切り替えます。ターミナルが通常のスクロールバックに追加する代わりに、フルスクリーンアプリ用に予約されている別のスクリーンに描画します。これにより、メモリ使用量が一定に保たれ、スクロールと選択のマウスサポートが追加されます。このモードでは、ターミナルのネイティブスクロールバックではなく、マウスまたは PageUp で Claude Code 内をスクロールします。検索とコピーの方法については、[フルスクリーンページ](/ja/fullscreen#search-and-review-the-conversation) を参照してください。
 
+ちらつきが唯一の問題で、ターミナルが同期出力をサポートしているが自動検出されていない場合（Emacs `eat` など）、[`CLAUDE_CODE_FORCE_SYNC_OUTPUT=1`](/ja/env-vars) を設定して、レンダラーを変更せずにちらつきを停止します。
+
 `/tui fullscreen` を実行して、設定を切り替えて保存します。会話はそのままで再起動され、今後のセッションはフルスクリーンで開始されます。Claude Code を開始する前に `CLAUDE_CODE_NO_FLICKER` 環境変数を設定することもできます。
 
 ```bash Bash と Zsh theme={null}
@@ -277,7 +279,9 @@ Vim キーバインディングでプロンプトを編集する
 
 Claude Code には、プロンプト入力用の Vim スタイルの編集モードが含まれています。`/config` → エディタモードを通じて有効にするか、`~/.claude/settings.json` で [`editorMode`](/ja/settings#available-settings) を `"vim"` に設定します。エディタモードを `normal` に戻してオフにします。
 
-Vim モードは NORMAL モードおよび VISUAL モードのモーションと演算子のサブセットをサポートしています。例えば、`hjkl` ナビゲーション、`v`/`V` 選択、およびテキストオブジェクトを使用した `d`/`c`/`y` などです。完全なキーテーブルについては、[Vim エディタモードリファレンス](/ja/interactive-mode#vim-editor-mode) を参照してください。Vim モーションはキーバインディングファイルを通じて再マップできません。
+Vim モードは NORMAL モードおよび VISUAL モードのモーションと演算子のサブセットをサポートしています。例えば、`hjkl` ナビゲーション、`v`/`V` 選択、およびテキストオブジェクトを使用した `d`/`c`/`y` などです。完全なキーテーブルについては、[Vim エディタモードリファレンス](/ja/interactive-mode#vim-editor-mode) を参照してください。
+
+Vim モーションはキーバインディングファイルを通じて再マップできません。`jj` を Escape にマップするなど、INSERT モードの 2 キーシーケンスをマップするには、ユーザー設定で [`vimInsertModeRemaps`](/ja/interactive-mode#remap-insert-mode-key-sequences) を設定します。
 
 INSERT モードで Enter キーを押すと、標準 Vim とは異なり、プロンプトが送信されます。代わりに改行を挿入するには、NORMAL モードで `o` または `O` を使用するか、Ctrl+J を使用します。
 

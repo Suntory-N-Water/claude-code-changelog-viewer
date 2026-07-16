@@ -175,7 +175,7 @@ ROI を測定する
 
 プログラムでデータにアクセスする
 
-Enterprise プランでは、[Claude Enterprise Analytics API](https://support.claude.com/en/articles/13703965-claude-enterprise-analytics-api-reference-guide) は、Claude Code を含む Claude サーフェス全体で、組織のユーザーごとのエンゲージメント、使用状況、コストレポートを返します。プライマリオーナーが [claude.ai/analytics/api-keys](https://claude.ai/analytics/api-keys) で `read:analytics` スコープを持つキーを作成します。API は Teams プランでは利用できません。
+Enterprise プランでは、[Claude Enterprise Analytics API](https://platform.claude.com/docs/en/api/admin/analytics) は、Claude Code を含む Claude サーフェス全体で、組織のユーザーごとのエンゲージメント、使用状況、コストレポートを返します。プライマリオーナーが [claude.ai/analytics/api-keys](https://claude.ai/analytics/api-keys) で `read:analytics` スコープを持つキーを作成します。API は Teams プランでは利用できません。
 
 GitHub を通じてこのデータをクエリするには、`claude-code-assisted` でラベル付けされた PR を検索します。
 

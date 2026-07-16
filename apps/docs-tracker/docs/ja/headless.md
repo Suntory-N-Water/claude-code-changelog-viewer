@@ -142,6 +142,8 @@ claude -p "Extract function names from auth.py" \
 claude -p "Explain recursion" --output-format stream-json --verbose --include-partial-messages
 ```
 
+ストリームの最後の行は、最終的な応答テキスト、コスト、およびセッションメタデータを含む `result` メッセージです。v2.1.208 より前では、大きな応答をパイプすると最後の行が切り詰められ、`result` メッセージが省略される可能性がありました。
+
 次の例は、[jq](https://jqlang.github.io/jq/) を使用してテキストデルタをフィルタリングし、ストリーミングテキストのみを表示します。`-r` フラグは生の文字列を出力し（引用符なし）、`-j` は改行なしで結合するため、トークンは継続的にストリーミングされます。
 
 ```bash
@@ -163,7 +165,10 @@ API リクエストが再試行可能なエラーで失敗すると、Claude Cod
 | `uuid` | 文字列 | 一意のイベント識別子 |
 | `session_id` | 文字列 | イベントが属するセッション |
 
-`system/init` イベントは、モデル、ツール、MCP サーバー、および読み込まれたプラグインを含むセッションメタデータを報告します。[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/ja/env-vars) が設定されていない限り、ストリームの最初のイベントです。その場合、`plugin_install` イベントがそれより前にあります。
+`system/init` イベントは、モデル、ツール、MCP サーバー、および読み込まれたプラグインを含むセッションメタデータを報告します。これはスタートアップイベントが先行しない限り、ストリームの最初のイベントです。
+
+- `plugin_install` イベント（[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/ja/env-vars) が設定されている場合）。
+- [`hook_started`、`hook_progress`、および `hook_response` イベント](/ja/agent-sdk/typescript#sdkhookstartedmessage)（設定された [`SessionStart`](/ja/hooks#sessionstart) または [`Setup`](/ja/hooks#setup) フックが実行されている間）。これらはフックが生成するときにストリーミングされます。Claude Code v2.1.169 から v2.1.203 はフック完了後に 1 つのバッチで配信し、それでも `system/init` より前でしたが、v2.1.204 はライブ配信を復元しました。
 
 イベントは、このバージョンの Claude Code が実装するプロトコル動作（例：`interrupt_receipt_v1`）の名前を付けるオプションの `capabilities` 文字列配列も含みます。バージョン文字列を比較する代わりに、機能検出に使用し、認識しない値は無視してください。このフィールドは Claude Code v2.1.205 以降が必要であり、以前のバージョンでは存在しません。機能リストについては、[`SDKSystemMessage`](/ja/agent-sdk/typescript#sdksystemmessage) を参照してください。
 
@@ -197,7 +202,9 @@ claude -p "Run the test suite and fix any failures" \
   --allowedTools "Bash,Read,Edit"
 ```
 
-セッション全体のベースラインを設定する代わりに個別のツールをリストするには、[パーミッションモード](/ja/permission-modes) を渡します。`dontAsk` は `permissions.allow` ルールまたは [読み取り専用コマンドセット](/ja/permissions#read-only-commands) にないものをすべて拒否します。これはロックダウンされた CI 実行に役立ちます。`acceptEdits` を使用すると、Claude はプロンプトなしでファイルを書き込むことができ、`mkdir`、`touch`、`mv`、`cp` などの一般的なファイルシステムコマンドも自動承認します。その他のシェルコマンドとネットワークリクエストは、`--allowedTools` エントリまたは `permissions.allow` ルールが必要です。そうでない場合、実行が試みられると実行が中止されます。
+セッション全体のベースラインを設定する代わりに個別のツールをリストするには、[権限モード](/ja/permission-modes) を渡します。`dontAsk` は `permissions.allow` ルールまたは [読み取り専用コマンドセット](/ja/permissions#read-only-commands) にないものをすべて拒否します。これはロックダウンされた CI 実行に役立ちます。`AskUserQuestion`、組織が [`ask`](/ja/mcp#organization-controls-on-connector-tools) に設定したコネクタツール、および [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールは、許可ルールが一致する場合でも拒否されます。
+
+`acceptEdits` を使用すると、Claude はプロンプトなしでファイルを書き込むことができ、`mkdir`、`touch`、`mv`、`cp` などの一般的なファイルシステムコマンドも自動承認します。その他のシェルコマンドとネットワークリクエストは、`--allowedTools` エントリまたは `permissions.allow` ルールが必要です。そうでない場合、実行が試みられると実行が中止されます。
 
 ```bash
 claude -p "Apply the lint fixes" --permission-mode acceptEdits

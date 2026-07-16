@@ -19,6 +19,10 @@ Claude Code は、パワーと安全性のバランスを取るために、段�
 | Bash コマンド | シェル実行 | はい、[読み取り専用コマンド](#read-only-commands)の組み込みセットを除く | プロジェクトディレクトリとコマンドごとに永続的 |
 | ファイル変更 | Edit/Write ファイル | はい | セッション終了まで |
 
+Bash または PowerShell の権限プロンプトで、`Ctrl+E` を押すと、コマンドの説明が表示されます。説明には、コマンドが何をするのか、Claude がそれを実行する理由、何が問題になる可能性があるかが含まれ、**低リスク**、**中リスク**、または**高リスク**とラベル付けされています。Claude Code は、毎回のプロンプトではなく、`Ctrl+E` を押したときのみ、コマンドと Claude 自身の呼び出しの説明をモデルに送信して説明を生成します。説明を表示してもコマンドは実行されません。`Ctrl+E` をもう一度押すと説明が非表示になります。
+
+ショートカットをオフにするには、`~/.claude.json` の [`permissionExplainerEnabled`](/ja/settings#global-config-settings) を `false` に設定します。
+
 権限を管理する
 
 `/permissions` を使用して、Claude Code のツール権限を表示および管理できます。この UI は、すべての権限ルールと、それらが取得される `settings.json` ファイルをリストします。
@@ -39,14 +43,16 @@ Claude Code は、ツール呼び出しの承認方法を制御するいくつ�
 
 | モード | 説明 |
 | :- | :- |
-| `default` | 標準動作。各ツールの最初の使用時に権限を促します。CLI および VS Code と JetBrains 拡張機能では「Manual」とラベル付けされており、Claude Code は `manual` をエイリアスとして受け入れます。ラベルとエイリアスには Claude Code v2.1.200 以降が必要です |
+| `default` | 標準動作：各ツールの最初の使用時に権限を促します。CLI、VS Code と JetBrains 拡張機能、およびデスクトップアプリでは「Manual」とラベル付けされており、Claude Code は `manual` をエイリアスとして受け入れます。ラベルとエイリアスには Claude Code v2.1.200 以降が必要です。デスクトップアプリのラベルは CLI バージョンに依存しません |
 | `acceptEdits` | ファイル編集と一般的なファイルシステムコマンド（`mkdir`、`touch`、`mv`、`cp` など）を、作業ディレクトリまたは `additionalDirectories` 内のパスに対して自動的に受け入れます |
 | `plan` | Claude はファイルを読み取り、読み取り専用シェルコマンドを実行して探索しますが、ソースファイルを編集しません。CLI および VS Code 拡張機能では Plan とラベル付けされています |
 | `auto` | バックグラウンド安全チェック付きでツール呼び出しを自動承認し、アクションがリクエストと一致することを確認します |
-| `dontAsk` | `/permissions` または `permissions.allow` ルールで事前に承認されていない限り、ツールを自動的に拒否します |
-| `bypassPermissions` | 権限プロンプトをスキップします。ただし、明示的な `ask` ルールで強制されたプロンプトは除きます。ファイルシステムルートまたはホームディレクトリの削除（`rm -rf /` など）も回路遮断器として引き続きプロンプトを表示します |
+| `dontAsk` | `/permissions` または `permissions.allow` ルールで事前に承認されていない限り、ツールを自動的に拒否します。`AskUserQuestion`、[組織が `ask` に設定したコネクタツール](/ja/mcp#organization-controls-on-connector-tools)、および [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールは、許可していても拒否されます |
+| `bypassPermissions` | 権限プロンプトをスキップします。ただし、明示的な `ask` ルール、[組織が `ask` に設定したコネクタツール](/ja/mcp#organization-controls-on-connector-tools)、および [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールで強制されたプロンプトは除きます。`rm -rf /` などのルートおよびホームディレクトリの削除も、回路遮断器として引き続きプロンプトを表示します |
 
-`bypassPermissions` モードは権限プロンプトをスキップします。`.git`、`.config/git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo`、`.devcontainer`、`.yarn`、`.mvn` への書き込みを含みます。明示的な `ask` ルールは引き続きプロンプトを強制し、ファイルシステムルートまたはホームディレクトリを対象とした削除（`rm -rf /` や `rm -rf ~` など）も、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。
+`bypassPermissions` モードは権限プロンプトをスキップします。`.git`、`.config/git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo`、`.devcontainer`、`.yarn`、`.mvn` への書き込みを含みます。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。
+
+このモードではいくつかのプロンプトが引き続き表示されます。明示的な `ask` ルール、[組織が `ask` に設定したコネクタツール](/ja/mcp#organization-controls-on-connector-tools)、および [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールは引き続きプロンプトを表示します。`rm -rf /` や `rm -rf ~` などのファイルシステムルートまたはホームディレクトリを対象とした削除も、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。これには、コマンドが `$(...)` またはバッククォートを使用したコマンド置換、または `<(...)` を使用したプロセス置換を含む場合も含まれます。v2.1.208 より前では、`rm -rf ~` として独自のコマンドとして入力された単純な形式のみがプロンプトを表示していました。置換を通じて削除に到達したコマンドはプロンプトを表示していませんでした。
 
 `bypassPermissions` または `auto` モードが使用されるのを防ぐには、任意の[設定ファイル](/ja/settings#settings-files)で `permissions.disableBypassPermissionsMode` または `permissions.disableAutoMode` を `"disable"` に設定します。これらは、オーバーライドできない[管理設定](#managed-settings)で最も有用です。
 
@@ -182,6 +188,8 @@ Claude Code は、Bash コマンドの組み込みセットを読み取り専用
 
 作業ディレクトリまたは[追加ディレクトリ](#working-directories)内のパスへの `cd` も読み取り専用です。`cd packages/api && ls` のような複合コマンドは、各部分が独立して適格である場合、プロンプトなしで実行されます。複合コマンドで `cd` と `git` を組み合わせると、`cd` が異なるディレクトリに変更される場合、プロンプトが表示されます。これは、新しいディレクトリで `git` を実行するとそのディレクトリのフックを実行できるためです。ターゲットが現在の作業ディレクトリに解決される `cd` は、操作なしであり、このプロンプトをトリガーしません。
 
+複合コマンドで `cd` と出力リダイレクトを組み合わせると、Claude Code が `cd` 実行後にリダイレクトターゲットが解決するディレクトリを判定できない場合、プロンプトが表示されます。唯一のリダイレクトターゲットが `/dev/null` であるコマンド（`cd app; grep -r pattern . 2>/dev/null` など）は、`/dev/null` は作業ディレクトリに依存しないため、このプロンプトをトリガーしません。v2.1.207 より前では、`cd` を含む複合コマンドは `/dev/null` への唯一のターゲットを含むものを含む、任意の出力リダイレクトに対してプロンプトを表示していました。
+
 コマンド引数を制約しようとする Bash 権限パターンは脆弱です。たとえば、`Bash(curl http://github.com/ *)` は curl を GitHub URL に制限することを意図していますが、次のようなバリエーションにはマッチしません。
 
 - URL の前のオプション：`curl -X GET http://github.com/...`
@@ -223,6 +231,8 @@ Claude Code は PowerShell AST を解析し、複合コマンド内の各コマ�
 Read と Edit
 
 `Edit` ルールは、ファイルを編集するすべての組み込みツールに適用されます。Claude は、Grep や Glob などのファイルを読み取るすべての組み込みツールに `Read` ルールを適用するためにベストエフォートを試みます。また、プロンプト内の `@file` メンションや、接続された [IDE](/ja/vs-code#the-built-in-ide-mcp-server) が Claude と共有する選択およびオープンファイルコンテキストにも適用します。
+
+`Read` deny ルールは、同じパスの [Edit ツール](/ja/errors#file-is-covered-by-a-read-deny-rule)もブロックします。これには新しいファイルの作成も含まれます。Write と NotebookEdit はカバーされないため、ツールが変更できないパスに対して `Edit` deny ルールを追加してください。Claude Code v2.1.208 以降が必要です。
 
 Read と Edit deny ルールは Claude の組み込みファイルツールと、Bash で Claude Code が認識するファイルコマンド（`cat`、`head`、`tail`、`sed` など）に適用されます。これらは、Python または Node スクリプトがファイルを自分で開くような、ファイルを間接的に読み書きする任意のサブプロセスには適用されません。パスへのすべてのプロセスのアクセスをブロックする OS レベルの強制については、[サンドボックスを有効にしてください](/ja/sandboxing)。
 
@@ -293,6 +303,8 @@ MCP ルールは、Claude Code で設定されたサーバー名を使用し、�
 - `mcp__puppeteer__*` ワイルドカード構文を使用し、`puppeteer` サーバーからのすべてのツールもマッチさせます
 - `mcp__puppeteer__puppeteer_navigate` は `puppeteer` サーバーによって提供される `puppeteer_navigate` ツールをマッチさせます
 
+組織が [claude.ai コネクタ](/ja/mcp#organization-controls-on-connector-tools)ツールを `ask` に設定している場合、そのツールの allow ルールは有効になりません。Claude Code は `auto` および `bypassPermissions` モードでも、すべての呼び出しでプロンプトを表示します。プロンプトを表示しない `dontAsk` モードでは、Claude Code は代わりに呼び出しを拒否します。コネクタツールは `mcp__claude_ai_<server>__<tool>` として表示されます。
+
 Agent（subagents）
 
 `Agent(AgentName)` ルールを使用して、Claude が使用できる [subagents](/ja/sub-agents) を制御します。
@@ -331,7 +343,9 @@ Cd
 
 [Claude Code フック](/ja/hooks-guide)は、実行時に権限評価を実行するカスタムシェルコマンドを登録する方法を提供します。Claude Code がツール呼び出しを行うと、PreToolUse フックは権限プロンプトの前に実行されます。フック出力はツール呼び出しを拒否し、プロンプトを強制し、またはプロンプトをスキップしてコールを続行させることができます。
 
-フック決定は権限ルールをバイパスしません。deny ルールと ask ルールは、フックが何を返すかに関係なく評価されるため、マッチする deny ルールはコールをブロックし、マッチする ask ルールはフックが `"allow"` または `"ask"` を返した場合でもプロンプトを表示します。これは、[権限を管理する](#manage-permissions)で説明されている deny 優先の優先順位を保持し、管理設定で設定された deny ルールを含みます。
+フック決定は権限ルールをバイパスしません。Claude Code は deny ルールと ask ルールを、フックが何を返すかに関係なく評価します。マッチする deny ルールはコールをブロックし、マッチする ask ルールはフックが `"allow"` または `"ask"` を返した場合でもプロンプトを表示します。これは、[権限を管理する](#manage-permissions)で説明されている deny 優先の優先順位を保持し、管理設定で設定された deny ルールを含みます。
+
+コネクタツール（[組織が `ask` に設定](/ja/mcp#organization-controls-on-connector-tools)）と MCP ツール（[`requiresUserInteraction` でマーク](/ja/mcp#require-approval-for-a-specific-tool)）も、フックが `"allow"` を返した場合でもプロンプトを表示します。
 
 ブロッキングフックは allow ルールよりも優先されます。終了コード 2 で終了するフックは、権限ルールが評価される前にツール呼び出しを停止するため、allow ルールがコールを許可する場合でもブロックが適用されます。プロンプトなしですべての Bash コマンドを実行し、ブロックしたい少数のコマンドを除外するには、allow リストに `"Bash"` を追加し、それらの特定のコマンドを拒否する PreToolUse フックを登録します。適応できるフックスクリプトについては、[保護されたファイルへの編集をブロックする](/ja/hooks-guide#block-edits-to-protected-files)を参照してください。
 
@@ -344,6 +358,8 @@ Cd
 - **永続的な設定**：[設定ファイル](/ja/settings#settings-files)の `additionalDirectories` に追加します
 
 追加ディレクトリ内のファイルは、元の作業ディレクトリと同じ権限ルールに従います。プロンプトなしで読み取り可能になり、ファイル編集権限は現在の権限モードに従います。
+
+macOS のバックグラウンドセッションでは、セッションホストは `~/Desktop`、`~/Documents`、`~/Downloads` などの保護されたフォルダへのアクセスをターミナルとは別に要求します。Claude がそこでファイルを読み取りまたは書き込む必要がある場合、`Operation not permitted` で読み取りが失敗する場合は、[バックグラウンドセッションにフォルダアクセスを許可する方法](/ja/agent-view#background-sessions-cant-read-desktop-documents-or-downloads-on-macos)を参照してください。
 
 セッションの主要な作業ディレクトリを別のディレクトリを追加する代わりに変更するには、[`/cd`](/ja/commands)を使用します。`/cd` コマンドには Claude Code v2.1.169 以降が必要です。`/add-dir` とは異なり、セッションを再配置します。新しいディレクトリの `CLAUDE.md` が読み込まれ、`--resume` はそこからセッションを検出します。
 
@@ -443,6 +459,8 @@ Team および Enterprise プランでは、Owner が [Claude Code 管理設定]
 Claude Code はワークスペーストを git リポジトリルートをキーとして保存するか、リポジトリ外の場合は Claude Code を起動したディレクトリをキーとして保存します。ホームディレクトリから起動した場合、トラストは現在のセッションのみ保持され、ディスクに書き込まれません。[追加のセーフガード](/ja/security#additional-safeguards)に関する注記を参照してください。親ディレクトリを信頼しても、ネストされたプロジェクトの許可ルールは適用されません。
 
 `.claude/settings.local.json` はあなた自身のファイルであるため、ワークスペーストラストチェックは通常適用されません。リポジトリが git にコミットされている場合や `.claude` がシンボリックリンクである場合など、リポジトリがファイルを提供できる場合、その許可ルールと追加ディレクトリはプロジェクト設定と同様にトラストチェックを通ります。
+
+Claude Code は git を実行してリポジトリがファイルを提供したかどうかを確認し、その確認は受け入れたトラストダイアログでカバーされているフォルダ、またはそのいずれかの親ディレクトリでのみ実行されます。まだ信頼していないフォルダでの対話的セッションでは、`.claude/settings.local.json` の許可ルールと追加ディレクトリはプロジェクト設定と同様にトラストチェックを通ります。ただし、以下で説明されているように、セッションが独自の設定ホームで実行される場合を除き、ダイアログを受け入れるまでです。以下の 2 つの例外のうち、設定ホーム例外のみがダイアログの前に適用されます。これは git を実行する必要がないためです。ディレクトリが git リポジトリ内にないことを判定するには、同じ git チェックを使用するため、フォルダをカバーするトラストダイアログが受け入れられると、リポジトリ内にない例外が有効になります。v2.1.207 より前では、追跡されていない `.claude/settings.local.json` はダイアログを受け入れる前にそのフォルダで許可ルールを適用していました。
 
 `.claude/settings.local.json` の許可ルールと追加ディレクトリは、2 つのケースではワークスペーストラストなしで適用されます。
 

@@ -160,11 +160,14 @@ v2.1.196 以降、`claude mcp list` と `claude mcp get` は、リポジトリ�
 - ユーザーの `~/.claude/settings.json`
 - 管理設定
 - `--settings` で渡された設定
-- `.claude/settings.local.json`（git がそれを追跡していない限り）
+
+トラッキングされていない `.claude/settings.local.json` の承認も適用されますが、そのフォルダまたはその親ディレクトリのいずれかに対してトラストダイアログを受け入れた後のみです：Claude Code は git を実行してファイルがトラッキングされているかどうかを確認し、その確認は信頼されたフォルダでのみ実行されます。信頼したことのないフォルダでは、ファイルの承認はトラストダイアログを待ちます。ただし、フォルダがあなた自身の設定ホーム（ホームディレクトリ、または `.claude` を [`CLAUDE_CONFIG_DIR`](/ja/env-vars) として設定したディレクトリ）である場合は除きます。v2.1.207 より前は、トラッキングされていない `.claude/settings.local.json` は信頼したことのないフォルダのサーバーを承認していました。
 
 任意の設定ファイル内の `disabledMcpjsonServers` エントリはサーバーを拒否します。
 
 `/mcp` パネルは、接続されている各サーバーの横にツール数を表示し、ツール機能をアドバタイズしているが、ツールを公開していないサーバーにフラグを立てます。
+
+設定に空の `url` を持つリモートサーバーは、`/mcp`、`claude mcp list`、および [`/plugin`](/ja/plugins) マネージャーに `not configured` として表示され、Claude Code は接続を試みません。プラグインは、後で設定するコネクタ用のプレースホルダーエントリを含めることができるため、Claude Code はそれをエラーまたはセットアップの問題として報告しません。`/mcp` のサーバーの詳細ビューは `No URL configured for this server` と表示されます。接続するにはエントリの `url` を設定してください。v2.1.208 より前は、Claude Code は空の `url` を設定の問題として報告し、再接続を促すプロンプトを表示していました。
 
 リクエストがまだバックグラウンドで接続中のサーバーからのツールを必要とする場合、Claude はそのサーバーが接続されるまで待機してから続行します。デフォルトで有効になっている [ツール検索](#scale-with-mcp-tool-search) を使用すると、待機は `ToolSearch` 呼び出し内で発生します。Google Cloud の Agent Platform、カスタム `ANTHROPIC_BASE_URL`、または `ENABLE_TOOL_SEARCH=false` などのツール検索がない設定では、Claude は代わりに `WaitForMcpServers` ツールを使用します。
 
@@ -200,14 +203,12 @@ MCP サーバーはセッションに直接メッセージをプッシュする�
 - `--transport` と `--header` フラグは `-t` と `-H` の短い形式も受け入れます
 - `MCP_TIMEOUT` 環境変数を使用して MCP サーバーのスタートアップタイムアウトを設定します（例：`MCP_TIMEOUT=10000 claude` は 10 秒のタイムアウトを設定します）
 - サーバーごとのツール実行タイムアウトを設定するには、そのサーバーの `.mcp.json` エントリにミリ秒単位で `timeout` フィールドを追加します。例えば、10 分の場合は `"timeout": 600000` です。これはそのサーバーのみの `MCP_TOOL_TIMEOUT` 環境変数をオーバーライドします
-- Claude Code は MCP ツール出力が 10,000 トークンを超えると警告を表示します。この制限を増やすには、`MAX_MCP_OUTPUT_TOKENS` 環境変数を設定します（例：`MAX_MCP_OUTPUT_TOKENS=50000`）
+- Claude Code は MCP ツール出力が 10,000 トークンを超えると警告を表示し、デフォルトで出力を 25,000 トークンに制限します。制限を増やすには、`MAX_MCP_OUTPUT_TOKENS` 環境変数を設定します（例：`MAX_MCP_OUTPUT_TOKENS=50000`）。警告しきい値は固定です。[MCP 出力制限と警告](#mcp-output-limits-and-warnings) を参照してください
 - `/mcp` を使用して、OAuth 2.0 認証が必要なリモートサーバーで認証します
 
-サーバーごとの `timeout` はツール呼び出しごとのハードウォールクロック制限であり、サーバーからの進捗通知はそれを延長しません。1000 未満の値は無視され、`MCP_TOOL_TIMEOUT` にフォールスルーするか、その変数が設定されていない場合は約 28 時間のデフォルトにフォールスルーします。v2.1.162 より前は、1000 未満の値は 1 秒に切り下げられていました。
+サーバーごとの `timeout` はツール呼び出しごとのハードウォールクロック制限であり、サーバーからの進捗通知はそれを延長しません。1000 未満の値は無視され、`MCP_TOOL_TIMEOUT` にフォールスルーするか、その変数が設定されていない場合は約 28 時間のデフォルトにフォールスルーします。HTTP、SSE、または [claude.ai コネクタ](/ja/mcp#use-mcp-servers-from-claude-ai) サーバーの場合、サーバーの最初の応答バイトまでの各リクエストをカバーする、リクエストごとの 2 番目のタイマーもあります。このタイマーは、サーバーごとの `timeout` または `MCP_TOOL_TIMEOUT` を設定しない限り 60 秒です。どちらかを 60 秒以上に設定するとリクエストごとのタイマーがその値に上がり、より低い値ではそれを短縮しません。設定されていない `MCP_TOOL_TIMEOUT` の 28 時間のデフォルトはそれに供給されません。Stdio および WebSocket サーバーにはリクエストごとのタイマーがありません。v2.1.162 より前は、1000 未満の値は 1 秒に切り下げられていました。
 
 サーバーごとの `timeout` が少なくとも 1000 の場合、以下で説明するアイドルタイムアウトのフロアとしても機能します：Claude Code はそのサーバーのツール呼び出しをアイドルのために、サーバーごとの `timeout` より早く中止することはありません。Claude Code v2.1.203 以降が必要です。
-
-HTTP および SSE サーバーの場合、リクエストごとのフェッチ最初バイト予算には 60 秒の最小値があります。
 
 MCP サーバーへのツール呼び出しで、アイドルウィンドウ中に応答も進捗通知も送信されない場合、ウォールクロック制限を待つ代わりにエラーで中止されます。アイドルタイムアウトには Claude Code v2.1.187 以降が必要です。IDE サーバーと SDK インプロセスサーバーを除く、すべてのサーバータイプに適用されます。アイドルウィンドウは HTTP、SSE、WebSocket、および [claude.ai コネクタ](#use-mcp-servers-from-claude-ai) サーバーの場合は 5 分、stdio サーバーの場合は 30 分がデフォルトです。v2.1.203 より前は、stdio サーバーはアイドルタイムアウトの対象外でした。
 
@@ -259,7 +260,9 @@ MCP サーバーへのツール呼び出しで、アイドルウィンドウ中�
 **プラグイン MCP 機能**：
 
 - **自動ライフサイクル**：セッション起動時に、有効なプラグインのサーバーが自動的に接続されます。セッション中にプラグインを有効または無効にする場合は、`/reload-plugins` を実行して MCP サーバーを接続または切断してください
-- **環境変数**：バンドルされたプラグインファイルに `${CLAUDE_PLUGIN_ROOT}` を使用し、プラグイン更新を通じて保持される [永続的な状態](/ja/plugins-reference#persistent-data-directory) に `${CLAUDE_PLUGIN_DATA}` を使用し、安定したプロジェクトルートに `${CLAUDE_PROJECT_DIR}` を使用します
+- **パス プレースホルダー**：`${CLAUDE_PLUGIN_ROOT}` はプラグインのインストールディレクトリに解決され、`${CLAUDE_PLUGIN_DATA}` はその [永続的な状態](/ja/plugins-reference#persistent-data-directory) ディレクトリに解決され、`${CLAUDE_PROJECT_DIR}` は安定したプロジェクトルートに解決されます。置換は以下に適用されます：
+  - `stdio` サーバー：`command`、`args`、`env`
+  - `http`、`sse`、`ws` サーバー：`url`、`headers`、`headersHelper`。v2.1.195 より前は、`headersHelper` はプレースホルダーをリテラル文字列として渡していました
 - **ユーザー環境アクセス**：手動で設定されたサーバーと同じ環境変数へのアクセス
 - **複数のトランスポートタイプ**：stdio、SSE、HTTP、WebSocket トランスポートをサポート（トランスポートサポートはサーバーによって異なる場合があります）
 
@@ -413,7 +416,7 @@ Claude Code は `.mcp.json` ファイルの環境変数の展開をサポート�
 }
 ```
 
-必要な環境変数が設定されておらず、デフォルト値がない場合、Claude Code は設定の解析に失敗します。
+参照される環境変数が設定されておらず、デフォルト値がない場合、Claude Code はリテラルな `${VAR}` テキストを値に残し、そのサーバーに対して欠落変数の警告を報告します。設定はまだロードされるため、変数を設定するか、`:-default` フォールバックを追加して、サーバーが意図した値で起動するようにしてください。
 
 実践的な例
 
@@ -492,6 +495,8 @@ orders テーブルのスキーマを表示してください
 多くのクラウドベースの MCP サーバーは認証が必要です。Claude Code は安全な接続のために OAuth 2.0 をサポートしています。
 
 Claude Code は、サーバーが `401 Unauthorized` または `403 Forbidden` で応答するときに、リモートサーバーが認証を必要とするとマークします。どちらのステータスコードでも、サーバーは `/mcp` でフラグが立てられ、OAuth フローを完了できます。
+
+既にサインインしている OAuth サーバーへのリクエストが `401 Unauthorized` を返す場合、Claude Code は保存されたトークンをリフレッシュし、再接続して、リクエストを 1 回再試行します。その再試行も失敗した場合にのみ、サーバーを `/mcp` でフラグが立てられます。v2.1.206 より前は、ネットワークエラーなどの一時的な理由でトークンリフレッシュが失敗した場合、リフレッシュトークンがまだ有効であっても、OAuth サーバーはセッションの残りの間、認証が必要とマークされていました。
 
 v2.1.195 以降、トークンの更新がサーバーが保存されたリフレッシュトークンを拒否したために失敗する場合、Claude Code は `/mcp` を指す通知をすぐに表示します。接続されたサーバーのメニューはそこで「Re-authenticate」を提供するため、次のツール呼び出しが失敗する前に再度サインインできます。
 
@@ -686,7 +691,7 @@ MCP サーバーが OAuth 以外の認証スキーム（Kerberos、短期トー�
 **要件：**
 
 - コマンドは文字列キーと値のペアの JSON オブジェクトを stdout に書き込む必要があります
-- コマンドは 10 秒のタイムアウト付きのシェルで実行されます
+- コマンドは 10 秒のタイムアウト付きのシェルで実行されます。セッションの現在の作業ディレクトリから実行します。スクリプトには絶対パスまたは `PATH` 上のコマンドを使用してください
 - 動的ヘッダーは同じ名前の静的 `headers` をオーバーライドします
 
 ヘルパーは各接続時に実行されます（セッション開始時と再接続時）。キャッシングはないため、スクリプトはトークンの再利用を担当します。
@@ -704,6 +709,8 @@ Claude Code は、ヘルパーを実行するときにこれらの環境変数�
 これらを使用して、複数の MCP サーバーに対応する単一のヘルパースクリプトを作成できます。
 
 プラグイン提供のサーバーの場合、ヘルパーはそのワーキングディレクトリをプラグインルートに設定して実行されるため、相対 `headersHelper` パスはセッションのワーキングディレクトリに対してではなくプラグインディレクトリ内で解決されます。Claude Code v2.1.195 以降が必要です。
+
+プラグイン提供の `headersHelper` はプラグインの [`${user_config.*}`](/ja/plugins-reference#user-configuration) 値を参照できません。コマンドはシェルを通じて実行されるためです。Claude Code はサーバーを [エラー](/ja/errors#plugin-command-references-user-config) で設定が正しくないと報告し、値を置換しません。`${user_config.KEY}` をサーバーの `headers` フィールドに配置してください。これはシェル解析されません。または、ヘルパースクリプトが独自の環境またはコンフィグファイルから値を読み取るようにしてください。v2.1.207 より前は、`headersHelper` は `${user_config.*}` 値を置換していました。
 
 `headersHelper` は任意のシェルコマンドを実行します。プロジェクトまたはローカルスコープで定義されている場合、ワークスペース信頼ダイアログを受け入れた後にのみ実行されます。
 
@@ -762,7 +769,7 @@ claude mcp list
 
 Claude.ai から MCP サーバーを使用する
 
-[Claude.ai](https://claude.ai) アカウントで Claude Code にログインしている場合、Claude.ai で追加した MCP サーバーは Claude Code で自動的に利用可能です：
+[Claude.ai](https://claude.ai) アカウントで Claude Code にログインしている場合、Claude.ai で追加した MCP サーバーは、[connectors](https://claude.com/docs/connectors) として知られており、Claude Code で自動的に利用可能です：
 
 [claude.ai/customize/connectors](https://claude.ai/customize/connectors) でサーバーを追加します。Team および Enterprise プランでは、管理者のみがサーバーを追加できます。
 
@@ -774,7 +781,7 @@ Claude Code で、以下のコマンドを使用します：
 /mcp
 ```
 
-Claude.ai サーバーはリストに表示され、Claude.ai から来ていることを示すインジケータが付きます。
+Claude.ai のサーバーはリストに表示され、Claude.ai から来ていることを示すインジケータが付きます。
 
 v2.1.161 以降、以前にサインインしたことのないコネクタは、claude.ai セクションの最後にある `Show unused connectors` 行の背後に折りたたまれているため、組織がプロビジョニングしたリストがパネルを埋めることはありません。その行を選択して展開します。以前にサインインしたコネクタは、現在再認証が必要な場合でも表示されたままです。
 
@@ -784,7 +791,16 @@ Claude Code で追加したサーバーは、同じ URL を指す claude.ai コ�
 
 Microsoft 365、Gmail、Google Calendar などの一部の Anthropic ホスト型コネクタは、アップストリーム ID プロバイダーが claude.ai が登録したリダイレクト URL のみを受け入れるため、Claude Code からのローカル OAuth をサポートしていません。v2.1.162 以降、これらのホストのいずれかを `/mcp` で認証すると、代わりに claude.ai の Settings → Connectors で接続するよう指示するメッセージが表示されます。そこで接続されると、コネクタは Claude Code に自動的に表示されます。
 
-claude.ai コネクタを無効にする
+組織のコネクタツールに対する制御
+
+組織は [claude.ai connectors](https://claude.com/docs/connectors) に対してツール単位の制御を設定できます。Claude Code はスタートアップ時にこれらの設定を読み取り、ローカルで強制します。`/mcp` を実行して、各ツールに適用される設定を確認します。
+
+- **ツールが `ask` に設定されている場合**：Claude Code は `Your organization requires approval for this tool` という理由で毎回呼び出しのたびにプロンプトを表示します。プロンプトは `acceptEdits`、`auto`、`bypassPermissions` [権限モード](/ja/permissions#permission-modes) でも表示され、選択を記憶するオプションは提供されません。ツールに一致する [Allow ルール](/ja/permissions) もプロンプトをスキップしません。プロンプトを表示しない `dontAsk` モードでは、Claude Code は代わりに呼び出しを拒否します。
+- **ツールが `blocked` に設定されている場合**：Claude Code は Claude がそれを見る前にツールをフィルタリングするため、ツールリストに表示されません。
+
+これらの制御を強制するには Claude Code v2.1.129 以降が必要です。以前のバージョンは設定を無視し、標準的な権限フローを適用します。
+
+Claude.ai コネクタを無効にする
 
 Claude Code で claude.ai MCP サーバーを無効にするには、任意の設定スコープで [`disableClaudeAiConnectors`](/ja/settings#available-settings) を `true` に設定します：
 
@@ -1012,7 +1028,9 @@ Claude Code はツール説明とサーバー命令を各 2KB で切り詰めま
 
 ツール検索はデフォルトで有効です：MCP ツールは遅延され、オンデマンドで検出されます。Claude Code は Google Cloud の Agent Platform ではデフォルトで無効にします。`ANTHROPIC_BASE_URL` が非ファーストパーティホストを指している場合も無効です。ほとんどのプロキシは `tool_reference` ブロックを転送しないためです。`ENABLE_TOOL_SEARCH` を明示的に設定して、いずれかのフォールバックをオーバーライドしてください。
 
-ツール検索には、`tool_reference` ブロックをサポートするモデルが必要です。Haiku モデルはツール検索をサポートしていません。Google Cloud の Agent Platform では、Claude Sonnet 4.5 以降および Claude Opus 4.5 以降でツール検索がサポートされています。
+[`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`](/ja/env-vars)を設定するとツール検索がオフになり、`ENABLE_TOOL_SEARCH` はそれをオーバーライドできません。この変数は、`defer_loading` ツール定義と `tool_reference` コンテンツブロックが必要とするベータヘッダーを削除します。
+
+ツール検索には、`tool_reference` ブロックをサポートするモデルが必要です：Claude Sonnet 4.5、Claude Haiku 4.5、Claude Opus 4.5、およびそれ以降のモデル。現在のリストについては、[API ドキュメントのモデル互換性](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool#model-compatibility)を参照してください。Google Cloud の Agent Platform では、Claude Sonnet 4.5 以降および Claude Opus 4.5 以降でツール検索がサポートされています。
 
 `ENABLE_TOOL_SEARCH` 環境変数でツール検索の動作を制御します：
 

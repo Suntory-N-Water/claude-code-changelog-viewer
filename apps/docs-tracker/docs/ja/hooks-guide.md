@@ -542,17 +542,28 @@ exit 0  # exit 0 = 決定なし。通常の許可フローが適用されます
 
 `"deny"` を使用すると、Claude Code はツール呼び出しをキャンセルし、`permissionDecisionReason` を Claude にフィードバックとして返します。これらの `permissionDecision` 値は `PreToolUse` に固有です：
 
-- `"allow"`：インタラクティブな許可プロンプトをスキップします。Deny および ask ルール（エンタープライズ管理 deny リストを含む）は引き続き適用されます
+- `"allow"`：インタラクティブな許可プロンプトをスキップします。Deny および ask ルール（エンタープライズ管理 deny リストを含む）は引き続き適用されます。また、[組織が `ask` に設定した](/ja/mcp#organization-controls-on-connector-tools) コネクタツールのプロンプトと、[`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールも適用されます。
 - `"deny"`：ツール呼び出しをキャンセルし、理由を Claude に送信します
 - `"ask"`：通常どおりユーザーに許可プロンプトを表示します
 
 4 番目の値 `"defer"` は、`-p` フラグ付きの [非インタラクティブモード](/ja/headless) で利用可能です。プロセスを終了し、ツール呼び出しを保持して、Agent SDK ラッパーが入力を収集して再開できるようにします。リファレンスの [ツール呼び出しを後で延期する](/ja/hooks#defer-a-tool-call-for-later) を参照してください。
 
-`"allow"` を返すとインタラクティブプロンプトをスキップしますが、[許可ルール](/ja/permissions#manage-permissions) をオーバーライドしません。Deny ルールがツール呼び出しにマッチする場合、hook が `"allow"` を返しても呼び出しはブロックされます。Ask ルールがマッチする場合、ユーザーはまだプロンプトが表示されます。これは、[管理設定](/ja/settings#settings-files) を含むすべての設定スコープからの deny ルールが、hook 承認よりも常に優先されることを意味します。
+`"allow"` を返すとインタラクティブプロンプトをスキップしますが、[許可ルール](/ja/permissions#manage-permissions) をオーバーライドしません。Deny ルールがツール呼び出しにマッチする場合、hook が `"allow"` を返しても呼び出しはブロックされます。Ask ルールがマッチする場合、ユーザーはまだプロンプトが表示されます。また、[組織が `ask` に設定した](/ja/mcp#organization-controls-on-connector-tools) コネクタツールと、[`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールもプロンプトが表示されます。これは、[管理設定](/ja/settings#settings-files) を含むすべての設定スコープからの deny ルールが、hook 承認よりも常に優先されることを意味します。
 
 他のイベントは異なる決定パターンを使用します。たとえば、`PostToolUse` および `Stop` hooks はトップレベルの `decision: "block"` フィールドを使用し、`PermissionRequest` は `hookSpecificOutput.decision.behavior` を使用します。リファレンスの [サマリーテーブル](/ja/hooks#decision-control) でイベント別の完全な内訳を参照してください。
 
-`UserPromptSubmit` hooks の場合、代わりに `additionalContext` を使用して Claude のコンテキストにテキストを注入します。
+`UserPromptSubmit` hooks の場合、代わりに `hookSpecificOutput.additionalContext` を使用して Claude のコンテキストにテキストを注入します。`additionalContext` を `hookSpecificOutput` の内側にネストします。JSON の最上位レベルに配置すると、Claude Code はそれを無視します。たとえば、この出力はすべてのプロンプトに現在のブランチ状態を追加します：
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "UserPromptSubmit",
+    "additionalContext": "Current branch: release-42. Deploy freeze until Friday."
+  }
+}
+```
+
+完全な出力形状（プロンプトのブロックとセッションタイトルの設定を含む）については、[UserPromptSubmit 決定制御](/ja/hooks#userpromptsubmit-decision-control) を参照してください。
 
 Hooks with `type: "prompt"` handle output differently: see [Prompt-based hooks](#prompt-based-hooks).
 
@@ -575,7 +586,7 @@ Hooks with `type: "prompt"` handle output differently: see [Prompt-based hooks](
 }
 ```
 
-`"Edit|Write"` マッチャーは `Edit` または `Write` ツール呼び出しでのみ発火し、`Bash`、`Read`、または他のツールでは発火しません。[マッチャーパターン](/ja/hooks#matcher-patterns) を参照して、プレーン名と正規表現がどのように評価されるかを確認してください。
+`"Edit|Write"` マッチャーは `Edit` または `Write` ツール呼び出しでのみ発火し、`Bash`、`Read`、または他のツールでは発火しません。Claude Code v2.1.191 以降では、カンマもまた同じ方法で代替を区切るため、`"Edit, Write"` は同等です。[マッチャーパターン](/ja/hooks#matcher-patterns) を参照して、プレーン名と正規表現がどのように評価されるかを確認してください。
 
 Claude はまた、`Bash` ツールを通じてシェルコマンドを実行することでファイルを作成または変更できます。コンプライアンススキャンまたは監査ログなど、hook がすべてのファイル変更を確認する必要がある場合は、ターンごとに 1 回作業ツリーをスキャンする [`Stop`](/ja/hooks#stop) hook を追加してください。呼び出しごとのカバレッジの場合は、`Bash` もマッチさせ、スクリプトで `git status --porcelain` を使用して変更されたファイルと追跡されていないファイルをリストアップしてください。
 
@@ -846,7 +857,7 @@ Hooks と許可モード
 
 `PreToolUse` hooks は任意の権限モードチェックの前に発火します。`permissionDecision: "deny"` を返す hook は、`bypassPermissions` モードまたは `--dangerously-skip-permissions` でもツールをブロックします。これにより、ユーザーが権限モードを変更してバイパスできないポリシーを適用できます。
 
-逆は真ではありません：`"allow"` を返す hook は、設定からの deny ルールをバイパスしません。Hooks は制限を厳しくできますが、許可ルールが許可する範囲を超えて緩和することはできません。
+逆は真ではありません：`"allow"` を返す hook は、設定からの deny ルールをバイパスしません。また、組織が `ask` に設定した [コネクタツール](/ja/mcp#organization-controls-on-connector-tools)のプロンプトを抑制することもできず、[`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールも抑制できません。Hooks は制限を厳しくできますが、許可ルールが許可する範囲を超えて緩和することはできません。
 
 Hook が発火しない
 
