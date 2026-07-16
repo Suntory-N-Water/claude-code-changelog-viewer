@@ -1,0 +1,2767 @@
+{
+  "id": "20260716-003040",
+  "timestamp": "2026-07-16T00:30:40.386Z",
+  "aiSummary": "組織（Organization）が特定のコネクターツールに対して設定する承認ルール（ask/blocked）の同期と強制に関する説明が追加されました。サブエージェント利用時のコスト計算において、トップレベルのみをカウントする usage フィールドと全体をカウントする modelUsage フィールドの違いが明確化されています。また、Claude Sonnet 4.5 などの最新モデルにおけるツール検索機能（Tool Search）のサポート状況や、エラーハンドリングを含む実装例が刷新されました。",
+  "files": [
+    {
+      "filename": "agent-sdk/agent-loop.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "dontAsk や bypassPermissions モード時でも、組織設定やユーザー対話が必要なツールは拒否またはプロンプトが表示されるよう仕様変更が記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -204,9 +204,9 @@ The permission mode option (`permission_mode` in Python, `permissionMode` in Typ",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `\"default\"` | Tools not covered by allow rules trigger your approval callback; no callback means deny |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"acceptEdits\"` | Auto-approves file edits and common filesystem commands (`mkdir`, `touch`, `mv`, `cp`, etc.); other Bash commands follow default rules |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"plan\"` | Claude explores and plans without editing your source files; file edits are never auto-approved and prompt through your `canUseTool` callback |"
+            },
+            {
+              "type": "removed",
+              "content": "| `\"dontAsk\"` | Never prompts. Tools pre-approved by [permission rules](/en/settings#permission-settings) run, everything else is denied |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"dontAsk\"` | Never prompts. Tools pre-approved by [permission rules](/en/settings#permission-settings) run; everything else is denied. `AskUserQuestion`, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) are denied even if you've allowed them |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"auto\"` | Uses a model classifier to approve or deny each tool call. See [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) for availability and behavior |"
+            },
+            {
+              "type": "removed",
+              "content": "| `\"bypassPermissions\"` | Runs all allowed tools without asking, unless an explicit [`ask` rule](/en/settings#permission-settings) matches; see [How permissions are evaluated](/en/agent-sdk/permissions#how-permissions-are-evaluated) for where ask rules sit in the precedence order. Cannot be used when running as root on Unix. Use only in isolated environments where the agent's actions cannot affect systems you care about |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"bypassPermissions\"` | Runs all allowed tools without asking, except tools matched by an explicit [`ask` rule](/en/settings#permission-settings), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and tools that require user interaction; see [How permissions are evaluated](/en/agent-sdk/permissions#how-permissions-are-evaluated) for the precedence order. Cannot be used when running as root on Unix. Use only in isolated environments where the agent's actions cannot affect systems you care about |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For interactive applications, use `\"default\"` with a tool approval callback to surface approval prompts. For autonomous agents on a dev machine, `\"acceptEdits\"` auto-approves file edits and common filesystem commands (`mkdir`, `touch`, `mv`, `cp`, etc.) while still gating other `Bash` commands behind allow rules. Reserve `\"bypassPermissions\"` for CI, containers, or other isolated environments. See [Permissions](/en/agent-sdk/permissions) for full details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/cost-tracking.md",
+      "additions": 8,
+      "deletions": 0,
+      "explanation": "サブエージェントのトークン消費量を正確に把握するために、usage ではなく modelUsage フィールドを使用すべきであるという詳細な比較表が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -44,6 +44,14 @@ When the `query()` call completes, the SDK emits a result message with `total_co",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The result message ([TypeScript](/en/agent-sdk/typescript#sdkresultmessage), [Python](/en/agent-sdk/python#resultmessage)) marks the end of the agent loop for a `query()` call. It includes `total_cost_usd`, the cumulative estimated cost across all steps in that call. This works for both success and error results. If you use sessions to make multiple `query()` calls, each result only reflects the cost of that individual call."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The three result-level fields differ in what they count when the agent spawns [subagents](/en/agent-sdk/subagents). Use `modelUsage`, or `model_usage` in Python, for whole-tree token accounting; the `usage` field undercounts as soon as nesting occurs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Subagent activity |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `usage` | Excluded. Counts only the top-level agent loop, so tokens consumed inside subagents are not added |"
+            },
+            {
+              "type": "added",
+              "content": "| `total_cost_usd` | Included. Counts subagent requests alongside the top-level loop |"
+            },
+            {
+              "type": "added",
+              "content": "| `modelUsage` / `model_usage` | Included. Counts subagent requests alongside the top-level loop, broken down by model |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The following examples iterate over the message stream from a `query()` call and print the total cost when the `result` message arrives:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript TypeScript theme={null}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/mcp.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "MCPアクセスにおいて allowedTools を優先する推奨事項の記述が整理され、安全性のプロンプトに関する評価順序への参照が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -164,7 +164,7 @@ const _ = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Wildcards (`*`) let you allow all tools from a server without listing each one individually."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Prefer `allowedTools` over permission modes for MCP access.** `permissionMode: \"acceptEdits\"` does not auto-approve MCP tools (only file edits and filesystem Bash commands). `permissionMode: \"bypassPermissions\"` does auto-approve MCP tools but also disables other safety prompts unless an explicit [`ask` rule](/en/agent-sdk/permissions#how-permissions-are-evaluated) matches, which is broader than necessary. A wildcard in `allowedTools` grants exactly the MCP server you want and nothing more. See [Permission modes](/en/agent-sdk/permissions#permission-modes) for a full comparison."
+            },
+            {
+              "type": "added",
+              "content": "**Prefer `allowedTools` over permission modes for MCP access.** `permissionMode: \"acceptEdits\"` does not auto-approve MCP tools (only file edits and filesystem Bash commands). `permissionMode: \"bypassPermissions\"` does auto-approve MCP tools but also disables most other safety prompts, which is broader than necessary; see [How permissions are evaluated](/en/agent-sdk/permissions#how-permissions-are-evaluated) for the prompts that remain. A wildcard in `allowedTools` grants exactly the MCP server you want and nothing more. See [Permission modes](/en/agent-sdk/permissions#permission-modes) for a full comparison."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Discover available tools"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/permissions.md",
+      "additions": 11,
+      "deletions": 7,
+      "explanation": "組織が ask に設定したツールや対話必須のツールが、allow ルールや特定モードを無視して canUseTool コールバックに到達する仕組みが詳述されました。",
+      "hunks": [
+        {
+          "header": "@@ -23,6 +23,8 @@ Check `ask` rules from [settings.json](/en/settings#permission-settings). If an",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Tools that require user interaction behave the same way: `AskUserQuestion` and MCP tools whose server sets [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool) always fall through to the callback, even when an allow rule matches. In `dontAsk` mode both cases are denied instead, because that mode never prompts. The MCP annotation requires Claude Code v2.1.199 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "[claude.ai connector](/en/mcp#organization-controls-on-connector-tools) tools your organization has set to `ask` also leave the flow at this step. Every call falls through to the callback, even in `bypassPermissions` mode and even when an allow rule matches. The callback receives the reason `Your organization requires approval for this tool`. In `dontAsk` mode the call is denied instead, because that mode never prompts."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Apply the active [permission mode](#permission-modes). `bypassPermissions` approves everything that reaches this step. `acceptEdits` approves file operations. `plan` routes file-edit and shell-write tools to your `canUseTool` callback regardless of allow rules, so write operations cannot be auto-approved while planning. Other modes fall through."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Check `allow` rules (from `allowed_tools` and settings.json). If a rule matches, the tool is approved."
+            }
+          ]
+        },
+        {
+          "header": "@@ -60,9 +62,11 @@ Scoped rules for `Read` and `Edit` take a path pattern. `Edit(path)` rules gover",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use `//path` for an absolute filesystem path: a deny rule of `Edit(//secrets/**)` blocks writes anywhere under `/secrets` on disk. With a single leading slash, `Edit(/secrets/**)` anchors at the rule's source instead. For rules passed through `allowed_tools` or `disallowed_tools`, that means the session's working directory, so the rule doesn't block `/secrets` on disk. See [Read and Edit rules](/en/permissions#read-and-edit) for the four anchor forms and how rules from settings files resolve."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Auto-approved tools never reach `canUseTool`.** A tool call approved at any earlier step, by `acceptEdits` or `bypassPermissions`, or by an allow rule, skips your `canUseTool` callback, so permission checks you put there are silently bypassed for that tool. The exception is tools that require user interaction, `AskUserQuestion` and MCP tools marked with [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool), which reach the callback even when an allow rule matches. Coverage depends on the entry's form: a bare name like `Read` or `mcp__github__get_issue` auto-approves every call to that tool, while a scoped rule like `Bash(ls *)` auto-approves only matching calls and other `Bash` calls still fall through to the callback. For checks that must run on every tool call, use a [`PreToolUse` hook](/en/agent-sdk/hooks): hooks run before every other step, and a hook deny applies even in `bypassPermissions` mode."
+            },
+            {
+              "type": "added",
+              "content": "**Auto-approved tools never reach `canUseTool`.** A tool call approved at any earlier step, by `acceptEdits` or `bypassPermissions`, or by an allow rule, skips your `canUseTool` callback, so permission checks you put there are silently bypassed for that tool. `AskUserQuestion`, MCP tools marked [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool), and connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) still reach the callback, even when an allow rule matches."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Coverage depends on the entry's form: a bare name like `Read` or `mcp__github__get_issue` auto-approves every call to that tool, while a scoped rule like `Bash(ls *)` auto-approves only matching calls and other `Bash` calls still fall through to the callback. For checks that must run on every tool call, use a [`PreToolUse` hook](/en/agent-sdk/hooks): hooks run before every other step, and a hook deny applies even in `bypassPermissions` mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For a locked-down agent, pair `allowedTools` with `permissionMode: \"dontAsk\"`. Listed tools are approved; anything else is denied outright instead of prompting:"
+            },
+            {
+              "type": "added",
+              "content": "For a locked-down agent, pair `allowedTools` with `permissionMode: \"dontAsk\"`. Listed tools are approved, apart from the always-prompt tools in the Warning above; anything else is denied outright instead of prompting:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript"
+            },
+            {
+              "type": "context",
+              "content": "const options = {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -86,13 +90,13 @@ The SDK supports these permission modes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Mode | Description | Tool behavior |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `default` | Standard permission behavior | No auto-approvals; unmatched tools trigger your `canUseTool` callback |"
+            },
+            {
+              "type": "removed",
+              "content": "| `dontAsk` | Deny instead of prompting | Anything not pre-approved by `allowed_tools` or rules is denied; `canUseTool` is never called |"
+            },
+            {
+              "type": "added",
+              "content": "| `dontAsk` | Deny instead of prompting | Anything not pre-approved by `allowed_tools` or rules is denied; connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) and tools that require user interaction are denied even if you've pre-approved them. `canUseTool` is never called |"
+            },
+            {
+              "type": "context",
+              "content": "| `acceptEdits` | Auto-accept file edits | File edits and [filesystem operations](#accept-edits-mode-acceptedits) (`mkdir`, `rm`, `mv`, etc.) are automatically approved |"
+            },
+            {
+              "type": "removed",
+              "content": "| `bypassPermissions` | Bypass permission checks | Tools run without permission prompts, unless an explicit [`ask` rule](#how-permissions-are-evaluated) matches (use with caution) |"
+            },
+            {
+              "type": "added",
+              "content": "| `bypassPermissions` | Bypass permission checks | Tools run without permission prompts, except tools matched by an explicit [`ask` rule](#how-permissions-are-evaluated), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and tools that require user interaction (use with caution) |"
+            },
+            {
+              "type": "context",
+              "content": "| `plan` | Planning mode | Claude explores and plans without editing your source files; file edits are never auto-approved and prompt through your `canUseTool` callback |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` | Model-classified approvals | A model classifier approves or denies each tool call. See [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) for availability |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Subagent inheritance:** When the parent uses `bypassPermissions`, `acceptEdits`, or `auto`, all subagents inherit that mode and it cannot be overridden per subagent. Subagents may have different system prompts and less constrained behavior than your main agent, so inheriting `bypassPermissions` grants them full, autonomous system access. An explicit [`ask` rule](#how-permissions-are-evaluated) still forces a prompt."
+            },
+            {
+              "type": "added",
+              "content": "**Subagent inheritance:** When the parent uses `bypassPermissions`, `acceptEdits`, or `auto`, all subagents inherit that mode and it cannot be overridden per subagent. Subagents may have different system prompts and less constrained behavior than your main agent, so inheriting `bypassPermissions` grants them full, autonomous system access. Explicit [`ask` rules](#how-permissions-are-evaluated), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and tools that require user interaction still force a prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Set permission mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -203,7 +207,7 @@ Both apply only to paths inside the working directory or `additionalDirectories`",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Don't ask mode (`dontAsk`)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Converts any permission prompt into a denial. Tools pre-approved by `allowed_tools`, `settings.json` allow rules, or a hook run as normal. Everything else is denied without calling `canUseTool`."
+            },
+            {
+              "type": "added",
+              "content": "Converts any permission prompt into a denial. Tools pre-approved by `allowed_tools`, `settings.json` allow rules, or a hook run as normal. Connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) and tools that require user interaction are denied even when an allow rule matches. Everything else is denied without calling `canUseTool`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Use when:** you want a fixed, explicit tool surface for a headless agent and prefer a hard deny over silent reliance on `canUseTool` being absent."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -213,7 +217,7 @@ Auto-approves all tool uses without prompts. Hooks still execute and can block o",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use with extreme caution. Claude has full system access in this mode. Only use in controlled environments where you trust all possible operations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`allowed_tools` does not constrain this mode. Every tool is approved, not just the ones you listed. Deny rules (`disallowed_tools`), explicit `ask` rules, and hooks are evaluated before the mode check and can still block a tool."
+            },
+            {
+              "type": "added",
+              "content": "`allowed_tools` does not constrain this mode. Every tool is approved, not just the ones you listed. Deny rules (`disallowed_tools`), explicit `ask` rules, and hooks are evaluated before the mode check and can still block a tool. Connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) and tools that require user interaction still fall through to your `canUseTool` callback."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Plan mode (`plan`)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 5,
+      "deletions": 3,
+      "explanation": "Python SDKにおけるトークン計測フィールドの定義が、サブエージェントのトークンを含まないトップレベル限定の数値であることを明記するように変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -809,7 +809,7 @@ class ClaudeAgentOptions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `max_buffer_size` | `int \\| None` | `None` | Maximum bytes when buffering CLI stdout |"
+            },
+            {
+              "type": "context",
+              "content": "| `debug_stderr` | `Any` | `sys.stderr` | *Deprecated* - File-like object for debug output. Use `stderr` callback instead |"
+            },
+            {
+              "type": "context",
+              "content": "| `stderr` | `Callable[[str], None] \\| None` | `None` | Callback function for stderr output from CLI |"
+            },
+            {
+              "type": "removed",
+              "content": "| `can_use_tool` | [`CanUseTool`](#canusetool) ` \\| None` | `None` | Tool permission callback, invoked only when the [permission flow](/en/agent-sdk/permissions#how-permissions-are-evaluated) falls through to a prompt. Not invoked for calls auto-approved by `allowed_tools`, allow rules, or `permission_mode`. See [`CanUseTool`](#canusetool) for details |"
+            },
+            {
+              "type": "added",
+              "content": "| `can_use_tool` | [`CanUseTool`](#canusetool) ` \\| None` | `None` | Tool permission callback, invoked only when the [permission flow](/en/agent-sdk/permissions#how-permissions-are-evaluated) falls through to a prompt. Not invoked for calls auto-approved by `allowed_tools`, allow rules, or `permission_mode`. `AskUserQuestion`, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) reach it even if you've allowed them; in `dontAsk` mode these are denied instead. See [`CanUseTool`](#canusetool) for details |"
+            },
+            {
+              "type": "context",
+              "content": "| `hooks` | `dict[HookEvent, list[HookMatcher]] \\| None` | `None` | Hook configurations for intercepting events |"
+            },
+            {
+              "type": "context",
+              "content": "| `user` | `str \\| None` | `None` | User identifier |"
+            },
+            {
+              "type": "context",
+              "content": "| `include_partial_messages` | `bool` | `False` | Include partial message streaming events. When enabled, [`StreamEvent`](#streamevent) messages are yielded |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1108,6 +1108,8 @@ Returns a `PermissionResult` (either `PermissionResultAllow` or `PermissionResul",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The callback is the SDK replacement for the interactive permission prompt: it's invoked only when the [permission evaluation flow](/en/agent-sdk/permissions#how-permissions-are-evaluated) resolves to a prompt. Tool calls already approved by an `allowed_tools` entry, a settings allow rule, or the permission mode, such as `acceptEdits` or `bypassPermissions`, never invoke it. To gate every tool call, use a [`PreToolUse` hook](/en/agent-sdk/hooks) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`AskUserQuestion`, MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), and connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) reach the callback even when an allow rule matches. In `dontAsk` mode these calls are denied instead, without invoking the callback."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `ToolPermissionContext`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Context information passed to tool permission callbacks."
+            }
+          ]
+        },
+        {
+          "header": "@@ -1540,8 +1542,8 @@ The `usage` dict contains the following keys when present:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Key | Type | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| `input_tokens` | `int` | Total input tokens consumed. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `output_tokens` | `int` | Total output tokens generated. |"
+            },
+            {
+              "type": "added",
+              "content": "| `input_tokens` | `int` | Input tokens consumed by the top-level agent loop. [Subagent tokens aren't included](/en/agent-sdk/cost-tracking#get-the-total-cost-of-a-query); use `model_usage` for whole-tree accounting. |"
+            },
+            {
+              "type": "added",
+              "content": "| `output_tokens` | `int` | Output tokens generated by the top-level agent loop. Subagent tokens aren't included. |"
+            },
+            {
+              "type": "context",
+              "content": "| `cache_creation_input_tokens` | `int` | Tokens used to create new cache entries. |"
+            },
+            {
+              "type": "context",
+              "content": "| `cache_read_input_tokens` | `int` | Tokens read from existing cache entries. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/quickstart.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "権限モードの各説明において、組織の制約や対話が必要なツールが例外として処理される制約事項が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -305,9 +305,9 @@ With `Bash` enabled, try: `\"Write unit tests for utils.py, run them, and fix any",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `acceptEdits` | Auto-approves file edits and common filesystem commands, asks for other actions | Trusted development workflows |"
+            },
+            {
+              "type": "context",
+              "content": "| `plan` | Runs read-only tools; file edits are never auto-approved and reach your `canUseTool` callback | Scoping a task before approving execution |"
+            },
+            {
+              "type": "removed",
+              "content": "| `dontAsk` | Denies anything not in `allowedTools` | Locked-down headless agents |"
+            },
+            {
+              "type": "added",
+              "content": "| `dontAsk` | Denies anything not in `allowedTools`; connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) and tools that require user interaction are denied even if you've listed them | Locked-down headless agents |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` | A model classifier approves or denies each tool call | Autonomous agents with safety guardrails |"
+            },
+            {
+              "type": "removed",
+              "content": "| `bypassPermissions` | Runs every tool without prompting, unless an explicit [`ask` rule](/en/agent-sdk/permissions#how-permissions-are-evaluated) matches | Sandboxed CI, fully trusted environments |"
+            },
+            {
+              "type": "added",
+              "content": "| `bypassPermissions` | Runs every tool without prompting, except tools matched by an explicit [`ask` rule](/en/agent-sdk/permissions#how-permissions-are-evaluated), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and tools that require user interaction | Sandboxed CI, fully trusted environments |"
+            },
+            {
+              "type": "context",
+              "content": "| `default` | Requires a `canUseTool` callback to handle approval | Custom approval flows |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The example above uses `acceptEdits` mode, which auto-approves file operations so the agent can run without interactive prompts. If you want to prompt users for approval, use `default` mode and provide a [`canUseTool` callback](/en/agent-sdk/user-input) that collects user input. For more control, see [Permissions](/en/agent-sdk/permissions)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/tool-search.md",
+      "additions": 62,
+      "deletions": 30,
+      "explanation": "Claude 4.5系モデルのサポート状況が追加され、TypeScript/Pythonでのツール検索の具体的な実装コードと例外処理の例が刷新されました。",
+      "hunks": [
+        {
+          "header": "@@ -18,13 +18,13 @@ Tool search is enabled by default.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## How tool search works"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When tool search is active, tool definitions are withheld from the context window. The agent receives a summary of available tools and searches for relevant ones when the task requires a capability not already loaded. The 3-5 most relevant tools are loaded into context, where they stay available for subsequent turns. If the conversation is long enough that the SDK compacts earlier messages to free space, previously discovered tools may be removed, and the agent searches again as needed."
+            },
+            {
+              "type": "added",
+              "content": "When tool search is active, tool definitions are withheld from the context window. The agent receives a summary of available tools and searches for relevant ones when the task requires a capability not already loaded. Up to five of the most relevant tools are loaded into context by default, where they stay available for subsequent turns. If the conversation is long enough that the SDK compacts earlier messages to free space, previously discovered tools may be removed, and the agent searches again as needed."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Tool search adds one extra round-trip the first time Claude discovers a tool (the search step), but for large tool sets this is offset by smaller context on every turn. With fewer than \\~10 tools, loading everything upfront is typically faster."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For details on the underlying API mechanism, see [Tool search in the API](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Tool search is supported on every Claude model except Haiku."
+            },
+            {
+              "type": "added",
+              "content": "Tool search is supported on Claude Sonnet 4.5, Claude Haiku 4.5, Claude Opus 4.5, and later models; see [model compatibility in the API docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool#model-compatibility) for the current list. On Google Cloud's Agent Platform, the minimum supported models are Claude Sonnet 4.5 and Claude Opus 4.5."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configure tool search"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -42,30 +42,36 @@ Setting [`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`](/en/env-vars) keeps tool sear",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Tool search applies to all registered tools, whether they come from remote MCP servers or [custom SDK MCP servers](/en/agent-sdk/custom-tools). When using `auto`, the threshold is based on the combined size of all tool definitions across all servers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Set the value in the `env` option on `query()`. This example connects to a remote MCP server that exposes many tools, pre-approves all of them with a wildcard, and uses `auto:5` so tool search activates when their definitions exceed 5% of the context window:"
+            },
+            {
+              "type": "added",
+              "content": "Set the value in the `env` option on `query()`. In TypeScript, `env` replaces the subprocess environment, so spread `...process.env` to keep inherited variables. In Python, `env` is merged on top of the inherited environment. This example connects to a remote MCP server that exposes many tools, pre-approves all of them with a wildcard, and uses `auto:5` so tool search activates when their definitions exceed 5% of the context window:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript TypeScript theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "import { query } from \"@anthropic-ai/claude-agent-sdk\";"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "for await (const message of query({"
+            },
+            {
+              "type": "removed",
+              "content": "  prompt: \"Find and run the appropriate database query\","
+            },
+            {
+              "type": "removed",
+              "content": "  options: {"
+            },
+            {
+              "type": "removed",
+              "content": "    mcpServers: {"
+            },
+            {
+              "type": "removed",
+              "content": "      \"enterprise-tools\": {"
+            },
+            {
+              "type": "removed",
+              "content": "        // Connect to a remote MCP server"
+            },
+            {
+              "type": "removed",
+              "content": "        type: \"http\","
+            },
+            {
+              "type": "removed",
+              "content": "        url: \"https://tools.example.com/mcp\""
+            },
+            {
+              "type": "added",
+              "content": "try {"
+            },
+            {
+              "type": "added",
+              "content": "  for await (const message of query({"
+            },
+            {
+              "type": "added",
+              "content": "    prompt: \"Find and run the appropriate database query\","
+            },
+            {
+              "type": "added",
+              "content": "    options: {"
+            },
+            {
+              "type": "added",
+              "content": "      mcpServers: {"
+            },
+            {
+              "type": "added",
+              "content": "        \"enterprise-tools\": {"
+            },
+            {
+              "type": "added",
+              "content": "          // Connect to a remote MCP server"
+            },
+            {
+              "type": "added",
+              "content": "          type: \"http\","
+            },
+            {
+              "type": "added",
+              "content": "          url: \"https://tools.example.com/mcp\""
+            },
+            {
+              "type": "added",
+              "content": "        }"
+            },
+            {
+              "type": "added",
+              "content": "      },"
+            },
+            {
+              "type": "added",
+              "content": "      allowedTools: [\"mcp__enterprise-tools__*\"], // Wildcard pre-approves all tools from this server"
+            },
+            {
+              "type": "added",
+              "content": "      env: {"
+            },
+            {
+              "type": "added",
+              "content": "        ...process.env, // env replaces the subprocess environment, so keep inherited variables"
+            },
+            {
+              "type": "added",
+              "content": "        ENABLE_TOOL_SEARCH: \"auto:5\" // Activate tool search when tools exceed 5% of context"
+            },
+            {
+              "type": "context",
+              "content": "      }"
+            },
+            {
+              "type": "removed",
+              "content": "    },"
+            },
+            {
+              "type": "removed",
+              "content": "    allowedTools: [\"mcp__enterprise-tools__*\"], // Wildcard pre-approves all tools from this server"
+            },
+            {
+              "type": "removed",
+              "content": "    env: {"
+            },
+            {
+              "type": "removed",
+              "content": "      ENABLE_TOOL_SEARCH: \"auto:5\" // Activate tool search when tools exceed 5% of context"
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": "  })) {"
+            },
+            {
+              "type": "added",
+              "content": "    if (message.type === \"result\" && message.subtype === \"success\") {"
+            },
+            {
+              "type": "added",
+              "content": "      console.log(message.result);"
+            },
+            {
+              "type": "context",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "removed",
+              "content": "})) {"
+            },
+            {
+              "type": "removed",
+              "content": "  if (message.type === \"result\" && message.subtype === \"success\") {"
+            },
+            {
+              "type": "removed",
+              "content": "    console.log(message.result);"
+            },
+            {
+              "type": "removed",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "} catch (error) {"
+            },
+            {
+              "type": "added",
+              "content": "  // A single-shot query() throws after yielding an error result"
+            },
+            {
+              "type": "added",
+              "content": "  console.log(`Session ended with an error: ${error}`);"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -89,33 +95,59 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": "        },"
+            },
+            {
+              "type": "context",
+              "content": "    )"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "    async for message in query("
+            },
+            {
+              "type": "removed",
+              "content": "        prompt=\"Find and run the appropriate database query\","
+            },
+            {
+              "type": "removed",
+              "content": "        options=options,"
+            },
+            {
+              "type": "removed",
+              "content": "    ):"
+            },
+            {
+              "type": "removed",
+              "content": "        if isinstance(message, ResultMessage) and message.subtype == \"success\":"
+            },
+            {
+              "type": "removed",
+              "content": "            print(message.result)"
+            },
+            {
+              "type": "added",
+              "content": "    try:"
+            },
+            {
+              "type": "added",
+              "content": "        async for message in query("
+            },
+            {
+              "type": "added",
+              "content": "            prompt=\"Find and run the appropriate database query\","
+            },
+            {
+              "type": "added",
+              "content": "            options=options,"
+            },
+            {
+              "type": "added",
+              "content": "        ):"
+            },
+            {
+              "type": "added",
+              "content": "            if isinstance(message, ResultMessage) and message.subtype == \"success\":"
+            },
+            {
+              "type": "added",
+              "content": "                print(message.result)"
+            },
+            {
+              "type": "added",
+              "content": "    except Exception as error:"
+            },
+            {
+              "type": "added",
+              "content": "        # A single-shot query() raises after yielding an error result"
+            },
+            {
+              "type": "added",
+              "content": "        print(f\"Session ended with an error: {error}\")"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "asyncio.run(main())"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To run this example, replace `https://tools.example.com/mcp` with the URL of your own MCP server. On success the result text prints to the console."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Because this is a single-shot `query()` call, the SDK raises after yielding an error result, so the example wraps the loop in a try block. To see why a run failed, check the result message's `subtype`, such as `error_during_execution`, inside the loop. For more on result messages, see [Handle the result](/en/agent-sdk/agent-loop#handle-the-result)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Setting `ENABLE_TOOL_SEARCH` to `\"false\"` disables tool search and loads all tool definitions into context on every turn. This removes the search round-trip, which can be faster when the tool set is small (fewer than \\~10 tools) and the definitions fit comfortably in the context window."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Optimize tool discovery"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The search mechanism matches queries against tool names and descriptions. Names like `search_slack_messages` surface for a wider range of requests than `query_slack`. Descriptions with specific keywords (\"Search Slack messages by keyword, channel, or date range\") match more queries than generic ones (\"Query Slack\")."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can also add a system prompt section listing available tool categories. This gives the agent context about what kinds of tools are available to search for:"
+            },
+            {
+              "type": "added",
+              "content": "You can also add a system prompt section listing available tool categories. This gives the agent context about what kinds of tools are available to search for. Pass the text through the `systemPrompt` option in TypeScript or `system_prompt` in Python, using the `claude_code` preset with `append`, which adds your text to the preset's prompt instead of replacing it:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```typescript TypeScript theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "options: {"
+            },
+            {
+              "type": "added",
+              "content": "  systemPrompt: {"
+            },
+            {
+              "type": "added",
+              "content": "    type: \"preset\","
+            },
+            {
+              "type": "added",
+              "content": "    preset: \"claude_code\","
+            },
+            {
+              "type": "added",
+              "content": "    append: \"You can search for tools to interact with Slack, GitHub, and Jira.\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "You can search for tools to interact with Slack, GitHub, and Jira."
+            },
+            {
+              "type": "added",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "options = ClaudeAgentOptions("
+            },
+            {
+              "type": "added",
+              "content": "    system_prompt={"
+            },
+            {
+              "type": "added",
+              "content": "        \"type\": \"preset\","
+            },
+            {
+              "type": "added",
+              "content": "        \"preset\": \"claude_code\","
+            },
+            {
+              "type": "added",
+              "content": "        \"append\": \"You can search for tools to interact with Slack, GitHub, and Jira.\","
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": ")"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For the full set of system prompt options, see [Modifying system prompts](/en/agent-sdk/modifying-system-prompts)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Limits"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Maximum tools:** 10,000 tools in your catalog"
+            },
+            {
+              "type": "removed",
+              "content": "- **Search results:** Returns 3-5 most relevant tools per search"
+            },
+            {
+              "type": "removed",
+              "content": "- **Model support:** every Claude model except Haiku"
+            },
+            {
+              "type": "added",
+              "content": "- **Search results:** returns up to five most relevant tools per search by default"
+            },
+            {
+              "type": "added",
+              "content": "- **Model support:** Claude Sonnet 4.5, Claude Haiku 4.5, Claude Opus 4.5, and later models; see [model compatibility in the API docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool#model-compatibility) for the current list. On Google Cloud's Agent Platform, Claude Sonnet 4.5 and later and Claude Opus 4.5 and later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related documentation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "TypeScript SDKの思考ブロック通知において、最終的なトークン集計に modelUsage を使用すべきであるというガイダンスが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -401,7 +401,7 @@ Configuration object for the `query()` function.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `allowDangerouslySkipPermissions` | `boolean` | `false` | Enable bypassing permissions. Required when using `permissionMode: 'bypassPermissions'` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowedTools` | `string[]` | `[]` | Tools to auto-approve without prompting. This does not restrict Claude to only these tools; unlisted tools fall through to `permissionMode` and `canUseTool`. Use `disallowedTools` to block tools. See [Permissions](/en/agent-sdk/permissions#allow-and-deny-rules) |"
+            },
+            {
+              "type": "context",
+              "content": "| `betas` | [`SdkBeta`](#sdkbeta)`[]` | `[]` | Enable beta features |"
+            },
+            {
+              "type": "removed",
+              "content": "| `canUseTool` | [`CanUseTool`](#canusetool) | `undefined` | Custom permission function, invoked only when the [permission flow](/en/agent-sdk/permissions#how-permissions-are-evaluated) falls through to a prompt. Not invoked for calls auto-approved by `allowedTools`, allow rules, or `permissionMode`. See [`CanUseTool`](#canusetool) for details |"
+            },
+            {
+              "type": "added",
+              "content": "| `canUseTool` | [`CanUseTool`](#canusetool) | `undefined` | Custom permission function, invoked only when the [permission flow](/en/agent-sdk/permissions#how-permissions-are-evaluated) falls through to a prompt. Not invoked for calls auto-approved by `allowedTools`, allow rules, or `permissionMode`. `AskUserQuestion`, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) reach it even if you've allowed them; in `dontAsk` mode these are denied instead. See [`CanUseTool`](#canusetool) for details |"
+            },
+            {
+              "type": "context",
+              "content": "| `continue` | `boolean` | `false` | Continue the most recent conversation |"
+            },
+            {
+              "type": "context",
+              "content": "| `cwd` | `string` | `process.cwd()` | Current working directory |"
+            },
+            {
+              "type": "context",
+              "content": "| `debug` | `boolean` | `false` | Enable debug mode for the Claude Code process |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -806,6 +806,8 @@ Custom permission function type for controlling tool usage.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The function is the SDK replacement for the interactive permission prompt: it's invoked only when the [permission evaluation flow](/en/agent-sdk/permissions#how-permissions-are-evaluated) resolves to a prompt. Tool calls already approved by an `allowedTools` entry, a settings allow rule, or the permission mode, such as `acceptEdits` or `bypassPermissions`, never invoke it. To gate every tool call, use a [`PreToolUse` hook](/en/agent-sdk/hooks) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`AskUserQuestion`, MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), and connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) reach the function even when an allow rule matches. In `dontAsk` mode these calls are denied instead, without invoking it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript"
+            },
+            {
+              "type": "context",
+              "content": "type CanUseTool = ("
+            },
+            {
+              "type": "context",
+              "content": "  toolName: string,"
+            }
+          ]
+        },
+        {
+          "header": "@@ -3359,7 +3361,7 @@ type SDKBackgroundTasksChangedMessage = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SDKThinkingTokensMessage`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Emitted while Claude is producing a thinking block, including a redacted one, carrying a running estimate of the thinking tokens generated so far. `estimated_tokens` is the running total for the current thinking block and `estimated_tokens_delta` is the increment carried by this frame. Use it for progress display; the authoritative billed count is the result message's `usage.output_tokens`."
+            },
+            {
+              "type": "added",
+              "content": "Emitted while Claude is producing a thinking block, including a redacted one, carrying a running estimate of the thinking tokens generated so far. `estimated_tokens` is the running total for the current thinking block and `estimated_tokens_delta` is the increment carried by this frame. Use it for progress display. The final count for the top-level agent loop is the result message's `usage.output_tokens`, which [doesn't include subagent tokens](/en/agent-sdk/cost-tracking#get-the-total-cost-of-a-query); use [`modelUsage`](#modelusage) for whole-tree accounting."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Requires Claude Code v2.1.153 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/user-input.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "特定のツール実行時に allow ルールが存在していてもコールバックが発生する例外ケースについての注釈が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -45,6 +45,8 @@ The callback fires in two cases:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**The callback never fires for auto-approved tools.** Any approval earlier in the [permission evaluation flow](/en/agent-sdk/permissions#how-permissions-are-evaluated), an allow rule or a mode like `acceptEdits` or `bypassPermissions`, resolves the call before `canUseTool` is consulted. If you list a tool bare in `allowed_tools`, a `canUseTool` check for that tool never runs unless an ask rule or `plan` mode routes the call back to a prompt. For logic that must apply to every tool call, use a [`PreToolUse` hook](/en/agent-sdk/hooks), which executes before the rest of the flow and can allow, deny, or modify requests."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`AskUserQuestion`, MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), and connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) reach the callback even when an allow rule matches. In `dontAsk` mode these calls are denied instead, without invoking the callback."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also use the [`PermissionRequest` hook](/en/agent-sdk/hooks#available-hooks) to send external notifications (Slack, email, push) when Claude is waiting for approval."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Handle tool approval requests"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "channels.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "リモート環境での権限リレーにおいて、バイパス設定時でも組織の承認が必要なツールはプロンプトが表示されることが補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -198,7 +198,7 @@ hey, what's in my working directory?",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The message arrives in your Claude Code session as a `<channel source=\"fakechat\">` event. Claude reads it, does the work, and calls fakechat's `reply` tool. The answer shows up in the chat UI."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If Claude hits a permission prompt while you're away from the terminal, the session pauses until you respond. Channel servers that declare the [permission relay capability](/en/channels-reference#relay-permission-prompts) can forward these prompts to you so you can approve or deny remotely. For unattended use, [`--dangerously-skip-permissions`](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) bypasses prompts other than explicit ask rules, but only use it in environments you trust."
+            },
+            {
+              "type": "added",
+              "content": "If Claude hits a permission prompt while you're away from the terminal, the session pauses until you respond. Channel servers that declare the [permission relay capability](/en/channels-reference#relay-permission-prompts) can forward these prompts to you so you can approve or deny remotely. For unattended use, [`--dangerously-skip-permissions`](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) bypasses most prompts, but only use it in environments you trust. Explicit ask rules, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) still prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you run channels in non-interactive mode with `-p`, tools that need terminal input, such as multiple-choice questions and plan mode approval, are disabled so the session never stalls waiting for input."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-apps-gateway-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "バイパスモードを無効化する設定項目の説明文が、より正確な「プロンプトをスキップする」という表現に修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -479,7 +479,7 @@ managed:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `availableModels` | Gateway + CLI | Model allowlist. Also checked at `/v1/messages`, so a patched client can't bypass it. |"
+            },
+            {
+              "type": "context",
+              "content": "| `permissions.allow` / `.deny` | CLI | Tool and command rules. See [Permissions](/en/permissions). |"
+            },
+            {
+              "type": "removed",
+              "content": "| `permissions.disableBypassPermissionsMode` | CLI | Set to `disable` to block [`bypassPermissions`](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode), the mode that auto-approves every tool call, and the `--dangerously-skip-permissions` flag |"
+            },
+            {
+              "type": "added",
+              "content": "| `permissions.disableBypassPermissionsMode` | CLI | Set to `disable` to block [`bypassPermissions`](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode), the mode that skips permission prompts, and the `--dangerously-skip-permissions` flag |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowManagedPermissionRulesOnly` | CLI | When `true`, user and project permission rules are ignored; only rules from this document apply |"
+            },
+            {
+              "type": "context",
+              "content": "| `env` | CLI | Environment variables merged into the CLI process. Use for telemetry, auto-update, and model-name overrides. |"
+            },
+            {
+              "type": "context",
+              "content": "| `hooks` | CLI | Org-wide [hooks](/en/hooks) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop-scheduled-tasks.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "スケジュール実行時において、承認が必要なツールが呼び出されると処理が停止してしまう制限事項が記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -78,6 +78,8 @@ Each task has its own permission mode, which you set when creating or editing th",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To avoid stalls, click **Run now** after creating a task, watch for permission prompts, and select \"always allow\" for each one. Future runs of that task auto-approve the same tools without prompting. You can review and revoke these approvals from the task's detail page."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) prompt on every call and don't offer an always-allow option. Runs that call these tools stall each time."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage scheduled tasks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Click a task in the **Routines** list to open its detail page. From here you can:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "デスクトップ版のバイパスモード設定において、組織ポリシーや安全性の分類器による例外的なプロンプト発生条件が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -71,7 +71,7 @@ To set a default mode for new local sessions, add `permissions.defaultMode` to y",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| **Accept edits** | `acceptEdits` | Claude auto-accepts file edits and common filesystem commands like `mkdir`, `touch`, and `mv`, but still asks before running other terminal commands. Use this when you trust file changes and want faster iteration. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Plan** | `plan` | Claude reads files and runs commands to explore, then proposes a plan without editing your source code. Good for complex tasks where you want to review the approach first. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Auto** | `auto` | Claude executes all actions with background safety checks that verify alignment with your request. Reduces permission prompts while maintaining oversight. Appears when your account meets the [availability requirements](#auto-mode-availability) below; there is no separate Settings toggle for it. |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Bypass permissions** | `bypassPermissions` | Claude runs without permission prompts, except those forced by explicit [ask rules](/en/permissions#manage-permissions) or by safety classifiers when Claude [acts on external sites](#browse-external-sites); equivalent to `--dangerously-skip-permissions` in the CLI. On Pro and Max plans, enable it in your Settings → Claude Code under \"Allow bypass permissions mode\"; on Team and Enterprise plans there is no Settings toggle, and organization policy controls it instead. Only use this in sandboxed containers or VMs. |"
+            },
+            {
+              "type": "added",
+              "content": "| **Bypass permissions** | `bypassPermissions` | Claude runs without permission prompts, except those forced by explicit [ask rules](/en/permissions#manage-permissions), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), or safety classifiers when Claude [acts on external sites](#browse-external-sites); equivalent to `--dangerously-skip-permissions` in the CLI. On Pro and Max plans, enable it in your Settings → Claude Code under \"Allow bypass permissions mode\"; on Team and Enterprise plans there is no Settings toggle, and organization policy controls it instead. Only use this in sandboxed containers or VMs. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Earlier versions of the Code tab labeled these modes Ask permissions, Auto accept edits, and Plan mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fast-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "コンソール内の課金設定ページへのリンクURLが最新のものに修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -89,7 +89,7 @@ You can combine both: use fast mode with a lower [effort level](/en/model-config",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Fast mode requires all of the following:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Anthropic API or subscription only**: fast mode is available through the Anthropic Console API and for Claude subscription plans using usage credits. It is not available on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or Claude Platform on AWS."
+            },
+            {
+              "type": "removed",
+              "content": "- **Usage credits turned on**: your account must have usage credits turned on, which allows billing beyond your plan's included usage. For individual accounts, turn this on in your [Console billing settings](https://platform.claude.com/settings/organization/billing). For Team and Enterprise, an admin must turn on usage credits for the organization."
+            },
+            {
+              "type": "added",
+              "content": "- **Usage credits turned on**: your account must have usage credits turned on, which allows billing beyond your plan's included usage. For individual accounts, turn this on in your [Console billing settings](https://platform.claude.com/settings/billing). For Team and Enterprise, an admin must turn on usage credits for the organization."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fast mode usage draws directly from usage credits, even if you have remaining usage on your plan. This means fast mode tokens do not count against your plan's included usage and are charged at the fast mode rate from the first token."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "headless.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "ヘッドレス実行時の dontAsk モードにおいて、組織の承認設定があるツールなどは allow ルールがあっても拒否される旨が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -202,7 +202,9 @@ claude -p \"Run the test suite and fix any failures\" \\",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  --allowedTools \"Bash,Read,Edit\""
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To set a baseline for the whole session instead of listing individual tools, pass a [permission mode](/en/permission-modes). `dontAsk` denies anything not in your `permissions.allow` rules or the [read-only command set](/en/permissions#read-only-commands), which is useful for locked-down CI runs. `acceptEdits` lets Claude write files without prompting and also auto-approves common filesystem commands such as `mkdir`, `touch`, `mv`, and `cp`. Other shell commands and network requests still need an `--allowedTools` entry or a `permissions.allow` rule, otherwise the run aborts when one is attempted:"
+            },
+            {
+              "type": "added",
+              "content": "To set a baseline for the whole session instead of listing individual tools, pass a [permission mode](/en/permission-modes). `dontAsk` denies anything not in your `permissions.allow` rules or the [read-only command set](/en/permissions#read-only-commands), which is useful for locked-down CI runs. `AskUserQuestion`, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) are denied even when an allow rule matches."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`acceptEdits` lets Claude write files without prompting and also auto-approves common filesystem commands such as `mkdir`, `touch`, `mv`, and `cp`. Other shell commands and network requests still need an `--allowedTools` entry or a `permissions.allow` rule, otherwise the run aborts when one is attempted:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "claude -p \"Apply the lint fixes\" --permission-mode acceptEdits"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "PreToolUseフックで allow を返した場合でも、組織の承認設定や対話必須のツールはプロンプトをスキップできない制約が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -542,13 +542,13 @@ For example, a `PreToolUse` hook can deny a tool call and tell Claude why, or es",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "With `\"deny\"`, Claude Code cancels the tool call and feeds `permissionDecisionReason` back to Claude. These `permissionDecision` values are specific to `PreToolUse`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- `\"allow\"`: skip the interactive permission prompt. Deny and ask rules, including enterprise managed deny lists, still apply"
+            },
+            {
+              "type": "added",
+              "content": "- `\"allow\"`: skip the interactive permission prompt. Deny and ask rules, including enterprise managed deny lists, still apply, as do prompts for connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool)"
+            },
+            {
+              "type": "context",
+              "content": "- `\"deny\"`: cancel the tool call and send the reason to Claude"
+            },
+            {
+              "type": "context",
+              "content": "- `\"ask\"`: show the permission prompt to the user as normal"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A fourth value, `\"defer\"`, is available in [non-interactive mode](/en/headless) with the `-p` flag. It exits the process with the tool call preserved so an Agent SDK wrapper can collect input and resume. See [Defer a tool call for later](/en/hooks#defer-a-tool-call-for-later) in the reference."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Returning `\"allow\"` skips the interactive prompt but doesn't override [permission rules](/en/permissions#manage-permissions). If a deny rule matches the tool call, the call is blocked even when your hook returns `\"allow\"`. If an ask rule matches, the user is still prompted. This means deny rules from any settings scope, including [managed settings](/en/settings#settings-files), always take precedence over hook approvals."
+            },
+            {
+              "type": "added",
+              "content": "Returning `\"allow\"` skips the interactive prompt but doesn't override [permission rules](/en/permissions#manage-permissions). If a deny rule matches the tool call, the call is blocked even when your hook returns `\"allow\"`. If an ask rule matches, the user is still prompted, and so are connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool). This means deny rules from any settings scope, including [managed settings](/en/settings#settings-files), always take precedence over hook approvals."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Other events use different decision patterns. For example, `PostToolUse` and `Stop` hooks use a top-level `decision: \"block\"` field, while `PermissionRequest` uses `hookSpecificOutput.decision.behavior`. See the [summary table](/en/hooks#decision-control) in the reference for a full breakdown by event."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -857,7 +857,7 @@ Keep these constraints in mind when designing hooks:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`PreToolUse` hooks fire before any permission-mode check. A hook that returns `permissionDecision: \"deny\"` blocks the tool even in `bypassPermissions` mode or with `--dangerously-skip-permissions`. This lets you enforce policy that users can't bypass by changing their permission mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The reverse is not true: a hook returning `\"allow\"` doesn't bypass deny rules from settings. Hooks can tighten restrictions but not loosen them past what permission rules allow."
+            },
+            {
+              "type": "added",
+              "content": "The reverse is not true: a hook returning `\"allow\"` doesn't bypass deny rules from settings, and it can't suppress the prompt for connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) or MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool). Hooks can tighten restrictions but not loosen them past what permission rules allow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Hook not firing"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "permissionDecision の各ステータスにおいて、組織設定による ask 状態が優先される動作についての説明が強化されました。",
+      "hunks": [
+        {
+          "header": "@@ -1438,7 +1438,7 @@ In `PostToolUse`, `tool_response` is an object with `plan` and `filePath` fields",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `permissionDecision` | `\"allow\"` skips the permission prompt, except for [tools that require user interaction](#pretooluse-decision-control). `\"deny\"` prevents the tool call. `\"ask\"` prompts the user to confirm. `\"defer\"` exits gracefully so the tool can be resumed later. [Deny and ask rules](/en/permissions#manage-permissions) are still evaluated regardless of what the hook returns |"
+            },
+            {
+              "type": "added",
+              "content": "| `permissionDecision` | `\"allow\"` skips the permission prompt, except for [tools that require user interaction](#pretooluse-decision-control) and connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools). `\"deny\"` prevents the tool call. `\"ask\"` prompts the user to confirm. `\"defer\"` exits gracefully so the tool can be resumed later. [Deny and ask rules](/en/permissions#manage-permissions) are still evaluated regardless of what the hook returns |"
+            },
+            {
+              "type": "context",
+              "content": "| `permissionDecisionReason` | For `\"allow\"` and `\"ask\"`, shown to the user but not Claude. For `\"deny\"`, shown to Claude. For `\"defer\"`, ignored |"
+            },
+            {
+              "type": "context",
+              "content": "| `updatedInput` | Modifies the tool's input parameters before execution. Replaces the entire input object, so include unchanged fields alongside modified ones. Combine with `\"allow\"` to auto-approve, or `\"ask\"` to show the modified input to the user. For `\"defer\"`, ignored |"
+            },
+            {
+              "type": "context",
+              "content": "| `additionalContext` | String added to Claude's context alongside the tool result. Ignored when `permissionDecision` is `\"defer\"`. See [Add context for Claude](#add-context-for-claude) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1463,6 +1463,8 @@ When a hook returns `\"ask\"`, the permission prompt displayed to the user include",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`AskUserQuestion` and `ExitPlanMode` require user interaction and normally block in [non-interactive mode](/en/headless) with the `-p` flag. Returning `permissionDecision: \"allow\"` together with `updatedInput` satisfies that requirement: the hook reads the tool's input from stdin, collects the answer through your own UI, and returns it in `updatedInput` so the tool runs without prompting. Returning `\"allow\"` alone is not sufficient for these tools. For `AskUserQuestion`, echo back the original `questions` array and add an [`answers`](#askuserquestion) object mapping each question's text to the chosen answer."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) prompt even when a hook returns `\"allow\"`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "As of v2.1.199, an MCP tool whose server marks it with [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool) is stricter: a hook can't skip its approval prompt with `\"allow\"`, with or without `updatedInput`, because Claude Code can't confirm the hook collected the interaction the tool needs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "PreToolUse previously used top-level `decision` and `reason` fields, but these are deprecated for this event. Use `hookSpecificOutput.permissionDecision` and `hookSpecificOutput.permissionDecisionReason` instead. The deprecated values `\"approve\"` and `\"block\"` map to `\"allow\"` and `\"deny\"` respectively. Other events like PostToolUse and Stop continue to use top-level `decision` and `reason` as their current format."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway-protocol.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "コンテキスト管理に関する公式ドキュメントへの参照リンクが、最新のURLパスに更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -112,7 +112,7 @@ Fine-grained tool streaming is one of the direct-connection defaults: it is off",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Feature | Header and body pair | Symptom when broken | Remediation |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| [Adaptive reasoning](/en/model-config#adjust-effort-level) | No beta header. Claude Code sends `thinking: {\"type\": \"adaptive\"}` for Claude 4.6 and later, and treats model names it doesn't recognize, such as gateway aliases, as current models that receive the field | `400` naming the `thinking` field or the `adaptive` tag when the upstream model build doesn't accept it | Upgrade the upstream. On Opus 4.6 and Sonnet 4.6, developers can set `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` instead |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Context management](https://platform.claude.com/docs/en/build-with-claude/context-management) | Context management beta header pairs with the `context_management` body field | `400` with `Extra inputs are not permitted`. Common when a gateway accepts Anthropic-format requests but forwards them to Amazon Bedrock | Forward both, or [`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1`](/en/env-vars) |"
+            },
+            {
+              "type": "added",
+              "content": "| [Context management](https://platform.claude.com/docs/en/build-with-claude/context-editing) | Context management beta header pairs with the `context_management` body field | `400` with `Extra inputs are not permitted`. Common when a gateway accepts Anthropic-format requests but forwards them to Amazon Bedrock | Forward both, or [`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1`](/en/env-vars) |"
+            },
+            {
+              "type": "context",
+              "content": "| [Extended context](https://platform.claude.com/docs/en/build-with-claude/context-windows#context-window-sizes-by-model) and [interleaved thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#interleaved-thinking) | Beta headers only, no body field | Silently unavailable when the header is stripped; the upstream never sees the capability request | Forward `anthropic-beta` verbatim |"
+            },
+            {
+              "type": "context",
+              "content": "| Beta [tool fields](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview) | Tool-related beta headers pair with tool schema fields such as `strict` and `defer_loading` | `400` naming the unrecognized tool schema field when the body passes through without its header | Forward both, or `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Effort](https://platform.claude.com/docs/en/build-with-claude/effort) and [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) | The `output_config` body field carries effort, structured-output format, and task budget settings; each pairs with its own beta header | `400` naming `output_config`, often `Extra inputs are not permitted`, on Amazon Bedrock and Google Cloud's Agent Platform upstreams | Forward the field and its headers together |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 15,
+      "deletions": 6,
+      "explanation": "組織が claude.ai 上で設定したコネクターツールの承認・ブロック設定を Claude Code が読み込み、ローカルで強制する機能の説明が新設されました。",
+      "hunks": [
+        {
+          "header": "@@ -185,7 +185,7 @@ If an HTTP or SSE server disconnects mid-session, Claude Code automatically reco",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The same backoff applies when an HTTP or SSE server fails its initial connection at startup. As of v2.1.121, Claude Code retries the initial connection up to three times on transient errors such as a 5xx response, a connection refused, or a timeout, then marks the server as failed if it still can't connect. Authentication and not-found errors are not retried because they require a configuration change to resolve."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When a configured server fails to connect, Claude Code tells Claude which server failed and its connection error, including in `ToolSearch` results that find no matching tool, so Claude reports the connection failure in its response. Requires [tool search](#scale-with-mcp-tool-search), which is enabled by default. In configurations without tool search, such as a custom `ANTHROPIC_BASE_URL`, `ENABLE_TOOL_SEARCH=false`, or a Haiku model, and on Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry, Claude Code doesn't report failed server connections to Claude. Before v2.1.205, Claude Code didn't pass connection errors to Claude, and Claude could respond as if the failed server's tools were never configured."
+            },
+            {
+              "type": "added",
+              "content": "When a configured server fails to connect, Claude Code tells Claude which server failed and its connection error, including in `ToolSearch` results that find no matching tool, so Claude reports the connection failure in its response. Requires [tool search](#scale-with-mcp-tool-search), which is enabled by default. In configurations without tool search, such as a custom `ANTHROPIC_BASE_URL`, `ENABLE_TOOL_SEARCH=false`, or a model that doesn't support tool search, and on Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry, Claude Code doesn't report failed server connections to Claude. Before v2.1.205, Claude Code didn't pass connection errors to Claude, and Claude could respond as if the failed server's tools were never configured."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "As of v2.1.191, the capability discovery requests that run after a successful connection, such as `tools/list`, `prompts/list`, and `resources/list`, also retry transient network and server errors up to three times with short backoff. Authentication errors, 4xx responses, and request timeouts are not retried."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -747,14 +747,14 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "If you've already configured MCP servers in Claude Desktop, you can import them:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "# Basic syntax "
+            },
+            {
+              "type": "removed",
+              "content": "claude mcp add-from-claude-desktop "
+            },
+            {
+              "type": "added",
+              "content": "# Basic syntax"
+            },
+            {
+              "type": "added",
+              "content": "claude mcp add-from-claude-desktop"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "After running the command, you'll see an interactive dialog that allows you to select which servers you want to import."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "claude mcp list "
+            },
+            {
+              "type": "added",
+              "content": "claude mcp list"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Server names added through `claude mcp` commands can contain only letters, numbers, hyphens, and underscores. Claude Desktop doesn't apply that restriction, so a Claude Desktop server whose name contains any other character, such as a space, can't be imported. The import reports each name it rejects and still imports the other servers you selected. Before v2.1.205, the first invalid name stopped the import and none of the selected servers were added."
+            }
+          ]
+        },
+        {
+          "header": "@@ -769,7 +769,7 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Use MCP servers from claude.ai"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you've logged into Claude Code with a [claude.ai](https://claude.ai) account, MCP servers you've added in claude.ai are automatically available in Claude Code:"
+            },
+            {
+              "type": "added",
+              "content": "If you've logged into Claude Code with a [claude.ai](https://claude.ai) account, MCP servers you've added in claude.ai, known as [connectors](https://claude.com/docs/connectors), are automatically available in Claude Code:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Add servers at [claude.ai/customize/connectors](https://claude.ai/customize/connectors). On Team and Enterprise plans, only admins can add servers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -793,6 +793,15 @@ A server you've added in Claude Code takes [precedence](#scope-hierarchy-and-pre",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Some Anthropic-hosted connectors, such as Microsoft 365, Gmail, and Google Calendar, don't support local OAuth from Claude Code because the upstream identity provider only accepts the redirect URL that claude.ai registered. From v2.1.162, authenticating one of these hosts in `/mcp` shows a message directing you to connect it at Settings → Connectors on claude.ai instead. Once connected there, the connector appears in Claude Code automatically."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Organization controls on connector tools"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Your organization can set per-tool controls on [claude.ai connectors](https://claude.com/docs/connectors). Claude Code reads these settings at startup and enforces them locally. Run `/mcp` to see which setting applies to each tool on a connector."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Tool set to `ask`**: Claude Code prompts on every call with the reason `Your organization requires approval for this tool`. The prompt appears even in `acceptEdits`, `auto`, and `bypassPermissions` [permission modes](/en/permissions#permission-modes), and never offers an option to remember your choice. [Allow rules](/en/permissions) that match the tool don't skip the prompt either. In `dontAsk` mode, which never prompts, Claude Code denies the call instead."
+            },
+            {
+              "type": "added",
+              "content": "- **Tool set to `blocked`**: Claude Code filters the tool out before Claude sees it, so it never appears in the tool list."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Enforcing these controls requires Claude Code v2.1.129 or later. Earlier versions ignore the settings and apply the standard permission flow."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Disable claude.ai connectors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To disable claude.ai MCP servers in Claude Code, set [`disableClaudeAiConnectors`](/en/settings#available-settings) to `true` in any settings scope:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1023,7 +1032,7 @@ Tool search is enabled by default: MCP tools are deferred and discovered on dema",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Setting [`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`](/en/env-vars) keeps tool search off, and `ENABLE_TOOL_SEARCH` can't override it. The variable strips the beta header that `defer_loading` tool definitions and `tool_reference` content blocks require."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Tool search requires a model that supports `tool_reference` blocks. Haiku models don't support it. On Google Cloud's Agent Platform, tool search is supported for Claude Sonnet 4.5 and later and Claude Opus 4.5 and later."
+            },
+            {
+              "type": "added",
+              "content": "Tool search requires a model that supports `tool_reference` blocks: Claude Sonnet 4.5, Claude Haiku 4.5, Claude Opus 4.5, and later models. See [model compatibility in the API docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool#model-compatibility) for the current list. On Google Cloud's Agent Platform, tool search is supported for Claude Sonnet 4.5 and later and Claude Opus 4.5 and later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Control tool search behavior with the `ENABLE_TOOL_SEARCH` environment variable:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 9,
+      "deletions": 5,
+      "explanation": "権限評価の優先順位が整理され、組織の承認設定や特定の MCP メタデータが分類器をスキップして直接プロンプトを出す仕組みが解説されました。",
+      "hunks": [
+        {
+          "header": "@@ -26,7 +26,7 @@ The mode that reviews every action is named **Manual** in the CLI, in `claude --",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In every mode except `bypassPermissions`, writes to [protected paths](#protected-paths) are never auto-approved, guarding repository state and Claude's own configuration against accidental corruption."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Modes set the baseline. Layer [permission rules](/en/permissions#manage-permissions) on top to pre-approve or block specific tools. Deny rules and explicit ask rules apply in every mode, including `bypassPermissions`. Allow rules have no effect in that mode because everything else is already approved."
+            },
+            {
+              "type": "added",
+              "content": "Modes set the baseline. Layer [permission rules](/en/permissions#manage-permissions) on top to pre-approve or block specific tools. Deny rules, explicit ask rules, the [org `ask` setting on connector tools](/en/mcp#organization-controls-on-connector-tools), and the [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) marker apply in every mode, including `bypassPermissions`. Allow rules have no effect in that mode because everything else is already approved."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Switch permission modes"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -311,9 +311,9 @@ Repeated blocks usually mean the classifier is missing context about your infras",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each action goes through a fixed decision order. The first matching step wins:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "1. Actions matching your [allow, ask, or deny rules](/en/permissions#manage-permissions) resolve immediately, except writes to [protected paths](#protected-paths), which route to the classifier even when an allow rule matches. Content-scoped ask rules fall back to a permission prompt"
+            },
+            {
+              "type": "added",
+              "content": "1. Actions matching your [allow, ask, or deny rules](/en/permissions#manage-permissions) resolve immediately. Writes to [protected paths](#protected-paths) route to the classifier even when an allow rule matches. Connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) prompt you directly even when an allow rule matches. Content-scoped ask rules fall back to a permission prompt"
+            },
+            {
+              "type": "context",
+              "content": "2. Read-only actions and file edits in your working directory are auto-approved, except writes to [protected paths](#protected-paths)"
+            },
+            {
+              "type": "removed",
+              "content": "3. Everything else goes to the classifier. As of v2.1.199, an MCP tool marked with [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool) skips the classifier and prompts you directly, so a consent step is never auto-approved on the tool author's behalf"
+            },
+            {
+              "type": "added",
+              "content": "3. Everything else goes to the classifier. A connector tool [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) skips the classifier and prompts you directly, so an org-required approval is never auto-approved. As of v2.1.199, an MCP tool marked with [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool) also skips the classifier and prompts you directly, so a consent step is never auto-approved on the tool author's behalf"
+            },
+            {
+              "type": "context",
+              "content": "4. If the classifier blocks, Claude receives the reason and tries an alternative"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "On entering auto mode, broad allow rules that grant arbitrary code execution are dropped:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -339,7 +339,11 @@ The classifier runs on a server-configured model that is independent of your `/m",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Allow only pre-approved tools with dontAsk mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`dontAsk` mode auto-denies every tool call that would otherwise prompt. The status bar shows `⏵⏵ don't ask on` while this mode is active. Only actions matching your `permissions.allow` rules and [read-only Bash commands](/en/permissions#read-only-commands) can execute; explicit [`ask` rules](/en/permissions#manage-permissions) are denied rather than prompting. As of v2.1.199, an MCP tool marked with [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool) is also denied in this mode even when an allow rule matches it, because its approval card needs an answer this mode never collects. This makes the mode fully non-interactive for CI pipelines or restricted environments where you pre-define exactly what Claude may do. Cloud sessions on [Claude Code on the web](/en/claude-code-on-the-web) ignore `defaultMode: \"dontAsk\"`; see [bypassPermissions](#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "added",
+              "content": "If you set `dontAsk` mode, Claude Code auto-denies every tool call that would otherwise prompt you. Claude runs only actions matching your `permissions.allow` rules, [read-only Bash commands](/en/permissions#read-only-commands), and calls approved by a [PreToolUse hook](/en/permissions#extend-permissions-with-hooks). Use this mode for CI pipelines or restricted environments where you pre-define exactly what Claude may do; the session never waits for input. The status bar shows `⏵⏵ don't ask on` while this mode is active."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code denies calls matching your explicit [`ask` rules](/en/permissions#manage-permissions) rather than prompting. It also denies the built-in `AskUserQuestion` tool and connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), even if your allow rules match them. It denies MCP tools marked [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool) the same way, because their approval card needs an answer this mode never collects; this requires Claude Code v2.1.199 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Cloud sessions on [Claude Code on the web](/en/claude-code-on-the-web) ignore `defaultMode: \"dontAsk\"`; see [bypassPermissions](#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Set it at startup with the flag:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -351,7 +355,7 @@ claude --permission-mode dontAsk",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`bypassPermissions` mode disables permission prompts and safety checks so tool calls execute immediately, including writes to [protected paths](#protected-paths). Before v2.1.126, protected-path writes still prompted in this mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Explicit [ask rules](/en/permissions#manage-permissions) still force a prompt in this mode. MCP tools marked with [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool) also still prompt; this requires Claude Code v2.1.199 or later."
+            },
+            {
+              "type": "added",
+              "content": "Explicit [ask rules](/en/permissions#manage-permissions) and connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) still force a prompt in this mode. MCP tools marked with [`_meta[\"anthropic/requiresUserInteraction\"]`](/en/mcp#require-approval-for-a-specific-tool) also still prompt; this requires Claude Code v2.1.199 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, still prompt as a circuit breaker against model error. The circuit breaker also fires when the command contains command substitution with `$(...)` or backticks, or process substitution with `<(...)`, whether the removal sits inside the substitution, as in `echo \"$(rm -rf ~)\"`, or elsewhere in the same command. The plain form, typed as its own command, has prompted in this mode since the circuit breaker was introduced; before v2.1.208, commands containing those forms didn't prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 10,
+      "deletions": 4,
+      "explanation": "権限管理の全体像において、組織の承認設定や特定の対話型ツールが常に優先される例外ルールとして強調されました。",
+      "hunks": [
+        {
+          "header": "@@ -49,10 +49,12 @@ Claude Code supports several permission modes that control how it approves tool",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `acceptEdits` | Automatically accepts file edits and common filesystem commands such as `mkdir`, `touch`, `mv`, and `cp` for paths in the working directory or `additionalDirectories` |"
+            },
+            {
+              "type": "context",
+              "content": "| `plan` | Claude reads files and runs read-only shell commands to explore but doesn't edit your source files. Labeled Plan in the CLI and the VS Code extension |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` | Auto-approves tool calls with background safety checks that verify actions align with your request |"
+            },
+            {
+              "type": "removed",
+              "content": "| `dontAsk` | Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` rules |"
+            },
+            {
+              "type": "removed",
+              "content": "| `bypassPermissions` | Skips permission prompts, except those forced by explicit `ask` rules. Root and home directory removals such as `rm -rf /` also still prompt as a circuit breaker |"
+            },
+            {
+              "type": "added",
+              "content": "| `dontAsk` | Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` rules. `AskUserQuestion`, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) are denied even if you've allowed them |"
+            },
+            {
+              "type": "added",
+              "content": "| `bypassPermissions` | Skips permission prompts, except those forced by explicit `ask` rules, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool). Root and home directory removals such as `rm -rf /` also still prompt as a circuit breaker |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`bypassPermissions` mode skips permission prompts, including for writes to `.git`, `.config/git`, `.claude`, `.vscode`, `.idea`, `.husky`, `.cargo`, `.devcontainer`, `.yarn`, and `.mvn`. Explicit `ask` rules still force a prompt, and removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, still prompt as a circuit breaker against model error, including in commands that contain command substitution with `$(...)` or backticks, or process substitution with `<(...)`. The plain form, such as `rm -rf ~` typed as its own command, has prompted in this mode since the circuit breaker was introduced; v2.1.208 extends the same check to commands that reach the removal through a substitution. Before v2.1.208, commands containing those forms didn't prompt in this mode. Only use this mode in isolated environments like containers or VMs where Claude Code can't cause damage."
+            },
+            {
+              "type": "added",
+              "content": "`bypassPermissions` mode skips permission prompts, including for writes to `.git`, `.config/git`, `.claude`, `.vscode`, `.idea`, `.husky`, `.cargo`, `.devcontainer`, `.yarn`, and `.mvn`. Only use this mode in isolated environments like containers or VMs where Claude Code can't cause damage."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A few prompts still fire in this mode. Explicit `ask` rules, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) still prompt. Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, also prompt as a circuit breaker against model error, including when the command contains command substitution with `$(...)` or backticks, or process substitution with `<(...)`. Before v2.1.208, only the plain form, such as `rm -rf ~` typed as its own command, prompted; commands that reached the removal through a substitution didn't."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To prevent `bypassPermissions` or `auto` mode from being used, set `permissions.disableBypassPermissionsMode` or `permissions.disableAutoMode` to `\"disable\"` in any [settings file](/en/settings#settings-files). These are most useful in [managed settings](#managed-settings) where they can't be overridden."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -303,6 +305,8 @@ MCP rules use the server name as configured in Claude Code, optionally followed",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `mcp__puppeteer__*` uses wildcard syntax and also matches all tools from the `puppeteer` server"
+            },
+            {
+              "type": "context",
+              "content": "- `mcp__puppeteer__puppeteer_navigate` matches the `puppeteer_navigate` tool provided by the `puppeteer` server"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If your organization has set a [claude.ai connector](/en/mcp#organization-controls-on-connector-tools) tool to `ask`, allow rules for that tool don't take effect: Claude Code prompts on every call, even in `auto` and `bypassPermissions` modes. In `dontAsk` mode, which never prompts, Claude Code denies the call instead. Connector tools appear as `mcp__claude_ai_<server>__<tool>`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Agent (subagents)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use `Agent(AgentName)` rules to control which [subagents](/en/sub-agents) Claude can use:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -341,7 +345,9 @@ Path patterns share the `//`, `~/`, and `/` anchors from [Read and Edit rules](#",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Claude Code hooks](/en/hooks-guide) provide a way to register custom shell commands to perform permission evaluation at runtime. When Claude Code makes a tool call, PreToolUse hooks run before the permission prompt. The hook output can deny the tool call, force a prompt, or skip the prompt to let the call proceed."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Hook decisions don't bypass permission rules. Deny and ask rules are evaluated regardless of what a PreToolUse hook returns, so a matching deny rule blocks the call and a matching ask rule still prompts even when the hook returned `\"allow\"` or `\"ask\"`. This preserves the deny-first precedence described in [Manage permissions](#manage-permissions), including deny rules set in managed settings."
+            },
+            {
+              "type": "added",
+              "content": "Hook decisions don't bypass permission rules. Claude Code evaluates deny and ask rules regardless of what a PreToolUse hook returns: a matching deny rule blocks the call, and a matching ask rule still prompts even when the hook returned `\"allow\"` or `\"ask\"`. This preserves the deny-first precedence described in [Manage permissions](#manage-permissions), including deny rules set in managed settings."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) also still prompt when a hook returns `\"allow\"`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A blocking hook also takes precedence over allow rules. A hook that exits with code 2 stops the tool call before permission rules are evaluated, so the block applies even when an allow rule would otherwise let the call proceed. To run all Bash commands without prompts except for a few you want blocked, add `\"Bash\"` to your allow list and register a PreToolUse hook that rejects those specific commands. See [Block edits to protected files](/en/hooks-guide#block-edits-to-protected-files) for a hook script you can adapt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "prompt-caching.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "文脈の整合性を保つための微細なテキスト修正が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -83,7 +83,7 @@ The cost applies once per conversation. After the first fast mode turn, Claude C",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Tool definitions sit in the system prompt layer, so the cache invalidates when the set of tool definitions in the request changes between turns. Toggling the [advisor tool](/en/advisor) is an exception: its definition sits after the cache breakpoint, so enabling or disabling `/advisor` keeps the cached prefix intact. Whether an [MCP server](/en/mcp) change does this depends on whether its tools are deferred by [tool search](/en/mcp#scale-with-mcp-tool-search) or loaded into the prefix:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Deferred tools**, the default on supported models: a server connecting, disconnecting, or changing its tool list only appends new content and doesn't disturb anything already cached."
+            },
+            {
+              "type": "removed",
+              "content": "- **Tools loaded into the prefix**: any change to them invalidates the cache. This happens when [tool search is unavailable or disabled](/en/mcp#configure-tool-search), such as on Haiku models, on Google Cloud's Agent Platform, or with a custom `ANTHROPIC_BASE_URL` gateway. It also happens for a server or tool marked [`alwaysLoad`](/en/mcp#exempt-a-server-from-deferral), and for definitions kept upfront by [threshold-based loading](/en/mcp#configure-tool-search)."
+            },
+            {
+              "type": "added",
+              "content": "- **Tools loaded into the prefix**: any change to them invalidates the cache. This happens when [tool search is unavailable or disabled](/en/mcp#configure-tool-search), such as on Google Cloud's Agent Platform or with a custom `ANTHROPIC_BASE_URL` gateway. It also happens for a server or tool marked [`alwaysLoad`](/en/mcp#exempt-a-server-from-deferral), and for definitions kept upfront by [threshold-based loading](/en/mcp#configure-tool-search)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When tools load into the prefix, the most common cause of an invalidation is a server connecting or disconnecting mid-session, which can happen without any action on your part: a stdio server's process exits, an HTTP session expires, or a server [reconnects automatically after a transient failure](/en/mcp#automatic-reconnection). A connected server can also push a [dynamic tool update](/en/mcp#dynamic-tool-updates) that changes its tool list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandbox-environments.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ドキュメント内の整合性を高めるための軽微な表記調整が実施されました。",
+      "hunks": [
+        {
+          "header": "@@ -51,7 +51,7 @@ Match your goal to a row below, then read the detail section that follows.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Permission modes](/en/permission-modes) decide whether a tool call runs and whether you are prompted first. Isolation restricts what a command can access once it runs. The two work together: when a permission mode lets actions run without asking you, an isolation boundary limits what those actions can reach."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`--dangerously-skip-permissions` removes per-action review other than explicit [ask rules](/en/permissions#manage-permissions), so an isolation boundary is the only thing limiting what Claude can do. Always run it inside a container, a VM, or the [sandbox runtime](#sandbox-runtime), so that file tools, MCP servers, and hooks are also inside the boundary."
+            },
+            {
+              "type": "added",
+              "content": "When you pass `--dangerously-skip-permissions`, Claude acts without asking you first; you're only prompted for explicit [ask rules](/en/permissions#manage-permissions), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), and removals targeting `/` or your home directory. With no prompts to catch mistakes, the isolation boundary you choose is what protects your system. Always run this flag inside a container, a VM, or the [sandbox runtime](#sandbox-runtime), so that file tools, MCP servers, and hooks are also inside the boundary."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) replaces the prompt with a classifier that reviews actions and blocks ones that escalate beyond the request, target unrecognized infrastructure, or appear driven by hostile content Claude read. The classifier is a per-action control, not an isolation boundary, so an isolation boundary still adds defense in depth for unattended runs, and is not required the way it is for `--dangerously-skip-permissions`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandboxing.md",
+      "additions": 7,
+      "deletions": 2,
+      "explanation": "サンドボックス内での実行時であっても、特定の承認設定を持つツールがプロンプトを表示する挙動について補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -144,7 +144,12 @@ Path prefixes control how paths are resolved:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This syntax differs from [Read and Edit permission rules](/en/permissions#read-and-edit), which use `//path` for absolute and `/path` for project-relative. Sandbox filesystem paths use standard conventions: `/tmp/build` is absolute."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can also deny write or read access using `sandbox.filesystem.denyWrite` and `sandbox.filesystem.denyRead`, and re-allow specific paths within a denied region using `sandbox.filesystem.allowRead`."
+            },
+            {
+              "type": "added",
+              "content": "You can also deny write or read access using `sandbox.filesystem.denyWrite` and `sandbox.filesystem.denyRead`, and re-allow specific paths within a denied region using `sandbox.filesystem.allowRead`. When read rules overlap, the more specific path wins:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Example rules | Result |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"denyRead\": [\"~/\"]` with `\"allowRead\": [\"~/projects\"]` | `~/projects` is readable and the rest of the home directory stays blocked. The narrower allow re-opens that part of the denied region |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"allowRead\": [\"~/\"]` with `\"denyRead\": [\"~/.env\"]` | `~/.env` stays blocked and the rest of the home directory is readable. An exact deny holds inside a wider allow, so a broad allow can't silently re-expose a secret |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The example below blocks reading from the entire home directory while still allowing reads from the current project. Place it in your project's `.claude/settings.json`, because the relative path `.` resolves to the project root only when the configuration lives in project settings:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -301,7 +306,7 @@ The [claude-code repository's examples directory](https://github.com/anthropics/",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `/sandbox` | What a Bash command can access once it runs | The sandbox boundary itself, in [auto-allow mode](#sandbox-modes) |"
+            },
+            {
+              "type": "context",
+              "content": "| [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) | Whether each tool call runs | A classifier that reviews actions |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--dangerously-skip-permissions` | Whether each tool call runs | Nothing. [Protected path](/en/permission-modes#protected-paths) checks are also skipped; only explicit [ask rules](/en/permissions#manage-permissions) and removing `/` or your home directory still prompt |"
+            },
+            {
+              "type": "added",
+              "content": "| `--dangerously-skip-permissions` | Whether each tool call runs | Nothing. [Protected path](/en/permission-modes#protected-paths) checks are also skipped; only explicit [ask rules](/en/permissions#manage-permissions), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), and removing `/` or your home directory still prompt |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The sandbox's [auto-allow mode](#sandbox-modes) is separate from [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode): auto-allow approves Bash commands because the sandbox boundary contains them, while auto mode uses a classifier to review actions. The two work independently and can be combined. To choose an isolation boundary for unattended runs, see [Sandbox environments](/en/sandbox-environments#how-isolation-relates-to-permission-modes)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "設定ファイルに関連する内部リンクの参照先が最新の状態に更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -386,7 +386,7 @@ Configure advanced sandboxing behavior. Sandboxing isolates bash commands from y",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `filesystem.allowWrite` | Additional paths where sandboxed commands can write. Arrays are merged across all settings scopes: user, project, and managed paths are combined, not replaced. Also merged with paths from `Edit(...)` allow permission rules. See [path prefixes](#sandbox-path-prefixes) below. | `[\"/tmp/build\", \"~/.kube\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `filesystem.denyWrite` | Paths where sandboxed commands cannot write. Arrays are merged across all settings scopes. Also merged with paths from `Edit(...)` deny permission rules. | `[\"/etc\", \"/usr/local/bin\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `filesystem.denyRead` | Paths where sandboxed commands cannot read. Arrays are merged across all settings scopes. Also merged with paths from `Read(...)` deny permission rules. | `[\"~/.aws/credentials\"]` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `filesystem.allowRead` | Paths to re-allow reading within `denyRead` regions. Takes precedence over `denyRead`. Arrays are merged across all settings scopes. Use this to create workspace-only read access patterns. | `[\".\"]` |"
+            },
+            {
+              "type": "added",
+              "content": "| `filesystem.allowRead` | Paths to re-allow reading within `denyRead` regions. An `allowRead` path re-opens reading inside a broader `denyRead` region, and an exact path in `denyRead` stays blocked inside a broader `allowRead`; see the [overlap table](/en/sandboxing#configure-sandboxing) for examples. Arrays are merged across all settings scopes. Use this to create workspace-only read access patterns. | `[\".\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `filesystem.allowManagedReadPathsOnly` | (Managed settings only) Only `filesystem.allowRead` paths from managed settings are respected. `denyRead` still merges from all sources. Default: false | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `credentials.files` | Credential files or directories that sandboxed commands cannot read. Applies the same read block as `filesystem.denyRead`; the separate key keeps credential paths grouped with `credentials.envVars` and apart from general filesystem rules. Each entry is `{ \"path\": \"...\", \"mode\": \"deny\" }`, and `deny` is the only supported mode for files. Paths use the same [prefixes](#sandbox-path-prefixes) as `filesystem.*` settings. Arrays are merged across all settings scopes. Requires Claude Code v2.1.187 or later. | `[{ \"path\": \"~/.aws/credentials\", \"mode\": \"deny\" }]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `credentials.envVars` | Environment variables to [protect from sandboxed commands](/en/sandboxing#protect-credentials). Each entry has a `name` and a `mode`; the name must start with a letter or underscore and contain only letters, digits, and underscores. `deny` removes the variable from the environment of sandboxed commands. Requires Claude Code v2.1.187 or later. `mask` replaces the variable with a per-session sentinel value inside the sandbox while the sandbox proxy substitutes the real value on outbound requests to that entry's `injectHosts`; it requires `network.tlsTerminate` and Claude Code v2.1.199 or later. `mask` entries are only honored from user, managed, or CLI `--settings` settings, not from `.claude/settings.json` or `.claude/settings.local.json`. Arrays are merged across all settings scopes, and `deny` takes precedence when the same variable appears with both modes. | `[{ \"name\": \"GITHUB_TOKEN\", \"mode\": \"deny\" }]` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "親エージェントから権限モードを継承する際、組織の承認ルールなどの例外的なプロンプトも同様に継承されることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -405,11 +405,13 @@ The `permissionMode` field controls how the subagent handles permission prompts.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `default` | Standard permission checking with prompts |"
+            },
+            {
+              "type": "context",
+              "content": "| `acceptEdits` | Auto-accept file edits and common filesystem commands for paths in the working directory or `additionalDirectories` |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` | [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode): a background classifier reviews commands and protected-directory writes |"
+            },
+            {
+              "type": "removed",
+              "content": "| `dontAsk` | Auto-deny permission prompts (explicitly allowed tools still work) |"
+            },
+            {
+              "type": "added",
+              "content": "| `dontAsk` | Auto-deny permission prompts. Explicitly allowed tools still work; `AskUserQuestion`, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) are denied even if you've allowed them |"
+            },
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Skip permission prompts |"
+            },
+            {
+              "type": "context",
+              "content": "| `plan` | Plan mode (read-only exploration) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `bypassPermissions` with caution. It skips permission prompts, allowing the subagent to execute operations without approval, including writes to `.git`, `.config/git`, `.claude`, `.vscode`, `.idea`, `.husky`, `.cargo`, `.devcontainer`, `.yarn`, and `.mvn`. Explicit [`ask` rules](/en/permissions#manage-permissions) and root and home directory removals such as `rm -rf /` still prompt. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "added",
+              "content": "Use `bypassPermissions` with caution. It skips permission prompts, allowing the subagent to execute operations without approval, including writes to `.git`, `.config/git`, `.claude`, `.vscode`, `.idea`, `.husky`, `.cargo`, `.devcontainer`, `.yarn`, and `.mvn`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Explicit [`ask` rules](/en/permissions#manage-permissions), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), and root and home directory removals such as `rm -rf /` still prompt. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the parent uses `bypassPermissions` or `acceptEdits`, this takes precedence and can't be overridden. If the parent uses [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode), the subagent inherits auto mode and any `permissionMode` in its frontmatter is ignored: the classifier evaluates the subagent's tool calls with the same block and allow rules as the parent session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

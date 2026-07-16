@@ -401,7 +401,7 @@ Configuration object for the `query()` function.
 | `allowDangerouslySkipPermissions` | `boolean` | `false` | Enable bypassing permissions. Required when using `permissionMode: 'bypassPermissions'` |
 | `allowedTools` | `string[]` | `[]` | Tools to auto-approve without prompting. This does not restrict Claude to only these tools; unlisted tools fall through to `permissionMode` and `canUseTool`. Use `disallowedTools` to block tools. See [Permissions](/en/agent-sdk/permissions#allow-and-deny-rules) |
 | `betas` | [`SdkBeta`](#sdkbeta)`[]` | `[]` | Enable beta features |
-| `canUseTool` | [`CanUseTool`](#canusetool) | `undefined` | Custom permission function, invoked only when the [permission flow](/en/agent-sdk/permissions#how-permissions-are-evaluated) falls through to a prompt. Not invoked for calls auto-approved by `allowedTools`, allow rules, or `permissionMode`. See [`CanUseTool`](#canusetool) for details |
+| `canUseTool` | [`CanUseTool`](#canusetool) | `undefined` | Custom permission function, invoked only when the [permission flow](/en/agent-sdk/permissions#how-permissions-are-evaluated) falls through to a prompt. Not invoked for calls auto-approved by `allowedTools`, allow rules, or `permissionMode`. `AskUserQuestion`, connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool) reach it even if you've allowed them; in `dontAsk` mode these are denied instead. See [`CanUseTool`](#canusetool) for details |
 | `continue` | `boolean` | `false` | Continue the most recent conversation |
 | `cwd` | `string` | `process.cwd()` | Current working directory |
 | `debug` | `boolean` | `false` | Enable debug mode for the Claude Code process |
@@ -805,6 +805,8 @@ type PermissionMode =
 Custom permission function type for controlling tool usage.
 
 The function is the SDK replacement for the interactive permission prompt: it's invoked only when the [permission evaluation flow](/en/agent-sdk/permissions#how-permissions-are-evaluated) resolves to a prompt. Tool calls already approved by an `allowedTools` entry, a settings allow rule, or the permission mode, such as `acceptEdits` or `bypassPermissions`, never invoke it. To gate every tool call, use a [`PreToolUse` hook](/en/agent-sdk/hooks) instead.
+
+`AskUserQuestion`, MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), and connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools) reach the function even when an allow rule matches. In `dontAsk` mode these calls are denied instead, without invoking it.
 
 ```typescript
 type CanUseTool = (
@@ -3359,7 +3361,7 @@ type SDKBackgroundTasksChangedMessage = {
 
 ### `SDKThinkingTokensMessage`
 
-Emitted while Claude is producing a thinking block, including a redacted one, carrying a running estimate of the thinking tokens generated so far. `estimated_tokens` is the running total for the current thinking block and `estimated_tokens_delta` is the increment carried by this frame. Use it for progress display; the authoritative billed count is the result message's `usage.output_tokens`.
+Emitted while Claude is producing a thinking block, including a redacted one, carrying a running estimate of the thinking tokens generated so far. `estimated_tokens` is the running total for the current thinking block and `estimated_tokens_delta` is the increment carried by this frame. Use it for progress display. The final count for the top-level agent loop is the result message's `usage.output_tokens`, which [doesn't include subagent tokens](/en/agent-sdk/cost-tracking#get-the-total-cost-of-a-query); use [`modelUsage`](#modelusage) for whole-tree accounting.
 
 Requires Claude Code v2.1.153 or later.
 
