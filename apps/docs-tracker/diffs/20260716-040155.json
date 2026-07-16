@@ -1,0 +1,753 @@
+{
+  "id": "20260716-040155",
+  "timestamp": "2026-07-16T04:01:55.385Z",
+  "aiSummary": "テレメトリとエラー報告に関する詳細な仕様が更新され、Pro/Maxプラン利用時のエラー報告の有効条件や無効化方法が明確化されました。Web版やデスクトップ版における/configコマンドの挙動が整理され、対話型UIの代わりに設定画面が開く仕様などが追記されています。環境変数によるゲートウェイ設定の引き継ぎや、オートモードにおけるデフォルト設定の上書きルールについても、より具体的な記述に変更されました。",
+  "files": [
+    {
+      "filename": "agent-view.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "バックグラウンドセッションやゲートウェイ利用時において、環境変数やカスタムヘッダーがどのようにワーカーへ引き継がれるかの詳細な条件が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -458,9 +458,9 @@ Each background session can run on a different model. To override it for one ses",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A background session reads its [settings](/en/settings) from the directory it runs in, the same as if you had started `claude` there. This includes [`env` values](/en/settings#available-settings) in project settings, so an `ANTHROPIC_MODEL` or provider variable set there applies to background sessions in that directory."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Cloud provider selection, such as `CLAUDE_CODE_USE_BEDROCK` or `CLAUDE_CODE_USE_VERTEX`, and `ANTHROPIC_DEFAULT_*_MODEL` aliases follow the shell that dispatched the session. A [`CLAUDE_CODE_EXTRA_BODY`](/en/env-vars) request-body override exported in that shell reaches the session the same way. Before v2.1.206, background workers ignored a shell-exported `CLAUDE_CODE_EXTRA_BODY`."
+            },
+            {
+              "type": "added",
+              "content": "Cloud provider selection, such as `CLAUDE_CODE_USE_BEDROCK` or `CLAUDE_CODE_USE_VERTEX`, and `ANTHROPIC_DEFAULT_*_MODEL` aliases follow the shell that dispatched the session. If you export a [`CLAUDE_CODE_EXTRA_BODY`](/en/env-vars) request-body override in that shell, it reaches the session the same way. Before v2.1.206, background workers ignored a shell-exported `CLAUDE_CODE_EXTRA_BODY`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A gateway `ANTHROPIC_BASE_URL` exported in the dispatching shell reaches the session too, together with `ANTHROPIC_CUSTOM_HEADERS`, when the supervisor runs with the same gateway environment and the session runs in the directory you dispatch from or is your own session backgrounded with `←` or `/background`. That is the normal case when the first shell to open agent view or dispatch a background session is the gateway shell. Dispatching into a different directory with `@repo` or `--cwd` doesn't carry the shell's gateway; that project's [settings](/en/settings) supply the endpoint. See [the supervisor process](#the-supervisor-process) for how background sessions source provider settings and credentials."
+            },
+            {
+              "type": "added",
+              "content": "If you export a gateway `ANTHROPIC_BASE_URL` in the dispatching shell, it reaches the session too, together with `ANTHROPIC_CUSTOM_HEADERS`, when the supervisor runs with the same gateway environment and the session runs in the directory you dispatch from or is your own session backgrounded with `←` or `/background`. That is the normal case when the first shell to open agent view or dispatch a background session is the gateway shell. Dispatching into a different directory with `@repo` or `--cwd` doesn't carry the shell's gateway; that project's [settings](/en/settings) supply the endpoint. See [the supervisor process](#the-supervisor-process) for how background sessions source provider settings and credentials."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The [permission mode](/en/permissions) depends on how you started the session. Backgrounding an existing session with `/bg` or `←` keeps the current permission mode, so a session you switched to `acceptEdits` or `auto` stays in that mode after detaching. Dispatching from the agent view input or running `claude --bg` from your shell uses the `defaultMode` from that directory's settings, or the `permissionMode` from the dispatched [subagent's frontmatter](/en/sub-agents#supported-frontmatter-fields)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -542,7 +542,7 @@ The dispatching shell's `PATH` is applied to the worker the same way, so shell c",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A background session doesn't inherit gateway endpoint variables such as `ANTHROPIC_BASE_URL` or the equivalent Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry base URL variables from the shell that started the supervisor. Without a gateway exported in the shell you dispatch from, the session uses your stored credentials and any `env` values in the project directory's [settings](/en/settings). To point every session in a project at an [LLM gateway](/en/llm-gateway), set `ANTHROPIC_BASE_URL` in that project's `.claude/settings.json` `env` block."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A gateway `ANTHROPIC_BASE_URL` exported in the shell you dispatch from reaches that session's worker, together with `ANTHROPIC_CUSTOM_HEADERS` and the credential exported alongside them, when the supervisor was started from an environment with the same gateway. The supervisor captures its environment from the first shell that opens agent view or dispatches a background session, so starting from the gateway shell gives it that environment. The forward also applies only to sessions dispatched into the directory you're dispatching from, or backgrounded from your own session with `←` or `/background`: dispatching into a different directory with `@repo` or `--cwd` doesn't carry the shell's gateway, and that project's `settings.json` `env` block supplies the endpoint instead. When the supervisor's environment carries a different gateway or none, the worker keeps your stored credentials against the default endpoint instead of mixing one environment's credential with another's endpoint. Before v2.1.203, the dispatching shell's `ANTHROPIC_BASE_URL` was dropped while the `ANTHROPIC_API_KEY` exported alongside it was kept, so the gateway's key was sent to the default endpoint and every request failed with a 401."
+            },
+            {
+              "type": "added",
+              "content": "If you export a gateway `ANTHROPIC_BASE_URL` in the shell you dispatch from, it reaches that session's worker. `ANTHROPIC_CUSTOM_HEADERS` and the credential exported alongside them are forwarded with it. This happens when the supervisor was started from an environment with the same gateway. The supervisor captures its environment from the first shell that opens agent view or dispatches a background session, so starting from the gateway shell gives it that environment. The forward also applies only to sessions dispatched into the directory you're dispatching from, or backgrounded from your own session with `←` or `/background`: dispatching into a different directory with `@repo` or `--cwd` doesn't carry the shell's gateway, and that project's `settings.json` `env` block supplies the endpoint instead. When the supervisor's environment carries a different gateway or none, the worker keeps your stored credentials against the default endpoint instead of mixing one environment's credential with another's endpoint. Before v2.1.203, the dispatching shell's `ANTHROPIC_BASE_URL` was dropped while the `ANTHROPIC_API_KEY` exported alongside it was kept, so the gateway's key was sent to the default endpoint and every request failed with a 401."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The forwarded endpoint applies only to that live process and is never written to disk. When the supervisor stops an idle session and later restarts it, the restarted process reads its endpoint from your settings again: with a gateway `ANTHROPIC_AUTH_TOKEN` it falls back to your stored credentials, and with a gateway-issued `ANTHROPIC_API_KEY` it can fail to authenticate until the gateway is set in settings."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "authentication.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Web版のClaude Codeでは常にサブスクリプションの資格情報が優先され、サンドボックス内の環境変数では上書きできないことが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -135,7 +135,7 @@ A signed-in [Claude apps gateway](/en/claude-apps-gateway) session sits outside",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you have an active Claude subscription but also have `ANTHROPIC_API_KEY` set in your environment, the API key takes precedence once approved. This can cause authentication failures if the key belongs to a disabled or expired organization. Run `unset ANTHROPIC_API_KEY` to fall back to your subscription, and check `/status` to confirm which method is active. The `Login method` row shows your subscription account, and an `API key` row appears when an API key is in use."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Claude Code on the Web](/en/claude-code-on-the-web) always uses your subscription credentials. `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` in the sandbox environment do not override them."
+            },
+            {
+              "type": "added",
+              "content": "[Claude Code on the Web](/en/claude-code-on-the-web) always uses your subscription credentials. If you set `ANTHROPIC_API_KEY` or `ANTHROPIC_AUTH_TOKEN` in the sandbox environment, it doesn't override your subscription credentials."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Generate a long-lived token"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "auto-mode-config.md",
+      "additions": 4,
+      "deletions": 1,
+      "explanation": "オートモードの設定において、defaultsキーワードを含めずに配列を定義した場合に無効化される具体的なビルトインルールがリスト形式で整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -196,7 +196,10 @@ The following example keeps the defaults in all four lists and adds organization",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Setting any of `environment`, `allow`, `soft_deny`, or `hard_deny` without `\"$defaults\"` replaces the entire default list for that section. A `soft_deny` array without `\"$defaults\"` discards every built-in soft block rule, including force push, `curl | bash`, production deploys, and auto-mode bypass. A `hard_deny` array without `\"$defaults\"` discards the built-in data exfiltration rule."
+            },
+            {
+              "type": "added",
+              "content": "Setting any of `environment`, `allow`, `soft_deny`, or `hard_deny` without `\"$defaults\"` replaces the entire default list for that section. If you set an array without `\"$defaults\"`, you discard the built-in rules for that section:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- `soft_deny`: every built-in soft block rule, including force push, `curl | bash`, production deploys, and auto-mode bypass"
+            },
+            {
+              "type": "added",
+              "content": "- `hard_deny`: the built-in data exfiltration rule"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each section is evaluated independently, so setting `environment` alone leaves the default `allow`, `soft_deny`, and `hard_deny` lists intact."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "channels.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "チャンネルプラグインの許可リストを空の配列に設定した場合の挙動と、開発用フラグによるバイパス方法についての記述が明確化されました。",
+      "hunks": [
+        {
+          "header": "@@ -258,7 +258,7 @@ By default, any plugin on the Anthropic-maintained allowlist can register as a c",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When `allowedChannelPlugins` is set, it replaces the Anthropic allowlist entirely: only the listed plugins can register. Leave it unset to fall back to the default Anthropic allowlist. An empty array blocks all channel plugins from the allowlist, but `--dangerously-load-development-channels` can still bypass it for local testing. To block channels entirely including the development flag, leave `channelsEnabled` unset instead."
+            },
+            {
+              "type": "added",
+              "content": "When `allowedChannelPlugins` is set, it replaces the Anthropic allowlist entirely: only the listed plugins can register. Leave it unset to fall back to the default Anthropic allowlist. If you set an empty array, you block all channel plugins from the allowlist, but `--dangerously-load-development-channels` can still bypass that block for local testing. To block channels entirely including the development flag, leave `channelsEnabled` unset instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This setting requires `channelsEnabled: true`. If a user passes a plugin to `--channels` that isn't on your list, Claude Code starts normally but the channel doesn't register, and the startup notice explains that the plugin isn't on the organization's approved list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 4,
+      "deletions": 1,
+      "explanation": "Web版で/configコマンドを実行した際に設定画面が開く仕様や、引数が必要なコマンドの制限事項について詳しく説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -657,7 +657,10 @@ Sessions appear in the sidebar at claude.ai/code. From there you can review chan",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Manage context"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Cloud sessions support [built-in commands](/en/commands) that produce text output. Commands that only run in the terminal interface, such as `/plugin` or `/resume`, aren't available. `/model`, `/effort`, `/fast`, `/color`, and `/rename` work with the value as an argument, for example `/model sonnet`, instead of opening the terminal picker or slider; the argument forms require Claude Code v2.1.205 or later in the session's environment and follow each command's [availability notes](/en/commands#all-commands), so `/effort` reports `Not applied` while a model's [launch-default effort hold](/en/model-config#adjust-effort-level) is in force and `/fast` works only in a session that started with fast mode turned on. `/config` sets a setting when you pass `key=value`."
+            },
+            {
+              "type": "added",
+              "content": "Cloud sessions support [built-in commands](/en/commands) that produce text output. Commands that only run in the terminal interface, such as `/plugin` or `/resume`, aren't available. Commands that open a picker or panel in the terminal behave differently in cloud sessions:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **`/model`, `/effort`, `/fast`, `/color`, and `/rename`**: pass the value as an argument, for example `/model sonnet`, instead of opening the terminal picker or slider. The argument forms require Claude Code v2.1.205 or later in the session's environment and follow each command's [availability notes](/en/commands#all-commands): `/effort` reports `Not applied` while a model's [launch-default effort hold](/en/model-config#adjust-effort-level) is in force, and `/fast` works only in a session that started with fast mode turned on."
+            },
+            {
+              "type": "added",
+              "content": "- **`/config`**: on the web, opens the Claude Code section of your settings instead of setting a value, and text after the command, including `key=value`, is ignored. To change settings for a cloud session, use [environment variables](#configure-your-environment) or commit [settings files](/en/settings) to the repository."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For context management specifically:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/configコマンドの解説に、モバイルアプリからのリモートコントロール経由で設定変更が可能である旨が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -61,7 +61,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/code-review [low\\|medium\\|high\\|xhigh\\|max\\|ultra] [--fix] [--comment] [target]` | **[Skill](/en/skills#bundled-skills).** Review the current diff for correctness bugs and for reuse, simplification, and efficiency cleanups. Pass `--fix` to apply findings to your working tree, `--comment` to post them as inline GitHub PR comments, or `ultra` to run a deep [cloud review](/en/ultrareview). From v2.1.154, `/simplify` runs a separate cleanup-only review that applies fixes without hunting for bugs. See [Review a diff locally](/en/code-review#review-a-diff-locally) for effort levels and targeting |"
+            },
+            {
+              "type": "context",
+              "content": "| `/color [color\\|default]` | Set the prompt bar color for the current session. Available colors: `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`. Use `default` to reset, or run with no argument to pick a random color. When [Remote Control](/en/remote-control) is connected, the color syncs to claude.ai/code. Also available in non-interactive mode (`-p`); requires Claude Code v2.1.205 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `/compact [instructions]` | Free up context by summarizing the conversation so far. Optionally pass focus instructions for the summary. See [how compaction handles rules, skills, and memory files](/en/context-window#what-survives-compaction) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/config [key=value ...]` | Open the [Settings](/en/settings) interface to adjust theme, model, [output style](/en/output-styles), and other preferences. From v2.1.181, pass one or more `key=value` pairs to set a setting directly without opening the interface, for example `/config thinking=false`. From v2.1.182, named shorthand keys are also accepted, such as `/config theme=dark` or `/config model=sonnet`. The `key=value` form also works in non-interactive mode (`-p`) and from [Remote Control](/en/remote-control). Run `/config --help` to list every settable key with its options. Alias: `/settings` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/config [key=value ...]` | Open the [Settings](/en/settings) interface to adjust theme, model, [output style](/en/output-styles), and other preferences. From v2.1.181, pass one or more `key=value` pairs to set a setting directly without opening the interface, for example `/config thinking=false`. From v2.1.182, named shorthand keys are also accepted, such as `/config theme=dark` or `/config model=sonnet`. The `key=value` form also works in non-interactive mode (`-p`) and from the Claude mobile app via [Remote Control](/en/remote-control). Run `/config --help` to list every settable key with its options. Alias: `/settings` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/context [all]` | Visualize current context usage as a colored grid. Shows optimization suggestions for context-heavy tools, memory bloat, and capacity warnings. In [fullscreen mode](/en/fullscreen) the per-item breakdown is collapsed to keep the grid visible. Pass `all` to expand it |"
+            },
+            {
+              "type": "context",
+              "content": "| `/copy [N]` | Copy the last assistant response to clipboard. Pass a number `N` to copy the Nth-latest response: `/copy 2` copies the second-to-last. When code blocks are present, shows an interactive picker to select individual blocks or the full response. Press `w` in the picker to write the selection to a file instead of the clipboard, which is useful over SSH |"
+            },
+            {
+              "type": "context",
+              "content": "| `/cost` | Alias for `/usage` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "data-usage.md",
+      "additions": 14,
+      "deletions": 5,
+      "explanation": "テレメトリとエラー報告の種類の違い、個人情報の秘匿化処理、およびPro/Maxプラン等の有効化条件について大幅に加筆されました。",
+      "hunks": [
+        {
+          "header": "@@ -94,9 +94,18 @@ For security details about cloud execution, see [Security](/en/security#cloud-ex",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Telemetry services"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code connects from users' machines to Anthropic to log operational metrics such as latency, reliability, and usage patterns. This logging does not include any code or file paths. Data is encrypted in transit and at rest. To opt out of telemetry, set the `DISABLE_TELEMETRY` environment variable."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code sends two kinds of operational telemetry: usage metrics and error reports. You can turn each off individually with the environment variables below, or disable all non-essential traffic at once by setting `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code connects from users' machines to Sentry for operational error logging. The data is encrypted in transit using TLS and at rest using 256-bit AES encryption. Read more in the [Sentry security documentation](https://sentry.io/security/). To opt out of error logging, set the `DISABLE_ERROR_REPORTING` environment variable."
+            },
+            {
+              "type": "added",
+              "content": "**Metrics**: latency, reliability, and usage patterns, sent to Anthropic and to third-party logging infrastructure over TLS. Metrics never include your code, prompts, or file paths. Set `DISABLE_TELEMETRY=1` to opt out."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Error reports**: error messages and stack traces from Claude Code's own internals, sent to a third-party error tracking service over TLS. Claude Code redacts known patterns of secrets, file paths, email addresses, and other personal information before anything leaves your machine. Set `DISABLE_ERROR_REPORTING=1` to opt out."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Error reporting is on only when all of these apply:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- you sign in with a Claude Pro or Max subscription"
+            },
+            {
+              "type": "added",
+              "content": "- you're running Claude Code v2.1.198 or later"
+            },
+            {
+              "type": "added",
+              "content": "- you're connecting directly to the Claude API"
+            },
+            {
+              "type": "added",
+              "content": "- your organization doesn't have a zero data retention or HIPAA agreement"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you run the `/feedback` command, a copy of your conversation history including code is sent to Anthropic. Before submitting, you choose how much history to include: the current session only, which is the default, or also other sessions from the same project over the last 24 hours or 7 days. The data is encrypted in transit via TLS and stored in Google Cloud Storage, which encrypts stored data at rest by default. Optionally, a GitHub issue is created in the public repository. To opt out, set the `DISABLE_FEEDBACK_COMMAND` environment variable to `1`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -108,15 +117,15 @@ By default, error reporting, telemetry, and bug reporting are disabled when usin",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Service | Claude API | Google Cloud's Agent Platform API | Amazon Bedrock API | Microsoft Foundry API | Claude Platform on AWS |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - | - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Anthropic (Metrics)** | Default on.`DISABLE_TELEMETRY=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Sentry (Errors)** | Default on.`DISABLE_ERROR_REPORTING=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |"
+            },
+            {
+              "type": "added",
+              "content": "| **Metrics** | Default on.`DISABLE_TELEMETRY=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |"
+            },
+            {
+              "type": "added",
+              "content": "| **Error reports** | On for Pro and Max sign-ins on v2.1.198+, otherwise off.`DISABLE_ERROR_REPORTING=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Claude API (`/feedback` reports)** | Default on.`DISABLE_FEEDBACK_COMMAND=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Session quality surveys** | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. |"
+            },
+            {
+              "type": "context",
+              "content": "| **WebFetch domain safety check** | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "All environment variables can be checked into `settings.json` (see [settings reference](/en/settings))."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "As of v2.1.126, when a host platform sets `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST`, metrics default to on for Google Cloud's Agent Platform, Amazon Bedrock, and Microsoft Foundry, and follow the standard `DISABLE_TELEMETRY` opt-out. Sentry error reporting and `/feedback` reports remain off by default on those providers."
+            },
+            {
+              "type": "added",
+              "content": "As of v2.1.126, when a host platform sets `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST`, metrics default to on for Google Cloud's Agent Platform, Amazon Bedrock, and Microsoft Foundry, and follow the standard `DISABLE_TELEMETRY` opt-out. Error reporting and `/feedback` reports remain off by default on those providers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### WebFetch domain safety check"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "デスクトップ版のCodeタブ内における/configコマンドの動作制限と、設定ファイルによる直接編集の推奨について記載されています。",
+      "hunks": [
+        {
+          "header": "@@ -759,7 +759,9 @@ The following features are only available in the CLI or VS Code extension, excep",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Linux (beta)**: Computer Use isn't yet available in the Linux desktop app. See [Claude Desktop on Linux](/en/desktop-linux)."
+            },
+            {
+              "type": "context",
+              "content": "- **Inline code suggestions**: Desktop does not provide autocomplete-style suggestions. It works through conversational prompts and explicit code changes."
+            },
+            {
+              "type": "context",
+              "content": "- **Agent teams**: parallel Claude Code sessions that message each other are available in the [CLI](/en/agent-teams), not in Desktop. For multi-agent work inside one session, use [dynamic workflows](/en/workflows), which run in Desktop."
+            },
+            {
+              "type": "removed",
+              "content": "- **Terminal-dialog commands**: built-in commands that open an interactive panel in the terminal, such as `/permissions` and `/config`, are not available in the Code tab and reply with `isn't available in this environment`. `/config` sets a setting when you pass `key=value`, for example `/config theme=dark`; only its picker form is unavailable. Edit [settings files](/en/settings) directly to manage permission rules and configuration, or run the command from the standalone CLI."
+            },
+            {
+              "type": "added",
+              "content": "- **Terminal-dialog commands**: built-in commands that open an interactive panel in the terminal behave differently in the Code tab. Edit [settings files](/en/settings) directly to manage permission rules and configuration, or run the commands from the standalone CLI."
+            },
+            {
+              "type": "added",
+              "content": "  - Commands with no argument form, such as `/permissions`, reply with `isn't available in this environment`."
+            },
+            {
+              "type": "added",
+              "content": "  - `/config` opens Settings → Claude Code. Text after the command is ignored, so `/config theme=dark` doesn't set the theme."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "エラー報告を無効にするための環境変数DISABLE_ERROR_REPORTINGの名称と役割が最新の定義に合わせて修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -311,7 +311,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `DISABLE_COMPACT` | Set to `1` to disable all compaction: both automatic compaction and the manual `/compact` command |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_COST_WARNINGS` | Set to `1` to disable cost warning messages |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_DOCTOR_COMMAND` | Set to `1` to hide the [`/doctor`](/en/commands#all-commands) setup checkup skill and its `/checkup` alias. Useful for managed deployments where users shouldn't run setup diagnostics from a session. Doesn't affect the `claude doctor` terminal command. Before v2.1.205, this variable hid the `/doctor` diagnostics screen command |"
+            },
+            {
+              "type": "removed",
+              "content": "| `DISABLE_ERROR_REPORTING` | Set to `1` to opt out of Sentry error reporting |"
+            },
+            {
+              "type": "added",
+              "content": "| `DISABLE_ERROR_REPORTING` | Set to `1` to opt out of error reporting |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_EXTRA_USAGE_COMMAND` | Set to `1` to hide the `/usage-credits` command that lets users purchase additional usage beyond rate limits |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_FEEDBACK_COMMAND` | Set to `1` to disable the `/feedback` command. The older name `DISABLE_BUG_COMMAND` is also accepted |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_GROWTHBOOK` | Set to `1` to disable GrowthBook feature-flag fetching and use code defaults for every flag. Telemetry event logging stays on unless `DISABLE_TELEMETRY` is also set |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "remote-control.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "モバイルアプリとWeb版のそれぞれにおける/configコマンドの動作の違いについて、具体的な挙動が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -229,7 +229,7 @@ Claude Code skips mobile push notifications while you are typing in or focused o",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - Text-output commands: `/compact`, `/clear`, `/context`, `/usage`, `/exit`, `/usage-credits` (runs the text form instead of opening the in-CLI dialog), `/recap`, `/reload-plugins`"
+            },
+            {
+              "type": "context",
+              "content": "  - `/model`, `/effort`, `/fast`, `/color`, and `/rename`: pass the value as an argument, for example `/model sonnet` or `/effort high`. From mobile and web, `/model` and `/effort` take the argument in place of the terminal picker or slider."
+            },
+            {
+              "type": "context",
+              "content": "  - `/mcp`, from v2.1.166: returns a text summary of server status instead of opening the picker, and accepts the `reconnect`, `enable`, and `disable` [subcommands](/en/commands#all-commands). Unlike the local CLI, `/mcp reconnect` without a server name reconnects every server that has failed or needs authentication."
+            },
+            {
+              "type": "removed",
+              "content": "  - `/config`, from v2.1.181: pass `key=value` to set a setting, or run it with no argument to list the keys you can set."
+            },
+            {
+              "type": "added",
+              "content": "  - `/config`, from v2.1.181: from the mobile app, pass `key=value` to set a setting, or run it with no argument to list the keys you can set. On the web, `/config` opens the Claude Code section of your settings instead, and ignores text after the command."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandbox-environments.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "パーミッションをスキップするフラグを使用する際、セキュリティ保護のためにサンドボックス等の隔離環境内での実行を強く推奨する記述が強調されました。",
+      "hunks": [
+        {
+          "header": "@@ -51,7 +51,7 @@ Match your goal to a row below, then read the detail section that follows.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Permission modes](/en/permission-modes) decide whether a tool call runs and whether you are prompted first. Isolation restricts what a command can access once it runs. The two work together: when a permission mode lets actions run without asking you, an isolation boundary limits what those actions can reach."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When you pass `--dangerously-skip-permissions`, Claude acts without asking you first; you're only prompted for explicit [ask rules](/en/permissions#manage-permissions), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), and removals targeting `/` or your home directory. With no prompts to catch mistakes, the isolation boundary you choose is what protects your system. Always run this flag inside a container, a VM, or the [sandbox runtime](#sandbox-runtime), so that file tools, MCP servers, and hooks are also inside the boundary."
+            },
+            {
+              "type": "added",
+              "content": "When you pass `--dangerously-skip-permissions`, Claude acts without asking you first; you're only prompted for explicit [ask rules](/en/permissions#manage-permissions), connector tools [your organization set to `ask`](/en/mcp#organization-controls-on-connector-tools), MCP tools marked [`requiresUserInteraction`](/en/mcp#require-approval-for-a-specific-tool), and removals targeting `/` or your home directory. With no prompts to catch mistakes, the isolation boundary you choose is what protects your system. Always run `--dangerously-skip-permissions` sessions inside a container, a VM, or the [sandbox runtime](#sandbox-runtime), so that file tools, MCP servers, and hooks are also inside the boundary."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) replaces the prompt with a classifier that reviews actions and blocks ones that escalate beyond the request, target unrecognized infrastructure, or appear driven by hostile content Claude read. The classifier is a per-action control, not an isolation boundary, so an isolation boundary still adds defense in depth for unattended runs, and is not required the way it is for `--dangerously-skip-permissions`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "スキルの自動実行を制限するdisable-model-invocation設定について、より分かりやすい条件文の表現に改善されました。",
+      "hunks": [
+        {
+          "header": "@@ -312,7 +312,7 @@ By default, both you and Claude can invoke any skill. You can type `/skill-name`",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **`user-invocable: false`**: Only Claude can invoke the skill. Use this for background knowledge that isn't actionable as a command. A `legacy-system-context` skill explains how an old system works. Claude should know this when relevant, but `/legacy-system-context` isn't a meaningful action for users to take."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This example creates a deploy skill that only you can trigger. The `disable-model-invocation: true` field prevents Claude from running it automatically:"
+            },
+            {
+              "type": "added",
+              "content": "This example creates a deploy skill that only you can trigger. If you set `disable-model-invocation: true`, Claude can't run the skill automatically:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```yaml"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
