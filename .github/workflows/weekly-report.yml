@@ -20,6 +20,10 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+      # claude-code-action が Anthropic API に OIDC トークンを提示するため必須
+      id-token: write
+      # 処理開始コメントを issue に投稿する
+      issues: write
 
     env:
       TZ: Asia/Tokyo
@@ -45,6 +49,20 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           INPUT_FILE_PATH: ${{ runner.temp }}/weekly-input.json
         run: python3 .github/scripts/weekly-report-parse-issue.py
+
+      - name: Post start comment on source issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          WEEK: ${{ steps.parse.outputs.week }}
+          SELECTED_COUNT: ${{ steps.parse.outputs.selected_count }}
+          TOTAL_ITEMS: ${{ steps.parse.outputs.total_items }}
+        run: |
+          BODY="週次記事の生成を開始しました (${WEEK}, ${SELECTED_COUNT} / ${TOTAL_ITEMS} 件)。
+          Actions run: ${RUN_URL}"
+          gh issue comment "$ISSUE_NUMBER" --body "$BODY"
 
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/setup-uv
@@ -154,6 +172,8 @@ jobs:
       - name: Post failure comment on source issue
         env:
           GH_TOKEN: ${{ github.token }}
+          # checkout していないため、gh に対象リポジトリを明示する
+          GH_REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
