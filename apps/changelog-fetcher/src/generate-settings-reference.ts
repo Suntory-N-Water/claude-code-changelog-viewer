@@ -4,7 +4,7 @@ import { generateSettingsReference } from './usecase/generate-settings-reference
 import { GeminiSettingsTranslator } from './infrastructure/ai/gemini-settings-translator';
 import { PROJECT_ROOT } from './infrastructure/docs/docs-paths';
 import {
-  loadExistingSettingKeys,
+  loadExistingSettingSlugs,
   writeSettingReferenceFiles,
 } from './infrastructure/filesystem/settings-entry-writer';
 import {
@@ -65,7 +65,7 @@ async function main() {
     },
     relatedContextSource: { load: loadSettingsReferenceContext },
     settingsReferenceStore: {
-      loadExistingKeys: loadExistingSettingKeys,
+      loadExistingSlugs: loadExistingSettingSlugs,
       writeReferences: writeSettingReferenceFiles,
     },
     ...(apiKey

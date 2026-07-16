@@ -87,7 +87,7 @@ export type SettingsReferenceContextPort = {
 };
 
 export type SettingsReferenceStorePort = {
-  loadExistingKeys: (outputDir: string) => Set<string>;
+  loadExistingSlugs: (outputDir: string) => Set<string>;
   writeReferences: (input: {
     outputDir: string;
     references: SettingReferenceOutput[];
@@ -134,12 +134,15 @@ export async function generateSettingsReference(input: {
     );
   }
 
-  const existingKeys = input.settingsReferenceStore.loadExistingKeys(
+  const existingSlugs = input.settingsReferenceStore.loadExistingSlugs(
     paths.outputDir,
   );
-  const newEntries = allEntries.filter((entry) => !existingKeys.has(entry.key));
+  const newEntries = allEntries.filter(
+    (entry) =>
+      !existingSlugs.has(createSettingSlugFromKey(entry.key, entry.source)),
+  );
   log.info(
-    `生成済みスキップ: ${existingKeys.size}件, 新規生成対象: ${newEntries.length}件`,
+    `生成済みスキップ: ${existingSlugs.size}件, 新規生成対象: ${newEntries.length}件`,
   );
 
   if (newEntries.length === 0) {

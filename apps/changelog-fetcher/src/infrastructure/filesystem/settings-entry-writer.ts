@@ -1,17 +1,14 @@
-import { globSync, mkdirSync, readFileSync } from 'node:fs';
+import { globSync, mkdirSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { SettingReferenceOutput } from '../../usecase/settings-translation';
 
-export function loadExistingSettingKeys(outputDir: string): Set<string> {
+export function loadExistingSettingSlugs(outputDir: string): Set<string> {
   mkdirSync(outputDir, { recursive: true });
   return new Set(
     globSync('settings_*.json', { cwd: outputDir })
       .map(String)
-      .map((f) => {
-        const raw = readFileSync(path.join(outputDir, f), 'utf-8');
-        return (JSON.parse(raw) as { key: string }).key;
-      }),
+      .map((f) => f.replace(/^settings_/, '').replace(/\.json$/, '')),
   );
 }
 
