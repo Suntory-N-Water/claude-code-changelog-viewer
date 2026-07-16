@@ -479,7 +479,7 @@ managed:
 | - | - | - |
 | `availableModels` | Gateway + CLI | Model allowlist. Also checked at `/v1/messages`, so a patched client can't bypass it. |
 | `permissions.allow` / `.deny` | CLI | Tool and command rules. See [Permissions](/en/permissions). |
-| `permissions.disableBypassPermissionsMode` | CLI | Set to `disable` to block [`bypassPermissions`](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode), the mode that auto-approves every tool call, and the `--dangerously-skip-permissions` flag |
+| `permissions.disableBypassPermissionsMode` | CLI | Set to `disable` to block [`bypassPermissions`](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode), the mode that skips permission prompts, and the `--dangerously-skip-permissions` flag |
 | `allowManagedPermissionRulesOnly` | CLI | When `true`, user and project permission rules are ignored; only rules from this document apply |
 | `env` | CLI | Environment variables merged into the CLI process. Use for telemetry, auto-update, and model-name overrides. |
 | `hooks` | CLI | Org-wide [hooks](/en/hooks) |
