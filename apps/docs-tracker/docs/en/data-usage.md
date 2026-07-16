@@ -94,9 +94,18 @@ For security details about cloud execution, see [Security](/en/security#cloud-ex
 
 ## Telemetry services
 
-Claude Code connects from users' machines to Anthropic to log operational metrics such as latency, reliability, and usage patterns. This logging does not include any code or file paths. Data is encrypted in transit and at rest. To opt out of telemetry, set the `DISABLE_TELEMETRY` environment variable.
+Claude Code sends two kinds of operational telemetry: usage metrics and error reports. You can turn each off individually with the environment variables below, or disable all non-essential traffic at once by setting `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`.
 
-Claude Code connects from users' machines to Sentry for operational error logging. The data is encrypted in transit using TLS and at rest using 256-bit AES encryption. Read more in the [Sentry security documentation](https://sentry.io/security/). To opt out of error logging, set the `DISABLE_ERROR_REPORTING` environment variable.
+**Metrics**: latency, reliability, and usage patterns, sent to Anthropic and to third-party logging infrastructure over TLS. Metrics never include your code, prompts, or file paths. Set `DISABLE_TELEMETRY=1` to opt out.
+
+**Error reports**: error messages and stack traces from Claude Code's own internals, sent to a third-party error tracking service over TLS. Claude Code redacts known patterns of secrets, file paths, email addresses, and other personal information before anything leaves your machine. Set `DISABLE_ERROR_REPORTING=1` to opt out.
+
+Error reporting is on only when all of these apply:
+
+- you sign in with a Claude Pro or Max subscription
+- you're running Claude Code v2.1.198 or later
+- you're connecting directly to the Claude API
+- your organization doesn't have a zero data retention or HIPAA agreement
 
 When you run the `/feedback` command, a copy of your conversation history including code is sent to Anthropic. Before submitting, you choose how much history to include: the current session only, which is the default, or also other sessions from the same project over the last 24 hours or 7 days. The data is encrypted in transit via TLS and stored in Google Cloud Storage, which encrypts stored data at rest by default. Optionally, a GitHub issue is created in the public repository. To opt out, set the `DISABLE_FEEDBACK_COMMAND` environment variable to `1`.
 
@@ -108,15 +117,15 @@ By default, error reporting, telemetry, and bug reporting are disabled when usin
 
 | Service | Claude API | Google Cloud's Agent Platform API | Amazon Bedrock API | Microsoft Foundry API | Claude Platform on AWS |
 | - | - | - | - | - | - |
-| **Anthropic (Metrics)** | Default on.`DISABLE_TELEMETRY=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |
-| **Sentry (Errors)** | Default on.`DISABLE_ERROR_REPORTING=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |
+| **Metrics** | Default on.`DISABLE_TELEMETRY=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |
+| **Error reports** | On for Pro and Max sign-ins on v2.1.198+, otherwise off.`DISABLE_ERROR_REPORTING=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |
 | **Claude API (`/feedback` reports)** | Default on.`DISABLE_FEEDBACK_COMMAND=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. | Default off.`CLAUDE_CODE_USE_ANTHROPIC_AWS` must be 1. |
 | **Session quality surveys** | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. |
 | **WebFetch domain safety check** | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. |
 
 All environment variables can be checked into `settings.json` (see [settings reference](/en/settings)).
 
-As of v2.1.126, when a host platform sets `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST`, metrics default to on for Google Cloud's Agent Platform, Amazon Bedrock, and Microsoft Foundry, and follow the standard `DISABLE_TELEMETRY` opt-out. Sentry error reporting and `/feedback` reports remain off by default on those providers.
+As of v2.1.126, when a host platform sets `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST`, metrics default to on for Google Cloud's Agent Platform, Amazon Bedrock, and Microsoft Foundry, and follow the standard `DISABLE_TELEMETRY` opt-out. Error reporting and `/feedback` reports remain off by default on those providers.
 
 ### WebFetch domain safety check
 
