@@ -234,6 +234,8 @@ open "vscode://anthropic.claude-code/open"
 xdg-open "vscode://anthropic.claude-code/open"
 ```
 
+The `xdg-open` command comes from the `xdg-utils` package. If the shell reports it isn't found, see [xdg-open is not found on Linux](/en/deep-links#xdg-open-is-not-found-on-linux).
+
 In PowerShell:
 
 ```powershell theme={null}

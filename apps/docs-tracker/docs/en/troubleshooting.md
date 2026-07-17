@@ -84,6 +84,8 @@ sudo apt install ripgrep
 apk add ripgrep
 ```
 
+`ripgrep` is in Alpine's community repository. If `apk` reports that the package is missing, see [Alpine Linux setup](/en/setup#alpine-linux-and-musl-based-distributions).
+
 ```bash theme={null}
 pacman -S ripgrep
 ```
