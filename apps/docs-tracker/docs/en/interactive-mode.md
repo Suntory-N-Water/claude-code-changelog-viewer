@@ -11,7 +11,7 @@ source: https://code.claude.com/docs/en/interactive-mode.md
 
 Keyboard shortcuts may vary by platform and terminal. In [fullscreen rendering](/en/fullscreen), press `?` in the transcript viewer to see available shortcuts there.
 
-**macOS users**: Option/Alt key shortcuts (`Alt+B`, `Alt+F`, `Alt+Y`, `Alt+M`, `Alt+P`) require configuring Option as Meta in your terminal:
+**macOS users**: Option/Alt key shortcuts (`Alt+B`, `Alt+F`, `Alt+Y`, `Alt+P`) require configuring Option as Meta in your terminal:
 
 - **iTerm2**: Settings → Profiles → Keys → General → set Left/Right Option key to "Esc+"
 - **Apple Terminal**: Settings → Profiles → Keyboard → check "Use Option as Meta Key"
@@ -33,11 +33,13 @@ See [Terminal configuration](/en/terminal-config) for details.
 | `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows and WSL) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt. On WSL, both `Ctrl+V` and `Alt+V` are bound; use `Alt+V` if your terminal intercepts `Ctrl+V` |
 | `Ctrl+B` | Background running tasks | Backgrounds Bash commands and agents. Tmux users press twice |
 | `Ctrl+T` | Toggle Claude's task checklist | Show or hide [Claude's to-do checklist](#task-list) in the status area. This is not the background-task view; use [`/tasks`](/en/commands) to see running shells and subagents |
+| `Ctrl+S` | Stash or restore prompt | With text in the input, stashes it and clears the prompt. Pressed again on an empty prompt, restores the stashed text, cursor position, and pasted content |
+| `Ctrl+Z` | Suspend Claude Code | Unix only. Suspends the process to your shell; run `fg` to resume |
 | `Left/Right arrows` | Cycle through dialog tabs | Navigate between tabs in permission dialogs and menus |
 | `Up/Down arrows` or `Ctrl+P`/`Ctrl+N` | Move cursor or navigate command history | When the input spans more than one visual row, whether wrapped or multiline, first moves the cursor within the prompt. Once the cursor is on the first or last visual row, pressing again navigates command history. As of v2.1.169, wrapped single-line input behaves the same as multiline |
 | `Esc` | Interrupt Claude, or close a dialog | Stop the current response or tool call mid-turn so you can redirect. Claude keeps the work done so far. When a dialog such as a permission prompt is open, `Esc` closes the dialog rather than interrupting Claude. Before v2.1.202, `Esc` on some dialogs interrupted Claude and left the dialog open |
 | `Esc` + `Esc` | Clear input draft, or rewind | When the prompt input contains text, double `Esc` clears it and saves the draft to history so `Up` recalls it. When the input is empty, double `Esc` opens the [rewind menu](/en/checkpointing) to restore or summarize code and conversation from a previous point |
-| `Shift+Tab` or `Alt+M` (some configurations) | Cycle permission modes | Cycle through `default` (labeled Manual in the mode indicator), `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/en/permission-modes). |
+| `Shift+Tab`, or `Alt+M` on Windows when the Node or Bun runtime doesn't enable VT input mode | Cycle permission modes | Cycle through `default` (labeled Manual in the mode indicator), `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/en/permission-modes). |
 | `Option+P` (macOS) or `Alt+P` (Windows/Linux) | Switch model | Switch models without clearing your prompt |
 | `Option+T` (macOS) or `Alt+T` (Windows/Linux) | Toggle extended thinking | Enable or disable extended thinking mode. Has no effect on Fable 5, which always uses extended thinking. As of v2.1.132 this shortcut works on macOS without configuring Option as Meta |
 | `Option+O` (macOS) or `Alt+O` (Windows/Linux) | Toggle fast mode | Enable or disable [fast mode](/en/fast-mode) |
@@ -55,6 +57,7 @@ See [Terminal configuration](/en/terminal-config) for details.
 | `Alt+Y` (after `Ctrl+Y`) | Cycle paste history | After pasting, cycle through previously deleted text. Requires [Option as Meta](#keyboard-shortcuts) on macOS |
 | `Alt+B` | Move cursor back one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS |
 | `Alt+F` | Move cursor forward one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS |
+| `Ctrl+_` or `Ctrl+Shift+-` | Undo last input edit | Restores the previous input text and cursor position |
 
 ### Theme and display
 
@@ -85,13 +88,13 @@ Shift+Enter works without configuration in iTerm2, WezTerm, Ghostty, Kitty, Warp
 
 ### Transcript viewer
 
-When the transcript viewer is open (toggled with `Ctrl+O`), these shortcuts are available. In [fullscreen rendering](/en/fullscreen), press `?` to show the full shortcut reference panel inside the viewer. `Ctrl+E` can be rebound via [`transcript:toggleShowAll`](/en/keybindings).
+When the transcript viewer is open (toggled with `Ctrl+O`), these shortcuts are available. Run `/tui` with no argument to check which renderer is active. In [fullscreen rendering](/en/fullscreen), press `?` to show the full shortcut reference panel inside the viewer. `Ctrl+E` can be rebound via [`transcript:toggleShowAll`](/en/keybindings).
 
 | Shortcut | Description |
 | :- | :- |
 | `?` | Toggle the keyboard shortcut help panel. Requires [fullscreen rendering](/en/fullscreen) |
 | `{` / `}` | Jump to the previous or next user prompt, like vim paragraph motion. Requires [fullscreen rendering](/en/fullscreen) |
-| `Ctrl+E` | Toggle show all content |
+| `Ctrl+E` | Toggle show all content. Available in the default renderer only, not in [fullscreen rendering](/en/fullscreen) |
 | `[` | Write the full conversation to your terminal's native scrollback so `Cmd+F`, tmux copy mode, and other native tools can search it. Requires [fullscreen rendering](/en/fullscreen#search-and-review-the-conversation) |
 | `v` | Write the conversation to a temporary file and open it in `$VISUAL` or `$EDITOR`. Requires [fullscreen rendering](/en/fullscreen) |
 | `q`, `Ctrl+C`, `Esc` | Exit transcript view. All three can be rebound via [`transcript:exit`](/en/keybindings) |
@@ -240,12 +243,12 @@ Claude Code maintains command history for the current session:
 
 ### Reverse search with Ctrl+R
 
-Press `Ctrl+R` to interactively search through your command history:
+Press `Ctrl+R` to interactively search through your command history. In [fullscreen rendering](/en/fullscreen), `Ctrl+R` opens a search dialog instead: type to filter, press `Up` and `Down` to move through matches, and press `Ctrl+S` to cycle the scope through this session, this project, and all projects. Press `Enter` or `Tab` to place a match in the prompt input, or `Esc` to cancel. The steps below describe the default inline search:
 
 1. **Start search**: press `Ctrl+R` to activate reverse history search
 2. **Type query**: enter text to search for in previous commands. The search term is highlighted in matching results
 3. **Navigate matches**: press `Ctrl+R` again to cycle through older matches
-4. **Change scope**: search defaults to prompts from all projects. Press `Ctrl+S` to cycle the scope through this session, this project, and all projects
+4. **Search scope**: the inline search always searches prompts from all projects
 5. **Accept match**:
    - Press `Tab` or `Esc` to accept the current match and continue editing
    - Press `Enter` to accept and execute the command immediately
@@ -253,7 +256,7 @@ Press `Ctrl+R` to interactively search through your command history:
    - Press `Ctrl+C` to cancel and restore your original input
    - Press `Backspace` on empty search to cancel
 
-The search loads the 100 most recent unique prompts in the selected scope, with duplicates collapsed to the newest occurrence. Matching prompts display with the search term highlighted, so you can find and reuse previous inputs.
+The inline search scans your full prompt history, newest first, with duplicates collapsed to the newest occurrence. The fullscreen dialog lists the 100 most recent unique prompts in the selected scope. Matching prompts display with the search term highlighted, so you can find and reuse previous inputs.
 
 Accepting a match or canceling the search takes effect immediately, even while Claude Code is still loading the history. Before v2.1.202, accepting or canceling during that load could report an internal error.
 
@@ -326,7 +329,7 @@ The suggestion runs as a background request that reuses the parent conversation'
 
 Suggestions are automatically skipped after the first turn of a conversation and in plan mode.
 
-In print mode they are off by default. Pass [`--prompt-suggestions`](/en/cli-reference#cli-flags) with `--output-format stream-json --verbose` to emit a `prompt_suggestion` message after each turn instead.
+In print mode they are off by default. Pass [`--prompt-suggestions`](/en/cli-reference#cli-flags) with `-p "<prompt>" --output-format stream-json --verbose` to emit a `prompt_suggestion` message after each turn instead.
 
 To disable prompt suggestions entirely, set the environment variable or toggle the setting in `/config`:
 
