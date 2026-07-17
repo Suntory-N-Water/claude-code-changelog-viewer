@@ -242,7 +242,7 @@ Before v2.1.206, running `/remote-control` while signed out reported `Unknown co
 
 ### "Remote Control requires a full-scope login token"
 
-You're authenticated with a long-lived token from `claude setup-token` or the `CLAUDE_CODE_OAUTH_TOKEN` environment variable. These tokens are limited to inference-only and cannot establish Remote Control sessions. Run `claude auth login` to authenticate with a full-scope session token instead.
+You're authenticated with a long-lived token from `claude setup-token` or the `CLAUDE_CODE_OAUTH_TOKEN` environment variable. These tokens can only make model requests, so they can't establish Remote Control sessions. Run `claude auth login` to authenticate with a full-scope session token instead.
 
 ### "Unable to determine your organization for Remote Control eligibility"
 
