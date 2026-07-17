@@ -47,8 +47,11 @@ jobs:
         env:
           # Issue body は untrusted。必ず env 経由で受け、run script に直接埋め込まない。
           ISSUE_BODY: ${{ github.event.issue.body }}
-          INPUT_FILE_PATH: ${{ runner.temp }}/weekly-input.json
-        run: python3 .github/scripts/weekly-report-parse-issue.py
+          # Claude Code のサンドボックス(checkout ディレクトリ)から読める場所に置く必要があるため、runner.temp ではなく workspace 配下にする。
+          INPUT_FILE_PATH: ${{ github.workspace }}/.tmp/weekly-input.json
+        run: |
+          mkdir -p "$(dirname "$INPUT_FILE_PATH")"
+          python3 .github/scripts/weekly-report-parse-issue.py
 
       - name: Post start comment on source issue
         env:
@@ -72,7 +75,7 @@ jobs:
         uses: anthropics/claude-code-action@1298632ce7736903d02a1435002705aa2a594a6c # v1.0.175
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: /weekly-post --input-file ${{ runner.temp }}/weekly-input.json
+          prompt: /weekly-post --input-file ${{ github.workspace }}/.tmp/weekly-input.json
           claude_args: --model claude-opus-4-7 --max-turns 100 --debug
           # PR 未作成などの silent failure 調査用。issue body / 生成物ともに社内メンバーしか投稿できない前提。
           show_full_output: "true"
