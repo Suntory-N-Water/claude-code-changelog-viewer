@@ -91,7 +91,7 @@ After installing, launch Claude, sign in, and click the **Code** tab to start co
 
 [Learn more about the desktop app →](/en/desktop-quickstart)
 
-Run Claude Code in your browser with no local setup. Kick off long-running tasks and check back when they're done, work on repos you don't have locally, or run multiple tasks in parallel. Available on desktop browsers and the Claude iOS app.
+Run Claude Code in your browser with no local setup. Kick off long-running tasks and check back when they're done, work on repos you don't have locally, or run multiple tasks in parallel. Available on desktop browsers and [the Claude app for iOS and Android](/en/mobile).
 
 Start coding at [claude.ai/code](https://claude.ai/code).
 
@@ -162,7 +162,7 @@ Sessions aren't tied to a single surface. Move work between them as your context
 
 - Step away from your desk and keep working from your phone or any browser with [Remote Control](/en/remote-control)
 - Message [Dispatch](/en/desktop#sessions-from-dispatch) a task from your phone and open the Desktop session it creates
-- Kick off a long-running task on the [web](/en/claude-code-on-the-web) or [iOS app](https://apps.apple.com/app/claude-by-anthropic/id6473753684), then pull it into your terminal with `claude --teleport`. Teleport requires a claude.ai subscription.
+- Kick off a long-running task on the [web](/en/claude-code-on-the-web) or the [Claude mobile app](/en/mobile), then pull it into your terminal with `claude --teleport`. Teleport requires a claude.ai subscription.
 - Hand off a terminal session to the [Desktop app](/en/desktop) with `/desktop` for visual diff review
 - Route tasks from team chat: mention `@Claude` in [Slack](/en/slack) with a bug report and get a pull request back
 
@@ -176,7 +176,7 @@ Beyond the [Terminal](/en/quickstart), [VS Code](/en/vs-code), [JetBrains](/en/j
 | - | - |
 | Continue a local session from my phone or another device | [Remote Control](/en/remote-control) |
 | Push events from Telegram, Discord, iMessage, or my own webhooks into a session | [Channels](/en/channels) |
-| Start a task locally, continue on mobile | [Web](/en/claude-code-on-the-web) or [Claude iOS app](https://apps.apple.com/app/claude-by-anthropic/id6473753684) |
+| Start a task locally, continue on mobile | [`claude --cloud`](/en/claude-code-on-the-web#from-terminal-to-web), then the [Claude mobile app](/en/mobile) |
 | Run Claude on a recurring schedule | [Routines](/en/routines) or [Desktop scheduled tasks](/en/desktop-scheduled-tasks) |
 | Automate PR reviews and issue triage | [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd) |
 | Get automatic code review on every PR | [GitHub Code Review](/en/code-review) |
