@@ -120,7 +120,6 @@ const MAX_RETRIES_PER_MODEL = 3;
  * モデルごとのレート制限設定
  */
 const MODEL_RATE_LIMITS: Record<string, number> = {
-  'gemini-3-flash-preview': 15 * 1000, // 4 RPM
   'gemini-3.1-flash-lite': 15 * 1000, // 4 RPM
   'gemini-2.5-flash': 15 * 1000, // 4 RPM
   'gemini-2.5-flash-lite': 10 * 1000, // 6 RPM
@@ -130,7 +129,6 @@ const MODEL_RATE_LIMITS: Record<string, number> = {
  * 推論タスク用のフォールバックモデル順序
  */
 const INFERENCE_FALLBACK_MODELS = [
-  'gemini-3-flash-preview',
   'gemini-3.1-flash-lite',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
@@ -176,15 +174,49 @@ export class GeminiClient {
   }
 
   /**
-   * リトライ可能なエラーかどうかを判定
-   * - 429: レート制限エラー
-   * - 503: サービス一時利用不可(高負荷時など)
+   * 同一モデルでリトライすべきエラーか判定
+   * - 503: サービス一時利用不可(高負荷時など)は同一モデルで再試行
+   *
+   * 429 は含めない: 無料枠 TPM は同一モデルで待っても回復に時間がかかり、
+   * 失敗リクエストがクオータを二重に消費する疑いがあるため、
+   * 即座に次モデルへフォールバックさせる
    */
   private isRetryableError(error: Error): boolean {
-    return (
-      error instanceof ApiError &&
-      (error.status === 429 || error.status === 503)
-    );
+    return error instanceof ApiError && error.status === 503;
+  }
+
+  private isModelQuotaError(error: Error): boolean {
+    return error instanceof ApiError && error.status === 429;
+  }
+
+  private async logPromptTokenCount(
+    prompt: string,
+    method: string,
+  ): Promise<void> {
+    // Gemini 側のトークナイザーで実測することで、Node 側の文字数推定と
+    // API の 250k TPM 制限との乖離を検知する
+    const referenceModel = INFERENCE_FALLBACK_MODELS[0];
+    try {
+      const result = await this.ai.models.countTokens({
+        model: referenceModel,
+        contents: prompt,
+      });
+      this.log.info(
+        `プロンプト実測トークン: ${result.totalTokens ?? 0} (${referenceModel}, 上限 250,000/min)`,
+        { method },
+      );
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.log.warn(`countTokens 失敗: ${this.describeError(err)}`, { method });
+    }
+  }
+
+  private describeError(error: Error): string {
+    const message = error.message.replace(/\s+/g, ' ').slice(0, 500);
+    if (error instanceof ApiError) {
+      return `ApiError[${error.status}]: ${message}`;
+    }
+    return `${error.name}: ${message}`;
   }
 
   /**
@@ -195,6 +227,7 @@ export class GeminiClient {
    */
   async inferAll(prompt: string): Promise<InferenceBatchResult> {
     let lastError: Error | null = null;
+    await this.logPromptTokenCount(prompt, 'inferAll');
 
     for (const model of INFERENCE_FALLBACK_MODELS) {
       try {
@@ -363,11 +396,22 @@ export class GeminiClient {
           {
             retries: MAX_RETRIES_PER_MODEL,
             onFailedAttempt: async ({ error, attemptNumber }) => {
+              if (this.isModelQuotaError(error)) {
+                this.log.warn(
+                  `クオータ超過、次モデルへフォールバック (${model}): ${this.describeError(error)}`,
+                  { method: 'inferAll' },
+                );
+                throw new AbortError(error.message);
+              }
               if (!this.isRetryableError(error)) {
+                this.log.warn(
+                  `リトライ不可 (${model}, ${attemptNumber}回目): ${this.describeError(error)}`,
+                  { method: 'inferAll' },
+                );
                 throw new AbortError(error.message);
               }
               this.log.warn(
-                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1})`,
+                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1}) - ${this.describeError(error)}`,
                 { method: 'inferAll' },
               );
               await new Promise((resolve) =>
@@ -436,11 +480,22 @@ export class GeminiClient {
           {
             retries: MAX_RETRIES_PER_MODEL,
             onFailedAttempt: async ({ error, attemptNumber }) => {
+              if (this.isModelQuotaError(error)) {
+                this.log.warn(
+                  `クオータ超過、次モデルへフォールバック (${model}): ${this.describeError(error)}`,
+                  { method: 'generateText' },
+                );
+                throw new AbortError(error.message);
+              }
               if (!this.isRetryableError(error)) {
+                this.log.warn(
+                  `リトライ不可 (${model}, ${attemptNumber}回目): ${this.describeError(error)}`,
+                  { method: 'generateText' },
+                );
                 throw new AbortError(error.message);
               }
               this.log.warn(
-                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1})`,
+                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1}) - ${this.describeError(error)}`,
                 { method: 'generateText' },
               );
               await new Promise((resolve) =>
@@ -544,11 +599,22 @@ export class GeminiClient {
           {
             retries: MAX_RETRIES_PER_MODEL,
             onFailedAttempt: async ({ error, attemptNumber }) => {
+              if (this.isModelQuotaError(error)) {
+                this.log.warn(
+                  `クオータ超過、次モデルへフォールバック (${model}): ${this.describeError(error)}`,
+                  { method: 'translateSettings' },
+                );
+                throw new AbortError(error.message);
+              }
               if (!this.isRetryableError(error)) {
+                this.log.warn(
+                  `リトライ不可 (${model}, ${attemptNumber}回目): ${this.describeError(error)}`,
+                  { method: 'translateSettings' },
+                );
                 throw new AbortError(error.message);
               }
               this.log.warn(
-                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1})`,
+                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1}) - ${this.describeError(error)}`,
                 { method: 'translateSettings' },
               );
               await new Promise((resolve) =>
