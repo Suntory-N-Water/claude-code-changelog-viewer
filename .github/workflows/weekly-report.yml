@@ -76,7 +76,17 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: /weekly-post --input-file ${{ github.workspace }}/.tmp/weekly-input.json
-          claude_args: --model claude-opus-4-7 --max-turns 100 --debug
+          # claude-code-action はリポジトリの .claude/settings.json を自動ロードしないため、
+          # weekly-post skill が必要とする権限を claude_args で明示する。
+          # - acceptEdits: 記事の Write/Edit と .tmp/ 作成の mkdir を自動承認
+          # - Bash(python3:*): skill の extract.py / skeleton.py / snippets.py 実行に必須
+          # - その他 Bash(...): 生成物の検証・デバッグで Claude が使いがちなコマンド
+          claude_args: >-
+            --model claude-opus-4-7
+            --max-turns 50
+            --debug
+            --permission-mode acceptEdits
+            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(python3:*),Bash(mkdir:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(grep:*),Bash(find:*),Bash(test:*),Bash(diff:*)"
           # PR 未作成などの silent failure 調査用。issue body / 生成物ともに社内メンバーしか投稿できない前提。
           show_full_output: "true"
 
