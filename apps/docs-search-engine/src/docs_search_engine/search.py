@@ -15,10 +15,14 @@ from . import synonyms
 from .chunker import Chunk, chunk_docs
 
 MAX_FILES = 3
-MAX_SNIPPETS_PER_FILE = 5
-# v2.1.205-207 の 222 件を目視判定した結果、max < 18 のファイルは
-# 31 件中 30 件がノイズだった (関連ありは 1 件のみ)
-MIN_FILE_SCORE = 18
+MAX_SNIPPETS_PER_FILE = 3
+# 初期キャリブレーション: v2.1.205-207 の 222 件を目視判定した結果、
+# max < 18 のファイルは 31 件中 30 件がノイズだった (関連ありは 1 件のみ)。
+# その後 v2.1.212 で infer-benefits の入力が Gemini 無料枠 TPM
+# (250,000 tokens/min) を超えたため、payload を落とす目的で 25 に引き上げた。
+# スニペット単位でも同じ閾値を適用しないと、ファイル max が通ったときに
+# 低スコアのスニペットが残り、infer-benefits の入力が肥大化する
+MIN_FILE_SCORE = 25
 
 
 @dataclass(frozen=True)
@@ -90,7 +94,8 @@ class DocsSearchEngine:
         results = []
         for file in top_files:
             hits = sorted(hits_by_file[file], key=lambda hit: hit[0], reverse=True)
-            top_hits = hits[:MAX_SNIPPETS_PER_FILE]
+            qualifying_hits = [hit for hit in hits if hit[0] >= self._min_file_score]
+            top_hits = qualifying_hits[:MAX_SNIPPETS_PER_FILE]
             snippets = [self._chunks[index].text for _, index in top_hits]
             snippet_scores = [round(score, 4) for score, _ in top_hits]
             results.append(

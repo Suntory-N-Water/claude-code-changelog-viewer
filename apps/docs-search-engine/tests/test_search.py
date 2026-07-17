@@ -72,7 +72,7 @@ def test_search_batch_limits_to_top_three_files(tmp_path: Path, nlp) -> None:
     assert [doc.file for doc in results] == ["doc0.md", "doc1.md", "doc2.md"]
 
 
-def test_search_batch_caps_snippets_per_file_at_five(tmp_path: Path, nlp) -> None:
+def test_search_batch_caps_snippets_per_file_at_three(tmp_path: Path, nlp) -> None:
     heading_blocks = "\n\n".join(
         f"## Section {i}\n\nSubagent configuration detail {i}." for i in range(8)
     )
@@ -85,8 +85,33 @@ def test_search_batch_caps_snippets_per_file_at_five(tmp_path: Path, nlp) -> Non
     [results] = engine.search_batch(["subagent configuration"])
 
     assert len(results) == 1
-    assert len(results[0].snippets) <= 5
+    assert len(results[0].snippets) <= 3
     assert results[0].hit_count >= len(results[0].snippets)
+
+
+def test_search_batch_drops_snippets_below_min_file_score(tmp_path: Path, nlp) -> None:
+    strong_section = "## Section strong\n\n" + "Subagent configuration. " * 20
+    weak_section = "## Section weak\n\nSubagent configuration mentioned briefly."
+    docs_dir = _write_docs(
+        tmp_path,
+        {
+            "doc.md": f"# Subagents\n\n{strong_section}\n\n{weak_section}\n",
+            "unrelated1.md": "# Billing\n\nInvoices and payment methods overview.\n",
+            "unrelated2.md": "# Themes\n\nColor schemes and font choices overview.\n",
+        },
+    )
+    unfiltered = DocsSearchEngine(docs_dir, nlp=nlp, min_file_score=0)
+    [baseline] = unfiltered.search_batch(["subagent configuration"])
+    assert len(baseline[0].snippet_scores) >= 2
+    # 最上位と 2 番目の中間で足切りすれば、最上位のみ残るはず
+    cutoff = (baseline[0].snippet_scores[0] + baseline[0].snippet_scores[1]) / 2
+
+    filtered = DocsSearchEngine(docs_dir, nlp=nlp, min_file_score=cutoff)
+    [results] = filtered.search_batch(["subagent configuration"])
+
+    assert len(results) == 1
+    assert all(score >= cutoff for score in results[0].snippet_scores)
+    assert len(results[0].snippet_scores) < len(baseline[0].snippet_scores)
 
 
 def test_search_batch_expands_synonyms_to_find_harness_via_cli_query(
