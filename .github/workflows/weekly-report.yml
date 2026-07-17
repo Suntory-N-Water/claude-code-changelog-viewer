@@ -73,7 +73,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: /weekly-post --input-file ${{ runner.temp }}/weekly-input.json
-          claude_args: --model claude-opus-4-7 --max-turns 50
+          claude_args: --model claude-opus-4-7 --max-turns 100 --debug
+          # PR 未作成などの silent failure 調査用。issue body / 生成物ともに社内メンバーしか投稿できない前提。
+          show_full_output: "true"
 
       - name: Upload generated artifact
         if: always()
@@ -159,6 +161,14 @@ jobs:
           BODY="週次記事の PR を作成しました: #${PR_NUMBER}
           マージすると本 Issue も自動 close されます。"
           gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+
+      # Claude Code は成功終了したが差分が無く PR が作成されなかった場合を silent failure として通知する。
+      # ここで exit 1 して notify-failure job を発火させる(失敗コメントの本文はそちらに集約)。
+      - name: Fail when no PR was created
+        if: success() && steps.create-pr.outputs.pull-request-number == ''
+        run: |
+          echo "::error::create-pull-request が差分を検出せず PR を作成しませんでした。Claude Code が想定パスにファイルを生成したか確認してください。"
+          exit 1
 
   notify-failure:
     needs: [generate, publish]
