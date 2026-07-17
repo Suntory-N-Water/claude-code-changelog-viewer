@@ -89,12 +89,8 @@ def test_search_batch_caps_snippets_per_file_at_three(tmp_path: Path, nlp) -> No
     assert results[0].hit_count >= len(results[0].snippets)
 
 
-def test_search_batch_drops_snippets_below_min_file_score(
-    tmp_path: Path, nlp
-) -> None:
-    strong_section = (
-        "## Section strong\n\n" + "Subagent configuration. " * 20
-    )
+def test_search_batch_drops_snippets_below_min_file_score(tmp_path: Path, nlp) -> None:
+    strong_section = "## Section strong\n\n" + "Subagent configuration. " * 20
     weak_section = "## Section weak\n\nSubagent configuration mentioned briefly."
     docs_dir = _write_docs(
         tmp_path,
