@@ -41,7 +41,7 @@ argument-hint: "[--input-file <path>]"
 - `$ARGUMENTS` が `--input-file <path>` の形(GitHub Actions ワークフローからの呼び出し)
   → `<path>` を `$INPUT_JSON` に代入する。ファイル書き出しは行わない。
 - `$ARGUMENTS` が `{` で始まる文字列(JSON 本体、通常のローカル呼び出し)
-  → JSON をそのまま `/tmp/weekly-input.json` に書き、`$INPUT_JSON=/tmp/weekly-input.json` とする。
+  → JSON をそのまま `.tmp/weekly-input.json`(リポジトリ直下、gitignore 済み)に書き、`$INPUT_JSON=.tmp/weekly-input.json` とする。書き出し前に `mkdir -p .tmp` すること。
 - それ以外(引数が空・未対応形式)
   → 入力形式を判別できない旨をユーザーに伝えて停止する。以降の手順は実行しない。
 
@@ -50,7 +50,7 @@ argument-hint: "[--input-file <path>]"
 ### 2. 抽出スクリプトで素材を取得
 
 ```bash
-python3 <skill_dir>/scripts/extract.py "$INPUT_JSON" > /tmp/extracted.json
+python3 <skill_dir>/scripts/extract.py "$INPUT_JSON" > .tmp/extracted.json
 ```
 
 `inferred_v{version}.json` は1件30KB超になることがあり、丸ごと読むとトークンを浪費する。このスクリプトは選定された `id` に該当する item だけを取り出し、`content`(英語原文) / `content_ja` / `inference`(before/after/benefit) / `comment` / `prefix` / `has_snippets` と、frontmatter 用の `version_min` / `version_max` / `versions`(全件) を返す。`has_snippets` は `analysis_v{version}.json` 側の `related_docs[].snippets` を見て判定する(inferred JSON の `related_docs` には `file` しかなく `snippets` は含まれない)。`content_ja` や `inference` の記載内容に疑問が生じたら、まず出力済みの `content`(英語原文)で裏取りする。出力 JSON は次の手順で skeleton.py にそのまま渡す。**inferred JSON を直接 Read してはいけない。** 必ずこのスクリプト経由で取得する。
@@ -60,7 +60,7 @@ id 不一致や version ファイル欠落があればスクリプトがエラ�
 ### 3. skeleton を書き出す
 
 ```bash
-python3 <skill_dir>/scripts/skeleton.py /tmp/extracted.json
+python3 <skill_dir>/scripts/skeleton.py .tmp/extracted.json
 ```
 
 extract.py の出力 JSON を渡すと、`apps/changelog-fetcher/posts/weekly/{week}.md` に frontmatter・冒頭の定型文(`{期間}の変更で、個人的に気になったものをピックアップしました。`)・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・英語原文の引用・締めの定型文と公式 CHANGELOG リンク・プレースホルダ(`description` の要点 `<!-- desc -->`、`<!-- intro -->`、item ごとの `<!-- body -->`)を書き出す。description は定型文と期間(年跨ぎでも両端に年を入れた `{開始日}〜{終了日}`)まで確定済みで、要点部分の `<!-- desc -->` だけが未記入。
