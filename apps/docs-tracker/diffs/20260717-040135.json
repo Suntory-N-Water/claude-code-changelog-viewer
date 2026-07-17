@@ -1,0 +1,743 @@
+{
+  "id": "20260717-040135",
+  "timestamp": "2026-07-17T04:01:35.852Z",
+  "aiSummary": "会話のチェックポイント機能において、要約時のコンテキスト追加オプションやクリーンアップ設定の参照が詳細化されました。スクロール速度の設定では、従来の整数指定に加え、v2.1.172以降で利用可能な0.25単位の細かな調整機能が導入されています。対話モードにはCtrl+Sでのプロンプト退避、Ctrl+Zでの一時停止、Ctrl+_での入力の取り消しといった新しいショートカットが追加されました。履歴検索機能が強化され、フルスクリーン表示時には専用のダイアログで検索範囲（セッション、プロジェクト、全体）を切り替えられるようになっています。",
+  "files": [
+    {
+      "filename": "checkpointing.md",
+      "additions": 5,
+      "deletions": 3,
+      "explanation": "会話の要約時にオプションで具体的な指示を追加できる手順や、コンテキスト圧縮を示すマーカー表示、クリーンアップ設定の参照先が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -20,7 +20,7 @@ Claude Code tracks all changes made by its file editing tools:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Every user prompt creates a new checkpoint"
+            },
+            {
+              "type": "context",
+              "content": "- Claude Code keeps file snapshots for the 100 most recent checkpoints in a session. Discarding an older checkpoint deletes the snapshot files that no remaining checkpoint references, except each file's first snapshot, which the VS Code extension uses as the baseline for its session diffs. Before v2.1.208, those superseded snapshot files stayed on disk until the session was cleaned up."
+            },
+            {
+              "type": "context",
+              "content": "- Checkpoints are saved with the conversation, so a resumed session can still `/rewind` to them"
+            },
+            {
+              "type": "removed",
+              "content": "- Automatically cleaned up along with sessions after 30 days (configurable)"
+            },
+            {
+              "type": "added",
+              "content": "- Automatically cleaned up along with sessions after 30 days, configurable via [`cleanupPeriodDays`](/en/settings#available-settings)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Rewind and summarize"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -37,9 +37,11 @@ The rewind menu lists each prompt you sent during the session. Select the point",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Summarize up to here**: compress the conversation before this point into a summary, keeping later messages intact"
+            },
+            {
+              "type": "context",
+              "content": "- **Never mind**: return to the message list without making changes"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The two code restore options appear only when the selected checkpoint has tracked file changes to revert. If no file edits were captured after that point, the menu offers only **Restore conversation**, the summarize options, and **Never mind**."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "After restoring the conversation or choosing Summarize from here, the original prompt from the selected message is restored into the input field so you can re-send or edit it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Choosing Summarize up to here leaves you at the end of the conversation with the input empty."
+            },
+            {
+              "type": "added",
+              "content": "Choosing Summarize up to here leaves you at the end of the conversation with the input empty. With either summarize option, a **Summarized conversation** marker appears in the conversation where the compressed messages were."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Rewind past a cleared conversation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -52,7 +54,7 @@ The restore options revert state: they undo code changes, conversation history,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Summarize from here**: messages before the selected message stay intact. The selected message and everything after it are replaced with a summary. Use this to discard a side discussion while keeping early context in full detail."
+            },
+            {
+              "type": "context",
+              "content": "- **Summarize up to here**: messages before the selected message are replaced with a summary. The selected message and everything after it stay intact, and you remain at the end of the conversation. Use this to compress early setup discussion while keeping recent work in full detail."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In both cases the original messages are preserved in the session transcript, so Claude can reference the details if needed. You can type optional instructions to guide what the summary focuses on. This is similar to `/compact`, but targeted: instead of summarizing the entire conversation, you choose which side of the selected message to compress."
+            },
+            {
+              "type": "added",
+              "content": "In both cases the original messages are preserved in the session transcript, so Claude can reference the details if needed. To guide what the summary focuses on, highlight a **Summarize** option with the arrow keys and type instructions inline where the row reads **add context (optional)**, then press `Enter` to summarize; selecting the option by its number key summarizes immediately without instructions. This is similar to `/compact`, but targeted: instead of summarizing the entire conversation, you choose which side of the selected message to compress."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Summarize keeps you in the same session and compresses context. If you want to branch off and try a different approach while preserving the original session intact, use [fork](/en/sessions#branch-a-session) instead (`claude --continue --fork-session`)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "CLAUDE_CODE_SCROLL_SPEED環境変数で設定可能な値が、正の数であれば20までの小数値も受け付けるように説明が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -279,7 +279,7 @@ Numeric variables such as timeouts, token budgets, and retry counts accept scien",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_RETRY_WATCHDOG` | Set to `1` for unattended sessions such as eval harnesses, CI jobs, or remote workers. Retries `429` and `529` capacity errors indefinitely instead of failing after `CLAUDE_CODE_MAX_RETRIES` attempts. The watchdog backs off up to 5 minutes between attempts, or until the limit resets when the response carries a rate-limit reset time, so a session that hits a usage limit waits out the remaining window. As of v2.1.199 it also raises the default retry count for other transient errors, such as server errors, timeouts, and dropped connections, to 300, roughly three hours of backoff, and removes the cap of 15 on `CLAUDE_CODE_MAX_RETRIES` if you set that variable explicitly. Requires Claude Code v2.1.186 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SAFE_MODE` | Set to `1` to start in safe mode: CLAUDE.md, skills, plugins, hooks, MCP servers, custom commands and agents, output styles, workflows, custom themes, custom keybindings, status line and file-suggestion commands, LSP servers, and auto-memory do not load, for troubleshooting a broken configuration. Managed settings policy still applies, including policy-configured hooks, status line, and file-suggestion commands; managed plugins, managed skills, managed CLAUDE.md, and policy-configured MCP servers do not. Equivalent to passing [`--safe-mode`](/en/cli-reference#cli-flags). Directly spawned child processes inherit the variable |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SCRIPT_CAPS` | JSON object limiting how many times specific scripts may be invoked per session when `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is set. Keys are substrings matched against the command text; values are integer call limits. For example, `{\"deploy.sh\": 2}` allows `deploy.sh` to be called at most twice. Matching is substring-based so shell-expansion tricks like `./scripts/deploy.sh $(evil)` still count against the cap. Runtime fan-out via `xargs` or `find -exec` is not detected; this is a defense-in-depth control |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_SCROLL_SPEED` | Set the mouse wheel scroll multiplier in [fullscreen rendering](/en/fullscreen#mouse-wheel-scrolling). Accepts values from 1 to 20, and fractional values below 1 such as `0.5` to slow accelerated trackpad and wheel scrolling in terminals that already amplify wheel events. Set to `3` to match `vim` if your terminal sends one wheel event per notch without amplification. Ignored in the JetBrains IDE terminal, where Claude Code uses its own scroll handling |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_SCROLL_SPEED` | Set the mouse wheel scroll multiplier in [fullscreen rendering](/en/fullscreen#mouse-wheel-scrolling). Accepts any positive value up to 20, including fractional values below 1 such as `0.5` to slow accelerated trackpad and wheel scrolling in terminals that already amplify wheel events. Set to `3` to match `vim` if your terminal sends one wheel event per notch without amplification. Ignored in the JetBrains IDE terminal, where Claude Code uses its own scroll handling |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` | Override the time budget in milliseconds for [SessionEnd](/en/hooks#sessionend) hooks. Applies to session exit, `/clear`, and switching sessions via interactive `/resume`. By default the budget is 1.5 seconds, automatically raised to the highest per-hook `timeout` configured in settings files, up to 60 seconds. Timeouts on plugin-provided hooks do not raise the budget |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SESSION_ID` | Set automatically to the current session ID in Bash and PowerShell tool subprocesses, [hook command](/en/hooks) subprocesses, and stdio [MCP server](/en/mcp) subprocesses. For Bash, PowerShell, and hooks this matches the `session_id` field in the hook JSON input and is updated on `/clear`. An MCP server subprocess retains the ID it was spawned with. On `--resume <session-id>` it receives the resumed ID, matching hooks and Bash. On `--continue` or `--resume` without an explicit ID it may receive the initial startup ID instead. Use to correlate scripts and external tools with the Claude Code session that launched them |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SHELL` | Set the shell Claude Code uses to run Bash tool commands. Accepts a path to a `bash` or `zsh` binary, for example `/opt/homebrew/bin/bash`. Other shells such as `fish` are not supported. If the value is not a working `bash` or `zsh` path, Claude Code ignores it and falls back to auto-detection. Auto-detection uses your `$SHELL` when it points to `bash` or `zsh`, otherwise it picks the first working `zsh` then `bash` found on your `PATH` and standard install locations |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fullscreen.md",
+      "additions": 5,
+      "deletions": 4,
+      "explanation": "スクロール速度調整の/scroll-speedコマンドで0.25単位の微調整が可能になったことや、フルスクリーン解除時のフィードバック送信機能について説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -105,11 +105,11 @@ Set `CLAUDE_CODE_SCROLL_SPEED` to multiply the base scroll distance:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_SCROLL_SPEED=3"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A value of `3` matches the default in `vim` and similar applications. The setting accepts values from 1 to 20, and fractional values below 1 such as `0.5` to slow accelerated trackpad and wheel scrolling in terminals that already amplify wheel events."
+            },
+            {
+              "type": "added",
+              "content": "A value of `3` matches the default in `vim` and similar applications. The setting accepts any positive value up to 20, including fractional values below 1 such as `0.25` to slow accelerated trackpad and wheel scrolling in terminals that already amplify wheel events."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To adjust scroll speed interactively, run `/scroll-speed`. The dialog shows a ruler you can scroll while it is open so you can feel the change immediately. Press `←` and `→` to adjust, `r` to reset to the auto-detected default, and `Enter` to save."
+            },
+            {
+              "type": "added",
+              "content": "To adjust scroll speed interactively, run `/scroll-speed`. The dialog shows a ruler you can scroll while it is open so you can feel the change immediately. Press `←` and `→` to adjust the speed, `r` to reset to the auto-detected default, and `Enter` to save. The dialog steps in whole numbers up to 10, and on terminals that support finer control it also offers quarter steps down to 0.25. Quarter steps require Claude Code v2.1.172 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The command writes the same value the `CLAUDE_CODE_SCROLL_SPEED` environment variable sets, persisted to `~/.claude/settings.json`. The command isn't available in the JetBrains IDE terminal."
+            },
+            {
+              "type": "added",
+              "content": "The command writes the same value the `CLAUDE_CODE_SCROLL_SPEED` environment variable sets, persisted to `~/.claude/settings.json`. The dialog's maximum is 10: if you set a higher value through the environment variable, the dialog shows 10, and saving from the dialog persists 10. The command isn't available in the JetBrains IDE terminal."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Separately from the base speed, Claude Code accelerates the scroll rate when you spin the wheel quickly, so a fast spin covers more distance than the same number of slow notches. To turn acceleration off and keep a constant rate per notch, set `wheelScrollAccelerationEnabled` to `false` in [`settings.json`](/en/settings#available-settings). This setting requires Claude Code v2.1.174 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -133,6 +133,7 @@ Transcript mode gains `less`-style navigation and search:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `n` / `N` | Jump to next or previous match. Works after you've closed the search bar |"
+            },
+            {
+              "type": "context",
+              "content": "| `j` / `k` or `↑` / `↓` | Scroll one line |"
+            },
+            {
+              "type": "context",
+              "content": "| `g` / `G` or `Home` / `End` | Jump to top or bottom |"
+            },
+            {
+              "type": "added",
+              "content": "| `{` / `}` | Jump to the previous or next prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+u` / `Ctrl+d` | Scroll half a page |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+b` / `Ctrl+f` or `Space` / `b` | Scroll a full page |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+o`, `Esc`, or `q` | Exit transcript mode and return to the prompt |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -232,6 +233,6 @@ Fullscreen rendering is a research preview feature. It has been tested on common",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you encounter a problem, run `/feedback` inside Claude Code to report it, or open an issue on the [claude-code GitHub repo](https://github.com/anthropics/claude-code/issues). Include your terminal emulator name and version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To turn fullscreen rendering off, run `/tui default`, or unset `CLAUDE_CODE_NO_FLICKER` if you enabled it that way. To force the classic renderer regardless of the saved `tui` setting, set `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1`. The classic renderer keeps the conversation in your terminal's native scrollback so `Cmd+f` and tmux copy mode work as usual."
+            },
+            {
+              "type": "added",
+              "content": "To turn fullscreen rendering off, run `/tui default`, or unset `CLAUDE_CODE_NO_FLICKER` if you enabled it that way. When you switch back with `/tui default`, Claude Code may first show an optional feedback prompt asking what made you switch. Type a reason and press `Enter` to send it, or press `Esc` to skip. The CLI relaunches into the classic renderer either way. To force the classic renderer regardless of the saved `tui` setting, set `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1`. The classic renderer keeps the conversation in your terminal's native scrollback so `Cmd+f` and tmux copy mode work as usual."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Background sessions opened from [agent view](/en/agent-view) or `claude attach` always use fullscreen rendering. The attaching terminal enters the alternate screen buffer to show the session, and the classic renderer has no scrollback or mouse handling there, so the `tui` setting and `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN` don't apply to them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 11,
+      "deletions": 8,
+      "explanation": "プロンプトのスタッシュ（Ctrl+S）やUndo（Ctrl+_）などの新ショートカットに加え、フルスクリーン時の検索ダイアログの仕様が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -11,7 +11,7 @@ source: https://code.claude.com/docs/en/interactive-mode.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Keyboard shortcuts may vary by platform and terminal. In [fullscreen rendering](/en/fullscreen), press `?` in the transcript viewer to see available shortcuts there."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**macOS users**: Option/Alt key shortcuts (`Alt+B`, `Alt+F`, `Alt+Y`, `Alt+M`, `Alt+P`) require configuring Option as Meta in your terminal:"
+            },
+            {
+              "type": "added",
+              "content": "**macOS users**: Option/Alt key shortcuts (`Alt+B`, `Alt+F`, `Alt+Y`, `Alt+P`) require configuring Option as Meta in your terminal:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **iTerm2**: Settings → Profiles → Keys → General → set Left/Right Option key to \"Esc+\""
+            },
+            {
+              "type": "context",
+              "content": "- **Apple Terminal**: Settings → Profiles → Keyboard → check \"Use Option as Meta Key\""
+            }
+          ]
+        },
+        {
+          "header": "@@ -33,11 +33,13 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows and WSL) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt. On WSL, both `Ctrl+V` and `Alt+V` are bound; use `Alt+V` if your terminal intercepts `Ctrl+V` |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+B` | Background running tasks | Backgrounds Bash commands and agents. Tmux users press twice |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+T` | Toggle Claude's task checklist | Show or hide [Claude's to-do checklist](#task-list) in the status area. This is not the background-task view; use [`/tasks`](/en/commands) to see running shells and subagents |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+S` | Stash or restore prompt | With text in the input, stashes it and clears the prompt. Pressed again on an empty prompt, restores the stashed text, cursor position, and pasted content |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+Z` | Suspend Claude Code | Unix only. Suspends the process to your shell; run `fg` to resume |"
+            },
+            {
+              "type": "context",
+              "content": "| `Left/Right arrows` | Cycle through dialog tabs | Navigate between tabs in permission dialogs and menus |"
+            },
+            {
+              "type": "context",
+              "content": "| `Up/Down arrows` or `Ctrl+P`/`Ctrl+N` | Move cursor or navigate command history | When the input spans more than one visual row, whether wrapped or multiline, first moves the cursor within the prompt. Once the cursor is on the first or last visual row, pressing again navigates command history. As of v2.1.169, wrapped single-line input behaves the same as multiline |"
+            },
+            {
+              "type": "context",
+              "content": "| `Esc` | Interrupt Claude, or close a dialog | Stop the current response or tool call mid-turn so you can redirect. Claude keeps the work done so far. When a dialog such as a permission prompt is open, `Esc` closes the dialog rather than interrupting Claude. Before v2.1.202, `Esc` on some dialogs interrupted Claude and left the dialog open |"
+            },
+            {
+              "type": "context",
+              "content": "| `Esc` + `Esc` | Clear input draft, or rewind | When the prompt input contains text, double `Esc` clears it and saves the draft to history so `Up` recalls it. When the input is empty, double `Esc` opens the [rewind menu](/en/checkpointing) to restore or summarize code and conversation from a previous point |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Shift+Tab` or `Alt+M` (some configurations) | Cycle permission modes | Cycle through `default` (labeled Manual in the mode indicator), `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/en/permission-modes). |"
+            },
+            {
+              "type": "added",
+              "content": "| `Shift+Tab`, or `Alt+M` on Windows when the Node or Bun runtime doesn't enable VT input mode | Cycle permission modes | Cycle through `default` (labeled Manual in the mode indicator), `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/en/permission-modes). |"
+            },
+            {
+              "type": "context",
+              "content": "| `Option+P` (macOS) or `Alt+P` (Windows/Linux) | Switch model | Switch models without clearing your prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `Option+T` (macOS) or `Alt+T` (Windows/Linux) | Toggle extended thinking | Enable or disable extended thinking mode. Has no effect on Fable 5, which always uses extended thinking. As of v2.1.132 this shortcut works on macOS without configuring Option as Meta |"
+            },
+            {
+              "type": "context",
+              "content": "| `Option+O` (macOS) or `Alt+O` (Windows/Linux) | Toggle fast mode | Enable or disable [fast mode](/en/fast-mode) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -55,6 +57,7 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Alt+Y` (after `Ctrl+Y`) | Cycle paste history | After pasting, cycle through previously deleted text. Requires [Option as Meta](#keyboard-shortcuts) on macOS |"
+            },
+            {
+              "type": "context",
+              "content": "| `Alt+B` | Move cursor back one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS |"
+            },
+            {
+              "type": "context",
+              "content": "| `Alt+F` | Move cursor forward one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+_` or `Ctrl+Shift+-` | Undo last input edit | Restores the previous input text and cursor position |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Theme and display"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -85,13 +88,13 @@ Shift+Enter works without configuration in iTerm2, WezTerm, Ghostty, Kitty, Warp",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Transcript viewer"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When the transcript viewer is open (toggled with `Ctrl+O`), these shortcuts are available. In [fullscreen rendering](/en/fullscreen), press `?` to show the full shortcut reference panel inside the viewer. `Ctrl+E` can be rebound via [`transcript:toggleShowAll`](/en/keybindings)."
+            },
+            {
+              "type": "added",
+              "content": "When the transcript viewer is open (toggled with `Ctrl+O`), these shortcuts are available. Run `/tui` with no argument to check which renderer is active. In [fullscreen rendering](/en/fullscreen), press `?` to show the full shortcut reference panel inside the viewer. `Ctrl+E` can be rebound via [`transcript:toggleShowAll`](/en/keybindings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Shortcut | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `?` | Toggle the keyboard shortcut help panel. Requires [fullscreen rendering](/en/fullscreen) |"
+            },
+            {
+              "type": "context",
+              "content": "| `{` / `}` | Jump to the previous or next user prompt, like vim paragraph motion. Requires [fullscreen rendering](/en/fullscreen) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Ctrl+E` | Toggle show all content |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+E` | Toggle show all content. Available in the default renderer only, not in [fullscreen rendering](/en/fullscreen) |"
+            },
+            {
+              "type": "context",
+              "content": "| `[` | Write the full conversation to your terminal's native scrollback so `Cmd+F`, tmux copy mode, and other native tools can search it. Requires [fullscreen rendering](/en/fullscreen#search-and-review-the-conversation) |"
+            },
+            {
+              "type": "context",
+              "content": "| `v` | Write the conversation to a temporary file and open it in `$VISUAL` or `$EDITOR`. Requires [fullscreen rendering](/en/fullscreen) |"
+            },
+            {
+              "type": "context",
+              "content": "| `q`, `Ctrl+C`, `Esc` | Exit transcript view. All three can be rebound via [`transcript:exit`](/en/keybindings) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -240,12 +243,12 @@ Claude Code maintains command history for the current session:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Reverse search with Ctrl+R"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Press `Ctrl+R` to interactively search through your command history:"
+            },
+            {
+              "type": "added",
+              "content": "Press `Ctrl+R` to interactively search through your command history. In [fullscreen rendering](/en/fullscreen), `Ctrl+R` opens a search dialog instead: type to filter, press `Up` and `Down` to move through matches, and press `Ctrl+S` to cycle the scope through this session, this project, and all projects. Press `Enter` or `Tab` to place a match in the prompt input, or `Esc` to cancel. The steps below describe the default inline search:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "1. **Start search**: press `Ctrl+R` to activate reverse history search"
+            },
+            {
+              "type": "context",
+              "content": "2. **Type query**: enter text to search for in previous commands. The search term is highlighted in matching results"
+            },
+            {
+              "type": "context",
+              "content": "3. **Navigate matches**: press `Ctrl+R` again to cycle through older matches"
+            },
+            {
+              "type": "removed",
+              "content": "4. **Change scope**: search defaults to prompts from all projects. Press `Ctrl+S` to cycle the scope through this session, this project, and all projects"
+            },
+            {
+              "type": "added",
+              "content": "4. **Search scope**: the inline search always searches prompts from all projects"
+            },
+            {
+              "type": "context",
+              "content": "5. **Accept match**:"
+            },
+            {
+              "type": "context",
+              "content": "   - Press `Tab` or `Esc` to accept the current match and continue editing"
+            },
+            {
+              "type": "context",
+              "content": "   - Press `Enter` to accept and execute the command immediately"
+            }
+          ]
+        },
+        {
+          "header": "@@ -253,7 +256,7 @@ Press `Ctrl+R` to interactively search through your command history:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "   - Press `Ctrl+C` to cancel and restore your original input"
+            },
+            {
+              "type": "context",
+              "content": "   - Press `Backspace` on empty search to cancel"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The search loads the 100 most recent unique prompts in the selected scope, with duplicates collapsed to the newest occurrence. Matching prompts display with the search term highlighted, so you can find and reuse previous inputs."
+            },
+            {
+              "type": "added",
+              "content": "The inline search scans your full prompt history, newest first, with duplicates collapsed to the newest occurrence. The fullscreen dialog lists the 100 most recent unique prompts in the selected scope. Matching prompts display with the search term highlighted, so you can find and reuse previous inputs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Accepting a match or canceling the search takes effect immediately, even while Claude Code is still loading the history. Before v2.1.202, accepting or canceling during that load could report an internal error."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -326,7 +329,7 @@ The suggestion runs as a background request that reuses the parent conversation'",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Suggestions are automatically skipped after the first turn of a conversation and in plan mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In print mode they are off by default. Pass [`--prompt-suggestions`](/en/cli-reference#cli-flags) with `--output-format stream-json --verbose` to emit a `prompt_suggestion` message after each turn instead."
+            },
+            {
+              "type": "added",
+              "content": "In print mode they are off by default. Pass [`--prompt-suggestions`](/en/cli-reference#cli-flags) with `-p \"<prompt>\" --output-format stream-json --verbose` to emit a `prompt_suggestion` message after each turn instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To disable prompt suggestions entirely, set the environment variable or toggle the setting in `/config`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "keybindings.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "デフォルトレンダラー限定のキー設定の制限事項や、フルスクリーン表示時の履歴検索におけるキーバインドの挙動の違いが整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -160,6 +160,8 @@ Actions available in the `Transcript` context:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `transcript:toggleShowAll` | Ctrl+E | Toggle show all content |"
+            },
+            {
+              "type": "context",
+              "content": "| `transcript:exit` | q, Ctrl+C, Escape | Exit transcript view |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`transcript:toggleShowAll` applies in the default renderer only; in [fullscreen rendering](/en/fullscreen), the transcript viewer doesn't offer a show-all toggle."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### History search actions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Actions available in the `HistorySearch` context:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -172,6 +174,8 @@ Actions available in the `HistorySearch` context:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `historySearch:execute` | Enter | Execute selected command |"
+            },
+            {
+              "type": "context",
+              "content": "| `historySearch:cycleScope` | Ctrl+S | Cycle scope: session, project, everywhere |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `historySearch:next`, `historySearch:accept`, `historySearch:cancel`, and `historySearch:execute` defaults apply to the inline history search in the default renderer, which always searches prompts from all projects. `historySearch:cycleScope` takes effect only in [fullscreen rendering](/en/fullscreen), where `Ctrl+R` opens a search dialog instead and `Ctrl+S` cycles its scope. The dialog's other keys are fixed and can't be rebound: `Enter` or `Tab` places the highlighted match in the prompt input and `Esc` cancels."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Task actions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Actions available in the `Task` context:"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
