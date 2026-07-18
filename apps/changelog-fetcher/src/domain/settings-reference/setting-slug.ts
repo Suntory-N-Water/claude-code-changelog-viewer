@@ -37,6 +37,7 @@ export function createSettingSlugFromKey(
         value
           .replace(/([A-Z])/g, '-$1')
           .toLowerCase()
+          .replace(/_/g, '-')
           .replace(/^-/, ''),
       )
       .join('-'),
