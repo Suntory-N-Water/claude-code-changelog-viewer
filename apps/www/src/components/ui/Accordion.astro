@@ -1,0 +1,27 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = Omit<HTMLAttributes<'details'>, 'class'> & {
+  variant?: 'page' | 'muted' | 'plain';
+  class?: string;
+};
+
+const { variant = 'page', class: className, ...attributes } = Astro.props;
+---
+
+<details
+  class:list={[
+    'rounded-lg border',
+    {
+      'border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))]':
+        variant === 'page',
+      'border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-gray)/0.2)]':
+        variant === 'muted',
+      'border-[hsl(var(--cc-gray))]': variant === 'plain',
+    },
+    className,
+  ]}
+  {...attributes}
+>
+  <slot />
+</details>

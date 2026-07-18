@@ -1,0 +1,45 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import Icon from '../Icon.astro';
+
+type Props = Omit<HTMLAttributes<'a'>, 'class'> & {
+  href: string;
+  padding?: 'md' | 'lg';
+  iconSize?: 'sm' | 'md';
+  class?: string;
+};
+
+const {
+  href,
+  padding = 'lg',
+  iconSize = 'md',
+  class: className,
+  ...attributes
+} = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={[
+    'block bg-card text-card-foreground rounded-xl border shadow-sm hover:shadow-lg hover:border-[hsl(var(--cc-main-orange))] transition-[box-shadow,border-color,transform] duration-200 overflow-hidden group cursor-pointer active:scale-[0.98]',
+    className,
+  ]}
+  {...attributes}
+>
+  <div
+    class:list={[
+      'flex items-center justify-between',
+      padding === 'lg' ? 'p-6' : 'p-5',
+    ]}
+  >
+    <div class='min-w-0 flex-1'><slot>詳細を見る</slot></div>
+    <Icon
+      name='chevron-right'
+      class:list={[
+        'text-[hsl(var(--cc-gray))] group-hover:text-[hsl(var(--cc-main-orange))] group-hover:translate-x-1 transition-[color,transform] duration-200 shrink-0',
+        iconSize === 'md' ? 'w-5 h-5' : 'w-4 h-4 mt-0.5',
+      ]}
+      aria-hidden='true'
+    />
+  </div>
+</a>

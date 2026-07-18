@@ -1,0 +1,49 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = Omit<HTMLAttributes<'div'>, 'class'> & {
+  as?: 'div' | 'article' | 'section' | 'aside';
+  variant?: 'default' | 'page' | 'muted' | 'accent' | 'dashed';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  radius?: 'lg' | 'xl';
+  interactive?: boolean;
+  class?: string;
+};
+
+const {
+  as: Tag = 'div',
+  variant = 'page',
+  padding = 'md',
+  radius = 'xl',
+  interactive = false,
+  class: className,
+  ...attributes
+} = Astro.props;
+---
+
+<Tag
+  class:list={[
+    'border',
+    {
+      'bg-card text-card-foreground': variant === 'default',
+      'border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))]':
+        variant === 'page',
+      'border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-gray)/0.2)]':
+        variant === 'muted',
+      'border-[hsl(var(--cc-main-orange)/0.3)] bg-[hsl(var(--cc-main-orange)/0.06)]':
+        variant === 'accent',
+      'border-dashed border-[hsl(var(--cc-gray))]': variant === 'dashed',
+      'p-4': padding === 'sm',
+      'p-5 sm:p-6': padding === 'md',
+      'p-6 sm:p-8': padding === 'lg',
+      'rounded-lg': radius === 'lg',
+      'rounded-xl': radius === 'xl',
+      'transition-[box-shadow,border-color,transform] duration-200 hover:border-[hsl(var(--cc-main-orange))] hover:shadow-lg active:scale-[0.98]':
+        interactive,
+    },
+    className,
+  ]}
+  {...attributes}
+>
+  <slot />
+</Tag>

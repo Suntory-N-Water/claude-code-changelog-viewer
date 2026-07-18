@@ -1,0 +1,19 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = Omit<HTMLAttributes<'input'>, 'class'> & {
+  invalidStyle?: boolean;
+  class?: string;
+};
+
+const { invalidStyle = false, class: className, ...attributes } = Astro.props;
+---
+
+<input
+  class:list={[
+    'w-full px-4 py-3 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-sm text-[hsl(var(--cc-main-black))] placeholder-[hsl(var(--cc-main-black)/0.3)] focus:outline-none focus:border-[hsl(var(--cc-main-orange))] focus:ring-2 focus:ring-[hsl(var(--cc-main-orange)/0.2)] transition-[border-color,box-shadow] disabled:cursor-not-allowed disabled:opacity-50',
+    invalidStyle && 'invalid:not-placeholder-shown:border-[#ff6b6b]',
+    className,
+  ]}
+  {...attributes}
+/>
