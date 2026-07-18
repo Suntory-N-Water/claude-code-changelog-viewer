@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from docs_search_engine.chunker import chunk_docs, chunk_file, find_markdown_files
+from docs_search_engine.chunker import (
+    SECONDARY_SPLIT_THRESHOLD,
+    chunk_docs,
+    chunk_file,
+    find_markdown_files,
+)
 
 DOCS_DIR = Path(__file__).parent.parent.parent / "docs-tracker" / "docs" / "en"
 
@@ -62,3 +67,55 @@ def test_chunk_docs_returns_chunks_for_all_discovered_files() -> None:
 
     assert files_with_chunks <= discovered_files
     assert len(chunks) > 0
+
+
+def _make_docs_dir(tmp_path: Path, files: dict[str, str]) -> Path:
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+    for name, content in files.items():
+        (docs_dir / name).write_text(content, encoding="utf-8")
+    return docs_dir
+
+
+def test_large_section_is_split_into_multiple_chunks_by_paragraph(tmp_path: Path) -> None:
+    paragraph = ("body paragraph " * 60).strip()
+    body = "\n\n".join(paragraph for _ in range(6))
+    docs_dir = _make_docs_dir(tmp_path, {"big.md": f"## Overview\n\n{body}\n"})
+
+    chunks = chunk_file(docs_dir, docs_dir / "big.md")
+
+    assert len(chunks) > 1
+    assert all(chunk.heading == "Overview" for chunk in chunks)
+    assert all(chunk.file == "big.md" for chunk in chunks)
+
+
+def test_fenced_blank_line_does_not_become_split_boundary(tmp_path: Path) -> None:
+    prefix = ("prefix text " * 200).strip()
+    fenced_block = "```bash\ncmd start\n\ncmd continue after blank\n```"
+    suffix = ("suffix text " * 200).strip()
+    body = f"{prefix}\n\n{fenced_block}\n\n{suffix}"
+    assert len(body) > SECONDARY_SPLIT_THRESHOLD
+    docs_dir = _make_docs_dir(tmp_path, {"fence.md": f"## Section\n\n{body}\n"})
+
+    chunks = chunk_file(docs_dir, docs_dir / "fence.md")
+
+    fenced_chunks = [c for c in chunks if "cmd start" in c.text]
+    assert len(fenced_chunks) == 1
+    fenced_chunk = fenced_chunks[0]
+    assert "cmd start" in fenced_chunk.text
+    assert "cmd continue after blank" in fenced_chunk.text
+
+
+def test_secondary_chunk_start_line_reflects_original_file_line(tmp_path: Path) -> None:
+    paragraph = ("body word " * 60).strip()
+    body = "\n\n".join(paragraph for _ in range(6))
+    docs_dir = _make_docs_dir(tmp_path, {"lines.md": f"## Overview\n\n{body}\n"})
+
+    chunks = chunk_file(docs_dir, docs_dir / "lines.md")
+
+    assert len(chunks) > 1
+    line_numbers = [chunk.start_line for chunk in chunks]
+    assert line_numbers == sorted(set(line_numbers))
+    assert chunks[0].start_line == 1
+    for chunk in chunks[1:]:
+        assert chunk.start_line > 1

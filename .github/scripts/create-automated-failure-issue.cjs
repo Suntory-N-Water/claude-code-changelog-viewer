@@ -60,6 +60,20 @@ module.exports = async function createAutomatedFailureIssue({
       'actions/runs',
       context.runId,
     ].join('/');
+    const failedJobsLines = (() => {
+      const raw = process.env.FAILED_JOBS;
+      if (!raw) {
+        return [];
+      }
+      const lines = raw
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+      if (lines.length === 0) {
+        return [];
+      }
+      return ['', '**ジョブ結果**:', ...lines.map((line) => `- ${line}`)];
+    })();
     const body = [
       '## エラー詳細',
       '',
@@ -68,6 +82,7 @@ module.exports = async function createAutomatedFailureIssue({
       `**ワークフロー**: ${context.workflow}`,
       `**実行ログ**: ${runUrl}`,
       `**実行時刻**: ${new Date().toISOString()}`,
+      ...failedJobsLines,
       '',
       '詳細はワークフローログを確認してください。',
     ].join('\n');
@@ -93,6 +108,6 @@ module.exports = async function createAutomatedFailureIssue({
     });
     core.info('Issueを作成しました');
   } catch (error) {
-    core.setFailed('Issue作成に失敗しました: ' + error.message);
+    core.setFailed(`Issue作成に失敗しました: ${error.message}`);
   }
 };

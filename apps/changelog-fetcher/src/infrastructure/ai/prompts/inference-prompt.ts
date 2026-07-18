@@ -240,7 +240,7 @@ export function buildBatchInferencePrompt(
     '',
     '## 対象項目',
     '',
-    featureAreaItemsText,
+    'タスク4 の「対象項目」に列挙した**全項目**を対象とする。タスク4 は該当タグが付与される項目のみ返すが、タスク5 は同じ入力対象の**全項目について 1 件ずつ impact 判定を返す**こと(該当なしでも省略しない)。',
     ...(candidates && candidates.length > 0
       ? [
           '',
