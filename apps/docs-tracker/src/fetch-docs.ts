@@ -7,8 +7,10 @@ import { ClaudeDocsFetcher } from './lib/doc-fetcher';
 
 const logger = getLogger({ name: 'docs-tracker' });
 
-const MODELS_OVERVIEW_URL =
+const MODELS_OVERVIEW_FETCH_URL =
   'https://platform.claude.com/docs/en/about-claude/models/overview.md';
+const MODELS_OVERVIEW_SOURCE_URL =
+  'https://platform.claude.com/docs/en/about-claude/models/overview';
 const MODELS_OVERVIEW_LOCAL = path.join(
   process.cwd(),
   'docs',
@@ -19,8 +21,8 @@ const MODELS_OVERVIEW_LOCAL = path.join(
 );
 
 async function fetchModelsOverview(): Promise<void> {
-  logger.info('モデル一覧を取得しています', { url: MODELS_OVERVIEW_URL });
-  const response = await fetch(MODELS_OVERVIEW_URL, {
+  logger.info('モデル一覧を取得しています', { url: MODELS_OVERVIEW_FETCH_URL });
+  const response = await fetch(MODELS_OVERVIEW_FETCH_URL, {
     headers: {
       'User-Agent': 'Claude-Code-Changelog-Viewer/1.0',
       Accept: 'text/markdown, text/plain, */*',
@@ -31,7 +33,11 @@ async function fetchModelsOverview(): Promise<void> {
   }
   const content = await response.text();
   await fs.mkdir(path.dirname(MODELS_OVERVIEW_LOCAL), { recursive: true });
-  await fs.writeFile(MODELS_OVERVIEW_LOCAL, content, 'utf-8');
+  await fs.writeFile(
+    MODELS_OVERVIEW_LOCAL,
+    `---\ntitle: Models overview\nsource: ${MODELS_OVERVIEW_SOURCE_URL}\n---\n\n${content}`,
+    'utf-8',
+  );
   logger.info('モデル一覧を保存しました', { path: MODELS_OVERVIEW_LOCAL });
 }
 
