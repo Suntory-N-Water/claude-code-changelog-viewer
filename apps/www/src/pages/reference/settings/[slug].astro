@@ -2,6 +2,9 @@
 import { getCollection } from 'astro:content';
 import Icon from '../../../components/Icon.astro';
 import ChangelogItemCard from '../../../components/changelog/ChangelogItemCard.astro';
+import BackLink from '../../../components/ui/BackLink.astro';
+import Button from '../../../components/ui/Button.astro';
+import Card from '../../../components/ui/Card.astro';
 import Layout from '../../../layouts/Layout.astro';
 import {
   extractChangelogData,
@@ -85,14 +88,9 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
   <div class='min-h-dvh py-12 sm:py-16 px-4' data-pagefind-body>
     <div class='max-w-4xl mx-auto'>
       <nav class='mb-8' aria-label='パンくずリスト' data-pagefind-ignore>
-        <a
-          href='/reference/settings'
-          data-direction='back'
-          class='text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1 transition-colors'
-        >
-          <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
+        <BackLink href='/reference/settings' tone='accent'>
           設定リファレンス一覧に戻る
-        </a>
+        </BackLink>
       </nav>
 
       <header class='mb-8'>
@@ -116,7 +114,12 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
 
       {
         useCaseHtml && (
-          <section class='mb-8 p-5 rounded-xl bg-[hsl(var(--cc-main-orange)/0.05)] border border-[hsl(var(--cc-main-orange)/0.2)]'>
+          <Card
+            as='section'
+            padding='none'
+            variant='accent'
+            class='mb-8 p-5 bg-[hsl(var(--cc-main-orange)/0.05)] border-[hsl(var(--cc-main-orange)/0.2)]'
+          >
             <h2 class='text-base font-bold text-[hsl(var(--cc-main-black))] mb-3'>
               使い方・用途
             </h2>
@@ -124,7 +127,7 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
               class='text-sm leading-relaxed text-[hsl(var(--cc-main-black))] space-y-1'
               set:html={useCaseHtml}
             />
-          </section>
+          </Card>
         )
       }
 
@@ -216,11 +219,16 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
       <!-- 情報が少ないページ向けの補足 -->
       {
         !hasContent && (
-          <section class='mb-8 py-10 text-center border border-dashed border-[hsl(var(--cc-gray))] rounded-xl'>
+          <Card
+            as='section'
+            variant='dashed'
+            padding='none'
+            class='mb-8 py-10 text-center'
+          >
             <p class='text-sm text-gray-400'>
               まだ変更履歴との関連付けはありません
             </p>
-          </section>
+          </Card>
         )
       }
 
@@ -235,12 +243,9 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
             </h2>
             <div class='flex flex-wrap gap-3'>
               {relatedAreaLinks.map(({ slug, label }) => (
-                <a
-                  href={`/features/${slug}`}
-                  class='inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
-                >
+                <Button href={`/features/${slug}`} variant='outline' size='sm'>
                   {label}
-                </a>
+                </Button>
               ))}
             </div>
           </nav>

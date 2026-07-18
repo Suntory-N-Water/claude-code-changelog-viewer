@@ -1,0 +1,53 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = Omit<HTMLAttributes<'button'> & HTMLAttributes<'a'>, 'class'> & {
+  href?: string;
+  variant?: 'primary' | 'outline' | 'ghost' | 'link';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'icon-sm' | 'icon';
+  shape?: 'default' | 'pill';
+  fullWidth?: boolean;
+  class?: string;
+};
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  shape = 'default',
+  fullWidth = false,
+  class: className,
+  ...attributes
+} = Astro.props;
+const Tag = href ? 'a' : 'button';
+---
+
+<Tag
+  href={href}
+  class:list={[
+    'inline-flex items-center justify-center cursor-pointer transition-[background-color,border-color,color,transform] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))] disabled:pointer-events-none disabled:opacity-50',
+    {
+      'bg-[hsl(var(--cc-main-orange))] text-white hover:bg-[hsl(var(--cc-orange-hover))]':
+        variant === 'primary',
+      'border border-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black)/0.7)] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] hover:bg-[hsl(var(--cc-main-orange)/0.04)]':
+        variant === 'outline',
+      'text-[hsl(var(--cc-main-black)/0.6)] hover:text-[hsl(var(--cc-main-orange))] hover:bg-[hsl(var(--cc-main-orange)/0.08)]':
+        variant === 'ghost',
+      'text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline':
+        variant === 'link',
+      'min-h-11 px-5 py-2 text-sm gap-1.5': size === 'md',
+      'px-3 py-1.5 text-xs gap-1': size === 'xs',
+      'px-4 py-2 text-sm gap-2': size === 'sm',
+      'px-6 py-3 gap-2': size === 'lg',
+      'w-8 h-8': size === 'icon-sm',
+      'w-11 h-11': size === 'icon',
+      'rounded-lg': shape === 'default',
+      'rounded-full': shape === 'pill',
+      'w-full': fullWidth,
+    },
+    className,
+  ]}
+  {...attributes}
+>
+  <slot />
+</Tag>

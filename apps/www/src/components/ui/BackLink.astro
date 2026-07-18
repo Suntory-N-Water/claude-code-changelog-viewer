@@ -1,0 +1,28 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import Icon from '../Icon.astro';
+
+type Props = Omit<HTMLAttributes<'a'>, 'class'> & {
+  href: string;
+  tone?: 'muted' | 'accent';
+  class?: string;
+};
+
+const { href, tone = 'muted', class: className, ...attributes } = Astro.props;
+---
+
+<a
+  href={href}
+  data-direction='back'
+  class:list={[
+    'inline-flex items-center gap-1 text-sm transition-colors hover:underline',
+    tone === 'accent'
+      ? 'text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))]'
+      : 'text-[hsl(var(--cc-main-black)/0.6)] hover:text-[hsl(var(--cc-main-orange))]',
+    className,
+  ]}
+  {...attributes}
+>
+  <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
+  <slot>戻る</slot>
+</a>

@@ -1,6 +1,11 @@
 ---
 import slackManifestContent from '../../../../config/slack-app-manifest.yaml?raw';
 import Icon from '../components/Icon.astro';
+import BackLink from '../components/ui/BackLink.astro';
+import Button from '../components/ui/Button.astro';
+import Input from '../components/ui/Input.astro';
+import Card from '../components/ui/Card.astro';
+import TabButton from '../components/ui/TabButton.astro';
 import Layout from '../layouts/Layout.astro';
 import { SITE_TITLE } from '../lib/constants';
 
@@ -22,14 +27,7 @@ const url = import.meta.env.DEV
     <div class='max-w-xl mx-auto'>
       <!-- ナビゲーション -->
       <nav class='mb-10'>
-        <a
-          href='/'
-          data-direction='back'
-          class='text-sm text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-orange))] inline-flex items-center gap-1.5 transition-colors'
-        >
-          <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
-          トップに戻る
-        </a>
+        <BackLink href='/'>トップに戻る</BackLink>
       </nav>
 
       <!-- ヘッダー -->
@@ -73,38 +71,33 @@ const url = import.meta.env.DEV
         role='tablist'
         aria-label='通知サービスの選択'
       >
-        <button
-          type='button'
+        <TabButton
           id='tab-discord'
           role='tab'
           aria-selected='true'
           aria-controls='panel-discord'
-          class='flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer
-            border-[hsl(var(--cc-main-orange))] text-[hsl(var(--cc-main-orange))]'
+          active
+          class='flex items-center gap-2'
         >
           <Icon name='discord' class='w-4 h-4' aria-hidden='true' />
           Discord
-        </button>
-        <button
-          type='button'
+        </TabButton>
+        <TabButton
           id='tab-slack'
           role='tab'
           aria-selected='false'
           aria-controls='panel-slack'
-          class='flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer
-            border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]'
+          class='flex items-center gap-2'
         >
           <Icon name='slack' class='w-4 h-4' aria-hidden='true' />
           Slack
-        </button>
-        <button
-          type='button'
+        </TabButton>
+        <TabButton
           id='tab-email'
           role='tab'
           aria-selected='false'
           aria-controls='panel-email'
-          class='flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer
-            border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]'
+          class='flex items-center gap-2'
         >
           <Icon name='mail' class='w-4 h-4' aria-hidden='true' />
           メール
@@ -115,15 +108,13 @@ const url = import.meta.env.DEV
           >
             Preview
           </span>
-        </button>
+        </TabButton>
       </div>
 
       <!-- Discord パネル -->
       <div id='panel-discord' role='tabpanel' aria-labelledby='tab-discord'>
         <!-- セットアップガイド -->
-        <section
-          class='mb-8 rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))]'
-        >
+        <Card as='section' padding='none' class='mb-8'>
           <details class='group' open>
             <summary
               class='flex items-center justify-between gap-3 px-5 py-4 cursor-pointer select-none'
@@ -161,12 +152,10 @@ const url = import.meta.env.DEV
               </div>
             </div>
           </details>
-        </section>
+        </Card>
 
         <!-- 登録フォーム -->
-        <section
-          class='rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] p-5 sm:p-6'
-        >
+        <Card as='section'>
           <form
             id='discord-form'
             data-worker-url={url}
@@ -180,13 +169,13 @@ const url = import.meta.env.DEV
               >
                 Webhook URL
               </label>
-              <input
+              <Input
                 type='url'
                 id='discord-webhook-url'
                 name='webhook_url'
                 required
                 placeholder='https://discord.com/api/webhooks/...'
-                class='w-full px-4 py-3 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-sm text-[hsl(var(--cc-main-black))] placeholder-[hsl(var(--cc-main-black)/0.3)] focus:outline-none focus:border-[hsl(var(--cc-main-orange))] focus:ring-2 focus:ring-[hsl(var(--cc-main-orange)/0.2)] transition-[border-color,box-shadow] invalid:not-placeholder-shown:border-[#ff6b6b]'
+                invalidStyle
               />
               <p
                 id='discord-webhook-url-error'
@@ -205,11 +194,11 @@ const url = import.meta.env.DEV
             >
             </div>
 
-            <button
+            <Button
               type='submit'
               id='discord-submit-btn'
               disabled
-              class='w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-lg bg-[hsl(var(--cc-main-orange))] text-sm font-medium text-[hsl(var(--cc-main-white))] cursor-pointer transition-[background-color,box-shadow,transform] hover:bg-[hsl(var(--cc-orange-hover))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 active:scale-[0.96]'
+              class='w-full sm:w-auto h-11 px-6 font-medium text-[hsl(var(--cc-main-white))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:opacity-40'
             >
               <span id='discord-submit-text'>登録する</span>
               <Icon
@@ -218,11 +207,11 @@ const url = import.meta.env.DEV
                 class='w-4 h-4 animate-spin hidden'
                 aria-hidden='true'
               />
-            </button>
+            </Button>
           </form>
 
           <div id='discord-result-message' class='mt-5 hidden'></div>
-        </section>
+        </Card>
       </div>
 
       <!-- Slack パネル -->
@@ -233,9 +222,7 @@ const url = import.meta.env.DEV
         class='hidden'
       >
         <!-- セットアップガイド -->
-        <section
-          class='mb-8 rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))]'
-        >
+        <Card as='section' padding='none' class='mb-8'>
           <details class='group' open>
             <summary
               class='flex items-center justify-between gap-3 px-5 py-4 cursor-pointer select-none'
@@ -284,10 +271,12 @@ const url = import.meta.env.DEV
                     >
                       slack-app-manifest.yaml
                     </span>
-                    <button
+                    <Button
                       id='copy-manifest-btn'
                       type='button'
-                      class='flex items-center gap-1.5 text-xs text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
+                      variant='ghost'
+                      size='xs'
+                      class='p-0 hover:bg-transparent'
                       aria-label='マニフェストをコピー'
                     >
                       <Icon
@@ -304,7 +293,7 @@ const url = import.meta.env.DEV
                         aria-hidden='true'
                       />
                       <span id='copy-label'>コピー</span>
-                    </button>
+                    </Button>
                   </div>
                   <pre
                     class='p-4 text-xs leading-relaxed overflow-x-auto text-[hsl(var(--cc-main-black)/0.75)] font-mono'><code>{slackManifestContent}</code></pre>
@@ -333,12 +322,10 @@ const url = import.meta.env.DEV
               </div>
             </div>
           </details>
-        </section>
+        </Card>
 
         <!-- 登録フォーム -->
-        <section
-          class='rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] p-5 sm:p-6'
-        >
+        <Card as='section'>
           <form
             id='slack-form'
             data-worker-url={url}
@@ -352,13 +339,13 @@ const url = import.meta.env.DEV
               >
                 Webhook URL
               </label>
-              <input
+              <Input
                 type='url'
                 id='slack-webhook-url'
                 name='webhook_url'
                 required
                 placeholder='https://hooks.slack.com/services/...'
-                class='w-full px-4 py-3 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-sm text-[hsl(var(--cc-main-black))] placeholder-[hsl(var(--cc-main-black)/0.3)] focus:outline-none focus:border-[hsl(var(--cc-main-orange))] focus:ring-2 focus:ring-[hsl(var(--cc-main-orange)/0.2)] transition-[border-color,box-shadow] invalid:not-placeholder-shown:border-[#ff6b6b]'
+                invalidStyle
               />
               <p
                 id='slack-webhook-url-error'
@@ -377,11 +364,11 @@ const url = import.meta.env.DEV
             >
             </div>
 
-            <button
+            <Button
               type='submit'
               id='slack-submit-btn'
               disabled
-              class='w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-lg bg-[hsl(var(--cc-main-orange))] text-sm font-medium text-[hsl(var(--cc-main-white))] cursor-pointer transition-[background-color,box-shadow,transform] hover:bg-[hsl(var(--cc-orange-hover))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 active:scale-[0.96]'
+              class='w-full sm:w-auto h-11 px-6 font-medium text-[hsl(var(--cc-main-white))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:opacity-40'
             >
               <span id='slack-submit-text'>登録する</span>
               <Icon
@@ -390,11 +377,11 @@ const url = import.meta.env.DEV
                 class='w-4 h-4 animate-spin hidden'
                 aria-hidden='true'
               />
-            </button>
+            </Button>
           </form>
 
           <div id='slack-result-message' class='mt-5 hidden'></div>
-        </section>
+        </Card>
       </div>
 
       <!-- Email パネル -->
@@ -405,8 +392,10 @@ const url = import.meta.env.DEV
         class='hidden'
       >
         <!-- プレビュー版バナー -->
-        <div
-          class='mb-6 flex gap-3 items-start rounded-xl border border-[hsl(var(--cc-main-orange)/0.3)] bg-[hsl(var(--cc-main-orange)/0.06)] px-4 py-3.5'
+        <Card
+          variant='accent'
+          padding='none'
+          class='mb-6 flex gap-3 items-start px-4 py-3.5'
           role='note'
           aria-label='プレビュー版に関する注意'
         >
@@ -425,12 +414,10 @@ const url = import.meta.env.DEV
               メール通知はプレビュー版です。予告なく停止する場合があります。
             </p>
           </div>
-        </div>
+        </Card>
 
         <!-- セットアップガイド -->
-        <section
-          class='mb-8 rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))]'
-        >
+        <Card as='section' padding='none' class='mb-8'>
           <details class='group' open>
             <summary
               class='flex items-center justify-between gap-3 px-5 py-4 cursor-pointer select-none'
@@ -462,12 +449,10 @@ const url = import.meta.env.DEV
               </div>
             </div>
           </details>
-        </section>
+        </Card>
 
         <!-- 登録フォーム -->
-        <section
-          class='rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] p-5 sm:p-6'
-        >
+        <Card as='section'>
           <form
             id='email-form'
             data-worker-url={url}
@@ -481,13 +466,13 @@ const url = import.meta.env.DEV
               >
                 メールアドレス
               </label>
-              <input
+              <Input
                 type='email'
                 id='email-address'
                 name='email_address'
                 required
                 placeholder='you@example.com'
-                class='w-full px-4 py-3 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-sm text-[hsl(var(--cc-main-black))] placeholder-[hsl(var(--cc-main-black)/0.3)] focus:outline-none focus:border-[hsl(var(--cc-main-orange))] focus:ring-2 focus:ring-[hsl(var(--cc-main-orange)/0.2)] transition-[border-color,box-shadow] invalid:not-placeholder-shown:border-[#ff6b6b]'
+                invalidStyle
               />
               <p
                 id='email-address-error'
@@ -506,11 +491,11 @@ const url = import.meta.env.DEV
             >
             </div>
 
-            <button
+            <Button
               type='submit'
               id='email-submit-btn'
               disabled
-              class='w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-lg bg-[hsl(var(--cc-main-orange))] text-sm font-medium text-[hsl(var(--cc-main-white))] cursor-pointer transition-[background-color,box-shadow,transform] hover:bg-[hsl(var(--cc-orange-hover))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 active:scale-[0.96]'
+              class='w-full sm:w-auto h-11 px-6 font-medium text-[hsl(var(--cc-main-white))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:opacity-40'
             >
               <span id='email-submit-text'>登録する</span>
               <Icon
@@ -519,11 +504,11 @@ const url = import.meta.env.DEV
                 class='w-4 h-4 animate-spin hidden'
                 aria-hidden='true'
               />
-            </button>
+            </Button>
           </form>
 
           <div id='email-result-message' class='mt-5 hidden'></div>
-        </section>
+        </Card>
       </div>
     </div>
   </div>

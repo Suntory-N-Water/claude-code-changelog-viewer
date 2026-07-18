@@ -1,0 +1,109 @@
+---
+import Icon from '../Icon.astro';
+import Button from './Button.astro';
+import Select from './Select.astro';
+
+type Props = {
+  pages: { number: number; url: string }[];
+  currentPage: number;
+  totalPages: number;
+  previousHref?: string;
+  nextHref?: string;
+  previousLabel: string;
+  nextLabel: string;
+  class?: string;
+};
+
+const {
+  pages,
+  currentPage,
+  totalPages,
+  previousHref,
+  nextHref,
+  previousLabel,
+  nextLabel,
+  class: className,
+} = Astro.props;
+---
+
+<nav
+  aria-label='ページナビゲーション'
+  class:list={[
+    'flex items-center justify-between gap-3 pt-6 border-t border-[hsl(var(--cc-gray))]',
+    className,
+  ]}
+>
+  <div class='shrink-0'>
+    {
+      previousHref ? (
+        <Button
+          href={previousHref}
+          variant='outline'
+          size='icon'
+          class='bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange)/0.45)]'
+        >
+          <span class='sr-only'>{previousLabel}</span>
+          <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
+        </Button>
+      ) : (
+        <span class='block w-11 h-11' aria-hidden='true' />
+      )
+    }
+  </div>
+
+  <div class='relative min-w-0'>
+    <label for='pagination-page-select' class='sr-only'>表示するページ</label>
+    <Select
+      id='pagination-page-select'
+      data-pagination-select
+      class='w-36 sm:w-40 h-11 appearance-none px-4 pr-10 text-center font-medium tabular-nums text-[hsl(var(--cc-main-black)/0.72)] cursor-pointer hover:border-[hsl(var(--cc-main-orange)/0.45)]'
+    >
+      {
+        pages.map((page) => (
+          <option value={page.url} selected={page.number === currentPage}>
+            {page.number} / {totalPages} ページ
+          </option>
+        ))
+      }
+    </Select>
+    <Icon
+      name='chevron-down'
+      class='pointer-events-none absolute right-3 top-1/2 w-4 h-4 -translate-y-1/2 text-[hsl(var(--cc-main-black)/0.42)]'
+      aria-hidden='true'
+    />
+  </div>
+
+  <div class='shrink-0'>
+    {
+      nextHref ? (
+        <Button
+          href={nextHref}
+          variant='outline'
+          size='icon'
+          class='bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange)/0.45)]'
+        >
+          <span class='sr-only'>{nextLabel}</span>
+          <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
+        </Button>
+      ) : (
+        <span class='block w-11 h-11' aria-hidden='true' />
+      )
+    }
+  </div>
+</nav>
+
+<script>
+  document.addEventListener('change', (event) => {
+    const target = event.target;
+    if (
+      !(target instanceof HTMLSelectElement) ||
+      !target.matches('[data-pagination-select]')
+    ) {
+      return;
+    }
+
+    if (target.value) {
+      window.location.href = target.value;
+    }
+  });
+</script>

@@ -3,6 +3,10 @@ import { getCollection, render } from 'astro:content';
 import { format, parseISO } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import Icon from '../../../components/Icon.astro';
+import BackLink from '../../../components/ui/BackLink.astro';
+import Button from '../../../components/ui/Button.astro';
+import Accordion from '../../../components/ui/Accordion.astro';
+import Badge from '../../../components/ui/Badge.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { SITE_TITLE } from '../../../lib/constants';
 import { semverCompareDesc } from '../../../lib/semver';
@@ -64,14 +68,7 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
     <div class='max-w-6xl mx-auto'>
       <!-- 戻るリンク -->
       <div class='mb-6'>
-        <a
-          href='/posts/weekly'
-          data-direction='back'
-          class='inline-flex items-center gap-1.5 text-sm text-[hsl(var(--cc-main-black)/0.55)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
-        >
-          <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
-          週次まとめ一覧に戻る
-        </a>
+        <BackLink href='/posts/weekly'>週次まとめ一覧に戻る</BackLink>
       </div>
 
       <header class='mb-8 max-w-3xl'>
@@ -97,7 +94,7 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
         <div class='min-w-0 max-w-3xl'>
           {
             toc.length > 0 && (
-              <details class='lg:hidden mb-6 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-gray)/0.2)]'>
+              <Accordion variant='muted' class='lg:hidden mb-6'>
                 <summary class='cursor-pointer select-none px-4 py-3 text-sm font-semibold text-[hsl(var(--cc-main-black)/0.7)] flex items-center gap-2'>
                   <Icon
                     name='chevron-down'
@@ -118,7 +115,7 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
                     </li>
                   ))}
                 </ul>
-              </details>
+              </Accordion>
             )
           }
 
@@ -141,9 +138,10 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
                 <ul class='flex flex-wrap gap-2'>
                   {sortedVersions.map((version) => (
                     <li>
-                      <a
+                      <Badge
                         href={`/changelog/v${version}`}
-                        class='inline-flex items-center gap-1 rounded-full border border-[hsl(var(--cc-gray))] px-3 py-1 text-sm font-medium tabular-nums text-[hsl(var(--cc-main-black)/0.8)] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+                        variant='outline'
+                        class='gap-1 px-3 py-1 text-sm font-medium tabular-nums hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
                       >
                         v{version}
                         <Icon
@@ -151,7 +149,7 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
                           class='w-3.5 h-3.5'
                           aria-hidden='true'
                         />
-                      </a>
+                      </Badge>
                     </li>
                   ))}
                 </ul>
@@ -170,11 +168,14 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
               >
                 シェア
               </span>
-              <button
+              <Button
                 id='web-share-btn'
                 type='button'
                 hidden
-                class='inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-[hsl(var(--cc-main-black)/0.65)] hover:border-[hsl(var(--cc-main-black)/0.3)] hover:bg-[hsl(var(--cc-gray)/0.3)] transition-[background-color,border-color,transform] active:scale-[0.96] cursor-pointer'
+                variant='outline'
+                size='xs'
+                shape='pill'
+                class='px-4 hover:border-[hsl(var(--cc-main-black)/0.3)] hover:bg-[hsl(var(--cc-gray)/0.3)]'
                 aria-label='シェア'
               >
                 <Icon
@@ -183,33 +184,42 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
                   aria-hidden='true'
                 />
                 シェアする
-              </button>
-              <a
+              </Button>
+              <Button
                 href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`}
                 target='_blank'
                 rel='noopener noreferrer'
-                class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-[hsl(var(--cc-main-black)/0.6)] hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)] transition-[background-color,border-color,color] active:scale-[0.96]'
+                variant='outline'
+                size='xs'
+                shape='pill'
+                class='hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)]'
                 aria-label='Xでシェア'
                 data-share='x'
               >
                 <Icon name='x-twitter' class='w-3.5 h-3.5' aria-hidden='true' />
                 X
-              </a>
-              <a
+              </Button>
+              <Button
                 href={hatenaShareUrl}
                 target='_blank'
                 rel='noopener noreferrer'
-                class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-[hsl(var(--cc-main-black)/0.6)] hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)] transition-[background-color,border-color,color] active:scale-[0.96]'
+                variant='outline'
+                size='xs'
+                shape='pill'
+                class='hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)]'
                 aria-label='はてなブックマークに追加'
                 data-share='hatena'
               >
                 <Icon name='hatena-b' class='w-3.5 h-3.5' aria-hidden='true' />
                 はてブ
-              </a>
-              <button
+              </Button>
+              <Button
                 id='copy-url-btn'
                 type='button'
-                class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-[hsl(var(--cc-main-black)/0.6)] hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)] transition-[background-color,border-color,color] cursor-pointer'
+                variant='outline'
+                size='xs'
+                shape='pill'
+                class='hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)]'
                 aria-label='URLをコピー'
               >
                 <Icon
@@ -219,7 +229,7 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
                   aria-hidden='true'
                 />
                 <span id='copy-url-label'>URLをコピー</span>
-              </button>
+              </Button>
             </div>
           </section>
         </div>

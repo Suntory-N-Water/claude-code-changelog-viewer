@@ -2,6 +2,8 @@
 import { getCollection } from 'astro:content';
 import type { Prefix } from '@claude-code-changelog-viewer/common';
 import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
+import BackLink from '../../components/ui/BackLink.astro';
+import Button from '../../components/ui/Button.astro';
 import PrefixTableOfContents from '../../components/changelog/PrefixTableOfContents.astro';
 import Icon from '../../components/Icon.astro';
 import Layout from '../../layouts/Layout.astro';
@@ -141,14 +143,7 @@ const totalItemCount = items.length;
   <div class='min-h-dvh py-12 sm:py-16 px-4' data-pagefind-body>
     <div class='max-w-4xl mx-auto'>
       <nav class='mb-8' aria-label='パンくずリスト' data-pagefind-ignore>
-        <a
-          href='/'
-          data-direction='back'
-          class='text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1 transition-colors'
-        >
-          <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
-          バージョン一覧に戻る
-        </a>
+        <BackLink href='/' tone='accent'>バージョン一覧に戻る</BackLink>
       </nav>
 
       {
@@ -222,10 +217,12 @@ const totalItemCount = items.length;
         {
           itemChangeEvents.length > 0 && (
             <>
-              <button
+              <Button
                 type='button'
                 popovertarget='changelog-history-popover'
-                class='changelog-history-trigger inline-flex items-center gap-1 mt-2 text-sm text-gray-600 hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
+                variant='ghost'
+                size='sm'
+                class='changelog-history-trigger p-0 mt-2 text-gray-600 hover:bg-transparent'
               >
                 公式のCHANGELOG.mdでの変更履歴
                 <Icon
@@ -233,7 +230,7 @@ const totalItemCount = items.length;
                   class='w-3.5 h-3.5'
                   aria-hidden='true'
                 />
-              </button>
+              </Button>
               <div
                 id='changelog-history-popover'
                 popover
@@ -243,15 +240,17 @@ const totalItemCount = items.length;
                   <p class='text-sm font-semibold text-[hsl(var(--cc-main-black))]'>
                     公式のCHANGELOG.mdでの変更履歴
                   </p>
-                  <button
+                  <Button
                     type='button'
                     popovertarget='changelog-history-popover'
                     popovertargetaction='hide'
-                    class='inline-flex items-center justify-center w-6 h-6 rounded text-gray-400 hover:text-[hsl(var(--cc-main-black))] cursor-pointer'
+                    variant='ghost'
+                    size='icon-sm'
+                    class='w-6 h-6 rounded text-gray-400 hover:text-[hsl(var(--cc-main-black))] hover:bg-transparent'
                     aria-label='閉じる'
                   >
                     <Icon name='close' class='w-4 h-4' aria-hidden='true' />
-                  </button>
+                  </Button>
                 </div>
                 <div class='space-y-2 text-sm text-gray-600'>
                   {itemChangeEvents.map((event: DiffEvent) => (
@@ -368,54 +367,58 @@ const totalItemCount = items.length;
         <p class='text-sm text-gray-600'>
           Claude Codeの新バージョンを見逃さない
         </p>
-        <a
-          href='/notify'
-          class='inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--cc-main-orange))] text-sm text-white hover:bg-[hsl(var(--cc-orange-hover))] transition-[background-color,transform] active:scale-[0.96]'
-          data-cta='notify'
-        >
+        <Button href='/notify' size='sm' shape='pill' data-cta='notify'>
           <Icon name='bell' class='w-4 h-4' aria-hidden='true' />
           更新通知を受け取る
-        </a>
+        </Button>
       </aside>
 
       <div id='share-section' class='mt-8 flex flex-wrap items-center gap-3'>
         <span class='text-sm text-gray-500'>シェア:</span>
-        <button
+        <Button
           id='web-share-btn'
           type='button'
           hidden
-          class='inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[hsl(var(--cc-main-orange))] text-xs text-white hover:bg-[hsl(var(--cc-orange-hover))] transition-[background-color,transform] active:scale-[0.96] cursor-pointer'
+          size='xs'
+          shape='pill'
+          class='px-4'
           aria-label='シェア'
         >
           <Icon name='bell' class='w-3.5 h-3.5' aria-hidden='true' />
           シェアする
-        </button>
-        <a
+        </Button>
+        <Button
           href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`${import.meta.env.SITE}/changelog/v${version}`)}&text=${encodeURIComponent(`Claude Code v${version} の変更点`)}`}
           target='_blank'
           rel='noopener noreferrer'
-          class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-gray-600 hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
+          variant='outline'
+          size='xs'
+          shape='pill'
           aria-label='Xでシェア'
           data-share='x'
         >
           <Icon name='x-twitter' class='w-3.5 h-3.5' aria-hidden='true' />
           X
-        </a>
-        <a
+        </Button>
+        <Button
           href={`https://b.hatena.ne.jp/entry/s/${new URL(`/changelog/v${version}`, import.meta.env.SITE).host}${new URL(`/changelog/v${version}`, import.meta.env.SITE).pathname}`}
           target='_blank'
           rel='noopener noreferrer'
-          class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-gray-600 hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
+          variant='outline'
+          size='xs'
+          shape='pill'
           aria-label='はてなブックマークに追加'
           data-share='hatena'
         >
           <Icon name='hatena-b' class='w-3.5 h-3.5' aria-hidden='true' />
           はてブ
-        </a>
-        <button
+        </Button>
+        <Button
           id='copy-url-btn'
           type='button'
-          class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-gray-600 hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
+          variant='outline'
+          size='xs'
+          shape='pill'
           aria-label='URLをコピー'
         >
           <Icon
@@ -425,7 +428,7 @@ const totalItemCount = items.length;
             aria-hidden='true'
           />
           <span id='copy-url-label'>URLをコピー</span>
-        </button>
+        </Button>
       </div>
 
       <nav
