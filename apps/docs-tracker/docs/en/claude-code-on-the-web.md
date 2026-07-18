@@ -65,6 +65,7 @@ Cloud sessions start from a fresh clone of your repository. Anything committed t
 | Your user `~/.claude/skills/`, `~/.claude/agents/`, `~/.claude/commands/` | No | Live on your machine, not in the repo. Commit them to the repo's `.claude/` directory instead. Skills you enable on claude.ai are loaded into cloud sessions automatically |
 | Plugins enabled only in your user settings | No | User-scoped `enabledPlugins` lives in `~/.claude/settings.json`. Declare them in the repo's `.claude/settings.json` instead |
 | MCP servers you added with `claude mcp add` | No | Those write to your local user config, not the repo. Declare the server in [`.mcp.json`](/en/mcp#project-scope) instead |
+| Transport variables in your repo's `.claude/settings.json` `env` block, such as `NODE_EXTRA_CA_CERTS` and the [mTLS client certificate variables](/en/network-config#mtls-authentication) | No | The hosting environment manages the session's API connection, so Claude Code ignores these keys and notes each ignored key in the session's debug log |
 | Static API tokens and credentials | No | No dedicated secrets store exists yet. See below |
 | Interactive auth like AWS SSO | No | Not supported. SSO requires browser-based login that can't run in a cloud session |
 
