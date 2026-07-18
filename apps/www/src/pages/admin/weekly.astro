@@ -48,6 +48,9 @@ const weeks = [
     ]),
   ).values(),
 ].toSorted((a, b) => b.week.localeCompare(a.week));
+
+// デフォルトは最新週(先頭)。ビルド時点で他週の <section> を hidden にして初期表示を最新週だけに揃える。
+const defaultWeek = weeks[0]?.week;
 ---
 
 <Layout
@@ -88,7 +91,7 @@ const weeks = [
             >
               {
                 weeks.map(({ week, periodStart, periodEnd }) => (
-                  <option value={week}>
+                  <option value={week} selected={week === defaultWeek}>
                     {week} ({periodStart} – {periodEnd})
                   </option>
                 ))
@@ -127,7 +130,11 @@ const weeks = [
       <div class='space-y-5'>
         {
           weeklyItems.map(({ item, version, week }) => (
-            <section data-week={week} class='weekly-item'>
+            <section
+              data-week={week}
+              class='weekly-item'
+              hidden={week !== defaultWeek}
+            >
               <div class='mb-2 flex items-center gap-3'>
                 <label class='inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-[hsl(var(--cc-main-black))]'>
                   <input
