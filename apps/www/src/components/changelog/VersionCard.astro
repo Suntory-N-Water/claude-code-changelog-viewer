@@ -1,5 +1,6 @@
 ---
-import Icon from '../Icon.astro';
+import Badge from '../ui/Badge.astro';
+import CardLink from '../ui/CardLink.astro';
 
 type Props = {
   version: string;
@@ -11,47 +12,41 @@ type Props = {
 const { version, itemCount, summary, diffStatus } = Astro.props;
 ---
 
-<a
-  href={`/changelog/v${version}`}
-  class='version-card block bg-card text-card-foreground rounded-xl border shadow-sm hover:shadow-lg hover:border-[hsl(var(--cc-main-orange))] transition-[box-shadow,border-color,transform] duration-200 overflow-hidden group cursor-pointer active:scale-[0.98]'
->
-  <div class='p-6 flex items-center justify-between'>
-    <div>
-      <div class='flex flex-wrap items-center gap-2 mb-1'>
-        <h2
-          class='text-2xl font-bold text-balance text-[hsl(var(--cc-main-orange))] group-hover:text-[hsl(var(--cc-orange-hover))] transition-[color] tabular-nums'
-          style={`view-transition-name: version-title-${version}`}
+<CardLink href={`/changelog/v${version}`} class='version-card'>
+  <div class='flex flex-wrap items-center gap-2 mb-1'>
+    <h2
+      class='text-2xl font-bold text-balance text-[hsl(var(--cc-main-orange))] group-hover:text-[hsl(var(--cc-orange-hover))] transition-[color] tabular-nums'
+      style={`view-transition-name: version-title-${version}`}
+    >
+      v{version}
+    </h2>
+    {
+      diffStatus === 'removed' && (
+        <Badge
+          size='xs'
+          class='bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'
         >
-          v{version}
-        </h2>
-        {
-          diffStatus === 'removed' && (
-            <span class='text-[10px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
-              削除済み
-            </span>
-          )
-        }
-        {
-          diffStatus === 'changed' && (
-            <span class='text-[10px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
-              更新あり
-            </span>
-          )
-        }
-      </div>
-      <p class='text-sm text-muted-foreground tabular-nums'>
-        変更項目: {itemCount}件
-      </p>
-      {
-        summary && (
-          <p class='mt-1.5 text-xs text-gray-600 line-clamp-2'>{summary}</p>
-        )
-      }
-    </div>
-    <Icon
-      name='chevron-right'
-      class='w-5 h-5 text-[hsl(var(--cc-gray))] group-hover:text-[hsl(var(--cc-main-orange))] group-hover:translate-x-1 transition-[color,transform] duration-200 shrink-0'
-      aria-hidden='true'
-    />
+          削除済み
+        </Badge>
+      )
+    }
+    {
+      diffStatus === 'changed' && (
+        <Badge
+          size='xs'
+          class='bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'
+        >
+          更新あり
+        </Badge>
+      )
+    }
   </div>
-</a>
+  <p class='text-sm text-muted-foreground tabular-nums'>
+    変更項目: {itemCount}件
+  </p>
+  {
+    summary && (
+      <p class='mt-1.5 text-xs text-gray-600 line-clamp-2'>{summary}</p>
+    )
+  }
+</CardLink>

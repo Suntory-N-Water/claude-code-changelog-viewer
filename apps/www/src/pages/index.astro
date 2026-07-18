@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import { format, parseISO } from 'date-fns';
 import Icon from '../components/Icon.astro';
 import VersionCard from '../components/changelog/VersionCard.astro';
+import Button from '../components/ui/Button.astro';
+import Accordion from '../components/ui/Accordion.astro';
 import Layout from '../layouts/Layout.astro';
 import { buildDiffMap } from '../lib/changelog-diff';
 import { SITE_TITLE } from '../lib/constants';
@@ -140,20 +142,14 @@ const topAreas = [...areaMap.entries()]
           など機能別に追跡。日本語サマリーと変更前後の比較を AI が生成します。
         </p>
         <div class='flex flex-wrap items-center gap-3 mt-7'>
-          <a
-            href={`/changelog/v${latestVersion}`}
-            class='inline-flex items-center gap-1.5 min-h-11 px-5 py-2 rounded-full bg-[hsl(var(--cc-main-orange))] text-sm text-white hover:bg-[hsl(var(--cc-orange-hover))] transition-[background-color,transform] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-          >
+          <Button href={`/changelog/v${latestVersion}`} shape='pill'>
             最新版を読む
             <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
-          </a>
-          <a
-            href='/notify'
-            class='inline-flex items-center gap-1.5 min-h-11 px-5 py-2 rounded-full border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.7)] hover:border-[hsl(var(--cc-main-orange)/0.4)] hover:text-[hsl(var(--cc-main-orange))] hover:bg-[hsl(var(--cc-main-orange)/0.04)] transition-[border-color,color,background-color,transform] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-          >
+          </Button>
+          <Button href='/notify' variant='outline' shape='pill'>
             <Icon name='bell' class='w-4 h-4' aria-hidden='true' />
             更新通知を受け取る
-          </a>
+          </Button>
           <a
             href='/docs'
             class='inline-flex items-center min-h-11 text-xs text-[hsl(var(--cc-main-black)/0.55)] hover:text-[hsl(var(--cc-main-orange))] transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
@@ -203,13 +199,15 @@ const topAreas = [...areaMap.entries()]
         {
           remainingCount > 0 && (
             <div class='mt-8 text-center'>
-              <a
+              <Button
                 href='/changelog'
-                class='inline-flex cursor-pointer items-center gap-2 px-6 py-3 rounded-lg border border-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
+                variant='outline'
+                size='lg'
+                class='text-[hsl(var(--cc-main-black))]'
               >
                 全バージョン一覧を見る(他{remainingCount}件)
                 <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
-              </a>
+              </Button>
             </div>
           )
         }
@@ -273,15 +271,12 @@ const topAreas = [...areaMap.entries()]
         <div class='flex flex-wrap gap-2.5'>
           {
             topAreas.map(({ slug, label, itemCount }) => (
-              <a
-                href={`/features/${slug}`}
-                class='inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] text-sm hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
-              >
+              <Button href={`/features/${slug}`} variant='outline' size='sm'>
                 {label}
                 <span class='font-mono text-[11px] text-gray-400 tabular-nums'>
                   {itemCount}
                 </span>
-              </a>
+              </Button>
             ))
           }
           <a
@@ -303,13 +298,10 @@ const topAreas = [...areaMap.entries()]
           Claude Code 公式ドキュメントを 3 時間ごとに取得し、diff
           として記録。各更新は AI が日本語で要約します。
         </p>
-        <a
-          href='/docs'
-          class='inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] text-sm hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
-        >
+        <Button href='/docs' variant='outline' size='sm'>
           公式ドキュメント更新履歴
           <Icon name='chevron-right' class='w-3.5 h-3.5' aria-hidden='true' />
-        </a>
+        </Button>
       </section>
 
       <section class='mt-20 max-w-4xl mx-auto'>
@@ -321,7 +313,10 @@ const topAreas = [...areaMap.entries()]
         <div class='faq-list space-y-4'>
           {
             faqItems.map(({ question, answer }) => (
-              <details class='details-animated border border-[hsl(var(--cc-gray))] rounded-lg p-5 group open:border-[hsl(var(--cc-main-orange)/0.4)]'>
+              <Accordion
+                variant='plain'
+                class='details-animated p-5 group open:border-[hsl(var(--cc-main-orange)/0.4)]'
+              >
                 <summary class='font-medium cursor-pointer list-none flex items-center justify-between'>
                   {question}
                   <Icon
@@ -333,7 +328,7 @@ const topAreas = [...areaMap.entries()]
                 <p class='mt-3 text-sm text-gray-600 leading-relaxed'>
                   {answer}
                 </p>
-              </details>
+              </Accordion>
             ))
           }
         </div>

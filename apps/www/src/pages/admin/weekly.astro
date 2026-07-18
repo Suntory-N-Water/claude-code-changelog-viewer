@@ -9,6 +9,9 @@ import {
   startOfISOWeek,
 } from 'date-fns';
 import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
+import Button from '../../components/ui/Button.astro';
+import Select from '../../components/ui/Select.astro';
+import Card from '../../components/ui/Card.astro';
 import Layout from '../../layouts/Layout.astro';
 import { getReleaseMap } from '../../lib/release-map';
 import { semverCompareDesc } from '../../lib/semver';
@@ -65,20 +68,23 @@ const weeks = [
         </p>
       </header>
 
-      <section
-        class='sticky top-14 z-40 mb-8 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white)/0.95)] p-4 shadow-sm backdrop-blur'
+      <Card
+        as='section'
+        padding='sm'
+        radius='lg'
+        class='sticky top-14 z-40 mb-8 bg-[hsl(var(--cc-main-white)/0.95)] shadow-sm backdrop-blur'
       >
         <div
           class='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'
         >
-          <label class='block'>
+          <label for='week-select' class='block'>
             <span
               class='block text-sm font-medium text-[hsl(var(--cc-main-black))]'
               >対象週</span
             >
-            <select
+            <Select
               id='week-select'
-              class='mt-1.5 min-w-56 rounded-md border border-[hsl(var(--cc-gray))] bg-white px-3 py-2 text-sm'
+              class='mt-1.5 min-w-56 rounded-md bg-white'
             >
               {
                 weeks.map(({ week, periodStart, periodEnd }) => (
@@ -87,26 +93,29 @@ const weeks = [
                   </option>
                 ))
               }
-            </select>
+            </Select>
           </label>
           <div class='flex gap-2'>
-            <button
+            <Button
               id='clear-button'
               type='button'
-              class='rounded-md border border-[hsl(var(--cc-gray))] bg-white px-4 py-2 text-sm font-semibold text-[hsl(var(--cc-main-black))] transition-colors hover:bg-[hsl(var(--cc-gray)/0.15)]'
+              variant='outline'
+              size='sm'
+              class='rounded-md bg-white font-semibold text-[hsl(var(--cc-main-black))] hover:bg-[hsl(var(--cc-gray)/0.15)]'
             >
               一括削除
-            </button>
-            <button
+            </Button>
+            <Button
               id='copy-button'
               type='button'
-              class='rounded-md bg-[hsl(var(--cc-main-orange))] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[hsl(var(--cc-orange-hover))] disabled:cursor-not-allowed disabled:opacity-50'
+              size='sm'
+              class='rounded-md font-semibold disabled:cursor-not-allowed'
             >
               選定内容をコピー
-            </button>
+            </Button>
           </div>
         </div>
-      </section>
+      </Card>
 
       <p
         id='empty-message'

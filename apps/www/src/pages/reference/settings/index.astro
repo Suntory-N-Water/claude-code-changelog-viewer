@@ -2,6 +2,10 @@
 import { getCollection } from 'astro:content';
 import Icon from '../../../components/Icon.astro';
 import SettingCard from '../../../components/settings/SettingCard.astro';
+import BackLink from '../../../components/ui/BackLink.astro';
+import Input from '../../../components/ui/Input.astro';
+import TabButton from '../../../components/ui/TabButton.astro';
+import Accordion from '../../../components/ui/Accordion.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { getSourceLabel } from '../../../lib/settings-reference';
 
@@ -107,14 +111,7 @@ const pageDescription =
   <div class='min-h-dvh py-12 sm:py-16 px-4'>
     <div class='max-w-6xl mx-auto'>
       <nav class='mb-8' aria-label='パンくずリスト'>
-        <a
-          href='/'
-          data-direction='back'
-          class='text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1 transition-colors'
-        >
-          <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
-          トップに戻る
-        </a>
+        <BackLink href='/' tone='accent'>トップに戻る</BackLink>
       </nav>
 
       <header class='mb-8 max-w-4xl'>
@@ -132,7 +129,7 @@ const pageDescription =
       <!-- 最近の更新サマリー -->
       {
         recentUpdates.length > 0 && (
-          <details class='mb-6 border border-[hsl(var(--cc-gray))] rounded-xl overflow-hidden bg-white open:border-[hsl(var(--cc-main-orange)/0.4)]'>
+          <Accordion class='mb-6 rounded-xl overflow-hidden bg-white open:border-[hsl(var(--cc-main-orange)/0.4)]'>
             <summary class='flex items-center justify-between gap-3 px-4 py-3.5 cursor-pointer select-none hover:bg-[hsl(var(--cc-gray)/0.3)] active:bg-[hsl(var(--cc-gray)/0.5)] transition-colors duration-150 list-none [&::-webkit-details-marker]:hidden'>
               <div class='flex items-center gap-2.5 min-w-0'>
                 <span class='inline-flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--cc-main-orange)/0.12)] text-[hsl(var(--cc-main-orange))] shrink-0'>
@@ -174,7 +171,7 @@ const pageDescription =
                 </div>
               ))}
             </div>
-          </details>
+          </Accordion>
         )
       }
 
@@ -187,12 +184,12 @@ const pageDescription =
             class='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400'
             aria-hidden='true'
           />
-          <input
+          <Input
             id='search-input'
             type='search'
             placeholder='設定名で絞り込む(例: memory, MCP)'
             autocomplete='off'
-            class='w-full pl-9 pr-4 py-2.5 text-sm border border-[hsl(var(--cc-gray))] rounded-lg bg-white focus:outline-none focus:border-[hsl(var(--cc-main-orange))] focus:ring-1 focus:ring-[hsl(var(--cc-main-orange)/0.3)] transition-colors placeholder:text-gray-400'
+            class='pl-9 py-2.5 bg-white focus:ring-1 focus:ring-[hsl(var(--cc-main-orange)/0.3)] placeholder:text-gray-400'
           />
         </div>
       </div>
@@ -203,39 +200,21 @@ const pageDescription =
         role='tablist'
         aria-label='表示フィルタ'
       >
-        <button
-          type='button'
-          id='tab-all'
-          role='tab'
-          aria-selected='true'
-          class='px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer border-[hsl(var(--cc-main-orange))] text-[hsl(var(--cc-main-orange))]'
-        >
+        <TabButton id='tab-all' role='tab' aria-selected='true' active>
           すべて <span class='tabular-nums text-xs ml-1'
             >({allSettings.length})</span
           >
-        </button>
-        <button
-          type='button'
-          id='tab-settings'
-          role='tab'
-          aria-selected='false'
-          class='px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]'
-        >
+        </TabButton>
+        <TabButton id='tab-settings' role='tab' aria-selected='false'>
           settings.json <span class='tabular-nums text-xs ml-1'
             >({settingsItems.length})</span
           >
-        </button>
-        <button
-          type='button'
-          id='tab-env'
-          role='tab'
-          aria-selected='false'
-          class='px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]'
-        >
+        </TabButton>
+        <TabButton id='tab-env' role='tab' aria-selected='false'>
           環境変数 <span class='tabular-nums text-xs ml-1'
             >({envItems.length})</span
           >
-        </button>
+        </TabButton>
       </div>
 
       <!-- 検索結果なし -->

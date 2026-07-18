@@ -1,5 +1,7 @@
 ---
 import Icon from '../Icon.astro';
+import Card from '../ui/Card.astro';
+import Button from '../ui/Button.astro';
 
 type DiffLine = {
   type: 'added' | 'removed' | 'context';
@@ -24,9 +26,7 @@ const { filename, additions, deletions, explanation, hunks } = Astro.props;
 const docUrl = `https://code.claude.com/docs/en/${filename.replace(/\.md$/, '')}`;
 ---
 
-<div
-  class='border border-[hsl(var(--cc-gray))] rounded-lg overflow-hidden font-mono text-xs'
->
+<Card padding='none' radius='lg' class='overflow-hidden font-mono text-xs'>
   <!-- ファイルヘッダー -->
   <div
     class='bg-[hsl(var(--cc-gray)/0.4)] border-b border-[hsl(var(--cc-gray))]'
@@ -43,11 +43,13 @@ const docUrl = `https://code.claude.com/docs/en/${filename.replace(/\.md$/, '')}
       >
         {filename.replace(/\.md$/, '')}
       </span>
-      <a
+      <Button
         href={docUrl}
         target='_blank'
         rel='noopener noreferrer'
-        class='shrink-0 -mr-1 p-1.5 text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+        variant='ghost'
+        size='icon-sm'
+        class='shrink-0 -mr-1 w-auto h-auto p-1.5 hover:bg-transparent'
         aria-label='公式ドキュメントを開く(外部リンク)'
       >
         <Icon
@@ -56,7 +58,7 @@ const docUrl = `https://code.claude.com/docs/en/${filename.replace(/\.md$/, '')}
           stroke-width='1.8'
           aria-hidden='true'
         />
-      </a>
+      </Button>
       <span class='text-green-700 font-medium shrink-0'>+{additions}</span>
       <span class='text-red-600 font-medium shrink-0'>-{deletions}</span>
     </div>
@@ -131,4 +133,4 @@ const docUrl = `https://code.claude.com/docs/en/${filename.replace(/\.md$/, '')}
       </div>
     )
   }
-</div>
+</Card>

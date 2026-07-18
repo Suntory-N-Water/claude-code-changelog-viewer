@@ -10,6 +10,8 @@ import {
 } from '../../lib/prefix';
 import InferenceDetail from './InferenceDetail.astro';
 import RelatedDocsList from './RelatedDocsList.astro';
+import Badge from '../ui/Badge.astro';
+import Card from '../ui/Card.astro';
 
 type Props = {
   item: InferredChangelogItem;
@@ -30,17 +32,21 @@ const prefixStyle =
 const prefixIcon = PREFIX_ICONS[item.prefix as Prefix];
 ---
 
-<article
+<Card
+  as='article'
   id={anchorId}
-  class='changelog-card border border-[hsl(var(--cc-gray))] rounded-lg p-5 bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200 hover:border-[hsl(var(--cc-main-orange))]'
+  padding='none'
+  radius='lg'
+  class='changelog-card p-5 bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200 hover:border-[hsl(var(--cc-main-orange))]'
   data-pagefind-filter={`prefix:${item.prefix}`}
 >
   <div class='flex-1 min-w-0'>
     {
       item.prefix && (
         <div class='mb-3'>
-          <span
-            class={`inline-flex items-center gap-1 pl-2.5 pr-3.5 py-1.5 rounded-full text-sm font-bold uppercase ${prefixStyle}`}
+          <Badge
+            variant='prefix'
+            class={`gap-1 pl-2.5 pr-3.5 py-1.5 text-sm ${prefixStyle}`}
           >
             {prefixIcon && (
               <svg
@@ -59,7 +65,7 @@ const prefixIcon = PREFIX_ICONS[item.prefix as Prefix];
               </svg>
             )}
             {item.prefix}
-          </span>
+          </Badge>
         </div>
       )
     }
@@ -69,20 +75,20 @@ const prefixIcon = PREFIX_ICONS[item.prefix as Prefix];
         <div class='flex flex-wrap gap-1.5 mb-3'>
           {item.feature_areas.map((area) =>
             linkedAreas?.has(area) ? (
-              <a
+              <Badge
                 href={`/features/${toFeatureAreaSlug(area)}`}
-                class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[hsl(var(--cc-gray)/0.5)] text-[hsl(var(--cc-main-black)/0.6)] hover:bg-[hsl(var(--cc-main-orange)/0.1)] hover:text-[hsl(var(--cc-main-orange))] transition-[background-color,color]'
+                class='gap-1 text-[hsl(var(--cc-main-black)/0.6)] hover:bg-[hsl(var(--cc-main-orange)/0.1)] hover:text-[hsl(var(--cc-main-orange))] transition-[background-color,color]'
                 data-pagefind-filter={`feature_area:${area}`}
               >
                 {getFeatureAreaLabel(area)}
-              </a>
+              </Badge>
             ) : (
-              <span
-                class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[hsl(var(--cc-gray)/0.5)] text-[hsl(var(--cc-main-black)/0.6)]'
+              <Badge
+                class='gap-1 text-[hsl(var(--cc-main-black)/0.6)]'
                 data-pagefind-filter={`feature_area:${area}`}
               >
                 {getFeatureAreaLabel(area)}
-              </span>
+              </Badge>
             ),
           )}
         </div>
@@ -120,4 +126,4 @@ const prefixIcon = PREFIX_ICONS[item.prefix as Prefix];
   {item.inference && <InferenceDetail inference={item.inference} />}
 
   <RelatedDocsList docs={item.related_docs} />
-</article>
+</Card>

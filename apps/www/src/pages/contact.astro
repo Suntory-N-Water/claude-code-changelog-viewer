@@ -1,6 +1,10 @@
 ---
 import { CONTACT_EMAIL } from '../config/contact';
 import Icon from '../components/Icon.astro';
+import BackLink from '../components/ui/BackLink.astro';
+import Button from '../components/ui/Button.astro';
+import Card from '../components/ui/Card.astro';
+import TabButton from '../components/ui/TabButton.astro';
 import Layout from '../layouts/Layout.astro';
 import { SITE_TITLE } from '../lib/constants';
 
@@ -50,14 +54,7 @@ const tabs = [
   <div class='min-h-dvh py-12 sm:py-20 px-4'>
     <div class='max-w-xl mx-auto'>
       <nav class='mb-10'>
-        <a
-          href='/'
-          data-direction='back'
-          class='text-sm text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-orange))] inline-flex items-center gap-1.5 transition-colors'
-        >
-          <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
-          トップに戻る
-        </a>
+        <BackLink href='/'>トップに戻る</BackLink>
       </nav>
 
       <h1
@@ -74,9 +71,7 @@ const tabs = [
 
       <div class='space-y-6'>
         <!-- メールテンプレートカード -->
-        <section
-          class='rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] overflow-hidden'
-        >
+        <Card as='section' padding='none' class='overflow-hidden'>
           <!-- タブ -->
           <div
             class='flex border-b border-[hsl(var(--cc-gray))]'
@@ -86,25 +81,18 @@ const tabs = [
           >
             {
               tabs.map((tab, i) => (
-                <button
-                  type='button'
+                <TabButton
                   role='tab'
                   id={`tab-${tab.id}`}
                   aria-selected={i === 0 ? 'true' : 'false'}
                   aria-controls={`panel-${tab.id}`}
                   tabindex={i === 0 ? 0 : -1}
-                  class:list={[
-                    'contact-tab flex-1 px-3 py-3 text-sm transition-colors cursor-pointer',
-                    'hover:text-[hsl(var(--cc-main-orange))]',
-                    'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]',
-                    i === 0
-                      ? 'text-[hsl(var(--cc-main-orange))] border-b-2 border-[hsl(var(--cc-main-orange))] font-medium'
-                      : 'text-[hsl(var(--cc-main-black)/0.5)]',
-                  ]}
+                  active={i === 0}
+                  class='contact-tab flex-1 px-3 hover:text-[hsl(var(--cc-main-orange))] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
                   data-tab-id={tab.id}
                 >
                   {tab.label}
-                </button>
+                </TabButton>
               ))
             }
           </div>
@@ -126,9 +114,11 @@ const tabs = [
                       <span class='text-xs font-medium text-[hsl(var(--cc-main-black)/0.4)] tracking-wider uppercase'>
                         件名
                       </span>
-                      <button
+                      <Button
                         type='button'
-                        class='contact-copy-btn inline-flex items-center gap-1 text-xs text-[hsl(var(--cc-main-black)/0.4)] hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
+                        variant='ghost'
+                        size='xs'
+                        class='contact-copy-btn p-0 text-[hsl(var(--cc-main-black)/0.4)] hover:bg-transparent'
                         data-copy-target={`subject-${tab.id}`}
                         aria-label='件名をコピー'
                       >
@@ -138,7 +128,7 @@ const tabs = [
                           aria-hidden='true'
                         />
                         <span class='contact-copy-label'>コピー</span>
-                      </button>
+                      </Button>
                     </div>
                     <div
                       class='rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] px-4 py-3 text-sm text-[hsl(var(--cc-main-black)/0.8)] font-mono'
@@ -154,9 +144,11 @@ const tabs = [
                       <span class='text-xs font-medium text-[hsl(var(--cc-main-black)/0.4)] tracking-wider uppercase'>
                         本文
                       </span>
-                      <button
+                      <Button
                         type='button'
-                        class='contact-copy-btn inline-flex items-center gap-1 text-xs text-[hsl(var(--cc-main-black)/0.4)] hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
+                        variant='ghost'
+                        size='xs'
+                        class='contact-copy-btn p-0 text-[hsl(var(--cc-main-black)/0.4)] hover:bg-transparent'
                         data-copy-target={`body-${tab.id}`}
                         aria-label='本文をコピー'
                       >
@@ -166,7 +158,7 @@ const tabs = [
                           aria-hidden='true'
                         />
                         <span class='contact-copy-label'>コピー</span>
-                      </button>
+                      </Button>
                     </div>
                     <pre
                       class='rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] px-4 py-3 text-sm text-[hsl(var(--cc-main-black)/0.8)] font-mono whitespace-pre-wrap break-all leading-relaxed overflow-hidden'
@@ -187,9 +179,10 @@ const tabs = [
 
                   {/* アクションボタン */}
                   <div class='flex flex-col sm:flex-row gap-3 pt-2'>
-                    <a
+                    <Button
                       href={`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(CONTACT_EMAIL)}&su=${encodeURIComponent(tab.subject)}&body=${encodeURIComponent(tab.body)}`}
-                      class='contact-gmail-btn inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[hsl(var(--cc-main-orange))] text-white text-sm font-medium hover:bg-[hsl(var(--cc-orange-hover))] transition-[background-color,transform] cursor-pointer active:scale-[0.96]'
+                      size='lg'
+                      class='contact-gmail-btn px-5 text-sm font-medium'
                       target='_blank'
                       rel='noopener noreferrer'
                       data-tab-id={tab.id}
@@ -197,10 +190,12 @@ const tabs = [
                     >
                       <Icon name='mail' class='w-4 h-4' aria-hidden='true' />
                       Gmail で開く
-                    </a>
-                    <a
+                    </Button>
+                    <Button
                       href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(tab.subject)}&body=${encodeURIComponent(tab.body)}`}
-                      class='contact-mailto-btn inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))] hover:border-[hsl(var(--cc-main-orange)/0.3)] transition-[border-color,color,transform] cursor-pointer active:scale-[0.96]'
+                      variant='outline'
+                      size='lg'
+                      class='contact-mailto-btn px-5 text-sm'
                       data-tab-id={tab.id}
                       aria-label='デフォルトのメーラーで開く'
                     >
@@ -210,13 +205,13 @@ const tabs = [
                         aria-hidden='true'
                       />
                       メーラーで開く
-                    </a>
+                    </Button>
                   </div>
                 </div>
               </div>
             ))
           }
-        </section>
+        </Card>
       </div>
     </div>
   </div>
