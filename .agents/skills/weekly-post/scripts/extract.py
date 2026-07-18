@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -49,12 +50,19 @@ def main():
             and any(d.get("snippets") for d in analysis_item.get("related_docs", []))
         )
 
+        # inferred JSON の content は CHANGELOG の Markdown リスト項目そのままで、
+        # 先頭に "- "/"* "/"+ " が残る。skeleton の引用ブロックで `> - ...` にならないよう
+        # ここで剥がして、後続処理は content を素の一文として扱えるようにする。
+        content = item.get("content")
+        if content is not None:
+            content = re.sub(r"^[-*+]\s+", "", content)
+
         out_items.append(
             {
                 "id": sel["id"],
                 "version": version,
                 "prefix": item.get("prefix"),
-                "content": item.get("content"),
+                "content": content,
                 "content_ja": item.get("content_ja"),
                 "comment": sel.get("comment", ""),
                 "inference": item.get("inference"),

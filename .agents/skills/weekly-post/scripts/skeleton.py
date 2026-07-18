@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -79,10 +78,9 @@ def main():
             current_version = item["version"]
         lines.append(f"### {item['content_ja']}")
         lines.append("")
-        # 英語原文の先頭にある Markdown リストマーカー(- / * / +)を除去する。
-        # blockquote 内で `> - ...` になると引用がリスト表示されてしまうため。
+        # content は extract.py で先頭のリストマーカーを剥がし済み。
         lines.extend(
-            f"> {re.sub(r'^[-*+]\\s+', '', line)}" if line else ">"
+            f"> {line}" if line else ">"
             for line in item["content"].splitlines()
         )
         lines.append("")
