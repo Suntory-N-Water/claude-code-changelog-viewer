@@ -1,0 +1,1064 @@
+{
+  "version": "2.1.214",
+  "summary": "今回の更新では、単一階層ディレクトリの許可ルール適用範囲が明確化され、より厳密な権限管理が可能となりました。また、Windows环境のPowerShellツールにおける表示・挙動の不具合修正や、Dockerデーモンリダイレクトフラグに対する権限確認の厳格化など、安全性と安定性を向上させる修正が広範囲で行われています。その他、OpenTelemetryのログ相関性強化や長時間のツール実行時における進捗可視化など、観測性と運用の利便性を高める機能改善も実施されました。",
+  "items": [
+    {
+      "id": "f4bb59de12d5",
+      "content": "- Fixed single-segment `dir/**` allow rules like `Edit(src/**)` auto-approving writes to nested `dir/` directories anywhere in the tree instead of only `<cwd>/dir`",
+      "content_ja": "単一階層のディレクトリ指定（dir/**）を用いた許可ルールが、サブディレクトリも含めて意図せず広範に適用されてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "単一階層の指定（Edit(src/**)など）が、指定した親ディレクトリ内だけでなく、ツリー内のどこにあるネストされたディレクトリに対しても自動的に許可されていました。",
+        "after": "指定した階層に合致するディレクトリ内のみが許可対象となるよう制限が正しく適用されるようになりました。",
+        "benefit": "意図しないディレクトリへの書き込みが自動承認されるリスクを避けられます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ディレクトリ指定のルール適用範囲が明確化され、意図しない書き込み権限の付与を防ぐ重要な変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        }
+      ]
+    },
+    {
+      "id": "5acff19836a6",
+      "content": "- Fixed a permission-check bypass affecting commands run in Windows PowerShell 5.1 sessions",
+      "content_ja": "Windows PowerShell 5.1セッションで実行されるコマンドに影響する権限チェックのバイパス問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows PowerShell特有のパーミッションバイパスを塞ぐ重要なセキュリティ修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "70acaa2837f7",
+      "content": "- Fixed Bash permission checks to fail closed on file-descriptor redirect forms that bash parses differently than the permission analyzer",
+      "content_ja": "Bashのパーサーと権限解析器で解釈が異なるファイル記述子のリダイレクト形式において、権限チェックが確実にブロックするように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Bashのパーサー挙動に合わせた堅牢な権限判定を行えるように修正しました。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "69ef619fe1bc",
+      "content": "- Fixed Bash permission checks misjudging very long commands — commands over 10,000 characters now always prompt instead of running automatically",
+      "content_ja": "10,000文字を超える非常に長いコマンドが適切に判定されない問題を修正し、今後は自動実行されず必ず承認を求めるようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "長大なコマンドに対するセキュリティチェックを厳格化しました。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "36b4e8892a0a",
+      "content": "- Fixed Bash permission checks treating zsh variable subscripts and modifiers in `[[ ]]` comparisons as inert text — these commands now prompt for approval",
+      "content_ja": "zshの変数の添字や [[ ]] 内の修飾子がinert textとして扱われていたBashパーミッションチェックを修正し、正しく承認を求めるようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "zsh固有の文法を考慮した権限判定の強化です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "e3bab894f94d",
+      "content": "- Fixed Bash permission checks to no longer auto-approve certain `help` and `man` commands that could run unsafe options, command substitutions, or backslash paths",
+      "content_ja": "helpやmanコマンドにおいて、コマンド置換やパスの誤用など、安全でないオプションを実行できる脆弱性を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "helpやmanコマンドが一部の文脈で自動承認されており、悪意のあるオプション実行などが許容される可能性がありました。",
+        "after": "コマンド置換やバックスラッシュを含むパスなど、安全でないオプションや引数を持つhelpやmanコマンドが自動承認されなくなりました。",
+        "benefit": "不審なコマンド実行を意図せず許可してしまうリスクが減ります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "helpやmanコマンドの安全性が強化され、不審なサブコマンド実行を未然に防ぐセキュリティ修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        }
+      ]
+    },
+    {
+      "id": "7b6b0961ec54",
+      "content": "- Fixed permission prompts on remote sessions that could proceed before the local confirmation dialog",
+      "content_ja": "ローカルの確認ダイアログが表示される前にリモートセッションで権限プロンプトが進行してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "related_docs": []
+    },
+    {
+      "id": "c9a9f6e667d1",
+      "content": "- Added the EndConversation tool: Claude can end sessions with highly abusive users or jailbreak attempts, as on claude.ai since 2025 — see https://www.anthropic.com/research/end-subset-conversations",
+      "content_ja": "EndConversationツールを追加しました。これにより、著しく攻撃的なユーザーや脱獄の試みに対してセッションを終了させることが可能です。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "虐待行為などへの対策として、安全に会話を打ち切るための新ツールを追加しました。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "30aca646b4ea",
+      "content": "- Added a periodic progress heartbeat for long-running tool calls that previously went silent",
+      "content_ja": "長時間実行されるツール呼び出しにおいて、応答が途絶えてしまうのを防ぐため、定期的な進捗ハートビートを追加しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "長時間ツールの進行状況を可視化し、セッションが放置されている懸念を解消します。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "3b4f5d085b33",
+      "content": "- Added an ISO `modified` timestamp to memory file frontmatter",
+      "content_ja": "メモリファイルのフロントマターに、ISO形式のmodified（更新）タイムスタンプを追加しました。",
+      "prefix": "Added",
+      "feature_areas": ["Memory"],
+      "related_docs": []
+    },
+    {
+      "id": "b6c52aa30708",
+      "content": "- Added `message.uuid`, `client_request_id`, and `tool_source` attributes to OpenTelemetry log events for message-level correlation and tool provenance",
+      "content_ja": "OpenTelemetryログイベントにmessage.uuid、client_request_id、tool_source属性を追加し、メッセージ間の相関とツールの出所を追跡できるようにしました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "メッセージのUUIDやツール実行の発生源となるIDがログに欠けており、リクエスト間の関連付けが困難でした。",
+        "after": "メッセージレベルの相関データとツールprovenance（出所）が各イベントに含まれるようになりました。",
+        "benefit": "複雑なワークフロー実行時のデバッグやテレメトリ分析が容易になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "テレメトリログの相関性が強化され、複雑なリクエストのデバッグ効率が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        }
+      ]
+    },
+    {
+      "id": "28471dfd385a",
+      "content": "- Added `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` to configure the 60 KB truncation limit on OpenTelemetry content attributes",
+      "content_ja": "OpenTelemetryのコンテンツ属性の切り捨て制限を60KBから設定可能に変更しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "OpenTelemetryのコンテンツ切り捨て制限は60KBで固定されており、環境に応じた調整ができませんでした。",
+        "after": "CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH 環境変数を使用して、切り捨ての上限サイズを任意に変更できるようになりました。",
+        "benefit": "テレメトリバックエンドの制限に合わせてログ収集量を細かく制御できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "OTelコンテンツの切り捨て制限を設定可能にすることで、ログ出力の制御が柔軟になります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/observability.md"
+        }
+      ]
+    },
+    {
+      "id": "efb2035f2644",
+      "content": "- Added reasoning effort to the `subagentStatusLine` payload, so custom agent rows can render model and effort",
+      "content_ja": "subagentStatusLineのペイロードに「推論の努力レベル(effort)」を追加し、エージェントパネルでモデルと努力設定を表示できるようにしました。",
+      "prefix": "Added",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "サブエージェント行に設定されている推論の努力レベルが表示されず、現在の実行状況が把握しにくい状態でした。",
+        "after": "カスタムエージェントのステータス表示において、適用されている努力レベル（effort）を確認できるようになりました。",
+        "benefit": "エージェントが現在どの程度のコストと深さで思考しているかを一目で確認できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "サブエージェントの推論努力レベルが可視化され、エージェントの動作把握が容易になります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/agent-loop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        }
+      ]
+    },
+    {
+      "id": "ec1740434ee9",
+      "content": "- Added permission prompts for `docker` commands (including the Podman `docker` shim) carrying daemon-redirect flags (`--url`, `--connection`, `--identity`, and Podman's remote mode) that previously ran without one",
+      "content_ja": "Dockerデーモンをリダイレクトするフラグ（--urlや--identityなど）が付与されたdockerコマンドに対して、権限プロンプトを表示するように変更しました。",
+      "prefix": "Added",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "Podmanのリモートモードや特定のデーモン接続フラグを含むdockerコマンドが、プロンプトなしで実行可能な状態でした。",
+        "after": "デーモン接続先を操作するフラグが含まれるdockerコマンドは、必ず権限プロンプトの確認を経るようになりました。",
+        "benefit": "外部のDockerデーモンや予期しない環境への接続を意図せず実行する事態を防げます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Dockerデーモン操作の権限確認が厳格化され、意図しない外部接続のリスクが低減します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        }
+      ]
+    },
+    {
+      "id": "151467081cac",
+      "content": "- Fixed a crash when a GrowthBook feature evaluates to null, and a bug where a malformed flag payload could wipe the cached feature flags",
+      "content_ja": "GrowthBookの機能フラグがnullと評価される際のクラッシュと、破損したフラグペイロードによりキャッシュが全消去されるバグを修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "機能フラグ周りのエラーハンドリングを強化し、設定値の破損を防止します。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "0442df9ad74b",
+      "content": "- Fixed Bash tool killing the Claude session when a `pkill -f` pattern accidentally matched the CLI's own process (Linux)",
+      "content_ja": "Linux環境において、Bashツールによるpkill実行時にCLI自身のプロセスが巻き込まれ、セッションが終了する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "pkill -f のパターンが偶然CLI自体のプロセス名と一致してしまい、自分自身のプロセスをkillしてセッションが落ちることがありました。",
+        "after": "pkillがCLIプロセス自身を誤って終了させないよう保護が強化されました。",
+        "benefit": "サブコマンド実行中にAIセッションが意図せず中断されることがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Linux環境下でのBashツール暴走を防ぐ重要な安全性の向上です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/overview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
+    },
+    {
+      "id": "f875b0c63fc3",
+      "content": "- Fixed unbounded memory growth when `--settings` points at a device file or multi-GB file; oversized (>2 MiB) settings files now fail at startup with a clear error",
+      "content_ja": "設定ファイルがデバイスファイルや巨大ファイルである場合に発生していたメモリ消費の増加を抑止し、2MBを超えるファイル読み込み時にエラーを表示するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "特定の巨大な設定ファイルや特殊なファイルを指定した場合、メモリ消費が制限なく増加する恐れがありました。",
+        "after": "2MBを超える設定ファイルが指定された場合、処理を開始せずにエラーを表示して停止するようになりました。",
+        "benefit": "不適切な設定ファイルによるシステム全体のメモリ枯渇を防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "巨大設定ファイル指定時のシステム停止を防ぐ堅牢化です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md"
+        }
+      ]
+    },
+    {
+      "id": "04e2576f9198",
+      "content": "- Fixed streaming turns failing with \"Socket is closed\" behind corporate proxies on Windows",
+      "content_ja": "Windows上の企業向けプロキシ環境でストリーミングが「Socket is closed」エラーで失敗する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "企業プロキシ環境下でのストリーム通信の安定性を向上させました。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "0b4258b53b93",
+      "content": "- Fixed stream-json output truncation at exit for slow-reading SDK/pipeline consumers; the exit drain now scales with queued bytes instead of a flat 2s cap",
+      "content_ja": "低速なSDK/パイプライン消費者のために、出力の終了処理でバッファが切り捨てられないよう、キューのバイト数に応じた調整を行うようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "大規模な出力処理時のデータ整合性を保護します。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "31c86bbb9c8d",
+      "content": "- Fixed scheduled tasks refusing their own configured prompt as untrusted input — the fired prompt is now delivered as the session's assigned task",
+      "content_ja": "スケジュール実行されたタスクにおいて、設定されたプロンプトが信頼できない入力として拒否されていた問題を修正し、タスクとして正常に配信されるようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "スケジュールされたタスクがトリガーされた際、設定されたタスク内容が信頼性の検証に引っかかり、実行が拒否されることがありました。",
+        "after": "トリガーされたプロンプトがそのセッションの正式なタスクとして直接配信されるようになりました。",
+        "benefit": "定期的な自動タスクがエラーで止まることなく実行されるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "スケジュールタスクの信頼性向上で、自動実行プロンプトが正常に機能するようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/scheduled-tasks.md"
+        }
+      ]
+    },
+    {
+      "id": "11f752529dca",
+      "content": "- Fixed PowerShell tool commands hanging until timeout when a child process waited on standard input (Windows)",
+      "content_ja": "子プロセスが標準入力を待機している際にPowerShellツールがタイムアウトまでハングする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows環境でのPowerShellのハングアップ問題を修正し、安定動作を確保します。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "2c61d0da5317",
+      "content": "- Fixed Python scripts under the PowerShell tool crashing with UnicodeDecodeError when reading non-UTF-8 data from standard input (Windows)",
+      "content_ja": "PowerShellツールでPythonスクリプトを実行した際、非UTF-8データを標準入力から読み取るとUnicodeDecodeErrorでクラッシュする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "文字コード処理の誤りを修正し、多様な入力を安全に扱えるようにしました。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "40f102aaeafd",
+      "content": "- Fixed Python scripts run via the PowerShell tool crashing with UnicodeEncodeError on non-ASCII output, and PowerShell 7 error messages containing raw ANSI escape sequences (Windows)",
+      "content_ja": "PowerShellツール実行時、非ASCII文字が含まれる出力でUnicodeEncodeErrorが発生する問題や、PowerShell 7のANSIエスケープシーケンスが乱れる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Windows上のPowerShellツールにおいて、Unicode文字のエンコーディング処理やANSIシーケンスの取り扱いが不適切でした。",
+        "after": "UnicodeEncodeErrorの発生を防ぎ、ANSIシーケンスも正しく解釈・出力されるようになりました。",
+        "benefit": "Windows環境でも文字化けや表示崩れを気にせずPowerShellツールを活用できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "PowerShellツール利用時の文字化けや表示崩れが改善され、Windowsユーザーの体験が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w18.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "76ace9ca5429",
+      "content": "- Fixed the PowerShell tool reporting `where.exe`, `fc.exe`, and `diff.exe` as errors when they return a valid negative answer (Windows)",
+      "content_ja": "PowerShellツールにおいてwhere.exeやfc.exe、diff.exeが負の応答を返した際にエラーと誤判定される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "特定のWindowsコマンドが終了コードとして負の値を返すと、PowerShellツールがクラッシュやエラーと見なしていました。",
+        "after": "これらのツールが正当に負の応答を返す場合でも、正常に処理するように改善されました。",
+        "benefit": "Windows環境でのファイル比較やツール検索が中断されることなく行えます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows標準ツールの実行結果の誤判定が修正され、動作安定性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        }
+      ]
+    },
+    {
+      "id": "127926fe324f",
+      "content": "- Fixed `>` and `>>` under the PowerShell tool on Windows PowerShell 5.1 writing UTF-16LE files that other tools couldn't read as UTF-8",
+      "content_ja": "PowerShellツールにおいて、>や>>によるリダイレクト出力が意図せずUTF-16LE形式になり、他のツールで読み取れなくなる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "PowerShell 5.1環境でリダイレクトを行うと、ファイルがUTF-16LEで保存され、UTF-8を想定する他ツールから文字化けして見えていました。",
+        "after": "リダイレクト時のエンコーディングを調整し、UTF-8で正しく読み取れるようにしました。",
+        "benefit": "PowerShellで作成したログファイルをGitや他のエディタで正常に扱えるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "PowerShellからの出力形式がUTF-8に修正され、他ツールとの連携がスムーズになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        }
+      ]
+    },
+    {
+      "id": "8c887c127045",
+      "content": "- Fixed a displaced background daemon deleting its successor's control socket on shutdown, which made the next client kill the healthy replacement daemon",
+      "content_ja": "シャットダウン時に背景デーモンが後継デーモンの制御ソケットを削除してしまい、次回のクライアント起動時に健全なプロセスがkillされる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "デーモン入れ替え時にソケット管理が競合し、正常に稼働していた後継デーモンが誤って強制終了されるケースがありました。",
+        "after": "デーモンの終了とソケットの引き継ぎ手順を見直し、健全なプロセスが維持されるようになりました。",
+        "benefit": "デーモン再起動時に発生していた不安定な動作を防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "デーモン入れ替え時のソケット競合による停止問題を修正し、安定性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "436f46407253",
+      "content": "- Fixed background sessions parked with `←` or `/background` and left idle keeping the background daemon and a worker process alive indefinitely",
+      "content_ja": "バックグラウンドセッションを一時停止(← /background)した際に、デーモンとワーカープロセスが解放されず無限に残り続ける問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッションをバックグラウンドに逃がした際に、リソースを消費するプロセスが終了せず常駐し続けていました。",
+        "after": "バックグラウンド化された未使用のセッションが、適切なタイミングでリソースを解放するようになりました。",
+        "benefit": "使っていないセッションがメモリやCPUを占有し続けるのを防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "バックグラウンドセッションの一時停止処理が最適化され、無駄なプロセス常駐を防ぎます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/network-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "afeef2abc143",
+      "content": "- Fixed completed background sessions being impossible to remove via `claude rm` or the agent view once the background service had gone idle",
+      "content_ja": "バックグラウンドサービスがアイドル状態になった後、完了したセッションがclaude rmやエージェントビューから削除できなくなる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "サービスがアイドル状態に移行すると、完了済みステータスのセッションを削除する処理が正しく動作しなくなることがありました。",
+        "after": "セッションの削除要求をバックグラウンドサービスが確実に処理できるように改善しました。",
+        "benefit": "不要になった完了済みセッションをいつでも整理・削除できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "完了済みセッションの削除処理が確実に実行されるようになり、管理が改善されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        }
+      ]
+    },
+    {
+      "id": "8a7de257fc53",
+      "content": "- Fixed background sessions dispatched from a non-git folder being impossible to delete from the agents view",
+      "content_ja": "Gitリポジトリ外のフォルダで作成されたバックグラウンドセッションがエージェントビューから削除できない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Git環境でない場所で開始したセッションは、エージェントビューからの削除処理でエラーになる制限がありました。",
+        "after": "Git管理外のフォルダで開始されたセッションも同様にエージェントビューから削除可能になりました。",
+        "benefit": "プロジェクトの場所を問わず、セッション管理が統一的になります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Gitリポジトリ外でのセッション管理の不整合が解消されました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "f7340ae98a07",
+      "content": "- Fixed reopening a stopped background session failing to restore its saved conversation when an unreadable folder exists in the session store",
+      "content_ja": "セッションストア内に読み取り不可能なフォルダが存在すると、停止済みバックグラウンドセッションの再開に失敗する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッション履歴の復元ロジックの不整合を修正しました。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "4c6e71a67431",
+      "content": "- Fixed the Remote Control \"session ready\" push notification firing for sessions where Remote Control was not explicitly enabled",
+      "content_ja": "リモートコントロールが明示的に有効になっていないセッションで、セッション準備完了のプッシュ通知が誤って飛ぶ問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "リモート接続の有無に関わらず、特定条件下で通知が行われるケースがありました。",
+        "after": "リモートコントロールが有効なセッションのみで通知が行われるよう条件が厳密になりました。",
+        "benefit": "不要なプッシュ通知でデバイスが騒がしくなるのを防げます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "誤ったタイミングでの通知を修正し、ユーザーの利便性を高めます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mobile.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        }
+      ]
+    },
+    {
+      "id": "99010d84bb28",
+      "content": "- Fixed `/install-github-app` and the `/mcp` settings menu being blocked in agent-view sessions — they're now refused only in background sessions with no terminal attached",
+      "content_ja": "/install-github-app および /mcp 設定メニューがエージェントビューでブロックされていた問題を修正し、端末が接続されていないバックグラウンドセッションでのみ拒否するように変更しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "エージェントビュー内のセッションにおいても一部の設定メニューが呼び出せず、不便でした。",
+        "after": "バックグラウンドセッションであっても、ターミナルが紐付いている場合は設定操作が可能になりました。",
+        "benefit": "エージェントビューからも設定操作をスムーズに行えるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エージェントビューからの設定操作が柔軟になり、操作効率が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w26.md"
+        }
+      ]
+    },
+    {
+      "id": "38d1503d23a6",
+      "content": "- Fixed plugins enabled via the `--settings` CLI flag not loading (regression since v2.1.181)",
+      "content_ja": "CLIフラグ --settings 経由で有効化したプラグインが読み込まれない問題を修正しました（v2.1.181以降の回帰）。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins", "Settings"],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プラグインの読み込みロジックのバグを修正し、正常な利用環境を取り戻します。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "81d87602f780",
+      "content": "- Fixed feature flags going stale in long-running sessions after the OAuth token rotates",
+      "content_ja": "OAuthトークンがローテーションされた後に、長時間のセッションで機能フラグが古いままになる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "認証後のセッション状態管理を適切にし、一貫性を保ちます。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "84b2e29a5eee",
+      "content": "- Fixed `/ultrareview` refusing to run in repos with no merge base — it now offers to review all tracked files",
+      "content_ja": "/ultrareview がマージベースのないリポジトリで実行できない問題を修正し、追跡対象の全ファイルをレビュー候補として提案するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "マージベースが存在しない（新規リポジトリなど）場合、/ultrareviewが処理を拒否していました。",
+        "after": "リポジトリの状態を問わず、追跡されているすべてのファイルをレビュー対象として処理できるようになりました。",
+        "benefit": "初期段階のリポジトリでも、コードレビュー機能を活用できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "レポジトリの初期状態に関わらずコードレビュー機能が活用できるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/ultrareview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w17.md"
+        }
+      ]
+    },
+    {
+      "id": "4de1e0b1c753",
+      "content": "- Fixed `claude update` and `claude doctor` hanging silently, and the `/status` System diagnostics section going blank, when a shell-config path is a directory",
+      "content_ja": "shell-config のパスがディレクトリである場合に、claude update や claude doctor が停止したり、システム診断セクションが空白になる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "shell-config関連のパス設定がディレクトリである場合に、診断ツールがハングしたり表示が消えるバグがありました。",
+        "after": "パスの型がディレクトリであっても、診断処理が正常に継続するように修正されました。",
+        "benefit": "環境設定のパス構成に関わらず、診断ツールが確実に実行できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "診断ツールが特定のパス設定でハングする問題を修正し、保守性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/debug-your-config.md"
+        }
+      ]
+    },
+    {
+      "id": "d89e70f85e35",
+      "content": "- Fixed memory frontmatter values being silently truncated at an inline `#` when memory files are saved",
+      "content_ja": "メモリファイル保存時に frontmatter の値が # の箇所で誤って切り捨てられていた問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Memory"],
+      "inference": {
+        "before": "Markdownのfrontmatter内にインラインの # が含まれると、それ以降のデータがメモリファイル保存時に欠落していました。",
+        "after": "フロントマター内の内容を正しく保存・読み込みできるようになりました。",
+        "benefit": "メモリファイルに複雑な指令を保存しても内容が破損しなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "フロントマターの保存に関するデータ欠落バグを修正しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/memory.md"
+        }
+      ]
+    },
+    {
+      "id": "b85b7a83a8c7",
+      "content": "- Fixed session cost and token telemetry double-counting on streams that emit multiple cumulative `message_delta` frames",
+      "content_ja": "複数の message_delta フレームを発行するストリームにおいて、セッションコストとトークンのテレメトリが二重計算されていた問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ストリーミング形式でレスポンスが小分けに届く際、合計値が累積して二重にカウントされることがありました。",
+        "after": "テレメトリ計測時にストリームの累積値を適切に補正し、正確なコストとトークン数が記録されるようになりました。",
+        "benefit": "正確なコスト管理とトークン追跡が可能になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "コスト計算の精度向上が図られ、より信頼できるレポートが得られます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/cost-tracking.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-spend-limits.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        }
+      ]
+    },
+    {
+      "id": "d7b545949d84",
+      "content": "- Fixed a spurious \"check your network\" warning that appeared while the advisor was thinking",
+      "content_ja": "アドバイザー機能が思考中に発生していた不要な「ネットワークを確認してください」という警告を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "アドバイザーの思考時間中にネットワークエラーと誤解される警告がログに表示されることがありました。",
+        "after": "アドバイザーの処理状態を正しく認識するようにし、不要な警告を排除しました。",
+        "benefit": "デバッグ時に不要なノイズに悩まされることがなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "不要な警告表示を抑制し、デバッグ時の混乱を防ぎます。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "021701d130d9",
+      "content": "- Fixed hooks with exit code 2 not blocking as documented when the hook's stdout JSON fails schema validation",
+      "content_ja": "フックのstdout JSONがスキーマバリデーションに失敗した場合に、終了コード2が適切にブロックとして動作しなかった問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Hooks"],
+      "inference": {
+        "before": "フックが JSON を返したがバリデーションエラーになった場合、ブロックするはずの動作がスキップされていました。",
+        "after": "JSON の解析に失敗した場合でも、確実にブロック動作を適用するように修正しました。",
+        "benefit": "フックによる権限ポリシーの強制力が、出力形式に関わらず維持されます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "フックの権限制御の堅牢性を確保する修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        }
+      ]
+    },
+    {
+      "id": "95abedd9f32b",
+      "content": "- Fixed OTel log events emitted outside the turn's async context missing the interaction span's trace context",
+      "content_ja": "非同期コンテキスト外で送信されるOTelログイベントが、インタラクションスパンのトレースコンテキストを欠損していた問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "非同期処理の外側で発生したイベントが、本来のトレース情報と正しく紐付かないことがありました。",
+        "after": "スパンのコンテキストが正しく伝播され、ログイベントの紐付けが確実に行われるようになりました。",
+        "benefit": "分散トレースにおいてログの関連付け漏れがなくなり、解析精度が上がります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "トレース情報の紐付け漏れを修正し、オブザーバビリティを強化します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/observability.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        }
+      ]
+    },
+    {
+      "id": "5ba5cefd7dd8",
+      "content": "- Fixed MCP transient errors during prompts/resources refresh clearing the server's slash commands and resources",
+      "content_ja": "プロンプトやリソース更新中のMCP一時エラーにより、サーバーのスラッシュコマンドやリソースがクリアされる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "ネットワークの一時的な瞬断などで MCP の情報がリフレッシュされる際、キャッシュがクリアされてしまいコマンドが使えなくなるケースがありました。",
+        "after": "MCPの一時的なエラーがあってもキャッシュを保持し、再試行時まで状態を維持するように改善しました。",
+        "benefit": "サーバー更新中の操作中断が減り、安定してツールが利用できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "MCPサーバーの一時的な通信エラーに対する耐性を強化しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "8f9db458e0a7",
+      "content": "- Improved the `claude rc` workspace-trust error in the home directory to say trust there is never saved and to suggest running from a project directory",
+      "content_ja": "ホームディレクトリでのワークスペース信頼エラーにおいて、信頼設定がそこに保存されないことを明示し、プロジェクトディレクトリでの実行を促すように改善しました。",
+      "prefix": "Improved",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "エラーメッセージが抽象的で、どこで信頼設定が保存されるのかが不明確でした。",
+        "after": "ホームディレクトリは信頼設定の保存対象外であることを伝え、プロジェクト内での実行を推奨するメッセージに変更しました。",
+        "benefit": "なぜ信頼設定が求められているのか、どこで作業すべきかが直感的に分かります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "権限信頼エラー時のユーザーガイドを改善し、トラブル解決を迅速化します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        }
+      ]
+    },
+    {
+      "id": "e133a9fbbdf8",
+      "content": "- Changed single-segment `dir/**` hook `if:` conditions to match only `<cwd>/dir`; write `**/dir/**` for any-depth matching. `deny`/`ask` permission rules keep their any-depth match.",
+      "content_ja": "単一階層のdir/**フックのif条件が<cwd>/dirのみに一致するように変更しました。任意の階層での一致が必要な場合は**/dir/**を使用してください。",
+      "prefix": "Changed",
+      "feature_areas": ["Hooks", "Permissions"],
+      "inference": {
+        "before": "dir/**という指定が、意図せず任意の階層を対象としてしまうケースがあり、混乱を招いていました。",
+        "after": "単一階層指定の場合は直下のディレクトリのみを対象とする挙動に統一しました。",
+        "benefit": "フックの適用範囲が予測しやすくなり、誤適用を防げます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "ディレクトリフックの指定範囲を明確化し、意図しない適用を防ぎます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/permissions.md"
+        }
+      ]
+    },
+    {
+      "id": "c3029731325f",
+      "content": "- Changed `file` commands using `-m`/`--magic-file` or `-f`/`--files-from` to require permission instead of being auto-allowed as read-only",
+      "content_ja": "-m/--magic-file または -f/--files-from を使用する file コマンドを、自動許可の読み取り専用ではなく権限確認の対象に変更しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "fileコマンドは一括で読み取り専用として自動許可されていました。",
+        "after": "magic-fileなどの高度な指定を含むfileコマンドは、実行時に権限の確認が必要になりました。",
+        "benefit": "fileコマンドを介した不正なファイルパス指定や予期しない処理を未然に防げます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ファイル処理系の権限確認を厳格化するセキュリティ向上のための変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        }
+      ]
+    },
+    {
+      "id": "b9be04e74175",
+      "content": "- Changed keep-alive connection pooling to disable after a stale-connection error, so retries open a fresh socket",
+      "content_ja": "接続プーリングにおいて、 stale-connection エラー発生時にプールを無効化し、再試行時に新しいソケットを開くように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "エラーが発生した接続を再利用しようとしてしまい、リトライが失敗し続けることがありました。",
+        "after": "エラーを確認した時点でコネクションプールを無効化し、クリーンな再試行を行うよう修正しました。",
+        "benefit": "接続エラー発生時の復旧が早くなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "接続エラー発生時の再試行メカニズムを改善し、安定性を確保します。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "b5d4821c6097",
+      "content": "- Changed SessionStart hooks to report source `\"fork\"` when a session begins as a fork instead of `\"resume\"`",
+      "content_ja": "SessionStart フックにおいて、セッションがフォークで開始された場合、ソースを resume ではなく fork と報告するように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Hooks"],
+      "inference": {
+        "before": "フォークされたセッションも復帰（resume）として記録され、イベントの発生源が区別できていませんでした。",
+        "after": "フォーク実行による開始であることを明確に判別できるようになりました。",
+        "benefit": "ログやイベント監視において、セッションの発生経緯が正確に特定できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッション開始時のイベント分類を正確にし、ログ分析を容易にします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/sessions.md"
+        }
+      ]
+    }
+  ]
+}
