@@ -34,6 +34,8 @@ The `/statusline` command accepts natural language instructions describing what 
 /statusline show model name and context percentage with a progress bar
 ```
 
+Approve the file edit prompts if Claude Code asks for permission during setup.
+
 ### Manually configure a status line
 
 Add a `statusLine` field to your user settings (`~/.claude/settings.json`, where `~` is your home directory) or [project settings](/en/settings#settings-files). Set `type` to `"command"` and point `command` to a script path or an inline shell command. For a full walkthrough of creating a script, see [Build a status line step by step](#build-a-status-line-step-by-step).
@@ -159,12 +161,13 @@ Claude Code sends the following JSON fields to your script via stdin:
 | `context_window.remaining_percentage` | Pre-calculated percentage of context window remaining |
 | `context_window.current_usage` | Token counts from the last API call, described in [context window fields](#context-window-fields) |
 | `exceeds_200k_tokens` | Whether the total token count (input, cache, and output tokens combined) from the most recent API response exceeds 200k. This is a fixed threshold regardless of actual context window size. |
+| `fast_mode` | Whether [fast mode](/en/fast-mode) is enabled for the session |
 | `effort.level` | Current reasoning effort (`low`, `medium`, `high`, `xhigh`, or `max`). Reflects the live session value, including mid-session `/effort` changes. Ultracode is not a distinct level and reports as `xhigh`. Absent when the current model does not support the effort parameter |
 | `thinking.enabled` | Whether extended thinking is enabled for the session |
 | `rate_limits.five_hour.used_percentage`, `rate_limits.seven_day.used_percentage` | Percentage of the 5-hour or 7-day rate limit consumed, from 0 to 100 |
 | `rate_limits.five_hour.resets_at`, `rate_limits.seven_day.resets_at` | Unix epoch seconds when the 5-hour or 7-day rate limit window resets |
 | `session_id` | Unique session identifier |
-| `session_name` | Custom session name set with the `--name` flag or `/rename`. Absent if no custom name has been set |
+| `session_name` | Session name. Uses the custom name set with the `--name` flag or `/rename` when one exists, otherwise the AI-generated session title. The [default display name](/en/sessions#name-your-sessions), such as `my-app-3f`, doesn't populate this field. Absent when the session has neither a custom name nor an AI-generated title |
 | `prompt_id` | UUID identifying the user prompt currently being processed. Matches the [`prompt.id` attribute on OpenTelemetry events](/en/monitoring-usage#event-correlation-attributes). Absent until the first user input. Requires Claude Code v2.1.196 or later |
 | `transcript_path` | Path to conversation transcript file |
 | `version` | Claude Code version |
@@ -228,6 +231,7 @@ Your status line command receives this JSON structure via stdin:
     }
   },
   "exceeds_200k_tokens": false,
+  "fast_mode": false,
   "effort": {
     "level": "high"
   },
@@ -267,7 +271,7 @@ Your status line command receives this JSON structure via stdin:
 
 **Fields that may be absent** (not present in JSON):
 
-- `session_name`: appears only when a custom name has been set with `--name` or `/rename`
+- `session_name`: appears when a custom name has been set with `--name` or `/rename`, or once an AI-generated session title exists. The default display name, such as `my-app-3f`, doesn't populate it
 - `prompt_id`: appears only after the first user input
 - `workspace.git_worktree`: appears only when the current directory is inside a linked git worktree
 - `workspace.repo`: appears only inside a git repository with an `origin` remote configured
@@ -781,8 +785,11 @@ CACHE_MAX_AGE=5  # seconds
 
 cache_is_stale() {
     [ ! -f "$CACHE_FILE" ] || \
-    # stat -f %m is macOS, stat -c %Y is Linux
-    [ $(($(date +%s) - $(stat -f %m "$CACHE_FILE" 2>/dev/null || stat -c %Y "$CACHE_FILE" 2>/dev/null || echo 0))) -gt $CACHE_MAX_AGE ]
+    # stat -c %Y (Linux) or stat -f %m (macOS) prints the file's last-modified
+    # time. The Linux form must run first: on Linux, the macOS form prints a
+    # filesystem report to stdout before failing, and that output would be
+    # captured by the command substitution and break the arithmetic.
+    [ $(($(date +%s) - $(stat -c %Y "$CACHE_FILE" 2>/dev/null || stat -f %m "$CACHE_FILE" 2>/dev/null || echo 0))) -gt $CACHE_MAX_AGE ]
 }
 
 if cache_is_stale; then
@@ -1023,7 +1030,7 @@ Community projects like [ccstatusline](https://github.com/sirmalloc/ccstatusline
 **Workspace trust required**
 
 - The status line command only runs if you've accepted the workspace trust dialog for the current directory. Because `statusLine` executes a shell command, it requires the same trust acceptance as hooks and other shell-executing settings.
-- If trust isn't accepted, you'll see the notification `statusline skipped · restart to fix` instead of your status line output. Restart Claude Code and accept the trust prompt to enable it.
+- If you haven't accepted the [workspace trust dialog](/en/security) for this folder, the status line stays blank, and `claude --debug` logs `Status line command skipped: workspace trust not accepted`. Restart Claude Code and accept the trust dialog to enable it.
 
 **Script errors or hangs**
 
