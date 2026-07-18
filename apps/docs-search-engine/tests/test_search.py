@@ -143,3 +143,75 @@ def test_expand_query_does_not_duplicate_existing_counterpart() -> None:
     expanded = synonyms.expand_query(text)
 
     assert expanded == text
+
+
+def test_snippet_keeps_lead_paragraph_and_high_density_paragraph(
+    tmp_path: Path, nlp
+) -> None:
+    lead = "This section covers the subagent feature and its overall configuration."
+    filler_1 = "General billing rules apply for invoices raised each month."
+    filler_2 = "Theme customization uses color tokens defined in a separate file."
+    match = (
+        "Subagent configuration subagent configuration subagent configuration options "
+        "are described here in detail with subagent configuration examples."
+    )
+    filler_3 = "Network proxy settings apply during outbound requests."
+    body = "\n\n".join([lead, filler_1, filler_2, match, filler_3])
+    docs_dir = _write_docs(
+        tmp_path,
+        {
+            "doc.md": f"# Subagents\n\n{body}\n",
+            "unrelated1.md": "# Billing\n\nInvoices and payment methods overview.\n",
+            "unrelated2.md": "# Themes\n\nColor schemes and font choices overview.\n",
+        },
+    )
+    engine = DocsSearchEngine(docs_dir, nlp=nlp, min_file_score=0)
+
+    [results] = engine.search_batch(["subagent configuration"])
+
+    assert len(results) == 1
+    snippet = results[0].snippets[0]
+    assert "This section covers" in snippet
+    assert "Subagent configuration subagent configuration" in snippet
+    assert "Theme customization" not in snippet
+    assert "Network proxy" not in snippet
+
+
+def test_snippet_matches_query_lemma_across_inflection(tmp_path: Path, nlp) -> None:
+    lead = "This document is about runtime behavior."
+    filler = "General billing overview lives in another handbook."
+    matching = "When the process is running, it emits telemetry after every step."
+    tail = "Theme color choices are unrelated to runtime concerns."
+    body = "\n\n".join([lead, filler, matching, tail])
+    docs_dir = _write_docs(
+        tmp_path,
+        {
+            "runtime.md": f"# Runtime\n\n{body}\n",
+            "unrelated1.md": "# Billing\n\nInvoices and payment methods overview.\n",
+            "unrelated2.md": "# Themes\n\nColor schemes and font choices overview.\n",
+        },
+    )
+    engine = DocsSearchEngine(docs_dir, nlp=nlp, min_file_score=0)
+
+    [results] = engine.search_batch(["how does the process run telemetry?"])
+
+    assert results[0].file == "runtime.md"
+    snippet = results[0].snippets[0]
+    assert "running, it emits telemetry" in snippet
+
+
+def test_short_chunk_returns_full_text_as_snippet(tmp_path: Path, nlp) -> None:
+    docs_dir = _write_docs(
+        tmp_path,
+        {
+            "small.md": "# Small\n\nSubagent configuration is short.\n",
+            "unrelated1.md": "# Billing\n\nInvoices and payment methods overview.\n",
+            "unrelated2.md": "# Themes\n\nColor schemes and font choices overview.\n",
+        },
+    )
+    engine = DocsSearchEngine(docs_dir, nlp=nlp, min_file_score=0)
+
+    [results] = engine.search_batch(["subagent configuration"])
+
+    assert results[0].snippets[0].startswith("# Small")
+    assert "Subagent configuration is short." in results[0].snippets[0]
