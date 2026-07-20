@@ -77,7 +77,9 @@ def _make_docs_dir(tmp_path: Path, files: dict[str, str]) -> Path:
     return docs_dir
 
 
-def test_large_section_is_split_into_multiple_chunks_by_paragraph(tmp_path: Path) -> None:
+def test_large_section_is_split_into_multiple_chunks_by_paragraph(
+    tmp_path: Path,
+) -> None:
     paragraph = ("body paragraph " * 60).strip()
     body = "\n\n".join(paragraph for _ in range(6))
     docs_dir = _make_docs_dir(tmp_path, {"big.md": f"## Overview\n\n{body}\n"})

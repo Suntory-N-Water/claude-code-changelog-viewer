@@ -130,7 +130,9 @@ class DocsSearchEngine:
             hits = sorted(hits_by_file[file], key=lambda hit: hit[0], reverse=True)
             qualifying_hits = [hit for hit in hits if hit[0] >= self._min_file_score]
             top_hits = qualifying_hits[:MAX_SNIPPETS_PER_FILE]
-            snippets = [self._select_snippet(index, query_tokens) for _, index in top_hits]
+            snippets = [
+                self._select_snippet(index, query_tokens) for _, index in top_hits
+            ]
             snippet_scores = [round(score, 4) for score, _ in top_hits]
             results.append(
                 RelatedDocResult(
