@@ -21,7 +21,7 @@ Claude Code は、パワーと安全性のバランスを取るために、段�
 
 Bash または PowerShell の権限プロンプトで、`Ctrl+E` を押すと、コマンドの説明が表示されます。説明には、コマンドが何をするのか、Claude がそれを実行する理由、何が問題になる可能性があるかが含まれ、**低リスク**、**中リスク**、または**高リスク**とラベル付けされています。Claude Code は、毎回のプロンプトではなく、`Ctrl+E` を押したときのみ、コマンドと Claude 自身の呼び出しの説明をモデルに送信して説明を生成します。説明を表示してもコマンドは実行されません。`Ctrl+E` をもう一度押すと説明が非表示になります。
 
-ショートカットをオフにするには、`~/.claude.json` の [`permissionExplainerEnabled`](/ja/settings#global-config-settings) を `false` に設定します。
+ショートカットをオフにするには、`~/.claude.json` の [`permissionExplainerEnabled`](/docs/ja/settings#global-config-settings) を `false` に設定します。
 
 権限を管理する
 
@@ -35,11 +35,11 @@ Bash または PowerShell の権限プロンプトで、`Ctrl+E` を押すと、
 
 Deny ルールは、ツール名を指定するか、ツール内のパターンをスコープするかによって異なる動作をします。`Bash` のようなベアツール名は、ツールを Claude のコンテキストから完全に削除するため、Claude はそれを見ることはありません。`Bash(rm *)` のようなスコープ付きルールは、ツールを利用可能なままにし、Claude が試みたときにマッチする呼び出しをブロックします。
 
-権限ルールは Claude Code によって実装されており、モデルによってではありません。プロンプトまたは `CLAUDE.md` の指示は、Claude が何をしようとするかを形作りますが、Claude Code が許可する内容は変わりません。アクセスを付与または取り消すには、`/permissions`、ここで説明されているルール、[permission mode](/ja/permission-modes)、または [PreToolUse hook](#extend-permissions-with-hooks) を使用してください。
+権限ルールは Claude Code によって実装されており、モデルによってではありません。プロンプトまたは `CLAUDE.md` の指示は、Claude が何をしようとするかを形作りますが、Claude Code が許可する内容は変わりません。アクセスを付与または取り消すには、`/permissions`、ここで説明されているルール、[permission mode](/docs/ja/permission-modes)、または [PreToolUse hook](#extend-permissions-with-hooks) を使用してください。
 
 権限モード
 
-Claude Code は、ツール呼び出しの承認方法を制御するいくつかの権限モードをサポートしています。[権限モード](/ja/permission-modes)を参照して、各モードをいつ使用するかを確認してください。[設定ファイル](/ja/settings#settings-files)で `defaultMode` を設定します。
+Claude Code は、ツール呼び出しの承認方法を制御するいくつかの権限モードをサポートしています。[権限モード](/docs/ja/permission-modes)を参照して、各モードをいつ使用するかを確認してください。[設定ファイル](/docs/ja/settings#settings-files)で `defaultMode` を設定します。
 
 | モード | 説明 |
 | :- | :- |
@@ -47,14 +47,14 @@ Claude Code は、ツール呼び出しの承認方法を制御するいくつ�
 | `acceptEdits` | ファイル編集と一般的なファイルシステムコマンド（`mkdir`、`touch`、`mv`、`cp` など）を、作業ディレクトリまたは `additionalDirectories` 内のパスに対して自動的に受け入れます |
 | `plan` | Claude はファイルを読み取り、読み取り専用シェルコマンドを実行して探索しますが、ソースファイルを編集しません。CLI および VS Code 拡張機能では Plan とラベル付けされています |
 | `auto` | バックグラウンド安全チェック付きでツール呼び出しを自動承認し、アクションがリクエストと一致することを確認します |
-| `dontAsk` | `/permissions` または `permissions.allow` ルールで事前に承認されていない限り、ツールを自動的に拒否します。`AskUserQuestion`、[組織が `ask` に設定したコネクタツール](/ja/mcp#organization-controls-on-connector-tools)、および [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールは、許可していても拒否されます |
-| `bypassPermissions` | 権限プロンプトをスキップします。ただし、明示的な `ask` ルール、[組織が `ask` に設定したコネクタツール](/ja/mcp#organization-controls-on-connector-tools)、および [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールで強制されたプロンプトは除きます。`rm -rf /` などのルートおよびホームディレクトリの削除も、回路遮断器として引き続きプロンプトを表示します |
+| `dontAsk` | `/permissions` または `permissions.allow` ルールで事前に承認されていない限り、ツールを自動的に拒否します。`AskUserQuestion`、[組織が `ask` に設定したコネクタツール](/docs/ja/mcp#organization-controls-on-connector-tools)、および [`requiresUserInteraction`](/docs/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールは、許可していても拒否されます |
+| `bypassPermissions` | 権限プロンプトをスキップします。ただし、明示的な `ask` ルール、[組織が `ask` に設定したコネクタツール](/docs/ja/mcp#organization-controls-on-connector-tools)、および [`requiresUserInteraction`](/docs/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールで強制されたプロンプトは除きます。`rm -rf /` などのルートおよびホームディレクトリの削除も、回路遮断器として引き続きプロンプトを表示します |
 
 `bypassPermissions` モードは権限プロンプトをスキップします。`.git`、`.config/git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo`、`.devcontainer`、`.yarn`、`.mvn` への書き込みを含みます。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。
 
-このモードではいくつかのプロンプトが引き続き表示されます。明示的な `ask` ルール、[組織が `ask` に設定したコネクタツール](/ja/mcp#organization-controls-on-connector-tools)、および [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールは引き続きプロンプトを表示します。`rm -rf /` や `rm -rf ~` などのファイルシステムルートまたはホームディレクトリを対象とした削除も、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。これには、コマンドが `$(...)` またはバッククォートを使用したコマンド置換、または `<(...)` を使用したプロセス置換を含む場合も含まれます。v2.1.208 より前では、`rm -rf ~` として独自のコマンドとして入力された単純な形式のみがプロンプトを表示していました。置換を通じて削除に到達したコマンドはプロンプトを表示していませんでした。
+このモードではいくつかのプロンプトが引き続き表示されます。明示的な `ask` ルール、[組織が `ask` に設定したコネクタツール](/docs/ja/mcp#organization-controls-on-connector-tools)、および [`requiresUserInteraction`](/docs/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールは引き続きプロンプトを表示します。`rm -rf /` や `rm -rf ~` などのファイルシステムルートまたはホームディレクトリを対象とした削除も、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。これには、コマンドが `$(...)` またはバッククォートを使用したコマンド置換、または `<(...)` を使用したプロセス置換を含む場合も含まれます。v2.1.208 より前では、`rm -rf ~` として独自のコマンドとして入力された単純な形式のみがプロンプトを表示していました。置換を通じて削除に到達したコマンドはプロンプトを表示していませんでした。
 
-`bypassPermissions` または `auto` モードが使用されるのを防ぐには、任意の[設定ファイル](/ja/settings#settings-files)で `permissions.disableBypassPermissionsMode` または `permissions.disableAutoMode` を `"disable"` に設定します。これらは、オーバーライドできない[管理設定](#managed-settings)で最も有用です。
+`bypassPermissions` または `auto` モードが使用されるのを防ぐには、任意の[設定ファイル](/docs/ja/settings#settings-files)で `permissions.disableBypassPermissionsMode` または `permissions.disableAutoMode` を `"disable"` に設定します。これらは、オーバーライドできない[管理設定](#managed-settings)で最も有用です。
 
 権限ルール構文
 
@@ -98,7 +98,7 @@ Claude Code は、ツール呼び出しの承認方法を制御するいくつ�
 - 各ルールは 1 つのパラメータに名前を付けます。`model` と `isolation` の両方でゲートするには、1 つのルールで組み合わせるのではなく、`Agent(model:opus)` と `Agent(isolation:worktree)` の 2 つのルールを記述します
 - 値は `*` をワイルドカードとしてサポートし、任意の文字シーケンスにマッチするため、`Agent(isolation:*)` は任意の明示的な isolation 値にマッチします。`*` がない場合、マッチは正確です
 - モデルが省略するパラメータは決してマッチしないため、`Agent(model:*)` は `model` が設定されていない呼び出しにはマッチしません
-- 値は Claude が送信するリテラル入力と比較され、正規化の前です。`Agent(model:opus)` は別名 `opus` にマッチしますが、完全なモデル ID にはマッチしません。[`--verbose`](/ja/cli-reference) で実行して、各ツール呼び出しの正確なパラメータ名と値を確認してください
+- 値は Claude が送信するリテラル入力と比較され、正規化の前です。`Agent(model:opus)` は別名 `opus` にマッチしますが、完全なモデル ID にはマッチしません。[`--verbose`](/docs/ja/cli-reference) で実行して、各ツール呼び出しの正確なパラメータ名と値を確認してください
 - コロンの周りのホワイトスペースは無視されます
 
 ツールが独自の正規化ルールでマッチするフィールドはこの方法ではマッチ可能ではありません。Bash と PowerShell の `command`、Read、Edit、Write の `file_path`、Grep と Glob の `path`、NotebookEdit の `notebook_path`、WebFetch の `url` です。`Bash(command:rm *)` のようなルールはコンパウンドコマンドでバイパス可能であるため、Claude Code はそれを無視し、スタートアップ警告を発行します。代わりに `Bash(rm *)`、`Read(./path)`、または `WebFetch(domain:host)` を使用してください。
@@ -146,7 +146,7 @@ Bash ルールは `*` を使用したグロブパターンをサポートして�
 
 ツール名がマッチしない既知のツールを持つ拒否ルールまたは確認ルールは、タイプミスをキャッチするためにスタートアップ警告を生成します。`_` または `*` を含むツール名はチェックから除外されます。
 
-トランスクリプトと権限ダイアログに表示されるツールのラベルは、その正規名と異なる場合があります。たとえば、トランスクリプトで `Stop Task` というラベルが付いているツールの正規名は `TaskStop` です。権限ルールと [hook マッチャー](/ja/hooks) は正規名のみをマッチさせるため、`Stop Task` として記述されたルールはマッチしません。拒否ルールと確認ルールの場合、上記のスタートアップ警告がミスマッチをキャッチします。[ツール参照](/ja/tools-reference) に記載されている正規名を使用してください。
+トランスクリプトと権限ダイアログに表示されるツールのラベルは、その正規名と異なる場合があります。たとえば、トランスクリプトで `Stop Task` というラベルが付いているツールの正規名は `TaskStop` です。権限ルールと [hook マッチャー](/docs/ja/hooks) は正規名のみをマッチさせるため、`Stop Task` として記述されたルールはマッチしません。拒否ルールと確認ルールの場合、上記のスタートアップ警告がミスマッチをキャッチします。[ツール参照](/docs/ja/tools-reference) に記載されている正規名を使用してください。
 
 ツール固有の権限ルール
 
@@ -230,11 +230,11 @@ Claude Code は PowerShell AST を解析し、複合コマンド内の各コマ�
 
 Read と Edit
 
-`Edit` ルールは、ファイルを編集するすべての組み込みツールに適用されます。Claude は、Grep や Glob などのファイルを読み取るすべての組み込みツールに `Read` ルールを適用するためにベストエフォートを試みます。また、プロンプト内の `@file` メンションや、接続された [IDE](/ja/vs-code#the-built-in-ide-mcp-server) が Claude と共有する選択およびオープンファイルコンテキストにも適用します。
+`Edit` ルールは、ファイルを編集するすべての組み込みツールに適用されます。Claude は、Grep や Glob などのファイルを読み取るすべての組み込みツールに `Read` ルールを適用するためにベストエフォートを試みます。また、プロンプト内の `@file` メンションや、接続された [IDE](/docs/ja/vs-code#the-built-in-ide-mcp-server) が Claude と共有する選択およびオープンファイルコンテキストにも適用します。
 
-`Read` deny ルールは、同じパスの [Edit ツール](/ja/errors#file-is-covered-by-a-read-deny-rule)もブロックします。これには新しいファイルの作成も含まれます。Write と NotebookEdit はカバーされないため、ツールが変更できないパスに対して `Edit` deny ルールを追加してください。Claude Code v2.1.208 以降が必要です。
+`Read` deny ルールは、同じパスの [Edit ツール](/docs/ja/errors#file-is-covered-by-a-read-deny-rule)もブロックします。これには新しいファイルの作成も含まれます。Write と NotebookEdit はカバーされないため、ツールが変更できないパスに対して `Edit` deny ルールを追加してください。Claude Code v2.1.208 以降が必要です。
 
-Read と Edit deny ルールは Claude の組み込みファイルツールと、Bash で Claude Code が認識するファイルコマンド（`cat`、`head`、`tail`、`sed` など）に適用されます。これらは、Python または Node スクリプトがファイルを自分で開くような、ファイルを間接的に読み書きする任意のサブプロセスには適用されません。パスへのすべてのプロセスのアクセスをブロックする OS レベルの強制については、[サンドボックスを有効にしてください](/ja/sandboxing)。
+Read と Edit deny ルールは Claude の組み込みファイルツールと、Bash で Claude Code が認識するファイルコマンド（`cat`、`head`、`tail`、`sed` など）に適用されます。これらは、Python または Node スクリプトがファイルを自分で開くような、ファイルを間接的に読み書きする任意のサブプロセスには適用されません。パスへのすべてのプロセスのアクセスをブロックする OS レベルの強制については、[サンドボックスを有効にしてください](/docs/ja/sandboxing)。
 
 Read と Edit ルールの両方は、[gitignore](https://git-scm.com/docs/gitignore) 仕様に従い、4 つの異なるパターンタイプがあります。
 
@@ -303,11 +303,11 @@ MCP ルールは、Claude Code で設定されたサーバー名を使用し、�
 - `mcp__puppeteer__*` ワイルドカード構文を使用し、`puppeteer` サーバーからのすべてのツールもマッチさせます
 - `mcp__puppeteer__puppeteer_navigate` は `puppeteer` サーバーによって提供される `puppeteer_navigate` ツールをマッチさせます
 
-組織が [claude.ai コネクタ](/ja/mcp#organization-controls-on-connector-tools)ツールを `ask` に設定している場合、そのツールの allow ルールは有効になりません。Claude Code は `auto` および `bypassPermissions` モードでも、すべての呼び出しでプロンプトを表示します。プロンプトを表示しない `dontAsk` モードでは、Claude Code は代わりに呼び出しを拒否します。コネクタツールは `mcp__claude_ai_<server>__<tool>` として表示されます。
+組織が [claude.ai コネクタ](/docs/ja/mcp#organization-controls-on-connector-tools)ツールを `ask` に設定している場合、そのツールの allow ルールは有効になりません。Claude Code は `auto` および `bypassPermissions` モードでも、すべての呼び出しでプロンプトを表示します。プロンプトを表示しない `dontAsk` モードでは、Claude Code は代わりに呼び出しを拒否します。コネクタツールは `mcp__claude_ai_<server>__<tool>` として表示されます。
 
 Agent（subagents）
 
-`Agent(AgentName)` ルールを使用して、Claude が使用できる [subagents](/ja/sub-agents) を制御します。
+`Agent(AgentName)` ルールを使用して、Claude が使用できる [subagents](/docs/ja/sub-agents) を制御します。
 
 - `Agent(Explore)` は Explore subagent をマッチさせます
 - `Agent(Plan)` は Plan subagent をマッチさせます
@@ -325,7 +325,7 @@ Agent（subagents）
 
 Cd
 
-`Cd` ルールは、[`/cd` コマンド](/ja/commands)がセッションを移動できるディレクトリを制御します。`Cd` はモデル呼び出し可能なツールではありません。Claude はそれを呼び出すことはできず、ルールは自分で `/cd` を実行する場合にのみ適用されます。
+`Cd` ルールは、[`/cd` コマンド](/docs/ja/commands)がセッションを移動できるディレクトリを制御します。`Cd` はモデル呼び出し可能なツールではありません。Claude はそれを呼び出すことはできず、ルールは自分で `/cd` を実行する場合にのみ適用されます。
 
 ベア `Cd` deny ルールは `/cd` を完全に無効にします。`Cd(<path-pattern>)` deny ルールはマッチするターゲットをブロックします。Deny ルールはターゲットのすべてのスペルをチェックします。これには、それが解決する各シンボリックリンクホップが含まれるため、1 つのパス用に記述されたルールは、それに解決するターゲットもブロックします。
 
@@ -341,13 +341,13 @@ Cd
 
 フックで権限を拡張する
 
-[Claude Code フック](/ja/hooks-guide)は、実行時に権限評価を実行するカスタムシェルコマンドを登録する方法を提供します。Claude Code がツール呼び出しを行うと、PreToolUse フックは権限プロンプトの前に実行されます。フック出力はツール呼び出しを拒否し、プロンプトを強制し、またはプロンプトをスキップしてコールを続行させることができます。
+[Claude Code フック](/docs/ja/hooks-guide)は、実行時に権限評価を実行するカスタムシェルコマンドを登録する方法を提供します。Claude Code がツール呼び出しを行うと、PreToolUse フックは権限プロンプトの前に実行されます。フック出力はツール呼び出しを拒否し、プロンプトを強制し、またはプロンプトをスキップしてコールを続行させることができます。
 
 フック決定は権限ルールをバイパスしません。Claude Code は deny ルールと ask ルールを、フックが何を返すかに関係なく評価します。マッチする deny ルールはコールをブロックし、マッチする ask ルールはフックが `"allow"` または `"ask"` を返した場合でもプロンプトを表示します。これは、[権限を管理する](#manage-permissions)で説明されている deny 優先の優先順位を保持し、管理設定で設定された deny ルールを含みます。
 
-コネクタツール（[組織が `ask` に設定](/ja/mcp#organization-controls-on-connector-tools)）と MCP ツール（[`requiresUserInteraction` でマーク](/ja/mcp#require-approval-for-a-specific-tool)）も、フックが `"allow"` を返した場合でもプロンプトを表示します。
+コネクタツール（[組織が `ask` に設定](/docs/ja/mcp#organization-controls-on-connector-tools)）と MCP ツール（[`requiresUserInteraction` でマーク](/docs/ja/mcp#require-approval-for-a-specific-tool)）も、フックが `"allow"` を返した場合でもプロンプトを表示します。
 
-ブロッキングフックは allow ルールよりも優先されます。終了コード 2 で終了するフックは、権限ルールが評価される前にツール呼び出しを停止するため、allow ルールがコールを許可する場合でもブロックが適用されます。プロンプトなしですべての Bash コマンドを実行し、ブロックしたい少数のコマンドを除外するには、allow リストに `"Bash"` を追加し、それらの特定のコマンドを拒否する PreToolUse フックを登録します。適応できるフックスクリプトについては、[保護されたファイルへの編集をブロックする](/ja/hooks-guide#block-edits-to-protected-files)を参照してください。
+ブロッキングフックは allow ルールよりも優先されます。終了コード 2 で終了するフックは、権限ルールが評価される前にツール呼び出しを停止するため、allow ルールがコールを許可する場合でもブロックが適用されます。プロンプトなしですべての Bash コマンドを実行し、ブロックしたい少数のコマンドを除外するには、allow リストに `"Bash"` を追加し、それらの特定のコマンドを拒否する PreToolUse フックを登録します。適応できるフックスクリプトについては、[保護されたファイルへの編集をブロックする](/docs/ja/hooks-guide#block-edits-to-protected-files)を参照してください。
 
 作業ディレクトリ
 
@@ -355,13 +355,13 @@ Cd
 
 - **起動時**：`--add-dir <path>` CLI 引数を使用します
 - **セッション中**：`/add-dir` コマンドを使用します
-- **永続的な設定**：[設定ファイル](/ja/settings#settings-files)の `additionalDirectories` に追加します
+- **永続的な設定**：[設定ファイル](/docs/ja/settings#settings-files)の `additionalDirectories` に追加します
 
 追加ディレクトリ内のファイルは、元の作業ディレクトリと同じ権限ルールに従います。プロンプトなしで読み取り可能になり、ファイル編集権限は現在の権限モードに従います。
 
-macOS のバックグラウンドセッションでは、セッションホストは `~/Desktop`、`~/Documents`、`~/Downloads` などの保護されたフォルダへのアクセスをターミナルとは別に要求します。Claude がそこでファイルを読み取りまたは書き込む必要がある場合、`Operation not permitted` で読み取りが失敗する場合は、[バックグラウンドセッションにフォルダアクセスを許可する方法](/ja/agent-view#background-sessions-cant-read-desktop-documents-or-downloads-on-macos)を参照してください。
+macOS のバックグラウンドセッションでは、セッションホストは `~/Desktop`、`~/Documents`、`~/Downloads` などの保護されたフォルダへのアクセスをターミナルとは別に要求します。Claude がそこでファイルを読み取りまたは書き込む必要がある場合、`Operation not permitted` で読み取りが失敗する場合は、[バックグラウンドセッションにフォルダアクセスを許可する方法](/docs/ja/agent-view#background-sessions-cant-read-desktop-documents-or-downloads-on-macos)を参照してください。
 
-セッションの主要な作業ディレクトリを別のディレクトリを追加する代わりに変更するには、[`/cd`](/ja/commands)を使用します。`/cd` コマンドには Claude Code v2.1.169 以降が必要です。`/add-dir` とは異なり、セッションを再配置します。新しいディレクトリの `CLAUDE.md` が読み込まれ、`--resume` はそこからセッションを検出します。
+セッションの主要な作業ディレクトリを別のディレクトリを追加する代わりに変更するには、[`/cd`](/docs/ja/commands)を使用します。`/cd` コマンドには Claude Code v2.1.169 以降が必要です。`/add-dir` とは異なり、セッションを再配置します。新しいディレクトリの `CLAUDE.md` が読み込まれ、`--resume` はそこからセッションを検出します。
 
 追加ディレクトリはファイルアクセスを許可し、設定ではありません
 
@@ -373,20 +373,20 @@ macOS のバックグラウンドセッションでは、セッションホス�
 
 | 設定 | `--add-dir` から読み込まれます |
 | :- | :- |
-| `.claude/skills/` の [Skills](/ja/skills) | はい、ライブリロード付き |
-| `.claude/agents/` の [Subagents](/ja/sub-agents) | はい |
-| `.claude/settings.json` および `.claude/settings.local.json` の [Settings](/ja/settings) | `enabledPlugins` および `extraKnownMarketplaces` キーのみ |
-| [CLAUDE.md](/ja/memory) ファイル、`.claude/rules/`、および `CLAUDE.local.md` | `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` が設定されている場合のみ。`CLAUDE.local.md` はさらに `local` 設定ソースが必要です。これはデフォルトで有効になっています |
+| `.claude/skills/` の [Skills](/docs/ja/skills) | はい、ライブリロード付き |
+| `.claude/agents/` の [Subagents](/docs/ja/sub-agents) | はい |
+| `.claude/settings.json` および `.claude/settings.local.json` の [Settings](/docs/ja/settings) | `enabledPlugins` および `extraKnownMarketplaces` キーのみ |
+| [CLAUDE.md](/docs/ja/memory) ファイル、`.claude/rules/`、および `CLAUDE.local.md` | `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` が設定されている場合のみ。`CLAUDE.local.md` はさらに `local` 設定ソースが必要です。これはデフォルトで有効になっています |
 
 コマンドおよび出力スタイルは、現在の作業ディレクトリとその親、`~/.claude/` のユーザーディレクトリ、および管理設定から検出されます。Hooks およびその他の `settings.json` キーは、現在の作業ディレクトリの `.claude/` フォルダから親ディレクトリへのフォールバックなしで読み込まれ、ユーザーの `~/.claude/settings.json` および管理設定と共に読み込まれます。その設定をプロジェクト全体で共有するには、次のいずれかのアプローチを使用します。
 
 - **ユーザーレベルの設定**：`~/.claude/agents/`、`~/.claude/output-styles/`、または `~/.claude/settings.json` にファイルを配置して、すべてのプロジェクトで利用可能にします
-- **プラグイン**：設定を [プラグイン](/ja/plugins)としてパッケージ化および配布し、チームがインストールできるようにします
+- **プラグイン**：設定を [プラグイン](/docs/ja/plugins)としてパッケージ化および配布し、チームがインストールできるようにします
 - **設定ディレクトリから起動する**：使用する `.claude/` 設定を含むディレクトリから Claude Code を実行します
 
 権限がサンドボックスとどのように相互作用するか
 
-権限と[サンドボックス](/ja/sandboxing)は、補完的なセキュリティレイヤーです。
+権限と[サンドボックス](/docs/ja/sandboxing)は、補完的なセキュリティレイヤーです。
 
 - **権限**は、Claude Code が使用できるツール、およびアクセスできるファイルまたはドメインを制御します。すべてのツール（Bash、Read、Edit、WebFetch、MCP など）に適用されます。
 - **サンドボックス**は、Bash ツールのファイルシステムとネットワークアクセスを制限する OS レベルの強制を提供します。Bash コマンドとその子プロセスにのみ適用されます。
@@ -395,7 +395,7 @@ macOS のバックグラウンドセッションでは、セッションホス�
 
 - 権限 deny ルールは、Claude が制限されたリソースへのアクセスを試みることさえ防止します
 - サンドボックス制限は、プロンプトインジェクションが Claude の意思決定をバイパスしても、Bash コマンドが定義された境界外のリソースに到達することを防止します
-- サンドボックス内のファイルシステム制限は、[`sandbox.filesystem`](/ja/sandboxing) 設定と Read および Edit deny ルールを組み合わせます。両方が最終的なサンドボックス境界にマージされます
+- サンドボックス内のファイルシステム制限は、[`sandbox.filesystem`](/docs/ja/sandboxing) 設定と Read および Edit deny ルールを組み合わせます。両方が最終的なサンドボックス境界にマージされます
 - ネットワーク制限は、WebFetch 権限ルールとサンドボックスの `allowedDomains` および `deniedDomains` リストを組み合わせます
 
 サンドボックスが `autoAllowBashIfSandboxed: true` で有効になっている場合（デフォルト）、サンドボックス化された Bash コマンドは、権限に bare `Bash` ask ルール、または[同等の `Bash(*)` 形式](#match-all-uses-of-a-tool)が含まれている場合でもプロンプトなしで実行されます。サンドボックス境界は、そのツール全体のプロンプトの代わりになります。これらのチェックは引き続き適用されます。
@@ -404,11 +404,11 @@ macOS のバックグラウンドセッションでは、セッションホス�
 - 明示的な deny ルールは引き続き適用されます
 - `/`、ホームディレクトリ、またはその他の重要なシステムパスをターゲットとする `rm` または `rmdir` コマンドは、引き続きプロンプトをトリガーします
 
-除外されたコマンドなど、サンドボックス化されて実行されないコマンドは、通常どおり bare `Bash` ask ルールを尊重します。[サンドボックスモード](/ja/sandboxing#sandbox-modes)を参照して、この動作を変更してください。
+除外されたコマンドなど、サンドボックス化されて実行されないコマンドは、通常どおり bare `Bash` ask ルールを尊重します。[サンドボックスモード](/docs/ja/sandboxing#sandbox-modes)を参照して、この動作を変更してください。
 
 管理設定
 
-Claude Code 設定の一元的な制御が必要な組織の場合、管理者はユーザーまたはプロジェクト設定でオーバーライドできない管理設定をデプロイできます。これらのポリシー設定は通常の設定ファイルと同じ形式に従い、MDM/OS レベルのポリシー、管理設定ファイル、[サーバー管理設定](/ja/server-managed-settings)、または自己ホスト型の[Claude apps gateway](/ja/claude-apps-gateway)を通じて配信できます。配信メカニズムとファイルの場所については、[設定ファイル](/ja/settings#settings-files)を参照してください。
+Claude Code 設定の一元的な制御が必要な組織の場合、管理者はユーザーまたはプロジェクト設定でオーバーライドできない管理設定をデプロイできます。これらのポリシー設定は通常の設定ファイルと同じ形式に従い、MDM/OS レベルのポリシー、管理設定ファイル、[サーバー管理設定](/docs/ja/server-managed-settings)、または自己ホスト型の[Claude apps gateway](/docs/ja/claude-apps-gateway)を通じて配信できます。配信メカニズムとファイルの場所については、[設定ファイル](/docs/ja/settings#settings-files)を参照してください。
 
 管理のみの設定
 
@@ -416,29 +416,29 @@ Claude Code 設定の一元的な制御が必要な組織の場合、管理者�
 
 | 設定 | 説明 |
 | :- | :- |
-| `allowAllClaudeAiMcps` | `true` の場合、claude.ai コネクタはデプロイされた `managed-mcp.json` と並行して読み込まれ、その排他的な制御によって抑制されません。[管理 MCP 設定](/ja/managed-mcp)を参照してください |
-| `allowedChannelPlugins` | メッセージをプッシュできるチャネルプラグインのホワイトリスト。設定されている場合、デフォルトの Anthropic ホワイトリストを置き換えます。`channelsEnabled: true` が必要です。[チャネルプラグインの実行を制限する](/ja/channels#restrict-which-channel-plugins-can-run)を参照してください |
+| `allowAllClaudeAiMcps` | `true` の場合、claude.ai コネクタはデプロイされた `managed-mcp.json` と並行して読み込まれ、その排他的な制御によって抑制されません。[管理 MCP 設定](/docs/ja/managed-mcp)を参照してください |
+| `allowedChannelPlugins` | メッセージをプッシュできるチャネルプラグインのホワイトリスト。設定されている場合、デフォルトの Anthropic ホワイトリストを置き換えます。`channelsEnabled: true` が必要です。[チャネルプラグインの実行を制限する](/docs/ja/channels#restrict-which-channel-plugins-can-run)を参照してください |
 | `allowManagedHooksOnly` | `true` の場合、管理フック、SDK フック、および管理設定 `enabledPlugins` で強制有効にされたプラグインからのフックのみが読み込まれます。ユーザー、プロジェクト、およびその他すべてのプラグインフックはブロックされます |
-| `allowManagedMcpServersOnly` | `true` の場合、管理設定からの `allowedMcpServers` のみが尊重されます。`deniedMcpServers` はすべてのソースからマージされます。[管理 MCP 設定](/ja/managed-mcp)を参照してください |
+| `allowManagedMcpServersOnly` | `true` の場合、管理設定からの `allowedMcpServers` のみが尊重されます。`deniedMcpServers` はすべてのソースからマージされます。[管理 MCP 設定](/docs/ja/managed-mcp)を参照してください |
 | `allowManagedPermissionRulesOnly` | `true` の場合、ユーザーおよびプロジェクト設定が `allow`、`ask`、または `deny` 権限ルールを定義することを防止します。管理設定のルールのみが適用されます。MCP サーバーのホワイトリストには影響しません。その場合は、`allowManagedMcpServersOnly` を設定してください |
-| `blockedMarketplaces` | マーケットプレイスソースのブロックリスト。ブロックされたソースはダウンロード前にチェックされるため、ファイルシステムに触れることはありません。[管理マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
-| `channelsEnabled` | 組織の[チャネル](/ja/channels)を許可します。各プランのデフォルトについては、[エンタープライズコントロール](/ja/channels#enterprise-controls)を参照してください |
-| `disableSideloadFlags` | `--plugin-dir`、`--plugin-url`、`--agents`、および `--mcp-config` CLI フラグをスタートアップで拒否します。これがない場合、ユーザーはこれらのフラグを渡すことで、単一の実行に対して `strictKnownMarketplaces` をバイパスできます。[`disableSideloadFlags`](/ja/settings#available-settings)を参照してください。Claude Code v2.1.193 以降が必要です |
-| `forceRemoteSettingsRefresh` | `true` の場合、リモート管理設定が新しく取得されるまで CLI 起動をブロックし、取得に失敗した場合は終了します。[フェイルクローズ強制](/ja/server-managed-settings#enforce-fail-closed-startup)を参照してください |
+| `blockedMarketplaces` | マーケットプレイスソースのブロックリスト。ブロックされたソースはダウンロード前にチェックされるため、ファイルシステムに触れることはありません。[管理マーケットプレイス制限](/docs/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
+| `channelsEnabled` | 組織の[チャネル](/docs/ja/channels)を許可します。各プランのデフォルトについては、[エンタープライズコントロール](/docs/ja/channels#enterprise-controls)を参照してください |
+| `disableSideloadFlags` | `--plugin-dir`、`--plugin-url`、`--agents`、および `--mcp-config` CLI フラグをスタートアップで拒否します。これがない場合、ユーザーはこれらのフラグを渡すことで、単一の実行に対して `strictKnownMarketplaces` をバイパスできます。[`disableSideloadFlags`](/docs/ja/settings#available-settings)を参照してください。Claude Code v2.1.193 以降が必要です |
+| `forceRemoteSettingsRefresh` | `true` の場合、リモート管理設定が新しく取得されるまで CLI 起動をブロックし、取得に失敗した場合は終了します。[フェイルクローズ強制](/docs/ja/server-managed-settings#enforce-fail-closed-startup)を参照してください |
 | `pluginTrustMessage` | インストール前に表示されるプラグイン信頼警告に追加されるカスタムメッセージ |
 | `sandbox.filesystem.allowManagedReadPathsOnly` | `true` の場合、管理設定からの `filesystem.allowRead` パスのみが尊重されます。`denyRead` はすべてのソースからマージされます |
 | `sandbox.network.allowManagedDomainsOnly` | `true` の場合、管理設定からの `allowedDomains` と `WebFetch(domain:...)` allow ルールのみが尊重されます。許可されていないドメインはユーザーに促すことなく自動的にブロックされます。拒否されたドメインはすべてのソースからマージされます |
-| `strictKnownMarketplaces` | ユーザーが追加およびインストールできるプラグインマーケットプレイスソースを制御します。[管理マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
-| `strictPluginOnlyCustomization` | ユーザーおよびプロジェクトソースからのスキル、エージェント、フック、および MCP サーバーをブロックして、プラグインまたは管理設定からのみ取得できるようにします。`true` は 4 つすべてのサーフェスをロックします。`["skills", "hooks"]` などの配列は、指定されたものだけをロックします。[`strictPluginOnlyCustomization`](/ja/settings#strictpluginonlycustomization)を参照してください |
-| `wslInheritsWindowsSettings` | Windows HKLM レジストリキーまたは `C:\Program Files\ClaudeCode\managed-settings.json` で `true` の場合、WSL は `/etc/claude-code` に加えて Windows ポリシーチェーンから管理設定を読み込みます。[設定ファイル](/ja/settings#settings-files)を参照してください |
+| `strictKnownMarketplaces` | ユーザーが追加およびインストールできるプラグインマーケットプレイスソースを制御します。[管理マーケットプレイス制限](/docs/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
+| `strictPluginOnlyCustomization` | ユーザーおよびプロジェクトソースからのスキル、エージェント、フック、および MCP サーバーをブロックして、プラグインまたは管理設定からのみ取得できるようにします。`true` は 4 つすべてのサーフェスをロックします。`["skills", "hooks"]` などの配列は、指定されたものだけをロックします。[`strictPluginOnlyCustomization`](/docs/ja/settings#strictpluginonlycustomization)を参照してください |
+| `wslInheritsWindowsSettings` | Windows HKLM レジストリキーまたは `C:\Program Files\ClaudeCode\managed-settings.json` で `true` の場合、WSL は `/etc/claude-code` に加えて Windows ポリシーチェーンから管理設定を読み込みます。[設定ファイル](/docs/ja/settings#settings-files)を参照してください |
 
 `disableBypassPermissionsMode` は通常、組織ポリシーを強制するために管理設定に配置されますが、任意のスコープから機能します。ユーザーは独自の設定で設定して、自分自身をバイパスモードからロックアウトできます。
 
-Team および Enterprise プランでは、Owner が [Claude Code 管理設定](https://claude.ai/admin-settings/claude-code)で[リモートコントロール](/ja/remote-control)と[ウェブセッション](/ja/claude-code-on-the-web)を組織全体で有効または無効にします。リモートコントロールは、[`disableRemoteControl`](/ja/settings#available-settings)設定でデバイスごとに無効にすることもできます。ウェブセッションにはデバイスごとの管理設定キーはありません。
+Team および Enterprise プランでは、Owner が [Claude Code 管理設定](https://claude.ai/admin-settings/claude-code)で[リモートコントロール](/docs/ja/remote-control)と[ウェブセッション](/docs/ja/claude-code-on-the-web)を組織全体で有効または無効にします。リモートコントロールは、[`disableRemoteControl`](/docs/ja/settings#available-settings)設定でデバイスごとに無効にすることもできます。ウェブセッションにはデバイスごとの管理設定キーはありません。
 
 設定の優先順位
 
-権限ルールは、他のすべての Claude Code 設定と同じ[設定優先順位](/ja/settings#settings-precedence)に従います。
+権限ルールは、他のすべての Claude Code 設定と同じ[設定優先順位](/docs/ja/settings#settings-precedence)に従います。
 
 1. **管理設定**：コマンドライン引数を含む他のレベルでオーバーライドできません
 2. **コマンドライン引数**：一時的なセッションオーバーライド
@@ -450,13 +450,13 @@ Team および Enterprise プランでは、Owner が [Claude Code 管理設定]
 
 設定スコープ全体でも同じことが当てはまります。ユーザー設定で権限が許可されており、プロジェクト設定で拒否されている場合、拒否ルールがそれをブロックします。逆も同様です。ユーザーレベルの deny がプロジェクトレベルの allow をブロックします。これは、任意のスコープからの deny ルールが allow ルールの前に評価されるためです。
 
-埋め込みホストは、[`parentSettingsBehavior`](/ja/settings#settings-precedence)が `"merge"` に設定されている場合、SDK の `managedSettings` オプションを介して追加の管理ポリシーを提供できます。埋め込み元の値はポリシーを厳しくできますが、緩和することはできません。
+埋め込みホストは、[`parentSettingsBehavior`](/docs/ja/settings#settings-precedence)が `"merge"` に設定されている場合、SDK の `managedSettings` オプションを介して追加の管理ポリシーを提供できます。埋め込み元の値はポリシーを厳しくできますが、緩和することはできません。
 
 プロジェクトの許可ルールとワークスペーストラスト
 
-プロジェクトの `.claude/settings.json` 内の `permissions.allow` ルールと `permissions.additionalDirectories` エントリは機能を付与するため、Claude Code はそのワークスペースの[ワークスペーストラストダイアログ](/ja/security#additional-safeguards)を受け入れた後にのみ適用します。それまでの間、Claude Code はルールを読み込みますが適用しません。トラストダイアログには、フォルダが付与する許可ルールと追加ディレクトリが表示されるため、受け入れる前に確認できます。`deny` ルールと `ask` ルールは制限のみを行うため、影響を受けません。
+プロジェクトの `.claude/settings.json` 内の `permissions.allow` ルールと `permissions.additionalDirectories` エントリは機能を付与するため、Claude Code はそのワークスペースの[ワークスペーストラストダイアログ](/docs/ja/security#additional-safeguards)を受け入れた後にのみ適用します。それまでの間、Claude Code はルールを読み込みますが適用しません。トラストダイアログには、フォルダが付与する許可ルールと追加ディレクトリが表示されるため、受け入れる前に確認できます。`deny` ルールと `ask` ルールは制限のみを行うため、影響を受けません。
 
-Claude Code はワークスペーストを git リポジトリルートをキーとして保存するか、リポジトリ外の場合は Claude Code を起動したディレクトリをキーとして保存します。ホームディレクトリから起動した場合、トラストは現在のセッションのみ保持され、ディスクに書き込まれません。[追加のセーフガード](/ja/security#additional-safeguards)に関する注記を参照してください。親ディレクトリを信頼しても、ネストされたプロジェクトの許可ルールは適用されません。
+Claude Code はワークスペーストを git リポジトリルートをキーとして保存するか、リポジトリ外の場合は Claude Code を起動したディレクトリをキーとして保存します。ホームディレクトリから起動した場合、トラストは現在のセッションのみ保持され、ディスクに書き込まれません。[追加のセーフガード](/docs/ja/security#additional-safeguards)に関する注記を参照してください。親ディレクトリを信頼しても、ネストされたプロジェクトの許可ルールは適用されません。
 
 `.claude/settings.local.json` はあなた自身のファイルであるため、ワークスペーストラストチェックは通常適用されません。リポジトリが git にコミットされている場合や `.claude` がシンボリックリンクである場合など、リポジトリがファイルを提供できる場合、その許可ルールと追加ディレクトリはプロジェクト設定と同様にトラストチェックを通ります。
 
@@ -465,16 +465,16 @@ Claude Code は git を実行してリポジトリがファイルを提供した
 `.claude/settings.local.json` の許可ルールと追加ディレクトリは、2 つのケースではワークスペーストラストなしで適用されます。
 
 - Claude Code を起動したディレクトリが git リポジトリ内にない。
-- セッションがあなた自身の設定ホームで実行される。つまり、ホームディレクトリ、または `.claude` サブディレクトリを [`CLAUDE_CONFIG_DIR`](/ja/env-vars) として設定したディレクトリ。
+- セッションがあなた自身の設定ホームで実行される。つまり、ホームディレクトリ、または `.claude` サブディレクトリを [`CLAUDE_CONFIG_DIR`](/docs/ja/env-vars) として設定したディレクトリ。
 
-どちらの場合も、ファイルはリポジトリが提供できるものではなく、あなたが作成したものです。リポジトリにコミットされた `.claude/settings.local.json` は依然としてワークスペーストラストが必要です。バージョン 2.1.196 から 2.1.199 では、これらのワークスペースでファイルをリポジトリ提供と見なし、その許可ルールを無視し、stderr に [`this workspace has not been trusted`](/ja/errors#workspace-has-not-been-trusted) 警告を出力していました。上記の 2 つの例外は v2.1.195 以前と一致し、v2.1.200 で復元されました。
+どちらの場合も、ファイルはリポジトリが提供できるものではなく、あなたが作成したものです。リポジトリにコミットされた `.claude/settings.local.json` は依然としてワークスペーストラストが必要です。バージョン 2.1.196 から 2.1.199 では、これらのワークスペースでファイルをリポジトリ提供と見なし、その許可ルールを無視し、stderr に [`this workspace has not been trusted`](/docs/ja/errors#workspace-has-not-been-trusted) 警告を出力していました。上記の 2 つの例外は v2.1.195 以前と一致し、v2.1.200 で復元されました。
 
 また v2.1.200 以降、許可ルールまたは追加ディレクトリがまだ適用されていないワークスペースで、親ディレクトリが既に信頼されていたためトラストダイアログが表示されなかった場合、次に Claude Code をそこで対話的に起動したときにダイアログが表示されます。ダイアログは 2 つの選択肢を提供します。
 
 - **Yes, I trust this folder**: そのワークスペースのトラストを保存し、同じセッション内でルールを適用します。
 - **No, continue without these permissions**: これらのルールを無視して作業を続けます。ダイアログは次のセッションで再度表示されます。
 
-[非対話モード](/ja/headless)で `-p` を使用する場合、ダイアログは表示されず、ルールは無視されたままになります。
+[非対話モード](/docs/ja/headless)で `-p` を使用する場合、ダイアログは表示されず、ルールは無視されたままになります。
 
 設定例
 
@@ -482,9 +482,9 @@ Claude Code は git を実行してリポジトリがファイルを提供した
 
 関連項目
 
-- [設定](/ja/settings)：権限設定テーブルを含む完全な設定リファレンス
-- [auto モードを設定する](/ja/auto-mode-config)：auto モード分類器が組織が信頼するインフラストラクチャを伝えます
-- [サンドボックス](/ja/sandboxing)：Bash コマンドの OS レベルのファイルシステムとネットワーク分離
-- [認証](/ja/authentication)：Claude Code へのユーザーアクセスを設定します
-- [セキュリティ](/ja/security)：セキュリティ保護とベストプラクティス
-- [フック](/ja/hooks-guide)：ワークフローを自動化し、権限評価を拡張します
+- [設定](/docs/ja/settings)：権限設定テーブルを含む完全な設定リファレンス
+- [auto モードを設定する](/docs/ja/auto-mode-config)：auto モード分類器が組織が信頼するインフラストラクチャを伝えます
+- [サンドボックス](/docs/ja/sandboxing)：Bash コマンドの OS レベルのファイルシステムとネットワーク分離
+- [認証](/docs/ja/authentication)：Claude Code へのユーザーアクセスを設定します
+- [セキュリティ](/docs/ja/security)：セキュリティ保護とベストプラクティス
+- [フック](/docs/ja/hooks-guide)：ワークフローを自動化し、権限評価を拡張します

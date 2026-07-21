@@ -11,14 +11,14 @@ source: https://code.claude.com/docs/ja/troubleshooting.md
 
 | 症状 | 移動先 |
 | :- | :- |
-| `command not found`、インストール失敗、PATH の問題、`EACCES`、TLS エラー | [インストールとログインのトラブルシューティング](/ja/troubleshoot-install) |
-| 更新またはインストールダウンロードが `The connection dropped while downloading the update` または `aborted` で失敗する | [エラーリファレンス](/ja/errors#the-connection-dropped-while-downloading-the-update) |
-| ログインループ、OAuth エラー、`403 Forbidden`、「organization disabled」、Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry 認証情報 | [インストールとログインのトラブルシューティング](/ja/troubleshoot-install#login-and-authentication) |
-| 設定が適用されない、hooks が実行されない、MCP サーバーがロードされない | [設定をデバッグする](/ja/debug-your-config) |
-| `API Error: 5xx`、`529 Overloaded`、`429`、リクエスト検証エラー | [エラーリファレンス](/ja/errors) |
-| `model not found` または `you may not have access to it` | [エラーリファレンス](/ja/errors#theres-an-issue-with-the-selected-model) |
-| VS Code 拡張機能が接続されていない、または Claude を検出していない | [VS Code 統合](/ja/vs-code#fix-common-issues) |
-| JetBrains プラグインまたは IDE が検出されない | [JetBrains 統合](/ja/jetbrains#troubleshooting) |
+| `command not found`、インストール失敗、PATH の問題、`EACCES`、TLS エラー | [インストールとログインのトラブルシューティング](/docs/ja/troubleshoot-install) |
+| 更新またはインストールダウンロードが `The connection dropped while downloading the update` または `aborted` で失敗する | [エラーリファレンス](/docs/ja/errors#the-connection-dropped-while-downloading-the-update) |
+| ログインループ、OAuth エラー、`403 Forbidden`、「organization disabled」、Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry 認証情報 | [インストールとログインのトラブルシューティング](/docs/ja/troubleshoot-install#login-and-authentication) |
+| 設定が適用されない、hooks が実行されない、MCP サーバーがロードされない | [設定をデバッグする](/docs/ja/debug-your-config) |
+| `API Error: 5xx`、`529 Overloaded`、`429`、リクエスト検証エラー | [エラーリファレンス](/docs/ja/errors) |
+| `model not found` または `you may not have access to it` | [エラーリファレンス](/docs/ja/errors#theres-an-issue-with-the-selected-model) |
+| VS Code 拡張機能が接続されていない、または Claude を検出していない | [VS Code 統合](/docs/ja/vs-code#fix-common-issues) |
+| JetBrains プラグインまたは IDE が検出されない | [JetBrains 統合](/docs/ja/jetbrains#troubleshooting) |
 | CPU またはメモリ使用量が多い、応答が遅い、ハング、検索がファイルを見つけられない | [パフォーマンスと安定性](#performance-and-stability)（下記） |
 
 どれが当てはまるかわからない場合は、Claude Code 内で `/doctor` を実行して、インストール、設定、拡張機能、コンテキスト使用量の自動チェックを実行してください。確認後に適用できる修正を提案します。`claude` がまったく起動しない場合は、代わりにシェルから `claude doctor` を実行してください。MCP サーバーのステータスを確認するには `/mcp` を実行してください。
@@ -34,15 +34,17 @@ Claude Code はほとんどの開発環境で動作するように設計され�
 1. `/compact` を定期的に使用してコンテキストサイズを削減します
 2. 主要なタスク間で Claude Code を閉じて再起動します
 3. 大規模なビルドディレクトリを `.gitignore` ファイルに追加することを検討してください
-4. [`claude --safe-mode`](/ja/cli-reference#cli-flags) で再起動して、プラグイン、MCP サーバー、またはフックが原因かどうかを確認します。セッション中のすべてのカスタマイズが無効になります。使用量が低下した場合は、[設定をデバッグする](/ja/debug-your-config#test-against-a-clean-configuration)を参照して、どれが原因かを特定します
+4. [`claude --safe-mode`](/docs/ja/cli-reference#cli-flags) で再起動して、プラグイン、MCP サーバー、またはフックが原因かどうかを確認します。セッション中のすべてのカスタマイズが無効になります。使用量が低下した場合は、[設定をデバッグする](/docs/ja/debug-your-config#test-against-a-clean-configuration)を参照して、どれが原因かを特定します
 
 これらのステップ後もメモリ使用量が高いままの場合は、`/heapdump` を実行して JavaScript ヒープスナップショットとメモリ分析を `~/Desktop` に書き込みます。Linux でデスクトップフォルダがない場合、ファイルはホームディレクトリに書き込まれます。
 
-分析は常駐セットサイズ、JS ヒープ、配列バッファ、および説明されていないネイティブメモリを表示し、成長が JavaScript オブジェクトにあるか、ネイティブコードにあるかを識別するのに役立ちます。Chrome DevTools のメモリ → ロードで `.heapsnapshot` ファイルを開いて、リテイナーを検査します。メモリの問題を報告するときに両方のファイルを [GitHub](https://github.com/anthropics/claude-code/issues) に添付します。
+分析には、resident set size、JS ヒープ、array buffers、および説明されていないネイティブメモリが表示されます。これにより、増加が JavaScript オブジェクトにあるのか、ネイティブコードにあるのかを特定するのに役立ちます。保持者を検査するには、Chrome DevTools の Memory → Load で `.heapsnapshot` ファイルを開きます。分析は `-diagnostics.json` で終わるファイルです。
+
+`.heapsnapshot` ファイルには、プロセス内のすべての文字列が含まれています。公開の issue に添付したり、共有したりしないでください。メモリの問題を [GitHub](https://github.com/anthropics/claude-code/issues) で報告する場合は、`-diagnostics.json` ファイルのみを添付してください。このファイルにはメモリ統計が含まれており、会話内容や認証情報は含まれていません。
 
 ターミナルで大きなテーブルが切り取られる
 
-200 行以上の Markdown テーブルは、最初の 200 行とそれに続く `… N more rows not shown` 行をレンダリングします。表示のみが制限されます。完全なテーブルはカンバセーションに残り、[`/copy`](/ja/commands) はすべての行をコピーします。ターミナルで読むには大きすぎるテーブルの場合は、Claude にファイルに書き込むよう依頼してください。v2.1.208 より前では、Claude Code はすべての行をレンダリングしていたため、非常に大きなテーブルを含むセッションを再開すると、再レンダリング中にスタールする可能性がありました。
+200 行以上の Markdown テーブルは、最初の 200 行とそれに続く `… N more rows not shown` 行をレンダリングします。表示のみが制限されます。完全なテーブルはカンバセーションに残り、[`/copy`](/docs/ja/commands) はすべての行をコピーします。ターミナルで読むには大きすぎるテーブルの場合は、Claude にファイルに書き込むよう依頼してください。v2.1.208 より前では、Claude Code はすべての行をレンダリングしていたため、非常に大きなテーブルを含むセッションを再開すると、再レンダリング中にスタールする可能性がありました。
 
 自動コンパクションがスラッシングエラーで停止する
 
@@ -52,7 +54,7 @@ Claude Code はほとんどの開発環境で動作するように設計され�
 
 1. Claude に、ファイル全体ではなく、特定の行範囲または関数など、より小さなチャンクで大きなファイルを読むよう依頼します
 2. `/compact` を実行して、大きな出力を削除するフォーカスを使用します（例：`/compact keep only the plan and the diff`）
-3. 大規模ファイルの作業を [subagent](/ja/sub-agents) に移動して、別のコンテキストウィンドウで実行されるようにします
+3. 大規模ファイルの作業を [subagent](/docs/ja/sub-agents) に移動して、別のコンテキストウィンドウで実行されるようにします
 4. 以前の会話がもう必要ない場合は `/clear` を実行します
 
 コマンドがハングまたはフリーズする
@@ -66,7 +68,7 @@ Claude Code が応答しないように見える場合：
 
 エディタの統合ターミナルでのテキストの文字化けまたは破損
 
-VS Code、Cursor、または Devin Desktop の統合ターミナルで Claude Code を実行する場合、文字がボックス、スミア、または間違ったグリフとしてレンダリングされる場合、ターミナルの GPU レンダラーが原因である可能性があります。Claude Code 内で `/terminal-setup` を実行して、`terminal.integrated.gpuAcceleration` を `"off"` に設定するか、エディタの設定で手動で設定してウィンドウをリロードします。[ターミナル設定](/ja/terminal-config)で、`/terminal-setup` が書き込む他の設定を参照してください。
+VS Code、Cursor、または Devin Desktop の統合ターミナルで Claude Code を実行する場合、文字がボックス、スミア、または間違ったグリフとしてレンダリングされる場合、ターミナルの GPU レンダラーが原因である可能性があります。Claude Code 内で `/terminal-setup` を実行して、`terminal.integrated.gpuAcceleration` を `"off"` に設定するか、エディタの設定で手動で設定してウィンドウをリロードします。[ターミナル設定](/docs/ja/terminal-config)で、`/terminal-setup` が書き込む他の設定を参照してください。
 
 検索と発見の問題
 
@@ -92,7 +94,7 @@ pacman -S ripgrep
 winget install BurntSushi.ripgrep.MSVC
 ```
 
-その後、[environment](/ja/env-vars) で `USE_BUILTIN_RIPGREP=0` を設定します。
+その後、[environment](/docs/ja/env-vars) で `USE_BUILTIN_RIPGREP=0` を設定します。
 
 WSL での遅い、または不完全な検索結果
 

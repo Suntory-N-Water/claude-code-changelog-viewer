@@ -17,16 +17,16 @@ source: https://code.claude.com/docs/ja/security.md
 
 Claude Code はデフォルトで厳密な読み取り専用パーミッションを使用します。追加のアクション（ファイルの編集、テストの実行、コマンドの実行）が必要な場合、Claude Code は明示的なパーミッションをリクエストします。ユーザーは、アクションを 1 回だけ承認するか、自動的に許可するかを制御できます。
 
-Claude Code はシステムを変更できる Bash コマンドを実行する前に承認が必要です。`ls`、`cat`、`git status` などの読み取り専用コマンドの組み込みセットは、[読み取り専用コマンド](/ja/permissions#read-only-commands) としてプロンプトなしで実行されます。このアプローチにより、ユーザーと組織は権限を直接設定できます。
+Claude Code はシステムを変更できる Bash コマンドを実行する前に承認が必要です。`ls`、`cat`、`git status` などの読み取り専用コマンドの組み込みセットは、[読み取り専用コマンド](/docs/ja/permissions#read-only-commands) としてプロンプトなしで実行されます。このアプローチにより、ユーザーと組織は権限を直接設定できます。
 
-詳細なパーミッション設定については、[Permissions](/ja/permissions) を参照してください。
+詳細なパーミッション設定については、[Permissions](/docs/ja/permissions) を参照してください。
 
 組み込み保護機能
 
 agentic システムのリスクを軽減するために：
 
-- **サンドボックス化された bash ツール**: [Sandbox](/ja/sandboxing) bash コマンドをファイルシステムとネットワークの分離で実行し、パーミッションプロンプトを減らしながらセキュリティを維持します。`/sandbox` で有効にして、Claude Code が自律的に動作できる境界を定義します
-- **作業ディレクトリの境界**: Claude Code は開始されたフォルダとそのサブフォルダにのみ書き込みでき、明示的な権限なしに親ディレクトリのファイルを変更することはできません。Read、Grep、Glob ツールを使用して、この境界外のパスを読み取ることは、承認プロンプトの後に可能です。[追加ディレクトリ](/ja/permissions#working-directories) でこの境界を拡張してプロンプトをスキップするか、サンドボックス化が有効な場合にのみ適用される [sandbox `denyRead` ルール](/ja/sandboxing#filesystem-isolation) で読み取り専用 Bash コマンドで利用可能なより広い読み取りアクセスを制限します
+- **サンドボックス化された bash ツール**: [Sandbox](/docs/ja/sandboxing) bash コマンドをファイルシステムとネットワークの分離で実行し、パーミッションプロンプトを減らしながらセキュリティを維持します。`/sandbox` で有効にして、Claude Code が自律的に動作できる境界を定義します
+- **作業ディレクトリの境界**: Claude Code は開始されたフォルダとそのサブフォルダにのみ書き込みでき、明示的な権限なしに親ディレクトリのファイルを変更することはできません。Read、Grep、Glob ツールを使用して、この境界外のパスを読み取ることは、承認プロンプトの後に可能です。[追加ディレクトリ](/docs/ja/permissions#working-directories) でこの境界を拡張してプロンプトをスキップするか、サンドボックス化が有効な場合にのみ適用される [sandbox `denyRead` ルール](/docs/ja/sandboxing#filesystem-isolation) で読み取り専用 Bash コマンドで利用可能なより広い読み取りアクセスを制限します
 - **プロンプト疲労の軽減**: ユーザーごと、コードベースごと、または組織ごとに頻繁に使用される安全なコマンドのホワイトリスト化をサポート
 - **Accept Edits モード**: ファイル編集と `mkdir`、`touch`、`rm`、`mv`、`cp`、`sed` などの固定セットのファイルシステム Bash コマンドを作業ディレクトリ内のパスに対して自動承認します。その他の Bash コマンドとスコープ外のパスはプロンプトが表示されます
 
@@ -43,7 +43,7 @@ Claude Code は、ユーザーが付与したパーミッションのみを持�
 - **パーミッションシステム**: 機密操作には明示的な承認が必要です
 - **コンテキスト認識分析**: 完全なリクエストを分析して潜在的に有害な指示を検出します
 - **入力サニタイゼーション**: ユーザー入力を処理することでコマンドインジェクションを防止します
-- **ネットワークコマンド承認**: `curl` や `wget` などのウェブからコンテンツを取得するコマンドはデフォルトでは自動承認されません。他の読み取り専用以外の Bash コマンドと同様にプロンプトが表示されるため、一度承認するか、`Bash(curl *)` のような明示的な許可ルールを追加できます。完全にブロックするには、[`permissions.deny`](/ja/permissions#tool-specific-permission-rules) に追加してください
+- **ネットワークコマンド承認**: `curl` や `wget` などのウェブからコンテンツを取得するコマンドはデフォルトでは自動承認されません。他の読み取り専用以外の Bash コマンドと同様にプロンプトが表示されるため、一度承認するか、`Bash(curl *)` のような明示的な許可ルールを追加できます。完全にブロックするには、[`permissions.deny`](/docs/ja/permissions#tool-specific-permission-rules) に追加してください
 
 プライバシーセーフガード
 
@@ -65,7 +65,7 @@ Claude Code は、ユーザーが付与したパーミッションのみを持�
 - **コマンドインジェクション検出**: 疑わしい bash コマンドは、以前にホワイトリストに登録されていても手動承認が必要です
 - **フェイルクローズドマッチング**: マッチしないコマンドはデフォルトで手動承認が必要です
 - **自然言語説明**: 複雑な bash コマンドにはユーザーの理解のための説明が含まれます
-- **セキュアな認証情報ストレージ**: API キーとトークンは利用可能な場合は macOS Keychain に保存され、Windows と Linux ではファイルパーミッションで保護されます。[Credential Management](/ja/authentication#credential-management) を参照してください
+- **セキュアな認証情報ストレージ**: API キーとトークンは利用可能な場合は macOS Keychain に保存され、Windows と Linux ではファイルパーミッションで保護されます。[Credential Management](/docs/ja/authentication#credential-management) を参照してください
 
 **Windows WebDAV セキュリティリスク**: Windows で Claude Code を実行する場合、WebDAV を有効にしたり、Claude Code に `\\*` などの WebDAV サブディレクトリを含む可能性のあるパスへのアクセスを許可することはお勧めしません。[WebDAV は Microsoft によって非推奨になっています](https://learn.microsoft.com/en-us/windows/whats-new/deprecated-features#:~:text=The%20Webclient%20\(WebDAV\)%20service%20is%20deprecated) セキュリティリスクのため。WebDAV を有効にすると、Claude Code がリモートホストへのネットワークリクエストをトリガーし、パーミッションシステムをバイパスする可能性があります。
 
@@ -87,11 +87,11 @@ Claude Code ユーザーは Model Context Protocol（MCP）サーバーを設定
 
 IDE セキュリティ
 
-IDE で Claude Code を実行する場合の詳細については、[VS Code security and privacy](/ja/vs-code#security-and-privacy) を参照してください。
+IDE で Claude Code を実行する場合の詳細については、[VS Code security and privacy](/docs/ja/vs-code#security-and-privacy) を参照してください。
 
 クラウド実行セキュリティ
 
-[Claude Code on the web](/ja/claude-code-on-the-web) を使用する場合、追加のセキュリティ制御が実施されます：
+[Claude Code on the web](/docs/ja/claude-code-on-the-web) を使用する場合、追加のセキュリティ制御が実施されます：
 
 - **分離された仮想マシン**: 各クラウドセッションは分離された Anthropic 管理 VM で実行されます
 - **ネットワークアクセス制御**: ネットワークアクセスはデフォルトで制限され、無効にするか特定のドメインのみを許可するように設定できます
@@ -100,9 +100,9 @@ IDE で Claude Code を実行する場合の詳細については、[VS Code sec
 - **監査ログ**: クラウド環境内のすべての操作はコンプライアンスと監査目的でログされます
 - **自動クリーンアップ**: クラウド環境はセッション完了後に自動的に終了されます
 
-クラウド実行の詳細については、[Claude Code on the web](/ja/claude-code-on-the-web) を参照してください。
+クラウド実行の詳細については、[Claude Code on the web](/docs/ja/claude-code-on-the-web) を参照してください。
 
-[Remote Control](/ja/remote-control) セッションは異なる方法で動作します：Web インターフェースはローカルマシンで実行されている Claude Code プロセスに接続します。すべてのコード実行とファイルアクセスはローカルに留まり、セッショントラフィックは TLS 経由で Anthropic API を通じて流れます。接続中、セッショントランスクリプトはデバイス間で会話を同期するために Anthropic サーバーに保存されます。これは [Connection and security](/ja/remote-control#connection-and-security) で説明されています。クラウド VM またはサンドボックスは関与しません。接続は複数の短命で狭くスコープされた認証情報を使用し、各認証情報は特定の目的に限定され、独立して有効期限が切れ、単一の侵害された認証情報のブラストラディウスを制限します。
+[Remote Control](/docs/ja/remote-control) セッションは異なる方法で動作します：Web インターフェースはローカルマシンで実行されている Claude Code プロセスに接続します。すべてのコード実行とファイルアクセスはローカルに留まり、セッショントラフィックは TLS 経由で Anthropic API を通じて流れます。接続中、セッショントランスクリプトはデバイス間で会話を同期するために Anthropic サーバーに保存されます。これは [Connection and security](/docs/ja/remote-control#connection-and-security) で説明されています。クラウド VM またはサンドボックスは関与しません。接続は複数の短命で狭くスコープされた認証情報を使用し、各認証情報は特定の目的に限定され、独立して有効期限が切れ、単一の侵害された認証情報のブラストラディウスを制限します。
 
 セキュリティベストプラクティス
 
@@ -110,16 +110,16 @@ IDE で Claude Code を実行する場合の詳細については、[VS Code sec
 
 - 承認前にすべての提案された変更を確認してください
 - 機密リポジトリにはプロジェクト固有のパーミッション設定を使用してください
-- 追加の分離のために [dev containers](/ja/devcontainer) の使用を検討してください
+- 追加の分離のために [dev containers](/docs/ja/devcontainer) の使用を検討してください
 - `/permissions` で定期的にパーミッション設定を監査してください
 
 チームセキュリティ
 
-- [managed settings](/ja/settings#settings-files) を使用して組織標準を実施してください
+- [managed settings](/docs/ja/settings#settings-files) を使用して組織標準を実施してください
 - 承認されたパーミッション設定をバージョン管理を通じて共有してください
 - チームメンバーにセキュリティベストプラクティスについてトレーニングを行ってください
-- [OpenTelemetry metrics](/ja/monitoring-usage) を通じて Claude Code の使用を監視してください
-- [`ConfigChange` hooks](/ja/hooks#configchange) でセッション中の設定変更を監査またはブロックしてください
+- [OpenTelemetry metrics](/docs/ja/monitoring-usage) を通じて Claude Code の使用を監視してください
+- [`ConfigChange` hooks](/docs/ja/hooks#configchange) でセッション中の設定変更を監査またはブロックしてください
 
 セキュリティ問題の報告
 
@@ -132,10 +132,10 @@ Claude Code でセキュリティ脆弱性を発見した場合：
 
 関連リソース
 
-- [Security guidance plugin](/ja/security-guidance)：Claude がセッション中に独自のコード変更の脆弱性をレビューして修正します
-- [Sandbox environments](/ja/sandbox-environments)：分離アプローチを比較し、脅威モデルに合わせて選択します
-- [Sandboxing](/ja/sandboxing)：Bash コマンドのファイルシステムとネットワーク分離
-- [Permissions](/ja/permissions)：パーミッションとアクセス制御を設定します
-- [Monitoring usage](/ja/monitoring-usage)：Claude Code アクティビティを追跡および監査します
-- [Development containers](/ja/devcontainer)：セキュアで分離された環境
+- [Security guidance plugin](/docs/ja/security-guidance)：Claude がセッション中に独自のコード変更の脆弱性をレビューして修正します
+- [Sandbox environments](/docs/ja/sandbox-environments)：分離アプローチを比較し、脅威モデルに合わせて選択します
+- [Sandboxing](/docs/ja/sandboxing)：Bash コマンドのファイルシステムとネットワーク分離
+- [Permissions](/docs/ja/permissions)：パーミッションとアクセス制御を設定します
+- [Monitoring usage](/docs/ja/monitoring-usage)：Claude Code アクティビティを追跡および監査します
+- [Development containers](/docs/ja/devcontainer)：セキュアで分離された環境
 - [Anthropic Trust Center](https://trust.anthropic.com)：セキュリティ認証とコンプライアンス

@@ -7,19 +7,19 @@ source: https://code.claude.com/docs/ja/headless.md
 
 > Agent SDK を使用して、CLI、Python、または TypeScript からプログラムで Claude Code を実行します。
 
-[Agent SDK](/ja/agent-sdk/overview) は、Claude Code を支える同じツール、エージェントループ、およびコンテキスト管理を提供します。スクリプトと CI/CD 用の CLI として、または完全なプログラムによる制御のための [Python](/ja/agent-sdk/python) および [TypeScript](/ja/agent-sdk/typescript) パッケージとして利用できます。
+[Agent SDK](/docs/ja/agent-sdk/overview) は、Claude Code を支える同じツール、エージェントループ、およびコンテキスト管理を提供します。スクリプトと CI/CD 用の CLI として、または完全なプログラムによる制御のための [Python](/docs/ja/agent-sdk/python) および [TypeScript](/docs/ja/agent-sdk/typescript) パッケージとして利用できます。
 
-Claude Code を非対話型モードで実行するには、プロンプトと任意の [CLI オプション](/ja/cli-reference) を指定して `-p` を渡します。
+Claude Code を非対話型モードで実行するには、プロンプトと任意の [CLI オプション](/docs/ja/cli-reference) を指定して `-p` を渡します。
 
 ```bash
 claude -p "Find and fix the bug in auth.py" --allowedTools "Read,Edit,Bash"
 ```
 
-このページでは、CLI（`claude -p`）経由で Agent SDK を使用することについて説明しています。構造化された出力、ツール承認コールバック、およびネイティブメッセージオブジェクトを備えた Python および TypeScript SDK パッケージについては、[完全な Agent SDK ドキュメント](/ja/agent-sdk/overview) を参照してください。
+このページでは、CLI（`claude -p`）経由で Agent SDK を使用することについて説明しています。構造化された出力、ツール承認コールバック、およびネイティブメッセージオブジェクトを備えた Python および TypeScript SDK パッケージについては、[完全な Agent SDK ドキュメント](/docs/ja/agent-sdk/overview) を参照してください。
 
 基本的な使用方法
 
-任意の `claude` コマンドに `-p`（または `--print`）フラグを追加して、非対話的に実行します。すべての [CLI オプション](/ja/cli-reference) は `-p` で機能します。以下を含みます。
+任意の `claude` コマンドに `-p`（または `--print`）フラグを追加して、非対話的に実行します。すべての [CLI オプション](/docs/ja/cli-reference) は `-p` で機能します。以下を含みます。
 
 - `--continue` は [会話を続ける](#continue-conversations) 場合
 - `--allowedTools` は [ツールを自動承認する](#auto-approve-tools) 場合
@@ -33,7 +33,7 @@ claude -p "What does the auth module do?"
 
 ベアモードでより高速に開始する
 
-`--bare` を追加して、hooks、skills、plugins、MCP サーバー、auto memory、および CLAUDE.md の自動検出をスキップすることで、起動時間を短縮します。これがない場合、`claude -p` は対話型セッションと同じ [コンテキスト](/ja/how-claude-code-works#the-context-window) を読み込みます。これには、作業ディレクトリまたは `~/.claude` で設定されたすべてのものが含まれます。
+`--bare` を追加して、hooks、skills、plugins、MCP サーバー、auto memory、および CLAUDE.md の自動検出をスキップすることで、起動時間を短縮します。これがない場合、`claude -p` は対話型セッションと同じ [コンテキスト](/docs/ja/how-claude-code-works#the-context-window) を読み込みます。これには、作業ディレクトリまたは `~/.claude` で設定されたすべてのものが含まれます。
 
 ベアモードは、すべてのマシンで同じ結果が必要な CI とスクリプトに役立ちます。チームメイトの `~/.claude` のフック、またはプロジェクトの `.mcp.json` の MCP サーバーは実行されません。ベアモードはそれらを読み込まないためです。明示的に渡すフラグのみが有効になります。
 
@@ -59,9 +59,9 @@ claude --bare -p "Summarize this file" --allowedTools "Read"
 
 終了時のバックグラウンドタスク
 
-Claude が `claude -p` 実行中に [バックグラウンド Bash タスク](/ja/tools-reference#bash-tool-behavior) を開始する場合（例えば、開発サーバーまたはウォッチビルド）、そのシェルは Claude が最終結果を返し、stdin が閉じられてから約 5 秒後に終了します。猶予期間により、結果の直後に終了するタスクでも出力を配信できます。v2.1.163 より前では、終了しないバックグラウンドプロセスは `claude -p` 呼び出しを無期限に開いたままにしていました。
+Claude が `claude -p` 実行中に [バックグラウンド Bash タスク](/docs/ja/tools-reference#bash-tool-behavior) を開始する場合（例えば、開発サーバーまたはウォッチビルド）、そのシェルは Claude が最終結果を返し、stdin が閉じられてから約 5 秒後に終了します。猶予期間により、結果の直後に終了するタスクでも出力を配信できます。v2.1.163 より前では、終了しないバックグラウンドプロセスは `claude -p` 呼び出しを無期限に開いたままにしていました。
 
-バックグラウンド [サブエージェント](/ja/sub-agents) とワークフローは、その結果が最終出力の一部であるため、5 秒の猶予期間から除外されます。そのため `claude -p` はそれらが完了するまで待機します。v2.1.182 から、その待機はデフォルトで 10 分に制限されているため、スタックしたバックグラウンドエージェントがプロセスを無期限に開いたままにすることはできません。[`CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS`](/ja/env-vars) で上限を調整するか、`0` に設定して制限なく待機します。
+バックグラウンド [サブエージェント](/docs/ja/sub-agents) とワークフローは、その結果が最終出力の一部であるため、5 秒の猶予期間から除外されます。そのため `claude -p` はそれらが完了するまで待機します。v2.1.182 から、その待機はデフォルトで 10 分に制限されているため、スタックしたバックグラウンドエージェントがプロセスを無期限に開いたままにすることはできません。[`CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS`](/docs/ja/env-vars) で上限を調整するか、`0` に設定して制限なく待機します。
 
 例
 
@@ -77,7 +77,7 @@ Claude にデータをパイプする
 cat build-error.txt | claude -p 'concisely explain the root cause of this build error' > output.txt
 ```
 
-`--output-format json` を使用すると、応答ペイロードに `total_cost_usd` とモデルごとのコスト内訳が含まれるため、スクリプト呼び出し元は [使用状況ダッシュボード](/ja/costs) を参照せずに呼び出しごとの支出を追跡できます。
+`--output-format json` を使用すると、応答ペイロードに `total_cost_usd` とモデルごとのコスト内訳が含まれるため、スクリプト呼び出し元は [使用状況ダッシュボード](/docs/ja/costs) を参照せずに呼び出しごとの支出を追跡できます。
 
 Claude Code v2.1.128 以降、パイプされた stdin は 10MB に制限されています。制限を超える場合、Claude Code は明確なエラーと 0 以外のステータスで終了します。より大きな入力を処理するには、コンテンツをファイルに書き込み、パイプする代わりにプロンプトでファイルパスを参照してください。
 
@@ -167,10 +167,10 @@ API リクエストが再試行可能なエラーで失敗すると、Claude Cod
 
 `system/init` イベントは、モデル、ツール、MCP サーバー、および読み込まれたプラグインを含むセッションメタデータを報告します。これはスタートアップイベントが先行しない限り、ストリームの最初のイベントです。
 
-- `plugin_install` イベント（[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/ja/env-vars) が設定されている場合）。
-- [`hook_started`、`hook_progress`、および `hook_response` イベント](/ja/agent-sdk/typescript#sdkhookstartedmessage)（設定された [`SessionStart`](/ja/hooks#sessionstart) または [`Setup`](/ja/hooks#setup) フックが実行されている間）。これらはフックが生成するときにストリーミングされます。Claude Code v2.1.169 から v2.1.203 はフック完了後に 1 つのバッチで配信し、それでも `system/init` より前でしたが、v2.1.204 はライブ配信を復元しました。
+- `plugin_install` イベント（[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/docs/ja/env-vars) が設定されている場合）。
+- [`hook_started`、`hook_progress`、および `hook_response` イベント](/docs/ja/agent-sdk/typescript#sdkhookstartedmessage)（設定された [`SessionStart`](/docs/ja/hooks#sessionstart) または [`Setup`](/docs/ja/hooks#setup) フックが実行されている間）。これらはフックが生成するときにストリーミングされます。Claude Code v2.1.169 から v2.1.203 はフック完了後に 1 つのバッチで配信し、それでも `system/init` より前でしたが、v2.1.204 はライブ配信を復元しました。
 
-イベントは、このバージョンの Claude Code が実装するプロトコル動作（例：`interrupt_receipt_v1`）の名前を付けるオプションの `capabilities` 文字列配列も含みます。バージョン文字列を比較する代わりに、機能検出に使用し、認識しない値は無視してください。このフィールドは Claude Code v2.1.205 以降が必要であり、以前のバージョンでは存在しません。機能リストについては、[`SDKSystemMessage`](/ja/agent-sdk/typescript#sdksystemmessage) を参照してください。
+イベントは、このバージョンの Claude Code が実装するプロトコル動作（例：`interrupt_receipt_v1`）の名前を付けるオプションの `capabilities` 文字列配列も含みます。バージョン文字列を比較する代わりに、機能検出に使用し、認識しない値は無視してください。このフィールドは Claude Code v2.1.205 以降が必要であり、以前のバージョンでは存在しません。機能リストについては、[`SDKSystemMessage`](/docs/ja/agent-sdk/typescript#sdksystemmessage) を参照してください。
 
 プラグインフィールドを使用して、プラグインが読み込まれなかった場合に CI を失敗させます。
 
@@ -179,7 +179,7 @@ API リクエストが再試行可能なエラーで失敗すると、Claude Cod
 | `plugins` | 配列 | 正常に読み込まれたプラグイン。各プラグインは `name` と `path` を持ちます |
 | `plugin_errors` | 配列 | プラグイン読み込み時エラー。各エラーは `plugin`、`type`、および `message` を持ちます。満たされていない依存関係バージョンおよび `--plugin-dir` 読み込み失敗（パスの欠落または無効なアーカイブなど）が含まれます。影響を受けたプラグインは降格され、`plugins` から削除されます。エラーがない場合、キーは省略されます |
 
-[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/ja/env-vars) が設定されている場合、Claude Code は最初のターンの前にマーケットプレイスプラグインがインストールされている間、`system/plugin_install` イベントを発行します。これらを使用して、独自の UI にインストール進行状況を表示します。
+[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/docs/ja/env-vars) が設定されている場合、Claude Code は最初のターンの前にマーケットプレイスプラグインがインストールされている間、`system/plugin_install` イベントを発行します。これらを使用して、独自の UI にインストール進行状況を表示します。
 
 | フィールド | 型 | 説明 |
 | - | - | - |
@@ -191,7 +191,7 @@ API リクエストが再試行可能なエラーで失敗すると、Claude Cod
 | `uuid` | 文字列 | 一意のイベント識別子 |
 | `session_id` | 文字列 | イベントが属するセッション |
 
-コールバックとメッセージオブジェクトを使用したプログラムによるストリーミングについては、Agent SDK ドキュメントの [リアルタイムでレスポンスをストリーミングする](/ja/agent-sdk/streaming-output) を参照してください。
+コールバックとメッセージオブジェクトを使用したプログラムによるストリーミングについては、Agent SDK ドキュメントの [リアルタイムでレスポンスをストリーミングする](/docs/ja/agent-sdk/streaming-output) を参照してください。
 
 ツールを自動承認する
 
@@ -202,7 +202,7 @@ claude -p "Run the test suite and fix any failures" \
   --allowedTools "Bash,Read,Edit"
 ```
 
-セッション全体のベースラインを設定する代わりに個別のツールをリストするには、[権限モード](/ja/permission-modes) を渡します。`dontAsk` は `permissions.allow` ルールまたは [読み取り専用コマンドセット](/ja/permissions#read-only-commands) にないものをすべて拒否します。これはロックダウンされた CI 実行に役立ちます。`AskUserQuestion`、組織が [`ask`](/ja/mcp#organization-controls-on-connector-tools) に設定したコネクタツール、および [`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールは、許可ルールが一致する場合でも拒否されます。
+セッション全体のベースラインを設定する代わりに個別のツールをリストするには、[権限モード](/docs/ja/permission-modes) を渡します。`dontAsk` は `permissions.allow` ルールまたは [読み取り専用コマンドセット](/docs/ja/permissions#read-only-commands) にないものをすべて拒否します。これはロックダウンされた CI 実行に役立ちます。`AskUserQuestion`、組織が [`ask`](/docs/ja/mcp#organization-controls-on-connector-tools) に設定したコネクタツール、および [`requiresUserInteraction`](/docs/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールは、許可ルールが一致する場合でも拒否されます。
 
 `acceptEdits` を使用すると、Claude はプロンプトなしでファイルを書き込むことができ、`mkdir`、`touch`、`mv`、`cp` などの一般的なファイルシステムコマンドも自動承認します。その他のシェルコマンドとネットワークリクエストは、`--allowedTools` エントリまたは `permissions.allow` ルールが必要です。そうでない場合、実行が試みられると実行が中止されます。
 
@@ -219,9 +219,9 @@ claude -p "Look at my staged changes and create an appropriate commit" \
   --allowedTools "Bash(git diff *),Bash(git log *),Bash(git status *),Bash(git commit *)"
 ```
 
-`--allowedTools` フラグは [パーミッションルール構文](/ja/settings#permission-rule-syntax) を使用します。末尾の ` *` はプレフィックスマッチングを有効にするため、`Bash(git diff *)` は `git diff` で始まるすべてのコマンドを許可します。スペースは重要です。スペースがない場合、`Bash(git diff*)` は `git diff-index` にも一致します。
+`--allowedTools` フラグは [パーミッションルール構文](/docs/ja/settings#permission-rule-syntax) を使用します。末尾の ` *` はプレフィックスマッチングを有効にするため、`Bash(git diff *)` は `git diff` で始まるすべてのコマンドを許可します。スペースは重要です。スペースがない場合、`Bash(git diff*)` は `git diff-index` にも一致します。
 
-ユーザーが呼び出した [skills](/ja/skills) およびカスタムコマンドは `-p` モードで機能します。プロンプト文字列に `/skill-name` を含めると、Claude Code は実行前にそれを展開します。`/login` などの対話ダイアログを開く組み込みコマンドは、`-p` モードでは利用できません。`/model`、`/effort`、`/fast`、`/color`、および `/rename` は値を引数として受け入れます。例えば `/model sonnet` のように、`/mcp` は引数なしでサーバーステータスのテキスト概要を出力します。これらの形式は Claude Code v2.1.205 以降が必要であり、各コマンドの [利用可能性に関する注記](/ja/commands#all-commands) に従います。`-p` 呼び出しから設定を変更するには、`/config` に `key=value` を渡します。例えば `/config thinking=false` です。
+ユーザーが呼び出した [skills](/docs/ja/skills) およびカスタムコマンドは `-p` モードで機能します。プロンプト文字列に `/skill-name` を含めると、Claude Code は実行前にそれを展開します。`/login` などの対話ダイアログを開く組み込みコマンドは、`-p` モードでは利用できません。`/model`、`/effort`、`/fast`、`/color`、および `/rename` は値を引数として受け入れます。例えば `/model sonnet` のように、`/mcp` は引数なしでサーバーステータスのテキスト概要を出力します。これらの形式は Claude Code v2.1.205 以降が必要であり、各コマンドの [利用可能性に関する注記](/docs/ja/commands#all-commands) に従います。`-p` 呼び出しから設定を変更するには、`/config` に `key=value` を渡します。例えば `/config thinking=false` です。
 
 システムプロンプトをカスタマイズする
 
@@ -233,7 +233,7 @@ gh pr diff "$1" | claude -p \
   --output-format json
 ```
 
-デフォルトプロンプトを完全に置き換える `--system-prompt` を含む詳細なオプションについては、[システムプロンプトフラグ](/ja/cli-reference#system-prompt-flags) を参照してください。
+デフォルトプロンプトを完全に置き換える `--system-prompt` を含む詳細なオプションについては、[システムプロンプトフラグ](/docs/ja/cli-reference#system-prompt-flags) を参照してください。
 
 会話を続ける
 
@@ -255,11 +255,11 @@ session_id=$(claude -p "Start a review" --output-format json | jq -r '.session_i
 claude -p "Continue that review" --resume "$session_id"
 ```
 
-同じディレクトリから両方のコマンドを実行します。セッション ID ルックアップは現在のプロジェクトディレクトリとその git worktrees にスコープされます。完全なスコープルールについては、[セッションを再開する](/ja/sessions#resume-a-session) を参照してください。
+同じディレクトリから両方のコマンドを実行します。セッション ID ルックアップは現在のプロジェクトディレクトリとその git worktrees にスコープされます。完全なスコープルールについては、[セッションを再開する](/docs/ja/sessions#resume-a-session) を参照してください。
 
 次のステップ
 
-- [Agent SDK クイックスタート](/ja/agent-sdk/quickstart)：Python または TypeScript で最初のエージェントを構築します
-- [CLI リファレンス](/ja/cli-reference)：すべての CLI フラグとオプション
-- [GitHub Actions](/ja/github-actions)：GitHub ワークフローで Agent SDK を使用します
-- [GitLab CI/CD](/ja/gitlab-ci-cd)：GitLab パイプラインで Agent SDK を使用します
+- [Agent SDK クイックスタート](/docs/ja/agent-sdk/quickstart)：Python または TypeScript で最初のエージェントを構築します
+- [CLI リファレンス](/docs/ja/cli-reference)：すべての CLI フラグとオプション
+- [GitHub Actions](/docs/ja/github-actions)：GitHub ワークフローで Agent SDK を使用します
+- [GitLab CI/CD](/docs/ja/gitlab-ci-cd)：GitLab パイプラインで Agent SDK を使用します

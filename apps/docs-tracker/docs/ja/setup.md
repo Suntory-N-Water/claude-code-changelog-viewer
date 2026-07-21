@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/setup.md
 
 > Claude Code のシステム要件、プラットフォーム固有のインストール、バージョン管理、およびアンインストール。
 
-このページでは、システム要件、プラットフォーム固有のインストール詳細、更新、およびアンインストールについて説明します。初回セッションのガイド付きウォークスルーについては、[クイックスタート](/ja/quickstart)を参照してください。ターミナルを使用したことがない場合は、[ターミナルガイド](/ja/terminal-guide)を参照してください。
+このページでは、システム要件、プラットフォーム固有のインストール詳細、更新、およびアンインストールについて説明します。初回セッションのガイド付きウォークスルーについては、[クイックスタート](/docs/ja/quickstart)を参照してください。ターミナルを使用したことがない場合は、[ターミナルガイド](/docs/ja/terminal-guide)を参照してください。
 
 システム要件
 
@@ -20,19 +20,19 @@ Claude Code は以下のプラットフォームと構成で実行されます�
   - Debian 10 以上
   - Alpine Linux 3.19 以上
 - **ハードウェア**: 4 GB 以上の RAM、x64 または ARM64 プロセッサ
-- **ネットワーク**: インターネット接続が必要です。[ネットワーク構成](/ja/network-config#network-access-requirements)を参照してください。
+- **ネットワーク**: インターネット接続が必要です。[ネットワーク構成](/docs/ja/network-config#network-access-requirements)を参照してください。
 - **シェル**: Bash、Zsh、PowerShell、または CMD。
 - **場所**: [Anthropic サポート対象国](https://www.anthropic.com/supported-countries)
 
 追加の依存関係
 
-- **ripgrep**: 通常は Claude Code に含まれています。検索が失敗する場合は、[検索トラブルシューティング](/ja/troubleshooting#search-and-discovery-issues)を参照してください。
+- **ripgrep**: 通常は Claude Code に含まれています。検索が失敗する場合は、[検索トラブルシューティング](/docs/ja/troubleshooting#search-and-discovery-issues)を参照してください。
 
 Claude Code をインストール
 
-グラフィカルインターフェースをお好みですか？[Desktop app](/ja/desktop-quickstart)を使用すると、ターミナルなしで Claude Code を使用できます。[macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs)、[Windows](https://claude.com/download?utm_source=claude_code\&utm_medium=docs)、または[Linux](/ja/desktop-linux)でダウンロードしてください。
+グラフィカルインターフェースをお好みですか？[Desktop app](/docs/ja/desktop-quickstart)を使用すると、ターミナルなしで Claude Code を使用できます。[macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs)、[Windows](https://claude.com/download?utm_source=claude_code\&utm_medium=docs)、または[Linux](/docs/ja/desktop-linux)でダウンロードしてください。
 
-ターミナルは初めてですか？[ターミナルガイド](/ja/terminal-guide)で段階的な手順を参照してください。
+ターミナルは初めてですか？[ターミナルガイド](/docs/ja/terminal-guide)で段階的な手順を参照してください。
 
 To install Claude Code, use one of the following methods:
 
@@ -56,7 +56,7 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in
 
 If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\` when you're in PowerShell and `C:\` without the `PS` when you're in CMD.
 
-If the install command fails with `syntax error near unexpected token '<'`, a `403`, or another curl error, see [Troubleshoot installation](/en/troubleshoot-install#find-your-error) to match the error to a fix and for alternative install methods.
+If the install command fails with `syntax error near unexpected token '<'`, a `403`, or another curl error, see [Troubleshoot installation](/docs/en/troubleshoot-install#find-your-error) to match the error to a fix and for alternative install methods.
 
 [Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows.
 
@@ -76,7 +76,7 @@ winget install Anthropic.ClaudeCode
 
 WinGet installations do not auto-update. Run `winget upgrade Anthropic.ClaudeCode` periodically to get the latest features and security fixes.
 
-You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine.
+You can also install with [apt, dnf, or apk](/docs/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine.
 
 インストールが完了したら、作業するプロジェクトでターミナルを開き、Claude Code を起動します。
 
@@ -84,13 +84,13 @@ You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-packag
 claude
 ```
 
-インストール中に問題が発生した場合は、[インストールとログインのトラブルシューティング](/ja/troubleshoot-install)を参照してください。
+インストール中に問題が発生した場合は、[インストールとログインのトラブルシューティング](/docs/ja/troubleshoot-install)を参照してください。
 
 Windows でのセットアップ
 
 Claude Code をネイティブに Windows で実行することも、WSL 内で実行することもできます。プロジェクトの場所と必要な機能に基づいて選択してください。
 
-| オプション | 必須 | [サンドボックス](/ja/sandboxing) | 使用時期 |
+| オプション | 必須 | [サンドボックス](/docs/ja/sandboxing) | 使用時期 |
 | - | - | - | - |
 | ネイティブ Windows | なし；[Git for Windows](https://git-scm.com/downloads/win)はオプション | サポートされていません | Windows ネイティブプロジェクトとツール |
 | WSL 2 | WSL 2 有効 | サポートされています | Linux ツールチェーンまたはサンドボックス化されたコマンド実行 |
@@ -98,14 +98,14 @@ Claude Code をネイティブに Windows で実行することも、WSL 内で�
 
 **オプション 1: ネイティブ Windows**
 
-PowerShell または CMD からインストールコマンドを実行します。管理者として実行する必要はありません。[Git for Windows](https://git-scm.com/downloads/win)をインストールすることはオプションです。これにより Git Bash が提供され、[Bash ツール](/ja/tools-reference#bash-tool-behavior)が有効になります。
+PowerShell または CMD からインストールコマンドを実行します。管理者として実行する必要はありません。[Git for Windows](https://git-scm.com/downloads/win)をインストールすることはオプションです。これにより Git Bash が提供され、[Bash ツール](/docs/ja/tools-reference#bash-tool-behavior)が有効になります。
 
-PowerShell または CMD からインストールするかどうかは、実行するインストールコマンドにのみ影響します。プロンプトは PowerShell では `PS C:\Users\YourName>` と表示され、CMD では `PS` なしで `C:\Users\YourName>` と表示されます。ターミナルが初めての場合は、[ターミナルガイド](/ja/terminal-guide#windows)で各ステップを説明しています。
+PowerShell または CMD からインストールするかどうかは、実行するインストールコマンドにのみ影響します。プロンプトは PowerShell では `PS C:\Users\YourName>` と表示され、CMD では `PS` なしで `C:\Users\YourName>` と表示されます。ターミナルが初めての場合は、[ターミナルガイド](/docs/ja/terminal-guide#windows)で各ステップを説明しています。
 
 インストール後、任意のターミナルから `claude` を起動します。
 
-- **Git for Windows がない場合**、Claude Code は[PowerShell ツール](/ja/tools-reference#powershell-tool)経由でシェルコマンドを実行します。
-- **Git for Windows がある場合**、Claude Code は[Bash ツール](/ja/tools-reference#bash-tool-behavior)に Git Bash を使用します。Claude Code が Git Bash を見つけられない場合は、[settings.json ファイル](/ja/settings)でパスを設定します。
+- **Git for Windows がない場合**、Claude Code は[PowerShell ツール](/docs/ja/tools-reference#powershell-tool)経由でシェルコマンドを実行します。
+- **Git for Windows がある場合**、Claude Code は[Bash ツール](/docs/ja/tools-reference#bash-tool-behavior)に Git Bash を使用します。Claude Code が Git Bash を見つけられない場合は、[settings.json ファイル](/docs/ja/settings)でパスを設定します。
 
   ```json theme={null}
   {
@@ -115,7 +115,7 @@ PowerShell または CMD からインストールするかどうかは、実行�
   }
   ```
 
-Git for Windows がインストールされている場合、PowerShell ツールは Bash と並行して追加オプションとして段階的にロールアウトされています。オプトインするには `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` を設定するか、オプトアウトするには `0` を設定します。セットアップと制限については、[PowerShell ツール](/ja/tools-reference#powershell-tool)を参照してください。
+Git for Windows がインストールされている場合、PowerShell ツールは Bash と並行して追加オプションとして段階的にロールアウトされています。オプトインするには `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` を設定するか、オプトアウトするには `0` を設定します。セットアップと制限については、[PowerShell ツール](/docs/ja/tools-reference#powershell-tool)を参照してください。
 
 **オプション 2: WSL**
 
@@ -131,7 +131,7 @@ Alpine およびその他の musl/uClibc ベースのディストリビューシ
 apk add libgcc libstdc++ ripgrep
 ```
 
-次に、[`settings.json`](/ja/settings#available-settings)ファイルで `USE_BUILTIN_RIPGREP` を `0` に設定します。
+次に、[`settings.json`](/docs/ja/settings#available-settings)ファイルで `USE_BUILTIN_RIPGREP` を `0` に設定します。
 
 ```json
 {
@@ -149,9 +149,9 @@ apk add libgcc libstdc++ ripgrep
 claude --version
 ```
 
-これが `command not found` または別のエラーで失敗する場合は、[インストールとログインのトラブルシューティング](/ja/troubleshoot-install)を参照してください。
+これが `command not found` または別のエラーで失敗する場合は、[インストールとログインのトラブルシューティング](/docs/ja/troubleshoot-install)を参照してください。
 
-インストールと構成をより詳しく確認するには、[`claude doctor`](/ja/troubleshooting#get-more-help)を実行します。
+インストールと構成をより詳しく確認するには、[`claude doctor`](/docs/ja/troubleshooting#get-more-help)を実行します。
 
 ```bash
 claude doctor
@@ -159,9 +159,9 @@ claude doctor
 
 認証
 
-Claude Code には、Pro、Max、Team、Enterprise、または Console アカウントが必要です。無料の Claude.ai プランには Claude Code アクセスは含まれていません。[Amazon Bedrock](/ja/amazon-bedrock)、[Google Cloud の Agent Platform](/ja/google-vertex-ai)、または[Microsoft Foundry](/ja/microsoft-foundry)などのサードパーティ API プロバイダーで Claude Code を使用することもできます。
+Claude Code には、Pro、Max、Team、Enterprise、または Console アカウントが必要です。無料の Claude.ai プランには Claude Code アクセスは含まれていません。[Amazon Bedrock](/docs/ja/amazon-bedrock)、[Google Cloud の Agent Platform](/docs/ja/google-vertex-ai)、または[Microsoft Foundry](/docs/ja/microsoft-foundry)などのサードパーティ API プロバイダーで Claude Code を使用することもできます。
 
-インストール後、`claude` を実行してブラウザーのプロンプトに従ってログインします。すべてのアカウントタイプとチームセットアップオプションについては、[認証](/ja/authentication)を参照してください。
+インストール後、`claude` を実行してブラウザーのプロンプトに従ってログインします。すべてのアカウントタイプとチームセットアップオプションについては、[認証](/docs/ja/authentication)を参照してください。
 
 Claude Code を更新
 
@@ -179,11 +179,11 @@ macOS と Linux では、ネイティブインストーラーは `~/.local/bin/c
 
 Claude Code にランチャーを再度管理させるには、`~/.local/bin/claude` を削除して `claude update` を実行します。
 
-npm グローバルインストールが npm グローバルディレクトリが書き込み可能でないため自動更新できない場合、Claude Code は起動時に 1 回限りの通知を表示し、`claude doctor` は利用可能な修正を一覧表示します。詳細については、[インストール中の権限エラー](/ja/troubleshoot-install#permission-errors-during-installation)を参照してください。
+npm グローバルインストールが npm グローバルディレクトリが書き込み可能でないため自動更新できない場合、Claude Code は起動時に 1 回限りの通知を表示し、`claude doctor` は利用可能な修正を一覧表示します。詳細については、[インストール中の権限エラー](/docs/ja/troubleshoot-install#permission-errors-during-installation)を参照してください。
 
 Homebrew、WinGet、apt、dnf、および apk インストールはデフォルトでは自動更新されません。Homebrew と WinGet でオプトインするには、以下を参照してください。Homebrew を手動でアップグレードするには、`brew upgrade claude-code` または `brew upgrade claude-code@latest` を実行します（インストールした cask によって異なります）。WinGet の場合は、`winget upgrade Anthropic.ClaudeCode` を実行します。Linux パッケージマネージャーの場合は、[Linux パッケージマネージャーでインストール](#install-with-linux-package-managers)のアップグレードコマンドを参照してください。
 
-Claude Code が Homebrew または WinGet で自動的にアップグレードコマンドを実行するようにするには、[`CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE`](/ja/env-vars)を `1` に設定します。Claude Code は新しいバージョンが利用可能な場合、バックグラウンドでアップグレードを実行し、成功時に再起動プロンプトを表示します。アップグレードは Claude Code パッケージのみを対象とし、インストール済みの他のソフトウェアには影響しません。
+Claude Code が Homebrew または WinGet で自動的にアップグレードコマンドを実行するようにするには、[`CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE`](/docs/ja/env-vars)を `1` に設定します。Claude Code は新しいバージョンが利用可能な場合、バックグラウンドでアップグレードを実行し、成功時に再起動プロンプトを表示します。アップグレードは Claude Code パッケージのみを対象とし、インストール済みの他のソフトウェアには影響しません。
 
 WinGet では、Claude Code の実行中にアップグレードが失敗する場合があります。これは Windows が実行可能ファイルをロックするためです。その場合、Claude Code は代わりに手動コマンドを表示します。apt、dnf、および apk は、これらのコマンドが昇格された権限を必要とするため、手動アップグレードが必要です。
 
@@ -198,7 +198,7 @@ Homebrew はアップグレード後、古いバージョンをディスク上�
 - `"latest"`、デフォルト: リリースされるとすぐに新機能を受け取ります
 - `"stable"`: 通常約 1 週間前のバージョンを使用し、大きな回帰を伴うリリースをスキップします
 
-これを `/config` → **自動更新チャネル**経由で構成するか、[settings.json ファイル](/ja/settings)に追加します。
+これを `/config` → **自動更新チャネル**経由で構成するか、[settings.json ファイル](/docs/ja/settings)に追加します。
 
 ```json
 {
@@ -206,7 +206,7 @@ Homebrew はアップグレード後、古いバージョンをディスク上�
 }
 ```
 
-エンタープライズデプロイメントの場合、[管理設定](/ja/permissions#managed-settings)を使用して、組織全体で一貫したリリースチャネルを適用できます。
+エンタープライズデプロイメントの場合、[管理設定](/docs/ja/permissions#managed-settings)を使用して、組織全体で一貫したリリースチャネルを適用できます。
 
 Homebrew インストールは、この設定ではなく cask 名でチャネルを選択します。`claude-code` は安定版を追跡し、`claude-code@latest` は最新版を追跡します。
 
@@ -216,7 +216,7 @@ Homebrew インストールは、この設定ではなく cask 名でチャネ�
 
 `/config` 経由で `"latest"` から `"stable"` に切り替えると、現在のバージョンに留まるか、ダウングレードを許可するかを選択するよう求められます。留まることを選択すると、`minimumVersion` がそのバージョンに設定されます。`"latest"` に戻すと、それがクリアされます。
 
-[settings.json ファイル](/ja/settings)に追加して、下限を明示的にピン留めします。
+[settings.json ファイル](/docs/ja/settings)に追加して、下限を明示的にピン留めします。
 
 ```json
 {
@@ -225,13 +225,13 @@ Homebrew インストールは、この設定ではなく cask 名でチャネ�
 }
 ```
 
-[管理設定](/ja/permissions#managed-settings)では、これはユーザーおよびプロジェクト設定がオーバーライドできない組織全体の最小値を適用します。
+[管理設定](/docs/ja/permissions#managed-settings)では、これはユーザーおよびプロジェクト設定がオーバーライドできない組織全体の最小値を適用します。
 
-`minimumVersion` ピンは更新のみを制約します。Claude Code がバージョン範囲外で起動することを拒否するようにするには、代わりに管理設定の `requiredMinimumVersion` と `requiredMaximumVersion` を使用します。更新は `requiredMaximumVersion` の上限も尊重します。[利用可能な設定](/ja/settings#available-settings)を参照してください。
+`minimumVersion` ピンは更新のみを制約します。Claude Code がバージョン範囲外で起動することを拒否するようにするには、代わりに管理設定の `requiredMinimumVersion` と `requiredMaximumVersion` を使用します。更新は `requiredMaximumVersion` の上限も尊重します。[利用可能な設定](/docs/ja/settings#available-settings)を参照してください。
 
 自動更新を無効にする
 
-[`settings.json`](/ja/settings#available-settings)ファイルの `env` キーで `DISABLE_AUTOUPDATER` を `"1"` に設定します。
+[`settings.json`](/docs/ja/settings#available-settings)ファイルの `env` キーで `DISABLE_AUTOUPDATER` を `"1"` に設定します。
 
 ```json
 {
@@ -241,7 +241,7 @@ Homebrew インストールは、この設定ではなく cask 名でチャネ�
 }
 ```
 
-`DISABLE_AUTOUPDATER` はバックグラウンドチェックのみを停止します。`claude update` と `claude install` は引き続き機能します。手動更新を含むすべての更新パスをブロックするには、代わりに [`DISABLE_UPDATES`](/ja/env-vars)を設定します。独自のチャネルを通じて Claude Code を配布し、ユーザーが提供するバージョンに留まる必要がある場合に使用します。
+`DISABLE_AUTOUPDATER` はバックグラウンドチェックのみを停止します。`claude update` と `claude install` は引き続き機能します。手動更新を含むすべての更新パスをブロックするには、代わりに [`DISABLE_UPDATES`](/docs/ja/env-vars)を設定します。独自のチャネルを通じて Claude Code を配布し、ユーザーが提供するバージョンに留まる必要がある場合に使用します。
 
 手動で更新
 
@@ -390,11 +390,11 @@ npm install -g @anthropic-ai/claude-code
 
 npm パッケージは、スタンドアロンインストーラーと同じネイティブバイナリをインストールします。npm は `@anthropic-ai/claude-code-darwin-arm64` などのプラットフォーム固有のオプション依存関係を通じてバイナリをプルし、postinstall ステップがそれを所定の位置にリンクします。インストールされた `claude` バイナリ自体は Node を呼び出しません。
 
-サポートされている npm インストールプラットフォームは `darwin-arm64`、`darwin-x64`、`linux-x64`、`linux-arm64`、`linux-x64-musl`、`linux-arm64-musl`、`win32-x64`、および `win32-arm64` です。パッケージマネージャーはオプション依存関係を許可する必要があります。インストール後にバイナリが見つからない場合は、[トラブルシューティング](/ja/troubleshoot-install#native-binary-not-found-after-npm-install)を参照してください。
+サポートされている npm インストールプラットフォームは `darwin-arm64`、`darwin-x64`、`linux-x64`、`linux-arm64`、`linux-x64-musl`、`linux-arm64-musl`、`win32-x64`、および `win32-arm64` です。パッケージマネージャーはオプション依存関係を許可する必要があります。インストール後にバイナリが見つからない場合は、[トラブルシューティング](/docs/ja/troubleshoot-install#native-binary-not-found-after-npm-install)を参照してください。
 
 npm インストールをアップグレードするには、`npm install -g @anthropic-ai/claude-code@latest` を実行します。`npm update -g` は避けてください。これは元のインストールからの semver 範囲を尊重し、最新リリースに移動しない可能性があります。
 
-`sudo npm install -g` を使用しないでください。これはアクセス許可の問題とセキュリティリスクにつながる可能性があります。アクセス許可エラーが発生した場合は、[トラブルシューティングアクセス許可エラー](/ja/troubleshoot-install#permission-errors-during-installation)を参照してください。
+`sudo npm install -g` を使用しないでください。これはアクセス許可の問題とセキュリティリスクにつながる可能性があります。アクセス許可エラーが発生した場合は、[トラブルシューティングアクセス許可エラー](/docs/ja/troubleshoot-install#permission-errors-during-installation)を参照してください。
 
 バイナリ整合性とコード署名
 
@@ -467,7 +467,7 @@ shasum -a 256 claude
 
 Claude Code をアンインストール
 
-Claude Code を削除するには、インストール方法の指示に従ってください。アンインストール後も `claude` が実行される場合は、2 番目のインストールまたは古いインストーラーからの残存シェルエイリアスがある可能性があります。[競合するインストールを確認](/ja/troubleshoot-install#check-for-conflicting-installations)を参照して、それを見つけて削除してください。
+Claude Code を削除するには、インストール方法の指示に従ってください。アンインストール後も `claude` が実行される場合は、2 番目のインストールまたは古いインストーラーからの残存シェルエイリアスがある可能性があります。[競合するインストールを確認](/docs/ja/troubleshoot-install#check-for-conflicting-installations)を参照して、それを見つけて削除してください。
 
 ネイティブインストール
 
@@ -537,7 +537,7 @@ npm uninstall -g @anthropic-ai/claude-code
 
 構成ファイルを削除すると、すべての設定、許可されたツール、MCP サーバー構成、およびセッション履歴が削除されます。
 
-VS Code 拡張機能、JetBrains プラグイン、および Desktop アプリも `~/.claude/` に書き込みます。それらのいずれかがまだインストールされている場合、ディレクトリは次回実行時に再作成されます。Claude Code を完全に削除するには、これらのファイルを削除する前に、[VS Code 拡張機能](/ja/vs-code#uninstall-the-extension)、JetBrains プラグイン、および Desktop アプリをアンインストールしてください。
+VS Code 拡張機能、JetBrains プラグイン、および Desktop アプリも `~/.claude/` に書き込みます。それらのいずれかがまだインストールされている場合、ディレクトリは次回実行時に再作成されます。Claude Code を完全に削除するには、これらのファイルを削除する前に、[VS Code 拡張機能](/docs/ja/vs-code#uninstall-the-extension)、JetBrains プラグイン、および Desktop アプリをアンインストールしてください。
 
 Claude Code の設定とキャッシュされたデータを削除するには：
 

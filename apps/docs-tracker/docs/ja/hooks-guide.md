@@ -11,9 +11,9 @@ Hooks は Claude Code のライフサイクルの特定のポイントで実行�
 
 判断が必要な決定については、決定論的なルールではなく、Claude モデルを使用して条件を評価する [プロンプトベースの hooks](#prompt-based-hooks) または [エージェントベースの hooks](#agent-based-hooks) を使用することもできます。
 
-Claude Code を拡張する他の方法については、Claude に追加の指示と実行可能なコマンドを与えるための [skills](/ja/skills)、分離されたコンテキストでタスクを実行するための [subagents](/ja/sub-agents)、プロジェクト全体で共有する拡張機能をパッケージ化するための [plugins](/ja/plugins) を参照してください。
+Claude Code を拡張する他の方法については、Claude に追加の指示と実行可能なコマンドを与えるための [skills](/docs/ja/skills)、分離されたコンテキストでタスクを実行するための [subagents](/docs/ja/sub-agents)、プロジェクト全体で共有する拡張機能をパッケージ化するための [plugins](/docs/ja/plugins) を参照してください。
 
-このガイドでは一般的なユースケースと始め方をカバーしています。完全なイベントスキーマ、JSON 入力/出力形式、非同期 hooks や MCP ツール hooks などの高度な機能については、[Hooks リファレンス](/ja/hooks) を参照してください。
+このガイドでは一般的なユースケースと始め方をカバーしています。完全なイベントスキーマ、JSON 入力/出力形式、非同期 hooks や MCP ツール hooks などの高度な機能については、[Hooks リファレンス](/docs/ja/hooks) を参照してください。
 
 最初の hook をセットアップする
 
@@ -70,11 +70,11 @@ CLI で説明することで、Claude に hook を書いてもらうこともで
 
 自動化できるもの
 
-Hooks を使用すると、Claude Code のライフサイクルの主要なポイントでコードを実行できます：編集後にファイルをフォーマットし、実行前にコマンドをブロックし、Claude が入力を必要とするときに通知を送信し、セッション開始時にコンテキストを注入するなど。Hook イベントの完全なリストについては、[Hooks リファレンス](/ja/hooks#hook-lifecycle) を参照してください。
+Hooks を使用すると、Claude Code のライフサイクルの主要なポイントでコードを実行できます：編集後にファイルをフォーマットし、実行前にコマンドをブロックし、Claude が入力を必要とするときに通知を送信し、セッション開始時にコンテキストを注入するなど。Hook イベントの完全なリストについては、[Hooks リファレンス](/docs/ja/hooks#hook-lifecycle) を参照してください。
 
 各例には、[設定ファイル](#configure-hook-location) に追加する準備ができた設定ブロックが含まれています。
 
-本番環境での hooks の例として、別のモデルレビューを実行し、その結果をセッションにフィードバックする場合は、[`security-guidance` プラグインが Claude Code と統合する方法](/ja/security-guidance#how-the-plugin-integrates-with-claude-code) を参照してください。
+本番環境での hooks の例として、別のモデルレビューを実行し、その結果をセッションにフィードバックする場合は、[`security-guidance` プラグインが Claude Code と統合する方法](/docs/ja/security-guidance#how-the-plugin-integrates-with-claude-code) を参照してください。
 
 Claude が入力を必要とするときに通知を受け取る
 
@@ -154,12 +154,12 @@ osascript -e 'display notification "test"'
 | `elicitation_dialog` | MCP サーバーが引き出しフォームを開くとき |
 | `elicitation_complete` | MCP 引き出しフォームが送信または却下されたとき |
 | `elicitation_response` | MCP 引き出し応答がサーバーに送り返されたとき |
-| `agent_needs_input` | バックグラウンドセッションがあなたの入力を待つのを開始します。[agent view](/ja/agent-view) が開いている間のみ発火します |
-| `agent_completed` | バックグラウンドセッションが完了または失敗します。[agent view](/ja/agent-view) が開いている間のみ発火します |
+| `agent_needs_input` | バックグラウンドセッションがあなたの入力を待つのを開始します。[agent view](/docs/ja/agent-view) が開いている間のみ発火します |
+| `agent_completed` | バックグラウンドセッションが完了または失敗します。[agent view](/docs/ja/agent-view) が開いている間のみ発火します |
 
 `agent_needs_input` および `agent_completed` マッチャーには Claude Code v2.1.198 以降が必要です。
 
-`/hooks` と入力して `Notification` を選択し、hook が登録されていることを確認します。完全なイベントスキーマについては、[Notification リファレンス](/ja/hooks#notification) を参照してください。
+`/hooks` と入力して `Notification` を選択し、hook が登録されていることを確認します。完全なイベントスキーマについては、[Notification リファレンス](/docs/ja/hooks#notification) を参照してください。
 
 編集後にコードを自動フォーマットする
 
@@ -266,7 +266,7 @@ Claude のコンテキストウィンドウがいっぱいになると、圧縮�
 }
 ```
 
-`echo` を `git log --oneline -5` などの動的出力を生成するコマンドに置き換えて、最近のコミットを表示できます。すべてのセッション開始時にコンテキストを注入する場合は、代わりに [CLAUDE.md](/ja/memory) を使用することを検討してください。環境変数については、リファレンスの [`CLAUDE_ENV_FILE`](/ja/hooks#persist-environment-variables) を参照してください。
+`echo` を `git log --oneline -5` などの動的出力を生成するコマンドに置き換えて、最近のコミットを表示できます。すべてのセッション開始時にコンテキストを注入する場合は、代わりに [CLAUDE.md](/docs/ja/memory) を使用することを検討してください。環境変数については、リファレンスの [`CLAUDE_ENV_FILE`](/docs/ja/hooks#persist-environment-variables) を参照してください。
 
 設定変更を監査する
 
@@ -292,7 +292,7 @@ Claude のコンテキストウィンドウがいっぱいになると、圧縮�
 }
 ```
 
-マッチャーは設定タイプでフィルタリングします：`user_settings`、`project_settings`、`local_settings`、`policy_settings`、または `skills`。変更が有効になるのをブロックするには、終了コード 2 で終了するか、`{"decision": "block"}` を返します。完全な入力スキーマについては、[ConfigChange リファレンス](/ja/hooks#configchange) を参照してください。
+マッチャーは設定タイプでフィルタリングします：`user_settings`、`project_settings`、`local_settings`、`policy_settings`、または `skills`。変更が有効になるのをブロックするには、終了コード 2 で終了するか、`{"decision": "block"}` を返します。完全な入力スキーマについては、[ConfigChange リファレンス](/docs/ja/hooks#configchange) を参照してください。
 
 ディレクトリまたはファイルが変更されたときに環境をリロードする
 
@@ -329,7 +329,7 @@ Claude のコンテキストウィンドウがいっぱいになると、圧縮�
 
 `direnv allow` をすべてのディレクトリで 1 回実行して、direnv が `.envrc` をロードすることが許可されるようにします。direnv の代わりに devbox または nix を使用する場合、同じパターンは `direnv export bash` の代わりに `devbox shellenv` または `devbox global shellenv` で機能します。
 
-すべてのディレクトリ変更ではなく、特定のファイルに反応するには、`FileChanged` を `matcher` で使用して、監視するファイル名をリストします（パイプで区切られています）。ウォッチリストを構築するために、この値は正規表現として評価されるのではなく、リテラルファイル名に分割されます。[FileChanged](/ja/hooks#filechanged) を参照して、同じ値がファイルが変更されたときにどの hook グループが実行されるかをフィルタリングする方法を確認してください。この例は現在のディレクトリの `.envrc` と `.env` を監視します：
+すべてのディレクトリ変更ではなく、特定のファイルに反応するには、`FileChanged` を `matcher` で使用して、監視するファイル名をリストします（パイプで区切られています）。ウォッチリストを構築するために、この値は正規表現として評価されるのではなく、リテラルファイル名に分割されます。[FileChanged](/docs/ja/hooks#filechanged) を参照して、同じ値がファイルが変更されたときにどの hook グループが実行されるかをフィルタリングする方法を確認してください。この例は現在のディレクトリの `.envrc` と `.env` を監視します：
 
 ```json
 {
@@ -349,7 +349,7 @@ Claude のコンテキストウィンドウがいっぱいになると、圧縮�
 }
 ```
 
-入力スキーマ、`watchPaths` 出力、および `CLAUDE_ENV_FILE` の詳細については、[CwdChanged](/ja/hooks#cwdchanged) および [FileChanged](/ja/hooks#filechanged) リファレンスエントリを参照してください。
+入力スキーマ、`watchPaths` 出力、および `CLAUDE_ENV_FILE` の詳細については、[CwdChanged](/docs/ja/hooks#cwdchanged) および [FileChanged](/docs/ja/hooks#filechanged) リファレンスエントリを参照してください。
 
 特定の許可プロンプトを自動承認する
 
@@ -381,7 +381,7 @@ Hook が承認すると、Claude Code は Plan Mode を終了し、Plan Mode に
 
 特定の許可モードを設定する代わりに、hook の出力に `setMode` エントリを含む `updatedPermissions` 配列を含めることができます。`mode` 値は `default`、`acceptEdits`、または `bypassPermissions` などの任意の許可モードであり、`destination: "session"` は現在のセッションのみに適用します。
 
-`bypassPermissions` は、セッションが既にバイパスモードで起動された場合にのみ適用されます：`--dangerously-skip-permissions`、`--permission-mode bypassPermissions`、`--allow-dangerously-skip-permissions`、または設定の `permissions.defaultMode: "bypassPermissions"`、および [`permissions.disableBypassPermissionsMode`](/ja/permissions#managed-settings) で無効化されていない場合。`defaultMode` として永続化されることはありません。
+`bypassPermissions` は、セッションが既にバイパスモードで起動された場合にのみ適用されます：`--dangerously-skip-permissions`、`--permission-mode bypassPermissions`、`--allow-dangerously-skip-permissions`、または設定の `permissions.defaultMode: "bypassPermissions"`、および [`permissions.disableBypassPermissionsMode`](/docs/ja/permissions#managed-settings) で無効化されていない場合。`defaultMode` として永続化されることはありません。
 
 セッションを `acceptEdits` に切り替えるには、hook は stdout に次の JSON を書き込みます：
 
@@ -399,7 +399,7 @@ Hook が承認すると、Claude Code は Plan Mode を終了し、Plan Mode に
 }
 ```
 
-マッチャーをできるだけ狭く保ちます。`.*` でマッチングするか、マッチャーを空のままにすると、ファイル書き込みやシェルコマンドを含むすべての許可プロンプトが自動承認されます。決定フィールドの完全なセットについては、[PermissionRequest リファレンス](/ja/hooks#permissionrequest-decision-control) を参照してください。
+マッチャーをできるだけ狭く保ちます。`.*` でマッチングするか、マッチャーを空のままにすると、ファイル書き込みやシェルコマンドを含むすべての許可プロンプトが自動承認されます。決定フィールドの完全なセットについては、[PermissionRequest リファレンス](/docs/ja/hooks#permissionrequest-decision-control) を参照してください。
 
 hooks の仕組み
 
@@ -425,13 +425,13 @@ Hook イベントは Claude Code のライフサイクルの特定のポイン�
 | `TaskCompleted` | When a task is being marked as completed |
 | `Stop` | When Claude finishes responding |
 | `StopFailure` | When the turn ends due to an API error. Output and exit code are ignored |
-| `TeammateIdle` | When an [agent team](/en/agent-teams) teammate is about to go idle |
+| `TeammateIdle` | When an [agent team](/docs/en/agent-teams) teammate is about to go idle |
 | `InstructionsLoaded` | When a CLAUDE.md or `.claude/rules/*.md` file is loaded into context. Fires at session start and when files are lazily loaded during a session |
 | `ConfigChange` | When a configuration file changes during a session |
 | `CwdChanged` | When the working directory changes, for example when Claude executes a `cd` command. Useful for reactive environment management with tools like direnv |
 | `FileChanged` | When a watched file changes on disk. The `matcher` field specifies which filenames to watch |
-| `WorktreeCreate` | When a worktree is being created via `--worktree` or `isolation: "worktree"`. Replaces default git behavior |
-| `WorktreeRemove` | When a worktree is being removed, either at session exit or when a subagent finishes |
+| `WorktreeCreate` | When a worktree is being created via `--worktree`, `isolation: "worktree"`, or for a background session. Replaces default git behavior |
+| `WorktreeRemove` | When a worktree is being removed at session exit, when a subagent finishes, or when you delete a background session |
 | `PreCompact` | Before context compaction |
 | `PostCompact` | After context compaction completes |
 | `Elicitation` | When an MCP server requests user input during a tool call |
@@ -441,7 +441,7 @@ Hook イベントは Claude Code のライフサイクルの特定のポイン�
 各 hook には、それがどのように実行されるかを決定する `type` があります。ほとんどの hooks は `"type": "command"` を使用し、シェルコマンドを実行します。他の 4 つのタイプが利用可能です：
 
 - `"type": "http"`：イベントデータを URL に POST します。[HTTP hooks](#http-hooks) を参照してください。
-- `"type": "mcp_tool"`：既に接続されている MCP サーバー上のツールを呼び出します。[MCP tool hooks](/ja/hooks#mcp-tool-hook-fields) を参照してください。
+- `"type": "mcp_tool"`：既に接続されている MCP サーバー上のツールを呼び出します。[MCP tool hooks](/docs/ja/hooks#mcp-tool-hook-fields) を参照してください。
 - `"type": "prompt"`：シングルターン LLM 評価。[プロンプトベースの hooks](#prompt-based-hooks) を参照してください。
 - `"type": "agent"`：ツールアクセス付きマルチターン検証。エージェント hooks は実験的であり、変更される可能性があります。[エージェントベースの hooks](#agent-based-hooks) を参照してください。
 
@@ -497,7 +497,7 @@ Hook 入力
 }
 ```
 
-スクリプトはその JSON を解析し、これらのフィールドのいずれかに基づいて動作できます。`UserPromptSubmit` hooks は代わりに `prompt` テキストを取得し、`SessionStart` hooks は `source`（startup、resume、clear、compact）を取得するなど。リファレンスの [共通入力フィールド](/ja/hooks#common-input-fields) で共有フィールドを参照し、各イベントのセクションでイベント固有のスキーマを参照してください。
+スクリプトはその JSON を解析し、これらのフィールドのいずれかに基づいて動作できます。`UserPromptSubmit` hooks は代わりに `prompt` テキストを取得し、`SessionStart` hooks は `source`（startup、resume、clear、compact）を取得するなど。リファレンスの [共通入力フィールド](/docs/ja/hooks#common-input-fields) で共有フィールドを参照し、各イベントのセクションでイベント固有のスキーマを参照してください。
 
 Hook 出力
 
@@ -518,9 +518,9 @@ exit 0  # exit 0 = 決定なし。通常の許可フローが適用されます
 
 終了コードは次に何が起こるかを決定します：
 
-- **終了 0**：hook は異議を報告せず、アクションは通常どおり進行します。`PreToolUse` hook の場合、これはツール呼び出しを承認しません：通常の [許可フロー](/ja/permissions) が引き続き適用されます。`UserPromptSubmit`、`UserPromptExpansion`、および `SessionStart` hooks の場合、stdout に書き込むすべてのものが Claude のコンテキストに追加されます。
-- **終了 2**：アクションがブロックされます。stderr に理由を書き込み、Claude はそれをフィードバックとして受け取るため、調整できます。一部のイベントはブロックできません：`SessionStart`、`Setup`、`Notification` などの場合、終了 2 は stderr をユーザーに表示し、実行は続行されます。[イベントごとの終了コード 2 の動作](/ja/hooks#exit-code-2-behavior-per-event) で完全なリストを参照してください。
-- **その他の終了コード**：アクションが続行されます。トランスクリプトは `<hook name> hook error` 通知を表示し、その後 stderr の最初の行が続きます。完全な stderr は [デバッグログ](/ja/hooks#debug-hooks) に記録されます。
+- **終了 0**：hook は異議を報告せず、アクションは通常どおり進行します。`PreToolUse` hook の場合、これはツール呼び出しを承認しません：通常の [許可フロー](/docs/ja/permissions) が引き続き適用されます。`UserPromptSubmit`、`UserPromptExpansion`、および `SessionStart` hooks の場合、stdout に書き込むすべてのものが Claude のコンテキストに追加されます。
+- **終了 2**：アクションがブロックされます。stderr に理由を書き込み、Claude はそれをフィードバックとして受け取るため、調整できます。一部のイベントはブロックできません：`SessionStart`、`Setup`、`Notification` などの場合、終了 2 は stderr をユーザーに表示し、実行は続行されます。[イベントごとの終了コード 2 の動作](/docs/ja/hooks#exit-code-2-behavior-per-event) で完全なリストを参照してください。
+- **その他の終了コード**：アクションが続行されます。トランスクリプトは `<hook name> hook error` 通知を表示し、その後 stderr の最初の行が続きます。完全な stderr は [デバッグログ](/docs/ja/hooks#debug-hooks) に記録されます。
 
 構造化 JSON 出力
 
@@ -542,15 +542,15 @@ exit 0  # exit 0 = 決定なし。通常の許可フローが適用されます
 
 `"deny"` を使用すると、Claude Code はツール呼び出しをキャンセルし、`permissionDecisionReason` を Claude にフィードバックとして返します。これらの `permissionDecision` 値は `PreToolUse` に固有です：
 
-- `"allow"`：インタラクティブな許可プロンプトをスキップします。Deny および ask ルール（エンタープライズ管理 deny リストを含む）は引き続き適用されます。また、[組織が `ask` に設定した](/ja/mcp#organization-controls-on-connector-tools) コネクタツールのプロンプトと、[`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールも適用されます。
+- `"allow"`：インタラクティブな許可プロンプトをスキップします。Deny および ask ルール（エンタープライズ管理 deny リストを含む）は引き続き適用されます。また、[組織が `ask` に設定した](/docs/ja/mcp#organization-controls-on-connector-tools) コネクタツールのプロンプトと、[`requiresUserInteraction`](/docs/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールも適用されます。
 - `"deny"`：ツール呼び出しをキャンセルし、理由を Claude に送信します
 - `"ask"`：通常どおりユーザーに許可プロンプトを表示します
 
-4 番目の値 `"defer"` は、`-p` フラグ付きの [非インタラクティブモード](/ja/headless) で利用可能です。プロセスを終了し、ツール呼び出しを保持して、Agent SDK ラッパーが入力を収集して再開できるようにします。リファレンスの [ツール呼び出しを後で延期する](/ja/hooks#defer-a-tool-call-for-later) を参照してください。
+4 番目の値 `"defer"` は、`-p` フラグ付きの [非インタラクティブモード](/docs/ja/headless) で利用可能です。プロセスを終了し、ツール呼び出しを保持して、Agent SDK ラッパーが入力を収集して再開できるようにします。リファレンスの [ツール呼び出しを後で延期する](/docs/ja/hooks#defer-a-tool-call-for-later) を参照してください。
 
-`"allow"` を返すとインタラクティブプロンプトをスキップしますが、[許可ルール](/ja/permissions#manage-permissions) をオーバーライドしません。Deny ルールがツール呼び出しにマッチする場合、hook が `"allow"` を返しても呼び出しはブロックされます。Ask ルールがマッチする場合、ユーザーはまだプロンプトが表示されます。また、[組織が `ask` に設定した](/ja/mcp#organization-controls-on-connector-tools) コネクタツールと、[`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールもプロンプトが表示されます。これは、[管理設定](/ja/settings#settings-files) を含むすべての設定スコープからの deny ルールが、hook 承認よりも常に優先されることを意味します。
+`"allow"` を返すとインタラクティブプロンプトをスキップしますが、[許可ルール](/docs/ja/permissions#manage-permissions) をオーバーライドしません。Deny ルールがツール呼び出しにマッチする場合、hook が `"allow"` を返しても呼び出しはブロックされます。Ask ルールがマッチする場合、ユーザーはまだプロンプトが表示されます。また、[組織が `ask` に設定した](/docs/ja/mcp#organization-controls-on-connector-tools) コネクタツールと、[`requiresUserInteraction`](/docs/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールもプロンプトが表示されます。これは、[管理設定](/docs/ja/settings#settings-files) を含むすべての設定スコープからの deny ルールが、hook 承認よりも常に優先されることを意味します。
 
-他のイベントは異なる決定パターンを使用します。たとえば、`PostToolUse` および `Stop` hooks はトップレベルの `decision: "block"` フィールドを使用し、`PermissionRequest` は `hookSpecificOutput.decision.behavior` を使用します。リファレンスの [サマリーテーブル](/ja/hooks#decision-control) でイベント別の完全な内訳を参照してください。
+他のイベントは異なる決定パターンを使用します。たとえば、`PostToolUse` および `Stop` hooks はトップレベルの `decision: "block"` フィールドを使用し、`PermissionRequest` は `hookSpecificOutput.decision.behavior` を使用します。リファレンスの [サマリーテーブル](/docs/ja/hooks#decision-control) でイベント別の完全な内訳を参照してください。
 
 `UserPromptSubmit` hooks の場合、代わりに `hookSpecificOutput.additionalContext` を使用して Claude のコンテキストにテキストを注入します。`additionalContext` を `hookSpecificOutput` の内側にネストします。JSON の最上位レベルに配置すると、Claude Code はそれを無視します。たとえば、この出力はすべてのプロンプトに現在のブランチ状態を追加します：
 
@@ -563,7 +563,7 @@ exit 0  # exit 0 = 決定なし。通常の許可フローが適用されます
 }
 ```
 
-完全な出力形状（プロンプトのブロックとセッションタイトルの設定を含む）については、[UserPromptSubmit 決定制御](/ja/hooks#userpromptsubmit-decision-control) を参照してください。
+完全な出力形状（プロンプトのブロックとセッションタイトルの設定を含む）については、[UserPromptSubmit 決定制御](/docs/ja/hooks#userpromptsubmit-decision-control) を参照してください。
 
 Hooks with `type: "prompt"` handle output differently: see [Prompt-based hooks](#prompt-based-hooks).
 
@@ -586,9 +586,9 @@ Hooks with `type: "prompt"` handle output differently: see [Prompt-based hooks](
 }
 ```
 
-`"Edit|Write"` マッチャーは `Edit` または `Write` ツール呼び出しでのみ発火し、`Bash`、`Read`、または他のツールでは発火しません。Claude Code v2.1.191 以降では、カンマもまた同じ方法で代替を区切るため、`"Edit, Write"` は同等です。[マッチャーパターン](/ja/hooks#matcher-patterns) を参照して、プレーン名と正規表現がどのように評価されるかを確認してください。
+`"Edit|Write"` マッチャーは `Edit` または `Write` ツール呼び出しでのみ発火し、`Bash`、`Read`、または他のツールでは発火しません。Claude Code v2.1.191 以降では、カンマもまた同じ方法で代替を区切るため、`"Edit, Write"` は同等です。[マッチャーパターン](/docs/ja/hooks#matcher-patterns) を参照して、プレーン名と正規表現がどのように評価されるかを確認してください。
 
-Claude はまた、`Bash` ツールを通じてシェルコマンドを実行することでファイルを作成または変更できます。コンプライアンススキャンまたは監査ログなど、hook がすべてのファイル変更を確認する必要がある場合は、ターンごとに 1 回作業ツリーをスキャンする [`Stop`](/ja/hooks#stop) hook を追加してください。呼び出しごとのカバレッジの場合は、`Bash` もマッチさせ、スクリプトで `git status --porcelain` を使用して変更されたファイルと追跡されていないファイルをリストアップしてください。
+Claude はまた、`Bash` ツールを通じてシェルコマンドを実行することでファイルを作成または変更できます。コンプライアンススキャンまたは監査ログなど、hook がすべてのファイル変更を確認する必要がある場合は、ターンごとに 1 回作業ツリーをスキャンする [`Stop`](/docs/ja/hooks#stop) hook を追加してください。呼び出しごとのカバレッジの場合は、`Bash` もマッチさせ、スクリプトで `git status --porcelain` を使用して変更されたファイルと追跡されていないファイルをリストアップしてください。
 
 各イベントタイプは特定のフィールドでマッチします：
 
@@ -607,7 +607,7 @@ Claude はまた、`Bash` ツールを通じてシェルコマンドを実行す
 | `InstructionsLoaded` | ロード理由 | `session_start`、`nested_traversal`、`path_glob_match`、`include`、`compact` |
 | `Elicitation` | MCP サーバー名 | 設定した MCP サーバー名 |
 | `ElicitationResult` | MCP サーバー名 | `Elicitation` と同じ値 |
-| `FileChanged` | リテラルファイル名を監視（[FileChanged](/ja/hooks#filechanged) を参照） | `.envrc\|.env` |
+| `FileChanged` | リテラルファイル名を監視（[FileChanged](/docs/ja/hooks#filechanged) を参照） | `.envrc\|.env` |
 | `UserPromptExpansion` | コマンド名 | スキルまたはコマンド名 |
 | `UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged`、`MessageDisplay` | マッチャーサポートなし | すべての発生で常に発火 |
 
@@ -633,9 +633,9 @@ Claude はまた、`Bash` ツールを通じてシェルコマンドを実行す
 }
 ```
 
-MCP ツールは組み込みツールとは異なる命名規則を使用します：`mcp__<server>__<tool>`。ここで `<server>` は MCP サーバー名で、`<tool>` はそれが提供するツールです。たとえば、`mcp__github__search_repositories` または `mcp__filesystem__read_file`。[プラグインバンドルサーバー](/ja/mcp#plugin-provided-mcp-servers) からのツールは、`mcp__plugin_my-plugin_db__query` などのスコープ付きサーバーセグメントを使用します。特定のサーバーからすべてのツールをターゲットするために正規表現マッチャーを使用するか、`mcp__.*__write.*` のようなパターンでサーバー全体でマッチします。リファレンスの [MCP ツールをマッチさせる](/ja/hooks#match-mcp-tools) を参照して、完全な例のリストを確認してください。
+MCP ツールは組み込みツールとは異なる命名規則を使用します：`mcp__<server>__<tool>`。ここで `<server>` は MCP サーバー名で、`<tool>` はそれが提供するツールです。たとえば、`mcp__github__search_repositories` または `mcp__filesystem__read_file`。[プラグインバンドルサーバー](/docs/ja/mcp#plugin-provided-mcp-servers) からのツールは、`mcp__plugin_my-plugin_db__query` などのスコープ付きサーバーセグメントを使用します。特定のサーバーからすべてのツールをターゲットするために正規表現マッチャーを使用するか、`mcp__.*__write.*` のようなパターンでサーバー全体でマッチします。リファレンスの [MCP ツールをマッチさせる](/docs/ja/hooks#match-mcp-tools) を参照して、完全な例のリストを確認してください。
 
-以下のコマンドは hook の JSON 入力からツール名を `jq` で抽出し、stderr に書き込みます。stderr に書き込むことで stdout をクリーンに保ち、メッセージを [デバッグログ](/ja/hooks#debug-hooks) に送信します：
+以下のコマンドは hook の JSON 入力からツール名を `jq` で抽出し、stderr に書き込みます。stderr に書き込むことで stdout をクリーンに保ち、メッセージを [デバッグログ](/docs/ja/hooks#debug-hooks) に送信します：
 
 ```json theme={null}
 {
@@ -675,11 +675,11 @@ MCP ツールは組み込みツールとは異なる命名規則を使用しま�
 }
 ```
 
-完全なマッチャー構文については、[Hooks リファレンス](/ja/hooks#configuration) を参照してください。
+完全なマッチャー構文については、[Hooks リファレンス](/docs/ja/hooks#configuration) を参照してください。
 
 `if` フィールドでツール名と引数でフィルタリングする
 
-`if` フィールドは [許可ルール構文](/ja/permissions) を使用して、ツール名と引数の両方で hooks をフィルタリングするため、hook プロセスはツール呼び出しがマッチするときにのみ生成されます。これは `matcher` を超えており、ツール名のみでグループレベルでフィルタリングします。
+`if` フィールドは [許可ルール構文](/docs/ja/permissions) を使用して、ツール名と引数の両方で hooks をフィルタリングするため、hook プロセスはツール呼び出しがマッチするときにのみ生成されます。これは `matcher` を超えており、ツール名のみでグループレベルでフィルタリングします。
 
 たとえば、すべての Bash コマンドではなく、Claude が `git` コマンドを使用するときにのみ hook を実行するには：
 
@@ -712,7 +712,7 @@ Hook コマンドが実行されるかどうかは、`if` パターンの形状�
 | `Bash(git *)` | `echo $(date)` | いいえ | サブコマンドが `git *` にマッチしません |
 | `Bash(git push *)` | `echo $(date)` | はい | コマンド名以上を指定するパターンは、`$()`、バッククォート、または `$VAR` で hook を実行します |
 
-フィルターは失敗時にオープンで実行され、Bash コマンドを解析できない場合は hook を実行します。フィルターはベストエフォートであるため、ハード allow または deny を強制するには、hook ではなく [許可システム](/ja/permissions) を使用してください。
+フィルターは失敗時にオープンで実行され、Bash コマンドを解析できない場合は hook を実行します。フィルターはベストエフォートであるため、ハード allow または deny を強制するには、hook ではなく [許可システム](/docs/ja/permissions) を使用してください。
 
 `if` フィールドは許可ルールと同じパターンを受け入れます：`"Bash(git *)"`、`"Edit(*.ts)"` など。複数のツール名をマッチさせるには、それぞれ独自の `if` 値を持つ別のハンドラーを使用するか、パイプ交替がサポートされている `matcher` レベルでマッチします。
 
@@ -728,10 +728,10 @@ Hook を追加する場所がそのスコープを決定します：
 | `.claude/settings.json` | 単一プロジェクト | はい、リポジトリにコミット可能 |
 | `.claude/settings.local.json` | 単一プロジェクト | いいえ、gitignored |
 | 管理ポリシー設定 | 組織全体 | はい、管理者制御 |
-| [Plugin](/ja/plugins) `hooks/hooks.json` | プラグインが有効なとき | はい、プラグインにバンドル |
-| [Skill](/ja/skills) または [agent](/ja/sub-agents) frontmatter | スキルまたはエージェントがアクティブなとき | はい、コンポーネントファイルで定義 |
+| [Plugin](/docs/ja/plugins) `hooks/hooks.json` | プラグインが有効なとき | はい、プラグインにバンドル |
+| [Skill](/docs/ja/skills) または [agent](/docs/ja/sub-agents) frontmatter | スキルまたはエージェントがアクティブなとき | はい、コンポーネントファイルで定義 |
 
-Claude Code で [`/hooks`](/ja/hooks#the-%2Fhooks-menu) を実行して、イベント別にグループ化されたすべての設定済み hooks を参照します。
+Claude Code で [`/hooks`](/docs/ja/hooks#the-%2Fhooks-menu) を実行して、イベント別にグループ化されたすべての設定済み hooks を参照します。
 
 hooks を無効にするには、設定ファイルで `"disableAllHooks": true` を設定します。管理設定で設定された Hooks は、`disableAllHooks` がそこにも設定されていない限り、実行されます。
 
@@ -768,11 +768,11 @@ Claude Code が実行中に設定ファイルを直接編集する場合、フ�
 }
 ```
 
-完全な設定オプションについては、リファレンスの [プロンプトベースの hooks](/ja/hooks#prompt-based-hooks) を参照してください。
+完全な設定オプションについては、リファレンスの [プロンプトベースの hooks](/docs/ja/hooks#prompt-based-hooks) を参照してください。
 
 エージェントベースの hooks
 
-エージェント hooks は実験的です。動作と設定は将来のリリースで変更される可能性があります。本番ワークフローについては、[コマンド hooks](/ja/hooks#command-hook-fields) を優先してください。
+エージェント hooks は実験的です。動作と設定は将来のリリースで変更される可能性があります。本番ワークフローについては、[コマンド hooks](/docs/ja/hooks#command-hook-fields) を優先してください。
 
 検証がファイルの検査またはコマンドの実行を必要とする場合、`type: "agent"` hooks を使用します。プロンプト hooks は単一の LLM 呼び出しを行いますが、エージェント hooks は条件を返す前にファイルを読み取り、コードを検索し、他のツールを使用できる subagent を生成します。
 
@@ -800,7 +800,7 @@ Claude Code が実行中に設定ファイルを直接編集する場合、フ�
 
 Hook 入力データだけで決定を下すのに十分な場合はプロンプト hooks を使用します。コードベースの実際の状態に対して何かを検証する必要がある場合はエージェント hooks を使用します。
 
-完全な設定オプションについては、リファレンスの [エージェントベースの hooks](/ja/hooks#agent-based-hooks) を参照してください。
+完全な設定オプションについては、リファレンスの [エージェントベースの hooks](/docs/ja/hooks#agent-based-hooks) を参照してください。
 
 HTTP hooks
 
@@ -831,11 +831,11 @@ HTTP hooks は、Web サーバー、クラウド関数、または外部サー�
 }
 ```
 
-エンドポイントは、コマンド hooks と同じ [出力形式](/ja/hooks#json-output) を使用して JSON レスポンスボディを返す必要があります。ツール呼び出しをブロックするには、適切な `hookSpecificOutput` フィールドで 2xx レスポンスを返します。HTTP ステータスコードだけではアクションをブロックできません。
+エンドポイントは、コマンド hooks と同じ [出力形式](/docs/ja/hooks#json-output) を使用して JSON レスポンスボディを返す必要があります。ツール呼び出しをブロックするには、適切な `hookSpecificOutput` フィールドで 2xx レスポンスを返します。HTTP ステータスコードだけではアクションをブロックできません。
 
 ヘッダー値は `$VAR_NAME` または `${VAR_NAME}` 構文を使用した環境変数補間をサポートします。`allowedEnvVars` 配列にリストされている変数のみが解決されます。他のすべての `$VAR` 参照は空のままです。
 
-完全な設定オプションとレスポンス処理については、リファレンスの [HTTP hooks](/ja/hooks#http-hook-fields) を参照してください。
+完全な設定オプションとレスポンス処理については、リファレンスの [HTTP hooks](/docs/ja/hooks#http-hook-fields) を参照してください。
 
 制限とトラブルシューティング
 
@@ -849,15 +849,15 @@ hooks を設計する際は、以下の制約を念頭に置いてください�
   - `prompt`：30 秒。
   - `agent`：60 秒。
 - `PostToolUse` hooks はツールが既に実行されているため、アクションを元に戻すことはできません。
-- `PermissionRequest` hooks は [非インタラクティブモード](/ja/headless)（`-p` フラグ）では発火しません。自動化された許可決定には `PreToolUse` hooks を使用します。
-- `Stop` hooks はタスク完了時だけでなく、Claude が応答を終了するたびに発火します。ユーザーの割り込みでは発火しません。API エラーは代わりに [StopFailure](/ja/hooks#stopfailure) を発火させます。
-- 複数の `PreToolUse` hooks が [`updatedInput`](/ja/hooks#pretooluse) を返してツールの引数を書き直す場合、最後に完了したものが勝ちます。Hooks は並列で実行されるため、順序は非決定的です。同じツールの入力を変更する複数の hooks を持つことを避けてください。
+- `PermissionRequest` hooks は [非インタラクティブモード](/docs/ja/headless)（`-p` フラグ）では発火しません。自動化された許可決定には `PreToolUse` hooks を使用します。
+- `Stop` hooks はタスク完了時だけでなく、Claude が応答を終了するたびに発火します。ユーザーの割り込みでは発火しません。API エラーは代わりに [StopFailure](/docs/ja/hooks#stopfailure) を発火させます。
+- 複数の `PreToolUse` hooks が [`updatedInput`](/docs/ja/hooks#pretooluse) を返してツールの引数を書き直す場合、最後に完了したものが勝ちます。Hooks は並列で実行されるため、順序は非決定的です。同じツールの入力を変更する複数の hooks を持つことを避けてください。
 
 Hooks と許可モード
 
 `PreToolUse` hooks は任意の権限モードチェックの前に発火します。`permissionDecision: "deny"` を返す hook は、`bypassPermissions` モードまたは `--dangerously-skip-permissions` でもツールをブロックします。これにより、ユーザーが権限モードを変更してバイパスできないポリシーを適用できます。
 
-逆は真ではありません：`"allow"` を返す hook は、設定からの deny ルールをバイパスしません。また、組織が `ask` に設定した [コネクタツール](/ja/mcp#organization-controls-on-connector-tools)のプロンプトを抑制することもできず、[`requiresUserInteraction`](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールも抑制できません。Hooks は制限を厳しくできますが、許可ルールが許可する範囲を超えて緩和することはできません。
+逆は真ではありません：`"allow"` を返す hook は、設定からの deny ルールをバイパスしません。また、組織が `ask` に設定した [コネクタツール](/docs/ja/mcp#organization-controls-on-connector-tools)のプロンプトを抑制することもできず、[`requiresUserInteraction`](/docs/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールも抑制できません。Hooks は制限を厳しくできますが、許可ルールが許可する範囲を超えて緩和することはできません。
 
 Hook が発火しない
 
@@ -877,7 +877,7 @@ Hook エラーが出力に表示される
   echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' | ./my-hook.sh
   echo $?  # 終了コードを確認
   ```
-- 「command not found」が表示される場合は、絶対パスを使用するか、スクリプトを参照するために `${CLAUDE_PROJECT_DIR}` を使用します。シェルクォーティングを完全に回避するには、`"args": []` を追加して [exec form](/ja/hooks#exec-form-and-shell-form) に切り替えます。これはシェルなしでスクリプトを直接生成します
+- 「command not found」が表示される場合は、絶対パスを使用するか、スクリプトを参照するために `${CLAUDE_PROJECT_DIR}` を使用します。シェルクォーティングを完全に回避するには、`"args": []` を追加して [exec form](/docs/ja/hooks#exec-form-and-shell-form) に切り替えます。これはシェルなしでスクリプトを直接生成します
 - 「jq: command not found」が表示される場合は、`jq` をインストールするか、JSON 解析に Python/Node.js を使用します
 - スクリプトがまったく実行されていない場合は、実行可能にします：`chmod +x ./my-hook.sh`
 
@@ -904,7 +904,7 @@ fi
 # ... hook ロジックの残り
 ```
 
-Hook が収束するために 8 回以上の反復が正当に必要な場合は、[`CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`](/ja/env-vars) で上限を引き上げます。
+Hook が収束するために 8 回以上の反復が正当に必要な場合は、[`CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`](/docs/ja/env-vars) で上限を引き上げます。
 
 JSON 検証に失敗しました
 
@@ -936,6 +936,6 @@ fi
 
 詳細を学ぶ
 
-- [Hooks リファレンス](/ja/hooks)：完全なイベントスキーマ、JSON 出力形式、非同期 hooks、および MCP ツール hooks
-- [セキュリティに関する考慮事項](/ja/hooks#security-considerations)：共有または本番環境に hooks をデプロイする前に確認してください
+- [Hooks リファレンス](/docs/ja/hooks)：完全なイベントスキーマ、JSON 出力形式、非同期 hooks、および MCP ツール hooks
+- [セキュリティに関する考慮事項](/docs/ja/hooks#security-considerations)：共有または本番環境に hooks をデプロイする前に確認してください
 - [Bash コマンドバリデーター例](https://github.com/anthropics/claude-code/blob/main/examples/hooks/bash_command_validator_example.py)：完全なリファレンス実装

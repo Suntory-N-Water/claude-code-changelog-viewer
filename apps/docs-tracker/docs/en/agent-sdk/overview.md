@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/agent-sdk/overview.md
 
 > Build production AI agents with Claude Code as a library
 
-Build AI agents that autonomously read files, run commands, search the web, edit code, and more. The Agent SDK gives you the same tools, agent loop, and context management that power Claude Code, programmable in Python and TypeScript. For other languages, [run the CLI programmatically](/en/headless) with the `-p` flag and `--output-format json`. For the thinking behind agent harness design, see [A harness for every task: dynamic workflows in Claude Code](https://claude.com/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code) on the blog. To run the example below, install the SDK first by following the steps in [Get started](#get-started).
+Build AI agents that autonomously read files, run commands, search the web, edit code, and more. The Agent SDK gives you the same tools, agent loop, and context management that power Claude Code, programmable in Python and TypeScript. For other languages, [run the CLI programmatically](/docs/en/headless) with the `-p` flag and `--output-format json`. For the thinking behind agent harness design, see [A harness for every task: dynamic workflows in Claude Code](https://claude.com/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code) on the blog. To run the example below, install the SDK first by following the steps in [Get started](#get-started).
 
 ```python Python theme={null}
 import asyncio
@@ -103,7 +103,7 @@ The SDK also supports authentication via third-party API providers:
 - **Google Cloud's Agent Platform**: set `CLAUDE_CODE_USE_VERTEX=1` environment variable and configure Google Cloud credentials
 - **Microsoft Foundry**: set `CLAUDE_CODE_USE_FOUNDRY=1` environment variable and configure Azure credentials
 
-See the setup guides for [Amazon Bedrock](/en/amazon-bedrock), [Claude Platform on AWS](/en/claude-platform-on-aws), [Google Cloud's Agent Platform](/en/google-vertex-ai), or [Microsoft Foundry](/en/microsoft-foundry) for details.
+See the setup guides for [Amazon Bedrock](/docs/en/amazon-bedrock), [Claude Platform on AWS](/docs/en/claude-platform-on-aws), [Google Cloud's Agent Platform](/docs/en/google-vertex-ai), or [Microsoft Foundry](/docs/en/microsoft-foundry) for details.
 
 Unless previously approved, Anthropic does not allow third party developers to offer claude.ai login or rate limits for their products, including agents built on the Claude Agent SDK. Please use the API key authentication methods described in this document instead.
 
@@ -155,7 +155,7 @@ python3 agent.py
 
 On Windows, run `python agent.py`.
 
-**Ready to build?** Follow the [Quickstart](/en/agent-sdk/quickstart) to create an agent that finds and fixes bugs in minutes.
+**Ready to build?** Follow the [Quickstart](/docs/en/agent-sdk/quickstart) to create an agent that finds and fixes bugs in minutes.
 
 ## Capabilities
 
@@ -174,9 +174,9 @@ Your agent can read files, run commands, and search codebases out of the box. Ke
 | **Grep** | Search file contents with regex |
 | **WebSearch** | Search the web for current information |
 | **WebFetch** | Fetch and parse web page content |
-| **[AskUserQuestion](/en/agent-sdk/user-input#handle-clarifying-questions)** | Ask the user clarifying questions with multiple choice options |
+| **[AskUserQuestion](/docs/en/agent-sdk/user-input#handle-clarifying-questions)** | Ask the user clarifying questions with multiple choice options |
 
-For the full list, including scheduling and worktree tools, see the [tools reference](/en/tools-reference).
+For the full list, including scheduling and worktree tools, see the [tools reference](/docs/en/tools-reference).
 
 This example creates an agent that searches your codebase for TODO comments:
 
@@ -268,7 +268,7 @@ for await (const message of query({
 
 After the agent finishes, run `cat audit.log` to see the recorded file changes.
 
-[Learn more about hooks →](/en/agent-sdk/hooks)
+[Learn more about hooks →](/docs/en/agent-sdk/hooks)
 
 Spawn specialized agents to handle focused subtasks. Your main agent delegates work, and subagents report back with results.
 
@@ -320,7 +320,7 @@ for await (const message of query({
 
 Messages from within a subagent's context include a `parent_tool_use_id` field, letting you track which messages belong to which subagent execution.
 
-[Learn more about subagents →](/en/agent-sdk/subagents)
+[Learn more about subagents →](/docs/en/agent-sdk/subagents)
 
 Connect to external systems via the Model Context Protocol: databases, browsers, APIs, and [hundreds more](https://github.com/modelcontextprotocol/servers).
 
@@ -362,11 +362,11 @@ for await (const message of query({
 }
 ```
 
-[Learn more about MCP →](/en/agent-sdk/mcp)
+[Learn more about MCP →](/docs/en/agent-sdk/mcp)
 
 Control exactly which tools your agent can use. Allow safe operations, block dangerous ones, or require approval for sensitive actions.
 
-For interactive approval prompts and the `AskUserQuestion` tool, see [Handle approvals and user input](/en/agent-sdk/user-input).
+For interactive approval prompts and the `AskUserQuestion` tool, see [Handle approvals and user input](/docs/en/agent-sdk/user-input).
 
 This example creates a read-only agent that can analyze but not modify code. `allowed_tools` pre-approves `Read`, `Glob`, and `Grep` so they run without prompting. Tools not listed are still available but fall through to the permission mode; to block tools entirely, use `disallowed_tools`.
 
@@ -400,7 +400,7 @@ for await (const message of query({
 }
 ```
 
-[Learn more about permissions →](/en/agent-sdk/permissions)
+[Learn more about permissions →](/docs/en/agent-sdk/permissions)
 
 Maintain context across multiple exchanges. Claude remembers files read, analysis done, and conversation history. Resume sessions later, or fork them to explore different approaches.
 
@@ -470,7 +470,7 @@ for await (const message of query({
 }
 ```
 
-[Learn more about sessions →](/en/agent-sdk/sessions)
+[Learn more about sessions →](/docs/en/agent-sdk/sessions)
 
 ### Claude Code features
 
@@ -478,10 +478,10 @@ The SDK also supports Claude Code's filesystem-based configuration. With default
 
 | Feature | Description | Location |
 | - | - | - |
-| [Skills](/en/agent-sdk/skills) | Specialized capabilities Claude uses automatically or you invoke with `/name` | `.claude/skills/*/SKILL.md` |
-| [Commands](/en/agent-sdk/slash-commands) | Custom commands in the legacy format. Use skills for new custom commands | `.claude/commands/*.md` |
-| [Memory](/en/agent-sdk/modifying-system-prompts) | Project context and instructions | `CLAUDE.md` or `.claude/CLAUDE.md` |
-| [Plugins](/en/agent-sdk/plugins) | Extend with skills, agents, hooks, and MCP servers | Programmatic via `plugins` option |
+| [Skills](/docs/en/agent-sdk/skills) | Specialized capabilities Claude uses automatically or you invoke with `/name` | `.claude/skills/*/SKILL.md` |
+| [Commands](/docs/en/agent-sdk/slash-commands) | Custom commands in the legacy format. Use skills for new custom commands | `.claude/commands/*.md` |
+| [Memory](/docs/en/agent-sdk/modifying-system-prompts) | Project context and instructions | `CLAUDE.md` or `.claude/CLAUDE.md` |
+| [Plugins](/docs/en/agent-sdk/plugins) | Extend with skills, agents, hooks, and MCP servers | Programmatic via `plugins` option |
 
 ## Compare the Agent SDK to other Claude tools
 

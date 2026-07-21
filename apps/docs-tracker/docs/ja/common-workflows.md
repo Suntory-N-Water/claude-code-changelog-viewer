@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/common-workflows.md
 
 > Claude Code を使用してコードベースの探索、バグ修正、リファクタリング、テスト、その他の日常的なタスクを実行するためのステップバイステップガイド。
 
-このページでは、日常的な開発のための短いレシピを集めています。プロンプティングとコンテキスト管理に関する高度なガイダンスについては、[ベストプラクティス](/ja/best-practices)を参照してください。
+このページでは、日常的な開発のための短いレシピを集めています。プロンプティングとコンテキスト管理に関する高度なガイダンスについては、[ベストプラクティス](/docs/ja/best-practices)を参照してください。
 
 このページでは以下をカバーしています：
 
@@ -24,7 +24,7 @@ source: https://code.claude.com/docs/ja/common-workflows.md
 
 新しいコードベースを理解する
 
-モノレポまたは大規模なコードベースで Claude Code を設定する場合は、[モノレポと大規模リポジトリ](/ja/large-codebases)を参照してください。
+モノレポまたは大規模なコードベースで Claude Code を設定する場合は、[モノレポと大規模リポジトリ](/docs/ja/large-codebases)を参照してください。
 
 コードベースの概要を素早く把握する
 
@@ -80,7 +80,7 @@ trace the login process from front-end to database
 
 - 探しているものについて具体的に説明する
 - プロジェクトのドメイン言語を使用する
-- 言語の[コード インテリジェンス プラグイン](/ja/discover-plugins#code-intelligence)をインストールして、Claude に正確な'定義に移動'と'参照を検索'のナビゲーションを提供する
+- 言語の[コード インテリジェンス プラグイン](/docs/ja/discover-plugins#code-intelligence)をインストールして、Claude に正確な'定義に移動'と'参照を検索'のナビゲーションを提供する
 
 ***
 
@@ -178,7 +178,7 @@ create a pr
 enhance the PR description with more context about the security improvements
 ```
 
-`gh pr create` を使用して PR を作成すると、セッションはその PR に自動的にリンクされます。後で `claude --from-pr 123` で再開するか（123 を PR 番号に置き換えます）、[`/resume` ピッカー](/ja/sessions#use-the-session-picker)の検索に PR URL を貼り付けることで再開できます。
+`gh pr create` を使用して PR を作成すると、セッションはその PR に自動的にリンクされます。後で `claude --from-pr 123` で再開するか（123 を PR 番号に置き換えます）、[`/resume` ピッカー](/docs/ja/sessions#use-the-session-picker)の検索に PR URL を貼り付けることで再開できます。
 
 Claude が生成した PR を送信する前にレビューし、Claude に潜在的なリスクや考慮事項を強調するよう依頼してください。
 
@@ -286,7 +286,7 @@ What's the structure of @src/components?
 Show me the data from @github:repos/owner/repo/issues
 ```
 
-これにより、@server:resource 形式を使用して接続された MCP サーバーからデータを取得します。詳細については、[MCP リソース](/ja/mcp#use-mcp-resources)を参照してください。
+これにより、@server:resource 形式を使用して接続された MCP サーバーからデータを取得します。詳細については、[MCP リソース](/docs/ja/mcp#use-mcp-resources)を参照してください。
 
 ヒント：
 
@@ -305,10 +305,10 @@ Claude に長時間実行されるタスクを自動的に定期的に処理さ�
 
 | オプション | 実行場所 | 最適な用途 |
 | :- | :- | :- |
-| [ルーチン](/ja/routines) | Anthropic 管理インフラストラクチャ | コンピュータがオフの場合でも実行する必要があるタスク。[claude.ai/code/routines](https://claude.ai/code/routines)で設定します。API 呼び出しまたは GitHub イベントに加えてスケジュールでトリガーすることもできます。 |
-| [デスクトップスケジュール済みタスク](/ja/desktop-scheduled-tasks) | デスクトップアプリ経由のマシン | ローカルファイル、ツール、またはコミットされていない変更への直接アクセスが必要なタスク。 |
-| [GitHub Actions](/ja/github-actions) | CI パイプライン | オープン PR などのリポジトリイベント、またはワークフロー設定と一緒に存在する必要がある cron スケジュールに関連するタスク。 |
-| [`/loop`](/ja/scheduled-tasks) | 現在の CLI セッション | セッションが開いている間のクイックポーリング。タスクは新しい会話を開始すると停止します。`--resume` と `--continue` は期限切れでないものを復元します。 |
+| [ルーチン](/docs/ja/routines) | Anthropic 管理インフラストラクチャ | コンピュータがオフの場合でも実行する必要があるタスク。[claude.ai/code/routines](https://claude.ai/code/routines)で設定します。API 呼び出しまたは GitHub イベントに加えてスケジュールでトリガーすることもできます。 |
+| [デスクトップスケジュール済みタスク](/docs/ja/desktop-scheduled-tasks) | デスクトップアプリ経由のマシン | ローカルファイル、ツール、またはコミットされていない変更への直接アクセスが必要なタスク。 |
+| [GitHub Actions](/docs/ja/github-actions) | CI パイプライン | オープン PR などのリポジトリイベント、またはワークフロー設定と一緒に存在する必要がある cron スケジュールに関連するタスク。 |
+| [`/loop`](/docs/ja/scheduled-tasks) | 現在の CLI セッション | セッションが開いている間のクイックポーリング。タスクは新しい会話を開始すると停止します。`--resume` と `--continue` は期限切れでないものを復元します。 |
 
 スケジュール済みタスク用のプロンプトを作成するときは、成功がどのように見えるか、および結果をどうするかについて明示的に説明してください。タスクは自律的に実行されるため、質問を明確にすることはできません。例えば：「`needs-review` ラベルが付いたオープン PR をレビューし、問題に関するインラインコメントを残し、`#eng-reviews` Slack チャネルに要約を投稿します。」
 
@@ -362,7 +362,7 @@ Claude はこれらの質問に対してドキュメントベースの回答を�
 claude --continue
 ```
 
-これにより、現在のディレクトリで最新のセッションが再開されます。まだセッションがない場合は、`No conversation found to continue` と出力して終了します。`claude --resume` を使用してリストから選択するか、実行中のセッション内から `/resume` を使用してください。[セッションを管理する](/ja/sessions)を参照して、名前付け、ブランチ、および完全なピッカーリファレンスを確認してください。
+これにより、現在のディレクトリで最新のセッションが再開されます。まだセッションがない場合は、`No conversation found to continue` と出力して終了します。`claude --resume` を使用してリストから選択するか、実行中のセッション内から `/resume` を使用してください。[セッションを管理する](/docs/ja/sessions)を参照して、名前付け、ブランチ、および完全なピッカーリファレンスを確認してください。
 
 worktree を使用して並列セッションを実行する
 
@@ -372,7 +372,7 @@ worktree を使用して並列セッションを実行する
 claude --worktree feature-auth
 ```
 
-別の名前で 2 番目のターミナルで同じコマンドを実行して、分離された並列セッションを開始します。[Worktrees](/ja/worktrees)を参照して、クリーンアップ、`.worktreeinclude`、および非 git VCS サポートを確認してください。1 つの画面から並列セッションを監視するには、[バックグラウンドエージェント](/ja/agent-view)を参照してください。
+別の名前で 2 番目のターミナルで同じコマンドを実行して、分離された並列セッションを開始します。[Worktrees](/docs/ja/worktrees)を参照して、クリーンアップ、`.worktreeinclude`、および非 git VCS サポートを確認してください。1 つの画面から並列セッションを監視するには、[バックグラウンドエージェント](/docs/ja/agent-view)を参照してください。
 
 編集前に計画する
 
@@ -382,7 +382,7 @@ claude --worktree feature-auth
 claude --permission-mode plan
 ```
 
-セッション中に `Shift+Tab` を押して計画モードに切り替えることもできます。[計画モード](/ja/permission-modes#analyze-before-you-edit-with-plan-mode)を参照して、承認フローとテキストエディタで計画を編集することを確認してください。
+セッション中に `Shift+Tab` を押して計画モードに切り替えることもできます。[計画モード](/docs/ja/permission-modes#analyze-before-you-edit-with-plan-mode)を参照して、承認フローとテキストエディタで計画を編集することを確認してください。
 
 研究を subagent に委譲する
 
@@ -392,7 +392,7 @@ claude --permission-mode plan
 use a subagent to investigate how our auth system handles token refresh
 ```
 
-subagent は独自のコンテキストウィンドウでファイルを読み込み、要約を報告します。[Subagents](/ja/sub-agents)を参照して、独自のツールとプロンプトを持つカスタムエージェントを定義することを確認してください。
+subagent は独自のコンテキストウィンドウでファイルを読み込み、要約を報告します。[Subagents](/docs/ja/sub-agents)を参照して、独自のツールとプロンプトを持つカスタムエージェントを定義することを確認してください。
 
 Claude をスクリプトにパイプする
 
@@ -402,7 +402,7 @@ CI、プリコミットフック、またはバッチ処理用に Claude を非�
 git log --oneline -20 | claude -p "summarize these recent commits"
 ```
 
-[非対話モード](/ja/headless)を参照して、出力形式、許可フラグ、およびファンアウトパターンを確認してください。
+[非対話モード](/docs/ja/headless)を参照して、出力形式、許可フラグ、およびファンアウトパターンを確認してください。
 
 次のステップ
 

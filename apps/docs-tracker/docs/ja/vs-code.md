@@ -16,9 +16,9 @@ VS Code 拡張機能は、Claude Code 用のネイティブグラフィカルイ
 インストール前に、以下があることを確認してください。
 
 - VS Code 1.98.0 以上
-- Anthropic アカウント：任意の有料 Claude サブスクリプション（Pro、Max、Team、または Enterprise）または Claude Console アカウントが機能し、API キーは不要です。拡張機能を初めて開くときに、このアカウントで[サインイン](/ja/authentication#log-in-to-claude-code)します。Amazon Bedrock や Google Cloud の Agent Platform などのサードパーティプロバイダーを通じて Claude にアクセスする場合は、セットアップ手順について[サードパーティプロバイダーを使用する](#use-third-party-providers)を参照してください。
+- Anthropic アカウント：任意の有料 Claude サブスクリプション（Pro、Max、Team、または Enterprise）または Claude Console アカウントが機能し、API キーは不要です。拡張機能を初めて開くときに、このアカウントで[サインイン](/docs/ja/authentication#log-in-to-claude-code)します。Amazon Bedrock や Google Cloud の Agent Platform などのサードパーティプロバイダーを通じて Claude にアクセスする場合は、セットアップ手順について[サードパーティプロバイダーを使用する](#use-third-party-providers)を参照してください。
 
-拡張機能には、チャットパネル用の CLI（コマンドラインインターフェース）の独自コピーが含まれています。VS Code の統合ターミナルで `claude` を実行するには、[スタンドアロン CLI インストール](/ja/setup)も必要です。詳細については、[VS Code 拡張機能と Claude Code CLI](#vs-code-extension-vs-claude-code-cli)を参照してください。
+拡張機能には、チャットパネル用の CLI（コマンドラインインターフェース）の独自コピーが含まれています。VS Code の統合ターミナルで `claude` を実行するには、[スタンドアロン CLI インストール](/docs/ja/setup)も必要です。詳細については、[VS Code 拡張機能と Claude Code CLI](#vs-code-extension-vs-claude-code-cli)を参照してください。
 
 拡張機能をインストールする
 
@@ -29,7 +29,7 @@ IDE のリンクをクリックして直接インストールします。
 
 または、VS Code で `Cmd+Shift+X`（Mac）または `Ctrl+Shift+X`（Windows/Linux）を押して拡張機能ビューを開き、「Claude Code」を検索して、**インストール**をクリックします。
 
-拡張機能は Devin Desktop や Kiro などの他の VS Code フォークにもインストールされます。エディタの拡張機能ビューで「Claude Code」を検索するか、[Open VSX レジストリ](https://open-vsx.org/extension/Anthropic/claude-code)からインストールしてください。エディタが拡張機能をインストールできない場合は、[CLI](/ja/quickstart) をインストールして、統合ターミナルで `claude` を実行してください。CLI はどのターミナルでも動作します。
+拡張機能は Devin Desktop や Kiro などの他の VS Code フォークにもインストールされます。エディタの拡張機能ビューで「Claude Code」を検索するか、[Open VSX レジストリ](https://open-vsx.org/extension/Anthropic/claude-code)からインストールしてください。エディタが拡張機能をインストールできない場合は、[CLI](/docs/ja/quickstart) をインストールして、統合ターミナルで `claude` を実行してください。CLI はどのターミナルでも動作します。
 
 インストール後に拡張機能が表示されない場合は、VS Code を再起動するか、コマンドパレットから「Developer: Reload Window」を実行してください。
 
@@ -65,7 +65,7 @@ Claude は自動的に選択したテキストを表示します。`Option+K`（
 
 Claude がファイルを編集したい場合、元のコードと提案された変更の並べて比較を表示し、許可を求めます。編集を受け入れるか、拒否するか、Claude に別の方法を指示できます。受け入れる前に差分ビューで提案されたコンテンツを直接編集した場合、Claude はそれを変更したことが通知されるため、ファイルが元のプロポーザルと一致すると想定しません。
 
-Claude Code でできることについてのアイデアについては、[一般的なワークフロー](/ja/common-workflows)を参照してください。
+Claude Code でできることについてのアイデアについては、[一般的なワークフロー](/docs/ja/common-workflows)を参照してください。
 
 コマンドパレットから'Claude Code: Open Walkthrough'を実行して、基本的なガイド付きツアーを取得します。
 
@@ -73,14 +73,14 @@ Claude Code でできることについてのアイデアについては、[一�
 
 プロンプトボックスは複数の機能をサポートしています。
 
-- **権限モード**：プロンプトボックスの下部のモード指示器をクリックしてモードを切り替えるか、VS Code 設定の `claudeCode.initialPermissionMode` でデフォルトを設定します。指示器が提供するすべてのモードについては、[権限モード](/ja/permission-modes#switch-permission-modes)を参照してください。
+- **権限モード**：プロンプトボックスの下部のモード指示器をクリックしてモードを切り替えるか、VS Code 設定の `claudeCode.initialPermissionMode` でデフォルトを設定します。指示器が提供するすべてのモードについては、[権限モード](/docs/ja/permission-modes#switch-permission-modes)を参照してください。
   - **Manual**：Claude はファイル編集とほとんどのシェルコマンドの前に権限を求めます。
   - **Plan**：Claude は実行内容を説明し、変更を加える前に承認を待ちます。VS Code は自動的にプランをフル Markdown ドキュメントとして開き、Claude が開始する前にフィードバックを提供するためのインラインコメントを追加できます。
   - **Edit automatically**：Claude は権限を求めずに編集を行います。
-- **コマンドメニュー**：`/` をクリックするか `/` と入力してコマンドメニューを開きます。オプションには、ファイルの添付、モデルの切り替え、拡張思考の切り替え、プラン使用状況の表示（`/usage`）、および [Remote Control](/ja/remote-control) セッションの開始（`/remote-control`）が含まれます。カスタマイズセクションは、MCP サーバー、hooks、メモリ、権限、プラグインへのアクセスを提供します。ターミナルアイコン付きのアイテムは統合ターミナルで開きます。
-  - 設定セクションには **Enable Remote Control for all sessions** が含まれており、これは [`remoteControlAtStartup`](/ja/settings#available-settings) を設定して、[すべての新しいインタラクティブセッションが Remote Control に自動的に接続](/ja/remote-control#enable-remote-control-for-all-sessions)されるようにします。Claude Code v2.1.203 以降が必要です。
+- **コマンドメニュー**：`/` をクリックするか `/` と入力してコマンドメニューを開きます。オプションには、ファイルの添付、モデルの切り替え、拡張思考の切り替え、プラン使用状況の表示（`/usage`）、および [Remote Control](/docs/ja/remote-control) セッションの開始（`/remote-control`）が含まれます。カスタマイズセクションは、MCP サーバー、hooks、メモリ、権限、プラグインへのアクセスを提供します。ターミナルアイコン付きのアイテムは統合ターミナルで開きます。
+  - 設定セクションには **Enable Remote Control for all sessions** が含まれており、これは [`remoteControlAtStartup`](/docs/ja/settings#available-settings) を設定して、[すべての新しいインタラクティブセッションが Remote Control に自動的に接続](/docs/ja/remote-control#enable-remote-control-for-all-sessions)されるようにします。Claude Code v2.1.203 以降が必要です。
 - **コンテキスト指示器**：プロンプトボックスは、Claude のコンテキストウィンドウをどの程度使用しているかを表示します。Claude は必要に応じて自動的にコンパクト化するか、`/compact` を手動で実行できます。
-- **拡張思考**：Claude が複雑な問題を推論するためにより多くの時間を費やすことができます。コマンドメニュー（`/`）を使用してオンに切り替えます。Claude の推論は会話に折りたたまれたブロックとして表示されます。ブロックをクリックして読むか、`Ctrl+O` を押してセッション内のすべての思考ブロックを展開または折りたたみます。詳細については、[拡張思考](/ja/model-config#extended-thinking)を参照してください。
+- **拡張思考**：Claude が複雑な問題を推論するためにより多くの時間を費やすことができます。コマンドメニュー（`/`）を使用してオンに切り替えます。Claude の推論は会話に折りたたまれたブロックとして表示されます。ブロックをクリックして読むか、`Ctrl+O` を押してセッション内のすべての思考ブロックを展開または折りたたみます。詳細については、[拡張思考](/docs/ja/model-config#extended-thinking)を参照してください。
 - **複数行入力**：`Shift+Enter` を押して送信せずに新しい行を追加します。これは質問ダイアログの「その他」フリーテキスト入力でも機能します。
 
 ファイルとフォルダを参照する
@@ -100,11 +100,11 @@ Claude Code でできることについてのアイデアについては、[一�
 
 過去の会話を再開する
 
-Claude Code パネルの上部の **Session history** ボタンをクリックして、会話履歴にアクセスします。キーワードで検索するか、時間（今日、昨日、過去 7 日間など）で参照できます。任意の会話をクリックして、完全なメッセージ履歴で再開します。新しいセッションは、最初のメッセージに基づいて AI が生成したタイトルを受け取ります。セッションの上にマウスを置くと、名前変更と削除アクションが表示されます。説明的なタイトルを付けるために名前を変更するか、リストから削除するために削除します。セッションの再開の詳細については、[セッションの管理](/ja/sessions)を参照してください。
+Claude Code パネルの上部の **Session history** ボタンをクリックして、会話履歴にアクセスします。キーワードで検索するか、時間（今日、昨日、過去 7 日間など）で参照できます。任意の会話をクリックして、完全なメッセージ履歴で再開します。新しいセッションは、最初のメッセージに基づいて AI が生成したタイトルを受け取ります。セッションの上にマウスを置くと、名前変更と削除アクションが表示されます。説明的なタイトルを付けるために名前を変更するか、リストから削除するために削除します。セッションの再開の詳細については、[セッションの管理](/docs/ja/sessions)を参照してください。
 
 Claude.ai からリモートセッションを再開する
 
-[Web 上の Claude Code](/ja/claude-code-on-the-web) を使用している場合、VS Code でそれらのリモートセッションを直接再開できます。これには、Anthropic Console ではなく **Claude.ai Subscription** でサインインする必要があります。
+[Web 上の Claude Code](/docs/ja/claude-code-on-the-web) を使用している場合、VS Code でそれらのリモートセッションを直接再開できます。これには、Anthropic Console ではなく **Claude.ai Subscription** でサインインする必要があります。
 
 Claude Code パネルの上部の **Session history** ボタンをクリックします。
 
@@ -120,7 +120,7 @@ Claude Code パネルの上部の **Session history** ボタンをクリック�
 
 ダイアログは、プラン制限に寄与しているものを詳細に示します。キャッシュミス、長いコンテキスト、サブエージェント多用、または高度に並列化されたセッションなど、最近の使用状況の 10% 以上を占める動作にフラグを立て、それぞれを削減するためのヒントを提供します。属性テーブルは、各スキル、サブエージェント、プラグイン、MCP サーバーからどの程度の使用状況が発生したかを示します。Claude Code v2.1.174 以降が必要です。
 
-Day と Week トグルを使用して、過去 24 時間と過去 7 日間を切り替えます。数値は概算であり、このマシン上のローカルセッションから計算されるため、他のデバイスまたは claude.ai からの使用状況は含まれません。使用状況の追跡と削減の詳細については、[コストを追跡する](/ja/costs#track-your-costs)を参照してください。
+Day と Week トグルを使用して、過去 24 時間と過去 7 日間を切り替えます。数値は概算であり、このマシン上のローカルセッションから計算されるため、他のデバイスまたは claude.ai からの使用状況は含まれません。使用状況の追跡と削減の詳細については、[コストを追跡する](/docs/ja/costs#track-your-costs)を参照してください。
 
 ワークフローをカスタマイズする
 
@@ -150,7 +150,7 @@ VS Code 設定（Mac で `Cmd+,` または Windows/Linux で `Ctrl+,`）を開�
 
 プラグインを管理する
 
-VS Code 拡張機能には、[プラグイン](/ja/plugins)をインストールおよび管理するためのグラフィカルインターフェースが含まれています。プロンプトボックスで `/plugins` と入力して、**Manage plugins** インターフェースを開きます。
+VS Code 拡張機能には、[プラグイン](/docs/ja/plugins)をインストールおよび管理するためのグラフィカルインターフェースが含まれています。プロンプトボックスで `/plugins` と入力して、**Manage plugins** インターフェースを開きます。
 
 プラグインをインストールする
 
@@ -181,7 +181,7 @@ Plugins タブで：
 
 VS Code のプラグイン管理は、内部で同じ CLI コマンドを使用します。拡張機能で設定したプラグインとマーケットプレイスは CLI でも利用可能であり、その逆も同様です。
 
-プラグインシステムの詳細については、[Plugins](/ja/plugins) と [Plugin marketplaces](/ja/plugin-marketplaces) を参照してください。
+プラグインシステムの詳細については、[Plugins](/docs/ja/plugins) と [Plugin marketplaces](/docs/ja/plugin-marketplaces) を参照してください。
 
 Chrome でブラウザタスクを自動化する
 
@@ -197,7 +197,7 @@ Claude を Chrome ブラウザに接続して、Web アプリをテストし、�
 
 Claude はブラウザタスク用に新しいタブを開き、ブラウザのログイン状態を共有するため、既にサインインしているサイトにアクセスできます。
 
-セットアップ手順、機能の完全なリスト、トラブルシューティングについては、[Use Claude Code with Chrome](/ja/chrome) を参照してください。
+セットアップ手順、機能の完全なリスト、トラブルシューティングについては、[Use Claude Code with Chrome](/docs/ja/chrome) を参照してください。
 
 VS Code コマンドとショートカット
 
@@ -251,7 +251,7 @@ start "" "vscode://anthropic.claude-code/open"
 | パラメーター | 説明 |
 | - | - |
 | `prompt` | プロンプトボックスに事前入力するテキスト。URL エンコードされている必要があります。プロンプトは事前入力されていますが、自動的には送信されません。 |
-| `session` | 新しい会話を開始する代わりに再開するセッション ID。セッションは、VS Code で現在開いているワークスペースに属している必要があります。セッションが見つからない場合、新しい会話が代わりに開始されます。セッションが既にタブで開いている場合、そのタブがフォーカスされます。セッション ID をプログラムで取得するには、[Continue conversations](/ja/headless#continue-conversations) を参照してください。 |
+| `session` | 新しい会話を開始する代わりに再開するセッション ID。セッションは、VS Code で現在開いているワークスペースに属している必要があります。セッションが見つからない場合、新しい会話が代わりに開始されます。セッションが既にタブで開いている場合、そのタブがフォーカスされます。セッション ID をプログラムで取得するには、[Continue conversations](/docs/ja/headless#continue-conversations) を参照してください。 |
 
 例えば、「review my changes」で事前入力されたタブを開くには：
 
@@ -259,14 +259,14 @@ start "" "vscode://anthropic.claude-code/open"
 vscode://anthropic.claude-code/open?prompt=review%20my%20changes
 ```
 
-ターミナルセッションを VS Code タブの代わりに起動するには、CLI の `claude-cli://` ハンドラーを使用します。[Launch sessions from links](/ja/deep-links) を参照してください。
+ターミナルセッションを VS Code タブの代わりに起動するには、CLI の `claude-cli://` ハンドラーを使用します。[Launch sessions from links](/docs/ja/deep-links) を参照してください。
 
 設定を構成する
 
 拡張機能には 2 種類の設定があります。
 
 - **VS Code の拡張機能設定**：VS Code 内の拡張機能の動作を制御します。`Cmd+,`（Mac）または `Ctrl+,`（Windows/Linux）で開き、Extensions → Claude Code に移動します。`/` と入力して **General Config** を選択して設定を開くこともできます。
-- **`~/.claude/settings.json` の Claude Code 設定**：拡張機能と CLI 間で共有されます。許可されたコマンド、環境変数、hooks、MCP サーバーに使用します。詳細については、[Settings](/ja/settings) を参照してください。
+- **`~/.claude/settings.json` の Claude Code 設定**：拡張機能と CLI 間で共有されます。許可されたコマンド、環境変数、hooks、MCP サーバーに使用します。詳細については、[Settings](/docs/ja/settings) を参照してください。
 
 `"$schema": "https://json.schemastore.org/claude-code-settings.json"` を `settings.json` に追加して、VS Code で利用可能なすべての設定のオートコンプリートとインライン検証を取得します。
 
@@ -275,7 +275,7 @@ vscode://anthropic.claude-code/open?prompt=review%20my%20changes
 | 設定 | デフォルト | 説明 |
 | - | - | - |
 | `useTerminal` | `false` | グラフィカルパネルの代わりにターミナルモードで Claude を起動します。 |
-| `initialPermissionMode` | `default` | 新しい会話の承認プロンプトを制御します。`default`、`plan`、`acceptEdits`、または `bypassPermissions`。`manual` は `default` のエイリアスであり、モード表示器で **Manual** というラベルが付いたモードを選択します。Claude Code v2.1.200 以降が必要です。[permission modes](/ja/permission-modes) を参照してください。 |
+| `initialPermissionMode` | `default` | 新しい会話の承認プロンプトを制御します。`default`、`plan`、`acceptEdits`、または `bypassPermissions`。`manual` は `default` のエイリアスであり、モード表示器で **Manual** というラベルが付いたモードを選択します。Claude Code v2.1.200 以降が必要です。[permission modes](/docs/ja/permission-modes) を参照してください。 |
 | `preferredLocation` | `panel` | Claude が開く場所：`sidebar`（右）または `panel`（新しいタブ） |
 | `autosave` | `true` | Claude が読み取りまたは書き込みする前にファイルを自動保存します。 |
 | `useCtrlEnterToSend` | `false` | Enter の代わりに Ctrl/Cmd+Enter を使用してプロンプトを送信します。 |
@@ -287,15 +287,15 @@ vscode://anthropic.claude-code/open?prompt=review%20my%20changes
 | `environmentVariables` | `[]` | Claude プロセスの環境変数を設定します。共有設定には Claude Code 設定を使用します。 |
 | `disableLoginPrompt` | `false` | 認証プロンプトをスキップします（サードパーティプロバイダーセットアップ用）。 |
 | `allowDangerouslySkipPermissions` | `false` | モード選択ツールに Bypass permissions を追加します。インターネットアクセスのないサンドボックスでのみ使用してください。 |
-| `claudeProcessWrapper` | - | Claude プロセスを起動するために使用される実行可能ファイル。バンドルされたバイナリパスは、存在する場合は引数として渡されます。拡張機能ビルドにプラットフォーム用のバイナリが含まれていない場合は、これを別途インストールされた `claude` バイナリに設定します。アクティベーション時に「Unsupported platform」エラーが表示される場合は、プラットフォーム用のバイナリがバンドルされていないことを意味します。[どのプラットフォームにプリビルトバイナリがあるか](/ja/troubleshoot-install#native-binary-not-found-after-npm-install) を参照してください。 |
+| `claudeProcessWrapper` | - | Claude プロセスを起動するために使用される実行可能ファイル。バンドルされたバイナリパスは、存在する場合は引数として渡されます。拡張機能ビルドにプラットフォーム用のバイナリが含まれていない場合は、これを別途インストールされた `claude` バイナリに設定します。アクティベーション時に「Unsupported platform」エラーが表示される場合は、プラットフォーム用のバイナリがバンドルされていないことを意味します。[どのプラットフォームにプリビルトバイナリがあるか](/docs/ja/troubleshoot-install#native-binary-not-found-after-npm-install) を参照してください。 |
 
 VS Code 拡張機能と Claude Code CLI
 
-Claude Code は VS Code 拡張機能（グラフィカルパネル）と CLI（ターミナルのコマンドラインインターフェース）の両方として利用可能です。一部の機能は CLI でのみ利用可能です。CLI のみの機能が必要な場合は、VS Code の統合ターミナルで `claude` を実行します。これには[スタンドアロン CLI インストール](/ja/setup)が必要です。拡張機能は `claude` を PATH に追加しません。[VS Code で CLI を実行する](#run-cli-in-vs-code)を参照してください。
+Claude Code は VS Code 拡張機能（グラフィカルパネル）と CLI（ターミナルのコマンドラインインターフェース）の両方として利用可能です。一部の機能は CLI でのみ利用可能です。CLI のみの機能が必要な場合は、VS Code の統合ターミナルで `claude` を実行します。これには[スタンドアロン CLI インストール](/docs/ja/setup)が必要です。拡張機能は `claude` を PATH に追加しません。[VS Code で CLI を実行する](#run-cli-in-vs-code)を参照してください。
 
 | 機能 | CLI | VS Code 拡張機能 |
 | - | - | - |
-| コマンドと skills | [すべて](/ja/commands) | サブセット（`/` と入力して利用可能なものを表示） |
+| コマンドと skills | [すべて](/docs/ja/commands) | サブセット（`/` と入力して利用可能なものを表示） |
 | MCP サーバー設定 | はい | 部分的（CLI 経由でサーバーを追加。チャットパネルで `/mcp` を使用して既存のサーバーを管理） |
 | チェックポイント | はい | はい |
 | `!` bash ショートカット | はい | いいえ |
@@ -309,13 +309,13 @@ VS Code 拡張機能はチェックポイントをサポートしており、Cla
 - **ここにコードを巻き戻す**：会話の完全な履歴を保持しながら、ファイル変更をこのポイントに戻します。
 - **会話をフォークしてコードを巻き戻す**：新しい会話ブランチを開始し、ファイル変更をこのポイントに戻します。
 
-チェックポイントの仕組みと制限の詳細については、[Checkpointing](/ja/checkpointing) を参照してください。
+チェックポイントの仕組みと制限の詳細については、[Checkpointing](/docs/ja/checkpointing) を参照してください。
 
 VS Code で CLI を実行する
 
 VS Code に留まりながら CLI を使用するには、統合ターミナル（Windows/Linux で `` Ctrl+` `` または Mac で `` Cmd+` ``）を開き、`claude` を実行します。CLI は自動的に IDE と統合され、差分表示や診断共有などの機能を提供します。
 
-拡張機能をインストールしても、`claude` はシェルの PATH に追加されません。拡張機能はチャットパネル用に CLI のプライベートコピーをバンドルしていますが、ターミナルで `claude` と入力するには[スタンドアロン CLI インストール](/ja/setup)が必要です。インストールを 1 回実行すると、`claude mcp add` や `claude --resume` を含むこのページのコマンドが任意のターミナルで機能します。インストール後も `claude` が見つからない場合は、[PATH を確認してください](/ja/troubleshoot-install#verify-your-path)。
+拡張機能をインストールしても、`claude` はシェルの PATH に追加されません。拡張機能はチャットパネル用に CLI のプライベートコピーをバンドルしていますが、ターミナルで `claude` と入力するには[スタンドアロン CLI インストール](/docs/ja/setup)が必要です。インストールを 1 回実行すると、`claude mcp add` や `claude --resume` を含むこのページのコマンドが任意のターミナルで機能します。インストール後も `claude` が見つからない場合は、[PATH を確認してください](/docs/ja/troubleshoot-install#verify-your-path)。
 
 外部ターミナルを使用している場合は、Claude Code 内で `/ide` を実行して VS Code に接続します。
 
@@ -344,7 +344,7 @@ claude mcp add --transport http github https://api.githubcopilot.com/mcp/ \
 
 設定されたら、Claude にツールを使用するよう依頼します（例：「Review PR #456」）。
 
-VS Code を離れることなく MCP サーバーを管理するには、チャットパネルで `/mcp` と入力します。MCP 管理ダイアログでは、サーバーを有効または無効にし、サーバーに再接続し、OAuth 認証を管理できます。利用可能なサーバーについては、[MCP documentation](/ja/mcp) を参照してください。
+VS Code を離れることなく MCP サーバーを管理するには、チャットパネルで `/mcp` と入力します。MCP 管理ダイアログでは、サーバーを有効または無効にし、サーバーに再接続し、OAuth 認証を管理できます。利用可能なサーバーについては、[MCP documentation](/docs/ja/mcp) を参照してください。
 
 git で作業する
 
@@ -370,7 +370,7 @@ Claude はコミットをステージング、コミットメッセージを作�
 claude --worktree feature-auth
 ```
 
-各 worktree は git 履歴を共有しながら独立したファイル状態を保持します。これにより、異なるタスクで作業するときに Claude インスタンスが互いに干渉するのを防ぎます。詳細については、[Git worktrees で並列セッションを実行する](/ja/worktrees) を参照してください。
+各 worktree は git 履歴を共有しながら独立したファイル状態を保持します。これにより、異なるタスクで作業するときに Claude インスタンスが互いに干渉するのを防ぎます。詳細については、[Git worktrees で並列セッションを実行する](/docs/ja/worktrees) を参照してください。
 
 サードパーティプロバイダーを使用する
 
@@ -382,15 +382,15 @@ VS Code 設定（Mac で `Cmd+,` または Windows/Linux で `Ctrl+,`）を開�
 
 プロバイダーのセットアップガイドに従います。
 
-- [Claude Code on Amazon Bedrock](/ja/amazon-bedrock)
-- [Claude Code on Google Cloud's Agent Platform](/ja/google-vertex-ai)
-- [Claude Code on Microsoft Foundry](/ja/microsoft-foundry)
+- [Claude Code on Amazon Bedrock](/docs/ja/amazon-bedrock)
+- [Claude Code on Google Cloud's Agent Platform](/docs/ja/google-vertex-ai)
+- [Claude Code on Microsoft Foundry](/docs/ja/microsoft-foundry)
 
 これらのガイドは、`~/.claude/settings.json` でプロバイダーを設定することをカバーしており、VS Code 拡張機能と CLI 間で設定が共有されることを保証します。
 
 セキュリティとプライバシー
 
-コードはプライベートのままです。Claude Code はコード支援を提供するためにコードを処理しますが、モデルのトレーニングには使用しません。データ処理とログアウトの方法の詳細については、[Data and privacy](/ja/data-usage) を参照してください。
+コードはプライベートのままです。Claude Code はコード支援を提供するためにコードを処理しますが、モデルのトレーニングには使用しません。データ処理とログアウトの方法の詳細については、[Data and privacy](/docs/ja/data-usage) を参照してください。
 
 自動編集権限が有効な場合、Claude Code は VS Code が自動的に実行する可能性がある VS Code 設定ファイル（`settings.json` や `tasks.json` など）を変更できます。信頼できないコードで作業するときのリスクを軽減するには、以下を実行してください。
 
@@ -404,7 +404,7 @@ VS Code 設定（Mac で `Cmd+,` または Windows/Linux で `Ctrl+,`）を開�
 
 サーバーは `ide` という名前で、設定するものがないため `/mcp` から非表示になっています。ただし、組織が `PreToolUse` hook を使用して MCP ツールをホワイトリストに登録している場合は、それが存在することを知る必要があります。
 
-**選択とオープンファイルコンテキスト。** 接続中、CLI は現在のエディタ選択とアクティブなファイルのパスを各プロンプトのコンテキストとして含めます。トランスクリプトは、これが発生したときに `⧉ Selected N lines from <file>` 行を表示します。`.env` などの機密ファイルを除外するには、そのパスに対して [`Read` deny rule](/ja/permissions#read-and-edit) を追加します。一致する deny rule は、そのファイルの選択されたテキストとオープンファイル通知の両方が Claude に到達するのを防ぎます。
+**選択とオープンファイルコンテキスト。** 接続中、CLI は現在のエディタ選択とアクティブなファイルのパスを各プロンプトのコンテキストとして含めます。トランスクリプトは、これが発生したときに `⧉ Selected N lines from <file>` 行を表示します。`.env` などの機密ファイルを除外するには、そのパスに対して [`Read` deny rule](/docs/ja/permissions#read-and-edit) を追加します。一致する deny rule は、そのファイルの選択されたテキストとオープンファイル通知の両方が Claude に到達するのを防ぎます。
 
 **トランスポートと認証。** サーバーは `127.0.0.1` の 10000～65535 の範囲のランダムなポートにバインドし、ポートは設定できません。トランスポートは暗号化されていない `ws://` です。ソケットはループバックのみであるため、トラフィックをキャプチャできるプロセスはロックファイルからトークンを読むこともできるため、TLS は保護を追加しません。各拡張機能のアクティベーションは、新しいランダム認証トークンを生成し、`~/.claude/ide/<port>.lock` のロックファイルに書き込み、CLI は接続するために `X-Claude-Code-Ide-Authorization` ヘッダーとして提示する必要があります。ロックファイルは `0700` ディレクトリ内の `0600` 権限を持つため、VS Code を実行しているユーザーのみがそれを読むことができます。`CLAUDE_CONFIG_DIR` が設定されている場合、ロックファイルは代わりに `$CLAUDE_CONFIG_DIR/ide/` に書き込まれます。
 
@@ -467,7 +467,7 @@ Claude Code 拡張機能をアンインストールするには：
 2. 「Claude Code」を検索します
 3. **Uninstall** をクリックします
 
-VS Code 統合ターミナルで `claude` を実行すると、拡張機能が自動的に再インストールされます。拡張機能をインストールされたままにしないようにするには、`/config` で **Auto-install IDE extension** をオフにするか、[`autoInstallIdeExtension`](/ja/settings#global-config-settings) を `false` に設定します。また、[`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/ja/env-vars) 環境変数を `1` に設定することもできます。
+VS Code 統合ターミナルで `claude` を実行すると、拡張機能が自動的に再インストールされます。拡張機能をインストールされたままにしないようにするには、`/config` で **Auto-install IDE extension** をオフにするか、[`autoInstallIdeExtension`](/docs/ja/settings#global-config-settings) を `false` に設定します。また、[`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/docs/ja/env-vars) 環境変数を `1` に設定することもできます。
 
 拡張機能データを削除してすべての設定をリセットするには、プラットフォーム用の拡張機能のストレージディレクトリを削除します。
 
@@ -489,12 +489,12 @@ Windows の場合（PowerShell）：
 Remove-Item -Recurse -Force "$env:APPDATA\Code\User\globalStorage\anthropic.claude-code"
 ```
 
-追加のヘルプについては、[トラブルシューティングガイド](/ja/troubleshooting)を参照してください。
+追加のヘルプについては、[トラブルシューティングガイド](/docs/ja/troubleshooting)を参照してください。
 
 次のステップ
 
 VS Code で Claude Code をセットアップしたので：
 
-- [一般的なワークフローを探索](/ja/common-workflows)して Claude Code を最大限に活用します。
-- [MCP サーバーをセットアップ](/ja/mcp)して、外部ツールで Claude の機能を拡張します。CLI を使用してサーバーを追加し、チャットパネルで `/mcp` を使用して管理します。
-- [Claude Code 設定を構成](/ja/settings)して、許可されたコマンド、hooks などをカスタマイズします。これらの設定は拡張機能と CLI 間で共有されます。
+- [一般的なワークフローを探索](/docs/ja/common-workflows)して Claude Code を最大限に活用します。
+- [MCP サーバーをセットアップ](/docs/ja/mcp)して、外部ツールで Claude の機能を拡張します。CLI を使用してサーバーを追加し、チャットパネルで `/mcp` を使用して管理します。
+- [Claude Code 設定を構成](/docs/ja/settings)して、許可されたコマンド、hooks などをカスタマイズします。これらの設定は拡張機能と CLI 間で共有されます。

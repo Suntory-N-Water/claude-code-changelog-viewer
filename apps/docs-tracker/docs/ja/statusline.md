@@ -16,7 +16,7 @@ source: https://code.claude.com/docs/ja/statusline.md
 - 複数のセッション間で作業し、それらを区別する必要がある
 - git ブランチとステータスを常に表示したい
 
-ステータスラインは組み込みのフッターバッジの上にある独自の行にレンダリングされ、それらを置き換えません。会話内に ID が表示されたときにフッターにクリック可能なリンクバッジを追加する場合は、スクリプトを記述せずに [`footerLinksRegexes`](/ja/settings#footer-link-badges) を設定してください。
+ステータスラインは組み込みのフッターバッジの上にある独自の行にレンダリングされ、それらを置き換えません。会話内に ID が表示されたときにフッターにクリック可能なリンクバッジを追加する場合は、スクリプトを記述せずに [`footerLinksRegexes`](/docs/ja/settings#footer-link-badges) を設定してください。
 
 以下は、最初の行に git 情報を表示し、2 番目の行にカラーコード化されたコンテキストバーを表示する [複数行ステータスライン](#display-multiple-lines) の例です。
 
@@ -36,7 +36,7 @@ source: https://code.claude.com/docs/ja/statusline.md
 
 ステータスラインを手動で設定する
 
-ユーザー設定（`~/.claude/settings.json`、`~` はホームディレクトリ）または [プロジェクト設定](/ja/settings#settings-files) に `statusLine` フィールドを追加します。`type` を `"command"` に設定し、`command` をスクリプトパスまたはインラインシェルコマンドに指定します。スクリプト作成の完全なチュートリアルについては、[ステータスラインをステップバイステップで構築する](#build-a-status-line-step-by-step) を参照してください。
+ユーザー設定（`~/.claude/settings.json`、`~` はホームディレクトリ）または [プロジェクト設定](/docs/ja/settings#settings-files) に `statusLine` フィールドを追加します。`type` を `"command"` に設定し、`command` をスクリプトパスまたはインラインシェルコマンドに指定します。スクリプト作成の完全なチュートリアルについては、[ステータスラインをステップバイステップで構築する](#build-a-status-line-step-by-step) を参照してください。
 
 ```json
 {
@@ -165,11 +165,11 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `rate_limits.five_hour.resets_at`、`rate_limits.seven_day.resets_at` | 5 時間または 7 日のレート制限ウィンドウがリセットされる Unix エポック秒 |
 | `session_id` | 一意のセッション識別子 |
 | `session_name` | `--name` フラグまたは `/rename` で設定されたカスタムセッション名。カスタム名が設定されていない場合は不在 |
-| `prompt_id` | 現在処理中のユーザープロンプトを識別する UUID。OpenTelemetry イベントの [`prompt.id` 属性](/ja/monitoring-usage#event-correlation-attributes) と一致します。最初のユーザー入力まで不在。Claude Code v2.1.196 以降が必要です |
+| `prompt_id` | 現在処理中のユーザープロンプトを識別する UUID。OpenTelemetry イベントの [`prompt.id` 属性](/docs/ja/monitoring-usage#event-correlation-attributes) と一致します。最初のユーザー入力まで不在。Claude Code v2.1.196 以降が必要です |
 | `transcript_path` | 会話トランスクリプトファイルへのパス |
 | `version` | Claude Code バージョン |
 | `output_style.name` | 現在の出力スタイルの名前 |
-| `vim.mode` | [vim モード](/ja/interactive-mode#vim-editor-mode) が有効な場合の現在の vim モード（`NORMAL`、`INSERT`、`VISUAL`、または `VISUAL LINE`） |
+| `vim.mode` | [vim モード](/docs/ja/interactive-mode#vim-editor-mode) が有効な場合の現在の vim モード（`NORMAL`、`INSERT`、`VISUAL`、または `VISUAL LINE`） |
 | `agent.name` | `--agent` フラグまたはエージェント設定が設定されている場合のエージェント名 |
 | `pr.number`、`pr.url` | 現在のブランチのオープンプルリクエスト。下部ステータスバーの PR バッジをミラーします。PR が見つかるまで不在。git リポジトリにない場合、または PR がマージまたはクローズされた後は不在 |
 | `pr.review_state` | オープン PR のレビューステータス：`approved`、`pending`、`changes_requested`、または `draft`。`pr` が存在する場合でも独立して不在の可能性があります |
@@ -299,7 +299,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 - `cache_creation_input_tokens`：キャッシュに書き込まれたトークン
 - `cache_read_input_tokens`：キャッシュから読み取られたトークン
 
-キャッシュフィールドの意味とそれらがどのように請求されるかについては、[キャッシュパフォーマンスの確認](/ja/prompt-caching#check-cache-performance) を参照してください。
+キャッシュフィールドの意味とそれらがどのように請求されるかについては、[キャッシュパフォーマンスの確認](/docs/ja/prompt-caching#check-cache-performance) を参照してください。
 
 `used_percentage` フィールドは入力トークンのみから計算されます：`input_tokens + cache_creation_input_tokens + cache_read_input_tokens`。`output_tokens` は含まれません。
 
@@ -938,7 +938,7 @@ echo "$dirname [$model]"
 
 サブエージェントステータスライン
 
-`subagentStatusLine` 設定は、エージェントパネルに表示される各 [サブエージェント](/ja/sub-agents) のカスタム行本体をレンダリングします。デフォルトの `name · description · token count` 行を独自のフォーマットに置き換えるために使用します。
+`subagentStatusLine` 設定は、エージェントパネルに表示される各 [サブエージェント](/docs/ja/sub-agents) のカスタム行本体をレンダリングします。デフォルトの `name · description · token count` 行を独自のフォーマットに置き換えるために使用します。
 
 ```json
 {
@@ -949,13 +949,13 @@ echo "$dirname [$model]"
 }
 ```
 
-コマンドは、すべての表示されているサブエージェント行が stdin で単一の JSON オブジェクトとして渡される各リフレッシュティックで実行されます。入力には [基本フックフィールド](/ja/hooks#common-input-fields)、使用可能な行幅を示す `columns` フィールド、および `tasks` 配列が含まれます。各タスクには `id`、`name`、`type`、`status`、`description`、`label`、`startTime`、`model`、`contextWindowSize`、`tokenCount`、`tokenSamples`、`cwd` があります。
+コマンドは、すべての表示されているサブエージェント行が stdin で単一の JSON オブジェクトとして渡される各リフレッシュティックで実行されます。入力には [基本フックフィールド](/docs/ja/hooks#common-input-fields)、使用可能な行幅を示す `columns` フィールド、および `tasks` 配列が含まれます。各タスクには `id`、`name`、`type`、`status`、`description`、`label`、`startTime`、`model`、`contextWindowSize`、`tokenCount`、`tokenSamples`、`cwd` があります。
 
 タスクごとの `model` フィールドは、タスクが実行される解決済みモデル ID です。`contextWindowSize` はそのモデルのコンテキストウィンドウ（トークン単位）で、メインステータスラインの `context_window.context_window_size` と同じ方法で計算されるため、`tokenCount` から行ごとのパーセンテージをレンダリングできます。両方のフィールドには Claude Code v2.1.205 以降が必要で、モデルがまだ解決されていないタスクでは省略されます。
 
 オーバーライドしたい各行に対して stdout に 1 つの JSON 行を書き込みます。形式は `{"id": "<task id>", "content": "<row body>"}` です。`content` 文字列はそのままレンダリングされます。ANSI 色と OSC 8 ハイパーリンクを含みます。タスクの `id` を省略して、その行のデフォルトレンダリングを保持します。空の `content` 文字列を出力して、その行を非表示にします。
 
-`statusLine` に適用される同じトラストと `disableAllHooks` ゲートが `subagentStatusLine` に適用されます。プラグインは、[`settings.json`](/ja/plugins-reference#standard-plugin-layout) でデフォルトの `subagentStatusLine` を配布できます。
+`statusLine` に適用される同じトラストと `disableAllHooks` ゲートが `subagentStatusLine` に適用されます。プラグインは、[`settings.json`](/docs/ja/plugins-reference#standard-plugin-layout) でデフォルトの `subagentStatusLine` を配布できます。
 
 ヒント
 

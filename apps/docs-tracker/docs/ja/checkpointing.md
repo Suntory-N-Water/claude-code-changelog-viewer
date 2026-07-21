@@ -54,7 +54,7 @@ Claude Code は、ファイル編集ツールで行われたすべての変更�
 
 どちらの場合も、元のメッセージはセッショントランスクリプトに保持されるため、Claude は必要に応じて詳細を参照できます。要約が焦点を当てるべき内容をガイドするためのオプション指示を入力できます。これは `/compact` に似ていますが、対象を絞ったものです。会話全体を要約する代わりに、選択したメッセージのどちらの側を圧縮するかを選択します。
 
-要約はセッションを同じ状態に保ち、コンテキストを圧縮します。元のセッションを保持したまま異なるアプローチを試したい場合は、代わりに [fork](/ja/sessions#branch-a-session)（`claude --continue --fork-session`）を使用してください。
+要約はセッションを同じ状態に保ち、コンテキストを圧縮します。元のセッションを保持したまま異なるアプローチを試したい場合は、代わりに [fork](/docs/ja/sessions#branch-a-session)（`claude --continue --fork-session`）を使用してください。
 
 一般的なユースケース
 
@@ -93,6 +93,6 @@ cp source.txt dest.txt
 
 関連項目
 
-- [Interactive mode](/ja/interactive-mode) - キーボードショートカットとセッションコントロール
-- [Commands](/ja/commands) - `/rewind` を使用したチェックポイントへのアクセス
-- [CLI reference](/ja/cli-reference) - コマンドラインオプション
+- [Interactive mode](/docs/ja/interactive-mode) - キーボードショートカットとセッションコントロール
+- [Commands](/docs/ja/commands) - `/rewind` を使用したチェックポイントへのアクセス
+- [CLI reference](/docs/ja/cli-reference) - コマンドラインオプション
