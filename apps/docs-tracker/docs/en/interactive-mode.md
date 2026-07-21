@@ -38,7 +38,7 @@ See [Terminal configuration](/docs/en/terminal-config) for details.
 | `Left/Right arrows` | Cycle through dialog tabs | Navigate between tabs in permission dialogs and menus |
 | `Up/Down arrows` or `Ctrl+P`/`Ctrl+N` | Move cursor or navigate command history | When the input spans more than one visual row, whether wrapped or multiline, first moves the cursor within the prompt. Once the cursor is on the first or last visual row, pressing again navigates command history. As of v2.1.169, wrapped single-line input behaves the same as multiline |
 | `Esc` | Interrupt Claude, or close a dialog | Stop the current response or tool call mid-turn so you can redirect. Claude keeps the work done so far. When a dialog such as a permission prompt is open, `Esc` closes the dialog rather than interrupting Claude. Before v2.1.202, `Esc` on some dialogs interrupted Claude and left the dialog open |
-| `Esc` + `Esc` | Clear input draft, or rewind | When the prompt input contains text, double `Esc` clears it and saves the draft to history so `Up` recalls it. When the input is empty, double `Esc` opens the [rewind menu](/docs/en/checkpointing) to restore or summarize code and conversation from a previous point |
+| `Esc` + `Esc` | Clear input draft, or rewind | When the prompt input contains text, double `Esc` clears it and saves the draft to history so `Up` recalls it. When the input is empty, double `Esc` opens the [rewind menu](/docs/en/checkpointing) to restore or summarize code and conversation from a previous point. Before v2.1.216, double `Esc` at an empty prompt could stop opening the menu for the rest of a long-running session that used background tasks |
 | `Shift+Tab`, or `Alt+M` on Windows when the Node or Bun runtime doesn't enable VT input mode | Cycle permission modes | Cycle through `default` (labeled Manual in the mode indicator), `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/docs/en/permission-modes). |
 | `Option+P` (macOS) or `Alt+P` (Windows/Linux) | Switch model | Switch models without clearing your prompt |
 | `Option+T` (macOS) or `Alt+T` (Windows/Linux) | Toggle extended thinking | Enable or disable extended thinking mode. Has no effect on Fable 5, which always uses extended thinking. As of v2.1.132 this shortcut works on macOS without configuring Option as Meta |
@@ -195,7 +195,7 @@ In vim normal mode, if the cursor is at the beginning or end of input and can't 
 | `<<` | Dedent line |
 | `J` | Join lines |
 | `u` | Undo |
-| `.` | Repeat last change |
+| `.` | Repeat last change. Before v2.1.216, repeating a change operator such as `cw` or `cc` replayed only the inserted text without the deletion, and `.` after `p`/`P` repeated the previous change instead of the paste |
 
 ### Text objects (NORMAL mode)
 
