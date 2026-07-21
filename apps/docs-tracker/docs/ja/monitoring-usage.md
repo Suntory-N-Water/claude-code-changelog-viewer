@@ -42,7 +42,7 @@ claude
 
 管理者設定
 
-管理者は、[管理設定ファイル](/ja/settings#settings-files)を通じてすべてのユーザーの OpenTelemetry 設定を設定できます。これにより、組織全体のテレメトリ設定を一元管理できます。設定がどのように適用されるかについては、[設定の優先順位](/ja/settings#settings-precedence)を参照してください。
+管理者は、[管理設定ファイル](/docs/ja/settings#settings-files)を通じてすべてのユーザーの OpenTelemetry 設定を設定できます。これにより、組織全体のテレメトリ設定を一元管理できます。設定がどのように適用されるかについては、[設定の優先順位](/docs/ja/settings#settings-precedence)を参照してください。
 
 管理設定の設定例:
 
@@ -95,7 +95,7 @@ OTLP エクスポーターのクライアント証明書を設定する方法は
 
 | プロトコル | クライアント証明書変数 | コレクターの CA を信頼する方法 |
 | :- | :- | :- |
-| `http/protobuf`、`http/json` | `CLAUDE_CODE_CLIENT_CERT`、`CLAUDE_CODE_CLIENT_KEY`、およびオプションで `CLAUDE_CODE_CLIENT_KEY_PASSPHRASE`。[ネットワーク設定](/ja/network-config#mtls-authentication)を参照 | `NODE_EXTRA_CA_CERTS` |
+| `http/protobuf`、`http/json` | `CLAUDE_CODE_CLIENT_CERT`、`CLAUDE_CODE_CLIENT_KEY`、およびオプションで `CLAUDE_CODE_CLIENT_KEY_PASSPHRASE`。[ネットワーク設定](/docs/ja/network-config#mtls-authentication)を参照 | `NODE_EXTRA_CA_CERTS` |
 | `grpc` | `OTEL_EXPORTER_OTLP_CLIENT_KEY` および `OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE`、またはシグナルごとに異なる証明書を使用するための `OTEL_EXPORTER_OTLP_METRICS_CLIENT_KEY` などのシグナルごとのバリアント | `OTEL_EXPORTER_OTLP_CERTIFICATE` |
 
 `grpc` の場合、OpenTelemetry SDK は標準 OTLP 変数を直接読み取るため、シグナルごとのメトリクス変数を設定する既存の設定は引き続き機能します。
@@ -177,7 +177,7 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | `query_source` | リクエストを発行したサブシステム。例: `repl_main_thread` またはサブエージェント名 | |
 | `agent_id` | リクエストを発行したサブエージェントまたはチームメイトの識別子。メインセッションでは存在しません | |
 | `parent_agent_id` | このエージェントを生成したエージェントの識別子。メインセッションおよびそこから直接生成されたエージェントでは存在しません | |
-| `workflow.run_id` | このエージェントを生成した [Workflow](/ja/workflows) ツール実行の実行識別子。`wf_` で始まります。ワークフローによって生成されていないエージェントでは存在しません | |
+| `workflow.run_id` | このエージェントを生成した [Workflow](/docs/ja/workflows) ツール実行の実行識別子。`wf_` で始まります。ワークフローによって生成されていないエージェントでは存在しません | |
 | `workflow.name` | このエージェントを生成したワークフローの名前。ユーザー作成名はゲートが設定されていない限り `custom` に置き換えられます | `OTEL_LOG_TOOL_DETAILS` |
 | `speed` | `fast` または `normal` | |
 | `llm_request.context` | 親スパンに応じて `interaction`、`tool`、または `standalone` | |
@@ -285,7 +285,7 @@ echo "{\"Authorization\": \"Bearer $(get-token.sh)\", \"X-API-Key\": \"$(get-api
 ヘルパーが失敗するか、これらの要件を満たさない出力を出力する場合、Claude Code は以下のエラーを報告します:
 
 - `/status` 出力
-- [`--debug`](/ja/cli-reference#cli-flags) で実行するか、セッション内で `/debug` を実行した後のデバッグログ
+- [`--debug`](/docs/ja/cli-reference#cli-flags) で実行するか、セッション内で `/debug` を実行した後のデバッグログ
 - stderr、`-p` で開始された非対話型セッション内
 
 リフレッシュ動作
@@ -400,13 +400,13 @@ export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 | `terminal.type` | ターミナルタイプ。例: `iTerm.app`、`vscode`、`cursor`、`tmux` | 検出された場合は常に含まれます |
 | Keys from `OTEL_RESOURCE_ATTRIBUTES` | カスタム属性 (例: `department` または `team.id`)。[マルチチームの組織サポート](#multi-team-organization-support)を参照してください | `OTEL_METRICS_INCLUDE_RESOURCE_ATTRIBUTES` (デフォルト: true) |
 
-Claude Code が [Claude apps gateway](/ja/claude-apps-gateway) にサインインしている場合、CLI はゲートウェイセッションから認証済みアイデンティティでエクスポートをスタンプします: `user.id` は匿名インストール識別子ではなく IdP サブジェクト、`user.email` はサインイン済みメール、`user.groups` は IdP グループメンバーシップをコンマ区切り文字列として含みます。各エクスポートは `identity.source: gateway-oidc` も含みます。ゲートウェイアイデンティティは最後に適用されるため、`OTEL_RESOURCE_ATTRIBUTES` を通じて設定された `user.*` および `identity.*` キーはゲートウェイセッションで無視されます。
+Claude Code が [Claude apps gateway](/docs/ja/claude-apps-gateway) にサインインしている場合、CLI はゲートウェイセッションから認証済みアイデンティティでエクスポートをスタンプします: `user.id` は匿名インストール識別子ではなく IdP サブジェクト、`user.email` はサインイン済みメール、`user.groups` は IdP グループメンバーシップをコンマ区切り文字列として含みます。各エクスポートは `identity.source: gateway-oidc` も含みます。ゲートウェイアイデンティティは最後に適用されるため、`OTEL_RESOURCE_ATTRIBUTES` を通じて設定された `user.*` および `identity.*` キーはゲートウェイセッションで無視されます。
 
 イベントには、以下の追加属性が含まれます。これらはメトリクスに添付されることはありません。これらはバウンドされていないカーディナリティを引き起こすためです:
 
 - `prompt.id`: ユーザープロンプトを次のプロンプトまでのすべての後続イベントと相関させる UUID。[イベント相関属性](#event-correlation-attributes)を参照してください。
 - `workspace.host_paths`: デスクトップアプリで選択されたホストワークスペースディレクトリ (文字列配列として)
-- `workflow.run_id`: 実行識別子。プレフィックス `wf_` が付いており、API とツールイベントで出力されます。[Workflow](/ja/workflows) ツール実行に属するエージェントによって出力されます。1 つの `workflow.run_id` でイベントをフィルタリングすると、その実行の API リクエストとツール結果が再構成されます。識別子は、ワークフロースクリプトがスポーンするエージェントと、それらがスポーンするエージェント (スキル呼び出しなど) をカバーします。Workflow ツール結果で報告される実行識別子と一致します。他のすべてのイベントには存在しません。Claude Code v2.1.202 以降が必要です
+- `workflow.run_id`: 実行識別子。プレフィックス `wf_` が付いており、API とツールイベントで出力されます。[Workflow](/docs/ja/workflows) ツール実行に属するエージェントによって出力されます。1 つの `workflow.run_id` でイベントをフィルタリングすると、その実行の API リクエストとツール結果が再構成されます。識別子は、ワークフロースクリプトがスポーンするエージェントと、それらがスポーンするエージェント (スキル呼び出しなど) をカバーします。Workflow ツール結果で報告される実行識別子と一致します。他のすべてのイベントには存在しません。Claude Code v2.1.202 以降が必要です
 - `workflow.name`: ワークフローの名前。スクリプトの `meta.name`。`workflow.run_id` と一緒に出力されます。組み込みワークフロー名は、実行が変更されていない組み込みスクリプトを実行する場合、そのまま表示されます。ユーザー作成の名前 (組み込みスクリプトの編集されたコピーを含む) は、`OTEL_LOG_TOOL_DETAILS=1` が設定されていない限り `custom` に置き換えられます。Claude Code v2.1.202 以降が必要です
 
 メトリクス
@@ -473,7 +473,7 @@ Claude Code を介して git コミットを作成するときにインクリメ
 - `model`: モデル識別子 (例: "claude-sonnet-5")
 - `query_source`: リクエストを発行したサブシステムのカテゴリ。`"main"`、`"subagent"`、または `"auxiliary"` のいずれか
 - `speed`: 高速モードを使用した場合は `"fast"`。それ以外の場合は存在しません
-- `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level): `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。モデルが努力をサポートしない場合は存在しません。
+- `effort`: リクエストに適用された[努力レベル](/docs/ja/model-config#adjust-effort-level): `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。モデルが努力をサポートしない場合は存在しません。
 - `agent.name`: リクエストを発行したサブエージェントタイプ。組み込みエージェント名と公式マーケットプレイスプラグインのエージェントはそのまま表示されます。その他のユーザー定義エージェント名は `"custom"` に置き換えられます。リクエストが名前付きサブエージェントタイプによって発行されなかった場合は存在しません。
 - `skill.name`: リクエストに対してアクティブなスキル。Skill ツール、`/` コマンド、またはスポーンされたサブエージェントによって継承されます。組み込み、バンドル、ユーザー定義、および公式マーケットプレイスプラグインスキル名はそのまま表示されます。サードパーティプラグインスキル名は `"third-party"` に置き換えられます。アクティブなスキルがない場合は存在しません。
 - `plugin.name`: アクティブなスキルまたはサブエージェントがプラグインによって提供される場合の所有プラグイン。公式マーケットプレイスプラグイン名はそのまま表示されます。サードパーティプラグイン名は `"third-party"` に置き換えられます。スキルもサブエージェントも所有プラグインを持たない場合は存在しません。
@@ -492,7 +492,7 @@ Claude Code を介して git コミットを作成するときにインクリメ
 - `model`: モデル識別子 (例: "claude-sonnet-5")
 - `query_source`: リクエストを発行したサブシステムのカテゴリ。`"main"`、`"subagent"`、または `"auxiliary"` のいずれか
 - `speed`: 高速モードを使用した場合は `"fast"`。それ以外の場合は存在しません
-- `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level)。詳細は [コストカウンター](#cost-counter)を参照してください。
+- `effort`: リクエストに適用された[努力レベル](/docs/ja/model-config#adjust-effort-level)。詳細は [コストカウンター](#cost-counter)を参照してください。
 - `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`、`mcp_server.name`、`mcp_tool.name`: リクエストのスキル、プラグイン、エージェント、および MCP 属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
 
 コード編集ツール決定カウンター
@@ -620,7 +620,7 @@ Claude への各 API リクエストについてログされます。
 - `request_id`: レスポンスの `request-id` ヘッダーからの Anthropic API リクエスト ID。例: `"req_011..."`。API が返す場合のみ存在します。
 - `speed`: `"fast"` または `"normal"`、高速モードがアクティブであったかどうかを示します
 - `query_source`: リクエストを発行したサブシステム。例: `"repl_main_thread"`、`"compact"`、またはサブエージェント名
-- `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level): `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。モデルが努力をサポートしない場合は存在しません。
+- `effort`: リクエストに適用された[努力レベル](/docs/ja/model-config#adjust-effort-level): `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。モデルが努力をサポートしない場合は存在しません。
 - `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`、`mcp_server.name`、`mcp_tool.name`: リクエストのスキル、プラグイン、エージェント、および MCP 属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
 
 API エラーイベント
@@ -643,7 +643,7 @@ Claude への API リクエストが失敗するときにログされます。
 - `request_id`: レスポンスの `request-id` ヘッダーからの Anthropic API リクエスト ID。例: `"req_011..."`。API が返す場合のみ存在します。
 - `speed`: `"fast"` または `"normal"`、高速モードがアクティブであったかどうかを示します
 - `query_source`: リクエストを発行したサブシステム。例: `"repl_main_thread"`、`"compact"`、またはサブエージェント名
-- `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level)。モデルが努力をサポートしない場合は存在しません。
+- `effort`: リクエストに適用された[努力レベル](/docs/ja/model-config#adjust-effort-level)。モデルが努力をサポートしない場合は存在しません。
 - `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`、`mcp_server.name`、`mcp_tool.name`: リクエストのスキル、プラグイン、エージェント、および MCP 属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
 
 API 拒否イベント
@@ -661,9 +661,9 @@ API リクエストが `stop_reason: "refusal"` を返すときにログされ�
 - `model`: リクエストからのモデル識別子
 - `request_id`: レスポンスの `request-id` ヘッダーからの Anthropic API リクエスト ID。例: `"req_011..."`。API が返す場合のみ存在します。
 - `query_source`: リクエストを発行したサブシステム。例: `"repl_main_thread"`、`"compact"`、またはサブエージェント名。定義については [`api_request`](#api-request-event)を参照してください。
-- `speed`: [高速モード](/ja/fast-mode)がアクティブな場合は `"fast"`、または `"normal"`
+- `speed`: [高速モード](/docs/ja/fast-mode)がアクティブな場合は `"fast"`、または `"normal"`
 - `attempt`: 再試行試行番号。最初の試行は `1` です。
-- `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level)。モデルが努力をサポートしない場合は存在しません。
+- `effort`: リクエストに適用された[努力レベル](/docs/ja/model-config#adjust-effort-level)。モデルが努力をサポートしない場合は存在しません。
 - `server_fallback_hop`: API のサーバー側モデルフォールバックがすでにこの拒否を別のモデルで再試行した場合は `true`。ユーザーはこの特定の拒否を見ませんでした。リクエストが拒否で終了した場合は `false`。単一のターンは、フォールバックモデルも拒否する場合、`true` ホップイベントと後の `false` 最終イベントの両方を出力できます。
 - `has_category`: API レスポンスが `stop_details.category` の `"cyber"`、`"bio"`、`"frontier_llm"`、または `"reasoning_extraction"` を含む場合は `true`。レスポンスがカテゴリを含まないか、そのセット外の値を含む場合は `false`。`server_fallback_hop` が `true` の場合は存在しません。ホップブロックは `stop_details` を含まないためです。
 - `has_explanation`: API レスポンスが `stop_details.explanation` を含む場合は `true`、それ以外の場合は `false`。`server_fallback_hop` が `true` の場合は存在しません。
@@ -852,7 +852,7 @@ Claude Code が予期しない内部エラーをキャッチするときにロ�
 - `skill_path_count`: プラグインが宣言するスキルディレクトリの数
 - `command_path_count`: プラグインが宣言するコマンドディレクトリの数
 - `agent_path_count`: プラグインが宣言するエージェントディレクトリの数
-- `safe_mode`: セッションが [`--safe-mode`](/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。セーフモードでは、このイベントは設定されたインベントリのみを報告します。プラグインのコマンド、スキル、フック、MCP サーバーは読み込まれません。Claude Code v2.1.169 以降が必要です
+- `safe_mode`: セッションが [`--safe-mode`](/docs/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。セーフモードでは、このイベントは設定されたインベントリのみを報告します。プラグインのコマンド、スキル、フック、MCP サーバーは読み込まれません。Claude Code v2.1.169 以降が必要です
 
 スキル有効化イベント
 
@@ -922,7 +922,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - `hook_event`: フックイベントタイプ。例: `"PreToolUse"` または `"PostToolUse"`
 - `hook_type`: フック実装タイプ: `"command"`、`"prompt"`、`"mcp_tool"`、`"http"`、または `"agent"`
 - `hook_source`: フックが定義されている場所: `"userSettings"`、`"projectSettings"`、`"localSettings"`、`"flagSettings"`、`"policySettings"`、または `"pluginHook"`
-- `safe_mode`: セッションが [`--safe-mode`](/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。Claude Code v2.1.169 以降が必要です
+- `safe_mode`: セッションが [`--safe-mode`](/docs/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。Claude Code v2.1.169 以降が必要です
 - `hook_matcher` (`OTEL_LOG_TOOL_DETAILS=1` の場合): フック設定から設定されている場合のマッチャー文字列
 - `plugin.name` (`hook_source` が `"pluginHook"` の場合): 貢献するプラグインの名前。公式マーケットプレイスおよび組み込みバンドルの外部にあるプラグインの場合、`OTEL_LOG_TOOL_DETAILS=1` が設定されていない限り値は `"third-party"` です
 - `plugin_id_hash` (`hook_source` が `"pluginHook"` の場合): プラグイン名とマーケットプレイスの決定論的ハッシュ。設定されたエクスポーターにのみ送信されます。その名前を記録することなく、貢献するプラグインの数をカウントできます
@@ -944,7 +944,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - `num_hooks`: 一致するフックコマンドの数
 - `managed_only`: 管理ポリシーフックのみが許可されている場合は `"true"`
 - `hook_source`: `"policySettings"` または `"merged"`
-- `safe_mode`: セッションが [`--safe-mode`](/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。Claude Code v2.1.169 以降が必要です
+- `safe_mode`: セッションが [`--safe-mode`](/docs/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。Claude Code v2.1.169 以降が必要です
 - `hook_definitions`: JSON シリアル化されたフック設定。詳細なベータトレースと `OTEL_LOG_TOOL_DETAILS=1` の両方が有効な場合にのみ含まれます
 
 フック実行完了イベント
@@ -969,7 +969,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - `total_duration_ms`: すべての一致するフックの実時間
 - `managed_only`: 管理ポリシーフックのみが許可されている場合は `"true"`
 - `hook_source`: `"policySettings"` または `"merged"`
-- `safe_mode`: セッションが [`--safe-mode`](/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。Claude Code v2.1.169 以降が必要です
+- `safe_mode`: セッションが [`--safe-mode`](/docs/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。Claude Code v2.1.169 以降が必要です
 - `hook_definitions`: JSON シリアル化されたフック設定。詳細なベータトレースと `OTEL_LOG_TOOL_DETAILS=1` の両方が有効な場合にのみ含まれます
 
 フックプラグインメトリクスイベント
@@ -1010,7 +1010,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 
 フィードバック調査イベント
 
-セッション品質調査が表示または回答されるときにログされます。調査が収集する内容と制御方法については、[セッション品質調査](/ja/data-usage#session-quality-surveys)を参照してください。
+セッション品質調査が表示または回答されるときにログされます。調査が収集する内容と制御方法については、[セッション品質調査](/docs/ja/data-usage#session-quality-surveys)を参照してください。
 
 **イベント名**: `claude_code.feedback_survey`
 
@@ -1024,7 +1024,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - `appearance_id`: 1 つの調査インスタンスに対して出力されたイベントをリンクする一意の ID
 - `survey_type`: イベントを生成した調査。`"session"` は「Claude はどのように機能していますか?」という評価プロンプトです
 - `response`: `responded` イベントでのユーザーの選択
-- `enabled_via_override`: [`CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL`](/ja/env-vars) が設定されている場合は `true`。文字列ではなくブール値として出力されます。`session` 調査イベントに存在します。この属性をフィルタリングして、フリート全体でオーバーライドが適用されていることを確認します
+- `enabled_via_override`: [`CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL`](/docs/ja/env-vars) が設定されている場合は `true`。文字列ではなくブール値として出力されます。`session` 調査イベントに存在します。この属性をフィルタリングして、フリート全体でオーバーライドが適用されていることを確認します
 
 メトリクスとイベントデータの解釈
 
@@ -1086,9 +1086,9 @@ OpenTelemetry イベントは Claude Code アクティビティの監査デー�
 
 属性アクションをユーザーに関連付ける
 
-各イベントの [標準属性](#standard-attributes) には、認証されたユーザーの ID が含まれます：Claude アカウントでサインインしている場合は `user.email`、`user.account_uuid`、`user.account_id`、および `organization.id`、さらにインストールスコープの `user.id` とセッションごとの `session.id`。`user.id` はインストールスコープの識別子です。ただし、[Claude apps gateway](/ja/claude-apps-gateway) セッションでは、ゲートウェイが発行したトークンからの IdP サブジェクトです。
+各イベントの [標準属性](#standard-attributes) には、認証されたユーザーの ID が含まれます：Claude アカウントでサインインしている場合は `user.email`、`user.account_uuid`、`user.account_id`、および `organization.id`、さらにインストールスコープの `user.id` とセッションごとの `session.id`。`user.id` はインストールスコープの識別子です。ただし、[Claude apps gateway](/docs/ja/claude-apps-gateway) セッションでは、ゲートウェイが発行したトークンからの IdP サブジェクトです。
 
-MCP ツール呼び出し、Bash コマンド、ファイル編集は、セッションを開始した開発者に属性付けられます。Claude Code は個別のサービスアカウントの下では機能しません。各イベントに記録される ID は、開発者自身の Claude アカウント、または [Claude apps gateway](/ja/claude-apps-gateway) セッションでの開発者の IdP ID です。
+MCP ツール呼び出し、Bash コマンド、ファイル編集は、セッションを開始した開発者に属性付けられます。Claude Code は個別のサービスアカウントの下では機能しません。各イベントに記録される ID は、開発者自身の Claude アカウント、または [Claude apps gateway](/docs/ja/claude-apps-gateway) セッションでの開発者の IdP ID です。
 
 Claude Code が直接 API キーで認証する場合、または Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry に対して認証する場合、セッションに Claude アカウントはなく、`user.id` と `session.id` のみが入力されます。これらのデプロイメントでは、`OTEL_RESOURCE_ATTRIBUTES` を使用してユーザー ID を自分で添付し、[管理設定](#administrator-configuration) ファイルまたはローンチラッパーを通じてユーザーごとに設定します。Claude apps gateway セッションはこれを必要としません：CLI は [標準属性](#standard-attributes) で説明されているように、IdP ID を自動的にスタンプします。
 
@@ -1188,7 +1188,7 @@ ROI 測定リソース
 
 セキュリティとプライバシー
 
-- OpenTelemetry エクスポートはオプトインであり、明示的な設定が必要です。Anthropic の個別の運用テレメトリと無効化方法については、[データ使用](/ja/data-usage#telemetry-services)を参照してください
+- OpenTelemetry エクスポートはオプトインであり、明示的な設定が必要です。Anthropic の個別の運用テレメトリと無効化方法については、[データ使用](/docs/ja/data-usage#telemetry-services)を参照してください
 - 生のファイルコンテンツとコードスニペットはメトリクスやイベントに含まれません。トレーススパンは別のデータパスです: 以下の `OTEL_LOG_TOOL_CONTENT` の項目を参照してください
 - OAuth 経由で認証された場合、`user.email` はテレメトリ属性に含まれます。これが組織にとって懸念事項である場合は、テレメトリバックエンドと協力してこのフィールドをフィルタリングまたはマスクしてください
 - ユーザープロンプトコンテンツはデフォルトでは収集されません。プロンプト長のみが記録されます。プロンプトコンテンツを含めるには、`OTEL_LOG_USER_PROMPTS=1` を設定します

@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/ja/network-config.md
 
 Claude Code は、環境変数を通じてさまざまなエンタープライズネットワークおよびセキュリティ設定をサポートしています。これには、企業プロキシサーバーを通じたトラフィックのルーティング、カスタム認証局（CA）の信頼、および強化されたセキュリティのための相互 Transport Layer Security（mTLS）証明書による認証が含まれます。
 
-このページに表示されているすべての環境変数は、[`settings.json`](/ja/settings) でも設定できます。
+このページに表示されているすべての環境変数は、[`settings.json`](/docs/ja/settings) でも設定できます。
 
 プロキシ設定
 
@@ -100,30 +100,30 @@ Claude Code は以下の URL へのアクセスが必要です。プロキシ設
 | `api.anthropic.com` | Claude API リクエスト |
 | `claude.ai` | claude.ai アカウント認証 |
 | `platform.claude.com` | Anthropic Console アカウント認証 |
-| `mcp-proxy.anthropic.com` | [claude.ai からの MCP コネクタ](/ja/mcp#use-mcp-servers-from-claude-ai)（組織管理者が設定するコネクタを含む）。コネクタトラフィックはこのプロキシを経由してルーティングされます。コネクタは claude.ai で認証されたユーザーに対してデフォルトで有効です。無効にするには、[`ENABLE_CLAUDEAI_MCP_SERVERS=false`](/ja/env-vars) または [`disableClaudeAiConnectors`](/ja/settings#available-settings) 設定を設定してください |
+| `mcp-proxy.anthropic.com` | [claude.ai からの MCP コネクタ](/docs/ja/mcp#use-mcp-servers-from-claude-ai)（組織管理者が設定するコネクタを含む）。コネクタトラフィックはこのプロキシを経由してルーティングされます。コネクタは claude.ai で認証されたユーザーに対してデフォルトで有効です。無効にするには、[`ENABLE_CLAUDEAI_MCP_SERVERS=false`](/docs/ja/env-vars) または [`disableClaudeAiConnectors`](/docs/ja/settings#available-settings) 設定を設定してください |
 | `downloads.claude.ai` | プラグイン実行可能ファイルのダウンロード、ネイティブインストーラーおよびネイティブ自動更新プログラム |
-| `storage.googleapis.com` | `/plugin` に表示されるインストール数とプラグインメタデータ。署名済み[アーティファクト](/ja/artifacts)アップロードはこのホストを最初に試します。ブロックされている場合は `api.anthropic.com` にフォールバックします |
+| `storage.googleapis.com` | `/plugin` に表示されるインストール数とプラグインメタデータ。署名済み[アーティファクト](/docs/ja/artifacts)アップロードはこのホストを最初に試します。ブロックされている場合は `api.anthropic.com` にフォールバックします |
 | `storage.googleapis.com` | 2.1.116 より前のバージョンのネイティブインストーラーおよびネイティブ自動更新プログラム |
-| `bridge.claudeusercontent.com` | [Chrome の Claude](/ja/chrome) 拡張機能 WebSocket ブリッジ |
-| `*.claudeusercontent.com` | claude.ai での[アーティファクト](/ja/artifacts)の表示。ビューアーは各アーティファクトのコンテンツをこのオリジンのサンドボックス化されたサブドメインから読み込みます。ビューアーのブラウザーで必要です。CLI 自体では不要です |
-| `raw.githubusercontent.com` | [`/release-notes`](/ja/commands) のチェンジログフィード、更新後に表示されるリリースノート |
+| `bridge.claudeusercontent.com` | [Chrome の Claude](/docs/ja/chrome) 拡張機能 WebSocket ブリッジ |
+| `*.claudeusercontent.com` | claude.ai での[アーティファクト](/docs/ja/artifacts)の表示。ビューアーは各アーティファクトのコンテンツをこのオリジンのサンドボックス化されたサブドメインから読み込みます。ビューアーのブラウザーで必要です。CLI 自体では不要です |
+| `raw.githubusercontent.com` | [`/release-notes`](/docs/ja/commands) のチェンジログフィード、更新後に表示されるリリースノート |
 
 npm を通じて Claude Code をインストールするか、独自のバイナリ配布を管理する場合、エンドユーザーは `downloads.claude.ai` のネイティブインストーラーと自動更新プログラムの用途が不要です。表内の他の用途はインストール方法に関係なく適用されます。
 
-Claude Code はデフォルトでオプションの運用テレメトリを送信します。これは環境変数で無効にできます。ホワイトリストを最終化する前に、[テレメトリサービス](/ja/data-usage#telemetry-services) を参照して無効にする方法を確認してください。
+Claude Code はデフォルトでオプションの運用テレメトリを送信します。これは環境変数で無効にできます。ホワイトリストを最終化する前に、[テレメトリサービス](/docs/ja/data-usage#telemetry-services) を参照して無効にする方法を確認してください。
 
-[Amazon Bedrock](/ja/amazon-bedrock)、[Google Cloud の Agent Platform](/ja/google-vertex-ai)、[Microsoft Foundry](/ja/microsoft-foundry)、または署名済みの [Claude apps gateway](/ja/claude-apps-gateway) セッションを使用する場合、モデルトラフィックと認証は `api.anthropic.com`、`claude.ai`、または `platform.claude.com` ではなくプロバイダーまたはゲートウェイに送信されます。WebFetch ツールは、[settings](/ja/settings) で `skipWebFetchPreflight: true` を設定しない限り、[ドメイン安全性チェック](/ja/data-usage#webfetch-domain-safety-check) のために `api.anthropic.com` を呼び出します。
+[Amazon Bedrock](/docs/ja/amazon-bedrock)、[Google Cloud の Agent Platform](/docs/ja/google-vertex-ai)、[Microsoft Foundry](/docs/ja/microsoft-foundry)、または署名済みの [Claude apps gateway](/docs/ja/claude-apps-gateway) セッションを使用する場合、モデルトラフィックと認証は `api.anthropic.com`、`claude.ai`、または `platform.claude.com` ではなくプロバイダーまたはゲートウェイに送信されます。WebFetch ツールは、[settings](/docs/ja/settings) で `skipWebFetchPreflight: true` を設定しない限り、[ドメイン安全性チェック](/docs/ja/data-usage#webfetch-domain-safety-check) のために `api.anthropic.com` を呼び出します。
 
-[Claude Code on the web](/ja/claude-code-on-the-web) および [Code Review](/ja/code-review) は、Anthropic が管理するインフラストラクチャからリポジトリに接続します。GitHub Enterprise Cloud 組織が IP アドレスによるアクセスを制限している場合は、[インストール済み GitHub Apps の IP 許可リスト継承を有効にします](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#allowing-access-by-github-apps)。Claude GitHub App は IP 範囲を登録するため、この設定を有効にするとマニュアル設定なしでアクセスが可能になります。代わりに[範囲を許可リストに手動で追加する](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#adding-an-allowed-ip-address)場合、または他のファイアウォールを設定する場合は、[Anthropic API IP アドレス](https://platform.claude.com/docs/en/api/ip-addresses) を参照してください。
+[Claude Code on the web](/docs/ja/claude-code-on-the-web) および [Code Review](/docs/ja/code-review) は、Anthropic が管理するインフラストラクチャからリポジトリに接続します。GitHub Enterprise Cloud 組織が IP アドレスによるアクセスを制限している場合は、[インストール済み GitHub Apps の IP 許可リスト継承を有効にします](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#allowing-access-by-github-apps)。Claude GitHub App は IP 範囲を登録するため、この設定を有効にするとマニュアル設定なしでアクセスが可能になります。代わりに[範囲を許可リストに手動で追加する](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#adding-an-allowed-ip-address)場合、または他のファイアウォールを設定する場合は、[Anthropic API IP アドレス](https://platform.claude.com/docs/en/api/ip-addresses) を参照してください。
 
-ファイアウォールの背後にある自社ホスト型の [GitHub Enterprise Server](/ja/github-enterprise-server) インスタンスの場合は、Anthropic インフラストラクチャがリポジトリをクローンしてレビューコメントを投稿できるように、同じ [Anthropic API IP アドレス](https://platform.claude.com/docs/en/api/ip-addresses) をホワイトリストに登録してください。
+ファイアウォールの背後にある自社ホスト型の [GitHub Enterprise Server](/docs/ja/github-enterprise-server) インスタンスの場合は、Anthropic インフラストラクチャがリポジトリをクローンしてレビューコメントを投稿できるように、同じ [Anthropic API IP アドレス](https://platform.claude.com/docs/en/api/ip-addresses) をホワイトリストに登録してください。
 
 Desktop と claude.ai
 
-前述の表は主にスタンドアロン CLI をカバーしています。Claude Desktop アプリと、ブラウザ内の claude.ai は、`assets-proxy.anthropic.com` を含む追加の Anthropic CDN ホストからアプリケーションコードを読み込みます。`claude.ai` を許可しながらそれらのホストをブロックすると、エラーではなく空白ページが表示されます。Desktop ページの[ネットワークアクセス要件](/ja/desktop#network-access-requirements)を参照してください。
+前述の表は主にスタンドアロン CLI をカバーしています。Claude Desktop アプリと、ブラウザ内の claude.ai は、`assets-proxy.anthropic.com` を含む追加の Anthropic CDN ホストからアプリケーションコードを読み込みます。`claude.ai` を許可しながらそれらのホストをブロックすると、エラーではなく空白ページが表示されます。Desktop ページの[ネットワークアクセス要件](/docs/ja/desktop#network-access-requirements)を参照してください。
 
 その他のリソース
 
-- [Claude Code 設定](/ja/settings)
-- [環境変数リファレンス](/ja/env-vars)
-- [トラブルシューティングガイド](/ja/troubleshooting)
+- [Claude Code 設定](/docs/ja/settings)
+- [環境変数リファレンス](/docs/ja/env-vars)
+- [トラブルシューティングガイド](/docs/ja/troubleshooting)

@@ -24,7 +24,7 @@ Claude Code プラグインは、以下を含むほとんどの JetBrains IDEs �
 
 - **クイック起動**: `Cmd+Esc`（Mac）または `Ctrl+Esc`（Windows/Linux）を使用してエディタから Claude Code を直接開くか、UI の Claude Code ボタンをクリックします
 - **Diff ビューイング**: コードの変更をターミナルではなく IDE の diff ビューアに直接表示できます
-- **選択コンテキスト**: IDE の現在の選択またはタブが Claude Code と自動的に共有されます。[`Read` 拒否ルール](/ja/permissions#read-and-edit)は、一致するファイルのこの共有をブロックします
+- **選択コンテキスト**: IDE の現在の選択またはタブが Claude Code と自動的に共有されます。[`Read` 拒否ルール](/docs/ja/permissions#read-and-edit)は、一致するファイルのこの共有をブロックします
 - **ファイル参照ショートカット**: `Cmd+Option+K`（Mac）または `Alt+Ctrl+K`（Linux/Windows）を使用して `@src/auth.ts#L1-99` などのファイル参照を挿入します
 - **診断共有**: IDE からの診断エラー（lint、構文エラーなど）が作業中に Claude と自動的に共有されます
 
@@ -32,13 +32,13 @@ Claude Code プラグインは、以下を含むほとんどの JetBrains IDEs �
 
 プラグインは IDE の統合ターミナルで `claude` コマンドを実行し、それに接続します。独自の CLI コピーをバンドルしていないため、両方をインストールする必要があります。
 
-まだインストールしていない場合は、[クイックスタート](/ja/quickstart) に従って CLI をインストールしてください。`claude` が PATH にない場合、プラグインは'Claude Code を起動できません'という通知を表示します。
+まだインストールしていない場合は、[クイックスタート](/docs/ja/quickstart) に従って CLI をインストールしてください。`claude` が PATH にない場合、プラグインは'Claude Code を起動できません'という通知を表示します。
 
 JetBrains マーケットプレイスから [Claude Code プラグイン](https://plugins.jetbrains.com/plugin/27310-claude-code-beta-) をインストールし、IDE を再起動します。
 
 `claude` が IDE が見つけられない場所にインストールされている場合は、プラグインの [Claude コマンド設定](#general-settings) でフルパスを設定してください。
 
-Claude Code は、任意の有料 Claude サブスクリプション（Pro、Max、Team、または Enterprise）または Claude Console アカウントで動作し、API キーは不要です。`claude` を初めて実行するときに [ログイン](/ja/authentication#log-in-to-claude-code) するよう求められます。
+Claude Code は、任意の有料 Claude サブスクリプション（Pro、Max、Team、または Enterprise）または Claude Console アカウントで動作し、API キーは不要です。`claude` を初めて実行するときに [ログイン](/docs/ja/authentication#log-in-to-claude-code) するよう求められます。
 
 プラグインをインストール後、IDE を完全に再起動する必要がある場合があります。
 
@@ -172,7 +172,7 @@ Claude アイコンをクリックして「command not found」が表示され�
 
 セキュリティに関する考慮事項
 
-Claude Code が [`acceptEdits` 権限モード](/ja/permission-modes#auto-approve-file-edits-with-acceptedits-mode)で JetBrains IDE で実行される場合、IDE によって自動的に実行される可能性のある IDE 設定ファイルを変更できる場合があります。これにより、`acceptEdits` モードで Claude Code を実行するリスクが増加し、bash 実行に対する Claude Code の権限プロンプトをバイパスできる可能性があります。
+Claude Code が [`acceptEdits` 権限モード](/docs/ja/permission-modes#auto-approve-file-edits-with-acceptedits-mode)で JetBrains IDE で実行される場合、IDE によって自動的に実行される可能性のある IDE 設定ファイルを変更できる場合があります。これにより、`acceptEdits` モードで Claude Code を実行するリスクが増加し、bash 実行に対する Claude Code の権限プロンプトをバイパスできる可能性があります。
 
 JetBrains IDEs で実行する場合は、以下を検討してください。
 
@@ -180,15 +180,15 @@ JetBrains IDEs で実行する場合は、以下を検討してください。
 - Claude が信頼できるプロンプトでのみ使用されることを確認するために特に注意する
 - Claude Code がアクセスして変更できるファイルを認識する
 
-Claude Code のインストールまたはログインの問題については、[インストールとログインのトラブルシューティング](/ja/troubleshoot-install) を参照してください。
+Claude Code のインストールまたはログインの問題については、[インストールとログインのトラブルシューティング](/docs/ja/troubleshoot-install) を参照してください。
 
 組み込み IDE MCP サーバー
 
 プラグインがアクティブな場合、CLI が自動的に接続するローカル MCP サーバーが実行されます。これは、CLI が IDE のネイティブ diff ビューアーで diff を開き、`@` メンションの現在の選択を読み取り、検査診断を会話に取り込む方法です。
 
-サーバーは `ide` という名前で、設定するものがないため `/mcp` から非表示になっています。ただし、組織が [`PreToolUse` フック](/ja/hooks#pretooluse) を使用して MCP ツールをホワイトリストに登録している場合は、それが存在することを知っておく必要があります。
+サーバーは `ide` という名前で、設定するものがないため `/mcp` から非表示になっています。ただし、組織が [`PreToolUse` フック](/docs/ja/hooks#pretooluse) を使用して MCP ツールをホワイトリストに登録している場合は、それが存在することを知っておく必要があります。
 
-**選択とオープンファイルコンテキスト。** 接続中、CLI は現在のエディター選択とアクティブファイルのパスを、送信する各プロンプトのコンテキストとして含めます。トランスクリプトには、これが発生したときに `⧉ Selected N lines from <file>` という行が表示されます。`.env` などの機密ファイルを除外するには、そのパスに対して [`Read` 拒否ルール](/ja/permissions#read-and-edit) を追加してください。一致する拒否ルールは、選択されたテキストとそのファイルのオープンファイル通知の両方が Claude に到達するのを防ぎます。
+**選択とオープンファイルコンテキスト。** 接続中、CLI は現在のエディター選択とアクティブファイルのパスを、送信する各プロンプトのコンテキストとして含めます。トランスクリプトには、これが発生したときに `⧉ Selected N lines from <file>` という行が表示されます。`.env` などの機密ファイルを除外するには、そのパスに対して [`Read` 拒否ルール](/docs/ja/permissions#read-and-edit) を追加してください。一致する拒否ルールは、選択されたテキストとそのファイルのオープンファイル通知の両方が Claude に到達するのを防ぎます。
 
 **トランスポートと認証。** サーバーは OS が割り当てた一時的なポートでリッスンし、ポートは設定できません。トランスポートは暗号化されていない `ws://` です。ループバック上では、トラフィックをキャプチャできるプロセスはロックファイルからトークンも読み取ることができるため、TLS はローカル攻撃者に対する保護を追加しません。IDE の起動ごとに新しいランダム認証トークンが生成され、`~/.claude/ide/<port>.lock` のロックファイルに書き込まれ、CLI は `X-Claude-Code-Ide-Authorization` ヘッダーとして提示して接続する必要があります。`CLAUDE_CONFIG_DIR` が設定されている場合、ロックファイルは代わりに `$CLAUDE_CONFIG_DIR/ide/` に書き込まれます。
 

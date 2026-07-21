@@ -592,8 +592,8 @@
   * Frontmatter
 * 関連機能との比較
   * Output Styles と CLAUDE.md と --append-system-prompt
-  * Output Styles と [Agents](/ja/sub-agents)
-  * Output Styles と [Skills](/ja/skills)
+  * Output Styles と [Agents](/docs/ja/sub-agents)
+  * Output Styles と [Skills](/docs/ja/skills)
 
 ### [hooks-guide](https://code.claude.com/docs/ja/hooks-guide.md)
 

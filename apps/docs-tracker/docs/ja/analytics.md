@@ -25,7 +25,7 @@ Team と Enterprise ダッシュボードには以下が含まれます。
 - **リーダーボード**：Claude Code 使用量でランク付けされたトップコントリビューター
 - **データエクスポート**：カスタムレポート用に貢献データを CSV としてダウンロード
 
-ユーザーごとのトークン数とコスト推定については、[OpenTelemetry エクスポート](/ja/monitoring-usage)を構成するか、組織の分析設定から[支出レポート](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans)をエクスポートしてください。これはユーザーごと、モデルごとのトークン使用量と推定使用クレジット支出を一覧表示します。
+ユーザーごとのトークン数とコスト推定については、[OpenTelemetry エクスポート](/docs/ja/monitoring-usage)を構成するか、組織の分析設定から[支出レポート](https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans)をエクスポートしてください。これはユーザーごと、モデルごとのトークン使用量と推定使用クレジット支出を一覧表示します。
 
 貢献メトリクスを有効にする
 
@@ -35,7 +35,7 @@ Team と Enterprise ダッシュボードには以下が含まれます。
 
 分析設定を構成するには、オーナーロールが必要です。GitHub 管理者が GitHub アプリをインストールする必要があります。
 
-[Zero Data Retention](/ja/zero-data-retention) が有効になっている組織では、貢献メトリクスは利用できません。分析ダッシュボードは使用メトリクスのみを表示します。
+[Zero Data Retention](/docs/ja/zero-data-retention) が有効になっている組織では、貢献メトリクスは利用できません。分析ダッシュボードは使用メトリクスのみを表示します。
 
 GitHub 管理者が、[github.com/apps/claude](https://github.com/apps/claude) で組織の GitHub アカウントに Claude GitHub アプリをインストールします。
 
@@ -204,6 +204,6 @@ Console ダッシュボードの支出数値は分析目的の推定値です。
 
 関連リソース
 
-- [OpenTelemetry での監視](/ja/monitoring-usage)：リアルタイムメトリクスとイベントを可観測性スタックにエクスポート
-- [コストを効果的に管理する](/ja/costs)：支出制限を設定し、トークン使用を最適化
-- [権限](/ja/permissions)：ロールと権限を構成
+- [OpenTelemetry での監視](/docs/ja/monitoring-usage)：リアルタイムメトリクスとイベントを可観測性スタックにエクスポート
+- [コストを効果的に管理する](/docs/ja/costs)：支出制限を設定し、トークン使用を最適化
+- [権限](/docs/ja/permissions)：ロールと権限を構成

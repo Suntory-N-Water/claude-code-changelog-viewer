@@ -27,7 +27,7 @@ Claude Code in Slack を使用する前に、以下を確認してください�
 | 要件 | 詳細 |
 | :- | :- |
 | Claude プラン | Pro、Max、Team、または Claude Code アクセス付き Enterprise（プレミアムシート、または Chat + Claude Code シート） |
-| ウェブ上の Claude Code | [ウェブ上の Claude Code](/ja/claude-code-on-the-web) へのアクセスが有効になっている必要があります |
+| ウェブ上の Claude Code | [ウェブ上の Claude Code](/docs/ja/claude-code-on-the-web) へのアクセスが有効になっている必要があります |
 | GitHub アカウント | ウェブ上の Claude Code に接続され、少なくとも 1 つのリポジトリが認証されている |
 | Slack 認証 | Slack アカウントが Claude アプリを通じて Claude アカウントにリンクされている |
 
@@ -143,7 +143,7 @@ Claude はインストール後、自動的にどのチャネルにも追加さ�
 
 **ウェブで**: 完全な Claude Code セッション、完全な会話履歴、すべてのコード変更、ファイル操作、セッションの継続またはプルリクエストの作成機能があります。
 
-Enterprise および Team アカウントの場合、Slack の Claude から作成されたセッションは自動的に組織に表示されます。詳細については、[Claude Code on the Web 共有](/ja/claude-code-on-the-web#share-sessions) を参照してください。
+Enterprise および Team アカウントの場合、Slack の Claude から作成されたセッションは自動的に組織に表示されます。詳細については、[Claude Code on the Web 共有](/docs/ja/claude-code-on-the-web#share-sessions) を参照してください。
 
 ベストプラクティス
 

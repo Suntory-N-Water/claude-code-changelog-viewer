@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/chrome.md
 
 > Claude Code を Chrome ブラウザに接続して、Web アプリをテストし、コンソールログでデバッグし、フォーム入力を自動化し、Web ページからデータを抽出します。
 
-Claude Code は [Claude in Chrome ブラウザ拡張機能](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) と統合され、CLI または [VS Code 拡張機能](/ja/vs-code#automate-browser-tasks-with-chrome) からブラウザ自動化機能を提供します。コードをビルドしてから、コンテキストを切り替えることなくブラウザでテストおよびデバッグできます。
+Claude Code は [Claude in Chrome ブラウザ拡張機能](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) と統合され、CLI または [VS Code 拡張機能](/docs/ja/vs-code#automate-browser-tasks-with-chrome) からブラウザ自動化機能を提供します。コードをビルドしてから、コンテキストを切り替えることなくブラウザでテストおよびデバッグできます。
 
 Claude はブラウザタスク用に新しいタブを開き、ブラウザのログイン状態を共有するため、既にサインインしているサイトにアクセスできます。ブラウザアクションはリアルタイムで表示される Chrome ウィンドウで実行されます。Claude がログインページまたは CAPTCHA に遭遇した場合、一時停止して手動で処理するよう求めます。
 
@@ -31,7 +31,7 @@ Claude Code を Chrome で使用する前に、以下が必要です。
 
 - [Google Chrome](https://www.google.com/chrome/) または [Microsoft Edge](https://www.microsoft.com/edge) ブラウザ
 - [Claude in Chrome 拡張機能](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) バージョン 1.0.36 以上（Chrome Web Store で両方のブラウザで利用可能）
-- [Claude Code](/ja/quickstart#step-1-install-claude-code)
+- [Claude Code](/docs/ja/quickstart#step-1-install-claude-code)
 - 直接 Anthropic プラン（Pro、Max、Team、または Enterprise）
 
 Chrome 統合は Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry などのサードパーティプロバイダーを通じては利用できません。Claude にサードパーティプロバイダーを通じてのみアクセスする場合、この機能を使用するには別の claude.ai アカウントが必要です。
@@ -57,13 +57,13 @@ type "hooks", and tell me what results appear
 
 いつでも `/chrome` を実行して接続ステータスを確認し、権限を管理し、拡張機能を再接続するか、使用する接続されたブラウザを選択できます。ブラウザアクションが開始されるときに複数のブラウザが接続されている場合、Claude はいずれかを選択するよう促します。
 
-VS Code については、[VS Code でのブラウザ自動化](/ja/vs-code#automate-browser-tasks-with-chrome) を参照してください。
+VS Code については、[VS Code でのブラウザ自動化](/docs/ja/vs-code#automate-browser-tasks-with-chrome) を参照してください。
 
 Chrome をデフォルトで有効にする
 
 各セッションで `--chrome` を渡すことを避けるには、`/chrome` を実行して「デフォルトで有効」を選択します。
 
-[VS Code 拡張機能](/ja/vs-code#automate-browser-tasks-with-chrome) では、Chrome 拡張機能がインストールされている場合、Chrome はいつでも利用可能です。追加のフラグは必要ありません。
+[VS Code 拡張機能](/docs/ja/vs-code#automate-browser-tasks-with-chrome) では、Chrome 拡張機能がインストールされている場合、Chrome はいつでも利用可能です。追加のフラグは必要ありません。
 
 CLI で Chrome をデフォルトで有効にすると、ブラウザツールが常にロードされるため、コンテキスト使用量が増加します。コンテキスト消費の増加に気付いた場合、この設定を無効にして、必要な場合にのみ `--chrome` を使用してください。
 
@@ -73,7 +73,7 @@ CLI で Chrome をデフォルトで有効にすると、ブラウザツール�
 
 ブラウザツールをプランモードで使用する
 
-[プランモード](/ja/permission-modes#analyze-before-you-edit-with-plan-mode) では、ページまたはブラウザの状態のみを読み取るブラウザツール呼び出しは権限プロンプトなしで実行され、状態を変更する呼び出しは承認を求めるプロンプトが表示されます。
+[プランモード](/docs/ja/permission-modes#analyze-before-you-edit-with-plan-mode) では、ページまたはブラウザの状態のみを読み取るブラウザツール呼び出しは権限プロンプトなしで実行され、状態を変更する呼び出しは承認を求めるプロンプトが表示されます。
 
 - **読み取り専用呼び出し**: `read_page`、`get_page_text`、`find`、コンソールメッセージまたはネットワークリクエストの読み取り、およびスクリーンショットの撮影
 - **状態変更呼び出し**: クリック、入力、ナビゲーション、タブとウィンドウ管理、および GIF の記録
@@ -226,9 +226,9 @@ Windows では、以下の問題が発生する可能性があります。
 
 関連項目
 
-- [コンピュータ使用](/ja/computer-use)：ブラウザでタスクを実行できない場合にネイティブ macOS アプリを制御します
-- [VS Code で Claude Code を使用する](/ja/vs-code#automate-browser-tasks-with-chrome)：VS Code 拡張機能でのブラウザ自動化
-- [CLI リファレンス](/ja/cli-reference)：`--chrome` を含むコマンドラインフラグ
-- [一般的なワークフロー](/ja/common-workflows)：Claude Code を使用するその他の方法
-- [データとプライバシー](/ja/data-usage)：Claude Code がデータを処理する方法
+- [コンピュータ使用](/docs/ja/computer-use)：ブラウザでタスクを実行できない場合にネイティブ macOS アプリを制御します
+- [VS Code で Claude Code を使用する](/docs/ja/vs-code#automate-browser-tasks-with-chrome)：VS Code 拡張機能でのブラウザ自動化
+- [CLI リファレンス](/docs/ja/cli-reference)：`--chrome` を含むコマンドラインフラグ
+- [一般的なワークフロー](/docs/ja/common-workflows)：Claude Code を使用するその他の方法
+- [データとプライバシー](/docs/ja/data-usage)：Claude Code がデータを処理する方法
 - [Chrome で Claude を使い始める](https://support.claude.com/en/articles/12012173-getting-started-with-claude-in-chrome)：ショートカット、スケジューリング、権限を含む Chrome 拡張機能の完全なドキュメント

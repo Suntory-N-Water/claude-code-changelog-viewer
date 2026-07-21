@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/plugins-reference.md
 
 > Claude Code プラグインシステムの完全な技術リファレンス。スキーマ、CLI コマンド、コンポーネント仕様を含みます。
 
-プラグインをインストールしたいですか？[プラグインの検出とインストール](/ja/discover-plugins)を参照してください。プラグインの作成については、[プラグイン](/ja/plugins)を参照してください。プラグインの配布については、[プラグインマーケットプレイス](/ja/plugin-marketplaces)を参照してください。
+プラグインをインストールしたいですか？[プラグインの検出とインストール](/docs/ja/discover-plugins)を参照してください。プラグインの作成については、[プラグイン](/docs/ja/plugins)を参照してください。プラグインの配布については、[プラグインマーケットプレイス](/docs/ja/plugin-marketplaces)を参照してください。
 
 このリファレンスは、Claude Code プラグインシステムの完全な技術仕様を提供します。コンポーネントスキーマ、CLI コマンド、開発ツールを含みます。
 
@@ -43,7 +43,7 @@ skills/
 
 プラグインに `skills/` ディレクトリがなく、`skills` manifest フィールドがない場合、プラグインルートの `SKILL.md` は単一の skill として読み込まれます。frontmatter の `name` フィールドを設定して、skill の呼び出し名を制御します。これがない場合、Claude Code はインストールディレクトリ名にフォールバックします。マーケットプレイスからインストールされたプラグインの場合、これは更新のたびに変わるバージョン文字列です。複数の skill を配布するプラグインの場合は、上記の `skills/` ディレクトリレイアウトを使用してください。
 
-詳細については、[Skills](/ja/skills)を参照してください。
+詳細については、[Skills](/docs/ja/skills)を参照してください。
 
 Agents
 
@@ -72,12 +72,12 @@ disallowedTools: Write, Edit
 
 **統合ポイント**:
 
-- Agents は [@-mention typeahead](/ja/sub-agents#invoke-subagents-explicitly) に、`my-plugin:code-reviewer` などのスコープ付き名の下に表示されます。プラグインが有効になると
+- Agents は [@-mention typeahead](/docs/ja/sub-agents#invoke-subagents-explicitly) に、`my-plugin:code-reviewer` などのスコープ付き名の下に表示されます。プラグインが有効になると
 - Claude はタスクコンテキストに基づいて自動的にエージェントを呼び出すことができます
 - Agents はユーザーが手動で呼び出すことができます
 - プラグインエージェントは組み込みの Claude エージェントと一緒に動作します
 
-詳細については、[Subagents](/ja/sub-agents)を参照してください。
+詳細については、[Subagents](/docs/ja/sub-agents)を参照してください。
 
 Hooks
 
@@ -107,7 +107,7 @@ Hooks
 }
 ```
 
-プラグイン hooks は[ユーザー定義 hooks](/ja/hooks)と同じライフサイクルイベントに応答します:
+プラグイン hooks は[ユーザー定義 hooks](/docs/ja/hooks)と同じライフサイクルイベントに応答します:
 
 | Event | When it fires |
 | :- | :- |
@@ -129,13 +129,13 @@ Hooks
 | `TaskCompleted` | When a task is being marked as completed |
 | `Stop` | When Claude finishes responding |
 | `StopFailure` | When the turn ends due to an API error. Output and exit code are ignored |
-| `TeammateIdle` | When an [agent team](/en/agent-teams) teammate is about to go idle |
+| `TeammateIdle` | When an [agent team](/docs/en/agent-teams) teammate is about to go idle |
 | `InstructionsLoaded` | When a CLAUDE.md or `.claude/rules/*.md` file is loaded into context. Fires at session start and when files are lazily loaded during a session |
 | `ConfigChange` | When a configuration file changes during a session |
 | `CwdChanged` | When the working directory changes, for example when Claude executes a `cd` command. Useful for reactive environment management with tools like direnv |
 | `FileChanged` | When a watched file changes on disk. The `matcher` field specifies which filenames to watch |
-| `WorktreeCreate` | When a worktree is being created via `--worktree` or `isolation: "worktree"`. Replaces default git behavior |
-| `WorktreeRemove` | When a worktree is being removed, either at session exit or when a subagent finishes |
+| `WorktreeCreate` | When a worktree is being created via `--worktree`, `isolation: "worktree"`, or for a background session. Replaces default git behavior |
+| `WorktreeRemove` | When a worktree is being removed at session exit, when a subagent finishes, or when you delete a background session |
 | `PreCompact` | Before context compaction |
 | `PostCompact` | After context compaction completes |
 | `Elicitation` | When an MCP server requests user input during a tool call |
@@ -146,11 +146,11 @@ Hooks
 
 - `command`: シェルコマンドまたはスクリプトを実行
 - `http`: イベント JSON を URL への POST リクエストとして送信
-- `mcp_tool`: 設定された[MCP server](/ja/mcp)上のツールを呼び出す
+- `mcp_tool`: 設定された[MCP server](/docs/ja/mcp)上のツールを呼び出す
 - `prompt`: LLM でプロンプトを評価（コンテキストの `$ARGUMENTS` プレースホルダーを使用）
 - `agent`: 複雑な検証タスク用のツール付き agentic verifier を実行
 
-プラグイン自体の[バンドルされた MCP server](#mcp-servers)をターゲットとする Hooks は、スコープ付き名を使用する必要があります。ツールマッチャーと `if` フィールドはスコープ付きツール名 `mcp__plugin_<plugin-name>_<server-name>__<tool>` を取り、`mcp_tool` hook の `server` フィールドは `plugin:<plugin-name>:<server-name>` を取ります。ベアサーバーキーに対して記述されたマッチャーは発火しません。[MCP ツールをマッチ](/ja/hooks#match-mcp-tools)および[プラグイン提供 MCP servers](/ja/mcp#plugin-provided-mcp-servers)を参照してください。
+プラグイン自体の[バンドルされた MCP server](#mcp-servers)をターゲットとする Hooks は、スコープ付き名を使用する必要があります。ツールマッチャーと `if` フィールドはスコープ付きツール名 `mcp__plugin_<plugin-name>_<server-name>__<tool>` を取り、`mcp_tool` hook の `server` フィールドは `plugin:<plugin-name>:<server-name>` を取ります。ベアサーバーキーに対して記述されたマッチャーは発火しません。[MCP ツールをマッチ](/docs/ja/hooks#match-mcp-tools)および[プラグイン提供 MCP servers](/docs/ja/mcp#plugin-provided-mcp-servers)を参照してください。
 
 MCP servers
 
@@ -281,7 +281,7 @@ Monitors
 
 プラグインは、プラグインがアクティブな場合に Claude Code が自動的に開始するバックグラウンド monitors を宣言できます。各 monitor はセッションの期間中シェルコマンドを実行し、すべての stdout 行を Claude に通知として配信するため、Claude は自分自身に開始するよう求められることなく、ログエントリ、ステータス変更、またはポーリングされたイベントに反応できます。
 
-プラグイン monitors は[Monitor tool](/ja/tools-reference#monitor-tool)と同じメカニズムを使用し、その可用性制約を共有します。これらはインタラクティブ CLI セッションでのみ実行され、[hooks](#hooks)と同じ信頼レベルでサンドボックス化されずに実行され、Monitor tool が利用できないホストではスキップされます。
+プラグイン monitors は[Monitor tool](/docs/ja/tools-reference#monitor-tool)と同じメカニズムを使用し、その可用性制約を共有します。これらはインタラクティブ CLI セッションでのみ実行され、[hooks](#hooks)と同じ信頼レベルでサンドボックス化されずに実行され、Monitor tool が利用できないホストではスキップされます。
 
 **場所**: プラグインルートの `monitors/monitors.json`、または plugin.json 内のインライン
 
@@ -323,7 +323,7 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 
 `command` 値は[パス置換](#environment-variables) `${CLAUDE_PLUGIN_ROOT}`、`${CLAUDE_PLUGIN_DATA}`、`${CLAUDE_PROJECT_DIR}`、および環境からの任意の `${ENV_VAR}` をサポートします。スクリプトがプラグイン自体のディレクトリから実行される必要がある場合は、コマンドの前に `cd "${CLAUDE_PLUGIN_ROOT}" && ` を付けます。
 
-monitor `command` は[`${user_config.*}`](#user-configuration)値を参照することはできません。コマンドはシェルを通じて実行されるため、Claude Code は値を置換する代わりに[エラー](/ja/errors#plugin-command-references-user-config)でプラグインを拒否します。Monitor プロセスは `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数を受け取らないため、monitor スクリプトが所有する設定ファイルから値を読み取るようにしてください。v2.1.207 より前では、monitor コマンドは `${user_config.*}` 値を置換していました。
+monitor `command` は[`${user_config.*}`](#user-configuration)値を参照することはできません。コマンドはシェルを通じて実行されるため、Claude Code は値を置換する代わりに[エラー](/docs/ja/errors#plugin-command-references-user-config)でプラグインを拒否します。Monitor プロセスは `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数を受け取らないため、monitor スクリプトが所有する設定ファイルから値を読み取るようにしてください。v2.1.207 より前では、monitor コマンドは `${user_config.*}` 値を置換していました。
 
 セッション中にプラグインを無効にしても、既に実行中の monitors は停止しません。セッションが終了するときに停止します。
 
@@ -356,9 +356,9 @@ Themes
 | `user` | `~/.claude/settings.json` | すべてのプロジェクト全体で利用可能な個人プラグイン（デフォルト） |
 | `project` | `.claude/settings.json` | バージョン管理経由で共有されるチームプラグイン |
 | `local` | `.claude/settings.local.json` | プロジェクト固有のプラグイン、gitignored |
-| `managed` | [管理設定](/ja/settings#settings-files) | 管理プラグイン（読み取り専用、更新のみ） |
+| `managed` | [管理設定](/docs/ja/settings#settings-files) | 管理プラグイン（読み取り専用、更新のみ） |
 
-プラグインは他の Claude Code 設定と同じスコープシステムを使用します。インストール手順とスコープフラグについては、[プラグインのインストール](/ja/discover-plugins#install-plugins)を参照してください。スコープの完全な説明については、[設定スコープ](/ja/settings#configuration-scopes)を参照してください。
+プラグインは他の Claude Code 設定と同じスコープシステムを使用します。インストール手順とスコープフラグについては、[プラグインのインストール](/docs/ja/discover-plugins#install-plugins)を参照してください。スコープの完全な説明については、[設定スコープ](/docs/ja/settings#configuration-scopes)を参照してください。
 
 ***
 
@@ -370,7 +370,7 @@ skills ディレクトリツリーは 3 つの異なるものをサポートし�
 
 | 何を持っているか | それは何か |
 | :- | :- |
-| `<skills-dir>/foo/SKILL.md` マニフェストなし | `foo` という名前の単純な[skill](/ja/skills) |
+| `<skills-dir>/foo/SKILL.md` マニフェストなし | `foo` という名前の単純な[skill](/docs/ja/skills) |
 | `<skills-dir>/foo/.claude-plugin/plugin.json` | プラグイン `foo@skills-dir`。独自の skills、agents、hooks などをバンドルできます |
 | `<plugin>/skills/bar/SKILL.md` | プラグイン内にパッケージされた skill `bar` |
 
@@ -379,21 +379,21 @@ skills ディレクトリツリーは 3 つの異なるものをサポートし�
 | Skills ディレクトリ | スコープ | 読み込み |
 | :- | :- | :- |
 | `~/.claude/skills/` | personal | すべてのプロジェクトで。場所があなただけのものだから |
-| `<cwd>/.claude/skills/` | project | そのフォルダのワークスペース[信頼ダイアログ](/ja/settings)を受け入れた後のみ |
+| `<cwd>/.claude/skills/` | project | そのフォルダのワークスペース[信頼ダイアログ](/docs/ja/settings)を受け入れた後のみ |
 
 プロジェクトスコープ プラグインはリポジトリにチェックインされ、クローンしたすべての共同作業者に到達します。そのコンテンツはあなたではなくリポジトリから来るため、`.claude/settings.json` を管理するのと同じ信頼ゲートの後にのみ読み込まれます。コードを実行するコンポーネントはさらに制限されます:
 
-- 宣言する MCP servers は、プロジェクト `.mcp.json` と同じ[サーバーごとの承認](/ja/mcp)を通過します
+- 宣言する MCP servers は、プロジェクト `.mcp.json` と同じ[サーバーごとの承認](/docs/ja/mcp)を通過します
 - LSP servers はワークスペースを信頼した後にのみ開始します
 - [バックグラウンド monitors](#monitors)は読み込まれません
 
 個人スコープ プラグインにはこれらの制限はありません。
 
-プロジェクトスコープ `@skills-dir` プラグインは、Claude Code を開始したディレクトリの `.claude/skills/` からのみ読み込まれます。plain skills と commands が行うように[リポジトリルートまでウォークアップ](/ja/skills#automatic-discovery-from-parent-and-nested-directories)しません。そのため、サブディレクトリから起動するとリポジトリルートに存在するプラグインが見つかりません。リポジトリルートから起動するか、ディレクトリを変更した後に `/reload-plugins` を実行してください。
+プロジェクトスコープ `@skills-dir` プラグインは、Claude Code を開始したディレクトリの `.claude/skills/` からのみ読み込まれます。plain skills と commands が行うように[リポジトリルートまでウォークアップ](/docs/ja/skills#automatic-discovery-from-parent-and-nested-directories)しません。そのため、サブディレクトリから起動するとリポジトリルートに存在するプラグインが見つかりません。リポジトリルートから起動するか、ディレクトリを変更した後に `/reload-plugins` を実行してください。
 
 Skills ディレクトリプラグインを編集、再読み込み、無効化
 
-skill の `SKILL.md` に加えた変更は現在のセッションで即座に有効になります。プラグインの他のコンポーネント（`hooks/`、`.mcp.json`、`agents/`、`output-styles/` など）への変更は有効になりません。`/reload-plugins` を実行するか Claude Code を再起動してそれらを取得してください。[ライブ変更検出](/ja/skills#live-change-detection)を参照してください。
+skill の `SKILL.md` に加えた変更は現在のセッションで即座に有効になります。プラグインの他のコンポーネント（`hooks/`、`.mcp.json`、`agents/`、`output-styles/` など）への変更は有効になりません。`/reload-plugins` を実行するか Claude Code を再起動してそれらを取得してください。[ライブ変更検出](/docs/ja/skills#live-change-detection)を参照してください。
 
 skills ディレクトリプラグインの読み込みを停止するには、そのフォルダを削除するか、名前で無効にしてください。マーケットプレイスから何もインストールされなかったため、`uninstall` ステップはありません。
 
@@ -450,7 +450,7 @@ claude plugin disable my-tool@skills-dir
 
 | フィールド | 型 | 説明 | 例 |
 | :- | :- | :- | :- |
-| `name` | string | 一意の識別子（kebab-case、スペースなし）。[マーケットプレイスエントリ](/ja/plugin-marketplaces#plugin-entries)がプラグインを別の名前でリストする場合、マーケットプレイスエントリ名が `enabledPlugins` キーと `/plugin` で使用される名前です | `"deployment-tools"` |
+| `name` | string | 一意の識別子（kebab-case、スペースなし）。[マーケットプレイスエントリ](/docs/ja/plugin-marketplaces#plugin-entries)がプラグインを別の名前でリストする場合、マーケットプレイスエントリ名が `enabledPlugins` キーと `/plugin` で使用される名前です | `"deployment-tools"` |
 
 この名前はコンポーネントの名前空間に使用されます。たとえば、UI では、名前が `plugin-dev` のプラグインのエージェント `agent-creator` は `plugin-dev:agent-creator` として表示されます。
 
@@ -490,9 +490,9 @@ claude plugin validate ./my-plugin --strict
 `defaultEnabled` は、他に何もプラグインの状態を決定していない場合のフォールバックです。2 つのことがそれより優先されます:
 
 - **ユーザーの設定**: 任意の設定スコープの `enabledPlugins` のプラグインのエントリ。書き込まれると、プラグイン更新と再インストール全体で保持されるため、後のリリースで `defaultEnabled` を変更しても既存ユーザーをフリップしません。
-- **依存関係要件**: プラグインがアクティブな別のプラグインによって必要とされる場合、Claude Code はインストール時または有効化時にそれに対して `true` を書き込みます。これにより明示的な設定が与えられるため、独自のデフォルトはもはや適用されません。[依存関係を持つプラグインを有効または無効にする](/ja/plugin-dependencies#enable-or-disable-a-plugin-with-dependencies)を参照してください。
+- **依存関係要件**: プラグインがアクティブな別のプラグインによって必要とされる場合、Claude Code はインストール時または有効化時にそれに対して `true` を書き込みます。これにより明示的な設定が与えられるため、独自のデフォルトはもはや適用されません。[依存関係を持つプラグインを有効または無効にする](/docs/ja/plugin-dependencies#enable-or-disable-a-plugin-with-dependencies)を参照してください。
 
-同じフィールドはプラグインのマーケットプレイスエントリに表示でき、`plugin.json` の値より優先されます。[オプションプラグインフィールド](/ja/plugin-marketplaces#optional-plugin-fields)を参照してください。
+同じフィールドはプラグインのマーケットプレイスエントリに表示でき、`plugin.json` の値より優先されます。[オプションプラグインフィールド](/docs/ja/plugin-marketplaces#optional-plugin-fields)を参照してください。
 
 コンポーネントパスフィールド
 
@@ -506,10 +506,10 @@ claude plugin validate ./my-plugin --strict
 | `outputStyles` | string\|array | カスタム出力スタイルファイル/ディレクトリ（デフォルト `output-styles/` を置き換え） | `"./styles/"` |
 | `lspServers` | string\|array\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/)コード インテリジェンス用の設定（定義へのジャンプ、参照の検索など） | `"./.lsp.json"` |
 | `experimental.themes` | string\|array | カラーテーマファイル/ディレクトリ（デフォルト `themes/` を置き換え）。[テーマ](#themes)を参照してください | `"./themes/"` |
-| `experimental.monitors` | string\|array | プラグインがアクティブな場合に自動的に開始されるバックグラウンド[Monitor](/ja/tools-reference#monitor-tool)設定。[Monitors](#monitors)を参照してください | `"./monitors.json"` |
+| `experimental.monitors` | string\|array | プラグインがアクティブな場合に自動的に開始されるバックグラウンド[Monitor](/docs/ja/tools-reference#monitor-tool)設定。[Monitors](#monitors)を参照してください | `"./monitors.json"` |
 | `userConfig` | object | ユーザー設定可能な値は有効化時にプロンプトされます。[ユーザー設定](#user-configuration)を参照してください | 下記を参照 |
 | `channels` | array | メッセージ注入用のチャネル宣言（Telegram、Slack、Discord スタイル）。[チャネル](#channels)を参照してください | 下記を参照 |
-| `dependencies` | array | このプラグインが必要とする他のプラグイン。オプションで semver バージョン制約付き。[プラグイン依存関係バージョンを制約](/ja/plugin-dependencies)を参照してください | `[{ "name": "secrets-vault", "version": "~2.1.0" }]` |
+| `dependencies` | array | このプラグインが必要とする他のプラグイン。オプションで semver バージョン制約付き。[プラグイン依存関係バージョンを制約](/docs/ja/plugin-dependencies)を参照してください | `[{ "name": "secrets-vault", "version": "~2.1.0" }]` |
 
 実験的コンポーネント
 
@@ -552,17 +552,17 @@ claude plugin validate ./my-plugin --strict
 
 各値は MCP および LSP サーバー設定と hook コマンドで `${user_config.KEY}` として置換可能です。機密でない値は skill とエージェントコンテンツでも置換できます。すべての値はプラグインサブプロセスに `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数としてエクスポートされます。ここで `<KEY>` はオプションキーを大文字にしたものです。
 
-シェルで実行されるフィールドは `${user_config.*}` を拒否します: 設定された値をシェルコマンドに置換すると、シェルはその値が含むものを実行できるため、コンポーネントは[エラー](/ja/errors#plugin-command-references-user-config)で失敗します。拒否された各フィールドには、値を渡す別の方法があります:
+シェルで実行されるフィールドは `${user_config.*}` を拒否します: 設定された値をシェルコマンドに置換すると、シェルはその値が含むものを実行できるため、コンポーネントは[エラー](/docs/ja/errors#plugin-command-references-user-config)で失敗します。拒否された各フィールドには、値を渡す別の方法があります:
 
 | 拒否されたフィールド | 値を渡す方法 |
 | :- | :- |
-| Shell-form hook コマンド | [exec form](/ja/hooks#exec-form-and-shell-form)を `args` で使用するか、hook の環境から `CLAUDE_PLUGIN_OPTION_<KEY>` を読み取ります |
+| Shell-form hook コマンド | [exec form](/docs/ja/hooks#exec-form-and-shell-form)を `args` で使用するか、hook の環境から `CLAUDE_PLUGIN_OPTION_<KEY>` を読み取ります |
 | [Monitor](#monitors)コマンド | スクリプトの設定ファイルから値を読み取ります |
-| MCP [`headersHelper`](/ja/mcp#use-dynamic-headers-for-custom-authentication) | スクリプトの設定ファイルから値を読み取ります |
+| MCP [`headersHelper`](/docs/ja/mcp#use-dynamic-headers-for-custom-authentication) | スクリプトの設定ファイルから値を読み取ります |
 
 v2.1.207 より前は、これらのフィールドは `${user_config.KEY}` 値を置換していました。これに依存していたプラグインを更新してください。
 
-機密でない値は `settings.json` の [`pluginConfigs`](/ja/settings#pluginconfigs) キーの下に `pluginConfigs[<plugin-id>].options` として保存されます。Claude Code はキーをユーザー設定に書き込み、ユーザー設定、`--settings` フラグ、および管理設定からそれを読み取ります。プロジェクトの `.claude/settings.json` または `.claude/settings.local.json` のエントリは無視されます。v2.1.207 より前は、Claude Code はプロジェクトおよびローカル設定も読み取っていました。
+機密でない値は `settings.json` の [`pluginConfigs`](/docs/ja/settings#pluginconfigs) キーの下に `pluginConfigs[<plugin-id>].options` として保存されます。Claude Code はキーをユーザー設定に書き込み、ユーザー設定、`--settings` フラグ、および管理設定からそれを読み取ります。プロジェクトの `.claude/settings.json` または `.claude/settings.local.json` のエントリは無視されます。v2.1.207 より前は、Claude Code はプロジェクトおよびローカル設定も読み取っていました。
 
 機密値は macOS Keychain、またはサポートされているキーチェーンが利用できないプラットフォームでは `~/.claude/.credentials.json` に移動します。キーチェーンストレージは OAuth トークンと共有され、約 2 KB の合計制限があるため、機密値は小さく保ってください。
 
@@ -600,7 +600,7 @@ v2.1.207 より前は、これらのフィールドは `${user_config.KEY}` 値�
 カスタムパスがプラグインのデフォルトディレクトリを置き換えるか拡張するかは、フィールドによって異なります:
 
 - **デフォルトを置き換える**: `commands`、`agents`、`outputStyles`、`experimental.themes`、`experimental.monitors`。たとえば、マニフェストが `commands` を指定する場合、デフォルト `commands/` ディレクトリはスキャンされません。デフォルトを保持してさらに追加するには、明示的にリストします: `"commands": ["./commands/", "./extras/"]`
-- **デフォルトに追加**: `skills`。デフォルト `skills/` ディレクトリは常にスキャンされ、`skills` にリストされているディレクトリはそれと一緒に読み込まれます。例外: [マーケットプレイスエントリの `source` がマーケットプレイスルートに解決される](/ja/plugin-marketplaces#advanced-plugin-entries)場合、特定のサブディレクトリを宣言するとスキャンが置き換えられます
+- **デフォルトに追加**: `skills`。デフォルト `skills/` ディレクトリは常にスキャンされ、`skills` にリストされているディレクトリはそれと一緒に読み込まれます。例外: [マーケットプレイスエントリの `source` がマーケットプレイスルートに解決される](/docs/ja/plugin-marketplaces#advanced-plugin-entries)場合、特定のサブディレクトリを宣言するとスキャンが置き換えられます
 - **独自のマージルール**: [hooks](#hooks)、[MCP servers](#mcp-servers)、[LSP servers](#lsp-servers)。各セクションで複数のソースがどのように結合されるかを参照してください
 
 プラグインがデフォルトフォルダと一致するマニフェストキーの両方を持つ場合、Claude Code v2.1.140 以降は無視されたフォルダを `claude plugin list` および `/plugin` 詳細ビューで警告します。プラグインはマニフェストパスを使用して読み込まれます。マニフェストキーがデフォルトフォルダを指す場合（例: `"commands": ["./commands/deploy.md"]`）は警告は表示されません。その場合、フォルダは明示的にアドレス指定されているためです。
@@ -649,7 +649,7 @@ Claude Code は、プラグインパスを参照するための 3 つの変数�
 | MCP `http`、`sse`、`ws` サーバー | `url`、`headers`、`headersHelper` |
 | LSP サーバー | `command`、`args`、`env`、`workspaceFolder` |
 
-hook コマンドでは、[exec form](/ja/hooks#exec-form-and-shell-form)を `args` で使用して、各パスが 1 つの引数として引用符なしで渡されるようにしてください。shell-form hooks と monitor コマンドでは、`"${CLAUDE_PROJECT_DIR}/scripts/server.sh"` のようにダブルクォートで囲みます。この shell-form hook はプラグインにバンドルされたスクリプトを実行します:
+hook コマンドでは、[exec form](/docs/ja/hooks#exec-form-and-shell-form)を `args` で使用して、各パスが 1 つの引数として引用符なしで渡されるようにしてください。shell-form hooks と monitor コマンドでは、`"${CLAUDE_PROJECT_DIR}/scripts/server.sh"` のようにダブルクォートで囲みます。この shell-form hook はプラグインにバンドルされたスクリプトを実行します:
 
 ```json
 {
@@ -672,7 +672,7 @@ hook コマンドでは、[exec form](/ja/hooks#exec-form-and-shell-form)を `ar
 
 プラグインがセッション中に更新されると、hook コマンド、monitors、MCP サーバー、LSP サーバーは前のバージョンのパスを使用し続けます。`/reload-plugins` を実行して、hook、MCP サーバー、LSP サーバーを新しいパスに切り替えます。monitors はセッション再起動が必要です。
 
-MCP サーバーは `roots/list` リクエストを呼び出すこともでき、セッションの作業ディレクトリを実行時に読み取ることができます。[`roots/list` が返すもの、および Claude Code がサーバーに変更を通知するタイミング](/ja/mcp#option-3-add-a-local-stdio-server)を参照してください。
+MCP サーバーは `roots/list` リクエストを呼び出すこともでき、セッションの作業ディレクトリを実行時に読み取ることができます。[`roots/list` が返すもの、および Claude Code がサーバーに変更を通知するタイミング](/docs/ja/mcp#option-3-add-a-local-stdio-server)を参照してください。
 
 永続データディレクトリ
 
@@ -822,7 +822,7 @@ enterprise-plugin/
 | **LSP servers** | `.lsp.json` | 言語サーバー設定 |
 | **Monitors** | `monitors/monitors.json` | バックグラウンド monitor 設定 |
 | **実行可能ファイル** | `bin/` | Bash tool の `PATH` に追加される実行可能ファイル。ここのファイルはプラグインが有効な場合、任意の Bash tool 呼び出しで裸のコマンドとして呼び出し可能 |
-| **設定** | `settings.json` | プラグインが有効になったときに適用されるデフォルト設定。現在、[`agent`](/ja/sub-agents)および[`subagentStatusLine`](/ja/statusline#subagent-status-lines)キーのみがサポートされています |
+| **設定** | `settings.json` | プラグインが有効になったときに適用されるデフォルト設定。現在、[`agent`](/docs/ja/sub-agents)および[`subagentStatusLine`](/docs/ja/statusline#subagent-status-lines)キーのみがサポートされています |
 
 ***
 
@@ -867,9 +867,9 @@ claude plugin init <name> [options]
 | `mcp` | HTTP と stdio サーバーの例を含む `.mcp.json` |
 | `lsp` | `.lsp.json` 言語サーバーの例 |
 | `output-style` | プラグインが有効な場合に自動的に適用される `output-styles/<name>.md` |
-| `channel` | MCP ベースの[チャネル](/ja/channels): stdio サーバー（`server.ts`）、その `.mcp.json`、および `package.json` |
+| `channel` | MCP ベースの[チャネル](/docs/ja/channels): stdio サーバー（`server.ts`）、その `.mcp.json`、および `package.json` |
 
-スキャフォルドされたプラグインはマーケットプレイスではなく `@skills-dir` ソースを使用します。管理者は `strictKnownMarketplaces` でこのソースをブロックするか、[管理設定](/ja/plugin-marketplaces#managed-marketplace-restrictions)の `blockedMarketplaces` に `{"source": "skills-dir"}` を追加することでブロックできます。ブロックされると、`plugin init` は書き込み前に失敗します。
+スキャフォルドされたプラグインはマーケットプレイスではなく `@skills-dir` ソースを使用します。管理者は `strictKnownMarketplaces` でこのソースをブロックするか、[管理設定](/docs/ja/plugin-marketplaces#managed-marketplace-restrictions)の `blockedMarketplaces` に `{"source": "skills-dir"}` を追加することでブロックできます。ブロックされると、`plugin init` は書き込み前に失敗します。
 
 **例:**
 
@@ -946,7 +946,7 @@ claude plugin uninstall <plugin> [options]
 
 plugin prune
 
-インストール済みプラグインによって不要になった自動インストール プラグイン依存関係を削除します。Claude Code が別のプラグインの [`dependencies`](/ja/plugin-dependencies) フィールドを満たすために取得した依存関係は削除されます。直接インストールしたプラグインは決して削除されません。
+インストール済みプラグインによって不要になった自動インストール プラグイン依存関係を削除します。Claude Code が別のプラグインの [`dependencies`](/docs/ja/plugin-dependencies) フィールドを満たすために取得した依存関係は削除されます。直接インストールしたプラグインは決して削除されません。
 
 ```bash
 claude plugin prune [options]
@@ -969,7 +969,7 @@ claude plugin prune [options]
 
 plugin enable
 
-無効なプラグインを有効にします。プラグインが [dependencies](/ja/plugin-dependencies) を宣言している場合、Claude Code はそれらを同じスコープで推移的に有効にし、依存関係がインストールされていない場合はコマンドが失敗します。
+無効なプラグインを有効にします。プラグインが [dependencies](/docs/ja/plugin-dependencies) を宣言している場合、Claude Code はそれらを同じスコープで推移的に有効にし、依存関係がインストールされていない場合はコマンドが失敗します。
 
 ```bash
 claude plugin enable <plugin> [options]
@@ -988,7 +988,7 @@ claude plugin enable <plugin> [options]
 
 plugin disable
 
-プラグインをアンインストールせずに無効にします。別の有効なプラグインが [ターゲットに依存している](/ja/plugin-dependencies#enable-or-disable-a-plugin-with-dependencies) 場合は失敗します。エラーメッセージには、最初にすべての依存プラグインを無効にするチェーンコマンドが含まれます。
+プラグインをアンインストールせずに無効にします。別の有効なプラグインが [ターゲットに依存している](/docs/ja/plugin-dependencies#enable-or-disable-a-plugin-with-dependencies) 場合は失敗します。エラーメッセージには、最初にすべての依存プラグインを無効にするチェーンコマンドが含まれます。
 
 ```bash
 claude plugin disable <plugin> [options]
@@ -1097,7 +1097,7 @@ Always-on の合計は、アクティブなモデルの `count_tokens` API を�
 
 plugin tag
 
-現在のディレクトリ内のプラグインのリリース git タグを作成します。プラグインのフォルダ内から実行してください。[プラグインリリースにタグを付ける](/ja/plugin-dependencies#tag-plugin-releases-for-version-resolution)を参照してください。
+現在のディレクトリ内のプラグインのリリース git タグを作成します。プラグインのフォルダ内から実行してください。[プラグインリリースにタグを付ける](/docs/ja/plugin-dependencies#tag-plugin-releases-for-version-resolution)を参照してください。
 
 ```bash
 claude plugin tag [options]
@@ -1235,10 +1235,10 @@ Claude Code はプラグインのバージョンをキャッシュキーとし�
 
 関連項目
 
-- [プラグイン](/ja/plugins) - チュートリアルと実践的な使用法
-- [プラグインマーケットプレイス](/ja/plugin-marketplaces) - マーケットプレイスの作成と管理
-- [Skills](/ja/skills) - Skill 開発の詳細
-- [Subagents](/ja/sub-agents) - エージェント設定と機能
-- [Hooks](/ja/hooks) - イベント処理と自動化
-- [MCP](/ja/mcp) - 外部ツール統合
-- [設定](/ja/settings) - プラグインの設定オプション
+- [プラグイン](/docs/ja/plugins) - チュートリアルと実践的な使用法
+- [プラグインマーケットプレイス](/docs/ja/plugin-marketplaces) - マーケットプレイスの作成と管理
+- [Skills](/docs/ja/skills) - Skill 開発の詳細
+- [Subagents](/docs/ja/sub-agents) - エージェント設定と機能
+- [Hooks](/docs/ja/hooks) - イベント処理と自動化
+- [MCP](/docs/ja/mcp) - 外部ツール統合
+- [設定](/docs/ja/settings) - プラグインの設定オプション

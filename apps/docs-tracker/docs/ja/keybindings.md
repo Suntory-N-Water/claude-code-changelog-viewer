@@ -80,7 +80,7 @@ v2.1.205 より前では、`Doctor` コンテキストと `/doctor` 診断スク
 | `app:interrupt` | Ctrl+C | 現在の操作をキャンセル |
 | `app:exit` | Ctrl+D | Claude Code を終了 |
 | `app:redraw` | （アンバインド） | ターミナルを強制的に再描画 |
-| `app:toggleTodos` | Ctrl+T | Claude のタスクリストの表示を切り替えます。これは [`/tasks`](/ja/commands) バックグラウンドタスクビューではありません |
+| `app:toggleTodos` | Ctrl+T | Claude のタスクリストの表示を切り替えます。これは [`/tasks`](/docs/ja/commands) バックグラウンドタスクビューではありません |
 | `app:toggleTranscript` | Ctrl+O | 詳細トランスクリプトの表示を切り替え |
 
 履歴アクション
@@ -100,9 +100,9 @@ v2.1.205 より前では、`Doctor` コンテキストと `/doctor` 診断スク
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
 | `chat:cancel` | Escape | 現在の入力をキャンセル |
-| `chat:clearInput` | Ctrl+L | 入力を保持したまま全画面再描画を強制します。[フルスクリーンレンダリング](/ja/fullscreen#clear-the-conversation)では、2 秒以内に 2 回押して `/clear` を実行 |
-| `chat:clearScreen` | Cmd+K | [フルスクリーンレンダリング](/ja/fullscreen#clear-the-conversation)では、2 秒以内に 2 回押して `/clear` を実行 |
-| `chat:killAgents` | Ctrl+X Ctrl+K | このセッション内のすべての実行中の[バックグラウンドサブエージェント](/ja/sub-agents#run-subagents-in-foreground-or-background)を終了 |
+| `chat:clearInput` | Ctrl+L | 入力を保持したまま全画面再描画を強制します。[フルスクリーンレンダリング](/docs/ja/fullscreen#clear-the-conversation)では、2 秒以内に 2 回押して `/clear` を実行 |
+| `chat:clearScreen` | Cmd+K | [フルスクリーンレンダリング](/docs/ja/fullscreen#clear-the-conversation)では、2 秒以内に 2 回押して `/clear` を実行 |
+| `chat:killAgents` | Ctrl+X Ctrl+K | このセッション内のすべての実行中の[バックグラウンドサブエージェント](/docs/ja/sub-agents#run-subagents-in-foreground-or-background)を終了 |
 | `chat:cycleMode` | Shift+Tab\* | 権限モードをサイクル |
 | `chat:modelPicker` | Meta+P | モデルピッカーを開く |
 | `chat:fastMode` | Meta+O | 高速モードを切り替え |
@@ -141,7 +141,7 @@ v2.1.205 より前では、`Doctor` コンテキストと `/doctor` 診断スク
 | `confirm:previousField` | （アンバインド） | 前のフィールド |
 | `confirm:toggle` | Space | 選択を切り替え |
 | `confirm:cycleMode` | Shift+Tab | 権限モードをサイクル |
-| `confirm:toggleExplanation` | Ctrl+E | Bash および PowerShell 権限プロンプトでモデルが生成した[コマンドの説明](/ja/permissions#permission-system)を切り替え |
+| `confirm:toggleExplanation` | Ctrl+E | Bash および PowerShell 権限プロンプトでモデルが生成した[コマンドの説明](/docs/ja/permissions#permission-system)を切り替え |
 
 権限アクション
 
@@ -310,7 +310,7 @@ Diff 詳細ビューは、ページャースタイルのキーを標準的な[�
 
 音声アクション
 
-[音声ディクテーション](/ja/voice-dictation)が有効な場合、`Chat` コンテキストで利用可能なアクション：
+[音声ディクテーション](/docs/ja/voice-dictation)が有効な場合、`Chat` コンテキストで利用可能なアクション：
 
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
@@ -318,7 +318,7 @@ Diff 詳細ビューは、ページャースタイルのキーを標準的な[�
 
 スクロールアクション
 
-[フルスクリーンレンダリング](/ja/fullscreen)が有効な場合、`Scroll` コンテキストで利用可能なアクション：
+[フルスクリーンレンダリング](/docs/ja/fullscreen)が有効な場合、`Scroll` コンテキストで利用可能なアクション：
 
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
@@ -459,7 +459,7 @@ Vim モードが `/config` → エディタモードで有効な場合、キー�
 - **キーバインディング** はコンポーネントレベルでアクションを処理します（todos を切り替え、送信など）
 - Vim モードの Escape キーは INSERT から NORMAL モードに切り替わります。`chat:cancel` をトリガーしません
 - ほとんどの Ctrl+key ショートカットは Vim モードを通過してキーバインディングシステムに渡されます
-- Vim キーはキーバインディングファイルを通じて再マップできません。`jj` を Escape にマップするような 2 キーの INSERT モードシーケンスをマップするには、[`vimInsertModeRemaps`](/ja/interactive-mode#remap-insert-mode-key-sequences) 設定を使用してください
+- Vim キーはキーバインディングファイルを通じて再マップできません。`jj` を Escape にマップするような 2 キーの INSERT モードシーケンスをマップするには、[`vimInsertModeRemaps`](/docs/ja/interactive-mode#remap-insert-mode-key-sequences) 設定を使用してください
 - Vim NORMAL モードでは、`?` はヘルプメニューを表示します（Vim の動作）
 - Vim NORMAL モードでは、`/` は履歴検索を開きます。標準モードの Ctrl+R と同じです
 
@@ -473,4 +473,4 @@ Claude Code はキーバインディングを検証し、以下の警告を表�
 - ターミナルマルチプレクサの競合
 - 同じコンテキスト内の重複バインディング
 
-Claude Code はファイルが読み込まれるときに警告を報告し、各警告をデバッグログに書き込みます。Claude Code を [`--debug`](/ja/cli-reference#cli-flags) で起動して、詳細を確認してください。
+Claude Code はファイルが読み込まれるときに警告を報告し、各警告をデバッグログに書き込みます。Claude Code を [`--debug`](/docs/ja/cli-reference#cli-flags) で起動して、詳細を確認してください。

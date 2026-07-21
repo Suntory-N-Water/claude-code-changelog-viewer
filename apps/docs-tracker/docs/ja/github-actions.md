@@ -7,9 +7,9 @@ source: https://code.claude.com/docs/ja/github-actions.md
 
 > Claude Code を開発ワークフローに統合する Claude Code GitHub Actions について学びます
 
-Claude Code GitHub Actions は、GitHub ワークフローに AI を活用した自動化をもたらします。任意の PR またはイシューで `@claude` とメンションするだけで、Claude はコードを分析し、プルリクエストを作成し、機能を実装し、バグを修正できます。すべてプロジェクトの標準に従いながら実行されます。すべての PR に自動的に投稿されるレビューについては、[GitHub Code Review](/ja/code-review) を参照してください。
+Claude Code GitHub Actions は、GitHub ワークフローに AI を活用した自動化をもたらします。任意の PR またはイシューで `@claude` とメンションするだけで、Claude はコードを分析し、プルリクエストを作成し、機能を実装し、バグを修正できます。すべてプロジェクトの標準に従いながら実行されます。すべての PR に自動的に投稿されるレビューについては、[GitHub Code Review](/docs/ja/code-review) を参照してください。
 
-Claude Code GitHub Actions は [Claude Agent SDK](/ja/agent-sdk/overview) の上に構築されており、Claude Code をアプリケーションにプログラム的に統合できます。SDK を使用して、GitHub Actions を超えたカスタム自動化ワークフローを構築できます。
+Claude Code GitHub Actions は [Claude Agent SDK](/docs/ja/agent-sdk/overview) の上に構築されており、Claude Code をアプリケーションにプログラム的に統合できます。SDK を使用して、GitHub Actions を超えたカスタム自動化ワークフローを構築できます。
 
 Claude Code GitHub Actions を使用する理由
 
@@ -143,7 +143,7 @@ jobs:
 
 skills を使用する
 
-`prompt` 入力は、[skill](/ja/skills) の呼び出しだけでなく、プレーンテキストも受け入れます。
+`prompt` 入力は、[skill](/docs/ja/skills) の呼び出しだけでなく、プレーンテキストも受け入れます。
 
 - リポジトリの `.claude/skills/` ディレクトリ内のスキルの場合、アクションステップの前に `actions/checkout` を実行し、`/skill-name` を渡します。
 - プラグインにパッケージされたスキルの場合、`plugin_marketplaces` および `plugins` 入力でプラグインをインストールし、名前空間付きの `/plugin-name:skill-name` を渡します。
@@ -259,7 +259,7 @@ Claude Code Action v1 は、統一されたパラメータで設定を簡素化�
 主な機能：
 
 - **統一されたプロンプトインターフェース** - すべての指示に `prompt` を使用します
-- **Skills** - インストール済みの [skills](/ja/skills) をプロンプトから直接呼び出します
+- **Skills** - インストール済みの [skills](/docs/ja/skills) をプロンプトから直接呼び出します
 - **CLI パススルー** - `claude_args` 経由の任意の Claude Code CLI 引数
 - **柔軟なトリガー** - 任意の GitHub イベントで動作します
 
@@ -584,7 +584,7 @@ Claude Code Action v1 は、簡素化された設定を使用します。
 
 | Parameter | Description | 必須 |
 | - | - | - |
-| `prompt` | Claude の指示（プレーンテキストまたは [skill](/ja/skills) 名） | いいえ\* |
+| `prompt` | Claude の指示（プレーンテキストまたは [skill](/docs/ja/skills) 名） | いいえ\* |
 | `claude_args` | Claude Code に渡される CLI 引数 | いいえ |
 | `plugin_marketplaces` | プラグインマーケットプレイス Git URL の改行区切りリスト | いいえ |
 | `plugins` | 実行前にインストールするプラグイン名の改行区切りリスト | いいえ |
@@ -627,7 +627,7 @@ Claude の動作をカスタマイズ
 
 Claude の動作は 2 つの方法で設定できます。
 
-1. **CLAUDE.md**: リポジトリのルートに `CLAUDE.md` ファイルを作成して、コーディング標準、レビュー基準、プロジェクト固有のルールを定義します。Claude は PR を作成し、リクエストに応答するときにこれらのガイドラインに従います。詳細については、[Memory ドキュメント](/ja/memory) を確認してください。
+1. **CLAUDE.md**: リポジトリのルートに `CLAUDE.md` ファイルを作成して、コーディング標準、レビュー基準、プロジェクト固有のルールを定義します。Claude は PR を作成し、リクエストに応答するときにこれらのガイドラインに従います。詳細については、[Memory ドキュメント](/docs/ja/memory) を確認してください。
 2. **カスタムプロンプト**: ワークフローファイルの `prompt` パラメータを使用して、ワークフロー固有の指示を提供します。これにより、異なるワークフローまたはタスク用に Claude の動作をカスタマイズできます。
 
 Claude は PR を作成し、リクエストに応答するときにこれらのガイドラインに従います。

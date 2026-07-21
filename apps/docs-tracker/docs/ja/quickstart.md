@@ -14,11 +14,11 @@ source: https://code.claude.com/docs/ja/quickstart.md
 以下を確認してください：
 
 - ターミナルまたはコマンドプロンプトが開いている
-  - ターミナルを使用したことがない場合は、[ターミナルガイド](/ja/terminal-guide)をご覧ください
+  - ターミナルを使用したことがない場合は、[ターミナルガイド](/docs/ja/terminal-guide)をご覧ください
 - 作業するコードプロジェクトがある
-- [Claude サブスクリプション](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=quickstart_prereq)（Pro、Max、Team、または Enterprise）、[Claude Console](https://console.anthropic.com/) アカウント、または[サポートされているクラウドプロバイダー](/ja/third-party-integrations)経由のアクセスがある
+- [Claude サブスクリプション](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=quickstart_prereq)（Pro、Max、Team、または Enterprise）、[Claude Console](https://console.anthropic.com/) アカウント、または[サポートされているクラウドプロバイダー](/docs/ja/third-party-integrations)経由のアクセスがある
 
-このガイドはターミナル CLI について説明しています。Claude Code は[ウェブ](https://claude.ai/code)、[デスクトップアプリ](/ja/desktop)、[VS Code](/ja/vs-code) および [JetBrains IDE](/ja/jetbrains)、[Slack](/ja/slack)、および [GitHub Actions](/ja/github-actions) と [GitLab](/ja/gitlab-ci-cd) を使用した CI/CD でも利用できます。[すべてのインターフェース](/ja/overview#use-claude-code-everywhere)を参照してください。
+このガイドはターミナル CLI について説明しています。Claude Code は[ウェブ](https://claude.ai/code)、[デスクトップアプリ](/docs/ja/desktop)、[VS Code](/docs/ja/vs-code) および [JetBrains IDE](/docs/ja/jetbrains)、[Slack](/docs/ja/slack)、および [GitHub Actions](/docs/ja/github-actions) と [GitLab](/docs/ja/gitlab-ci-cd) を使用した CI/CD でも利用できます。[すべてのインターフェース](/docs/ja/overview#use-claude-code-everywhere)を参照してください。
 
 ステップ 1：Claude Code をインストールする
 
@@ -44,7 +44,7 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in
 
 If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\` when you're in PowerShell and `C:\` without the `PS` when you're in CMD.
 
-If the install command fails with `syntax error near unexpected token '<'`, a `403`, or another curl error, see [Troubleshoot installation](/en/troubleshoot-install#find-your-error) to match the error to a fix and for alternative install methods.
+If the install command fails with `syntax error near unexpected token '<'`, a `403`, or another curl error, see [Troubleshoot installation](/docs/en/troubleshoot-install#find-your-error) to match the error to a fix and for alternative install methods.
 
 [Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows.
 
@@ -64,7 +64,7 @@ winget install Anthropic.ClaudeCode
 
 WinGet installations do not auto-update. Run `winget upgrade Anthropic.ClaudeCode` periodically to get the latest features and security fixes.
 
-You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine.
+You can also install with [apt, dnf, or apk](/docs/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine.
 
 ステップ 2：アカウントにログインする
 
@@ -84,8 +84,8 @@ Claude サブスクリプションまたは Console アカウントの場合は�
 
 - [Claude Pro、Max、Team、または Enterprise](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=quickstart_login)（推奨）
 - [Claude Console](https://console.anthropic.com/)（プリペイドクレジット付き API アクセス）。初回ログイン時に、コスト追跡を一元化するために「Claude Code」ワークスペースが Console に自動的に作成されます。
-- [Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry](/ja/third-party-integrations)（エンタープライズクラウドプロバイダー）
-- 組織が実行している自己ホスト型の [Claude apps gateway](/ja/claude-apps-gateway)：管理者がゲートウェイ URL を事前に設定し、`/login` で **Cloud gateway** 画面が直接開き、企業 SSO でサインインできます
+- [Amazon Bedrock、Google Cloud の Agent Platform、または Microsoft Foundry](/docs/ja/third-party-integrations)（エンタープライズクラウドプロバイダー）
+- 組織が実行している自己ホスト型の [Claude apps gateway](/docs/ja/claude-apps-gateway)：管理者がゲートウェイ URL を事前に設定し、`/login` で **Cloud gateway** 画面が直接開き、企業 SSO でサインインできます
 
 ログイン後、認証情報が保存され、再度ログインする必要はありません。
 
@@ -100,7 +100,7 @@ claude
 
 Claude Code プロンプトが表示され、バージョン、現在のモデル、および作業ディレクトリが上に表示されます。利用可能なコマンドについては `/help` を入力するか、前の会話を続行するには `/resume` を入力します。
 
-ログイン後（ステップ 2）、認証情報がシステムに保存されます。詳細については、[認証情報管理](/ja/authentication#credential-management)を参照してください。
+ログイン後（ステップ 2）、認証情報がシステムに保存されます。詳細については、[認証情報管理](/docs/ja/authentication#credential-management)を参照してください。
 
 ステップ 4：最初の質問をする
 
@@ -258,11 +258,11 @@ Claude と連携する方法は多数あります：
 | `/help` | 利用可能なコマンドを表示する | `/help` |
 | `/exit` または Ctrl+D | Claude Code を終了する | `/exit` |
 
-シェルコマンドの完全なリストについては [CLI リファレンス](/ja/cli-reference)を、セッションコマンドの完全なリストについては [コマンドリファレンス](/ja/commands)を参照してください。
+シェルコマンドの完全なリストについては [CLI リファレンス](/docs/ja/cli-reference)を、セッションコマンドの完全なリストについては [コマンドリファレンス](/docs/ja/commands)を参照してください。
 
 初心者向けのプロのヒント
 
-詳細については、[ベストプラクティス](/ja/best-practices)と[一般的なワークフロー](/ja/common-workflows)を参照してください。
+詳細については、[ベストプラクティス](/docs/ja/best-practices)と[一般的なワークフロー](/docs/ja/common-workflows)を参照してください。
 
 代わりに：'バグを修正してください'
 

@@ -24,7 +24,7 @@ Claude API を直接（1P）使用している場合でも、Amazon Bedrock ま�
 
 ヘルスケア規制対応（BAA）
 
-カスタマーが当社と業務提携契約（BAA）を締結しており、Claude Code を使用したい場合、カスタマーが BAA を実行済みで、[ゼロデータ保持（ZDR）](/ja/zero-data-retention)が有効化されていれば、BAA は自動的に Claude Code をカバーするように拡張されます。BAA は、Claude Code を通じて流れるそのカスタマーの API トラフィックに適用されます。ZDR は組織ごとに有効化されるため、BAA でカバーされるには、各組織が個別に ZDR を有効化する必要があります。
+カスタマーが当社と業務提携契約（BAA）を締結しており、Claude Code を使用したい場合、カスタマーが BAA を実行済みで、[ゼロデータ保持（ZDR）](/docs/ja/zero-data-retention)が有効化されていれば、BAA は自動的に Claude Code をカバーするように拡張されます。BAA は、Claude Code を通じて流れるそのカスタマーの API トラフィックに適用されます。ZDR は組織ごとに有効化されるため、BAA でカバーされるには、各組織が個別に ZDR を有効化する必要があります。
 
 使用ポリシー
 
@@ -36,8 +36,8 @@ Claude Code の使用は、[Anthropic 使用ポリシー](https://www.anthropic.
 
 Claude Code は、OAuth トークンまたは API キーを使用して Anthropic のサーバーで認証します。これらの認証方法は異なる目的に対応しています。
 
-- **OAuth 認証**は、Claude Free、Pro、Max、Team、および Enterprise サブスクリプションプランの購入者専用に設計されており、Claude Code および他のネイティブ Anthropic アプリケーションの通常の使用をサポートするために設計されています。ログインの手順については、[Claude アカウントへのログイン](https://support.claude.com/en/articles/13189465-logging-in-to-your-claude-account)を参照してください。Claude Code が OAuth 認証を実行する方法については、[認証](/ja/authentication)を参照してください。
-- **開発者**が Claude の機能と相互作用する製品またはサービスを構築している場合（[Agent SDK](/ja/agent-sdk/overview)を使用している場合を含む）、[Claude Console](https://platform.claude.com/)またはサポートされているクラウドプロバイダーを通じて API キー認証を使用する必要があります。Anthropic は、サードパーティの開発者が Claude.ai ログインを提供したり、ユーザーに代わって Free、Pro、または Max プランの認証情報を通じてリクエストをルーティングしたりすることを許可していません。
+- **OAuth 認証**は、Claude Free、Pro、Max、Team、および Enterprise サブスクリプションプランの購入者専用に設計されており、Claude Code および他のネイティブ Anthropic アプリケーションの通常の使用をサポートするために設計されています。ログインの手順については、[Claude アカウントへのログイン](https://support.claude.com/en/articles/13189465-logging-in-to-your-claude-account)を参照してください。Claude Code が OAuth 認証を実行する方法については、[認証](/docs/ja/authentication)を参照してください。
+- **開発者**が Claude の機能と相互作用する製品またはサービスを構築している場合（[Agent SDK](/docs/ja/agent-sdk/overview)を使用している場合を含む）、[Claude Console](https://platform.claude.com/)またはサポートされているクラウドプロバイダーを通じて API キー認証を使用する必要があります。Anthropic は、サードパーティの開発者が Claude.ai ログインを提供したり、ユーザーに代わって Free、Pro、または Max プランの認証情報を通じてリクエストをルーティングしたりすることを許可していません。
 
 Anthropic は、これらの制限を実施するための措置を講じる権利を留保し、事前通知なしにそうする場合があります。
 

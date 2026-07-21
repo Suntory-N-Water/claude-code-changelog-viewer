@@ -11,7 +11,7 @@ Claude Code は、AI ツール統合のためのオープンソース標準で�
 
 別のツール（課題追跡ツールや監視ダッシュボードなど）からチャットにデータをコピーしている場合は、サーバーを接続してください。接続すると、Claude は貼り付けたものから作業する代わりに、そのシステムを直接読み取り、操作できます。
 
-初めてサーバーを接続する場合は、ステップバイステップのウォークスルーについて [MCP クイックスタート](/ja/mcp-quickstart) から始めてください。このページは完全なリファレンスです。
+初めてサーバーを接続する場合は、ステップバイステップのウォークスルーについて [MCP クイックスタート](/docs/ja/mcp-quickstart) から始めてください。このページは完全なリファレンスです。
 
 MCP でできること
 
@@ -22,13 +22,13 @@ MCP サーバーが接続されている場合、Claude Code に以下のこと�
 - **データベースをクエリする**：「PostgreSQL データベースに基づいて、ENG-4521 機能を使用した 10 人のランダムなユーザーのメールアドレスを検索してください。」
 - **デザインを統合する**：「Slack に投稿された新しい Figma デザインに基づいて、標準メールテンプレートを更新してください。」
 - **ワークフローを自動化する**：「新機能に関するフィードバックセッションに招待する 10 人のユーザーに Gmail ドラフトを作成してください。」
-- **外部イベントに対応する**：MCP サーバーは [チャネル](/ja/channels) として機能することもでき、セッションにメッセージをプッシュするため、Claude は離席中に Telegram メッセージ、Discord チャット、または webhook イベントに対応できます。
+- **外部イベントに対応する**：MCP サーバーは [チャネル](/docs/ja/channels) として機能することもでき、セッションにメッセージをプッシュするため、Claude は離席中に Telegram メッセージ、Discord チャット、または webhook イベントに対応できます。
 
 MCP サーバーを検索してビルドする
 
 [Anthropic Directory](https://claude.ai/directory) でレビュー済みのコネクタを参照してください。Directory コネクタは Claude Code と同じ MCP インフラストラクチャを使用しているため、`claude mcp add` を使用して、そこにリストされているリモートサーバーを追加できます。
 
-接続する前に、各サーバーを信頼していることを確認してください。外部コンテンツを取得するサーバーは、[プロンプトインジェクションリスク](/ja/security#protect-against-prompt-injection)にさらされる可能性があります。
+接続する前に、各サーバーを信頼していることを確認してください。外部コンテンツを取得するサーバーは、[プロンプトインジェクションリスク](/docs/ja/security#protect-against-prompt-injection)にさらされる可能性があります。
 
 独自のサーバーをビルドするには、プロトコルの基礎については [MCP サーバーガイド](https://modelcontextprotocol.io/docs/develop/build-server) を、認証、テスト、Directory への提出については [Claude コネクタビルディングドキュメント](https://claude.com/docs/connectors/building) を参照してください。
 
@@ -94,7 +94,7 @@ Stdio サーバーはマシン上でローカルプロセスとして実行さ�
 
 Claude Code は、生成されたサーバーの環境に `CLAUDE_PROJECT_DIR` を設定して、プロジェクトルートを指定するため、サーバーは作業ディレクトリに依存することなくプロジェクト相対パスを解決できます。これは hooks が `CLAUDE_PROJECT_DIR` 変数で受け取るのと同じディレクトリです。サーバープロセス内から読み取ります。例えば、Node では `process.env.CLAUDE_PROJECT_DIR`、Python では `os.environ["CLAUDE_PROJECT_DIR"]` です。
 
-`CLAUDE_PROJECT_DIR` は安定したプロジェクトルートであり、セッション中に作業ディレクトリを追加または削除しても変わりません。ファイルシステムアクセスを許可されたディレクトリのセットに制限するサーバーは、代わりに MCP `roots/list` リクエストを実装する必要があります。Claude Code は `roots/list` に、セッションの起動ディレクトリと、`--add-dir`、`/add-dir`、または `additionalDirectories` 設定で付与した [追加の作業ディレクトリ](/ja/permissions#working-directories) をすべて返します。Claude Code は、そのセットが変わるときに `notifications/roots/list_changed` を送信します。v2.1.203 より前は、`roots/list` は起動ディレクトリのみを返し、Claude Code は `notifications/roots/list_changed` を送信していませんでした。
+`CLAUDE_PROJECT_DIR` は安定したプロジェクトルートであり、セッション中に作業ディレクトリを追加または削除しても変わりません。ファイルシステムアクセスを許可されたディレクトリのセットに制限するサーバーは、代わりに MCP `roots/list` リクエストを実装する必要があります。Claude Code は `roots/list` に、セッションの起動ディレクトリと、`--add-dir`、`/add-dir`、または `additionalDirectories` 設定で付与した [追加の作業ディレクトリ](/docs/ja/permissions#working-directories) をすべて返します。Claude Code は、そのセットが変わるときに `notifications/roots/list_changed` を送信します。v2.1.203 より前は、`roots/list` は起動ディレクトリのみを返し、Claude Code は `notifications/roots/list_changed` を送信していませんでした。
 
 この変数はサーバーの環境に設定され、Claude Code 自体の環境には設定されないため、プロジェクトスコープまたはユーザースコープの `.mcp.json` `command` または `args` で `${VAR}` 展開を使用して参照するには、`${CLAUDE_PROJECT_DIR:-.}` などのデフォルトが必要です。プラグイン提供の MCP 設定は `${CLAUDE_PROJECT_DIR}` を直接置換し、デフォルトは必要ありません。
 
@@ -153,7 +153,7 @@ claude mcp remove github
 
 `.mcp.json` からのプロジェクトスコープサーバーで承認待ちのものは、`claude mcp list` に `⏸ Pending approval` として表示されます。`claude` をインタラクティブに実行して、それらを確認して承認してください。`claude mcp get <name>` は保留中のサーバーを `⏸ Pending approval` として表示し、拒否されたサーバーを `✗ Rejected` として表示します。
 
-v2.1.196 以降、`claude mcp list` と `claude mcp get` は、リポジトリにチェックインされていない設定ファイルからのみ `.mcp.json` 承認を読み取ります。これは、`claude` を実行してワークスペーストラストダイアログを受け入れることでワークスペースを信頼するまでです。クローンされたリポジトリは独自のサーバーを承認できません：プロジェクトの `.claude/settings.json` にコミットされた [`enableAllProjectMcpServers` または `enabledMcpjsonServers`](/ja/settings#available-settings) は信頼されていないフォルダでは無視され、サーバーは接続されてヘルスチェックされる代わりに `⏸ Pending approval` のままです。
+v2.1.196 以降、`claude mcp list` と `claude mcp get` は、リポジトリにチェックインされていない設定ファイルからのみ `.mcp.json` 承認を読み取ります。これは、`claude` を実行してワークスペーストラストダイアログを受け入れることでワークスペースを信頼するまでです。クローンされたリポジトリは独自のサーバーを承認できません：プロジェクトの `.claude/settings.json` にコミットされた [`enableAllProjectMcpServers` または `enabledMcpjsonServers`](/docs/ja/settings#available-settings) は信頼されていないフォルダでは無視され、サーバーは接続されてヘルスチェックされる代わりに `⏸ Pending approval` のままです。
 
 これらのソースからの承認は、信頼されていないフォルダでも適用されます：
 
@@ -161,19 +161,19 @@ v2.1.196 以降、`claude mcp list` と `claude mcp get` は、リポジトリ�
 - 管理設定
 - `--settings` で渡された設定
 
-トラッキングされていない `.claude/settings.local.json` の承認も適用されますが、そのフォルダまたはその親ディレクトリのいずれかに対してトラストダイアログを受け入れた後のみです：Claude Code は git を実行してファイルがトラッキングされているかどうかを確認し、その確認は信頼されたフォルダでのみ実行されます。信頼したことのないフォルダでは、ファイルの承認はトラストダイアログを待ちます。ただし、フォルダがあなた自身の設定ホーム（ホームディレクトリ、または `.claude` を [`CLAUDE_CONFIG_DIR`](/ja/env-vars) として設定したディレクトリ）である場合は除きます。v2.1.207 より前は、トラッキングされていない `.claude/settings.local.json` は信頼したことのないフォルダのサーバーを承認していました。
+トラッキングされていない `.claude/settings.local.json` の承認も適用されますが、そのフォルダまたはその親ディレクトリのいずれかに対してトラストダイアログを受け入れた後のみです：Claude Code は git を実行してファイルがトラッキングされているかどうかを確認し、その確認は信頼されたフォルダでのみ実行されます。信頼したことのないフォルダでは、ファイルの承認はトラストダイアログを待ちます。ただし、フォルダがあなた自身の設定ホーム（ホームディレクトリ、または `.claude` を [`CLAUDE_CONFIG_DIR`](/docs/ja/env-vars) として設定したディレクトリ）である場合は除きます。v2.1.207 より前は、トラッキングされていない `.claude/settings.local.json` は信頼したことのないフォルダのサーバーを承認していました。
 
 任意の設定ファイル内の `disabledMcpjsonServers` エントリはサーバーを拒否します。
 
 `/mcp` パネルは、接続されている各サーバーの横にツール数を表示し、ツール機能をアドバタイズしているが、ツールを公開していないサーバーにフラグを立てます。
 
-設定に空の `url` を持つリモートサーバーは、`/mcp`、`claude mcp list`、および [`/plugin`](/ja/plugins) マネージャーに `not configured` として表示され、Claude Code は接続を試みません。プラグインは、後で設定するコネクタ用のプレースホルダーエントリを含めることができるため、Claude Code はそれをエラーまたはセットアップの問題として報告しません。`/mcp` のサーバーの詳細ビューは `No URL configured for this server` と表示されます。接続するにはエントリの `url` を設定してください。v2.1.208 より前は、Claude Code は空の `url` を設定の問題として報告し、再接続を促すプロンプトを表示していました。
+設定に空の `url` を持つリモートサーバーは、`/mcp`、`claude mcp list`、および [`/plugin`](/docs/ja/plugins) マネージャーに `not configured` として表示され、Claude Code は接続を試みません。プラグインは、後で設定するコネクタ用のプレースホルダーエントリを含めることができるため、Claude Code はそれをエラーまたはセットアップの問題として報告しません。`/mcp` のサーバーの詳細ビューは `No URL configured for this server` と表示されます。接続するにはエントリの `url` を設定してください。v2.1.208 より前は、Claude Code は空の `url` を設定の問題として報告し、再接続を促すプロンプトを表示していました。
 
 リクエストがまだバックグラウンドで接続中のサーバーからのツールを必要とする場合、Claude はそのサーバーが接続されるまで待機してから続行します。デフォルトで有効になっている [ツール検索](#scale-with-mcp-tool-search) を使用すると、待機は `ToolSearch` 呼び出し内で発生します。Google Cloud の Agent Platform、カスタム `ANTHROPIC_BASE_URL`、または `ENABLE_TOOL_SEARCH=false` などのツール検索がない設定では、Claude は代わりに `WaitForMcpServers` ツールを使用します。
 
 一部のサーバー名は Claude Code の組み込みサーバー用に予約されています：`workspace`、`claude-in-chrome`、`computer-use`、`Claude Preview`、`Claude Browser`。設定がこれらの予約名のいずれかでサーバーを定義している場合、Claude Code はロード時にそれをスキップし、名前を変更するよう求める警告を表示します。`claude mcp add` は予約名をエラーで拒否します。
 
-`Claude Preview` と `Claude Browser` は両方とも、[Claude Code デスクトップアプリのプレビューペイン](/ja/desktop#preview-your-app) が使用する組み込みサーバーに名前を付けます。v2.1.205 より前は、`Claude Browser` は予約されていなかったため、ユーザーが設定したサーバーはその名前で登録できました。
+`Claude Preview` と `Claude Browser` は両方とも、[Claude Code デスクトップアプリのプレビューペイン](/docs/ja/desktop#preview-your-app) が使用する組み込みサーバーに名前を付けます。v2.1.205 より前は、`Claude Browser` は予約されていなかったため、ユーザーが設定したサーバーはその名前で登録できました。
 
 動的ツール更新
 
@@ -191,7 +191,7 @@ v2.1.191 以降、接続成功後に実行される機能検出リクエスト�
 
 チャネルでメッセージをプッシュする
 
-MCP サーバーはセッションに直接メッセージをプッシュすることもでき、Claude が CI 結果、監視アラート、チャットメッセージなどの外部イベントに対応できます。これを有効にするには、サーバーが `claude/channel` 機能を宣言し、起動時に `--channels` フラグでオプトインします。公式にサポートされているチャネルを使用するには [チャネル](/ja/channels) を参照するか、独自に構築するには [チャネルリファレンス](/ja/channels-reference) を参照してください。
+MCP サーバーはセッションに直接メッセージをプッシュすることもでき、Claude が CI 結果、監視アラート、チャットメッセージなどの外部イベントに対応できます。これを有効にするには、サーバーが `claude/channel` 機能を宣言し、起動時に `--channels` フラグでオプトインします。公式にサポートされているチャネルを使用するには [チャネル](/docs/ja/channels) を参照するか、独自に構築するには [チャネルリファレンス](/docs/ja/channels-reference) を参照してください。
 
 ヒント：
 
@@ -206,17 +206,17 @@ MCP サーバーはセッションに直接メッセージをプッシュする�
 - Claude Code は MCP ツール出力が 10,000 トークンを超えると警告を表示し、デフォルトで出力を 25,000 トークンに制限します。制限を増やすには、`MAX_MCP_OUTPUT_TOKENS` 環境変数を設定します（例：`MAX_MCP_OUTPUT_TOKENS=50000`）。警告しきい値は固定です。[MCP 出力制限と警告](#mcp-output-limits-and-warnings) を参照してください
 - `/mcp` を使用して、OAuth 2.0 認証が必要なリモートサーバーで認証します
 
-サーバーごとの `timeout` はツール呼び出しごとのハードウォールクロック制限であり、サーバーからの進捗通知はそれを延長しません。1000 未満の値は無視され、`MCP_TOOL_TIMEOUT` にフォールスルーするか、その変数が設定されていない場合は約 28 時間のデフォルトにフォールスルーします。HTTP、SSE、または [claude.ai コネクタ](/ja/mcp#use-mcp-servers-from-claude-ai) サーバーの場合、サーバーの最初の応答バイトまでの各リクエストをカバーする、リクエストごとの 2 番目のタイマーもあります。このタイマーは、サーバーごとの `timeout` または `MCP_TOOL_TIMEOUT` を設定しない限り 60 秒です。どちらかを 60 秒以上に設定するとリクエストごとのタイマーがその値に上がり、より低い値ではそれを短縮しません。設定されていない `MCP_TOOL_TIMEOUT` の 28 時間のデフォルトはそれに供給されません。Stdio および WebSocket サーバーにはリクエストごとのタイマーがありません。v2.1.162 より前は、1000 未満の値は 1 秒に切り下げられていました。
+サーバーごとの `timeout` はツール呼び出しごとのハードウォールクロック制限であり、サーバーからの進捗通知はそれを延長しません。1000 未満の値は無視され、`MCP_TOOL_TIMEOUT` にフォールスルーするか、その変数が設定されていない場合は約 28 時間のデフォルトにフォールスルーします。HTTP、SSE、または [claude.ai コネクタ](/docs/ja/mcp#use-mcp-servers-from-claude-ai) サーバーの場合、サーバーの最初の応答バイトまでの各リクエストをカバーする、リクエストごとの 2 番目のタイマーもあります。このタイマーは、サーバーごとの `timeout` または `MCP_TOOL_TIMEOUT` を設定しない限り 60 秒です。どちらかを 60 秒以上に設定するとリクエストごとのタイマーがその値に上がり、より低い値ではそれを短縮しません。設定されていない `MCP_TOOL_TIMEOUT` の 28 時間のデフォルトはそれに供給されません。Stdio および WebSocket サーバーにはリクエストごとのタイマーがありません。v2.1.162 より前は、1000 未満の値は 1 秒に切り下げられていました。
 
 サーバーごとの `timeout` が少なくとも 1000 の場合、以下で説明するアイドルタイムアウトのフロアとしても機能します：Claude Code はそのサーバーのツール呼び出しをアイドルのために、サーバーごとの `timeout` より早く中止することはありません。Claude Code v2.1.203 以降が必要です。
 
 MCP サーバーへのツール呼び出しで、アイドルウィンドウ中に応答も進捗通知も送信されない場合、ウォールクロック制限を待つ代わりにエラーで中止されます。アイドルタイムアウトには Claude Code v2.1.187 以降が必要です。IDE サーバーと SDK インプロセスサーバーを除く、すべてのサーバータイプに適用されます。アイドルウィンドウは HTTP、SSE、WebSocket、および [claude.ai コネクタ](#use-mcp-servers-from-claude-ai) サーバーの場合は 5 分、stdio サーバーの場合は 30 分がデフォルトです。v2.1.203 より前は、stdio サーバーはアイドルタイムアウトの対象外でした。
 
-[`CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT`](/ja/env-vars) 環境変数をミリ秒単位で設定してアイドルウィンドウを変更するか、`0` に設定してチェックを無効にしてください。
+[`CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT`](/docs/ja/env-vars) 環境変数をミリ秒単位で設定してアイドルウィンドウを変更するか、`0` に設定してチェックを無効にしてください。
 
 プラグイン提供の MCP サーバー
 
-[プラグイン](/ja/plugins) は MCP サーバーをバンドルでき、プラグインが有効になると自動的にツールと統合を提供します。プラグイン MCP サーバーはユーザーが設定したサーバーと同じように機能します。
+[プラグイン](/docs/ja/plugins) は MCP サーバーをバンドルでき、プラグインが有効になると自動的にツールと統合を提供します。プラグイン MCP サーバーはユーザーが設定したサーバーと同じように機能します。
 
 **プラグイン MCP サーバーの仕組み**：
 
@@ -260,7 +260,7 @@ MCP サーバーへのツール呼び出しで、アイドルウィンドウ中�
 **プラグイン MCP 機能**：
 
 - **自動ライフサイクル**：セッション起動時に、有効なプラグインのサーバーが自動的に接続されます。セッション中にプラグインを有効または無効にする場合は、`/reload-plugins` を実行して MCP サーバーを接続または切断してください
-- **パス プレースホルダー**：`${CLAUDE_PLUGIN_ROOT}` はプラグインのインストールディレクトリに解決され、`${CLAUDE_PLUGIN_DATA}` はその [永続的な状態](/ja/plugins-reference#persistent-data-directory) ディレクトリに解決され、`${CLAUDE_PROJECT_DIR}` は安定したプロジェクトルートに解決されます。置換は以下に適用されます：
+- **パス プレースホルダー**：`${CLAUDE_PLUGIN_ROOT}` はプラグインのインストールディレクトリに解決され、`${CLAUDE_PLUGIN_DATA}` はその [永続的な状態](/docs/ja/plugins-reference#persistent-data-directory) ディレクトリに解決され、`${CLAUDE_PROJECT_DIR}` は安定したプロジェクトルートに解決されます。置換は以下に適用されます：
   - `stdio` サーバー：`command`、`args`、`env`
   - `http`、`sse`、`ws` サーバー：`url`、`headers`、`headersHelper`。v2.1.195 より前は、`headersHelper` はプレースホルダーをリテラル文字列として渡していました
 - **ユーザー環境アクセス**：手動で設定されたサーバーと同じ環境変数へのアクセス
@@ -283,9 +283,9 @@ MCP サーバーへのツール呼び出しで、アイドルウィンドウ中�
 mcp__plugin_my-plugin_database-tools__query
 ```
 
-[権限ルール](/ja/permissions)、スキルの `allowed-tools` リスト、[サブエージェントの `tools` フィールド](/ja/sub-agents#available-tools)、または [hook マッチャー](/ja/hooks#match-mcp-tools) でツールを参照する場合は、この完全な名前を使用してください。`mcp__database-tools__.*` などのベアサーバーキーに対して記述された hook マッチャーは、プラグインでバンドルされたサーバーに対しては発火しません。
+[権限ルール](/docs/ja/permissions)、スキルの `allowed-tools` リスト、[サブエージェントの `tools` フィールド](/docs/ja/sub-agents#available-tools)、または [hook マッチャー](/docs/ja/hooks#match-mcp-tools) でツールを参照する場合は、この完全な名前を使用してください。`mcp__database-tools__.*` などのベアサーバーキーに対して記述された hook マッチャーは、プラグインでバンドルされたサーバーに対しては発火しません。
 
-サーバー自体は、`plugin:<plugin-name>:<server-name>`（例：`plugin:my-plugin:database-tools`）などのスコープ付き名前で登録されます。設定されたサーバー名が予想される場所（例：[`mcp_tool` hook の `server` フィールド](/ja/hooks#mcp-tool-hook-fields)）でその名前を使用してください。
+サーバー自体は、`plugin:<plugin-name>:<server-name>`（例：`plugin:my-plugin:database-tools`）などのスコープ付き名前で登録されます。設定されたサーバー名が予想される場所（例：[`mcp_tool` hook の `server` フィールド](/docs/ja/hooks#mcp-tool-hook-fields)）でその名前を使用してください。
 
 **プラグイン MCP サーバーの利点**：
 
@@ -293,7 +293,7 @@ mcp__plugin_my-plugin_database-tools__query
 - **自動セットアップ**：手動の MCP 設定は不要です
 - **チーム一貫性**：プラグインがインストールされると、すべてのユーザーが同じツールを取得します
 
-プラグインで MCP サーバーをバンドルする詳細については、[プラグインコンポーネントリファレンス](/ja/plugins-reference#mcp-servers) を参照してください。
+プラグインで MCP サーバーをバンドルする詳細については、[プラグインコンポーネントリファレンス](/docs/ja/plugins-reference#mcp-servers) を参照してください。
 
 MCP インストールスコープ
 
@@ -309,7 +309,7 @@ MCP サーバーは 3 つのスコープで設定できます。選択するス�
 
 ローカルスコープはデフォルトです。ローカルスコープのサーバーは、追加したプロジェクトでのみロードされ、あなたにプライベートなままです。Claude Code は `~/.claude.json` のそのプロジェクトのパスの下に保存するため、同じサーバーは他のプロジェクトに表示されません。個人開発サーバー、実験的な設定、またはバージョン管理に含めたくない認証情報を持つサーバーにはローカルスコープを使用してください。
 
-MCP サーバーの「ローカルスコープ」という用語は、一般的なローカル設定とは異なります。MCP ローカルスコープのサーバーは `~/.claude.json`（ホームディレクトリ）に保存されますが、一般的なローカル設定は `.claude/settings.local.json`（プロジェクトディレクトリ内）を使用します。設定ファイルの場所の詳細については、[設定](/ja/settings#settings-files)を参照してください。
+MCP サーバーの「ローカルスコープ」という用語は、一般的なローカル設定とは異なります。MCP ローカルスコープのサーバーは `~/.claude.json`（ホームディレクトリ）に保存されますが、一般的なローカル設定は `.claude/settings.local.json`（プロジェクトディレクトリ内）を使用します。設定ファイルの場所の詳細については、[設定](/docs/ja/settings#settings-files)を参照してください。
 
 ```bash
 # ローカルスコープのサーバーを追加する（デフォルト）
@@ -377,7 +377,7 @@ claude mcp add --transport http hubspot --scope user https://mcp.hubspot.com/ant
 1. ローカルスコープ
 2. プロジェクトスコープ
 3. ユーザースコープ
-4. [プラグイン提供サーバー](/ja/plugins)
+4. [プラグイン提供サーバー](/docs/ja/plugins)
 5. [claude.ai コネクタ](#use-mcp-servers-from-claude-ai)
 
 3 つのスコープは名前で重複を照合します。プラグインとコネクタはエンドポイントで照合するため、上記のサーバーと同じ URL またはコマンドを指すものは重複として扱われます。
@@ -704,13 +704,13 @@ Claude Code は、ヘルパーを実行するときにこれらの環境変数�
 | :- | :- |
 | `CLAUDE_CODE_MCP_SERVER_NAME` | MCP サーバーの名前 |
 | `CLAUDE_CODE_MCP_SERVER_URL` | MCP サーバーの URL |
-| `CLAUDE_PLUGIN_ROOT` | プラグインのルートディレクトリ。[プラグイン](/ja/plugins-reference#mcp-servers) がサーバーを提供する場合にのみ設定されます |
+| `CLAUDE_PLUGIN_ROOT` | プラグインのルートディレクトリ。[プラグイン](/docs/ja/plugins-reference#mcp-servers) がサーバーを提供する場合にのみ設定されます |
 
 これらを使用して、複数の MCP サーバーに対応する単一のヘルパースクリプトを作成できます。
 
 プラグイン提供のサーバーの場合、ヘルパーはそのワーキングディレクトリをプラグインルートに設定して実行されるため、相対 `headersHelper` パスはセッションのワーキングディレクトリに対してではなくプラグインディレクトリ内で解決されます。Claude Code v2.1.195 以降が必要です。
 
-プラグイン提供の `headersHelper` はプラグインの [`${user_config.*}`](/ja/plugins-reference#user-configuration) 値を参照できません。コマンドはシェルを通じて実行されるためです。Claude Code はサーバーを [エラー](/ja/errors#plugin-command-references-user-config) で設定が正しくないと報告し、値を置換しません。`${user_config.KEY}` をサーバーの `headers` フィールドに配置してください。これはシェル解析されません。または、ヘルパースクリプトが独自の環境またはコンフィグファイルから値を読み取るようにしてください。v2.1.207 より前は、`headersHelper` は `${user_config.*}` 値を置換していました。
+プラグイン提供の `headersHelper` はプラグインの [`${user_config.*}`](/docs/ja/plugins-reference#user-configuration) 値を参照できません。コマンドはシェルを通じて実行されるためです。Claude Code はサーバーを [エラー](/docs/ja/errors#plugin-command-references-user-config) で設定が正しくないと報告し、値を置換しません。`${user_config.KEY}` をサーバーの `headers` フィールドに配置してください。これはシェル解析されません。または、ヘルパースクリプトが独自の環境またはコンフィグファイルから値を読み取るようにしてください。v2.1.207 より前は、`headersHelper` は `${user_config.*}` 値を置換していました。
 
 `headersHelper` は任意のシェルコマンドを実行します。プロジェクトまたはローカルスコープで定義されている場合、ワークスペース信頼ダイアログを受け入れた後にのみ実行されます。
 
@@ -785,7 +785,7 @@ Claude.ai のサーバーはリストに表示され、Claude.ai から来てい
 
 v2.1.161 以降、以前にサインインしたことのないコネクタは、claude.ai セクションの最後にある `Show unused connectors` 行の背後に折りたたまれているため、組織がプロビジョニングしたリストがパネルを埋めることはありません。その行を選択して展開します。以前にサインインしたコネクタは、現在再認証が必要な場合でも表示されたままです。
 
-Claude.ai コネクタは、アクティブな [認証方法](/ja/authentication#authentication-precedence) が Claude.ai サブスクリプションである場合にのみ取得されます。`ANTHROPIC_API_KEY`、`ANTHROPIC_AUTH_TOKEN`、`apiKeyHelper`、または Amazon Bedrock や Google Cloud の Agent Platform などのサードパーティプロバイダーがアクティブな場合は読み込まれません。以前に `/login` を実行した場合でも同様です。`/mcp` で追加したコネクタがリストされない場合は、`/status` を実行してアクティブな認証方法を確認し、その環境変数を設定解除するか `apiKeyHelper` 設定を削除してから、`/login` を実行して Claude.ai アカウントを選択します。
+Claude.ai コネクタは、アクティブな [認証方法](/docs/ja/authentication#authentication-precedence) が Claude.ai サブスクリプションである場合にのみ取得されます。`ANTHROPIC_API_KEY`、`ANTHROPIC_AUTH_TOKEN`、`apiKeyHelper`、または Amazon Bedrock や Google Cloud の Agent Platform などのサードパーティプロバイダーがアクティブな場合は読み込まれません。以前に `/login` を実行した場合でも同様です。`/mcp` で追加したコネクタがリストされない場合は、`/status` を実行してアクティブな認証方法を確認し、その環境変数を設定解除するか `apiKeyHelper` 設定を削除してから、`/login` を実行して Claude.ai アカウントを選択します。
 
 Claude Code で追加したサーバーは、同じ URL を指す claude.ai コネクタより [優先](#scope-hierarchy-and-precedence) されます。この場合、`/mcp` はコネクタを非表示としてリストし、代わりにコネクタを使用する場合は重複を削除する方法を表示します。
 
@@ -795,14 +795,14 @@ Microsoft 365、Gmail、Google Calendar などの一部の Anthropic ホスト�
 
 組織は [claude.ai connectors](https://claude.com/docs/connectors) に対してツール単位の制御を設定できます。Claude Code はスタートアップ時にこれらの設定を読み取り、ローカルで強制します。`/mcp` を実行して、各ツールに適用される設定を確認します。
 
-- **ツールが `ask` に設定されている場合**：Claude Code は `Your organization requires approval for this tool` という理由で毎回呼び出しのたびにプロンプトを表示します。プロンプトは `acceptEdits`、`auto`、`bypassPermissions` [権限モード](/ja/permissions#permission-modes) でも表示され、選択を記憶するオプションは提供されません。ツールに一致する [Allow ルール](/ja/permissions) もプロンプトをスキップしません。プロンプトを表示しない `dontAsk` モードでは、Claude Code は代わりに呼び出しを拒否します。
+- **ツールが `ask` に設定されている場合**：Claude Code は `Your organization requires approval for this tool` という理由で毎回呼び出しのたびにプロンプトを表示します。プロンプトは `acceptEdits`、`auto`、`bypassPermissions` [権限モード](/docs/ja/permissions#permission-modes) でも表示され、選択を記憶するオプションは提供されません。ツールに一致する [Allow ルール](/docs/ja/permissions) もプロンプトをスキップしません。プロンプトを表示しない `dontAsk` モードでは、Claude Code は代わりに呼び出しを拒否します。
 - **ツールが `blocked` に設定されている場合**：Claude Code は Claude がそれを見る前にツールをフィルタリングするため、ツールリストに表示されません。
 
 これらの制御を強制するには Claude Code v2.1.129 以降が必要です。以前のバージョンは設定を無視し、標準的な権限フローを適用します。
 
 Claude.ai コネクタを無効にする
 
-Claude Code で claude.ai MCP サーバーを無効にするには、任意の設定スコープで [`disableClaudeAiConnectors`](/ja/settings#available-settings) を `true` に設定します：
+Claude Code で claude.ai MCP サーバーを無効にするには、任意の設定スコープで [`disableClaudeAiConnectors`](/docs/ja/settings#available-settings) を `true` に設定します：
 
 ```json
 {
@@ -818,9 +818,9 @@ Claude Code で claude.ai MCP サーバーを無効にするには、任意の�
 ENABLE_CLAUDEAI_MCP_SERVERS=false claude
 ```
 
-すべての claude.ai コネクタを無効にする代わりに個別の claude.ai コネクタをブロックするには、名前または URL パターンで [`deniedMcpServers`](/ja/managed-mcp) に追加します。たとえば、`serverName` エントリ `"claude.ai Slack"` は Slack コネクタをブロックします。現在のプロジェクトのみのコネクタのオン/オフを切り替えるには、`/mcp` パネルを使用します。
+すべての claude.ai コネクタを無効にする代わりに個別の claude.ai コネクタをブロックするには、名前または URL パターンで [`deniedMcpServers`](/docs/ja/managed-mcp) に追加します。たとえば、`serverName` エントリ `"claude.ai Slack"` は Slack コネクタをブロックします。現在のプロジェクトのみのコネクタのオン/オフを切り替えるには、`/mcp` パネルを使用します。
 
-これらのクライアント側の設定は、ローカル Claude Code セッションを管理します。[Claude Code on the web](/ja/claude-code-on-the-web) セッションでは、claude.ai コネクタはリモートホストによってプロビジョニングされ、明示的な `--mcp-config` エントリとして到着するため、`disableClaudeAiConnectors` は適用されません。コネクタ URL はセッションプロキシを通じて書き直されるため、ベンダー URL をターゲットとする `deniedMcpServers` `serverUrl` パターンは一致しません。クラウドセッションが使用できるコネクタを管理するには、claude.ai 組織設定から行います。
+これらのクライアント側の設定は、ローカル Claude Code セッションを管理します。[Claude Code on the web](/docs/ja/claude-code-on-the-web) セッションでは、claude.ai コネクタはリモートホストによってプロビジョニングされ、明示的な `--mcp-config` エントリとして到着するため、`disableClaudeAiConnectors` は適用されません。コネクタ URL はセッションプロキシを通じて書き直されるため、ベンダー URL をターゲットとする `deniedMcpServers` `serverUrl` パターンは一致しません。クラウドセッションが使用できるコネクタを管理するには、claude.ai 組織設定から行います。
 
 Claude Code を MCP サーバーとして使用する
 
@@ -936,9 +936,9 @@ Claude Code が API が受け入れるスキーマを生成できない場合、
 
 MCP サーバーを構築している場合、ツールの `tools/list` 応答エントリで `_meta["anthropic/requiresUserInteraction"]` を `true` に設定することで、ツールがすべての呼び出しで明示的な承認を必要とするとマークできます。値は JSON ブール値 `true` である必要があります。他の値は無視されます。
 
-Claude Code は、`acceptEdits`、`auto`、`bypassPermissions` [権限モード](/ja/permissions#permission-modes) でも、そのツールの権限プロンプトをすべての呼び出しで表示し、「今後は聞かない」オプションを提供しません。[許可ルール](/ja/permissions#permission-rule-syntax) がツールと一致しても、プロンプトをスキップしません。`dontAsk` モードでは、プロンプトを表示しないため、Claude Code は呼び出しを拒否します。
+Claude Code は、`acceptEdits`、`auto`、`bypassPermissions` [権限モード](/docs/ja/permissions#permission-modes) でも、そのツールの権限プロンプトをすべての呼び出しで表示し、「今後は聞かない」オプションを提供しません。[許可ルール](/docs/ja/permissions#permission-rule-syntax) がツールと一致しても、プロンプトをスキップしません。`dontAsk` モードでは、プロンプトを表示しないため、Claude Code は呼び出しを拒否します。
 
-プロンプトは人に到達する必要があります。[`--permission-prompt-tool`](/ja/cli-reference#cli-flags) を使用した非対話型モードでは、フラグ付きツールのプロンプトツールからの `allow` 結果は、メッセージ `MCP tool requires user interaction; not supported via --permission-prompt-tool` を含む拒否に変換されます。Agent SDK の [`canUseTool` コールバック](/ja/agent-sdk/permissions) はこれらの呼び出しを受け取り、承認できます。SDK ホストはユーザーに表示することが期待されるためです。
+プロンプトは人に到達する必要があります。[`--permission-prompt-tool`](/docs/ja/cli-reference#cli-flags) を使用した非対話型モードでは、フラグ付きツールのプロンプトツールからの `allow` 結果は、メッセージ `MCP tool requires user interaction; not supported via --permission-prompt-tool` を含む拒否に変換されます。Agent SDK の [`canUseTool` コールバック](/docs/ja/agent-sdk/permissions) はこれらの呼び出しを受け取り、承認できます。SDK ホストはユーザーに表示することが期待されるためです。
 
 これは、同意またはアクセス許可ステップなど、権限プロンプト自体がポイントであるツールに使用します。自動承認は人間が同意しないことを意味するため。同じサーバーの他のツールは通常の権限動作を保持します。
 
@@ -956,7 +956,7 @@ Claude Code は、`acceptEdits`、`auto`、`bypassPermissions` [権限モード]
 
 `anthropic/requiresUserInteraction` 注釈には Claude Code v2.1.199 以降が必要です。以前のバージョンはそれを無視し、標準的な権限フローを適用します。
 
-セッションが [Remote Control](/ja/remote-control) または SDK ホストに接続されている場合、Claude Code は権限リクエストをユーザーインタラクションが必要とマークするため、クライアントはワンタップ承認アクションの代わりにツールの権限プロンプトを表示します。
+セッションが [Remote Control](/docs/ja/remote-control) または SDK ホストに接続されている場合、Claude Code は権限リクエストをユーザーインタラクションが必要とマークするため、クライアントはワンタップ承認アクションの代わりにツールの権限プロンプトを表示します。
 
 MCP 応答要求に対応する
 
@@ -967,7 +967,7 @@ MCP サーバーはタスク中に構造化された入力をあなたに要求�
 - **フォームモード**：Claude Code はサーバーで定義されたフォームフィールド（例：ユーザー名とパスワードプロンプト）を含むダイアログを表示します。フィールドに入力して送信します。
 - **URL モード**：Claude Code はブラウザ URL を開いて認証または承認を行います。ブラウザでフローを完了し、CLI で確認します。
 
-応答要求に自動応答するには、[`Elicitation` フック](/ja/hooks#elicitation)を使用してください。
+応答要求に自動応答するには、[`Elicitation` フック](/docs/ja/hooks#elicitation)を使用してください。
 
 MCP サーバーを構築していて応答要求を使用する場合は、[MCP 応答要求仕様](https://modelcontextprotocol.io/docs/learn/client-concepts#elicitation)を参照してプロトコルの詳細とスキーマの例を確認してください。
 
@@ -1014,7 +1014,7 @@ MCP ツール検索でスケーリングする
 
 MCP サーバー作成者向け
 
-MCP サーバーを構築している場合、ツール検索が有効になっているとサーバー命令フィールドがより有用になります。サーバー命令は、[スキル](/ja/skills)の仕組みと同様に、Claude がいつサーバーのツールを検索するかを理解するのに役立ちます。
+MCP サーバーを構築している場合、ツール検索が有効になっているとサーバー命令フィールドがより有用になります。サーバー命令は、[スキル](/docs/ja/skills)の仕組みと同様に、Claude がいつサーバーのツールを検索するかを理解するのに役立ちます。
 
 明確で説明的なサーバー命令を追加して、以下を説明します：
 
@@ -1028,7 +1028,7 @@ Claude Code はツール説明とサーバー命令を各 2KB で切り詰めま
 
 ツール検索はデフォルトで有効です：MCP ツールは遅延され、オンデマンドで検出されます。Claude Code は Google Cloud の Agent Platform ではデフォルトで無効にします。`ANTHROPIC_BASE_URL` が非ファーストパーティホストを指している場合も無効です。ほとんどのプロキシは `tool_reference` ブロックを転送しないためです。`ENABLE_TOOL_SEARCH` を明示的に設定して、いずれかのフォールバックをオーバーライドしてください。
 
-[`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`](/ja/env-vars)を設定するとツール検索がオフになり、`ENABLE_TOOL_SEARCH` はそれをオーバーライドできません。この変数は、`defer_loading` ツール定義と `tool_reference` コンテンツブロックが必要とするベータヘッダーを削除します。
+[`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`](/docs/ja/env-vars)を設定するとツール検索がオフになり、`ENABLE_TOOL_SEARCH` はそれをオーバーライドできません。この変数は、`defer_loading` ツール定義と `tool_reference` コンテンツブロックが必要とするベータヘッダーを削除します。
 
 ツール検索には、`tool_reference` ブロックをサポートするモデルが必要です：Claude Sonnet 4.5、Claude Haiku 4.5、Claude Opus 4.5、およびそれ以降のモデル。現在のリストについては、[API ドキュメントのモデル互換性](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool#model-compatibility)を参照してください。Google Cloud の Agent Platform では、Claude Sonnet 4.5 以降および Claude Opus 4.5 以降でツール検索がサポートされています。
 
@@ -1050,7 +1050,7 @@ ENABLE_TOOL_SEARCH=auto:5 claude
 ENABLE_TOOL_SEARCH=false claude
 ```
 
-または、[settings.json `env` フィールド](/ja/settings#available-settings)で値を設定します。
+または、[settings.json `env` フィールド](/docs/ja/settings#available-settings)で値を設定します。
 
 `ToolSearch` ツールを特別に無効にすることもできます：
 
@@ -1082,7 +1082,7 @@ ENABLE_TOOL_SEARCH=false claude
 
 `alwaysLoad` フィールドはすべてのサーバータイプで利用可能で、Claude Code v2.1.121 以降が必要です。MCP サーバーは、ツールの `_meta` オブジェクトに `"anthropic/alwaysLoad": true` を含めることで、個別のツールを常にロードとしてマークすることもできます。これはそのツールのみに同じ効果があります。
 
-`alwaysLoad: true` を設定すると、サーバーが接続されるまでスタートアップもブロックされます。これは標準的な 5 秒の接続タイムアウトでキャップされます。これは MCP スタートアップが[デフォルトではノンブロッキング](/ja/env-vars)である場合でも適用されます。ツールは最初のプロンプトが構築されるときに存在する必要があるためです。他のサーバーはバックグラウンドで接続し続けます。
+`alwaysLoad: true` を設定すると、サーバーが接続されるまでスタートアップもブロックされます。これは標準的な 5 秒の接続タイムアウトでキャップされます。これは MCP スタートアップが[デフォルトではノンブロッキング](/docs/ja/env-vars)である場合でも適用されます。ツールは最初のプロンプトが構築されるときに存在する必要があるためです。他のサーバーはバックグラウンドで接続し続けます。
 
 MCP プロンプトをコマンドとして使用する
 
@@ -1115,4 +1115,4 @@ MCP プロンプトを実行する
 
 管理対象 MCP 設定
 
-MCP サーバーへのアクセスを集中管理する必要がある組織の場合は、[管理対象 MCP 設定](/ja/managed-mcp)を参照してください。`managed-mcp.json` を使用した固定サーバーセットのデプロイ、`allowedMcpServers` と `deniedMcpServers` によるサーバーの制限、およびサーバーがブロックされた場合にユーザーに表示される内容について説明しています。
+MCP サーバーへのアクセスを集中管理する必要がある組織の場合は、[管理対象 MCP 設定](/docs/ja/managed-mcp)を参照してください。`managed-mcp.json` を使用した固定サーバーセットのデプロイ、`allowedMcpServers` と `deniedMcpServers` によるサーバーの制限、およびサーバーがブロックされた場合にユーザーに表示される内容について説明しています。
