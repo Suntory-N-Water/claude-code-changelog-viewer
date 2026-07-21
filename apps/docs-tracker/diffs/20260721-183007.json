@@ -1,0 +1,3556 @@
+{
+  "id": "20260721-183007",
+  "timestamp": "2026-07-21T18:30:07.100Z",
+  "aiSummary": "OpenTelemetry（OTel）のテレメトリ出力機能が大幅に強化され、ログの切り詰め制限をカスタマイズできる CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH 環境変数が追加されました。シンボリックリンクやハードリンクを含むファイルがチェックポイントの復元対象から除外される仕様変更が行われ、意図しない上書きを防ぐための警告メッセージが導入されています。フック機能において処理を継続するかを制御する continueOnBlock オプションが追加されたほか、JetBrains IDE 連携でのプラグイン自動インストール機能などの利便性が向上しました。全体として、v2.1.214 から v2.1.216 にかけて導入された、トレーサビリティの向上とエッジケースでの動作の安定化が主な更新内容です。",
+  "files": [
+    {
+      "filename": "agent-sdk/observability.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "テレメトリ出力の切り詰め制限を CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH でカスタマイズ可能になったことと、v2.1.214以降のバージョン要件が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -222,8 +222,8 @@ Telemetry is structural by default. Durations, model names, and tool names are r",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_USER_PROMPTS=1` | Prompt text on `claude_code.user_prompt` events and on the `claude_code.interaction` span |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_TOOL_DETAILS=1` | Tool input arguments (file paths, shell commands, search patterns) on `claude_code.tool_result` events |"
+            },
+            {
+              "type": "removed",
+              "content": "| `OTEL_LOG_TOOL_CONTENT=1` | Full tool input and output bodies as span events on `claude_code.tool`, truncated at 60 KB. Requires [tracing](#read-agent-traces) to be enabled |"
+            },
+            {
+              "type": "removed",
+              "content": "| `OTEL_LOG_RAW_API_BODIES` | Full Anthropic Messages API request and response JSON as `claude_code.api_request_body` and `claude_code.api_response_body` log events. Set to `1` for inline bodies truncated at 60 KB, or `file:<dir>` for untruncated bodies on disk with a `body_ref` path in the event. Bodies include the entire conversation history and have extended-thinking content redacted. Enabling this implies consent to everything the three variables above would reveal |"
+            },
+            {
+              "type": "added",
+              "content": "| `OTEL_LOG_TOOL_CONTENT=1` | Full tool input and output bodies as span events on `claude_code.tool`, truncated at 60 KB by default, configurable via `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH`, which requires Claude Code v2.1.214 or later. Requires [tracing](#read-agent-traces) to be enabled |"
+            },
+            {
+              "type": "added",
+              "content": "| `OTEL_LOG_RAW_API_BODIES` | Full Anthropic Messages API request and response JSON as `claude_code.api_request_body` and `claude_code.api_response_body` log events. Set to `1` for inline bodies truncated at 60 KB by default, or `file:<dir>` for untruncated bodies on disk with a `body_ref` path in the event. `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` configures the inline truncation limit, and requires Claude Code v2.1.214 or later. Bodies include the entire conversation history and have extended-thinking content redacted. Enabling this implies consent to everything the three variables above would reveal |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Leave these unset unless your observability pipeline is approved to store the data your agent handles. See [Security and privacy](/docs/en/monitoring-usage#security-and-privacy) in the Monitoring reference for the full list of attributes and redaction behavior."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "channels.md",
+      "additions": 11,
+      "deletions": 5,
+      "explanation": "プラグインのインストール時にユーザースコープを選択する推奨手順や、fakechat サーバーでのメッセージ受信時の表示および承認プロンプトの動作が詳しく追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -35,7 +35,7 @@ In Claude Code, run:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code reports `Marketplace \"claude-plugins-official\" not found`, add the marketplace with `/plugin marketplace add anthropics/claude-plugins-official`. If it reports that the plugin is not found in the marketplace, your local copy is outdated: refresh it with `/plugin marketplace update claude-plugins-official`. Then retry the install."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "After installing, run `/reload-plugins` to activate the plugin's configure command."
+            },
+            {
+              "type": "added",
+              "content": "When the install asks for an installation scope, choose the user scope option so the plugin is available across all your projects. After installing, run `/reload-plugins` to activate the plugin's configure command."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run the configure command with the token from BotFather:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -92,7 +92,7 @@ In Claude Code, run:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code reports `Marketplace \"claude-plugins-official\" not found`, add the marketplace with `/plugin marketplace add anthropics/claude-plugins-official`. If it reports that the plugin is not found in the marketplace, your local copy is outdated: refresh it with `/plugin marketplace update claude-plugins-official`. Then retry the install."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "After installing, run `/reload-plugins` to activate the plugin's configure command."
+            },
+            {
+              "type": "added",
+              "content": "When the install asks for an installation scope, choose the user scope option so the plugin is available across all your projects. After installing, run `/reload-plugins` to activate the plugin's configure command."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run the configure command with the bot token you copied:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -140,6 +140,8 @@ In Claude Code, run:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code reports `Marketplace \"claude-plugins-official\" not found`, add the marketplace with `/plugin marketplace add anthropics/claude-plugins-official`. If it reports that the plugin is not found in the marketplace, your local copy is outdated: refresh it with `/plugin marketplace update claude-plugins-official`. Then retry the install."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When the install asks for an installation scope, choose the user scope option so the plugin is available across all your projects. Claude Code then suggests running `/reload-plugins`; you can skip that here, because restarting in the next step picks up the plugin."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Exit Claude Code and restart with the channel flag:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash theme={null}"
+            }
+          ]
+        },
+        {
+          "header": "@@ -180,23 +182,25 @@ Start a Claude Code session and run the install command:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code reports `Marketplace \"claude-plugins-official\" not found`, add the marketplace with `/plugin marketplace add anthropics/claude-plugins-official`. If it reports that the plugin is not found in the marketplace, your local copy is outdated: refresh it with `/plugin marketplace update claude-plugins-official`. Then retry the install."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When the install asks for an installation scope, choose the user scope option so the plugin is available across all your projects. Claude Code then suggests running `/reload-plugins`; you can skip that here, because restarting in the next step picks up the plugin."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Exit Claude Code, then restart with `--channels` and pass the fakechat plugin you installed:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "claude --channels plugin:fakechat@claude-plugins-official"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The fakechat server starts automatically."
+            },
+            {
+              "type": "added",
+              "content": "The fakechat server starts automatically. The startup screen shows a channels notice stating that messages from `plugin:fakechat@claude-plugins-official` inject directly in this session. If the plugin isn't installed or isn't on the approved allowlist, a warning line naming the problem appears below that notice."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can pass several plugins to `--channels`, space-separated."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Open the fakechat UI at [http://localhost:8787](http://localhost:8787) and type a message:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "hey, what's in my working directory?"
+            },
+            {
+              "type": "added",
+              "content": "what's in my working directory?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The message arrives in your Claude Code session as a `<channel source=\"fakechat\">` event. Claude reads it, does the work, and calls fakechat's `reply` tool. The answer shows up in the chat UI."
+            },
+            {
+              "type": "added",
+              "content": "The message arrives in your Claude Code session. The terminal shows it as an inbound channel line like `← fakechat · web: what's in my working directory?`, while the model receives it as a `<channel source=\"plugin:fakechat:fakechat\">` event, using the plugin's scoped server name. Claude reads it, does the work, and calls fakechat's `reply` tool. The first reply triggers a permission prompt in your terminal; approve it, and the answer shows up in the chat UI."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude hits a permission prompt while you're away from the terminal, the session pauses until you respond. Channel servers that declare the [permission relay capability](/docs/en/channels-reference#relay-permission-prompts) can forward these prompts to you so you can approve or deny remotely. For unattended use, [`--dangerously-skip-permissions`](/docs/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) bypasses most prompts, but only use it in environments you trust. Explicit ask rules, connector tools [your organization set to `ask`](/docs/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/docs/en/mcp#require-approval-for-a-specific-tool) still prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -266,6 +270,8 @@ This setting requires `channelsEnabled: true`. If a user passes a plugin to `--c",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Channels are a research preview feature. Availability is rolling out gradually, and the `--channels` flag syntax and protocol contract may change based on feedback."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Neither `--channels` nor `--dangerously-load-development-channels` appears in `claude --help` while the feature is in preview. The flags work even though they aren't listed."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "During the preview, `--channels` only accepts plugins from an Anthropic-maintained allowlist, or from your organization's allowlist if an admin has set [`allowedChannelPlugins`](#restrict-which-channel-plugins-can-run). The channel plugins in [claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/external_plugins) are the default approved set. If you pass something that isn't on the effective allowlist, Claude Code starts normally but the channel doesn't register, and the startup notice tells you why."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To test a channel you're building, use `--dangerously-load-development-channels`. See [Test during the research preview](/docs/en/channels-reference#test-during-the-research-preview) for information about testing custom channels that you build."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "checkpointing.md",
+      "additions": 8,
+      "deletions": 0,
+      "explanation": "シンボリックリンクやハードリンクされたパスが復元時にスキップされる仕様と、スキップされたファイルを確認するためのデバッグログの活用方法が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -85,6 +85,14 @@ These file modifications cannot be undone through rewind. Only direct file edits",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Checkpointing only tracks files that have been edited within the current session. Manual changes you make to files outside of Claude Code and edits from other concurrent sessions are normally not captured, unless they happen to modify the same files as the current session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Symlinked and hard-linked paths not restored"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Checkpointing doesn't rewind symlinked or hard-linked files. When you pick **Restore code** or **Restore code and conversation** from the `/rewind` menu, Claude Code skips any tracked path that is a symlink or hard link and shows a `Restored the code, but skipped N files` warning. The skipped files keep their current contents. To undo the session's changes to one of them, ask Claude to reverse the edit or edit the file yourself. Config files a dotfile manager symlinks into your project and files pnpm hard-links into place both fall into this category."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To see which paths a restore skips, turn on debug logging with `/debug` before you restore: the debug log at `~/.claude/debug/<session-id>.txt` names each skipped path. For every skip reason and the recovery steps, see [the skipped-files entry in the error reference](/docs/en/errors#restored-the-code-but-skipped-files)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Before v2.1.216, `/rewind` wrote and deleted through links at tracked paths without a warning."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Not a replacement for version control"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Checkpoints are designed for quick, session-level recovery. For permanent version history and collaboration:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "channels フラグの認証方法に Console API キーが追加されたほか、settings フラグで指定できるファイルサイズが 2 MiB 以内に制限される旨が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -69,7 +69,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--bare` | Minimal mode: skip auto-discovery of hooks, skills, plugins, MCP servers, auto memory, and CLAUDE.md so scripted calls start faster. Claude has access to Bash, file read, and file edit tools. Sets [`CLAUDE_CODE_SIMPLE`](/docs/en/env-vars). See [bare mode](/docs/en/headless#start-faster-with-bare-mode) | `claude --bare -p \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--betas` | Beta headers to include in API requests (API key users only) | `claude --betas interleaved-thinking` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--bg`, `--background` | Start the session as a [background agent](/docs/en/agent-view) and return immediately. Prints the session ID and management commands. Combine with `--exec` to run a shell command as a background job instead of a Claude session, or with `--agent` to run a specific subagent. Cannot be combined with `-p`/`--print`; see the [error reference](/docs/en/errors#command-line-errors) | `claude --bg \"investigate the flaky test\"` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--channels` | (Research preview) MCP servers whose [channel](/docs/en/channels) notifications Claude should listen for in this session. Space-separated list of `plugin:<name>@<marketplace>` entries. Requires Claude.ai authentication | `claude --channels plugin:my-notifier@my-marketplace` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--channels` | (Research preview) MCP servers whose [channel](/docs/en/channels) notifications Claude should listen for in this session. Space-separated list of `plugin:<name>@<marketplace>` entries. Requires Anthropic authentication through claude.ai or a Console API key | `claude --channels plugin:my-notifier@my-marketplace` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--chrome` | Enable [Chrome browser integration](/docs/en/chrome) for web automation and testing | `claude --chrome` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--cloud` | Create a new [web session](/docs/en/claude-code-on-the-web) on claude.ai with the provided task description | `claude --cloud \"Fix the login bug\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--continue`, `-c` | Load the most recent conversation in the current directory. Includes sessions that added this directory with `/add-dir` | `claude --continue` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -117,7 +117,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--safe-mode` | Start with all customizations disabled to troubleshoot a broken configuration: CLAUDE.md, skills, plugins, hooks, MCP servers, custom commands and agents, output styles, workflows, custom themes, custom keybindings, status line and file-suggestion commands, LSP servers, and auto-memory do not load. Authentication, model selection, built-in tools, and permissions work normally, which differs from [`--bare`](/docs/en/headless#start-faster-with-bare-mode). Managed settings policy still applies, including policy-configured hooks, status line, and file-suggestion commands; managed plugins, managed skills, managed CLAUDE.md, and policy-configured MCP servers do not. Useful for checking whether a customization is what triggers [automatic fallback from Fable 5](/docs/en/model-config#automatic-model-fallback). Sets [`CLAUDE_CODE_SAFE_MODE`](/docs/en/env-vars) | `claude --safe-mode` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--session-id` | Use a specific session ID for the conversation (must be a valid UUID) | `claude --session-id \"550e8400-e29b-41d4-a716-446655440000\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--setting-sources` | Comma-separated list of setting sources to load (`user`, `project`, `local`) | `claude --setting-sources user,project` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--settings` | Path to a settings JSON file or an inline JSON string. Values you set here override the same keys in your `settings.json` files for this session. Keys you omit keep their file-based values. See [settings precedence](/docs/en/settings#settings-precedence) | `claude --settings ./settings.json` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--settings` | Path to a settings JSON file or an inline JSON string. Values you set here override the same keys in your `settings.json` files for this session. Keys you omit keep their file-based values. The file must be a regular file no larger than 2 MiB. See [settings precedence](/docs/en/settings#settings-precedence) | `claude --settings ./settings.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--strict-mcp-config` | Only use MCP servers from `--mcp-config`, ignoring all other MCP configurations | `claude --strict-mcp-config --mcp-config ./mcp.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--system-prompt` | Replace the entire system prompt with custom text | `claude --system-prompt \"You are a Python expert\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--system-prompt-file` | Load system prompt from a file, replacing the default prompt | `claude --system-prompt-file ./custom-prompt.txt` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 3,
+      "deletions": 2,
+      "explanation": "verify や code-review コマンドが自律実行から手動実行のみに変更された点や、context コマンドでのトークン制限超過時の警告表示について説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -36,6 +36,7 @@ Most commands are useful at a specific point in a session, from setting up a pro",
+          "lines": [
+            {
+              "type": "context",
+              "content": "The table below lists all the commands included in Claude Code. Most are built-in commands whose behavior is coded into the CLI. Two kinds of entries are marked:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **[Skill](/docs/en/skills#bundled-skills)**: a bundled skill. It works like skills you write yourself: a prompt handed to Claude, which Claude can also invoke automatically when relevant."
+            },
+            {
+              "type": "added",
+              "content": "  - `/verify` and `/code-review` run only when you invoke them. Before v2.1.215, Claude could also run them on its own."
+            },
+            {
+              "type": "context",
+              "content": "- **[Workflow](/docs/en/workflows#bundled-workflows)**: a bundled [dynamic workflow](/docs/en/workflows) that fans work out across many subagents and runs in the background."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To add your own commands, see [skills](/docs/en/skills)."
+            }
+          ]
+        },
+        {
+          "header": "@@ -59,11 +60,11 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/chrome` | Configure [Claude in Chrome](/docs/en/chrome) settings |"
+            },
+            {
+              "type": "context",
+              "content": "| `/claude-api [migrate\\|managed-agents-onboard]` | **[Skill](/docs/en/skills#bundled-skills).** Load Claude API reference material for your project's language (Python, TypeScript, Java, Go, Ruby, C#, PHP, or cURL) and Managed Agents reference. Covers tool use, streaming, batches, structured outputs, and common pitfalls. Also activates automatically when your code imports `anthropic` or `@anthropic-ai/sdk`. Run `/claude-api migrate` to upgrade existing Claude API code to a newer model: Claude asks which files to scan and which model to target, then updates model IDs, thinking configuration, and other parameters that changed between versions. Run `/claude-api managed-agents-onboard` for an interactive walkthrough that creates a new Managed Agent from scratch |"
+            },
+            {
+              "type": "context",
+              "content": "| `/clear [name]` | Start a new conversation with empty context. Pass a name to label the previous conversation in the `/resume` picker. To free up context while continuing the same conversation, use `/compact` instead. Resume the previous conversation with `/resume`, or, in the same Claude Code process, restore it from [the rewind menu's previous-session entry](/docs/en/checkpointing#rewind-past-a-cleared-conversation). Aliases: `/reset`, `/new` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/code-review [low\\|medium\\|high\\|xhigh\\|max\\|ultra] [--fix] [--comment] [target]` | **[Skill](/docs/en/skills#bundled-skills).** Review the current diff for correctness bugs and for reuse, simplification, and efficiency cleanups. Pass `--fix` to apply findings to your working tree, `--comment` to post them as inline GitHub PR comments, or `ultra` to run a deep [cloud review](/docs/en/ultrareview). From v2.1.154, `/simplify` runs a separate cleanup-only review that applies fixes without hunting for bugs. See [Review a diff locally](/docs/en/code-review#review-a-diff-locally) for effort levels and targeting |"
+            },
+            {
+              "type": "added",
+              "content": "| `/code-review [low\\|medium\\|high\\|xhigh\\|max\\|ultra] [--fix] [--comment] [target]` | **[Skill](/docs/en/skills#bundled-skills).** Review the current diff for correctness bugs and cleanup opportunities. Pass `--fix` to apply findings, `--comment` to post them as inline GitHub PR comments, or `ultra` to run a deep [cloud review](/docs/en/ultrareview). See [Review a diff locally](/docs/en/code-review#review-a-diff-locally) for effort levels, targeting, and how it relates to `/simplify` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/color [color\\|default]` | Set the prompt bar color for the current session. Available colors: `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`. Use `default` to reset, or run with no argument to pick a random color. When [Remote Control](/docs/en/remote-control) is connected, the color syncs to claude.ai/code. Also available in non-interactive mode (`-p`); requires Claude Code v2.1.205 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `/compact [instructions]` | Free up context by summarizing the conversation so far. Optionally pass focus instructions for the summary. See [how compaction handles rules, skills, and memory files](/docs/en/context-window#what-survives-compaction) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/config [key=value ...]` | Open the [Settings](/docs/en/settings) interface to adjust theme, model, [output style](/docs/en/output-styles), and other preferences. From v2.1.181, pass one or more `key=value` pairs to set a setting directly without opening the interface, for example `/config thinking=false`. From v2.1.182, named shorthand keys are also accepted, such as `/config theme=dark` or `/config model=sonnet`. The `key=value` form also works in non-interactive mode (`-p`) and from the Claude mobile app via [Remote Control](/docs/en/remote-control). Run `/config --help` to list every settable key with its options. Alias: `/settings` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/context [all]` | Visualize current context usage as a colored grid. Shows optimization suggestions for context-heavy tools, memory bloat, and capacity warnings. In [fullscreen mode](/docs/en/fullscreen) the per-item breakdown is collapsed to keep the grid visible. Pass `all` to expand it |"
+            },
+            {
+              "type": "added",
+              "content": "| `/context [all]` | Visualize current context usage as a colored grid. Shows optimization suggestions for context-heavy tools, memory bloat, and capacity warnings. When the conversation exceeds the context window, the output includes a [warning](/docs/en/errors#context-exceeds-the-token-limit) showing how far over the limit you are and which command frees space; this warning requires Claude Code v2.1.216 or later. In [fullscreen mode](/docs/en/fullscreen), `/context` collapses the per-item breakdown to keep the grid visible. Pass `all` to expand it |"
+            },
+            {
+              "type": "context",
+              "content": "| `/copy [N]` | Copy the last assistant response to clipboard. Pass a number `N` to copy the Nth-latest response: `/copy 2` copies the second-to-last. When code blocks are present, shows an interactive picker to select individual blocks or the full response. Press `w` in the picker to write the selection to a file instead of the clipboard, which is useful over SSH |"
+            },
+            {
+              "type": "context",
+              "content": "| `/cost` | Alias for `/usage` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/dataviz [request]` | **[Skill](/docs/en/skills#bundled-skills).** Design guidance for charts, graphs, and dashboards. Claude picks the chart form for the data, assigns color by role, validates the palette for colorblind safety and contrast with a bundled script, and applies mark, interaction, and accessibility rules. Uses a brand-neutral placeholder palette that you replace with your own. Requires Claude Code v2.1.198 or later |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "discover-plugins.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "プラグインのインストール手順において、インストール後に /reload-plugins を実行して反映させる必要があることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -154,7 +154,7 @@ Choose an installation scope:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For example, select **commit-commands**, a plugin that adds git workflow skills, and install it to your user scope."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can also install directly from the command line:"
+            },
+            {
+              "type": "added",
+              "content": "You can also start the install from the command line:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```shell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "/plugin install commit-commands@claude-code-plugins"
+            }
+          ]
+        },
+        {
+          "header": "@@ -255,7 +255,7 @@ Once you've added marketplaces, you can install plugins directly:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The command opens that plugin's details, where you choose an [installation scope](/docs/en/settings#configuration-scopes). You see the same choices when you run `/plugin`, go to the **Discover** tab, and press **Enter** on a plugin:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **User scope** (default): install for yourself across all projects"
+            },
+            {
+              "type": "added",
+              "content": "- **User scope**: install for yourself across all projects"
+            },
+            {
+              "type": "context",
+              "content": "- **Project scope**: install for all collaborators on this repository, which adds the plugin to `.claude/settings.json`"
+            },
+            {
+              "type": "context",
+              "content": "- **Local scope**: install for yourself in this repository only, not shared with collaborators"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -263,6 +263,8 @@ To install without an interactive step, use the [`claude plugin install`](/docs/",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You may also see plugins with **managed** scope. These are installed by administrators via [managed settings](/docs/en/settings#settings-files) and can't be modified."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "After installing, run `/reload-plugins` to activate the plugin in your current session."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Make sure you trust a plugin before installing it. Anthropic doesn't control what MCP servers, files, or other software are included in plugins and can't verify that they work as intended. Check each plugin's homepage for more information."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage installed plugins"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 3,
+      "deletions": 2,
+      "explanation": "チェックポイント復元時にスキップされたファイルを特定するための find コマンドの例や、デバッグログを用いたパスの確認方法が追記されています。",
+      "hunks": [
+        {
+          "header": "@@ -1473,8 +1473,9 @@ Restored the code, but skipped 2 files: the tracked path is (or became) a link o",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Run Claude Code with `--debug` and repeat the restore. The debug log names each skipped path."
+            },
+            {
+              "type": "removed",
+              "content": "- If a skipped file is a link you created on purpose, such as a config file managed by a dotfile manager or a file hard-linked by tools like pnpm, restore its contents from [version control](/docs/en/checkpointing#not-a-replacement-for-version-control) instead"
+            },
+            {
+              "type": "added",
+              "content": "- Identify which files were skipped so you can handle each one with the steps below. The message gives only a count, so list your project's links to find them: `find . -type l` for symlinks and `find . -type f -links +1` for hard-linked files."
+            },
+            {
+              "type": "added",
+              "content": "  - If debug logging is on, the log at `~/.claude/debug/<session-id>.txt` names each skipped path as the restore runs. Turn it on with `/debug` before your next restore to skip the search."
+            },
+            {
+              "type": "added",
+              "content": "- If a skipped file is a link you created on purpose, such as a config file managed by a dotfile manager or a file hard-linked by tools like pnpm, the rewind left its contents alone. To undo the session's changes to it, ask Claude to reverse the edit or edit the file yourself"
+            },
+            {
+              "type": "context",
+              "content": "- If you didn't create the link, inspect the path before trusting its contents: something replaced the file after the checkpoint"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configuration warnings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "headless.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "ストリーム出力の読み取りが遅い場合に終了を最大30秒待機する仕様に変更され、大きなレスポンスが途切れる問題が改善されたことが記載されています。",
+      "hunks": [
+        {
+          "header": "@@ -146,7 +146,9 @@ Use `--output-format stream-json` with `--verbose` and `--include-partial-messag",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude -p \"Explain recursion\" --output-format stream-json --verbose --include-partial-messages"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The last line of the stream is a `result` message with the final response text, cost, and session metadata. Before v2.1.208, piping a large response could truncate the final line and omit the `result` message."
+            },
+            {
+              "type": "added",
+              "content": "The last line of the stream is a `result` message with the final response text, cost, and session metadata."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If your consumer reads the stream slowly, Claude Code waits for the queued output to drain before exiting, scaling the wait with how much is still queued, capped at 30 seconds. Before v2.1.214 the exit wait was capped at about two seconds, which could cut off the end of a large response, and before v2.1.208 piping a large response could truncate the final line and omit the `result` message."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Messages from [subagents](/docs/en/sub-agents) appear in the stream as `assistant` and `user` messages whose `parent_tool_use_id` field is the ID of the tool call that spawned the subagent. Messages from the main conversation carry `null` in that field."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 3,
+      "deletions": 2,
+      "explanation": "フックで実行を阻止した際に、デフォルトでターンを終了するか continueOnBlock オプションで Claude にエラーを返して継続させるかを選択できる仕様が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -746,8 +746,9 @@ The model's only job is to return a yes/no decision as JSON:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `\"ok\": true`: the action proceeds"
+            },
+            {
+              "type": "context",
+              "content": "- `\"ok\": false`: what happens depends on the event:"
+            },
+            {
+              "type": "context",
+              "content": "  - `Stop` and `SubagentStop`: the `reason` is fed back to Claude so it keeps working"
+            },
+            {
+              "type": "removed",
+              "content": "  - `PreToolUse`: the tool call is denied and the `reason` is returned to Claude as the tool error, so it can adjust and continue"
+            },
+            {
+              "type": "removed",
+              "content": "  - `PostToolUse`, `PostToolBatch`, `UserPromptSubmit`, and `UserPromptExpansion`: the turn ends and the `reason` appears in the chat as a warning line"
+            },
+            {
+              "type": "added",
+              "content": "  - `PreToolUse`: the tool call is denied; by default the turn ends and the deny `reason` appears in the chat as a warning line. Set `continueOnBlock: true` on the hook to instead return the `reason` to Claude as the tool error, so it can adjust and continue. Before v2.1.210, the deny `reason` was returned to Claude as the tool error and the turn continued"
+            },
+            {
+              "type": "added",
+              "content": "  - `PostToolUse`: by default the turn ends and the `reason` appears in the chat as a warning line. Set `continueOnBlock: true` to feed the `reason` back to Claude and continue the turn instead"
+            },
+            {
+              "type": "added",
+              "content": "  - `PostToolBatch`, `UserPromptSubmit`, and `UserPromptExpansion`: the turn ends and the `reason` appears in the chat as a warning line"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example uses a `Stop` hook to ask the model whether all requested tasks are complete. If the model returns `\"ok\": false`, Claude keeps working and uses the `reason` as its next instruction:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 3,
+      "deletions": 2,
+      "explanation": "PreToolUse などのフックにおいて continueOnBlock オプションによる挙動の制御方法と、特定のイベントでのデフォルトの継続動作が詳細に定義されました。",
+      "hunks": [
+        {
+          "header": "@@ -2806,10 +2806,11 @@ The LLM must respond with JSON containing:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "What happens on `ok: false` depends on the event:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `Stop` and `SubagentStop`: the reason is fed back to Claude as its next instruction and the turn continues"
+            },
+            {
+              "type": "removed",
+              "content": "- `PreToolUse`: the tool call is denied and the reason is returned to Claude as the tool error, equivalent to a command hook's `permissionDecision: \"deny\"`"
+            },
+            {
+              "type": "added",
+              "content": "- `PreToolUse`: the tool call is denied; by default the turn ends and the deny reason appears in the chat as a warning line. Set `continueOnBlock: true` to instead return the reason to Claude as the tool error so it can adjust and continue, equivalent to a command hook's `permissionDecision: \"deny\"`. Before v2.1.210, the deny reason was returned to Claude as the tool error and the turn continued"
+            },
+            {
+              "type": "context",
+              "content": "- `PostToolUse`: by default the turn ends and the reason appears in the chat as a warning line. Set `continueOnBlock: true` to feed the reason back to Claude and continue the turn instead"
+            },
+            {
+              "type": "context",
+              "content": "- `PostToolBatch`, `UserPromptSubmit`, and `UserPromptExpansion`: the turn ends and the reason appears as a warning line. These events end the turn on `decision: \"block\"` regardless of `continue`"
+            },
+            {
+              "type": "removed",
+              "content": "- `PostToolUseFailure`, `TaskCreated`, and `TaskCompleted`: the reason is returned to Claude as a tool error, similar to `PreToolUse`"
+            },
+            {
+              "type": "added",
+              "content": "- `PostToolUseFailure` and `TaskCreated`: the reason is returned to Claude as a tool error and the turn continues, regardless of `continueOnBlock`"
+            },
+            {
+              "type": "added",
+              "content": "- `TaskCompleted`: when it fires because a task is marked completed during a turn, the reason is returned to Claude as a tool error and the turn continues, regardless of `continueOnBlock`. When it fires because a teammate stops, it behaves like `TeammateIdle` and halts the teammate by default"
+            },
+            {
+              "type": "context",
+              "content": "- `TeammateIdle`: by default the teammate stops and the reason appears as a warning line. Set `continueOnBlock: true` to feed the reason back to the teammate and keep it working instead"
+            },
+            {
+              "type": "context",
+              "content": "- `PermissionRequest`: `ok: false` has no effect. To deny an approval from a hook, use a [command hook](#command-hook-fields) returning `hookSpecificOutput.decision.behavior: \"deny\"`"
+            },
+            {
+              "type": "context",
+              "content": "- `PermissionDenied`: `ok: false` has no effect because the denial already happened. The only output this event reads is `hookSpecificOutput.retry`, which prompt and agent hooks can't set. They run on this event, but their output is discarded. Use a [command hook](#command-hook-fields) to return `retry`"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "how-claude-code-works.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ファイル編集の復元機能において、シンボリックリンクやハードリンクがスキップされる制限事項へのリンクが追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -143,9 +143,9 @@ Claude has two safety mechanisms: checkpoints let you undo file changes, and per",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Undo changes with checkpoints"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Every file edit is reversible.** Before Claude edits any file, it snapshots the current contents. If something goes wrong, press `Esc` twice to rewind to a previous state, or ask Claude to undo."
+            },
+            {
+              "type": "added",
+              "content": "**File edits are reversible.** Before Claude edits a file, it snapshots the current contents. If something goes wrong, press `Esc` twice to rewind to a previous state, or ask Claude to undo."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Checkpoints are separate from git and remain available when you resume a conversation. They only cover file changes. Actions that affect remote systems (databases, APIs, deployments) can't be checkpointed, which is why Claude asks before running commands with external side effects."
+            },
+            {
+              "type": "added",
+              "content": "Checkpoints are separate from git and remain available when you resume a conversation. They only cover file changes, and a restore [skips symlinked and hard-linked files](/docs/en/checkpointing#symlinked-and-hard-linked-paths-not-restored). Actions that affect remote systems (databases, APIs, deployments) can't be checkpointed, which is why Claude asks before running commands with external side effects."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Control what Claude can do"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ダブル Esc によるメニュー表示の修正や、ドット（.）コマンドによる変更の繰り返し動作が v2.1.216 で改善されたことが記載されています。",
+      "hunks": [
+        {
+          "header": "@@ -38,7 +38,7 @@ See [Terminal configuration](/docs/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Left/Right arrows` | Cycle through dialog tabs | Navigate between tabs in permission dialogs and menus |"
+            },
+            {
+              "type": "context",
+              "content": "| `Up/Down arrows` or `Ctrl+P`/`Ctrl+N` | Move cursor or navigate command history | When the input spans more than one visual row, whether wrapped or multiline, first moves the cursor within the prompt. Once the cursor is on the first or last visual row, pressing again navigates command history. As of v2.1.169, wrapped single-line input behaves the same as multiline |"
+            },
+            {
+              "type": "context",
+              "content": "| `Esc` | Interrupt Claude, or close a dialog | Stop the current response or tool call mid-turn so you can redirect. Claude keeps the work done so far. When a dialog such as a permission prompt is open, `Esc` closes the dialog rather than interrupting Claude. Before v2.1.202, `Esc` on some dialogs interrupted Claude and left the dialog open |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Esc` + `Esc` | Clear input draft, or rewind | When the prompt input contains text, double `Esc` clears it and saves the draft to history so `Up` recalls it. When the input is empty, double `Esc` opens the [rewind menu](/docs/en/checkpointing) to restore or summarize code and conversation from a previous point |"
+            },
+            {
+              "type": "added",
+              "content": "| `Esc` + `Esc` | Clear input draft, or rewind | When the prompt input contains text, double `Esc` clears it and saves the draft to history so `Up` recalls it. When the input is empty, double `Esc` opens the [rewind menu](/docs/en/checkpointing) to restore or summarize code and conversation from a previous point. Before v2.1.216, double `Esc` at an empty prompt could stop opening the menu for the rest of a long-running session that used background tasks |"
+            },
+            {
+              "type": "context",
+              "content": "| `Shift+Tab`, or `Alt+M` on Windows when the Node or Bun runtime doesn't enable VT input mode | Cycle permission modes | Cycle through `default` (labeled Manual in the mode indicator), `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/docs/en/permission-modes). |"
+            },
+            {
+              "type": "context",
+              "content": "| `Option+P` (macOS) or `Alt+P` (Windows/Linux) | Switch model | Switch models without clearing your prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `Option+T` (macOS) or `Alt+T` (Windows/Linux) | Toggle extended thinking | Enable or disable extended thinking mode. Has no effect on Fable 5, which always uses extended thinking. As of v2.1.132 this shortcut works on macOS without configuring Option as Meta |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -195,7 +195,7 @@ In vim normal mode, if the cursor is at the beginning or end of input and can't",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `<<` | Dedent line |"
+            },
+            {
+              "type": "context",
+              "content": "| `J` | Join lines |"
+            },
+            {
+              "type": "context",
+              "content": "| `u` | Undo |"
+            },
+            {
+              "type": "removed",
+              "content": "| `.` | Repeat last change |"
+            },
+            {
+              "type": "added",
+              "content": "| `.` | Repeat last change. Before v2.1.216, repeating a change operator such as `cw` or `cc` replayed only the inserted text without the deletion, and `.` after `p`/`P` repeated the previous change instead of the paste |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Text objects (NORMAL mode)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "jetbrains.md",
+      "additions": 6,
+      "deletions": 6,
+      "explanation": "ide コマンドによるプラグインの自動インストール機能や、リモート開発環境でのインストール先、サブネット指定の計算方法などが具体化されました。",
+      "hunks": [
+        {
+          "header": "@@ -60,6 +60,8 @@ claude",
+          "lines": [
+            {
+              "type": "context",
+              "content": "/ide"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When the connection succeeds, Claude Code confirms with a message like `Connected to IntelliJ IDEA.` If Claude Code detects a running IDE that doesn't have the plugin, `/ide` installs the plugin for you and asks you to restart the IDE."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you want Claude to have access to the same files as your IDE, start Claude Code from the same directory as your IDE project root."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configuration"
+            }
+          ]
+        },
+        {
+          "header": "@@ -103,9 +105,7 @@ This allows the ESC key to properly interrupt Claude Code operations.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Remote development"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When using JetBrains Remote Development, you must install the plugin in the remote host via **Settings → Plugin (Host)**."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The plugin must be installed on the remote host, not on your local client machine."
+            },
+            {
+              "type": "added",
+              "content": "When using JetBrains Remote Development, you must install the plugin on the remote host via **Settings → Plugin (Host)**, not on your local client machine."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### WSL configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -121,7 +121,7 @@ From inside your WSL shell, run:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "hostname -I"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Note the subnet, for example `172.21.123.45` is in `172.21.0.0/16`."
+            },
+            {
+              "type": "added",
+              "content": "Note your subnet: take the first two segments of the address and follow them with `.0.0/16`. For example, if the address is `172.21.123.45`, your subnet is `172.21.0.0/16`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Open PowerShell as Administrator and run the following, adjusting the IP range to match your subnet:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -157,11 +157,11 @@ If the plugin is installed but Claude Code features don't appear in your IDE:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### IDE not detected"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If running `claude` shows \"No available IDEs detected\":"
+            },
+            {
+              "type": "added",
+              "content": "If the `/ide` command shows \"No available IDEs detected\":"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Verify the plugin is installed and enabled"
+            },
+            {
+              "type": "context",
+              "content": "- Restart the IDE completely"
+            },
+            {
+              "type": "removed",
+              "content": "- Check that you're running Claude Code from the integrated terminal"
+            },
+            {
+              "type": "added",
+              "content": "- If you expected an automatic connection without running `/ide`, check that you launched `claude` from the IDE's integrated terminal"
+            },
+            {
+              "type": "context",
+              "content": "- For WSL users, see [WSL configuration](#wsl-configuration) above"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Command not found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "memory.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "メモリファイルに YAML フロントマターがある場合、最終更新日時を記録する modified フィールドが自動追加される機能と、GUIエディタ使用時の待機動作の変更が説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -380,6 +380,8 @@ The main conversation's auto memory isn't loaded into [subagents](/docs/en/sub-a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude reads and writes memory files during your session. When you see messages like \"Saved 2 memories\" or \"Recalled 2 memories\" in the Claude Code interface, Claude is actively updating or reading from `~/.claude/projects/<project>/memory/`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When Claude writes a memory file that begins with YAML frontmatter, Claude Code records the write time in a `modified` frontmatter field as an ISO 8601 timestamp. The timestamp shows how current the fact is, both to you and to Claude when it reads the memory back. Any file that has frontmatter gets the field the next time Claude writes it, including files created on earlier versions; Claude Code never adds frontmatter to a file that has none. The `modified` field requires Claude Code v2.1.214 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Audit and edit your memory"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Auto memory files are plain markdown you can edit or delete at any time. Run [`/memory`](#view-and-edit-with-%2Fmemory) to browse and open memory files from within a session."
+            }
+          ]
+        },
+        {
+          "header": "@@ -388,6 +390,8 @@ Auto memory files are plain markdown you can edit or delete at any time. Run [`/",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `/memory` command lists your CLAUDE.md, CLAUDE.local.md, and other memory file locations across user and project scopes, including user and project CLAUDE.md entries for files that don't exist yet. It also lets you toggle auto memory on or off and provides an option to open the auto memory folder. Select any file to open it in your editor; selecting one that doesn't exist yet creates it first. To check which files actually loaded into the current session, run `/context`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "GUI editors such as VS Code open the file in a separate window, and you can keep using the session while it's open. Before v2.1.216, `/memory` waited for you to close the file before responding. Terminal editors such as Vim take over the terminal until you exit."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you ask Claude to remember something, like \"always use pnpm, not npm\" or \"remember that the API tests require a local Redis instance,\" Claude saves it to auto memory. To add instructions to CLAUDE.md instead, ask Claude directly, like \"add this to CLAUDE.md,\" or edit the file yourself via `/memory`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshoot memory issues"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 84,
+      "deletions": 38,
+      "explanation": "OpenTelemetry 関連の新しい環境変数やメトリクスの単位、Prometheus 形式への適合性向上、メッセージを一意に識別するための UUID の追加など、モニタリング機能が大幅に拡充されました。",
+      "hunks": [
+        {
+          "header": "@@ -38,6 +38,8 @@ claude",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The default export intervals are 60 seconds for metrics and 5 seconds for logs. During setup, you may want to use shorter intervals for debugging purposes. Remember to reset these for production use."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To verify a setup that exports metrics, check your backend for the `claude_code.session.count` metric, which Claude Code emits when a session starts. To verify a logs-only setup, submit a prompt and check for the `claude_code.user_prompt` event. If nothing arrives, run `claude --debug` and check the debug log for OTel export errors."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For full configuration options, see the [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md#configuration-options)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Administrator configuration"
+            }
+          ]
+        },
+        {
+          "header": "@@ -83,9 +85,10 @@ Claude Code doesn't pass `OTEL_*` environment variables to the subprocesses it s",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `OTEL_LOGS_EXPORT_INTERVAL` | Logs export interval in milliseconds (default: 5000) | `1000`, `10000` |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_USER_PROMPTS` | Enable logging of user prompt content (default: disabled) | `1` to enable |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_ASSISTANT_RESPONSES` | Enable logging of assistant response text on `assistant_response` events (default: disabled). When unset, falls back to the value of `OTEL_LOG_USER_PROMPTS`. Requires Claude Code v2.1.193 or later | `1` to enable, `0` to keep redacted |"
+            },
+            {
+              "type": "removed",
+              "content": "| `OTEL_LOG_TOOL_DETAILS` | Enable logging of tool parameters and input arguments in tool events and trace span attributes: Bash commands, MCP server and tool names, skill names, user-authored workflow names, and tool input. Also enables custom, plugin, and MCP command names on `user_prompt` events (default: disabled) | `1` to enable |"
+            },
+            {
+              "type": "removed",
+              "content": "| `OTEL_LOG_TOOL_CONTENT` | Enable logging of tool input and output content in span events (default: disabled). Requires [tracing](#traces-beta). Content is truncated at 60 KB | `1` to enable |"
+            },
+            {
+              "type": "removed",
+              "content": "| `OTEL_LOG_RAW_API_BODIES` | Emit the full Anthropic Messages API request and response JSON as `api_request_body` / `api_response_body` log events (default: disabled). Bodies include the entire conversation history. Enabling this implies consent to everything `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, and `OTEL_LOG_TOOL_CONTENT` would reveal | `1` for inline bodies truncated at 60 KB, or `file:<dir>` for untruncated bodies on disk with a `body_ref` pointer in the event |"
+            },
+            {
+              "type": "added",
+              "content": "| `OTEL_LOG_TOOL_DETAILS` | Enable logging of tool parameters and input arguments in tool events and trace span attributes: Bash commands, MCP server and tool names, skill names, user-authored workflow names, and tool input. Also enables custom, plugin, and MCP command names on `user_prompt` events (default: disabled). For Claude Desktop's built-in servers, in sessions Claude Desktop owns, `mcp_server_name`/`mcp_tool_name` emit on `tool_decision`/`tool_result` even with the flag off. The exception requires Claude Code v2.1.214 or later | `1` to enable |"
+            },
+            {
+              "type": "added",
+              "content": "| `OTEL_LOG_TOOL_CONTENT` | Enable logging of tool input and output content in span events (default: disabled). Requires [tracing](#traces-beta). Content is truncated at the content limit (60 KB by default) | `1` to enable |"
+            },
+            {
+              "type": "added",
+              "content": "| `OTEL_LOG_RAW_API_BODIES` | Emit the full Anthropic Messages API request and response JSON as `api_request_body` / `api_response_body` log events (default: disabled). Bodies include the entire conversation history. Enabling this implies consent to everything `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, and `OTEL_LOG_TOOL_CONTENT` would reveal | `1` for inline bodies truncated at the content limit (60 KB by default), or `file:<dir>` for untruncated bodies on disk with a `body_ref` pointer in the event |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` | Content limit: the maximum length of content-bearing attributes such as model responses, tool content, system prompts, and raw API bodies, truncation marker included, in UTF-16 code units (default: 61440, i.e. 60 KB). The default is sized for backends that cap attribute values at 64 KB; raise it only if your backend accepts larger values, or lower it to cut telemetry volume. When an OpenTelemetry SDK attribute limit, `OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT` or one of its logrecord and span variants, is set lower, Claude Code truncates at that smaller value so the `[TRUNCATED ...]` marker stays within the SDK limit. Requires Claude Code v2.1.214 or later | `262144` |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | Metrics temporality preference (default: `delta`). Set to `cumulative` if your backend expects cumulative temporality | `delta`, `cumulative` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS` | Interval for refreshing dynamic headers (default: 1740000ms / 29 minutes) | `900000` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -140,7 +143,9 @@ By default, the `traceparent` header on model and HTTP MCP requests is sent only",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In Agent SDK and non-interactive sessions started with `-p`, Claude Code also reads `TRACEPARENT` and `TRACESTATE` from its own environment when starting each interaction span. This lets an embedding process pass its active W3C trace context into the subprocess so Claude Code's spans appear as children of the caller's distributed trace. Interactive sessions ignore inbound `TRACEPARENT` to avoid accidentally inheriting ambient values from CI or container environments."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The inbound trace context also applies to [events](#events). In Agent SDK and `-p` sessions with `TRACEPARENT` set, each OTLP event log record carries `trace_id` and `span_id` values that join it to your application's trace, even when the traces exporter isn't configured, so your logging backend can correlate events with the rest of the trace. A record emitted inside an active Claude Code span carries that span's ids; a record emitted outside one carries the inbound `TRACEPARENT` ids directly. Before v2.1.212, event records emitted outside an active span didn't carry `trace_id` or `span_id`."
+            },
+            {
+              "type": "added",
+              "content": "The inbound trace context also applies to [events](#events). In Agent SDK and `-p` sessions with `TRACEPARENT` set, each OTLP event log record carries `trace_id` and `span_id` values that join it to your application's trace, even when the traces exporter isn't configured, so your logging backend can correlate events with the rest of the trace."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A record emitted while an interaction is active carries the interaction span's IDs, even when Claude Code emits it outside the span's async context, such as in a permission prompt callback or for a record buffered during startup and exported later. A record emitted with no active interaction span carries the inbound `TRACEPARENT` IDs directly. Before v2.1.214, records emitted outside the span's async context carried the inbound `TRACEPARENT` IDs instead of the span's IDs. Before v2.1.212, event records emitted outside an active span didn't carry `trace_id` or `span_id`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Span hierarchy"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -222,7 +227,7 @@ Each retry attempt is also recorded as a `gen_ai.request.attempt` span event wit",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `skill_name` | Skill name for the Skill tool | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `subagent_type` | Subagent type for the Agent tool or legacy Task tool | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When `OTEL_LOG_TOOL_CONTENT=1`, this span also records a `tool.output` span event whose attributes contain the tool's input and output bodies, truncated at 60 KB per attribute."
+            },
+            {
+              "type": "added",
+              "content": "When `OTEL_LOG_TOOL_CONTENT=1`, this span also records a `tool.output` span event whose attributes contain the tool's input and output bodies, truncated at the content limit (60 KB by default) per attribute."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**`claude_code.tool.blocked_on_user`**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -258,7 +263,9 @@ This span is emitted only when detailed beta tracing is active, which requires `",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `num_non_blocking_error` | Count of hooks that failed without blocking | |"
+            },
+            {
+              "type": "context",
+              "content": "| `num_cancelled` | Count of hooks cancelled before completion | |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Additional content-bearing attributes such as `new_context`, `system_prompt_preview`, `user_system_prompt`, `tool_input`, and `response.model_output` are emitted only when detailed beta tracing is active. They are not part of the stable span schema. `user_system_prompt` additionally requires `OTEL_LOG_USER_PROMPTS=1`. It carries only the system prompt text you provide via the `systemPrompt` SDK option or `--system-prompt` and `--append-system-prompt` flags, truncated at 60 KB, and is emitted once per session rather than per request."
+            },
+            {
+              "type": "added",
+              "content": "Additional content-bearing attributes such as `new_context`, `system_prompt_preview`, `user_system_prompt`, `tool_input`, and `response.model_output` are emitted only when detailed beta tracing is active. They are not part of the stable span schema."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`user_system_prompt` additionally requires `OTEL_LOG_USER_PROMPTS=1`. It carries only the system prompt text you provide via the `systemPrompt` SDK option or `--system-prompt` and `--append-system-prompt` flags, truncated at the content limit (60 KB by default), and is emitted once per session rather than per request."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Dynamic headers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -266,11 +273,11 @@ For enterprise environments that require dynamic authentication, you can configu",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Settings configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Add to your `.claude/settings.json`:"
+            },
+            {
+              "type": "added",
+              "content": "Add to your `.claude/settings.json`, replacing the path with your own script:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "removed",
+              "content": "  \"otelHeadersHelper\": \"/bin/generate_opentelemetry_headers.sh\""
+            },
+            {
+              "type": "added",
+              "content": "  \"otelHeadersHelper\": \"/path/to/generate-otel-headers.sh\""
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -340,30 +347,43 @@ Wrapping values in quotes doesn't escape spaces. For example, `org.name=\"My Comp",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Example configurations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Set these environment variables before running `claude`. Each block shows a complete configuration for a different exporter or deployment scenario:"
+            },
+            {
+              "type": "added",
+              "content": "Set these environment variables before running `claude`. Each scenario below shows a complete configuration, and each variable is described under [Common configuration variables](#common-configuration-variables)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For console debugging with a 1-second export interval:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "# Console debugging (1-second intervals)"
+            },
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_ENABLE_TELEMETRY=1"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_METRICS_EXPORTER=console"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_METRIC_EXPORT_INTERVAL=1000"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For OTLP over gRPC:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# OTLP/gRPC"
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_ENABLE_TELEMETRY=1"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_METRICS_EXPORTER=otlp"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For Prometheus, scraped from `http://localhost:9464/metrics`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Prometheus"
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_ENABLE_TELEMETRY=1"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_METRICS_EXPORTER=prometheus"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To send metrics to multiple exporters:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Multiple exporters"
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_ENABLE_TELEMETRY=1"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_METRICS_EXPORTER=console,otlp"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_EXPORTER_OTLP_PROTOCOL=http/json"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To send metrics and logs to different endpoints or backends:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Different endpoints/backends for metrics and logs"
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_ENABLE_TELEMETRY=1"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_METRICS_EXPORTER=otlp"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_LOGS_EXPORTER=otlp"
+            }
+          ]
+        },
+        {
+          "header": "@@ -371,14 +391,20 @@ export OTEL_EXPORTER_OTLP_METRICS_PROTOCOL=http/protobuf",
+          "lines": [
+            {
+              "type": "context",
+              "content": "export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://metrics.example.com:4318"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=grpc"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://logs.example.com:4317"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Metrics only (no events/logs)"
+            },
+            {
+              "type": "added",
+              "content": "To export metrics only, without events or logs:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_ENABLE_TELEMETRY=1"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_METRICS_EXPORTER=otlp"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Events/logs only (no metrics)"
+            },
+            {
+              "type": "added",
+              "content": "To export events and logs only, without metrics:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_ENABLE_TELEMETRY=1"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_LOGS_EXPORTER=otlp"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc"
+            }
+          ]
+        },
+        {
+          "header": "@@ -415,18 +441,20 @@ Events additionally include the following attributes. These are never attached t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Metrics"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code exports the following metrics:"
+            },
+            {
+              "type": "added",
+              "content": "Claude Code exports the following metrics. The Unit column shows the OpenTelemetry unit string attached to each metric; count metrics carry none."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Metric Name | Description | Unit |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claude_code.session.count` | Count of CLI sessions started | count |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claude_code.lines_of_code.count` | Count of lines of code modified | count |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claude_code.pull_request.count` | Number of pull requests created | count |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claude_code.commit.count` | Number of git commits created | count |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude_code.session.count` | Count of CLI sessions started | none |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude_code.lines_of_code.count` | Count of lines of code modified | none |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude_code.pull_request.count` | Number of pull requests created | none |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude_code.commit.count` | Number of git commits created | none |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude_code.cost.usage` | Cost of the Claude Code session | USD |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude_code.token.usage` | Number of tokens used | tokens |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claude_code.code_edit_tool.decision` | Count of code editing tool permission decisions | count |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claude_code.active_time.total` | Total active time in seconds | s |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude_code.code_edit_tool.decision` | Count of code editing tool permission decisions | none |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude_code.active_time.total` | Total active time | s |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When `prometheus` is the only exporter listed in `OTEL_METRICS_EXPORTER`, Claude Code omits the `USD`, `tokens`, and `s` units from the exported metrics so the scrape stays valid Prometheus text format. Metric names don't change, and configurations that combine exporters, such as `otlp,prometheus`, keep the units. Before v2.1.216, the Prometheus scrape included OpenMetrics-only `# UNIT` lines that some scrapers rejected."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Metric details"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -531,9 +559,17 @@ When a user submits a prompt, Claude Code may make multiple API calls and run se",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Attribute | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `prompt.id` | UUID v4 identifier linking all events produced while processing a single user prompt |"
+            },
+            {
+              "type": "added",
+              "content": "| `message.uuid` | UUID of the message as persisted in the session transcript, the `~/.claude/projects/*/*.jsonl` files. Present on `assistant_response`, and on `user_prompt` except for command dispatches, which can produce zero or many messages. On `assistant_response`, this is the response's final transcript entry, which the next turn's `parentUuid` chains from. Requires Claude Code v2.1.214 or later |"
+            },
+            {
+              "type": "added",
+              "content": "| `client_request_id` | Client-generated UUID sent as the `x-client-request-id` request header. Present on `api_request` and `api_error` on first-party API connections; absent on third-party provider backends and when the request was retried through the non-streaming fallback. Pairs a request with its response and remains available for failures such as timeouts that never produced a server `request_id`. Matches the same attribute on the `llm_request` trace span. Requires Claude Code v2.1.214 or later |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To trace all activity triggered by a single prompt, filter your events by a specific `prompt.id` value. This returns the user\\_prompt event, any api\\_request events, and any tool\\_result events that occurred while processing that prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For message-level reconstruction, each event class carries a key that matches a field in the session transcript. The transcript entry format is [internal to Claude Code](/docs/en/sessions#where-transcripts-are-stored) and changes between versions, so a pipeline that joins on these fields can break on any release; treat the joins as version-specific rather than a stable contract:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- `message.uuid` on `user_prompt` and `assistant_response`"
+            },
+            {
+              "type": "added",
+              "content": "- `request_id` on the API events, persisted as `requestId` on the transcript's assistant entries"
+            },
+            {
+              "type": "added",
+              "content": "- `tool_use_id` on `tool_result` and `tool_decision` events"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`prompt.id` is intentionally excluded from metrics because each prompt generates a unique ID, which would create an ever-growing number of time series. Use it for event-level analysis and audit trails only."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### User prompt event"
+            }
+          ]
+        },
+        {
+          "header": "@@ -550,6 +586,7 @@ Logged when a user submits a prompt.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "context",
+              "content": "- `prompt_length`: Length of the prompt"
+            },
+            {
+              "type": "context",
+              "content": "- `prompt`: Prompt content. Redacted by default. Set `OTEL_LOG_USER_PROMPTS=1` to include it"
+            },
+            {
+              "type": "added",
+              "content": "- `message.uuid`: UUID of the resulting user message, matching the persisted transcript entry. Absent on command dispatches, which can produce zero or many messages. Requires Claude Code v2.1.214 or later"
+            },
+            {
+              "type": "context",
+              "content": "- `command_name`: Command name when the prompt invokes one. Built-in and bundled command names such as `compact` or `debug` are emitted as-is; aliases such as `reset` emit as typed rather than the canonical name. Custom, plugin, and MCP command names collapse to `custom` or `mcp` unless `OTEL_LOG_TOOL_DETAILS=1` is set"
+            },
+            {
+              "type": "context",
+              "content": "- `command_source`: Origin of the command when present: `builtin`, `custom`, or `mcp`. Plugin-provided commands report as `custom`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -566,9 +603,10 @@ Logged after each API request that returns text content from the model. Only the",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.timestamp`: ISO 8601 timestamp"
+            },
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "context",
+              "content": "- `response_length`: Length of the response text in characters"
+            },
+            {
+              "type": "removed",
+              "content": "- `response`: Response text, truncated at 60 KB. Redacted to `<REDACTED>` by default. Set `OTEL_LOG_ASSISTANT_RESPONSES=1` to include it. When `OTEL_LOG_ASSISTANT_RESPONSES` is unset, `OTEL_LOG_USER_PROMPTS` controls it instead, so set `OTEL_LOG_ASSISTANT_RESPONSES=0` to keep responses redacted while prompt logging is on"
+            },
+            {
+              "type": "added",
+              "content": "- `response`: Response text, truncated at the content limit (60 KB by default). Redacted to `<REDACTED>` by default. Set `OTEL_LOG_ASSISTANT_RESPONSES=1` to include it. When `OTEL_LOG_ASSISTANT_RESPONSES` is unset, `OTEL_LOG_USER_PROMPTS` controls it instead, so set `OTEL_LOG_ASSISTANT_RESPONSES=0` to keep responses redacted while prompt logging is on"
+            },
+            {
+              "type": "context",
+              "content": "- `model`: Model identifier (for example, \"claude-sonnet-5\")"
+            },
+            {
+              "type": "context",
+              "content": "- `request_id`: Anthropic API request ID from the response's `request-id` header. Present only when the API returns one"
+            },
+            {
+              "type": "added",
+              "content": "- `message.uuid`: UUID of the response's final transcript entry. An API response is persisted as one transcript entry per content block; this is the last one, which the next turn's `parentUuid` chains from. Requires Claude Code v2.1.214 or later"
+            },
+            {
+              "type": "context",
+              "content": "- `query_source`: Subsystem that issued the request, such as `\"repl_main_thread\"`, `\"compact\"`, or a subagent name"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Tool result event"
+            }
+          ]
+        },
+        {
+          "header": "@@ -594,9 +632,8 @@ Logged when a tool completes execution. Not emitted if the tool call was rejecte",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `tool_input_size_bytes`: Size of the JSON-serialized tool input in bytes"
+            },
+            {
+              "type": "context",
+              "content": "- `tool_result_size_bytes`: Size of the tool result in bytes"
+            },
+            {
+              "type": "context",
+              "content": "- `mcp_server_scope`: MCP server scope identifier (for MCP tools)"
+            },
+            {
+              "type": "removed",
+              "content": "- `tool_parameters` (when `OTEL_LOG_TOOL_DETAILS=1`): JSON string containing tool-specific parameters:"
+            },
+            {
+              "type": "removed",
+              "content": "  - For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `dangerouslyDisableSandbox`, and `git_commit_id` (the commit SHA, when a `git commit` command succeeds)"
+            },
+            {
+              "type": "removed",
+              "content": "  - For WorkspaceBash tool: includes `bash_command`, `full_command`, `timeout`"
+            },
+            {
+              "type": "added",
+              "content": "- `tool_parameters` (when `OTEL_LOG_TOOL_DETAILS=1`): JSON string containing tool-specific parameters. For Claude Desktop's built-in servers, in sessions Claude Desktop owns, the `mcp_server_name`/`mcp_tool_name` pair is included even with the flag off, the same host-authored exception as the [Tool decision event](#tool-decision-event), requiring Claude Code v2.1.214 or later. The parameters vary by tool:"
+            },
+            {
+              "type": "added",
+              "content": "  - For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `dangerouslyDisableSandbox`, and `git_commit_id` (the commit SHA, when a `git commit` command succeeds). The desktop app's workspace bash tool also reports `tool_name` as `Bash`, but includes only `bash_command`, `full_command`, and `timeout`"
+            },
+            {
+              "type": "context",
+              "content": "  - For MCP tools: includes `mcp_server_name`, `mcp_tool_name`"
+            },
+            {
+              "type": "context",
+              "content": "  - For Skill tool: includes `skill_name`"
+            },
+            {
+              "type": "context",
+              "content": "  - For Agent tool or legacy Task tool: includes `subagent_type`"
+            }
+          ]
+        },
+        {
+          "header": "@@ -616,12 +653,14 @@ Logged for each API request to Claude.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "context",
+              "content": "- `model`: Model used (for example, \"claude-sonnet-5\")"
+            },
+            {
+              "type": "context",
+              "content": "- `cost_usd`: Estimated cost in USD"
+            },
+            {
+              "type": "added",
+              "content": "- `cost_usd_micros`: Estimated cost in millionths of a US dollar, emitted as an integer"
+            },
+            {
+              "type": "context",
+              "content": "- `duration_ms`: Request duration in milliseconds"
+            },
+            {
+              "type": "context",
+              "content": "- `input_tokens`: Number of input tokens"
+            },
+            {
+              "type": "context",
+              "content": "- `output_tokens`: Number of output tokens"
+            },
+            {
+              "type": "context",
+              "content": "- `cache_read_tokens`: Number of tokens read from cache"
+            },
+            {
+              "type": "context",
+              "content": "- `cache_creation_tokens`: Number of tokens used for cache creation"
+            },
+            {
+              "type": "context",
+              "content": "- `request_id`: Anthropic API request ID from the response's `request-id` header, such as `\"req_011...\"`. Present only when the API returns one."
+            },
+            {
+              "type": "added",
+              "content": "- `client_request_id`: Client-generated UUID sent as the `x-client-request-id` request header. Matches the same attribute on the `llm_request` trace span. Absent on third-party provider backends and when the request was retried through the non-streaming fallback. Requires Claude Code v2.1.214 or later"
+            },
+            {
+              "type": "context",
+              "content": "- `speed`: `\"fast\"` or `\"normal\"`, indicating whether fast mode was active"
+            },
+            {
+              "type": "context",
+              "content": "- `query_source`: Subsystem that issued the request, such as `\"repl_main_thread\"`, `\"compact\"`, or a subagent name"
+            },
+            {
+              "type": "context",
+              "content": "- `effort`: [Effort level](/docs/en/model-config#adjust-effort-level) applied to the request: `\"low\"`, `\"medium\"`, `\"high\"`, `\"xhigh\"`, or `\"max\"`. Absent when the model doesn't support effort."
+            }
+          ]
+        },
+        {
+          "header": "@@ -645,6 +684,7 @@ Logged when an API request to Claude fails.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `duration_ms`: Request duration in milliseconds"
+            },
+            {
+              "type": "context",
+              "content": "- `attempt`: Total number of attempts made, including the initial request (`1` means no retries occurred)"
+            },
+            {
+              "type": "context",
+              "content": "- `request_id`: Anthropic API request ID from the response's `request-id` header, such as `\"req_011...\"`. Present only when the API returns one."
+            },
+            {
+              "type": "added",
+              "content": "- `client_request_id`: Client-generated UUID sent as the `x-client-request-id` request header. Available even when a failure such as a timeout or connection error never produced a server `request_id`. Absent on third-party provider backends and when the request was retried through the non-streaming fallback. Requires Claude Code v2.1.214 or later"
+            },
+            {
+              "type": "context",
+              "content": "- `speed`: `\"fast\"` or `\"normal\"`, indicating whether fast mode was active"
+            },
+            {
+              "type": "context",
+              "content": "- `query_source`: Subsystem that issued the request, such as `\"repl_main_thread\"`, `\"compact\"`, or a subagent name"
+            },
+            {
+              "type": "context",
+              "content": "- `effort`: [Effort level](/docs/en/model-config#adjust-effort-level) applied to the request. Absent when the model doesn't support effort."
+            }
+          ]
+        },
+        {
+          "header": "@@ -686,7 +726,7 @@ Logged for each API request attempt when `OTEL_LOG_RAW_API_BODIES` is set. One e",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.name`: `\"api_request_body\"`"
+            },
+            {
+              "type": "context",
+              "content": "- `event.timestamp`: ISO 8601 timestamp"
+            },
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "removed",
+              "content": "- `body`: JSON-serialized Messages API request parameters (system prompt, messages, tools, etc.), truncated at 60 KB. Extended-thinking content in prior assistant turns is redacted. Emitted only in inline mode (`OTEL_LOG_RAW_API_BODIES=1`)."
+            },
+            {
+              "type": "added",
+              "content": "- `body`: JSON-serialized Messages API request parameters, such as the system prompt, messages, and tools, truncated at the content limit (60 KB by default). Extended-thinking content in prior assistant turns is redacted. Emitted only in inline mode (`OTEL_LOG_RAW_API_BODIES=1`)."
+            },
+            {
+              "type": "context",
+              "content": "- `body_ref`: Absolute path to a `<dir>/<uuid>.request.json` file containing the untruncated body. Emitted only in file mode (`OTEL_LOG_RAW_API_BODIES=file:<dir>`)."
+            },
+            {
+              "type": "context",
+              "content": "- `body_length`: Untruncated body length. UTF-8 bytes when `OTEL_LOG_RAW_API_BODIES=file:<dir>`, or UTF-16 code units when `=1`"
+            },
+            {
+              "type": "context",
+              "content": "- `body_truncated`: `\"true\"` when inline truncation occurred. Absent in file mode and when no truncation occurred."
+            }
+          ]
+        },
+        {
+          "header": "@@ -705,7 +745,7 @@ Logged for each successful API response when `OTEL_LOG_RAW_API_BODIES` is set.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.name`: `\"api_response_body\"`"
+            },
+            {
+              "type": "context",
+              "content": "- `event.timestamp`: ISO 8601 timestamp"
+            },
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "removed",
+              "content": "- `body`: JSON-serialized Messages API response (id, content blocks, usage, stop reason), truncated at 60 KB. Extended-thinking content is redacted. Emitted only in inline mode (`OTEL_LOG_RAW_API_BODIES=1`)."
+            },
+            {
+              "type": "added",
+              "content": "- `body`: JSON-serialized Messages API response, including the id, content blocks, usage, and stop reason, truncated at the content limit (60 KB by default). Extended-thinking content is redacted. Emitted only in inline mode (`OTEL_LOG_RAW_API_BODIES=1`)."
+            },
+            {
+              "type": "context",
+              "content": "- `body_ref`: Absolute path to a `<dir>/<request_id>.response.json` file containing the untruncated body. Emitted only in file mode (`OTEL_LOG_RAW_API_BODIES=file:<dir>`)."
+            },
+            {
+              "type": "context",
+              "content": "- `body_length`: Untruncated body length. UTF-8 bytes when `OTEL_LOG_RAW_API_BODIES=file:<dir>`, or UTF-16 code units when `=1`"
+            },
+            {
+              "type": "context",
+              "content": "- `body_truncated`: `\"true\"` when inline truncation occurred. Absent in file mode and when no truncation occurred."
+            }
+          ]
+        },
+        {
+          "header": "@@ -728,16 +768,20 @@ Logged when a tool permission decision is made (accept/reject).",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `tool_name`: Name of the tool (for example, \"Read\", \"Edit\", \"Write\", \"NotebookEdit\")"
+            },
+            {
+              "type": "context",
+              "content": "- `tool_use_id`: Unique identifier for this tool invocation. Matches the `tool_use_id` passed to hooks, allowing correlation between OTel events and hook-captured data."
+            },
+            {
+              "type": "context",
+              "content": "- `decision`: Either `\"accept\"` or `\"reject\"`"
+            },
+            {
+              "type": "added",
+              "content": "- `tool_source`: Always present. The tool's provenance, as a closed set of CLI-authored values. Requires Claude Code v2.1.214 or later"
+            },
+            {
+              "type": "added",
+              "content": "  - `\"builtin\"`: the CLI's own tools"
+            },
+            {
+              "type": "added",
+              "content": "  - `\"mcp\"`: MCP servers generally"
+            },
+            {
+              "type": "added",
+              "content": "  - `\"sdk_host_builtin_mcp\"`: an in-process server built into Claude Desktop itself, in a session Claude Desktop owns. Claude Desktop owns a session it started from one of its own entrypoints, `claude-desktop`, `claude-desktop-3p`, or `local-agent`, when that session isn't a nested child; nested sessions, including sessions Claude Code itself spawns, report these servers as `\"mcp\"`"
+            },
+            {
+              "type": "context",
+              "content": "- `source`: Where the decision came from:"
+            },
+            {
+              "type": "removed",
+              "content": "  - `\"config\"`: Decided automatically without prompting, based on project settings, allow or deny rules in the user's personal settings, enterprise managed policy, `--allowedTools` or `--disallowedTools` flags, the active permission mode, a session-scoped grant from an earlier prompt in the same interactive CLI session, or because the tool is inherently safe. The event doesn't indicate which of these sources matched."
+            },
+            {
+              "type": "added",
+              "content": "  - `\"config\"`: Decided automatically without prompting, based on project settings, allow or deny rules in the user's personal settings, enterprise managed policy, `--allowedTools` or `--disallowedTools` flags, the active permission mode, a session-scoped grant from an earlier prompt in the same interactive CLI session, or because the tool is inherently safe. The event doesn't indicate which of these sources matched. Claude Code also reports `\"config\"` when the permission prompt request itself fails, for example when the Agent SDK's [`canUseTool`](/docs/en/agent-sdk/typescript#canusetool) callback or the [`--permission-prompt-tool`](/docs/en/cli-reference#cli-flags) tool returns an invalid result, or when the input stream closes while the request is pending. Before v2.1.216, Claude Code reported these failures as `\"user_reject\"`."
+            },
+            {
+              "type": "context",
+              "content": "  - `\"hook\"`: A `PreToolUse` or `PermissionRequest` hook returned the decision."
+            },
+            {
+              "type": "context",
+              "content": "  - `\"user_permanent\"`: Emitted when the user chose \"Yes, and don't ask again for ...\" at a permission prompt, which saves an allow rule to their personal settings. In the interactive CLI this is emitted only for that choice itself; later calls that match the saved rule emit `\"config\"` instead. In Agent SDK or non-interactive `-p` sessions, both the initial choice and later rule matches emit `\"user_permanent\"`. Treated as an accept."
+            },
+            {
+              "type": "context",
+              "content": "  - `\"user_temporary\"`: Emitted when the user chose \"Yes\" at a permission prompt for a one-time approval, or chose one of the \"... during this session\" options on a file edit or read prompt. In the interactive CLI this is emitted only for the choice itself; later calls allowed by that session-scoped grant emit `\"config\"` instead. In Agent SDK or non-interactive `-p` sessions, both the choice and later matches emit `\"user_temporary\"`. Treated as an accept."
+            },
+            {
+              "type": "removed",
+              "content": "  - `\"user_abort\"`: Emitted when the user dismissed the permission prompt without answering. Treated as a reject."
+            },
+            {
+              "type": "added",
+              "content": "  - `\"user_abort\"`: Emitted when the user dismissed the permission prompt without answering. In Agent SDK and non-interactive `-p` sessions, this includes interrupting the turn while a `canUseTool` or `--permission-prompt-tool` permission request is pending; before v2.1.216, Claude Code reported that interrupt as `\"user_reject\"`. Treated as a reject."
+            },
+            {
+              "type": "context",
+              "content": "  - `\"user_reject\"`: Emitted when the user chose \"No\" when prompted. In the interactive CLI this is emitted only for that choice itself; calls that match a deny rule in the user's personal settings emit `\"config\"` instead. In Agent SDK or non-interactive `-p` sessions, calls that match a deny rule in personal settings emit `\"user_reject\"`. Treated as a reject."
+            },
+            {
+              "type": "context",
+              "content": "- `tool_parameters` (when `OTEL_LOG_TOOL_DETAILS=1`): JSON string containing tool-specific parameters. Same shape as the [Tool result event](#tool-result-event), minus post-execution fields such as `git_commit_id`. Values may differ from `tool_result` for an accepted call if the permission decision rewrites the tool input via `updatedInput`. Use this attribute to see which command was rejected when `decision` is `\"reject\"`."
+            },
+            {
+              "type": "removed",
+              "content": "  - For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `dangerouslyDisableSandbox`"
+            },
+            {
+              "type": "removed",
+              "content": "  - For WorkspaceBash tool: includes `bash_command`, `full_command`, `timeout`"
+            },
+            {
+              "type": "added",
+              "content": "  - For `\"sdk_host_builtin_mcp\"` tools: `mcp_server_name` and `mcp_tool_name` are included even when `OTEL_LOG_TOOL_DETAILS` is off, because the host application defines these names; without them, a rejected call to one of these built-in servers would be unattributable on the default stream. For user-configured MCP servers, the event's `tool_name` is always the literal `\"mcp_tool\"`, and the server and tool names appear only in `tool_parameters` with the flag on; argument content requires the flag everywhere. Requires Claude Code v2.1.214 or later"
+            },
+            {
+              "type": "added",
+              "content": "  - For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `dangerouslyDisableSandbox`. The desktop app's workspace bash tool also reports `tool_name` as `Bash`, but includes only `bash_command`, `full_command`, and `timeout`"
+            },
+            {
+              "type": "context",
+              "content": "  - For MCP tools: includes `mcp_server_name`, `mcp_tool_name`"
+            },
+            {
+              "type": "context",
+              "content": "  - For Skill tool: includes `skill_name`"
+            },
+            {
+              "type": "context",
+              "content": "  - For Agent tool or legacy Task tool: includes `subagent_type`"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1053,6 +1097,8 @@ The `claude_code.cost.usage` metric helps with:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Cost metrics are approximations. For official billing data, refer to your API provider (Claude Console, Amazon Bedrock, or Google Cloud's Agent Platform)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code counts each streaming response toward the cost and token metrics exactly once, including when a gateway or proxy behind `ANTHROPIC_BASE_URL` streams usage progressively across multiple frames. Before v2.1.214, streams that carried usage in more than one frame inflated `claude_code.cost.usage` and `claude_code.token.usage` by roughly one extra full request per extra frame."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Alerting and segmentation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Common alerts to consider:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1114,8 +1160,8 @@ To capture MCP server activity with full call detail, enable the logs exporter a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Without `OTEL_LOG_TOOL_DETAILS`, these events drop the identifying detail:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- `tool_result`: keeps `tool_name` and `mcp_server_scope`, omits `mcp_server_name`, `mcp_tool_name`, and arguments"
+            },
+            {
+              "type": "removed",
+              "content": "- `tool_decision`: keeps `tool_name`, omits `tool_parameters`"
+            },
+            {
+              "type": "added",
+              "content": "- `tool_result`: keeps `mcp_server_scope` and a `tool_name` redacted to the literal `\"mcp_tool\"` for user-configured servers, omits argument content. For Claude Desktop's built-in servers, in sessions Claude Desktop owns, it also keeps the `mcp_server_name`/`mcp_tool_name` pair inside `tool_parameters`, the same host-authored exception as `tool_decision`, requiring Claude Code v2.1.214 or later"
+            },
+            {
+              "type": "added",
+              "content": "- `tool_decision`: keeps `tool_source` and a `tool_name` redacted to the literal `\"mcp_tool\"` for user-configured servers, omits argument content. For Claude Desktop's built-in servers, in sessions Claude Desktop owns, it also keeps the `mcp_server_name`/`mcp_tool_name` pair inside `tool_parameters`; `tool_source` and the name pair both require Claude Code v2.1.214 or later"
+            },
+            {
+              "type": "context",
+              "content": "- `mcp_server_connection`: omits `server_name` and the error message, but keeps `is_plugin`, `plugin_id_hash`, and `plugin.name`, with non-Anthropic plugin names redacted to the literal `\"third-party\"`, so plugin-provided servers remain distinguishable without detailed logging"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Map security questions to events"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1201,13 +1247,13 @@ For a comprehensive guide on measuring return on investment for Claude Code, inc",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- When authenticated via OAuth, `user.email` is included in telemetry attributes. If this is a concern for your organization, work with your telemetry backend to filter or redact this field"
+            },
+            {
+              "type": "context",
+              "content": "- User prompt content is not collected by default. Only prompt length is recorded. To include prompt content, set `OTEL_LOG_USER_PROMPTS=1`"
+            },
+            {
+              "type": "context",
+              "content": "- Assistant response text is not collected by default. Only response length is recorded. To include response text, set `OTEL_LOG_ASSISTANT_RESPONSES=1`. Like all OpenTelemetry data from Claude Code, the response text is sent only to the OTel endpoint you configure, never to Anthropic. When this variable is unset, `OTEL_LOG_USER_PROMPTS` is used as a fallback, so set `OTEL_LOG_ASSISTANT_RESPONSES=0` if you want prompt content without response content"
+            },
+            {
+              "type": "removed",
+              "content": "- Tool input arguments and parameters are not logged by default. To include them, set `OTEL_LOG_TOOL_DETAILS=1`. This data is sent only to the OTEL endpoint you configure, never to Anthropic. Arguments may still contain sensitive values, so configure your telemetry backend to filter or redact these attributes as needed. When enabled:"
+            },
+            {
+              "type": "added",
+              "content": "- Tool input arguments and parameters are not logged by default. To include them, set `OTEL_LOG_TOOL_DETAILS=1`. For Claude Desktop's built-in servers, in sessions Claude Desktop owns, `tool_decision` and `tool_result` carry the `mcp_server_name`/`mcp_tool_name` pair, host-authored names rather than argument content, even with the flag off. The exception requires Claude Code v2.1.214 or later. This data is sent only to the OTEL endpoint you configure, never to Anthropic. Arguments may still contain sensitive values, so configure your telemetry backend to filter or redact these attributes as needed. When enabled:"
+            },
+            {
+              "type": "context",
+              "content": "  - `tool_result` and `tool_decision` events include a `tool_parameters` attribute with Bash commands, MCP server and tool names, and skill names. Fields such as `full_command` are emitted untruncated"
+            },
+            {
+              "type": "context",
+              "content": "  - `tool_result` events additionally include a `tool_input` attribute with file paths, URLs, search patterns, and other arguments. Individual values over 512 characters are truncated and the total is bounded to \\~4 K characters"
+            },
+            {
+              "type": "context",
+              "content": "  - `user_prompt` events include the verbatim `command_name` for custom, plugin, and MCP commands"
+            },
+            {
+              "type": "context",
+              "content": "  - Trace spans include the same `tool_input` attribute and input-derived attributes such as `file_path`, with the same truncation as `tool_input`"
+            },
+            {
+              "type": "removed",
+              "content": "- Tool input and output content is not logged in trace spans by default. To include it, set `OTEL_LOG_TOOL_CONTENT=1`. When enabled, span events include full tool input and output content truncated at 60 KB per span. This can include raw file contents from Read tool results and Bash command output. Configure your telemetry backend to filter or redact these attributes as needed"
+            },
+            {
+              "type": "removed",
+              "content": "- Raw Anthropic Messages API request and response bodies are not logged by default. To include them, set `OTEL_LOG_RAW_API_BODIES`. With `=1`, each API call emits `api_request_body` and `api_response_body` log events whose `body` attribute is the JSON-serialized payload, truncated at 60 KB. With `=file:<dir>`, untruncated bodies are written to `.request.json` and `.response.json` files under that directory and the events carry a `body_ref` path instead of the inline body. Ship the directory with a log collector or sidecar rather than through the telemetry stream. In both modes, bodies contain the full conversation history (system prompt, every prior user and assistant turn, tool results), so enabling this implies consent to everything the other `OTEL_LOG_*` content flags would reveal. Claude's extended-thinking content is always redacted from these bodies regardless of other settings"
+            },
+            {
+              "type": "added",
+              "content": "- Tool input and output content is not logged in trace spans by default. To include it, set `OTEL_LOG_TOOL_CONTENT=1`. When enabled, span events include full tool input and output content truncated at the content limit (60 KB by default) per attribute. This can include raw file contents from Read tool results and Bash command output. Configure your telemetry backend to filter or redact these attributes as needed"
+            },
+            {
+              "type": "added",
+              "content": "- Raw Anthropic Messages API request and response bodies are not logged by default. To include them, set `OTEL_LOG_RAW_API_BODIES`. With `=1`, each API call emits `api_request_body` and `api_response_body` log events whose `body` attribute is the JSON-serialized payload, truncated at the content limit (60 KB by default). With `=file:<dir>`, untruncated bodies are written to `.request.json` and `.response.json` files under that directory and the events carry a `body_ref` path instead of the inline body. Ship the directory with a log collector or sidecar rather than through the telemetry stream. In both modes, bodies contain the full conversation history, including the system prompt, every prior user and assistant turn, and tool results, so enabling this implies consent to everything the other `OTEL_LOG_*` content flags would reveal. Claude's extended-thinking content is always redacted from these bodies regardless of other settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Monitor Claude Code on Amazon Bedrock"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-marketplaces.md",
+      "additions": 10,
+      "deletions": 6,
+      "explanation": "プラグインのインストール時にユーザースコープを選択し、プロジェクト間で共有可能にするための手順が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -54,7 +54,10 @@ Create a `plugin.json` file that describes the plugin. The manifest goes in the",
+          "lines": [
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "  \"name\": \"quality-review-plugin\","
+            },
+            {
+              "type": "context",
+              "content": "  \"description\": \"Adds a quality-review skill for quick code reviews\","
+            },
+            {
+              "type": "removed",
+              "content": "  \"version\": \"1.0.0\""
+            },
+            {
+              "type": "added",
+              "content": "  \"version\": \"1.0.0\","
+            },
+            {
+              "type": "added",
+              "content": "  \"author\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"name\": \"Your Name\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -78,11 +81,12 @@ Create the marketplace catalog that lists your plugin.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Add the marketplace and install the plugin."
+            },
+            {
+              "type": "added",
+              "content": "From the directory that contains `my-marketplace`, start Claude Code and run the following commands. The install command opens a plugin details view where you select an installation scope to confirm the install, and `/reload-plugins` activates the plugin in your current session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```shell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "/plugin marketplace add ./my-marketplace"
+            },
+            {
+              "type": "context",
+              "content": "/plugin install quality-review-plugin@my-plugins"
+            },
+            {
+              "type": "added",
+              "content": "/reload-plugins"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Select some code in your editor and run your new skill. Plugin skills are namespaced with the plugin name."
+            }
+          ]
+        },
+        {
+          "header": "@@ -839,7 +843,7 @@ Earlier versions of Claude Code ignore the `renames` field and report `plugin-no",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Test your marketplace before sharing."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Validate your marketplace JSON syntax:"
+            },
+            {
+              "type": "added",
+              "content": "From your marketplace directory, validate the JSON syntax:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "claude plugin validate ."
+            }
+          ]
+        },
+        {
+          "header": "@@ -946,7 +950,7 @@ claude plugin marketplace list [options]",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `--json` | Output as JSON |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "With `--json`, each entry includes `name`, `source`, and source-specific fields: `repo` for GitHub sources, `url` for git and URL sources, and `path` for local sources. GitHub and git sources also include a `ref` field when the marketplace was added with a pinned branch or tag."
+            },
+            {
+              "type": "added",
+              "content": "With `--json`, each entry includes `name`, `source`, an `installLocation` field with the local cache path where the marketplace is stored, and source-specific fields: `repo` for GitHub sources, `url` for git and URL sources, and `path` for local sources. GitHub and git sources also include a `ref` field when the marketplace was added with a pinned branch or tag."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Plugin marketplace remove"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1045,8 +1049,8 @@ To validate an individual plugin's `plugin.json` and its skill, agent, command,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "For manual installation and updates:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Verify you're authenticated with your git provider (for example, run `gh auth status` for GitHub)"
+            },
+            {
+              "type": "removed",
+              "content": "- Check that your credential helper is configured correctly: `git config --global credential.helper`"
+            },
+            {
+              "type": "removed",
+              "content": "- Try cloning the repository manually to verify your credentials work"
+            },
+            {
+              "type": "added",
+              "content": "- Check that your credential helper is configured: `git config --global credential.helper`"
+            },
+            {
+              "type": "added",
+              "content": "- Run `git ls-remote <marketplace-url>` to test whether git can authenticate on its own. If git asks for a username or password, store the credential first: for GitHub over HTTPS, run `gh auth setup-git`, and for SSH remotes, load your key into `ssh-agent`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For background auto-updates:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandboxing.md",
+      "additions": 48,
+      "deletions": 5,
+      "explanation": "ツール実行時の権限判断（tool_decision）において、設定による自動判断やユーザーによる中断、エラー時のソース分類がより詳細に定義されました。",
+      "hunks": [
+        {
+          "header": "@@ -107,7 +107,7 @@ Even in auto-allow mode, the following still apply:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In both modes, the sandbox enforces the same filesystem and network restrictions. The difference is only in whether sandboxed commands are auto-approved or require explicit permission."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The session temp directory is writable inside the sandbox by default, alongside the working directory. Claude Code sets `$TMPDIR` to this directory for sandboxed commands, so tools that write temporary files work without extra configuration. Unsandboxed commands inherit your shell's `$TMPDIR` unchanged, which means sandboxed and unsandboxed commands resolve `$TMPDIR` to different directories. To pass temporary files between the two, write them under the working directory instead."
+            },
+            {
+              "type": "added",
+              "content": "The session temp directory is writable inside the sandbox by default, alongside the working directory. Claude Code sets `$TMPDIR` to this directory for sandboxed commands, so tools that write temporary files work without extra configuration. Unsandboxed commands inherit your shell's `$TMPDIR` unchanged, which means sandboxed and unsandboxed commands resolve `$TMPDIR` to different directories unless you [disable filesystem isolation](#disable-filesystem-isolation). To pass temporary files between the two, write them under the working directory instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Some commands cannot run inside the sandbox at all, such as tools that are incompatible with it or that need a host you have not allowed. Rather than failing the task or requiring you to turn sandboxing off, Claude Code includes an escape hatch: when a command fails because of sandbox restrictions, Claude analyzes the failure and may retry the command with the `dangerouslyDisableSandbox` parameter. The retried command runs outside the sandbox, so it goes through the regular permission flow: in default mode you get a confirmation prompt; in [auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode) the classifier evaluates the underlying command instead of prompting you. To be prompted on every unsandboxed retry even in auto mode, add an [ask rule](/docs/en/permissions#match-by-input-parameter) for `Bash(dangerouslyDisableSandbox:true)`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -171,11 +171,51 @@ The example below blocks reading from the entire home directory while still allo",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `.` in `allowRead` resolves to the project root because this configuration lives in project settings. If you placed the same configuration in `~/.claude/settings.json`, `.` would resolve to `~/.claude` instead, and project files would remain blocked by the `denyRead` rule."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Disable filesystem isolation"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Set `sandbox.filesystem.disabled` to `true` to skip filesystem isolation while keeping network isolation. The example below turns off filesystem isolation while keeping an allowlist of network domains:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"sandbox\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"enabled\": true,"
+            },
+            {
+              "type": "added",
+              "content": "    \"filesystem\": {"
+            },
+            {
+              "type": "added",
+              "content": "      \"disabled\": true"
+            },
+            {
+              "type": "added",
+              "content": "    },"
+            },
+            {
+              "type": "added",
+              "content": "    \"network\": {"
+            },
+            {
+              "type": "added",
+              "content": "      \"allowedDomains\": [\"github.com\", \"*.npmjs.org\"]"
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The sandbox has two independent layers: [filesystem isolation](#filesystem-isolation) controls which paths sandboxed commands can read and write, and [network isolation](#network-isolation) controls which domains they can reach. With the filesystem layer off, sandboxed commands get unrestricted read and write access to the host filesystem, while their network egress stays confined to your allowed domains. Turn the layer off when you sandbox to control where commands connect rather than what they write."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The setting is off by default and applies on the platforms where the sandbox runs: macOS, Linux, and WSL2. Requires Claude Code v2.1.216 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With filesystem isolation off and commands auto-allowed, a sandboxed command can write files that later commands run or read, such as shell startup files, executables on `$PATH`, or `~/.claude/settings.json`, and use them to widen its own access on the next run. Set `filesystem.disabled` to `true` only for workloads you trust not to escalate their own access. Locking network domains with [`allowManagedDomainsOnly`](#keep-developers-from-widening-the-policy) narrows the risk but doesn't remove it, since that lock applies only to commands running inside the sandbox."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Which settings can disable it"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Because turning filesystem isolation off widens what sandboxed commands can do, Claude Code honors `filesystem.disabled` from these settings sources only:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- User settings, managed settings, and the `--settings` CLI flag can set it. Project settings in `.claude/settings.json` and `.claude/settings.local.json` can't, so a checked-out project can't switch filesystem isolation off."
+            },
+            {
+              "type": "added",
+              "content": "- When managed settings configure `sandbox.filesystem` at all, or list any `sandbox.credentials.files` entry, only managed settings can set the key. This keeps administrator-deployed filesystem restrictions in force; to relax such a deployment, set `\"disabled\": true` in managed settings."
+            },
+            {
+              "type": "added",
+              "content": "- When [`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`](/docs/en/env-vars) is set, Claude Code ignores `filesystem.disabled` from every source, including managed settings, and keeps filesystem isolation on."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### What changes when isolation is off"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Turning the filesystem layer off also lifts its read protections and stops overriding `$TMPDIR`, while sandboxed commands stay auto-allowed:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- The read protections from `filesystem.denyRead` and [`credentials.files`](#protect-credentials) don't apply to sandboxed commands, because the filesystem layer enforces both. `credentials.envVars` deny and mask entries still apply, since environment variable scrubbing is independent of the filesystem layer."
+            },
+            {
+              "type": "added",
+              "content": "- Sandboxed commands inherit your shell's `$TMPDIR` instead of the session temp directory, since every temp directory is writable."
+            },
+            {
+              "type": "added",
+              "content": "- [`autoAllowBashIfSandboxed`](/docs/en/settings#sandbox-settings) still defaults to `true`, so sandboxed commands keep running without prompts. Set it to `false` to keep prompting for sandboxed commands."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Protect credentials"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `sandbox.credentials` setting declares credential files and environment variables to protect from sandboxed commands. Each entry names a file path or an environment variable and a `mode`. The dedicated `credentials` block keeps credential rules grouped together and separate from general filesystem rules. Requires Claude Code v2.1.187 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For entries with `\"mode\": \"deny\"`, file paths are denied for reads inside the sandbox, the same restriction that `filesystem.denyRead` applies, and environment variables are unset before each sandboxed command runs."
+            },
+            {
+              "type": "added",
+              "content": "For entries with `\"mode\": \"deny\"`, file paths are denied for reads inside the sandbox, the same restriction that `filesystem.denyRead` applies, and environment variables are unset before each sandboxed command runs. The file protection is part of the filesystem layer, so it doesn't apply if you [disable filesystem isolation](#disable-filesystem-isolation); the environment variable protection still does."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The example below blocks reads of the AWS credentials file and the SSH directory and removes `GITHUB_TOKEN` and `NPM_TOKEN` from the environment of sandboxed commands:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -247,7 +287,7 @@ The sandboxed Bash tool restricts file system access to specific directories:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Git worktrees**: when the working directory is a [linked git worktree](/docs/en/worktrees), the sandbox also allows writes to the main repository's shared `.git` directory so commands such as `git commit` can update refs and the index. Writes to `hooks/` and `config` inside that directory remain denied."
+            },
+            {
+              "type": "context",
+              "content": "- **Configurable**: define custom allowed and denied paths through settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can grant write access to additional paths using `sandbox.filesystem.allowWrite` in your settings. These restrictions are enforced at the OS level, so they apply to all subprocess commands, including tools like `kubectl`, `terraform`, and `npm`, not just Claude's file tools."
+            },
+            {
+              "type": "added",
+              "content": "You can grant write access to additional paths using `sandbox.filesystem.allowWrite` in your settings. These restrictions are enforced at the OS level, so they apply to all subprocess commands, including tools like `kubectl`, `terraform`, and `npm`, not just Claude's file tools. To skip filesystem isolation entirely while keeping network isolation, set [`sandbox.filesystem.disabled`](#disable-filesystem-isolation)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Network isolation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -292,6 +332,7 @@ Filesystem and network restrictions are configured through both sandbox settings",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `sandbox.filesystem.allowWrite` | Grants subprocess write access to paths outside the working directory |"
+            },
+            {
+              "type": "context",
+              "content": "| `sandbox.filesystem.denyWrite` and `sandbox.filesystem.denyRead` | Block subprocess access to specific paths |"
+            },
+            {
+              "type": "context",
+              "content": "| `sandbox.filesystem.allowRead` | Re-allows reading specific paths within a `denyRead` region |"
+            },
+            {
+              "type": "added",
+              "content": "| [`sandbox.filesystem.disabled`](#disable-filesystem-isolation) | Turns the filesystem layer off entirely while keeping network isolation; requires Claude Code v2.1.216 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `Edit` allow rules | Grant write access to specific paths, the same way `sandbox.filesystem.allowWrite` does |"
+            },
+            {
+              "type": "context",
+              "content": "| `Read` and `Edit` deny rules | Block access to specific files or directories |"
+            },
+            {
+              "type": "context",
+              "content": "| `WebFetch` allow and deny rules | Control domain access |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -349,6 +390,8 @@ For boolean keys such as `enabled` and `failIfUnavailable`, Claude Code uses the",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Set `allowManagedReadPathsOnly` to `true` in managed settings so that only `allowRead` entries from managed settings are honored. User, project, and local `allowRead` entries are ignored. This prevents developers from widening read access beyond the organization-approved paths. To lock network domains to the managed values the same way, set [`allowManagedDomainsOnly`](/docs/en/settings#sandbox-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When managed settings configure `sandbox.filesystem` or list any `sandbox.credentials.files` entry, only managed settings can set [`filesystem.disabled`](#disable-filesystem-isolation), so developers can't switch off administrator-deployed filesystem restrictions."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`excludedCommands` has no equivalent managed-only lockdown, so a developer can always append entries that run additional commands outside the sandbox. Keep the managed list narrow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Custom proxy configuration"
+            }
+          ]
+        },
+        {
+          "header": "@@ -400,7 +443,7 @@ Allowing broad domains such as `github.com` can create paths for data exfiltrati",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Filesystem permission escalation**: overly broad filesystem write permissions can enable privilege escalation attacks. Allowing writes to directories containing executables in `$PATH`, system configuration directories, or user shell configuration files such as `.bashrc` or `.zshrc` can lead to code execution in different security contexts when other users or system processes access these files."
+            },
+            {
+              "type": "context",
+              "content": "- **Linux sandbox strength**: the Linux implementation provides strong filesystem and network isolation but includes an `enableWeakerNestedSandbox` mode that enables it to work inside Docker environments without privileged namespaces, or on Linux hosts where unprivileged user namespaces are disabled by sysctl. This option considerably weakens security and should only be used when additional isolation is otherwise enforced."
+            },
+            {
+              "type": "context",
+              "content": "- **Apple Events on macOS**: the macOS sandbox blocks Apple Events by default. The `allowAppleEvents` setting lifts this restriction so tools such as `open` and `osascript` work, but it removes code-execution isolation: sandboxed commands can launch other applications unsandboxed with no user prompt, and can send AppleScript commands to running applications, subject to the per-app macOS automation-consent prompt (TCC). It is only honored from user, managed, or CLI settings. Project settings cannot enable it."
+            },
+            {
+              "type": "removed",
+              "content": "- **Settings files protected**: the sandbox automatically denies write access to Claude Code's `settings.json` files at every scope and to the managed settings directory, so a sandboxed command cannot modify its own policy. In v2.1.210 and later, the deny rules resolve symlinks: when a symlink appears at a protected settings file path after startup, the sandbox adds its target to the deny list for the next command, so a linked settings file can't be edited through the link."
+            },
+            {
+              "type": "added",
+              "content": "- **Settings files protected**: the sandbox automatically denies write access to Claude Code's `settings.json` files at every scope and to the managed settings directory, so a sandboxed command can't modify its own policy unless you [disable filesystem isolation](#disable-filesystem-isolation), which turns these deny rules off. The deny rules resolve symlinks: when a symlink appears at a protected settings file path after startup, the sandbox adds its target to the deny list for the next command, so a linked settings file can't be edited through the link. Before v2.1.210, the deny rules didn't resolve symlinks."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Platform and tool compatibility"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -417,7 +460,7 @@ The sandbox isolates Bash subprocesses. Other tools operate under different boun",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Environment variables**: sandboxed Bash commands inherit the parent process environment by default, including any credentials set there. Use [`sandbox.credentials`](#protect-credentials) to unset or mask specific variables for sandboxed commands, or set [`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`](/docs/en/env-vars) to strip Anthropic and cloud provider credentials from all subprocesses."
+            },
+            {
+              "type": "context",
+              "content": "- **Subagents**: [subagents](/docs/en/sub-agents) run in the same process as the parent session and use the same sandbox configuration. Bash commands inside a subagent are sandboxed when sandboxing is enabled in the parent session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Effective sandboxing requires both filesystem and network isolation. Without network isolation, a compromised agent could exfiltrate sensitive files like SSH keys. Without filesystem isolation, a compromised agent could backdoor system resources to gain network access. When you widen the defaults, check that an `allowWrite` path, a broad `allowedDomains` entry, or an `excludedCommands` exception does not undo a restriction on the other side."
+            },
+            {
+              "type": "added",
+              "content": "Effective sandboxing requires both filesystem and network isolation. Without network isolation, a compromised agent could exfiltrate sensitive files like SSH keys. Without filesystem isolation, whether from a permissive policy or from [disabling the filesystem layer](#disable-filesystem-isolation), a compromised agent could backdoor system resources to gain network access. When you widen the defaults, check that an `allowWrite` path, a broad `allowedDomains` entry, or an `excludedCommands` exception does not undo a restriction on the other side."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## See also"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "scheduled-tasks.md",
+      "additions": 4,
+      "deletions": 3,
+      "explanation": "スケジュールされたタスクの管理や実行に関する説明が整理され、既存機能の整合性が調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -41,9 +41,9 @@ The `/loop` [bundled skill](/docs/en/commands) is the quickest way to run a prom",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also pass a skill as the prompt, for example `/loop 20m /review-pr 1234`, to re-run that skill each iteration. As of v2.1.196, a scheduled fire only runs skills that Claude is [allowed to invoke on its own](/docs/en/skills#control-who-invokes-a-skill). The following reach Claude as plain text instead of executing:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- built-in commands such as `/permissions`, `/model`, or `/clear`"
+            },
+            {
+              "type": "removed",
+              "content": "- skills marked [`disable-model-invocation: true`](/docs/en/skills#frontmatter-reference)"
+            },
+            {
+              "type": "removed",
+              "content": "- skills withheld from Claude by a [`skillOverrides`](/docs/en/skills#override-skill-visibility-from-settings) setting or a `Skill` [deny rule](/docs/en/skills#restrict-claude’s-skill-access)"
+            },
+            {
+              "type": "added",
+              "content": "- Built-in commands such as `/permissions`, `/model`, or `/clear`"
+            },
+            {
+              "type": "added",
+              "content": "- Skills marked [`disable-model-invocation: true`](/docs/en/skills#frontmatter-reference), including the bundled `/verify` and `/code-review` skills."
+            },
+            {
+              "type": "added",
+              "content": "- Skills withheld from Claude by a [`skillOverrides`](/docs/en/skills#override-skill-visibility-from-settings) setting or a `Skill` [deny rule](/docs/en/skills#restrict-claude’s-skill-access)"
+            },
+            {
+              "type": "context",
+              "content": "- [MCP prompts](/docs/en/mcp#use-mcp-prompts-as-commands) such as `/mcp__github__list_prs`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Run on a fixed interval"
+            }
+          ]
+        },
+        {
+          "header": "@@ -207,6 +207,7 @@ Session-scoped scheduling has inherent constraints:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Tasks only fire while Claude Code is running and idle. Closing the terminal or letting the session exit stops them firing. [Backgrounding the session](/docs/en/agent-view#from-inside-a-session) carries `/loop` tasks over to a background session, which keeps running without a terminal."
+            },
+            {
+              "type": "context",
+              "content": "- No catch-up for missed fires. If a task's scheduled time passes while Claude is busy on a long-running request, it fires once when Claude becomes idle, not once per missed interval."
+            },
+            {
+              "type": "context",
+              "content": "- Starting a fresh conversation clears all session-scoped tasks. Resuming with `claude --resume` or `claude --continue` restores tasks that have not expired: recurring tasks within seven days of creation, and one-shot tasks whose scheduled time has not yet passed. Background Bash and monitor tasks are never restored on resume."
+            },
+            {
+              "type": "added",
+              "content": "- Claude Code stores the scheduled task list in the project's `.claude` directory, and scheduling a task fails with an error when that directory, or the task file inside it, is a symlink. Before v2.1.216, Claude Code wrote the file through the link."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For cron-driven automation that needs to run unattended:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sessions.md",
+      "additions": 9,
+      "deletions": 1,
+      "explanation": "セッションのトランスクリプトにおけるメッセージ ID の管理と、それを利用したテレメトリイベントとの紐付け方法についての技術的な詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -31,6 +31,7 @@ A resumed session restores the conversation along with the state saved in it:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Conversation history: the full history, including tool calls and results."
+            },
+            {
+              "type": "context",
+              "content": "- Model: the session continues on the model it was using. The model isn't restored when it has been retired or isn't allowed by `availableModels`, when a `--model` flag or `ANTHROPIC_MODEL`-family environment variable picks one at launch, or on providers that use provider-specific deployment IDs, such as [Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry](/docs/en/third-party-integrations); see [model configuration](/docs/en/model-config#setting-your-model) for the resolution order."
+            },
+            {
+              "type": "added",
+              "content": "- Agent: a session started with [`--agent`](/docs/en/sub-agents#invoke-subagents-explicitly) or the `agent` setting continues as that agent, keeping its system prompt, tool restrictions, and model. Pass `--agent` when resuming to pick a different one. If the agent no longer exists in the session's original directory or the one you resume from, the session resumes with the default tools and system prompt and shows a [warning naming the agent](/docs/en/errors#session-agent-no-longer-available)."
+            },
+            {
+              "type": "context",
+              "content": "- Permission mode: the mode the session was in. `plan` and `bypassPermissions` are never restored; [bypassing permissions](/docs/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) must be enabled again at launch, with one of its launch flags or `permissions.defaultMode: \"bypassPermissions\"` in [settings](/docs/en/settings#permission-settings). `auto` is restored only when your account still meets the [auto mode requirements](/docs/en/permission-modes#eliminate-prompts-with-auto-mode). Pass `--permission-mode` to override the restored mode."
+            },
+            {
+              "type": "context",
+              "content": "- Active goal: a [goal](/docs/en/goal#resume-with-an-active-goal) that was still active when the session ended carries over; its turn count, timer, and token-spend baseline reset."
+            },
+            {
+              "type": "context",
+              "content": "- Scheduled tasks: [tasks that haven't expired](/docs/en/scheduled-tasks#limitations) are restored. Background Bash and monitor tasks aren't."
+            }
+          ]
+        },
+        {
+          "header": "@@ -39,7 +40,12 @@ Not every configuration flag from the original launch is restored. If the sessio",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Where the session picker looks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Sessions are stored per project directory. By default the session picker shows interactive sessions from the current worktree, plus sessions started elsewhere that added the current directory with `/add-dir`. Use `Ctrl+W` to widen to all worktrees of the repository or `Ctrl+A` to widen to every project on this machine."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code stores sessions per project directory. By default the session picker shows:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Sessions from the current worktree, including [background sessions](/docs/en/agent-view), which are marked `bg` in the list"
+            },
+            {
+              "type": "added",
+              "content": "- Sessions started elsewhere that added the current directory with `/add-dir`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Use `Ctrl+W` to widen to all worktrees of the repository or `Ctrl+A` to widen to every project on this machine."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Sessions whose first prompt was a [`/loop`](/docs/en/scheduled-tasks#run-a-prompt-repeatedly-with-%2Floop) command don't appear in the picker; running `/loop` later in a conversation doesn't hide the session. Before v2.1.211, a `/loop` run early in a conversation hid the session from the picker permanently."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -94,6 +100,8 @@ Each row shows the session name if you set one, otherwise the AI-generated sessi",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Sessions created with `/branch` or `--fork-session` get their own session IDs and appear as separate rows. When the picker finds more than one entry for the same session, it groups them under a single row. Press `→` to expand a group."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If Claude Code can't load the session you select from the `claude --resume` picker, it prints [`Failed to resume the conversation`](/docs/en/errors#failed-to-resume-the-conversation) with a command to retry, then exits with code 1. From the `/resume` picker inside a session, Claude Code reports the failure and your current conversation keeps running."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Branch a session"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Branching creates a copy of the conversation so far and switches you into it, leaving the original intact. Use it to try a different approach without losing the path you were on."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
