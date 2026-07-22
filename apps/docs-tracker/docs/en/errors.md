@@ -33,7 +33,7 @@ Match the message you see in your terminal to a section below.
 | `Server is temporarily limiting requests` | [Usage limits](#server-is-temporarily-limiting-requests) |
 | `Request rejected (429)` | [Usage limits](#request-rejected-429) |
 | `Credit balance is too low` | [Usage limits](#credit-balance-is-too-low) |
-| `Failed to update spend limit` / `Failed to update auto-reload` / `Could not update your spend limit` | [Usage limits](#failed-to-update-spend-limit-or-auto-reload) |
+| `Could not update your spend limit` | [Usage limits](#could-not-update-your-spend-limit) |
 | `Not logged in · Please run /login` | [Authentication](#not-logged-in) |
 | `Could not resolve authentication method` | [Authentication](#could-not-resolve-authentication-method) |
 | `Invalid API key` | [Authentication](#invalid-api-key) |
@@ -371,21 +371,19 @@ Credit balance is too low
 - Switch to subscription authentication with `/login` if you have a Pro, Max, Team, or Enterprise plan
 - Set per-workspace spend caps in the Console to prevent a single project from draining the org balance. See [Manage costs effectively](/docs/en/costs).
 
-### Failed to update spend limit or auto-reload
+### Could not update your spend limit
 
-The server rejected a spend limit or auto-reload change you made from the [`/usage-credits` dialog](/docs/en/costs#set-a-spend-limit-on-pro-and-max) or from the prompt that appears when you reach your spend limit.
+The server rejected a spend limit change you made from the prompt that appears when you reach your spend limit.
 
 ```text
-Failed to update spend limit: <reason from the server>
-Failed to update auto-reload: <reason from the server>
 Could not update your spend limit: <reason from the server>
 ```
 
-When the server explains the rejection, for example a ceiling on auto-reload amounts, the message ends with that reason, and retrying the same value fails again. When the failure has no server-provided reason, such as a dropped connection, the message is the generic form without the trailing reason, and the spend limit prompt adds `Press Enter to retry`. Before v2.1.216, Claude Code showed the generic form for every failure.
+When the server explains the rejection, the message ends with that reason, and retrying the same value fails again. When the failure has no server-provided reason, such as a dropped connection, the message reads `Could not update your spend limit. Press Enter to retry.` and retrying can succeed. Before v2.1.216, Claude Code showed the generic form for every failure.
 
 **What to do:**
 
-- If the message includes a reason, enter a value that satisfies it, such as a lower amount
+- If the message includes a reason, choose a limit that satisfies it, such as a lower amount
 - If the message shows only the generic form, retry; the failure may be transient
 - If the change keeps failing, make it from your [claude.ai billing settings](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) in the browser instead
 
