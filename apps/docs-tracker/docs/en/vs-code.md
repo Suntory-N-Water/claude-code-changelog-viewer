@@ -108,11 +108,11 @@ If you use [Claude Code on the web](/docs/en/claude-code-on-the-web), you can re
 
 Click the **Session history** button at the top of the Claude Code panel.
 
-The dialog shows two tabs: Local and Remote. Click **Remote** to see sessions from claude.ai.
+The dialog shows two tabs: Local and Web. Click **Web** to see sessions from claude.ai.
 
 Browse or search your cloud sessions. Click any session to download it and continue the conversation locally.
 
-Only web sessions started with a GitHub repository appear in the Remote tab. Resuming loads the conversation history locally; changes are not synced back to claude.ai.
+Only web sessions started with a GitHub repository appear in the Web tab. Resuming loads the conversation history locally; changes are not synced back to claude.ai.
 
 ### Check account and usage
 
