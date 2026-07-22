@@ -1,0 +1,1183 @@
+{
+  "id": "20260722-002418",
+  "timestamp": "2026-07-22T00:24:18.543Z",
+  "aiSummary": "/usage-creditsコマンドの動作がブラウザベースの設定画面を開く仕様に変更され、管理者へのリクエスト時に確認ダイアログが表示されるようになりました。iOS SimulatorペインがPro、Max、Teamプランで利用可能であることや、Claude Desktopの必要バージョンが明記されています。MCPツールのリフレッシュ失敗時に既存ツールを保持する改善や、/verifyなどのスキルが自動実行から手動実行へ変更された点が主な更新内容です。",
+  "files": [
+    {
+      "filename": "commands.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/usage-creditsコマンドの動作が、CLI内ダイアログからブラウザ上の課金設定ページを開く方式へ変更されたことが記載されています。",
+      "hunks": [
+        {
+          "header": "@@ -144,7 +144,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/ultrareview [PR or branch]` | Run a deep, multi-agent code review in a cloud sandbox with [ultrareview](/docs/en/ultrareview). Pass a PR reference to review that pull request, or a branch name to change the comparison base. The preferred invocation is now `/code-review ultra`, and `/ultrareview` remains as an alias. Includes 3 free runs on Pro and Max, then requires [usage credits](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/upgrade` | Open the upgrade page in your browser to switch to a higher plan tier. When the browser fails to open, the command shows a sign-in prompt without printing the URL |"
+            },
+            {
+              "type": "context",
+              "content": "| `/usage` | Show session cost, plan usage limits, and activity stats. On a Pro, Max, Team, or Enterprise plan, includes a breakdown of usage by skill, subagent, plugin, and MCP server. See the [cost tracking guide](/docs/en/costs#using-the-%2Fusage-command) for details. `/cost` and `/stats` are aliases |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/usage-credits` | Configure usage credits, or request them from your admin, when you hit a limit. On Pro and Max plans, opens an [in-CLI dialog](/docs/en/costs#set-a-spend-limit-on-pro-and-max) to buy usage credits, set a monthly spend limit, and configure auto-reload; on Claude Code versions before v2.1.207 and on other plans, opens the usage-credits billing page in your browser, except that Team and Enterprise members without billing access instead send a usage-credits request to their admin from the CLI, after confirming in a dialog that the request notifies their admins. Before v2.1.211, Claude Code sent the request without a confirmation step. When no browser can open the billing page, for example over SSH, the command prints the URL to visit instead; this requires Claude Code v2.1.205 or later, and earlier versions showed nothing in that case. Previously `/extra-usage` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/usage-credits` | Configure usage credits, or request them from your admin, when you hit a limit. Opens your [usage-credits billing settings](/docs/en/costs#add-usage-credits-to-your-subscription) in the browser, except that Team and Enterprise members without billing access instead send a usage-credits request to their admin from the CLI, after confirming in a dialog that the request notifies their admins. Before v2.1.211, Claude Code sent the request without a confirmation step. When no browser can open the billing page, for example over SSH, the command prints the URL to visit instead; this requires Claude Code v2.1.205 or later, and earlier versions showed nothing in that case. Previously `/extra-usage` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/verify` | **[Skill](/docs/en/skills#bundled-skills).** Confirm a code change does what it should by building your project's app, running it, and observing the result, rather than relying on tests or type checks. See [Run and verify your app](/docs/en/skills#run-and-verify-your-app). Requires Claude Code v2.1.145 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `/vim` | Removed in v2.1.92. To toggle between Vim and Normal editing modes, use `/config` → Editor mode |"
+            },
+            {
+              "type": "context",
+              "content": "| `/voice [hold\\|tap\\|off]` | Toggle [voice dictation](/docs/en/voice-dictation), or enable it in a specific mode. Requires a Claude.ai account |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "costs.md",
+      "additions": 9,
+      "deletions": 16,
+      "explanation": "使用クレジットの管理方法が役割（プランや権限）ごとに整理され、管理権限のないユーザーがリクエストを送る際の確認フローが詳細化されました。",
+      "hunks": [
+        {
+          "header": "@@ -38,26 +38,19 @@ When the request for your plan limits fails, most often because the usage endpoi",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In the [VS Code extension](/docs/en/vs-code#check-account-and-usage), the same breakdown appears in the Account & usage dialog with a Day and Week toggle. Requires Claude Code v2.1.174 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Set a spend limit on Pro and Max"
+            },
+            {
+              "type": "added",
+              "content": "### Add usage credits to your subscription"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Pro and Max plans, the `/usage-credits` command opens a dialog in the CLI where you manage [usage credits](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans). The command requires signing in with your claude.ai subscription through `/login` and isn't available with API key authentication. From the dialog you can:"
+            },
+            {
+              "type": "added",
+              "content": "[Usage credits](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) let you keep working past your plan's usage limit. To manage them, run `/usage-credits` after signing in with your claude.ai subscription through `/login`; the command isn't available with API key authentication. What it opens depends on your role:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Turn on usage credits for your account"
+            },
+            {
+              "type": "removed",
+              "content": "- Buy more usage credits, either a listed bundle or a custom amount"
+            },
+            {
+              "type": "removed",
+              "content": "- Set, change, or remove your monthly spend limit"
+            },
+            {
+              "type": "removed",
+              "content": "- Configure auto-reload, which buys more usage credits automatically when your balance falls below a threshold you set"
+            },
+            {
+              "type": "added",
+              "content": "| Your role | What `/usage-credits` does |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| Pro or Max subscriber | Opens your billing settings in the browser |"
+            },
+            {
+              "type": "added",
+              "content": "| Team or Enterprise member with billing access | Opens your organization's usage settings in the browser |"
+            },
+            {
+              "type": "added",
+              "content": "| Team or Enterprise member without billing access | Asks you to confirm, then sends a request to your organization's admins. Before v2.1.211, Claude Code sent the request without a confirmation step |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Claude Code versions before v2.1.207 and on accounts where the in-CLI dialog isn't available, `/usage-credits` opens the usage-credits billing page in your browser instead. On Team and Enterprise plans, members with billing access get the same browser page, and members without billing access request usage credits from their admin through the CLI."
+            },
+            {
+              "type": "added",
+              "content": "For Team and Enterprise members without billing access, the confirmation appears only in interactive sessions: in non-interactive mode with the `-p` flag and from [Remote Control](/docs/en/remote-control), the command sends no request and tells you to run it in an interactive session instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Because that request notifies your organization's admins, the CLI asks for confirmation before sending it. Select **Send request** to ask your admin to turn on usage credits or raise the limit, or cancel to send nothing; canceling reports `No request sent to your admin.` The confirmation appears only in interactive sessions, so in non-interactive mode with the `-p` flag and from [Remote Control](/docs/en/remote-control), `/usage-credits` doesn't send a request and instead tells you to run the command in an interactive session. Before v2.1.211, Claude Code sent the request as soon as you ran the command, without a confirmation step."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Changing the monthly spend limit requires billing access on the account. If you reach the limit while you still have usage credits available, Claude Code prompts you to raise or remove it so you can continue without leaving the CLI."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Amounts you type into the dialog, such as a custom purchase amount, the monthly spend limit, or the auto-reload threshold and target, must be digits, optionally followed by a period and one or two decimal digits, for example `20` or `20.50`. Any other input, including commas, shows an inline error and isn't saved. Versions before v2.1.207 don't show the dialog and open the billing page instead."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code asks you to type `yes` to confirm every purchase and every auto-reload change, whatever the amount, and the purchase confirmation shows the post-tax total you are approving. Changing the monthly spend limit asks for the same typed confirmation only above $1,000, or above 1,000 units of a non-US-dollar billing currency. Before v2.1.208, purchases and auto-reload changes used that threshold too, so smaller amounts went through the standard dialog flow without the extra typed `yes` step."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Amount fields open prefilled with a suggested value, and the first digit you type replaces the suggestion instead of appending to it. The screen that turns on usage credits opens with Cancel selected, so turning them on takes a deliberate selection rather than a stray Enter. Both require Claude Code v2.1.208 or later."
+            },
+            {
+              "type": "added",
+              "content": "On Pro and Max plans, when you reach your spend limit with usage credits still available, Claude Code prompts you to raise or remove the limit without leaving the CLI. If the server rejects the change, see [Could not update your spend limit](/docs/en/errors#could-not-update-your-spend-limit)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage costs for your organization"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop-ios-simulator.md",
+      "additions": 19,
+      "deletions": 18,
+      "explanation": "iOS Simulatorペインの利用可能プランや必要なアプリバージョンが明記され、セットアップ手順の説明がより具体的に修正されています。",
+      "hunks": [
+        {
+          "header": "@@ -7,26 +7,27 @@ source: https://code.claude.com/docs/en/desktop-ios-simulator.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Claude Code Desktop opens your app in the iOS Simulator pane when Claude builds, runs, or checks it, with a separate simulator for each session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The iOS Simulator pane is in public beta in Claude Code Desktop on macOS."
+            },
+            {
+              "type": "added",
+              "content": "The iOS Simulator pane is in public beta in Claude Code Desktop on macOS. It's available on Pro, Max, and Team plans, and not available on the Enterprise plan."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The iOS Simulator pane shows your app running in Apple's iOS Simulator next to your conversation in Claude Code Desktop. When Claude builds, installs, launches, or checks your app in a simulator, the pane opens automatically and streams the device screen live. Use it to watch Claude run and test your app, or to tap through the app yourself while Claude keeps working."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The pane drives the simulator directly, so it doesn't need [computer use](/docs/en/desktop#let-claude-use-your-computer) and never takes over your screen or hides your other windows. From the CLI, Claude reaches the iOS Simulator through [computer use](/docs/en/computer-use#test-a-simulator-flow) instead, which controls the simulator on your screen the same way you would with a mouse."
+            },
+            {
+              "type": "added",
+              "content": "The simulator pane drives the simulator directly, so it doesn't need [computer use](/docs/en/desktop#let-claude-use-your-computer) and never takes over your screen or hides your other windows. From the CLI, Claude reaches the iOS Simulator through [computer use](/docs/en/computer-use#test-a-simulator-flow) instead, which controls the simulator on your screen the same way you would with a mouse."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Requirements"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The pane uses Apple's simulator tooling, which the desktop app doesn't include. Before starting a session, make sure you have:"
+            },
+            {
+              "type": "added",
+              "content": "The simulator pane uses Apple's simulator tooling, which the desktop app doesn't include. Before starting a session, make sure you have:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- macOS: the iOS Simulator doesn't run on Windows or Linux"
+            },
+            {
+              "type": "removed",
+              "content": "- [Xcode](https://developer.apple.com/xcode/) with the iOS platform installed, which provides the simulator devices; if Xcode has none yet, see [The pane says no simulators were found](#the-pane-says-no-simulators-were-found)"
+            },
+            {
+              "type": "added",
+              "content": "- Claude Desktop v1.24012.0 or later"
+            },
+            {
+              "type": "added",
+              "content": "- A Mac, since Apple's iOS Simulator runs only on macOS"
+            },
+            {
+              "type": "added",
+              "content": "- [Xcode](https://developer.apple.com/xcode/) with the iOS platform installed, which provides the simulator devices. If Xcode lists no simulators yet, see [The simulator pane says no simulators were found](#the-simulator-pane-says-no-simulators-were-found)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On this page, the word device refers to a simulated iPhone or iPad, one of the same simulator devices you manage in Xcode under **Window → Devices and Simulators**, not physical hardware."
+            },
+            {
+              "type": "added",
+              "content": "On this page, \"device\" refers to a simulated iPhone or iPad, one of the same simulator devices you manage in Xcode under **Window → Devices and Simulators**, not physical hardware."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The pane is available in local sessions only. In [cloud](/docs/en/desktop#run-long-running-tasks-remotely) and [SSH](/docs/en/desktop#ssh-sessions) sessions, Claude runs on a machine that can't reach the simulators on your Mac."
+            },
+            {
+              "type": "added",
+              "content": "The simulator pane is available in local sessions only. In [cloud](/docs/en/desktop#run-long-running-tasks-remotely) and [SSH](/docs/en/desktop#ssh-sessions) sessions, Claude runs on a machine that can't reach the simulators on your Mac."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Run your app in the simulator"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You don't need a command or setting to use the pane. Claude opens it when it runs your app in a simulator."
+            },
+            {
+              "type": "added",
+              "content": "You don't need a command or setting to open the simulator pane. Claude opens it when it runs your app in a simulator."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In Claude Code Desktop, open the **Code** tab and start a session with your app's project as the [project folder](/docs/en/desktop#start-a-session). Any project that builds an app for the iOS Simulator works."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -38,17 +39,17 @@ Build the app and run it in the simulator to check the onboarding flow.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When the app launches in a simulator, the iOS Simulator pane opens next to the conversation. The first time Claude uses a device, the desktop app asks you to allow it; see [Grant Claude access to a device](#grant-claude-access-to-a-device). Claude installs the app, taps through it, and reads the screen to verify its own changes while you watch."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The pane opens whenever Claude launches the app in a simulator, at any point in the session. When your request is about seeing the app, for example \"does the new screen look right?\", Claude starts a simulator before it begins the work. After Claude fixes a bug or changes a screen, ask it to verify the change: relaunching the app reopens the pane if it isn't open."
+            },
+            {
+              "type": "added",
+              "content": "The simulator pane opens whenever Claude launches the app in a simulator, at any point in the session. When your request is about seeing the app, for example \"does the new screen look right?\", Claude starts a simulator before it begins the work. After Claude fixes a bug or changes a screen, ask it to verify the change: relaunching the app reopens the pane if it isn't open."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The pane shows whichever simulator the app actually launched in. To test on a specific device, name it in your request, for example \"run it on the iPhone SE simulator\", and Claude targets that device when it builds and launches."
+            },
+            {
+              "type": "added",
+              "content": "The simulator pane shows whichever device the app actually launched in. To test on a specific device, name it in your request, for example \"run it on the iPhone SE simulator\", and Claude targets that device when it builds and launches."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A device Claude boots also appears in Apple's Simulator app, and Claude can install the app on a device you already have booted."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can also open the pane yourself. Once the session has a simulator attached or has edited Swift files, the **Views** menu in the session toolbar shows an **iOS Simulator** entry. If the pane isn't showing a device yet, click **Attach simulator**, or pick a specific device from the device menu next to it; picking a shut-down device boots it. If Xcode or its simulators are missing, the pane shows the setup steps instead and checks them off as you complete them."
+            },
+            {
+              "type": "added",
+              "content": "You can also open the simulator pane yourself. Once the session has a simulator attached or has edited Swift files, the **Views** menu in the session toolbar shows an **iOS Simulator** entry. If the pane isn't showing a device yet, click **Attach simulator**, or pick a specific device from the device menu next to it; picking a shut-down device boots it. If Xcode or its simulators are missing, the pane shows the setup steps instead and checks them off as you complete them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Control the simulator yourself"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The pane is interactive, not only a viewer. While Claude works, or between tasks, you can:"
+            },
+            {
+              "type": "added",
+              "content": "The simulator pane is interactive, not only a viewer. While Claude works, or between tasks, you can:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Tap and swipe by clicking and dragging on the device screen"
+            },
+            {
+              "type": "context",
+              "content": "- Press hardware buttons with the same shortcuts as Apple's Simulator app: **Cmd+Shift+H** for Home, **Cmd+L** to lock, **Cmd+Up Arrow** and **Cmd+Down Arrow** for volume"
+            }
+          ]
+        },
+        {
+          "header": "@@ -90,29 +91,29 @@ Two actions follow your session's [permission mode](/docs/en/permissions#permiss",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can turn Claude's simulator access off in the desktop app's settings. Organizations have two ways to turn it off for everyone:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- The `disableMobileSimulatorTools` [managed setting](/docs/en/desktop#managed-settings) blocks Claude's simulator tools. The pane stays usable for your own taps, and the setting can't be overridden from within the app."
+            },
+            {
+              "type": "added",
+              "content": "- The `disableMobileSimulatorTools` [managed setting](/docs/en/desktop#managed-settings) blocks Claude's simulator tools. The simulator pane stays usable for your own taps, and the setting can't be overridden from within the app."
+            },
+            {
+              "type": "context",
+              "content": "- A policy that requires sessions to run inside an isolated virtual machine disables the pane and the tools entirely."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude tells you when either applies."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Limitations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The pane works with simulators only: Claude can't drive a physical iPhone or iPad. To test on one, run the app on it from Xcode yourself, then describe what you see or attach a screenshot to the conversation for Claude to work from."
+            },
+            {
+              "type": "added",
+              "content": "Claude drives simulated devices only and can't control a physical iPhone or iPad. To test on one, run the app on it from Xcode yourself, then describe what you see or attach a screenshot to the conversation for Claude to work from."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### The pane doesn't open when Claude runs the app"
+            },
+            {
+              "type": "added",
+              "content": "### The simulator pane doesn't open when Claude runs the app"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude may not have recognized that you wanted to run or test the app, or the simulator tooling may be missing. Check the following:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- State the goal explicitly, for example \"run the app in the iOS Simulator and tap through the signup flow\"."
+            },
+            {
+              "type": "context",
+              "content": "- Confirm Xcode and the iOS Simulator are installed by launching the Simulator app on its own."
+            },
+            {
+              "type": "context",
+              "content": "- If your organization manages Claude Code, the [simulator tools may be disabled by policy](#turn-off-simulator-access)."
+            },
+            {
+              "type": "removed",
+              "content": "- The pane requires a recent desktop version. Open **Claude → Check for Updates**, then restart the app."
+            },
+            {
+              "type": "added",
+              "content": "- The simulator pane requires Claude Desktop v1.24012.0 or later. Open **Claude → Check for Updates**, then restart the app."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### The pane says no simulators were found"
+            },
+            {
+              "type": "added",
+              "content": "### The simulator pane says no simulators were found"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Xcode is installed but has no iOS simulators to list. The pane shows the setup steps to follow and checks them off as each one completes. To install the missing piece manually, download the iOS simulator runtime from Xcode's settings, or run `xcodebuild -downloadPlatform iOS`."
+            },
+            {
+              "type": "added",
+              "content": "Xcode is installed but has no iOS simulators to list. The simulator pane shows the setup steps to follow and checks them off as each one completes. To install the missing piece manually, download the iOS simulator runtime from Xcode's settings, or run `xcodebuild -downloadPlatform iOS`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## See also"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "マネージド設定の項目に、ClaudeによるiOS Simulatorの制御とキャプチャを制限するdisableMobileSimulatorToolsが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -650,6 +650,7 @@ Managed settings override project and user settings and apply to Claude Code ses",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `disableAutoMode` | set to `\"disable\"` to prevent users from enabling [Auto](/docs/en/permission-modes#eliminate-prompts-with-auto-mode) mode. Removes Auto from the mode selector. Also accepted under `permissions`. |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoMode` | customize what the auto mode classifier trusts and blocks across your organization. See [Configure auto mode](/docs/en/auto-mode-config). |"
+            },
+            {
+              "type": "context",
+              "content": "| `browserExternalPageTools` | set to `\"disabled\"` to prevent Claude from using tools to read or act on external pages in the [Browser pane](#browse-external-sites). Users can still navigate to external sites themselves, and local dev server previews are unaffected. |"
+            },
+            {
+              "type": "added",
+              "content": "| `disableMobileSimulatorTools` | set to `true` to block Claude's tools for controlling and capturing devices in the [iOS Simulator pane](/docs/en/desktop-ios-simulator#turn-off-simulator-access). The pane stays usable for the user's own taps; only Claude's access is removed. |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableBrowserExternalNavigation` | set to `true` to turn off external browsing in the [Browser pane](#browse-external-sites) entirely. Neither users nor Claude can navigate to external sites, and localhost dev server previews are unaffected. The value must be the JSON boolean `true`; the string `\"true\"` is ignored. |"
+            },
+            {
+              "type": "context",
+              "content": "| `sshConfigs` | pre-configure [SSH connections](#pre-configure-ssh-connections-for-your-team) that appear in the environment dropdown. Users cannot edit or delete managed connections. |"
+            },
+            {
+              "type": "context",
+              "content": "| `sshHostAllowlist` | restrict [SSH sessions](#restrict-which-ssh-hosts-users-can-connect-to) to hosts whose resolved hostname matches one of these patterns. An empty array disables SSH sessions. Read from managed settings only. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 5,
+      "deletions": 7,
+      "explanation": "使用制限の更新に失敗した際のエラーメッセージがCould not update your spend limitに統一され、リトライの挙動について解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -33,7 +33,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Server is temporarily limiting requests` | [Usage limits](#server-is-temporarily-limiting-requests) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Request rejected (429)` | [Usage limits](#request-rejected-429) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Credit balance is too low` | [Usage limits](#credit-balance-is-too-low) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Failed to update spend limit` / `Failed to update auto-reload` / `Could not update your spend limit` | [Usage limits](#failed-to-update-spend-limit-or-auto-reload) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Could not update your spend limit` | [Usage limits](#could-not-update-your-spend-limit) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Not logged in · Please run /login` | [Authentication](#not-logged-in) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Could not resolve authentication method` | [Authentication](#could-not-resolve-authentication-method) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Invalid API key` | [Authentication](#invalid-api-key) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -371,21 +371,19 @@ Credit balance is too low",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Switch to subscription authentication with `/login` if you have a Pro, Max, Team, or Enterprise plan"
+            },
+            {
+              "type": "context",
+              "content": "- Set per-workspace spend caps in the Console to prevent a single project from draining the org balance. See [Manage costs effectively](/docs/en/costs)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Failed to update spend limit or auto-reload"
+            },
+            {
+              "type": "added",
+              "content": "### Could not update your spend limit"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The server rejected a spend limit or auto-reload change you made from the [`/usage-credits` dialog](/docs/en/costs#set-a-spend-limit-on-pro-and-max) or from the prompt that appears when you reach your spend limit."
+            },
+            {
+              "type": "added",
+              "content": "The server rejected a spend limit change you made from the prompt that appears when you reach your spend limit."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "Failed to update spend limit: <reason from the server>"
+            },
+            {
+              "type": "removed",
+              "content": "Failed to update auto-reload: <reason from the server>"
+            },
+            {
+              "type": "context",
+              "content": "Could not update your spend limit: <reason from the server>"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When the server explains the rejection, for example a ceiling on auto-reload amounts, the message ends with that reason, and retrying the same value fails again. When the failure has no server-provided reason, such as a dropped connection, the message is the generic form without the trailing reason, and the spend limit prompt adds `Press Enter to retry`. Before v2.1.216, Claude Code showed the generic form for every failure."
+            },
+            {
+              "type": "added",
+              "content": "When the server explains the rejection, the message ends with that reason, and retrying the same value fails again. When the failure has no server-provided reason, such as a dropped connection, the message reads `Could not update your spend limit. Press Enter to retry.` and retrying can succeed. Before v2.1.216, Claude Code showed the generic form for every failure."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- If the message includes a reason, enter a value that satisfies it, such as a lower amount"
+            },
+            {
+              "type": "added",
+              "content": "- If the message includes a reason, choose a limit that satisfies it, such as a lower amount"
+            },
+            {
+              "type": "context",
+              "content": "- If the message shows only the generic form, retry; the failure may be transient"
+            },
+            {
+              "type": "context",
+              "content": "- If the change keeps failing, make it from your [claude.ai billing settings](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) in the browser instead"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 6,
+      "deletions": 2,
+      "explanation": "MCPサーバーのリフレッシュに失敗しても以前のツール定義を保持する仕様変更や、特定の権限要求におけるユーザー対話の必須化について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -179,6 +179,8 @@ Some server names are reserved for Claude Code's built-in servers: `workspace`,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code supports MCP `list_changed` notifications, allowing MCP servers to dynamically update their available tools, prompts, and resources without requiring you to disconnect and reconnect. When an MCP server sends a `list_changed` notification, Claude Code automatically refreshes the available capabilities from that server."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If a refresh request fails, Claude Code keeps the server's previously discovered tools, prompts, and resources until a later refresh succeeds. Before v2.1.214, a transient error during the refresh replaced the server's tools, prompts, and resources with an empty list."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Automatic reconnection"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If an HTTP or SSE server disconnects mid-session, Claude Code automatically reconnects with exponential backoff: up to five attempts, starting at a one-second delay and doubling each time. The server appears as pending in `/mcp` while reconnection is in progress. After five failed attempts the server is marked as failed and you can retry manually from `/mcp`. Stdio servers are local processes and are not reconnected automatically."
+            }
+          ]
+        },
+        {
+          "header": "@@ -963,7 +965,7 @@ If you're building an MCP server, you can mark a tool as requiring explicit appr",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code shows that tool's permission prompt on every call, even in `acceptEdits`, `auto`, and `bypassPermissions` [permission modes](/docs/en/permissions#permission-modes), and doesn't offer a \"don't ask again\" option for it. [Allow rules](/docs/en/permissions#permission-rule-syntax) that match the tool don't skip the prompt either. In `dontAsk` mode, which never prompts, Claude Code denies the call instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The prompt has to reach a person. In non-interactive mode with [`--permission-prompt-tool`](/docs/en/cli-reference#cli-flags), an `allow` result from the prompt tool for a flagged tool is converted to a deny with the message `MCP tool requires user interaction; not supported via --permission-prompt-tool`. The Agent SDK's [`canUseTool` callback](/docs/en/agent-sdk/permissions) does receive these calls and can approve them, because the SDK host is expected to show them to a user."
+            },
+            {
+              "type": "added",
+              "content": "The prompt has to reach a person. In non-interactive mode with [`--permission-prompt-tool`](/docs/en/cli-reference#cli-flags), an `allow` result from the prompt tool for a flagged tool is converted to a deny with the message `MCP tool requires user interaction; not supported via --permission-prompt-tool`. The Agent SDK's [`canUseTool` callback](/docs/en/agent-sdk/permissions) does receive these calls and can approve them, because your SDK application is expected to show them to a user."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use this for tools whose permission prompt is itself the point, such as a consent or access-grant step where auto-approval would mean no human ever agreed. Other tools from the same server keep their normal permission behavior."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -981,7 +983,9 @@ The following `tools/list` entry marks one tool as always requiring approval.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `anthropic/requiresUserInteraction` annotation requires Claude Code v2.1.199 or later. Earlier versions ignore it and apply the standard permission flow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When a session is connected to [Remote Control](/docs/en/remote-control) or an SDK host, Claude Code marks the permission request as requiring user interaction, so the client shows the tool's permission prompt for you to answer instead of a one-tap approve action."
+            },
+            {
+              "type": "added",
+              "content": "Some surfaces, such as [Remote Control](/docs/en/remote-control) and applications built on the [Agent SDK](/docs/en/agent-sdk/overview), normally let you approve tool calls with one tap. For a tool marked with this annotation, Claude Code withholds the one-tap action and shows the tool's full permission prompt instead, so approval still comes from a person answering the prompt rather than a tap."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code withholds one-tap approval the same way for any permission request that only the terminal dialog can render in full, such as one that carries a safety warning or an always-allow option the remote surface can't show. You answer that request in the terminal dialog rather than from Remote Control. Requires Claude Code v2.1.214 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Respond to MCP elicitation requests"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "remote-control.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "リモートコントロール使用時における/usage-creditsコマンドの挙動や、管理者へのリクエストに制限がある点について説明が更新されています。",
+      "hunks": [
+        {
+          "header": "@@ -235,11 +235,11 @@ Claude Code skips mobile push notifications while you are typing in or focused o",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Extended network outage**: if your machine is awake but unable to reach the network for more than roughly 10 minutes, the session times out and the process exits. Run `claude remote-control` again to start a new session."
+            },
+            {
+              "type": "context",
+              "content": "- **Ultraplan disconnects Remote Control**: starting an [ultraplan](/docs/en/ultraplan) session disconnects any active Remote Control session because both features occupy the claude.ai/code interface and only one can be connected at a time."
+            },
+            {
+              "type": "context",
+              "content": "- **Some commands are local-only**: commands that only run in the terminal interface, such as `/plugin` or `/resume`, work only from the local CLI, whether or not you pass an argument. The following work from mobile and web:"
+            },
+            {
+              "type": "removed",
+              "content": "  - Text-output commands: `/compact`, `/clear`, `/context`, `/usage`, `/exit`, `/usage-credits` (runs the text form instead of opening the in-CLI dialog), `/recap`, `/reload-plugins`"
+            },
+            {
+              "type": "added",
+              "content": "  - Text-output commands: `/compact`, `/clear`, `/context`, `/usage`, `/exit`, `/usage-credits` (prints the billing URL instead of opening a browser), `/recap`, `/reload-plugins`"
+            },
+            {
+              "type": "context",
+              "content": "  - `/model`, `/effort`, `/fast`, `/color`, and `/rename`: pass the value as an argument, for example `/model sonnet` or `/effort high`. From mobile and web, `/model` and `/effort` take the argument in place of the terminal picker or slider."
+            },
+            {
+              "type": "context",
+              "content": "  - `/mcp`, from v2.1.166: from the mobile app, returns a text summary of server status instead of opening the picker. On the web, `/mcp` on its own opens a directory of [claude.ai connectors](/docs/en/mcp#use-mcp-servers-from-claude-ai) instead of returning the summary. The `reconnect`, `enable`, and `disable` [subcommands](/docs/en/commands#all-commands) work from both. Unlike the local CLI, `/mcp reconnect` without a server name reconnects every server that has failed or needs authentication."
+            },
+            {
+              "type": "context",
+              "content": "  - `/config`, from v2.1.181: from the mobile app, pass `key=value` to set a setting, or run it with no argument to list the keys you can set. On the web, `/config` opens the Claude Code section of your settings instead, and ignores text after the command."
+            },
+            {
+              "type": "removed",
+              "content": "  - On Team and Enterprise, `/usage-credits` from mobile or web doesn't send a [usage-credits request to your admin](/docs/en/costs#set-a-spend-limit-on-pro-and-max). Sending requires a confirmation that appears only in the interactive CLI, so the command tells you to run it there instead. Before v2.1.211, the text form sent the request without confirmation."
+            },
+            {
+              "type": "added",
+              "content": "  - On Team and Enterprise, `/usage-credits` from mobile or web doesn't send a [usage-credits request to your admin](/docs/en/costs#add-usage-credits-to-your-subscription). Sending requires a confirmation that appears only in the interactive CLI, so the command tells you to run it there instead. Before v2.1.211, the text form sent the request without confirmation."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 12,
+      "deletions": 6,
+      "explanation": "/verifyや/code-reviewがトークン節約のため手動実行のみに変更された点や、プラグインスキルの命名規則の詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -19,9 +19,13 @@ Claude Code skills follow the [Agent Skills](https://agentskills.io) open standa",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Bundled skills"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code includes a set of bundled skills that are available in every session unless disabled with the [`disableBundledSkills`](/docs/en/settings#available-settings) setting, including `/doctor`, `/code-review`, `/batch`, `/debug`, `/loop`, and `/claude-api`. Unlike most built-in commands, which execute fixed logic directly, bundled skills are prompt-based: they give Claude detailed instructions and let it orchestrate the work using its tools. You invoke them the same way as any other skill, by typing `/` followed by the skill name."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code includes a set of bundled skills, such as `/doctor`, `/code-review`, `/batch`, `/debug`, `/loop`, and `/claude-api`. Bundled skills are prompt-based: they give Claude detailed instructions and let it orchestrate the work using its tools. Most built-in commands instead execute fixed logic directly."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The [`/doctor`](/docs/en/commands#all-commands) setup checkup is the one exception to `disableBundledSkills` in Claude Code v2.1.205 and later: it stays typable when the setting is on. To hide it, set the `DISABLE_DOCTOR_COMMAND` environment variable or a [`skillOverrides`](#override-skill-visibility-from-settings) entry of `\"doctor\": \"off\"`. Before v2.1.205, `/doctor` was a built-in command rather than a bundled skill."
+            },
+            {
+              "type": "added",
+              "content": "You invoke a bundled skill the same way as any other skill, by typing `/` followed by the skill name. Claude invokes some bundled skills automatically when relevant; others, including `/verify` and `/code-review`, run only when you invoke them, which keeps you in control of when these longer-running checks spend time and tokens. Before v2.1.215, Claude could also run `/verify` and `/code-review` on its own."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Bundled skills are available in every session. To turn them off, use the [`disableBundledSkills`](/docs/en/settings#available-settings) setting, which disables every bundled skill except `/doctor`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The [`/doctor`](/docs/en/commands#all-commands) setup checkup stays typable when `disableBundledSkills` is on, in Claude Code v2.1.205 and later. To hide it, set the `DISABLE_DOCTOR_COMMAND` environment variable or a [`skillOverrides`](#override-skill-visibility-from-settings) entry of `\"doctor\": \"off\"`. Before v2.1.205, `/doctor` was a built-in command rather than a bundled skill."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Bundled skills are listed alongside built-in commands in the [commands reference](/docs/en/commands), marked **Skill** in the Purpose column."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -224,7 +228,7 @@ All fields are optional. Only `description` is recommended so Claude knows when",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Required | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `name` | No | Display name shown in skill listings. Defaults to the directory name. See [How a skill gets its command name](#how-a-skill-gets-its-command-name) for how this differs from the name you type to invoke the skill. |"
+            },
+            {
+              "type": "added",
+              "content": "| `name` | No | Display name shown in skill listings. Defaults to the directory name. See [How a skill gets its command name](#how-a-skill-gets-its-command-name) for how the field interacts with the name you type to invoke the skill. |"
+            },
+            {
+              "type": "context",
+              "content": "| `description` | Recommended | What the skill does and when to use it. Claude uses this to decide when to apply the skill. If omitted, uses the first paragraph of markdown content. Put the key use case first: the combined `description` and `when_to_use` text is truncated at 1,536 characters in the skill listing to reduce context usage. |"
+            },
+            {
+              "type": "context",
+              "content": "| `when_to_use` | No | Additional context for when Claude should invoke the skill, such as trigger phrases or example requests. Appended to `description` in the skill listing and counts toward the 1,536-character cap. |"
+            },
+            {
+              "type": "context",
+              "content": "| `argument-hint` | No | Hint shown during autocomplete to indicate expected arguments. Example: `[issue-number]` or `[filename] [format]`. |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -243,7 +247,7 @@ All fields are optional. Only `description` is recommended so Claude knows when",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### How a skill gets its command name"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The command you type to invoke a skill comes from where the skill file lives. The frontmatter `name` field sets the display label shown in skill listings and, except for a plugin-root `SKILL.md`, does not change what you type after `/`."
+            },
+            {
+              "type": "added",
+              "content": "The command you type to invoke a skill comes from where the skill file lives and, for plugin skills, also from the frontmatter `name` field. In a personal or project skill, `name` sets only the display label shown in skill listings, and the command still comes from the directory or file name. In a plugin skill, `name` sets the last segment of the command and the plugin prefix stays in place."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The table below shows where the command name comes from for each layout:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -252,10 +256,12 @@ The table below shows where the command name comes from for each layout:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Skill directory under `~/.claude/skills/` or `.claude/skills/` | Directory name | `.claude/skills/deploy-staging/SKILL.md` → `/deploy-staging` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Nested](#where-skills-live) `.claude/skills/` directory, when the name clashes with another skill | Subdirectory path relative to the working directory, then the skill directory name | `apps/web/.claude/skills/deploy/SKILL.md` → `/apps/web:deploy` |"
+            },
+            {
+              "type": "context",
+              "content": "| File under `.claude/commands/` | File name without extension | `.claude/commands/deploy.md` → `/deploy` |"
+            },
+            {
+              "type": "removed",
+              "content": "| Plugin `skills/` subdirectory | Directory name, namespaced by plugin | `my-plugin/skills/review/SKILL.md` → `/my-plugin:review` |"
+            },
+            {
+              "type": "added",
+              "content": "| Plugin `skills/` subdirectory | Frontmatter `name` or the directory name, namespaced by plugin | `my-plugin/skills/review/SKILL.md` → `/my-plugin:review`, or `/my-plugin:fancy` with `name: fancy` |"
+            },
+            {
+              "type": "context",
+              "content": "| Plugin root `SKILL.md` | Frontmatter `name`, with the plugin directory name as a fallback | `my-plugin/SKILL.md` with `name: review` → `/my-plugin:review`. See [Path behavior rules](/docs/en/plugins-reference#path-behavior-rules) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The plugin-root case is the one place where `name` does set the command name, because there is no skill directory to take it from. If `name` is not set in the frontmatter, the plugin's directory name is used instead."
+            },
+            {
+              "type": "added",
+              "content": "In a plugin skill, the frontmatter `name` replaces the directory name in the last segment of the command, so `my-plugin/skills/review/SKILL.md` with `name: fancy` becomes `/my-plugin:fancy`. The bare `/fancy` also invokes the skill unless another command already uses that name. Before v2.1.216, the frontmatter name replaced the whole command name, so the menu showed `/fancy` without the plugin prefix and `/my-plugin:fancy` didn't autocomplete."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For a plugin-root `SKILL.md`, there is no skill directory to take the name from, so `name` supplies the whole final segment. Without a `name` field, Claude Code falls back to the plugin's directory name."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Available string substitutions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
