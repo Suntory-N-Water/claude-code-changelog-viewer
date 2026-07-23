@@ -1,0 +1,476 @@
+{
+  "id": "20260723-002801",
+  "timestamp": "2026-07-23T00:28:01.639Z",
+  "aiSummary": "アクセシビリティ向上のため、テキスト削除時の読み上げ機能やメニュー操作時のカーソル追従が追加されました。バックグラウンドタスクの終了条件が詳細化され、サブエージェントによるタスクのタイムアウト設定などが導入されています。フッターでのアーティファクト操作や、テレメトリにおける管理者設定の優先順位など、運用管理面での仕様変更も含まれています。全体として、v2.1.218前後の新機能反映と細かな動作条件の明確化が行われました。",
+  "files": [
+    {
+      "filename": "accessibility.md",
+      "additions": 9,
+      "deletions": 1,
+      "explanation": "特定のショートカットキーでテキストを削除した際の読み上げ対応と、アクセシビリティ設定有効時のメニュー内カーソル追従機能が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -59,6 +59,14 @@ Each message in the transcript starts with a label your screen reader announces,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The terminal cursor follows the input caret, so a screen reader's read-current-line command answers \"where am I\" with the prompt you're editing."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When you delete a word or a line in the input, Claude Code announces the deleted text. Requires Claude Code v2.1.218 or later. The announcement covers:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Deleting a word with `Ctrl+W`, `Option+Delete` on macOS, or `Ctrl+Backspace` on Windows"
+            },
+            {
+              "type": "added",
+              "content": "- Deleting to the start of the line with `Ctrl+U` or `Cmd+Backspace`"
+            },
+            {
+              "type": "added",
+              "content": "- Deleting to the end of the line with `Ctrl+K`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "See the [text editing shortcuts](/docs/en/interactive-mode#text-editing) for what each key does."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Cycling [permission modes](/docs/en/permission-modes) with `Shift+Tab` announces the mode you land on, such as `[plan mode on]` or `[accept edits on]`. Claude Code prints the announcement once and doesn't repeat it on later redraws. Requires Claude Code v2.1.210 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Jump between turns"
+            }
+          ]
+        },
+        {
+          "header": "@@ -95,7 +103,7 @@ The bell is your terminal's standard alert. To silence it, change the bell setti",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These options address accessibility needs outside of screen reader mode. All of them work alongside it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- The `CLAUDE_CODE_ACCESSIBILITY` [environment variable](/docs/en/env-vars) is for screen magnifiers. Set `CLAUDE_CODE_ACCESSIBILITY=1` to keep the native terminal cursor visible so that magnifiers, such as macOS Zoom, can track the cursor position."
+            },
+            {
+              "type": "added",
+              "content": "- The `CLAUDE_CODE_ACCESSIBILITY` [environment variable](/docs/en/env-vars) is for screen magnifiers. Set `CLAUDE_CODE_ACCESSIBILITY=1` to keep the native terminal cursor visible so that magnifiers, such as macOS Zoom, can track the cursor position. The cursor follows keyboard focus: the input caret while you type, and the highlighted row as you move through menus and panels, such as `/config` and `/plugin`, with the arrow keys. Row tracking in menus and panels requires Claude Code v2.1.218 or later."
+            },
+            {
+              "type": "context",
+              "content": "- The `prefersReducedMotion` [setting](/docs/en/settings#available-settings) reduces or disables spinners, shimmer, and other animations without changing the rest of the interface."
+            },
+            {
+              "type": "context",
+              "content": "- The `theme` [setting](/docs/en/settings#available-settings) selects the interface colors, including the colorblind-friendly `dark-daltonized` and `light-daltonized` themes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "OSごとの単語削除ショートカットの追加と、アイドル時のバックグラウンドタスク終了に関する詳細な条件および新しい環境変数が記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -52,7 +52,7 @@ See [Terminal configuration](/docs/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Ctrl+E` | Move cursor to end of current line | In multiline input, moves to the end of the current logical line |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+K` | Delete to end of line | Stores deleted text for pasting |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+U` | Delete from cursor to line start | Stores deleted text for pasting. Repeat to clear across lines in multiline input. On macOS, terminal emulators including iTerm2 and Terminal.app map `Cmd+Backspace` to this shortcut |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Ctrl+W` | Delete previous word | Stores deleted text for pasting. On Windows, `Ctrl+Backspace` also deletes the previous word |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+W` | Delete previous word | Stores deleted text for pasting. On macOS, `Option+Delete` also deletes the previous word, and on Windows, `Ctrl+Backspace` does |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+Y` | Paste deleted text | Paste text deleted with `Ctrl+K`, `Ctrl+U`, or `Ctrl+W` |"
+            },
+            {
+              "type": "context",
+              "content": "| `Alt+Y` (after `Ctrl+Y`) | Cycle paste history | After pasting, cycle through previously deleted text. Requires [Option as Meta](#keyboard-shortcuts) on macOS |"
+            },
+            {
+              "type": "context",
+              "content": "| `Alt+B` | Move cursor back one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -280,7 +280,7 @@ To run commands in the background, you can either:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Background tasks have unique IDs for tracking and output retrieval"
+            },
+            {
+              "type": "context",
+              "content": "- Background tasks are automatically cleaned up when Claude Code exits. Backgrounding the session instead of exiting it hands them to the background session, where they keep running. See [background a running session](/docs/en/agent-view#from-inside-a-session)"
+            },
+            {
+              "type": "context",
+              "content": "- Background tasks are automatically terminated if output exceeds 5GB, with a note in stderr explaining why"
+            },
+            {
+              "type": "removed",
+              "content": "- As of v2.1.193, on macOS and Linux, running background tasks are terminated when the operating system signals memory pressure, provided the session has been idle for at least 30 minutes with no turn or subagent running. Set [`CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP`](/docs/en/env-vars) to `1` to turn this off"
+            },
+            {
+              "type": "added",
+              "content": "- On macOS and Linux, Claude Code terminates running background tasks when the operating system signals memory pressure, provided the session has been idle for at least 30 minutes and no turn or subagent is running. Set [`CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP`](/docs/en/env-vars) to `1` to turn this off. Requires Claude Code v2.1.193 or later. Background commands owned by a [subagent](/docs/en/sub-agents) are instead terminated after 60 minutes, configurable in milliseconds with [`CLAUDE_SUBAGENT_BG_SHELL_MAX_MS`](/docs/en/env-vars). Before v2.1.218, neither limit covered commands moved to the background with `Ctrl+B`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To disable all background task functionality, set the `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` environment variable to `1`. See [Environment variables](/docs/en/env-vars) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "keybindings.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "フッターナビゲーションへのアーティファクトの追加と、選択したアーティファクトのリンクをフッターから非表示にするキー操作が導入されました。",
+      "hunks": [
+        {
+          "header": "@@ -57,7 +57,7 @@ Each binding block specifies a **context** where the bindings apply:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Task` | Background task is running |"
+            },
+            {
+              "type": "context",
+              "content": "| `ThemePicker` | Theme picker dialog |"
+            },
+            {
+              "type": "context",
+              "content": "| `Attachments` | Image attachment navigation in select dialogs |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Footer` | Footer indicator navigation (tasks, teams, diff) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Footer` | Footer indicator navigation (tasks, teams, diff, artifacts) |"
+            },
+            {
+              "type": "context",
+              "content": "| `MessageSelector` | Rewind and summarize dialog message selection |"
+            },
+            {
+              "type": "context",
+              "content": "| `DiffDialog` | Diff viewer navigation |"
+            },
+            {
+              "type": "context",
+              "content": "| `ModelPicker` | Model picker effort level |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -232,6 +232,7 @@ Actions available in the `Footer` context:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `footer:down` | Down | Navigate down in footer |"
+            },
+            {
+              "type": "context",
+              "content": "| `footer:openSelected` | Enter | Open selected footer item |"
+            },
+            {
+              "type": "context",
+              "content": "| `footer:clearSelection` | Escape | Clear footer selection |"
+            },
+            {
+              "type": "added",
+              "content": "| `footer:dismiss` | Backspace, Delete | Dismiss the selected [artifact](/docs/en/artifacts) link from the footer; the published artifact itself is unaffected. On other footer rows, these keys have no effect. Requires v2.1.217 or later |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Message selector actions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "起動時の認証通知において、Claude Codeから直接ログイン可能なサーバーのみをカウント対象とするよう動作が改善されました。",
+      "hunks": [
+        {
+          "header": "@@ -527,7 +527,7 @@ As of v2.1.195, when a token refresh fails because the server rejects the stored",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A custom server that returns a `WWW-Authenticate` header pointing to its authorization server gets the same automatic discovery as any other remote server."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "As of v2.1.193, Claude Code also shows a startup notice when one or more configured servers need authentication, so you don't have to open `/mcp` to discover which servers need sign-in."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code also shows a startup notice when one or more configured servers need authentication, so you don't have to open `/mcp` to discover which servers need sign-in. The notice requires Claude Code v2.1.193 or later. It counts only servers you can sign in to from Claude Code. Before v2.1.218, it also counted [claude.ai connectors](#use-mcp-servers-from-claude-ai) that weren't connected in claude.ai, which you can connect only from claude.ai settings."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In non-interactive mode there's no `/mcp` panel, so Claude Code can't run the OAuth flow for you. As of v2.1.196, when a configured server needs authentication during a `claude -p` or Agent SDK run with [tool search](#scale-with-mcp-tool-search) enabled, which is the default, Claude Code tells Claude that the server's tools are unavailable until you authorize it. Claude can then name the server that needs sign-in instead of responding as if the server weren't configured. Complete the sign-in from an interactive session with `/mcp` or `claude mcp login <name>`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 18,
+      "deletions": 1,
+      "explanation": "管理者によるマネージド設定がユーザー固有の環境変数より優先されるテレメトリエンドポイントの制御仕様について、詳細な解説が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -65,10 +65,27 @@ Managed settings can be distributed via MDM (Mobile Device Management) or other",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code doesn't pass `OTEL_*` environment variables to the subprocesses it spawns, including the Bash tool, hooks, MCP servers, and language servers. An OpenTelemetry-instrumented application that you run through the Bash tool doesn't inherit Claude Code's exporter endpoint or headers, so set those variables directly in the command if that application needs to export its own telemetry."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Managed endpoints govern signal-specific endpoints"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A generic `OTEL_EXPORTER_OTLP_ENDPOINT` set in managed settings governs every signal's endpoint. If a lower-precedence source, such as user settings or a shell export, sets a signal-specific endpoint like `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`, Claude Code removes that variable at startup and logs a warning, visible with `claude --debug`. Users can't point one signal's OTLP traffic at a different endpoint, so you don't need to set the signal-specific endpoint variables in managed settings to prevent it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This applies only on machines where an administrator deploys managed settings with telemetry configured, and it changes where telemetry is delivered, not what Claude Code collects."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A managed `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_EXPORTER_OTLP_CLIENT_KEY`, or `OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE` variable also governs the endpoint variables, since those credentials would otherwise accompany telemetry to a collector the managed settings didn't choose."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Two cases keep the normal per-key precedence:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Signal-specific variables set in the managed settings file itself still apply, so you can route one signal to a different collector by setting them there, as the [SIEM example](#send-events-to-a-siem) does."
+            },
+            {
+              "type": "added",
+              "content": "- The exporter selectors (`OTEL_METRICS_EXPORTER`, `OTEL_LOGS_EXPORTER`, and the beta `OTEL_TRACES_EXPORTER`) and the protocol variables follow per-key precedence, so a lower-precedence source can still change how a signal is exported. To make those authoritative too, set the signal-specific keys in managed settings directly."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Before v2.1.217, every variable followed per-key settings precedence independently, so a signal-specific endpoint set in user settings or the shell redirected that signal away from the managed collector."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configuration details"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Common configuration variables"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "These variables configure exporters, endpoints, and export behavior for all deployments. A signal-specific variable overrides its generic counterpart, except that a generic endpoint or credential variable set in [managed settings](#administrator-configuration) governs all signals' endpoints and can't be overridden from lower-precedence sources."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Environment Variable | Description | Example Values |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_TELEMETRY` | Enables telemetry collection (required) | `1` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -123,7 +140,7 @@ These variables help control the cardinality of metrics, which affects storage r",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Distributed tracing exports spans that link each user prompt to the API requests and tool executions it triggers, so you can view a full request as a single trace in your tracing backend."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Tracing is off by default. To enable it, set both `CLAUDE_CODE_ENABLE_TELEMETRY=1` and `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`, then set `OTEL_TRACES_EXPORTER` to choose where spans are sent. Traces reuse the [common OTLP configuration](#common-configuration-variables) for endpoint, protocol, headers, and [mTLS](#mtls-authentication)."
+            },
+            {
+              "type": "added",
+              "content": "Tracing is off by default. To enable it, set both `CLAUDE_CODE_ENABLE_TELEMETRY=1` and `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`, then set `OTEL_TRACES_EXPORTER` to choose where spans are sent. Traces reuse the [common OTLP configuration](#common-configuration-variables) for endpoint, protocol, headers, and [mTLS](#mtls-authentication). A generic endpoint or credential variable set in [managed settings](#managed-endpoints-govern-signal-specific-endpoints) governs the traces endpoint too, so the `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` override in the table below applies only when managed settings don't set one."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Environment Variable | Description | Example Values |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
