@@ -4,6 +4,12 @@ variable "zone_id" {
   sensitive   = true
 }
 
+variable "account_id" {
+  description = "Cloudflare Account ID"
+  type        = string
+  sensitive   = true
+}
+
 variable "domain" {
   description = "ドメイン名"
   type        = string
