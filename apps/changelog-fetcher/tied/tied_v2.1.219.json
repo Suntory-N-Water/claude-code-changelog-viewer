@@ -1,0 +1,776 @@
+{
+  "version": "2.1.219",
+  "items": [
+    {
+      "id": "44446aa010e6",
+      "content": "- Added Claude Opus 5 (`claude-opus-5`), now the default Opus model — 1M context, fast mode at $10/$50 per Mtok",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/about-claude/models/overview.md",
+          "hit_count": 11,
+          "snippets": [
+            "multi-region endpoints (dynamic routing within a geographic area), and regional endpoints. For more information, see",
+            "Latest models comparison Feature Claude Fable 5 Claude Opus 4.8 Claude Sonnet 5 Claude Haiku 4.5 Description Next-generation intelligence for long-running agents For complex agentic coding and enterprise work The best combination of speed and intelligence The fastest model with near-frontier intelligence Claude API ID claude-fable-5 claude-opus-4-8 claude-sonnet-5 claude-haiku-4-5-20251001 Claude API alias claude-haiku-4-5 AWS Bedrock ID anthropic.claude-fable-53 anthropic.claude-opus-4-83 anthropic.claude-sonnet-53 anthropic.claude-haiku-4-5-20251001-v1:0 Google Cloud ID claude-haiku-4-5@20251001 Pricing 1 $10 / input MTok $50 / output MTok $5 / input MTok $25 / output MTok $3 / input MTok $15 / output MTok4 $1 / input MTok $5 / output MTok Extended thinking ( thinking.type: \"enabled\" ) No Yes Adaptive thinking Yes (always on) Comparative latency Slower Moderate Fast Fastest Context window 1M tokens 200k tokens Max output 128k tokens 64k tokens Reliable knowledge cutoff Jan 20262 Feb 2025 Training data cutoff Jan 2026 Jul 2025"
+          ],
+          "snippet_scores": [56.3163, 50.726]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fast-mode.md",
+          "hit_count": 15,
+          "snippets": [
+            "Speed up responses with fast mode Get faster Opus responses in Claude Code by toggling fast mode. Use /fast to toggle on fast mode in the Claude Code CLI. Fast mode is not supported in the VS Code extension. Fast mode pricing per MTok input/output is $10/$50 on Opus 4.8 and $30/$150 on Opus 4.7. Available to all Claude Code users on subscription plans (Pro/Max/Team/Enterprise) and Claude Console. For Claude Code users on subscription plans (Pro/Max/Team/Enterprise), fast mode is available via usage credits only and not included in the subscription rate limits.",
+            "Understand the cost tradeoff Fast mode has higher per-token pricing than standard Opus, with the multiplier varying by model: The first time you enable fast mode in a conversation, you pay the full fast mode uncached input token price for the entire conversation context. The deeper into a conversation you are, the more this costs, so enabling fast mode from the start is cheaper. The cost applies once per conversation, so toggling fast mode off and on again later does not repeat it. For the mechanism, see how fast mode interacts with the prompt cache .",
+            "Whenever a model switch turns fast mode on or off, Claude Code shows a Fast mode ON or Fast mode OFF confirmation, and the ↯ icon appears while fast mode is on. This holds whether you switch with /model , with /config model= , or from a device connected through Remote Control ; before v2.1.218, switches through /config or Remote Control changed fast mode without the confirmation. Opus 4.8 is the fast mode default in Claude Code v2.1.154 and later. On v2.1.142 through v2.1.153, fast mode defaults to Opus 4.7."
+          ],
+          "snippet_scores": [54.9995, 54.9127, 41.4631]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w22.md",
+          "hit_count": 2,
+          "snippets": [
+            "Week 22 · May 25–29, 2026 Run Claude Code on Claude Opus 4.8, orchestrate large tasks with dynamic workflows, catch security issues with the security-guidance plugin, and use fast mode on Opus 4.8 at a lower price. Fast mode now defaults to Opus 4.8 at $10/$50 per MTok: 2x the standard rate for about 2.5x the speed. Opus 4.7 and 4.6 stay at $30/$150. Opus 4.6 fast mode is deprecated."
+          ],
+          "snippet_scores": [53.8032]
+        }
+      ]
+    },
+    {
+      "id": "5e58289baa12",
+      "content": "- Added `sandbox.network.strictAllowlist` setting to deny non-allowlisted hosts for sandboxed commands without prompting",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md",
+          "hit_count": 29,
+          "snippets": [
+            "Protect credentials The sandbox.credentials setting declares credential files and environment variables to protect from sandboxed commands. Each entry names a file path or an environment variable and a mode . The dedicated credentials block keeps credential rules grouped together and separate from general filesystem rules. Requires Claude Code v2.1.187 or later. File paths follow the same prefix rules as sandbox.filesystem.* settings, and deny entries from every settings scope are merged. A deny entry only ever narrows access, so any scope can add one, but no scope can remove one that another scope added.",
+            "What changes when isolation is off Turning the filesystem layer off also lifts its read protections and stops overriding $TMPDIR , while sandboxed commands stay auto-allowed: The read protections from filesystem.denyRead and credentials.files don't apply to sandboxed commands, because the filesystem layer enforces both. credentials.envVars deny and mask entries still apply, since environment variable scrubbing is independent of the filesystem layer. Sandboxed commands inherit your shell's $TMPDIR instead of the session temp directory, since every temp directory is writable. autoAllowBashIfSandboxed still defaults to true , so sandboxed commands keep running without prompts. Set it to false to keep prompting for sandboxed commands.",
+            "Sandbox modes Claude Code offers two sandbox modes: Explicit deny rules are always respected rm or rmdir commands that target / , your home directory, or other critical system paths still trigger a permission prompt Content-scoped ask rules like Bash(git push *) still force a prompt even for sandboxed commands A bare Bash ask rule, or the equivalent Bash(*) form, is skipped for commands that run sandboxed; it still applies to commands that fall back to the regular permission flow. In plan mode , the rule isn't skipped: it prompts for sandboxed commands too, including read-only ones. Before v2.1.212, the skip applied in plan mode as well"
+          ],
+          "snippet_scores": [26.7527, 26.2961, 26.2575]
+        }
+      ]
+    },
+    {
+      "id": "561d332d4885",
+      "content": "- Added `DirectoryAdded` hook that fires after `/add-dir` or the SDK `register_repo_root` control request registers a new working directory mid-session",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sessions.md",
+          "hit_count": 14,
+          "snippets": [
+            "Not every configuration flag from the original launch is restored. If the session depended on --mcp-config , --settings , --plugin-dir , --fallback-model , or directories added with --add-dir , pass them again when you resume; directories added mid-session with /add-dir aren't restored either, though the session picker still uses them to locate the session. The standard settings files, such as settings.json and settings.local.json , are re-read at launch, so configuration that lives in them doesn't need to be passed again.",
+            "Where the session picker looks Claude Code stores sessions per project directory. By default the session picker shows: Sessions whose first prompt was a /loop command don't appear in the picker; running /loop later in a conversation doesn't hide the session. Before v2.1.211, a /loop run early in a conversation hid the session from the picker permanently.",
+            "Resume a session Sessions are saved continuously to local transcript files as you work, so you can to one after exiting or running /clear . Use these entry points: Command What it does claude --continue Resumes the most recent session in the current directory claude --resume Opens the session picker Resumes the named session directly claude --from-pr Opens the session picker filtered to sessions linked to that pull request /resume Switches to a different conversation from inside an active session"
+          ],
+          "snippet_scores": [52.595, 41.3784, 35.7781]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md",
+          "hit_count": 37,
+          "snippets": [
+            "Working directories By default, Claude has access to files in the directory where you launched it. You can extend this access: To change the session's primary working directory instead of adding another, use /cd . The /cd command requires Claude Code v2.1.169 or later. Unlike /add-dir , it relocates the session: the new directory's CLAUDE.md is loaded and --resume finds the session from there.",
+            "Additional directories grant file access, not configuration Adding a directory extends where Claude can read and edit files. It doesn't make that directory a full configuration root: most .claude/ configuration is not discovered from additional directories, though a few types are loaded as exceptions. Configuration Loaded from --add-dir Skills in .claude/skills/ Yes, with live reload Subagents in .claude/agents/ Yes Settings in .claude/settings.json and .claude/settings.local.json enabledPlugins and extraKnownMarketplaces keys only CLAUDE.md files, .claude/rules/ , and CLAUDE.local.md Only when CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 is set. CLAUDE.local.md additionally requires the local setting source, which is enabled by default",
+            "Extend permissions with hooks Claude Code hooks let you register custom shell commands that evaluate permissions at runtime. When Claude Code makes a tool call, PreToolUse hooks run before the permission prompt, for every tool except EndConversation . The hook output can deny the tool call, force a prompt, or skip the prompt to let the call proceed. A blocking hook also takes precedence over allow rules. A hook that exits with code 2 stops the tool call before permission rules are evaluated, so the block applies even when an allow rule would otherwise let the call proceed. To run all Bash commands without prompts except for a few you want blocked, add \"Bash\" to your allow list and register a PreToolUse hook that rejects those specific commands. See Block edits to protected files for a hook script you can adapt."
+          ],
+          "snippet_scores": [50.5768, 47.3803, 38.4561]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md",
+          "hit_count": 40,
+          "snippets": [
+            "Skills from additional directories The --add-dir flag and /add-dir command grant file access rather than configuration discovery, but skills are an exception: .claude/skills/ within an added directory is loaded automatically. This exception applies only to --add-dir and /add-dir . The permissions.additionalDirectories setting in settings.json grants file access only and does not load skills. See Live change detection for how edits are picked up during a session. CLAUDE.md files from --add-dir directories are not loaded by default. To load them, set CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 . See Load from additional directories .",
+            "Live change detection Claude Code watches skill directories for file changes. Adding, editing, or removing a skill under ~/.claude/skills/ , the project .claude/skills/ , or a .claude/skills/ inside an --add-dir directory takes effect within the current session without restarting. Creating a top-level skills directory that did not exist when the session started requires restarting Claude Code so the new directory can be watched. Live change detection covers SKILL.md text only. For a skill folder that is also a plugin , changes to hooks/ , , agents/ , and output-styles/ need /reload-plugins to take effect.",
+            "A entry in the enterprise, personal, or project locations can be a symlink to a directory elsewhere on disk. Claude Code follows the symlink and reads SKILL.md from the target directory, and if the same target is reachable from more than one location, Claude Code loads the skill once. Plugin skills handle symlinks differently; see Share files within a marketplace with symlinks . Add a .claude-plugin/plugin.json to a skill folder and it loads as a plugin named @skills-dir , so it can bundle agents, hooks, and MCP servers. In a project's .claude/skills/ , this requires accepting the workspace trust dialog first."
+          ],
+          "snippet_scores": [47.263, 38.7165, 38.409]
+        }
+      ]
+    },
+    {
+      "id": "9517877a14b0",
+      "content": "- Added `mcp_server_errors` to the headless stream-json init event, listing `--mcp-config` entries skipped by config validation; terminal runs print a startup warning",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md",
+          "hit_count": 31,
+          "snippets": [
+            "Run non-interactive mode Use claude -p \"prompt\" in CI, pre-commit hooks, or scripts. Add --output-format stream-json --verbose for streaming JSON output. The first command prints plain text. The json format s a single JSON object with a result field. The stream-json format prints one JSON object per line, starting with an init event."
+          ],
+          "snippet_scores": [54.2869]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 45,
+          "snippets": [
+            "requiredMinimumVersion and requiredMaximumVersion fail open by design: an invalid value is stripped rather than enforced, so a bad policy push cannot prevent Claude Code from starting. Validation errors surface in three places: Interactive sessions show a dialog at startup listing the invalid entries. Headless runs with -p print a summary to stderr. claude doctor lists each invalid entry with its source and field.",
+            "Verify active settings Run /status inside Claude Code to see which settings sources are active. Inside the menu, the Status tab includes a Setting sources line that lists each layer Claude Code loaded for the current session, such as User settings or Project local settings . When managed settings are in effect, the entry shows the delivery channel in parentheses, for example Enterprise managed settings (remote) , (plist) , (HKLM) , (HKCU) , or (file) . The remote channel covers both claude.ai server-managed settings and Claude apps gateway -delivered policies. A layer appears in the list only when that source is loaded with at least one key, so an empty list means no settings sources were found. After you continue, /status lists the affected files. Run claude doctor to see the details for each error.",
+            "Invalid entries in managed settings Managed settings parse tolerantly. When a managed configuration contains an entry that fails schema validation, Claude Code strips that entry, records a warning, and enforces every remaining valid policy. A single typo cannot disable the rest of your organization's policy. Run /doctor to list stripped entries with their source file and field. Field Behavior when present but invalid allowedMcpServers Enforced as an empty allowlist, so no MCP servers are admitted until the value is fixed. An individual invalid entry is stripped and the valid subset is enforced. allowManagedMcpServersOnly Treated as true . availableModels Enforced as an empty allowlist, so only the Default model is available until the value is fixed. An individual non-string entry is stripped and the valid subset is enforced. Applies in v2.1.175 and later. enforceAvailableModels Treated as true . Applies in v2.1.175 and later. forceLoginOrgUUID No organization is permitted to log in until the value is fixed. deniedMcpServers An individual invalid entry is stripped and the valid subset is enforced. A wholly invalid value is dropped with a warning, since denying every server would block servers the policy never named. sandbox.credentials An individual invalid entry in files or envVars is stripped with a warning and the valid subset is enforced. A wholly invalid credentials value is dropped with a warning while the rest of sandbox still applies. Applies in v2.1.191 and later."
+          ],
+          "snippet_scores": [52.0136, 39.1791, 34.2904]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/goal.md",
+          "hit_count": 12,
+          "snippets": [
+            "Run non-interactively /goal works in non-interactive mode , in the desktop app , and through Remote Control . Setting a goal with -p runs the loop to completion in a single invocation: With the default text output, nothing prints until the condition is met, so a goal that runs many turns can look stuck. Add --output-format stream-json --verbose to emit each message as the loop runs."
+          ],
+          "snippet_scores": [46.6108]
+        }
+      ]
+    },
+    {
+      "id": "1e8685d09e7e",
+      "content": "- Added the `workflowSizeGuideline` settings key so the advisory Dynamic workflow size guideline can be set from any settings file; the `/config` row is hidden while one does",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 47,
+          "snippets": [
+            "Global config settings These settings are stored in ~/.claude.json rather than settings.json . If you add these keys to settings.json , Claude Code silently ignores them at startup, so double-check the table below for which file each key belongs in. Key Description Example autoConnectIde Default : false . Automatically connect to a running IDE when Claude Code starts from an external terminal. Appears in /config as Auto-connect to IDE (external terminal) when running outside a VS Code or JetBrains terminal. The CLAUDE_CODE_AUTO_CONNECT_IDE environment variable overrides this when set true autoInstallIdeExtension Default : true . Automatically install the Claude Code IDE extension when running from a VS Code terminal. Appears in /config as Auto-install IDE extension when running inside a VS Code or JetBrains terminal. You can also set the CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL environment variable to 1 false diffTool Default : auto . Where to display file diffs when an IDE is connected: auto opens diffs in the IDE's diff viewer, terminal keeps them in the terminal. Appears in /config as Diff tool only when Claude Code is connected to a VS Code or JetBrains IDE \"terminal\" externalEditorContext Default : false . Prepend Claude's previous response as # -commented context when you open the external editor with Ctrl+G . Appears in /config as Show last response in external editor permissionExplainerEnabled Default : true . Show a model-generated explanation of the command when you press Ctrl+E on a Bash or PowerShell permission prompt. Set to false to turn the shortcut off teammateDefaultModel Default model for agent team teammates when the spawn prompt doesn't specify one. Set to a model alias such as \"sonnet\" , or null to inherit the lead's current /model selection. Appears in /config as Default teammate model \"sonnet\" workflowSizeGuideline Default : unrestricted , which sends no guideline. Sets the agent count Claude aims for in the dynamic workflows it writes. Claude Code sends the value to Claude as advice, not an enforced cap. Accepts unrestricted , small , medium , or large . Appears in /config as Dynamic workflow size . You can also set it directly with /config workflowSizeGuideline=small . Requires Claude Code v2.1.202 or later. The guideline's agent count also replaces the default threshold for the Large workflow warning ; that behavior requires Claude Code v2.1.203 or later \"small\"",
+            "Claude Code settings Configure Claude Code with global and project-level settings, and environment variables. Claude Code offers a variety of settings to configure its behavior to meet your needs. You can configure Claude Code by running the /config command in an interactive session, which opens a tabbed Settings interface where you can view status information and modify configuration options. From v2.1.181, you can change a single option without opening the interface by passing key=value to /config , for example /config verbose=true .",
+            "Available settings settings.json supports a number of options: Key Description Example advisorModel Model for the server-side advisor tool . Accepts the model aliases \"opus\" and \"sonnet\" , or a full model ID. Written automatically when you run /advisor . Unset to disable the advisor. Claude Code doesn't offer Fable 5 as the advisor : a saved \"fable\" value attaches no advisor and raises no error. \"opus\" agent Run the main thread as a named subagent, and set the default agent for sessions dispatched from claude agents . Applies that subagent's system prompt, tool restrictions, and model. See Invoke subagents explicitly \"code-reviewer\" agentPushNotifEnabled Default : false . When Remote Control is connected, allow Claude to send proactive push notifications to your phone, for example when a long task finishes. Appears in /config as Push when Claude decides . See Mobile push notifications . Requires Claude Code v2.1.119 or later true allowAllClaudeAiMcps (Managed settings only) Load claude.ai connectors alongside a deployed managed-mcp.json , which otherwise takes exclusive control and suppresses them. See Managed MCP configuration allowedChannelPlugins (Managed settings only) Allowlist of channel plugins that may push messages. Replaces the default Anthropic allowlist when set. Undefined = fall back to the default, empty array = block all channel plugins. Requires channelsEnabled: true . See Restrict which channel plugins can run [{ \"marketplace\": \"claude-plugins-official\", \"plugin\": \"telegram\" }] allowedHttpHookUrls Allowlist of URL patterns that HTTP hooks may target. Supports * as a wildcard. When set, hooks with non-matching URLs are blocked. Undefined = no restrictions, empty array = block all HTTP hooks. Arrays merge across settings sources. See Hook configuration [\"https://hooks.example.com/*\"] allowedMcpServers When set in managed-settings.json, allowlist of MCP servers users can configure. Undefined = no restrictions, empty array = lockdown. Applies to all scopes. Denylist takes precedence. See Managed MCP configuration [{ \"serverName\": \"github\" }] allowManagedHooksOnly (Managed settings only) Only managed hooks, SDK hooks, and hooks from plugins force-enabled in managed settings enabledPlugins are loaded. User, project, and all other plugin hooks are blocked. See Hook configuration allowManagedMcpServersOnly (Managed settings only) Only allowedMcpServers from managed settings are respected. deniedMcpServers still merges from all sources. Users can still add MCP servers, but only the admin-defined allowlist applies. See Managed MCP configuration allowManagedPermissionRulesOnly (Managed settings only) Prevent user and project settings from defining allow , ask , or deny permission rules. Only rules in managed settings apply. See Managed-only settings alwaysThinkingEnabled Enable extended thinking by default for all sessions. Typically configured via the /config command rather than editing directly. To force thinking off regardless of this setting, set MAX_THINKING_TOKENS=0 in env , which disables thinking on the Anthropic API except on Fable 5, which cannot have thinking turned off. On third-party providers this omits the thinking parameter instead, and adaptive-reasoning models may still think apiKeyHelper Custom command, run through the system shell ( /bin/sh on macOS and Linux, cmd on Windows), to generate an auth value. This value will be sent as X-Api-Key and Authorization: Bearer headers for model requests. Set the refresh interval with CLAUDE_CODE_API_KEY_HELPER_TTL_MS /bin/generate_temp_api_key.sh askUserQuestionTimeout Default : \"never\" . Idle time before an unanswered AskUserQuestion dialog auto-continues with whatever options you'd already selected. Accepts \"60s\" , \"5m\" , \"10m\" , or \"never\" . With the default, questions wait until you answer them. Appears in /config as Question auto-continue timeout , which writes this key to user settings. Not read from project or local settings. Requires Claude Code v2.1.200 or later \"5m\" attribution Customize attribution for git commits and pull requests. See Attribution settings autoCompactEnabled Default : true . Automatically compact the conversation when context approaches the limit. Appears in /config as Auto-compact . To disable via environment variable, set DISABLE_AUTO_COMPACT in env false autoMemoryDirectory Custom directory for auto memory storage. Accepts an absolute path or a ~/ -prefixed path. From project or local settings, this is honored only after you accept the workspace trust dialog, since a cloned repository can supply this file \"~/my-memory-dir\" autoMemoryEnabled Default : true . Enable auto memory . When false , Claude does not read from or write to the auto memory directory. You can also toggle this with /memory during a session. To disable via environment variable, set CLAUDE_CODE_DISABLE_AUTO_MEMORY in env autoMode Customize what the auto mode classifier blocks and allows. Contains environment , allow , soft_deny , and hard_deny arrays of prose rules. Include the literal string \"$defaults\" in an array to inherit the built-in rules at that position. See Configure auto mode . Read from user settings, the --settings flag, and managed settings only. Ignored in project .claude/settings.json and local .claude/settings.local.json . Before v2.1.207, .claude/settings.local.json was also read autoMode.classifyAllShell Default : false . When true , suspends every Bash and PowerShell allow rule while auto mode is active so all shell commands route through the classifier, not only rules that match arbitrary-code-execution patterns. See Route all shell commands through the classifier . Requires Claude Code v2.1.193 or later autoScrollEnabled Default : true . In fullscreen rendering , follow new output to the bottom of the conversation. Appears in /config as Auto-scroll . Permission prompts still scroll into view when this is off autoUpdatesChannel Default : \"latest\" . Release channel to follow for updates. Use \"stable\" for a version that is typically about one week old and skips versions with major regressions, or \"latest\" for the most recent release. To disable auto-updates entirely, set DISABLE_AUTOUPDATER in env \"stable\" availableModels Restrict which models users can select for the main session, subagents , skills , and the advisor . Does not affect the Default option unless enforceAvailableModels is also set. See Restrict model selection [\"sonnet\", \"haiku\"] awaySummaryEnabled Show a one-line session recap when you to the terminal after a few minutes away. Set to false or turn off Session recap in /config to disable. Same as CLAUDE_CODE_ENABLE_AWAY_SUMMARY awsAuthRefresh Custom script that modifies the directory (see advanced credential configuration ) aws sso login --profile myprofile awsCredentialExport Custom script that outputs JSON with AWS credentials (see advanced credential configuration ) /bin/generate_aws_grant.sh axScreenReader Render screen-reader friendly output: flat text without decorative borders or animations. Screen-reader mode uses the classic renderer, so the tui setting has no effect while it is active; attached background sessions still render fullscreen. The CLAUDE_AX_SCREEN_READER environment variable and the --ax-screen-reader flag take precedence. Requires Claude Code v2.1.181 or later blockedMarketplaces (Managed settings only) Blocklist of marketplace sources. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. Blocked sources are checked before downloading, so they never touch the filesystem. See Managed marketplace restrictions [{ \"source\": \"github\", \"repo\": \"untrusted/plugins\" }] browserExternalPageTools (Managed settings only) Set to \"disabled\" to prevent Claude from using tools to read or act on external pages in the desktop app's Browser pane . Users can still navigate to external sites themselves, and local dev server previews are unaffected \"disabled\" channelsEnabled (Managed settings only) Allow channels for the organization. On claude.ai Team and Enterprise plans, channels are blocked when this is unset or false . For Anthropic Console accounts using API key authentication, channels are allowed by default unless your organization deploys managed settings, in which case this key must be set to true claudeMd (Managed settings only) CLAUDE.md-style instructions injected as organization-managed memory. Only honored when set in managed or policy settings and ignored in user, project, and local settings. See organization-wide CLAUDE.md \"Always run make lint before committing.\" claudeMdExcludes Glob patterns or absolute paths of CLAUDE.md files to skip when loading memory . Patterns match against absolute file paths. Only applies to user, project, and local memory; managed policy files cannot be excluded [\"**/vendor/**/CLAUDE.md\"] cleanupPeriodDays Default : 30 days, minimum 1 . Claude Code deletes session files and other application data older than this period at startup. Setting 0 fails with a validation error. The same age cutoff applies to automatic removal of orphaned worktrees at startup. If Claude Code can't read or parse a settings file, it pauses the retention cleanup sweep and shows a warning in /status until you fix the file, unless managed settings provide cleanupPeriodDays , in which case the sweep runs at the managed value. Before v2.1.203, cleanup ran at the 30-day default in that state and could delete transcripts a longer cleanupPeriodDays was meant to keep; files newer than 30 days were never removed. To disable transcript writes entirely, set the CLAUDE_CODE_SKIP_PROMPT_HISTORY environment variable. In non-interactive mode, pass --no-session-persistence alongside -p or set persistSession: false in the Agent SDK. 20 companyAnnouncements Announcement to display to users at startup. If multiple announcements are provided, they will be cycled through at random. [\"Welcome to Acme Corp! Review our code guidelines at docs.acme.com\"] defaultShell Default : \"bash\" , or \"powershell\" on Windows when Bash isn't available. Default shell for input-box ! commands. Accepts \"bash\" or \"powershell\" . Setting \"powershell\" routes interactive ! commands through PowerShell when the PowerShell tool is enabled: it's on by default on Windows without Git Bash, and CLAUDE_CODE_USE_POWERSHELL_TOOL=1 enables it elsewhere \"powershell\" deniedMcpServers When set in managed-settings.json, denylist of MCP servers that are explicitly blocked. Applies to all scopes including managed servers. Denylist takes precedence over allowlist. See Managed MCP configuration [{ \"serverName\": \"filesystem\" }] disableAgentView Set to true to turn off background agents and agent view : claude agents , --bg , /background , and the on-demand supervisor. Typically set in managed settings . Equivalent to setting CLAUDE_CODE_DISABLE_AGENT_VIEW to 1 disableAllHooks Disable all hooks and any custom status line disableArtifact Set to true to disable the Artifact tool, which publishes session output as a private web page on claude.ai. Equivalent to setting CLAUDE_CODE_DISABLE_ARTIFACT to 1 disableAutoMode Set to \"disable\" to prevent auto mode from being activated. Removes auto from the Shift+Tab cycle and rejects --permission-mode auto at startup. Most useful in managed settings where users cannot override it \"disable\" disableBrowserExternalNavigation (Managed settings only) Set to true to turn off external browsing in the desktop app's Browser pane . Neither users nor Claude can navigate to external sites, and localhost dev server previews are unaffected. The value must be the JSON boolean true ; the string \"true\" is ignored disableBundledSkills Set to true to disable the skills and workflows included with Claude Code: bundled skills and workflows are removed entirely, while built-in commands like /init stay typable but are hidden from the model. /doctor stays typable like the built-in commands; hide it with DISABLE_DOCTOR_COMMAND instead. Skills from plugins, .claude/skills/ , and .claude/commands/ are unaffected. Equivalent to setting CLAUDE_CODE_DISABLE_BUNDLED_SKILLS to 1 disableClaudeAiConnectors Disable claude.ai MCP connectors so they are not auto-fetched or connected. Set in any settings scope. true in any source takes precedence, so a checked-in project .claude/settings.json can opt a repo out of cloud connectors, but a project-level false cannot override a user- or policy-level true . Servers passed explicitly via --mcp-config are unaffected. To deny individual connectors instead of all of them, use deniedMcpServers . Requires Claude Code v2.1.182 or later disableDeepLinkRegistration Set to \"disable\" to prevent Claude Code from registering the claude-cli:// protocol handler with the operating system when you send the first prompt of an interactive session. Deep links let external tools open a Claude Code session with a pre-filled prompt. Useful in environments where protocol handler registration is restricted or managed separately disabledMcpjsonServers List of specific MCP servers from files to reject [\"filesystem\"] disableMobileSimulatorTools (Managed settings only) Set to true to block Claude's tools for the desktop app's iOS Simulator pane . Users keep manual use of the pane; only Claude's access is removed. The value must be the JSON boolean true ; any other value is ignored, and a malformed value such as \"true\" or 1 logs a warning disableRemoteControl Disable Remote Control : blocks claude remote-control , the --remote-control flag, auto-start, and the in-session toggle. Typically placed in managed settings for per-device MDM enforcement, but works from any scope. Requires Claude Code v2.1.128 or later disableSideloadFlags (Managed settings only) Reject the --plugin-dir , --plugin-url , --agents , and --mcp-config CLI flags at startup, which users could otherwise pass to bypass strictKnownMarketplaces for a single run. Also rejects these flags from any surface that spawns the CLI with them internally, currently Cowork local sessions in the desktop app. A --mcp-config whose servers are all in-process type: \"sdk\" entries is still accepted, so the Agent SDK and VS Code extension keep working. Doesn't block claude mcp add , , or SDK setMcpServers() ; pair with allowedMcpServers for per-server MCP control. Requires Claude Code v2.1.193 or later disableSkillShellExecution Disable inline shell execution for !`...` and ```! blocks in skills and custom commands from user, project, plugin, or additional-directory sources. Commands are replaced with [shell command execution disabled by policy] instead of being run. Bundled and managed skills are not affected. Most useful in managed settings where users cannot override it disableWorkflows Default : false . Disable dynamic workflows and the bundled workflow commands. Equivalent to setting CLAUDE_CODE_DISABLE_WORKFLOWS to 1 editorMode Default : \"normal\" . Key binding mode for the input prompt: \"normal\" or \"vim\" . Appears in /config as Editor mode \"vim\" effortLevel Persist the effort level across sessions. Accepts \"low\" , \"medium\" , \"high\" , or \"xhigh\" . Written automatically when you run /effort with one of those values. --effort and CLAUDE_CODE_EFFORT_LEVEL override this for one session. See Adjust effort level for supported models \"xhigh\" emojiCompletionEnabled Default : true . Show emoji suggestions when you type : plus a shortcode in the prompt input, and replace a completed shortcode such as :heart: with its emoji. Set to false to disable both. See Emoji shortcodes . Requires Claude Code v2.1.217 or later enableAllProjectMcpServers Automatically approve all MCP servers defined in project files. As of v2.1.196, claude mcp list and claude mcp get honor this key in an untrusted folder only from settings files that aren't checked into the repository enableArtifact Enable or disable the Artifact tool for this user. When unset, the default follows the feature's availability for your account. The Artifacts row in /config writes this key. A managed disableArtifact and your organization's admin setting take precedence, and the key is ignored in project and local settings ( .claude/settings.json , .claude/settings.local.json ), which a repository could otherwise commit. Requires Claude Code v2.1.196 or later enabledMcpjsonServers List of specific MCP servers from files to approve. As of v2.1.196, claude mcp list and claude mcp get honor this key in an untrusted folder only from settings files that aren't checked into the repository [\"memory\", \"github\"] enforceAvailableModels Extend the availableModels allowlist to the Default model. When true in managed settings and availableModels is a non-empty array, the Default option falls back to the first allowlisted entry that is available, but only when the model Default would resolve to (the organization default when one applies, otherwise the account-type default) is not in the allowlist; an allowlisted default is kept as-is. Has no effect when availableModels is unset or empty. See Enforce the allowlist for the Default model . Requires Claude Code v2.1.175 or later env Environment variables applied to every session and to subprocesses Claude Code spawns from it. Set a variable to \"\" to override a shell export with an empty string, which Claude Code treats as unset for provider selection. Subprocesses still inherit the empty value. NO_COLOR and FORCE_COLOR set here reach only subprocesses; to change Claude Code's own interface colors, set them in your shell before launching claude . As of v2.1.195, identity variables that Claude Code's hosting environments set, for example CLAUDE_CODE_REMOTE and CLAUDE_CODE_ACCOUNT_UUID , are ignored when set here fallbackModel Fallback model(s) to try in order when the primary model is overloaded or unavailable. Claude Code switches to the next available model in the chain for the rest of the turn and shows a notice. \"default\" expands to the default model. Chains are capped at three models; extra entries are ignored. Unlike most array settings, this key does not merge across settings files: the highest-precedence file that defines it supplies the entire chain. The --fallback-model flag overrides this for one session. See Fallback model chains [\"claude-sonnet-5\", \"claude-haiku-4-5\"] fastMode Turn fast mode on for sessions where it's available. Toggling with /fast writes true here in user settings and removes the key when you turn fast mode off fastModePerSessionOptIn When true , fast mode does not persist across sessions. Each session starts with fast mode off, requiring users to enable it with /fast . The user's fast mode preference is still saved. See Require per-session opt-in feedbackSurveyRate Probability (0–1) that the session quality survey appears when eligible. Set to 0 to suppress entirely, or set CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY in env . Useful when using Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry where the default sample rate does not apply 0.05 fileCheckpointingEnabled Default : true . Snapshot files before each edit so /rewind can restore them. Appears in /config as Rewind code (checkpoints) . To disable via environment variable, set CLAUDE_CODE_DISABLE_FILE_CHECKPOINTING in env fileSuggestion Configure a custom script for @ file autocomplete. See File suggestion settings footerLinksRegexes Render extra clickable badges in the footer when a regex matches turn output. Each entry has a pattern , a url template with {name} placeholders filled from named capture groups, and an optional label . Read from user, --settings flag, and managed settings only. See Footer link badges for URL constraints, scheme allowlist, and limits. Requires Claude Code v2.1.176 or later [{\"type\": \"regex\", \"pattern\": \"\\\\b(? PROJ-\\\\d+)\\\\b\", \"url\": \"https://issues.example.com/browse/{key}\", \"label\": \"{key}\"}] forceLoginMethod Use claudeai to restrict login to Claude.ai accounts, console to restrict login to Claude Console accounts, or gateway to restrict login to a cloud gateway; see Claude apps gateway . On Claude Code v2.1.212 or later, every first-party login path enforces the restriction, including the VS Code extension , the Agent SDK, claude setup-token , and /install-github-app ; before v2.1.212, only terminal logins enforced it. See Restrict login to your organization for how each login path, environment credentials, and third-party providers are handled claudeai forceLoginGatewayUrl Pre-fills and locks the gateway URL on the /login Cloud gateway screen. Either this key or forceLoginMethod: \"gateway\" surfaces that screen; set both so the URL is filled in. Honored only at the managed policy tier; ignored in user and project settings. See Claude apps gateway \"https://claude-gateway.example.com\" forceLoginOrgUUID Require login to belong to a specific Anthropic organization. Accepts a single UUID string, which also pre-selects that organization during login, or an array of UUIDs where any listed organization is accepted without pre-selection. An empty array fails closed and blocks login with a misconfiguration message. See Restrict login to your organization for which login paths and credentials enforce the check \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\" or [\"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\", \"yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy\"] forceRemoteSettingsRefresh (Managed settings only) Block CLI startup until remote managed settings are freshly fetched from the server. If the fetch fails, the CLI exits rather than continuing with cached or no settings. When not set, startup continues without waiting for remote settings. See fail-closed enforcement gcpAuthRefresh Custom script that refreshes GCP Application Default Credentials when they expire or cannot be loaded. See advanced credential configuration gcloud auth application-default login hooks Configure custom commands to run at lifecycle events. See hooks documentation for format See hooks httpHookAllowedEnvVars Allowlist of environment variable names HTTP hooks may interpolate into headers. When set, each hook's effective allowedEnvVars is the intersection with this list. Undefined = no restriction. Arrays merge across settings sources. See Hook configuration [\"MY_TOKEN\", \"HOOK_SECRET\"] includeGitInstructions Default : true . Include built-in commit and PR workflow instructions and the git status snapshot in Claude's system prompt. Set to false to remove both, for example when using your own git workflow skills. The CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS environment variable takes precedence over this setting when set inputNeededNotifEnabled Default : false . When Remote Control is connected, send a push notification to your phone when a permission prompt or question is waiting for your input. Appears in /config as Push when actions required . See Mobile push notifications . Requires Claude Code v2.1.119 or later language Configure Claude's preferred response language (e.g., \"japanese\" , \"spanish\" , \"french\" ). Claude will respond in this language by default. Also sets the language for voice dictation and auto-generated session titles. As of v2.1.176, when not set, session titles match the language of your conversation \"japanese\" minimumVersion Floor that prevents background auto-updates and claude update from installing a version below this one. Switching from the \"latest\" channel to \"stable\" via /config prompts you to stay on the current version or allow the downgrade. Choosing to stay sets this value. Also useful in managed settings to pin an organization-wide minimum. For a hard floor that blocks startup entirely, see requiredMinimumVersion \"2.1.100\" model Override the default model to use for Claude Code. --model and ANTHROPIC_MODEL override this for one session \"claude-sonnet-5\" modelOverrides Map Anthropic model IDs to provider-specific model IDs such as Amazon Bedrock inference profile ARNs. Each model picker entry uses its mapped value when calling the provider API. See Override model IDs per version otelHeadersHelper Script to generate dynamic OpenTelemetry headers. Runs at startup and periodically. Set the refresh interval with CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS . See Dynamic headers /bin/generate_otel_headers.sh outputStyle Configure an output style to adjust the system prompt. See output styles documentation \"Explanatory\" parentSettingsBehavior (Managed settings only) Default : \"first-wins\" . Controls whether managed settings supplied programmatically by an embedding host process, such as the Agent SDK or an IDE extension, apply when an admin-deployed managed tier is also present. \"first-wins\" : the parent-supplied settings are dropped and only the admin tier applies. \"merge\" : the parent-supplied settings apply under the admin tier through a restrictive-only filter. Only the highest-priority managed source's value of this key is read. Unless the allowManaged*Only locks are set, allow-direction entries such as permission allow rules and sandbox allowlists still apply; see Restrict parent settings . Has no effect when no admin tier is deployed, or when a policyHelper is configured: the helper's output replaces every other managed source and parent settings are never merged. Requires Claude Code v2.1.133 or later \"merge\" permissions See table below for structure of permissions. plansDirectory Default : ~/.claude/plans . Customize where plan files are stored. Path is relative to project root. \"./plans\" pluginSuggestionMarketplaces (Managed settings only) Marketplace names whose plugins can appear as contextual install suggestions. No marketplace-declared suggestions surface without this allowlist; the built-in first-party frontend-design tip is unaffected. Suggestions come from each plugin's relevance declaration in its marketplace entry. A name only takes effect when the marketplace is registered on the machine and its registered source is also declared in managed settings, either as the extraKnownMarketplaces entry for that name or as an entry of strictKnownMarketplaces . A marketplace registered from a different source under an allowlisted name is ignored. The official marketplace is exempt from the source requirement: allowlisting its name alone suffices, since that name can only register from the official Anthropic source. [\"acme-corp-plugins\"] pluginTrustMessage (Managed settings only) Custom message appended to the plugin trust warning shown before installation. Use this to add organization-specific context, for example to confirm that plugins from your internal marketplace are vetted. \"All plugins from our marketplace are approved by IT\" policyHelper Admin-deployed executable that computes managed settings dynamically at startup. Only honored from MDM or a system managed-settings.json file. See Compute managed settings with a policy helper . Requires Claude Code v2.1.136 or later preferredNotifChannel Default : \"auto\" . Method for task-complete and permission-prompt notifications: \"auto\" , \"terminal_bell\" , \"iterm2\" , \"iterm2_with_bell\" , \"kitty\" , \"ghostty\" , or \"notifications_disabled\" . \"auto\" sends a desktop notification in iTerm2, Ghostty, and Kitty and does nothing in other terminals. Set \"terminal_bell\" to ring the bell character in any terminal. Appears in /config as Notifications . See Get a terminal bell or notification \"terminal_bell\" prefersReducedMotion Reduce or disable UI animations (spinners, shimmer, flash effects) for accessibility processWrapper Corporate launcher command placed in front of the background processes Claude Code starts . Honored from managed settings, a --settings file, and user settings only; the CLAUDE_CODE_PROCESS_WRAPPER environment variable takes precedence when both are set. See Run Claude Code behind a corporate launcher for the launcher contract. Requires Claude Code v2.1.210 or later \"/opt/corp/launcher --profile claude\" prUrlTemplate URL template for the PR badge shown in the footer and in tool-result summaries. Substitutes {host} , {owner} , {repo} , {number} , and {url} from the gh -reported PR URL. Use to point PR links at an internal code-review tool instead of github.com . Does not affect #123 autolinks in Claude's prose \"https://reviews.example.com/{owner}/{repo}/pull/{number}\" remoteControlAtStartup Connect Remote Control automatically when each interactive session starts, instead of waiting for /remote-control . Set to true to always auto-connect, false to never auto-connect, or leave unset to follow your organization's default. Appears in /config as Enable Remote Control for all sessions . See Enable Remote Control for all sessions requiredMaximumVersion Managed settings only. Maximum Claude Code version allowed to start. If the running version is newer, Claude Code exits at startup and instructs the user to install an approved version through the organization's approved method; claude install may also work. Background auto-updates and claude update skip versions above the ceiling, so an in-range installation stays in range. claude update , claude install , and claude doctor keep working above the ceiling so users can recover. Versions that predate this setting ignore it \"2.1.150\" requiredMinimumVersion Managed settings only. Minimum Claude Code version required to start. If the running version is older, Claude Code exits at startup and instructs the user to update through the organization's approved method. claude update , claude install , and claude doctor keep working below the floor so users can recover. Differs from minimumVersion , which prevents downgrades but never blocks startup. Versions that predate this setting ignore it respectGitignore Default : true . Control whether the @ file picker respects patterns. When true , files matching patterns are excluded from suggestions respondToBashCommands Default : true . Whether Claude responds after an input-box ! shell command runs. Set to false to add the command output to context without a response. See Shell mode with ! prefix . Requires Claude Code v2.1.186 or later showClearContextOnPlanAccept Default : false . Show the \"clear context\" option on the plan accept screen. Set to true to restore the option showThinkingSummaries Default : false . Show extended thinking summaries in interactive sessions. When unset or false , thinking blocks are redacted by the API and shown as a collapsed stub. Redaction only changes what you see, not what the model generates: to reduce thinking spend, lower the budget or disable thinking instead. This setting has no effect in non-interactive mode ( -p ), the Agent SDK, or IDE extensions such as VS Code showTurnDuration Default : true . Show turn duration messages after responses, e.g. \"Cooked for 1m 6s\". Appears in /config as Show turn duration skillListingBudgetFraction Default : 0.01 . Fraction of the model's context window reserved for the skill listing Claude sees each turn, so the default reserves 1%. When the listing exceeds the budget, descriptions for the least-used skills are dropped and only their names are listed, so Claude can still invoke them but can't see what they do. Raise to keep more descriptions visible at the cost of more context per turn. /doctor estimates the listing cost against the budget 0.02 skillListingMaxDescChars Default : 1536 . Per-skill character cap on the combined description and when_to_use text in the skill listing Claude sees each turn. Text longer than this is truncated. Raise to keep long descriptions intact at the cost of more context per turn; lower to fit more skills under skillListingBudgetFraction 2048 skillOverrides Per-skill visibility overrides keyed by skill name. Value is \"on\" , \"name-only\" , \"user-invocable-only\" , or \"off\" . Lets you hide or collapse a skill without editing its SKILL.md. Does not apply to plugin skills, which are managed through /plugin . The /skills menu writes these to .claude/settings.local.json . See Override skill visibility from settings . Requires Claude Code v2.1.129 or later skipWebFetchPreflight Skip the WebFetch domain safety check that sends each requested hostname to api.anthropic.com before fetching. Set to true in environments that block traffic to Anthropic, such as Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry deployments with restrictive egress. When skipped, WebFetch attempts any URL without consulting the blocklist spinnerTipsEnabled Default : true . Show tips in the spinner while Claude is working. Set to false to disable tips spinnerTipsOverride Override spinner tips with custom strings. tips : array of tip strings. excludeDefault : if true , only show custom tips; if false or absent, custom tips are merged with built-in tips spinnerVerbs Customize the action verbs shown while a turn is in progress. Set mode to \"replace\" to use only your verbs, or \"append\" to add them to the defaults sshConfigs SSH connections to show in the Desktop environment dropdown. Each entry requires id , name , and sshHost ; sshPort , sshIdentityFile , and startDirectory are optional. When set in managed settings, connections are read-only for users. Read from managed and user settings only [{\"id\": \"dev-vm\", \"name\": \"Dev VM\", \"sshHost\": \"user@dev.example.com\"}] statusLine Configure a custom status line to display context. The object's optional padding , refreshInterval , and hideVimModeIndicator fields control spacing, periodic re-runs, and whether the built-in vim mode indicator below the prompt is hidden. See statusLine documentation strictKnownMarketplaces (Managed settings only) Allowlist of plugin marketplace sources. Undefined = no restrictions, empty array = lockdown. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. See Managed marketplace restrictions [{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }] strictPluginOnlyCustomization (Managed settings only) Block skills, agents, hooks, and MCP servers from user and project sources, so they can only come from plugins or managed settings. true locks all four surfaces; an array locks only the named ones. See strictPluginOnlyCustomization [\"skills\", \"hooks\"] syntaxHighlightingDisabled Disable syntax highlighting in diffs, code blocks, and file previews teammateMode Default : in-process . How agent team teammates display: in-process , auto (split panes when running inside tmux, or inside iTerm2 with it2 on your PATH ; in-process otherwise), tmux (split panes using tmux or iTerm2, detected from your terminal), or iterm2 (iTerm2 native split panes via the it2 CLI, added in v2.1.186). The default changed from auto in v2.1.179. --teammate-mode overrides this for one session. See choose a display mode \"auto\" terminalProgressBarEnabled Default : true . Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Appears in /config as Terminal progress bar theme Default : \"dark\" . Color theme for the interface: \"auto\" , \"dark\" , \"light\" , \"dark-daltonized\" , \"light-daltonized\" , \"dark-ansi\" , \"light-ansi\" , or a custom theme reference such as \"custom: \" or \"custom: : \" . See Create a custom theme . Appears in /config as Theme \"dark\" tui Terminal UI renderer. Use \"fullscreen\" for the flicker-free alt-screen renderer with virtualized scrollback. Use \"default\" for the classic main-screen renderer. Set via /tui . You can also set the CLAUDE_CODE_NO_FLICKER environment variable. Background sessions opened from agent view always use the fullscreen renderer regardless of this setting \"fullscreen\" ultracode Turn on ultracode for the current session. This key isn't read from settings.json . Set it through /effort ultracode , --settings , or an Agent SDK control request. To start a session with ultracode already on, launch with claude --effort ultracode , which requires Claude Code v2.1.203 or later useAutoModeDuringPlan Default : true . Whether plan mode uses auto mode semantics when auto mode is available. Not read from shared project settings. Appears in /config as \"Use auto mode during plan\" verbose Default : false . Show full tool output instead of truncated summaries. Appears in /config as Verbose output . The --verbose flag overrides this for one session viewMode Default transcript view mode on startup: \"default\" , \"verbose\" , or \"focus\" . Overrides the sticky /focus selection when set. The --verbose flag overrides this for one session \"verbose\" vimInsertModeRemaps Map two-key INSERT-mode sequences to Escape in vim editor mode . Each key is exactly two printable characters typed in sequence, and \" \" is the only supported target; other entries are ignored. Read from user, --settings flag, and managed settings only, so a repository's checked-in settings can't remap your keystrokes. Has no effect unless editorMode is \"vim\" . See Remap INSERT-mode key sequences . Requires Claude Code v2.1.208 or later voice Voice dictation settings: enabled turns dictation on, mode selects \"hold\" or \"tap\" , and autoSubmit sends the prompt on key release in hold mode. Written automatically when you run /voice . Requires a Claude.ai account voiceEnabled Legacy alias for voice.enabled . Prefer the voice object wheelScrollAccelerationEnabled Default : true . In fullscreen rendering , accelerate mouse-wheel scroll speed during fast scrolls. Set to false for a constant scroll rate per wheel notch. Requires Claude Code v2.1.174 or later workflowKeywordTriggerEnabled Default : true . Whether the keyword ultracode in a prompt you type triggers a dynamic workflow . Set to false to type the word without triggering one. The ultracode effort setting, /workflows , and saved workflow commands are unaffected. Appears in /config as Ultracode keyword trigger . Added in v2.1.157; before v2.1.160 the trigger keyword was workflow wslInheritsWindowsSettings (Windows managed settings only) When true , Claude Code on WSL reads managed settings from the Windows policy chain in addition to /etc/claude-code , with Windows sources taking priority. Only honored when set in the HKLM registry key or C:\\Program Files\\ClaudeCode\\managed-settings.json , both of which require Windows admin to write. For HKCU policy to also apply on WSL, the flag must additionally be set in HKCU itself. Has no effect on native Windows"
+          ],
+          "snippet_scores": [52.1662, 31.8391, 30.8789]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md",
+          "hit_count": 30,
+          "snippets": [
+            "Set a size guideline The Dynamic workflow size setting in /config keeps the workflows Claude writes to a smaller scale by default. Claude Code sends the setting to Claude as advice, so a prompt that calls for a different scale still overrides it. Requires Claude Code v2.1.202 or later. Value Guidance sent to Claude unrestricted No guideline. This is the default. small Aim for fewer than 5 agents. medium Aim for fewer than 15 agents. large Aim for fewer than 50 agents.",
+            "Cost A workflow spawns many agents, so a single run can use meaningfully more tokens than working through the same task in conversation. Runs count toward your plan's usage and rate limits like any other session. To gauge the spend before committing to a large task, run the workflow on a small slice first: one directory instead of the whole repo, or a narrow question instead of a broad one. The /workflows view shows each agent's token usage as the run progresses, and you can stop the run there at any time without losing completed work. The runtime's agent caps limit how many agents a single run can spawn, which bounds the cost of a runaway script. To keep every run smaller by default, set a size guideline in /config .",
+            "Turn workflows off Workflows are available in the CLI, the Desktop app, the IDE extensions, non-interactive mode with claude -p , and the Agent SDK . The same disable settings apply on every surface. Toggle Dynamic workflows off in /config . Persists across sessions. Set \"disableWorkflows\": true in ~/.claude/settings.json . Persists across sessions. Set CLAUDE_CODE_DISABLE_WORKFLOWS=1 . Read at startup, so it applies wherever you set it."
+          ],
+          "snippet_scores": [48.4842, 45.7016, 38.1212]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-security.md",
+          "hit_count": 13,
+          "snippets": [
+            "Prerequisites To run the plugin, you need: Claude Code v2.1.154 or later on a paid plan, for the dynamic workflows the scan uses to orchestrate its agents. On Pro, turn them on from the Dynamic workflows row in /config . Python 3.9.6 or later available on your PATH as python3 . Check with python3 --version . The plugin's tooling uses only the Python standard library, so nothing is installed. Linux, macOS, or Windows. Git, for change scans and for turning findings into patches; those jobs don't support other version control systems. A full scan works in any directory, with or without version control."
+          ],
+          "snippet_scores": [36.8932]
+        }
+      ]
+    },
+    {
+      "id": "c31b7a0fd19c",
+      "content": "- Added nested subagent forwarding in stream-json: subagents spawned at depth-2+ now appear when `--forward-subagent-text` is set, keyed by their spawning Agent `tool_use` id",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md",
+          "hit_count": 63,
+          "snippets": [
+            "Let subagents spawn their own subagents By default, a subagent can't spawn subagents of its own, so a subagent you ask to delegate does the work itself and s one summary. While nesting is off, Claude Code withholds the Agent tool from every subagent except a fork , which inherits the parent's full tool list. Agent stays in that list, but s an error instead of spawning. A nested subagent is configured the same way as a top-level one and resolves from the same scopes . To keep one subagent from spawning while nesting is on, such as a reviewer that should stay read-only, omit Agent from its tools list or add it to disallowedTools .",
+            "Session subagent limit Three separate limits control subagent use, each with its own variable: this one caps the total spawned over a session, the concurrent subagent limit stops Claude from spawning more while too many are running, and the depth limit caps how deeply subagents nest. Every subagent Claude spawns with the Agent tool counts toward the limit: nested subagents, forks , and background subagents, including subagents that a workflow 's agents spawn with the Agent tool. An in-session fork you start yourself with /subtask counts too: it spends the same budget, though the limit blocks only subagents Claude spawns with the Agent tool, so your own /subtask still starts after Claude reaches the limit. A session you create with /fork doesn't count; it runs as a separate background session with its own budget. Before v2.1.212, the in-session fork was named /fork . Agents a workflow script spawns with agent() don't count; workflows have their own per-run limit. A finished subagent still counts.",
+            "Restrict which subagents can be spawned When an agent runs as the main thread with claude --agent , it can spawn subagents using the Agent tool. To restrict which subagent types it can spawn, use Agent(agent_type) syntax in the tools field. The Agent(agent_type) allowlist syntax applies only to an agent running as the main thread with claude --agent . In a subagent definition, listing Agent in tools lets that subagent spawn subagents of its own once you allow nested spawning , but any type list inside the parentheses is ignored."
+          ],
+          "snippet_scores": [58.3882, 54.6227, 53.5373]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md",
+          "hit_count": 16,
+          "snippets": [
+            "Stream responses Use --output-format stream-json with --verbose and --include-partial-messages to receive tokens as they're generated. Each line is a JSON object representing an event: By default, Claude Code emits only subagent tool_use and tool_result blocks. Pass --forward-subagent-text or set CLAUDE_CODE_FORWARD_SUBAGENT_TEXT to also emit subagent text and thinking blocks, so you can reconstruct each subagent's transcript. This requires Claude Code v2.1.211 or later.",
+            "Get structured output Use --output-format to control how responses are ed: If the value isn't a valid JSON Schema, claude exits with Error: --json-schema is not a valid JSON Schema followed by the validator's diagnostic. Claude Code accepts schemas that use the format keyword, such as \"format\": \"email\" , but treats format as an annotation and doesn't enforce it. Before v2.1.205, Claude Code silently ignored an invalid schema and ed unstructured text, and treated any schema containing format as invalid."
+          ],
+          "snippet_scores": [58.343, 26.5001]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md",
+          "hit_count": 89,
+          "snippets": [
+            "Agent would be spawned with zero tools Every entry in the subagent's tools list failed to match a usable tool, so Claude Code refused to launch the subagent: with no tools, it couldn't act. The message groups your entries by what went wrong: Correct each entry the error names against the tools available to subagents Remove entries for tools the session doesn't have, such as MCP tools from a server that isn't connected For a tool that background subagents drop , such as LSP or TaskCreate , remove the entry or ask Claude to run the subagent in the foreground Delete the tools field instead of listing tools to give the subagent every tool available to subagents For a tools list that contains only Agent , allow nested spawning or give the agent at least one other tool: Agent isn't available inside a subagent by default, so a list with nothing else in it resolves to no tools",
+            "Agent terminated early due to an API error A subagent 's API request failed terminally, for example because a usage limit was reached or retries for a server error ran out, so the subagent stopped before finishing its task. This message requires Claude Code v2.1.199 or later; before then the API error text was ed to Claude as if it were the subagent's result.",
+            "This session has no saved transcript You attached to a stopped background session that was backgrounded from another conversation with ← or /background and stopped before its first response finished. Until that first response finishes, the conversation still lives only in the session it was backgrounded from, so claude attach refuses to start the stopped session rather than begin a blank conversation under the same session ID. The message ends with the claude respawn command for this session:"
+          ],
+          "snippet_scores": [57.3766, 40.0012, 33.2892]
+        }
+      ]
+    },
+    {
+      "id": "1780ded0d938",
+      "content": "- Fixed `claude -p` text output dropping the answer already produced when a turn dies on a mid-stream API error",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md",
+          "hit_count": 93,
+          "snippets": [
+            "The response above may be incomplete A streaming response failed after Claude had already produced visible output. Re-sending the request could run the same tool calls twice, so Claude Code keeps what already streamed and appends this notice instead of discarding the turn. Which variant you see names the cause: Server error mid-response : a mid-stream overloaded or 5xx server error. This variant requires Claude Code v2.1.199 or later; before then that case discarded the partial output and reported the whole turn as an error. Connection closed mid-response : the connection dropped. Response stalled mid-stream : the stream stopped sending data.",
+            "Socket is closed The connection carrying a streaming response was closed while the response was still arriving, and the failure surfaced with the text Socket is closed . This happens almost exclusively on Windows behind a corporate proxy, when the proxy drops an established tunnel mid-response. Claude Code treats this as a dropped connection and retries it automatically , so the turn continues. Before v2.1.214, the retry didn't cover this failure, and the turn stopped with an error containing Socket is closed . If you see this error, update to v2.1.214 or later with claude update , then send your message again If turns keep failing behind the same proxy after updating, work through Unable to connect to API and check the proxy setup in Network configuration",
+            "Automatic retries Claude Code retries transient failures before showing you an error. Server errors, overloaded responses, request timeouts, temporary 429 throttles, and dropped connections are all retried up to 10 times with exponential backoff. As of v2.1.198, this covers connections that drop in the middle of a response before any visible output has streamed: Claude Code re-issues the request with the same backoff and the turn continues instead of stopping with a connection error. As of v2.1.199, temporary 429 throttles that don't carry your plan's quota headers are also retried when you're signed in with a claude.ai subscription; earlier versions retried them only for API key and Enterprise sign-ins. As of v2.1.199, a TLS certificate validation failure, such as a TLS-inspecting proxy, a missing NODE_EXTRA_CA_CERTS bundle, or an expired certificate, fails on the first attempt so the fix appears immediately instead of after the full retry budget. See SSL certificate errors . Transient TLS conditions such as a handshake timeout still retry. As of v2.1.199, a server error that arrives after Claude has already streamed visible output keeps the partial response and appends an incomplete-response notice instead of retrying, since re-running the request could execute the same tools twice. Earlier versions discarded the partial output and reported the turn as an error. An Amazon Bedrock streaming response with an unexpected content-type fails on the first attempt, because the gateway or proxy rewriting the response would rewrite the retry the same way. Requires Claude Code v2.1.208 or later."
+          ],
+          "snippet_scores": [47.469, 32.2304, 31.2612]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md",
+          "hit_count": 33,
+          "snippets": [
+            "Run non-interactive mode Use claude -p \"prompt\" in CI, pre-commit hooks, or scripts. Add --output-format stream-json --verbose for streaming JSON output. With claude -p \"your prompt\" , you can run Claude non-interactively, without an interactive prompt. The run still creates a resumable session unless you pass --no-session-persistence . Non-interactive mode is how you integrate Claude into CI pipelines, pre-commit hooks, or any automated workflow. The output formats let you parse results programmatically: plain text, JSON, or streaming JSON."
+          ],
+          "snippet_scores": [31.8311]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/agent-loop.md",
+          "hit_count": 24,
+          "snippets": [
+            "Turns and messages A turn is one round trip inside the loop: Claude produces output that includes tool calls, the SDK executes those tools, and the results feed back to Claude automatically. This happens without yielding control back to your code. Turns continue until Claude produces output with no tool calls, at which point the loop ends and the final result is delivered. Turn 1: Claude calls Bash to run npm test . The SDK yields an AssistantMessage with the tool call, executes the command, then yields a UserMessage with the output (three failures). Turn 2: Claude calls Read on auth.ts and auth.test.ts . The SDK s the file contents and yields an AssistantMessage . Turn 3: Claude calls Edit to fix auth.ts , then calls Bash to re-run npm test . All three tests pass. The SDK yields an AssistantMessage . Final turn: Claude produces a text-only response with no tool calls: \"Fixed the auth bug, all three tests pass now.\" The SDK yields a final AssistantMessage with this text, then a ResultMessage with the same text plus cost and usage.",
+            "Message types As the loop runs, the SDK yields a stream of messages. Each message carries a type that tells you what stage of the loop it came from. The five core types are: In TypeScript, each subtype other than \"init\" is its own type in the SDKMessage union rather than a subtype of SDKSystemMessage . AssistantMessage : emitted after each Claude response, including the final text-only one. Contains text content blocks and tool call blocks from that turn. UserMessage : emitted after each tool execution with the tool result content sent back to Claude. Also emitted for any user inputs you stream mid-loop. StreamEvent : only emitted when partial messages are enabled. Contains raw API streaming events (text deltas, tool input chunks). See Stream responses . ResultMessage : marks the end of the agent loop. Contains the final text result, token usage, cost, and session ID. Check the subtype field to determine whether the task succeeded or hit a limit. A small number of trailing system events, such as prompt_suggestion , can arrive after it, so iterate the stream to completion rather than breaking on the result. See Handle the result ."
+          ],
+          "snippet_scores": [30.3148, 25.8496]
+        }
+      ]
+    },
+    {
+      "id": "693bb0810e32",
+      "content": "- Added HTTP status and error text to `claude mcp list` and `/mcp` when a server fails to connect, and a warning for MCP config values with hidden leading or trailing whitespace",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md",
+          "hit_count": 40,
+          "snippets": [
+            "Connect to external tools with MCP MCP (Model Context Protocol) servers give Claude access to external tools, databases, and APIs. Replace YOUR_GITHUB_PAT with your personal access token. The claude mcp add command saves the configuration without validating credentials, so a placeholder value is accepted here but the server fails to connect later. To verify the connection, type /mcp in the chat panel and check that the server shows connected . A server with bad credentials shows failed .",
+            "The built-in IDE MCP server When the extension is active, it runs a local MCP server that the CLI connects to automatically. This is how the CLI opens diffs in VS Code's native diff viewer, reads your current selection for @ -mentions, and — when you're working in a Jupyter notebook — asks VS Code to execute cells. Transport and authentication. The server binds to 127.0.0.1 on a random port in the range 10000–65535, and the port is not configurable. The transport is unencrypted ws:// ; because the socket is loopback-only, any process that could capture the traffic can also read the token from the lock file, so TLS would not add protection. Each extension activation generates a fresh random auth token, writes it to a lock file at ~/.claude/ide/ , and the CLI must present it as the X-Claude-Code-Ide-Authorization header to connect. The lock file has 0600 permissions in a 0700 directory, so only the user running VS Code can read it. If CLAUDE_CONFIG_DIR is set, the lock file is written to $CLAUDE_CONFIG_DIR/ide/ instead.",
+            "Reference files and folders Use @-mentions to give Claude context about specific files or folders. When you type @ followed by a file or folder name, Claude reads that content and can answer questions about it or make changes to it. Claude Code supports fuzzy matching, so you can type partial names to find what you need: When you select text in the editor, Claude can see your highlighted code automatically. The prompt box footer shows how many lines are selected. Press Option+K (Mac) / Alt+K (Windows/Linux) to insert an @-mention with the file path and line numbers (e.g., @app.ts#5-10 ). Click the selection indicator to toggle whether Claude can see your highlighted text - the eye-slash icon means the selection is hidden from Claude."
+          ],
+          "snippet_scores": [57.8048, 44.7831, 34.8913]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md",
+          "hit_count": 47,
+          "snippets": [
+            "MCP (Model Context Protocol) An open standard for connecting AI tools to external data sources and services. MCP servers give Claude new tools for Slack, Jira, databases, browsers, and hundreds of other integrations. You connect servers via /mcp or by adding them to . For the protocol itself, see the platform glossary . Learn more: Model Context Protocol",
+            "MCP server A program that gives Claude tools, prompts, or resources over MCP . You add servers with claude mcp add , in , through a plugin , or as a claude.ai connector . A local stdio server runs as a process Claude Code starts from the command and args fields of its configuration, which have nothing to do with the commands you type at the prompt. Learn more: Model Context Protocol",
+            "Connector An MCP server added to your claude.ai account rather than configured in Claude Code. When you sign in to Claude Code with that account, your connectors appear in /mcp alongside the servers you added locally. Organizations can also provision connectors and set per-tool controls on them. Learn more: Use MCP servers from claude.ai"
+          ],
+          "snippet_scores": [55.9124, 45.011, 36.5782]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp-quickstart.md",
+          "hit_count": 21,
+          "snippets": [
+            "Troubleshooting If a server doesn't connect, check its status with /mcp inside a session or claude mcp list from your shell, then match the symptom below. The /mcp panel also lets you reconnect or authenticate without leaving the session. You ran claude mcp add from a different project. Local-scoped servers are tied to the project where you added them: the repository root, or the exact directory if you weren't in a git repository. Re-add the server from the project you're in now, or add it with --scope user so it isn't tied to a project. You edited a configuration file at the wrong path. The correct files are ~/.claude.json and /.mcp.json . Claude Code doesn't read paths such as ~/.claude/.mcp.json , ~/.claude/config/mcp.json , ~/.claude/mcp.json , or %APPDATA%\\Claude\\mcp.json . For user-scoped servers, run claude mcp add --scope user , which writes to the mcpServers key in ~/.claude.json ; for project-scoped servers, edit at the project root.",
+            "Connect a server that requires sign-in Hosted services like Sentry, Linear, and Notion run their MCP servers behind OAuth: you add the server's URL, then sign in through your browser.",
+            "Add and verify a server The example below connects to the Claude Code documentation MCP server , a hosted server with full-text search over the Claude Code docs. It doesn't require authentication or any special configuration, so it works well as a first server to test the setup flow with. claude mcp add : registers a server with Claude Code. --transport http : the server is hosted at a URL rather than run as a local process. claude-code-docs : a name you make up. Calling the same server docs would work identically. Claude Code uses whatever name you pick to label the server's tools in Claude's output and to refer to the server in commands like claude mcp remove . https://code.claude.com/docs/mcp : the URL where the server is hosted."
+          ],
+          "snippet_scores": [54.28, 51.5071, 50.8192]
+        }
+      ]
+    },
+    {
+      "id": "c3982263e6b7",
+      "content": "- Fixed a permission you approved while a self-hosted runner was restarting being dropped when the session resumed, so the approved action now runs",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "id": "029d77a4c114",
+      "content": "- Fixed the Fable model row showing \"Requires usage credits\" for plans that include it, when a stale cache had baked the label in",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md",
+          "hit_count": 51,
+          "snippets": [
+            "Extended context Fable 5, Sonnet 5, Opus 4.6 and later, and Sonnet 4.6 support a 1 million token context window for long sessions with large codebases. Plan Opus with 1M context Sonnet 4.6 with 1M context Max, Team, and Enterprise Included with subscription Requires usage credits Pro API and pay-as-you-go Full access"
+          ],
+          "snippet_scores": [27.6591]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md",
+          "hit_count": 66,
+          "snippets": [
+            "Usage limits Most errors in this section mean a quota tied to your account or plan has been reached. Two work differently: Server is temporarily limiting requests is a server-side throttle unrelated to your plan quota, and Usage credits required for 1M context is an entitlement check rather than an exhausted quota. Wait for the reset time shown in the error For the Opus limit, run /model and switch to another model to keep working Run /usage to see your plan limits and when they reset Run /usage-credits to buy additional usage on Pro and Max, or to request it from your admin on Team and Enterprise. See usage credits for paid plans for how this is billed. To upgrade your plan for higher base limits, see claude.com/pricing"
+          ],
+          "snippet_scores": [25.9887]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fast-mode.md",
+          "hit_count": 11,
+          "snippets": [
+            "Requirements Fast mode requires all of the following: Anthropic API or subscription only : fast mode is available through the Anthropic Console API and for Claude subscription plans using usage credits. It is not available on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, or Claude Platform on AWS. Usage credits turned on : your account must have usage credits turned on, which allows billing beyond your plan's included usage. For individual accounts, turn this on in your Console billing settings . For Team and Enterprise, an admin must turn on usage credits for the organization."
+          ],
+          "snippet_scores": [25.6254]
+        }
+      ]
+    },
+    {
+      "id": "768531c6859c",
+      "content": "- Fixed a SIGTERM arriving while a self-hosted runner was starting up leaving a stale active row until the lease expired; it now deregisters cleanly",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "id": "41132ce79289",
+      "content": "- Added structured failure categories to self-hosted runner spawn and session failures, so hook errors, runner crashes and config errors can be told apart",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/structured-outputs.md",
+          "hit_count": 11,
+          "snippets": [
+            "Error handling Structured output generation can fail when the agent cannot produce valid JSON matching your schema. This typically happens when the schema is too complex for the task, the task itself is ambiguous, or the agent hits its retry limit trying to fix validation errors. It can also happen without any validation failure: a model fallback can retract an already-completed output mid-stream, and if no retry replaces it the run ends with the same error. Check the errors list on the result message to tell the two causes apart before debugging your schema."
+          ],
+          "snippet_scores": [30.2212]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md",
+          "hit_count": 21,
+          "snippets": [
+            "Offload processing to hooks and skills Custom hooks can preprocess data before Claude sees it. Instead of Claude reading a 10,000-line log file to find errors, a hook can grep for ERROR and only matching lines, reducing context from tens of thousands of tokens to hundreds. The hook calls this script. Create the folder with mkdir -p ~/.claude/hooks , save the script below as ~/.claude/hooks/filter-test-output.sh , and make it executable with chmod +x ~/.claude/hooks/filter-test-output.sh . It checks if the command is a test runner and modifies it to show only failures:"
+          ],
+          "snippet_scores": [29.317]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 143,
+          "snippets": [
+            "PostToolUseFailure decision control PostToolUseFailure hooks can provide context to Claude after a tool failure. In addition to the JSON output fields available to all hooks, your hook script can these event-specific fields: Field Description additionalContext String added to Claude's context alongside the error. See Add context for Claude"
+          ],
+          "snippet_scores": [25.1801]
+        }
+      ]
+    },
+    {
+      "id": "9524b6725c3d",
+      "content": "- Fixed the `/model` picker showing the merged Opus row as plain \"Opus\" instead of \"Opus (1M context)\"",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md",
+          "hit_count": 49,
+          "snippets": [
+            "Extended context Fable 5, Sonnet 5, Opus 4.6 and later, and Sonnet 4.6 support a 1 million token context window for long sessions with large codebases. Availability varies by model and plan. On the Anthropic API, Fable 5, Sonnet 5, Opus 4.8, and Opus 4.7 always run with the 1M window. On Max, Team, and Enterprise plans, Opus is automatically upgraded to 1M context with no additional configuration. This applies to both Team Standard and Team Premium seats. Sonnet 4.6 with 1M context is not part of the automatic upgrade and requires usage credits on every subscription plan, including Max.",
+            "To enable extended context for a pinned model, append [1m] to the model ID in ANTHROPIC_DEFAULT_OPUS_MODEL or ANTHROPIC_DEFAULT_SONNET_MODEL : An availableModels allowlist delivered through MDM or a managed settings file still applies when using third-party providers; server-managed settings are not delivered there . Filtering matches on a model alias such as opus , a version prefix such as claude-opus-4-8 , or the full provider-form model ID. Provider-specific prefixes such as us.anthropic. are not stripped, so to allow a specific model, list the same provider-form ID the picker shows, or map it through modelOverrides . Any [1m] suffix is stripped from both the allowlist entry and the requested model before matching.",
+            "Model aliases Model aliases provide a convenient way to select model settings without remembering exact version numbers: Model alias Behavior default Special value that clears any model override and reverts to the recommended model for your account type, or to the organization default model when an admin has set one. Not itself a model alias best Uses Fable 5 where your organization has access to it, otherwise the latest Opus model fable Uses Claude Fable 5 for your hardest and longest-running tasks sonnet Uses the latest Sonnet model for daily coding tasks opus Uses the latest Opus model for complex reasoning tasks haiku Uses the fast and efficient Haiku model for simple tasks sonnet[1m] Uses Sonnet with a 1 million token context window for long sessions. No effect when sonnet already resolves to Sonnet 5 with its native 1M window; behind an LLM gateway , selects the 1M window for Sonnet 5 opus[1m] Uses Opus with a 1 million token context window for long sessions opusplan Special mode that uses opus during plan mode, then switches to sonnet for execution"
+          ],
+          "snippet_scores": [46.6438, 43.3881, 39.5313]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md",
+          "hit_count": 85,
+          "snippets": [
+            "Usage limits Most errors in this section mean a quota tied to your account or plan has been reached. Two work differently: Server is temporarily limiting requests is a server-side throttle unrelated to your plan quota, and Usage credits required for 1M context is an entitlement check rather than an exhausted quota. Wait for the reset time shown in the error For the Opus limit, run /model and switch to another model to keep working Run /usage to see your plan limits and when they reset Run /usage-credits to buy additional usage on Pro and Max, or to request it from your admin on Team and Enterprise. See usage credits for paid plans for how this is billed. To upgrade your plan for higher base limits, see claude.com/pricing",
+            "thinking.type.enabled is not supported for this model Your Claude Code version is older than the minimum for Sonnet 5, Opus 4.8, or Opus 4.7. The CLI sent a thinking configuration the model no longer accepts. Run claude update and restart Claude Code. Opus 4.7 needs v2.1.111 or later. Opus 4.8 needs v2.1.154 or later. Sonnet 5 needs v2.1.197 or later If you can't upgrade, run /model and select Opus 4.6 or Sonnet 4.6 instead If you hit this in the Agent SDK , upgrade the SDK package instead. Opus 4.8 needs TypeScript SDK v0.3.154 or later and Python SDK v0.2.88 or later. Sonnet 5 needs TypeScript SDK v0.3.197 or later",
+            "Usage credits required for 1M context The selected model uses the 1M-token extended context window, and your plan only includes it through usage credits. Run /model and select the variant without the [1m] suffix to fall back to the standard context window Run /usage-credits to turn on metered billing for the 1M variant on Pro and Max, or to request it from your admin on Team and Enterprise If the error persists after /model , a 1M model ID may be set elsewhere. See There's an issue with the selected model for the configuration locations to check in priority order. To remove 1M variants from the model picker entirely, set CLAUDE_CODE_DISABLE_1M_CONTEXT=1"
+          ],
+          "snippet_scores": [39.8161, 34.5706, 34.2108]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/google-vertex-ai.md",
+          "hit_count": 17,
+          "snippets": [
+            "1M token context window Claude Sonnet 5, Opus 4.6 and later, and Sonnet 4.6 support the 1M token context window on Google Cloud's Agent Platform. Sonnet 5 always runs with the 1M window, with no [1m] variant to select. For the other models, Claude Code automatically enables the extended context window when you select a 1M model variant. The setup wizard offers a 1M context option when it pins models. To enable it for a manually pinned model instead, append [1m] to the model ID. See Pin models for third-party deployments for details.",
+            "{/* min-version: 2.1.207 */}Before v2.1.207, the primary model on Google Cloud's Agent Platform defaulted to Sonnet 4.5, the opus alias resolved to Opus 4.6, and background tasks always used the primary model.",
+            "Startup model checks When Claude Code starts with Google Cloud's Agent Platform configured, it verifies that the models it intends to use are accessible in your project. {/* min-version: 2.1.211 */}When you start the session on a specific Sonnet or Opus version, with --model , ANTHROPIC_MODEL , or the model setting , that version acts as the session's pinned default for the matching sonnet or opus alias. Claude Code skips the availability check for the built-in default your model replaces and starts on the model you configured, with no fallback notice."
+          ],
+          "snippet_scores": [37.8341, 27.3054, 26.7803]
+        }
+      ]
+    },
+    {
+      "id": "b44c0ebd3101",
+      "content": "- Fixed copy-on-select inside GNU screen printing base64 into the terminal instead of copying the selection",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md",
+          "hit_count": 16,
+          "snippets": [
+            "Keep native text selection Mouse capture is the most common friction point, especially over SSH or inside tmux. When Claude Code captures mouse events, your terminal's native copy-on-select stops working. The selection you make with click-and-drag exists inside Claude Code, not in your terminal's selection buffer, so tmux copy mode, Kitty hints, and similar tools don't see it. Hold that key while you click and drag. Your terminal handles the selection itself instead of passing it to Claude Code, so copy shortcuts like Cmd+C work on what you select. Claude Code also shows the correct key in its on-screen hint.",
+            "What changes Fullscreen rendering changes how the CLI draws to your terminal. The input box stays fixed at the bottom of the screen instead of moving as output streams in. If the input doesn't move while Claude is working, fullscreen rendering is active. Only visible messages are kept in the render tree, so memory stays constant regardless of conversation length. Before Now Details Cmd+f or tmux search to find text Ctrl+o for transcript mode, then / to search or [ to write to scrollback Search and review the conversation Terminal's native click-and-drag to select and copy In-app selection, copies automatically on mouse release Use the mouse Cmd -click to open a URL Cmd -click on macOS, Ctrl -click elsewhere",
+            "Selected text copies to your clipboard automatically on mouse release. To turn this off, toggle Copy on select in /config . With Copy on select off, press Ctrl+Shift+c to copy manually. On terminals that support the kitty keyboard protocol, such as kitty, WezTerm, Ghostty, and iTerm2, Cmd+c also works. If you have a selection active, Ctrl+c copies instead of cancelling. With a selection active, hold Shift and press the arrow keys to extend it from the keyboard. Shift+↑ and Shift+↓ scroll the viewport when the selection reaches the top or bottom edge. Shift+Home and Shift+End extend to the start or end of the current line."
+          ],
+          "snippet_scores": [33.4485, 30.1447, 29.6085]
+        }
+      ]
+    },
+    {
+      "id": "05ddf92c3401",
+      "content": "- Fixed Remote Control clients keeping a stale fast-mode status after a model switch, reconnect, or failed org check",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fast-mode.md",
+          "hit_count": 15,
+          "snippets": [
+            "Whenever a model switch turns fast mode on or off, Claude Code shows a Fast mode ON or Fast mode OFF confirmation, and the ↯ icon appears while fast mode is on. This holds whether you switch with /model , with /config model= , or from a device connected through Remote Control ; before v2.1.218, switches through /config or Remote Control changed fast mode without the confirmation. Opus 4.8 is the fast mode default in Claude Code v2.1.154 and later. On v2.1.142 through v2.1.153, fast mode defaults to Opus 4.7."
+          ],
+          "snippet_scores": [28.1488]
+        }
+      ]
+    },
+    {
+      "id": "32b36ffdfbe1",
+      "content": "- Fixed `CLAUDE_CODE_GIT_BASH_PATH` on Windows exiting or being used as bash when the path isn't a bash/sh binary; it's now ignored with a warning",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md",
+          "hit_count": 40,
+          "snippets": [
+            "npm install errors in WSL These issues apply if you installed Claude Code with npm install -g inside WSL. If you used the native installer , skip this section. exec: node: not found when running claude . Your WSL environment is likely using the Windows installation of Node.js. Confirm with which npm and which node : paths starting with /mnt/c/ are Windows binaries, while Linux paths start with /usr/ . To fix this, install Node via your Linux distribution's package manager or via nvm .",
+            "Claude Code on Windows requires either Git for Windows (for bash) or PowerShell Git for Windows is optional. Claude Code uses the PowerShell tool when Git Bash is absent, so this error means neither shell was found. If the path is correct and the file exists but Claude Code still reports it as not found, endpoint security software such as AppLocker, Group Policy software restriction policies, or EDR agents may be interfering. On versions before v2.1.116, Claude Code spawned a child process ( cmd.exe ) to verify the path, which these policies can block — a common signal is that cmd.exe /c dir \"C:\\Program Files\\Git\\bin\\bash.exe\" works when you run it directly in PowerShell but fails silently when launched by claude.exe .",
+            "Check for conflicting installations Multiple Claude Code installations can cause version mismatches or unexpected behavior. Check what's installed: Check the three locations a claude binary can come from. ~/.local/bin/claude is the native installer, ~/.claude/local/ is a legacy local npm install created by older versions of Claude Code, and the npm global list shows a -g install:"
+          ],
+          "snippet_scores": [31.2887, 27.6153, 25.9103]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md",
+          "hit_count": 37,
+          "snippets": [
+            "JSON validation failed Claude Code shows a JSON parsing error even though your hook script outputs valid JSON. When Claude Code runs a shell-form command hook, one without args , it spawns sh -c on macOS and Linux or Git Bash on Windows by default. This shell is non-interactive, but Git Bash and some configurations, such as BASH_ENV pointing at ~/.bashrc , still source your profile. If that profile contains unconditional echo statements, the output gets prepended to your hook's JSON:"
+          ],
+          "snippet_scores": [25.6059]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md",
+          "hit_count": 28,
+          "snippets": [
+            "Verify the manifest signature Steps 1-3 require a POSIX shell with gpg and curl . On Windows, run them in Git Bash or WSL. Step 4 includes a PowerShell option. Compare the SHA256 checksum of the binary with the value listed under platforms. in manifest.json . The commands below assume a claude binary in the current directory. To verify an installed native binary instead, run the command against ~/.local/share/claude/versions/VERSION , replacing VERSION with the release you set in Step 2.",
+            "Set up on Windows You can run Claude Code natively on Windows or inside WSL. Pick based on where your projects are located and which features you need:"
+          ],
+          "snippet_scores": [25.1835, 25.0935]
+        }
+      ]
+    },
+    {
+      "id": "3c7a972b4b1e",
+      "content": "- Fixed Vim mode: pressing ← on an empty prompt now returns to the agent view from NORMAL mode, not just INSERT",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md",
+          "hit_count": 17,
+          "snippets": [
+            "Edit prompts with Vim keybindings Claude Code includes a Vim-style editing mode for the prompt input. Enable it through /config → Editor mode, or by setting editorMode to \"vim\" in ~/.claude/settings.json . Set Editor mode back to normal to turn it off. Pressing Enter still submits your prompt in INSERT mode, unlike standard Vim. Use o or O in NORMAL mode, or Ctrl+J, to insert a newline instead."
+          ],
+          "snippet_scores": [37.8567]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md",
+          "hit_count": 16,
+          "snippets": [
+            "Vim mode interaction When vim mode is enabled via /config → Editor mode, keybindings and vim mode operate independently: Vim mode handles input at the text input level (cursor movement, modes, motions) Keybindings handle actions at the component level (toggle todos, submit, etc.) The Escape key in vim mode switches INSERT to NORMAL mode; it does not trigger chat:cancel Most Ctrl+key shortcuts pass through vim mode to the keybinding system Vim keys aren't remappable through the keybindings file. To map a two-key INSERT-mode sequence such as jj to Escape, use the vimInsertModeRemaps setting In vim NORMAL mode, ? shows the help menu (vim behavior) In vim NORMAL mode, / opens history search, the same as Ctrl+R in standard mode"
+          ],
+          "snippet_scores": [34.7855]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md",
+          "hit_count": 26,
+          "snippets": [
+            "Remap INSERT-mode key sequences The vimInsertModeRemaps setting maps a two-key INSERT-mode sequence to Escape, so a mapping like jj s you to NORMAL mode. Requires Claude Code v2.1.208 or later. Typing the first character of a sequence inserts it normally. Pressing the second character within one second removes that pending character and switches to NORMAL mode, leaving neither character in your input. After the one-second window, or if a different key follows, both characters stay as literal text, so you can still type a word containing the sequence by pausing between the two keys."
+          ],
+          "snippet_scores": [31.4298]
+        }
+      ]
+    },
+    {
+      "id": "15504b56374a",
+      "content": "- Fixed screen-reader mode rewriting the entire input line on every keystroke instead of echoing only the typed character",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/accessibility.md",
+          "hit_count": 12,
+          "snippets": [
+            "What your screen reader hears In screen reader mode, Claude Code writes flat text: no box-drawing characters for the interface chrome no color-only cues no redraws of content that hasn't changed; progress spinners render as static text tables in Claude's replies read as Header: value sentences instead of a box-character grid. Requires Claude Code v2.1.198 or later; earlier versions draw tables as grids even in screen reader mode.",
+            "Use Claude Code with a screen reader Set up Claude Code for screen readers such as VoiceOver and NVDA, plus settings for screen magnifiers, reduced motion, and colorblind-friendly themes. Screen reader mode is opt-in. If you use a screen magnifier, reduced motion, or a colorblind-friendly theme instead of a screen reader, see Accessibility settings beyond screen reader mode ."
+          ],
+          "snippet_scores": [28.7497, 27.992]
+        }
+      ]
+    },
+    {
+      "id": "6930d570c42b",
+      "content": "- Improved the \"Remote Control is only available via api.anthropic.com\" error to name the specific setting that caused it",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "id": "595e276265a0",
+      "content": "- Improved `claude --teleport` to show which repo your current checkout points at when it doesn't match the session's repo",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md",
+          "hit_count": 53,
+          "snippets": [
+            "Require marketplaces for your team You can configure your repository so team members are automatically prompted to install your marketplace when they trust the project folder. Add your marketplace to .claude/settings.json : If you use a local directory or file source with a relative path, the path resolves against your repository's main checkout. When you run Claude Code from a git worktree, the path still points at the main checkout, so all worktrees share the same marketplace location. Marketplace state is stored once per user in ~/.claude/plugins/known_marketplaces.json , not per project.",
+            "Plugin marketplace add Add a marketplace from a GitHub repository, git URL, remote URL, or local path. Option Description Default --scope Where to declare the marketplace: user , project , or local . See Plugin installation scopes user --sparse Limit checkout to specific directories via git sparse-checkout. Useful for monorepos"
+          ],
+          "snippet_scores": [28.1899, 25.7722]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-directory.md",
+          "hit_count": 12,
+          "snippets": [
+            "Clear local data Run claude project purge to delete the state Claude Code holds for one project. The command requires Claude Code v2.1.124 or later. It deletes: Transcripts and auto memory under projects/ Per-session tasks/ , debug/ , and file-history/ entries Matching prompt lines in history.jsonl The project's entry in ~/.claude.json"
+          ],
+          "snippet_scores": [27.4949]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-enterprise-server.md",
+          "hit_count": 18,
+          "snippets": [
+            "Teleport sessions to your terminal Pull a web session into your local terminal with claude --teleport . Teleport verifies you're in a checkout of the same GHES repository before fetching the branch and loading the session history. See teleport requirements for details."
+          ],
+          "snippet_scores": [27.0561]
+        }
+      ]
+    },
+    {
+      "id": "125cded36a46",
+      "content": "- Changed dynamic workflows to default to a medium size guideline (aim for fewer than 15 agents); pick another size or unrestricted with Dynamic workflow size in `/config`",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md",
+          "hit_count": 30,
+          "snippets": [
+            "Set a size guideline The Dynamic workflow size setting in /config keeps the workflows Claude writes to a smaller scale by default. Claude Code sends the setting to Claude as advice, so a prompt that calls for a different scale still overrides it. Requires Claude Code v2.1.202 or later. Value Guidance sent to Claude unrestricted No guideline. This is the default. small Aim for fewer than 5 agents. medium Aim for fewer than 15 agents. large Aim for fewer than 50 agents.",
+            "Cost A workflow spawns many agents, so a single run can use meaningfully more tokens than working through the same task in conversation. Runs count toward your plan's usage and rate limits like any other session. To gauge the spend before committing to a large task, run the workflow on a small slice first: one directory instead of the whole repo, or a narrow question instead of a broad one. The /workflows view shows each agent's token usage as the run progresses, and you can stop the run there at any time without losing completed work. The runtime's agent caps limit how many agents a single run can spawn, which bounds the cost of a runaway script. To keep every run smaller by default, set a size guideline in /config .",
+            "Orchestrate subagents at scale with dynamic workflows Dynamic workflows orchestrate many subagents from a script Claude writes and you can rerun. Use them for codebase audits, large migrations, and cross-checked research. Dynamic workflows require Claude Code v2.1.154 or later and are available on all paid plans, with Anthropic API access, and on Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry. On Pro, turn them on from the Dynamic workflows row in /config ."
+          ],
+          "snippet_scores": [99.2728, 50.5227, 38.5222]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 44,
+          "snippets": [
+            "Global config settings These settings are stored in ~/.claude.json rather than settings.json . If you add these keys to settings.json , Claude Code silently ignores them at startup, so double-check the table below for which file each key belongs in. Key Description Example autoConnectIde Default : false . Automatically connect to a running IDE when Claude Code starts from an external terminal. Appears in /config as Auto-connect to IDE (external terminal) when running outside a VS Code or JetBrains terminal. The CLAUDE_CODE_AUTO_CONNECT_IDE environment variable overrides this when set true autoInstallIdeExtension Default : true . Automatically install the Claude Code IDE extension when running from a VS Code terminal. Appears in /config as Auto-install IDE extension when running inside a VS Code or JetBrains terminal. You can also set the CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL environment variable to 1 false diffTool Default : auto . Where to display file diffs when an IDE is connected: auto opens diffs in the IDE's diff viewer, terminal keeps them in the terminal. Appears in /config as Diff tool only when Claude Code is connected to a VS Code or JetBrains IDE \"terminal\" externalEditorContext Default : false . Prepend Claude's previous response as # -commented context when you open the external editor with Ctrl+G . Appears in /config as Show last response in external editor permissionExplainerEnabled Default : true . Show a model-generated explanation of the command when you press Ctrl+E on a Bash or PowerShell permission prompt. Set to false to turn the shortcut off teammateDefaultModel Default model for agent team teammates when the spawn prompt doesn't specify one. Set to a model alias such as \"sonnet\" , or null to inherit the lead's current /model selection. Appears in /config as Default teammate model \"sonnet\" workflowSizeGuideline Default : unrestricted , which sends no guideline. Sets the agent count Claude aims for in the dynamic workflows it writes. Claude Code sends the value to Claude as advice, not an enforced cap. Accepts unrestricted , small , medium , or large . Appears in /config as Dynamic workflow size . You can also set it directly with /config workflowSizeGuideline=small . Requires Claude Code v2.1.202 or later. The guideline's agent count also replaces the default threshold for the Large workflow warning ; that behavior requires Claude Code v2.1.203 or later \"small\""
+          ],
+          "snippet_scores": [55.4755]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-security.md",
+          "hit_count": 13,
+          "snippets": [
+            "Prerequisites To run the plugin, you need: Claude Code v2.1.154 or later on a paid plan, for the dynamic workflows the scan uses to orchestrate its agents. On Pro, turn them on from the Dynamic workflows row in /config . Python 3.9.6 or later available on your PATH as python3 . Check with python3 --version . The plugin's tooling uses only the Python standard library, so nothing is installed. Linux, macOS, or Windows. Git, for change scans and for turning findings into patches; those jobs don't support other version control systems. A full scan works in any directory, with or without version control.",
+            "Scan and fix your codebase The plugin adds one command, /claude-security , which opens a menu of its three jobs: scanning the codebase, scanning a set of changes, and suggesting patches. The happy path runs a full scan, then turns its findings into patches: Run /claude-security again and pick Suggest patches , then choose which findings to address. Reviewed patches land in the report's patches/ folder; Fix findings covers how each patch is built and reviewed."
+          ],
+          "snippet_scores": [39.2633, 26.2975]
+        }
+      ]
+    },
+    {
+      "id": "5640b83bcb26",
+      "content": "- Changed managed MCP allowlist/denylist `${VAR}` entries to resolve from the startup environment and managed-settings env instead of settings-file env",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/env-vars.md",
+          "hit_count": 9,
+          "snippets": [
+            "Precedence Where the same behavior has both an environment variable and a settings field, the environment variable takes precedence. For example, ANTHROPIC_MODEL overrides the model setting, and CLAUDE_CODE_AUTO_CONNECT_IDE overrides autoConnectIde . The settings field applies when the environment variable is not set. When the same variable is set in both your shell and a settings file env block, the settings file value applies. Claude Code writes each env entry into the process environment at startup and again when the file changes, replacing the value inherited from the shell. A few variables are special-cased; the env setting lists the exceptions.",
+            "In settings files Add variables under the env key in a settings.json file, creating the file if it doesn't exist. Claude Code reads them directly from the file, so they take effect no matter how claude was launched. A running session applies new and changed values to its environment when you save the file, but a feature that reads its variables once at startup, such as OpenTelemetry monitoring , keeps its startup values until you relaunch. Removing a variable from the file doesn't unset it in a running session; the removal takes effect the next time you launch claude . File Applies to ~/.claude/settings.json You, in every project .claude/settings.json Everyone working in the project, checked into source control .claude/settings.local.json You, in this project only (add it to your gitignore if you create it by hand) Managed settings Everyone in your organization, deployed by an admin"
+          ],
+          "snippet_scores": [45.1631, 33.2357]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/managed-mcp.md",
+          "hit_count": 20,
+          "snippets": [
+            "How a server is evaluated Before loading a server, including one from managed-mcp.json , Claude Code runs three checks in order: Commands match exactly. Every argument, in order. [\"npx\", \"-y\", \"server\"] does not match [\"npx\", \"server\"] or [\"npx\", \"-y\", \"server\", \"--flag\"] . serverCommand and serverUrl values expand before matching. Both the policy entry and the server's configured value go through the same ${VAR} and ${VAR:-default} expansion as , so an entry written as [\"${HOME}/bin/server\"] matches a server config that uses either the same reference or the expanded path. On Windows, reference an environment variable that is set there, such as ${USERPROFILE} instead of ${HOME} . serverName values match literally and never expand. URLs support * wildcards anywhere in the pattern, including the scheme. Hostname matching is case-insensitive and ignores a trailing FQDN dot, so https://Mcp.Example.com/* matches https://mcp.example.com/api . Paths stay case-sensitive.",
+            "Policy-based control with allowlists and denylists Allowlists and denylists filter which configured servers are allowed to load. They aren't a registry: a server still has to be added by a user, a plugin, or managed-mcp.json before the allowlist or denylist applies to it. To deploy servers to users, use managed-mcp.json . Both lists also filter servers passed with the --mcp-config CLI flag ; --strict-mcp-config limits which configuration files load and doesn't bypass either list. To make the allowlist authoritative, set allowedMcpServers and allowManagedMcpServersOnly: true together in a managed settings source , such as server-managed settings or a deployed managed-settings.json file. Restrict the allowlist to managed settings only shows the configuration. Without allowManagedMcpServersOnly , allowlists from every settings source merge, including a user's own ~/.claude/settings.json , so a user can broaden what your allowlist permits. Denylists merge from every source regardless.",
+            "Restrict the allowlist to managed settings only To make the managed allowlist the only one that applies, set allowManagedMcpServersOnly in the managed settings file: When allowManagedMcpServersOnly is true , allowlists from user, project, and local settings are ignored. The denylist still merges from all sources, so users can always block servers for themselves."
+          ],
+          "snippet_scores": [44.1595, 43.3625, 37.5938]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md",
+          "hit_count": 51,
+          "snippets": [
+            "Enforce the allowlist for the Default model Set enforceAvailableModels: true alongside a non-empty availableModels in managed settings to extend the allowlist to the Default option. This requires Claude Code v2.1.175 or later. The Default option resolves to the account-type default, or to the organization default model when an admin has set one. When that model is not in the allowlist, the Default option instead resolves to the first availableModels entry that names an allowed, available model, and the /model picker's Default row shows that model. This applies everywhere the default is reached: session startup, selecting Default in /model , the \"default\" keyword in fallback model chains , and the fallback used when an excluded selection is dropped.",
+            "modelOverrides works alongside availableModels . The allowlist is evaluated against the Anthropic model ID, not the override value, so an entry like \"opus\" in availableModels continues to match even when Opus versions are mapped to ARNs. When enforceAvailableModels is set in managed settings, the enforced Default resolves through modelOverrides from the highest-precedence managed source only. An admin's mapping, such as a version pinned to an inference profile ARN, is honored in the enforced Default. Overrides from user or project settings do not affect it. When availableModels is set in managed settings , only modelOverrides from that managed source apply to an Anthropic model ID passed directly through --model or the environment variables above. Claude Code ignores overrides in user or project settings for those IDs, and never resolves an ID the managed list excludes through modelOverrides from any settings source. This managed-source restriction requires Claude Code v2.1.200 or later. See Restrict model selection for how blocked IDs are handled.",
+            "Control the model users run on The model setting is an initial selection, not enforcement. It sets which model is active when a session starts, but users can still open /model and pick Default, which resolves to the system's runtime default regardless of what model is set to, unless enforceAvailableModels redirects it. availableModels : restricts which named models users can switch to enforceAvailableModels : extends the availableModels allowlist to the Default option, so Default cannot resolve to a model outside the list model : sets the initial model selection when a session starts ANTHROPIC_DEFAULT_SONNET_MODEL / ANTHROPIC_DEFAULT_OPUS_MODEL / ANTHROPIC_DEFAULT_HAIKU_MODEL / ANTHROPIC_DEFAULT_FABLE_MODEL : control what the Default option and the sonnet , opus , haiku , and fable aliases resolve to"
+          ],
+          "snippet_scores": [41.8247, 37.3542, 35.3606]
+        }
+      ]
+    },
+    {
+      "id": "478f2fee425b",
+      "content": "- Changed the `/model` picker to highlight only the newest model's name, so the highlight marks the new release rather than an arbitrary subset of the list",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-rollout.md",
+          "hit_count": 12,
+          "snippets": [
+            "Maintain the gateway After rollout, three kinds of change reach the gateway over time. Each has a symptom to watch for and an action to take. Change Symptom when the gateway hasn't kept up Action New Claude Code releases add anthropic-beta values and request body fields Developers report 400 errors naming a new field after they update Claude Code; see feature pass-through Forward anthropic-* headers and request bodies verbatim rather than allowlisting; test new Claude Code releases against the gateway before they reach developers New Claude models become available Developers selecting a new model name get 404 ; the /model picker doesn't list it Add the model name to the gateway's routing configuration, then re-run the routing check . If you distribute ANTHROPIC_MODEL or the default-model variables, update the managed settings Credentials expire or need rotation All developer requests start failing with 401 from the upstream Rotate the gateway's provider credential on its own schedule; developer keys rotate at the gateway, and an apiKeyHelper handles per-developer rotation without redistributing settings"
+          ],
+          "snippet_scores": [32.1551]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md",
+          "hit_count": 57,
+          "snippets": [
+            "Set the model The model name shown in the agent view header is the dispatch default. New sessions you start from the input use this model, which comes from the model setting in your user settings. Set it by selecting a model in the /model picker , or edit the setting directly. From the shell, pass --model with claude --bg . Attach to a running session and run /model to switch: a pick from the picker, or a typed /model , saves as your default for new sessions unless you press s in the picker for a session-only switch. A session-only switch persists if the session is respawned. Dispatch a subagent whose frontmatter sets a model field.",
+            "Dispatch to a specific directory A new session runs in the directory you opened agent view from. To target a different directory, use any of these: Open claude agents in that directory. Open claude agents in a parent directory and mention a child repository with @ in the prompt. Typing @ lists these targets:"
+          ],
+          "snippet_scores": [30.0165, 25.7912]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md",
+          "hit_count": 51,
+          "snippets": [
+            "Setting your model You can configure your model in several ways, listed in order of priority: During session : use /model to switch immediately, or run /model with no argument to open the picker. The picker asks for confirmation when the conversation has prior output, since the next response re-reads the full history without cached context At startup : launch with claude --model Environment variable : set ANTHROPIC_MODEL= Settings : configure permanently in your settings file using the model field",
+            "Organization model restrictions Organization admins on Claude Enterprise plans restrict which models members can run by disabling individual models in the claude.ai admin console. This restriction is delivered with the account's entitlements when Claude Code authenticates, separate from any availableModels list in settings, and the server enforces the same restriction independently when a session is created. Requires Claude Code v2.1.187 or later. A restricted model is hidden from the /model picker. Selecting it by name with --model , the ANTHROPIC_MODEL environment variable, or the model setting shows the notice Model \" \" is restricted by your organization's settings. Using instead. and the session starts on an allowed model. Typing /model for a restricted model is rejected with Model ' ' is restricted by your organization's settings. Run /model to choose a different model. and the session keeps its current model.",
+            "Restrict model selection Enterprise administrators can use availableModels in managed or policy settings to restrict which models users can select. Entries match a model family such as sonnet , a version prefix such as claude-sonnet-4-5 , or a full model ID such as claude-sonnet-4-5-20250929 . Main session model : /model , the --model flag, the ANTHROPIC_MODEL environment variable, the model setting, and the model restored when resuming a session Alias resolution : the ANTHROPIC_DEFAULT_OPUS_MODEL , ANTHROPIC_DEFAULT_SONNET_MODEL , ANTHROPIC_DEFAULT_HAIKU_MODEL , and ANTHROPIC_DEFAULT_FABLE_MODEL environment variables cannot redirect an allowed alias to a model outside the list Fast mode : /fast refuses to toggle when it would implicitly switch to an Opus model outside the list, with the message \"is not in your organization's allowed models\" Subagent models : the model field in subagent frontmatter, the Agent tool's model parameter, CLAUDE_CODE_SUBAGENT_MODEL , and, on v2.1.197 and earlier, the model picker in the /agents wizard Skill and command models : the model frontmatter in skills and commands Advisor model : the configured advisorModel setting and the --advisor flag Background agent model : the model selected in the dispatch picker"
+          ],
+          "snippet_scores": [29.6651, 28.9663, 28.8383]
+        }
+      ]
+    },
+    {
+      "id": "b9a4c92d0a2f",
+      "content": "- Added the current default workflow size to the running-workflow status line, with a pointer to `/config` for changing it",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md",
+          "hit_count": 30,
+          "snippets": [
+            "Cost A workflow spawns many agents, so a single run can use meaningfully more tokens than working through the same task in conversation. Runs count toward your plan's usage and rate limits like any other session. To gauge the spend before committing to a large task, run the workflow on a small slice first: one directory instead of the whole repo, or a narrow question instead of a broad one. The /workflows view shows each agent's token usage as the run progresses, and you can stop the run there at any time without losing completed work. The runtime's agent caps limit how many agents a single run can spawn, which bounds the cost of a runaway script. To keep every run smaller by default, set a size guideline in /config .",
+            "Set a size guideline The Dynamic workflow size setting in /config keeps the workflows Claude writes to a smaller scale by default. Claude Code sends the setting to Claude as advice, so a prompt that calls for a different scale still overrides it. Requires Claude Code v2.1.202 or later. Value Guidance sent to Claude unrestricted No guideline. This is the default. small Aim for fewer than 5 agents. medium Aim for fewer than 15 agents. large Aim for fewer than 50 agents."
+          ],
+          "snippet_scores": [31.7085, 30.5611]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 44,
+          "snippets": [
+            "Global config settings These settings are stored in ~/.claude.json rather than settings.json . If you add these keys to settings.json , Claude Code silently ignores them at startup, so double-check the table below for which file each key belongs in. Key Description Example autoConnectIde Default : false . Automatically connect to a running IDE when Claude Code starts from an external terminal. Appears in /config as Auto-connect to IDE (external terminal) when running outside a VS Code or JetBrains terminal. The CLAUDE_CODE_AUTO_CONNECT_IDE environment variable overrides this when set true autoInstallIdeExtension Default : true . Automatically install the Claude Code IDE extension when running from a VS Code terminal. Appears in /config as Auto-install IDE extension when running inside a VS Code or JetBrains terminal. You can also set the CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL environment variable to 1 false diffTool Default : auto . Where to display file diffs when an IDE is connected: auto opens diffs in the IDE's diff viewer, terminal keeps them in the terminal. Appears in /config as Diff tool only when Claude Code is connected to a VS Code or JetBrains IDE \"terminal\" externalEditorContext Default : false . Prepend Claude's previous response as # -commented context when you open the external editor with Ctrl+G . Appears in /config as Show last response in external editor permissionExplainerEnabled Default : true . Show a model-generated explanation of the command when you press Ctrl+E on a Bash or PowerShell permission prompt. Set to false to turn the shortcut off teammateDefaultModel Default model for agent team teammates when the spawn prompt doesn't specify one. Set to a model alias such as \"sonnet\" , or null to inherit the lead's current /model selection. Appears in /config as Default teammate model \"sonnet\" workflowSizeGuideline Default : unrestricted , which sends no guideline. Sets the agent count Claude aims for in the dynamic workflows it writes. Claude Code sends the value to Claude as advice, not an enforced cap. Accepts unrestricted , small , medium , or large . Appears in /config as Dynamic workflow size . You can also set it directly with /config workflowSizeGuideline=small . Requires Claude Code v2.1.202 or later. The guideline's agent count also replaces the default threshold for the Large workflow warning ; that behavior requires Claude Code v2.1.203 or later \"small\""
+          ],
+          "snippet_scores": [28.9015]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md",
+          "hit_count": 205,
+          "snippets": [
+            "Workflow Tool name: Workflow Field Type Description status \"async_launched\" The tool accepted the invocation. This is the only value the field takes taskId string Background task identifier for the run runId Workflow run identifier to pass as resumeFromRunId on a later invocation summary One-line description of what the workflow does transcriptDir Directory where subagent transcripts are written during execution scriptPath Path to the persisted workflow script for this run. Edit it and pass back as scriptPath to rerun without resending the script error Set when the script fails its syntax check. When present, the run did not start despite the async_launched status"
+          ],
+          "snippet_scores": [25.3046]
+        }
+      ]
+    },
+    {
+      "id": "cbab974894c5",
+      "content": "- Removed Opus 4.7 from fast mode; `/fast` now applies to Opus 5 and Opus 4.8",
+      "prefix": "Removed",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fast-mode.md",
+          "hit_count": 14,
+          "snippets": [
+            "Speed up responses with fast mode Get faster Opus responses in Claude Code by toggling fast mode. Use /fast to toggle on fast mode in the Claude Code CLI. Fast mode is not supported in the VS Code extension. Fast mode pricing per MTok input/output is $10/$50 on Opus 4.8 and $30/$150 on Opus 4.7. Available to all Claude Code users on subscription plans (Pro/Max/Team/Enterprise) and Claude Console. For Claude Code users on subscription plans (Pro/Max/Team/Enterprise), fast mode is available via usage credits only and not included in the subscription rate limits.",
+            "Handle rate limits Fast mode has separate rate limits from standard Opus. Fast mode on Opus 4.8 and Opus 4.7 shares the same rate limit pool: usage on either of them draws from the same limits. When you hit the fast mode rate limit or run out of usage credits: Fast mode automatically falls back to standard speed The ↯ icon turns gray to indicate cooldown You continue working at standard speed and pricing When the cooldown expires, fast mode automatically re-enables",
+            "Whenever a model switch turns fast mode on or off, Claude Code shows a Fast mode ON or Fast mode OFF confirmation, and the ↯ icon appears while fast mode is on. This holds whether you switch with /model , with /config model= , or from a device connected through Remote Control ; before v2.1.218, switches through /config or Remote Control changed fast mode without the confirmation. Opus 4.8 is the fast mode default in Claude Code v2.1.154 and later. On v2.1.142 through v2.1.153, fast mode defaults to Opus 4.7."
+          ],
+          "snippet_scores": [62.2129, 54.4849, 47.6562]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md",
+          "hit_count": 49,
+          "snippets": [
+            "Adjust effort level Effort levels control adaptive reasoning, which lets the model decide whether and how much to think on each step based on task complexity. Lower effort is faster and cheaper for straightforward tasks, while higher effort provides deeper reasoning for complex problems. Model Levels Fable 5 low , medium , high , xhigh , max Sonnet 5, Opus 4.8, and Opus 4.7 Opus 4.6 and Sonnet 4.6 low , medium , high , max",
+            "Before v2.1.207, opus resolved to Opus 4.7 on Claude Platform on AWS and to Opus 4.6 on Amazon Bedrock and Google Cloud's Agent Platform. Aliases point to the recommended version for your provider and update over time. To pin to a specific version, use the full model name, for example claude-opus-4-8 , or set the corresponding environment variable like ANTHROPIC_DEFAULT_OPUS_MODEL . Sonnet 5 requires Claude Code v2.1.197 or later. Opus 4.8 requires v2.1.154 or later. Run claude update to upgrade.",
+            "Adaptive reasoning and fixed thinking budgets Adaptive reasoning makes thinking optional on each step, so Claude can respond faster to routine prompts and reserve deeper thinking for steps that benefit from it. If you want Claude to think more or less often than the current level produces, you can say so directly in your prompt or in CLAUDE.md ; the model responds to that guidance within its effort setting. Fable 5, Sonnet 5, and Opus 4.7 and later always use adaptive reasoning. The fixed thinking budget mode and CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING do not apply to them."
+          ],
+          "snippet_scores": [51.9023, 43.4148, 42.8263]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w20.md",
+          "hit_count": 2,
+          "snippets": [
+            "Week 20 · May 11–15, 2026 Manage every Claude Code session from one screen with agent view, keep Claude working toward a goal until a condition holds, and run fast mode on Opus 4.7 by default. /fast now runs on Opus 4.7 by default instead of Opus 4.6. Fast mode is a high-speed Opus configuration: the same model quality at about 2.5x the speed for a higher per-token cost, useful for rapid iteration and live debugging. Pricing is unchanged at $30/$150 per MTok, the same as Opus 4.6 fast mode. To pin fast mode to Opus 4.6, set CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE=1."
+          ],
+          "snippet_scores": [50.4675]
+        }
+      ]
+    },
+    {
+      "id": "5f684c9bf1b1",
+      "content": "- Updated the claude-api skill to default to Claude Opus 5, with a migration path from Opus 4.8",
+      "prefix": "Updated",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/about-claude/models/overview.md",
+          "hit_count": 10,
+          "snippets": [
+            "Migrating to Claude Opus 4.8 If you're currently using Claude Opus 4.7 or earlier Claude models, see Migrating to Claude Opus 4.8 . If you're currently using Claude Opus 4.6 or older Claude models, see Migrating to Claude Opus 4.8 from Claude Opus 4.6 .",
+            "multi-region endpoints (dynamic routing within a geographic area), and regional endpoints. For more information, see"
+          ],
+          "snippet_scores": [39.4156, 27.9656]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md",
+          "hit_count": 86,
+          "snippets": [
+            "thinking.type.enabled is not supported for this model Your Claude Code version is older than the minimum for Sonnet 5, Opus 4.8, or Opus 4.7. The CLI sent a thinking configuration the model no longer accepts. Run claude update and restart Claude Code. Opus 4.7 needs v2.1.111 or later. Opus 4.8 needs v2.1.154 or later. Sonnet 5 needs v2.1.197 or later If you can't upgrade, run /model and select Opus 4.6 or Sonnet 4.6 instead If you hit this in the Agent SDK , upgrade the SDK package instead. Opus 4.8 needs TypeScript SDK v0.3.154 or later and Python SDK v0.2.88 or later. Sonnet 5 needs TypeScript SDK v0.3.197 or later"
+          ],
+          "snippet_scores": [37.1964]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w22.md",
+          "hit_count": 2,
+          "snippets": [
+            "Week 22 · May 25–29, 2026 Run Claude Code on Claude Opus 4.8, orchestrate large tasks with dynamic workflows, catch security issues with the security-guidance plugin, and use fast mode on Opus 4.8 at a lower price. Fast mode now defaults to Opus 4.8 at $10/$50 per MTok: 2x the standard rate for about 2.5x the speed. Opus 4.7 and 4.6 stay at $30/$150. Opus 4.6 fast mode is deprecated."
+          ],
+          "snippet_scores": [34.4935]
+        }
+      ]
+    },
+    {
+      "id": "5e765d7cf7c4",
+      "content": "- Subagents can now spawn nested subagents up to depth 3 by default (was 1); set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1 to disable nesting",
+      "prefix": "Added",
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md",
+          "hit_count": 61,
+          "snippets": [
+            "Let subagents spawn their own subagents By default, a subagent can't spawn subagents of its own, so a subagent you ask to delegate does the work itself and s one summary. While nesting is off, Claude Code withholds the Agent tool from every subagent except a fork , which inherits the parent's full tool list. Agent stays in that list, but s an error instead of spawning. A nested subagent is configured the same way as a top-level one and resolves from the same scopes . To keep one subagent from spawning while nesting is on, such as a reviewer that should stay read-only, omit Agent from its tools list or add it to disallowedTools ."
+          ],
+          "snippet_scores": [29.1785]
+        }
+      ]
+    }
+  ],
+  "maintainer_candidates": []
+}
