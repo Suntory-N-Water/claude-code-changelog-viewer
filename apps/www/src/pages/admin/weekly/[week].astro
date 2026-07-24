@@ -1,0 +1,18 @@
+---
+import WeeklySelection from '../../../components/admin/WeeklySelection.astro';
+import { getWeeklyAdminWeeks } from '../../../lib/weekly-admin';
+
+export async function getStaticPaths() {
+  const weeks = await getWeeklyAdminWeeks();
+
+  // 最新週は /admin/weekly が担当するため、ここでは2週目以降だけ生成する
+  return weeks.slice(1).map((current) => ({
+    params: { week: current.week },
+    props: { current, weeks },
+  }));
+}
+
+const { current, weeks } = Astro.props;
+---
+
+<WeeklySelection current={current} weeks={weeks} />
