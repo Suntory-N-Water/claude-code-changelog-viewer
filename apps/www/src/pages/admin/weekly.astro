@@ -9,6 +9,7 @@ import {
   startOfISOWeek,
 } from 'date-fns';
 import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
+import WeeklyImageUpload from '../../components/admin/WeeklyImageUpload.astro';
 import Button from '../../components/ui/Button.astro';
 import Select from '../../components/ui/Select.astro';
 import Card from '../../components/ui/Card.astro';
@@ -162,6 +163,7 @@ const defaultWeek = weeks[0]?.week;
                   placeholder='この変更を使った体験や、読者に伝えたいこと'
                 />
               </label>
+              <WeeklyImageUpload week={week} itemId={item.id} />
             </section>
           ))
         }
@@ -178,131 +180,149 @@ const defaultWeek = weeks[0]?.week;
 
   const STORAGE_KEY = 'weekly-admin-selection';
 
-  let state = {};
-  try {
-    state = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {};
-  } catch {
-    state = {};
-  }
+  customElements.whenDefined('weekly-image-upload').then(() => {
+    const state = (() => {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {};
+      } catch {
+        return {};
+      }
+    })();
 
-  function updateState(itemId, checked, comment) {
-    if (checked || comment) {
-      state[itemId] = { checked, comment };
-    } else {
-      delete state[itemId];
+    function updateState(itemId, patch) {
+      const current = state[itemId] ?? { checked: false, comment: '' };
+      const next = { ...current, ...patch };
+      if (next.checked || next.comment || next.imageUrl) {
+        state[itemId] = next;
+      } else {
+        delete state[itemId];
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
 
-  function syncComment(checkbox) {
-    const comment = checkbox
-      .closest('.weekly-item')
-      .querySelector('[data-comment]');
-    comment.hidden = !checkbox.checked;
-    comment.querySelector('textarea').disabled = !checkbox.checked;
-  }
+    function syncItem(checkbox) {
+      const section = checkbox.closest('.weekly-item');
+      const comment = section.querySelector('[data-comment]');
+      const imageUpload = section.querySelector('weekly-image-upload');
+      comment.hidden = !checkbox.checked;
+      comment.querySelector('textarea').disabled = !checkbox.checked;
+      imageUpload.hidden = !checkbox.checked;
+    }
 
-  function filterItems() {
-    const week = weekSelect.value;
-    let count = 0;
-    document.querySelectorAll('.weekly-item').forEach((element) => {
-      const hidden = element.dataset.week !== week;
-      element.hidden = hidden;
-      if (!hidden) {
-        count += 1;
+    function filterItems() {
+      const week = weekSelect.value;
+      const items = [...document.querySelectorAll('.weekly-item')];
+      for (const element of items) {
+        element.hidden = element.dataset.week !== week;
+      }
+      emptyMessage.classList.toggle(
+        'hidden',
+        items.some((element) => !element.hidden),
+      );
+    }
+
+    weekSelect.addEventListener('change', filterItems);
+    filterItems();
+
+    document.querySelectorAll('.weekly-item').forEach((section) => {
+      const checkbox = section.querySelector('input[type="checkbox"]');
+      const textarea = section.querySelector('textarea');
+      const imageUpload = section.querySelector('weekly-image-upload');
+      const itemId = checkbox.dataset.itemId;
+      const saved = state[itemId];
+      if (saved) {
+        checkbox.checked = saved.checked;
+        textarea.value = saved.comment;
+      }
+      syncItem(checkbox);
+      imageUpload.imageUrl = saved?.imageUrl;
+
+      checkbox.addEventListener('change', () => {
+        syncItem(checkbox);
+        updateState(itemId, { checked: checkbox.checked });
+      });
+      textarea.addEventListener('input', () => {
+        updateState(itemId, { comment: textarea.value });
+      });
+      imageUpload.addEventListener('image-change', (event) => {
+        updateState(itemId, { imageUrl: event.detail.imageUrl });
+      });
+    });
+
+    clearButton.addEventListener('click', () => {
+      if (!confirm('入力した選定内容をすべて削除します。よろしいですか？')) {
+        return;
+      }
+      document
+        .querySelectorAll('.weekly-item input[type="checkbox"]')
+        .forEach((checkbox) => {
+          const section = checkbox.closest('.weekly-item');
+          checkbox.checked = false;
+          document.querySelector(
+            `[data-comment-for="${checkbox.dataset.itemId}"]`,
+          ).value = '';
+          syncItem(checkbox);
+          section.querySelector('weekly-image-upload').clear();
+        });
+      for (const itemId of Object.keys(state)) {
+        delete state[itemId];
+      }
+      localStorage.removeItem(STORAGE_KEY);
+    });
+
+    copyButton.addEventListener('click', async () => {
+      const selectedWeek = weeks.find(({ week }) => week === weekSelect.value);
+      if (!selectedWeek) {
+        return;
+      }
+
+      const items = [
+        ...document.querySelectorAll(
+          '.weekly-item:not([hidden]) input[type="checkbox"]:checked',
+        ),
+      ].map((checkbox) => {
+        const imageUrl = state[checkbox.dataset.itemId]?.imageUrl;
+        return {
+          id: checkbox.dataset.itemId,
+          version: checkbox.dataset.version,
+          comment: document.querySelector(
+            `[data-comment-for="${checkbox.dataset.itemId}"]`,
+          ).value,
+          ...(imageUrl ? { image_url: imageUrl } : {}),
+        };
+      });
+      const totalItems = document.querySelectorAll(
+        '.weekly-item:not([hidden])',
+      ).length;
+      const content = JSON.stringify(
+        {
+          week: selectedWeek.week,
+          period_start: selectedWeek.periodStart,
+          period_end: selectedWeek.periodEnd,
+          total_items: totalItems,
+          items,
+        },
+        null,
+        2,
+      );
+
+      try {
+        await navigator.clipboard.writeText(content);
+        const label = copyButton.textContent;
+        copyButton.textContent = 'コピーしました';
+        setTimeout(() => {
+          copyButton.textContent = label;
+        }, 2000);
+      } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = content;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
       }
     });
-    emptyMessage.classList.toggle('hidden', count > 0);
-  }
-
-  weekSelect.addEventListener('change', filterItems);
-  filterItems();
-
-  document.querySelectorAll('.weekly-item').forEach((section) => {
-    const checkbox = section.querySelector('input[type="checkbox"]');
-    const textarea = section.querySelector('textarea');
-    const itemId = checkbox.dataset.itemId;
-    const saved = state[itemId];
-    if (saved) {
-      checkbox.checked = saved.checked;
-      textarea.value = saved.comment;
-    }
-    syncComment(checkbox);
-
-    checkbox.addEventListener('change', () => {
-      syncComment(checkbox);
-      updateState(itemId, checkbox.checked, textarea.value);
-    });
-    textarea.addEventListener('input', () => {
-      updateState(itemId, checkbox.checked, textarea.value);
-    });
-  });
-
-  clearButton.addEventListener('click', () => {
-    if (!confirm('入力した選定内容をすべて削除します。よろしいですか？')) {
-      return;
-    }
-    document
-      .querySelectorAll('.weekly-item input[type="checkbox"]')
-      .forEach((checkbox) => {
-        checkbox.checked = false;
-        document.querySelector(
-          `[data-comment-for="${checkbox.dataset.itemId}"]`,
-        ).value = '';
-        syncComment(checkbox);
-      });
-    state = {};
-    localStorage.removeItem(STORAGE_KEY);
-  });
-
-  copyButton.addEventListener('click', async () => {
-    const selectedWeek = weeks.find(({ week }) => week === weekSelect.value);
-    if (!selectedWeek) {
-      return;
-    }
-
-    const items = [
-      ...document.querySelectorAll(
-        '.weekly-item:not([hidden]) input[type="checkbox"]:checked',
-      ),
-    ].map((checkbox) => ({
-      id: checkbox.dataset.itemId,
-      version: checkbox.dataset.version,
-      comment: document.querySelector(
-        `[data-comment-for="${checkbox.dataset.itemId}"]`,
-      ).value,
-    }));
-    const totalItems = document.querySelectorAll(
-      '.weekly-item:not([hidden])',
-    ).length;
-    const content = JSON.stringify(
-      {
-        week: selectedWeek.week,
-        period_start: selectedWeek.periodStart,
-        period_end: selectedWeek.periodEnd,
-        total_items: totalItems,
-        items,
-      },
-      null,
-      2,
-    );
-
-    try {
-      await navigator.clipboard.writeText(content);
-      const label = copyButton.textContent;
-      copyButton.textContent = 'コピーしました';
-      setTimeout(() => {
-        copyButton.textContent = label;
-      }, 2000);
-    } catch {
-      const textarea = document.createElement('textarea');
-      textarea.value = content;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-    }
   });
 </script>
