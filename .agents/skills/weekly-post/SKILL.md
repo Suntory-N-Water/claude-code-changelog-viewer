@@ -26,14 +26,11 @@ argument-hint: "[--input-file <path>]"
 		{
 			"id": "ea64434ed3ad",
 			"version": "2.1.205",
-			"comment": "8階層になったことある",
-			"image_url": "https://assets.claude-code-log.com/weekly/2026-w28/ea64434ed3ad-20260712-120000.png"
+			"comment": "8階層になったことある"
 		}
 	]
 }
 ```
-
-`image_url` は任意項目。管理画面で画像を添付した item にだけ含まれる。
 
 ## 手順
 
@@ -84,8 +81,6 @@ python3 <skill_dir>/scripts/snippets.py <version> <id>
 
 skeleton の `<!-- intro -->` と各 `<!-- body -->`、そして frontmatter の `description` 内の `<!-- desc -->` を Edit で置き換える。この3種類以外(バージョン見出し・変更内容の見出し・締めの定型文・description の定型文と期間)には一切触れない(スクリプトが確定済み)。
 
-画像添付のある item では `<!-- body -->` の直後に `<img ...>` が入る。`<!-- body -->` を置き換える際も、この行には触れない。
-
 - `<!-- intro -->` → 冒頭の定型文の直後に続く一言。**大量の changelog から自分が選択した数件についての印象を1〜2文**(定型文とは別に書く。日付や「ピックアップしました」の言い換えはしない)。**その週の changelog 全体を要約・代表してはいけない**。「今週は〜な変更が目立った」のように書くと、選択した数件がその週の全変更であるかのように誤読される。あくまで自分が選択した範囲の話だと分かる書き方にする。
 - 各 `<!-- body -->` → 直前の `### 見出し`(content_ja)の本文。体験ベースの散文 2〜3文、約100字。
 - frontmatter の `description` → 記事一覧カードと検索結果・OGP に出る meta description。skeleton が `<!-- desc -->など、{開始日}〜{終了日}の Claude Code アップデートから気になった変更をまとめました。` の形で定型文と期間を確定済みなので、**`<!-- desc -->` だけ**を Edit で置き換える(「など、」以降の定型文・期間には触れない)。置き換える中身は、選択した変更のうち代表的な3〜4件を inference/content_ja から短い名詞句に要約し、「や」「、」でつないだもの(例: `サブエージェントの再委譲を抑える改善や動的ワークフローサイズ設定、/doctor の診断ツール化、autoMode 設定の読み込み元変更`)。要点部分だけで約40〜80字を目安に、直後の「など、」に自然につながるよう体言止めで終える。intro/body を書き終えてから記事の中身に合わせて埋め、`<!-- desc -->` を残さない。
@@ -108,7 +103,7 @@ skeleton の `<!-- intro -->` と各 `<!-- body -->`、そして frontmatter の
 
 ## skeleton とプレースホルダ規約
 
-skeleton.py が書き出す `.md` は次の形になる。編集してよいのは frontmatter の `description` 内の `<!-- desc -->`・`<!-- intro -->`・`<!-- body -->` の3種類だけ。画像添付がある場合、各 `<!-- body -->` の直後に `<img alt="..." src="...">` が自動で入り、このタグも編集禁止。
+skeleton.py が書き出す `.md` は次の形になる。編集してよいのは frontmatter の `description` 内の `<!-- desc -->`・`<!-- intro -->`・`<!-- body -->` の3種類だけ。
 
 ```markdown
 ---
@@ -138,7 +133,6 @@ versions:
 > {content 英語原文(先頭リストマーカー除去済み)}
 
 <!-- body -->
-<img alt="{content_ja を HTML escape した値}" src="{image_url}">
 
 ## v{次のバージョン}
 
@@ -165,7 +159,6 @@ https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
 - `description` は定型文と期間(年跨ぎでも両端に年を入れた `{開始日}〜{終了日}`)が確定済みで、要点部分の `<!-- desc -->` だけを手順5で埋める(frontmatter で書き換えてよいのはここだけ)。
 - バージョンは古い→新しいの昇順で `## v{version}` セクションになり、同一バージョンの複数項目はその下に `### {content_ja}` として並ぶ。
 - 各 `<!-- body -->` は直前の `### 見出し` に対応する。プレースホルダの位置・個数は変えない。
-- 画像添付がある item の `<img>` タグは `<!-- body -->` 直後に自動生成される。alt・src・行位置を変更しない。
 - item 順・アイテム数・バージョンの区切りはスクリプト側で決まる。増減しない。
 
 ## 本文(body)の例

@@ -65,7 +65,6 @@ def main():
                 "content": content,
                 "content_ja": item.get("content_ja"),
                 "comment": sel.get("comment", ""),
-                "image_url": sel.get("image_url"),
                 "inference": item.get("inference"),
                 "has_snippets": has_snippets,
             }
