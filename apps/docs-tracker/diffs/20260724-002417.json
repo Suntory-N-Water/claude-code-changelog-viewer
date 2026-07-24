@@ -1,0 +1,1794 @@
+{
+  "id": "20260724-002417",
+  "timestamp": "2026-07-24T00:24:17.622Z",
+  "aiSummary": "/code-reviewコマンドがバックグラウンドのサブエージェントとして実行されるようになり、コンテキストを消費せずに結果を受け取ることが可能になりました。API予算制限にサブエージェントの費用が含まれるようになったほか、APIキーの失効に伴う401エラーの解決手順やWindows環境でのインストールトラブル解決策が大幅に拡充されています。UltrareviewのGitHub連携強化や、ファストモード切り替え時の確認通知など、UX改善に関する記述も追加されました。",
+  "files": [
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "--max-budget-usdの設定にサブエージェントの利用料が含まれるようになった旨と、予算到達時の動作が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -95,7 +95,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--input-format` | Specify input format for print mode (options: `text`, `stream-json`) | `claude -p --output-format json --input-format stream-json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--json-schema` | Get validated JSON output matching a JSON Schema after the agent completes its workflow (print mode only). See [structured outputs](/docs/en/agent-sdk/structured-outputs). Claude Code exits with an error on an invalid schema and accepts the `format` keyword as an annotation without client-side validation. Before v2.1.205, an invalid schema produced unstructured output with no error, and schemas using `format` were treated as invalid | `claude -p --json-schema '{\"type\":\"object\",\"properties\":{...}}' \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--maintenance` | Run [Setup hooks](/docs/en/hooks#setup) with the `maintenance` matcher before the session (print mode only) | `claude -p --maintenance \"query\"` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--max-budget-usd` | Maximum dollar amount to spend on API calls before stopping (print mode only) | `claude -p --max-budget-usd 5.00 \"query\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--max-budget-usd` | Maximum dollar amount to spend on API calls before stopping (print mode only). Spend from [subagents](/docs/en/sub-agents) counts toward the cap. Once spend reaches the cap, spawning another subagent fails with `Budget limit reached`, and Claude Code stops background subagents that are still running; the cap-enforcement behaviors require Claude Code v2.1.217 or later | `claude -p --max-budget-usd 5.00 \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--max-turns` | Limit the number of agentic turns (print mode only). Exits with an error when the limit is reached. No limit by default. With `--input-format stream-json`, a message sent while Claude is working stays queued and runs as its own turn, with its own limit, when the limit ends the current one. Before v2.1.205, Claude Code discarded that message | `claude -p --max-turns 3 \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--mcp-config` | Load MCP servers from JSON files or strings (space-separated) | `claude --mcp-config ./mcp.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--model` | Sets the model for the current session with an alias for the latest model (`sonnet`, `opus`, `haiku`, or `fable`) or a model's full name. Overrides the [`model`](/docs/en/settings#available-settings) setting and [`ANTHROPIC_MODEL`](/docs/en/model-config#environment-variables) | `claude --model claude-sonnet-5` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "code-review.md",
+      "additions": 45,
+      "deletions": 3,
+      "explanation": "コマンドがデフォルトでバックグラウンド実行されるようになり、進捗確認やフォアグラウンド実行に切り替える条件が詳細に説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -265,16 +265,58 @@ If the check run title says issues were found but you don't see inline review co",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Review a diff locally"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The [`/code-review` command](/docs/en/commands) reviews a diff in your terminal without installing the GitHub App. Run it in any Claude Code session: it reports correctness bugs and reuse, simplification, and efficiency cleanups. By default the local review covers your branch's commits ahead of its upstream plus any uncommitted changes in the working tree. Pass `--comment` to post findings as inline PR comments, or `--fix` to apply the findings to your working tree after the review."
+            },
+            {
+              "type": "added",
+              "content": "The [`/code-review` command](/docs/en/commands) reviews a diff in your terminal without installing the GitHub App. It reports correctness bugs and reuse, simplification, and efficiency cleanups."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The local command follows your `CLAUDE.md` like any Claude Code session, but it doesn't read [`REVIEW.md`](#review-md)."
+            },
+            {
+              "type": "added",
+              "content": "From the session where you're working, run the command:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Lower [effort levels](/docs/en/model-config#adjust-effort-level) return fewer, higher-confidence findings, while `high` through `max` give broader coverage and may include uncertain findings. Without an effort argument, the review uses the session's current effort. To review something other than the default diff, pass a target: a file path, a PR number, a branch name, or a ref range such as `main...my-feature`. The ref range form reviews the committed diff a pull request from `my-feature` into `main` would contain, regardless of how the branch's upstream is configured."
+            },
+            {
+              "type": "added",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "/code-review"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "It reviews your branch's commits ahead of its upstream plus any uncommitted changes, so it needs work on the branch or in the working tree to have something to report. To review something else, pass a target: a file path, a PR number, a branch name, or a ref range such as `main...my-feature`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can also add flags:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- `--fix`: applies the findings to your working tree after the review"
+            },
+            {
+              "type": "added",
+              "content": "- `--comment`: posts the findings as inline PR comments"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The review runs as a background [subagent](/docs/en/sub-agents) with its own context window, so it doesn't fill your conversation. The findings arrive in your conversation when the review completes."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Ask Claude to fix what the review found. If you passed `--fix` or `--comment`, the review has already applied or posted its findings."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### What the review reads and edits"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The review follows your `CLAUDE.md` like any Claude Code session, but it doesn't read [`REVIEW.md`](#review-md). A background review applies its `--fix` edits outside your session's [checkpoints](/docs/en/checkpointing#subagent-edits-not-restored), so `/rewind` doesn't undo them; use git to revert them. When the review [runs in the foreground](#run-in-the-foreground), it edits your working tree during your own turn, so `/rewind` restores its edits as usual."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Tune effort and arguments"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Pass an [effort level](/docs/en/model-config#adjust-effort-level) to trade coverage for confidence. At `low` and `medium`, the review reports only the findings it's most confident in, so you see fewer false positives; `high` through `max` cast a wider net and may include findings the review is less sure about. Without an effort argument, the review uses the session's current effort."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "After the effort level and flags, Claude Code reads the rest of the line in one of two ways:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Without `ultra`**: everything left is the review target, even when it starts with another command name. `/code-review /fix-issue 123` reviews with `/fix-issue 123` as target text instead of loading `/fix-issue` as a second [stacked skill](/docs/en/skills#pass-arguments-to-skills). Before v2.1.218, a command stacked after `/code-review` expanded as its own skill."
+            },
+            {
+              "type": "added",
+              "content": "- **With `ultra`**: Claude Code reads a single word as a base branch or PR number, and turns longer text that doesn't name a branch or PR into [a note attached to the review](/docs/en/ultrareview#pass-a-request-in-plain-words). `/code-review ultra check my auth changes` reviews your current branch, and Claude relates the findings to your note."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Run in the foreground"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The review runs in the background by default; before v2.1.218, it ran inside your conversation. Three cases run it in the foreground instead:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- You run `/code-review` again while an earlier review is still in progress"
+            },
+            {
+              "type": "added",
+              "content": "- You run it in non-interactive mode, with the `-p` flag or the Agent SDK; Claude Code waits for the review and includes the findings in the response, except for `ultra`, which [launches the cloud review without waiting](#escalate-to-ultrareview)"
+            },
+            {
+              "type": "added",
+              "content": "- You set [`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`](/docs/en/env-vars) to `1`, which also turns off every other background task feature"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can't schedule the review: `/code-review` is marked [`disable-model-invocation`](/docs/en/skills#frontmatter-reference), so if you set it as a [scheduled task](/docs/en/scheduled-tasks)'s prompt, Claude reads it as plain text instead of running the review."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Escalate to ultrareview"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`/code-review ultra --fix` runs the deeper [ultrareview](/docs/en/ultrareview) in the cloud, then applies its findings to your working tree when they arrive back in your session. Ultrareview uses its own scope: your current branch against the repository's default branch, plus any uncommitted and staged changes in the working tree. Pass a branch name, such as `/code-review ultra develop`, to compare against a different base."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ultrareview requires authentication with a claude.ai account and is not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry, or to organizations with Zero Data Retention enabled. When ultrareview is not available, `/code-review ultra` runs a local review in your session instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To start a cloud review from a script or CI, run `claude -p '/code-review ultra'`. Claude Code launches the review and prints a link for tracking it. Requires Claude Code v2.1.218 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When the review would bill [usage credits](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans), Claude Code stops before launching, because the billing confirmation needs an interactive session. Run the [`claude ultrareview` subcommand](/docs/en/ultrareview#run-ultrareview-non-interactively) instead; by running it, you consent to the charge."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The command was named `/simplify` before v2.1.147, when it applied fixes by default. From v2.1.154, `/simplify` runs a separate cleanup-only review that applies fixes without hunting for bugs. If you scripted `/simplify` for bug-finding, switch to `/code-review --fix`, which is unchanged."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 51,
+      "deletions": 2,
+      "explanation": "API 401エラーの具体的な対処法や、IDE連携時のプロセス終了エラー、標準入力が必要な場合のトラブルシューティングが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/en/errors.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This page lists runtime errors Claude Code displays and how to recover from each one, plus what to check when responses seem off without an error. For installation errors such as `command not found` or TLS failures during setup, see [Troubleshoot installation and login](/docs/en/troubleshoot-install)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "These errors and recovery commands apply across the CLI, the [Desktop app](/docs/en/desktop), and [Claude Code on the web](/docs/en/claude-code-on-the-web), since all three wrap the same Claude Code CLI. For surface-specific issues, see the troubleshooting section on that surface's page."
+            },
+            {
+              "type": "added",
+              "content": "Except for [Wrapper and IDE errors](#wrapper-and-ide-errors), which the launching program prints rather than Claude Code itself, these errors and recovery commands apply across the CLI, the [Desktop app](/docs/en/desktop), and [Claude Code on the web](/docs/en/claude-code-on-the-web), since all three wrap the same Claude Code CLI. For other surface-specific issues, see the troubleshooting section on that surface's page."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code calls the Claude API for model responses, so most runtime errors map to an underlying API error code. This page covers what each error means inside Claude Code and how to recover. For the raw HTTP status code definitions, see the [Claude Platform error reference](https://platform.claude.com/docs/en/api/errors)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -44,6 +44,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Routines are disabled by your organization's policy` | [Authentication](#routines-are-disabled-by-your-organizations-policy) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Remote Control is only available when using Claude via api.anthropic.com` | [Authentication](#remote-control-requires-the-anthropic-api) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OAuth token revoked` / `OAuth token has expired` | [Authentication](#oauth-token-revoked-or-expired) |"
+            },
+            {
+              "type": "added",
+              "content": "| `API Error: 401 Invalid authentication credentials` | [Authentication](#api-error-401-invalid-authentication-credentials) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Login expired · Please run /login` | [Authentication](#login-expired) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Failed to authenticate: OAuth session expired and could not be refreshed` | [Authentication](#login-expired) |"
+            },
+            {
+              "type": "context",
+              "content": "| `does not meet scope requirement user:profile` | [Authentication](#oauth-scope-requirement) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -84,6 +85,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Error: Workspace not trusted` when starting Remote Control | [Command-line errors](#workspace-not-trusted-when-starting-remote-control) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Could not import <server>: <reason>` | [Command-line errors](#could-not-import-a-server-from-claude-desktop) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Error: MCP tool <name> (passed via --permission-prompt-tool) not found` | [Command-line errors](#mcp-permission-prompt-tool-not-found) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Input must be provided either through stdin or as a prompt argument when using --print` | [Command-line errors](#input-must-be-provided-when-using-print) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Diff is too large for ultrareview` / `PR #<N> is too large for ultrareview` | [Command-line errors](#diff-is-too-large-for-ultrareview) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Failed to resume the conversation` | [Command-line errors](#failed-to-resume-the-conversation) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Marketplace \"<name>\" is registered from an untrusted source` | [Plugin errors](#marketplace-is-registered-from-an-untrusted-source) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -100,6 +102,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `This session was running agent '<name>', which is no longer available` | [Background session errors](#session-agent-no-longer-available) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PROCESS_WRAPPER: launcher ...` | [Background session errors](#claude_code_process_wrapper-launcher-errors) |"
+            },
+            {
+              "type": "context",
+              "content": "| `EUNKNOWN: unknown error, uv_spawn` | [Background session errors](#eunknown-when-starting-a-background-session) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Claude Code process exited with code N` | [Wrapper and IDE errors](#claude-code-process-exited-with-code-n) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Restored the code, but skipped N files` | [Rewind warnings](#restored-the-code-but-skipped-files) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ignoring N permissions.allow entries from ... this workspace has not been trusted` | [Configuration warnings](#workspace-has-not-been-trusted) |"
+            },
+            {
+              "type": "context",
+              "content": "| Responses seem lower quality than usual | [Response quality](#responses-seem-lower-quality-than-usual) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -567,6 +570,21 @@ API Error: 401 ... authentication_error",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- For repeated prompts to log in across launches, see the system clock and macOS Keychain checks in [Troubleshooting](/docs/en/troubleshoot-install#not-logged-in-or-token-expired)"
+            },
+            {
+              "type": "context",
+              "content": "- For other failures including `403 Forbidden` and OAuth browser issues, see [Login and authentication](/docs/en/troubleshoot-install#login-and-authentication)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### API Error: 401 Invalid authentication credentials"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The API recognized the format of your credential but rejected the account or organization behind it. Anthropic returns this message when a credential was recently revoked, when an organization was disabled or removed your access, or when the account itself was deactivated, so an expired token isn't the cause. The credential can be your saved login or an approved `ANTHROPIC_API_KEY`, and the fix differs, so start by running `/status` to see which one is active."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "Please run /login · API Error: 401 Invalid authentication credentials"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- If `/status` shows an `API key` row, an approved [`ANTHROPIC_API_KEY`](/docs/en/authentication#authentication-precedence) is the active credential and takes precedence over your login, so `/login` doesn't replace it. Rotate the key in the Claude Console, or run `unset ANTHROPIC_API_KEY` to fall back to your subscription."
+            },
+            {
+              "type": "added",
+              "content": "- If `/status` shows only your login, run `/login` once. If the credential was revoked, a fresh login replaces it."
+            },
+            {
+              "type": "added",
+              "content": "- If the same message returns for the same login account, the account or organization is no longer active. Check the account and organization that `/status` reports, and ask your organization admin to restore access."
+            },
+            {
+              "type": "added",
+              "content": "- If [`ANTHROPIC_BASE_URL`](/docs/en/env-vars) points at an [LLM gateway](/docs/en/llm-gateway), the text after `401` is your gateway's message rather than Anthropic's, and `/login` doesn't change it. Fix the credential your gateway expects instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Login expired"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code tried to renew your saved claude.ai or Claude Console login and the OAuth service rejected the stored refresh token, so Claude Code cleared the saved credentials. After that, each request stops locally before it reaches the API, because only `/login` can create new credentials. Before v2.1.206, Claude Code sent the request anyway with whatever credential remained in the environment, and every model then failed with [There's an issue with the selected model](#theres-an-issue-with-the-selected-model) or a 401 instead of a prompt to sign in."
+            }
+          ]
+        },
+        {
+          "header": "@@ -1220,6 +1238,19 @@ The list after `Available MCP tools:` names the MCP tools that were connected wh",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Confirm the tool name matches the `mcp__<server>__<tool>` name the server exposes"
+            },
+            {
+              "type": "context",
+              "content": "- If the server needs longer than 30 seconds to start, raise [`MCP_TIMEOUT`](/docs/en/env-vars)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Input must be provided when using --print"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Bare `claude` needs stdout to be a terminal to start the interactive UI. When stdout is redirected, or the console isn't a real terminal, such as PowerShell ISE and some IDE output panes, `claude` runs [non-interactively](/docs/en/headless) instead. That is the same mode as `claude -p`, which requires a prompt, so the message names `--print` even when you didn't pass the flag. Passing `-p`/`--print` with no prompt and nothing piped on stdin produces the same error anywhere."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "Error: Input must be provided either through stdin or as a prompt argument when using --print"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- For interactive use, run `claude` in a real terminal: Windows Terminal or the PowerShell console rather than ISE, and your IDE's integrated terminal rather than an output pane"
+            },
+            {
+              "type": "added",
+              "content": "- For one-shot use, pass the prompt: `claude -p \"your question\"`, or pipe it with `echo \"your question\" | claude -p`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Diff is too large for ultrareview"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The diff between your branch and the base branch, including uncommitted and staged changes, exceeds the size limits for an [ultrareview](/docs/en/ultrareview), so `/code-review ultra` and the `claude ultrareview` subcommand refuse the review before the cloud session starts. A refused review doesn't use a free run and doesn't bill usage credits. The message names the limits in effect, the size of your diff, and the files that contribute the most changed lines. Before v2.1.216, the message showed only the raw diff statistics."
+            }
+          ]
+        },
+        {
+          "header": "@@ -1411,7 +1442,7 @@ Opening the same session's row in [agent view](/docs/en/agent-view) shows `Press",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Session agent no longer available"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You resumed a session that was running a [custom agent](/docs/en/sub-agents#invoke-subagents-explicitly), started with `--agent` or the `agent` setting, and no agent by that name exists anymore. Claude Code searches the session's original directory first, when you have [trusted that workspace](/docs/en/permissions#project-allow-rules-and-workspace-trust), then the directory you resume from, and warns when neither has the agent. The session still resumes, but with the default tools and system prompt, so the agent's tool restrictions no longer apply:"
+            },
+            {
+              "type": "added",
+              "content": "You resumed a session that was running a [custom agent](/docs/en/sub-agents#invoke-subagents-explicitly), started with `--agent` or the `agent` setting, and Claude Code didn't find an agent by that name. It searches the session's original directory first, when you have [trusted that workspace](/docs/en/permissions#project-allow-rules-and-workspace-trust), then the directory you resume from. The session still resumes, but with the default tools and system prompt, so the agent's tool restrictions no longer apply:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "context",
+              "content": "This session was running agent 'code-reviewer', which is no longer available (no agent by that name in /home/you/project). Continuing with the default tools and system prompt — the agent's tool restrictions no longer apply. To restore it, re-create the agent, or resume with an explicit --agent <name>."
+            }
+          ]
+        },
+        {
+          "header": "@@ -1463,6 +1494,24 @@ Before v2.1.212, Claude Code used only Windows PowerShell 5.1 to start the servi",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- If the error appears on v2.1.212 or later, ask your Windows administrator to allow the Claude Code executable in the restriction policy"
+            },
+            {
+              "type": "context",
+              "content": "- If the background service stops when you close the terminal, Claude Code started it without PowerShell. Install PowerShell 7, or ask your administrator to unblock PowerShell, so the service can outlive the terminal."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Wrapper and IDE errors"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "These errors come from the program that launched Claude Code for you, such as an IDE extension or an [Agent SDK](/docs/en/agent-sdk/overview) application, rather than from Claude Code itself."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Claude Code process exited with code N"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The underlying `claude` process exited with a non-zero code. The exit code alone doesn't say what failed: the real error is in the process's own output, which the wrapper appends when it captured any and otherwise keeps in its logs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "Error: Claude Code process exited with code 1"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- In VS Code, follow the **View output logs** link shown with the error to see the underlying failure"
+            },
+            {
+              "type": "added",
+              "content": "- Run `claude` in a terminal in the same project. The failure usually reproduces there with its real error message, which you can then look up on this page."
+            },
+            {
+              "type": "added",
+              "content": "- Run `claude doctor` in a terminal to check the installation and configuration"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Rewind warnings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This warning comes from a [`/rewind`](/docs/en/checkpointing) code restore. It reports paths the restore refused to touch; the restore completed for every other tracked file."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fast-mode.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "モデル切り替えに伴いファストモードのON/OFFが切り替わる際、確認通知が表示される仕組みについて解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -42,7 +42,9 @@ When you enable fast mode:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you disable fast mode with `/fast` again, you remain on Opus. The model does not revert to your previous model. To switch to a different model, use `/model`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Switching to a model that doesn't support fast mode turns fast mode off. Switching back to a supported Opus model turns it on again when your saved fast mode preference is on, the same preference a new session starts from by default. With [per-session opt-in](#require-per-session-opt-in) configured, switching back doesn't turn fast mode on again; run `/fast` to re-enable it. Fast mode never turns on for a session whose saved preference is off, and the `↯` icon and `Fast mode ON` confirmation appear whenever it activates. Before v2.1.208, fast mode stayed off after you switched back until you ran `/fast` again."
+            },
+            {
+              "type": "added",
+              "content": "Switching to a model that doesn't support fast mode turns fast mode off. Switching back to a supported Opus model turns it on again when your saved fast mode preference is on, the same preference a new session starts from by default; a model switch never turns fast mode on for a session whose saved preference is off. With [per-session opt-in](#require-per-session-opt-in) configured, switching back doesn't turn fast mode on again; run `/fast` to re-enable it. Before v2.1.208, fast mode stayed off after you switched back until you ran `/fast` again."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Whenever a model switch turns fast mode on or off, Claude Code shows a `Fast mode ON` or `Fast mode OFF` confirmation, and the `↯` icon appears while fast mode is on. This holds whether you switch with `/model`, with [`/config model=<model>`](/docs/en/settings), or from a device connected through [Remote Control](/docs/en/remote-control); before v2.1.218, switches through `/config` or Remote Control changed fast mode without the confirmation."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Opus 4.8 is the fast mode default in Claude Code v2.1.154 and later. On v2.1.142 through v2.1.153, fast mode defaults to Opus 4.7."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "network-config.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Claude Desktop経由のセッションにおいて、プロキシ環境変数の読み取り元が制限されるセキュリティ上の仕様が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -15,7 +15,7 @@ All environment variables shown on this page can also be configured in [`setting",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Environment variables"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code respects standard proxy environment variables:"
+            },
+            {
+              "type": "added",
+              "content": "Claude Code respects standard proxy environment variables. In Claude Desktop sessions where the app manages the provider connection, Claude Code reads them only from managed settings and `~/.claude/settings.json`; see [mTLS authentication](#mtls-authentication) for the scope rules."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "# HTTPS proxy (recommended)"
+            }
+          ]
+        },
+        {
+          "header": "@@ -102,6 +102,8 @@ In [cloud sessions](/docs/en/claude-code-on-the-web), the hosting environment ma",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code notes each ignored key in the session's debug log."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In [Claude Desktop](/docs/en/desktop) sessions where the app manages the provider connection, such as the Code tab on a [third-party provider](/docs/en/third-party-integrations) and Cowork sessions, Claude Code reads these variables and the proxy variables `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` only from [managed settings](/docs/en/settings#settings-files) and `~/.claude/settings.json`: it ignores them in a repository's own settings files, so a checked-out repository can't redirect the TLS or proxy path of a session whose credentials come from the app. In a local, SSH, or WSL Code tab session signed in through claude.ai, the app doesn't manage the connection, and Claude Code reads these variables from every settings scope, like any terminal session; [cloud sessions](/docs/en/claude-code-on-the-web) follow the cloud-session rules above wherever you start them. Before v2.1.217, Claude Code ignored these variables in every settings file when the app managed the connection."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Apply network settings to background agents"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Background agents](/docs/en/agent-view) don't run inside the terminal that dispatched them. A per-user supervisor process starts on demand, outlives your shell, and hosts every `claude agents`, `--bg`, and `/background` session. See [How background sessions are hosted](/docs/en/agent-view#how-background-sessions-are-hosted). This changes how the configuration on this page reaches those sessions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "プラグインのフロントマターにおける真偽値の指定として、true/false以外にyes/noや1/0などが許容されるようになりました。",
+      "hunks": [
+        {
+          "header": "@@ -43,6 +43,8 @@ skills/",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If a plugin has no `skills/` directory and no `skills` manifest field, a `SKILL.md` at the plugin root is loaded as a single skill. Set the frontmatter `name` field to control the skill's invocation name. Without it, Claude Code falls back to the install directory name, which for marketplace-installed plugins is a version string that changes on every update. For plugins that ship more than one skill, use the `skills/` directory layout shown above."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In plugin skills and commands, Boolean frontmatter fields such as `disable-model-invocation` accept `yes`, `no`, `on`, `off`, `1`, and `0` in any letter case, in addition to `true` and `false`. Before v2.1.218, Claude Code recognized only `true` and `false`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For complete details, see [Skills](/docs/en/skills)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Agents"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sessions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "カスタムエージェントを使用するセッションの再開時に、エージェント定義を検索するディレクトリの優先順位が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -31,7 +31,7 @@ A resumed session restores the conversation along with the state saved in it:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Conversation history: the full history, including tool calls and results."
+            },
+            {
+              "type": "context",
+              "content": "- Model: the session continues on the model it was using. The model isn't restored when it has been retired or isn't allowed by `availableModels`, when a `--model` flag or `ANTHROPIC_MODEL`-family environment variable picks one at launch, or on providers that use provider-specific deployment IDs, such as [Amazon Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry](/docs/en/third-party-integrations); see [model configuration](/docs/en/model-config#setting-your-model) for the resolution order."
+            },
+            {
+              "type": "removed",
+              "content": "- Agent: a session started with [`--agent`](/docs/en/sub-agents#invoke-subagents-explicitly) or the `agent` setting continues as that agent, keeping its system prompt, tool restrictions, and model. Pass `--agent` when resuming to pick a different one. If the agent no longer exists in the session's original directory or the one you resume from, the session resumes with the default tools and system prompt and shows a [warning naming the agent](/docs/en/errors#session-agent-no-longer-available)."
+            },
+            {
+              "type": "added",
+              "content": "- Agent: a session started with [`--agent`](/docs/en/sub-agents#invoke-subagents-explicitly) or the `agent` setting continues as that agent, keeping its system prompt, tool restrictions, and model. Pass `--agent` when resuming to pick a different one. Claude Code looks for the agent in two places: the session's original directory, provided you have [trusted that workspace](/docs/en/permissions#project-allow-rules-and-workspace-trust), and then the directory you resume from, so a project-scoped agent still loads when you resume from another directory. If Claude Code doesn't find the agent in either place, the session resumes with the default tools and system prompt and shows a [warning naming the agent](/docs/en/errors#session-agent-no-longer-available)."
+            },
+            {
+              "type": "context",
+              "content": "- Permission mode: the mode the session was in. `plan` and `bypassPermissions` are never restored; [bypassing permissions](/docs/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) must be enabled again at launch, with one of its launch flags or `permissions.defaultMode: \"bypassPermissions\"` in [settings](/docs/en/settings#permission-settings). `auto` is restored only when your account still meets the [auto mode requirements](/docs/en/permission-modes#eliminate-prompts-with-auto-mode). Pass `--permission-mode` to override the restored mode."
+            },
+            {
+              "type": "context",
+              "content": "- Active goal: a [goal](/docs/en/goal#resume-with-an-active-goal) that was still active when the session ended carries over; its turn count, timer, and token-spend baseline reset."
+            },
+            {
+              "type": "context",
+              "content": "- Scheduled tasks: [tasks that haven't expired](/docs/en/scheduled-tasks#limitations) are restored. Background Bash and monitor tasks aren't."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshoot-install.md",
+      "additions": 52,
+      "deletions": 6,
+      "explanation": "WindowsのPowerShell実行ポリシーによるエラーや、npmインストール時のネイティブバイナリ欠落に関する解決策が詳細化されました。",
+      "hunks": [
+        {
+          "header": "@@ -35,7 +35,9 @@ Match the error message or symptom you're seeing to a fix:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| PowerShell installer completes but `claude` is not found or shows an old version | [Add the install directory to your PATH](#verify-your-path), then open a new terminal |"
+            },
+            {
+              "type": "context",
+              "content": "| `dyld: cannot load`, `dyld: Symbol not found`, or `Abort trap` on macOS | [Binary incompatibility](#dyld-cannot-load-on-macos) |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude update` hangs after `Checking for updates`, or `claude doctor` hangs with no output | [Move the directory at a shell config path](#claude-update-or-claude-doctor-hangs) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Invoke-Expression: Missing argument in parameter list` | [Install script returns HTML](#install-script-returns-html-instead-of-a-shell-script) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Invoke-Expression` or `iex` parse errors quoting HTML tags or CSS, or `ParserError` with `ParseException` | [Install script returns HTML](#install-script-returns-html-instead-of-a-shell-script) |"
+            },
+            {
+              "type": "added",
+              "content": "| `running scripts is disabled on this system` or `PSSecurityException` | [Allow the npm shims to run](#running-scripts-is-disabled-on-this-system) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Error: claude native binary not installed` | [Complete the npm install](#native-binary-not-found-after-npm-install) |"
+            },
+            {
+              "type": "context",
+              "content": "| `App unavailable in region` | Claude Code is not available in your country. See [supported countries](https://www.anthropic.com/supported-countries). |"
+            },
+            {
+              "type": "context",
+              "content": "| `unable to get local issuer certificate` | [Configure corporate CA certificates](#tls-or-ssl-connection-errors) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OAuth error` or `403 Forbidden` | [Fix authentication](#login-and-authentication) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -288,12 +290,17 @@ bash: line 1: syntax error near unexpected token `<'",
+          "lines": [
+            {
+              "type": "context",
+              "content": "bash: line 1: `<!DOCTYPE html>'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On PowerShell, the same problem appears as:"
+            },
+            {
+              "type": "added",
+              "content": "On PowerShell, the same problem appears as parse errors pointing into the returned page, with `iex` trying to run HTML and CSS as PowerShell:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "Invoke-Expression: Missing argument in parameter list."
+            },
+            {
+              "type": "added",
+              "content": "iex : At line:1 char:2310"
+            },
+            {
+              "type": "added",
+              "content": "+ ... igin=\"anonymous\"/><script type=\"text/javascript\">!function(o,c){var n ..."
+            },
+            {
+              "type": "added",
+              "content": "Missing argument in parameter list."
+            },
+            {
+              "type": "added",
+              "content": "..."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The wording varies with the PowerShell version and system language: you may see `Missing expression after unary operator '--'` or a `ParserError` with `ParseException` instead. HTML tags or CSS in the quoted text identify this failure. If you download with `-OutFile install.ps1` instead, the saved file is the same web page, so that doesn't help either."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Depending on how the request was routed, you may instead see a 403 with no HTML body:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            }
+          ]
+        },
+        {
+          "header": "@@ -488,6 +495,27 @@ If you see `'irm' is not recognized`, `The token '&&' is not valid`, `A paramete",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "  ```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`running scripts is disabled on this system`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Installing or running Claude Code through npm on Windows can fail with a `SecurityError`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "npm : File C:\\Program Files\\nodejs\\npm.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170."
+            },
+            {
+              "type": "added",
+              "content": "..."
+            },
+            {
+              "type": "added",
+              "content": "    + CategoryInfo          : SecurityError: (:) [], PSSecurityException"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The same error names `claude.ps1` when you run `claude` after an npm install. PowerShell's execution policy is blocking the `.ps1` launcher scripts that npm creates for its commands. The policy applies to script files, so it doesn't affect the PowerShell installer `irm https://claude.ai/install.ps1 | iex`, which runs the downloaded text directly."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Solutions:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "1. **Allow locally created scripts for your user**, then retry:"
+            },
+            {
+              "type": "added",
+              "content": "   ```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser"
+            },
+            {
+              "type": "added",
+              "content": "   ```"
+            },
+            {
+              "type": "added",
+              "content": "2. **Call the `.cmd` launcher instead**: `npm.cmd` and `claude.cmd` do the same job, and the policy doesn't cover them."
+            },
+            {
+              "type": "added",
+              "content": "3. **Use the [PowerShell installer](/docs/en/setup#install-claude-code)** instead of npm. It installs a binary rather than a `.ps1` script."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `The process cannot access the file` during Windows install"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the PowerShell installer fails with `Failed to download binary: The process cannot access the file ... because it is being used by another process`, the installer couldn't write to `%USERPROFILE%\\.claude\\downloads`. This usually means a previous install attempt is still running, or antivirus software is scanning a partially downloaded binary in that folder."
+            }
+          ]
+        },
+        {
+          "header": "@@ -733,13 +761,31 @@ curl -fsSL https://claude.ai/install.sh | bash",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Native binary not found after npm install"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `@anthropic-ai/claude-code` npm package pulls in the native binary through a per-platform optional dependency such as `@anthropic-ai/claude-code-darwin-arm64`. If running `claude` after install prints `Could not find native binary package \"@anthropic-ai/claude-code-<platform>\"`, check the following causes:"
+            },
+            {
+              "type": "added",
+              "content": "The `@anthropic-ai/claude-code` npm package downloads the native binary as a per-platform optional dependency, such as `@anthropic-ai/claude-code-darwin-arm64`. npm then runs the package's postinstall script, which copies that binary into place as the `claude` command; until it runs, `claude` is a placeholder script. If either the download or the postinstall step is skipped, the placeholder stays in place, and running `claude` on macOS and Linux prints:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "Error: claude native binary not installed."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Either postinstall did not run (--ignore-scripts, some pnpm configs)"
+            },
+            {
+              "type": "added",
+              "content": "or the platform-native optional dependency was not downloaded"
+            },
+            {
+              "type": "added",
+              "content": "(--omit=optional)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run the postinstall manually (adjust path for local vs global install):"
+            },
+            {
+              "type": "added",
+              "content": "  node node_modules/@anthropic-ai/claude-code/install.cjs"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Or reinstall without --ignore-scripts / --omit=optional."
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Windows, `bin/claude.exe` is that same shell-script placeholder rather than a real executable, so PowerShell and CMD report that they can't run the file instead of printing this message."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Check the following causes:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Optional dependencies are disabled.** Remove `--omit=optional` from your npm install command, `--no-optional` from pnpm, or `--ignore-optional` from yarn, and check that `.npmrc` does not set `optional=false`. Then reinstall. The native binary is delivered only as an optional dependency, so there is no JavaScript fallback if it is skipped."
+            },
+            {
+              "type": "added",
+              "content": "- **Optional dependencies are disabled.** Remove `--omit=optional` from your npm install command, `--no-optional` from pnpm, or `--ignore-optional` from yarn, and check that `.npmrc` does not set `optional=false`. Then reinstall. The native binary is delivered only as an optional dependency, so there is no JavaScript fallback if it is skipped, and running `install.cjs` again can't place a binary that was never downloaded."
+            },
+            {
+              "type": "added",
+              "content": "- **Install scripts are disabled.** `--ignore-scripts` and some pnpm configurations skip the postinstall step but still download the platform package. Run `node node_modules/@anthropic-ai/claude-code/install.cjs` as the message suggests, or reinstall without the flag. If postinstall can't run in your environment at all, `node node_modules/@anthropic-ai/claude-code/cli-wrapper.cjs` finds the downloaded package and launches it, at the cost of an extra Node process on each start. If the wrapper prints `Could not find native binary package` instead, the platform package was never downloaded, so fix the optional-dependencies cause above first."
+            },
+            {
+              "type": "context",
+              "content": "- **Unsupported platform.** Prebuilt binaries are published for `darwin-arm64`, `darwin-x64`, `linux-x64`, `linux-arm64`, `linux-x64-musl`, `linux-arm64-musl`, `win32-x64`, and `win32-arm64`. Claude Code does not ship a binary for other platforms; see the [system requirements](/docs/en/setup#system-requirements). On FreeBSD, the installer reports the platform as unsupported. Before v2.1.205, it treated FreeBSD as Linux and downloaded a binary that couldn't run."
+            },
+            {
+              "type": "context",
+              "content": "- **Corporate npm mirror is missing the platform packages.** Ensure your registry mirrors all eight `@anthropic-ai/claude-code-*` platform packages in addition to the meta package."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Installing with `--ignore-scripts` does not trigger this error. The postinstall step that links the binary into place is skipped, so Claude Code falls back to a wrapper that locates and spawns the platform binary on each launch. This works but starts more slowly; reinstall with scripts enabled for direct execution."
+            },
+            {
+              "type": "added",
+              "content": "Before v2.1.113, the npm package shipped Claude Code as JavaScript that ran directly in Node rather than as a native binary, so there was no download or postinstall step to skip and this error didn't exist."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Login and authentication"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshooting.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "VS Codeなどの外部アプリ実行時に発生するプロセス終了エラーの参照先リンクが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -18,6 +18,7 @@ This page covers performance, stability, and search problems once Claude Code is",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `API Error: 5xx`, `529 Overloaded`, `429`, request validation errors | [Error reference](/docs/en/errors) |"
+            },
+            {
+              "type": "context",
+              "content": "| `model not found` or `you may not have access to it` | [Error reference](/docs/en/errors#theres-an-issue-with-the-selected-model) |"
+            },
+            {
+              "type": "context",
+              "content": "| VS Code extension not connecting or detecting Claude | [VS Code integration](/docs/en/vs-code#fix-common-issues) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Claude Code process exited with code 1` in VS Code or an SDK app | [Error reference](/docs/en/errors#claude-code-process-exited-with-code-n) |"
+            },
+            {
+              "type": "context",
+              "content": "| JetBrains plugin or IDE not detected | [JetBrains integration](/docs/en/jetbrains#troubleshooting) |"
+            },
+            {
+              "type": "context",
+              "content": "| High CPU or memory, slow responses, hangs, search not finding files | [Performance and stability](#performance-and-stability) below |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "ultrareview.md",
+      "additions": 42,
+      "deletions": 10,
+      "explanation": "GitHubプルリクエストのレビュー方法が拡充され、ブランチ比較時の料金確認ダイアログやコスト見積もりの表示について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -21,31 +21,61 @@ Ultrareview requires authentication with a claude.ai account because it runs on",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Run ultrareview from the CLI"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Start a review from any git repository in the Claude Code CLI."
+            },
+            {
+              "type": "added",
+              "content": "Start a review from any git repository:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "context",
+              "content": "/code-review ultra"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Without arguments, ultrareview reviews the diff between your current branch and the default branch, including any uncommitted and staged changes in your working tree. Claude Code bundles the repository state and uploads it to a remote sandbox for the review. To compare against a different base, such as on a repository whose integration branch is `develop` or `trunk`, pass the branch name instead: `/code-review ultra develop`. A base branch that exists only on `origin` is fetched, and a name with a typo gets a closest-branch suggestion. Both behaviors require Claude Code v2.1.212 or later."
+            },
+            {
+              "type": "added",
+              "content": "Without arguments, ultrareview reviews the diff between your current branch and the default branch, including uncommitted and staged changes. For a branch review, Claude Code bundles the repository state and uploads it to a remote sandbox; when you [review a pull request](#review-a-pull-request), Claude Code uploads nothing from your machine."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If your branch shares no merge base with the base branch, for example when the two histories are unrelated, Claude Code offers to review every tracked file in the repository instead. The whole-repository fallback requires a full clone and applies the same size limits as a branch review. Before v2.1.214, `/code-review ultra` refused to run without a merge base."
+            },
+            {
+              "type": "added",
+              "content": "Before launching, Claude Code shows a confirmation dialog with the review scope, your remaining free runs, and the estimated cost; for a branch review, the scope includes the file and line count. After you confirm, the review continues in the background while you keep using your session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To review a GitHub pull request instead, pass the PR number."
+            },
+            {
+              "type": "added",
+              "content": "The command runs only when you invoke it with `/code-review ultra`; Claude doesn't start an ultrareview on its own."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Review against a different base"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To compare against a base other than the default branch, pass the branch name. This example reviews your current branch against `develop` instead:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "/code-review ultra develop"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The base branch doesn't need to exist in your local clone; Claude Code fetches it from `origin`. If the name has a typo, Claude Code suggests the closest branch name in the error."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Review a pull request"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To review a GitHub pull request instead of a local branch, pass the PR number:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "context",
+              "content": "/code-review ultra 1234"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The command also accepts `#1234`, `PR 1234`, and pasted PR URLs. A pasted URL must point to the repository in your current directory. Before v2.1.212, the command accepted only the bare number and rejected other forms with a not-a-branch error."
+            },
+            {
+              "type": "added",
+              "content": "The command also accepts `#1234`, `PR 1234`, and pasted PR URLs; a pasted URL must point to the repository in your current directory."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In PR mode, the remote sandbox clones the pull request directly from the host rather than bundling your local working tree. PR mode works with repositories on `github.com` and on [GitHub Enterprise Server](/docs/en/github-enterprise-server) instances that an Owner has connected to Claude Code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Pass a request in plain words"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Claude Code v2.1.218 or later, you can also describe what you're working on in plain words:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "/code-review ultra check my auth changes"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The review still covers your current branch, the same scope as running with no argument. Claude keeps your text as a note, shown in the launch dialog, and relates the findings to it when they arrive."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code treats your text as a note only when it has more than one word and isn't a branch name or PR reference. It reads a single word as a branch name or PR reference, so a mistyped branch name gets the closest-branch error from [Review against a different base](#review-against-a-different-base) instead of launching with a note. If your text combines a PR reference with other words, such as `check PR 123 again`, Claude Code doesn't launch either; it asks you to rerun with the PR number alone to review that PR, or without the reference to review your current branch."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If your repository is too large to bundle, Claude Code prompts you to use PR mode instead. Push your branch and open a draft PR, then run `/code-review ultra <PR-number>`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If the pull request's diff is too large, Claude Code refuses the review with a scoping hint before any review work runs."
+            },
+            {
+              "type": "added",
+              "content": "### Diff limits and fallbacks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Before launching, Claude Code shows a confirmation dialog with the review scope (including the file and line count when reviewing a branch), your remaining free runs, and the estimated cost. After you confirm, the review continues in the background and you can keep using your session. The command runs only when you invoke it with `/code-review ultra`; Claude does not start an ultrareview on its own."
+            },
+            {
+              "type": "added",
+              "content": "Ultrareview checks the diff before any review work runs and tells you when it can't review it as-is:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Diff too large**: a branch review can include up to 500 changed files and 8,000 changed lines by default. The exact values can change, and the [refusal](/docs/en/errors#diff-is-too-large-for-ultrareview) names the ones in effect, the size of your diff, and the files with the most changed lines. Claude Code refuses a too-large pull request the same way, naming its file and line counts but not the per-file breakdown"
+            },
+            {
+              "type": "added",
+              "content": "- **Nothing to review**: when the diff against the base is empty, Claude Code says so and suggests staging or committing local edits, or passing a different base"
+            },
+            {
+              "type": "added",
+              "content": "- **No merge base**: when your branch shares no history with the base branch, Claude Code offers to review every tracked file in the repository instead; the fallback requires a full clone and applies the same size limits"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Pricing and free runs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -68,7 +98,7 @@ Because ultrareview always bills as usage credits outside the free runs, your ac",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also run `/usage-credits` to check or change your usage-credits setting."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code asks you to confirm usage-credits billing once per conversation. When you start a new conversation, for example with `/clear`, Claude Code shows the billing confirmation again for the next paid review. Before v2.1.212, a confirmation from an earlier conversation carried over, so a paid review after `/clear` launched without showing the billing confirmation."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code asks you to confirm usage-credits billing once per conversation: when you start a new conversation, for example with `/clear`, Claude Code shows the confirmation again for the next paid review."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Track a running review"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -86,9 +116,11 @@ claude ultrareview 1234",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude ultrareview origin/main"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Without arguments, the subcommand reviews the diff between your current branch and the default branch, with the same [whole-repository fallback](#run-ultrareview-from-the-cli) as `/code-review ultra` when no merge base exists. Pass a PR number to review a pull request, or pass a base branch to review the diff against that branch instead. Invoking the subcommand counts as consent for the whole-repository fallback and for the billing and terms prompt that the interactive command shows, so the run starts without waiting for input."
+            },
+            {
+              "type": "added",
+              "content": "Without arguments, the subcommand reviews the diff between your current branch and the default branch, with the same [whole-repository fallback](#diff-limits-and-fallbacks) as `/code-review ultra` when no merge base exists. Pass a PR number to review a pull request, or a base branch to review against it; [base-branch handling](#review-against-a-different-base) matches the interactive command."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You consent to the whole-repository fallback and to the billing and terms prompt when you run the subcommand, so the run starts without waiting for input."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If the base branch you pass exists on `origin` but not in your local clone, Claude Code fetches it and continues. If the name matches no branch, the error message suggests the closest branch name. Before v2.1.212, both cases failed with a not-a-branch error."
+            },
+            {
+              "type": "added",
+              "content": "On Claude Code v2.1.218 or later, you can also start the cloud review by running `/code-review ultra` in a non-interactive session, for example `claude -p '/code-review ultra'`. Claude Code launches the review and prints a tracking link without waiting for the findings, unlike `claude ultrareview`, which blocks until they arrive. When the review would bill usage credits, Claude Code stops before launching and points you to `claude ultrareview`, because the billing confirmation needs an interactive session. Before v2.1.218, `/code-review ultra` in a non-interactive session ran a local review."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Progress messages and the live session URL go to stderr so stdout stays parseable. Use these flags to control the output and timeout:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
