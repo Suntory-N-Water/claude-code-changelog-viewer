@@ -53,7 +53,7 @@ jobs:
         run: |
           git add -A
 
-          # 英語ドキュメント(docs/en/*.md)ファイルの変更をカウント
+          # ドキュメント(docs/en/*.md)ファイルの変更をカウント
           DOC_CHANGES=$(git diff --staged --name-only -- 'apps/docs-tracker/docs/en/' | grep -c '\.md$' || true)
           echo "doc_changes=$DOC_CHANGES" >> "$GITHUB_OUTPUT"
 
@@ -61,11 +61,11 @@ jobs:
           SCHEMA_CHANGES=$(git diff --staged --name-only -- 'apps/docs-tracker/schema/' | grep -c '\.json$' || true)
           echo "schema_changes=$SCHEMA_CHANGES" >> "$GITHUB_OUTPUT"
 
-          # 英語ドキュメントまたはスキーマに変更がある場合のみ should_push=true
+          # ドキュメントまたはスキーマに変更がある場合のみ should_push=true
           if [ "$DOC_CHANGES" -gt 0 ] || [ "$SCHEMA_CHANGES" -gt 0 ]; then
             echo "should_push=true" >> "$GITHUB_OUTPUT"
             if [ "$DOC_CHANGES" -gt 0 ]; then
-              echo "✅ 英語ドキュメントに更新あり: $DOC_CHANGES ファイル"
+              echo "✅ ドキュメントに更新あり: $DOC_CHANGES ファイル"
               git diff --staged --name-only -- 'apps/docs-tracker/docs/en/' | grep '\.md$'
             fi
             if [ "$SCHEMA_CHANGES" -gt 0 ]; then
@@ -73,7 +73,7 @@ jobs:
               git diff --staged --name-only -- 'apps/docs-tracker/schema/'
             fi
           else
-            echo "ℹ️ 英語ドキュメント・スキーマに更新なし(日本語ドキュメントのみの変更はスキップ)"
+            echo "ℹ️ ドキュメント・スキーマに更新なし"
           fi
 
           # 全変更ファイル数(コミットメッセージ用)

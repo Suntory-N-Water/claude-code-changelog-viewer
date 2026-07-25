@@ -51,12 +51,8 @@ async function main() {
 
   try {
     // 英語ドキュメント取得(CHANGELOG 解析用)
-    const enFetcher = new ClaudeDocsFetcher(process.cwd(), 'en');
+    const enFetcher = new ClaudeDocsFetcher(process.cwd());
     await enFetcher.fetchAllDocs();
-
-    // 日本語ドキュメント取得(diff ビューア用)
-    const jaFetcher = new ClaudeDocsFetcher(process.cwd(), 'ja');
-    await jaFetcher.fetchAllDocs();
 
     // Anthropic Platform のモデル一覧取得(AI推論プロンプト用)
     await fetchModelsOverview();
