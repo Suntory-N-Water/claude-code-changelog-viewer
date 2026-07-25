@@ -1,11 +1,14 @@
 import { getLogger } from '@claude-code-changelog-viewer/common';
 
 const CHANGELOG_URL =
-  'https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md';
+  'https://api.github.com/repos/anthropics/claude-code/contents/CHANGELOG.md?ref=main';
 const KV_KEY = 'changelog-detection-state';
 const DISPATCH_URL =
   'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/actions/workflows/changelog-auto-inference.yml/dispatches';
+const RUNS_URL =
+  'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/actions/workflows/changelog-auto-inference.yml/runs?event=workflow_dispatch&per_page=100';
 const USER_AGENT = 'notification-worker-changelog-detection';
+const MAX_ATTEMPTS = 3;
 
 const logger = getLogger({
   name: 'changelog-detection',
@@ -16,8 +19,16 @@ const logger = getLogger({
 type ChangelogDetectionState = {
   readonly contentHash: string;
   readonly lastCheckedAt: string;
-  readonly lastDispatchedAt: string | null;
-  readonly lastDispatchedHash: string | null;
+  readonly lastDispatchedAt: string;
+  readonly lastDispatchedHash: string;
+  readonly attempts: number;
+  readonly confirmed: boolean;
+};
+
+type WorkflowRun = {
+  readonly name: string;
+  readonly status: string;
+  readonly conclusion: string | null;
 };
 
 export async function detectChangelogUpdate(
@@ -26,9 +37,13 @@ export async function detectChangelogUpdate(
 ): Promise<void> {
   const fetchedAt = now.toISOString();
 
-  const response = await fetch(`${CHANGELOG_URL}?cb=${now.getTime()}`, {
-    cf: { cacheTtl: 0 },
-    headers: { 'User-Agent': USER_AGENT },
+  const response = await fetch(CHANGELOG_URL, {
+    headers: {
+      Accept: 'application/vnd.github.raw',
+      Authorization: `Bearer ${bindings.GITHUB_DISPATCH_TOKEN}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': USER_AGENT,
+    },
   });
   if (!response.ok) {
     throw new Error(
@@ -42,9 +57,63 @@ export async function detectChangelogUpdate(
 
   if (previous && previous.contentHash === contentHash) {
     logger.info('CHANGELOG に変化なし', { hash: contentHash });
+
+    if (previous.confirmed || previous.attempts >= MAX_ATTEMPTS) {
+      await writeState(bindings.CHANGELOG_DETECTION_KV, {
+        ...previous,
+        lastCheckedAt: fetchedAt,
+      });
+      return;
+    }
+
+    const runsResponse = await fetch(RUNS_URL, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${bindings.GITHUB_DISPATCH_TOKEN}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': USER_AGENT,
+      },
+    });
+    if (!runsResponse.ok) {
+      throw new Error(
+        `workflow run の取得に失敗しました: ${runsResponse.status} ${runsResponse.statusText}`,
+      );
+    }
+    const { workflow_runs: runs } = (await runsResponse.json()) as {
+      workflow_runs: WorkflowRun[];
+    };
+    // workflow_dispatch は run id を返さないため、ハッシュ入り run-name で一意に特定する。
+    const run = runs.find((candidate) =>
+      candidate.name.includes(previous.lastDispatchedHash),
+    );
+
+    if (run?.status !== 'completed') {
+      await writeState(bindings.CHANGELOG_DETECTION_KV, {
+        ...previous,
+        lastCheckedAt: fetchedAt,
+      });
+      return;
+    }
+
+    if (run.conclusion === 'success') {
+      await writeState(bindings.CHANGELOG_DETECTION_KV, {
+        ...previous,
+        lastCheckedAt: fetchedAt,
+        confirmed: true,
+      });
+      return;
+    }
+
+    await dispatchWorkflow(
+      bindings.GITHUB_DISPATCH_TOKEN,
+      contentHash,
+      fetchedAt,
+    );
     await writeState(bindings.CHANGELOG_DETECTION_KV, {
       ...previous,
       lastCheckedAt: fetchedAt,
+      lastDispatchedAt: fetchedAt,
+      attempts: previous.attempts + 1,
     });
     return;
   }
@@ -64,6 +133,8 @@ export async function detectChangelogUpdate(
     lastCheckedAt: fetchedAt,
     lastDispatchedAt: fetchedAt,
     lastDispatchedHash: contentHash,
+    attempts: 1,
+    confirmed: false,
   });
 }
 
@@ -83,7 +154,18 @@ async function readState(
     return null;
   }
   try {
-    return JSON.parse(raw) as ChangelogDetectionState;
+    const state = JSON.parse(raw) as Partial<ChangelogDetectionState>;
+    if (
+      typeof state.contentHash !== 'string' ||
+      typeof state.lastCheckedAt !== 'string' ||
+      typeof state.lastDispatchedAt !== 'string' ||
+      typeof state.lastDispatchedHash !== 'string' ||
+      typeof state.attempts !== 'number' ||
+      typeof state.confirmed !== 'boolean'
+    ) {
+      return null;
+    }
+    return state as ChangelogDetectionState;
   } catch {
     return null;
   }

@@ -1,4 +1,5 @@
 name: Fetch and Analyze CHANGELOG
+run-name: Fetch and Analyze CHANGELOG (${{ inputs.detected_hash }})
 
 on:
   workflow_dispatch:
@@ -62,7 +63,22 @@ jobs:
         run: |
           set -euo pipefail
 
+          set +e
           pnpm run fetch:changelog
+          FETCH_EXIT=$?
+          set -e
+
+          if [ "$FETCH_EXIT" -eq 1 ]; then
+            {
+              echo "has_updates=false"
+              echo "has_notifiable=false"
+            } >> "$GITHUB_OUTPUT"
+            echo "ℹ️ チェンジログに更新なし"
+            exit 0
+          fi
+          if [ "$FETCH_EXIT" -ne 0 ]; then
+            exit "$FETCH_EXIT"
+          fi
 
           SUMMARY="apps/changelog-fetcher/metadata/last_fetch_summary.json"
           if [ ! -f "$SUMMARY" ]; then
