@@ -19,14 +19,16 @@ async function main() {
       source: 'anthropic-news',
       sitemapUrl: 'https://www.anthropic.com/sitemap.xml',
       urlPrefix: 'https://www.anthropic.com/news/',
-      bodySelector: '.Body-module-scss-module__z40yvW__body',
+      // CSS Modules のハッシュ付きクラス名はビルドごとに変わるため使わない。
+      // 記事ページでは、内側に article を持たない article が本文コンテナ 1 つだけになる。
+      bodySelector: 'article:not(:has(article))',
       removeSelectors: ['script', 'style', 'figure img'],
     }),
     new BlogFetcher(rootDir, {
       source: 'anthropic-engineering',
       sitemapUrl: 'https://www.anthropic.com/sitemap.xml',
       urlPrefix: 'https://www.anthropic.com/engineering/',
-      bodySelector: '.Body-module-scss-module__z40yvW__body',
+      bodySelector: 'article:not(:has(article))',
       removeSelectors: ['script', 'style', 'figure img'],
     }),
   ];
