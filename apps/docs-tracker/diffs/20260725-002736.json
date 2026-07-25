@@ -1,0 +1,694 @@
+{
+  "id": "20260725-002736",
+  "timestamp": "2026-07-25T00:27:36.207Z",
+  "aiSummary": "エージェントビュー起動時のフラグ指定順序に関する制限や、自動実行（オートモード）での拒否理由の表示仕様が変更されました。MCPサーバーを削除せずに一時的に無効化する機能が追加され、その設定を保存するdisabledMcpServers/enabledMcpServersリストの詳細が明文化されています。プラグインの設定（pluginConfigs）の読み込み元が制限され、セキュリティ向上のためプロジェクト固有の設定ファイルが無視されるようになりました。",
+  "files": [
+    {
+      "filename": "agent-view.md",
+      "additions": 5,
+      "deletions": 3,
+      "explanation": "claude agentsコマンド実行時のフラグの順序制限が追加され、特定のフラグをagentsの後に配置しないとエラーになる仕様が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -515,7 +515,7 @@ Using `bypassPermissions` with `claude --bg --permission-mode` is refused until",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Settings, plugins, and MCP servers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Agent view accepts the same configuration flags as `claude` for loading settings, plugins, MCP servers, and additional directories. Each flag applies to agent view itself and is passed through to every session you dispatch from it, so a plugin or MCP server you load this way is available in those sessions too."
+            },
+            {
+              "type": "added",
+              "content": "Agent view accepts the same configuration flags as `claude` for loading settings, plugins, MCP servers, and additional directories. Agent view applies each flag to itself and passes it through to every session you dispatch from it, so a plugin or MCP server you load this way is available in those sessions too."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Flag | Effect |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -525,7 +525,9 @@ Agent view accepts the same configuration flags as `claude` for loading settings",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [`--mcp-config <file-or-json>`](/docs/en/mcp) | Load MCP servers from a config file or JSON string |"
+            },
+            {
+              "type": "context",
+              "content": "| `--strict-mcp-config` | Use only the MCP servers from `--mcp-config`, ignoring other MCP configuration |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Repeat `--add-dir`, `--plugin-dir`, or `--mcp-config` once per value. The space-separated form, such as `--add-dir a b c`, isn't supported with `claude agents`."
+            },
+            {
+              "type": "added",
+              "content": "Repeat `--add-dir`, `--plugin-dir`, or `--mcp-config` once per value. `claude agents` doesn't support the space-separated form, such as `--add-dir a b c`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can place `--settings` and `--plugin-dir` before or after `agents`. Keep `--add-dir` and `--mcp-config` after `agents`: if you place either before `agents`, [`claude agents --json`](#manage-sessions-from-the-shell) fails with an `unknown option` error. Before v2.1.200, place `--plugin-dir` before `agents`: after `agents`, it reached dispatched sessions but didn't load the plugin's agents and skills into agent view's own [subagent and skill autocomplete](#dispatch-new-agents)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The following example opens agent view with a settings override and one extra directory:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -788,7 +790,7 @@ Agent view has evolved quickly during research preview. If you are on an older C",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| v2.1.205 | The prompt footer's `←` hint in a regular `claude` session counts the background agents waiting on you, such as `← 2 agents`. Row summaries show the session's own one-line report, truncated at 64 columns, instead of a raw tool invocation or a `done/total` count; directory-grouped rows open with a colored state word. The peek panel opens with the full status sentence and, for a session waiting on you, its exact question above the reply input. Sessions that edit, comment on, close, or mark a pull request ready with `gh` are linked to it, not only ones that create or check out a pull request, a push links a pull request even when the local branch name doesn't match, and a pull request whose creating command's output exceeded the inline limit is linked too. A turn with no readable text keeps the session's previous state instead of flipping it back to `Working`. `claude attach` waits up to about 60 seconds for a session that's restarting, with a status line naming why, instead of failing. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.203 | A gateway `ANTHROPIC_BASE_URL` exported in the dispatching shell reaches the sessions dispatched from it into that same directory when the supervisor shares that gateway environment, instead of being dropped while the API key exported alongside it was kept. The dispatching shell's `PATH` is applied to each session's worker. Pressing `←` while subagents are running waits for them instead of restarting them after ten seconds. The empty list always shows the section headers with a description under each. Typing `@` in the dispatch input also lists the launch repository's registered git worktrees that live inside its directory tree. An effort inherited from the `effortLevel` setting follows later edits to that setting instead of being fixed at dispatch. Opening a stopped session whose conversation is already open in another running session is refused with a message instead of failing the row. A command that isn't available in agent view leaves the typed text in the input. A `WorktreeCreate` hook that fails outside a git repository no longer blocks the session from editing files. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.202 | A name set with `/rename` or `Ctrl+R` on a background session persists when the supervisor stops and restarts its process, instead of reverting to the name the session was dispatched with. |"
+            },
+            {
+              "type": "removed",
+              "content": "| v2.1.200 | An older Claude Code version that rewrites the session list in `roster.json` preserves fields written by a newer version, matching the existing `state.json` guarantee, so sessions started by the newer version keep accepting input after the supervisor restarts. When you open a session that has stopped responding, the supervisor restarts its process and the session continues the interrupted response from where it left off. |"
+            },
+            {
+              "type": "added",
+              "content": "| v2.1.200 | An older Claude Code version that rewrites the session list in `roster.json` preserves fields written by a newer version, matching the existing `state.json` guarantee, so sessions started by the newer version keep accepting input after the supervisor restarts. When you open a session that has stopped responding, the supervisor restarts its process and the session continues the interrupted response from where it left off. Agent view applies configuration flags placed after `agents`, such as `--plugin-dir`, to its own subagent and skill autocomplete in the dispatch input as well as dispatched sessions. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.199 | A background session whose process exits before it finishes starting on a low-memory host shows `possibly low memory — free some up and retry` in its row status instead of only the bare exit reason. Backgrounding a session with `←` or `/background` carries its `/color` over to the new row. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.198 | Agent view sends a notification through `preferredNotifChannel` when a background session needs input, finishes, or fails, and fires the `Notification` hook with the `agent_needs_input` or `agent_completed` type. `←` and `/exit` inside `claude attach <id>` return to agent view instead of exiting to the shell; `Ctrl+Z` returns to the shell. A background session that isolated its work in a worktree commits, pushes its own isolated branch, never `main` or `master`, and opens a draft pull request when it finishes instead of asking first. `/login` runs in agent view and opens the sign-in dialog. The `Background work is running` exit dialog offers `Move to background and exit`. The exit handoff also covers background subagents, which resume from their transcript on the next wake instead of being reported as failed. `claude --bg` combined with `-p` or `--print` is rejected with an error. The background session host requests macOS Local Network permission on first LAN access instead of failing with `connect: no route to host`. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.196 | A single `←` press backgrounds a foreground session; earlier versions required two presses, with a footer hint and a confirm. `--dangerously-skip-permissions` passed to `claude agents` shows the bypass disclaimer instead of being silently dropped. Interactive sessions you never named carry a default name such as `my-app-3f` in session listings and `claude agents --json`. Background shell commands and dynamic workflows survive the session's process being stopped, restarted, or updated, including on Windows; set `CLAUDE_CODE_DISABLE_BG_EXIT_HANDOFF=1` to turn the handoff off. A transcript misread as empty on restart is renamed with an `.orphaned-` suffix instead of deleted. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "auto-mode-config.md",
+      "additions": 12,
+      "deletions": 2,
+      "explanation": "自動実行が拒否された際の理由が、詳細な説明からBlocked by classifierという固定テキストに変更された点と、拒否された場合の対処法が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -294,9 +294,19 @@ The command summarizes what it will remove and asks `Reset auto mode configurati",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Review denials"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When auto mode denies a tool call, the denial is recorded in `/permissions` under the Recently denied tab. Press `r` on a denied action to mark it for retry: when you exit the dialog, Claude Code sends a message telling the model it may retry that tool call and resumes the conversation."
+            },
+            {
+              "type": "added",
+              "content": "When auto mode denies a tool call, Claude Code records the denial in `/permissions` under the **Recently denied** tab. Press `r` on a denied action to mark it for retry: when you exit the dialog, Claude Code sends a message telling the model it may retry that tool call and resumes the conversation."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In Claude Code v2.1.193 and later, the classifier's reason for each denial appears alongside the blocked tool call in the transcript, in the denial notification, and under each entry on the Recently denied tab. Use the reason to decide whether the fix is an `environment` entry, an `allow` exception, or retrying with explicit intent in your next message."
+            },
+            {
+              "type": "added",
+              "content": "### Fix a denial with an allow rule, an environment entry, or a retry"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code shows the blocked tool call wherever the denial appears, including the transcript, the denial notification, and the **Recently denied** tab. Pick the fix from what the call was trying to reach or do:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- A destination Claude needs throughout the task, such as a package registry, an internal domain, or a repository host: add it to `autoMode.environment`."
+            },
+            {
+              "type": "added",
+              "content": "- A command you want to run without review from now on: add an `allow` rule."
+            },
+            {
+              "type": "added",
+              "content": "- A one-off action you did intend: state that intent in your next message and let Claude retry."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The reason shown with the call is the fixed text `Blocked by classifier` in most sessions, in Claude Code v2.1.208 and later: the classifier scores each action on an internal severity scale rather than writing an explanation. Some sessions run a classifier model that writes a short explanation instead, in v2.1.193 and later; when one appears, treat it as a hint about which destination or intent the classifier was missing. Claude Code selects the classifier model, so which reason you see isn't something you configure."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Fix repeated denials"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Repeated denials for the same destination usually mean the classifier is missing context. Add that destination to `autoMode.environment`, then run `claude auto-mode config` to confirm it took effect."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 0,
+      "deletions": 2,
+      "explanation": "セルフホストランナーに関する説明文から、冗長な一行が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -184,8 +184,6 @@ Manage shared environments from the **Cloud environments** page in [admin settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Values in a shared environment reach every member's sessions in that environment. Like personal environments, shared environments have no dedicated secrets store, so don't include secrets."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Organizations in the self-hosted runners program also manage their runner pools from the same page."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Setup scripts"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A setup script is a Bash script that runs when a new cloud session starts, before Claude Code launches. Use setup scripts to install dependencies, configure tools, or fetch anything the session needs that isn't pre-installed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "フックで使用される拒否理由のプロパティについて、新しい固定テキスト仕様に合わせた説明に更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -1821,13 +1821,13 @@ In addition to the [common input fields](#common-input-fields), PermissionDenied",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    \"description\": \"Clean build directory\""
+            },
+            {
+              "type": "context",
+              "content": "  },"
+            },
+            {
+              "type": "context",
+              "content": "  \"tool_use_id\": \"toolu_01ABC123...\","
+            },
+            {
+              "type": "removed",
+              "content": "  \"reason\": \"Auto mode denied: command targets a path outside the project\""
+            },
+            {
+              "type": "added",
+              "content": "  \"reason\": \"Blocked by classifier\""
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `reason` | The classifier's explanation for why the tool call was denied |"
+            },
+            {
+              "type": "added",
+              "content": "| `reason` | The denial reason: the fixed text `Blocked by classifier` in most sessions, or the classifier's written explanation when the session's classifier model provides one. See [Review denials](/docs/en/auto-mode-config#review-denials) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### PermissionDenied decision control"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 18,
+      "deletions": 5,
+      "explanation": "MCPサーバーを削除せず個別に無効化するトグル機能と、その設定が~/.claude.jsonのどのリストに記録されるかの詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -175,6 +175,19 @@ Some server names are reserved for Claude Code's built-in servers: `workspace`,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`Claude Preview` and `Claude Browser` both name the built-in server that the [Claude Code desktop app's preview pane](/docs/en/desktop#preview-your-app) uses. Before v2.1.205, `Claude Browser` wasn't reserved, so a user-configured server could register under that name."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Disable a server without removing it"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Toggle a server off in the `/mcp` panel to stop Claude Code from connecting to it without losing its configuration. Claude Code still lists the server in `/mcp`, marked as disabled."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When you toggle a server, Claude Code records your choice per project in `~/.claude.json`, in one of two lists that cover disjoint sets of servers:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- `disabledMcpServers`: an opt-out list for user-configured servers, plugin servers, claude.ai connectors, and built-in servers that default to on. Claude Code doesn't connect to a server you list here. When you disable a claude.ai connector with the per-project `/mcp` toggle described in [Disable claude.ai connectors](#disable-claude-ai-connectors), Claude Code writes it to this list under its display name, for example `claude.ai Slack`."
+            },
+            {
+              "type": "added",
+              "content": "- `enabledMcpServers`: an opt-in list for built-in servers that default to off, such as `computer-use`. Claude Code connects to a default-off server only when you list it here."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code consults exactly one of the two lists for each server, so neither list overrides the other. If you add a regular server to `enabledMcpServers`, or a default-off built-in server to `disabledMcpServers`, Claude Code ignores the entry."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`disabledMcpServers` and `enabledMcpServers` are unrelated to [`enabledMcpjsonServers` and `disabledMcpjsonServers`](/docs/en/settings#available-settings), which control approval of servers defined in a project's `.mcp.json` file."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Dynamic tool updates"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code supports MCP `list_changed` notifications, allowing MCP servers to dynamically update their available tools, prompts, and resources without requiring you to disconnect and reconnect. When an MCP server sends a `list_changed` notification, Claude Code automatically refreshes the available capabilities from that server."
+            }
+          ]
+        },
+        {
+          "header": "@@ -236,14 +249,14 @@ A call waiting on an open [elicitation dialog](#respond-to-mcp-elicitation-reque",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Plugin-provided MCP servers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Plugins](/docs/en/plugins) can bundle MCP servers, automatically providing tools and integrations when the plugin is enabled. Plugin MCP servers work identically to user-configured servers."
+            },
+            {
+              "type": "added",
+              "content": "[Plugins](/docs/en/plugins) can bundle MCP servers that provide tools and integrations when you enable the plugin. Plugin MCP servers work identically to user-configured servers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**How plugin MCP servers work**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Plugins define MCP servers in `.mcp.json` at the plugin root or inline in `plugin.json`"
+            },
+            {
+              "type": "removed",
+              "content": "- When a plugin is enabled, its MCP servers start automatically"
+            },
+            {
+              "type": "removed",
+              "content": "- Plugin MCP tools appear alongside manually configured MCP tools"
+            },
+            {
+              "type": "removed",
+              "content": "- Plugin servers are managed through plugin installation, not `/mcp` commands"
+            },
+            {
+              "type": "added",
+              "content": "- When you enable a plugin, Claude Code starts its MCP servers automatically"
+            },
+            {
+              "type": "added",
+              "content": "- Claude Code offers plugin MCP tools alongside manually configured MCP tools"
+            },
+            {
+              "type": "added",
+              "content": "- You add and remove plugin servers by installing or uninstalling the plugin, not with `/mcp` commands. You can still [toggle an installed plugin server off](#disable-a-server-without-removing-it) in `/mcp`, which stops Claude Code from connecting to it without removing the plugin"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Example plugin MCP configuration**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -280,7 +293,7 @@ Or inline in `plugin.json`:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "**Plugin MCP features**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Automatic lifecycle**: servers connect and disconnect at these points:"
+            },
+            {
+              "type": "removed",
+              "content": "  - At session startup, servers for enabled plugins connect automatically"
+            },
+            {
+              "type": "added",
+              "content": "  - At session startup, Claude Code connects the servers for enabled plugins automatically"
+            },
+            {
+              "type": "context",
+              "content": "  - If you enable or disable a plugin during a session, run `/reload-plugins` to connect or disconnect its MCP servers"
+            },
+            {
+              "type": "context",
+              "content": "  - In [web sessions](/docs/en/claude-code-on-the-web), an MCP call to a plugin server that isn't connected yet, such as right after an idle session wakes, starts the server on demand and waits for it to connect. Before v2.1.211, plugin servers in a web session reconnected only when the next message started a turn, so MCP calls after an idle session woke failed until then"
+            },
+            {
+              "type": "context",
+              "content": "- **Path placeholders**: `${CLAUDE_PLUGIN_ROOT}` resolves to the plugin's installation directory, `${CLAUDE_PLUGIN_DATA}` to its [persistent state](/docs/en/plugins-reference#persistent-data-directory) directory, and `${CLAUDE_PROJECT_DIR}` to the stable project root. Substitution applies to:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "分類器によるブロック時の応答が固定テキストに変更されたことに伴い、リンク参照先が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -322,7 +322,7 @@ Each action goes through a fixed decision order. The first matching step wins:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "1. Actions matching your [allow, ask, or deny rules](/docs/en/permissions#manage-permissions) resolve immediately. Writes to [protected paths](#protected-paths) route to the classifier even when an allow rule matches. Connector tools [your organization set to `ask`](/docs/en/mcp#organization-controls-on-connector-tools) and MCP tools marked [`requiresUserInteraction`](/docs/en/mcp#require-approval-for-a-specific-tool) prompt you directly even when an allow rule matches. Content-scoped ask rules fall back to a permission prompt"
+            },
+            {
+              "type": "context",
+              "content": "2. Read-only actions and file edits in your working directory are auto-approved, except writes to [protected paths](#protected-paths)"
+            },
+            {
+              "type": "context",
+              "content": "3. Everything else goes to the classifier. A connector tool [your organization set to `ask`](/docs/en/mcp#organization-controls-on-connector-tools) skips the classifier and prompts you directly, so an org-required approval is never auto-approved. As of v2.1.199, an MCP tool marked with [`_meta[\"anthropic/requiresUserInteraction\"]`](/docs/en/mcp#require-approval-for-a-specific-tool) also skips the classifier and prompts you directly, so a consent step is never auto-approved on the tool author's behalf"
+            },
+            {
+              "type": "removed",
+              "content": "4. If the classifier blocks, Claude receives the reason and tries an alternative"
+            },
+            {
+              "type": "added",
+              "content": "4. If the classifier blocks, Claude receives the reason and tries an alternative. In most sessions the reason is the fixed text `Blocked by classifier` rather than a written explanation, in Claude Code v2.1.208 and later; see [Review denials](/docs/en/auto-mode-config#review-denials)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "On entering auto mode, broad allow rules that grant arbitrary code execution are dropped:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 11,
+      "deletions": 1,
+      "explanation": "pluginConfigsの読み込みソースがユーザー設定・フラグ・管理設定の3つに限定され、プロジェクト内の設定ファイルが無視されるようになった変更が記述されました。",
+      "hunks": [
+        {
+          "header": "@@ -578,10 +578,20 @@ Fields that run in a shell reject `${user_config.*}`: substituting a configured",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Before v2.1.207, these fields substituted `${user_config.KEY}` values; update plugins that relied on this."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Non-sensitive values are stored under the [`pluginConfigs`](/docs/en/settings#pluginconfigs) key in `settings.json` as `pluginConfigs[<plugin-id>].options`. Claude Code writes the key to user settings and reads it back from user settings, the `--settings` flag, and managed settings only; entries in a project's `.claude/settings.json` or `.claude/settings.local.json` are ignored. Before v2.1.207, Claude Code also read project and local settings."
+            },
+            {
+              "type": "added",
+              "content": "Non-sensitive values are stored under the [`pluginConfigs`](/docs/en/settings#pluginconfigs) key in your user `settings.json` as `pluginConfigs[<plugin-id>].options`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Sensitive values go to the macOS Keychain, or to `~/.claude/.credentials.json` on platforms where no supported keychain is available. Keychain storage is shared with OAuth tokens and has an approximately 2 KB total limit, so keep sensitive values small."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code reads all `pluginConfigs` values from only three settings sources:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **User settings**: `~/.claude/settings.json`, the file the enable-time prompt writes to"
+            },
+            {
+              "type": "added",
+              "content": "- **`--settings`**: the CLI flag or SDK inline settings"
+            },
+            {
+              "type": "added",
+              "content": "- **Managed settings**: [organization-controlled policy](/docs/en/permissions#managed-settings)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When more than one source sets the same key, managed settings take precedence, then `--settings`, then user settings. The [`--setting-sources`](/docs/en/cli-reference#cli-flags) flag narrows the list further."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Entries in a project's `.claude/settings.json` or `.claude/settings.local.json` are ignored. Both files live in the workspace, so a cloned repository could supply values there, and those values would flow into plugin hook commands, MCP server configs, LSP commands, and monitor commands. Before v2.1.207, these entries were read. The restriction is specific to `pluginConfigs`: [`enabledPlugins`](/docs/en/settings#enabledplugins) still honors project and local settings."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Channels"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `channels` field lets a plugin declare one or more message channels that inject content into the conversation. Each channel binds to an MCP server that the plugin provides."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
