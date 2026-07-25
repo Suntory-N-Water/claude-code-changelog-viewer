@@ -3,34 +3,16 @@
   "summary": "開発の生産性と利便性を高める新機能として、プロンプトキャッシュを維持したままディレクトリを移動できる `/cd` コマンドや、トラブルシューティング用の `--safe-mode` が追加されました。バックグラウンドセッションの管理(Agent View)における表示の崩れや設定の継承に関する不具合が多数修正され、並列タスクの実行がより安定しています。さらに、ストリーミング応答時の CPU 負荷軽減や Windows 環境での動作改善など、パフォーマンス面での最適化も行われました。",
   "items": [
     {
-      "id": "593c371c1868",
-      "content": "- Self-hosted runner: added a `post-session` lifecycle hook that runs after the session ends and before the workspace is deleted, so you can snapshot uncommitted work or export logs; also made the child-process SIGTERM→SIGKILL window configurable (default unchanged at 5s)",
-      "content_ja": "セルフホストランナーにおいて、セッション終了後かつワークスペース削除前に実行される `post-session` ライフサイクルホックを追加しました。また、子プロセスの SIGTERM から SIGKILL までの待機時間を設定可能にしました。",
-      "prefix": "Changed",
-      "feature_areas": ["Hooks"],
-      "related_docs": [
-        {
-          "file": "apps/docs-tracker/docs/en/hooks.md"
-        },
-        {
-          "file": "apps/docs-tracker/docs/en/agent-view.md"
-        },
-        {
-          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
-        }
-      ],
-      "inference": {
-        "before": "セッション終了時に未コミットの作業をスナップショットとして保存したり、ログを外部へエクスポートしたりするタイミングがありませんでした。",
-        "after": "新設された `post-session` ホックを利用して、ワークスペースが破棄される直前に必要なデータの退避やログ出力のクリーンアップ処理を自動化できます。",
-        "benefit": "自動実行環境において、エラー発生時の詳細なデバッグ情報の収集や、実行結果の永続化をより確実に行えるようになります。"
-      }
-    },
-    {
       "id": "7a1529ba18c9",
       "content": "- Added `--safe-mode` flag (and `CLAUDE_CODE_SAFE_MODE`) to start Claude Code with all customizations (CLAUDE.md, plugins, skills, hooks, MCP servers) disabled for troubleshooting",
       "content_ja": "トラブルシューティング用に、すべてのカスタマイズ(CLAUDE.md、プラグイン、スキル、ホック、MCPサーバー)を無効にして起動する `--safe-mode` フラグを追加しました。",
       "prefix": "Added",
       "feature_areas": ["Plugins", "Skills", "Hooks", "MCP", "Memory"],
+      "inference": {
+        "before": "特定のプラグインやフックが原因で Claude Code が正常に動作しない場合、原因を特定するために設定ファイルを個別に書き換える必要がありました。",
+        "after": "原因不明の挙動が発生した際、`--safe-mode` を使うことで純粋な Claude Code の状態で起動し、カスタマイズによる影響かどうかを即座に切り分けられます。",
+        "benefit": "複雑な設定を維持したまま、問題発生時の原因究明を迅速に行えるようになります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/env-vars.md"
@@ -41,12 +23,7 @@
         {
           "file": "apps/docs-tracker/docs/en/cli-reference.md"
         }
-      ],
-      "inference": {
-        "before": "特定のプラグインやフックが原因で Claude Code が正常に動作しない場合、原因を特定するために設定ファイルを個別に書き換える必要がありました。",
-        "after": "原因不明の挙動が発生した際、`--safe-mode` を使うことで純粋な Claude Code の状態で起動し、カスタマイズによる影響かどうかを即座に切り分けられます。",
-        "benefit": "複雑な設定を維持したまま、問題発生時の原因究明を迅速に行えるようになります。"
-      }
+      ]
     },
     {
       "id": "97194291fc61",
@@ -54,6 +31,11 @@
       "content_ja": "セッションのプロンプトキャッシュを維持したまま、作業ディレクトリを移動できる `/cd` コマンドを追加しました。",
       "prefix": "Added",
       "feature_areas": ["Memory"],
+      "inference": {
+        "before": "作業中にディレクトリを移動する場合、`/add-dir` で追加するか再起動する必要があり、前者ではシステムプロンプトの構成が変わらず、後者ではキャッシュが切れる不便がありました。",
+        "after": "`/cd` を使用すると、セッション自体を指定したディレクトリに「移転」させることができ、新しい場所の CLAUDE.md を読み込みつつ既存の会話文脈も維持されます。",
+        "benefit": "モノレポやサブプロジェクト間を移動しながら作業する際、AI との対話の流れを途切れさせずに済みます。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/permissions.md"
@@ -64,12 +46,7 @@
         {
           "file": "apps/docs-tracker/docs/en/commands.md"
         }
-      ],
-      "inference": {
-        "before": "作業中にディレクトリを移動する場合、`/add-dir` で追加するか再起動する必要があり、前者ではシステムプロンプトの構成が変わらず、後者ではキャッシュが切れる不便がありました。",
-        "after": "`/cd` を使用すると、セッション自体を指定したディレクトリに「移転」させることができ、新しい場所の CLAUDE.md を読み込みつつ既存の会話文脈も維持されます。",
-        "benefit": "モノレポやサブプロジェクト間を移動しながら作業する際、AI との対話の流れを途切れさせずに済みます。"
-      }
+      ]
     },
     {
       "id": "d1f9f3830bac",
@@ -77,6 +54,11 @@
       "content_ja": "組み込みのスキル、ワークフロー、およびスラッシュコマンドをモデルから隠すための `disableBundledSkills` 設定を追加しました。",
       "prefix": "Added",
       "feature_areas": ["Skills", "Settings"],
+      "inference": {
+        "before": "プロジェクト独自のワークフローのみを Claude に実行させたい場合でも、常に標準搭載のスキルがコンテキストに含まれていました。",
+        "after": "この設定を有効にすることで、Claude が組み込み機能ではなく、プロジェクトで定義した特定のルールやスキルのみを優先して使用するように制限できます。",
+        "benefit": "AI の挙動をより厳格に制御し、組織固有の標準フローのみに従わせたい場合に役立ちます。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md"
@@ -87,12 +69,7 @@
         {
           "file": "apps/docs-tracker/docs/en/env-vars.md"
         }
-      ],
-      "inference": {
-        "before": "プロジェクト独自のワークフローのみを Claude に実行させたい場合でも、常に標準搭載のスキルがコンテキストに含まれていました。",
-        "after": "この設定を有効にすることで、Claude が組み込み機能ではなく、プロジェクトで定義した特定のルールやスキルのみを優先して使用するように制限できます。",
-        "benefit": "AI の挙動をより厳格に制御し、組織固有の標準フローのみに従わせたい場合に役立ちます。"
-      }
+      ]
     },
     {
       "id": "de86f02a15e3",
@@ -108,6 +85,11 @@
       "content_ja": "エンタープライズ管理の MCP ポリシー(許可/拒否サーバー設定)が、再接続時や IDE からの設定、インストール直後の初回起動時など、一部の条件下で適用されない問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["MCP", "Settings", "Permissions"],
+      "inference": {
+        "before": "管理者が特定の MCP サーバーの使用を制限していても、IDE の連携や起動フラグの組み合わせによって制限を回避できてしまうセキュリティ上の懸念がありました。",
+        "after": "あらゆる経路(再接続、IDE 入力、初回起動フラグ、リモート設定ロード前)において、管理ポリシーが常に最優先で強制適用されるようガードが強化されました。",
+        "benefit": "組織のセキュリティポリシーを例外なく徹底でき、管理の信頼性が向上します。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/mcp.md"
@@ -118,12 +100,7 @@
         {
           "file": "apps/docs-tracker/docs/en/settings.md"
         }
-      ],
-      "inference": {
-        "before": "管理者が特定の MCP サーバーの使用を制限していても、IDE の連携や起動フラグの組み合わせによって制限を回避できてしまうセキュリティ上の懸念がありました。",
-        "after": "あらゆる経路(再接続、IDE 入力、初回起動フラグ、リモート設定ロード前)において、管理ポリシーが常に最優先で強制適用されるようガードが強化されました。",
-        "benefit": "組織のセキュリティポリシーを例外なく徹底でき、管理の信頼性が向上します。"
-      }
+      ]
     },
     {
       "id": "82cc0855205c",
@@ -131,6 +108,11 @@
       "content_ja": "macOS ユーザーが claude.ai 認証でログインしている際に、ターンの開始時に発生していた 30-50ms の UI スタック(画面の固まり)を解消しました。",
       "prefix": "Fixed",
       "feature_areas": [],
+      "inference": {
+        "before": "AI への入力を送信するたびに、UI が一瞬だけ反応しなくなるわずかな遅延が発生していました。",
+        "after": "ログイン情報の処理が最適化され、対話の開始がよりスムーズに感じられるようになります。",
+        "benefit": "開発中のテンポを削ぐ微細なストレスが解消され、より快適な対話体験が得られます。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md"
@@ -141,12 +123,7 @@
         {
           "file": "apps/docs-tracker/docs/en/channels-reference.md"
         }
-      ],
-      "inference": {
-        "before": "AI への入力を送信するたびに、UI が一瞬だけ反応しなくなるわずかな遅延が発生していました。",
-        "after": "ログイン情報の処理が最適化され、対話の開始がよりスムーズに感じられるようになります。",
-        "benefit": "開発中のテンポを削ぐ微細なストレスが解消され、より快適な対話体験が得られます。"
-      }
+      ]
     },
     {
       "id": "a1bb7d0dd8f7",
@@ -154,6 +131,11 @@
       "content_ja": "Windows において `claude -p` の実行がスラッシュコマンドのスキャン待ちにより、極端に遅くなる、またはフリーズしたように見える問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
+      "inference": {
+        "before": "非対話モード(SDK 等での利用)であっても Windows 環境では不要なスキャン処理がボトルネックとなり、起動に時間がかかっていました。",
+        "after": "Windows 特有のファイルスキャン負荷が軽減され、非対話的なコマンド実行が即座に開始されるよう改善されました。",
+        "benefit": "CI/CD パイプラインやスクリプトからの呼び出しにおいて、実行時間が大幅に短縮されます。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md"
@@ -164,12 +146,7 @@
         {
           "file": "apps/docs-tracker/docs/en/sub-agents.md"
         }
-      ],
-      "inference": {
-        "before": "非対話モード(SDK 等での利用)であっても Windows 環境では不要なスキャン処理がボトルネックとなり、起動に時間がかかっていました。",
-        "after": "Windows 特有のファイルスキャン負荷が軽減され、非対話的なコマンド実行が即座に開始されるよう改善されました。",
-        "benefit": "CI/CD パイプラインやスクリプトからの呼び出しにおいて、実行時間が大幅に短縮されます。"
-      }
+      ]
     },
     {
       "id": "e8ef9c293a72",
@@ -209,6 +186,11 @@
       "content_ja": "`claude agents --json` がブロック中のセッションや開始直後のセッションを省略する問題を修正し、完了したセッションを含めるための `--all` フラグと `id` / `state` フィールドを追加しました。",
       "prefix": "Fixed",
       "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "バックグラウンドセッションをスクリプトで監視しようとしても、特定の状態のセッションが JSON 出力に含まれず、正確な状況把握が困難でした。",
+        "after": "すべての状態のセッションが網羅されるようになり、一意の ID や詳細なステータスを取得できるようになりました。",
+        "benefit": "複数のバックグラウンドタスクを自作のツールや監視ダッシュボードからより正確に管理できるようになります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md"
@@ -219,12 +201,7 @@
         {
           "file": "apps/docs-tracker/docs/en/statusline.md"
         }
-      ],
-      "inference": {
-        "before": "バックグラウンドセッションをスクリプトで監視しようとしても、特定の状態のセッションが JSON 出力に含まれず、正確な状況把握が困難でした。",
-        "after": "すべての状態のセッションが網羅されるようになり、一意の ID や詳細なステータスを取得できるようになりました。",
-        "benefit": "複数のバックグラウンドタスクを自作のツールや監視ダッシュボードからより正確に管理できるようになります。"
-      }
+      ]
     },
     {
       "id": "5eb92dfa9250",
@@ -232,6 +209,11 @@
       "content_ja": "WSL 上の Windows Terminal で、エージェント表示から戻った際に古い画面のフレームが残ったり崩れたりする表示の不具合を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "セッションを切り替えるたびに、ターミナルの表示内容が重なってしまい、読みづらくなることがありました。",
+        "after": "画面遷移時の再描画処理が適切に行われ、WSL 環境でも UI が常にクリーンな状態に保たれます。",
+        "benefit": "Windows 環境の開発者にとって、バックグラウンドセッションの管理が視覚的にクリアになります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
@@ -242,12 +224,7 @@
         {
           "file": "apps/docs-tracker/docs/en/sandboxing.md"
         }
-      ],
-      "inference": {
-        "before": "セッションを切り替えるたびに、ターミナルの表示内容が重なってしまい、読みづらくなることがありました。",
-        "after": "画面遷移時の再描画処理が適切に行われ、WSL 環境でも UI が常にクリーンな状態に保たれます。",
-        "benefit": "Windows 環境の開発者にとって、バックグラウンドセッションの管理が視覚的にクリアになります。"
-      }
+      ]
     },
     {
       "id": "3bb90988d6a0",
@@ -255,6 +232,11 @@
       "content_ja": "バックグラウンドエージェントが、プロジェクトレベルの設定(settings.json)で定義された `env`(例: ANTHROPIC_MODEL)を無視してしまう問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["Settings"],
+      "inference": {
+        "before": "特定のモデルを使用するようプロジェクトで指定していても、バックグラウンド実行時にはデフォルト設定にリセットされてしまうことがありました。",
+        "after": "バックグラウンドで起動されたエージェントも、常にプロジェクト固有の環境変数を正しく継承して動作するようになります。",
+        "benefit": "プロジェクトごとに最適なモデルや設定を、バックグラウンド実行時にも自動的に適用させることができます。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/model-config.md"
@@ -265,12 +247,7 @@
         {
           "file": "apps/docs-tracker/docs/en/errors.md"
         }
-      ],
-      "inference": {
-        "before": "特定のモデルを使用するようプロジェクトで指定していても、バックグラウンド実行時にはデフォルト設定にリセットされてしまうことがありました。",
-        "after": "バックグラウンドで起動されたエージェントも、常にプロジェクト固有の環境変数を正しく継承して動作するようになります。",
-        "benefit": "プロジェクトごとに最適なモデルや設定を、バックグラウンド実行時にも自動的に適用させることができます。"
-      }
+      ]
     },
     {
       "id": "45a02449877a",
@@ -278,16 +255,16 @@
       "content_ja": "Windows において MCPB プラグインキャッシュが誤って無効化され、不要な再展開が発生していた問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["Plugins"],
-      "related_docs": [
-        {
-          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
-        }
-      ],
       "inference": {
         "before": "プラグインの起動速度が、本来不要なファイル展開処理によって遅くなっていました。",
         "after": "キャッシュが正しく維持されるようになり、二回目以降のプラグイン読み込みが高速化されました。",
         "benefit": "Windows 環境での Claude Code 起動からタスク開始までの待ち時間が短縮されます。"
-      }
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        }
+      ]
     },
     {
       "id": "d8455479d4d7",
@@ -295,6 +272,11 @@
       "content_ja": "クラッシュしたセッションから残されたプラグインの PID ロックファイル(`.in_use`)が蓄積し続ける問題を修正しました。これらは 1 日 1 回自動的に削除されます。",
       "prefix": "Fixed",
       "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "異常終了が重なると不要な一時ファイルが増え続け、場合によってはプラグインの動作を阻害する可能性がありました。",
+        "after": "古いロックファイルが定期的に掃除されるようになり、長期間の使用でもディレクトリがクリーンに保たれます。",
+        "benefit": "メンテナンスを意識することなく、プラグイン機能の安定性が長期的に維持されます。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md"
@@ -305,12 +287,7 @@
         {
           "file": "apps/docs-tracker/docs/en/desktop.md"
         }
-      ],
-      "inference": {
-        "before": "異常終了が重なると不要な一時ファイルが増え続け、場合によってはプラグインの動作を阻害する可能性がありました。",
-        "after": "古いロックファイルが定期的に掃除されるようになり、長期間の使用でもディレクトリがクリーンに保たれます。",
-        "benefit": "メンテナンスを意識することなく、プラグイン機能の安定性が長期的に維持されます。"
-      }
+      ]
     },
     {
       "id": "0e0379f92008",
@@ -318,6 +295,11 @@
       "content_ja": "信頼されていないプロジェクト設定から、ユーザーの承認なしに OpenTelemetry のクライアント証明書パスを設定できてしまうセキュリティ上の懸念を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["Settings", "Permissions"],
+      "inference": {
+        "before": "悪意のあるプロジェクトを Claude Code で開いた際、ローカルの証明書ファイルを意図しない場所に送信される等のリスクがありました。",
+        "after": "重要なネットワーク監視設定(OTEL 証明書)を変更しようとする場合、ユーザーへの信頼確認が必須となりました。",
+        "benefit": "オープンソースプロジェクトのコードを調査する際など、未知のレポジトリをより安全に扱えるようになります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
@@ -328,12 +310,7 @@
         {
           "file": "apps/docs-tracker/docs/en/desktop.md"
         }
-      ],
-      "inference": {
-        "before": "悪意のあるプロジェクトを Claude Code で開いた際、ローカルの証明書ファイルを意図しない場所に送信される等のリスクがありました。",
-        "after": "重要なネットワーク監視設定(OTEL 証明書)を変更しようとする場合、ユーザーへの信頼確認が必須となりました。",
-        "benefit": "オープンソースプロジェクトのコードを調査する際など、未知のレポジトリをより安全に扱えるようになります。"
-      }
+      ]
     },
     {
       "id": "9d6ff47925ad",
@@ -341,6 +318,11 @@
       "content_ja": "AI が回答を生成している途中であっても、`/workflows` コマンドですぐにワークフロー画面を開けるように変更しました。",
       "prefix": "Changed",
       "feature_areas": [],
+      "inference": {
+        "before": "現在の回答が終わるまで、実行中の他のワークフローの進捗を確認することができませんでした。",
+        "after": "対話の完了を待つ必要がなくなり、並列で行わせている複雑なタスクの状態をいつでも確認できます。",
+        "benefit": "複数の重いタスクを同時に進行させている際の、作業の「待ち時間」がなくなります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/workflows.md"
@@ -351,12 +333,7 @@
         {
           "file": "apps/docs-tracker/docs/en/settings.md"
         }
-      ],
-      "inference": {
-        "before": "現在の回答が終わるまで、実行中の他のワークフローの進捗を確認することができませんでした。",
-        "after": "対話の完了を待つ必要がなくなり、並列で行わせている複雑なタスクの状態をいつでも確認できます。",
-        "benefit": "複数の重いタスクを同時に進行させている際の、作業の「待ち時間」がなくなります。"
-      }
+      ]
     },
     {
       "id": "c1ef54350225",
@@ -364,6 +341,11 @@
       "content_ja": "`TaskCreate` ツールの信頼性を向上しました。不正な形式の入力は自動修復され、未ロードのツールに関する検証エラーにはスキーマ情報が含まれるようになります。",
       "prefix": "Improved",
       "feature_areas": ["Skills"],
+      "inference": {
+        "before": "モデルがタスクを作成する際に微細なフォーマットエラーを起こすと、タスクの登録自体が失敗することがありました。",
+        "after": "Claude がタスクリストをより正確かつ柔軟に操作できるようになり、タスクの進捗管理がより堅牢になりました。",
+        "benefit": "複雑なタスクを AI に任せる際の、内部的なエラーによる中断が少なくなります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md"
@@ -374,12 +356,7 @@
         {
           "file": "apps/docs-tracker/docs/en/tools-reference.md"
         }
-      ],
-      "inference": {
-        "before": "モデルがタスクを作成する際に微細なフォーマットエラーを起こすと、タスクの登録自体が失敗することがありました。",
-        "after": "Claude がタスクリストをより正確かつ柔軟に操作できるようになり、タスクの進捗管理がより堅牢になりました。",
-        "benefit": "複雑なタスクを AI に任せる際の、内部的なエラーによる中断が少なくなります。"
-      }
+      ]
     },
     {
       "id": "74220598ce8a",
@@ -387,6 +364,11 @@
       "content_ja": "組織によって API キー認証が禁止されている際のエラーメッセージを改善し、現在使用されている API キーの出所に応じた解決策を表示するようにしました。",
       "prefix": "Improved",
       "feature_areas": [],
+      "inference": {
+        "before": "認証エラーが発生した際、どの設定ファイルや環境変数のキーが原因で拒否されているのかが分かりにくい場合がありました。",
+        "after": "「どの環境変数から読み込まれたキーが問題か」といった具体的なガイドが出るため、修正箇所が即座に特定できます。",
+        "benefit": "組織の管理ポリシーに合わせたログイン設定の修正が、迷わず行えるようになります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/errors.md"
@@ -397,12 +379,7 @@
         {
           "file": "apps/docs-tracker/docs/en/env-vars.md"
         }
-      ],
-      "inference": {
-        "before": "認証エラーが発生した際、どの設定ファイルや環境変数のキーが原因で拒否されているのかが分かりにくい場合がありました。",
-        "after": "「どの環境変数から読み込まれたキーが問題か」といった具体的なガイドが出るため、修正箇所が即座に特定できます。",
-        "benefit": "組織の管理ポリシーに合わせたログイン設定の修正が、迷わず行えるようになります。"
-      }
+      ]
     },
     {
       "id": "32cf56f73ae6",
@@ -410,6 +387,11 @@
       "content_ja": "ストリーミング応答中およびアニメーション表示中の CPU 使用率を削減しました。",
       "prefix": "Changed",
       "feature_areas": [],
+      "inference": {
+        "before": "AI が回答を生成している間、端末のファンが激しく回ったり、他のアプリケーションの動作が重くなったりすることがありました。",
+        "after": "描画処理や待機中の負荷が最適化され、ノート PC 等でのバッテリー持ちも改善されます。",
+        "benefit": "大規模なコードを扱っている最中でも、PC 全体のパフォーマンスを損なわずに作業を継続できます。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
@@ -420,12 +402,7 @@
         {
           "file": "apps/docs-tracker/docs/en/workflows.md"
         }
-      ],
-      "inference": {
-        "before": "AI が回答を生成している間、端末のファンが激しく回ったり、他のアプリケーションの動作が重くなったりすることがありました。",
-        "after": "描画処理や待機中の負荷が最適化され、ノート PC 等でのバッテリー持ちも改善されます。",
-        "benefit": "大規模なコードを扱っている最中でも、PC 全体のパフォーマンスを損なわずに作業を継続できます。"
-      }
+      ]
     },
     {
       "id": "d25370c89d2b",
@@ -433,6 +410,11 @@
       "content_ja": "Google Vertex AI および Microsoft Foundry において、5 分間のアイドルタイムアウトを復活させました。応答が停止したストリームを無限に待ち続けることを防ぎます。",
       "prefix": "Changed",
       "feature_areas": [],
+      "inference": {
+        "before": "ネットワークやプロバイダー側の問題で応答が途絶えた際、Claude Code が固まったままになり、手動で強制終了する必要がありました。",
+        "after": "応答がない場合は 5 分で自動的に切断・エラー復帰するため、ハングアップ状態を回避できます。必要に応じて `API_FORCE_IDLE_TIMEOUT=0` で無効化も可能です。",
+        "benefit": "クラウドプロバイダー経由での利用時に、接続の不安定さによる作業の中断時間を最小限に抑えられます。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/errors.md"
@@ -443,12 +425,7 @@
         {
           "file": "apps/docs-tracker/docs/en/env-vars.md"
         }
-      ],
-      "inference": {
-        "before": "ネットワークやプロバイダー側の問題で応答が途絶えた際、Claude Code が固まったままになり、手動で強制終了する必要がありました。",
-        "after": "応答がない場合は 5 分で自動的に切断・エラー復帰するため、ハングアップ状態を回避できます。必要に応じて `API_FORCE_IDLE_TIMEOUT=0` で無効化も可能です。",
-        "benefit": "クラウドプロバイダー経由での利用時に、接続の不安定さによる作業の中断時間を最小限に抑えられます。"
-      }
+      ]
     },
     {
       "id": "9c5abe5a0374",
@@ -464,6 +441,11 @@
       "content_ja": "バックグラウンドセッションがスリープから復帰する際、`--ide` や `--chrome` などの重要な起動フラグを正しく保持するようにし、状態の検証も強化しました。",
       "prefix": "Changed",
       "feature_areas": [],
+      "inference": {
+        "before": "長時間放置したセッションに再接続(attach)した際、一部の連携機能が解除されてしまっていることがありました。",
+        "after": "セッションが一時停止・再開を繰り返しても、最初に指定した実行環境のオプションが完全に維持されます。",
+        "benefit": "ブラウザ操作や IDE 連携を伴う長時間のタスクを、安心してバックグラウンドで放置できるようになります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/remote-control.md"
@@ -474,12 +456,7 @@
         {
           "file": "apps/docs-tracker/docs/en/chrome.md"
         }
-      ],
-      "inference": {
-        "before": "長時間放置したセッションに再接続(attach)した際、一部の連携機能が解除されてしまっていることがありました。",
-        "after": "セッションが一時停止・再開を繰り返しても、最初に指定した実行環境のオプションが完全に維持されます。",
-        "benefit": "ブラウザ操作や IDE 連携を伴う長時間のタスクを、安心してバックグラウンドで放置できるようになります。"
-      }
+      ]
     },
     {
       "id": "2cfde0830dc7",
@@ -487,6 +464,11 @@
       "content_ja": "共有チェックアウト環境で作業する際、ワークツリーに入るまではファイルの編集がブロックされることを、事前に AI 側へ通知するように改善しました。",
       "prefix": "Changed",
       "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "AI が本来編集すべきでない場所を書き換えようとして拒否され、手番(トークン)を無駄にしてしまうことがありました。",
+        "after": "AI は「まず `EnterWorktree` で作業場所を確保する必要がある」ことを事前に理解するため、無駄な試行を避けて正しい手順を即座に踏むようになります。",
+        "benefit": "特にマルチタスク実行時における AI の動作効率が上がり、トークン消費の無駄を抑えられます。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md"
@@ -497,12 +479,7 @@
         {
           "file": "apps/docs-tracker/docs/en/tools-reference.md"
         }
-      ],
-      "inference": {
-        "before": "AI が本来編集すべきでない場所を書き換えようとして拒否され、手番(トークン)を無駄にしてしまうことがありました。",
-        "after": "AI は「まず `EnterWorktree` で作業場所を確保する必要がある」ことを事前に理解するため、無駄な試行を避けて正しい手順を即座に踏むようになります。",
-        "benefit": "特にマルチタスク実行時における AI の動作効率が上がり、トークン消費の無駄を抑えられます。"
-      }
+      ]
     },
     {
       "id": "0007ebc10545",
@@ -510,6 +487,11 @@
       "content_ja": "「CLAUDE.md が長すぎる」という警告のしきい値を、使用しているモデルのコンテキストウィンドウの大きさに合わせて動的に調整するようにしました。",
       "prefix": "Changed",
       "feature_areas": ["Memory"],
+      "inference": {
+        "before": "1M コンテキスト(Extended Context)対応モデルを使用している場合でも、標準モデルと同じ厳しい制限で警告が出てしまい、情報の集約を阻害していました。",
+        "after": "より大きなコンテキストを扱えるモデルでは、より多くのルールを CLAUDE.md に記述しても不必要な警告が出なくなります。",
+        "benefit": "大規模なプロジェクトのルールを、モデルの能力をフルに活かして管理できるようになります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/env-vars.md"
@@ -520,12 +502,7 @@
         {
           "file": "apps/docs-tracker/docs/en/github-actions.md"
         }
-      ],
-      "inference": {
-        "before": "1M コンテキスト(Extended Context)対応モデルを使用している場合でも、標準モデルと同じ厳しい制限で警告が出てしまい、情報の集約を阻害していました。",
-        "after": "より大きなコンテキストを扱えるモデルでは、より多くのルールを CLAUDE.md に記述しても不必要な警告が出なくなります。",
-        "benefit": "大規模なプロジェクトのルールを、モデルの能力をフルに活かして管理できるようになります。"
-      }
+      ]
     },
     {
       "id": "5a0c1c8ac81e",
@@ -533,16 +510,16 @@
       "content_ja": "Windows での自動アップデート時、`claude.exe` が他のプロセスに使用されている場合に、同一セッション内での無意味な再試行を停止するようにしました。",
       "prefix": "Changed",
       "feature_areas": [],
-      "related_docs": [
-        {
-          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
-        }
-      ],
       "inference": {
         "before": "ファイルがロックされていると、エラーと再試行を何度も繰り返し、リソースを無駄に消費していました。",
         "after": "競合を検知すると速やかに再試行を中断し、ユーザーに適切な案内を行います。",
         "benefit": "Windows 環境でのアップデート失敗に伴うループや動作の不安定さが解消されます。"
-      }
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
     },
     {
       "id": "2bcd04f259c1",
@@ -566,6 +543,11 @@
       "content_ja": "複数のセッションを同時に実行している際、それらを一覧管理できる `claude agents` コマンドの使用を提案するヒントを追加しました。",
       "prefix": "Added",
       "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "便利な並列実行管理機能(Agent View)があることに気づかず、複数のターミナルを手動で行き来しているユーザーがいました。",
+        "after": "必要に応じて適切な機能が提案されるため、ツールの真価をより活用しやすくなります。",
+        "benefit": "複雑なマルチタスクを、より効率的な公式推奨のフローでこなせるようになります。"
+      },
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/env-vars.md"
@@ -576,12 +558,7 @@
         {
           "file": "apps/docs-tracker/docs/en/agent-view.md"
         }
-      ],
-      "inference": {
-        "before": "便利な並列実行管理機能(Agent View)があることに気づかず、複数のターミナルを手動で行き来しているユーザーがいました。",
-        "after": "必要に応じて適切な機能が提案されるため、ツールの真価をより活用しやすくなります。",
-        "benefit": "複雑なマルチタスクを、より効率的な公式推奨のフローでこなせるようになります。"
-      }
+      ]
     }
   ]
 }
