@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import sys
+from html import escape
 from pathlib import Path
 
 # LLM に content_ja を一度もタイプさせないため、frontmatter・見出しはこのスクリプトが直接書き出す。
@@ -85,6 +86,10 @@ def main():
         )
         lines.append("")
         lines.append("<!-- body -->")
+        if item.get("image_url"):
+            lines.append(
+                f'<img alt="{escape(item["content_ja"], quote=True)}" src="{item["image_url"]}">'
+            )
         lines.append("")
 
     # 締めの定型文と公式 CHANGELOG へのリンク(全記事共通・編集不可)

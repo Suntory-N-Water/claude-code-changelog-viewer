@@ -37,7 +37,9 @@ resource "cloudflare_zone_setting" "min_tls_version" {
 resource "cloudflare_zone_setting" "tls_1_3" {
   zone_id    = var.zone_id
   setting_id = "tls_1_3"
-  value      = "on"
+  # 0-RTT(zero_rtt = "on")を有効にすると Cloudflare 側の値が "zrt" になるため、
+  # "on" のままだと毎回 plan に差分が出て 0-RTT を打ち消し合う
+  value = "zrt"
 }
 
 # Opportunistic Encryption を有効化
