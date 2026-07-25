@@ -1,0 +1,460 @@
+{
+  "id": "20260725-040341",
+  "timestamp": "2026-07-25T04:03:41.106Z",
+  "aiSummary": "planモードにおけるパーミッション挙動が強化され、オートモード有効時に分類器（classifier）がコマンドを自動承認できるようになりました。bypassPermissionsモード使用時や、特定の計画セッションにおける書き込み保護パスへの制限が緩和される条件が明文化されています。rmコマンドなどによるルートディレクトリやホームディレクトリの削除試行についても、バージョン2.1.218以降では分類器による判定対象となるよう更新されています。",
+  "files": [
+    {
+      "filename": "permission-modes.md",
+      "additions": 10,
+      "deletions": 7,
+      "explanation": "planモードにおいてオートモードが有効な場合、分類器がシェルコマンドをレビューし自動承認する仕組みと、bypassPermissions設定時の例外挙動が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -17,14 +17,14 @@ Each mode makes a different tradeoff between convenience and oversight. The tabl",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `default` | Reads only | Getting started, sensitive work |"
+            },
+            {
+              "type": "context",
+              "content": "| [`acceptEdits`](#auto-approve-file-edits-with-acceptedits-mode) | Reads, file edits, and common filesystem commands (`mkdir`, `touch`, `mv`, `cp`, etc.) | Iterating on code you're reviewing |"
+            },
+            {
+              "type": "removed",
+              "content": "| [`plan`](#analyze-before-you-edit-with-plan-mode) | Reads only | Exploring a codebase before changing it |"
+            },
+            {
+              "type": "added",
+              "content": "| [`plan`](#analyze-before-you-edit-with-plan-mode) | Reads, plus classifier-approved commands when [auto mode](#eliminate-prompts-with-auto-mode) is available | Exploring a codebase before changing it |"
+            },
+            {
+              "type": "context",
+              "content": "| [`auto`](#eliminate-prompts-with-auto-mode) | Everything, with background safety checks | Long tasks, reducing prompt fatigue |"
+            },
+            {
+              "type": "context",
+              "content": "| [`dontAsk`](#allow-only-pre-approved-tools-with-dontask-mode) | Only pre-approved tools | Locked-down CI and scripts |"
+            },
+            {
+              "type": "context",
+              "content": "| [`bypassPermissions`](#skip-all-checks-with-bypasspermissions-mode) | Everything | Isolated containers and VMs only |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The mode that reviews every action is named **Manual** in the CLI, in `claude --help`, in the VS Code and JetBrains extensions, and in the desktop app. Its config value is `default`, which is what hooks and SDK integrations use. The CLI accepts `manual` as an alias wherever you type the value, for example `claude --permission-mode manual` or `\"defaultMode\": \"manual\"`. The Manual label and the `manual` alias require Claude Code v2.1.200 or later. The desktop app's label doesn't depend on your CLI version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In every mode except `bypassPermissions`, writes to [protected paths](#protected-paths) are never auto-approved, guarding repository state and Claude's own configuration against accidental corruption."
+            },
+            {
+              "type": "added",
+              "content": "Writes to [protected paths](#protected-paths) are never auto-approved except in `bypassPermissions` mode and in planning sessions with bypass permissions available, guarding repository state and Claude's own configuration against accidental corruption."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Modes set the baseline. Layer [permission rules](/docs/en/permissions#manage-permissions) on top to pre-approve or block specific tools. These controls apply in every mode, including `bypassPermissions`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -140,9 +140,9 @@ claude --permission-mode acceptEdits",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Analyze before you edit with plan mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Plan mode tells Claude to research and propose changes without making them. Claude reads files, runs shell commands to explore, and writes a plan, but does not edit your source. Permission prompts apply as they do in Manual mode unless [auto mode](/docs/en/auto-mode-config) is available and `useAutoModeDuringPlan` is on, which is the default. With auto mode active, the classifier approves read-only commands such as searches and file reads without prompting. Edits stay blocked either way until you approve the plan."
+            },
+            {
+              "type": "added",
+              "content": "Plan mode tells Claude to research and propose changes without making them. Claude reads files, runs shell commands to explore, and writes a plan, but does not edit your source. Except in sessions with [bypass permissions available](#skip-all-checks-with-bypasspermissions-mode), edits stay blocked until you approve the plan."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Shell commands outside the [built-in read-only set](/docs/en/permissions#read-only-commands), including file-modifying ones such as `touch` and `rm`, prompt for approval in plan mode, including when auto mode is active during planning and when the sandbox's [auto-allow mode](/docs/en/sandboxing#sandbox-modes) is enabled."
+            },
+            {
+              "type": "added",
+              "content": "When [auto mode](/docs/en/auto-mode-config) is available and the `useAutoModeDuringPlan` setting is on, which it is by default, the classifier reviews shell commands during planning instead of prompting you. Approved commands run, and rejected ones are blocked. Otherwise, commands outside the [built-in read-only set](/docs/en/permissions#read-only-commands) prompt for approval, including when the sandbox's [auto-allow mode](/docs/en/sandboxing#sandbox-modes) is enabled. Sessions with [bypass permissions available](#skip-all-checks-with-bypasspermissions-mode) skip both paths; that section covers what still prompts there. In sessions without them, commands outside the read-only set prompted either way in v2.1.212 through v2.1.217."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Enter plan mode by pressing `Shift+Tab` or prefixing a single prompt with `/plan`. You can also start in plan mode from the CLI:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -183,7 +183,7 @@ Eliminate permission prompts with auto mode",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Auto mode lets Claude execute without routine permission prompts. A separate classifier model reviews actions before they run, blocking anything that escalates beyond your request, targets unrecognized infrastructure, or appears driven by hostile content Claude read. Explicit [ask rules](/docs/en/permissions#manage-permissions) still force a prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, prompt for approval instead of going to the classifier. This prompt also fires when the command contains command substitution with `$(...)` or backticks, or process substitution with `<(...)`, whether the removal sits inside the substitution, as in `echo \"$(rm -rf ~)\"`, or elsewhere in the same command. Before v2.1.208, commands containing those forms went to the classifier instead of prompting."
+            },
+            {
+              "type": "added",
+              "content": "The classifier also decides removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, including when the removal sits inside command or process substitution. Before v2.1.218, the plain forms prompted for approval instead, and the substitution forms prompted in v2.1.208 through v2.1.217."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Auto mode also nudges Claude to keep working without stopping for clarifying questions, though Claude still asks when your prompt or a skill explicitly relies on it. For stronger autonomous behavior while keeping permission prompts, set the [Proactive output style](/docs/en/output-styles) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -373,6 +373,8 @@ Explicit [ask rules](/docs/en/permissions#manage-permissions) and connector tool",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, still prompt as a circuit breaker against model error. The circuit breaker also fires when the command contains command substitution with `$(...)` or backticks, or process substitution with `<(...)`, whether the removal sits inside the substitution, as in `echo \"$(rm -rf ~)\"`, or elsewhere in the same command. The plain form, typed as its own command, has prompted in this mode since the circuit breaker was introduced; before v2.1.208, commands containing those forms didn't prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In sessions with bypass permissions available, Claude Code also doesn't enforce [plan mode's](#analyze-before-you-edit-with-plan-mode) blocks. Claude is still instructed to plan without editing, but a file edit or shell command it attempts during planning runs without prompting. Explicit [ask rules](/docs/en/permissions#manage-permissions) and the removal circuit breaker above still prompt."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Only use this mode in isolated environments like containers, VMs, or dev containers without internet access, where Claude Code cannot damage your host system."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can't enter `bypassPermissions` from a session that was started without it enabled. Enable it at launch with `permissions.defaultMode: \"bypassPermissions\"` in [settings](/docs/en/settings#permission-settings) or with an enabling flag:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -399,11 +401,12 @@ The check is skipped automatically inside a recognized sandbox. To run autonomou",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Protected paths"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Writes to a small set of paths are never auto-approved, in every mode except `bypassPermissions`. This prevents accidental corruption of repository state and Claude's own configuration."
+            },
+            {
+              "type": "added",
+              "content": "Writes to a small set of paths are never auto-approved, except in `bypassPermissions` mode and in planning sessions with [bypass permissions](#skip-all-checks-with-bypasspermissions-mode) available. This prevents accidental corruption of repository state and Claude's own configuration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Mode | Protected-path writes |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `default`, `acceptEdits`, `plan` | Prompted |"
+            },
+            {
+              "type": "added",
+              "content": "| `default`, `acceptEdits` | Prompted |"
+            },
+            {
+              "type": "added",
+              "content": "| `plan` | Prompted. In sessions with [bypass permissions](#skip-all-checks-with-bypasspermissions-mode) available, allowed. Otherwise, with [auto mode](#eliminate-prompts-with-auto-mode) available during planning, routed to the classifier |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` | Routed to the classifier |"
+            },
+            {
+              "type": "context",
+              "content": "| `dontAsk` | Denied |"
+            },
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Allowed |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "特定のシステムパスに対する削除コマンドの判定が、手動プロンプトから分類器によるルーティングへ変更された点と、その適用バージョンについて説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -51,7 +51,7 @@ Claude Code supports several permission modes that control how it approves tool",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `default` | Standard behavior: prompts for permission on first use of each tool. Labeled Manual in the CLI, the VS Code and JetBrains extensions, and the desktop app, and Claude Code accepts `manual` as an alias. The label and alias require Claude Code v2.1.200 or later. The desktop app's label doesn't depend on your CLI version |"
+            },
+            {
+              "type": "context",
+              "content": "| `acceptEdits` | Automatically accepts file edits and common filesystem commands such as `mkdir`, `touch`, `mv`, and `cp` for paths in the working directory or `additionalDirectories` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `plan` | Claude reads files and runs read-only shell commands to explore but doesn't edit your source files. Labeled Plan in the CLI and the VS Code extension |"
+            },
+            {
+              "type": "added",
+              "content": "| `plan` | Claude reads files and runs read-only shell commands to explore but doesn't edit your source files; with [auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode) available, classifier-approved commands also run. Labeled Plan in the CLI and the VS Code extension |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` | Auto-approves tool calls with background safety checks that verify actions align with your request |"
+            },
+            {
+              "type": "context",
+              "content": "| `dontAsk` | Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` rules. `AskUserQuestion`, connector tools [your organization set to `ask`](/docs/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/docs/en/mcp#require-approval-for-a-specific-tool) are denied even if you've allowed them |"
+            },
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Skips permission prompts, except those forced by explicit `ask` rules, connector tools [your organization set to `ask`](/docs/en/mcp#organization-controls-on-connector-tools), and MCP tools marked [`requiresUserInteraction`](/docs/en/mcp#require-approval-for-a-specific-tool). Root and home directory removals such as `rm -rf /` also still prompt as a circuit breaker |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -456,13 +456,13 @@ Use both for defense-in-depth:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you enable sandboxing and leave `autoAllowBashIfSandboxed` at its default of `true`, sandboxed Bash commands run without prompting even if your permissions include a bare `Bash` ask rule, or the [equivalent `Bash(*)` form](#match-all-uses-of-a-tool): the sandbox boundary substitutes for that whole-tool prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In [plan mode](/docs/en/permission-modes#analyze-before-you-edit-with-plan-mode), Claude Code skips this substitution. Without an ask rule, the built-in read-only commands still run without prompting, and any other shell command prompts for approval while you are still planning. With a bare `Bash` ask rule, every Bash command prompts, including sandboxed read-only commands, the same as outside sandboxing. Before v2.1.212, the substitution applied in plan mode as well."
+            },
+            {
+              "type": "added",
+              "content": "In [plan mode](/docs/en/permission-modes#analyze-before-you-edit-with-plan-mode), Claude Code skips this substitution. Without an ask rule, the built-in read-only commands still run without prompting, and any other shell command prompts for approval while you are still planning, or goes to the classifier when [auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode) is available and `useAutoModeDuringPlan` is on. With a bare `Bash` ask rule, every Bash command prompts, including sandboxed read-only commands, the same as outside sandboxing. Before v2.1.212, the substitution applied in plan mode as well. In v2.1.212 through v2.1.217, those commands prompted even when auto mode was available."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These checks still apply:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Content-scoped ask rules like `Bash(git push *)` still force a prompt"
+            },
+            {
+              "type": "context",
+              "content": "- Explicit deny rules still apply"
+            },
+            {
+              "type": "removed",
+              "content": "- `rm` or `rmdir` commands that target `/`, your home directory, or other critical system paths still trigger a prompt"
+            },
+            {
+              "type": "added",
+              "content": "- `rm` or `rmdir` commands that target `/`, your home directory, or other critical system paths still trigger a prompt, or a classifier check in [auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode); the classifier routing requires Claude Code v2.1.218 or later"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Commands that won't run sandboxed, such as excluded commands, respect the bare `Bash` ask rule as usual. See [sandbox modes](/docs/en/sandboxing#sandbox-modes) to change this behavior."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandboxing.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "サンドボックス環境内のplanモードにおいて、auto-allow設定よりもオートモードによる分類器の判定が優先される挙動が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -99,7 +99,7 @@ Claude Code offers two sandbox modes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Even in auto-allow mode, the following still apply:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Explicit [deny rules](/docs/en/permissions) are always respected"
+            },
+            {
+              "type": "removed",
+              "content": "- `rm` or `rmdir` commands that target `/`, your home directory, or other critical system paths still trigger a permission prompt"
+            },
+            {
+              "type": "added",
+              "content": "- `rm` or `rmdir` commands that target `/`, your home directory, or other critical system paths still trigger a permission prompt, or a classifier check in [auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode); the classifier routing requires Claude Code v2.1.218 or later"
+            },
+            {
+              "type": "context",
+              "content": "- Content-scoped [ask rules](/docs/en/permissions) like `Bash(git push *)` still force a prompt even for sandboxed commands"
+            },
+            {
+              "type": "context",
+              "content": "- A bare `Bash` ask rule, or the equivalent `Bash(*)` form, is skipped for commands that run sandboxed; it still applies to commands that fall back to the regular permission flow. In [plan mode](/docs/en/permission-modes#analyze-before-you-edit-with-plan-mode), the rule isn't skipped: it prompts for sandboxed commands too, including read-only ones. Before v2.1.212, the skip applied in plan mode as well"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -115,7 +115,7 @@ You can disable this escape hatch by setting `\"allowUnsandboxedCommands\": false`",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Auto-allow mode works independently of your permission mode setting, with one exception: [plan mode](/docs/en/permission-modes#analyze-before-you-edit-with-plan-mode). Even if you're not in \"accept edits\" mode, sandboxed Bash commands run automatically when auto-allow is enabled. This means Bash commands that modify files within the sandbox boundaries execute without prompting, even when file edit tools would normally require approval."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In plan mode, only [read-only commands](/docs/en/permissions#read-only-commands) run without prompting; any other Bash command prompts for approval even with auto-allow enabled. Before v2.1.212, auto-allow ran sandboxed commands without a prompt in plan mode too."
+            },
+            {
+              "type": "added",
+              "content": "In plan mode, auto-allow doesn't widen approvals. Bash commands outside the [built-in read-only set](/docs/en/permissions#read-only-commands) prompt for approval even with auto-allow enabled, or go to the classifier when [auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode) is available and `useAutoModeDuringPlan` is on; in v2.1.212 through v2.1.217 they always prompted. Before v2.1.212, auto-allow ran sandboxed commands without a prompt in plan mode too."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configure sandboxing"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
