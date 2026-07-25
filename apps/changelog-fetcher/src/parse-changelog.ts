@@ -16,10 +16,17 @@ async function main(): Promise<void> {
 
   await store.deleteFetchSummary();
   // DETECTED_HASH は本番 workflow から workflow_dispatch inputs 経由で必ず注入される。
-  // ローカル/手動実行時は未定義となり、その場合 client はハッシュ検証をスキップして 1 回だけ取得する。
+  // ローカル実行時は未定義となり、その場合 client はハッシュ検証をスキップする。
   const expectedHash = process.env['DETECTED_HASH'];
+  const githubToken = process.env['GH_TOKEN'];
+  if (!githubToken) {
+    throw new Error('GH_TOKEN が設定されていません');
+  }
   const result = await fetchChangelog({
-    source: new ClaudeCodeChangelogClient(expectedHash ? { expectedHash } : {}),
+    source: new ClaudeCodeChangelogClient({
+      githubToken,
+      ...(expectedHash ? { expectedHash } : {}),
+    }),
     store,
   });
   await store.saveFetchSummary(result.summary);

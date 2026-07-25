@@ -1,11 +1,15 @@
 import { getLogger } from '@claude-code-changelog-viewer/common';
+import { z } from 'zod';
 
 const CHANGELOG_URL =
-  'https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md';
+  'https://api.github.com/repos/anthropics/claude-code/contents/CHANGELOG.md?ref=main';
 const KV_KEY = 'changelog-detection-state';
 const DISPATCH_URL =
   'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/actions/workflows/changelog-auto-inference.yml/dispatches';
+const RUNS_URL =
+  'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/actions/workflows/changelog-auto-inference.yml/runs?event=workflow_dispatch&per_page=100';
 const USER_AGENT = 'notification-worker-changelog-detection';
+const MAX_ATTEMPTS = 3;
 
 const logger = getLogger({
   name: 'changelog-detection',
@@ -13,12 +17,31 @@ const logger = getLogger({
   format: 'json',
 });
 
-type ChangelogDetectionState = {
-  readonly contentHash: string;
-  readonly lastCheckedAt: string;
-  readonly lastDispatchedAt: string | null;
-  readonly lastDispatchedHash: string | null;
+const ChangelogDetectionStateSchema = z.object({
+  contentHash: z.string(),
+  lastCheckedAt: z.string(),
+  lastDispatchedAt: z.string(),
+  lastDispatchedHash: z.string(),
+  attempts: z.number(),
+  confirmed: z.boolean(),
+});
+
+type ChangelogDetectionState = z.infer<typeof ChangelogDetectionStateSchema>;
+
+type WorkflowRun = {
+  readonly name: string;
+  readonly status: string;
+  readonly conclusion: string | null;
 };
+
+function createGitHubHeaders(token: string, accept: string) {
+  return {
+    Accept: accept,
+    Authorization: `Bearer ${token}`,
+    'X-GitHub-Api-Version': '2022-11-28',
+    'User-Agent': USER_AGENT,
+  };
+}
 
 export async function detectChangelogUpdate(
   bindings: CloudflareBindings,
@@ -26,9 +49,11 @@ export async function detectChangelogUpdate(
 ): Promise<void> {
   const fetchedAt = now.toISOString();
 
-  const response = await fetch(`${CHANGELOG_URL}?cb=${now.getTime()}`, {
-    cf: { cacheTtl: 0 },
-    headers: { 'User-Agent': USER_AGENT },
+  const response = await fetch(CHANGELOG_URL, {
+    headers: createGitHubHeaders(
+      bindings.GITHUB_DISPATCH_TOKEN,
+      'application/vnd.github.raw',
+    ),
   });
   if (!response.ok) {
     throw new Error(
@@ -42,9 +67,61 @@ export async function detectChangelogUpdate(
 
   if (previous && previous.contentHash === contentHash) {
     logger.info('CHANGELOG に変化なし', { hash: contentHash });
+
+    if (previous.confirmed || previous.attempts >= MAX_ATTEMPTS) {
+      await writeState(bindings.CHANGELOG_DETECTION_KV, {
+        ...previous,
+        lastCheckedAt: fetchedAt,
+      });
+      return;
+    }
+
+    const runsResponse = await fetch(RUNS_URL, {
+      headers: createGitHubHeaders(
+        bindings.GITHUB_DISPATCH_TOKEN,
+        'application/vnd.github+json',
+      ),
+    });
+    if (!runsResponse.ok) {
+      throw new Error(
+        `workflow run の取得に失敗しました: ${runsResponse.status} ${runsResponse.statusText}`,
+      );
+    }
+    const { workflow_runs: runs } = (await runsResponse.json()) as {
+      workflow_runs: WorkflowRun[];
+    };
+    // workflow_dispatch は run id を返さないため、ハッシュ入り run-name で一意に特定する。
+    const run = runs.find((candidate) =>
+      candidate.name.includes(previous.lastDispatchedHash),
+    );
+
+    if (run?.status !== 'completed') {
+      await writeState(bindings.CHANGELOG_DETECTION_KV, {
+        ...previous,
+        lastCheckedAt: fetchedAt,
+      });
+      return;
+    }
+
+    if (run.conclusion === 'success') {
+      await writeState(bindings.CHANGELOG_DETECTION_KV, {
+        ...previous,
+        lastCheckedAt: fetchedAt,
+        confirmed: true,
+      });
+      return;
+    }
+
+    await dispatchWorkflow(
+      bindings.GITHUB_DISPATCH_TOKEN,
+      contentHash,
+      fetchedAt,
+    );
     await writeState(bindings.CHANGELOG_DETECTION_KV, {
       ...previous,
       lastCheckedAt: fetchedAt,
+      lastDispatchedAt: fetchedAt,
+      attempts: previous.attempts + 1,
     });
     return;
   }
@@ -64,6 +141,8 @@ export async function detectChangelogUpdate(
     lastCheckedAt: fetchedAt,
     lastDispatchedAt: fetchedAt,
     lastDispatchedHash: contentHash,
+    attempts: 1,
+    confirmed: false,
   });
 }
 
@@ -83,7 +162,8 @@ async function readState(
     return null;
   }
   try {
-    return JSON.parse(raw) as ChangelogDetectionState;
+    const result = ChangelogDetectionStateSchema.safeParse(JSON.parse(raw));
+    return result.success ? result.data : null;
   } catch {
     return null;
   }
@@ -104,10 +184,7 @@ async function dispatchWorkflow(
   const response = await fetch(DISPATCH_URL, {
     method: 'POST',
     headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': USER_AGENT,
+      ...createGitHubHeaders(token, 'application/vnd.github+json'),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({

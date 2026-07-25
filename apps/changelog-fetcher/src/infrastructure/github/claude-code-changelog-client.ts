@@ -1,98 +1,67 @@
 import { createHash } from 'node:crypto';
 import { getLogger } from '@claude-code-changelog-viewer/common';
-import pRetry, { AbortError } from 'p-retry';
 import type { ChangelogSourcePort } from '../../usecase/fetch-changelog';
 import { parseChangelogReleases } from '../docs/changelog-markdown-parser';
 
 const CHANGELOG_URL =
-  'https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md';
-
-const DEFAULT_RETRY_DELAY_MS = 60 * 1000;
-const DEFAULT_RETRIES = 3;
+  'https://api.github.com/repos/anthropics/claude-code/contents/CHANGELOG.md?ref=main';
 
 const log = getLogger({ name: 'changelog-fetcher' });
 
-type RetryOptions = {
-  delayMs?: number;
-  retries?: number;
-};
-
 type ClientOptions = {
+  githubToken: string;
   // notification-worker が検知した CHANGELOG.md の sha256。
   // 本番 workflow からは workflow_dispatch inputs 経由で必ず渡される。
-  // ローカル/手動実行時は未指定で、その場合はハッシュ検証をスキップし 1 回だけ取得する。
+  // ローカル実行時は未指定にでき、その場合はハッシュ検証をスキップする。
   expectedHash?: string;
-  // テスト容易化用。本番は delayMs=60s, retries=3 がデフォルト。
-  retryOptions?: RetryOptions;
 };
 
 export class ClaudeCodeChangelogClient implements ChangelogSourcePort {
+  private readonly githubToken: string;
   private readonly expectedHash?: string;
-  private readonly delayMs: number;
-  private readonly retries: number;
 
-  constructor(options: ClientOptions = {}) {
+  constructor(options: ClientOptions) {
+    this.githubToken = options.githubToken;
     if (options.expectedHash !== undefined) {
       this.expectedHash = options.expectedHash;
     }
-    this.delayMs = options.retryOptions?.delayMs ?? DEFAULT_RETRY_DELAY_MS;
-    this.retries = options.retryOptions?.retries ?? DEFAULT_RETRIES;
   }
 
   async fetchReleases() {
-    const maxAttempts = this.retries + 1;
+    // raw.githubusercontent.com はクエリ文字列を共有キャッシュキーに含めないため使わない。
+    const response = await fetch(CHANGELOG_URL, {
+      headers: {
+        Accept: 'application/vnd.github.raw',
+        Authorization: `Bearer ${this.githubToken}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'claude-code-changelog-viewer',
+      },
+    });
 
-    return pRetry(
-      async () => {
-        const response = await fetch(`${CHANGELOG_URL}?cb=${Date.now()}`, {
-          headers: { 'Cache-Control': 'no-cache' },
+    if (!response.ok) {
+      throw new Error(
+        `CHANGELOG.md の取得に失敗しました: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const markdown = await response.text();
+
+    if (this.expectedHash !== undefined) {
+      const actualHash = createHash('sha256')
+        .update(markdown, 'utf-8')
+        .digest('hex');
+      if (actualHash !== this.expectedHash) {
+        // 検知後に上流が更新された場合、再取得しても古い期待値には一致しないため即時失敗する。
+        log.msg('APLG0025', {
+          params: [this.expectedHash, actualHash],
         });
+        throw new HashMismatchError(this.expectedHash, actualHash);
+      }
+    }
 
-        if (!response.ok) {
-          const message = `CHANGELOG.md の取得に失敗しました: ${response.status} ${response.statusText}`;
-          // 4xx は再試行しても直らないので即中断
-          if (response.status >= 400 && response.status < 500) {
-            throw new AbortError(message);
-          }
-          throw new Error(message);
-        }
-
-        const markdown = await response.text();
-
-        if (this.expectedHash !== undefined) {
-          const actualHash = createHash('sha256')
-            .update(markdown, 'utf-8')
-            .digest('hex');
-          if (actualHash !== this.expectedHash) {
-            throw new HashMismatchError(this.expectedHash, actualHash);
-          }
-        }
-
-        const releases = parseChangelogReleases(markdown);
-        log.info(`取得完了: releases=${releases.length}`);
-        return releases;
-      },
-      {
-        retries: this.retries,
-        onFailedAttempt: async ({ error, attemptNumber }) => {
-          if (error instanceof HashMismatchError) {
-            log.msg('APLG0025', {
-              params: [
-                attemptNumber,
-                maxAttempts,
-                error.expected,
-                error.actual,
-              ],
-            });
-          } else {
-            log.msg('APLG0026', {
-              params: [attemptNumber, maxAttempts, error.message],
-            });
-          }
-          await new Promise((resolve) => setTimeout(resolve, this.delayMs));
-        },
-      },
-    );
+    const releases = parseChangelogReleases(markdown);
+    log.info(`取得完了: releases=${releases.length}`);
+    return releases;
   }
 }
 
