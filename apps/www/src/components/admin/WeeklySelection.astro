@@ -72,9 +72,9 @@ const { current, weeks } = Astro.props;
               }
             </div>
             <p class='mt-1.5 text-xs text-[hsl(var(--cc-main-black)/0.55)]'>
-              {current.periodStart} – {current.periodEnd}（{
+              {current.periodStart} – {current.periodEnd}({
                 current.items.length
-              }件）
+              }件)
             </p>
           </div>
           <div class='flex gap-2'>
@@ -143,6 +143,76 @@ const { current, weeks } = Astro.props;
       </div>
     </div>
   </div>
+
+  <!-- 掲載する item だけが使う UI のため、静的出力せずチェック時に複製する -->
+  <template id='weekly-image-template'>
+    <div
+      class='mt-3 rounded-md border border-dashed border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white)/0.75)] p-4 transition-colors'
+    >
+      <button
+        data-dropzone
+        type='button'
+        class='block w-full cursor-pointer text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))] disabled:cursor-not-allowed disabled:opacity-50'
+      >
+        <span class='block text-sm text-[hsl(var(--cc-main-black)/0.65)]'>
+          画像をドロップ、クリックしてファイルを選択、またはフォーカス中に貼り付け(⌘V
+          / Ctrl+V)
+        </span>
+        <span class='mt-2 block text-xs text-[hsl(var(--cc-main-black)/0.5)]'>
+          PNG・JPEG・WebP / 5MB まで
+        </span>
+      </button>
+      <input
+        data-file
+        type='file'
+        accept='image/png,image/jpeg,image/webp'
+        class='sr-only'
+      />
+      <div data-preview hidden>
+        <div class='flex items-center gap-4'>
+          <img
+            data-thumbnail
+            alt='添付した画像のプレビュー'
+            width='96'
+            height='96'
+            loading='lazy'
+            decoding='async'
+            class='size-24 shrink-0 rounded-md border border-[hsl(var(--cc-gray))] bg-white object-contain'
+          />
+          <div class='flex min-w-0 flex-col gap-2.5'>
+            <p class='text-xs text-[hsl(var(--cc-main-black)/0.6)]'>
+              アップロード済み
+            </p>
+            <div class='flex flex-wrap gap-2'>
+              <button
+                data-replace
+                type='button'
+                class='inline-flex cursor-pointer items-center justify-center rounded-md border border-[hsl(var(--cc-gray))] bg-white px-4 py-2 text-sm font-semibold text-[hsl(var(--cc-main-black))] transition-colors hover:bg-[hsl(var(--cc-gray)/0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))] disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                差し替え
+              </button>
+              <button
+                data-delete
+                type='button'
+                class='inline-flex cursor-pointer items-center justify-center rounded-md border border-[hsl(var(--cc-gray))] bg-white px-4 py-2 text-sm font-semibold text-[hsl(var(--cc-main-black))] transition-colors hover:bg-[hsl(var(--cc-gray)/0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))] disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                削除
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p
+        data-status
+        hidden
+        role='status'
+        class='mt-2 text-sm text-[hsl(var(--cc-main-black)/0.65)]'
+      >
+        アップロード中…
+      </p>
+      <p data-error hidden role='alert' class='mt-2 text-sm text-red-700'></p>
+    </div>
+  </template>
 </Layout>
 
 <script is:inline>
@@ -154,9 +224,23 @@ const { current, weeks } = Astro.props;
       return;
     }
 
+    // 同一オリジンに送るのは CORS と cross-origin Cookie を避けるため
+    // このパスは管理画面と同じ Access アプリで保護され、Worker が JWT を検証する
+    const UPLOAD_URL = '/api/uploads';
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+    const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+    // ドラッグ中の枠線ハイライト。複数クラスを付け外しするため配列で持つ
+    const DRAG_OVER_CLASSES = [
+      'border-[hsl(var(--cc-main-orange))]',
+      'bg-[hsl(var(--cc-main-orange)/0.06)]',
+    ];
+
     const { week, periodStart, periodEnd, totalItems } = root.dataset;
     const storageKey = `weekly-admin-selection:${week}`;
     const sections = [...root.querySelectorAll('.weekly-item')];
+    const imageTemplate = document.querySelector('#weekly-image-template');
+    // 添付欄はチェックが入った item にだけ生成する。item ごとの生成済み判定に使う
+    const imageSlots = new Map();
     const copyButton = root.querySelector('#copy-button');
     const clearButton = root.querySelector('#clear-button');
 
@@ -167,41 +251,204 @@ const { current, weeks } = Astro.props;
       state = {};
     }
 
-    function syncComment(section, checked) {
-      const comment = section.querySelector('[data-comment]');
-      comment.hidden = !checked;
-      comment.querySelector('textarea').disabled = !checked;
+    // アップロード・差し替え・削除を1つの item に配線する
+    // save は { imageUrl } の部分更新で呼ぶ
+    function setupImageSlot(section, itemId, save) {
+      const slot = imageTemplate.content.firstElementChild.cloneNode(true);
+      const dropzone = slot.querySelector('[data-dropzone]');
+      const fileInput = slot.querySelector('[data-file]');
+      const preview = slot.querySelector('[data-preview]');
+      const thumbnail = slot.querySelector('[data-thumbnail]');
+      const status = slot.querySelector('[data-status]');
+      const error = slot.querySelector('[data-error]');
+      const formControls = [...slot.querySelectorAll('input, button')];
+
+      const render = (url) => {
+        dropzone.hidden = Boolean(url);
+        preview.hidden = !url;
+        // src を空文字にすると壊れ画像になるため、消す時は属性ごと落とす
+        if (url) {
+          thumbnail.src = url;
+        } else {
+          thumbnail.removeAttribute('src');
+        }
+      };
+
+      const clear = () => {
+        render(undefined);
+        error.hidden = true;
+      };
+
+      let uploading = false;
+      const upload = async (file) => {
+        if (uploading) {
+          return;
+        }
+        error.hidden = true;
+        // サーバ側でも検証するが、5MB の送信を待たせないため手前で弾く
+        if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+          error.textContent = 'PNG・JPEG・WebP のみアップロードできます';
+          error.hidden = false;
+          return;
+        }
+        if (file.size > MAX_IMAGE_SIZE) {
+          error.textContent = '画像は 5MB 以下にしてください';
+          error.hidden = false;
+          return;
+        }
+
+        uploading = true;
+        status.hidden = false;
+        dropzone.setAttribute('aria-busy', 'true');
+        for (const control of formControls) {
+          control.disabled = true;
+        }
+
+        const body = new FormData();
+        body.append('week', week);
+        body.append('itemId', itemId);
+        body.append('file', file);
+        try {
+          const response = await fetch(UPLOAD_URL, {
+            method: 'POST',
+            body,
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok || typeof result.url !== 'string') {
+            throw new Error(result.error ?? 'アップロードに失敗しました');
+          }
+          render(result.url);
+          save({ imageUrl: result.url });
+        } catch (cause) {
+          error.textContent =
+            cause instanceof Error
+              ? cause.message
+              : 'アップロードに失敗しました';
+          error.hidden = false;
+        } finally {
+          uploading = false;
+          status.hidden = true;
+          dropzone.removeAttribute('aria-busy');
+          for (const control of formControls) {
+            control.disabled = false;
+          }
+        }
+      };
+
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
+        // 同じファイルを選び直しても change が発火するよう値を戻す
+        fileInput.value = '';
+        if (file) {
+          void upload(file);
+        }
+      });
+      for (const button of [dropzone, slot.querySelector('[data-replace]')]) {
+        button.addEventListener('click', () => fileInput.click());
+      }
+
+      // 差し替え時もドロップできるよう、枠全体でドラッグを受ける
+      slot.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        slot.classList.add(...DRAG_OVER_CLASSES);
+      });
+      slot.addEventListener('dragleave', (event) => {
+        if (slot.contains(event.relatedTarget)) {
+          return;
+        }
+        slot.classList.remove(...DRAG_OVER_CLASSES);
+      });
+      slot.addEventListener('drop', (event) => {
+        event.preventDefault();
+        slot.classList.remove(...DRAG_OVER_CLASSES);
+        const file = event.dataTransfer?.files[0];
+        if (file) {
+          void upload(file);
+        }
+      });
+
+      // スクリーンショットの貼り付けが主な使い方のため、item 内のどこに
+      // フォーカスがあってもペーストを拾う(添付欄・コメント欄の両方)
+      section.addEventListener('paste', (event) => {
+        if (slot.hidden) {
+          return;
+        }
+        const file = [...(event.clipboardData?.items ?? [])]
+          .find((item) => item.kind === 'file')
+          ?.getAsFile();
+        if (file) {
+          event.preventDefault();
+          void upload(file);
+        }
+      });
+
+      slot.querySelector('[data-delete]').addEventListener('click', () => {
+        clear();
+        save({ imageUrl: undefined });
+      });
+
+      render(state[itemId]?.imageUrl);
+      section.append(slot);
+      return { element: slot, clear };
     }
 
-    for (const section of sections) {
+    const controls = sections.map((section) => {
       const checkbox = section.querySelector('input[type="checkbox"]');
-      const textarea = section.querySelector('textarea');
+      const comment = section.querySelector('[data-comment]');
+      const textarea = comment.querySelector('textarea');
       const itemId = checkbox.dataset.itemId;
       const saved = state[itemId];
-      if (saved) {
-        checkbox.checked = saved.checked;
-        textarea.value = saved.comment;
-      }
-      syncComment(section, checkbox.checked);
 
-      const save = () => {
-        if (checkbox.checked || textarea.value) {
-          state[itemId] = {
-            checked: checkbox.checked,
-            comment: textarea.value,
-          };
+      const save = (patch) => {
+        const next = {
+          checked: checkbox.checked,
+          comment: textarea.value,
+          imageUrl: state[itemId]?.imageUrl,
+          ...patch,
+        };
+        if (next.checked || next.comment || next.imageUrl) {
+          state[itemId] = next;
         } else {
           delete state[itemId];
         }
         localStorage.setItem(storageKey, JSON.stringify(state));
       };
 
+      const syncItem = () => {
+        comment.hidden = !checkbox.checked;
+        textarea.disabled = !checkbox.checked;
+        if (checkbox.checked && !imageSlots.has(itemId)) {
+          imageSlots.set(itemId, setupImageSlot(section, itemId, save));
+        }
+        const imageSlot = imageSlots.get(itemId);
+        if (imageSlot) {
+          imageSlot.element.hidden = !checkbox.checked;
+        }
+      };
+
+      if (saved) {
+        checkbox.checked = saved.checked;
+        textarea.value = saved.comment;
+      }
+      syncItem();
+
       checkbox.addEventListener('change', () => {
-        syncComment(section, checkbox.checked);
+        syncItem();
         save();
       });
-      textarea.addEventListener('input', save);
-    }
+      textarea.addEventListener('input', () => save());
+
+      return {
+        checkbox,
+        textarea,
+        reset: () => {
+          checkbox.checked = false;
+          textarea.value = '';
+          syncItem();
+          imageSlots.get(itemId)?.clear();
+        },
+      };
+    });
 
     clearButton.addEventListener('click', () => {
       if (
@@ -209,27 +456,23 @@ const { current, weeks } = Astro.props;
       ) {
         return;
       }
-      for (const section of sections) {
-        const checkbox = section.querySelector('input[type="checkbox"]');
-        checkbox.checked = false;
-        section.querySelector('textarea').value = '';
-        syncComment(section, false);
+      for (const control of controls) {
+        control.reset();
       }
       state = {};
       localStorage.removeItem(storageKey);
     });
 
     copyButton.addEventListener('click', async () => {
-      const items = sections
-        .filter(
-          (section) => section.querySelector('input[type="checkbox"]').checked,
-        )
-        .map((section) => {
-          const checkbox = section.querySelector('input[type="checkbox"]');
+      const items = controls
+        .filter(({ checkbox }) => checkbox.checked)
+        .map(({ checkbox, textarea }) => {
+          const imageUrl = state[checkbox.dataset.itemId]?.imageUrl;
           return {
             id: checkbox.dataset.itemId,
             version: checkbox.dataset.version,
-            comment: section.querySelector('textarea').value,
+            comment: textarea.value,
+            ...(imageUrl ? { image_url: imageUrl } : {}),
           };
         });
       const content = JSON.stringify(

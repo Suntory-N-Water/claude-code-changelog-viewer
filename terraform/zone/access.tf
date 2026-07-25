@@ -1,6 +1,6 @@
 # Cloudflare Access - 管理画面のアクセス制御
 
-# /admin/weekly をメールアドレスで限定する
+# /admin/weekly と画像アップロード API をメールアドレスで限定する
 resource "cloudflare_zero_trust_access_application" "weekly_admin" {
   zone_id              = var.zone_id
   name                 = "週次アップデート記事の選定"
@@ -15,17 +15,9 @@ resource "cloudflare_zero_trust_access_application" "weekly_admin" {
     },
     {
       type = "public"
-      uri  = "api.${var.domain}"
+      uri  = "${var.domain}/api/uploads"
     },
   ]
-
-  cors_headers = {
-    allowed_origins   = ["https://${var.domain}"]
-    allow_credentials = true
-    allowed_methods   = ["GET", "POST", "OPTIONS"]
-    allowed_headers   = ["Content-Type"]
-    max_age           = 86400
-  }
 
   policies = [
     {
