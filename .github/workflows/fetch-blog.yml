@@ -20,7 +20,6 @@ jobs:
       contents: read
 
     outputs:
-      fetch_failed: ${{ steps.fetch-blog.outcome == 'failure' }}
       should_push: ${{ steps.git-check.outputs.should_push }}
       changed_files: ${{ steps.git-check.outputs.changed_files }}
       claude_changes: ${{ steps.git-check.outputs.claude_changes }}
@@ -38,8 +37,6 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: blog を取得
-        id: fetch-blog
-        continue-on-error: true
         run: pnpm run fetch:blog
         env:
           NODE_ENV: production
@@ -163,7 +160,7 @@ jobs:
 
   notify-failure:
     needs: [fetch, pr]
-    if: failure() || needs.fetch.outputs.fetch_failed == 'true'
+    if: failure()
     runs-on: ubuntu-latest
     timeout-minutes: 5
 

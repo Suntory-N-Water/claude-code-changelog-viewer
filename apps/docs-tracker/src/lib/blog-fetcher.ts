@@ -98,8 +98,10 @@ export class BlogFetcher {
       );
 
       for (const result of results) {
-        if (result.status === 'fulfilled' && result.value) {
-          newCount += 1;
+        if (result.status === 'fulfilled') {
+          if (result.value) {
+            newCount += 1;
+          }
           continue;
         }
 
@@ -176,6 +178,17 @@ export class BlogFetcher {
       accept: 'text/html, application/xhtml+xml, */*',
       url,
     });
+
+    // 別サイトへ移行した記事はリダイレクト先の DOM 構造が異なり本文を抽出できない。
+    // 移行先は別の source が取得するため、ここでは取得対象から外す。
+    if (!response.url.startsWith(this.config.urlPrefix)) {
+      this.log.info('別サイトへ移行済みのため取得をスキップしました', {
+        'source.url': url,
+        'redirect.url': response.url,
+      });
+      return false;
+    }
+
     const html = await response.text();
     const article = this.extractArticle(html, url);
     const contentHash = createHash('sha256')
