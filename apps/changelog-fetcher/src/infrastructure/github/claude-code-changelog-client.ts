@@ -51,7 +51,7 @@ export class ClaudeCodeChangelogClient implements ChangelogSourcePort {
         .update(markdown, 'utf-8')
         .digest('hex');
       if (actualHash !== this.expectedHash) {
-        // Contents API で残る不一致は上流更新との競合なので、再取得しても古いハッシュには一致しない。
+        // 検知後に上流が更新された場合、再取得しても古い期待値には一致しないため即時失敗する。
         log.msg('APLG0025', {
           params: [this.expectedHash, actualHash],
         });

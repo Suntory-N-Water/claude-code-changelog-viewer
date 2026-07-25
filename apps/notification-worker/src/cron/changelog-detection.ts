@@ -1,4 +1,5 @@
 import { getLogger } from '@claude-code-changelog-viewer/common';
+import { z } from 'zod';
 
 const CHANGELOG_URL =
   'https://api.github.com/repos/anthropics/claude-code/contents/CHANGELOG.md?ref=main';
@@ -16,20 +17,31 @@ const logger = getLogger({
   format: 'json',
 });
 
-type ChangelogDetectionState = {
-  readonly contentHash: string;
-  readonly lastCheckedAt: string;
-  readonly lastDispatchedAt: string;
-  readonly lastDispatchedHash: string;
-  readonly attempts: number;
-  readonly confirmed: boolean;
-};
+const ChangelogDetectionStateSchema = z.object({
+  contentHash: z.string(),
+  lastCheckedAt: z.string(),
+  lastDispatchedAt: z.string(),
+  lastDispatchedHash: z.string(),
+  attempts: z.number(),
+  confirmed: z.boolean(),
+});
+
+type ChangelogDetectionState = z.infer<typeof ChangelogDetectionStateSchema>;
 
 type WorkflowRun = {
   readonly name: string;
   readonly status: string;
   readonly conclusion: string | null;
 };
+
+function createGitHubHeaders(token: string, accept: string) {
+  return {
+    Accept: accept,
+    Authorization: `Bearer ${token}`,
+    'X-GitHub-Api-Version': '2022-11-28',
+    'User-Agent': USER_AGENT,
+  };
+}
 
 export async function detectChangelogUpdate(
   bindings: CloudflareBindings,
@@ -38,12 +50,10 @@ export async function detectChangelogUpdate(
   const fetchedAt = now.toISOString();
 
   const response = await fetch(CHANGELOG_URL, {
-    headers: {
-      Accept: 'application/vnd.github.raw',
-      Authorization: `Bearer ${bindings.GITHUB_DISPATCH_TOKEN}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': USER_AGENT,
-    },
+    headers: createGitHubHeaders(
+      bindings.GITHUB_DISPATCH_TOKEN,
+      'application/vnd.github.raw',
+    ),
   });
   if (!response.ok) {
     throw new Error(
@@ -67,12 +77,10 @@ export async function detectChangelogUpdate(
     }
 
     const runsResponse = await fetch(RUNS_URL, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${bindings.GITHUB_DISPATCH_TOKEN}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-        'User-Agent': USER_AGENT,
-      },
+      headers: createGitHubHeaders(
+        bindings.GITHUB_DISPATCH_TOKEN,
+        'application/vnd.github+json',
+      ),
     });
     if (!runsResponse.ok) {
       throw new Error(
@@ -154,18 +162,8 @@ async function readState(
     return null;
   }
   try {
-    const state = JSON.parse(raw) as Partial<ChangelogDetectionState>;
-    if (
-      typeof state.contentHash !== 'string' ||
-      typeof state.lastCheckedAt !== 'string' ||
-      typeof state.lastDispatchedAt !== 'string' ||
-      typeof state.lastDispatchedHash !== 'string' ||
-      typeof state.attempts !== 'number' ||
-      typeof state.confirmed !== 'boolean'
-    ) {
-      return null;
-    }
-    return state as ChangelogDetectionState;
+    const result = ChangelogDetectionStateSchema.safeParse(JSON.parse(raw));
+    return result.success ? result.data : null;
   } catch {
     return null;
   }
@@ -186,10 +184,7 @@ async function dispatchWorkflow(
   const response = await fetch(DISPATCH_URL, {
     method: 'POST',
     headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': USER_AGENT,
+      ...createGitHubHeaders(token, 'application/vnd.github+json'),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
