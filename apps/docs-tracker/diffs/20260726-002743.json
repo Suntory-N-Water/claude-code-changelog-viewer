@@ -1,0 +1,130 @@
+{
+  "id": "20260726-002743",
+  "timestamp": "2026-07-26T00:27:43.669Z",
+  "aiSummary": "対話モードにおけるCtrl+Lキーの挙動が拡張され、画面の再描画だけでなく連続入力による会話履歴のクリア機能が導入されました。フルスクリーン描画時には2秒以内にCtrl+Lを2回押すことで、スラッシュコマンドを使用せずに新しい会話を開始できます。また、プラグインのメタデータ定義において著者情報のURLフィールドが新たに追加されました。これにより開発者はプラグインにウェブサイトやGitHubプロフィールのリンクを含めることが可能になります。",
+  "files": [
+    {
+      "filename": "interactive-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "対話モードでのCtrl+Lキー操作に、2回連続で押すことで会話履歴をクリアするショートカット機能の説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -27,7 +27,7 @@ See [Terminal configuration](/docs/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Ctrl+X Ctrl+K` | Stop all running [background subagents](/docs/en/sub-agents#run-subagents-in-foreground-or-background) in this session. Press twice within 3 seconds to confirm | Subagent control |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+D` | Exit Claude Code session | The first press shows a confirmation hint and a second press within 800ms exits. When the prompt has text, `Ctrl+D` deletes the character after the cursor instead |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+G` or `Ctrl+X Ctrl+E` | Open in default text editor | Edit your prompt or custom response in your default text editor. `Ctrl+X Ctrl+E` is the readline-native binding. Turn on **Show last response in external editor** in `/config` to prepend Claude's previous reply as `#`-commented context above your prompt; Claude Code strips the comment block when you save |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Ctrl+L` | Redraw screen | Forces a full terminal redraw. Input and conversation history are kept. Use this to recover if the display becomes garbled or partially blank |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+L` | Redraw screen | Forces a full terminal redraw, keeping input and conversation history. Use this to recover if the display becomes garbled or partially blank. In [fullscreen rendering](/docs/en/fullscreen#clear-the-conversation), if you press `Ctrl+L` once, Claude Code redraws the screen and also shows a hint that pressing it again runs `/clear`. If you press it twice within two seconds, Claude Code runs `/clear` and starts a new conversation |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+O` | Toggle transcript viewer | Shows detailed tool usage and execution, with a timestamp and the model used on each assistant message. Also expands MCP calls, which collapse to a single line like \"Called slack 3 times\" by default |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+R` | Reverse search command history | Search through previous commands interactively |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows and WSL) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt. On WSL, both `Ctrl+V` and `Alt+V` are bound; use `Alt+V` if your terminal intercepts `Ctrl+V` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-marketplaces.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "プラグイン作者情報の定義にurlプロパティが追加され、ウェブサイトや組織URLを任意で設定できるようになりました。",
+      "hunks": [
+        {
+          "header": "@@ -156,6 +156,7 @@ Claude Code re-checks reserved names every time it loads a marketplace, not only",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `name` | string | Yes | Name of the maintainer or team |"
+            },
+            {
+              "type": "context",
+              "content": "| `email` | string | No | Contact email for the maintainer |"
+            },
+            {
+              "type": "added",
+              "content": "| `url` | string | No | Website, GitHub profile, or organization URL |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Optional fields"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -190,7 +191,7 @@ Each plugin entry in the `plugins` array describes a plugin and where to find it",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `displayName` | string | Human-readable name shown in UI surfaces. Falls back to `name` when omitted. May contain spaces and any casing. Not used for namespacing or lookup. Requires Claude Code v2.1.143 or later. |"
+            },
+            {
+              "type": "context",
+              "content": "| `description` | string | Brief plugin description |"
+            },
+            {
+              "type": "context",
+              "content": "| `version` | string | Plugin version. If set (here or in `plugin.json`), the plugin is pinned to this string and users only receive updates when it changes. Omit to fall back to the git commit SHA. See [Version resolution](#version-resolution-and-release-channels). |"
+            },
+            {
+              "type": "removed",
+              "content": "| `author` | object | Plugin author information (`name` required, `email` optional) |"
+            },
+            {
+              "type": "added",
+              "content": "| `author` | object | Plugin author information (`name` required; `email` and `url` optional) |"
+            },
+            {
+              "type": "context",
+              "content": "| `homepage` | string | Plugin homepage or documentation URL |"
+            },
+            {
+              "type": "context",
+              "content": "| `repository` | string | Source code repository URL |"
+            },
+            {
+              "type": "context",
+              "content": "| `license` | string | SPDX license identifier (for example, MIT, Apache-2.0) |"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
