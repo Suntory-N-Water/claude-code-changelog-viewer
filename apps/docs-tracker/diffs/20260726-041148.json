@@ -1,0 +1,187 @@
+{
+  "id": "20260726-041148",
+  "timestamp": "2026-07-26T04:11:48.453Z",
+  "aiSummary": "Agent viewにおける設定フラグの適用ルールが明確化され、--settingsや--plugin-dirが自身とセッションの両方に引き継がれる仕組みが追記されました。Windows環境向けの環境変数CLAUDE_CODE_GIT_BASH_PATHについて、不正なパスやファイル名が指定された際のフォールバック挙動と警告ログの仕様が更新されています。実行ファイルの名称制限（bash.exeやsh.exeなど）が厳格化され、以前のバージョンで発生していた起動時の強制終了問題が改善されました。トラブルシューティング手順には、セキュリティソフトによる干渉の確認方法に加えて、ファイル名が適切でない場合の自動検知プロセスが詳しく記載されています。",
+  "files": [
+    {
+      "filename": "agent-view.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Agent viewが自身に適用し各セッションへ引き継ぐフラグとして--settingsと--plugin-dirを明示し、サブエージェントや補完機能への適用ルールを補足しています。",
+      "hunks": [
+        {
+          "header": "@@ -515,7 +515,7 @@ Using `bypassPermissions` with `claude --bg --permission-mode` is refused until",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Settings, plugins, and MCP servers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Agent view accepts the same configuration flags as `claude` for loading settings, plugins, MCP servers, and additional directories. Agent view applies each flag to itself and passes it through to every session you dispatch from it, so a plugin or MCP server you load this way is available in those sessions too."
+            },
+            {
+              "type": "added",
+              "content": "Agent view accepts the same configuration flags as `claude` for loading settings, plugins, MCP servers, and additional directories. Agent view applies `--settings` and `--plugin-dir` to itself and passes every configuration flag through to the sessions you dispatch from it, so a plugin or MCP server you load this way is available in those sessions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Flag | Effect |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -790,7 +790,7 @@ Agent view has evolved quickly during research preview. If you are on an older C",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| v2.1.205 | The prompt footer's `←` hint in a regular `claude` session counts the background agents waiting on you, such as `← 2 agents`. Row summaries show the session's own one-line report, truncated at 64 columns, instead of a raw tool invocation or a `done/total` count; directory-grouped rows open with a colored state word. The peek panel opens with the full status sentence and, for a session waiting on you, its exact question above the reply input. Sessions that edit, comment on, close, or mark a pull request ready with `gh` are linked to it, not only ones that create or check out a pull request, a push links a pull request even when the local branch name doesn't match, and a pull request whose creating command's output exceeded the inline limit is linked too. A turn with no readable text keeps the session's previous state instead of flipping it back to `Working`. `claude attach` waits up to about 60 seconds for a session that's restarting, with a status line naming why, instead of failing. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.203 | A gateway `ANTHROPIC_BASE_URL` exported in the dispatching shell reaches the sessions dispatched from it into that same directory when the supervisor shares that gateway environment, instead of being dropped while the API key exported alongside it was kept. The dispatching shell's `PATH` is applied to each session's worker. Pressing `←` while subagents are running waits for them instead of restarting them after ten seconds. The empty list always shows the section headers with a description under each. Typing `@` in the dispatch input also lists the launch repository's registered git worktrees that live inside its directory tree. An effort inherited from the `effortLevel` setting follows later edits to that setting instead of being fixed at dispatch. Opening a stopped session whose conversation is already open in another running session is refused with a message instead of failing the row. A command that isn't available in agent view leaves the typed text in the input. A `WorktreeCreate` hook that fails outside a git repository no longer blocks the session from editing files. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.202 | A name set with `/rename` or `Ctrl+R` on a background session persists when the supervisor stops and restarts its process, instead of reverting to the name the session was dispatched with. |"
+            },
+            {
+              "type": "removed",
+              "content": "| v2.1.200 | An older Claude Code version that rewrites the session list in `roster.json` preserves fields written by a newer version, matching the existing `state.json` guarantee, so sessions started by the newer version keep accepting input after the supervisor restarts. When you open a session that has stopped responding, the supervisor restarts its process and the session continues the interrupted response from where it left off. Agent view applies configuration flags placed after `agents`, such as `--plugin-dir`, to its own subagent and skill autocomplete in the dispatch input as well as dispatched sessions. |"
+            },
+            {
+              "type": "added",
+              "content": "| v2.1.200 | An older Claude Code version that rewrites the session list in `roster.json` preserves fields written by a newer version, matching the existing `state.json` guarantee, so sessions started by the newer version keep accepting input after the supervisor restarts. When you open a session that has stopped responding, the supervisor restarts its process and the session continues the interrupted response from where it left off. Agent view applies a `--plugin-dir` flag placed after `agents` to its own subagent and skill autocomplete in the dispatch input as well as dispatched sessions. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.199 | A background session whose process exits before it finishes starting on a low-memory host shows `possibly low memory — free some up and retry` in its row status instead of only the bare exit reason. Backgrounding a session with `←` or `/background` carries its `/color` over to the new row. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.198 | Agent view sends a notification through `preferredNotifChannel` when a background session needs input, finishes, or fails, and fires the `Notification` hook with the `agent_needs_input` or `agent_completed` type. `←` and `/exit` inside `claude attach <id>` return to agent view instead of exiting to the shell; `Ctrl+Z` returns to the shell. A background session that isolated its work in a worktree commits, pushes its own isolated branch, never `main` or `master`, and opens a draft pull request when it finishes instead of asking first. `/login` runs in agent view and opens the sign-in dialog. The `Background work is running` exit dialog offers `Move to background and exit`. The exit handoff also covers background subagents, which resume from their transcript on the next wake instead of being reported as failed. `claude --bg` combined with `-p` or `--print` is rejected with an error. The background session host requests macOS Local Network permission on first LAN access instead of failing with `connect: no route to host`. |"
+            },
+            {
+              "type": "context",
+              "content": "| v2.1.196 | A single `←` press backgrounds a foreground session; earlier versions required two presses, with a footer hint and a confirm. `--dangerously-skip-permissions` passed to `claude agents` shows the bypass disclaimer instead of being silently dropped. Interactive sessions you never named carry a default name such as `my-app-3f` in session listings and `claude agents --json`. Background shell commands and dynamic workflows survive the session's process being stopped, restarted, or updated, including on Windows; set `CLAUDE_CODE_DISABLE_BG_EXIT_HANDOFF=1` to turn the handoff off. A transcript misread as empty on restart is renamed with an `.orphaned-` suffix instead of deleted. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Windows用のGit Bashパス指定において、無効なパスやファイル名が指定された場合に自動検知へフォールバックし警告を出す仕様変更を反映しています。",
+      "hunks": [
+        {
+          "header": "@@ -232,7 +232,7 @@ Numeric variables such as timeouts, token budgets, and retry counts accept scien",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORCE_SYNC_OUTPUT` | Set to `1` to force-enable DEC private mode 2026 [synchronized output](https://gist.github.com/christianparpart/d8a62cc1ab659194337d73e399004036) when your terminal supports it but is not auto-detected. Useful for emulators such as Emacs `eat` that implement BSU/ESU but do not reply to the capability probe. Has no effect under tmux. Unlike `CLAUDE_CODE_NO_FLICKER`, which switches to [fullscreen rendering](/docs/en/fullscreen), this doesn't change the renderer |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORK_SUBAGENT` | Set to `1` to let Claude spawn [forked subagents](/docs/en/sub-agents#fork-the-current-conversation), or `0` to disable them, overriding any server-side rollout. When enabled, Claude can request the `fork` subagent type to spawn a fork, a subagent that inherits the full conversation context instead of starting fresh. When Claude doesn't request a subagent type, it still gets the general-purpose subagent, and every subagent runs in the background. The explicit [`/subtask`](/docs/en/commands#all-commands) command, named `/fork` on v2.1.161 through v2.1.211, works without this variable; on v2.1.117 through v2.1.160, `/fork` is the forked-subagent command only when this variable is set to `1` or a server-side rollout enabled it. Works in interactive mode and via the SDK or `claude -p`. When [agent view is turned off](/docs/en/agent-view#turn-off-agent-view), `/subtask` isn't available and the command stays `/fork` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORWARD_SUBAGENT_TEXT` | Set to `1` to emit [subagent](/docs/en/sub-agents) text and thinking blocks in `claude -p --output-format stream-json` output, the same behavior as the [`--forward-subagent-text`](/docs/en/cli-reference#cli-flags) flag. Use the variable when a harness invokes `claude` and can't pass the flag itself. Unlike the flag, which exits with an error outside non-interactive mode with stream-json output, the variable is ignored there so that nested invocations keep working when it's set process-wide. Requires Claude Code v2.1.211 or later |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_GIT_BASH_PATH` | Windows only: path to the Git Bash executable (`bash.exe`). Use when Git Bash is installed but not in your PATH. See [Windows setup](/docs/en/setup#set-up-on-windows) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_GIT_BASH_PATH` | Windows only: path to the Git Bash executable (`bash.exe`). Use when Git Bash is installed but not in your PATH. If the path doesn't exist or the file isn't named `bash.exe`, `sh.exe`, `bash`, or `sh`, Claude Code ignores the variable and auto-detects Git Bash as if it were unset, logging a warning visible with `--debug`. Before v2.1.219, Claude Code exited at startup when the path didn't exist, and used any existing file as the shell without checking that it was bash or sh. See [Windows setup](/docs/en/setup#set-up-on-windows) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GLOB_HIDDEN` | Set to `false` to exclude dotfiles from results when Claude invokes the [Glob tool](/docs/en/tools-reference#glob-tool-behavior). Included by default. Does not affect `@` file autocomplete, `ls`, Grep, or Read |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GLOB_NO_IGNORE` | Set to `false` to make the [Glob tool](/docs/en/tools-reference#glob-tool-behavior) respect `.gitignore` patterns. By default, Glob returns all matching files including gitignored ones. Does not affect `@` file autocomplete, which has its own [`respectGitignore` setting](/docs/en/settings#available-settings) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GLOB_TIMEOUT_SECONDS` | Timeout in seconds for Glob tool file discovery. Defaults to 20 seconds on most platforms and 60 seconds on WSL |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshoot-install.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Git Bashの実行ファイル名として認められる名称を具体的に列挙し、パスが見つからない場合に起動失敗せず自動検出を行うよう改善された点について説明しています。",
+      "hunks": [
+        {
+          "header": "@@ -620,7 +620,9 @@ Git for Windows is optional. Claude Code uses the [PowerShell tool](/docs/en/too",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If your Git is installed somewhere else, find the path by running `where.exe git` in PowerShell and use the `bin\\bash.exe` path from that directory."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**If the path is correct and the file exists** but Claude Code still reports it as not found, endpoint security software such as AppLocker, Group Policy software restriction policies, or EDR agents may be interfering. On versions before v2.1.116, Claude Code spawned a child process (`cmd.exe`) to verify the path, which these policies can block — a common signal is that `cmd.exe /c dir \"C:\\Program Files\\Git\\bin\\bash.exe\"` works when you run it directly in PowerShell but fails silently when launched by `claude.exe`."
+            },
+            {
+              "type": "added",
+              "content": "**If the path is correct and the file exists** but Claude Code still doesn't use it, check the file's name first. Claude Code accepts only a file named `bash.exe`, `sh.exe`, `bash`, or `sh`; with any other name, such as Git for Windows' `git-bash.exe` launcher, it ignores the variable and auto-detects Git Bash as if it were unset, logging a warning visible with `--debug`. A path that doesn't exist gets the same fallback and warning. Before v2.1.219, Claude Code used any existing file as the shell without checking its name, and exited at startup with `Claude Code was unable to find CLAUDE_CODE_GIT_BASH_PATH path` when the path didn't exist."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If the file's name is right, endpoint security software such as AppLocker, Group Policy software restriction policies, or EDR agents may be interfering. On versions before v2.1.116, Claude Code spawned a `cmd.exe` child process to verify the path, which these policies can block. A common signal is that `cmd.exe /c dir \"C:\\Program Files\\Git\\bin\\bash.exe\"` works when you run it directly in PowerShell but fails silently when launched by `claude.exe`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code v2.1.116 and later check the filesystem directly, so update first. If the error persists on a current version, ask your IT team to allowlist `claude.exe` and the processes it spawns, including `cmd.exe` and `bash.exe`, in your endpoint protection policy."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
