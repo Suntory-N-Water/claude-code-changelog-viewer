@@ -66,6 +66,7 @@ def main():
                 "content_ja": item.get("content_ja"),
                 "comment": sel.get("comment", ""),
                 "image_url": sel.get("image_url"),
+                "links": sel.get("links") or [],
                 "inference": item.get("inference"),
                 "has_snippets": has_snippets,
             }
@@ -80,13 +81,14 @@ def main():
         "period_start": week["period_start"],
         "period_end": week["period_end"],
         "total_items": week["total_items"],
+        # frontmatter も本文と同じ昇順に揃える(sorted は安定なので同一 version 内は入力順を維持)
         "selected_items": [
             {
                 "id": item["id"],
                 "version": item["version"],
                 "comment": item.get("comment", ""),
             }
-            for item in week["items"]
+            for item in sorted(week["items"], key=lambda it: version_key(it["version"]))
         ],
         "version_min": versions[0],
         "version_max": versions[-1],

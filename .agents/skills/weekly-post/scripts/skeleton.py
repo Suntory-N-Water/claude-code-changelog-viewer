@@ -90,6 +90,11 @@ def main():
             lines.append(
                 f'<img alt="{escape(item["content_ja"], quote=True)}" src="{item["image_url"]}">'
             )
+        # 段落単独の URL は www 側の remark-link-card-plus がリンクカードに変換する。
+        # 前後に空行がないとカードにならないので、1本ずつ独立した段落として出す。
+        for url in item["links"]:
+            lines.append("")
+            lines.append(url)
         lines.append("")
 
     # 締めの定型文と公式 CHANGELOG へのリンク(全記事共通・編集不可)
