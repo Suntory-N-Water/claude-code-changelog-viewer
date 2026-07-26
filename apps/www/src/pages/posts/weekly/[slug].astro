@@ -266,6 +266,26 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
 
   <script>
     document.addEventListener('astro:page-load', () => {
+      // リンク先が Cross-Origin-Resource-Policy 等で埋め込みを拒否すると OG 画像が壊れる。
+      // ビルド時の取得は成功してしまい判別できないため、ブラウザ側で差し替える。
+      const placeholder = '/link-card-placeholder.svg';
+      document
+        .querySelectorAll<HTMLImageElement>('img.remark-link-card-plus__image')
+        .forEach((img) => {
+          // この時点で error 発火済みの画像はリスナーで拾えないので読み込み結果を直接見る
+          if (img.complete && img.naturalWidth === 0) {
+            img.src = placeholder;
+            return;
+          }
+          img.addEventListener(
+            'error',
+            () => {
+              img.src = placeholder;
+            },
+            { once: true },
+          );
+        });
+
       const shareSection = document.getElementById('share-section');
       if (!shareSection) {
         return;

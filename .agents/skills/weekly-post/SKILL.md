@@ -27,13 +27,16 @@ argument-hint: "[--input-file <path>]"
 			"id": "ea64434ed3ad",
 			"version": "2.1.205",
 			"comment": "8階層になったことある",
-			"image_url": "https://assets.claude-code-log.com/weekly/2026-w28/ea64434ed3ad-20260712-120000.png"
+			"image_url": "https://assets.claude-code-log.com/weekly/2026-w28/ea64434ed3ad-20260712-120000.png",
+			"links": [
+				"https://claude-code-log.com/reference/settings/claude-code-max-subagent-spawn-depth"
+			]
 		}
 	]
 }
 ```
 
-`image_url` は任意項目。管理画面で画像を添付した item にだけ含まれる。
+`image_url` と `links` は任意項目。`image_url` は管理画面で画像を添付した item に、`links` は関連リンクを入力した item にだけ含まれる。`links` は URL の文字列配列で、タイトルはリンク先の OG から取るため入力しない。
 
 ## 手順
 
@@ -68,7 +71,7 @@ python3 <skill_dir>/scripts/skeleton.py .tmp/extracted.json
 
 extract.py の出力 JSON を渡すと、`apps/changelog-fetcher/posts/weekly/{week}.md` に frontmatter・冒頭の定型文(`{期間}の変更で、個人的に気になったものをピックアップしました。`)・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・英語原文の引用・締めの定型文と公式 CHANGELOG リンク・プレースホルダ(`description` の要点 `<!-- desc -->`、`<!-- intro -->`、item ごとの `<!-- body -->`)を書き出す。description は定型文と期間(年跨ぎでも両端に年を入れた `{開始日}〜{終了日}`)まで確定済みで、要点部分の `<!-- desc -->` だけが未記入。
 英語原文は各 `###` 見出しの直後へ blockquote として出力する。このとき先頭の Markdown リストマーカー(`- ` など)はスクリプトが除去する(blockquote 内で引用がリスト表示されるのを防ぐため)。
-frontmatter には選定時の全アイテム数(`total_items`)と、選定した各 item の ID・version・コメント(`selected_items`)も保存する。items は古い→新しいバージョンの昇順で並び、同一バージョンの複数項目は1つの `## v{version}` 下にまとまる。**`### 見出し = content_ja` はここで byte 単位で確定する。以降 content_ja は一切タイプしない**(更新履歴カードと1文字も違わないことをこれで保証する)。
+frontmatter には選定時の全アイテム数(`total_items`)と、選定した各 item の ID・version・コメント(`selected_items`)も保存する。`selected_items` は入力の並び順によらず version 昇順(同一 version 内は入力順)に揃う。items は古い→新しいバージョンの昇順で並び、同一バージョンの複数項目は1つの `## v{version}` 下にまとまる。**`### 見出し = content_ja` はここで byte 単位で確定する。以降 content_ja は一切タイプしない**(更新履歴カードと1文字も違わないことをこれで保証する)。
 
 ### 4. 必要な item だけ snippets を追加取得
 
@@ -84,7 +87,7 @@ python3 <skill_dir>/scripts/snippets.py <version> <id>
 
 skeleton の `<!-- intro -->` と各 `<!-- body -->`、そして frontmatter の `description` 内の `<!-- desc -->` を Edit で置き換える。この3種類以外(バージョン見出し・変更内容の見出し・締めの定型文・description の定型文と期間)には一切触れない(スクリプトが確定済み)。
 
-画像添付のある item では `<!-- body -->` の直後に `<img ...>` が入る。`<!-- body -->` を置き換える際も、この行には触れない。
+画像添付のある item では `<!-- body -->` の直後に `<img ...>` が入り、関連リンクのある item ではさらにその下へ URL が1行ずつ入る。`<!-- body -->` を置き換える際も、これらの行には触れない。**コメント内に URL があっても本文には書かない**(リンクは `links` から機械出力される)。
 
 - `<!-- intro -->` → 冒頭の定型文の直後に続く一言。**大量の changelog から自分が選択した数件についての印象を1〜2文**(定型文とは別に書く。日付や「ピックアップしました」の言い換えはしない)。**その週の changelog 全体を要約・代表してはいけない**。「今週は〜な変更が目立った」のように書くと、選択した数件がその週の全変更であるかのように誤読される。あくまで自分が選択した範囲の話だと分かる書き方にする。
 - 各 `<!-- body -->` → 直前の `### 見出し`(content_ja)の本文。体験ベースの散文 2〜3文、約100字。
@@ -108,7 +111,7 @@ skeleton の `<!-- intro -->` と各 `<!-- body -->`、そして frontmatter の
 
 ## skeleton とプレースホルダ規約
 
-skeleton.py が書き出す `.md` は次の形になる。編集してよいのは frontmatter の `description` 内の `<!-- desc -->`・`<!-- intro -->`・`<!-- body -->` の3種類だけ。画像添付がある場合、各 `<!-- body -->` の直後に `<img alt="..." src="...">` が自動で入り、このタグも編集禁止。
+skeleton.py が書き出す `.md` は次の形になる。編集してよいのは frontmatter の `description` 内の `<!-- desc -->`・`<!-- intro -->`・`<!-- body -->` の3種類だけ。画像添付がある場合は各 `<!-- body -->` の直後に `<img alt="..." src="...">` が、関連リンクがある場合はさらにその下へ URL 行が自動で入り、どちらも編集禁止。
 
 ```markdown
 ---
@@ -140,6 +143,10 @@ versions:
 <!-- body -->
 <img alt="{content_ja を HTML escape した値}" src="{image_url}">
 
+{links の1本目}
+
+{links の2本目}
+
 ## v{次のバージョン}
 
 ### {content_ja そのまま}
@@ -166,6 +173,7 @@ https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
 - バージョンは古い→新しいの昇順で `## v{version}` セクションになり、同一バージョンの複数項目はその下に `### {content_ja}` として並ぶ。
 - 各 `<!-- body -->` は直前の `### 見出し` に対応する。プレースホルダの位置・個数は変えない。
 - 画像添付がある item の `<img>` タグは `<!-- body -->` 直後に自動生成される。alt・src・行位置を変更しない。
+- `links` がある item は、本文(と画像)の下に URL が1本ずつ独立した段落として出力される。www 側の `remark-link-card-plus` が段落単独 URL をリンクカードにするしくみなので、前後の空行を詰めたり `[テキスト](URL)` に書き換えたりしない。
 - item 順・アイテム数・バージョンの区切りはスクリプト側で決まる。増減しない。
 
 ## 本文(body)の例

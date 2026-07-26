@@ -11,8 +11,9 @@ import { seoValidate } from './src/integrations/seo-validate.ts';
 import { getReleaseMap } from './src/lib/release-map.ts';
 
 // 週次記事の本文中で段落単独の URL をリンクカード化する。
-// リンク先の OG 画像を使い、取得できない/相対パスのときだけ自サイトの OG 画像にフォールバックする。
-const commonThumbnail = 'https://claude-code-log.com/og-image.png';
+// リンク先の OG 画像を使い、取得できない/相対パスのときだけプレースホルダーにフォールバックする。
+// 自サイトの OG 画像を使うと他サイトのカードが自サイトの記事に見えるため、専用の画像を置いている。
+const commonThumbnail = 'https://claude-code-log.com/link-card-placeholder.svg';
 const linkCardOptions = {
   shortenUrl: true,
   /** @param {import('remark-link-card-plus').OgData} og */

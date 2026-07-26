@@ -137,12 +137,59 @@ const { current, weeks } = Astro.props;
                   placeholder='この変更を使った体験や、読者に伝えたいこと'
                 />
               </label>
+              <fieldset data-links hidden class='mt-3'>
+                <legend class='text-sm font-medium text-[hsl(var(--cc-main-black))]'>
+                  関連リンク
+                </legend>
+                <p class='mt-0.5 text-xs text-[hsl(var(--cc-main-black)/0.55)]'>
+                  記事では本文の直後にリンクカードとして表示されます
+                </p>
+                <div data-link-rows class='mt-1.5 space-y-2' />
+                <button
+                  data-link-add
+                  type='button'
+                  class='mt-2 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-md border border-[hsl(var(--cc-gray))] bg-white px-4 py-2 text-sm font-semibold text-[hsl(var(--cc-main-black))] transition-colors hover:bg-[hsl(var(--cc-gray)/0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+                >
+                  リンクを追加
+                </button>
+              </fieldset>
             </section>
           ))
         }
       </div>
     </div>
   </div>
+
+  <!-- 行数が可変のため、1行ぶんを複製元として持つ -->
+  <template id='weekly-link-row-template'>
+    <div class='flex items-start gap-2'>
+      <div class='min-w-0 flex-1'>
+        <input
+          data-link
+          type='url'
+          inputmode='url'
+          aria-label='関連リンクの URL'
+          placeholder='https://example.com/article'
+          class='block w-full rounded-md border border-[hsl(var(--cc-gray))] bg-white px-3 py-2 text-sm focus:border-[hsl(var(--cc-main-orange))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--cc-main-orange)/0.2)]'
+        />
+        <p
+          data-link-error
+          hidden
+          role='alert'
+          class='mt-1 text-sm text-red-700'
+        >
+        </p>
+      </div>
+      <button
+        data-link-remove
+        type='button'
+        aria-label='このリンクを削除'
+        class='inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md border border-[hsl(var(--cc-gray))] bg-white text-base font-semibold text-[hsl(var(--cc-main-black))] transition-colors hover:bg-[hsl(var(--cc-gray)/0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+      >
+        ×
+      </button>
+    </div>
+  </template>
 
   <!-- 掲載する item だけが使う UI のため、静的出力せずチェック時に複製する -->
   <template id='weekly-image-template'>
@@ -239,6 +286,7 @@ const { current, weeks } = Astro.props;
     const storageKey = `weekly-admin-selection:${week}`;
     const sections = [...root.querySelectorAll('.weekly-item')];
     const imageTemplate = document.querySelector('#weekly-image-template');
+    const linkRowTemplate = document.querySelector('#weekly-link-row-template');
     // 添付欄はチェックが入った item にだけ生成する。item ごとの生成済み判定に使う
     const imageSlots = new Map();
     const copyButton = root.querySelector('#copy-button');
@@ -392,10 +440,78 @@ const { current, weeks } = Astro.props;
       return { element: slot, clear };
     }
 
+    // リンク行の追加・削除を1つの item に配線する
+    // save は { links } の部分更新で呼ぶ
+    function setupLinkRows(container, itemId, save) {
+      const rows = container.querySelector('[data-link-rows]');
+
+      const collect = () =>
+        [...rows.querySelectorAll('[data-link]')]
+          .map((input) => input.value.trim())
+          .filter(Boolean);
+
+      const addRow = (value) => {
+        const row = linkRowTemplate.content.firstElementChild.cloneNode(true);
+        const input = row.querySelector('[data-link]');
+        const error = row.querySelector('[data-link-error]');
+        input.value = value ?? '';
+
+        input.addEventListener('input', () => save({ links: collect() }));
+
+        // リンクカード化できるのは http(s) だけなので、入力を離れた時点で知らせる
+        input.addEventListener('blur', () => {
+          const url = input.value.trim();
+          let valid = true;
+          if (url) {
+            try {
+              valid = ['http:', 'https:'].includes(new URL(url).protocol);
+            } catch {
+              valid = false;
+            }
+          }
+          error.textContent = valid
+            ? ''
+            : 'http:// または https:// から始まる URL を入力してください';
+          error.hidden = valid;
+        });
+
+        row
+          .querySelector('[data-link-remove]')
+          .addEventListener('click', () => {
+            // 行が0になると入力欄ごと消えるため、最後の1行は空にするだけにする
+            if (rows.children.length > 1) {
+              row.remove();
+            } else {
+              input.value = '';
+              error.hidden = true;
+            }
+            save({ links: collect() });
+          });
+
+        rows.append(row);
+        return input;
+      };
+
+      container
+        .querySelector('[data-link-add]')
+        .addEventListener('click', () => addRow().focus());
+
+      const reset = (links) => {
+        rows.replaceChildren();
+        for (const url of links?.length ? links : ['']) {
+          addRow(url);
+        }
+      };
+
+      reset(state[itemId]?.links);
+      return { reset };
+    }
+
     const controls = sections.map((section) => {
       const checkbox = section.querySelector('input[type="checkbox"]');
       const comment = section.querySelector('[data-comment]');
       const textarea = comment.querySelector('textarea');
+      const links = section.querySelector('[data-links]');
       const itemId = checkbox.dataset.itemId;
       const saved = state[itemId];
 
@@ -404,9 +520,15 @@ const { current, weeks } = Astro.props;
           checked: checkbox.checked,
           comment: textarea.value,
           imageUrl: state[itemId]?.imageUrl,
+          links: state[itemId]?.links,
           ...patch,
         };
-        if (next.checked || next.comment || next.imageUrl) {
+        if (
+          next.checked ||
+          next.comment ||
+          next.imageUrl ||
+          next.links?.length
+        ) {
           state[itemId] = next;
         } else {
           delete state[itemId];
@@ -414,9 +536,12 @@ const { current, weeks } = Astro.props;
         localStorage.setItem(storageKey, JSON.stringify(state));
       };
 
+      const linkRows = setupLinkRows(links, itemId, save);
+
       const syncItem = () => {
         comment.hidden = !checkbox.checked;
         textarea.disabled = !checkbox.checked;
+        links.hidden = !checkbox.checked;
         if (checkbox.checked && !imageSlots.has(itemId)) {
           imageSlots.set(itemId, setupImageSlot(section, itemId, save));
         }
@@ -444,6 +569,7 @@ const { current, weeks } = Astro.props;
         reset: () => {
           checkbox.checked = false;
           textarea.value = '';
+          linkRows.reset();
           syncItem();
           imageSlots.get(itemId)?.clear();
         },
@@ -467,12 +593,13 @@ const { current, weeks } = Astro.props;
       const items = controls
         .filter(({ checkbox }) => checkbox.checked)
         .map(({ checkbox, textarea }) => {
-          const imageUrl = state[checkbox.dataset.itemId]?.imageUrl;
+          const saved = state[checkbox.dataset.itemId];
           return {
             id: checkbox.dataset.itemId,
             version: checkbox.dataset.version,
             comment: textarea.value,
-            ...(imageUrl ? { image_url: imageUrl } : {}),
+            ...(saved?.imageUrl ? { image_url: saved.imageUrl } : {}),
+            ...(saved?.links?.length ? { links: saved.links } : {}),
           };
         });
       const content = JSON.stringify(
