@@ -1,0 +1,18 @@
+{
+  "key": "sandbox.network.strictAllowlist",
+  "leaf_name": "strictAllowlist",
+  "slug": "sandbox-network-strict-allowlist",
+  "source": "settings",
+  "description_en": "UNDOCUMENTED. Deny non-allowlisted hosts for sandboxed commands without prompting (added v2.1.219). See https://code.claude.com/docs/en/sandboxing#network-isolation",
+  "description_ja": "サンドボックス内で許可リストに含まれないホストへのアクセスを、ユーザーへの問い合わせなしで拒否するための設定です。",
+  "use_case_ja": "- true に設定すると、対話的な承認を行わずに即座にアクセスが遮断されます。\n- セキュリティを高めるために、あらかじめ許可リスト（allowedDomains 等）が適切に管理されている環境で有効化してください。",
+  "parent_descriptions": [
+    "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing",
+    "Configures network isolation settings for the sandboxed bash environment, including domain restrictions, Unix socket access, and custom proxy configuration."
+  ],
+  "doc_snippets": [
+    "Network access is controlled through a proxy server running outside the sandbox: Domain restrictions : no domains are pre-allowed by default. The first time a command needs a new domain, Claude Code prompts for approval. As of v2.1.191, choosing Yes allows the host for the rest of the current session, so later connections to the same host do not prompt again. Pre-allow domains with allowedDomains to avoid the prompt entirely. WebFetch allow rules also pre-allow domains, as described in Permission rules . Strict allowlist : if you set strictAllowlist to true in user, managed, or CLI --settings settings, Claude Code denies sandboxed commands access to any host outside the allowlist instead of prompting. The allowlist is the same one the sandbox otherwise prompts against: allowedDomains plus domains from WebFetch(domain:...) allow rules, or only the managed settings entries when allowManagedDomainsOnly is set. Claude Code enforces this for sandboxed commands only; in-process tools such as WebFetch still follow their permission rules . Setting it in a repository's .claude/settings.json or .claude/settings.local.json has no effect. Requires Claude Code v2.1.219 or later. Managed lockdown : if allowManagedDomainsOnly is set in managed settings, non-allowed domains are blocked automatically instead of prompting, and only allowedDomains and WebFetch(domain:...) allow rules from managed settings are honored. Custom proxy support : advanced users can implement custom rules on outgoing traffic Comprehensive coverage : restrictions apply to all scripts, programs, and subprocesses spawned by commands"
+  ],
+  "fetched_at": "2026-07-28",
+  "related_changelog": []
+}
