@@ -122,8 +122,11 @@ options = ClaudeAgentOptions(
     allowed_tools=["Read", "Grep", "Glob"],
 )
 
-async for message in query(prompt="Analyze the codebase structure", options=options):
-    print(message)
+async def main():
+    async for message in query(prompt="Analyze the codebase structure", options=options):
+        print(message)
+
+asyncio.run(main())
 ```
 
 ```typescript TypeScript theme={null}
@@ -150,8 +153,11 @@ options = ClaudeAgentOptions(
     skills="all",
 )
 
-async for message in query(prompt="What Skills are available?", options=options):
-    print(message)
+async def main():
+    async for message in query(prompt="What Skills are available?", options=options):
+        print(message)
+
+asyncio.run(main())
 ```
 
 ```typescript TypeScript theme={null}
@@ -180,8 +186,11 @@ options = ClaudeAgentOptions(
     allowed_tools=["Read", "Bash"],
 )
 
-async for message in query(prompt="Extract text from invoice.pdf", options=options):
-    print(message)
+async def main():
+    async for message in query(prompt="Extract text from invoice.pdf", options=options):
+        print(message)
+
+asyncio.run(main())
 ```
 
 ```typescript TypeScript theme={null}
