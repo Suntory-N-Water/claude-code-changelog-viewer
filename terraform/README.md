@@ -1,8 +1,8 @@
-## Terraform コマンド
+# Terraform コマンド
 
 ```bash
-# プロジェクトルートから実行
-source .env && terraform -chdir=terraform/zone init
-source .env && terraform -chdir=terraform/zone plan
-source .env && terraform -chdir=terraform/zone apply
+# このディレクトリから実行
+source .env && terraform -chdir=zone init
+source .env && terraform -chdir=zone plan
+source .env && terraform -chdir=zone apply
 ```

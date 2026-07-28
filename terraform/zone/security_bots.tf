@@ -6,6 +6,13 @@
 resource "cloudflare_bot_management" "main" {
   zone_id    = var.zone_id
   fight_mode = false
+
+  # JavaScript Detections を無効化
+  # 有効だと Cloudflare が HTML にスクリプトを挿入し、その副作用で HTML から ETag が剥がれる。
+  # ETag が無いと 304 が成立せず、訪問のたびに全 HTML が再ダウンロードされる。
+  # 判定結果 cf.bot_management.js_detection.passed は Enterprise Bot Management 前提で、
+  # 下の WAF カスタムルールも参照していないため、有効にしていても防御の効果はない。
+  enable_js = false
 }
 
 # WAF カスタムルール - 不審クローラーブロック
