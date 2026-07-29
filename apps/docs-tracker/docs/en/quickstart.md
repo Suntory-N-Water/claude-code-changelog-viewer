@@ -26,19 +26,19 @@ To install Claude Code, use one of the following methods:
 
 **macOS, Linux, WSL:**
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 **Windows PowerShell:**
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 irm https://claude.ai/install.ps1 | iex
 ```
 
 **Windows CMD:**
 
-```batch theme={null}
+```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
@@ -50,7 +50,7 @@ If the install command fails with `syntax error near unexpected token '<'`, a `4
 
 Native installations automatically update in the background to keep you on the latest version.
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 brew install --cask claude-code
 ```
 
@@ -58,7 +58,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic
 
 Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes.
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 winget install Anthropic.ClaudeCode
 ```
 
@@ -84,7 +84,7 @@ claude
 
 For Claude subscription or Console accounts, follow the prompts to complete authentication in your browser. If you've set the `ANTHROPIC_API_KEY` environment variable, Claude Code skips the login prompt and asks you to approve the key instead. To switch accounts later or re-authenticate, type `/login` inside the running session:
 
-```text
+```text wrap
 /login
 ```
 
@@ -116,35 +116,35 @@ After logging in (Step 2), your credentials are stored on your system. Learn mor
 
 Let's start with understanding your codebase. Try one of these commands:
 
-```text
+```text wrap
 what does this project do?
 ```
 
 Claude will analyze your files and provide a summary. You can also ask more specific questions:
 
-```text
+```text wrap
 what technologies does this project use?
 ```
 
-```text
+```text wrap
 where is the main entry point?
 ```
 
-```text
+```text wrap
 explain the folder structure
 ```
 
 You can also ask Claude about its own capabilities:
 
-```text
+```text wrap
 what can Claude Code do?
 ```
 
-```text
+```text wrap
 how do I create custom skills in Claude Code?
 ```
 
-```text
+```text wrap
 can Claude Code work with Docker?
 ```
 
@@ -154,7 +154,7 @@ Claude Code reads your project files as needed. You don't have to manually add c
 
 Now let's make Claude Code do some actual coding. Try a simple task:
 
-```text
+```text wrap
 add a hello world function to the main file
 ```
 
@@ -171,25 +171,25 @@ Whether Claude Code asks before changing files depends on your [permission mode]
 
 Claude Code makes Git operations conversational:
 
-```text
+```text wrap
 what files have I changed?
 ```
 
-```text
+```text wrap
 commit my changes with a descriptive message
 ```
 
 You can also prompt for more complex Git operations:
 
-```text
+```text wrap
 create a new branch called feature/quickstart
 ```
 
-```text
+```text wrap
 show me the last 5 commits
 ```
 
-```text
+```text wrap
 help me resolve merge conflicts
 ```
 
@@ -199,13 +199,13 @@ Claude is proficient at debugging and feature implementation.
 
 Describe what you want in natural language:
 
-```text
+```text wrap
 add input validation to the user registration form
 ```
 
 Or fix existing issues:
 
-```text
+```text wrap
 there's a bug where users can submit empty forms - fix it
 ```
 
@@ -222,25 +222,25 @@ There are a number of ways to work with Claude:
 
 **Refactor code**
 
-```text
+```text wrap
 refactor the authentication module to use async/await instead of callbacks
 ```
 
 **Write tests**
 
-```text
+```text wrap
 write unit tests for the calculator functions
 ```
 
 **Update documentation**
 
-```text
+```text wrap
 update the README with installation instructions
 ```
 
 **Code review**
 
-```text
+```text wrap
 review my changes and suggest improvements
 ```
 
@@ -280,7 +280,7 @@ Try: "fix the login bug where users see a blank screen after entering wrong cred
 
 Break complex tasks into steps:
 
-```text theme={null}
+```text wrap theme={null}
 1. create a new database table for user profiles
 2. create an API endpoint to get and update user profiles
 3. build a webpage that allows users to see and edit their information
@@ -288,11 +288,11 @@ Break complex tasks into steps:
 
 Before making changes, let Claude understand your code:
 
-```text theme={null}
+```text wrap theme={null}
 analyze the database schema
 ```
 
-```text theme={null}
+```text wrap theme={null}
 build a dashboard showing products that are most frequently returned by our UK customers
 ```
 
