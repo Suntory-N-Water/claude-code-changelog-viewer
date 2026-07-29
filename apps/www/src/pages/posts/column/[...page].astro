@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPathsOptions } from 'astro';
+import { format, parseISO } from 'date-fns';
+import { ja } from 'date-fns/locale';
+import PostArchive from '../../../components/posts/PostArchive.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { SITE_TITLE } from '../../../lib/constants';
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const posts = (await getCollection('column')).sort((a, b) =>
+    b.data.date.localeCompare(a.data.date),
+  );
+
+  const articles = posts.map((entry) => ({
+    slug: entry.data.slug,
+    title: entry.data.title,
+    date: entry.data.date,
+    formattedDate: format(parseISO(entry.data.date), 'yyyy年M月d日', {
+      locale: ja,
+    }),
+    description: entry.data.description,
+  }));
+
+  return paginate(articles, { pageSize: 10 });
+}
+
+type Article = {
+  slug: string;
+  title: string;
+  date: string;
+  formattedDate: string;
+  description: string;
+};
+
+type Props = {
+  page: {
+    data: Article[];
+    currentPage: number;
+    lastPage: number;
+    url: { first?: string; prev?: string; next?: string };
+  };
+};
+
+const { page } = Astro.props;
+
+const pageNum = page.currentPage > 1 ? ` (${page.currentPage}ページ目)` : '';
+const pageTitle = `コラム${pageNum}`;
+const pageDescription =
+  'Claude Code の使い方や運用で得た知見を、実際に手を動かして確かめた内容にしぼって書いている記事の一覧です。';
+---
+
+<Layout
+  title={`${pageTitle} - ${SITE_TITLE}: Claude Codeの変更履歴`}
+  description={pageDescription}
+  jsonLd={{
+    type: 'collection',
+    title: 'コラム',
+    description: 'Claude Code に関する記事一覧',
+  }}
+  breadcrumbs={[
+    { name: 'ホーム', url: 'https://claude-code-log.com/' },
+    { name: 'コラム', url: 'https://claude-code-log.com/posts/column' },
+  ]}
+>
+  <PostArchive
+    heading='コラム'
+    lead='Claude Code の使い方や運用で得た知見を、実際に手を動かして確かめた内容にしぼって書いています。'
+    basePath='/posts/column'
+    articles={page.data}
+    page={page}
+  />
+</Layout>

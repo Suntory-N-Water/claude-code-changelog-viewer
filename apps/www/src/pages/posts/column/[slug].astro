@@ -1,0 +1,110 @@
+---
+import { getCollection, render } from 'astro:content';
+import { format, parseISO } from 'date-fns';
+import { ja } from 'date-fns/locale';
+import PostBody from '../../../components/posts/PostBody.astro';
+import PostShare from '../../../components/posts/PostShare.astro';
+import PostTocAccordion from '../../../components/posts/PostTocAccordion.astro';
+import PostTocSidebar from '../../../components/posts/PostTocSidebar.astro';
+import BackLink from '../../../components/ui/BackLink.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { SITE_TITLE } from '../../../lib/constants';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('column');
+
+  return posts.map((entry) => ({
+    params: { slug: entry.data.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+
+const { title, slug, description, date, modified_time } = entry.data;
+
+const formattedDate = format(parseISO(date), 'yyyy年M月d日', { locale: ja });
+const formattedModified = modified_time
+  ? format(parseISO(modified_time), 'yyyy年M月d日', { locale: ja })
+  : null;
+
+// ## / ### のみを目次対象にする
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+const baseUrl = Astro.site?.href ?? '/';
+const shareUrl = new URL(`posts/column/${slug}`, baseUrl).href;
+const ogImage = new URL(`posts/column/og/${slug}.png`, baseUrl).href;
+---
+
+<Layout
+  title={`${title} - ${SITE_TITLE}`}
+  description={description}
+  image={ogImage}
+  jsonLd={{
+    type: 'article',
+    datePublished: date,
+    dateModified: modified_time,
+  }}
+  breadcrumbs={[
+    { name: 'ホーム', url: baseUrl },
+    { name: 'コラム', url: `${baseUrl}posts/column` },
+    { name: title, url: shareUrl },
+  ]}
+>
+  <div class='min-h-dvh py-8 sm:py-12 px-4'>
+    <div class='max-w-6xl mx-auto'>
+      <div class='mb-6'>
+        <BackLink href='/posts/column'>コラム一覧に戻る</BackLink>
+      </div>
+
+      <header class='mb-8 max-w-3xl'>
+        <h1
+          class='text-2xl sm:text-3xl font-bold tracking-tight text-balance [word-break:auto-phrase] text-[hsl(var(--cc-main-black))] mb-3'
+        >
+          {title}
+        </h1>
+        <div
+          class='flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[hsl(var(--cc-main-black)/0.55)] tabular-nums'
+        >
+          <span
+            >投稿日 <time datetime={date} class='font-medium'
+              >{formattedDate}</time
+            ></span
+          >
+          {
+            formattedModified && modified_time && (
+              <>
+                <span aria-hidden='true'>·</span>
+                <span>
+                  更新日{' '}
+                  <time datetime={modified_time} class='font-medium'>
+                    {formattedModified}
+                  </time>
+                </span>
+              </>
+            )
+          }
+        </div>
+      </header>
+
+      <div class='lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10'>
+        <div class='min-w-0 max-w-3xl'>
+          {
+            toc.length > 0 && (
+              <PostTocAccordion headings={toc} class='lg:hidden mb-6' />
+            )
+          }
+
+          <PostBody>
+            <Content />
+          </PostBody>
+
+          <PostShare shareUrl={shareUrl} title={title} class='mt-12' />
+        </div>
+
+        {toc.length > 0 && <PostTocSidebar headings={toc} />}
+      </div>
+    </div>
+  </div>
+</Layout>
