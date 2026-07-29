@@ -411,11 +411,9 @@ try {
     }
   }
 } catch (error) {
-  // A single-shot query() throws after yielding an error result.
-  // If the failure was an error result, the subtype branches above
-  // have already run; connection or process failures yield no result
-  // message. Handle the failure here - retry with a simpler prompt,
-  // fall back to unstructured, etc.
+  // A single-shot query() throws after yielding an error result. If the
+  // failure was an error result, the error subtype branches above have
+  // already run; connection or process failures yield no result message.
   console.log(`Session ended with an error: ${error}`);
 }
 ```
@@ -450,11 +448,9 @@ async def main():
                 else:
                     print("Run ended without a structured output")
     except Exception as error:
-        # A single-shot query() raises after yielding an error result.
-        # If the failure was an error result, the subtype branches above
-        # have already run; connection or process failures yield no
-        # result message. Handle the failure here - retry with a simpler
-        # prompt, fall back to unstructured, etc.
+        # A single-shot query() raises after yielding an error result. If the
+        # failure was an error result, the error subtype branches above have
+        # already run; connection or process failures yield no result message.
         print(f"Session ended with an error: {error}")
 
 asyncio.run(main())

@@ -40,19 +40,19 @@ Replace `/path/to/project` with the path to your project.
 claude 
 ```
 
-```text theme={null}
+```text wrap theme={null}
 give me an overview of this codebase
 ```
 
-```text theme={null}
+```text wrap theme={null}
 explain the main architecture patterns used here
 ```
 
-```text theme={null}
+```text wrap theme={null}
 what are the key data models?
 ```
 
-```text theme={null}
+```text wrap theme={null}
 how is authentication handled?
 ```
 
@@ -66,15 +66,15 @@ Tips:
 
 Suppose you need to locate code related to a specific feature or functionality.
 
-```text theme={null}
+```text wrap theme={null}
 find the files that handle user authentication
 ```
 
-```text theme={null}
+```text wrap theme={null}
 how do these authentication files work together?
 ```
 
-```text theme={null}
+```text wrap theme={null}
 trace the login process from front-end to database
 ```
 
@@ -90,15 +90,15 @@ Tips:
 
 Suppose you've encountered an error message and need to find and fix its source.
 
-```text theme={null}
+```text wrap theme={null}
 I'm seeing an error when I run npm test
 ```
 
-```text theme={null}
+```text wrap theme={null}
 suggest a few ways to fix the @ts-ignore in user.ts
 ```
 
-```text theme={null}
+```text wrap theme={null}
 update user.ts to add the null check you suggested
 ```
 
@@ -114,19 +114,19 @@ Tips:
 
 Suppose you need to update old code to use modern patterns and practices.
 
-```text theme={null}
+```text wrap theme={null}
 find deprecated API usage in our codebase
 ```
 
-```text theme={null}
+```text wrap theme={null}
 suggest how to refactor utils.js to use modern JavaScript features
 ```
 
-```text theme={null}
+```text wrap theme={null}
 refactor utils.js to use ES2024 features while maintaining the same behavior
 ```
 
-```text theme={null}
+```text wrap theme={null}
 run tests for the refactored code
 ```
 
@@ -142,19 +142,19 @@ Tips:
 
 Suppose you need to add tests for uncovered code.
 
-```text theme={null}
+```text wrap theme={null}
 find functions in NotificationsService.swift that are not covered by tests
 ```
 
-```text theme={null}
+```text wrap theme={null}
 add tests for the notification service
 ```
 
-```text theme={null}
+```text wrap theme={null}
 add test cases for edge conditions in the notification service
 ```
 
-```text theme={null}
+```text wrap theme={null}
 run the new tests and fix any failures
 ```
 
@@ -168,15 +168,15 @@ For comprehensive coverage, ask Claude to identify edge cases you might have mis
 
 You can create pull requests by asking Claude directly ("create a pr for my changes"), or guide Claude through it step-by-step:
 
-```text theme={null}
+```text wrap theme={null}
 summarize the changes I've made to the authentication module
 ```
 
-```text theme={null}
+```text wrap theme={null}
 create a pr
 ```
 
-```text theme={null}
+```text wrap theme={null}
 enhance the PR description with more context about the security improvements
 ```
 
@@ -188,19 +188,19 @@ Review Claude's generated PR before submitting and ask Claude to highlight poten
 
 Suppose you need to add or update documentation for your code.
 
-```text theme={null}
+```text wrap theme={null}
 find functions without proper JSDoc comments in the auth module
 ```
 
-```text theme={null}
+```text wrap theme={null}
 add JSDoc comments to the undocumented functions in auth.js
 ```
 
-```text theme={null}
+```text wrap theme={null}
 improve the generated documentation with more context and examples
 ```
 
-```text theme={null}
+```text wrap theme={null}
 check if the documentation follows our project standards
 ```
 
@@ -230,31 +230,31 @@ You can use any of these methods:
 2. Copy an image and paste it into the CLI with Ctrl+V. On macOS, Cmd+V also works in iTerm2.
 3. Provide an image path to Claude. E.g., "Analyze this image: /path/to/your/image.png"
 
-```text theme={null}
+```text wrap theme={null}
 What does this image show?
 ```
 
-```text theme={null}
+```text wrap theme={null}
 Describe the UI elements in this screenshot
 ```
 
-```text theme={null}
+```text wrap theme={null}
 Are there any problematic elements in this diagram?
 ```
 
-```text theme={null}
+```text wrap theme={null}
 Here's a screenshot of the error. What's causing it?
 ```
 
-```text theme={null}
+```text wrap theme={null}
 This is our current database schema. How should we modify it for the new feature?
 ```
 
-```text theme={null}
+```text wrap theme={null}
 Generate CSS to match this design mockup
 ```
 
-```text theme={null}
+```text wrap theme={null}
 What HTML structure would recreate this component?
 ```
 
@@ -272,19 +272,19 @@ Tips:
 
 Use @ to quickly include files or directories without waiting for Claude to read them.
 
-```text theme={null}
+```text wrap theme={null}
 Explain the logic in @src/utils/auth.js
 ```
 
 This includes the full content of the file in the conversation.
 
-```text theme={null}
+```text wrap theme={null}
 What's the structure of @src/components?
 ```
 
 This provides a directory listing with file information.
 
-```text theme={null}
+```text wrap theme={null}
 Show me the data from @github:repos/owner/repo/issues
 ```
 
@@ -323,27 +323,27 @@ Claude has built-in access to its documentation and can answer questions about i
 
 #### Example questions
 
-```text
+```text wrap
 can Claude Code create pull requests?
 ```
 
-```text
+```text wrap
 how does Claude Code handle permissions?
 ```
 
-```text
+```text wrap
 what skills are available?
 ```
 
-```text
+```text wrap
 how do I use MCP with Claude Code?
 ```
 
-```text
+```text wrap
 how do I configure Claude Code for Amazon Bedrock?
 ```
 
-```text
+```text wrap
 what are the limitations of Claude Code?
 ```
 
@@ -391,7 +391,7 @@ You can also press `Shift+Tab` mid-session to cycle to plan mode. The cycle runs
 
 Exploring a large codebase fills your context with file reads. Delegate the exploration so only the findings come back.
 
-```text
+```text wrap
 use a subagent to investigate how our auth system handles token refresh
 ```
 

@@ -1,0 +1,4258 @@
+{
+  "id": "20260729-040232",
+  "timestamp": "2026-07-29T04:02:32.877Z",
+  "aiSummary": "Agent SDKにおけるエラーハンドリングの記述が詳細化され、接続失敗時やプロセスエラー時の挙動が明確化されました。管理設定では、TeamおよびEnterpriseプランにおけるAuto modeの有効化フローが変更され、デフォルトで利用可能になっています。プラグインマーケットプレイスの制限設定に公式リポジトリを指定する具体例が追加され、厳格な管理方法が示されました。全体を通してコードブロックの表示を最適化するためのwrap属性の追加や、ドキュメントの視認性向上が図られています。",
+  "files": [
+    {
+      "filename": "agent-sdk/mcp.md",
+      "additions": 12,
+      "deletions": 8,
+      "explanation": "MCPサーバーの接続失敗時におけるステータスチェックの重要性と、単発クエリのエラーハンドリングに関する説明が詳細化されました。",
+      "hunks": [
+        {
+          "header": "@@ -708,10 +708,12 @@ try {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "} catch (error) {"
+            },
+            {
+              "type": "removed",
+              "content": "  // A single-shot query() throws after yielding an error result."
+            },
+            {
+              "type": "removed",
+              "content": "  // If the failure was an error result, the error subtype branch above"
+            },
+            {
+              "type": "removed",
+              "content": "  // has already run; connection or process failures yield no result"
+            },
+            {
+              "type": "removed",
+              "content": "  // message."
+            },
+            {
+              "type": "added",
+              "content": "  // A single-shot query() throws after yielding an error result. If the"
+            },
+            {
+              "type": "added",
+              "content": "  // failure was an error result, the error subtype branch above has"
+            },
+            {
+              "type": "added",
+              "content": "  // already run; a failure to start or reach the Claude Code process"
+            },
+            {
+              "type": "added",
+              "content": "  // yields no result message. MCP servers that fail to connect don't"
+            },
+            {
+              "type": "added",
+              "content": "  // throw: use the status check above, and note that servers still"
+            },
+            {
+              "type": "added",
+              "content": "  // \"pending\" at init need a later status check."
+            },
+            {
+              "type": "context",
+              "content": "  console.log(`Session ended with an error: ${error}`);"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -742,10 +744,12 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": "            ):"
+            },
+            {
+              "type": "context",
+              "content": "                print(\"Execution failed\")"
+            },
+            {
+              "type": "context",
+              "content": "    except Exception as error:"
+            },
+            {
+              "type": "removed",
+              "content": "        # A single-shot query() raises after yielding an error result."
+            },
+            {
+              "type": "removed",
+              "content": "        # If the failure was an error result, the error subtype branch"
+            },
+            {
+              "type": "removed",
+              "content": "        # above has already run; connection or process failures yield"
+            },
+            {
+              "type": "removed",
+              "content": "        # no result message."
+            },
+            {
+              "type": "added",
+              "content": "        # A single-shot query() raises after yielding an error result. If the"
+            },
+            {
+              "type": "added",
+              "content": "        # failure was an error result, the error subtype branch above has"
+            },
+            {
+              "type": "added",
+              "content": "        # already run; a failure to start or reach the Claude Code process"
+            },
+            {
+              "type": "added",
+              "content": "        # yields no result message. MCP servers that fail to connect don't"
+            },
+            {
+              "type": "added",
+              "content": "        # raise: use the status check above, and note that servers still"
+            },
+            {
+              "type": "added",
+              "content": "        # \"pending\" at init need a later status check."
+            },
+            {
+              "type": "context",
+              "content": "        print(f\"Session ended with an error: {error}\")"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "asyncio.run(main())"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/sessions.md",
+      "additions": 6,
+      "deletions": 8,
+      "explanation": "プロセス失敗時にセッションIDがundefinedまたはNoneとして保持される挙動について、コードコメントの解説が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -162,10 +162,9 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": "                if message.subtype == \"success\":"
+            },
+            {
+              "type": "context",
+              "content": "                    print(message.result)"
+            },
+            {
+              "type": "context",
+              "content": "    except Exception as error:"
+            },
+            {
+              "type": "removed",
+              "content": "        # A single-shot query() raises after yielding an error result."
+            },
+            {
+              "type": "removed",
+              "content": "        # If the failure was an error result, session_id was already"
+            },
+            {
+              "type": "removed",
+              "content": "        # captured by the loop above; connection or process failures"
+            },
+            {
+              "type": "removed",
+              "content": "        # yield no result message."
+            },
+            {
+              "type": "added",
+              "content": "        # A single-shot query() raises after yielding an error result. If the"
+            },
+            {
+              "type": "added",
+              "content": "        # failure was an error result, the loop above already captured session_id;"
+            },
+            {
+              "type": "added",
+              "content": "        # process failures yield no result message, so session_id stays None."
+            },
+            {
+              "type": "context",
+              "content": "        print(f\"Session ended with an error: {error}\")"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    print(f\"Session ID: {session_id}\")"
+            }
+          ]
+        },
+        {
+          "header": "@@ -192,10 +191,9 @@ try {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "} catch (error) {"
+            },
+            {
+              "type": "removed",
+              "content": "  // A single-shot query() throws after yielding an error result."
+            },
+            {
+              "type": "removed",
+              "content": "  // If the failure was an error result, sessionId was already captured"
+            },
+            {
+              "type": "removed",
+              "content": "  // by the loop above; connection or process failures yield no result"
+            },
+            {
+              "type": "removed",
+              "content": "  // message."
+            },
+            {
+              "type": "added",
+              "content": "  // A single-shot query() throws after yielding an error result. If the"
+            },
+            {
+              "type": "added",
+              "content": "  // failure was an error result, the loop above already captured sessionId;"
+            },
+            {
+              "type": "added",
+              "content": "  // process failures yield no result message, so sessionId stays undefined."
+            },
+            {
+              "type": "context",
+              "content": "  console.error(`Session ended with an error: ${error}`);"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/structured-outputs.md",
+      "additions": 6,
+      "deletions": 10,
+      "explanation": "構造化出力の生成失敗時におけるエラーサブタイプの処理と、接続エラー時の挙動に関する説明が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -411,11 +411,9 @@ try {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "} catch (error) {"
+            },
+            {
+              "type": "removed",
+              "content": "  // A single-shot query() throws after yielding an error result."
+            },
+            {
+              "type": "removed",
+              "content": "  // If the failure was an error result, the subtype branches above"
+            },
+            {
+              "type": "removed",
+              "content": "  // have already run; connection or process failures yield no result"
+            },
+            {
+              "type": "removed",
+              "content": "  // message. Handle the failure here - retry with a simpler prompt,"
+            },
+            {
+              "type": "removed",
+              "content": "  // fall back to unstructured, etc."
+            },
+            {
+              "type": "added",
+              "content": "  // A single-shot query() throws after yielding an error result. If the"
+            },
+            {
+              "type": "added",
+              "content": "  // failure was an error result, the error subtype branches above have"
+            },
+            {
+              "type": "added",
+              "content": "  // already run; connection or process failures yield no result message."
+            },
+            {
+              "type": "context",
+              "content": "  console.log(`Session ended with an error: ${error}`);"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -450,11 +448,9 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": "                else:"
+            },
+            {
+              "type": "context",
+              "content": "                    print(\"Run ended without a structured output\")"
+            },
+            {
+              "type": "context",
+              "content": "    except Exception as error:"
+            },
+            {
+              "type": "removed",
+              "content": "        # A single-shot query() raises after yielding an error result."
+            },
+            {
+              "type": "removed",
+              "content": "        # If the failure was an error result, the subtype branches above"
+            },
+            {
+              "type": "removed",
+              "content": "        # have already run; connection or process failures yield no"
+            },
+            {
+              "type": "removed",
+              "content": "        # result message. Handle the failure here - retry with a simpler"
+            },
+            {
+              "type": "removed",
+              "content": "        # prompt, fall back to unstructured, etc."
+            },
+            {
+              "type": "added",
+              "content": "        # A single-shot query() raises after yielding an error result. If the"
+            },
+            {
+              "type": "added",
+              "content": "        # failure was an error result, the error subtype branches above have"
+            },
+            {
+              "type": "added",
+              "content": "        # already run; connection or process failures yield no result message."
+            },
+            {
+              "type": "context",
+              "content": "        print(f\"Session ended with an error: {error}\")"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "asyncio.run(main())"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ワークフローの再開機能において、キャッシュされた結果が返される条件と、一時停止後の再開に関するドキュメントへのリンクが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -2491,7 +2491,7 @@ Runs a [dynamic workflow](/docs/en/workflows): a script that orchestrates many s",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `name` | `string` | Name of a built-in workflow or one saved in `.claude/workflows/`. Resolved to a script |"
+            },
+            {
+              "type": "context",
+              "content": "| `scriptPath` | `string` | Path to a workflow script file on disk. Takes precedence over `script` and `name`. Every invocation persists its script and returns the path in the result, so you can edit that file and re-invoke with the same `scriptPath` to iterate |"
+            },
+            {
+              "type": "context",
+              "content": "| `args` | `unknown` | Input value exposed to the script as the global `args`, for parameterized named workflows such as a research question or a list of file paths. Pass arrays and objects as actual JSON values, not as a JSON-encoded string |"
+            },
+            {
+              "type": "removed",
+              "content": "| `resumeFromRunId` | `string` | Run ID of a prior `Workflow` invocation to resume. Completed `agent()` calls with unchanged inputs return cached results; only changed or new calls run live. Same session only |"
+            },
+            {
+              "type": "added",
+              "content": "| `resumeFromRunId` | `string` | Run ID of a prior `Workflow` invocation to resume. Completed `agent()` calls with unchanged inputs usually return cached results; the rest run live. [Resume after a pause](/docs/en/workflows#resume-after-a-pause) covers which completed calls re-run. Same session only |"
+            },
+            {
+              "type": "context",
+              "content": "| `title` | `string` | Ignored; the script's `meta` block sets the title |"
+            },
+            {
+              "type": "context",
+              "content": "| `description` | `string` | Ignored; the script's `meta` block sets the description |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-teams.md",
+      "additions": 9,
+      "deletions": 9,
+      "explanation": "テキスト表示の視認性を向上させるため、複数のコードブロックに折り返し設定が適用されました。",
+      "hunks": [
+        {
+          "header": "@@ -58,7 +58,7 @@ After enabling agent teams, describe the task and the teammates you want in natu",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example works well because the three roles are independent and can explore the problem without waiting on each other:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "I'm designing a CLI tool that helps developers track TODO comments across"
+            },
+            {
+              "type": "context",
+              "content": "their codebase. Spawn three teammates to explore this from different angles:"
+            },
+            {
+              "type": "context",
+              "content": "one on UX, one on technical architecture, one playing devil's advocate."
+            }
+          ]
+        },
+        {
+          "header": "@@ -122,7 +122,7 @@ Split-pane mode requires either [tmux](https://github.com/tmux/tmux/wiki) or iTe",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude decides the number of teammates to spawn based on your task, or you can specify exactly what you want:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Spawn 4 teammates to refactor these modules in parallel. Use Sonnet for"
+            },
+            {
+              "type": "context",
+              "content": "each teammate."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -135,7 +135,7 @@ Teammates inherit the lead's [effort level](/docs/en/model-config#adjust-effort-",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For complex or risky tasks, you can require teammates to plan before implementing. The teammate works in read-only plan mode until the lead approves their approach:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Spawn an architect teammate to refactor the authentication module."
+            },
+            {
+              "type": "context",
+              "content": "Require plan approval before they make any changes."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -170,7 +170,7 @@ Task claiming uses file locking to prevent race conditions when multiple teammat",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To gracefully end a teammate's session, refer to it by name. For example, with a teammate named researcher:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Ask the researcher teammate to shut down"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -237,7 +237,7 @@ When spawning a teammate, you can reference a [subagent](/docs/en/sub-agents) ty",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To use a subagent definition, mention it by name when asking Claude to spawn the teammate:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Spawn a teammate using the security-reviewer agent type to audit the auth module."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -278,7 +278,7 @@ These examples show how agent teams handle tasks where parallel exploration adds",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A single reviewer tends to gravitate toward one type of issue at a time. Splitting review criteria into independent domains means security, performance, and test coverage all get thorough attention simultaneously. The prompt assigns each teammate a distinct lens so they don't overlap:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Spawn three teammates to review PR #142:"
+            },
+            {
+              "type": "context",
+              "content": "- One focused on security implications"
+            },
+            {
+              "type": "context",
+              "content": "- One checking performance impact"
+            }
+          ]
+        },
+        {
+          "header": "@@ -292,7 +292,7 @@ Each reviewer works from the same PR but applies a different filter. The lead sy",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When the root cause is unclear, a single agent tends to find one plausible explanation and stop looking. The prompt fights this by making teammates explicitly adversarial: each one's job is not only to investigate its own theory but to challenge the others'."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Users report the app exits after one message instead of staying connected."
+            },
+            {
+              "type": "context",
+              "content": "Spawn 5 agent teammates to investigate different hypotheses. Have them talk to"
+            },
+            {
+              "type": "context",
+              "content": "each other to try to disprove each other's theories, like a scientific"
+            }
+          ]
+        },
+        {
+          "header": "@@ -309,7 +309,7 @@ With multiple independent investigators actively trying to disprove each other,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Teammates load project context automatically, including CLAUDE.md, MCP servers, and skills, but they don't inherit the lead's conversation history. See [Context and communication](#context-and-communication) for details. Include task-specific details in the spawn prompt:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Spawn a security reviewer teammate with the prompt: \"Review the authentication module"
+            },
+            {
+              "type": "context",
+              "content": "at src/auth/ for security vulnerabilities. Focus on token handling, session"
+            },
+            {
+              "type": "context",
+              "content": "management, and input validation. The app uses JWT tokens stored in"
+            }
+          ]
+        },
+        {
+          "header": "@@ -342,7 +342,7 @@ The lead breaks work into tasks and assigns them to teammates automatically. If",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Sometimes the lead starts implementing tasks itself instead of waiting for teammates. If you notice this:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Wait for your teammates to complete their tasks before proceeding"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "auto-mode-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Auto modeの利用要件において、組織レベルでの制御に関する記述が修正され、最新バージョンでの環境変数要件の変更が反映されました。",
+      "hunks": [
+        {
+          "header": "@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/en/auto-mode-config.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode) lets Claude Code run without routine permission prompts by routing tool calls through a classifier that blocks anything irreversible, destructive, or aimed outside your environment. Deny and explicit ask rules are evaluated before the classifier and still block or prompt. Use the `autoMode` settings block to tell that classifier which repos, buckets, and domains your organization trusts, so it stops blocking routine internal operations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Auto mode is available to all users on every provider, including the Anthropic API, [Claude Platform on AWS](/docs/en/claude-platform-on-aws), Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and signed-in [Claude apps gateway](/docs/en/claude-apps-gateway) sessions. If Claude Code reports auto mode as unavailable for your account, check the [full requirements](/docs/en/permission-modes#eliminate-prompts-with-auto-mode), which also cover the supported models and Owner enablement on Team and Enterprise plans. In v2.1.158 through v2.1.206, auto mode on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and Claude apps gateway sessions required setting `CLAUDE_CODE_ENABLE_AUTO_MODE=1`; v2.1.207 removed the requirement."
+            },
+            {
+              "type": "added",
+              "content": "Auto mode is available to all users on every provider, including the Anthropic API, [Claude Platform on AWS](/docs/en/claude-platform-on-aws), Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and signed-in [Claude apps gateway](/docs/en/claude-apps-gateway) sessions. If Claude Code reports auto mode as unavailable for your account, check the [full requirements](/docs/en/permission-modes#eliminate-prompts-with-auto-mode), which also cover the supported models and the organization-level control on Team and Enterprise plans. In v2.1.158 through v2.1.206, auto mode on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and Claude apps gateway sessions required setting `CLAUDE_CODE_ENABLE_AUTO_MODE=1`; v2.1.207 removed the requirement."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "By default, the classifier trusts only the working directory and the current repo's configured remotes. Actions like pushing to your company's source-control org or writing to a team cloud bucket are blocked until you add them to `autoMode.environment`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "best-practices.md",
+      "additions": 8,
+      "deletions": 8,
+      "explanation": "各モードの実行例を示すコードブロックにタイトル属性と折り返し設定が追加され、マニュアルとしての読みやすさが改善されました。",
+      "hunks": [
+        {
+          "header": "@@ -62,14 +62,14 @@ The recommended workflow has four phases:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Enter plan mode. Claude reads files and answers questions without making changes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```txt claude (plan mode) theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```txt title=\"claude (plan mode)\" wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "read /src/auth and understand how we handle sessions and login."
+            },
+            {
+              "type": "context",
+              "content": "also look at how we manage environment variables for secrets."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ask Claude to create a detailed implementation plan."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```txt claude (plan mode) theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```txt title=\"claude (plan mode)\" wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "I want to add Google OAuth. What files need to change?"
+            },
+            {
+              "type": "context",
+              "content": "What's the session flow? Create a plan."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -78,14 +78,14 @@ Press `Ctrl+G` to open the plan in your text editor for direct editing before Cl",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Switch out of plan mode and let Claude code, verifying against its plan."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```txt claude (default mode) theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```txt title=\"claude (default mode)\" wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "implement the OAuth flow from your plan. write tests for the"
+            },
+            {
+              "type": "context",
+              "content": "callback handler, run the test suite and fix any failures."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ask Claude to commit with a descriptive message and create a PR."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```txt claude (default mode) theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```txt title=\"claude (default mode)\" wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "commit with a descriptive message and open a PR"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -320,7 +320,7 @@ For larger features, have Claude interview you first. Start with a minimal promp",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude asks about things you might not have considered yet, including technical implementation, UI/UX, edge cases, and tradeoffs. Replace `[brief description]` with your feature before sending the prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "I want to build [brief description]. Interview me in detail using the AskUserQuestion tool."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ask about technical implementation, UI/UX, edge cases, concerns, and tradeoffs. Don't ask obvious questions, dig into the hard parts I might not have considered."
+            }
+          ]
+        },
+        {
+          "header": "@@ -372,7 +372,7 @@ Delegate research with `\"use subagents to investigate X\"`. They explore in a sep",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Since context is your fundamental constraint, subagents are one of the most powerful tools available. When Claude researches a codebase it reads lots of files, all of which consume your context. Subagents run in separate context windows and report back summaries:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Use subagents to investigate how our authentication system handles token"
+            },
+            {
+              "type": "context",
+              "content": "refresh, and whether we have any existing OAuth utilities I should reuse."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -381,7 +381,7 @@ The subagent explores the codebase, reads relevant files, and reports back with",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also use subagents for verification after Claude implements something:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "use a subagent to review this code for edge cases"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -494,7 +494,7 @@ The longer Claude works unattended, the more an independent check matters before",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For a correctness check, run the bundled [`/code-review` skill](/docs/en/commands), which reviews the current diff for bugs in a fresh subagent and returns findings to the session. To check the diff against your plan instead, write the review prompt yourself. Name the work to check, the plan to check it against, and what counts as a finding:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "Use a subagent to review the rate limiter diff against PLAN.md. Check that"
+            },
+            {
+              "type": "context",
+              "content": "every requirement is implemented, the listed edge cases have tests, and"
+            },
+            {
+              "type": "context",
+              "content": "nothing outside the task's scope changed. Report gaps, not style preferences."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "common-workflows.md",
+      "additions": 42,
+      "deletions": 42,
+      "explanation": "多数のコマンド実行例や出力例のコードブロックに対し、一括して表示の折り返し設定が適用されました。",
+      "hunks": [
+        {
+          "header": "@@ -40,19 +40,19 @@ Replace `/path/to/project` with the path to your project.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude "
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "give me an overview of this codebase"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "explain the main architecture patterns used here"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "what are the key data models?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "how is authentication handled?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -66,15 +66,15 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Suppose you need to locate code related to a specific feature or functionality."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "find the files that handle user authentication"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "how do these authentication files work together?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "trace the login process from front-end to database"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -90,15 +90,15 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Suppose you've encountered an error message and need to find and fix its source."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "I'm seeing an error when I run npm test"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "suggest a few ways to fix the @ts-ignore in user.ts"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "update user.ts to add the null check you suggested"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -114,19 +114,19 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Suppose you need to update old code to use modern patterns and practices."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "find deprecated API usage in our codebase"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "suggest how to refactor utils.js to use modern JavaScript features"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "refactor utils.js to use ES2024 features while maintaining the same behavior"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "run tests for the refactored code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -142,19 +142,19 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Suppose you need to add tests for uncovered code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "find functions in NotificationsService.swift that are not covered by tests"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "add tests for the notification service"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "add test cases for edge conditions in the notification service"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "run the new tests and fix any failures"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -168,15 +168,15 @@ For comprehensive coverage, ask Claude to identify edge cases you might have mis",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can create pull requests by asking Claude directly (\"create a pr for my changes\"), or guide Claude through it step-by-step:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "summarize the changes I've made to the authentication module"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "create a pr"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "enhance the PR description with more context about the security improvements"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -188,19 +188,19 @@ Review Claude's generated PR before submitting and ask Claude to highlight poten",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Suppose you need to add or update documentation for your code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "find functions without proper JSDoc comments in the auth module"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "add JSDoc comments to the undocumented functions in auth.js"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "improve the generated documentation with more context and examples"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "check if the documentation follows our project standards"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -230,31 +230,31 @@ You can use any of these methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "2. Copy an image and paste it into the CLI with Ctrl+V. On macOS, Cmd+V also works in iTerm2."
+            },
+            {
+              "type": "context",
+              "content": "3. Provide an image path to Claude. E.g., \"Analyze this image: /path/to/your/image.png\""
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "What does this image show?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "Describe the UI elements in this screenshot"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "Are there any problematic elements in this diagram?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "Here's a screenshot of the error. What's causing it?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "This is our current database schema. How should we modify it for the new feature?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "Generate CSS to match this design mockup"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "What HTML structure would recreate this component?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -272,19 +272,19 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use @ to quickly include files or directories without waiting for Claude to read them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "Explain the logic in @src/utils/auth.js"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This includes the full content of the file in the conversation."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "What's the structure of @src/components?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This provides a directory listing with file information."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "Show me the data from @github:repos/owner/repo/issues"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -323,27 +323,27 @@ Claude has built-in access to its documentation and can answer questions about i",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Example questions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "can Claude Code create pull requests?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "how does Claude Code handle permissions?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "what skills are available?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "how do I use MCP with Claude Code?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "how do I configure Claude Code for Amazon Bedrock?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "what are the limitations of Claude Code?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -391,7 +391,7 @@ You can also press `Shift+Tab` mid-session to cycle to plan mode. The cycle runs",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Exploring a large codebase fills your context with file reads. Delegate the exploration so only the findings come back."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "use a subagent to investigate how our auth system handles token refresh"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "管理者によるAuto modeの有効化手順が変更され、デフォルトで有効であることと、無効化するための管理設定方法が簡略化して記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -192,7 +192,7 @@ Auto mode reduces permission prompts but does not guarantee safety. Use it for t",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Auto mode is available only when your account meets all of these requirements:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Plan**: All plans."
+            },
+            {
+              "type": "removed",
+              "content": "- **Owner**: on Team and Enterprise, an Owner must enable it in [Claude Code admin settings](https://claude.ai/admin-settings/claude-code) before users can turn it on. Administrators can also turn auto mode off by setting `permissions.disableAutoMode` to `\"disable\"` in [managed settings](/docs/en/permissions#managed-settings). For the desktop app's Code tab, `disableAutoMode` is the organization-level control, and the admin settings toggle doesn't apply."
+            },
+            {
+              "type": "added",
+              "content": "- **Organization**: on Team and Enterprise, auto mode is available by default. Administrators can turn it off for the organization by setting `permissions.disableAutoMode` to `\"disable\"` in [managed settings](/docs/en/permissions#managed-settings)."
+            },
+            {
+              "type": "context",
+              "content": "- **Model**: on the Anthropic API and [Claude Platform on AWS](/docs/en/claude-platform-on-aws), Claude Opus 4.6 or later, Sonnet 4.6 or later, or [Fable 5](/docs/en/model-config#work-with-fable-5). On Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and signed-in [Claude apps gateway](/docs/en/claude-apps-gateway) sessions, only Claude Sonnet 5, Opus 4.7 or later, and Fable 5. Older models, including Sonnet 4.5, Opus 4.5, Haiku, and claude-3 models, are not supported on any provider."
+            },
+            {
+              "type": "context",
+              "content": "- **Provider**: available by default on the Anthropic API, Claude Platform on AWS, Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, and signed-in Claude apps gateway sessions. In v2.1.158 through v2.1.206, auto mode was off on all of these providers except the Anthropic API and Claude Platform on AWS until you set `CLAUDE_CODE_ENABLE_AUTO_MODE=1`; v2.1.207 removed the requirement."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-marketplaces.md",
+      "additions": 18,
+      "deletions": 3,
+      "explanation": "マーケットプレイスのホワイトリスト設定において、公式リポジトリを許可する具体的なJSON構成例と、GitHubソースの厳密な一致条件が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -632,12 +632,12 @@ When `strictKnownMarketplaces` is configured in managed settings, the restrictio",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Value | Behavior |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| Undefined (default) | No restrictions. Users can add any marketplace |"
+            },
+            {
+              "type": "removed",
+              "content": "| Empty array `[]` | Complete lockdown. Users can't add any new marketplaces |"
+            },
+            {
+              "type": "added",
+              "content": "| Empty array `[]` | Complete lockdown. Blocks every marketplace source, including the official Anthropic marketplace |"
+            },
+            {
+              "type": "context",
+              "content": "| List of sources | Users can only add marketplaces that match the allowlist exactly |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Common configurations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Disable all marketplace additions:"
+            },
+            {
+              "type": "added",
+              "content": "Disable all marketplace additions, including the official Anthropic marketplace:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        },
+        {
+          "header": "@@ -645,6 +645,21 @@ Disable all marketplace additions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Allow only the official Anthropic marketplace. Matching is exact, so this entry doesn't cover `ref` or `path` variants of the same repository:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"strictKnownMarketplaces\": ["
+            },
+            {
+              "type": "added",
+              "content": "    {"
+            },
+            {
+              "type": "added",
+              "content": "      \"source\": \"github\","
+            },
+            {
+              "type": "added",
+              "content": "      \"repo\": \"anthropics/claude-plugins-official\""
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": "  ]"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With this entry, the official marketplace registers itself automatically the first time you start Claude Code interactively, so you don't need to pair it with `extraKnownMarketplaces`. In a non-interactive environment that runs before that first interactive launch, add it explicitly with `claude plugin marketplace add anthropics/claude-plugins-official` or include it in `extraKnownMarketplaces`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Allow specific marketplaces only:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            }
+          ]
+        },
+        {
+          "header": "@@ -703,7 +718,7 @@ Restrictions are checked before any network or filesystem operation. The check r",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The allowlist uses exact matching for most source types. For a marketplace to be allowed, all specified fields must match exactly:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- For GitHub sources: `repo` is required, and `ref` or `path` must also match if specified in the allowlist"
+            },
+            {
+              "type": "added",
+              "content": "- For GitHub sources: `repo` is required, and `ref` and `path` must each match exactly or be absent from both the marketplace source and the allowlist entry"
+            },
+            {
+              "type": "context",
+              "content": "- For URL sources: the full URL must match exactly"
+            },
+            {
+              "type": "context",
+              "content": "- For `hostPattern` sources: the marketplace host is matched against the regex pattern"
+            },
+            {
+              "type": "context",
+              "content": "- For `pathPattern` sources: the marketplace's filesystem path is matched against the regex pattern"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "prompt-library.md",
+      "additions": 6,
+      "deletions": 6,
+      "explanation": "プロンプト例のコードブロックに折り返し属性が追加され、モバイル環境などでの表示が最適化されました。",
+      "hunks": [
+        {
+          "header": "@@ -215,37 +215,37 @@ The prompts above share a few patterns. Recognizing them helps you adapt any pro",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Describe the outcome, not the steps.** Say what you want and let Claude find the files. The prompt below works without naming a single file path."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "add rate limiting to the public API and make sure existing tests still pass"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Give it a way to check its own work.** Ask for run, test, compare, or verify in the same prompt so Claude iterates instead of stopping after one attempt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "write the migration, run it against the dev database, and confirm the schema matches"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Point at a reference.** Name an existing file, test, or pattern to match so the new code is consistent with what you already have."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "add a settings page that follows the same layout as the profile page"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**State the measurable target.** When the goal is performance or coverage, give the metric and threshold so completion is unambiguous."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "get the bundle size under 200KB and show me what you removed"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Give it the artifact.** Paste errors, logs, screenshots, and plan output directly in the prompt, or type `@` to reference a file. Claude reads the source instead of your description of it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "why is the build failing? @build.log"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Say how you want the answer.** Name the format, length, or audience so the explanation fits how you'll use it. To make a format the default for every response, set an [output style](/docs/en/output-styles)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "explain how the payment retry logic works as an HTML page with a diagram, then open it in my browser"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 28,
+      "deletions": 28,
+      "explanation": "クイックスタートガイド内の各ステップにおけるコード例の表示形式が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -26,19 +26,19 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**macOS, Linux, WSL:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.sh | bash"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows PowerShell:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows CMD:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```batch theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -50,7 +50,7 @@ If the install command fails with `syntax error near unexpected token '<'`, a `4",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -58,7 +58,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "winget install Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -84,7 +84,7 @@ claude",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For Claude subscription or Console accounts, follow the prompts to complete authentication in your browser. If you've set the `ANTHROPIC_API_KEY` environment variable, Claude Code skips the login prompt and asks you to approve the key instead. To switch accounts later or re-authenticate, type `/login` inside the running session:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "/login"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -116,35 +116,35 @@ After logging in (Step 2), your credentials are stored on your system. Learn mor",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Let's start with understanding your codebase. Try one of these commands:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "what does this project do?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude will analyze your files and provide a summary. You can also ask more specific questions:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "what technologies does this project use?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "where is the main entry point?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "explain the folder structure"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also ask Claude about its own capabilities:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "what can Claude Code do?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "how do I create custom skills in Claude Code?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "can Claude Code work with Docker?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -154,7 +154,7 @@ Claude Code reads your project files as needed. You don't have to manually add c",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Now let's make Claude Code do some actual coding. Try a simple task:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "add a hello world function to the main file"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -171,25 +171,25 @@ Whether Claude Code asks before changing files depends on your [permission mode]",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code makes Git operations conversational:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "what files have I changed?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "commit my changes with a descriptive message"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also prompt for more complex Git operations:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "create a new branch called feature/quickstart"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "show me the last 5 commits"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "help me resolve merge conflicts"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -199,13 +199,13 @@ Claude is proficient at debugging and feature implementation.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Describe what you want in natural language:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "add input validation to the user registration form"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Or fix existing issues:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "there's a bug where users can submit empty forms - fix it"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -222,25 +222,25 @@ There are a number of ways to work with Claude:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Refactor code**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "refactor the authentication module to use async/await instead of callbacks"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Write tests**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "write unit tests for the calculator functions"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Update documentation**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "update the README with installation instructions"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Code review**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "review my changes and suggest improvements"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -280,7 +280,7 @@ Try: \"fix the login bug where users see a blank screen after entering wrong cred",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Break complex tasks into steps:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "1. create a new database table for user profiles"
+            },
+            {
+              "type": "context",
+              "content": "2. create an API endpoint to get and update user profiles"
+            },
+            {
+              "type": "context",
+              "content": "3. build a webpage that allows users to see and edit their information"
+            }
+          ]
+        },
+        {
+          "header": "@@ -288,11 +288,11 @@ Break complex tasks into steps:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Before making changes, let Claude understand your code:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "analyze the database schema"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "build a dashboard showing products that are most frequently returned by our UK customers"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 17,
+      "deletions": 2,
+      "explanation": "管理設定項目の詳細が更新され、組織全体での機能制限に関する説明が強化されました。",
+      "hunks": [
+        {
+          "header": "@@ -906,7 +906,7 @@ Use `source: 'settings'` to declare a small set of plugins inline without settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "**Allowlist behavior**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `undefined` (default): no restrictions, so users can add any marketplace"
+            },
+            {
+              "type": "removed",
+              "content": "- Empty array `[]`: complete lockdown, so users can't add any new marketplaces"
+            },
+            {
+              "type": "added",
+              "content": "- Empty array `[]`: complete lockdown that blocks every marketplace source, including the official Anthropic marketplace, so users can't add any new marketplaces"
+            },
+            {
+              "type": "context",
+              "content": "- List of sources: users can only add marketplaces that match exactly"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**All supported source types**:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1028,7 +1028,7 @@ Example: allow specific marketplaces only:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Example: disable all marketplace additions:"
+            },
+            {
+              "type": "added",
+              "content": "Example: disable all marketplace additions, including the official Anthropic marketplace:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1036,6 +1036,21 @@ Example: disable all marketplace additions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Example: allow only the official Anthropic marketplace. Matching is exact, so this entry doesn't cover `ref` or `path` variants of the same repository:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"strictKnownMarketplaces\": ["
+            },
+            {
+              "type": "added",
+              "content": "    {"
+            },
+            {
+              "type": "added",
+              "content": "      \"source\": \"github\","
+            },
+            {
+              "type": "added",
+              "content": "      \"repo\": \"anthropics/claude-plugins-official\""
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": "  ]"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With this entry, the official marketplace registers itself automatically the first time you start Claude Code interactively, so you don't need to pair it with `extraKnownMarketplaces`. In a non-interactive environment that runs before that first interactive launch, add it explicitly with `claude plugin marketplace add anthropics/claude-plugins-official` or include it in `extraKnownMarketplaces`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Example: allow all marketplaces from an internal git server:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "whats-new/2026-w29.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "最新の更新情報において、表示上の微細な調整が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -17,8 +17,8 @@ A published artifact can now call MCP connectors each time someone views it, so",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Name the connector and the data you want in your prompt:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text Claude Code theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "> Build a dashboard artifact of open pull requests that pulls the live list through my GitHub connector when the page loads."
+            },
+            {
+              "type": "added",
+              "content": "```text title=\"Claude Code\" wrap theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "Build a dashboard artifact of open pull requests that pulls the live list through my GitHub connector when the page loads."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Pull live data with MCP connectors"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "workflows.md",
+      "additions": 32,
+      "deletions": 21,
+      "explanation": "ワークフローの実行と再開に関する説明文と、関連するコードサンプルの表示形式が改善されました。",
+      "hunks": [
+        {
+          "header": "@@ -36,7 +36,7 @@ The quickest way to see a workflow in action is to run `/deep-research`, the [bu",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run `/deep-research` with a question you want investigated. It fans out web searches across several angles, fetches and cross-checks the sources it finds, and synthesizes a cited report."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "/deep-research What changed in the Node.js permission model between v20 and v22?"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -44,7 +44,7 @@ Claude Code asks whether to allow the workflow. Select **Yes** to continue. The",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The run starts in the background. Run `/workflows`, use the arrow keys to select the run, and press Enter to open its progress view:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "/workflows"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -74,7 +74,7 @@ Claude Code includes `/deep-research` as a built-in workflow:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Workflows run in the background, so the session stays responsive while agents work. Run `/workflows` at any time to list running and completed workflows, then select one to open its progress view."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "/workflows"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -105,7 +105,7 @@ You can also run a workflow command that already exists: a [bundled workflow](#b",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To run a single task as a workflow without changing the session's effort level, include the keyword `ultracode` in your prompt. Asking in your own words, for example \"use a workflow\" or \"run a workflow\", also works: Claude treats a direct request as the same opt-in. Before v2.1.160 the literal trigger keyword was `workflow`; natural-language requests work in both versions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "ultracode: audit every API endpoint under src/routes/ for missing auth checks"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -132,7 +132,7 @@ Before v2.1.210, the keyword started a workflow from any of these routes too, in",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ultracode is a Claude Code setting that combines `xhigh` [reasoning effort](/docs/en/model-config#adjust-effort-level) with automatic workflow orchestration. With it on, Claude plans a workflow for each substantive task instead of waiting for you to ask."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "context",
+              "content": "/effort ultracode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -205,8 +205,8 @@ A saved workflow can accept input through the `args` parameter. The script reads",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The following prompt runs a saved workflow with a list of issue numbers:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "> Run /triage-issues on issues 1024, 1025, and 1030"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "added",
+              "content": "Run /triage-issues on issues 1024, 1025, and 1030"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude passes the list as structured data, so the script can call array and object methods on `args` directly without parsing it first. If `args` is omitted, the global is `undefined` inside the script."
+            }
+          ]
+        },
+        {
+          "header": "@@ -219,48 +219,48 @@ A workflow fits best when the task is larger than one agent can hold in context,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fan out one agent per file, then collect and verify the findings."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "> use a workflow to audit every route handler under src/routes/ for missing authentication checks, and adversarially verify each finding before reporting it"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "added",
+              "content": "use a workflow to audit every route handler under src/routes/ for missing authentication checks, and adversarially verify each finding before reporting it"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Keep fixing until a check passes"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run a checker, fix what failed, and repeat until it passes or stops making progress."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "> use a workflow to run npx tsc --noEmit and keep fixing the reported errors until the type check passes or two rounds in a row make no progress"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "added",
+              "content": "use a workflow to run npx tsc --noEmit and keep fixing the reported errors until the type check passes or two rounds in a row make no progress"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Migrate many files in parallel"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Discover the files to migrate, transform each one in an isolated copy so edits don't conflict, and verify each result."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "> use a workflow to migrate every component under src/components/ from styled-components to Tailwind, working on each file in its own isolated copy"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "added",
+              "content": "use a workflow to migrate every component under src/components/ from styled-components to Tailwind, working on each file in its own isolated copy"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Review every changed file and write one summary"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run a reviewer per file, then hand all the findings to one agent that ranks and deduplicates them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "> use a workflow to review every file changed in this PR for correctness issues, then merge the per-file findings into one ranked summary"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "added",
+              "content": "use a workflow to review every file changed in this PR for correctness issues, then merge the per-file findings into one ranked summary"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Research a topic across many sources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fan out readers across changelogs, issues, and docs, then synthesize. The bundled `/deep-research` workflow does this; you can also describe a narrower version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "> use a workflow to research how our three competitors handle rate limiting: read their public docs and recent changelog entries in parallel, then compare the approaches"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "added",
+              "content": "use a workflow to research how our three competitors handle rate limiting: read their public docs and recent changelog entries in parallel, then compare the approaches"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Find issues until the list stops growing"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Keep searching in rounds and stop when new rounds turn up nothing new."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "> use a workflow to find flaky tests in this repo: run the suite repeatedly, record which tests fail intermittently, and stop once two rounds in a row find nothing new"
+            },
+            {
+              "type": "added",
+              "content": "```text wrap"
+            },
+            {
+              "type": "added",
+              "content": "use a workflow to find flaky tests in this repo: run the suite repeatedly, record which tests fail intermittently, and stop once two rounds in a row find nothing new"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### What the saved script looks like"
+            }
+          ]
+        },
+        {
+          "header": "@@ -311,7 +311,18 @@ Once a run starts, you manage it from the `/workflows` view, or by expanding its",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Resume after a pause"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you stop a run, you can resume it: agents that already completed return their cached results, and the rest run live. An agent that was still running when you stopped isn't saved and starts over on resume, so a workflow that fans work out across many small agents preserves more progress than one long agent. Resume a paused run from `/workflows` by selecting it and pressing `p`, or ask Claude to relaunch the workflow with the same script."
+            },
+            {
+              "type": "added",
+              "content": "If you stop a run, you can resume it. Agents that already completed usually return their cached results, and the rest run live."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Two rules decide which results survive:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- An agent that was still running when you stopped isn't saved, so it starts over on resume."
+            },
+            {
+              "type": "added",
+              "content": "- Replay follows the order agents started. Cached results stop at the first agent that didn't finish, and every agent that started after that one runs again, even if it completed."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The second rule is what makes stopping mid fan-out expensive. Say a script starts four agents, A, B, C, and D, in that order, and you stop the run while B is still going. On resume, A returns from cache. B runs again because it never finished. C and D run again too, because they started after B, even though both completed before you stopped."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A workflow that fans work out across many small agents therefore preserves more progress than one long agent."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Resume a paused run from `/workflows` by selecting it and pressing `p`, or ask Claude to relaunch the workflow with the same script."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Resume works within the same Claude Code session. If you exit Claude Code while a workflow is running, the next session starts the workflow fresh."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -319,7 +330,7 @@ Resume works within the same Claude Code session. If you exit Claude Code while",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A workflow spawns many agents, so a single run can use meaningfully more tokens than working through the same task in conversation. Runs count toward your plan's usage and rate limits like any other session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To gauge the spend before committing to a large task, run the workflow on a small slice first: one directory instead of the whole repo, or a narrow question instead of a broad one. The `/workflows` view shows each agent's token usage as the run progresses, and you can stop the run there at any time without losing completed work. The runtime's [agent caps](#behavior-and-limits) limit how many agents a single run can spawn, which bounds the cost of a runaway script. To keep runs to fewer agents, choose the `small` [size guideline](#set-a-size-guideline)."
+            },
+            {
+              "type": "added",
+              "content": "To gauge the spend before committing to a large task, run the workflow on a small slice first: one directory instead of the whole repo, or a narrow question instead of a broad one. The `/workflows` view shows each agent's token usage as the run progresses, and you can stop the run there at any time, usually without losing completed work. [Resume after a pause](#resume-after-a-pause) covers what a stopped run keeps. The runtime's [agent caps](#behavior-and-limits) limit how many agents a single run can spawn, which bounds the cost of a runaway script. To keep runs to fewer agents, choose the `small` [size guideline](#set-a-size-guideline)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code also flags a run that grows unusually large. When a workflow schedules more than 25 agents, or its projected token total passes 1.5 million, its progress line in the task panel below the input box shows a `Large workflow` warning. The warning points you to [`/workflows`](#watch-the-run), where you can stop the run. Requires Claude Code v2.1.203 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
