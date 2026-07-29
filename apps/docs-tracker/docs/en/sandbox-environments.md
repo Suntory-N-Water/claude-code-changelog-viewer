@@ -24,7 +24,7 @@ The first two approaches in the table below run on the host operating system wit
 | [Dev container](#dev-containers) | Full development environment | Yes | Medium |
 | [Custom container](#custom-container) | Full development environment | Yes | Medium to high |
 | [Virtual machine](#virtual-machine) | Full operating system | No | High |
-| [Claude Code on the web](#claude-code-on-the-web) | Full operating system, hosted by Anthropic | No | None; requires a Claude subscription and GitHub |
+| [Claude Code on the web](#claude-code-on-the-web) | Full operating system, hosted by Anthropic | No | None; requires a Claude subscription, and GitHub when you launch from the web interface |
 
 The [sandboxed Bash tool](/docs/en/sandboxing) is built into Claude Code and restricts only Bash commands. Built-in file tools, MCP servers, and hooks still run directly on your host. Every other approach in the table puts the whole Claude Code process inside the isolation boundary, so file tools, MCP servers, and hooks are restricted too.
 
@@ -41,7 +41,7 @@ Match your goal to a row below, then read the detail section that follows.
 | Reduce permission prompts during everyday work on your own machine | The [sandboxed Bash tool](/docs/en/sandboxing), enabled with `/sandbox` |
 | Let Claude work unattended with `--dangerously-skip-permissions` or auto mode | The preconfigured [dev container](/docs/en/devcontainer), any container or VM, or the [sandbox runtime](#sandbox-runtime) |
 | Isolate MCP servers and hooks as well as Bash, without Docker | The sandbox runtime |
-| Work on an untrusted repository | A dedicated virtual machine, or [Claude Code on the web](/docs/en/claude-code-on-the-web) if you have a Claude subscription and a connected GitHub account |
+| Work on an untrusted repository | A dedicated virtual machine, or [Claude Code on the web](/docs/en/claude-code-on-the-web) if you have a Claude subscription; GitHub is only required when you launch from the web interface |
 | Standardize a sandboxed environment across a team | The preconfigured [dev container](/docs/en/devcontainer), copied into your repository |
 | Use Claude Code from a device with no local setup | [Claude Code on the web](/docs/en/claude-code-on-the-web), which requires a Claude subscription and a connected GitHub account |
 | Require isolation for every developer in your organization | [Enforce isolation across an organization](#enforce-isolation-across-an-organization) |
@@ -110,7 +110,7 @@ Use this approach when you are evaluating untrusted code, when your security pol
 
 [Claude Code on the web](/docs/en/claude-code-on-the-web) runs each session in an isolated, Anthropic-managed virtual machine. A network proxy enforces a default allowlist, and a separate proxy holds your GitHub token outside the sandbox while issuing scoped credentials for repository access inside it.
 
-Use this approach when you want full VM isolation without provisioning infrastructure yourself, or when you are delegating tasks from a device that does not have a local development environment. It requires a Claude subscription and a connected GitHub account, and sessions clone your repository from GitHub. See [Claude Code on the web](/docs/en/claude-code-on-the-web) for plan availability and GitHub authentication options.
+Use this approach when you want full VM isolation without provisioning infrastructure yourself, or when you are delegating tasks from a device that does not have a local development environment. It requires a Claude subscription. When you launch a session from the web interface, you also need a connected GitHub account so the sandbox can clone your repository. When you launch from the CLI with `--cloud`, Claude Code can [bundle and upload your local repository](/docs/en/claude-code-on-the-web#send-local-repositories-without-github) instead if GitHub isn't connected. See [Claude Code on the web](/docs/en/claude-code-on-the-web) for plan availability and GitHub authentication options.
 
 ## Enforce isolation across an organization
 

@@ -145,7 +145,7 @@ The SDK provides hooks for different stages of agent execution. Some hooks are a
 | `SubagentStop` | Yes | Yes | Subagent completion | Aggregate results from parallel tasks |
 | `PreCompact` | Yes | Yes | Conversation compaction request | Archive full transcript before summarizing |
 | `PostCompact` | No | Yes | Conversation compaction completes | Log the generated summary |
-| `PermissionRequest` | Yes | Yes | Permission dialog would be displayed | Custom permission handling |
+| `PermissionRequest` | Yes | Yes | A tool call needs a permission decision | Custom permission handling |
 | `PermissionDenied` | No | Yes | The auto mode classifier denies a tool call | Log classifier denials or tell the model it may retry |
 | `SessionStart` | No | Yes | Session initialization | Initialize logging and telemetry |
 | `SessionEnd` | No | Yes | Session termination | Clean up temporary resources |
@@ -162,6 +162,7 @@ The SDK provides hooks for different stages of agent execution. Some hooks are a
 | `WorktreeRemove` | No | Yes | Git worktree removed | Clean up workspace resources |
 | `CwdChanged` | No | Yes | The working directory changes during a session | Reload environment variables per directory |
 | `FileChanged` | No | Yes | A watched file is modified, created, or deleted | Reload configuration when project files change |
+| `DirectoryAdded` | No | Yes | A working directory is added during a session | Install dependencies for a repository added mid-session |
 
 ## Configure hooks
 
@@ -214,7 +215,7 @@ Hyphens in the exact-match set require a Claude Code runtime of v2.1.195 or late
 | - | - | - | - |
 | `matcher` | `string` | `undefined` | Pattern matched against the event's filter field, following the comparison rules above. For tool hooks, this is the tool name. Built-in tools include `Bash`, `Read`, `Write`, `Edit`, `Glob`, `Grep`, `WebFetch`, `Agent`, and others (see [Tool Input Types](/docs/en/agent-sdk/typescript#tool-input-types) for the full list). MCP tools use the pattern `mcp__<server>__<action>`. |
 | `hooks` | `HookCallback[]` | - | Required. Array of callback functions to execute when the pattern matches |
-| `timeout` | `number` | `undefined` | Timeout in seconds. When omitted, Claude Code applies the [event's default timeout](#hook-timeout): 10 minutes for most events, 30 seconds for `UserPromptSubmit`. Claude Code uses shorter limits for a few events, such as 10 seconds for `MessageDisplay` and a 1.5-second default [budget](/docs/en/hooks#sessionend-input) for `SessionEnd` |
+| `timeout` | `number` | `undefined` | Timeout in seconds. When omitted, Claude Code applies the [event's default timeout](#hook-timeout): 10 minutes for most events, 30 seconds for `UserPromptSubmit`. Claude Code uses shorter limits for a few events, such as 10 seconds for `MessageDisplay` and a 1.5-second default [budget](/docs/en/hooks#sessionend-input) for `SessionEnd`. Your SDK callbacks follow the `command` hook defaults |
 
 Use the `matcher` pattern to target specific tools whenever possible. A matcher with `'Bash'` only runs for Bash commands, while omitting the pattern runs your callbacks for every occurrence of the event.
 
