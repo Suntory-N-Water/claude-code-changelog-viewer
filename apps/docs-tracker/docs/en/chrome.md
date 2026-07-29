@@ -58,7 +58,7 @@ Go to code.claude.com/docs, click on the search box,
 type "hooks", and tell me what results appear
 ```
 
-The first browser action asks for permission to use the `claude-in-chrome` skill. Approve it and Claude opens a new tab and starts the task.
+Before Claude's first browser action, Claude Code asks for permission to use the `claude-in-chrome` skill. Approve it and Claude opens a new tab and starts the task.
 
 Run `/chrome` at any time to check the connection status, manage permissions, reconnect the extension, or choose which connected browser to use. The integration is working when the status panel shows "Status: Enabled" and "Extension: Installed". If more than one browser is connected when a browser action starts, Claude prompts you to pick one.
 
