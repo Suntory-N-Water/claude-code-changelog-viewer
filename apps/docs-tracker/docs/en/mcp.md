@@ -475,7 +475,7 @@ claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
 
 Authenticate with your Sentry account:
 
-```text
+```text wrap
 /mcp
 ```
 
@@ -483,15 +483,15 @@ Follow the sign-in steps in your browser. Once you're signed in, the `sentry` se
 
 Then debug production issues:
 
-```text
+```text wrap
 What are the most common errors in the last 24 hours?
 ```
 
-```text
+```text wrap
 Show me the stack trace for error ID abc123
 ```
 
-```text
+```text wrap
 Which deployment introduced these new errors?
 ```
 
@@ -508,15 +508,15 @@ Replace `YOUR_GITHUB_PAT` with your personal access token. The `claude mcp add` 
 
 Then work with GitHub:
 
-```text
+```text wrap
 Review PR #456 and suggest improvements
 ```
 
-```text
+```text wrap
 Create a new issue for the bug we just found
 ```
 
-```text
+```text wrap
 Show me all open PRs assigned to me
 ```
 
@@ -533,15 +533,15 @@ To confirm the server starts, run `/mcp` and check that `db` shows `connected`.
 
 Then query your database naturally:
 
-```text
+```text wrap
 What's our total revenue this month?
 ```
 
-```text
+```text wrap
 Show me the schema for the orders table
 ```
 
-```text
+```text wrap
 Find customers who haven't made a purchase in 90 days
 ```
 
@@ -571,7 +571,7 @@ claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
 
 In Claude Code, use the command:
 
-```text theme={null}
+```text wrap theme={null}
 /mcp
 ```
 
@@ -832,7 +832,7 @@ Complete any required authentication steps in claude.ai.
 
 In Claude Code, use the command:
 
-```text theme={null}
+```text wrap theme={null}
 /mcp
 ```
 
@@ -1042,17 +1042,17 @@ Type `@` in your prompt to see available resources from all connected MCP server
 
 Use the format `@server:protocol://resource/path` to reference a resource:
 
-```text theme={null}
+```text wrap theme={null}
 Can you analyze @github:issue://123 and suggest a fix?
 ```
 
-```text theme={null}
+```text wrap theme={null}
 Please review the API documentation at @docs:file://api/authentication
 ```
 
 You can reference multiple resources in a single prompt:
 
-```text theme={null}
+```text wrap theme={null}
 Compare @postgres:schema://users with @docs:file://database/user-model
 ```
 
@@ -1155,17 +1155,17 @@ MCP servers can expose prompts that become available as commands in Claude Code.
 
 Type `/` to see all available commands, including those from MCP servers. MCP prompts appear with the format `/mcp__servername__promptname`.
 
-```text theme={null}
+```text wrap theme={null}
 /mcp__github__list_prs
 ```
 
 Many prompts accept arguments. Pass them space-separated after the command:
 
-```text theme={null}
+```text wrap theme={null}
 /mcp__github__pr_review 456
 ```
 
-```text theme={null}
+```text wrap theme={null}
 /mcp__jira__create_issue "Bug in login flow" high
 ```
 
