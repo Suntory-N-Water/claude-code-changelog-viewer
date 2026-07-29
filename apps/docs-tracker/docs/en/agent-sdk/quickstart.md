@@ -40,14 +40,14 @@ npm install @anthropic-ai/claude-agent-sdk
 npm install --save-dev tsx
 ```
 
-Setting `"type": "module"` in `package.json` lets your agent script use top-level `await`, and [tsx](https://tsx.is) runs TypeScript files directly. npm prints `added N packages` when the install succeeds.
+Setting `"type": "module"` in `package.json` lets your agent script use top-level `await`, and [tsx](https://tsx.hirok.io) runs TypeScript files directly. npm prints `added N packages` when the install succeeds.
 
 ```bash theme={null}
 npm install @anthropic-ai/claude-agent-sdk
 npm install --save-dev tsx
 ```
 
-[tsx](https://tsx.is) runs TypeScript files directly. If your project uses CommonJS, name your agent script `agent.mts` instead of `agent.ts`. The `.mts` extension makes tsx treat the file as an ES module, so top-level `await` works without converting your whole project to ES modules. Use `agent.mts` in place of `agent.ts` in the create and run steps later in this quickstart.
+[tsx](https://tsx.hirok.io) runs TypeScript files directly. If your project uses CommonJS, name your agent script `agent.mts` instead of `agent.ts`. The `.mts` extension makes tsx treat the file as an ES module, so top-level `await` works without converting your whole project to ES modules. Use `agent.mts` in place of `agent.ts` in the create and run steps later in this quickstart.
 
 [uv](https://docs.astral.sh/uv/) is a fast Python package manager that handles virtual environments automatically:
 
