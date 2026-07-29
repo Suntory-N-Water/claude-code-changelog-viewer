@@ -1,0 +1,687 @@
+{
+  "id": "20260729-182634",
+  "timestamp": "2026-07-29T18:26:34.083Z",
+  "aiSummary": "ファイルアクセス権限の検証ルールが厳格化され、WriteやGlobなどのツール名に基づくパス指定のルールはEditまたはReadへの置き換えが推奨されるようになりました。あわせて権限チェックに関する新しいエラーメッセージの説明が追加され、起動時の警告から修正方法を把握できるようになっています。ルーチン機能におけるブランチプッシュの制限仕様が具体化され、保護されたブランチや他者のコミットを含むブランチへのプッシュが制限される旨が明記されました。その他、クイックスタートにおけるリンクの修正や、モデル自動切り替え設定の最小バージョン要件の更新が行われています。",
+  "files": [
+    {
+      "filename": "agent-sdk/quickstart.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "TypeScript実行ツールであるtsxのドキュメントリンクを新しいURLに更新し、パッケージインストール時の動作説明を微調整しています。",
+      "hunks": [
+        {
+          "header": "@@ -40,14 +40,14 @@ npm install @anthropic-ai/claude-agent-sdk",
+          "lines": [
+            {
+              "type": "context",
+              "content": "npm install --save-dev tsx"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Setting `\"type\": \"module\"` in `package.json` lets your agent script use top-level `await`, and [tsx](https://tsx.is) runs TypeScript files directly. npm prints `added N packages` when the install succeeds."
+            },
+            {
+              "type": "added",
+              "content": "Setting `\"type\": \"module\"` in `package.json` lets your agent script use top-level `await`, and [tsx](https://tsx.hirok.io) runs TypeScript files directly. npm prints `added N packages` when the install succeeds."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "npm install @anthropic-ai/claude-agent-sdk"
+            },
+            {
+              "type": "context",
+              "content": "npm install --save-dev tsx"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[tsx](https://tsx.is) runs TypeScript files directly. If your project uses CommonJS, name your agent script `agent.mts` instead of `agent.ts`. The `.mts` extension makes tsx treat the file as an ES module, so top-level `await` works without converting your whole project to ES modules. Use `agent.mts` in place of `agent.ts` in the create and run steps later in this quickstart."
+            },
+            {
+              "type": "added",
+              "content": "[tsx](https://tsx.hirok.io) runs TypeScript files directly. If your project uses CommonJS, name your agent script `agent.mts` instead of `agent.ts`. The `.mts` extension makes tsx treat the file as an ES module, so top-level `await` works without converting your whole project to ES modules. Use `agent.mts` in place of `agent.ts` in the create and run steps later in this quickstart."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[uv](https://docs.astral.sh/uv/) is a fast Python package manager that handles virtual environments automatically:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/secure-deployment.md",
+      "additions": 1,
+      "deletions": 2,
+      "explanation": "Dockerデーモンの設定例において、コードブロックにファイルパスのメタデータと表示テーマの設定を追加しています。",
+      "hunks": [
+        {
+          "header": "@@ -164,8 +164,7 @@ If an agent runs malicious code (perhaps due to prompt injection), that code run",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To use gVisor with Docker, install the `runsc` runtime and configure the daemon:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```json"
+            },
+            {
+              "type": "removed",
+              "content": "// /etc/docker/daemon.json"
+            },
+            {
+              "type": "added",
+              "content": "```json /etc/docker/daemon.json theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "  \"runtimes\": {"
+            },
+            {
+              "type": "context",
+              "content": "    \"runsc\": {"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 20,
+      "deletions": 1,
+      "explanation": "ファイルアクセス権限の不一致に関する新しいエラーセクションを追加し、推奨されるルールの書き換え方法やデバッグログの出力先を詳細に解説しています。",
+      "hunks": [
+        {
+          "header": "@@ -108,6 +108,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Claude Code process exited with code N` | [Wrapper and IDE errors](#claude-code-process-exited-with-code-n) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Restored the code, but skipped N files` | [Rewind warnings](#restored-the-code-but-skipped-files) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ignoring N permissions.allow entries from ... this workspace has not been trusted` | [Configuration warnings](#workspace-has-not-been-trusted) |"
+            },
+            {
+              "type": "added",
+              "content": "| `... is not matched by file permission checks` | [Configuration warnings](#is-not-matched-by-file-permission-checks) |"
+            },
+            {
+              "type": "context",
+              "content": "| Responses seem lower quality than usual | [Response quality](#responses-seem-lower-quality-than-usual) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Automatic retries"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1584,7 +1585,7 @@ Restored the code, but skipped 2 files: the tracked path is (or became) a link o",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configuration warnings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code writes these messages to stderr at startup rather than showing an error in the conversation. They report configuration it read but didn't apply."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code writes these messages to stderr at startup rather than showing an error in the conversation, except where an entry notes that it writes the message to the debug log instead. They report configuration it read but didn't apply."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Workspace has not been trusted"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1600,6 +1601,24 @@ Ignoring 2 permissions.allow entries from .claude/settings.local.json: this work",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- In [non-interactive mode](/docs/en/headless) with `-p` no dialog is shown. Set the `hasTrustDialogAccepted` entry in `~/.claude.json` using the exact `projects` key the message prints."
+            },
+            {
+              "type": "context",
+              "content": "- If the message names `.claude/settings.local.json` and you started Claude Code outside a git repository or in your home directory, update to v2.1.200 or later. Versions 2.1.196 through 2.1.199 treated your own `.claude/settings.local.json` as repository-supplied in those workspaces. On v2.1.207 and later, updating isn't enough outside a git repository if you haven't trusted the folder: determining that a folder isn't inside a repository runs git, and Claude Code runs that check only after you accept the trust dialog, so use the first step. Your home directory and any other [configuration home](/docs/en/permissions#project-allow-rules-and-workspace-trust) are exempt and don't wait for the dialog. See [Project allow rules and workspace trust](/docs/en/permissions#project-allow-rules-and-workspace-trust)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Is not matched by file permission checks"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code found a `Write`, `NotebookEdit`, `MultiEdit`, or `Glob` [permission rule](/docs/en/permissions#read-and-edit) with a path in one of your [settings files](/docs/en/settings#settings-files), in [managed settings](/docs/en/permissions#managed-settings), or in a `--allowedTools`, `--disallowedTools`, or `--settings` flag value. It checks file permissions against `Edit` and `Read` rules only, so it never consults a path rule that names one of the other file tools. It keeps the rule and changes nothing else; the warning names the rule, its source in parentheses, and the replacement to write:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "Permission deny rule (.claude/settings.json): Write(docs/**) is not matched by file permission checks — only Edit(path) rules are. Use Edit(docs/**) instead (Edit rules cover all file-editing tools)."
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Replace `Write(path)`, `NotebookEdit(path)`, and legacy `MultiEdit(path)` rules with `Edit(path)`. `Edit` rules cover all file-editing tools."
+            },
+            {
+              "type": "added",
+              "content": "- Except in `--allowedTools`, where Claude Code accepts a `Glob` rule without warning, replace `Glob(path)` rules with `Read(path)`."
+            },
+            {
+              "type": "added",
+              "content": "- Fix the rule at the source the warning names in parentheses: a settings file path, or the flag itself for `--allowed-tools` and `--disallowed-tools`. A `claude-settings-<hash>.json` path that doesn't exist on disk stands for an inline `--settings` value; fix the JSON you pass to that flag."
+            },
+            {
+              "type": "added",
+              "content": "- Leave bare tool-name rules such as `Write` or `Glob` alone. Claude Code matches them at the [tool level](/docs/en/permissions#match-all-uses-of-a-tool) and doesn't warn about them."
+            },
+            {
+              "type": "added",
+              "content": "- If the source reads `managed policy settings`, forward the warning to whoever maintains your managed settings; you can't clear it yourself."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In a [background session](/docs/en/agent-view) or with `--output-format json` or `stream-json`, Claude Code writes the warning to the debug log instead of stderr, so machine-read output stays clean; run with `--debug` to capture it at `~/.claude/debug/<session-id>.txt`. Before v2.1.210, Claude Code accepted these rules without a warning."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Responses seem lower quality than usual"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude's answers seem less capable than you expect but no error is shown, the cause is usually conversation state rather than the model itself. Claude Code doesn't silently change model versions. It can switch to a fallback model in three specific cases:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "ファイルパス指定のルールがEditとReadのみに対応することを強調し、WriteやGlobを使用した場合に警告が発生する旨を最新の仕様に基づいて記述しています。",
+      "hunks": [
+        {
+          "header": "@@ -107,7 +107,7 @@ Parameter matching follows these rules:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- The value is compared against the literal input Claude sends, before any normalization. `Agent(model:opus)` matches the alias `opus` but not a full model ID. Run with [`--verbose`](/docs/en/cli-reference) to see the exact parameter names and values in each tool call"
+            },
+            {
+              "type": "context",
+              "content": "- Whitespace around the colon is ignored"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Fields that a tool already matches with its own canonicalizing rules are not matchable this way: `command` for Bash and PowerShell, `file_path` for Read, Edit, and Write, `path` for Grep and Glob, `notebook_path` for NotebookEdit, and `url` for WebFetch. A rule like `Bash(command:rm *)` would be bypassable by a compound command, so Claude Code ignores it and emits a startup warning. Use `Bash(rm *)`, `Read(./path)`, or `WebFetch(domain:host)` instead."
+            },
+            {
+              "type": "added",
+              "content": "You can't match a tool's primary content field this way: `command` for Bash and PowerShell, `file_path` for Read, Edit, and Write, `path` for Grep and Glob, `notebook_path` for NotebookEdit, and `url` for WebFetch. A rule like `Bash(command:rm *)` would be bypassable by a compound command, so Claude Code ignores it and emits a startup warning. Use `Bash(rm *)`, `Read(./path)`, or `WebFetch(domain:host)` instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Wildcard patterns"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -251,9 +251,9 @@ Claude Code parses the PowerShell AST and checks each command in a compound comm",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A `Read` deny rule also blocks the [Edit tool](/docs/en/errors#file-is-covered-by-a-read-deny-rule) on the same path, including creating a new file there. Write and NotebookEdit aren't covered, so add an `Edit` deny rule for paths no tool may change. Requires Claude Code v2.1.208 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The file permission checks match only `Edit(path)` and `Read(path)` rules. A `Write(path)`, `NotebookEdit(path)`, or `Glob(path)` rule is accepted but never matched by those checks, so Claude Code warns at startup for each allow, deny, or ask rule in one of these unmatched forms. Use `Edit(docs/**)` in place of `Write(docs/**)` or `NotebookEdit(docs/**)`, and `Read(docs/**)` in place of `Glob(docs/**)`. A tool-name rule with no path, such as a deny rule for `Write`, isn't affected: it matches the tool everywhere and produces no warning. Requires Claude Code v2.1.210 or later."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code checks file permissions against `Edit(path)` and `Read(path)` rules only. If you write a path rule for `Write`, `NotebookEdit`, `Glob`, or the legacy `MultiEdit` tool instead, Claude Code accepts the rule but never consults it, and [warns at startup](/docs/en/errors#is-not-matched-by-file-permission-checks), except for a `Glob` rule passed in `--allowedTools`. Use `Edit(docs/**)` in place of `Write(docs/**)`, `NotebookEdit(docs/**)`, or `MultiEdit(docs/**)`, and `Read(docs/**)` in place of `Glob(docs/**)`. Claude Code doesn't warn about a tool-name rule with no path, such as a deny rule for `Write`; it matches that rule at the tool level everywhere. Requires Claude Code v2.1.210 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A deny rule `Write(docs/**)` in project settings produces this startup warning:"
+            },
+            {
+              "type": "added",
+              "content": "If you put a deny rule `Write(docs/**)` in project settings, Claude Code prints this startup warning:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "context",
+              "content": "Permission deny rule (.claude/settings.json): Write(docs/**) is not matched by file permission checks — only Edit(path) rules are. Use Edit(docs/**) instead (Edit rules cover all file-editing tools)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "routines.md",
+      "additions": 7,
+      "deletions": 7,
+      "explanation": "ルーチンがブランチへプッシュする際の制限条件として、GitHubの保護設定や他者の未マージな変更がある場合の拒否ルールを具体的に明示しています。",
+      "hunks": [
+        {
+          "header": "@@ -49,7 +49,7 @@ Create a routine from the web at [claude.ai/code/routines](https://claude.ai/cod",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The creation form sets up the routine's prompt, repositories, environment, connectors, and triggers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Routines run autonomously as full Claude Code cloud sessions: there is no permission-mode picker and no approval prompts during a run. The session can run shell commands, use [skills](/docs/en/skills) committed to the cloned repository, and call any connectors you include. What a routine can reach is determined by the repositories you select and their branch-push setting, the [environment's](/docs/en/cloud-environments) network access and variables, and the connectors you include. Scope each of those to what the routine actually needs."
+            },
+            {
+              "type": "added",
+              "content": "Routines run autonomously as full Claude Code cloud sessions: there is no permission-mode picker and no approval prompts during a run. The session can run shell commands, use [skills](/docs/en/skills) committed to the cloned repository, and call any connectors you include. What a routine can reach is determined by the repositories you select, the [environment's](/docs/en/cloud-environments) network access and variables, and the connectors you include. Scope each of those to what the routine actually needs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Routines belong to your individual claude.ai account. They are not shared with teammates, and they count against your account's daily run allowance. Anything a routine does through your connected GitHub identity or connectors appears as you: commits and pull requests carry your GitHub user, and Slack messages, Linear tickets, or other connector actions use your linked accounts for those services."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -81,11 +81,7 @@ Select the repository, the event to react to, and optional filters. See [Add a G",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Select **API** here, then save the routine. The URL and token are generated after the routine is saved, since they depend on the routine ID. See [Add an API trigger](#add-an-api-trigger) to copy the URL and generate a token."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The **Connectors** and **Permissions** tabs at the bottom of the form control what the routine can reach."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Under Connectors, all of your connected [MCP connectors](/docs/en/mcp) are included by default. Remove any the routine doesn't need. Claude can use every tool from an included connector, including writes, without asking for permission during a run."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Under Permissions, enable **Allow unrestricted branch pushes** for any repository where Claude should be able to push to existing branches instead of only `claude/`-prefixed ones."
+            },
+            {
+              "type": "added",
+              "content": "Under **Connectors** at the bottom of the form, all of your connected [MCP connectors](/docs/en/mcp) are included by default. Remove any the routine doesn't need: Claude can use every tool from an included connector, including writes, without asking for permission during a run."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Click **Create**. The routine appears in the list and runs the next time one of its triggers matches. To start a run immediately, click **Run now** on the routine's detail page."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -271,7 +267,11 @@ Routines need GitHub access to clone repositories. When you create a routine fro",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each repository you add is cloned on every run. Claude starts from the repository's default branch unless your prompt specifies otherwise."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, Claude can only push to branches prefixed with `claude/`. This prevents routines from accidentally modifying protected or long-lived branches. To remove this restriction for a specific repository, enable **Allow unrestricted branch pushes** for that repository when creating or editing the routine."
+            },
+            {
+              "type": "added",
+              "content": "Claude pushes its work to branches prefixed with `claude/`, which are always accepted. When your prompt directs Claude to push to another branch, Claude Code checks the push first and rejects it if any of the following is true:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- The branch is protected on GitHub"
+            },
+            {
+              "type": "added",
+              "content": "- Someone else has an open pull request from that branch"
+            },
+            {
+              "type": "added",
+              "content": "- The branch carries commits authored by someone other than you"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Connectors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 4,
+      "deletions": 11,
+      "explanation": "モデルの自動切り替え設定の最小要件バージョンをv2.1.170に更新し、設定ソースの重複判定に関する例示を簡潔な記述に変更しています。",
+      "hunks": [
+        {
+          "header": "@@ -319,7 +319,7 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `statusLine` | Configure a custom status line to display context. The object's optional `padding`, `refreshInterval`, and `hideVimModeIndicator` fields control spacing, periodic re-runs, and whether the built-in vim mode indicator below the prompt is hidden. See [`statusLine` documentation](/docs/en/statusline#manually-configure-a-status-line) | `{\"type\": \"command\", \"command\": \"~/.claude/statusline.sh\"}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `strictKnownMarketplaces` | (Managed settings only) Allowlist of plugin marketplace sources. Undefined = no restrictions, empty array = lockdown. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. See [Managed marketplace restrictions](/docs/en/plugin-marketplaces#managed-marketplace-restrictions) | `[{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `strictPluginOnlyCustomization` | (Managed settings only) Block skills, agents, hooks, and MCP servers from user and project sources, so they can only come from plugins or managed settings. `true` locks all four surfaces; an array locks only the named ones. See [`strictPluginOnlyCustomization`](#strictpluginonlycustomization) | `[\"skills\", \"hooks\"]` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `switchModelsOnFlag` | **Default**: `true`. When a [safety classifier flags a request](/docs/en/model-config#automatic-model-fallback), switch to the fallback model automatically and continue the session. Set to `false` to pause instead and choose between switching and editing the prompt. See [Ask before switching](/docs/en/model-config#ask-before-switching). Appears in `/config` as **Switch models when a message is flagged**. Requires Claude Code v2.1.160 or later | `false` |"
+            },
+            {
+              "type": "added",
+              "content": "| `switchModelsOnFlag` | **Default**: `true`. When a [safety classifier flags a request](/docs/en/model-config#automatic-model-fallback), switch to the fallback model automatically and continue the session. Set to `false` to pause instead and choose between switching and editing the prompt. See [Ask before switching](/docs/en/model-config#ask-before-switching). Appears in `/config` as **Switch models when a message is flagged**. Requires Claude Code v2.1.170 or later | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `syntaxHighlightingDisabled` | Disable syntax highlighting in diffs, code blocks, and file previews | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `teammateMode` | **Default**: `in-process`. How [agent team](/docs/en/agent-teams) teammates display: `in-process`, `auto` (split panes when running inside tmux, or inside iTerm2 with `it2` on your `PATH`; in-process otherwise), `tmux` (split panes using tmux or iTerm2, detected from your terminal), or `iterm2` (iTerm2 native split panes via the `it2` CLI, added in v2.1.186). The default changed from `auto` in v2.1.179. `--teammate-mode` overrides this for one session. See [choose a display mode](/docs/en/agent-teams#choose-a-display-mode) | `\"auto\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `terminalProgressBarEnabled` | **Default**: `true`. Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Appears in `/config` as **Terminal progress bar** | `false` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1073,17 +1073,10 @@ Marketplace sources must match exactly for a user's addition to be allowed. For",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- The `ref` field must match exactly (or both be undefined)"
+            },
+            {
+              "type": "context",
+              "content": "- The `path` field must match exactly (or both be undefined)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Examples of sources that don't match:"
+            },
+            {
+              "type": "added",
+              "content": "For example, Claude Code treats each pair below as two different sources:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```json"
+            },
+            {
+              "type": "removed",
+              "content": "// These are DIFFERENT sources:"
+            },
+            {
+              "type": "removed",
+              "content": "{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }"
+            },
+            {
+              "type": "removed",
+              "content": "{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\", \"ref\": \"main\" }"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "// These are also DIFFERENT:"
+            },
+            {
+              "type": "removed",
+              "content": "{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\", \"path\": \"marketplace\" }"
+            },
+            {
+              "type": "removed",
+              "content": "{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }"
+            },
+            {
+              "type": "removed",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": "- `{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }` and `{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\", \"ref\": \"main\" }`"
+            },
+            {
+              "type": "added",
+              "content": "- `{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\", \"path\": \"marketplace\" }` and `{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Comparison with `extraKnownMarketplaces`**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
