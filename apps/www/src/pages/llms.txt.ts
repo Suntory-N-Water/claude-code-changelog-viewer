@@ -16,7 +16,7 @@ export async function GET(context: APIContext) {
   const [changelogs, docsDiffEntries, posts, settings] = await Promise.all([
     getCollection('changelog'),
     getCollection('docsDiff'),
-    getCollection('posts'),
+    getCollection('postsWeekly'),
     getCollection('settingsReference'),
   ]);
 
@@ -44,9 +44,9 @@ export async function GET(context: APIContext) {
     );
 
   // 週次まとめ: 投稿日降順
-  const weeklyPosts = posts
-    .filter((entry) => entry.id.startsWith('weekly/'))
-    .sort((a, b) => b.data.date.localeCompare(a.data.date));
+  const weeklyPosts = [...posts].sort((a, b) =>
+    b.data.date.localeCompare(a.data.date),
+  );
 
   // 設定リファレンス: key 昇順(settings → env)
   const sortedSettings = [...settings].sort((a, b) => {

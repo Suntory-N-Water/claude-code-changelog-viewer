@@ -1,0 +1,39 @@
+---
+import type { MarkdownHeading } from 'astro';
+import Icon from '../Icon.astro';
+import Accordion from '../ui/Accordion.astro';
+
+type Props = {
+  headings: MarkdownHeading[];
+  class?: string;
+};
+
+const { headings, class: className } = Astro.props;
+---
+
+<Accordion variant='muted' class:list={[className]}>
+  <summary
+    class='cursor-pointer select-none px-4 py-3 text-sm font-semibold text-[hsl(var(--cc-main-black)/0.7)] flex items-center gap-2'
+  >
+    <Icon
+      name='chevron-down'
+      class='w-4 h-4 transition-transform'
+      aria-hidden='true'
+    />
+    目次
+  </summary>
+  <ul class='px-4 pb-4 space-y-1.5'>
+    {
+      headings.map((h) => (
+        <li class={h.depth === 3 ? 'pl-4' : ''}>
+          <a
+            href={`#${h.slug}`}
+            class='block text-sm [word-break:auto-phrase] text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+          >
+            {h.text}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Accordion>
