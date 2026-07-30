@@ -1,7 +1,6 @@
 import { getCollection } from 'astro:content';
 import { Resvg } from '@resvg/resvg-js';
 import type { APIContext } from 'astro';
-import { format, parseISO } from 'date-fns';
 import satori from 'satori';
 import { SITE_TITLE } from '../../../../lib/constants';
 
@@ -49,10 +48,9 @@ export async function getStaticPaths() {
 }
 
 export async function GET({ props }: APIContext) {
-  const { title, date } = props.entry.data;
-  const dateLabel = format(parseISO(date), 'yyyy年M月d日');
+  const { title } = props.entry.data;
 
-  const fontData = await loadNotoSansJp(`${SITE_TITLE}${title}${dateLabel}`);
+  const fontData = await loadNotoSansJp(`${SITE_TITLE}${title}`);
 
   // 長いタイトルでもカードに収まるよう、文字数で段階的に縮める
   const titleFontSize = title.length > 40 ? 44 : title.length > 24 ? 52 : 60;
@@ -74,7 +72,8 @@ export async function GET({ props }: APIContext) {
             style: {
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
+              justifyContent: 'center',
+              gap: 24,
               width: '100%',
               height: '100%',
               padding: 56,
@@ -102,17 +101,6 @@ export async function GET({ props }: APIContext) {
                     color: COLORS.mainBlack,
                   },
                   children: title,
-                },
-              },
-              {
-                type: 'div',
-                props: {
-                  style: {
-                    fontSize: 28,
-                    color: COLORS.mainBlack,
-                    opacity: 0.55,
-                  },
-                  children: dateLabel,
                 },
               },
             ],
