@@ -102,11 +102,18 @@ const columnCollection = defineCollection({
   schema: z.object({
     title: z.string(),
     slug: z.string().regex(/^[a-z0-9-]+$/),
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    date: z
+      .string({
+        error:
+          '日付はクォートで囲む(例: date: "2026-07-31")。囲まないと YAML が Date 型として解釈する',
+      })
+      .regex(/^\d{4}-\d{2}-\d{2}$/),
+    // 執筆中は値なしで置けるようにする。YAML の `modified_time:` は undefined ではなく null
     modified_time: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .optional(),
+      .nullish()
+      .transform((value) => value ?? undefined),
     description: z.string(),
   }),
 });
