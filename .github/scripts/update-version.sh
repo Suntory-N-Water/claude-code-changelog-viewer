@@ -53,13 +53,10 @@ if [ ! -f "$CLAUDE_VERSION_JSON" ]; then
   exit 1
 fi
 
-# vプレフィックスを除去して設定
-CLEAN_VERSION="${LATEST_VERSION#v}"
-
 TMP_FILE=$(mktemp)
-jq --arg version "$CLEAN_VERSION" '.version = $version' "$CLAUDE_VERSION_JSON" > "$TMP_FILE"
+jq --arg version "$LATEST_VERSION" '.version = $version' "$CLAUDE_VERSION_JSON" > "$TMP_FILE"
 mv "$TMP_FILE" "$CLAUDE_VERSION_JSON"
-echo "✅ Updated $CLAUDE_VERSION_JSON to version $CLEAN_VERSION"
+echo "✅ Updated $CLAUDE_VERSION_JSON to version $LATEST_VERSION"
 
 # 変更をステージング
 git add "$CLAUDE_VERSION_JSON"

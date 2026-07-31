@@ -1,4 +1,5 @@
 import type { ReleaseInfoPort } from '../../usecase/weekly-post-generation';
+import { createChangelogVersion } from '../../domain/changelog/changelog-version';
 
 type GitHubRelease = {
   tag_name: string;
@@ -25,7 +26,7 @@ export class GitHubReleaseDateClient implements ReleaseInfoPort {
 
       for (const release of releases) {
         releaseDates.set(
-          release.tag_name.replace(/^v/, ''),
+          createChangelogVersion(release.tag_name),
           release.published_at,
         );
       }

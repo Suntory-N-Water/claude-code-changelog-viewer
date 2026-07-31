@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+export const ClaudeCodeVersionSchema = z.string().regex(/^v\d+\.\d+\.\d+$/);
+export type ClaudeCodeVersion = z.infer<typeof ClaudeCodeVersionSchema>;
+
 // RelatedDoc
 export const RelatedDocSchema = z.object({
   file: z.string(),
