@@ -15,6 +15,9 @@ export async function verifyTurnstileToken(
       body: new URLSearchParams({ secret: secretKey, response: token }),
     },
   );
+  if (!response.ok) {
+    return false;
+  }
   const data = await response.json<TurnstileVerifyResponse>();
-  return data.success;
+  return data.success === true;
 }

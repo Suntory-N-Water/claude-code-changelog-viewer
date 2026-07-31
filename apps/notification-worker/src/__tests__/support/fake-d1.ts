@@ -77,6 +77,14 @@ export class FakeD1Database {
       );
       CREATE INDEX idx_notification_settings_channel_id ON notification_settings(channel_id);
 
+      CREATE TABLE notification_deliveries (
+        version TEXT NOT NULL,
+        channel_id TEXT NOT NULL,
+        delivered_at TEXT NOT NULL DEFAULT (datetime('now')),
+        PRIMARY KEY (version, channel_id),
+        FOREIGN KEY (channel_id) REFERENCES channels(id)
+      );
+
       CREATE TABLE slack_channels (
         channel_id TEXT PRIMARY KEY,
         webhook_url TEXT NOT NULL UNIQUE,
@@ -94,6 +102,10 @@ export class FakeD1Database {
 
   prepare(query: string) {
     return new FakeD1PreparedStatement(this.db, query);
+  }
+
+  async batch(statements: FakeD1PreparedStatement[]) {
+    return Promise.all(statements.map((statement) => statement.run()));
   }
 
   close() {

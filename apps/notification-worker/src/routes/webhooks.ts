@@ -45,6 +45,15 @@ const RequestSchema = z.discriminatedUnion('channel_type', [
 export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
   '/',
   async (c) => {
+    const clientKey = c.req.header('CF-Connecting-IP') ?? 'unknown-client';
+    const rateLimit = await c.env.WEBHOOK_RATE_LIMITER.limit({
+      key: `webhook-registration:${clientKey}`,
+    });
+    if (!rateLimit.success) {
+      c.header('Retry-After', '60');
+      return c.json({ error: '登録リクエストが多すぎます' }, 429);
+    }
+
     const parseResult = RequestSchema.safeParse(await c.req.json());
     if (!parseResult.success) {
       return c.json({ error: 'リクエストが不正です' }, 400);

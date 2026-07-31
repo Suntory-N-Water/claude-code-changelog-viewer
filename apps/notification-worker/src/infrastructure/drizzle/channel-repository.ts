@@ -5,6 +5,7 @@ import {
   channels,
   discordChannels,
   emailChannels,
+  notificationDeliveries,
   notificationSettings,
   slackChannels,
 } from '../../db/schema';
@@ -127,6 +128,26 @@ export class DrizzleChannelRepository implements ChannelRepository {
     return this.restoreChannels(rows);
   }
 
+  async hasDelivered(version: string, channelId: ChannelId): Promise<boolean> {
+    const rows = await this.db
+      .select({ version: notificationDeliveries.version })
+      .from(notificationDeliveries)
+      .where(
+        and(
+          eq(notificationDeliveries.version, version),
+          eq(notificationDeliveries.channelId, channelId),
+        ),
+      );
+    return rows.length > 0;
+  }
+
+  async recordDelivered(version: string, channelId: ChannelId): Promise<void> {
+    await this.db
+      .insert(notificationDeliveries)
+      .values({ version, channelId })
+      .onConflictDoNothing();
+  }
+
   /** 指定日時より前に停止されたチャンネルを復元して返す。 */
   async findDeactivatedBefore(date: Date): Promise<Channel[]> {
     const rows = await this.findCommonChannels(
@@ -138,6 +159,9 @@ export class DrizzleChannelRepository implements ChannelRepository {
   /** Channel集約に対応する全テーブルの行を削除する。 */
   async delete(id: ChannelId): Promise<void> {
     await this.db.batch([
+      this.db
+        .delete(notificationDeliveries)
+        .where(eq(notificationDeliveries.channelId, id)),
       this.db.delete(discordChannels).where(eq(discordChannels.channelId, id)),
       this.db.delete(slackChannels).where(eq(slackChannels.channelId, id)),
       this.db.delete(emailChannels).where(eq(emailChannels.channelId, id)),
