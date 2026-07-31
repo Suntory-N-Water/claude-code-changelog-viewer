@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { atomicWriteFile } from './lib/atomic-write';
 import { YoutubeMetadataFetcher } from './lib/youtube/metadata-fetcher';
 
 const logger = getLogger({ name: 'docs-tracker' });
@@ -23,14 +22,9 @@ function parseOutPath(argv: string[]): string {
 
 async function main() {
   const outPath = parseOutPath(process.argv.slice(2));
-  await fs.mkdir(path.dirname(outPath), { recursive: true });
   const fetcher = new YoutubeMetadataFetcher(process.cwd());
   const result = await fetcher.fetch();
-  await fs.writeFile(
-    outPath,
-    JSON.stringify(result.newVideoIds, null, 2),
-    'utf-8',
-  );
+  await atomicWriteFile(outPath, JSON.stringify(result.newVideoIds, null, 2));
   logger.info('新規 YouTube 動画 ID を書き出しました', {
     'file.path': outPath,
     'youtube.newCount': result.newVideoIds.length,

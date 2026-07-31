@@ -9,6 +9,11 @@ export async function atomicWriteFile(
   await fs.mkdir(path.dirname(filePath), { recursive: true });
 
   const tempPath = `${filePath}.${randomUUID()}.tmp`;
-  await fs.writeFile(tempPath, content, 'utf-8');
-  await fs.rename(tempPath, filePath);
+  try {
+    await fs.writeFile(tempPath, content, 'utf-8');
+    await fs.rename(tempPath, filePath);
+  } catch (error) {
+    await fs.rm(tempPath, { force: true });
+    throw error;
+  }
 }

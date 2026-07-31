@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { ClaudeDocsFetcher } from './lib/doc-fetcher';
+import { atomicWriteFile } from './lib/atomic-write';
 
 const logger = getLogger({ name: 'docs-tracker' });
 
@@ -32,11 +32,9 @@ async function fetchModelsOverview(): Promise<void> {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
   const content = await response.text();
-  await fs.mkdir(path.dirname(MODELS_OVERVIEW_LOCAL), { recursive: true });
-  await fs.writeFile(
+  await atomicWriteFile(
     MODELS_OVERVIEW_LOCAL,
     `---\ntitle: Models overview\nsource: ${MODELS_OVERVIEW_SOURCE_URL}\n---\n\n${content}`,
-    'utf-8',
   );
   logger.info('モデル一覧を保存しました', { path: MODELS_OVERVIEW_LOCAL });
 }
