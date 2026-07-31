@@ -14,7 +14,7 @@ export const GET: APIRoute = async ({ site }) => {
       title: `Claude Code v${entry.data.version} の変更点`,
       description: entry.data.summary ?? '',
       url: `${siteUrl}/changelog/v${entry.data.version}`,
-      version: entry.data.version,
+      image: `${siteUrl}/og-image.png`,
     }),
   );
 

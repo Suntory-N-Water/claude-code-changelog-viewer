@@ -1,0 +1,169 @@
+---
+import Icon from '../Icon.astro';
+import Button from '../ui/Button.astro';
+
+type Props = {
+  shareUrl: string;
+  title: string;
+  class?: string;
+};
+
+const { shareUrl, title, class: className } = Astro.props;
+
+const shareUrlParts = new URL(shareUrl);
+const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${shareUrlParts.pathname}`;
+---
+
+<section
+  class:list={['pt-6 border-t border-[hsl(var(--cc-gray))]', className]}
+  aria-labelledby='share-heading'
+>
+  <div id='share-section' class='flex flex-wrap items-center gap-2.5'>
+    <span
+      id='share-heading'
+      class='text-sm text-[hsl(var(--cc-main-black)/0.5)]'
+    >
+      シェア
+    </span>
+    <Button
+      id='web-share-btn'
+      type='button'
+      hidden
+      variant='outline'
+      size='xs'
+      shape='pill'
+      class='px-4 hover:border-[hsl(var(--cc-main-black)/0.3)] hover:bg-[hsl(var(--cc-gray)/0.3)]'
+      aria-label='シェア'
+    >
+      <Icon name='external-link' class='w-3.5 h-3.5' aria-hidden='true' />
+      シェアする
+    </Button>
+    <Button
+      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`}
+      target='_blank'
+      rel='noopener noreferrer'
+      variant='outline'
+      size='xs'
+      shape='pill'
+      class='hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)]'
+      aria-label='Xでシェア'
+      data-share='x'
+    >
+      <Icon name='x-twitter' class='w-3.5 h-3.5' aria-hidden='true' />
+      X
+    </Button>
+    <Button
+      href={hatenaShareUrl}
+      target='_blank'
+      rel='noopener noreferrer'
+      variant='outline'
+      size='xs'
+      shape='pill'
+      class='hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)]'
+      aria-label='はてなブックマークに追加'
+      data-share='hatena'
+    >
+      <Icon name='hatena-b' class='w-3.5 h-3.5' aria-hidden='true' />
+      はてブ
+    </Button>
+    <Button
+      id='copy-url-btn'
+      type='button'
+      variant='outline'
+      size='xs'
+      shape='pill'
+      class='hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)]'
+      aria-label='URLをコピー'
+    >
+      <Icon
+        name='copy'
+        id='copy-url-icon'
+        class='w-3.5 h-3.5'
+        aria-hidden='true'
+      />
+      <span id='copy-url-label'>URLをコピー</span>
+    </Button>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const shareSection = document.getElementById('share-section');
+    if (!shareSection) {
+      return;
+    }
+
+    const title =
+      document.querySelector<HTMLHeadingElement>('h1')?.textContent?.trim() ??
+      '';
+    const slug = location.pathname.split('/').filter(Boolean).pop() ?? '';
+
+    // Web Share API 対応環境では統合ボタンを表示し、個別リンクは隠す
+    const webShareBtn = document.getElementById('web-share-btn');
+    if (webShareBtn instanceof HTMLButtonElement && 'share' in navigator) {
+      const shareData = { title, text: title, url: location.href };
+      const canShareData =
+        typeof navigator.canShare === 'function'
+          ? navigator.canShare(shareData)
+          : true;
+      if (canShareData) {
+        webShareBtn.hidden = false;
+        document
+          .querySelectorAll<HTMLElement>(
+            '#share-section [data-share], #share-section #copy-url-btn',
+          )
+          .forEach((el) => {
+            el.hidden = true;
+          });
+        webShareBtn.addEventListener('click', async () => {
+          try {
+            await navigator.share(shareData);
+            window.gtag?.('event', 'share_clicked', {
+              event_category: 'engagement',
+              share_method: 'web_share',
+              slug,
+            });
+          } catch {
+            // ユーザーキャンセル等は無視
+          }
+        });
+      }
+    }
+
+    // URLコピーボタン
+    const btn = document.getElementById('copy-url-btn');
+    const label = document.getElementById('copy-url-label');
+    const icon = document.getElementById('copy-url-icon');
+    if (btn && label && icon) {
+      btn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(location.href);
+        window.gtag?.('event', 'share_clicked', {
+          event_category: 'engagement',
+          share_method: 'copy_url',
+          slug,
+        });
+        label.textContent = 'コピーしました';
+        icon.innerHTML =
+          '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>';
+        setTimeout(() => {
+          label.textContent = 'URLをコピー';
+          icon.innerHTML =
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>';
+        }, 2000);
+      });
+    }
+
+    // シェアリンク (X / はてブ)
+    document
+      .querySelectorAll<HTMLAnchorElement>('#share-section [data-share]')
+      .forEach((el) => {
+        el.addEventListener('click', () => {
+          window.gtag?.('event', 'share_clicked', {
+            event_category: 'engagement',
+            share_method: el.dataset.share,
+            slug,
+          });
+        });
+      });
+  });
+</script>

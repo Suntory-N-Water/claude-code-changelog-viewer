@@ -13,12 +13,14 @@ import {
 export async function GET(context: APIContext) {
   const site = context.site?.href.replace(/\/$/, '') ?? '';
 
-  const [changelogs, docsDiffEntries, posts, settings] = await Promise.all([
-    getCollection('changelog'),
-    getCollection('docsDiff'),
-    getCollection('posts'),
-    getCollection('settingsReference'),
-  ]);
+  const [changelogs, docsDiffEntries, posts, columns, settings] =
+    await Promise.all([
+      getCollection('changelog'),
+      getCollection('docsDiff'),
+      getCollection('postsWeekly'),
+      getCollection('column'),
+      getCollection('settingsReference'),
+    ]);
 
   // changelog: バージョン降順
   const sortedChangelogs = [...changelogs].sort((a, b) =>
@@ -43,10 +45,13 @@ export async function GET(context: APIContext) {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
 
-  // 週次まとめ: 投稿日降順
-  const weeklyPosts = posts
-    .filter((entry) => entry.id.startsWith('weekly/'))
-    .sort((a, b) => b.data.date.localeCompare(a.data.date));
+  // 週次まとめ・コラム: 投稿日降順
+  const weeklyPosts = [...posts].sort((a, b) =>
+    b.data.date.localeCompare(a.data.date),
+  );
+  const columnPosts = [...columns].sort((a, b) =>
+    b.data.date.localeCompare(a.data.date),
+  );
 
   // 設定リファレンス: key 昇順(settings → env)
   const sortedSettings = [...settings].sort((a, b) => {
@@ -66,6 +71,7 @@ export async function GET(context: APIContext) {
     `- [Home](${site}/): Latest changelog entries`,
     `- [Feature Areas](${site}/features): Browse changelog history by feature category`,
     `- [Weekly Posts](${site}/posts/weekly): Weekly roundups of notable Claude Code updates`,
+    `- [Columns](${site}/posts/column): Hands-on articles about using and operating Claude Code`,
     `- [Settings Reference](${site}/reference/settings): Look up Claude Code settings and environment variables`,
     `- [Docs Diff](${site}/docs): Official documentation change history`,
     `- [About](${site}/about): About this service`,
@@ -92,6 +98,13 @@ export async function GET(context: APIContext) {
     const summary = entry.data.description ? `: ${entry.data.description}` : '';
     lines.push(
       `- [${entry.data.title}](${site}/posts/weekly/${slug})${summary}`,
+    );
+  }
+
+  lines.push('', '## Columns', '');
+  for (const entry of columnPosts) {
+    lines.push(
+      `- [${entry.data.title}](${site}/posts/column/${entry.data.slug}): ${entry.data.description}`,
     );
   }
 

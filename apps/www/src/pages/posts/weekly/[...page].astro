@@ -3,19 +3,18 @@ import { getCollection } from 'astro:content';
 import type { GetStaticPathsOptions } from 'astro';
 import { format, parseISO } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import Icon from '../../../components/Icon.astro';
-import Pagination from '../../../components/ui/Pagination.astro';
+import PostArchive from '../../../components/posts/PostArchive.astro';
 import Layout from '../../../layouts/Layout.astro';
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
-  const posts = (await getCollection('posts'))
-    .filter((entry) => entry.id.startsWith('weekly/'))
-    .sort((a, b) => b.data.date.localeCompare(a.data.date));
+  const posts = (await getCollection('postsWeekly')).sort((a, b) =>
+    b.data.date.localeCompare(a.data.date),
+  );
 
   const articles = posts.map((entry) => {
     const period = `${format(parseISO(entry.data.period_start), 'M月d日')}〜${format(parseISO(entry.data.period_end), 'M月d日')}`;
     return {
-      slug: entry.id.split('/').pop(),
+      slug: entry.id.replace(/^weekly\//, ''),
       title: entry.data.title,
       date: entry.data.date,
       formattedDate: format(parseISO(entry.data.date), 'yyyy年M月d日', {
@@ -49,16 +48,6 @@ type Props = {
 
 const { page } = Astro.props;
 
-const firstPageUrl = page.url.first ?? '/posts/weekly';
-const pageUrlBase = firstPageUrl.replace(/\/$/, '');
-const paginationPages = Array.from({ length: page.lastPage }, (_, index) => {
-  const pageNumber = index + 1;
-  return {
-    number: pageNumber,
-    url: pageNumber === 1 ? firstPageUrl : `${pageUrlBase}/${pageNumber}`,
-  };
-});
-
 const pageNum = page.currentPage > 1 ? ` (${page.currentPage}ページ目)` : '';
 const pageTitle = `週次まとめ${pageNum}`;
 const pageDescription =
@@ -78,82 +67,11 @@ const pageDescription =
     { name: '週次まとめ', url: 'https://claude-code-log.com/posts/weekly' },
   ]}
 >
-  <div class='min-h-dvh py-12 sm:py-16 px-4'>
-    <div class='max-w-3xl mx-auto'>
-      <header class='mb-12'>
-        <nav aria-label='パンくずリスト' class='text-sm text-gray-400 mb-6'>
-          <a
-            href='/'
-            class='hover:text-[hsl(var(--cc-main-orange))] transition-colors duration-150'
-            >ホーム</a
-          >
-          <span class='mx-2 select-none'>/</span>
-          <span class='text-[hsl(var(--cc-main-black)/0.7)]'>週次まとめ</span>
-        </nav>
-        <h1
-          class='text-3xl sm:text-4xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-3'
-        >
-          週次まとめ
-        </h1>
-        <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] leading-relaxed'>
-          1 週間分の Claude Code
-          アップデートから、注目の変更をピックアップして解説します。
-        </p>
-      </header>
-
-      {
-        page.data.length === 0 ? (
-          <p class='py-16 text-center text-sm text-[hsl(var(--cc-main-black)/0.5)]'>
-            まだ記事がありません。
-          </p>
-        ) : (
-          <ul class='space-y-4'>
-            {page.data.map((article) => (
-              <li>
-                <a
-                  href={`/posts/weekly/${article.slug}`}
-                  class='group flex items-center gap-4 rounded-xl border border-[hsl(var(--cc-gray))] px-5 py-6 sm:px-6 hover:border-[hsl(var(--cc-main-orange)/0.5)] hover:bg-[hsl(var(--cc-gray)/0.15)] transition-colors'
-                >
-                  <div class='min-w-0 flex-1'>
-                    <p class='text-xs text-[hsl(var(--cc-main-black)/0.5)] tabular-nums mb-1.5'>
-                      投稿日{' '}
-                      <time datetime={article.date}>
-                        {article.formattedDate}
-                      </time>
-                    </p>
-                    <h2 class='text-xl sm:text-2xl font-bold [word-break:auto-phrase] text-[hsl(var(--cc-main-black))] group-hover:text-[hsl(var(--cc-main-orange))] transition-colors mb-2 leading-snug'>
-                      {article.title}
-                    </h2>
-                    <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] leading-relaxed line-clamp-2'>
-                      {article.description}
-                    </p>
-                  </div>
-                  <Icon
-                    name='chevron-right'
-                    class='w-5 h-5 shrink-0 text-[hsl(var(--cc-main-black)/0.3)] group-hover:text-[hsl(var(--cc-main-orange))] group-hover:translate-x-1 transition-[color,transform]'
-                    aria-hidden='true'
-                  />
-                </a>
-              </li>
-            ))}
-          </ul>
-        )
-      }
-
-      {
-        page.lastPage > 1 && (
-          <Pagination
-            pages={paginationPages}
-            currentPage={page.currentPage}
-            totalPages={page.lastPage}
-            previousHref={page.url.prev}
-            nextHref={page.url.next}
-            previousLabel='新しい記事へ'
-            nextLabel='古い記事へ'
-            class='mt-12'
-          />
-        )
-      }
-    </div>
-  </div>
+  <PostArchive
+    heading='週次まとめ'
+    lead='1 週間分の Claude Code アップデートから、注目の変更をピックアップして解説します。'
+    basePath='/posts/weekly'
+    articles={page.data}
+    page={page}
+  />
 </Layout>

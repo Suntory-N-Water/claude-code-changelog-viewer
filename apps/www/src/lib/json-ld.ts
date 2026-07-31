@@ -25,8 +25,9 @@ type WebPageNodeParams = WebSiteNodeParams & {
 };
 
 type ArticleNodeParams = WebPageNodeParams & {
-  version: string;
+  image: string;
   datePublished?: string;
+  dateModified?: string;
 };
 
 export type JsonLdGraphParams =
@@ -103,7 +104,7 @@ export function buildArticleNode(params: ArticleNodeParams) {
     description: params.description,
     url: params.url,
     inLanguage: 'ja',
-    image: `${params.siteUrl}/changelog/og/v${params.version}.png`,
+    image: params.image,
     author: { '@id': `${params.siteUrl}/#organization` },
     publisher: { '@id': `${params.siteUrl}/#organization` },
     about: ABOUT_SOFTWARE,
@@ -111,7 +112,7 @@ export function buildArticleNode(params: ArticleNodeParams) {
     ...(params.datePublished
       ? {
           datePublished: params.datePublished,
-          dateModified: params.datePublished,
+          dateModified: params.dateModified ?? params.datePublished,
         }
       : {}),
   };
