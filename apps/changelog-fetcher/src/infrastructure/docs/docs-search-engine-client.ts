@@ -26,6 +26,8 @@ export type PythonSearchOutput = {
   results: PythonRelatedDoc[][];
 };
 
+const DOCS_SEARCH_TIMEOUT_MS = 60_000;
+
 export function runDocsSearchEngine(payload: {
   docsDir: string;
   entries: string[];
@@ -37,6 +39,14 @@ export function runDocsSearchEngine(payload: {
 
     let stdout = '';
     let stderr = '';
+    const timeout = setTimeout(() => {
+      child.kill('SIGTERM');
+      reject(
+        new Error(
+          `docs_search_engine が ${DOCS_SEARCH_TIMEOUT_MS}ms 以内に完了しなかったため終了しました`,
+        ),
+      );
+    }, DOCS_SEARCH_TIMEOUT_MS);
     child.stdout.on('data', (chunk) => {
       stdout += chunk;
     });
@@ -44,8 +54,12 @@ export function runDocsSearchEngine(payload: {
       stderr += chunk;
     });
 
-    child.on('error', reject);
+    child.on('error', (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
     child.on('close', (code) => {
+      clearTimeout(timeout);
       if (code !== 0) {
         reject(
           new Error(

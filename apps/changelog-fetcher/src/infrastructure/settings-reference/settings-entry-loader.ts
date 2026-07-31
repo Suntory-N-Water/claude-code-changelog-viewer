@@ -3,6 +3,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { SettingSource } from '../../domain/settings-reference/setting-key';
 import { createSettingKey } from '../../domain/settings-reference/setting-key';
+import type { RawSettingsEntries } from '../../usecase/generate-settings-reference';
 import {
   createSettingsEntry,
   type SettingsEntry,
@@ -26,14 +27,6 @@ type SchemaProperty = {
 
 type SettingsJsonSchema = {
   properties?: Record<string, SchemaProperty>;
-};
-
-export type RawSettingsEntries = {
-  schemaSettings: SettingsEntry[];
-  mdEnvEntries: SettingsEntry[];
-  schemaEnvEntries: SettingsEntry[];
-  docsEnvEntries: SettingsEntry[];
-  schemaInfoMap: Map<string, { schemaDefault?: string; schemaEnum?: string[] }>;
 };
 
 type CollectLeafCtx = {

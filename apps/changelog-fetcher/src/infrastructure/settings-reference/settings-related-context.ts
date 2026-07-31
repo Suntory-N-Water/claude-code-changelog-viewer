@@ -3,7 +3,9 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import {
   buildChangelogSearchTerms,
+  getLogger,
   normalizeMarkdownForAi,
+  toError,
 } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import type {
@@ -11,6 +13,7 @@ import type {
   SettingsReferenceContext,
 } from '../../usecase/settings-translation';
 import type { SettingsEntry } from '../../domain/settings-reference/setting-entry';
+import type { LoadedSettingsReferenceContext } from '../../usecase/generate-settings-reference';
 import {
   DOCS_DIR,
   runDocsSearchEngine,
@@ -18,6 +21,9 @@ import {
 import { extractSnippets, searchDocs } from '../docs/docs-searcher';
 
 const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
+const log = getLogger({ name: 'settings-reference-generator' }).child({
+  component: 'settings-related-context',
+});
 
 type FlatChangelogItem = {
   version: string;
@@ -28,11 +34,6 @@ type FlatChangelogItem = {
     after: string;
     benefit: string;
   };
-};
-
-export type LoadedSettingsReferenceContext = {
-  allInferredCount: number;
-  relatedContext: SettingsReferenceContext;
 };
 
 /**
@@ -64,8 +65,11 @@ export async function loadAllInferred(
               : {}),
           });
         }
-      } catch {
-        // パース失敗は無視して続行
+      } catch (error) {
+        log.warn('inferred JSON の読み込みをスキップしました', {
+          file,
+          error: toError(error),
+        });
       }
     }),
   );
