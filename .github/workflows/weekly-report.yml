@@ -39,7 +39,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - name: Parse issue body
@@ -115,7 +114,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - name: Download generated artifact
@@ -155,14 +153,14 @@ jobs:
 
       - name: Create pull request
         id: create-pr
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        uses: ./.github/actions/automated-pr
         with:
           token: ${{ github.token }}
           branch: ${{ steps.pr-meta.outputs.branch }}
           commit-message: ${{ steps.pr-meta.outputs.title }}
           title: ${{ steps.pr-meta.outputs.title }}
           body: ${{ steps.pr-meta.outputs.body }}
-          delete-branch: true
+          merge: "false"
 
       - name: Post success comment on source issue
         if: success() && steps.create-pr.outputs.pull-request-number != ''

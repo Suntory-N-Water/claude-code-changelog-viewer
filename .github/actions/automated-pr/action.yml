@@ -1,0 +1,84 @@
+name: 自動PR作成
+description: Git設定、PR作成、任意のadmin mergeを実行する
+
+inputs:
+  token:
+    description: GitHubトークン
+    required: true
+  branch:
+    description: PRブランチ名
+    required: true
+  commit-message:
+    description: コミットメッセージ
+    required: true
+  title:
+    description: PRタイトル
+    required: true
+  body:
+    description: PR本文
+    required: true
+  add-paths:
+    description: PRに含めるパス
+    required: false
+    default: ""
+  merge:
+    description: admin mergeを実行するか
+    required: false
+    default: "true"
+  capture-merge-sha:
+    description: マージコミットSHAを取得するか
+    required: false
+    default: "false"
+
+outputs:
+  pull-request-number:
+    description: 作成または更新したPR番号
+    value: ${{ steps.create-pr.outputs.pull-request-number }}
+  merge-sha:
+    description: マージコミットSHA
+    value: ${{ steps.capture-merge-sha.outputs.merge_sha }}
+
+runs:
+  using: composite
+  steps:
+    - name: Gitを設定
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: プルリクエストを作成
+      id: create-pr
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      with:
+        token: ${{ inputs.token }}
+        branch: ${{ inputs.branch }}
+        commit-message: ${{ inputs.commit-message }}
+        title: ${{ inputs.title }}
+        body: ${{ inputs.body }}
+        add-paths: ${{ inputs.add-paths }}
+        delete-branch: true
+
+    - name: プルリクエストをマージ
+      if: inputs.merge == 'true' && steps.create-pr.outputs.pull-request-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+      run: |
+        gh pr merge "$PR_NUMBER" \
+          --merge \
+          --admin \
+          --delete-branch
+        echo "✓ PR #${PR_NUMBER} をマージしました"
+
+    - name: マージコミットSHAを取得
+      id: capture-merge-sha
+      if: inputs.merge == 'true' && inputs.capture-merge-sha == 'true' && steps.create-pr.outputs.pull-request-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+      run: |
+        MERGE_SHA=$(gh pr view "$PR_NUMBER" --json mergeCommit --jq '.mergeCommit.oid')
+        echo "merge_sha=${MERGE_SHA}" >> "$GITHUB_OUTPUT"

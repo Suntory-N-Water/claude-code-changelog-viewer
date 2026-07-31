@@ -26,7 +26,6 @@ jobs:
       - name: リポジトリをチェックアウト
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - name: 環境セットアップ
@@ -60,9 +59,6 @@ jobs:
         env:
           CHANGED_COUNT: ${{ steps.git-check.outputs.changed_files }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
           BODY="built-in データの自動更新"$'\n\n'"自動更新時刻: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"$'\n\n'"変更ファイル:"
 
           for file in $(git diff --staged --name-only); do
@@ -76,39 +72,21 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: プルリクエストを作成
-        id: create-pr
+      - name: プルリクエストを作成してマージ
         if: steps.git-check.outputs.should_push == 'true'
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        uses: ./.github/actions/automated-pr
         with:
           token: ${{ github.token }}
           branch: chore/update-builtin-data
           commit-message: ${{ steps.pr-meta.outputs.title }}
           title: ${{ steps.pr-meta.outputs.title }}
           body: ${{ steps.pr-meta.outputs.body }}
-          delete-branch: true
-
-      - name: PR をマージ
-        if: steps.git-check.outputs.should_push == 'true' &&
-          steps.create-pr.outputs.pull-request-number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
-        run: |
-          gh pr merge "$PR_NUMBER" \
-            --merge \
-            --admin \
-            --delete-branch
-          echo "✓ PR #${PR_NUMBER} をマージしました"
 
       - name: 失敗時に Issue を作成
         if: failure()
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          ISSUE_TITLE: built-in データ取得に失敗
-          ISSUE_SUMMARY: built-in データの自動取得に失敗しました。
-          ISSUE_LABELS: automated-failure,workflow:fetch-builtin-data,bug
+        uses: ./.github/actions/report-automated-failure
         with:
-          script: |
-            const createIssue = require('./.github/scripts/create-automated-failure-issue.cjs');
-            await createIssue({ github, context, core });
+          token: ${{ github.token }}
+          title: built-in データ取得に失敗
+          summary: built-in データの自動取得に失敗しました。
+          labels: automated-failure,workflow:fetch-builtin-data,bug

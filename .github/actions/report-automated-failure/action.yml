@@ -1,0 +1,36 @@
+name: 自動処理失敗Issue作成
+description: 自動実行ワークフローの失敗を重複排除してIssueへ通知する
+
+inputs:
+  token:
+    description: GitHubトークン
+    required: true
+  title:
+    description: Issueタイトル
+    required: true
+  summary:
+    description: 失敗内容の要約
+    required: true
+  labels:
+    description: カンマ区切りのIssueラベル
+    required: true
+  failed-jobs:
+    description: ジョブ結果一覧
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: 失敗Issueを作成
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        ISSUE_TITLE: ${{ inputs.title }}
+        ISSUE_SUMMARY: ${{ inputs.summary }}
+        ISSUE_LABELS: ${{ inputs.labels }}
+        FAILED_JOBS: ${{ inputs.failed-jobs }}
+      with:
+        github-token: ${{ inputs.token }}
+        script: |
+          const createIssue = require('./.github/scripts/create-automated-failure-issue.cjs');
+          await createIssue({ github, context, core });
