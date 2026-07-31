@@ -1,56 +1,80 @@
-# claude-code-changelog-viewer モノレポ現状把握
+# claude-code-changelog-viewer モノレポ構成
 
 ## 概要
 
-GitHub Release を毎時取得・AI分析 → 並行してドキュメント差分追跡 → 通知配信 → Astro で統合表示。すべての変更は自動PR化・マージで CI/CD 一体。
+pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公式 Docs、設定スキーマ、ブログ、YouTube 情報を収集し、Astro の静的サイトで公開する。CHANGELOG の変化検知と通知 API は Cloudflare Workers、購読情報と配信済み記録は D1、通知処理は Cloudflare Queues を使う。
 
-### 1. **apps/changelog-fetcher** - 変更履歴自動解析
+内部の Claude Code version は `v2.1.220` のような `v` 付き表記に統一する。ファイル名、metadata / diff、workflow と通知の version、公開 URL は `v` 付きとする。一方、analysis / inferred / tied JSON の本文、CHANGELOG Markdown の見出し、週次記事 frontmatter は既存の外部保存形式として `v` なしを維持し、読み込み時にドメイン表現へ正規化する。
 
-- **役割**: GitHub Releases の CHANGELOG を取得・解析・AI推論
-- **処理フロー**: `parse-changelog.ts` → キーワード抽出 → `analyze-changelog.ts` (ドキュメント grep) → `infer-benefits.ts` (Gemini API で翻訳+Before/After/Benefit推論)
-- **保存先**: `/changelogs/`(取得), `/analysis/`(解析結果), `/inferred/`(推論結果), `/metadata/last_fetch.json`(ステータス)
-- **Workflow**: `changelog-auto-inference.yml` (毎時実行, UTC基準)
-- **主要ファイル**: `/apps/changelog-fetcher/src/{analyze-changelog,infer-benefits,parse-changelog}.ts`
+## Workspace
 
-### 2. **apps/docs-tracker** - ドキュメント差分追跡
+### `apps/changelog-fetcher`
 
-- **役割**: Claude Code 公式ドキュメントを定期取得・差分検知
-- **取得方式**: Markdown 直接取得(llms.txt + docs_map.md から URL一覧マージ)
-- **スキーマ取得**: settings JSON 取得も併行実行
-- **保存先**: `/docs/en/`(Markdown), `/diffs/`(差分JSON), `/schema/`(設定スキーマ)
-- **Workflow**: `fetch-docs.yml` (3時間ごと)、変更時のみ自動PR作成・マージ
-- **主要ファイル**: `/apps/docs-tracker/src/{fetch-docs,generate-docs-diff,fetch-schema}.ts`
+- GitHub の公式 CHANGELOG を取得し、変更検知、Docs 検索、Issue 紐付け、Gemini による翻訳・推論を行う。
+- 主な出力は `changelogs/`、`analysis/`、`tied/`、`inferred/`、`diff/`、`settings/`、`metadata/`。
+- `infer:no-ai` は `infer-benefits.ts --no-ai` を実行し、既存の推論結果を再利用する。破損した inferred JSON は警告して未取得として扱う。
+- Docs 検索エンジンの子プロセスにはタイムアウトを設け、完了・失敗・タイムアウトの各経路でタイマーとプロセスを終了処理する。
+- 週次記事は `posts/weekly/` に生成する。
 
-### 3. **apps/notification-worker** - 通知配信 API
+### `apps/docs-tracker`
 
-- **機能**: Discord/Slack/Email 通知登録・配信(Cloudflare Workers + Hono)
-- **駆動方式**: イベント駆動(dispatch API呼出時) + cron (UTC 15:00 = JST 00:00 で休眠チャンネル削除)
-- **DB**: Cloudflare D1 (drizzle ORM) → `channels` テーブル、Discord/Slack/Email別スキーマ
-- **キューイング**: Cloudflare Queues (`changelog-notification`, バッチサイズ1, 最大リトライ3回)
-- **主要ファイル**: `/apps/notification-worker/src/{index.ts,queue/consumer.ts,db/schema.ts,routes/{dispatch,webhooks}.ts}`, `wrangler.jsonc` (cron設定)
+- Claude Code 公式 Docs、settings schema、Anthropic Blog、YouTube メタデータと transcript を取得する。
+- Docs は `docs/en/`、差分は `diffs/`、settings schema は `schema/`、取得状態は `metadata/` に保存する。
+- 既存 JSON が存在しない場合と、JSON が破損・schema 不一致の場合を区別する。後者はファイルパスとエラーを警告する。
+- Docs、schema、metadata、docs diff、YouTube 関連の主要な JSON・Markdown 出力は、一時ファイルを同一ディレクトリへ書いて rename するアトミック書き込みを使う。
 
-### 4. **apps/www** (Astro) - フロントエンド
+### `apps/notification-worker`
 
-- **フレームワーク**: Astro (静的生成) + Tailwind CSS、Cloudflare Workers へデプロイ
-- **データソース**: Content Collections (glob loader)
-  - `/src/content/changelog/inferred_*.json` (推論結果)
-  - `/src/content/diff/**/*.json` (差分履歴)
-  - `/src/content/docs-diff/**/*.json` (ドキュメント差分)
-  - `/src/content/settings/**/*.json` (設定スキーマ)
-- **GitHub Release 統合**: astro.config.mjs で ビルド時に API fetch、公開日時をサイトマップに反映
-- **主要ファイル**: `/apps/www/src/content.config.ts`, `astro.config.mjs`
+- Hono + Cloudflare Workers で Discord、Slack、Email の通知登録・配信 API を提供する。
+- D1 の `channels` と通知先別テーブル、通知設定に加え、`notification_deliveries` に version と channel の配信済み組を記録する。Queue の再試行時は配信済みチャンネルをスキップし、重複配信を防ぐ。
+- 一時障害と例外はチャンネルの失敗履歴へ記録し、Queue message を再試行する。恒久障害は失敗履歴へ記録するが同じ message は再試行しない。
+- webhook 登録は Turnstile 検証に加え、`CF-Connecting-IP` 単位で 1 分あたり 5 回に制限する。
+- Queue は batch size 1、最大 3 回再試行、60 秒遅延、dead-letter queue 付き。
+- cron は 5 分ごとの CHANGELOG 変化検知と、毎日 JST 00:00 の休眠チャンネル削除を実行する。
 
-### 5. **.github/workflows/** - 自動化パイプライン
+### `apps/www`
 
-| Workflow                          | トリガー         | 役割                                      |
-| --------------------------------- | ---------------- | ----------------------------------------- |
-| `changelog-auto-inference.yml`    | 毎時             | CHANGELOG 取得→解析→推論、PR 作成         |
-| `fetch-docs.yml`                  | 3時間ごと        | ドキュメント取得、差分検知、PR 自動マージ |
-| `fetch-builtin-data.yml`          | 日1回(JST 06:00) | Claude Code ビルトイン機能データ取得      |
-| `generate-settings-reference.yml` | 日1回            | 設定スキーマドキュメント生成              |
-| `ci.yml`                          | PR/push          | テスト・linting・型チェック               |
+- Astro + Tailwind CSS の静的サイトを生成し、Cloudflare Workers Static Assets で配信する。
+- Content Collections は次の symlink を通じて他 app の生成物を参照する。
+  - `src/content/changelog` → `apps/changelog-fetcher/inferred`
+  - `src/content/diff` → `apps/changelog-fetcher/diff`
+  - `src/content/docs-diff` → `apps/docs-tracker/diffs`
+  - `src/content/settings` → `apps/changelog-fetcher/settings`
+- CHANGELOG 一覧・トップは共通の version card データ生成を使い、Docs 差分は共通ソートとページサイズ定数を使う。
+- prefix の表示名・スタイル・アイコンは `src/lib/prefix.ts` に集約する。
+- 週次選定画面は Astro component を表示責務に絞り、型、初期化、画像 upload、リンク行操作を `src/lib/weekly-selection/` に分離する。
+- `src/content/posts/weekly` は changelog-fetcher の週次記事を参照し、`src/content/posts/column` はコラムを保持する。
 
-### 6. **plugins/ & .claude/skills/**
+### `packages/common` / `packages/types`
 
-- **Grit プラグイン** (5個): `enforce-date-fns`, `no-debug-statements`, `no-deep-relative-import`, `no-import-equals`, `no-template-literal-import`
-- **Claude Skills** (2個): `adr-creator`, `ddd-layering` (独自アーキテクチャ支援ツール)
+- `common`: ロガー、エラー変換、Markdown 処理など、複数 app で使う実装。
+- `types`: changelog analysis と通知用 subset の Zod schema。workflow・通知境界で使う `v` 付き version schema もここで共有する。
+
+## 自動化
+
+| Workflow | トリガー | 役割 |
+| --- | --- | --- |
+| `changelog-auto-inference.yml` | notification-worker からの手動 dispatch | CHANGELOG 取得、解析、Issue 紐付け、推論、通知、PR 作成 |
+| `fetch-docs.yml` | 3 時間ごと / 手動 | Docs と settings schema の取得、差分生成、PR 作成・マージ |
+| `fetch-blog.yml` | 1 時間ごと / 手動 | Anthropic Blog の取得 |
+| `fetch-youtube.yml` | 毎日 / 手動 | YouTube 情報の取得 |
+| `fetch-builtin-data.yml` | 毎日 JST 06:00 / 手動 | Claude Code ビルトイン情報の取得 |
+| `generate-settings-reference.yml` | 毎日 JST 06:00 / 手動 | 設定リファレンスの生成 |
+| `ci.yml` | push / 手動 | TypeScript workspace の検査 |
+| `python-ci.yml` | Python 関連変更の push / 手動 | Docs 検索エンジンなど Python 部分の検査 |
+| `github-actions-lint.yml` | workflow 関連変更 | GitHub Actions の静的解析 |
+| `weekly-report.yml` | Issue 操作 | 週次記事用 Issue の処理 |
+
+共通の Node/pnpm セットアップは `.github/actions/setup`、Python/uv セットアップは `.github/actions/setup-uv` に置く。
+
+## インフラと開発支援
+
+- `terraform/zone/`: Cloudflare zone の DNS、Access、R2、メール、bot 対策などを管理する。
+- `.agents/skills/`: `column-image-upload`、`find-skills`、`perf-astro`、`skill-creator`、`weekly-post` のプロジェクト向け skill を置く。
+- `plugins/`: date-fns 利用、debug 文、深い相対 import、TypeScript import equals、template literal import を検査する Grit rule を置く。
+
+## 検証コマンド
+
+- 全体の format・lint・型検査: `pnpm run ai-check`
+- app 単位のテスト: `pnpm run --filter <app> test`
+- www の build: `pnpm run --filter www build`
