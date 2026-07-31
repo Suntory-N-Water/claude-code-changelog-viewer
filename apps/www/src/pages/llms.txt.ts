@@ -1,6 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { APIContext } from 'astro';
 import { SITE_TITLE } from '../lib/constants';
+import { sortDocsDiffEntries } from '../lib/docs-diff';
 import { semverCompareDesc } from '../lib/semver';
 import {
   MIN_ITEMS_FOR_PAGE,
@@ -38,12 +39,7 @@ export async function GET(context: APIContext) {
     }));
 
   // docs diff entries: 新しい順
-  const allDocEntries = docsDiffEntries
-    .map((col) => col.data)
-    .sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-    );
+  const allDocEntries = sortDocsDiffEntries(docsDiffEntries);
 
   // 週次まとめ・コラム: 投稿日降順
   const weeklyPosts = [...posts].sort((a, b) =>

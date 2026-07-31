@@ -27,3 +27,24 @@ export function buildDiffMap(
   }
   return map;
 }
+
+/** changelog と diff から一覧カード用データを構築する */
+export function buildVersionData(
+  changelogs: CollectionEntry<'changelog'>[],
+  diffMap: Map<string, DiffEvent[]>,
+) {
+  return changelogs.map((entry) => {
+    const events = diffMap.get(`v${entry.data.version}`);
+    const diffStatus = events?.some((event) => event.type === 'version_removed')
+      ? ('removed' as const)
+      : events?.some((event) => event.type === 'items_changed')
+        ? ('changed' as const)
+        : undefined;
+    return {
+      version: entry.data.version,
+      itemCount: entry.data.items.length,
+      summary: entry.data.summary,
+      diffStatus,
+    };
+  });
+}

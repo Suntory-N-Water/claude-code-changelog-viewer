@@ -1,11 +1,6 @@
 ---
-import type { Prefix } from '@claude-code-changelog-viewer/common';
 import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
-import {
-  PREFIX_DEFAULT_STYLE,
-  PREFIX_ICONS,
-  PREFIX_STYLES,
-} from '../../lib/prefix';
+import { getPrefixPresentation } from '../../lib/prefix';
 import { formatChangelogContent } from '../../lib/format-changelog-content';
 import Badge from '../ui/Badge.astro';
 
@@ -34,9 +29,7 @@ const shouldShow = groups.length >= 2;
       <h3 class='text-sm font-semibold text-gray-500 mb-3'>カテゴリ</h3>
       <ul class='space-y-2'>
         {groups.map((group) => {
-          const style =
-            PREFIX_STYLES[group.prefix as Prefix] || PREFIX_DEFAULT_STYLE;
-          const iconPath = PREFIX_ICONS[group.prefix as Prefix];
+          const { style, icon: iconPath } = getPrefixPresentation(group.prefix);
           const representative = group.items[0];
           if (!representative) {
             return null;
