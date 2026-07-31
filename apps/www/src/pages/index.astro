@@ -7,6 +7,7 @@ import Button from '../components/ui/Button.astro';
 import Accordion from '../components/ui/Accordion.astro';
 import Layout from '../layouts/Layout.astro';
 import { buildDiffMap } from '../lib/changelog-diff';
+import type { IconName } from '../lib/icons';
 import { SITE_TITLE } from '../lib/constants';
 import {
   aggregateByFeatureArea,
@@ -46,18 +47,50 @@ const TOP_PAGE_SIZE = 9;
 const initialVersions = versionData.slice(0, TOP_PAGE_SIZE);
 const remainingCount = versionData.length - TOP_PAGE_SIZE;
 
-// 最新の週次まとめ(トップの導線カード用)
+// 「読みもの」セクションの導線カード。記事が 1 本もないセクションは出さない
+type ReadingCard = {
+  kind: string;
+  icon: IconName;
+  meta: string;
+  href: string;
+  title: string;
+  description: string;
+  archiveHref: string;
+  archiveLabel: string;
+};
+
 const latestWeekly = (await getCollection('postsWeekly')).sort((a, b) =>
   b.data.date.localeCompare(a.data.date),
 )[0];
-const latestWeeklyCard = latestWeekly
-  ? {
-      slug: latestWeekly.id.split('/').pop(),
-      title: latestWeekly.data.title,
-      period: `${format(parseISO(latestWeekly.data.period_start), 'M月d日')}〜${format(parseISO(latestWeekly.data.period_end), 'M月d日')}`,
-      description: latestWeekly.data.description ?? '',
-    }
-  : null;
+const latestColumn = (await getCollection('column')).sort((a, b) =>
+  b.data.date.localeCompare(a.data.date),
+)[0];
+
+const readingCards: ReadingCard[] = [];
+if (latestWeekly) {
+  readingCards.push({
+    kind: 'Weekly',
+    icon: 'newspaper',
+    meta: `${format(parseISO(latestWeekly.data.period_start), 'M月d日')}〜${format(parseISO(latestWeekly.data.period_end), 'M月d日')}`,
+    href: `/posts/weekly/${latestWeekly.id.split('/').pop()}`,
+    title: latestWeekly.data.title,
+    description: latestWeekly.data.description ?? '',
+    archiveHref: '/posts/weekly',
+    archiveLabel: '週次まとめの一覧',
+  });
+}
+if (latestColumn) {
+  readingCards.push({
+    kind: 'Column',
+    icon: 'pencil-square',
+    meta: format(parseISO(latestColumn.data.date), 'yyyy年M月d日'),
+    href: `/posts/column/${latestColumn.data.slug}`,
+    title: latestColumn.data.title,
+    description: latestColumn.data.description,
+    archiveHref: '/posts/column',
+    archiveLabel: 'コラムの一覧',
+  });
+}
 
 const latestVersion = sortedChangelogs[0].data.version;
 const totalVersions = sortedChangelogs.length;
@@ -214,46 +247,61 @@ const topAreas = [...areaMap.entries()]
       </section>
 
       {
-        latestWeeklyCard && (
+        readingCards.length > 0 && (
           <section class='mt-20 max-w-4xl mx-auto'>
-            <div class='flex items-baseline justify-between gap-4 mb-3'>
-              <h2 class='text-2xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))]'>
-                週次まとめ
-              </h2>
-              <a
-                href='/posts/weekly'
-                class='hidden sm:inline-flex items-center gap-1 font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
-              >
-                すべて表示
-                <Icon name='chevron-right' class='w-3 h-3' aria-hidden='true' />
-              </a>
-            </div>
+            <h2 class='text-2xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-3'>
+              読みもの
+            </h2>
             <p class='text-sm text-gray-600 mb-6 leading-relaxed'>
-              1 週間分の Claude Code
-              アップデートから、注目の変更をピックアップして解説します。
+              1 週間分のアップデートをまとめた週次記事と、Claude Code
+              の使い方や運用で得た知見を書いたコラムです。
             </p>
-            <a
-              href={`/posts/weekly/${latestWeeklyCard.slug}`}
-              class='group block rounded-lg border border-[hsl(var(--cc-gray))] p-5 hover:border-[hsl(var(--cc-main-orange))] transition-[border-color,transform] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+            <div
+              class:list={[
+                'grid gap-4',
+                readingCards.length > 1 && 'sm:grid-cols-2',
+              ]}
             >
-              <div class='flex items-center gap-2.5 mb-2 font-mono text-[11px] tabular-nums text-[hsl(var(--cc-main-black)/0.5)]'>
-                <span class='inline-flex items-center gap-1 font-bold uppercase tracking-widest'>
+              {readingCards.map((card) => (
+                <a
+                  href={card.href}
+                  class='group flex flex-col rounded-lg border border-[hsl(var(--cc-gray))] p-5 hover:border-[hsl(var(--cc-main-orange))] transition-[border-color,transform] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+                >
+                  <div class='flex items-center gap-2.5 mb-2 font-mono text-[11px] tabular-nums text-[hsl(var(--cc-main-black)/0.6)]'>
+                    <span class='inline-flex items-center gap-1 font-bold uppercase tracking-widest'>
+                      <Icon
+                        name={card.icon}
+                        class='w-3.5 h-3.5'
+                        aria-hidden='true'
+                      />
+                      {card.kind}
+                    </span>
+                    <span>{card.meta}</span>
+                  </div>
+                  <h3 class='text-base sm:text-lg font-bold [word-break:auto-phrase] text-[hsl(var(--cc-main-black))] group-hover:text-[hsl(var(--cc-main-orange))] transition-colors mb-1.5 leading-snug'>
+                    {card.title}
+                  </h3>
+                  <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] leading-relaxed line-clamp-2'>
+                    {card.description}
+                  </p>
+                </a>
+              ))}
+            </div>
+            <div class='mt-5 flex flex-wrap gap-x-6'>
+              {readingCards.map((card) => (
+                <a
+                  href={card.archiveHref}
+                  class='inline-flex items-center gap-1 min-h-11 font-mono text-xs text-[hsl(var(--cc-main-black)/0.6)] hover:text-[hsl(var(--cc-main-orange))] transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+                >
+                  {card.archiveLabel}
                   <Icon
-                    name='newspaper'
-                    class='w-3.5 h-3.5'
+                    name='chevron-right'
+                    class='w-3 h-3'
                     aria-hidden='true'
                   />
-                  Weekly
-                </span>
-                <span>{latestWeeklyCard.period}</span>
-              </div>
-              <h3 class='text-base sm:text-lg font-bold [word-break:auto-phrase] text-[hsl(var(--cc-main-black))] group-hover:text-[hsl(var(--cc-main-orange))] transition-colors mb-1.5 leading-snug'>
-                {latestWeeklyCard.title}
-              </h3>
-              <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] leading-relaxed line-clamp-2'>
-                {latestWeeklyCard.description}
-              </p>
-            </a>
+                </a>
+              ))}
+            </div>
           </section>
         )
       }

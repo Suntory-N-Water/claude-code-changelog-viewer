@@ -13,6 +13,7 @@ import {
   type FAQItem,
   generateGraphJsonLd,
 } from '../lib/json-ld';
+import { NAV_ITEMS } from '../lib/navigation';
 
 type JsonLdData =
   | { type: 'website' }
@@ -36,15 +37,18 @@ type Props = {
 
 const { title, description, image, jsonLd, breadcrumbs, faqItems, noindex } =
   Astro.props;
-const isDocsPage = Astro.url.pathname.startsWith('/docs');
-const isReferencePage = Astro.url.pathname.startsWith('/reference');
-const isWeeklyPage = Astro.url.pathname.startsWith('/posts/weekly');
+// build.format: 'file' のため pathname は `/posts/column.html` の形で来る
+const pathname = Astro.url.pathname.replace(/\.html$/, '');
+const navItems = NAV_ITEMS.map((item) => ({
+  ...item,
+  isActive: pathname === item.href || pathname.startsWith(`${item.href}/`),
+}));
 const defaultDescription =
   'Claude Codeの変更履歴をAIが分析。各アップデートの新機能・バグ修正・改善点を日本語で分かりやすく解説し、ユーザーへの具体的な恩恵をまとめています。';
 const pageDescription = description || defaultDescription;
 const siteUrl = import.meta.env.SITE;
 const canonicalUrl = new URL(
-  Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '') || '/',
+  pathname.replace(/\/index$/, '') || '/',
   siteUrl,
 ).toString();
 const ogImage = image || `${siteUrl}/og-image.png`;
@@ -227,35 +231,21 @@ if (jsonLd?.type === 'website') {
           CCログ超訳
         </a>
 
-        <div class='flex items-center gap-2'>
-          <a
-            href='/posts/weekly'
-            class={`hidden sm:inline text-sm transition-colors ${isWeeklyPage ? 'text-[hsl(var(--cc-main-orange))] font-medium' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))]'}`}
-            aria-current={isWeeklyPage ? 'page' : undefined}
-          >
-            週次まとめ
-          </a>
-          <a
-            href='/docs'
-            class={`hidden sm:inline text-sm transition-colors ${isDocsPage ? 'text-[hsl(var(--cc-main-orange))] font-medium' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))]'}`}
-            aria-current={isDocsPage ? 'page' : undefined}
-          >
-            Docs 更新履歴
-          </a>
-          <a
-            href='/reference/settings'
-            class={`hidden sm:inline text-sm transition-colors ${isReferencePage ? 'text-[hsl(var(--cc-main-orange))] font-medium' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))]'}`}
-            aria-current={isReferencePage ? 'page' : undefined}
-          >
-            設定リファレンス
-          </a>
+        <div class='flex items-center gap-1'>
+          {
+            navItems.map((item) => (
+              <a
+                href={item.href}
+                class={`hidden md:inline whitespace-nowrap rounded-md px-2 py-1.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))] ${item.isActive ? 'text-[hsl(var(--cc-main-orange))] font-medium bg-[hsl(var(--cc-main-orange)/0.08)]' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))] hover:bg-[hsl(var(--cc-main-orange)/0.06)]'}`}
+                aria-current={item.isActive ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            ))
+          }
 
           <SearchModal />
-          <MobileMenu
-            isWeeklyPage={isWeeklyPage}
-            isDocsPage={isDocsPage}
-            isReferencePage={isReferencePage}
-          />
+          <MobileMenu items={navItems} />
         </div>
       </nav>
     </header>

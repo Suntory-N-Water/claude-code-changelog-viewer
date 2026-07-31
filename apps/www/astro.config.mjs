@@ -87,6 +87,9 @@ export default defineConfig({
         if (path === '/changelog') {
           return { ...item, changefreq: ChangeFreqEnum.DAILY, priority: 0.9 };
         }
+        if (path.startsWith('/posts')) {
+          return { ...item, changefreq: ChangeFreqEnum.WEEKLY, priority: 0.7 };
+        }
         if (path.startsWith('/features')) {
           return { ...item, changefreq: ChangeFreqEnum.WEEKLY, priority: 0.7 };
         }
