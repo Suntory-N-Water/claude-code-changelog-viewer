@@ -1,5 +1,6 @@
 export * from './discord.js';
 export * from './errors.js';
+export * from './gemini-client.js';
 export * from './logger.js';
 export * from './markdown-normalizer.js';
 export * from './prefix.js';

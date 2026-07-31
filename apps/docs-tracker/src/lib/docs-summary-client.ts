@@ -1,29 +1,14 @@
 import {
+  GeminiClient,
+  GeminiModelsExhaustedError,
   getLogger,
   type AppLogger,
 } from '@claude-code-changelog-viewer/common';
-import { ApiError, GoogleGenAI, Type } from '@google/genai';
-import pRetry, { AbortError } from 'p-retry';
+import { Type } from '@google/genai';
 import { z } from 'zod';
 import type { DocFileDiff } from './docs-diff-generator';
 
-const RETRY_DELAY_MS = 60 * 1000;
-const MAX_RETRIES_PER_MODEL = 3;
 const MAX_DIFF_LINES_FOR_PROMPT = 200;
-
-const MODEL_RATE_LIMITS: Record<string, number> = {
-  'gemini-3-flash-preview': 15 * 1000,
-  'gemini-3.1-flash-lite': 15 * 1000,
-  'gemini-2.5-flash': 15 * 1000,
-  'gemini-2.5-flash-lite': 10 * 1000,
-};
-
-const FALLBACK_MODELS = [
-  'gemini-3-flash-preview',
-  'gemini-3.1-flash-lite',
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
-];
 
 const SummaryResponseSchema = z.object({
   aiSummary: z.string(),
@@ -41,39 +26,14 @@ export type SummaryResult = {
 };
 
 export class DocsSummaryClient {
-  private ai: GoogleGenAI;
-  private log: AppLogger;
-  private lastRequestTimes: Map<string, number> = new Map();
+  private readonly client: GeminiClient;
+  private readonly log: AppLogger;
 
   constructor(apiKey: string) {
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY 環境変数が未設定です');
-    }
-    this.ai = new GoogleGenAI({ apiKey });
     this.log = getLogger({ name: 'docs-diff-generator' }).child({
       component: 'DocsSummaryClient',
     });
-  }
-
-  private async waitForRateLimit(model: string): Promise<void> {
-    const now = Date.now();
-    const lastRequestTime = this.lastRequestTimes.get(model) ?? 0;
-    const timeSinceLastRequest = now - lastRequestTime;
-    const minInterval = MODEL_RATE_LIMITS[model] ?? 12 * 1000;
-
-    if (timeSinceLastRequest < minInterval) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, minInterval - timeSinceLastRequest),
-      );
-    }
-    this.lastRequestTimes.set(model, Date.now());
-  }
-
-  private isRetryableError(error: Error): boolean {
-    return (
-      error instanceof ApiError &&
-      (error.status === 429 || error.status === 503)
-    );
+    this.client = new GeminiClient(apiKey, this.log);
   }
 
   /**
@@ -84,101 +44,59 @@ export class DocsSummaryClient {
     files: DocFileDiff[],
   ): Promise<SummaryResult> {
     const prompt = this.buildPrompt(files);
-    let lastError: Error | null = null;
-
-    for (const model of FALLBACK_MODELS) {
-      try {
-        return await pRetry(
-          async () => {
-            this.log.info(`モデルを試行: ${model}`, {
-              method: 'generateSummaryAndExplanations',
-            });
-            await this.waitForRateLimit(model);
-
-            const response = await this.ai.models.generateContent({
-              model,
-              contents: prompt,
-              config: {
-                responseMimeType: 'application/json',
-                responseSchema: {
+    try {
+      return await this.client.generate({
+        prompt,
+        method: 'generateSummaryAndExplanations',
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              aiSummary: {
+                type: Type.STRING,
+                description: '3〜5文の日本語概要サマリー',
+              },
+              fileExplanations: {
+                type: Type.ARRAY,
+                description: '各ファイルの変更内容の解説',
+                items: {
                   type: Type.OBJECT,
                   properties: {
-                    aiSummary: {
+                    filename: {
                       type: Type.STRING,
-                      description: '3〜5文の日本語概要サマリー',
+                      description: 'ファイル名',
                     },
-                    fileExplanations: {
-                      type: Type.ARRAY,
-                      description: '各ファイルの変更内容の解説',
-                      items: {
-                        type: Type.OBJECT,
-                        properties: {
-                          filename: {
-                            type: Type.STRING,
-                            description: 'ファイル名',
-                          },
-                          explanation: {
-                            type: Type.STRING,
-                            description:
-                              'このファイルの変更内容を1〜2文で日本語解説',
-                          },
-                        },
-                        propertyOrdering: ['filename', 'explanation'],
-                        required: ['filename', 'explanation'],
-                      },
+                    explanation: {
+                      type: Type.STRING,
+                      description: 'このファイルの変更内容を1〜2文で日本語解説',
                     },
                   },
-                  propertyOrdering: ['aiSummary', 'fileExplanations'],
-                  required: ['aiSummary', 'fileExplanations'],
+                  propertyOrdering: ['filename', 'explanation'],
+                  required: ['filename', 'explanation'],
                 },
-                thinkingConfig: { thinkingBudget: 0 },
               },
-            });
-
-            if (!response.text) {
-              throw new Error('Gemini API からの応答が空です');
-            }
-
-            const usage = response.usageMetadata;
-            this.log.info(
-              `トークン消費: ↑${usage?.promptTokenCount ?? 0} ↓${usage?.candidatesTokenCount ?? 0}`,
-              { method: 'generateSummaryAndExplanations', model },
-            );
-
-            const parsed = JSON.parse(response.text);
-            const result = SummaryResponseSchema.parse(parsed);
-            this.log.info(`モデル成功: ${model}`, {
-              method: 'generateSummaryAndExplanations',
-            });
-            return result;
-          },
-          {
-            retries: MAX_RETRIES_PER_MODEL,
-            onFailedAttempt: async ({ error, attemptNumber }) => {
-              if (!this.isRetryableError(error)) {
-                throw new AbortError(error.message);
-              }
-              this.log.warn(
-                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1})`,
-              );
-              await new Promise((resolve) =>
-                setTimeout(resolve, RETRY_DELAY_MS),
-              );
             },
+            propertyOrdering: ['aiSummary', 'fileExplanations'],
+            required: ['aiSummary', 'fileExplanations'],
           },
-        );
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
-        this.log.warn(`モデル失敗: ${model} - ${lastError.message}`);
-      }
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+        parse: (text) => SummaryResponseSchema.parse(JSON.parse(text)),
+      });
+    } catch (error) {
+      const cause =
+        error instanceof GeminiModelsExhaustedError
+          ? error.lastError
+          : error instanceof Error
+            ? error
+            : new Error(String(error));
+      this.log.error(`全モデルが失敗しました: ${cause.message}`);
+      return {
+        aiSummary: `Claude Code の英語ドキュメントが更新されました(${files.length} ファイル)。`,
+        fileExplanations: [],
+      };
     }
-
-    // 全モデル失敗時はフォールバック
-    this.log.error(`全モデルが失敗しました: ${lastError?.message}`);
-    return {
-      aiSummary: `Claude Code の英語ドキュメントが更新されました(${files.length} ファイル)。`,
-      fileExplanations: [],
-    };
   }
 
   private buildPrompt(files: DocFileDiff[]): string {
