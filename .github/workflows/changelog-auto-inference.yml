@@ -50,7 +50,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - uses: ./.github/actions/setup
@@ -167,7 +166,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - uses: ./.github/actions/setup
@@ -245,13 +243,12 @@ jobs:
       pull-requests: write
 
     outputs:
-      merge_sha: ${{ steps.merge-pr.outputs.merge_sha }}
+      merge_sha: ${{ steps.automated-pr.outputs.merge-sha }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - uses: ./.github/actions/setup
@@ -267,11 +264,6 @@ jobs:
         with:
           name: ai-outputs
           path: apps/changelog-fetcher/
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Update version
         if: needs.fetch.outputs.has_notifiable == 'true'
@@ -307,31 +299,16 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Create pull request
-        id: create-pr
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      - name: プルリクエストを作成してマージ
+        id: automated-pr
+        uses: ./.github/actions/automated-pr
         with:
           token: ${{ github.token }}
           branch: ${{ steps.pr-meta.outputs.branch }}
           commit-message: ${{ steps.pr-meta.outputs.title }}
           title: ${{ steps.pr-meta.outputs.title }}
           body: ${{ steps.pr-meta.outputs.body }}
-          delete-branch: true
-
-      - name: Merge pull request
-        id: merge-pr
-        if: steps.create-pr.outputs.pull-request-number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
-        run: |
-          gh pr merge "$PR_NUMBER" \
-            --merge \
-            --admin \
-            --delete-branch
-          MERGE_SHA=$(gh pr view "$PR_NUMBER" --json mergeCommit --jq '.mergeCommit.oid')
-          echo "merge_sha=${MERGE_SHA}" >> "$GITHUB_OUTPUT"
-          echo "✓ PR #${PR_NUMBER} をマージしました"
+          capture-merge-sha: "true"
 
   notify:
     needs: [fetch, ai, pr]
@@ -429,20 +406,17 @@ jobs:
           persist-credentials: false
 
       - name: Create issue on failure
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          ISSUE_TITLE: CHANGELOG処理に失敗
-          ISSUE_SUMMARY: |
+        uses: ./.github/actions/report-automated-failure
+        with:
+          token: ${{ github.token }}
+          title: CHANGELOG処理に失敗
+          summary: |
             CHANGELOGの取得・解析・推論処理に失敗しました。
 
             **対象バージョン**: ${{ needs.fetch.outputs.changed_versions }}
-          ISSUE_LABELS: automated-failure,workflow:changelog-auto-inference,bug
-          FAILED_JOBS: |
+          labels: automated-failure,workflow:changelog-auto-inference,bug
+          failed-jobs: |
             fetch=${{ needs.fetch.result }}
             ai=${{ needs.ai.result }}
             pr=${{ needs.pr.result }}
             notify=${{ needs.notify.result }}
-        with:
-          script: |
-            const createIssue = require('./.github/scripts/create-automated-failure-issue.cjs');
-            await createIssue({ github, context, core });

@@ -29,7 +29,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - uses: ./.github/actions/setup
@@ -40,14 +39,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: pnpm run generate:settings
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Create pull request
-        id: create-pr
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      - name: プルリクエストを作成してマージ
+        uses: ./.github/actions/automated-pr
         with:
           token: ${{ github.token }}
           branch: chore/update-settings-reference
@@ -55,28 +48,12 @@ jobs:
           title: "chore: 設定リファレンスを更新"
           body: |
             設定リファレンスの自動更新
-          delete-branch: true
-
-      - name: Merge pull request
-        if: steps.create-pr.outputs.pull-request-number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
-        run: |
-          gh pr merge "$PR_NUMBER" \
-            --merge \
-            --admin \
-            --delete-branch
-          echo "✓ PR #${PR_NUMBER} をマージしました"
 
       - name: Create issue on failure
         if: failure()
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          ISSUE_TITLE: 設定リファレンス生成に失敗
-          ISSUE_SUMMARY: 設定リファレンスの自動生成に失敗しました。
-          ISSUE_LABELS: automated-failure,workflow:generate-settings-reference,bug
+        uses: ./.github/actions/report-automated-failure
         with:
-          script: |
-            const createIssue = require('./.github/scripts/create-automated-failure-issue.cjs');
-            await createIssue({ github, context, core });
+          token: ${{ github.token }}
+          title: 設定リファレンス生成に失敗
+          summary: 設定リファレンスの自動生成に失敗しました。
+          labels: automated-failure,workflow:generate-settings-reference,bug
