@@ -15,6 +15,7 @@ export type DispatchChangelogNotificationsInput = {
 
 export type DispatchChangelogNotificationsResult = {
   readonly channelCount: number;
+  readonly skippedCount: number;
   readonly shouldRetry: boolean;
   readonly failures: readonly DispatchFailure[];
 };
@@ -47,8 +48,13 @@ export async function dispatchChangelogNotifications(
 ): Promise<DispatchChangelogNotificationsResult> {
   const channels = await repository.findActiveByFrequency(input.frequency);
   const failures: DispatchFailure[] = [];
+  let skippedCount = 0;
 
   for (const [index, channel] of channels.entries()) {
+    if (await repository.hasDelivered(input.version, channel.id)) {
+      skippedCount += 1;
+      continue;
+    }
     let shouldStop = false;
 
     try {
@@ -63,14 +69,17 @@ export async function dispatchChangelogNotifications(
       } else if (!result.ok && result.failureKind === 'permanent') {
         await repository.save(recordFailure(channel, input.failedAt));
       } else if (!result.ok) {
+        await repository.save(recordFailure(channel, input.failedAt));
         failures.push({ type: 'temporary_failure', channel });
       } else {
+        await repository.recordDelivered(input.version, channel.id);
         const resetChannel = resetFailure(channel);
         if (channel !== resetChannel) {
           await repository.save(resetChannel);
         }
       }
     } catch (error) {
+      await repository.save(recordFailure(channel, input.failedAt));
       failures.push({ type: 'exception', channel, error });
     }
 
@@ -85,7 +94,8 @@ export async function dispatchChangelogNotifications(
 
   return {
     channelCount: channels.length,
-    shouldRetry: failures.some((failure) => failure.type === 'rate_limit'),
+    skippedCount,
+    shouldRetry: failures.length > 0,
     failures,
   };
 }

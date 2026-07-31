@@ -21,7 +21,7 @@ export function createChangelogVersion(value: string): ChangelogVersion {
 }
 
 /**
- * ファイル名や JSON 出力で使う `v` なしのバージョン番号を返す。
+ * 外部向け生成物で使う `v` なしのバージョン番号を返す。
  */
 export function toVersionNumber(version: ChangelogVersion): string {
   return version.replace(/^v/, '');

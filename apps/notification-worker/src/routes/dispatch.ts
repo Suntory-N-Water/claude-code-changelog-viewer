@@ -1,9 +1,12 @@
-import { NotificationAnalysisSchema } from '@claude-code-changelog-viewer/types';
+import {
+  ClaudeCodeVersionSchema,
+  NotificationAnalysisSchema,
+} from '@claude-code-changelog-viewer/types';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
 const RequestSchema = z.object({
-  version: z.string().startsWith('v'),
+  version: ClaudeCodeVersionSchema,
   analysis: NotificationAnalysisSchema,
 });
 

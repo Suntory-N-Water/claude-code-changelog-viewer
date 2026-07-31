@@ -2,10 +2,12 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import {
   getLogger,
+  toError,
   type AppLogger,
 } from '@claude-code-changelog-viewer/common';
 import { z } from 'zod';
 import { fetchWithRetry } from './fetch-with-retry';
+import { atomicWriteFile } from './atomic-write';
 
 const SCHEMA_URL = 'https://www.schemastore.org/claude-code-settings.json';
 const SCHEMA_FILENAME = 'claude-code-settings.json';
@@ -57,7 +59,14 @@ export class SchemaFetcher {
     try {
       const content = await fs.readFile(metadataPath, 'utf-8');
       return schemaMetadataSchema.parse(JSON.parse(content));
-    } catch {
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return null;
+      }
+      this.log.warn('前回の schema metadata を読み込めませんでした', {
+        'file.path': metadataPath,
+        'exception.message': toError(error).message,
+      });
       return null;
     }
   }
@@ -67,7 +76,14 @@ export class SchemaFetcher {
     try {
       const content = await fs.readFile(schemaPath, 'utf-8');
       return jsonObjectSchema.parse(JSON.parse(content));
-    } catch {
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return null;
+      }
+      this.log.warn('前回の schema JSON を読み込めませんでした', {
+        'file.path': schemaPath,
+        'exception.message': toError(error).message,
+      });
       return null;
     }
   }
@@ -96,7 +112,7 @@ export class SchemaFetcher {
     }
 
     const schemaPath = path.join(this.schemaDir, SCHEMA_FILENAME);
-    await fs.writeFile(schemaPath, rawJson, 'utf-8');
+    await atomicWriteFile(schemaPath, rawJson);
     this.log.msg('APLG0007', { params: ['スキーマ'] });
 
     const currentProperties = this.extractTopLevelProperties(schema);
@@ -142,11 +158,7 @@ export class SchemaFetcher {
     };
 
     const metadataPath = path.join(this.metadataDir, METADATA_FILENAME);
-    await fs.writeFile(
-      metadataPath,
-      JSON.stringify(metadata, null, 2),
-      'utf-8',
-    );
+    await atomicWriteFile(metadataPath, JSON.stringify(metadata, null, 2));
 
     this.log.msg('APLG0002', {
       params: ['スキーマ取得'],

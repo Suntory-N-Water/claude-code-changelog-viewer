@@ -204,6 +204,25 @@ describe('POST /api/webhooks integration', () => {
     expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toBeNull();
   });
 
+  it('登録レート制限を超えた時、Turnstile 検証前に 429 を返す', async () => {
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+    env.WEBHOOK_RATE_LIMITER = {
+      limit: vi.fn(() => Promise.resolve({ success: false })),
+    } as unknown as RateLimit;
+
+    const response = await app.request(
+      '/api/webhooks',
+      createRequestInit(),
+      env,
+    );
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get('Retry-After')).toBe('60');
+    expect(mockedVerifyTurnstile).not.toHaveBeenCalled();
+    expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toBeNull();
+  });
+
   it('Discord へのテスト通知が失敗すると登録は保存されない', async () => {
     // Arrange(準備)
     db = new FakeD1Database();

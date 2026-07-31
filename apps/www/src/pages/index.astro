@@ -6,7 +6,7 @@ import VersionCard from '../components/changelog/VersionCard.astro';
 import Button from '../components/ui/Button.astro';
 import Accordion from '../components/ui/Accordion.astro';
 import Layout from '../layouts/Layout.astro';
-import { buildDiffMap } from '../lib/changelog-diff';
+import { buildDiffMap, buildVersionData } from '../lib/changelog-diff';
 import type { IconName } from '../lib/icons';
 import { SITE_TITLE } from '../lib/constants';
 import {
@@ -27,20 +27,7 @@ sortedChangelogs.sort((a, b) =>
 const diffEntries = await getCollection('diff');
 const diffMap = buildDiffMap(diffEntries);
 
-const versionData = sortedChangelogs.map((entry) => {
-  const events = diffMap.get(`v${entry.data.version}`);
-  const diffStatus = events?.some((e) => e.type === 'version_removed')
-    ? ('removed' as const)
-    : events?.some((e) => e.type === 'items_changed')
-      ? ('changed' as const)
-      : undefined;
-  return {
-    version: entry.data.version,
-    itemCount: entry.data.items.length,
-    summary: entry.data.summary,
-    diffStatus,
-  };
-});
+const versionData = buildVersionData(sortedChangelogs, diffMap);
 
 // トップページは最新30件のみ表示、残りは /changelog へ
 const TOP_PAGE_SIZE = 9;

@@ -25,7 +25,7 @@ export function mergeAnalysisEntries(
   existingAnalysis: ChangelogAnalysis | null,
 ): AnalysisMergeResult {
   const existingById = new Map<string, AnalyzedChangelogEntry>();
-  for (const entry of existingAnalysis?.items ?? []) {
+  for (const entry of existingAnalysis === null ? [] : existingAnalysis.items) {
     if (!existingById.has(entry.id)) {
       existingById.set(entry.id, entry);
     }

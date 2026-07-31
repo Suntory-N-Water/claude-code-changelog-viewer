@@ -58,45 +58,42 @@ function createUploadRequest(
 
 describe('POST /api/uploads', () => {
   describe('画像を保存する時', () => {
-    it.each(
-      imageCases,
-    )('$label の実バイトを送ると判定済みの形式で R2 に保存されること', async ({
-      bytes,
-      extension,
-      contentType,
-    }) => {
-      // Arrange(準備)
-      const put = vi.fn().mockResolvedValue(undefined);
-      const env = createEnv({
-        WEEKLY_ASSETS: { put } as unknown as R2Bucket,
-      });
+    it.each(imageCases)(
+      '$label の実バイトを送ると判定済みの形式で R2 に保存されること',
+      async ({ bytes, extension, contentType }) => {
+        // Arrange(準備)
+        const put = vi.fn().mockResolvedValue(undefined);
+        const env = createEnv({
+          WEEKLY_ASSETS: { put } as unknown as R2Bucket,
+        });
 
-      // Act(実行)
-      const response = await sut.request(
-        '/api/uploads',
-        createUploadRequest([...bytes]),
-        env,
-      );
+        // Act(実行)
+        const response = await sut.request(
+          '/api/uploads',
+          createUploadRequest([...bytes]),
+          env,
+        );
 
-      // Assert(確認)
-      expect(response.status).toBe(200);
-      expect(await response.json()).toEqual({
-        url: expect.stringMatching(
-          new RegExp(
-            `^https://assets\\.claude-code-log\\.com/weekly/2026-w28/ea64434ed3ad-\\d{8}-\\d{6}\\.${extension}$`,
+        // Assert(確認)
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({
+          url: expect.stringMatching(
+            new RegExp(
+              `^https://assets\\.claude-code-log\\.com/weekly/2026-w28/ea64434ed3ad-\\d{8}-\\d{6}\\.${extension}$`,
+            ),
           ),
-        ),
-      });
-      expect(put).toHaveBeenCalledWith(
-        expect.stringMatching(
-          new RegExp(
-            `^weekly/2026-w28/ea64434ed3ad-\\d{8}-\\d{6}\\.${extension}$`,
+        });
+        expect(put).toHaveBeenCalledWith(
+          expect.stringMatching(
+            new RegExp(
+              `^weekly/2026-w28/ea64434ed3ad-\\d{8}-\\d{6}\\.${extension}$`,
+            ),
           ),
-        ),
-        expect.any(ArrayBuffer),
-        { httpMetadata: { contentType } },
-      );
-    });
+          expect.any(ArrayBuffer),
+          { httpMetadata: { contentType } },
+        );
+      },
+    );
 
     it('R2 への保存に失敗した時、500を返すこと', async () => {
       // Arrange(準備)
@@ -185,26 +182,29 @@ describe('POST /api/uploads', () => {
       ['WAV', [0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45]],
       ['AVI', [0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x41, 0x56, 0x49, 0x20]],
       ['空ファイル', []],
-    ])('Content-Type が image/png でも実バイトが %s なら400を返すこと', async (_label, bytes) => {
-      // Arrange(準備)
-      const body = new FormData();
-      body.append(
-        'file',
-        new File([new Uint8Array(bytes)], 'fake.png', { type: 'image/png' }),
-      );
-      body.append('week', '2026-w28');
-      body.append('itemId', 'ea64434ed3ad');
+    ])(
+      'Content-Type が image/png でも実バイトが %s なら400を返すこと',
+      async (_label, bytes) => {
+        // Arrange(準備)
+        const body = new FormData();
+        body.append(
+          'file',
+          new File([new Uint8Array(bytes)], 'fake.png', { type: 'image/png' }),
+        );
+        body.append('week', '2026-w28');
+        body.append('itemId', 'ea64434ed3ad');
 
-      // Act(実行)
-      const response = await sut.request(
-        '/api/uploads',
-        { method: 'POST', body },
-        createEnv(),
-      );
+        // Act(実行)
+        const response = await sut.request(
+          '/api/uploads',
+          { method: 'POST', body },
+          createEnv(),
+        );
 
-      // Assert(確認)
-      expect(response.status).toBe(400);
-    });
+        // Assert(確認)
+        expect(response.status).toBe(400);
+      },
+    );
   });
 
   describe('Access 認証を行う時', () => {

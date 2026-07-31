@@ -1,13 +1,8 @@
 ---
-import type { Prefix } from '@claude-code-changelog-viewer/common';
 import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
 import { getFeatureAreaLabel, toFeatureAreaSlug } from '../../lib/feature-area';
 import { formatChangelogContent } from '../../lib/format-changelog-content';
-import {
-  PREFIX_DEFAULT_STYLE,
-  PREFIX_ICONS,
-  PREFIX_STYLES,
-} from '../../lib/prefix';
+import { getPrefixPresentation } from '../../lib/prefix';
 import InferenceDetail from './InferenceDetail.astro';
 import RelatedDocsList from './RelatedDocsList.astro';
 import Badge from '../ui/Badge.astro';
@@ -27,9 +22,9 @@ const formattedContentJa = item.content_ja
   ? formatChangelogContent(item.content_ja)
   : '';
 
-const prefixStyle =
-  PREFIX_STYLES[item.prefix as Prefix] || PREFIX_DEFAULT_STYLE;
-const prefixIcon = PREFIX_ICONS[item.prefix as Prefix];
+const { style: prefixStyle, icon: prefixIcon } = getPrefixPresentation(
+  item.prefix,
+);
 ---
 
 <Card

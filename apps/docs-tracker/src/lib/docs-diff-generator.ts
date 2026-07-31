@@ -6,6 +6,7 @@ import {
   getLogger,
   type AppLogger,
 } from '@claude-code-changelog-viewer/common';
+import { atomicWriteFile } from './atomic-write';
 
 const execAsync = promisify(exec);
 
@@ -202,7 +203,7 @@ export class DocsDiffGenerator {
     };
 
     const filePath = path.join(this.diffsDir, `${id}.json`);
-    await fs.writeFile(filePath, JSON.stringify(entry, null, 2), 'utf-8');
+    await atomicWriteFile(filePath, JSON.stringify(entry, null, 2));
 
     this.log.info(
       `diff エントリを保存しました: ${id}.json (${files.length} ファイル)`,

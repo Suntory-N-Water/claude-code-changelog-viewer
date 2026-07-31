@@ -1,5 +1,8 @@
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
-import { NotificationAnalysisSchema } from '@claude-code-changelog-viewer/types';
+import {
+  ClaudeCodeVersionSchema,
+  NotificationAnalysisSchema,
+} from '@claude-code-changelog-viewer/types';
 import { z } from 'zod';
 import { dispatchChangelogNotifications } from '../usecases/dispatch-changelog-notifications';
 import { createNotificationFrequency } from '../domain/channel/notification-frequency';
@@ -15,7 +18,7 @@ const logger = getLogger({
 const SEND_INTERVAL_MS = 1000;
 
 const NotificationMessageSchema = z.object({
-  version: z.string().startsWith('v'),
+  version: ClaudeCodeVersionSchema,
   analysis: NotificationAnalysisSchema,
 });
 

@@ -6,20 +6,15 @@ import DocsDiffCard from '../../components/docs/DocsDiffCard.astro';
 import Pagination from '../../components/ui/Pagination.astro';
 import Card from '../../components/ui/Card.astro';
 import Layout from '../../layouts/Layout.astro';
-import { SITE_TITLE } from '../../lib/constants';
+import { DOCS_DIFF_PAGE_SIZE, SITE_TITLE } from '../../lib/constants';
+import { sortDocsDiffEntries } from '../../lib/docs-diff';
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const docsDiffEntries = await getCollection('docsDiff');
 
-  const allEntries = docsDiffEntries
-    .map((col) => col.data)
-    .sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-    );
-
-  // TODO: constants.ts に移す
-  return paginate(allEntries, { pageSize: 5 });
+  return paginate(sortDocsDiffEntries(docsDiffEntries), {
+    pageSize: DOCS_DIFF_PAGE_SIZE,
+  });
 }
 
 type Props = {

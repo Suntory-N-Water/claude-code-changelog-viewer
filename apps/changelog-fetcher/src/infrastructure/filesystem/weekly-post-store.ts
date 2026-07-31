@@ -22,7 +22,7 @@ export class WeeklyPostStore implements WeeklyPostStorePort {
       `period_start: ${JSON.stringify(period.start)}`,
       `period_end: ${JSON.stringify(period.end)}`,
       'versions:',
-      ...input.versions.map((version) => `  - ${version}`),
+      ...input.versions.map((version) => `  - ${version.replace(/^v/, '')}`),
       '---',
       '',
       input.body,

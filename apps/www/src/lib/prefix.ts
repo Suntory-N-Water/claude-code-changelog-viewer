@@ -60,3 +60,14 @@ export const PREFIX_ICONS: Record<Prefix, string> = {
     'M11.42 15.17l-4.655-4.655a1 1 0 010-1.414l.354-.354a1 1 0 011.414 0L12 12.21l3.466-3.465a1 1 0 011.414 0l.354.354a1 1 0 010 1.414L12.834 15.17a1 1 0 01-1.414 0z',
   Enabled: 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
 };
+
+/** prefix のバッジ表示情報を返す */
+export function getPrefixPresentation(prefix: string): {
+  style: string;
+  icon: string | undefined;
+} {
+  return {
+    style: PREFIX_STYLES[prefix as Prefix] ?? PREFIX_DEFAULT_STYLE,
+    icon: PREFIX_ICONS[prefix as Prefix],
+  };
+}

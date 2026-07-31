@@ -1,5 +1,11 @@
 import { sql } from 'drizzle-orm';
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import {
+  index,
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+} from 'drizzle-orm/sqlite-core';
 import { CHANNEL_ACTIVE_SENTINEL } from './constants';
 
 // スーパータイプ: 全チャンネル共通情報
@@ -69,4 +75,17 @@ export const notificationSettings = sqliteTable(
   (table) => [
     index('idx_notification_settings_channel_id').on(table.channelId),
   ],
+);
+
+// version・チャンネル単位の配信完了記録。Queue 再試行時の重複送信を防ぐ。
+export const notificationDeliveries = sqliteTable(
+  'notification_deliveries',
+  {
+    version: text('version').notNull(),
+    channelId: text('channel_id')
+      .notNull()
+      .references(() => channels.id),
+    deliveredAt: text('delivered_at').notNull().default(sql`(datetime('now'))`),
+  },
+  (table) => [primaryKey({ columns: [table.version, table.channelId] })],
 );

@@ -1,6 +1,5 @@
 ---
 import { getCollection } from 'astro:content';
-import type { Prefix } from '@claude-code-changelog-viewer/common';
 import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
 import BackLink from '../../components/ui/BackLink.astro';
 import Button from '../../components/ui/Button.astro';
@@ -15,11 +14,10 @@ import {
 import { extractChangelogData, getLinkedAreas } from '../../lib/feature-area';
 import { formatChangelogContent } from '../../lib/format-changelog-content';
 import {
+  getPrefixPresentation,
   getPrefixSortOrder,
-  PREFIX_DEFAULT_STYLE,
-  PREFIX_ICONS,
   PREFIX_LABELS,
-  PREFIX_STYLES,
+  type Prefix,
 } from '../../lib/prefix';
 import { semverCompareDesc } from '../../lib/semver';
 
@@ -308,9 +306,9 @@ const totalItemCount = items.length;
       <div class='space-y-10'>
         {
           prefixGroups.map((group) => {
-            const style =
-              PREFIX_STYLES[group.prefix as Prefix] || PREFIX_DEFAULT_STYLE;
-            const iconPath = PREFIX_ICONS[group.prefix as Prefix];
+            const { style, icon: iconPath } = getPrefixPresentation(
+              group.prefix,
+            );
             return (
               <section id={`prefix-${group.prefix.toLowerCase()}`}>
                 <div class='sticky top-12 z-10 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>

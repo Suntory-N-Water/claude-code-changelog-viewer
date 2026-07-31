@@ -4,11 +4,13 @@ import * as path from 'node:path';
 import { promisify } from 'node:util';
 import {
   getLogger,
+  toError,
   type AppLogger,
 } from '@claude-code-changelog-viewer/common';
 import { z } from 'zod';
 import { cleanMarkdown } from './markdown-cleaner';
 import { fetchWithRetry } from './fetch-with-retry';
+import { atomicWriteFile } from './atomic-write';
 
 const docFetchMetadataSchema = z.object({
   totalDocs: z.number(),
@@ -77,10 +79,9 @@ export class ClaudeDocsFetcher {
       });
       const content = await response.text();
 
-      await fs.writeFile(
+      await atomicWriteFile(
         path.join(this.metadataDir, 'docs_map.md'),
         content,
-        'utf-8',
       );
 
       // Parse the markdown to extract document URLs
@@ -144,11 +145,7 @@ export class ClaudeDocsFetcher {
       const content = await response.text();
 
       // Save the llms.txt
-      await fs.writeFile(
-        path.join(this.metadataDir, 'llms.txt'),
-        content,
-        'utf-8',
-      );
+      await atomicWriteFile(path.join(this.metadataDir, 'llms.txt'), content);
 
       // Parse to extract document URLs
       const docs = this.parseLlmsTxt(content);
@@ -278,7 +275,7 @@ export class ClaudeDocsFetcher {
       const fullContent = frontMatter + markdown;
 
       // Save the file
-      await fs.writeFile(filePath, fullContent, 'utf-8');
+      await atomicWriteFile(filePath, fullContent);
 
       return {
         success: true,
@@ -359,17 +356,18 @@ source: ${docInfo.url}
       try {
         const content = await fs.readFile(metadataPath, 'utf-8');
         existing = partialDocFetchMetadataSchema.parse(JSON.parse(content));
-      } catch {
-        // File doesn't exist yet
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+          this.log.warn('前回の Docs metadata を読み込めませんでした', {
+            'file.path': metadataPath,
+            'exception.message': toError(error).message,
+          });
+        }
       }
 
       const metadata = docFetchMetadataSchema.parse({ ...existing, ...data });
 
-      await fs.writeFile(
-        metadataPath,
-        JSON.stringify(metadata, null, 2),
-        'utf-8',
-      );
+      await atomicWriteFile(metadataPath, JSON.stringify(metadata, null, 2));
     } catch (error) {
       if (error instanceof Error) {
         this.log.msg('APLG0017', { params: ['メタデータ'], error });

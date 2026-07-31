@@ -206,6 +206,62 @@ describe('queueConsumer integration', () => {
     expect(message.ack).not.toHaveBeenCalled();
   });
 
+  it('一時障害の時、失敗回数を記録して message.retry が呼ばれる', async () => {
+    db = new FakeD1Database();
+    const message = createQueueMessage(buildBody());
+    const env = createTestEnv(db);
+    await insertDiscordWebhook(db, {
+      id: 'temporary-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/temporary',
+      token: 'temporary-token',
+    });
+    mockedSendChangelogNotification.mockResolvedValue({
+      ok: false,
+      failureKind: 'temporary',
+    });
+
+    await runWithTimers(callConsumer(createQueueBatch([message]), env));
+
+    expect(message.retry).toHaveBeenCalled();
+    expect(message.ack).not.toHaveBeenCalled();
+    expect(await findChannelByToken(db, 'temporary-token')).toMatchObject({
+      fail_count: 1,
+    });
+  });
+
+  it('同じバージョンを再試行する時、成功済みチャンネルへ重複送信しない', async () => {
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+    await insertDiscordWebhook(db, {
+      id: 'success-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/success',
+      token: 'success-token',
+    });
+    await insertDiscordWebhook(db, {
+      id: 'temporary-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/temporary',
+      token: 'temporary-token',
+    });
+    mockedSendChangelogNotification
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: false, failureKind: 'temporary' })
+      .mockResolvedValueOnce({ ok: true });
+    const firstMessage = createQueueMessage(buildBody());
+    const retryMessage = createQueueMessage(buildBody());
+
+    await runWithTimers(callConsumer(createQueueBatch([firstMessage]), env));
+    await runWithTimers(callConsumer(createQueueBatch([retryMessage]), env));
+
+    expect(firstMessage.retry).toHaveBeenCalled();
+    expect(retryMessage.ack).toHaveBeenCalled();
+    expect(mockedSendChangelogNotification).toHaveBeenCalledTimes(3);
+    expect(
+      mockedSendChangelogNotification.mock.calls.filter(
+        ([channel]) => channel.id === 'success-id',
+      ),
+    ).toHaveLength(1);
+  });
+
   it('一部チャンネルで例外が発生しても他のチャンネルの DB 状態が正しく更新される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
@@ -231,7 +287,11 @@ describe('queueConsumer integration', () => {
     await runWithTimers(callConsumer(batch, env));
 
     // Assert(確認)
-    expect(message.ack).toHaveBeenCalled();
+    expect(message.retry).toHaveBeenCalled();
+    expect(message.ack).not.toHaveBeenCalled();
+    expect(await findChannelByToken(db, 'error-token')).toMatchObject({
+      fail_count: 1,
+    });
     expect(await findChannelByToken(db, 'success-token')).toMatchObject({
       fail_count: 0,
       deactivated_at: '9999-12-31',

@@ -23,6 +23,10 @@ export type ChannelRepository = {
   save(channel: Channel): Promise<void>;
   /** 指定頻度で配信対象となる有効チャンネルを取得する。 */
   findActiveByFrequency(frequency: NotificationFrequency): Promise<Channel[]>;
+  /** 指定バージョンの通知がチャンネルへ配信済みかを返す。 */
+  hasDelivered(version: string, channelId: ChannelId): Promise<boolean>;
+  /** 指定バージョンの通知がチャンネルへ配信済みであることを記録する。 */
+  recordDelivered(version: string, channelId: ChannelId): Promise<void>;
   /** 指定日時より前に停止されたチャンネルを取得する。 */
   findDeactivatedBefore(date: Date): Promise<Channel[]>;
   /** Channel集約を削除する。 */

@@ -54,14 +54,7 @@ async function main(): Promise<void> {
     releaseInfo: new GitHubReleaseDateClient(),
     inferredFile: {
       async load(version) {
-        const inferredVersion = version.startsWith('v')
-          ? version
-          : `v${version}`;
-        const filePath = join(
-          appDir,
-          'inferred',
-          `inferred_${inferredVersion}.json`,
-        );
+        const filePath = join(appDir, 'inferred', `inferred_${version}.json`);
         if (!existsSync(filePath)) {
           return null;
         }
