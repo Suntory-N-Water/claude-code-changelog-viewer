@@ -5,7 +5,9 @@ import { unified } from '@astrojs/markdown-remark';
 import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
+import astroExpressiveCode from 'astro-expressive-code';
 import pagefind from 'astro-pagefind';
+import { remarkAlert } from 'remark-github-blockquote-alert';
 import remarkLinkCardPlus from 'remark-link-card-plus';
 import { seoValidate } from './src/integrations/seo-validate.ts';
 import { getReleaseMap } from './src/lib/release-map.ts';
@@ -45,10 +47,34 @@ export default defineConfig({
   output: 'static',
   markdown: {
     processor: unified({
-      remarkPlugins: [[remarkLinkCardPlus, linkCardOptions]],
+      remarkPlugins: [remarkAlert, [remarkLinkCardPlus, linkCardOptions]],
     }),
   },
   integrations: [
+    astroExpressiveCode({
+      themes: ['github-dark'],
+      defaultProps: { wrap: true },
+      styleOverrides: {
+        borderColor: 'hsl(var(--cc-main-black) / 0.22)',
+        borderRadius: '0.75rem',
+        borderWidth: '1px',
+        codeFontSize: '0.8125rem',
+        codeLineHeight: '1.7',
+        codePaddingBlock: '1rem',
+        codePaddingInline: '1rem',
+        focusBorder: 'hsl(var(--cc-main-orange))',
+        frames: {
+          frameBoxShadowCssValue: 'none',
+          inlineButtonBackground: 'hsl(var(--cc-main-white))',
+          inlineButtonBackgroundIdleOpacity: '0.12',
+          inlineButtonBorder: 'hsl(var(--cc-main-white))',
+          inlineButtonBorderOpacity: '0.55',
+          inlineButtonForeground: 'hsl(var(--cc-main-white))',
+          tooltipSuccessBackground: 'hsl(var(--cc-link-orange))',
+          tooltipSuccessForeground: 'hsl(var(--cc-main-white))',
+        },
+      },
+    }),
     sitemap({
       // OG 画像・RSS・llms.txt・robots.txt 等を除外
       filter: (page) => {
