@@ -12,10 +12,7 @@ import {
 import { semverCompareDesc } from '../lib/semver';
 
 // ビルド時に全 URL を生成してクライアントサイド JS にインライン埋め込み
-const [changelogs, docsDiffEntries] = await Promise.all([
-  getCollection('changelog'),
-  getCollection('docsDiff'),
-]);
+const changelogs = await getCollection('changelog');
 
 const changelogUrls = changelogs.map((e) => `/changelog/v${e.data.version}`);
 
@@ -24,9 +21,7 @@ const featureUrls = [...areaMap.entries()]
   .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
   .map(([area]) => `/features/${toFeatureAreaSlug(area)}`);
 
-const docsUrls = docsDiffEntries.map((e) => `/docs/${e.data.id}`);
-
-const staticUrls = ['/', '/features', '/docs', '/about', '/notify', '/privacy'];
+const staticUrls = ['/', '/features', '/about', '/notify', '/privacy'];
 
 const allUrls = JSON.stringify([
   ...staticUrls,
@@ -36,7 +31,6 @@ const allUrls = JSON.stringify([
     return semverCompareDesc(av, bv);
   }),
   ...featureUrls,
-  ...docsUrls,
 ]);
 ---
 

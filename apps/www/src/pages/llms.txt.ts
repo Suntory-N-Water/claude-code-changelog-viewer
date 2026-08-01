@@ -1,7 +1,6 @@
 import { getCollection } from 'astro:content';
 import type { APIContext } from 'astro';
 import { SITE_TITLE } from '../lib/constants';
-import { sortDocsDiffEntries } from '../lib/docs-diff';
 import { semverCompareDesc } from '../lib/semver';
 import {
   MIN_ITEMS_FOR_PAGE,
@@ -14,14 +13,12 @@ import {
 export async function GET(context: APIContext) {
   const site = context.site?.href.replace(/\/$/, '') ?? '';
 
-  const [changelogs, docsDiffEntries, posts, columns, settings] =
-    await Promise.all([
-      getCollection('changelog'),
-      getCollection('docsDiff'),
-      getCollection('postsWeekly'),
-      getCollection('column'),
-      getCollection('settingsReference'),
-    ]);
+  const [changelogs, posts, columns, settings] = await Promise.all([
+    getCollection('changelog'),
+    getCollection('postsWeekly'),
+    getCollection('column'),
+    getCollection('settingsReference'),
+  ]);
 
   // changelog: バージョン降順
   const sortedChangelogs = [...changelogs].sort((a, b) =>
@@ -37,9 +34,6 @@ export async function GET(context: APIContext) {
       slug: toFeatureAreaSlug(area),
       label: getFeatureAreaLabel(area),
     }));
-
-  // docs diff entries: 新しい順
-  const allDocEntries = sortDocsDiffEntries(docsDiffEntries);
 
   // 週次まとめ・コラム: 投稿日降順
   const weeklyPosts = [...posts].sort((a, b) =>
@@ -69,7 +63,6 @@ export async function GET(context: APIContext) {
     `- [Weekly Posts](${site}/posts/weekly): Weekly roundups of notable Claude Code updates`,
     `- [Columns](${site}/posts/column): Hands-on articles about using and operating Claude Code`,
     `- [Settings Reference](${site}/reference/settings): Look up Claude Code settings and environment variables`,
-    `- [Docs Diff](${site}/docs): Official documentation change history`,
     `- [About](${site}/about): About this service`,
     `- [Notifications](${site}/notify): Subscribe to update notifications via LINE Notify`,
     '',
@@ -112,12 +105,6 @@ export async function GET(context: APIContext) {
     lines.push(
       `- [${entry.data.key}](${site}/reference/settings/${entry.data.slug})${summary}`,
     );
-  }
-
-  lines.push('', '## Docs Diff', '');
-  for (const entry of allDocEntries) {
-    const summary = entry.aiSummary ? `: ${entry.aiSummary}` : '';
-    lines.push(`- [${entry.id}](${site}/docs/${entry.id})${summary}`);
   }
 
   // TextEncoder でエンコードしないと Astro dev サーバーで日本語が文字化けする

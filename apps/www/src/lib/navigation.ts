@@ -29,12 +29,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'pencil-square',
   },
   {
-    href: '/docs',
-    label: 'Docs 更新履歴',
-    description: '公式ドキュメントの差分を AI が日本語で要約',
-    icon: 'document-file',
-  },
-  {
     href: '/reference/settings',
     label: '設定リファレンス',
     description: '設定項目と環境変数を横断で検索',

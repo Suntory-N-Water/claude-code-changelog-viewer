@@ -57,34 +57,6 @@ const diffCollection = defineCollection({
   }),
 });
 
-const docsDiffCollection = defineCollection({
-  loader: glob({ pattern: '**/*.json', base: './src/content/docs-diff' }),
-  schema: z.object({
-    id: z.string(),
-    timestamp: z.iso.datetime(),
-    aiSummary: z.string(),
-    files: z.array(
-      z.object({
-        filename: z.string(),
-        additions: z.number(),
-        deletions: z.number(),
-        explanation: z.string().optional(),
-        hunks: z.array(
-          z.object({
-            header: z.string(),
-            lines: z.array(
-              z.object({
-                type: z.enum(['added', 'removed', 'context']),
-                content: z.string(),
-              }),
-            ),
-          }),
-        ),
-      }),
-    ),
-  }),
-});
-
 const postsWeeklyCollection = defineCollection({
   loader: glob({ pattern: 'weekly/**/*.md', base: './src/content/posts' }),
   schema: z.object({
@@ -140,7 +112,6 @@ export const collections = {
   changelog: changelogCollection,
   column: columnCollection,
   diff: diffCollection,
-  docsDiff: docsDiffCollection,
   postsWeekly: postsWeeklyCollection,
   settingsReference: settingsReferenceCollection,
 };
