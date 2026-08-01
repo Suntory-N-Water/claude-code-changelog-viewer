@@ -8,7 +8,6 @@ import {
   createInferenceResult,
 } from '../inference/inference-result';
 import type { RelatedDoc } from './related-doc';
-import type { RelatedIssue } from './related-issue';
 
 export type ImpactAssessment = {
   level: 'high' | 'medium' | 'low';
@@ -28,7 +27,6 @@ export type AnalyzedChangelogEntry = {
   prefix: ChangelogPrefix;
   featureAreas: string[];
   relatedDocs: RelatedDoc[];
-  relatedIssues: RelatedIssue[];
   inference?: InferenceResult;
   impact?: ImpactAssessment;
 };
@@ -39,7 +37,6 @@ export type CreateAnalyzedChangelogEntryInput = {
   prefix: ChangelogPrefix;
   featureAreas?: string[];
   relatedDocs?: RelatedDoc[];
-  relatedIssues?: RelatedIssue[];
   inference?: InferenceResult;
   impact?: ImpactAssessment;
 };
@@ -72,7 +69,6 @@ export function createAnalyzedChangelogEntry(
     prefix: input.prefix,
     featureAreas: input.featureAreas ?? [],
     relatedDocs: input.relatedDocs ?? [],
-    relatedIssues: input.relatedIssues ?? [],
     ...(input.inference !== undefined ? { inference: input.inference } : {}),
     ...(input.impact !== undefined ? { impact: input.impact } : {}),
   };
@@ -96,7 +92,6 @@ export function applyInferenceToAnalyzedEntry(
     content: entry.content,
     prefix: entry.prefix,
     relatedDocs: entry.relatedDocs,
-    relatedIssues: entry.relatedIssues,
     ...(contentJa !== undefined ? { contentJa } : {}),
     featureAreas: input.featureAreas ?? entry.featureAreas,
     ...(inference !== undefined ? { inference } : {}),

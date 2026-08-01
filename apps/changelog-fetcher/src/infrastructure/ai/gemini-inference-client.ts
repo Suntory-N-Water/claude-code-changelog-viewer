@@ -1,5 +1,4 @@
 import type { AppLogger } from '@claude-code-changelog-viewer/common';
-import type { MaintainerCandidate } from '../../usecase/extract-maintainer-declared-issues';
 import {
   createInferenceBatch,
   type InferenceBatch,
@@ -20,13 +19,9 @@ export class GeminiInferenceClient implements InferencePort {
   async infer(input: {
     version: string;
     items: IndexedAnalyzedEntry[];
-    candidates?: MaintainerCandidate[];
   }): Promise<InferenceBatch> {
     const prompt = buildBatchInferencePrompt([...input.items], input.version, {
       modelContext: loadModelContext(),
-      ...(input.candidates !== undefined
-        ? { candidates: input.candidates }
-        : {}),
     });
     return toInferenceBatch(await this.client.inferAll(prompt));
   }
@@ -57,10 +52,6 @@ function toInferenceBatch(result: InferenceBatchResult): InferenceBatch {
       defaultBehaviorChange: item.default_behavior_change,
       breaking: item.breaking,
       reason: item.reason,
-    })),
-    matchedIssuesItems: (result.matched_issues_items ?? []).map((item) => ({
-      id: item.id,
-      issueNumbers: item.issue_numbers,
     })),
     summary: result.summary,
   });

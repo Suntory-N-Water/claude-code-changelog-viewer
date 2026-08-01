@@ -53,7 +53,17 @@ argument-hint: "[--input-file <path>]"
 
 以降の手順はすべて `$INPUT_JSON` を入力パスとして参照する。
 
-### 2. 抽出スクリプトで素材を取得
+### 2. 選定バージョンの analysis を生成する
+
+入力 JSON に含まれる version を重複なく取り出し、各 version の analysis を生成する。analysis は git 管理外の生成データなので、既存ファイルの有無にかかわらず抽出スクリプトの実行前に必ず生成する。
+
+```bash
+jq -r '.items[].version' "$INPUT_JSON" | sort -u | while read -r version; do
+  pnpm run analyze "v${version#v}"
+done
+```
+
+### 3. 抽出スクリプトで素材を取得
 
 ```bash
 python3 <skill_dir>/scripts/extract.py "$INPUT_JSON" > .tmp/extracted.json
@@ -63,7 +73,7 @@ python3 <skill_dir>/scripts/extract.py "$INPUT_JSON" > .tmp/extracted.json
 
 id 不一致や version ファイル欠落があればスクリプトがエラーで止まる。その場合は入力 JSON を確認する。
 
-### 3. skeleton を書き出す
+### 4. skeleton を書き出す
 
 ```bash
 python3 <skill_dir>/scripts/skeleton.py .tmp/extracted.json
@@ -73,7 +83,7 @@ extract.py の出力 JSON を渡すと、`apps/changelog-fetcher/posts/weekly/{w
 英語原文は各 `###` 見出しの直後へ blockquote として出力する。このとき先頭の Markdown リストマーカー(`- ` など)はスクリプトが除去する(blockquote 内で引用がリスト表示されるのを防ぐため)。
 frontmatter には選定時の全アイテム数(`total_items`)と、選定した各 item の ID・version・コメント(`selected_items`)も保存する。`selected_items` は入力の並び順によらず version 昇順(同一 version 内は入力順)に揃う。items は古い→新しいバージョンの昇順で並び、同一バージョンの複数項目は1つの `## v{version}` 下にまとまる。**`### 見出し = content_ja` はここで byte 単位で確定する。以降 content_ja は一切タイプしない**(更新履歴カードと1文字も違わないことをこれで保証する)。
 
-### 4. 必要な item だけ snippets を追加取得
+### 5. 必要な item だけ snippets を追加取得
 
 `inference` が薄い、またはコメントが仕様の技術的な詳細を求めていて inference と content_ja だけでは本文が書けない item に限り、次を実行する(`has_snippets` が true の item のみ意味がある)。
 
@@ -83,7 +93,7 @@ python3 <skill_dir>/scripts/snippets.py <version> <id>
 
 `analysis_v{version}.json` も大きいので、全件取得はしない。書けない item に絞って呼ぶ。
 
-### 5. プレースホルダを埋める
+### 6. プレースホルダを埋める
 
 skeleton の `<!-- intro -->` と各 `<!-- body -->`、そして frontmatter の `description` 内の `<!-- desc -->` を Edit で置き換える。この3種類以外(バージョン見出し・変更内容の見出し・締めの定型文・description の定型文と期間)には一切触れない(スクリプトが確定済み)。
 
@@ -101,7 +111,7 @@ skeleton の `<!-- intro -->` と各 `<!-- body -->`、そして frontmatter の
 
 **本文は体験・意見に特化する。** 見出し(content_ja)が事実を担うので、本文で事実を言い換えて繰り返してはいけない。最優先の素材は選定時のコメントで、選定者が実際に使って感じた温度を地の文に反映する。inference の before→after→benefit はコメントの体験を裏付ける補助として使い、changelog の翻訳をそのまま貼るだけにはしない。
 
-### 6. 埋めた本文を読み返して直す
+### 7. 埋めた本文を読み返して直す
 
 書いた直後は「それっぽく」書けたつもりでも、体言止め・倒置法・内輪のジャーゴンや安易な比喩が紛れやすい。read → write で終わらせず、埋めた intro と各 body を `<skill_dir>/references/voice-and-tone.md` の「避けるべき表現」に一度照らして読み返す。特に、選定者本人の具体的な体験ではなく、誰が書いても同じになる汎用的な「テックブログ声」になっている文を探し、コメントにある具体へ戻すか削る。
 

@@ -248,9 +248,6 @@ async function loadInferredFile(
         snippet_scores: [],
         hit_count: 0,
       })),
-      ...(item.related_issues !== undefined
-        ? { related_issues: item.related_issues }
-        : {}),
       ...(item.inference !== undefined ? { inference: item.inference } : {}),
       ...(item.impact !== undefined ? { impact: item.impact } : {}),
     })),

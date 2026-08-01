@@ -198,16 +198,6 @@ jobs:
             echo "✅ analysis_${version}.json created"
           done
 
-      - name: Tie issues to changelog items
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          CHANGED_VERSIONS: ${{ needs.fetch.outputs.changed_versions }}
-        run: |
-          for version in $CHANGED_VERSIONS; do
-            echo "🔗 Tying issues for $version..."
-            pnpm run tie:issues "$version"
-          done
-
       - name: Infer benefits
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -224,7 +214,6 @@ jobs:
           name: ai-outputs
           path: |
             apps/changelog-fetcher/analysis/
-            apps/changelog-fetcher/tied/
             apps/changelog-fetcher/inferred/
           retention-days: 7
           if-no-files-found: error
@@ -236,7 +225,6 @@ jobs:
           name: ai-diagnostics
           path: |
             apps/changelog-fetcher/analysis/
-            apps/changelog-fetcher/tied/
             apps/changelog-fetcher/inferred/
           retention-days: 7
           if-no-files-found: ignore

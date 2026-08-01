@@ -4,14 +4,14 @@
 
 pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公式 Docs、設定スキーマ、ブログ、YouTube 情報を収集し、Astro の静的サイトで公開する。CHANGELOG の変化検知と通知 API は Cloudflare Workers、購読情報と配信済み記録は D1、通知処理は Cloudflare Queues を使う。
 
-内部の Claude Code version は `v2.1.220` のような `v` 付き表記に統一する。ファイル名、metadata / diff、workflow と通知の version、公開 URL は `v` 付きとする。一方、analysis / inferred / tied JSON の本文、CHANGELOG Markdown の見出し、週次記事 frontmatter は既存の外部保存形式として `v` なしを維持し、読み込み時にドメイン表現へ正規化する。
+内部の Claude Code version は `v2.1.220` のような `v` 付き表記に統一する。ファイル名、metadata / diff、workflow と通知の version、公開 URL は `v` 付きとする。一方、analysis / inferred JSON の本文、CHANGELOG Markdown の見出し、週次記事 frontmatter は既存の外部保存形式として `v` なしを維持し、読み込み時にドメイン表現へ正規化する。
 
 ## Workspace
 
 ### `apps/changelog-fetcher`
 
-- GitHub の公式 CHANGELOG を取得し、変更検知、Docs 検索、Issue 紐付け、Gemini による翻訳・推論を行う。
-- 主な出力は `changelogs/`、`analysis/`、`tied/`、`inferred/`、`diff/`、`settings/`、`metadata/`。
+- GitHub の公式 CHANGELOG を取得し、変更検知、Docs 検索、Gemini による翻訳・推論を行う。
+- 主な出力は `changelogs/`、`analysis/`、`inferred/`、`diff/`、`settings/`、`metadata/`。中間生成物の `analysis/` は git 管理外とし、必要な環境で再生成する。
 - `infer:no-ai` は `infer-benefits.ts --no-ai` を実行し、既存の推論結果を再利用する。破損した inferred JSON は警告して未取得として扱う。
 - Docs 検索エンジンの子プロセスにはタイムアウトを設け、完了・失敗・タイムアウトの各経路でタイマーとプロセスを終了処理する。
 - 週次記事は `posts/weekly/` に生成する。
@@ -19,9 +19,9 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公�
 ### `apps/docs-tracker`
 
 - Claude Code 公式 Docs、settings schema、Anthropic Blog、YouTube メタデータと transcript を取得する。
-- Docs は `docs/en/`、差分は `diffs/`、settings schema は `schema/`、取得状態は `metadata/` に保存する。
+- Docs は `docs/en/`、settings schema は `schema/`、取得状態は `metadata/` に保存する。
 - 既存 JSON が存在しない場合と、JSON が破損・schema 不一致の場合を区別する。後者はファイルパスとエラーを警告する。
-- Docs、schema、metadata、docs diff、YouTube 関連の主要な JSON・Markdown 出力は、一時ファイルを同一ディレクトリへ書いて rename するアトミック書き込みを使う。
+- Docs、schema、metadata、YouTube 関連の主要な JSON・Markdown 出力は、一時ファイルを同一ディレクトリへ書いて rename するアトミック書き込みを使う。
 
 ### `apps/notification-worker`
 
@@ -38,9 +38,8 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公�
 - Content Collections は次の symlink を通じて他 app の生成物を参照する。
   - `src/content/changelog` → `apps/changelog-fetcher/inferred`
   - `src/content/diff` → `apps/changelog-fetcher/diff`
-  - `src/content/docs-diff` → `apps/docs-tracker/diffs`
   - `src/content/settings` → `apps/changelog-fetcher/settings`
-- CHANGELOG 一覧・トップは共通の version card データ生成を使い、Docs 差分は共通ソートとページサイズ定数を使う。
+- CHANGELOG 一覧・トップは共通の version card データ生成を使う。
 - prefix の表示名・スタイル・アイコンは `src/lib/prefix.ts` に集約する。
 - 週次選定画面は Astro component を表示責務に絞り、型、初期化、画像 upload、リンク行操作を `src/lib/weekly-selection/` に分離する。
 - `src/content/posts/weekly` は changelog-fetcher の週次記事を参照し、`src/content/posts/column` はコラムを保持する。
@@ -54,8 +53,8 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公�
 
 | Workflow | トリガー | 役割 |
 | --- | --- | --- |
-| `changelog-auto-inference.yml` | notification-worker からの手動 dispatch | CHANGELOG 取得、解析、Issue 紐付け、推論、通知、PR 作成 |
-| `fetch-docs.yml` | 3 時間ごと / 手動 | Docs と settings schema の取得、差分生成、PR 作成・マージ |
+| `changelog-auto-inference.yml` | notification-worker からの手動 dispatch | CHANGELOG 取得、解析、推論、通知、PR 作成 |
+| `fetch-docs.yml` | 3 時間ごと / 手動 | Docs と settings schema の取得、PR 作成・マージ |
 | `fetch-blog.yml` | 1 時間ごと / 手動 | Anthropic Blog の取得 |
 | `fetch-youtube.yml` | 毎日 / 手動 | YouTube 情報の取得 |
 | `fetch-builtin-data.yml` | 毎日 JST 06:00 / 手動 | Claude Code ビルトイン情報の取得 |

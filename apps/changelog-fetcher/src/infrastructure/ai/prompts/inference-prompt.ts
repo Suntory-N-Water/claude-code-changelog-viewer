@@ -1,4 +1,3 @@
-import type { MaintainerCandidate } from '../../../usecase/extract-maintainer-declared-issues';
 import type { IndexedAnalyzedEntry } from '../../../usecase/inference-batch';
 
 type PromptItem = IndexedAnalyzedEntry;
@@ -67,9 +66,9 @@ export function buildInferenceTaskSection(indexedItems: PromptItem[]): string {
 export function buildBatchInferencePrompt(
   indexedItems: PromptItem[],
   version: string,
-  options: { modelContext: string; candidates?: MaintainerCandidate[] },
+  options: { modelContext: string },
 ): string {
-  const { modelContext, candidates } = options;
+  const { modelContext } = options;
   const inferenceItems: { item: PromptItem['entry']; id: string }[] = [];
   const translationItems: { item: PromptItem['entry']; id: string }[] = [];
   for (const { entry, id } of indexedItems) {
@@ -241,37 +240,5 @@ export function buildBatchInferencePrompt(
     '## 対象項目',
     '',
     'タスク4 の「対象項目」に列挙した**全項目**を対象とする。タスク4 は該当タグが付与される項目のみ返すが、タスク5 は同じ入力対象の**全項目について 1 件ずつ impact 判定を返す**こと(該当なしでも省略しない)。',
-    ...(candidates && candidates.length > 0
-      ? [
-          '',
-          '---',
-          '',
-          '# タスク6: 候補 issue の対応付け (matched_issues_items)',
-          '',
-          '## 動機 (Motive)',
-          'maintainer が「fixed in vX.X.X」と宣言した issue の候補リストがある。各 CHANGELOG 項目に対し、どの候補 issue が対応するかを判定する。',
-          '',
-          '## 候補 issue 一覧',
-          '',
-          ...candidates.map(
-            (c) =>
-              `- #${c.number}: ${c.title}\n  宣言: ${c.maintainerDeclaration.body.slice(0, 200)}`,
-          ),
-          '',
-          '## 制約',
-          '- **inferenceItems (推論+翻訳対象) のみ** を対象とする',
-          '- 各項目について、候補 issue の中から関連する issue 番号を `issue_numbers` 配列で返す',
-          '- 候補リストにない issue 番号は絶対に返さない',
-          '- 複数の候補が該当する場合は複数返してよい',
-          '- 該当なしの場合は空配列 `[]` を返す',
-          '- id は入力値をそのまま返すこと',
-          '',
-          '## 対象項目',
-          '',
-          ...inferenceItems.map(
-            ({ item, id }) => `- id=${id}, content: ${item.content}`,
-          ),
-        ]
-      : []),
   ].join('\n');
 }
