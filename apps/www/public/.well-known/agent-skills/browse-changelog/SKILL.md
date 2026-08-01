@@ -14,9 +14,6 @@ Visit `https://claude-code-log.com/changelog/v{version}` to read release notes f
 ### Browse by feature area
 Visit `https://claude-code-log.com/features/` to see changelog entries grouped by feature category.
 
-### Browse documentation diffs
-Visit `https://claude-code-log.com/docs/` to see official documentation change history.
-
 ### Machine-readable index
 Fetch `https://claude-code-log.com/llms.txt` for a structured plain-text index of all versions and feature areas, suitable for LLM context.
 

@@ -41,7 +41,7 @@ Accepted
 |------|:---:|:---:|:---:|
 | SEO(独立 URL) | ✅ | ✅ | ❌ |
 | Zod スキーマ検証 | ✅ | ❌ | — |
-| 既存パターンとの一貫性 | ✅(docs-diff と同様) | △ | — |
+| 既存パターンとの一貫性 | ✅(changelog と同様) | △ | — |
 | 実装コスト | 低 | 低 | 高 |
 
 ## Decision
@@ -75,7 +75,7 @@ type SettingReference = {
 
 ### 2. Astro Content Collection の読み込み
 
-`docs-diff` コレクションと同じシンボリックリンク方式を採用する。
+`changelog` コレクションと同じシンボリックリンク方式を採用する。
 
 ```
 apps/www/src/content/settings -> ../../../changelog-fetcher/settings

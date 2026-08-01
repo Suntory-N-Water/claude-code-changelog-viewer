@@ -39,41 +39,6 @@ export const ImpactAssessmentSchema = z.object({
 });
 export type ImpactAssessment = z.infer<typeof ImpactAssessmentSchema>;
 
-// MaintainerDeclaration (maintainer が「fixed in vX.X.X」と宣言したコメント)
-export const MaintainerDeclarationSchema = z.object({
-  user: z.string(),
-  published_at: z.string(),
-  body: z.string(),
-  url: z.string(),
-});
-export type MaintainerDeclaration = z.infer<typeof MaintainerDeclarationSchema>;
-
-// MaintainerCandidate (Stage 1 で抽出されたリリース単位の候補 issue)
-export const MaintainerCandidateSchema = z.object({
-  number: z.number().int().positive(),
-  title: z.string(),
-  url: z.string(),
-  state: z.enum(['open', 'closed']),
-  reactions_total: z.number().int().nonnegative(),
-  comments_count: z.number().int().nonnegative(),
-  is_maintainer_involved: z.boolean(),
-  maintainer_declaration: MaintainerDeclarationSchema,
-});
-export type MaintainerCandidate = z.infer<typeof MaintainerCandidateSchema>;
-
-// RelatedIssue (CHANGELOG 項目に紐付けられた 1件の判断材料)
-export const RelatedIssueSchema = z.object({
-  number: z.number().int().positive(),
-  title: z.string(),
-  url: z.string(),
-  state: z.enum(['open', 'closed']),
-  reactions_total: z.number().int().nonnegative(),
-  comments_count: z.number().int().nonnegative(),
-  is_maintainer_involved: z.boolean(),
-  maintainer_declaration: MaintainerDeclarationSchema,
-});
-export type RelatedIssue = z.infer<typeof RelatedIssueSchema>;
-
 // ChangelogItem
 export const ChangelogItemSchema = z.object({
   id: z.string().length(12), // sha256(content)[0:12]
@@ -82,7 +47,6 @@ export const ChangelogItemSchema = z.object({
   prefix: z.string(),
   feature_areas: z.array(z.string()).optional(), // 機能領域タグ
   related_docs: z.array(RelatedDocSchema),
-  related_issues: z.array(RelatedIssueSchema).optional(),
   inference: InferenceResultSchema.optional(),
   impact: ImpactAssessmentSchema.optional(),
 });
@@ -92,7 +56,6 @@ export type ChangelogItem = z.infer<typeof ChangelogItemSchema>;
 export const AnalysisSchema = z.object({
   version: z.string(),
   summary: z.string().optional(),
-  maintainer_candidates: z.array(MaintainerCandidateSchema).optional(),
   items: z.array(ChangelogItemSchema),
 });
 export type Analysis = z.infer<typeof AnalysisSchema>;

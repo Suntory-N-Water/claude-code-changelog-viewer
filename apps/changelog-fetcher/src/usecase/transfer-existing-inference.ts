@@ -32,7 +32,6 @@ export function transferExistingInference(
         content: entry.content,
         prefix: entry.prefix,
         relatedDocs: entry.relatedDocs,
-        relatedIssues: entry.relatedIssues,
         ...(existingEntry.contentJa !== undefined
           ? { contentJa: existingEntry.contentJa }
           : {}),

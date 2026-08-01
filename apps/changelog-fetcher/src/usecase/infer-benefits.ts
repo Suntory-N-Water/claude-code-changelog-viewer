@@ -7,7 +7,6 @@ import {
   type IndexedAnalyzedEntry,
   type InferenceBatch,
 } from './inference-batch';
-import type { MaintainerCandidate } from './extract-maintainer-declared-issues';
 import { transferExistingInference } from './transfer-existing-inference';
 
 const log = getLogger({ name: 'benefit-inferrer' });
@@ -16,7 +15,6 @@ export type InferencePort = {
   infer: (input: {
     version: string;
     items: IndexedAnalyzedEntry[];
-    candidates?: MaintainerCandidate[];
   }) => Promise<InferenceBatch>;
 };
 
@@ -30,7 +28,6 @@ export async function inferBenefits(input: {
   skipAI: boolean;
   inference: InferencePort;
   store: InferredStorePort;
-  candidates?: MaintainerCandidate[];
 }): Promise<ChangelogAnalysis> {
   let analysis = transferExistingInference(
     input.analysis,
@@ -56,20 +53,13 @@ export async function inferBenefits(input: {
     return analysis;
   }
 
-  analysis = applyInferenceBatch(
-    analysis,
-    {
-      ...(await input.inference.infer({
-        version: input.version,
-        items: missingBeforeInitial,
-        ...(input.candidates !== undefined
-          ? { candidates: input.candidates }
-          : {}),
-      })),
-      ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
-    },
-    input.candidates,
-  );
+  analysis = applyInferenceBatch(analysis, {
+    ...(await input.inference.infer({
+      version: input.version,
+      items: missingBeforeInitial,
+    })),
+    ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
+  });
   log.msg('APLG0002', { params: ['バージョンサマリー生成'] });
 
   const missingAfterInitial = findMissingInferenceItems(analysis);
@@ -89,22 +79,15 @@ export async function inferBenefits(input: {
       }
 
       try {
-        analysis = applyInferenceBatch(
-          analysis,
-          {
-            ...(await input.inference.infer({
-              version: input.version,
-              items: missing,
-              ...(input.candidates !== undefined
-                ? { candidates: input.candidates }
-                : {}),
-            })),
-            ...(analysis.summary !== undefined
-              ? { summary: analysis.summary }
-              : {}),
-          },
-          input.candidates,
-        );
+        analysis = applyInferenceBatch(analysis, {
+          ...(await input.inference.infer({
+            version: input.version,
+            items: missing,
+          })),
+          ...(analysis.summary !== undefined
+            ? { summary: analysis.summary }
+            : {}),
+        });
       } catch (error) {
         throw new AbortError(
           error instanceof Error ? error.message : String(error),

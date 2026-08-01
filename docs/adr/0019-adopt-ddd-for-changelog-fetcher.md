@@ -32,7 +32,7 @@ Accepted
 
 - `apps/changelog-fetcher/src` のディレクトリ構成と import 方向
 - CLI エントリーポイントの責務
-- `analysis/` `inferred/` `settings/` `diff/` `metadata/` へ入出力する処理の置き場所
+- git 管理外の中間生成物である `analysis/` と、git 管理する `inferred/` `settings/` `diff/` `metadata/` へ入出力する処理の置き場所
 - changelog-fetcher のテスト配置
 
 一方で、この ADR だけでは以下を変更しない。
@@ -215,7 +215,7 @@ export function isDuplicateDiffEvent(
 
 ### 6. 既存の出力契約は境界で変換する
 
-`analysis_*.json` と `inferred_*.json` は notification-worker から参照されるため、移行中も `packages/types` の `AnalysisSchema` を外部契約として維持する。domain 内部の名前や構造を変える場合は、application または infrastructure に変換関数を置く。
+`analysis_*.json` は推論処理の中間入力、`inferred_*.json` は www と notification-worker から参照されるため、移行中も `packages/types` の `AnalysisSchema` を外部契約として維持する。domain 内部の名前や構造を変える場合は、application または infrastructure に変換関数を置く。`analysis_*.json` は git 管理せず、CHANGELOG と Docs から必要な環境で再生成する。
 
 ```ts
 // application 境界の例
@@ -312,7 +312,7 @@ NotebookLM の `ドメイン駆動設計入門.md` を基準に、対象ソー�
 ### Risks
 
 - 既存の生成済み JSON と同じ出力を維持できず、notification-worker や表示側に影響するリスクがある
-  - → 移行中は `AnalysisSchema` による検証と実データテストを維持し、出力契約の変更は別 ADR で扱う
+  - → git 管理する `inferred_*.json` は `AnalysisSchema` による検証と実データテストを維持し、出力契約の変更は別 ADR で扱う。git 管理外の `analysis_*.json` は推論前に再生成する
 - `application/` に業務ルールが残り、実質的に domain が型置き場になるリスクがある
   - → prefix 判定、差分イベント重複判定、値オブジェクトの形式検証など判断を含む処理は domain の純粋関数へ置く
 - `infrastructure/` が便利関数置き場になり、責務が再び曖昧になるリスクがある
@@ -325,7 +325,7 @@ NotebookLM の `ドメイン駆動設計入門.md` を基準に、対象ソー�
 | `analysis_*.json` のスキーマ変更 | notification-worker との契約に影響するため、この ADR の範囲を超える | 出力契約を変える必要が出た時点で別 ADR を作る |
 | Gemini プロンプトの改善 | DDD の境界設計とは独立して評価すべきため | inference 文脈の移行後 |
 | `packages/types` の責務再定義 | 他アプリへの影響範囲が広いため | changelog-fetcher の domain 型分離後 |
-| 生成済み `analysis/` `inferred/` `settings/` データの再生成方針 | 実装移行とは別に運用判断が必要なため | 出力差分が発生した時点 |
+| 生成済み `inferred/` `settings/` データの再生成方針 | 実装移行とは別に運用判断が必要なため | 出力差分が発生した時点 |
 
 ## Notes
 

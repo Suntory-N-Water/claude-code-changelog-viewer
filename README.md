@@ -42,7 +42,7 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 - Gemini API による自動翻訳・推論
 - 毎時実行
 - 取得状況: `apps/changelog-fetcher/metadata/last_fetch.json`
-- 解析結果: `apps/changelog-fetcher/analysis/analysis_v*.json`
+- 解析結果(git 管理外の中間生成物): `apps/changelog-fetcher/analysis/analysis_v*.json`
 - 推論結果: `apps/changelog-fetcher/inferred/inferred_v*.json`
 
 #### `apps/notification-worker`

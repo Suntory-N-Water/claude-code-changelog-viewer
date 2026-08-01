@@ -3,14 +3,12 @@ import {
   AnalysisSchema,
   type InferredAnalysis,
   InferredAnalysisSchema,
-  type RelatedIssue as RelatedIssueJson,
 } from '@claude-code-changelog-viewer/types';
 import { createAnalyzedChangelogEntry } from '../../domain/analysis/analyzed-changelog-entry';
 import {
   createChangelogAnalysis,
   type ChangelogAnalysis,
 } from '../../domain/analysis/changelog-analysis';
-import type { RelatedIssue } from '../../domain/analysis/related-issue';
 import {
   type ChangelogPrefix,
   createChangelogEntryContent,
@@ -36,7 +34,6 @@ export function toChangelogAnalysis(analysis: Analysis): ChangelogAnalysis {
           snippetScores: doc.snippet_scores ?? [],
           hitCount: doc.hit_count,
         })),
-        relatedIssues: (item.related_issues ?? []).map(fromRelatedIssueJson),
         ...(item.inference !== undefined
           ? {
               inference: createInferenceResult({
@@ -80,11 +77,6 @@ export function toAnalysisJson(analysis: ChangelogAnalysis): Analysis {
         snippet_scores: [...doc.snippetScores],
         hit_count: doc.hitCount,
       })),
-      ...(entry.relatedIssues.length > 0
-        ? {
-            related_issues: entry.relatedIssues.map(toRelatedIssueJson),
-          }
-        : {}),
       ...(entry.inference !== undefined
         ? {
             inference: {
@@ -121,11 +113,6 @@ export function toInferredJson(analysis: ChangelogAnalysis): InferredAnalysis {
       related_docs: entry.relatedDocs.map((doc) => ({
         file: doc.file,
       })),
-      ...(entry.relatedIssues.length > 0
-        ? {
-            related_issues: entry.relatedIssues.map(toRelatedIssueJson),
-          }
-        : {}),
       ...(entry.inference !== undefined
         ? {
             inference: {
@@ -147,40 +134,4 @@ export function toInferredJson(analysis: ChangelogAnalysis): InferredAnalysis {
         : {}),
     })),
   });
-}
-
-function toRelatedIssueJson(issue: RelatedIssue): RelatedIssueJson {
-  return {
-    number: issue.number,
-    title: issue.title,
-    url: issue.url,
-    state: issue.state,
-    reactions_total: issue.reactionsTotal,
-    comments_count: issue.commentsCount,
-    is_maintainer_involved: issue.isMaintainerInvolved,
-    maintainer_declaration: {
-      user: issue.maintainerDeclaration.user,
-      published_at: issue.maintainerDeclaration.publishedAt,
-      body: issue.maintainerDeclaration.body,
-      url: issue.maintainerDeclaration.url,
-    },
-  };
-}
-
-function fromRelatedIssueJson(issue: RelatedIssueJson): RelatedIssue {
-  return {
-    number: issue.number,
-    title: issue.title,
-    url: issue.url,
-    state: issue.state,
-    reactionsTotal: issue.reactions_total,
-    commentsCount: issue.comments_count,
-    isMaintainerInvolved: issue.is_maintainer_involved,
-    maintainerDeclaration: {
-      user: issue.maintainer_declaration.user,
-      publishedAt: issue.maintainer_declaration.published_at,
-      body: issue.maintainer_declaration.body,
-      url: issue.maintainer_declaration.url,
-    },
-  };
 }
