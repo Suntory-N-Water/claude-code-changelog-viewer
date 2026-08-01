@@ -1,0 +1,52 @@
+name: PR Required Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions: {}
+
+concurrency:
+  group: pr-required-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  typescript:
+    name: TypeScript CI
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  github-actions:
+    name: GitHub Actions Lint
+    uses: ./.github/workflows/github-actions-lint.yml
+    permissions:
+      contents: read
+
+  python:
+    name: Python CI
+    uses: ./.github/workflows/python-ci.yml
+    permissions:
+      contents: read
+
+  required:
+    name: required
+    if: always()
+    needs: [typescript, github-actions, python]
+    timeout-minutes: 1
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: すべての必須チェック結果を確認
+        env:
+          GITHUB_ACTIONS_RESULT: ${{ needs.github-actions.result }}
+          PYTHON_RESULT: ${{ needs.python.result }}
+          TYPESCRIPT_RESULT: ${{ needs.typescript.result }}
+        run: |
+          if [[ "$TYPESCRIPT_RESULT" != "success" || \
+                "$GITHUB_ACTIONS_RESULT" != "success" || \
+                "$PYTHON_RESULT" != "success" ]]; then
+            echo "::error::必須チェックに失敗しました"
+            exit 1
+          fi
