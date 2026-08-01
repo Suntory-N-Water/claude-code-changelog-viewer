@@ -10,6 +10,7 @@
     --cc-main-black: 60 4% 8%;       /* #141413 */
     --cc-gray: 48 19% 86%;           /* #E0DFDA */
     --cc-orange-hover: 23 62% 58%;   /* #D97757 */
+    --cc-link-orange: 15 58% 36%;    /* 本文リンク用の高コントラスト色 */
   }
 }
 
@@ -196,7 +197,8 @@
   }
 
   .post-prose a:not(.remark-link-card-plus__card) {
-    @apply text-[hsl(var(--cc-main-orange))] underline underline-offset-2 decoration-[hsl(var(--cc-main-orange)/0.4)] hover:decoration-[hsl(var(--cc-main-orange))] transition-colors;
+    @apply text-[hsl(var(--cc-link-orange))] underline underline-offset-2 decoration-[hsl(var(--cc-main-orange)/0.55)] hover:decoration-[hsl(var(--cc-link-orange))] transition-colors;
+    overflow-wrap: anywhere;
   }
 
   .post-prose strong {
@@ -215,8 +217,52 @@
     @apply border-l-4 border-[hsl(var(--cc-main-orange)/0.4)] pl-4 text-[hsl(var(--cc-main-black)/0.7)];
   }
 
+  /* GitHub 互換の Alert 記法を、開始と終了が明確な編集注として表示する */
+  .post-prose .markdown-alert {
+    @apply border border-[hsl(var(--cc-gray))] px-4 py-4 text-[hsl(var(--cc-main-black)/0.82)];
+    background: hsl(var(--cc-gray) / 0.18);
+  }
+
+  .post-prose .markdown-alert > * + * {
+    @apply mt-2.5;
+  }
+
+  .post-prose .markdown-alert .markdown-alert-title {
+    @apply flex items-center gap-2 text-[0.8125rem] font-semibold leading-none tracking-[0.02em];
+    color: hsl(var(--cc-link-orange));
+  }
+
+  .post-prose .markdown-alert .markdown-alert-title .octicon {
+    @apply size-4 shrink-0 fill-current;
+  }
+
+  /* Expressive Code のフレームを本文カラム内に閉じ込める */
+  .post-prose .expressive-code {
+    @apply max-w-full my-6;
+  }
+
+  .post-prose .expressive-code figure,
+  .post-prose .expressive-code pre {
+    @apply max-w-full;
+  }
+
+  /* Expressive Code がマウス環境で隠すコピーボタンを常時見える状態にする */
+  @media (hover: hover) {
+    .post-prose .expressive-code .copy button {
+      /* レイヤー外で生成される Expressive Code の opacity: 0 を上書きする */
+      opacity: 0.82 !important;
+    }
+  }
+
   .post-prose :not(pre) > code {
     @apply px-1.5 py-0.5 rounded-md bg-[hsl(var(--cc-gray)/0.5)] text-[0.9em];
+    overflow-wrap: anywhere;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .post-prose .expressive-code .feedback {
+      transition: none;
+    }
   }
 
   /* 本文画像は R2 の原寸で配信されるため、カラム幅に収める */
