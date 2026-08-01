@@ -229,6 +229,18 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+      - name: Upload AI diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ai-diagnostics
+          path: |
+            apps/changelog-fetcher/analysis/
+            apps/changelog-fetcher/tied/
+            apps/changelog-fetcher/inferred/
+          retention-days: 7
+          if-no-files-found: ignore
+
   pr:
     needs: [fetch, ai]
     if: needs.fetch.outputs.has_updates == 'true'
@@ -310,6 +322,24 @@ jobs:
           body: ${{ steps.pr-meta.outputs.body }}
           capture-merge-sha: "true"
 
+      - name: Collect PR diagnostics
+        if: failure()
+        run: |
+          DIAGNOSTICS_DIR="${RUNNER_TEMP}/pr-diagnostics"
+          mkdir -p "$DIAGNOSTICS_DIR" || exit 0
+          git status --short > "$DIAGNOSTICS_DIR/git-status-short.txt" 2>&1 || true
+          git diff --stat > "$DIAGNOSTICS_DIR/git-diff-stat.txt" 2>&1 || true
+          git diff --name-status > "$DIAGNOSTICS_DIR/git-diff-name-status.txt" 2>&1 || true
+
+      - name: Upload PR diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pr-diagnostics
+          path: ${{ runner.temp }}/pr-diagnostics/
+          retention-days: 7
+          if-no-files-found: ignore
+
   notify:
     needs: [fetch, ai, pr]
     if: needs.fetch.outputs.has_notifiable == 'true'
@@ -383,7 +413,7 @@ jobs:
             jq --arg version "$version" \
               '{version: $version, analysis: {version: .version, summary: .summary, items: [.items[] | {content, content_ja, prefix}]}}' \
               "$inferred_path" \
-              | curl -f -X POST "${NOTIFICATION_WORKER_URL}/api/dispatch" \
+              | curl --fail-with-body --show-error -X POST "${NOTIFICATION_WORKER_URL}/api/dispatch" \
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer ${DISPATCH_SECRET}" \
                   --data-binary @-
