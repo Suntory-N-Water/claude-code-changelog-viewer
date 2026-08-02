@@ -67,6 +67,7 @@ Claude Code includes additional helper agents for specific tasks. These are typi
 | :- | :- | :- |
 | statusline-setup | Sonnet | When you run `/statusline` to configure your status line |
 | claude-code-guide | Haiku | When you ask questions about Claude Code features |
+| claude | Inherits | When you dispatch a [background session](/docs/en/agent-view) from `claude agents` or `claude --bg` without naming an agent. Claude can also delegate to it like any other subagent |
 
 Built-in subagents are registered by default in interactive sessions. To restrict them:
 
