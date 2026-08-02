@@ -54,7 +54,7 @@ export async function GET(context: APIContext) {
   const lines: string[] = [
     `# ${SITE_TITLE}`,
     '',
-    '> A viewer for the official Claude Code CHANGELOG with Japanese translations and summaries. Browse changes by version, feature area, and official documentation diffs.',
+    '> A viewer for the official Claude Code CHANGELOG with Japanese translations and summaries. Browse changes by version and feature area.',
     '',
     '## Main Pages',
     '',
