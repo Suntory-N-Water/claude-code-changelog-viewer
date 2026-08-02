@@ -1,6 +1,5 @@
 ---
 import '../styles/global.css';
-import { ClientRouter } from 'astro:transitions';
 import Footer from '../components/Footer.astro';
 import MobileMenu from '../components/MobileMenu.astro';
 import ScrollProgress from '../components/ScrollProgress.astro';
@@ -183,38 +182,6 @@ if (jsonLd?.type === 'website') {
       }
       gtag('js', new Date());
       gtag('config', 'G-2815S79087');
-      document.addEventListener('astro:after-swap', () => {
-        window.gtag('config', 'G-2815S79087', {
-          page_path: window.location.pathname,
-          page_title: document.title,
-        });
-      });
-    </script>
-
-    <ClientRouter />
-    <script is:inline>
-      let isBackNavigation = false;
-
-      window.addEventListener('popstate', () => {
-        isBackNavigation = true;
-      });
-
-      document.addEventListener('click', (e) => {
-        const link =
-          e.target instanceof Element
-            ? e.target.closest('a[data-direction="back"]')
-            : null;
-        if (link) {
-          isBackNavigation = true;
-        }
-      });
-
-      document.addEventListener('astro:before-preparation', (event) => {
-        if (isBackNavigation) {
-          event.direction = 'back';
-        }
-        isBackNavigation = false;
-      });
     </script>
   </head>
   <body>
@@ -266,7 +233,6 @@ if (jsonLd?.type === 'website') {
         });
       }
       initHighlight();
-      document.addEventListener('astro:after-swap', initHighlight);
     </script>
     <script is:inline>
       // sibling-index() 非対応ブラウザ(Firefox 等)向けの CSS カスタムプロパティフォールバック
@@ -286,7 +252,6 @@ if (jsonLd?.type === 'website') {
         }
       }
       initSiblingIndex();
-      document.addEventListener('astro:after-swap', initSiblingIndex);
     </script>
   </body>
 </html>
