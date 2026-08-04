@@ -1,0 +1,1032 @@
+{
+  "version": "2.1.221",
+  "summary": "自動モードの権限チェックが効率化され、プロンプトキャッシュ再利用によるコスト削減と応答性の改善が実現しました。バックグラウンドセッションはコミットやプッシュを自動的に行うよう変更され、Forkされたセッションは独立したワークツリーで実行されるようになります。また、シェルの権限バイパスという重大なセキュリティ上の不具合が修正されました。",
+  "items": [
+    {
+      "id": "8b495dc56705",
+      "content": "- [VSCode] Added Focus view: a chat-menu toggle that hides tool activity behind an expandable per-turn summary with a live running-tool indicator, toggled with `Ctrl+Alt+F` or the \"Claude Code: Toggle Focus view\" command",
+      "content_ja": "VSCode版に、実行中のツール状況を折りたたみ可能な要約で確認できる「Focus view」を追加しました。Ctrl+Alt+Fで切り替え可能です。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "実行中のツール活動を把握するにはターミナルやログを細かく確認する必要があり、画面を占有していました。",
+        "after": "ツール実行状況をコンパクトな要約として表示でき、詳細が必要な時だけ展開して確認できるようになりました。",
+        "benefit": "画面を切り替えずにツールの実行状況を把握できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ツール実行状況の可視化方法が変わり、日常的な監視作業を効率化するため。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "571a15d0f13c",
+      "content": "- Added `mode: \"mask\"` for sandbox credential files on Linux and WSL — sandboxed commands read a sentinel copy (the whole file, or just the spans captured by an `extract` regex) while the sandbox proxy substitutes the real value on egress; on macOS file masking falls back to `deny`",
+      "content_ja": "LinuxおよびWSL上のサンドボックスにおいて、認証情報ファイル用の「mode: \"mask\"」を導入しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "サンドボックス環境内で認証情報にアクセスさせるには、ファイルを完全に露出させるか、ツールを失敗させるかの二択でした。",
+        "after": "サンドボックス内でダミーの認証情報を読み込ませつつ、外部通信時にはプロキシ経由で本物の値を注入できるようになりました。",
+        "benefit": "認証情報ファイルの実体をサンドボックス内に露出させずにツールを実行できます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "サンドボックスの認証情報管理というセキュリティの根幹に関わる機能強化のため。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        }
+      ]
+    },
+    {
+      "id": "86ff5b62a1c2",
+      "content": "- Added warnings to `claude plugin validate` when a marketplace or plugin name would be rejected by Claude Desktop's managed marketplace sync",
+      "content_ja": "Claude Desktopの管理用マーケットプレイス同期で拒否される名前のプラグインに対し、検証時に警告を表示するようにしました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "Claude Code上では有効な名前でも、Claude Desktopに同期する際にエラーになることがありました。",
+        "after": "検証コマンドの時点で同期不可能な名前であることが警告されるようになりました。",
+        "benefit": "同期後のエラーに後から気づいて修正する手間が省けます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プラグイン開発者のリリースフローに関わる警告であり、影響範囲は限定的であるため。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-relevance.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md"
+        }
+      ]
+    },
+    {
+      "id": "ed88b901f968",
+      "content": "- Added a `prompt-audit` subcommand to the `claude-api` skill for auditing prompts and tool descriptions for patterns written for older models",
+      "content_ja": "Claude-apiスキルに、古いモデル向けのパターンを監査する「prompt-audit」サブコマンドを追加しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "古いモデル向けに書かれたプロンプトやツール定義が適切かどうかを手動で確認する必要がありました。",
+        "after": "コマンドを実行するだけで自動的に監査が行えるようになりました。",
+        "benefit": "古い形式のプロンプトを手作業で探す必要がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プロンプトの監査機能であり、開発者の作業自体には直結しないため。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/large-codebases.md"
+        }
+      ]
+    },
+    {
+      "id": "e43d39fd681c",
+      "content": "- Fixed a Bash tool permission-check bypass where zsh could execute hidden commands in `[[ ]]` regex conditionals; affected commands now prompt for permission",
+      "content_ja": "Bashツールの権限チェックにおいて、zshの条件式[[ ]]を悪用した権限バイパスを修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "特定のシェルの書き方により、権限チェックを回避してコマンドが実行されるリスクがありました。",
+        "after": "zshの条件式を用いた隠れたコマンド呼び出しも適切に権限確認が行われるようになりました。",
+        "benefit": "意図しない隠しコマンドの実行を防げます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "シェルの権限バイパスという重大なセキュリティ不具合の修正であるため。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        }
+      ]
+    },
+    {
+      "id": "4a539e984ee9",
+      "content": "- Fixed PowerShell permission checks mishandling paths containing quote characters on Windows; such paths now prompt for approval",
+      "content_ja": "Windowsで引用符を含むパスのPowerShell権限チェックが正しく機能しない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "WindowsユーザーのBashツール使用時のパス処理が正常化されるため。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "872007d6c0e8",
+      "content": "- Fixed the thinking toggle having no effect for the rest of a session that started with thinking off; disabling an MCP server mid-connect no longer silently reverts",
+      "content_ja": "思考モードの切り替えがセッション後半で効かなくなる不具合を修正し、MCPサーバーの無効化処理も安定させました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッション途中で思考モードが切り替わらなかったり、MCPサーバー無効化時に設定が元に戻ったりすることがありました。",
+        "after": "セッション中の設定変更が確実に反映されるようになりました。",
+        "benefit": "途中で思考モードを切り替えたりMCPを管理したりする際に、再起動を試す必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッション中の設定反映という基本的な挙動の改善のため。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-protocol.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        }
+      ]
+    },
+    {
+      "id": "1401039cc8c4",
+      "content": "- Fixed MCP servers from `--mcp-config` not being connected before the first turn in print mode (`-p`), which made the model emit tool calls as literal text",
+      "content_ja": "printモード（-p）開始前にMCPサーバーが接続されない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "スクリプト実行時などにMCPツール呼び出しがテキストとして出力されてしまうことがありました。",
+        "after": "最初の一手からMCPサーバーが正常に利用可能になります。",
+        "benefit": "スクリプト内でMCPツールの呼び出し結果を正しく扱えるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "非対話実行時のMCP呼び出しが意図通りに動作するようになるため。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "97174581b485",
+      "content": "- Fixed @-mentioned files being silently dropped when pressing Esc to retract a prompt and resubmitting it",
+      "content_ja": "@メンションしたファイルが、Escキーで入力をキャンセルした後に消えてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "入力キャンセル時のファイルコンテキスト消失という、作業を阻害する不具合の修正のため。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "3fd4e1911c1d",
+      "content": "- Fixed a crash when preparing API requests for SDK MCP tools named after built-in object properties such as `constructor`",
+      "content_ja": "組み込みオブジェクトのプロパティ名（constructorなど）と同名のSDK MCPツールを呼び出す際に発生していたクラッシュを修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "特定の名前を持つMCPツールを呼び出すと、APIリクエストの準備中にツールが異常終了していました。",
+        "after": "ツール名の競合を正しく処理するように変更され、安定してツールを呼び出せるようになりました。",
+        "benefit": "MCPツールを利用する際に特定の名前を避ける必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定の名前のMCPツール使用時に発生するクラッシュを解決する修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/channels-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        }
+      ]
+    },
+    {
+      "id": "9fdf467c173e",
+      "content": "- Fixed WebSearch failing with a 400 error at effort `xhigh`/`max` when thinking is disabled",
+      "content_ja": "思考モードが無効な状態で、努力レベルを xhigh または max に設定した場合に WebSearch が 400 エラーになる不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "思考をオフにして高い努力レベルを選択すると、検索機能がエラーで機能しませんでした。",
+        "after": "思考の有無に関わらず、高い努力レベル設定で WebSearch が正しく動作するようになりました。",
+        "benefit": "思考機能をオフにしたままで、より詳細な検索を行うことができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "検索機能の利用時に思考オフでエラーになる問題を修正するものです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-protocol.md"
+        }
+      ]
+    },
+    {
+      "id": "70dfac62d8c3",
+      "content": "- Fixed sandboxed large uploads failing with TLS errors through the sandbox proxy",
+      "content_ja": "サンドボックス経由での大規模なアップロード時に、サンドボックスプロキシで TLS エラーが発生していた問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "大きなファイルをアップロードしようとすると、TLS通信の制限によりプロセスが中断されていました。",
+        "after": "プロキシを通じたTLSトラフィックの処理が最適化され、アップロードが正常に完了するようになりました。",
+        "benefit": "大きなサイズのファイルを安定してサーバーへアップロードできます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "サンドボックス環境でのファイルアップロードという基本的な機能を安定化させるものです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        }
+      ]
+    },
+    {
+      "id": "b3ecc99514cd",
+      "content": "- Fixed Team and Enterprise spend-limit message incorrectly blaming the org's monthly limit instead of your individual spend limit",
+      "content_ja": "チームおよびエンタープライズ版において、支出制限超過メッセージが組織の月間上限を誤って示していた問題を修正し、個人の上限を正しく表示するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "制限に達した際、ユーザー自身の個別の支出制限ではなく、組織全体の上限が原因であるかのような誤解を招くメッセージが表示されていました。",
+        "after": "個人の使用量に基づいた正確な制限メッセージが表示されるようになりました。",
+        "benefit": "メッセージの意味を解釈する手間が省け、自分の利用状況を正しく把握できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "支出管理に関する通知メッセージの正確性を高める修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-spend-limits.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        }
+      ]
+    },
+    {
+      "id": "10899b3e1ec3",
+      "content": "- Fixed Bedrock authentication with AWS SSO named profiles failing in desktop-managed sessions on Windows machines that set a stray `HOME` environment variable",
+      "content_ja": "Windows上のデスクトップ管理セッションにおいて、`HOME`環境変数が設定されている場合に AWS SSO プロファイルの認証が失敗する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "特定の環境変数がWindows環境にあると、AWS認証情報へのアクセスが阻害されていました。",
+        "after": "環境変数の設定に関わらず、AWS SSOの認証情報を正しく読み込めるようになりました。",
+        "benefit": "Windows環境でのAWS認証の設定作業が不要になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows環境特有のAWS認証不具合を解消するものです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-platform-on-aws.md"
+        }
+      ]
+    },
+    {
+      "id": "7da432646258",
+      "content": "- Fixed `CLAUDE_CODE_RESUME_INTERRUPTED_TURN=0` not disabling interrupted-turn auto-resume; falsy values are now honored",
+      "content_ja": "環境変数で自動レジュームを無効化しても動作してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "設定の無効化フラグが正しく認識されるようになるため。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "06301c874cdb",
+      "content": "- Fixed a rare wake-from-sleep race where two Claude Code processes could both refresh the same MCP connector or WIF OAuth token at once, forcing re-authentication",
+      "content_ja": "スリープ復帰時に複数の Claude Code プロセスが同時にMCPコネクタやOAuthトークンの更新を行い、再認証が強制される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "復帰直後に複数のセッションがトークン更新を競合させ、ログイン状態がリセットされていました。",
+        "after": "トークン更新の競合が適切に制御され、再ログインが求められることがなくなりました。",
+        "benefit": "PCをスリープから復帰させた際、ログインし直す必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "PCのスリープ復帰時に頻発していた再ログイン要求を解消します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/security.md"
+        }
+      ]
+    },
+    {
+      "id": "c371782d0ff6",
+      "content": "- Fixed renaming a session from Claude Code Desktop or claude.ai not updating the CLI's session name; session names from every rename surface are now sanitized",
+      "content_ja": "デスクトップアプリやWebブラウザからセッション名を変更してもCLI側に反映されない問題を修正し、セッション名のサニタイズ処理を強化しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "別のクライアントから名前を変更しても、ターミナルのセッション名が更新されず古い情報のままでした。",
+        "after": "すべての名称変更がCLI側にも正しく伝播し、不正な文字も適切に除去されるようになりました。",
+        "benefit": "どのセッションが何の作業中か、一目で確実に判別できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "マルチプラットフォーム間でのセッション名同期を改善するものです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        }
+      ]
+    },
+    {
+      "id": "85f1d191ff25",
+      "content": "- Fixed plugin- and org-delivered skills named after terminal-only built-ins (e.g. `/help`, `/feedback`) being un-invocable in non-interactive sessions",
+      "content_ja": "非インタラクティブセッションにおいて、`/help` や `/feedback` などの組み込みコマンドと同名のスキルが実行できない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "プラグインや組織経由で提供されたスキルが、同名の組み込みコマンドによって上書き・ブロックされていました。",
+        "after": "スキルが優先的に解決されるようになり、非対話モードでもこれらのスキルを呼び出せるようになりました。",
+        "benefit": "プラグインのスキルをいつでも実行できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "非対話モードでのスキル実行におけるコマンド競合を解消するものです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/deep-links.md"
+        }
+      ]
+    },
+    {
+      "id": "196cff056e30",
+      "content": "- Fixed the \"Plugins changed\" notification lingering after plugins were reloaded instead of clearing",
+      "content_ja": "プラグイン再読み込み後に変更通知が残り続けてしまう表示上の不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "通知が消えない表示上の軽微な不具合であるため。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "dd0b05d8405d",
+      "content": "- Fixed Vim mode: the yank register now survives dialogs, history search, and the transcript view instead of being silently emptied",
+      "content_ja": "Vimモードでダイアログや履歴検索を経由しても、ヤンクレジスタの内容が保持されるように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Vimモードのヤンク保持という作業効率に関わる修正のため。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "e000ebbcfb79",
+      "content": "- Fixed Vim mode: undoing back to an empty prompt now arms the \"press ← again\" confirm before returning to the agent view",
+      "content_ja": "Vimモードでプロンプトが空の状態で取り消し操作（undo）を行った際に、エージェントビューに戻る前の確認ステップが有効になるように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "空プロンプトで undo を連打すると、意図せずセッションが切り替わってしまうことがありました。",
+        "after": "エージェントビューに戻る前に確認が必要となり、誤操作を防げるようになりました。",
+        "benefit": "Vim操作中の誤ってセッションを終了してしまう事故を回避できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Vimモードの誤操作を防止する安全確認ステップの追加です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "df27c0a21728",
+      "content": "- Improved tool search on Google Vertex AI: re-enabled for Claude 4.5-generation and newer models",
+      "content_ja": "Google Vertex AI 上でのツール検索機能を改善し、Claude 4.5 世代以降のモデルで再び利用可能にしました",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "Google Cloud の Agent Platform では、MCP ツール定義を事前にロードするため、ツール検索が無効化されていました。",
+        "after": "Claude Sonnet 4.5 および Opus 4.5 以降のモデルにおいて、ENABLE_TOOL_SEARCH を有効にすることでツール検索を利用できるようになりました。",
+        "benefit": "高度なモデルで必要なツールを必要に応じて自動的に読み込めるようになり、コンテキストの消費を抑えられます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定環境での機能有効化は影響が限定的であるため、mediumと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/google-vertex-ai.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/tool-search.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "d8a435d342f7",
+      "content": "- Improved auto mode: permission checks for parallel tool calls are now cache-efficient, and switching modes while a check is pending reliably prompts instead of applying the stale result",
+      "content_ja": "オートモードのパーミッションチェックを最適化し、チェック中にモードを切り替えた際の動作を確実にしました",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "並列ツール呼び出し時のパーミッションチェックにおいて、キャッシュ効率が悪く、チェックの保留中にモードを切り替えると古い結果が適用される場合がありました。",
+        "after": "並列ツール呼び出しのパーミッションチェックがキャッシュ効率化され、モード切り替え時には古い結果を適用せず、ユーザーへ確実に入力を求めるようになりました。",
+        "benefit": "権限の変更時に意図しない過去の結果が反映されることを防ぎ、操作の整合性を保てます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "オートモードのチェック精度向上は、多数のユーザーの体験に関わるためhighと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        }
+      ]
+    },
+    {
+      "id": "02e089c64f3e",
+      "content": "- Reduced prompt-cache costs for auto-mode permission checks by reusing the cached conversation prefix across decisions",
+      "content_ja": "オートモードのパーミッションチェックにおけるプロンプトキャッシュコストを削減しました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "パーミッションチェックのたびにキャッシュが無効化されやすく、余分なコストが発生していました。",
+        "after": "決定間でキャッシュ済みの会話プレフィックスを再利用するように変更しました。",
+        "benefit": "オートモード利用時のトークン消費量を抑えられ、コストを気にせず利用しやすくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "コストに直結するキャッシュの最適化は全ユーザーに影響するためhighと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/agent-loop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        }
+      ]
+    },
+    {
+      "id": "03acf09b5e9f",
+      "content": "- Improved Stats panel to count cache tokens in its token totals, with a breakdown by input, output, cache read, and cache write",
+      "content_ja": "Stats パネルのトークン合計数にキャッシュ関連のトークンを含め、内訳を表示するように改善しました",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "Stats パネルではキャッシュ利用によるトークン削減分が分かりにくく、正確なコスト把握が困難でした。",
+        "after": "キャッシュ読み取り、キャッシュ書き込み、入力、出力の各トークン数に分解して表示されるようになりました。",
+        "benefit": "セッション中のコスト効率を詳細に確認し、キャッシュが正しく機能しているかを判断できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Statsパネルの表示改善は監視用途に影響するためmediumと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        }
+      ]
+    },
+    {
+      "id": "a02eff1ece62",
+      "content": "- Improved `/ultrareview` error messages when a repo shares no history with its base: a checkout with no branches is now refused up front with advice to create one, and refusal hints no longer suggest `git fetch --unshallow` on clones that are already complete",
+      "content_ja": "/ultrareview におけるエラーメッセージを改善しました",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "リポジトリに履歴がない場合のチェックアウト拒否理由が不明瞭で、クローン済みリポジトリに対しても誤った Git コマンドを提案していました。",
+        "after": "ブランチがない場合の拒否を明確にし、不適切な git fetch 提案を削除しました。",
+        "benefit": "エラー発生時にリポジトリの状態を正しく把握し、推奨される修正手順を迷わずに実行できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エラーメッセージの修正はUX改善に寄与するためlowと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/ultrareview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        }
+      ]
+    },
+    {
+      "id": "439d5e188cc0",
+      "content": "- Improved Windows startup: process creation times are now read via a native kernel32 call instead of spawning PowerShell, so endpoint security tools that gate `powershell.exe` no longer prompt",
+      "content_ja": "Windows 起動時の処理を改善し、セキュリティツールによる誤検知を減らしました",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "プロセス作成時間に PowerShell を呼び出していたため、powershell.exe を監視するセキュリティツールで警告が表示されることがありました。",
+        "after": "ネイティブの kernel32 呼び出しを使用するように変更しました。",
+        "benefit": "起動時にセキュリティ警告で作業を中断されることがなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windowsユーザーの起動失敗を防ぐ重要な変更であるためhighと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandbox-environments.md"
+        }
+      ]
+    },
+    {
+      "id": "e5acb0c8a210",
+      "content": "- Changed background sessions to commit and push to preserve work, open a draft PR only when the task calls for one, follow your CLAUDE.md git instructions, and always end by reporting where the work lives",
+      "content_ja": "バックグラウンドセッションの保存処理を見直し、完了時の挙動を改善しました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "バックグラウンド作業の保存が不完全で、作業場所の報告や PR 作成のフローが状況に応じて最適化されていませんでした。",
+        "after": "自動コミットとプッシュで確実に作業を保存し、必要に応じてドラフト PR を作成し、最後に成果物の場所を報告するようにしました。",
+        "benefit": "セッション終了後に自分が何を行い、どこに成果があるかを自分で追いかける必要がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "バックグラウンドセッションのワークフロー変更は、ユーザーの成果物管理に直接関わるためhighと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/security-guidance.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "b135d2e10436",
+      "content": "- Changed `/plugin install` to refresh a stale marketplace catalog and retry before reporting a plugin not found",
+      "content_ja": "/plugin install でプラグインが見つからない際、カタログを最新化してリトライするように変更しました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "プラグインが marketplace に見つからない場合、手動でのリフレッシュが必要でした。",
+        "after": "自動的にカタログを更新し、即座にリトライを試みるようになりました。",
+        "benefit": "プラグインインストール時のカタログ不整合によるエラーを手動操作なしで回避できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プラグイン導入の手間を省く改善であるためmediumと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-security.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/security-guidance.md"
+        }
+      ]
+    },
+    {
+      "id": "924909b953e7",
+      "content": "- Changed plugins installed from `/plugin` to activate immediately when safe, instead of always requiring `/reload-plugins`",
+      "content_ja": "プラグインインストール後、安全な場合は /reload-plugins を待たずに即時有効化するようにしました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "インストール後は必ず手動で /reload-plugins を実行する必要がありました。",
+        "after": "インストール完了後、準備が整った段階で自動的にプラグインがアクティブになります。",
+        "benefit": "プラグイン導入後すぐに機能を使えるようになり、再読み込みのステップを省略できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "プラグインの即時有効化は、ユーザーの手順を簡略化するためmediumと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-security.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        }
+      ]
+    },
+    {
+      "id": "56f1f86cb5f8",
+      "content": "- Changed plugins to accept `\".\"` as a `skills` path, and the root-level `SKILL.md` validation error now suggests using the plugin root",
+      "content_ja": "プラグインのスキルパスで \".\" を許可し、SKILL.md のバリデーションエラー時にヒントを表示するようにしました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "スキルパスの指定が制限されており、定義ミス時の修正が直感的ではありませんでした。",
+        "after": "プラグインルートをスキルパスとして指定可能にし、エラーメッセージで適切な配置を推奨するようにしました。",
+        "benefit": "プラグイン作成時のスキル配置ミスによるエラーを即座に修正できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プラグイン作成者向けの限定的な変更であるためlowと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        }
+      ]
+    },
+    {
+      "id": "c6221ca10478",
+      "content": "- Changed `/status` to show the session kind: `interactive`, or a background job that is `attached` or `unattended`",
+      "content_ja": "/status コマンドでセッション種別を表示するようにしました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッションが対話型かバックグラウンドか、また現在の状態が把握しにくい状況でした。",
+        "after": "interactive、attached、unattended といったセッションの種類を表示するように変更しました。",
+        "benefit": "現在自分がどのセッションで何を実行しているかをコマンド一つで確認できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッション状態の可視化は日常の管理に有用であるためmediumと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        }
+      ]
+    },
+    {
+      "id": "9918fc3a61ed",
+      "content": "- Changed emoji autocomplete to accept common alternate shortcodes like `:thumbsup:`, `:thumbsdown:`, and `:love:`",
+      "content_ja": "絵文字のオートコンプリートで、一般的な別名ショートコードをサポートしました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "特定の短いショートコードのみが利用可能でした。",
+        "after": ":thumbsup: や :love: といった、一般的で直感的なショートコードにも対応しました。",
+        "benefit": "記憶に頼らず、自然な呼び名で絵文字を挿入できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "絵文字入力の補完強化は日常の小さな改善であるためlowと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        }
+      ]
+    },
+    {
+      "id": "40be8c19b144",
+      "content": "- Changed sessions forked with `/fork` to create a new worktree of their own instead of working in the original session's checkout",
+      "content_ja": "/fork で生成されたセッションが、独自のワークツリーを作成するように変更しました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "フォークされたセッションが元のセッションと同じチェックアウト先を使用していました。",
+        "after": "フォーク時に独立した新しいワークツリーを自動生成するように変更しました。",
+        "benefit": "並行して複数のタスクを進めても、セッション間でファイルの変更が競合しなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ワークツリーの独立化は並列作業の安全性に寄与する重要な変更であるためhighと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "259035eb84d7",
+      "content": "- Changed Claude in Chrome to close the browser tabs it opens once it no longer needs them",
+      "content_ja": "Claude in Chrome で、不要になったブラウザタブを自動的に閉じるように変更しました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "自動化されたブラウザタスクの終了後もタブが残り続けていました。",
+        "after": "タスクが完了した段階で、開いたタブを自動的にクローズします。",
+        "benefit": "ブラウザを定期的に整理する手間を省き、タブの乱雑さを解消できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ブラウザタブの自動整理は、操作上の煩雑さを解消するためmediumと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/chrome.md"
+        }
+      ]
+    },
+    {
+      "id": "a35b97516c45",
+      "content": "- Changed fast mode to report on the stream when usage credits run out mid-session, instead of failing silently",
+      "content_ja": "ファストモードで利用クレジットが切れた際、黙って失敗せずストリーム上に通知するようにしました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "クレジット不足時に原因が分からず失敗するケースがありました。",
+        "after": "処理のストリーム上でクレジット切れを明示的に通知します。",
+        "benefit": "作業中に理由不明の停止が発生した際、状況を即座に把握できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "決済失敗の通知改善は、ユーザーの混乱を防ぐためmediumと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fast-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "fecdd29c71f2",
+      "content": "- Changed Monitor: a watch that exits without producing any output now says so instead of reporting \"stream ended\"",
+      "content_ja": "Monitor ツールで出力がない場合、誤解を招く \"stream ended\" ではなくメッセージを出すようにしました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "出力がない場合に「ストリーム終了」と表示され、正しく監視できているか不安になることがありました。",
+        "after": "出力なしで終了した場合には、その旨を伝えるメッセージが表示されます。",
+        "benefit": "監視結果を確認する際、ツールが正しく動作して結果がなかったのか、単なるエラーかを判断できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "監視ツールの出力改善はデバッグ時の誤解を防ぐためlowと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "589c20d82bc9",
+      "content": "- Changed the Gateway `model` field validation: non-string values are rejected with a 400 instead of being forwarded",
+      "content_ja": "Gateway の model フィールドバリデーションを厳格化しました",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "不正な型がモデルフィールドに指定された場合、そのまま転送されることがありました。",
+        "after": "非文字列の値は 400 エラーとして拒否するように変更しました。",
+        "benefit": "Gateway への誤った設定値を即座に検知し、API 通信時のトラブルを未然に防げます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Gateway設定値のバリデーションは、設定不備時のトラブルシューティングを容易にするためlowと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-protocol.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-rollout.md"
+        }
+      ]
+    },
+    {
+      "id": "ed8956f9f05d",
+      "content": "- Removed the repeated \"Permission mode changed while the auto-mode classifier call was queued\" notice from approval prompts",
+      "content_ja": "承認プロンプトから重複する通知メッセージを削除しました",
+      "prefix": "Removed",
+      "feature_areas": [],
+      "inference": {
+        "before": "自動モードの分類器呼び出しと重複して「パーミッションモード変更」の通知が繰り返し表示されていました。",
+        "after": "冗長な通知メッセージを削除し、プロンプトを整理しました。",
+        "benefit": "重要な警告と混同しやすい過剰な通知を減らし、承認フローに集中できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "承認プロンプトのUI整理は体験を向上させるためlowと判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        }
+      ]
+    }
+  ]
+}
