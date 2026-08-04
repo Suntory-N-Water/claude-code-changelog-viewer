@@ -27,7 +27,7 @@ Claude Code includes several built-in subagents such as Explore, Plan, and gener
 
 ## Built-in subagents
 
-Claude Code includes built-in subagents that Claude automatically uses when appropriate. Each inherits the parent conversation's permissions with additional tool restrictions.
+Claude Code includes built-in subagents that Claude automatically uses when appropriate. Each inherits the parent conversation's permissions; most run with a restricted tool set.
 
 Explore and Plan skip your CLAUDE.md files and the parent session's git status to keep research fast and inexpensive. Every other built-in and [custom subagent](#configure-subagents) loads both. For the full breakdown of what reaches a subagent, see [what loads at startup](#what-loads-at-startup).
 
@@ -65,6 +65,7 @@ Claude Code includes additional helper agents for specific tasks. These are typi
 
 | Agent | Model | When Claude uses it |
 | :- | :- | :- |
+| claude | Inherits from main conversation | When a task doesn't fit a more specialized agent. A catch-all with every tool [available to subagents](#available-tools). Also the default agent for a dispatched [background session](/docs/en/agent-view), which runs with your settings' permission mode rather than a parent conversation's |
 | statusline-setup | Sonnet | When you run `/statusline` to configure your status line |
 | claude-code-guide | Haiku | When you ask questions about Claude Code features |
 | claude | Inherits | When you dispatch a [background session](/docs/en/agent-view) from `claude agents` and the dispatch [resolves to it as the default agent](/docs/en/agent-view#permission-mode-model-and-effort). Claude can also delegate to it like any other subagent |
@@ -119,7 +120,7 @@ Ask Claude to delegate to the new subagent:
 Use the code-improver agent to suggest improvements in this project
 ```
 
-Claude delegates to your new subagent, which scans the codebase and returns improvement suggestions.
+Claude delegates to your new subagent, which scans the codebase and returns improvement suggestions. In the transcript, the delegation appears as a tool call row showing the subagent's name followed by a short task description, such as `code-improver (Suggest code improvements)`.
 
 If Claude can't find the new subagent, restart Claude Code and try again. This happens only when `~/.claude/agents/` didn't exist before the session started, because a running session doesn't detect a newly created `agents` directory.
 
@@ -214,7 +215,7 @@ Two cases still need a restart:
 - The watcher covers only directories that existed when the session started, so after creating a scope's first agent file in a new `agents` directory, restart to load it.
 - Sessions started with `--disable-slash-commands` don't watch these directories at all.
 
-```markdown
+```markdown .claude/agents/code-reviewer.md theme={null}
 ---
 name: code-reviewer
 description: Reviews code for quality and best practices
@@ -980,7 +981,7 @@ Running forks appear in a panel below the prompt input, with one row for the mai
 | :- | :- |
 | `↑` / `↓` | Move between rows |
 | `Enter` | Open the selected fork's transcript and send it follow-up messages |
-| `x` | Dismiss a finished fork or stop a running one |
+| `x` | Dismiss a finished fork or stop a running one. Acts on the selected fork row. On the main session row, or on the row of the fork whose transcript you opened with `Enter`, `x` types into the prompt instead |
 | `Esc` | Return focus to the prompt input |
 
 With a fork's or subagent's transcript open, follow-up messages and [skills](/docs/en/skills) go to that agent, but built-in commands still run in your main conversation. As of v2.1.199, typing `/model` or `/fast` in that view shows a notice that it changes the main conversation's model or fast mode, not the viewed agent's, instead of running it silently.
