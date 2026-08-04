@@ -26,7 +26,9 @@ export type PythonSearchOutput = {
   results: PythonRelatedDoc[][];
 };
 
-const DOCS_SEARCH_TIMEOUT_MS = 60_000;
+// 検索所要時間はドキュメント全体の spacy 解析が支配的で、項目数によらず概ね一定
+// (ローカル約 43 秒、CI runner ではその 1.5 倍前後)。ハングの検知が目的なので十分な余裕を取る。
+export const DOCS_SEARCH_TIMEOUT_MS = 300_000;
 
 export function runDocsSearchEngine(payload: {
   docsDir: string;
