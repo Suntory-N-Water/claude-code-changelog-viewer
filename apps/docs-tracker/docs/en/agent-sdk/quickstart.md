@@ -76,7 +76,10 @@ pip install claude-agent-sdk
 
 If PowerShell blocks `Activate.ps1` with an execution policy error, run `Set-ExecutionPolicy -Scope Process RemoteSigned` first.
 
-Both the TypeScript and Python SDKs bundle a native Claude Code binary for your platform, so you don't need to install Claude Code separately.
+Both the TypeScript and Python SDKs bundle a native Claude Code binary, so most installs need no separate Claude Code install. Some installs have no bundled binary:
+
+- If pip installs the Python SDK's source distribution instead of a platform wheel, for example on ARM64 Windows, no binary is bundled. [Install Claude Code natively](/docs/en/setup#install-claude-code). The Python SDK finds it on your `PATH`.
+- The TypeScript SDK installs its binary through npm optional dependencies, so an install that skips them, for example `npm ci --omit=optional`, gets no binary even on a supported platform. Reinstall without skipping optional dependencies, or [install Claude Code natively](/docs/en/setup#install-claude-code) and set `pathToClaudeCodeExecutable` to its path.
 
 Get an API key from the [Claude Console](https://platform.claude.com/), then set it as an environment variable in the shell where you'll run your agent:
 
