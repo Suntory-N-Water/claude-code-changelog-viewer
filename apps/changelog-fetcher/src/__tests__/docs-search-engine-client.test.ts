@@ -4,7 +4,10 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 vi.mock('node:child_process', () => ({ spawn: vi.fn() }));
 
 import { spawn } from 'node:child_process';
-import { runDocsSearchEngine } from '../infrastructure/docs/docs-search-engine-client';
+import {
+  DOCS_SEARCH_TIMEOUT_MS,
+  runDocsSearchEngine,
+} from '../infrastructure/docs/docs-search-engine-client';
 
 function createChildProcess() {
   const child = new EventEmitter() as EventEmitter & {
@@ -49,10 +52,10 @@ describe('Docs 検索エンジンの実行', () => {
       entries: ['setting'],
     });
     const result = expect(sut).rejects.toThrow(
-      '60000ms 以内に完了しなかったため終了しました',
+      `${DOCS_SEARCH_TIMEOUT_MS}ms 以内に完了しなかったため終了しました`,
     );
 
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(DOCS_SEARCH_TIMEOUT_MS);
 
     await result;
     expect(child.kill).toHaveBeenCalledWith('SIGTERM');
