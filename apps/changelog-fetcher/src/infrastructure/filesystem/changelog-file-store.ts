@@ -54,6 +54,7 @@ export function createAnalysisFileStore(appDir: string): AnalysisStorePort {
       const outputPath = join(appDir, 'analysis', filename);
       const serializedOutput = JSON.stringify(output, null, 2);
 
+      await mkdir(dirname(outputPath), { recursive: true });
       await writeFile(outputPath, serializedOutput);
     },
   };
