@@ -43,7 +43,7 @@ The `Permission required` column shows whether the tool prompts in the default p
 | `RemoteTrigger` | Creates, updates, runs, and lists [Routines](/docs/en/routines) on claude.ai. Backs the `/schedule` command. Routines live on claude.ai and require a Pro, Max, Team, or Enterprise plan, so this tool is not accessible from Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry | No |
 | `ReportFindings` | Reports code-review findings as a structured list, with a file, summary, and failure scenario per finding, so Claude Code can render them instead of printing them as text. Claude calls it when active code-review instructions tell it to. Requires Claude Code v2.1.196 or later. As of v2.1.199, a finding can also carry an optional `category` slug, such as `correctness` or `test-coverage`, shown next to the file location in the rendered list | No |
 | `ScheduleWakeup` | Reschedules the next iteration of a [self-paced `/loop`](/docs/en/scheduled-tasks#let-claude-choose-the-interval). Claude calls this at the end of each iteration to pick when the next one runs, between one minute and one hour out; you don't call it directly. To end the loop instead, Claude calls it with `stop: true`, which cancels the pending wakeup. The `stop` field requires Claude Code v2.1.202 or later. The pending wakeup appears in `session_crons` in [Stop hook input](/docs/en/hooks#stop-input). Not available on Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, or Microsoft Foundry, where a `/loop` prompt with no interval runs on a fixed schedule instead | No |
-| `SendMessage` | Sends a message to an [agent team](/docs/en/agent-teams) teammate, or [resumes a subagent](/docs/en/sub-agents#resume-subagents) by its agent ID or name. A completed subagent auto-resumes in the background; a subagent you stopped from `/tasks` doesn't and the call returns a refusal. Structured team-protocol messages require agent teams. A receiver never treats a message from another agent as your consent or approval. As of v2.1.198, a subagent treats a message from the agent that launched it as normal task direction rather than as a peer request. As of v2.1.199, a send to a name that now resolves to a different agent than it did earlier in the conversation is refused instead of delivered; see [Resume subagents](/docs/en/sub-agents#resume-subagents) | No |
+| `SendMessage` | Sends a message to an [agent team](/docs/en/agent-teams) teammate, or [resumes a subagent](/docs/en/sub-agents#resume-subagents) by its agent ID or name. A completed subagent auto-resumes in the background; a subagent you stopped from `/tasks` doesn't and the call returns a refusal. Structured team-protocol messages require agent teams. A receiver never treats a message from another agent as your consent or approval. In [auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode), and in [plan mode while the auto classifier reviews commands](/docs/en/permission-modes#analyze-before-you-edit-with-plan-mode), the classifier reviews each send, plain or structured, before Claude Code delivers it; the classifier review requires Claude Code v2.1.222 or later. A subagent treats a message from the agent that launched it as normal task direction rather than as a peer request; before v2.1.198, it treated such a message as a peer request. Claude Code refuses a send to a name that now resolves to a different agent than it did earlier in the conversation, where before v2.1.199 it delivered the message; see [Resume subagents](/docs/en/sub-agents#resume-subagents) | No |
 | `SendUserFile` | Sends files from the session to you with an optional caption, so a generated report, diagram, screenshot, or built artifact reaches your device instead of only being mentioned in the transcript. As of v2.1.196, the optional `display` input controls presentation: `render` opens the file inline in the client, `attach` shows a download card only, and when unset the client decides by file type. Available when a [Remote Control](/docs/en/remote-control) client is connected or the session runs in a managed cloud environment such as [Claude Code on the web](/docs/en/claude-code-on-the-web). Delivery runs through Anthropic-hosted infrastructure, so the tool is not available on Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry | No |
 | `ShareOnboardingGuide` | Uploads `ONBOARDING.md` and returns a share link teammates can open in Claude Code. Called from `/team-onboarding` after the guide is written. Available to claude.ai subscribers on Pro, Max, Team, and Enterprise plans | Yes |
 | `Skill` | Executes a [skill](/docs/en/skills#control-who-invokes-a-skill) within the main conversation | Yes |
@@ -149,10 +149,23 @@ Activate your virtualenv or conda environment before launching Claude Code. To m
 
 ### Timeout and output limits
 
-Two limits bound each command:
+Each command runs under a timeout, and Claude manages it: when it wants longer than the default for a command, it passes the `timeout` parameter with that call — you never set a per-command timeout. Two [environment variables](/docs/en/env-vars) bound what Claude gets:
 
-- **Timeout**: two minutes by default. Claude can request up to 10 minutes per command with the `timeout` parameter. Override the default and ceiling with [`BASH_DEFAULT_TIMEOUT_MS` and `BASH_MAX_TIMEOUT_MS`](/docs/en/env-vars).
-- **Output length**: 30,000 characters by default. When a command produces more than that, Claude Code saves the full output to a file in the session directory and gives Claude the file path plus a short preview from the start. Claude reads or searches that file when it needs the rest. Raise the limit with [`BASH_MAX_OUTPUT_LENGTH`](/docs/en/env-vars), up to a hard ceiling of 150,000 characters.
+- `BASH_DEFAULT_TIMEOUT_MS` — the default when Claude passes no timeout; two minutes out of the box
+- `BASH_MAX_TIMEOUT_MS` — with the default, sets the ceiling that caps whatever Claude requests: the effective ceiling is the larger of the two, ten minutes out of the box
+
+#### Output limits
+
+Claude Code streams a command's output to a working file as the command runs; a command whose output passes 5 GB is killed. When the command finishes, Claude Code reads the output back from that file, up to the read-back window described below. How much of the output reaches Claude inline depends on whether Claude Code treats the result as a failure:
+
+| Result | What Claude gets |
+| :- | :- |
+| Valid | Inline up to roughly 30,000 characters; past that, the path of a file saved to the session directory, truncated past 64 MiB, plus a short preview from the start, and Claude reads or searches the file when it needs the rest |
+| Failure | Inline up to roughly 10,000 characters; past that, a head-and-tail excerpt of that size cut from the read-back window, with no file path |
+
+A command that exits 1 counts as a valid result for the Bash tool only when Claude Code recognizes exit code 1 as a benign outcome for that command: `grep`, `rg`, `egrep`, `fgrep`, `find`, `diff`, `test`, and `[`, plus `git diff` and `git grep`. Every other command that exits 1 counts as a failure, even when exit 1 is a benign informational outcome: no matches for `pgrep` and `jq -e`, files that differ for `cmp`.
+
+[`BASH_MAX_OUTPUT_LENGTH`](/docs/en/env-vars) sets how many characters of output Claude Code reads back from the working file into a command's result: 30,000 by default, up to a hard ceiling of 150,000. Raise it when your commands routinely overflow that window, such as a verbose build or a full test-suite log. Raising it enlarges the read-back window, and the window a failing command's excerpt is cut from. It does not raise the inline ceilings above: a valid result over roughly 30,000 characters arrives as a file path plus preview regardless of this variable.
 
 ### Background commands
 
@@ -319,6 +332,10 @@ The PowerShell tool lets Claude run PowerShell commands natively. On Windows, th
 - **Windows with Git Bash installed**: the tool is rolling out progressively.
 - **Linux, macOS, and WSL**: the tool is opt-in.
 
+Your [PreToolUse hooks](/docs/en/hooks#powershell) receive the tool's command string in `tool_input.command`, with the same fields as the Bash tool.
+
+Match `Bash|PowerShell` in hooks that inspect shell commands; the [PowerShell hook input section](/docs/en/hooks#powershell) explains why matching `Bash` alone is not enough.
+
 ### Enable the PowerShell tool
 
 Set `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` in your environment or in `settings.json`:
@@ -347,7 +364,7 @@ Three additional settings control where PowerShell is used:
 
 The same main-session working-directory reset behavior described under the Bash tool section applies to PowerShell commands, including the `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR` environment variable.
 
-As of v2.1.196, the PowerShell tool matches the Bash tool's handling of search and diff exit codes. Exit code 1 from `grep`, `egrep`, `fgrep`, and `git grep` means no matches, and exit code 1 from `git diff` means differences exist, so these results aren't reported to Claude as command failures.
+As of v2.1.196, exit code 1 from `grep`, `egrep`, `fgrep`, and `git grep` means no matches, and exit code 1 from `git diff` means differences exist, so these results aren't reported to Claude as command failures.
 
 ### Windows encoding and exit codes
 
@@ -384,7 +401,7 @@ Read handles several file types beyond plain text:
 - **PDFs**: Claude reads short `.pdf` files whole. For PDFs longer than 10 pages, it reads in ranges with a `pages` parameter, such as `"1-5"`, up to 20 pages at a time.
 - **Jupyter notebooks**: `.ipynb` files return all cells with their outputs, including code, markdown, and visualizations.
 
-Read only reads files, not directories. Claude uses `ls` via the Bash tool to list directory contents.
+Read only reads files, not directories. Claude lists directory contents with a shell command such as `ls`.
 
 ## WebFetch tool behavior
 

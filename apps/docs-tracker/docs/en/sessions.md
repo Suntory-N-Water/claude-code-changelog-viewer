@@ -82,6 +82,8 @@ Give sessions descriptive names so they're findable in the session picker and re
 | During a session | `/rename auth-refactor`. The name also appears on the prompt bar |
 | From the session picker | Highlight a session and press `Ctrl+R` |
 | On plan accept | Accepting a plan in [plan mode](/docs/en/permission-modes#analyze-before-you-edit-with-plan-mode) names the session from the plan content unless you've already set one |
+| From claude.ai or the Claude app | Rename a [Remote Control session](/docs/en/remote-control#connect-from-another-device); Claude Code applies the same name in the CLI. Requires Claude Code v2.1.221 or later |
+| From the desktop app | Rename a session in the [desktop app](/docs/en/desktop#work-in-parallel-with-sessions); Claude Code applies the same name in the CLI. Requires Claude Code v2.1.221 or later |
 
 Once a session is named, return to it with `claude --resume <name>` or `/resume <name>`. See [Resume a session](#resume-a-session) for how name resolution behaves across worktrees.
 
