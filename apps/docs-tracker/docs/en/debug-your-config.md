@@ -109,7 +109,7 @@ Most configuration surprises trace back to a small set of location and syntax ru
 | MCP servers added under `mcpServers` in `settings.json` never appear | `settings.json` does not read an `mcpServers` key | Define project servers in `.mcp.json` at the repository root, or run `claude mcp add --scope user` for user-scoped servers. See [MCP configuration](/docs/en/mcp). |
 | Project MCP server added but doesn't appear | The one-time approval prompt was dismissed | Project-scoped servers require approval. Run `/mcp` to see status and approve. |
 | MCP server fails to start from some directories | `command` or `args` uses a relative file path | Use absolute paths for local scripts. Executables on your `PATH` like `npx` or `uvx` work as-is. |
-| MCP server starts without expected environment variables | Variables are in `settings.json` `env`, which doesn't propagate to MCP child processes | Set per-server `env` inside `.mcp.json` instead. |
+| MCP server starts without expected environment variables | The server's config entry doesn't set them, and they aren't in the environment Claude Code passes to stdio servers: its own environment, minus the [variables it strips from subprocesses](/docs/en/monitoring-usage#administrator-configuration) | Set per-server `env` inside the server's `.mcp.json` entry, which doesn't depend on the launch environment or workspace trust. |
 | `Bash(rm *)` deny rule doesn't block `/bin/rm` or `find -delete` | Prefix rules match the literal command string, not the underlying executable | Add explicit patterns for each variant, or use a [PreToolUse hook](/docs/en/hooks-guide) or the [sandbox](/docs/en/sandboxing) for a hard guarantee. |
 
 ## Related resources
