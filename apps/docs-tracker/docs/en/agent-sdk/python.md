@@ -2978,7 +2978,7 @@ As of Claude Code v2.1.142, `TodoWrite` is disabled by default. Use `TaskCreate`
 
 **Tool name:** `TaskOutput`. The previous name `BashOutput` is still accepted as an alias.
 
-`TaskOutput` is deprecated; prefer `Read` on the task's output file path. Deprecated since Claude Code v2.1.83. The schemas below remain valid for hooks and permission handlers that encounter the tool.
+`TaskOutput` is deprecated; prefer `Read` on the task's output file path. The schemas below remain valid for hooks and permission handlers that encounter the tool.
 
 **Input:**
 

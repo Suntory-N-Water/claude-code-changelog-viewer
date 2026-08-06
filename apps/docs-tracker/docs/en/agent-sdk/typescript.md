@@ -2319,7 +2319,7 @@ Set `persistent: true` for session-length watches such as log tails. When Monito
 
 **Tool name:** `TaskOutput`
 
-`TaskOutput` is deprecated; prefer `Read` on the task's output file path. Deprecated since Claude Code v2.1.83. The schemas below remain valid for hooks and permission handlers that encounter the tool.
+`TaskOutput` is deprecated; prefer `Read` on the task's output file path. The schemas below remain valid for hooks and permission handlers that encounter the tool.
 
 ```typescript
 type TaskOutputInput = {
