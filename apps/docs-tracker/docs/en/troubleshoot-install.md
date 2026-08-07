@@ -214,13 +214,11 @@ npm uninstall -g @anthropic-ai/claude-code
 
 Remove the legacy local npm install:
 
-```bash
+```bash theme={null}
 rm -rf ~/.claude/local
 ```
 
-On Windows, use PowerShell:
-
-```powershell
+```powershell theme={null}
 Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\local"
 ```
 
@@ -260,13 +258,11 @@ If `claude --version` prints a version but `claude` crashes or hangs on startup,
 
 Confirm the binary exists and is executable:
 
-```bash
+```bash theme={null}
 ls -la "$(command -v claude)"
 ```
 
-On Windows, use PowerShell:
-
-```powershell
+```powershell theme={null}
 Get-Command claude | Select-Object Source
 ```
 
@@ -851,8 +847,13 @@ When `ANTHROPIC_API_KEY` is present and you have approved it, Claude Code uses t
 
 To use your subscription instead, unset the environment variable and remove it from your shell profile:
 
-```bash
+```bash theme={null}
 unset ANTHROPIC_API_KEY
+claude
+```
+
+```powershell theme={null}
+Remove-Item Env:ANTHROPIC_API_KEY
 claude
 ```
 
