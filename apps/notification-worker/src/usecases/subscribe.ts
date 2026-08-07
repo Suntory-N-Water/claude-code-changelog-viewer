@@ -29,8 +29,9 @@ export type SubscribeResult =
 /**
  * 通知先を購読登録する。
  *
- * 既存の有効チャンネルがあれば登録済みとして失敗を返し、
- * 停止済みチャンネルなら再有効化、新しい通知先ならChannelを新規作成する。
+ * 既存の有効チャンネルがあれば登録済みとして失敗を返す。
+ * 停止済みチャンネルはユーザーが明示的に停止したものでなければ再有効化し、
+ * 新しい通知先ならChannelを新規作成する。
  * DB保存や外部通知の具体実装はRepository/Notifier portへ委譲する。
  */
 export async function subscribe(
@@ -41,6 +42,15 @@ export async function subscribe(
   const existing = await repository.findByAddress(input.address);
   if (existing) {
     if (isActive(existing)) {
+      return { ok: false, error: 'already_registered' };
+    }
+
+    // unsubscribeのtokenは宛先の受信者しか知り得ないため'user'停止は本人の意思表示だが、
+    // 'system'停止は配信失敗の閾値超過にすぎず本人の意思とは無関係。
+    if (
+      existing.status.type === 'deactivated' &&
+      existing.status.reason === 'user'
+    ) {
       return { ok: false, error: 'already_registered' };
     }
 
