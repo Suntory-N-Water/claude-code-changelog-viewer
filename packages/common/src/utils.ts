@@ -8,7 +8,6 @@ export function getOfficialDocUrl(filePath: string): string {
   if (!lang || !docPath) {
     return '';
   }
-  // .md拡張子を削除
   const pathWithoutExt = docPath.replace(/\.md$/, '');
   return `https://code.claude.com/docs/${lang}/${pathWithoutExt}`;
 }

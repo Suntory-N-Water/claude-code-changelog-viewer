@@ -3,7 +3,6 @@ import { z } from 'zod';
 export const ClaudeCodeVersionSchema = z.string().regex(/^v\d+\.\d+\.\d+$/);
 export type ClaudeCodeVersion = z.infer<typeof ClaudeCodeVersionSchema>;
 
-// RelatedDoc
 export const RelatedDocSchema = z.object({
   file: z.string(),
   hit_count: z.number(),
@@ -12,7 +11,6 @@ export const RelatedDocSchema = z.object({
 });
 export type RelatedDoc = z.infer<typeof RelatedDocSchema>;
 
-// InferenceResult
 export const InferenceResultSchema = z.object({
   before: z.string().min(10).max(500),
   after: z.string().min(10).max(500),
@@ -20,7 +18,6 @@ export const InferenceResultSchema = z.object({
 });
 export type InferenceResult = z.infer<typeof InferenceResultSchema>;
 
-// InferenceWithTranslation (翻訳含む推論結果)
 export const InferenceWithTranslationSchema = z.object({
   content_ja: z.string().min(10).max(500),
   before: z.string().min(10).max(500),
@@ -39,7 +36,6 @@ export const ImpactAssessmentSchema = z.object({
 });
 export type ImpactAssessment = z.infer<typeof ImpactAssessmentSchema>;
 
-// ChangelogItem
 export const ChangelogItemSchema = z.object({
   id: z.string().length(12), // sha256(content)[0:12]
   content: z.string(), // 英語原文
@@ -52,7 +48,6 @@ export const ChangelogItemSchema = z.object({
 });
 export type ChangelogItem = z.infer<typeof ChangelogItemSchema>;
 
-// Analysis (最終出力)
 export const AnalysisSchema = z.object({
   version: z.string(),
   summary: z.string().optional(),
@@ -79,7 +74,6 @@ export const InferredAnalysisSchema = AnalysisSchema.omit({
 });
 export type InferredAnalysis = z.infer<typeof InferredAnalysisSchema>;
 
-// NotificationAnalysis (通知配信用サブセット)
 // 通知 payload を Cloudflare Queues の 128KB 上限内に収めるため
 // notifier 実装が参照するフィールドのみを抽出した型。
 // jq スリム化時に summary / content_ja は欠落キーまたは null になり得る。

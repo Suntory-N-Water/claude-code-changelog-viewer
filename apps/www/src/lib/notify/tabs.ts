@@ -61,7 +61,6 @@ export function setupTabs() {
       history.replaceState(null, '', url.toString());
     }
 
-    // タブ切り替え時に Turnstile を遅延レンダリング
     if (window.turnstile) {
       renderTurnstileFor('discord-turnstile', 'discord');
       if (active === 'slack') {
@@ -73,7 +72,6 @@ export function setupTabs() {
     }
   }
 
-  // URL クエリパラメータから初期タブを復元
   const params = new URLSearchParams(location.search);
   const tabParam = params.get('tab');
   const initialTab: Tab = isValidTab(tabParam) ? tabParam : 'discord';

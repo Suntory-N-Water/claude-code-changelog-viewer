@@ -36,7 +36,6 @@ describe('/api/unsubscribe integration', () => {
   });
 
   it('有効な token で確認画面を開くと停止前の確認 HTML が返り channels.deactivated_at は変わらない', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     await insertDiscordWebhook(db, {
@@ -46,14 +45,12 @@ describe('/api/unsubscribe integration', () => {
       deactivatedAt: '9999-12-31',
     });
 
-    // Act(実行)
     const response = await app.request(
       '/api/unsubscribe?token=active-token',
       {},
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(200);
     expect(await response.text()).toContain('通知停止の確認');
     expect(await findChannelByToken(db, 'active-token')).toEqual({
@@ -67,7 +64,6 @@ describe('/api/unsubscribe integration', () => {
   });
 
   it('有効な token で停止を実行するとチャンネルがユーザー停止になり停止通知が送信される', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     const request = {
@@ -82,10 +78,8 @@ describe('/api/unsubscribe integration', () => {
       deactivatedAt: '9999-12-31',
     });
 
-    // Act(実行)
     const response = await app.request('/api/unsubscribe', request, env);
 
-    // Assert(確認)
     expect(response.status).toBe(200);
     expect(await response.text()).toContain('通知を停止しました');
     expect(await findChannelByToken(db, 'active-token')).toEqual({
@@ -100,7 +94,6 @@ describe('/api/unsubscribe integration', () => {
   });
 
   it('停止通知の送信が失敗しても停止 HTML が返りチャンネルはユーザー停止になる', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedSendUnsubscribeNotification.mockResolvedValueOnce({
@@ -119,10 +112,8 @@ describe('/api/unsubscribe integration', () => {
       deactivatedAt: '9999-12-31',
     });
 
-    // Act(実行)
     const response = await app.request('/api/unsubscribe', request, env);
 
-    // Assert(確認)
     expect(response.status).toBe(200);
     expect(await response.text()).toContain('通知を停止しました');
     expect(await findChannelByToken(db, 'active-token')).toMatchObject({
@@ -131,37 +122,30 @@ describe('/api/unsubscribe integration', () => {
   });
 
   it('存在しない token では 404 エラー画面が返り DB は変更されない', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
 
-    // Act(実行)
     const response = await app.request(
       '/api/unsubscribe?token=missing-token',
       {},
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(404);
     expect(await response.text()).toContain('該当する登録が見つかりません');
   });
 
   it('GET で token クエリパラメータがない場合は 400 を返す', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
 
-    // Act(実行)
     const response = await app.request('/api/unsubscribe', {}, env);
 
-    // Assert(確認)
     expect(response.status).toBe(400);
     expect(await response.text()).toContain('トークンが指定されていません');
   });
 
   it('既に停止済みの token では停止済み画面が返り deactivated_at は変わらない', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     const request = {
@@ -176,10 +160,8 @@ describe('/api/unsubscribe integration', () => {
       deactivatedAt: '2026-01-01 00:00:00',
     });
 
-    // Act(実行)
     const response = await app.request('/api/unsubscribe', request, env);
 
-    // Assert(確認)
     expect(response.status).toBe(200);
     expect(await response.text()).toContain('通知停止済み');
     expect(await findChannelByToken(db, 'inactive-token')).toEqual({

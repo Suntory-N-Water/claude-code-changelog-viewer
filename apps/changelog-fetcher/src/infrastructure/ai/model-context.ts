@@ -25,7 +25,6 @@ const MODELS_OVERVIEW_PATH = join(
 export function parseModelNames(content: string): string[] {
   const names: string[] = [];
 
-  // "Latest models comparison" 直後のヘッダー行からモデル名を抽出
   const headerMatch = content.match(
     /###\s+Latest models comparison[\s\S]*?(\|[^\n]+\|)/,
   );
@@ -48,7 +47,7 @@ export function parseModelNames(content: string): string[] {
   // 例: {#migrating-to-claude-opus-4-8} → "Opus 4.8"
   const opusAnchor = content.match(/\{#migrating-to-claude-(opus-[\d-]+)\}/);
   if (opusAnchor?.[1]) {
-    const parts = opusAnchor[1].split('-'); // ["opus", "4", "8"]
+    const parts = opusAnchor[1].split('-');
     if (parts.length >= 3) {
       names.unshift(`Opus ${parts[1]}.${parts[2]}`);
     }

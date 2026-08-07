@@ -67,11 +67,8 @@ describe('実データ検証: items_changed のシミュレーション', () => 
     const added = remoteItems.filter((item) => !localSet.has(item));
     const removed = localItems.filter((item) => !remoteSet.has(item));
 
-    // 7項目が削除された
     expect(removed).toHaveLength(7);
-    // 追加はなし
     expect(added).toEqual([]);
-    // 残った2項目は差分に含まれない
     expect(removed).not.toContainEqual(
       expect.stringContaining('persistent session support'),
     );

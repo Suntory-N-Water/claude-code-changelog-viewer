@@ -36,7 +36,6 @@ const validAnalysis: NotificationAnalysis = {
 
 describe('POST /api/dispatch integration', () => {
   it('正しい Bearer トークンで version + analysis を送ると Queue に投入される', async () => {
-    // Arrange(準備)
     const db = new FakeD1Database();
     const sut = app;
     const { env, queued } = createQueueEnv(db);
@@ -49,17 +48,14 @@ describe('POST /api/dispatch integration', () => {
       body: JSON.stringify({ version: 'v1.0.0', analysis: validAnalysis }),
     } satisfies RequestInit;
 
-    // Act(実行)
     const response = await sut.request('/api/dispatch', request, env);
 
-    // Assert(確認)
     expect(response.status).toBe(200);
     expect(queued).toEqual([{ version: 'v1.0.0', analysis: validAnalysis }]);
     db.close();
   });
 
   it('認証に失敗すると Queue に何も投入されない', async () => {
-    // Arrange(準備)
     const db = new FakeD1Database();
     const sut = app;
     const { env, queued } = createQueueEnv(db);
@@ -72,17 +68,14 @@ describe('POST /api/dispatch integration', () => {
       body: JSON.stringify({ version: 'v1.0.0', analysis: validAnalysis }),
     } satisfies RequestInit;
 
-    // Act(実行)
     const response = await sut.request('/api/dispatch', request, env);
 
-    // Assert(確認)
     expect(response.status).toBe(401);
     expect(queued).toEqual([]);
     db.close();
   });
 
   it('不正なリクエストボディでは Queue に何も投入されない', async () => {
-    // Arrange(準備)
     const db = new FakeD1Database();
     const sut = app;
     const { env, queued } = createQueueEnv(db);
@@ -95,10 +88,8 @@ describe('POST /api/dispatch integration', () => {
       body: JSON.stringify({ version: 'v1.0.0' }),
     } satisfies RequestInit;
 
-    // Act(実行)
     const response = await sut.request('/api/dispatch', request, env);
 
-    // Assert(確認)
     expect(response.status).toBe(400);
     expect(queued).toEqual([]);
     db.close();

@@ -11,13 +11,11 @@ export function remarkStripMdxComponents() {
         return;
       }
 
-      // import/export 文を削除
       if (node.type === 'mdxjsEsm') {
         parent.children.splice(index, 1);
         return index;
       }
 
-      // JSX 式(コメント、空白式等)を削除
       if (
         node.type === 'mdxFlowExpression' ||
         node.type === 'mdxTextExpression'
@@ -26,20 +24,17 @@ export function remarkStripMdxComponents() {
         return index;
       }
 
-      // JSX 要素の処理
       if (
         node.type === 'mdxJsxFlowElement' ||
         node.type === 'mdxJsxTextElement'
       ) {
         const tagName = (node as { name?: string | null }).name;
 
-        // img, style は完全削除
         if (tagName && REMOVE_TAGS.has(tagName)) {
           parent.children.splice(index, 1);
           return index;
         }
 
-        // 子なし自己閉じ要素は削除
         if (!node.children || node.children.length === 0) {
           parent.children.splice(index, 1);
           return index;

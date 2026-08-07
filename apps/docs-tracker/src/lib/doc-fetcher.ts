@@ -84,7 +84,6 @@ export class ClaudeDocsFetcher {
         content,
       );
 
-      // Parse the markdown to extract document URLs
       const docs = this.parseDocsMap(content);
       this.log.msg('APLG0010', {
         params: ['ドキュメントページ'],
@@ -107,7 +106,6 @@ export class ClaudeDocsFetcher {
     const docs: DocInfo[] = [];
     const lines = content.split('\n');
 
-    // Look for markdown links in the format [Title](url)
     // Only match full URLs ending with .md to avoid inline relative links
     const linkRegex = /\[([^\]]+)\]\((https:\/\/[^)]+\.md)\)/g;
 
@@ -144,10 +142,8 @@ export class ClaudeDocsFetcher {
       });
       const content = await response.text();
 
-      // Save the llms.txt
       await atomicWriteFile(path.join(this.metadataDir, 'llms.txt'), content);
 
-      // Parse to extract document URLs
       const docs = this.parseLlmsTxt(content);
       this.log.msg('APLG0010', {
         params: ['llms.txt ページ'],
@@ -170,7 +166,6 @@ export class ClaudeDocsFetcher {
   private parseLlmsTxt(content: string): DocInfo[] {
     const docs: DocInfo[] = [];
 
-    // Match full URLs ending with .md
     const urlRegex = /https:\/\/code\.claude\.com\/docs\/en\/([^\s)]+\.md)/g;
 
     let match: RegExpExecArray | null = null;
@@ -182,7 +177,6 @@ export class ClaudeDocsFetcher {
         continue;
       }
 
-      // Extract title from path (remove .md and convert to readable format)
       const title = pathPart.replace(/\.md$/, '').split('/').pop() ?? pathPart;
 
       docs.push({ title, url });
@@ -202,7 +196,7 @@ export class ClaudeDocsFetcher {
     llmsDocs: DocInfo[],
   ): DocInfo[] {
     const urlMap = new Map<string, DocInfo>();
-    const filenameMap = new Map<string, string>(); // filename -> url
+    const filenameMap = new Map<string, string>();
 
     // Add llms.txt entries first (authoritative paths)
     for (const doc of llmsDocs) {
@@ -219,14 +213,12 @@ export class ClaudeDocsFetcher {
       const filenameKey = filename.toLowerCase();
 
       if (urlMap.has(key)) {
-        // Same URL exists - update title if docs_map has a better one
         const existing = urlMap.get(key);
         if (existing && doc.title && doc.title !== existing.title) {
           urlMap.set(key, { ...existing, title: doc.title });
         }
       } else if (filenameMap.has(filenameKey)) {
         // Same filename but different path - llms.txt path is authoritative, skip
-        // But update the title if docs_map has a better one
         const existingUrl = filenameMap.get(filenameKey);
         if (existingUrl) {
           const existing = urlMap.get(existingUrl);
@@ -235,7 +227,6 @@ export class ClaudeDocsFetcher {
           }
         }
       } else {
-        // New document not in llms.txt
         urlMap.set(key, doc);
         filenameMap.set(filenameKey, key);
       }
@@ -257,7 +248,6 @@ export class ClaudeDocsFetcher {
     });
 
     try {
-      // Create subdirectory if needed (e.g., for sdk/migration-guide.md)
       const fileDir = path.dirname(filePath);
       if (fileDir !== this.docsDir) {
         await fs.mkdir(fileDir, { recursive: true });
@@ -270,11 +260,9 @@ export class ClaudeDocsFetcher {
       const rawMarkdown = await response.text();
       const markdown = await cleanMarkdown(rawMarkdown);
 
-      // Add front matter with metadata
       const frontMatter = this.createFrontMatter(docInfo);
       const fullContent = frontMatter + markdown;
 
-      // Save the file
       await atomicWriteFile(filePath, fullContent);
 
       return {
@@ -315,15 +303,12 @@ source: ${docInfo.url}
    * e.g., https://code.claude.com/docs/en/sdk/migration-guide.md -> sdk/migration-guide.md
    */
   private getFilenameFromUrl(url: string): string {
-    // Extract path after /docs/en/
     const match = url.match(/\/docs\/en\/(.+\.md)/);
     const captured = match?.[1];
     if (captured) {
-      // Remove query parameters and hash
       return captured.split(/[?#]/)[0] ?? captured;
     }
 
-    // Fallback: existing logic
     const lastPart = url.split('/').at(-1) ?? '';
     const filename = lastPart.split(/[?#]/)[0] ?? '';
     return filename.endsWith('.md') ? filename : `${filename}.md`;
@@ -401,7 +386,7 @@ source: ${docInfo.url}
         }
       }
     } catch {
-      // Directory doesn't exist
+      // ディレクトリが存在しない
     }
 
     return files;
@@ -411,20 +396,16 @@ source: ${docInfo.url}
    * Sync local files with expected docs (remove files not in expected list)
    */
   async syncLocalFiles(expectedDocs: DocInfo[]): Promise<number> {
-    // Get list of expected files
     const expectedFiles = new Set(
       expectedDocs.map((doc) => this.getFilenameFromUrl(doc.url)),
     );
 
-    // Get all .md files recursively
     const actualFiles = await this.getAllMarkdownFiles(this.docsDir);
 
-    // Find files to delete (exist locally but not in expected list)
     const filesToDelete = actualFiles.filter(
       (file) => !expectedFiles.has(file),
     );
 
-    // Delete orphaned files
     let deletedCount = 0;
     for (const file of filesToDelete) {
       const filePath = path.join(this.docsDir, file);
@@ -463,10 +444,8 @@ source: ${docInfo.url}
   async fetchAllDocs(): Promise<void> {
     this.log.msg('APLG0001', { params: ['ドキュメントの取得'] });
 
-    // Initialize directories
     await this.init();
 
-    // Fetch both docs_map and llms.txt in parallel
     this.log.msg('APLG0003', { params: ['ドキュメントソース'] });
     const [docsMapDocs, llmsDocs] = await Promise.all([
       this.fetchDocsMap(),
@@ -485,7 +464,6 @@ source: ${docInfo.url}
       return;
     }
 
-    // Sync local files (remove files not in merged list)
     const deletedCount = await this.syncLocalFiles(docs);
 
     // Fetch documents in batches to avoid overwhelming the server
@@ -498,13 +476,11 @@ source: ${docInfo.url}
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
 
-      // Small delay between batches
       if (i + batchSize < docs.length) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }
 
-    // Report results
     const successful = results.filter((r) => r.success).length;
     const failed = results.filter((r) => !r.success);
 
@@ -535,7 +511,6 @@ source: ${docInfo.url}
       });
     }
 
-    // Check if there are changes in docs directory
     const hasChanges = await this.hasDocsChanges();
 
     // Save summary metadata (include lastMapUpdate only if docs changed)

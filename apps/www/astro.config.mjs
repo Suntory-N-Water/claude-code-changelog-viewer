@@ -26,13 +26,11 @@ const linkCardOptions = {
   }),
 };
 
-// ルート package.json からアプリバージョンを取得
 const rootPkg = JSON.parse(
   readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'),
 );
 const appVersion = rootPkg.version;
 
-// https://astro.build/config
 export default defineConfig({
   trailingSlash: 'never',
   build: { format: 'file' },
@@ -76,7 +74,6 @@ export default defineConfig({
       },
     }),
     sitemap({
-      // OG 画像・RSS・llms.txt・robots.txt 等を除外
       filter: (page) => {
         const path = new URL(page).pathname;
         if (path.match(/\.(png|xml|txt)$/)) {
@@ -90,7 +87,6 @@ export default defineConfig({
         }
         return true;
       },
-      // changefreq・priority・lastmod を付与
       serialize: async (item) => {
         const path = new URL(item.url).pathname;
 

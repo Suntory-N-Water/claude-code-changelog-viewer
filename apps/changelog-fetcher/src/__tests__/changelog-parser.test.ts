@@ -228,7 +228,6 @@ describe('parseChangelogEntries', () => {
       ].join('\n');
       const items = parseChangelogEntries(changelog);
 
-      // サブアイテムも独立した項目として扱われる
       expect(items).toHaveLength(4);
       expect(items[0].content).toBe('- Added multi-feature support');
       expect(items[1].content).toBe('- Sub-feature A');

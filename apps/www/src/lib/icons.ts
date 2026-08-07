@@ -9,13 +9,11 @@
  */
 
 export const STROKE_ICONS = {
-  // ナビゲーション
   'arrow-left': '<path d="M15 19l-7-7 7-7"/>',
   'arrow-up': '<path d="M5 15l7-7 7 7"/>',
   'chevron-right': '<path d="M9 5l7 7-7 7"/>',
   'chevron-down': '<path d="M19 9l-7 7-7-7"/>',
 
-  // 操作
   // SearchModal で使用(大きい虫眼鏡)
   search:
     '<path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>',
@@ -33,7 +31,6 @@ export const STROKE_ICONS = {
     '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
   check: '<path d="M5 13l4 4L19 7"/>',
 
-  // 状態・情報
   clock: '<path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>',
   bell: '<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>',
   'info-circle':
@@ -45,7 +42,6 @@ export const STROKE_ICONS = {
   warning:
     '<path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>',
 
-  // コンテンツタイプ
   list: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>',
   // 週次まとめ(ナビ・トップの最新号カード)
   newspaper:
@@ -72,7 +68,6 @@ export const STROKE_ICONS = {
     '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" stroke="none" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>',
 } as const;
 
-// ---- フィルアイコン(ブランドアイコン)-------------------------------
 // 外側 <svg>: fill="currentColor"
 export const FILL_ICONS = {
   github:

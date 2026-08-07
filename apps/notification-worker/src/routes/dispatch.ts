@@ -34,7 +34,6 @@ export const dispatchRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       return c.json({ error: '認証に失敗しました' }, 401);
     }
 
-    // リクエストボディのバリデーション
     const parseResult = RequestSchema.safeParse(await c.req.json());
     if (!parseResult.success) {
       return c.json({ error: 'リクエストが不正です' }, 400);
