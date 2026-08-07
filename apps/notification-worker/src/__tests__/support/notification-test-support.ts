@@ -23,6 +23,9 @@ export function createTestEnv(db: FakeD1Database) {
     WEBHOOK_RATE_LIMITER: {
       limit: vi.fn(() => Promise.resolve({ success: true })),
     },
+    MCP_RATE_LIMITER: {
+      limit: vi.fn(() => Promise.resolve({ success: true })),
+    },
     SEND_EMAIL: { send: vi.fn(() => Promise.resolve(undefined)) },
     EMAIL_FROM: 'noreply@claude-code-log.com',
     SITE_URL: 'https://claude-code-log.com',
