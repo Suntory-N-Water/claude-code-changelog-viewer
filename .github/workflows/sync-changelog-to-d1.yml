@@ -1,0 +1,116 @@
+name: Sync Changelog to D1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/changelog-fetcher/inferred/**"
+      - "apps/changelog-fetcher/settings/**"
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "全件バックフィル"
+        type: boolean
+        default: true
+
+# 複数 PR が短時間で連続マージされたとき、後発の実行が先発を追い越して
+# 古い差分で上書きするのを防ぐ
+concurrency:
+  group: sync-changelog-to-d1
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # 差分モードで github.event.before との比較に全履歴が要る
+          fetch-depth: 0
+
+      - name: 同期対象ファイルを特定
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          # workflow_dispatch には差分の基準がないため常に全件。
+          # push でも before が使えないケース(初回 push の全ゼロ SHA・force push)は
+          # 全件にフォールバックする。取り込みは冪等なので安全側に倒れる。
+          mode="diff"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            mode="full"
+          elif [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            mode="full"
+          elif ! git cat-file -e "$BEFORE_SHA" 2>/dev/null; then
+            mode="full"
+          elif ! git merge-base --is-ancestor "$BEFORE_SHA" "$AFTER_SHA"; then
+            mode="full"
+          fi
+          echo "mode=${mode}"
+
+          if [ "$mode" = "full" ]; then
+            find apps/changelog-fetcher/inferred -name '*.json' | sort > /tmp/inferred_files.txt
+            find apps/changelog-fetcher/settings -name '*.json' | sort > /tmp/settings_files.txt
+          else
+            git diff --name-only --diff-filter=ACMR "$BEFORE_SHA" "$AFTER_SHA" \
+              -- 'apps/changelog-fetcher/inferred/*.json' > /tmp/inferred_files.txt
+            git diff --name-only --diff-filter=ACMR "$BEFORE_SHA" "$AFTER_SHA" \
+              -- 'apps/changelog-fetcher/settings/*.json' > /tmp/settings_files.txt
+          fi
+          echo "inferred: $(wc -l < /tmp/inferred_files.txt) 件 / settings: $(wc -l < /tmp/settings_files.txt) 件"
+
+      - name: D1 へ取り込み
+        env:
+          NOTIFICATION_WORKER_URL: ${{ secrets.NOTIFICATION_WORKER_URL }}
+          DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
+        run: |
+          set -euo pipefail
+
+          post() {
+            curl --fail-with-body --show-error --silent -X POST "${NOTIFICATION_WORKER_URL}/api/ingest/changelog" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${DISPATCH_SECRET}" \
+              --data-binary @-
+            echo
+          }
+
+          # D1 の queries 上限 (1000/invocation) に収めるため 50 バージョンずつ POST する
+          if [ -s /tmp/inferred_files.txt ]; then
+            split -l 50 /tmp/inferred_files.txt /tmp/inferred_batch_
+            for batch in /tmp/inferred_batch_*; do
+              xargs -a "$batch" jq -s \
+                '{versions: [.[] | {version, summary, items: [.items[] | {id, content, content_ja, prefix, feature_areas, inference}]}]}' \
+                | post
+              echo "✓ $(wc -l < "$batch") バージョンを取り込みました"
+            done
+          fi
+
+          # doc_snippets などの不要フィールドは jq の射影で落とす
+          if [ -s /tmp/settings_files.txt ]; then
+            xargs -a /tmp/settings_files.txt jq -s \
+              '{settings: [.[] | {key, slug, source, description_en, description_ja, use_case_ja, official_doc_urls}]}' \
+              | post
+            echo "✓ $(wc -l < /tmp/settings_files.txt) 件の settings を取り込みました"
+          fi
+
+      - name: Create issue on failure
+        if: failure()
+        uses: ./.github/actions/report-automated-failure
+        with:
+          token: ${{ github.token }}
+          title: changelog の D1 同期に失敗
+          summary: inferred / settings の D1 取り込みに失敗しました。
+          labels: automated-failure,workflow:sync-changelog-to-d1,bug

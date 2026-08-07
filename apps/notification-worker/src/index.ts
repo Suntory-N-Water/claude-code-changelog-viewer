@@ -6,6 +6,7 @@ import { detectChangelogUpdate } from './cron/changelog-detection';
 import { cleanupInactiveChannels } from './cron/cleanup';
 import { queueConsumer } from './queue/consumer';
 import { dispatchRoute } from './routes/dispatch';
+import { ingestChangelogRoute } from './routes/ingest-changelog';
 import { unsubscribeRoute } from './routes/unsubscribe';
 import { uploadsRoute } from './routes/uploads';
 import { webhooksRoute } from './routes/webhooks';
@@ -48,6 +49,7 @@ app.get('/health', (c) => c.text('ok'));
 
 app.route('/webhooks', webhooksRoute);
 app.route('/dispatch', dispatchRoute);
+app.route('/ingest/changelog', ingestChangelogRoute);
 app.route('/unsubscribe', unsubscribeRoute);
 app.route('/uploads', uploadsRoute);
 

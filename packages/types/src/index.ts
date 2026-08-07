@@ -74,6 +74,56 @@ export const InferredAnalysisSchema = AnalysisSchema.omit({
 });
 export type InferredAnalysis = z.infer<typeof InferredAnalysisSchema>;
 
+// D1 取り込み用ペイロード。inferred ファイルの version は 'v' プレフィックスなし。
+// 旧バージョンのファイルには summary / content_ja / feature_areas / inference がなく、
+// jq の射影では欠落キーが null になるため nullable + optional にする。
+export const IngestChangelogItemSchema = z.object({
+  id: z.string().length(12),
+  content: z.string(),
+  content_ja: z.string().nullable().optional(),
+  prefix: z.string(),
+  feature_areas: z.array(z.string()).nullable().optional(),
+  inference: z
+    .object({
+      before: z.string(),
+      after: z.string(),
+      benefit: z.string(),
+    })
+    .nullable()
+    .optional(),
+});
+export type IngestChangelogItem = z.infer<typeof IngestChangelogItemSchema>;
+
+export const IngestChangelogVersionSchema = z.object({
+  version: z.string().regex(/^\d+\.\d+\.\d+$/),
+  summary: z.string().nullable().optional(),
+  items: z.array(IngestChangelogItemSchema),
+});
+export type IngestChangelogVersion = z.infer<
+  typeof IngestChangelogVersionSchema
+>;
+
+// doc_snippets は意図的に受け取らない(D1 の SQL 文長上限と LLM 向けノイズ対策)
+export const IngestSettingSchema = z.object({
+  key: z.string().min(1),
+  slug: z.string(),
+  source: z.enum(['settings', 'env']),
+  description_en: z.string(),
+  description_ja: z.string(),
+  use_case_ja: z.string().nullable().optional(),
+  official_doc_urls: z.array(z.string()).nullable().optional(),
+});
+export type IngestSetting = z.infer<typeof IngestSettingSchema>;
+
+// D1 の queries 上限 (1000/invocation) から 1 リクエスト 50 バージョンに制限する
+export const IngestChangelogPayloadSchema = z.object({
+  versions: z.array(IngestChangelogVersionSchema).max(50).default([]),
+  settings: z.array(IngestSettingSchema).default([]),
+});
+export type IngestChangelogPayload = z.infer<
+  typeof IngestChangelogPayloadSchema
+>;
+
 // 通知 payload を Cloudflare Queues の 128KB 上限内に収めるため
 // notifier 実装が参照するフィールドのみを抽出した型。
 // jq スリム化時に summary / content_ja は欠落キーまたは null になり得る。

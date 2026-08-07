@@ -12,6 +12,12 @@ class FakeD1PreparedStatement {
   ) {}
 
   bind(...values: SQLQueryBindings[]) {
+    // 実 D1 の制約 (bound parameters 100/query) を再現し、分割漏れを検出する
+    if (values.length > 100) {
+      throw new Error(
+        `D1 の bound parameters 上限 100 を超過: ${values.length}`,
+      );
+    }
     return new FakeD1PreparedStatement(this.db, this.query, values);
   }
 
@@ -96,6 +102,41 @@ export class FakeD1Database {
         email_hash TEXT NOT NULL UNIQUE,
         email_encrypted TEXT NOT NULL,
         FOREIGN KEY (channel_id) REFERENCES channels(id)
+      );
+
+      CREATE TABLE changelog_versions (
+        version TEXT PRIMARY KEY NOT NULL,
+        summary TEXT
+      );
+
+      CREATE TABLE changelog_items (
+        version TEXT NOT NULL,
+        item_id TEXT NOT NULL,
+        content TEXT NOT NULL,
+        content_ja TEXT,
+        prefix TEXT NOT NULL,
+        inference_before TEXT,
+        inference_after TEXT,
+        inference_benefit TEXT,
+        search_text TEXT NOT NULL,
+        PRIMARY KEY (version, item_id)
+      );
+
+      CREATE TABLE changelog_item_feature_areas (
+        version TEXT NOT NULL,
+        item_id TEXT NOT NULL,
+        feature_area TEXT NOT NULL,
+        PRIMARY KEY (version, item_id, feature_area)
+      );
+
+      CREATE TABLE settings_reference (
+        key TEXT PRIMARY KEY NOT NULL,
+        slug TEXT NOT NULL,
+        source TEXT NOT NULL,
+        description_en TEXT NOT NULL,
+        description_ja TEXT NOT NULL,
+        use_case_ja TEXT,
+        official_doc_urls TEXT
       );
     `);
   }

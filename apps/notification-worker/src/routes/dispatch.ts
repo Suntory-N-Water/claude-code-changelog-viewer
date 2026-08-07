@@ -10,7 +10,7 @@ const RequestSchema = z.object({
   analysis: NotificationAnalysisSchema,
 });
 
-async function timingSafeEqual(a: string, b: string): Promise<boolean> {
+export async function timingSafeEqual(a: string, b: string): Promise<boolean> {
   const enc = new TextEncoder();
   const [ha, hb] = await Promise.all([
     crypto.subtle.digest('SHA-256', enc.encode(a)),
