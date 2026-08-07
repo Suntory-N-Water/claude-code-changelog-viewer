@@ -141,7 +141,7 @@ describe('POST /api/webhooks integration', () => {
     });
   });
 
-  it('停止済みの Webhook URL を送ると同じ token のまま再有効化される', async () => {
+  it('system停止済みの Webhook URL を送ると同じ token のまま再有効化される', async () => {
     db = new FakeD1Database();
     const env = createTestEnv(db);
     await insertDiscordWebhook(db, {
@@ -149,6 +149,7 @@ describe('POST /api/webhooks integration', () => {
       webhookUrl: validWebhookUrl,
       token: 'existing-token',
       deactivatedAt: '2026-01-01 00:00:00',
+      deactivatedReason: 'system',
       failCount: 2,
     });
     mockedVerifyTurnstile.mockResolvedValue(true);
@@ -167,6 +168,37 @@ describe('POST /api/webhooks integration', () => {
       token: 'existing-token',
       deactivated_at: '9999-12-31',
       deactivated_reason: 'none',
+      fail_count: 0,
+    });
+  });
+
+  it('user停止済み(unsubscribe済み)の Webhook URL を送っても再有効化されず 409 になる', async () => {
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+    await insertDiscordWebhook(db, {
+      id: 'existing-id',
+      webhookUrl: validWebhookUrl,
+      token: 'existing-token',
+      deactivatedAt: '2026-01-01 00:00:00',
+      deactivatedReason: 'user',
+      failCount: 0,
+    });
+    mockedVerifyTurnstile.mockResolvedValue(true);
+
+    const response = await app.request(
+      '/api/webhooks',
+      createRequestInit(),
+      env,
+    );
+
+    expect(response.status).toBe(409);
+    expect(mockedSendTestNotification).not.toHaveBeenCalled();
+    expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toEqual({
+      id: 'existing-id',
+      webhook_url: validWebhookUrl,
+      token: 'existing-token',
+      deactivated_at: '2026-01-01 00:00:00',
+      deactivated_reason: 'user',
       fail_count: 0,
     });
   });
