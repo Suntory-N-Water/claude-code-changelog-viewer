@@ -64,7 +64,6 @@ function convertContentToCdata(xml: string): string {
   return xml.replace(
     /<content:encoded>([\s\S]*?)<\/content:encoded>/g,
     (_match, escaped: string) => {
-      // エンティティをデコードして生 HTML に戻す
       const html = escaped
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')

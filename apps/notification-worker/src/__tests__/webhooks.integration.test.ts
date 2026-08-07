@@ -55,20 +55,17 @@ describe('POST /api/webhooks integration', () => {
   });
 
   it('有効な認証情報と Webhook URL を送ると channels・discord_channels・notification_settings の3テーブルに登録される', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendTestNotification.mockResolvedValue({ ok: true });
 
-    // Act(実行)
     const response = await app.request(
       '/api/webhooks',
       createRequestInit(),
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(200);
     const saved = await findChannelByWebhookUrl(db, validWebhookUrl);
     expect(saved).toEqual({
@@ -82,29 +79,24 @@ describe('POST /api/webhooks integration', () => {
   });
 
   it('frequency=IMM を指定して登録すると notification_settings に IMM で保存される', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendTestNotification.mockResolvedValue({ ok: true });
 
-    // Act(実行)
     await app.request('/api/webhooks', createRequestInit(), env);
 
-    // Assert(確認)
     const saved = await findChannelByWebhookUrl(db, validWebhookUrl);
     const ns = saved ? await findNotificationSettings(db, saved.id) : null;
     expect(ns?.frequency).toBe('IMM');
   });
 
   it('frequency=WEK を指定して登録できる', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendTestNotification.mockResolvedValue({ ok: true });
 
-    // Act(実行)
     await app.request(
       '/api/webhooks',
       createRequestInit({
@@ -116,14 +108,12 @@ describe('POST /api/webhooks integration', () => {
       env,
     );
 
-    // Assert(確認)
     const saved = await findChannelByWebhookUrl(db, validWebhookUrl);
     const ns = saved ? await findNotificationSettings(db, saved.id) : null;
     expect(ns?.frequency).toBe('WEK');
   });
 
   it('既に有効な Webhook URL を送ると重複登録せず 409 になる', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     await insertDiscordWebhook(db, {
@@ -134,14 +124,12 @@ describe('POST /api/webhooks integration', () => {
     });
     mockedVerifyTurnstile.mockResolvedValue(true);
 
-    // Act(実行)
     const response = await app.request(
       '/api/webhooks',
       createRequestInit(),
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(409);
     expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toEqual({
       id: 'existing-id',
@@ -154,7 +142,6 @@ describe('POST /api/webhooks integration', () => {
   });
 
   it('停止済みの Webhook URL を送ると同じ token のまま再有効化される', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     await insertDiscordWebhook(db, {
@@ -167,14 +154,12 @@ describe('POST /api/webhooks integration', () => {
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendTestNotification.mockResolvedValue({ ok: true });
 
-    // Act(実行)
     const response = await app.request(
       '/api/webhooks',
       createRequestInit(),
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(200);
     expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toEqual({
       id: 'existing-id',
@@ -187,19 +172,16 @@ describe('POST /api/webhooks integration', () => {
   });
 
   it('Turnstile 検証に失敗すると登録は保存されない', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(false);
 
-    // Act(実行)
     const response = await app.request(
       '/api/webhooks',
       createRequestInit(),
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(403);
     expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toBeNull();
   });
@@ -224,31 +206,26 @@ describe('POST /api/webhooks integration', () => {
   });
 
   it('Discord へのテスト通知が失敗すると登録は保存されない', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendTestNotification.mockResolvedValue({ ok: false });
 
-    // Act(実行)
     const response = await app.request(
       '/api/webhooks',
       createRequestInit(),
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(400);
     expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toBeNull();
   });
 
   it('不正な Webhook URL で 400 を返す', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
 
-    // Act(実行)
     const response = await app.request(
       '/api/webhooks',
       createRequestInit({
@@ -260,33 +237,27 @@ describe('POST /api/webhooks integration', () => {
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(400);
   });
 
   it('webhook_url が空文字で 400 を返す', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
 
-    // Act(実行)
     const response = await app.request(
       '/api/webhooks',
       createRequestInit({ webhook_url: '', turnstile_token: 'valid-token' }),
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(400);
   });
 
   it('リクエストボディが不正で 400 を返す', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
 
-    // Act(実行)
     const response = await app.request(
       '/api/webhooks',
       {
@@ -297,7 +268,6 @@ describe('POST /api/webhooks integration', () => {
       env,
     );
 
-    // Assert(確認)
     expect(response.status).toBe(400);
   });
 });

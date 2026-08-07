@@ -9,7 +9,7 @@ import { analyzeChangelog } from './usecase/analyze-changelog';
 const log = getLogger({ name: 'changelog-analyzer' });
 
 async function main() {
-  const version = process.argv[2]; // v2.1.19
+  const version = process.argv[2];
 
   if (!version) {
     log.error('Usage: tsx scripts/analyze-changelog.ts <version>');

@@ -20,12 +20,10 @@ export async function GET(context: APIContext) {
     getCollection('settingsReference'),
   ]);
 
-  // changelog: バージョン降順
   const sortedChangelogs = [...changelogs].sort((a, b) =>
     semverCompareDesc(a.data.version, b.data.version),
   );
 
-  // feature areas: アイテム数降順・閾値以上のみ
   const areaMap = aggregateByFeatureArea(extractChangelogData(changelogs));
   const areas = [...areaMap.entries()]
     .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
@@ -35,7 +33,6 @@ export async function GET(context: APIContext) {
       label: getFeatureAreaLabel(area),
     }));
 
-  // 週次まとめ・コラム: 投稿日降順
   const weeklyPosts = [...posts].sort((a, b) =>
     b.data.date.localeCompare(a.data.date),
   );
@@ -43,7 +40,6 @@ export async function GET(context: APIContext) {
     b.data.date.localeCompare(a.data.date),
   );
 
-  // 設定リファレンス: key 昇順(settings → env)
   const sortedSettings = [...settings].sort((a, b) => {
     if (a.data.source !== b.data.source) {
       return a.data.source === 'settings' ? -1 : 1;

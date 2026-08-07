@@ -48,11 +48,9 @@ async function main() {
   const startTime = Date.now();
 
   try {
-    // 英語ドキュメント取得(CHANGELOG 解析用)
     const enFetcher = new ClaudeDocsFetcher(process.cwd());
     await enFetcher.fetchAllDocs();
 
-    // Anthropic Platform のモデル一覧取得(AI推論プロンプト用)
     await fetchModelsOverview();
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -68,7 +66,6 @@ async function main() {
   }
 }
 
-// Run if executed directly
 if (require.main === module) {
   main().catch((error) => {
     logger.msg('APLG0019', { error: toError(error) });

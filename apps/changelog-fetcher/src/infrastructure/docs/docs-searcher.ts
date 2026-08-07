@@ -15,7 +15,6 @@ export type SnippetResult = {
   hit_count: number;
 };
 
-// ドキュメントディレクトリ(絶対パス)
 const DOCS_DIR = path.join(PROJECT_ROOT, 'apps', 'docs-tracker', 'docs', 'en');
 const EXCLUDED_FILE = 'changelog.md';
 const MAX_SNIPPETS_PER_FILE = 5;
@@ -93,19 +92,16 @@ export async function searchDocs(
   const files = getMdFiles(docsDir);
   const cache = await loadFileContents(files);
 
-  // バッククォート完全一致
   const exactFiles = exactSearch(original, cache);
   if (exactFiles.length > 0 && exactFiles.length <= 50) {
     return { files: exactFiles };
   }
 
-  // 正規化キーワード
   const normalizedFiles = regexSearch(normalized, cache);
   if (normalizedFiles.length > 0 && normalizedFiles.length <= 50) {
     return { files: normalizedFiles };
   }
 
-  // 複数キーワードOR検索(上限50件)
   const multiFiles = regexSearch([...original, ...normalized], cache);
   return { files: multiFiles.slice(0, 50) };
 }
@@ -120,7 +116,6 @@ async function analyzeFile(
   const content = await fs.readFile(absolutePath, 'utf8');
   const lines = content.split('\n');
 
-  // マッチ行のインデックスを収集
   const matchIndices: number[] = [];
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
@@ -133,7 +128,6 @@ async function analyzeFile(
     return { hit_count: 0, snippets: [] };
   }
 
-  // 前後3行を含むブロックを構築し、隣接ブロックをマージ
   const blocks: { start: number; end: number }[] = [];
   for (const idx of matchIndices) {
     const start = Math.max(0, idx - 3);

@@ -52,7 +52,6 @@ export async function GET({ props }: APIContext) {
 
   const fontData = await loadNotoSansJp(`${SITE_TITLE}${title}`);
 
-  // 長いタイトルでもカードに収まるよう、文字数で段階的に縮める
   const titleFontSize = title.length > 40 ? 44 : title.length > 24 ? 52 : 60;
 
   const svg = await satori(

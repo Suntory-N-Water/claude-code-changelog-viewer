@@ -61,20 +61,17 @@ describe('POST /api/uploads', () => {
     it.each(imageCases)(
       '$label の実バイトを送ると判定済みの形式で R2 に保存されること',
       async ({ bytes, extension, contentType }) => {
-        // Arrange(準備)
         const put = vi.fn().mockResolvedValue(undefined);
         const env = createEnv({
           WEEKLY_ASSETS: { put } as unknown as R2Bucket,
         });
 
-        // Act(実行)
         const response = await sut.request(
           '/api/uploads',
           createUploadRequest([...bytes]),
           env,
         );
 
-        // Assert(確認)
         expect(response.status).toBe(200);
         expect(await response.json()).toEqual({
           url: expect.stringMatching(
@@ -96,21 +93,18 @@ describe('POST /api/uploads', () => {
     );
 
     it('R2 への保存に失敗した時、500を返すこと', async () => {
-      // Arrange(準備)
       const env = createEnv({
         WEEKLY_ASSETS: {
           put: vi.fn().mockRejectedValue(new Error('R2 error')),
         } as unknown as R2Bucket,
       });
 
-      // Act(実行)
       const response = await sut.request(
         '/api/uploads',
         createUploadRequest([...imageCases[0].bytes]),
         env,
       );
 
-      // Assert(確認)
       expect(response.status).toBe(500);
       expect(await response.json()).toEqual({
         error: '画像の保存に失敗しました',
@@ -123,39 +117,32 @@ describe('POST /api/uploads', () => {
       ['week', { itemId: 'ea64434ed3ad' }],
       ['itemId', { week: '2026-w28' }],
     ])('%s が無いと400を返すこと', async (_label, fields) => {
-      // Arrange(準備)
       const env = createEnv();
 
-      // Act(実行)
       const response = await sut.request(
         '/api/uploads',
         createUploadRequest([...imageCases[0].bytes], fields),
         env,
       );
 
-      // Assert(確認)
       expect(response.status).toBe(400);
     });
 
     it('file が無いと400を返すこと', async () => {
-      // Arrange(準備)
       const body = new FormData();
       body.append('week', '2026-w28');
       body.append('itemId', 'ea64434ed3ad');
 
-      // Act(実行)
       const response = await sut.request(
         '/api/uploads',
         { method: 'POST', body },
         createEnv(),
       );
 
-      // Assert(確認)
       expect(response.status).toBe(400);
     });
 
     it('画像が5MBを超えると400を返し、R2へ保存しないこと', async () => {
-      // Arrange(準備)
       const put = vi.fn();
       const bytes = new Uint8Array(5 * 1024 * 1024 + 1);
       bytes.set(imageCases[0].bytes);
@@ -163,14 +150,12 @@ describe('POST /api/uploads', () => {
         WEEKLY_ASSETS: { put } as unknown as R2Bucket,
       });
 
-      // Act(実行)
       const response = await sut.request(
         '/api/uploads',
         createUploadRequest(bytes),
         env,
       );
 
-      // Assert(確認)
       expect(response.status).toBe(400);
       expect(put).not.toHaveBeenCalled();
     });
@@ -185,7 +170,6 @@ describe('POST /api/uploads', () => {
     ])(
       'Content-Type が image/png でも実バイトが %s なら400を返すこと',
       async (_label, bytes) => {
-        // Arrange(準備)
         const body = new FormData();
         body.append(
           'file',
@@ -194,14 +178,12 @@ describe('POST /api/uploads', () => {
         body.append('week', '2026-w28');
         body.append('itemId', 'ea64434ed3ad');
 
-        // Act(実行)
         const response = await sut.request(
           '/api/uploads',
           { method: 'POST', body },
           createEnv(),
         );
 
-        // Assert(確認)
         expect(response.status).toBe(400);
       },
     );
@@ -209,35 +191,29 @@ describe('POST /api/uploads', () => {
 
   describe('Access 認証を行う時', () => {
     it('team domain が空文字なら認証なしでアップロードできること', async () => {
-      // Arrange(準備)
       const env = createEnv({ CF_ACCESS_TEAM_DOMAIN: '' });
 
-      // Act(実行)
       const response = await sut.request(
         '/api/uploads',
         createUploadRequest([...imageCases[0].bytes]),
         env,
       );
 
-      // Assert(確認)
       expect(response.status).toBe(200);
     });
 
     it('team domain が設定済みで JWT が無いと401を返すこと', async () => {
-      // Arrange(準備)
       const env = createEnv({
         CF_ACCESS_TEAM_DOMAIN: 'example.cloudflareaccess.com',
         CF_ACCESS_AUD: 'test-aud',
       });
 
-      // Act(実行)
       const response = await sut.request(
         '/api/uploads',
         createUploadRequest([...imageCases[0].bytes]),
         env,
       );
 
-      // Assert(確認)
       expect(response.status).toBe(401);
     });
   });

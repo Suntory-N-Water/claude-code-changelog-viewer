@@ -121,7 +121,6 @@ export function groupByVersion(
     }
   }
 
-  // バージョン降順ソート
   const sorted = [...groupMap.entries()].sort(([a], [b]) => compareFn(a, b));
 
   return sorted.map(([version, groupItems]) => ({

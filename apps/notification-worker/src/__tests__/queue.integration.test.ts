@@ -60,7 +60,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('送信成功時は過去の fail_count が 0 に戻る', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
@@ -73,10 +72,8 @@ describe('queueConsumer integration', () => {
     });
     mockedSendChangelogNotification.mockResolvedValue({ ok: true });
 
-    // Act(実行)
     await runWithTimers(callConsumer(batch, env));
 
-    // Assert(確認)
     expect(message.ack).toHaveBeenCalled();
     expect(await findChannelByToken(db, 'active-token')).toEqual({
       id: 'active-id',
@@ -89,7 +86,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('恒久失敗が続くと fail_count が増えしきい値到達でチャンネルがシステム停止される', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
@@ -105,10 +101,8 @@ describe('queueConsumer integration', () => {
       failureKind: 'permanent',
     });
 
-    // Act(実行)
     await runWithTimers(callConsumer(batch, env));
 
-    // Assert(確認)
     expect(message.ack).toHaveBeenCalled();
     expect(await findChannelByToken(db, 'active-token')).toMatchObject({
       id: 'active-id',
@@ -119,7 +113,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('複数チャンネル配信中に一部が失敗しても各チャンネルの最終状態が正しく反映される', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
@@ -140,10 +133,8 @@ describe('queueConsumer integration', () => {
       .mockResolvedValueOnce({ ok: true })
       .mockResolvedValueOnce({ ok: false, failureKind: 'permanent' });
 
-    // Act(実行)
     await runWithTimers(callConsumer(batch, env));
 
-    // Assert(確認)
     expect(message.ack).toHaveBeenCalled();
     expect(await findChannelByToken(db, 'success-token')).toEqual({
       id: 'success-id',
@@ -162,7 +153,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('frequency が WEK のチャンネルはキュー配信時に個別通知が送信されない', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
@@ -174,16 +164,13 @@ describe('queueConsumer integration', () => {
       frequency: 'WEK',
     });
 
-    // Act(実行)
     await runWithTimers(callConsumer(batch, env));
 
-    // Assert(確認)
     expect(mockedSendChangelogNotification).not.toHaveBeenCalled();
     expect(message.ack).toHaveBeenCalled();
   });
 
   it('通知で 429 が返ると message.retry が呼ばれる', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
@@ -198,10 +185,8 @@ describe('queueConsumer integration', () => {
       failureKind: 'rate_limit',
     });
 
-    // Act(実行)
     await runWithTimers(callConsumer(batch, env));
 
-    // Assert(確認)
     expect(message.retry).toHaveBeenCalled();
     expect(message.ack).not.toHaveBeenCalled();
   });
@@ -263,7 +248,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('一部チャンネルで例外が発生しても他のチャンネルの DB 状態が正しく更新される', async () => {
-    // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
@@ -283,10 +267,8 @@ describe('queueConsumer integration', () => {
       .mockRejectedValueOnce(new Error('ネットワーク障害'))
       .mockResolvedValueOnce({ ok: true });
 
-    // Act(実行)
     await runWithTimers(callConsumer(batch, env));
 
-    // Assert(確認)
     expect(message.retry).toHaveBeenCalled();
     expect(message.ack).not.toHaveBeenCalled();
     expect(await findChannelByToken(db, 'error-token')).toMatchObject({

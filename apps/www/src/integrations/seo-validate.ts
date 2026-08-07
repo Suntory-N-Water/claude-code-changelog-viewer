@@ -34,7 +34,6 @@ function validateHtml(filePath: string, content: string): Issue[] {
   const issues: Issue[] = [];
   const rel = filePath.split('/dist/')[1] ?? filePath;
 
-  // H1 チェック
   const h1Matches = content.match(/<h1[\s>]/gi) ?? [];
   if (h1Matches.length === 0) {
     issues.push({ file: rel, level: 'warn', message: 'H1 タグが存在しません' });
@@ -46,7 +45,6 @@ function validateHtml(filePath: string, content: string): Issue[] {
     });
   }
 
-  // title チェック
   const titleMatch = content.match(/<title[^>]*>(.*?)<\/title>/is);
   if (!titleMatch?.[1].trim()) {
     issues.push({
@@ -56,7 +54,6 @@ function validateHtml(filePath: string, content: string): Issue[] {
     });
   }
 
-  // meta description チェック
   const descMatch = content.match(
     /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i,
   );
@@ -68,7 +65,6 @@ function validateHtml(filePath: string, content: string): Issue[] {
     });
   }
 
-  // img alt チェック(aria-hidden 属性を持つ要素は除外)
   const imgWithoutAlt = (
     content.match(/<img(?![^>]*\balt=)[^>]*>/gi) ?? []
   ).filter((img) => !img.includes('aria-hidden'));
@@ -80,7 +76,6 @@ function validateHtml(filePath: string, content: string): Issue[] {
     });
   }
 
-  // canonical チェック
   if (!content.match(/<link[^>]+rel=["']canonical["'][^>]*>/i)) {
     issues.push({
       file: rel,

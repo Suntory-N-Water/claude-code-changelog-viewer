@@ -10,7 +10,6 @@ type CatalogEntry = {
  * Templates use $0, $1, ... as positional placeholders.
  */
 const LOG_CATALOG = {
-  // --- INFO ---
   /** $0 を開始します */
   APLG0001: { level: 'INFO', template: '$0 を開始します' },
   /** $0 が完了しました */
@@ -42,7 +41,6 @@ const LOG_CATALOG = {
   /** HTTPリクエストが完了しました */
   APLG0031: { level: 'INFO', template: 'HTTPリクエストが完了しました' },
 
-  // --- WARN ---
   /** $0 の取得に失敗しました */
   APLG0011: { level: 'WARN', template: '$0 の取得に失敗しました' },
   /** $0 が見つかりませんでした */
@@ -59,7 +57,6 @@ const LOG_CATALOG = {
     template: 'CHANGELOG ハッシュ不一致 (expected=$0 actual=$1)',
   },
 
-  // --- ERROR ---
   /** $0 の取得に失敗しました */
   APLG0015: { level: 'ERROR', template: '$0 の取得に失敗しました' },
   /** $0 の削除に失敗しました */
@@ -69,7 +66,6 @@ const LOG_CATALOG = {
   /** $0 の検証に失敗しました */
   APLG0022: { level: 'ERROR', template: '$0 の検証に失敗しました' },
 
-  // --- FATAL ---
   /** 致命的なエラーが発生しました */
   APLG0018: { level: 'FATAL', template: '致命的なエラーが発生しました' },
   /** 未処理のエラーが発生しました */

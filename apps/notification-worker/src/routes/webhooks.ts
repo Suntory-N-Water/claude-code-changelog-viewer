@@ -60,7 +60,6 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     }
     const data = parseResult.data;
 
-    // Turnstile トークン検証
     const turnstileValid = await verifyTurnstileToken(
       data.turnstile_token,
       c.env.TURNSTILE_SECRET_KEY,
