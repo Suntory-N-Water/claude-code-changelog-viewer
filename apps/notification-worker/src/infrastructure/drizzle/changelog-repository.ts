@@ -1,23 +1,13 @@
 import { and, eq, sql, type SQL } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import {
-  changelogItemFeatureAreas,
   changelogItems,
   changelogVersions,
   settingsReference,
 } from '../../db/schema';
 
-// feature area は正規化テーブルに分かれているため、item と同時に group_concat で引く
-const featureAreasColumn = sql<string | null>`(
-  select group_concat(${changelogItemFeatureAreas.featureArea})
-  from ${changelogItemFeatureAreas}
-  where ${changelogItemFeatureAreas.version} = ${changelogItems.version}
-    and ${changelogItemFeatureAreas.itemId} = ${changelogItems.itemId}
-)`;
-
 export type ChangelogSearchParams = {
   query: string;
-  featureArea?: string | undefined;
   prefix?: string | undefined;
   limit: number;
 };
@@ -37,17 +27,6 @@ export async function searchChangelogItems(
       sql`lower(${changelogItems.prefix}) = ${params.prefix.toLowerCase()}`,
     );
   }
-  if (params.featureArea !== undefined) {
-    conditions.push(
-      sql`exists (
-        select 1 from ${changelogItemFeatureAreas}
-        where ${changelogItemFeatureAreas.version} = ${changelogItems.version}
-          and ${changelogItemFeatureAreas.itemId} = ${changelogItems.itemId}
-          and lower(${changelogItemFeatureAreas.featureArea}) = ${params.featureArea.toLowerCase()}
-      )`,
-    );
-  }
-
   // バージョン降順は SQL で表現できない(semver のテキスト比較が壊れる)ため、
   // 全該当行を取得して JS 側でソートする。items は 4386 行で全件でも性能内
   const rows = await db
@@ -57,7 +36,6 @@ export async function searchChangelogItems(
       content: changelogItems.content,
       contentJa: changelogItems.contentJa,
       benefit: changelogItems.inferenceBenefit,
-      featureAreas: featureAreasColumn,
     })
     .from(changelogItems)
     .where(and(...conditions));
@@ -74,10 +52,7 @@ export async function searchChangelogItems(
     }
     return 0;
   });
-  return rows.slice(0, params.limit).map((row) => ({
-    ...row,
-    featureAreas: row.featureAreas === null ? [] : row.featureAreas.split(','),
-  }));
+  return rows.slice(0, params.limit);
 }
 
 export async function findChangelogVersion(
@@ -98,7 +73,6 @@ export async function findChangelogVersion(
       content: changelogItems.content,
       contentJa: changelogItems.contentJa,
       benefit: changelogItems.inferenceBenefit,
-      featureAreas: featureAreasColumn,
     })
     .from(changelogItems)
     .where(eq(changelogItems.version, version))
@@ -106,11 +80,7 @@ export async function findChangelogVersion(
   return {
     version: versionRow.version,
     summary: versionRow.summary,
-    items: items.map((row) => ({
-      ...row,
-      featureAreas:
-        row.featureAreas === null ? [] : row.featureAreas.split(','),
-    })),
+    items,
   };
 }
 
