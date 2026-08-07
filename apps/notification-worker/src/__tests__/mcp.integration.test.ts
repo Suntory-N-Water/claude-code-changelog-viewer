@@ -165,7 +165,7 @@ describe('POST /api/mcp integration', () => {
   });
 
   describe('search_changelog', () => {
-    it('キーワードに該当する item が、バージョン・変更種別・機能領域・日本語内容・benefit 付きで返ること', async () => {
+    it('キーワードに該当する item が、バージョン・変更種別・日本語内容・benefit 付きで返ること', async () => {
       const db = new FakeD1Database();
       await seed(db, { versions: [createVersion('2.1.98', [vertexItem])] });
 
@@ -177,7 +177,6 @@ describe('POST /api/mcp integration', () => {
         {
           version: '2.1.98',
           prefix: 'Added',
-          featureAreas: ['Settings', 'Model'],
           content:
             'Google Vertex AI 用のセットアップウィザードを追加しました。',
           benefit: '素早く確実に使い始めることができます。',
@@ -209,7 +208,6 @@ describe('POST /api/mcp integration', () => {
         {
           version: '0.2.106',
           prefix: 'Added',
-          featureAreas: [],
           content: '- MCP SSE server configs can now specify custom headers',
         },
       ]);
@@ -229,33 +227,6 @@ describe('POST /api/mcp integration', () => {
 
       expect(upper.payload).toEqual(fullWidth.payload);
       expect(upper.payload).toHaveLength(1);
-      db.close();
-    });
-
-    it('featureArea を指定すると、その機能領域を持つ item だけが返ること', async () => {
-      const db = new FakeD1Database();
-      await seed(db, {
-        versions: [
-          createVersion('2.1.98', [
-            vertexItem,
-            {
-              id: 'aaaaaaaaaaaa',
-              content: '- Added wizard for hooks',
-              prefix: 'Added',
-              feature_areas: ['Hooks'],
-            },
-          ]),
-        ],
-      });
-
-      const { payload } = await callTool(db, 'search_changelog', {
-        query: 'wizard',
-        featureArea: 'Hooks',
-      });
-
-      expect(payload).toEqual([
-        expect.objectContaining({ content: '- Added wizard for hooks' }),
-      ]);
       db.close();
     });
 
@@ -368,7 +339,6 @@ describe('POST /api/mcp integration', () => {
         items: [
           {
             prefix: 'Added',
-            featureAreas: ['Settings', 'Model'],
             content:
               'Google Vertex AI 用のセットアップウィザードを追加しました。',
             benefit: '素早く確実に使い始めることができます。',
@@ -390,7 +360,6 @@ describe('POST /api/mcp integration', () => {
       expect((payload as { items: unknown[] }).items).toEqual([
         {
           prefix: 'Added',
-          featureAreas: ['Settings', 'Model'],
           content: '- Added interactive Google Vertex AI setup wizard',
         },
       ]);

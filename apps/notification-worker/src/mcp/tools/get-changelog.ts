@@ -40,7 +40,6 @@ export function registerGetChangelogTool(
         summary: found.summary ?? undefined,
         items: found.items.map((item) => ({
           prefix: item.prefix,
-          featureAreas: item.featureAreas,
           content:
             lang === 'ja' ? (item.contentJa ?? item.content) : item.content,
           // benefit は日本語でしか存在しないため en では返さない
