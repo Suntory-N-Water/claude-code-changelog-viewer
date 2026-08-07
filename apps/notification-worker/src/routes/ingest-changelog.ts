@@ -57,8 +57,10 @@ async function ingestVersion(
     inferenceBenefit: item.inference?.benefit ?? null,
     searchText: buildSearchText([item.content, item.content_ja, entry.summary]),
   }));
+  // 実データには同一 item 内で feature_area が重複する例があり
+  // (v2.1.110 の 44f5d2690b62)、複合 PK に違反するため除去する
   const featureAreaRows = entry.items.flatMap((item) =>
-    (item.feature_areas ?? []).map((featureArea) => ({
+    [...new Set(item.feature_areas ?? [])].map((featureArea) => ({
       version: entry.version,
       itemId: item.id,
       featureArea,
