@@ -295,6 +295,39 @@ describe('POST /api/ingest/changelog integration', () => {
       db.close();
     });
 
+    it('同一 item 内で feature_area が重複していても、一意化して取り込めること', async () => {
+      const db = new FakeD1Database();
+      const sut = app;
+      const version = createVersion({
+        items: [
+          {
+            id: 'f595cf9fcf9b',
+            content: '- Added something',
+            prefix: 'Added',
+            feature_areas: ['Settings', 'Model', 'Settings'],
+          },
+        ],
+      });
+
+      const response = await sut.request(
+        '/api/ingest/changelog',
+        createRequest({ versions: [version] }),
+        createTestEnv(db),
+      );
+
+      expect(response.status).toBe(200);
+      const featureAreas = await db
+        .prepare(
+          'SELECT feature_area FROM changelog_item_feature_areas ORDER BY feature_area',
+        )
+        .all<{ feature_area: string }>();
+      expect(featureAreas.results).toEqual([
+        { feature_area: 'Model' },
+        { feature_area: 'Settings' },
+      ]);
+      db.close();
+    });
+
     it('search_text が content・content_ja・summary の NFKC 正規化+小文字化で生成され、全角・大文字の揺れを吸収した検索ができること', async () => {
       const db = new FakeD1Database();
       const sut = app;
