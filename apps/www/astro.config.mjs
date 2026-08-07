@@ -16,13 +16,36 @@ import { getReleaseMap } from './src/lib/release-map.ts';
 // リンク先の OG 画像を使い、取得できない/相対パスのときだけプレースホルダーにフォールバックする。
 // 自サイトの OG 画像を使うと他サイトのカードが自サイトの記事に見えるため、専用の画像を置いている。
 const commonThumbnail = 'https://claude-code-log.com/link-card-placeholder.svg';
+
+// remark-link-card-plus はリンク先サイトが返す og:image/favicon を
+// `<img src="...">` へエスケープなしで埋め込む。href は javascript: や data: など
+// opaque scheme では `"` をエンコードしない。
+/**
+ * @param {string | undefined} value
+ * @param {string | URL} [base]
+ */
+const toNormalizedUrl = (value, base) => {
+  if (!value) {
+    return;
+  }
+  try {
+    const normalized = new URL(value, base).href;
+    return /["'<>`]/.test(normalized) ? undefined : normalized;
+  } catch {
+    return;
+  }
+};
+
 const linkCardOptions = {
   shortenUrl: true,
-  /** @param {import('remark-link-card-plus').OgData} og */
-  ogTransformer: (og) => ({
+  /**
+   * @param {import('remark-link-card-plus').OgData} og
+   * @param {URL} url
+   */
+  ogTransformer: (og, url) => ({
     ...og,
-    imageUrl:
-      og.imageUrl && URL.canParse(og.imageUrl) ? og.imageUrl : commonThumbnail,
+    imageUrl: toNormalizedUrl(og.imageUrl) ?? commonThumbnail,
+    faviconUrl: toNormalizedUrl(og.faviconUrl, url.origin),
   }),
 };
 
