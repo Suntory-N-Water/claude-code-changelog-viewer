@@ -26,7 +26,7 @@ How much session handling you need depends on your application's shape. Session 
 | Pick up where you left off after a process restart | `continue_conversation=True` (Python) / `continue: true` (TypeScript). Resumes the most recent session in the directory, no ID needed. |
 | Resume a specific past session (not the most recent) | Capture the session ID and pass it to `resume`. |
 | Try an alternative approach without losing the original | Fork the session. |
-| Stateless task, don't want anything written to disk (TypeScript only) | Set [`persistSession: false`](/docs/en/agent-sdk/typescript#options). The session exists only in memory for the duration of the call. Python always persists to disk. |
+| Stateless task, don't want anything written to disk | Set [`persistSession: false`](/docs/en/agent-sdk/typescript#options) (TypeScript only). The session exists only in memory for the duration of the call. In Python, set [`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/docs/en/env-vars) in the `env` option to suppress transcript writes instead. |
 
 ### Continue, resume, and fork
 
@@ -164,7 +164,7 @@ async def main():
     except Exception as error:
         # A single-shot query() raises after yielding an error result. If the
         # failure was an error result, the loop above already captured session_id;
-        # process failures yield no result message, so session_id stays None.
+        # connection or process failures yield no result message, so session_id stays None.
         print(f"Session ended with an error: {error}")
 
     print(f"Session ID: {session_id}")
@@ -193,7 +193,7 @@ try {
 } catch (error) {
   // A single-shot query() throws after yielding an error result. If the
   // failure was an error result, the loop above already captured sessionId;
-  // process failures yield no result message, so sessionId stays undefined.
+  // connection or process failures yield no result message, so sessionId stays undefined.
   console.error(`Session ended with an error: ${error}`);
 }
 
