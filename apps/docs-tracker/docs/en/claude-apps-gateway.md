@@ -70,7 +70,7 @@ The gateway server requires the native `claude` binary; download a pinned releas
 
 Decide the gateway's hostname first, because the redirect URI must match it. Create a new OIDC web application and set the redirect URI to `https://claude-gateway.<your-domain>/oauth/callback`, where the host is the same value you set as [`listen.public_url`](/docs/en/claude-apps-gateway-config#listen) in step 3. Note the `client_id` and `client_secret`. Per-IdP instructions are in [Identity provider setup](/docs/en/claude-apps-gateway-deploy#identity-provider-setup).
 
-Any Postgres 14 or later works, including the smallest managed tier. The gateway runs its own schema migrations at boot, so the database user needs `CREATE TABLE` permission. If your security policy prohibits DDL from application roles, pre-create the schema instead; see [`store`](/docs/en/claude-apps-gateway-config#store).
+Any Postgres 14 or later works, including the smallest managed tier. The gateway runs its own schema migrations at boot, so the database role needs rights to create and alter tables; see [`store`](/docs/en/claude-apps-gateway-config#store).
 
 Secrets are read via `${ENV_VAR}` expansion so the file itself can live in version control. Use a `public_url` hostname that resolves to a private IP on your network, because `/login` rejects public addresses. The minimal config has five sections, and every other field has a default:
 
