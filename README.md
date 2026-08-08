@@ -28,16 +28,19 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 ### アプリケーション詳細
 
 #### `apps/www`
+
 - Astro ベースのフロントエンド
 - Tailwind CSS によるスタイリング
 - Cloudflare Workers へデプロイ
 
 #### `apps/docs-tracker`
+
 - Claude Code の公式ドキュメントを取得
 - 3時間おきに定期実行
 - 取得状況: `apps/docs-tracker/metadata/last_update.json`
 
 #### `apps/changelog-fetcher`
+
 - CHANGELOG.md をパースして JSON 化
 - Gemini API による自動翻訳・推論
 - 毎時実行
@@ -46,6 +49,7 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 - 推論結果: `apps/changelog-fetcher/inferred/inferred_v*.json`
 
 #### `apps/notification-worker`
+
 - Cloudflare Workers + Hono ベースの通知配信 API
 - Discord・Slack・メール(プレビュー版)による新バージョンの自動通知
 - Cloudflare D1 でスーパータイプ/サブタイプ設計により登録者情報を管理
@@ -55,7 +59,23 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
   - `POST /api/webhooks` - 通知登録(Turnstile 認証 + テスト通知送信)
   - `POST /api/dispatch` - 配信トリガー(Bearer トークン認証、GitHub Actions から呼び出し)
   - `POST /api/unsubscribe` - 配信停止
+  - `POST /api/mcp` - MCP サーバー(後述)
 - 連続送信失敗 3 回で自動停止するエラーハンドリング
+
+#### MCP サーバー
+
+`https://claude-code-log.com/api/mcp` で CHANGELOG と設定リファレンスを提供する。
+
+```bash
+claude mcp add --transport http changelog https://claude-code-log.com/api/mcp
+```
+
+- 仕様は 2026-07-28、`createMcpHandler` によるステートレス構成(`legacy: 'stateless'` で 2025 era のクライアントも受け付ける)
+- ツール:
+  - `search_changelog` - キーワード検索(`query` / `prefix` / `limit`)
+  - `get_changelog` - バージョン指定で要約と全変更項目(`version` / `lang`)
+  - `get_settings_reference` - 設定リファレンス(`key` 完全一致 / `query` 検索 / 無指定でキー名一覧)
+- エラーは `isError: true` とプレーンな日本語メッセージで返す
 
 ## システムアーキテクチャ
 
