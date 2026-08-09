@@ -66,7 +66,16 @@ async function runCron(name: string, task: Promise<void>): Promise<void> {
 }
 
 export default {
-  fetch: app.fetch,
+  fetch(request: Request, env: CloudflareBindings, ctx: ExecutionContext) {
+    const url = new URL(request.url);
+    // Cloudflare の WebMCP ブリッジは同一オリジンの /mcp を決め打ちで叩き、
+    // 参照先 URL を設定する手段が提供されていないため /api/mcp へ内部転送する
+    if (url.pathname === '/mcp') {
+      url.pathname = '/api/mcp';
+      return app.fetch(new Request(url, request), env, ctx);
+    }
+    return app.fetch(request, env, ctx);
+  },
   queue: queueConsumer,
   async scheduled(
     event: ScheduledEvent,

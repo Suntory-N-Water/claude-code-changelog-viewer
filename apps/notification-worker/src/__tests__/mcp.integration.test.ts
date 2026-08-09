@@ -13,7 +13,7 @@ import type {
   IngestChangelogVersion,
   IngestSetting,
 } from '@claude-code-changelog-viewer/types';
-import { app } from '../index';
+import worker, { app } from '../index';
 import { FakeD1Database } from './support/fake-d1';
 import { createTestEnv } from './support/notification-test-support';
 
@@ -141,6 +141,40 @@ describe('POST /api/mcp integration', () => {
       const response = await postMcp(env, 'tools/list', {});
 
       expect(response.status).toBe(429);
+      db.close();
+    });
+  });
+
+  describe('WebMCP ブリッジ向けの /mcp', () => {
+    it('/api/mcp と同じ MCP ハンドラに転送されること', async () => {
+      const db = new FakeD1Database();
+
+      const response = await worker.fetch(
+        new Request('https://claude-code-log.com/mcp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json, text/event-stream',
+            'MCP-Protocol-Version': '2026-07-28',
+            'Mcp-Method': 'tools/list',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'tools/list',
+            params: { _meta: ENVELOPE_META },
+          }),
+        }),
+        createTestEnv(db),
+        {} as ExecutionContext,
+      );
+
+      expect(response.status).toBe(200);
+      // 公開ツールの内訳は /api/mcp の tools/list テストで検証済み
+      const body = (await response.json()) as {
+        result: { tools: { name: string }[] };
+      };
+      expect(body.result.tools.length).toBeGreaterThan(0);
       db.close();
     });
   });
