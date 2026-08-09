@@ -29,7 +29,7 @@ export function registerGetSettingsReferenceTool(
     'get_settings_reference',
     {
       description:
-        'Claude Code の設定リファレンス(settings.json のキーと環境変数)を引く。' +
+        'Claude Code の設定リファレンス(settings.json のキーと環境変数)を調べる。' +
         'key を指定すると完全一致で 1 件、query を指定するとキーワード検索、' +
         'どちらも指定しない場合はキー名の一覧だけを返す。key と query の両方を指定した場合は key を優先する。',
       inputSchema: z.object({
