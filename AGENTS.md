@@ -11,7 +11,6 @@ pnpm workspace モノレポ / TypeScript / Astro + Cloudflare Workers
   - 1箇所からしか呼ばれない整形・map・変換処理はインラインにする
   - 新規 helper を追加した場合は、変更後に call site 数を確認し、1箇所だけならインライン化できない理由を確認する
 - 既存パターンを流用する前に、隣接する実装ファイルを最低1つ読んで揃える
-- 想定していなかった失敗(実装ミス・レビュー漏れ)に遭遇したら、「症状 → ありがちな間違い → 正しい一手」の形式でまとめてユーザーに提示し、承認後に `.claude/rules/lessons.md` に追記する(既存エントリと重複していないか確認してから追記する)
 
 | 目的 | コマンド |
 |---|---|
@@ -21,3 +20,17 @@ pnpm workspace モノレポ / TypeScript / Astro + Cloudflare Workers
 - GitHub の情報取得には `gh` コマンドを使用する
 - GitHub Actions 関連ファイルを変更後は `/general-dev-skills:actions-check` で静的解析を実施する
 - `lint` エラー時は `unsafe-fix` を使用してから個別に修正する
+
+## Agent skills
+
+### Issue tracker
+
+Issue は GitHub Issues(Suntory-N-Water/claude-code-changelog-viewer)で管理し、`gh` CLI で操作する。詳細は `docs/agents/issue-tracker.md` を参照。
+
+### Triage labels
+
+triage の5ロールは既定のラベル名(`needs-triage` / `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`)をそのまま使う。詳細は `docs/agents/triage-labels.md` を参照。
+
+### Domain docs
+
+single-context 構成。ルートの `CONTEXT.md` と `docs/adr/` を使う。詳細は `docs/agents/domain.md` を参照。
