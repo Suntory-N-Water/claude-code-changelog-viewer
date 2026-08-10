@@ -7,12 +7,10 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 import astroExpressiveCode from 'astro-expressive-code';
 import pagefind from 'astro-pagefind';
-import rehypeRaw from 'rehype-raw';
-import rehypeSanitize from 'rehype-sanitize';
 import { remarkAlert } from 'remark-github-blockquote-alert';
 import remarkLinkCardPlus from 'remark-link-card-plus';
 import { seoValidate } from './src/integrations/seo-validate.ts';
-import { markdownSanitizeSchema } from './src/lib/markdown-sanitize.ts';
+import { markdownRehypePlugins } from './src/lib/markdown-sanitize.ts';
 import { getReleaseMap } from './src/lib/release-map.ts';
 
 // 週次記事の本文中で段落単独の URL をリンクカード化する。
@@ -72,10 +70,7 @@ export default defineConfig({
   markdown: {
     processor: unified({
       remarkPlugins: [remarkAlert, [remarkLinkCardPlus, linkCardOptions]],
-      // Astro 内蔵の rehype-raw はユーザー指定プラグインより後に走る。
-      // そこへ sanitize だけを渡すと raw HTML が hast 要素になる前に処理され、
-      // 正当な <img> ごと落ちる。rehype-raw を自前で先頭に置いてから sanitize する。
-      rehypePlugins: [rehypeRaw, [rehypeSanitize, markdownSanitizeSchema]],
+      rehypePlugins: [...markdownRehypePlugins],
     }),
   },
   integrations: [

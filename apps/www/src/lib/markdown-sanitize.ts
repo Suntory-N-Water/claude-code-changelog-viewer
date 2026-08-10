@@ -1,4 +1,5 @@
-import { type Options, defaultSchema } from 'rehype-sanitize';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize, { type Options, defaultSchema } from 'rehype-sanitize';
 
 const defaultAttributes = defaultSchema.attributes ?? {};
 
@@ -7,7 +8,7 @@ const defaultAttributes = defaultSchema.attributes ?? {};
  * 本文には LLM が生成した文章と GitHub の CHANGELOG.md 原文がそのまま入るため、
  * 許可した要素・属性以外は出力前に落とす。
  */
-export const markdownSanitizeSchema: Options = {
+const markdownSanitizeSchema: Options = {
   ...defaultSchema,
   // defaultSchema は id / aria-describedby / aria-labelledby / name に user-content- を前置する。
   // このうち id は remark-rehype が脚注へ既に付けており、二重に付くと
@@ -41,3 +42,15 @@ export const markdownSanitizeSchema: Options = {
     path: ['d'],
   },
 };
+
+/**
+ * Astro 内蔵の rehype-raw はユーザー指定プラグインより後に走る。
+ * そこへ sanitize だけを渡すと raw HTML が hast 要素になる前に処理され、
+ * 正当な <img> ごと落ちる。rehype-raw を自前で先頭に置いてから sanitize する。
+ * この順序が壊れると防御が無効になるため、astro.config.mjs 側で組み立てず
+ * ここから配列ごと渡してテストと共有する。
+ */
+export const markdownRehypePlugins: [
+  typeof rehypeRaw,
+  [typeof rehypeSanitize, Options],
+] = [rehypeRaw, [rehypeSanitize, markdownSanitizeSchema]];
