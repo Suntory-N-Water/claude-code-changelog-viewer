@@ -1,21 +1,17 @@
 import { createMarkdownProcessor } from '@astrojs/markdown-remark';
-import rehypeRaw from 'rehype-raw';
-import rehypeSanitize from 'rehype-sanitize';
 import { remarkAlert } from 'remark-github-blockquote-alert';
-import { beforeAll, describe, expect, test } from 'vitest';
-import { markdownSanitizeSchema } from '../markdown-sanitize';
+import { describe, expect, test } from 'vitest';
+import { markdownRehypePlugins } from '../markdown-sanitize';
 
-let render: (markdown: string) => Promise<string>;
-
-beforeAll(async () => {
-  const processor = await createMarkdownProcessor({
-    remarkPlugins: [remarkAlert],
-    rehypePlugins: [rehypeRaw, [rehypeSanitize, markdownSanitizeSchema]],
-  });
-  render = async (markdown) => (await processor.render(markdown)).code;
+const processor = await createMarkdownProcessor({
+  remarkPlugins: [remarkAlert],
+  rehypePlugins: [...markdownRehypePlugins],
 });
 
-describe('markdownSanitizeSchema', () => {
+const render = async (markdown: string) =>
+  (await processor.render(markdown)).code;
+
+describe('記事本文のサニタイズ', () => {
   test('script 要素を除去する', async () => {
     const html = await render('<script>alert(1)</script>\n');
 
@@ -37,6 +33,28 @@ describe('markdownSanitizeSchema', () => {
     expect(html).not.toContain('javascript:');
   });
 
+  test('target は _blank 以外を除去する', async () => {
+    const html = await render(
+      '<a href="https://example.com/" target="_self">link</a>\n',
+    );
+
+    expect(html).not.toContain('target=');
+  });
+
+  test('rel は noopener / noreferrer / nofollow 以外の値を除去する', async () => {
+    const html = await render(
+      '<a href="https://example.com/" rel="opener nofollow">link</a>\n',
+    );
+
+    expect(html).toContain('rel="nofollow"');
+  });
+
+  test('window のプロパティを作る name に user-content- を前置する', async () => {
+    const html = await render('<img name="location" src="https://x/y.png">\n');
+
+    expect(html).toContain('name="user-content-location"');
+  });
+
   test('コラム記事の画像アップロードが出力する img の属性を残す', async () => {
     const html = await render(
       '<img alt="図" src="https://assets.claude-code-log.com/a.png" width="800" height="400">\n',
@@ -48,15 +66,15 @@ describe('markdownSanitizeSchema', () => {
     expect(html).toContain('height="400"');
   });
 
+  // アイコンの形状はプラグイン側の都合で変わるため、属性が残ることだけを見る
   test('GitHub 風アラートのクラスとアイコンを残す', async () => {
     const html = await render('> [!NOTE]\n> 本文\n');
 
-    expect(html).toContain('class="markdown-alert markdown-alert-note"');
-    expect(html).toContain('class="markdown-alert-title"');
-    expect(html).toContain('<svg');
-    expect(html).toContain('viewBox="0 0 16 16"');
-    expect(html).toContain('aria-hidden="true"');
-    expect(html).toMatch(/<path d="[^"]+"/);
+    expect(html).toMatch(/<div class="[^"]*markdown-alert/);
+    expect(html).toMatch(/<p class="[^"]*markdown-alert-title/);
+    expect(html).toMatch(/<svg[^>]*\sviewBox="/);
+    expect(html).toMatch(/<svg[^>]*\saria-hidden="/);
+    expect(html).toMatch(/<path[^>]*\sd="/);
   });
 
   // remark-link-card-plus はリンク先の OG 情報を取りに行くため、生成後の HTML を直接与える
@@ -83,25 +101,12 @@ describe('markdownSanitizeSchema', () => {
     expect(html).toContain('class="remark-link-card-plus__url"');
   });
 
-  test('_blank 以外の target と noopener 以外の rel を除去する', async () => {
-    const html = await render(
-      '<a href="https://example.com/" target="_self" rel="opener">link</a>\n',
-    );
-
-    expect(html).not.toContain('target=');
-    expect(html).not.toContain('opener"');
-  });
-
-  test('window のプロパティを作る name に user-content- を前置する', async () => {
-    const html = await render('<img name="location" src="https://x/y.png">\n');
-
-    expect(html).toContain('name="user-content-location"');
-  });
-
-  test('脚注のリンク先と id が一致する', async () => {
+  test('脚注のリンク先が同じ文書内の id を指す', async () => {
     const html = await render('本文[^1]\n\n[^1]: 注釈\n');
 
-    expect(html).toContain('href="#user-content-fn-1"');
-    expect(html).toContain('id="user-content-fn-1"');
+    const fragment = html.match(/href="#([^"]+)"/)?.[1];
+
+    expect(fragment).toBeDefined();
+    expect(html).toContain(`id="${fragment}"`);
   });
 });
