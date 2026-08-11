@@ -1,5 +1,5 @@
 ---
-import Search from 'astro-pagefind/components/Search';
+import '@pagefind/default-ui/css/ui.css';
 import Icon from './Icon.astro';
 import Button from './ui/Button.astro';
 ---
@@ -52,20 +52,14 @@ import Button from './ui/Button.astro';
         </div>
 
         <div id='search-modal-body' class='search-modal-body'>
-          <Search
-            id='search'
-            className='pagefind-ui'
-            uiOptions={{
-              showImages: false,
-              resetStyles: true,
-              highlightParam: 'highlight',
-              ranking: {
-                termSimilarity: 1.5,
-                pageLength: 0.3,
-                termFrequency: 0.8,
-              },
-            }}
-          />
+          <p
+            id='search-modal-status'
+            class='px-1 py-4 text-sm text-[hsl(var(--cc-main-black)/0.5)]'
+            role='status'
+          >
+            検索を準備しています…
+          </p>
+          <div id='search' class='pagefind-ui'></div>
         </div>
       </div>
     </div>
@@ -74,6 +68,35 @@ import Button from './ui/Button.astro';
 
 <script>
   let currentKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
+  // Pagefind UI は全ページのバンドルに載せず、モーダルを初めて開いた時だけ読み込む
+  let pagefindUiPromise: Promise<void> | null = null;
+
+  function loadPagefindUi() {
+    if (!pagefindUiPromise) {
+      pagefindUiPromise = import('@pagefind/default-ui')
+        .then(({ PagefindUI }) => {
+          new PagefindUI({
+            element: '#search',
+            bundlePath: '/pagefind/',
+            showImages: false,
+            resetStyles: true,
+            highlightParam: 'highlight',
+            ranking: {
+              termSimilarity: 1.5,
+              pageLength: 0.3,
+              termFrequency: 0.8,
+            },
+          });
+        })
+        .catch((error) => {
+          // 次に開いた時に再試行できるようにする
+          pagefindUiPromise = null;
+          throw error;
+        });
+    }
+    return pagefindUiPromise;
+  }
 
   // Mac 以外では Ctrl+K の kbd を表示
   const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
@@ -116,13 +139,27 @@ import Button from './ui/Button.astro';
 
     const overlayEl = overlay;
 
+    const status = document.getElementById('search-modal-status');
+
     function openModal() {
       overlayEl.classList.add('is-open');
       document.body.style.overflow = 'hidden';
-      const input = overlayEl.querySelector<HTMLInputElement>(
-        '.pagefind-ui__search-input',
-      );
-      input?.focus();
+      loadPagefindUi()
+        .then(() => {
+          status?.remove();
+          if (!overlayEl.classList.contains('is-open')) {
+            return;
+          }
+          overlayEl
+            .querySelector<HTMLInputElement>('.pagefind-ui__search-input')
+            ?.focus();
+        })
+        .catch(() => {
+          if (status) {
+            status.textContent =
+              '検索を読み込めませんでした。時間をおいて再度お試しください。';
+          }
+        });
       window.gtag?.('event', 'search_opened', {
         event_category: 'engagement',
         page_path: window.location.pathname,
