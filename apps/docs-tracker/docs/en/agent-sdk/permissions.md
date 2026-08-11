@@ -9,8 +9,6 @@ source: https://code.claude.com/docs/en/agent-sdk/permissions.md
 
 The Claude Agent SDK provides permission controls to manage how Claude uses tools. Use permission modes and rules to define what's allowed automatically, and the [`canUseTool` callback](/docs/en/agent-sdk/user-input) to handle everything else at runtime.
 
-This page covers permission modes and rules. To build interactive approval flows where users approve or deny tool requests at runtime, see [Handle approvals and user input](/docs/en/agent-sdk/user-input).
-
 ## How permissions are evaluated
 
 When Claude requests a tool, the SDK checks permissions in this order:
@@ -31,7 +29,7 @@ Check `allow` rules (from `allowed_tools` and settings.json). If a rule matches,
 
 If not resolved by any of the above, call your [`canUseTool` callback](/docs/en/agent-sdk/user-input) for a decision. In `dontAsk` mode, this step is skipped and the tool is denied.
 
-As of v2.1.198, if you pass a `canUseTool` callback that this evaluation order can never reach, the TypeScript SDK emits a Node.js process warning once when the query is constructed. The warning's code is `CLAUDE_SDK_CAN_USE_TOOL_SHADOWED`. Two configurations trigger it:
+If you pass a `canUseTool` callback that this evaluation order can never reach, the TypeScript SDK emits a Node.js process warning once when the query is constructed. The warning's code is `CLAUDE_SDK_CAN_USE_TOOL_SHADOWED`. Two configurations trigger it:
 
 - `permissionMode: 'bypassPermissions'`, which auto-approves every call that reaches the permission mode step
 - Each bare `allowedTools` entry such as `"Read"`, which auto-approves that whole tool before the callback is consulted

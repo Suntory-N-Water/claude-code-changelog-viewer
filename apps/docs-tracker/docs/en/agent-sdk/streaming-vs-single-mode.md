@@ -14,8 +14,6 @@ The Claude Agent SDK supports two distinct input modes for interacting with agen
 - **Streaming Input Mode**: a persistent, interactive session
 - **Single Message Input**: one-shot queries that use session state and resuming
 
-This guide explains the differences, benefits, and use cases for each mode to help you choose the right approach for your application.
-
 ## Streaming Input Mode (Recommended)
 
 Streaming input mode is the **preferred** way to use the Claude Agent SDK. It provides full access to the agent's capabilities and enables rich, interactive experiences.
@@ -62,15 +60,13 @@ sequenceDiagram
 
 ### Benefits
 
-Attach images directly to messages for visual analysis and understanding
+In streaming input mode, you work in a persistent session with these capabilities:
 
-Send multiple messages that process sequentially, with ability to interrupt
-
-Full access to all tools and custom MCP servers during the session
-
-See responses as they're generated, not just final results
-
-Maintain conversation context across multiple turns naturally
+- **Image uploads**: attach images directly to messages for visual analysis and understanding
+- **Queued messages**: send multiple messages that process sequentially, with ability to interrupt
+- **Tool integration**: full access to all tools and custom MCP servers during the session
+- **Real-time feedback**: see responses as they're generated, not just final results
+- **Context persistence**: maintain conversation context across multiple turns naturally
 
 ### Implementation Example
 

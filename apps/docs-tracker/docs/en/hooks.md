@@ -265,7 +265,7 @@ Each event type matches on a different field:
 | `SessionStart` | how the session started | `startup`, `resume`, `clear`, `compact`, `fork` |
 | `Setup` | which CLI flag triggered setup | `init`, `maintenance` |
 | `SessionEnd` | why the session ended | `clear`, `resume`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |
-| `Notification` | notification type | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, `elicitation_complete`, `elicitation_response`, `agent_needs_input`, `agent_completed` |
+| `Notification` | notification type | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, `elicitation_url_dialog`, `elicitation_complete`, `elicitation_response`, `agent_needs_input`, `agent_completed` |
 | `SubagentStart` | agent type | `general-purpose`, `Explore`, `Plan`, custom agent names, or plugin-scoped names like `^my-plugin:reviewer$` |
 | `PreCompact`, `PostCompact` | what triggered compaction | `manual`, `auto` |
 | `SubagentStop` | agent type | same values as `SubagentStart` |
@@ -1657,6 +1657,8 @@ If the deferred tool is no longer available when you resume, the process exits w
 Runs when Claude Code is about to ask you for permission. In sessions that can't show a prompt, such as background subagents in [non-interactive mode](/docs/en/headless), Claude Code still runs these hooks, and if no hook returns a decision, it denies the tool call.
 Use [PermissionRequest decision control](#permissionrequest-decision-control) to allow or deny on behalf of the user.
 
+Use this event when you need a signal the moment Claude asks for permission. The [Notification](#notification) event's `permission_prompt` type reaches you only after about 6 seconds without terminal input.
+
 Matches on tool name, same values as PreToolUse.
 
 #### PermissionRequest input
@@ -1973,18 +1975,27 @@ When `retry` is `true`, Claude Code adds a message to the conversation telling t
 
 Runs when Claude Code sends notifications. Matches on notification type. Omit the matcher to run hooks for all notification types.
 
+You receive these hook events even with desktop notifications turned off: the `preferredNotifChannel` setting, including `notifications_disabled`, changes only how you're alerted, not whether your hook runs.
+
 | Matcher | When it fires |
 | :- | :- |
-| `permission_prompt` | Claude needs you to approve a tool use |
-| `idle_prompt` | Claude is done and waiting for your next prompt |
+| `permission_prompt` | Claude needs you to approve a tool use and you haven't typed for about 6 seconds |
+| `idle_prompt` | Claude finished responding about 60 seconds ago and you haven't typed since |
 | `auth_success` | Authentication completes |
-| `elicitation_dialog` | An MCP server opens an elicitation form |
+| `elicitation_dialog` | An MCP server opens an elicitation form and you haven't typed for about 6 seconds |
+| `elicitation_url_dialog` | An MCP server asks you to open a browser URL and you haven't typed for about 6 seconds |
 | `elicitation_complete` | An MCP elicitation form is submitted or dismissed |
 | `elicitation_response` | An MCP elicitation response is sent back to the server |
 | `agent_needs_input` | A background session starts waiting on your input. Fires only while [agent view](/docs/en/agent-view) is open in a terminal |
 | `agent_completed` | A background session finishes or fails. Fires only while [agent view](/docs/en/agent-view) is open in a terminal |
 
 The `agent_needs_input` and `agent_completed` types require Claude Code v2.1.198 or later.
+
+The `permission_prompt`, `idle_prompt`, `elicitation_dialog`, and `elicitation_url_dialog` types share their timing with desktop notifications, so you only see them when you appear to be away from the terminal:
+
+- Expect `permission_prompt` once you haven't typed for about 6 seconds. The timer starts when the permission prompt appears, and each keystroke defers it. To run a hook immediately on every permission ask, use [PermissionRequest](#permissionrequest) instead.
+- Expect `idle_prompt` about 60 seconds after Claude finishes responding, and only if you haven't typed since.
+- Expect `elicitation_dialog` for an elicitation form, or `elicitation_url_dialog` for a browser URL request, once you haven't typed for about 6 seconds. Both share the same 6-second gate as `permission_prompt`: the timer starts when the dialog appears, and each keystroke defers it.
 
 Use separate matchers to run different handlers depending on the notification type. This configuration triggers a permission-specific alert script when Claude needs permission approval and a different notification when Claude has been idle:
 

@@ -80,7 +80,7 @@ For a production example of hooks that run a separate model review and feed find
 
 Get a desktop notification whenever Claude finishes working and needs your input, so you can switch to other tasks without checking the terminal.
 
-This hook uses the `Notification` event, which Claude Code fires when Claude is waiting for input or permission. Each tab below uses the platform's native notification command. Add this to `~/.claude/settings.json`:
+This hook uses the `Notification` event, which Claude Code fires when Claude is waiting for input or permission. See [when each notification type fires](/docs/en/hooks#notification) for the exact timing. Each tab below uses the platform's native notification command. Add this to `~/.claude/settings.json`:
 
 ```json theme={null}
 {
@@ -158,10 +158,11 @@ The empty `matcher` fires on all notification types. To fire only on specific ev
 
 | Matcher | Fires when |
 | :- | :- |
-| `permission_prompt` | Claude needs you to approve a tool use |
-| `idle_prompt` | Claude is done and waiting for your next prompt |
+| `permission_prompt` | Claude needs you to approve a tool use and you haven't typed for about 6 seconds |
+| `idle_prompt` | Claude finished responding about 60 seconds ago and you haven't typed since |
 | `auth_success` | Authentication completes |
-| `elicitation_dialog` | An MCP server opens an elicitation form |
+| `elicitation_dialog` | An MCP server opens an elicitation form and you haven't typed for about 6 seconds |
+| `elicitation_url_dialog` | An MCP server asks you to open a browser URL and you haven't typed for about 6 seconds |
 | `elicitation_complete` | An MCP elicitation form is submitted or dismissed |
 | `elicitation_response` | An MCP elicitation response is sent back to the server |
 | `agent_needs_input` | A background session starts waiting on your input. Fires only while [agent view](/docs/en/agent-view) is open |
@@ -624,7 +625,7 @@ Each event type matches on a specific field:
 | `SessionStart` | how the session started | `startup`, `resume`, `clear`, `compact`, `fork` |
 | `Setup` | which CLI flag triggered setup | `init`, `maintenance` |
 | `SessionEnd` | why the session ended | `clear`, `resume`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |
-| `Notification` | notification type | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, `elicitation_complete`, `elicitation_response`, `agent_needs_input`, `agent_completed` |
+| `Notification` | notification type | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, `elicitation_url_dialog`, `elicitation_complete`, `elicitation_response`, `agent_needs_input`, `agent_completed` |
 | `SubagentStart` | agent type | `general-purpose`, `Explore`, `Plan`, or custom agent names |
 | `PreCompact`, `PostCompact` | what triggered compaction | `manual`, `auto` |
 | `SubagentStop` | agent type | same values as `SubagentStart` |
