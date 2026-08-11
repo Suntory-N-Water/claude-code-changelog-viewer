@@ -15,8 +15,6 @@ Hooks are callback functions that run your code in response to agent events, lik
 - **Require human approval** for sensitive actions like database writes or API calls
 - **Track session lifecycle** to manage state, clean up resources, or send notifications
 
-This guide covers how hooks work and how to configure them, with examples for common patterns like blocking tools, modifying inputs, and forwarding notifications.
-
 ## How hooks work
 
 Something happens during agent execution and the SDK fires an event: a tool is about to be called (`PreToolUse`), a tool returned a result (`PostToolUse`), a subagent started or stopped, the agent is idle, or execution finished. See the [full list of events](#available-hooks).
