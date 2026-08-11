@@ -60,7 +60,9 @@ type "hooks", and tell me what results appear
 
 Before Claude's first browser action, Claude Code asks for permission to use the `claude-in-chrome` skill. Approve it and Claude opens a new tab and starts the task.
 
-Run `/chrome` at any time to check the connection status, manage permissions, reconnect the extension, or choose which connected browser to use. The integration is working when the status panel shows "Status: Enabled" and "Extension: Installed". If more than one browser is connected when a browser action starts, Claude prompts you to pick one.
+Run `/chrome` at any time to check the connection status, manage permissions, reconnect the extension, or choose which connected browser to use. The integration is working when the status panel shows "Status: Enabled" and "Extension: Installed".
+
+If more than one browser is connected, you choose which one Claude uses. When a browser action starts before you've chosen, Claude prompts you to pick one. To switch browsers later, run `/chrome` and select **Select browser…**. Claude keeps using your choice even when another browser connects. Browser selection requires Claude Code v2.1.154 or later.
 
 For VS Code, see [browser automation in VS Code](/docs/en/vs-code#automate-browser-tasks-with-chrome).
 
