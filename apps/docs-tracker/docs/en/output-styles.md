@@ -51,7 +51,7 @@ Save it at one of three levels. The file name becomes the style name unless you 
 - Project: `.claude/output-styles`
 - Managed policy: `.claude/output-styles` inside the [managed settings directory](/docs/en/settings#settings-files)
 
-Project output styles load from every `.claude/output-styles/` between the working directory and the repository root. As of v2.1.178, when more than one of these nested directories defines a style with the same name, Claude Code uses the one closest to the working directory.
+Project output styles load from every `.claude/output-styles/` between the working directory and the repository root. When more than one of these nested directories defines a style with the same name, Claude Code uses the one closest to the working directory.
 
 Decide whether to keep Claude Code's software engineering instructions. Set `keep-coding-instructions: true` if you're changing how Claude communicates but still want it coding the same way. Leave it out if Claude won't be doing software engineering.
 
