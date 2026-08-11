@@ -45,7 +45,7 @@ Permission rules are enforced by Claude Code, not by the model. Instructions in 
 
 ## Permission modes
 
-Claude Code supports several permission modes that control how it approves tool calls. See [Permission modes](/docs/en/permission-modes) for when to use each one. Set the `defaultMode` in your [settings files](/docs/en/settings#settings-files):
+Claude Code supports several permission modes that control how it approves tool calls. See [Permission modes](/docs/en/permission-modes) for when to use each one. Set the `defaultMode` in your [settings files](/docs/en/settings#settings-files). In sessions the VS Code extension starts, the extension resolves the starting mode instead. See [Switch permission modes](/docs/en/permission-modes#switch-permission-modes).
 
 | Mode | Description |
 | :- | :- |

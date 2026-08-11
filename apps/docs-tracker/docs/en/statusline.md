@@ -131,8 +131,6 @@ Your script runs once when a session starts, including when you resume one. Afte
 - Vim mode toggles
 - A [`refreshInterval`](#manually-configure-a-status-line) timer elapses, if you set one
 
-Before v2.1.216, resuming a session ran the command twice in quick succession, so the first result could flicker before being replaced.
-
 Claude Code debounces updates at 300ms, so rapid changes batch together and your script runs once after the changes stop. If a new update triggers while your script is still running, Claude Code cancels the in-flight script. If you edit your script, the changes appear the next time an update trigger re-runs it.
 
 The event-driven triggers can go quiet when the main session is idle, for example while a coordinator waits on background subagents. To keep time-based or externally-sourced segments current during idle periods, set [`refreshInterval`](#manually-configure-a-status-line) to also re-run the command on a fixed timer.
@@ -537,7 +535,7 @@ process.stdin.on('end', () => {
 
 ### Display multiple lines
 
-Your script can output multiple lines to create a richer display. Each `echo` statement produces a separate row in the status area.
+Your script can output multiple lines to create a richer display.
 
 This example combines several techniques: threshold-based colors (green under 70%, yellow 70-89%, red 90%+), a progress bar, and git branch info. Each `print` or `echo` statement creates a separate row:
 
@@ -638,7 +636,7 @@ process.stdin.on('end', () => {
 
 ### Clickable links
 
-This example creates a clickable link to your GitHub repository. It reads the git remote URL, converts SSH format to HTTPS with `sed`, and wraps the repo name in OSC 8 escape codes. Hold Cmd (macOS) or Ctrl (Windows/Linux) and click to open the link in your browser.
+This example creates a clickable link to your GitHub repository. Hold Cmd (macOS) or Ctrl (Windows/Linux) and click to open the link in your browser.
 
 Each script gets the git remote URL, converts SSH format to HTTPS, and wraps the repo name in OSC 8 escape codes. The Bash version uses `printf '%b'` which interprets backslash escapes more reliably than `echo -e` across different shells:
 
