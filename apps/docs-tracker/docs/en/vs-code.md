@@ -73,7 +73,7 @@ Run "Claude Code: Open Walkthrough" from the Command Palette for a guided tour o
 
 The prompt box supports several features:
 
-- **Permission modes**: click the mode indicator at the bottom of the prompt box to switch modes, or set the default in VS Code settings under `claudeCode.initialPermissionMode`. See [permission modes](/docs/en/permission-modes#switch-permission-modes) for every mode the indicator offers.
+- **Permission modes**: click the mode indicator at the bottom of the prompt box to switch modes, or set the default in your VS Code user settings under `claudeCode.initialPermissionMode`. See [permission modes](/docs/en/permission-modes#switch-permission-modes) for every mode the indicator offers.
   - **Manual**: Claude asks permission before file edits and most shell commands.
   - **Plan**: Claude describes what it will do and waits for approval before making changes. VS Code automatically opens the plan as a full Markdown document where you can add inline comments to give feedback before Claude begins.
   - **Edit automatically**: Claude makes edits without asking.
@@ -276,10 +276,12 @@ Add `"$schema": "https://json.schemastore.org/claude-code-settings.json"` to you
 
 ### Extension settings
 
+VS Code reads `initialPermissionMode` from your user settings and ignores workspace values. Before v2.1.225, VS Code defaulted the setting to `default` and applied workspace values.
+
 | Setting | Default | Description |
 | - | - | - |
 | `useTerminal` | `false` | Launch Claude in terminal mode instead of graphical panel |
-| `initialPermissionMode` | `default` | Controls approval prompts for new conversations: `default`, `plan`, `acceptEdits`, or `bypassPermissions`. `manual` is an alias for `default` and selects the mode labeled **Manual** in the mode indicator. Requires Claude Code v2.1.200 or later. See [permission modes](/docs/en/permission-modes). |
+| `initialPermissionMode` | - | Controls approval prompts for new conversations: `default`, `plan`, `acceptEdits`, or `bypassPermissions`. `manual` is an alias for `default` and selects the mode labeled **Manual** in the mode indicator. When you leave it unset, Claude Code resolves the session's starting mode itself. See [how to switch permission modes and set the session default](/docs/en/permission-modes#switch-permission-modes). |
 | `preferredLocation` | `panel` | Where Claude opens: `sidebar` (right) or `panel` (new tab) |
 | `autosave` | `true` | Auto-save files before Claude reads or writes them |
 | `useCtrlEnterToSend` | `false` | Use Ctrl/Cmd+Enter instead of Enter to send prompts |
