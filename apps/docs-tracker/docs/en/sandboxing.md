@@ -458,7 +458,7 @@ The sandboxed Bash tool leverages operating system security primitives:
 - **Linux**: uses [bubblewrap](https://github.com/containers/bubblewrap) for isolation
 - **WSL2**: uses bubblewrap, same as Linux
 
-WSL1 is not supported because bubblewrap requires kernel features only available in WSL2. These OS-level restrictions ensure that all child processes spawned by Claude Code's commands inherit the same security boundaries.
+WSL1 is not supported because bubblewrap requires kernel features only available in WSL2.
 
 These same primitives are available as the standalone [`@anthropic-ai/sandbox-runtime`](https://github.com/anthropic-experimental/sandbox-runtime) package, which the [Sandbox environments](/docs/en/sandbox-environments#sandbox-runtime) page covers as a separate approach for wrapping the entire Claude Code process.
 
@@ -482,7 +482,7 @@ Filesystem and network restrictions are configured through both sandbox settings
 | `sandbox.filesystem.allowWrite` | Grants subprocess write access to paths outside the working directory |
 | `sandbox.filesystem.denyWrite` and `sandbox.filesystem.denyRead` | Block subprocess access to specific paths |
 | `sandbox.filesystem.allowRead` | Re-allows reading specific paths within a `denyRead` region |
-| [`sandbox.filesystem.disabled`](#disable-filesystem-isolation) | Turns the filesystem layer off entirely while keeping network isolation; requires Claude Code v2.1.216 or later |
+| [`sandbox.filesystem.disabled`](#disable-filesystem-isolation) | Turns the filesystem layer off entirely while keeping network isolation |
 | `Edit` allow rules | Grant write access to specific paths, the same way `sandbox.filesystem.allowWrite` does |
 | `Read` and `Edit` deny rules | Block access to specific files or directories |
 | `WebFetch` allow and deny rules | Control domain access |
