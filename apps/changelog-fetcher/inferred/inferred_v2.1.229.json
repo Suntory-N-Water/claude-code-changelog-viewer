@@ -1,0 +1,868 @@
+{
+  "version": "2.1.229",
+  "summary": "`/commit-push-pr` において、`--force` などの危険なフラグが含まれる Git 操作の自動承認が無効化され、必ず確認を挟むようになりました。また、同じプロンプトの接頭辞を持つ複数の並列エージェントを staggered 起動で意図的に遅らせて走らせることで、キャッシュ再利用による大幅なトークン節約が可能になります。さらに、VS Code のサイドバーにフォルダ形式の「セッショングループ」が追加され、散らばりがちだった大量の会話履歴を右クリックや Shift クリックで一括して整理整頓できるようになりました。",
+  "items": [
+    {
+      "id": "9ca1f2caac83",
+      "content": "- Documented `claude remote-control --continue` for resuming the most recent Remote Control session",
+      "content_ja": "最も新しいリモートコントロールセッションを再開するための `claude remote-control --continue` コマンドを追加し、ドキュメントに記載しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "リモートコントロールセッションを再開する際、以前のセッション ID を手動で探して指定するか、毎回新規にセッションを作成し直す必要がありました。",
+        "after": "特定のディレクトリから最後に開始したリモートコントロールセッションを、コマンドオプションを1つ追加するだけで即座に再開できます。",
+        "benefit": "セッション ID を探したり、新しい接続をセットアップしたりする手間がなくなり、1つのフラグを指定するだけで作業を再開できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "既存のリモートコントロール接続を簡単に再開できるようになり、接続ワークフローが改善します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        }
+      ]
+    },
+    {
+      "id": "c5bb730b01b5",
+      "content": "- Added server-supplied Claude Code hook support for self-hosted runner sessions, matching managed-environment behavior",
+      "content_ja": "セルフホスト環境のランナーセッションにおいて、管理環境と同様にサーバーから提供される Claude Code フックのサポートを追加しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "セルフホスト環境のランナープロセスでは、サーバー側で管理されているフックが適用されず、機能の同期や動作の一貫性を維持することが困難でした。",
+        "after": "サーバーから提供されるフックがセルフホストされたランナーセッションでも実行され、管理環境と同じ挙動を実現できます。",
+        "benefit": "フックを各実行マシンに手動で配布・同期する作業を行わずに済むようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セルフホストされた実行環境でのフック同期を自動化する重要なバックエンド統合機能です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-configuration.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-testing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments.md"
+        }
+      ]
+    },
+    {
+      "id": "a0f1ff3ec908",
+      "content": "- Added SSE keepalive pings to gateway streaming responses during long thinking pauses, preventing idle-timeout disconnects on Vertex and Bedrock upstreams",
+      "content_ja": "Vertex AI や Amazon Bedrock の上流プロバイダにおいて、モデルが長い思考を行っている間にゲートウェイのストリーミング応答へ SSE keepalive ピングを追加し、アイドルタイムアウトによる切断を防止するようにしました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "モデルが複雑な思考タスクを実行中に、ネットワーク通信が一定時間途切れたとみなされてゲートウェイやロードバランサー側で接続が遮断されていました。",
+        "after": "思考中も定期的に keepalive ピングが送出されるため、タイムアウトによる不意の切断を防ぎ、ストリーミング接続が維持されます。",
+        "benefit": "接続エラーによる処理の中断を気にすることなく、モデルに複雑で時間のかかる推論タスクを実行させることができるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "サードパーティ製 upstream で発生していた時間のかかる推論時の不意の切断を防止します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-protocol.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/network-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "24e876b74163",
+      "content": "- Added plugin marketplace `command` sources: a local command (e.g. an IDE) prints the plugin directory, which is re-resolved each session and applied without a restart; `mode: \"link\"` uses it in place",
+      "content_ja": "プラグインマーケットプレイスのコマンドソースとして、セッションごとにプラグインディレクトリを再解決して適用するローカルコマンドソースを追加し、さらにその場でリンク利用する `mode: \"link\"` に対応しました。",
+      "prefix": "Added",
+      "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "IDE などの外部ツールでプラグインのパスが変わるたびに、Claude Code の再起動やプラグインの手動再インストールが必要でした。",
+        "after": "ローカルコマンドを介してパスが動的に再解決され、Claude Code を再起動することなく、その場でプラグインの最新状態がリンクされて反映されます。",
+        "benefit": "開発中のプラグインを書き換えるたびにインストールコマンドを実行したり、CLIを立ち上げ直したりする必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プラグインの動的バインドにより、開発中の再起動を一切不要にする強力な追加機能です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-dependencies.md"
+        }
+      ]
+    },
+    {
+      "id": "4306ce3bcd5a",
+      "content": "- `ListAgents` now marks disconnected Remote Control sessions as `offline` and labels your cloud sessions as `cloud`",
+      "content_ja": "`ListAgents` ツールにおいて、切断されたリモートコントロールセッションを `offline` と明記し、クラウドセッションには `cloud` ラベルを表示するように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "接続可能なエージェントやセッションの一覧を取得した際、どれが現在アクティブでどれがすでに切断されているのか、またローカルかクラウドかが判別しづらい状況でした。",
+        "after": "切断されたセッションは `offline` と表示され、Webなどのクラウドセッションは `cloud` と明示されるため、接続状態がひと目で分かります。",
+        "benefit": "無効な接続に対してメッセージを送信してエラーになるのを避けることができます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "セッション一覧表示における接続ステータスの明確化ですが、表示上の改善に留まります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        }
+      ]
+    },
+    {
+      "id": "9adca55a598b",
+      "content": "- Fixed long responses partly disappearing while streaming and being printed twice in the terminal",
+      "content_ja": "ストリーミング中に長い応答の一部が消失し、ターミナルに重複して印刷される不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ストリーミング描画中の不快な重複印刷バグを修正する、表示品質の向上です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "fe1be2a8ff16",
+      "content": "- Fixed a crash to the error screen (including on `--resume` of the affected session) when a tool call had a non-string `glob`, `file_path`, or `command` value",
+      "content_ja": "ツール呼び出しの `glob`、`file_path`、または `command` に文字列以外の値が渡された際、クラッシュしてエラー画面が表示される（影響を受けたセッションの `--resume` 時も含む）問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "モデルが誤って非文字列の値を引数に指定してツールを呼び出すと、アプリケーション全体が即座にクラッシュし、該当セッションの再開すらできなくなっていました。",
+        "after": "無効な引数型が渡された場合でも、クラッシュを回避してエラーを適切にハンドリングし、セッションの復旧も可能になります。",
+        "benefit": "予期せぬ引数のエラーによって、それまでの対話履歴や進行中のセッションが失われる事態を回避できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "誤った型の引数によるセッション履歴破損と起動時クラッシュを防止する重要なバグ修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/corporate-launcher.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "ebadfa242e9e",
+      "content": "- Fixed a RangeError crash when a progress bar or markdown table rendered in a very narrow terminal window (could also crash `claude --continue`/`--resume` at startup)",
+      "content_ja": "極端に横幅の狭いターミナルウィンドウでプログレスバーや Markdown テーブルを表示した際に、RangeError でクラッシュする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "画面の分割やターミナルの縮小によって表示領域が狭くなっていると、描画処理の計算で例外が発生し、起動時やセッション再開時にクラッシュを繰り返すことがありました。",
+        "after": "極端に狭いウィンドウ幅であってもレイアウトやバッファ計算が安全に行われ、クラッシュすることなく描画されます。",
+        "benefit": "ターミナルのサイズ変更を気にすることなく、任意のウィンドウ幅で安全に作業を継続できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "非常に狭いウィンドウ幅でのクラッシュを修正し、柔軟なエディタ分割を可能にします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
+    },
+    {
+      "id": "e63c550903e8",
+      "content": "- Fixed a crash on Windows when a tool call or message referenced a file by an extended-length (`\\\\?\\`) or UNC path",
+      "content_ja": "Windows 環境において、ツール呼び出しやメッセージが拡張長パス（`\\\\?\\`）または UNC パスでファイルを参照した際にクラッシュする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Windows 特有の長いパス表現や共有ネットワークフォルダーのパスが含まれていると、パス解析や隔離環境のチェックに失敗してプログラムが強制終了していました。",
+        "after": "拡張長パスやネットワーク上の UNC パスが指定されても、Windows 側でのパスハンドリングが正常に処理されクラッシュしなくなります。",
+        "benefit": "ファイルパスの記述制限を意識することなく、Windows のネットワーク共有上にあるリソースに対してツールを実行できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows のネットワークフォルダや拡張パスにおける強制終了を解決します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "d7033bf2e884",
+      "content": "- Fixed auto mode failing on every tool call for users who disable the attribution header via `CLAUDE_CODE_ATTRIBUTION_HEADER` (direct Anthropic API connections)",
+      "content_ja": "`CLAUDE_CODE_ATTRIBUTION_HEADER` を用いてアトリビューションヘッダーを無効にしている場合に、自動モード（auto mode）でのツール呼び出しがすべて失敗する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "直接の Anthropic API 接続においてプライバシーやセキュリティのためにヘッダー送信をオフに設定していると、すべてのツール実行がエラーになっていました。",
+        "after": "アトリビューションヘッダーが無効化された状態であっても、セキュリティ判定とツール実行の連携プロセスが正常に機能し、自動モードでのツール呼び出しが成功します。",
+        "benefit": "組織のポリシーでカスタムヘッダーを制限しながら、自動モードの自律的な実行機能を使用できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定のプライバシー設定環境下で自動モードが全滅していた致命的な干渉問題を解決します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fast-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/network-config.md"
+        }
+      ]
+    },
+    {
+      "id": "1c7af606933f",
+      "content": "- Fixed `/model` rejecting Sonnet/Opus 1M for claude.ai subscribers using a custom `ANTHROPIC_BASE_URL` gateway",
+      "content_ja": "カスタムのゲートウェイ（`ANTHROPIC_BASE_URL`）を経由して接続している claude.ai サブスクライバーに対し、`/model` コマンドが Sonnet 5 または Opus 5 の 1M コンテキストウィンドウ版を拒否してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "カスタムゲートウェイ環境では 1M の大容量コンテキストウィンドウの利用資格チェックが正常に動作せず、対応モデルの選択が拒否されていました。",
+        "after": "サブスクリプション情報とゲートウェイ経由の機能マッピングが修正され、`/model` から Sonnet 5 などの 1M コンテキスト版モデルを正しく選択・利用できるようになります。",
+        "benefit": "プロキシ環境下であっても、モデル制限を受けることなく大容量ファイルを読み込ませて対話できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "カスタムゲートウェイユーザーが最新モデルの大容量コンテキストを正常に選択できるよう修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/context-window.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/google-vertex-ai.md"
+        }
+      ]
+    },
+    {
+      "id": "00de2860481d",
+      "content": "- Fixed MCP OAuth with strict authorization servers by using `127.0.0.1` instead of `localhost` in the redirect URI",
+      "content_ja": "厳格な認可サーバーにおいて、リダイレクト URI で `localhost` の代わりに `127.0.0.1` を使用することで、MCP の OAuth 認証が失敗する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "一部のセキュリティ制限が厳しい認可サーバーでは、`localhost` というホスト名でのリダイレクト登録が拒否され、OAuth 認証ループを完了できませんでした。",
+        "after": "明確な IP アドレスである `127.0.0.1` を使用してリダイレクトを処理するため、厳格なポリシーを持つサーバーでも正常に認証が完了します。",
+        "benefit": "特定のエンタープライズ向け MCP サーバーとの連携時に、認証エラーでブロックされることがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "localhost の解決規則が厳格なセキュリティサーバーでの MCP 認証エラーを解消します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "64b9ba67eec4",
+      "content": "- Fixed Remote Control clients showing a stuck working spinner after a slash command typed in the laptop terminal",
+      "content_ja": "ラップトップのターミナルでスラッシュコマンドを入力した後に、リモートコントロールクライアントのローディングアイコンが回転したまま固まる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "リモート接続中のスピナーフリーズという特定の接続時 UI バグを修正します。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "29dec08c1cec",
+      "content": "- Fixed the Claude Code Review workflow generated by `/install-github-app` completing without posting its review on the pull request",
+      "content_ja": "`/install-github-app` で生成された Claude Code Review ワークフローが、プルリクエストにレビューコメントを投稿することなく完了してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "自動で構築された GitHub Actions ワークフローを実行しても、レビュー結果の検出自体は行われるものの、肝心の PR へのコメント書き込みがスキップされていました。",
+        "after": "ワークフローの処理と GitHub API 連携が修正され、実行終了時に PR に対するインラインコメントの投稿が確実に実行されます。",
+        "benefit": "レビューが実行されたかどうかを自分で確認しに行かなくても、PR 画面上に直接レビュー結果が反映されるようになります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "自動生成された PR レビューワークフローが結果を投稿しないという致命的な機能バグを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/ultrareview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/code-review.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md"
+        }
+      ]
+    },
+    {
+      "id": "76c814c722e8",
+      "content": "- Fixed multi-second UI stalls after editing a file with thousands of IDE diagnostics while the IDE extension is connected",
+      "content_ja": "IDE 拡張機能が接続されている際、非常に多くの診断情報（diagnostics）を含むファイルを編集した直後に、ユーザーインターフェースが数秒間フリーズする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "何千行もあるコードや大量のエラー・警告が存在するファイルを編集すると、IDE から Claude Code への情報同期処理がメインスレッドを占有し、CLI の操作が一時的に全く受け付けられなくなっていました。 ",
+        "after": "診断データの受け渡しや解析処理が最適化され、大量の警告があるファイルを修正しても UI が固まることなく快適にタイピングを続けられます。",
+        "benefit": "大規模なリファクタリングや Linter の警告が頻出するファイルの編集中に、作業の手を止められるストレスがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "大量の診断データ編集時の数秒間に及ぶエディタフリーズを解決し、快適性を大きく向上させます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/jetbrains.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "9dd5e8f3028f",
+      "content": "- Fixed one-shot `claude plugin` commands leaving a stray liveness file that could prevent cleanup of outdated plugin versions",
+      "content_ja": "単発の `claude plugin` コマンドを実行した際に、一時的なプロセス生存確認用ファイル（liveness file）が残留し、古いプラグインバージョンの自動クリーンアップが妨げられる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "対話モードに入らずにコマンドラインから直接プラグイン操作を行うと、不要になったはずの管理ファイルが削除されずに残り続け、古いキャッシュディレクトリがハードディスク上に蓄積し続けていました。",
+        "after": "コマンド終了時に生存ファイルが即座にクリーンアップされ、バックグラウンドでの不要プラグイン削除スイープが正常に機能するようになります。",
+        "benefit": "プラグインのインストールやアップデートを繰り返しても、不要な古いバージョンがディスク容量を無駄に圧迫するのを自動で防ぐことができます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "コマンドライン操作後にディスクに残る不要ファイルと、キャッシュのクリーンアップ漏れを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md"
+        }
+      ]
+    },
+    {
+      "id": "b4581b04358b",
+      "content": "- Fixed dynamic workflows inside CPU-limited containers using the host machine's core count instead of the container's CPU limit",
+      "content_ja": "CPU 制限が課されたコンテナ環境下で動的ワークフローを実行した際、コンテナの制限値ではなくホストマシンの物理コア数を使用しようとする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Kubernetes などのコンテナ内で並列エージェントを走らせる際、コンテナに設定された制限（limits）を超えてホスト側の物理コア数を基準にプロセスがフォークされ、リソース枯渇やコンテナの強制終了（OOM/CPU絞り）を招いていました。",
+        "after": "コンテナ環境の CPU リミット（cgroups等）が正しく認識され、その制約の範囲内で安全にワークフローの並列エージェント数が制御されます。",
+        "benefit": "共有サーバー上のコンテナでワークフローを実行しても、制限を超えてインフラを過負荷にしたり、強制停止させられたりする心配がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "コンテナ環境下で制限値を超えてリソースを消費する、共有インフラ上の重大な不具合を修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/secure-deployment.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-on-aws.md"
+        }
+      ]
+    },
+    {
+      "id": "a90f2c8a9ffa",
+      "content": "- Fixed a file-watcher handle leak after atomic file replacements, and an uncaught error on Windows when the scheduled-tasks watcher failed on a network or virtual filesystem",
+      "content_ja": "アトミックなファイル置換後にファイルウォッチャーのハンドルがリークする問題、および Windows 環境でスケジュールタスク監視がネットワークや仮想ファイルシステム上で失敗した際の未捕捉エラーを修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "リソースリークおよび Windows のファイルシステムアクセス失敗時のクラッシュを防ぎます。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "2167cad52b3b",
+      "content": "- Fixed SDK and `--input-format stream-json` sessions getting a 400 API error when a whitespace-only message was submitted",
+      "content_ja": "SDK または `--input-format stream-json` を使用したセッションにおいて、空白のみのメッセージが送信された際に 400 API エラーが発生する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "改行やスペース文字だけが何らかの拍子にメッセージ送信バッファに渡されると、API 側からリクエスト不正としてエラーが返され、接続が切断されていました。",
+        "after": "空白のみのメッセージの検証とフィルタリングが適切に行われ、エラーを誘発することなく処理が無視されるか、安全にスキップされます。",
+        "benefit": "外部システムとの連携や自動スクリプト実行時、空の入力が紛れ込んでも実行がクラッシュしなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プログラム実行時の空行による API 送信エラーを防ぎ、自動実行スクリプトの安定を保証します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md"
+        }
+      ]
+    },
+    {
+      "id": "92301a1d3740",
+      "content": "- Fixed conversations whose messages alone exceed the API's 32 MB request limit retrying compaction when no images or documents can be stripped; they now fail once with a clear message",
+      "content_ja": "メッセージテキストのみで API の 32MB リクエスト制限を超過した会話において、削除可能な画像や文書がないにもかかわらず要約（コンパクション）処理を繰り返し試行してしまう問題を修正し、明確なエラーメッセージを表示して1回で失敗するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "極めて長いテキスト会話でリクエスト上限に達した際、不要なバイナリデータの削除を試みるコンパクション処理が無制限にループし、無駄な API コールやハングアップを発生させていました。",
+        "after": "不要アタッチメントが無くテキスト自体で限界に達していることを即座に検出し、無駄なリトライをせずにユーザーに対処方法を促すエラーを出力して終了します。",
+        "benefit": "不毛な内部ループによる無駄なトークン消費を抑え、コンテキストサイズ問題の限界を即座に認識して対話を仕切り直すことができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "巨大なテキストでのコンパクションの無限ループとそれに伴う料金請求を阻止します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "353d8d38ea92",
+      "content": "- Fixed OpenTelemetry export from Claude Desktop sessions being rejected by the Desktop-managed gateway when that gateway is also the telemetry endpoint",
+      "content_ja": "Claude Desktop セッションからの OpenTelemetry データエクスポート先が Desktop 管理下のゲートウェイと同一である場合に、接続が拒否される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "プロキシやテレメトリ収集エンドポイントを一本化している企業向け環境において、送信元と送信先が同一のゲートウェイを指していると、セキュリティチェック等により通信が遮断されていました。",
+        "after": "同一ホスト上のデータルーティングが許可され、追加のコレクター設定をすることなく監視ログやメトリクスがゲートウェイに転送されます。",
+        "benefit": "社内のシステム管理者が、ユーザーのクライアント設定を変更することなく、確実に利用統計を回収できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "自社開発ゲートウェイを telemetry 送信先に指定した場合の接続拒否を解消します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-on-aws.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway.md"
+        }
+      ]
+    },
+    {
+      "id": "14d34dd729c3",
+      "content": "- Fixed self-hosted runner and other remote sessions exiting at startup when `managed-mcp.json` is deployed and the server delivers MCP servers; those servers are now skipped with a warning",
+      "content_ja": "`managed-mcp.json` がデプロイされており、サーバーから MCP サーバーが配信された際、セルフホストランナーなどのリモートセッションが起動時に終了してしまう問題を修正しました（これらのサーバーは警告を表示してスキップされます）。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP", "Settings"],
+      "inference": {
+        "before": "管理者が配布した設定と、接続時に配信されるサーバー側 MCP 設定の競合により、リモート環境での起動処理が例外を吐いて完全に停止していました。",
+        "after": "非互換または重複する MCP サーバー検出時は、起動を落とす代わりに警告をログに出力した上で、対象のサーバーのみをスキップして起動を維持します。",
+        "benefit": "MCP 設定の配布に不整合があっても、開発者のエディタ接続や自動実行プロセスが突然起動不能になる事態を防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "管理設定とサーバー設定のバッティングによる起動時クラッシュを警告スキップへ緩和します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-deploy.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-configuration.md"
+        }
+      ]
+    },
+    {
+      "id": "e24e1d29149b",
+      "content": "- Fixed self-hosted runner repository preparation hanging on a Git Credential Manager prompt; git now fails fast when credentials are missing",
+      "content_ja": "セルフホストランナーの起動時におけるリポジトリ準備処理が、Git Credential Manager（GCM）の認証プロンプト待ちで無期限にハングアップする問題を修正し、認証情報がない場合は git コマンドが即座にエラーで終了するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "バックグラウンドで動くコンテナなどのヘッドレス環境で Git クレデンシャルが必要になった際、画面に出ない入力要求プロンプトが裏で開きっぱなしになり、セッションの起動がいつまでも完了しない状態でした。",
+        "after": "インタラクティブな入力待ちが最初から無効化（fail-fast）され、認証エラーの事実をランナーが即座に検知してエラーを返せるようになります。",
+        "benefit": "リポジトリの認証設定ミスが発生した際、何分もハングアップして待たされることなく、即座に設定漏れを検知できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ランナーが認証情報プロンプトで永久にハングするのを防止し、テスト自動化を改善します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-deploy.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments.md"
+        }
+      ]
+    },
+    {
+      "id": "4ddde32a8563",
+      "content": "- Improved workflow fan-outs to stagger same-prefix sibling agents so subsequent agents read the cached prompt prefix instead of re-paying it (`CLAUDE_CODE_WORKFLOW_PREFIX_STAGGER_MS=0` disables)",
+      "content_ja": "ワークフローの並列展開（fan-out）処理において、同じプロンプト接頭辞を持つ兄弟エージェントの起動を千鳥足（stagger）状にわずかに遅らせて実行することで、後続エージェントがキャッシュされたプロンプトを使用し、トークン料金の重複支払いを防ぐ機能を追加しました（`CLAUDE_CODE_WORKFLOW_PREFIX_STAGGER_MS=0` で無効化可能）。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "複数の並列エージェントを完全に同時に起動すると、キャッシュが生成される前にすべてのリクエストが API に到達するため、全員が同じ長大プロンプトの読み込み料金をフルで支払う必要がありました。",
+        "after": "1人目の起動からごく僅かな時間差を設けて次を起動させるため、2人目以降は1人目が構築したプロンプトキャッシュを再利用し、料金を大幅に削減できます。",
+        "benefit": "並列処理を伴う大規模なワークフローを実行する際の、API トークン消費コストを大幅に抑えることができます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "同じプレフィックスを持つ並列エージェントの同時起動をわずかにずらし、プロンプトキャッシュを最大限活用して開発コストを削減します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        }
+      ]
+    },
+    {
+      "id": "173ffac0a803",
+      "content": "- Improved \"prompt is too long\" errors to explain why automatic compaction could not recover instead of only suggesting `/compact`",
+      "content_ja": "プロンプトが長すぎる（prompt is too long）エラーが発生した際、単に `/compact` を促すだけでなく、なぜ自動コンパクションで回復できなかったのかの理由を説明するように改善しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "コンテクストサイズ上限のエラーが発生した際、内部的な自動要約処理がなぜ失敗したのか（例：ファイルの単一出力が大きすぎる等）が分からず、何度も不要な `/compact` コマンドを手動で繰り返すことになっていました。",
+        "after": "限界に達した根本的な原因（サイズ超過の原因が削れない単一バッファにある等）がエラー文に明記されるため、適切な対処（ファイルの分割読み込みなど）を判断しやすくなります。",
+        "benefit": "コンテクスト溢れが起きたときに、何の手がかりもないまま無駄に要約コマンドを叩き続けて時間を浪費することがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "トークンオーバーした際の自動要約失敗理由が明記されるようになり、無駄な試行を減らせます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        }
+      ]
+    },
+    {
+      "id": "6060db454380",
+      "content": "- Improved sandbox: IPv6 literals in network domain lists are now bracketed (`[::1]:443`), and ambiguous spellings are enforced fail-closed and flagged by `/doctor`",
+      "content_ja": "サンドボックス環境を強化し、ネットワークドメインリスト内の IPv6 リテラルをブラケットで囲む形式（`[::1]:443`）に修正するとともに、曖昧なスペルのドメイン指定は安全側に倒して拒否（fail-closed）し、`/doctor` コマンドでフラグを立てるよう改善しました。",
+      "prefix": "Improved",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "IPv6 アドレスの記述解釈が曖昧であったり、安全性の判定がグレーな書き方のネットワークアクセス規制ルールがすり抜けて許可されてしまう懸念がありました。",
+        "after": "IPv6 表記の標準化と、解析が疑わしいドメインルールを徹底してブロックする fail-closed 方式が採用され、`/doctor` による検証で事前に不備を検出できます。",
+        "benefit": "サンドボックスの通信制御設定ミスによる意図しない外部ネットワーク漏洩を未然に防ぐことができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ネットワークの安全性を保つため、曖昧なドメインスペルのサンドボックス解釈を厳格化します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/secure-deployment.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/server-managed-settings.md"
+        }
+      ]
+    },
+    {
+      "id": "7e807d6a3e80",
+      "content": "- Updated `/login` to repeat the `CLAUDE_CODE_OAUTH_TOKEN` override warning after a successful login",
+      "content_ja": "`/login` コマンドによるログインが成功した直後にも、`CLAUDE_CODE_OAUTH_TOKEN` による環境変数上書きの警告を再度表示するようにアップデートしました。",
+      "prefix": "Updated",
+      "feature_areas": [],
+      "inference": {
+        "before": "環境変数で認証トークンを固定している状態でログインコマンドを実行すると、ログイン完了の表示だけが出て、実際には環境変数が優先されてログインしたアカウントが使われない現象に気づきにくい状態でした。",
+        "after": "ログインが成功したとしても、環境変数による上書きが有効化されている旨の警告がコンソールに再度明示されるため、アクティブな認証情報の取り違えを防止できます。",
+        "benefit": "別のアカウントに切り替えたつもりで、実際には古いトークンを使い続けて接続エラーになるトラブルを未然に回避できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "トークン上書き中にログインした際の、適用されない認証情報の勘違いを防ぐ警告機能です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/authentication.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        }
+      ]
+    },
+    {
+      "id": "426812ac33fd",
+      "content": "- Changed `/commit-push-pr` so git/gh commands with dangerous flags (`--force`, `--amend`, `--no-verify`, etc.) are no longer auto-approved",
+      "content_ja": "`/commit-push-pr` ワークフローにおいて、危険なフラグ（`--force`、`--amend`、`--no-verify` など）を伴う git コマンドや GitHub CLI（gh）コマンドを自動承認しないように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "自動モードなどでワークフローを実行していると、コミットの強制書き換えや検証のスキップといった履歴を破壊する恐れのある危険な Git 操作が、ユーザーへの事前のプロンプトなしにそのまま通ってしまっていました。",
+        "after": "これらの破壊的な影響を及ぼしうるフラグが検出された場合、自動承認が無効化され、必ずユーザーに対して実行確認のプロンプトが表示されるようになります。",
+        "benefit": "不意の強制プッシュによって、チームで共有しているブランチのコミット履歴を AI に上書きされて壊されるのを確実に防止できます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "強制プッシュなどの履歴破壊フラグを持つ git コマンドを、自動モードでも常に承認必須に変更して安全性を高めます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/auto-mode-config.md"
+        }
+      ]
+    },
+    {
+      "id": "e90cd0622d92",
+      "content": "- Changed self-hosted runner Windows startup to require an explicit `--base-dir`; there is no default checkout directory on Windows",
+      "content_ja": "Windows 上でのセルフホストランナー起動において、明示的な `--base-dir` の指定を必須とし、デフォルトのチェックアウト先ディレクトリを設定しないように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Windows サーバー環境でランナーを立ち上げる際、Unix 向けのデフォルトパスである `/workspace` が存在しないために予期せぬ場所でフォルダ作成エラーが発生していました。",
+        "after": "起動オプションで作業用フォルダのパスの明示が義務付けられ、各環境に合わせた正しいディレクトリ構成でのみ安全に動作を開始します。",
+        "benefit": "Windows 環境下でのランナー構築時に、初期ディレクトリの不整合による原因不明の起動エラーに遭遇せずに済むようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": true,
+        "reason": "Windows サーバー構築時に間違ったデフォルトパスで起動に失敗する現象を防止するための非互換仕様変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-deploy.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "015da54ab758",
+      "content": "- [VSCode] \"Report a problem\" and `/bug` now open the built-in feedback dialog instead of a retired survey link",
+      "content_ja": "VS Code 拡張機能の「問題を報告する」機能および `/bug` コマンドが、廃止された外部のアンケートリンクではなく、内蔵されたフィードバック用ダイアログを直接開くように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": ["IDE"],
+      "inference": {
+        "before": "バグの報告や要望を送信しようとリンクをクリックすると、すでに使われていない古い Web 調査フォームに案内され、フィードバックが届かない状態でした。",
+        "after": "エディタ内に統合された最新の入力画面が直接開き、そのままスムーズに報告を送信できます。",
+        "benefit": "ブラウザを往復して不要になったアンケートに答える手間をかけずに、バグの報告や修正要求を開発チームに届けることができます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "不要なリンクへの遷移を抑え、エディタ内でシームレスに機能障害を報告できる仕様に更新します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/data-usage.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        }
+      ]
+    },
+    {
+      "id": "e5380dd0a620",
+      "content": "- [VSCode] Made the `/btw` side-question panel resizable by dragging its boundary, in both side-docked and stacked layouts",
+      "content_ja": "VS Code の `/btw`（横道質問）サイドパネルにおいて、サイドドックおよびスタック（重ね置き）の両レイアウトで境界線をドラッグしてサイズ変更できるようにしました。",
+      "prefix": "Changed",
+      "feature_areas": ["IDE"],
+      "inference": {
+        "before": "会話履歴に影響を与えずに質問できる `/btw` 画面の幅が固定、あるいは一定方向のレイアウトでしか変更できず、コード一覧と並べて読む際に窮屈でした。",
+        "after": "エディタのレイアウト構造に合わせて、パネルの端をつまんで横幅や高さを自由に調整し、質問とコードの表示領域を最適化できます。",
+        "benefit": "長いモデルの回答を読む際に、エディタの表示エリアを狭められることなく、一時的に表示幅を広げて快適に閲覧できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "サイド質問用パネルの大きさを自由に調整できるようになり、複数ファイル並行確認時の表示ストレスを和らげます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "11cfdd134209",
+      "content": "- [VSCode] Added session groups in the sidebar — right-click to create, rename, or delete; Cmd/Ctrl- or Shift-click to move several sessions at once",
+      "content_ja": "VS Code 拡張機能のサイドバーにセッションを整理できる「セッショングループ」を追加し、右クリック操作でのグループ作成・名前変更・削除や、複数セッションの一括移動に対応しました。",
+      "prefix": "Added",
+      "feature_areas": ["IDE"],
+      "inference": {
+        "before": "複数の並行したタスクや異なるプロジェクトの会話履歴が増えていくと、サイドバーの一覧が非常に長くなり、目的の会話を探すのが難しくなっていました。",
+        "after": "作業テーマやプロジェクトごとにフォルダ（グループ）を作ってまとめ、複数選択（Shift + クリックなど）でまとめて整理整頓できます。",
+        "benefit": "数日前のタスクを再開したいときに、履歴の山から古いスレッドをスクロールして探す手間がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "VS Code のサイドバー内で大量の会話をカテゴリ別に分けてグループ化し、複数選択で整理できるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/routines.md"
+        }
+      ]
+    }
+  ]
+}
