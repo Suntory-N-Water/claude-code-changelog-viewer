@@ -31,7 +31,7 @@ The table below summarizes when each event fires. The [Hook events](#hook-events
 | `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion |
 | `PreToolUse` | Before a tool call executes. Can block it |
 | `PermissionRequest` | When a tool call needs a permission decision |
-| `PermissionDenied` | When a tool call is denied by the auto mode classifier. Use JSON `hookSpecificOutput.retry: true` to tell the model it may retry the denied tool call |
+| `PermissionDenied` | When auto mode denies a tool call, including denials without a classifier verdict. Use JSON `hookSpecificOutput.retry: true` to tell the model it may retry the denied tool call. Claude Code ignores `retry` when the classifier produced no verdict |
 | `PostToolUse` | After a tool call succeeds |
 | `PostToolUseFailure` | After a tool call fails |
 | `PostToolBatch` | After a full batch of parallel tool calls resolves, before the next model call |
@@ -775,7 +775,7 @@ Exit code 2 is the way a hook signals "stop, don't do this." The effect depends 
 | `PostToolUse` | No | Shows stderr to Claude; the tool already ran |
 | `PostToolUseFailure` | No | Shows stderr to Claude; the tool already failed |
 | `PostToolBatch` | Yes | Stops the agentic loop before the next model call |
-| `PermissionDenied` | No | Exit code and stderr are ignored because the denial already occurred. Use JSON `hookSpecificOutput.retry: true` to tell the model it may retry |
+| `PermissionDenied` | No | Exit code and stderr are ignored because the denial already occurred. Use JSON `hookSpecificOutput.retry: true` to tell the model it may retry; Claude Code ignores `retry: true` for [no-verdict denials](#permissiondenied-decision-control) |
 | `Notification` | No | Exit code and stderr are ignored |
 | `SubagentStart` | No | Shows stderr to user only |
 | `SessionStart` | No | Shows stderr to user only |
@@ -829,7 +829,7 @@ The JSON object supports three kinds of fields:
 | `continue` | `true` | If `false`, Claude stops processing entirely after the hook runs. Takes precedence over any event-specific decision fields |
 | `stopReason` | none | Message shown to the user when `continue` is `false`. Not shown to Claude |
 | `suppressOutput` | `false` | Has no effect: Claude Code accepts the field but doesn't act on it. A successful hook's stdout is never shown in the transcript and is recorded in the debug log |
-| `systemMessage` | none | Warning message shown to the user |
+| `systemMessage` | none | Warning message shown to the user. In [Agent SDK](/docs/en/agent-sdk/overview) and [`--output-format stream-json`](/docs/en/headless) output, it can arrive as an [`SDKInformationalMessage`](/docs/en/agent-sdk/typescript#sdkinformationalmessage) |
 | `terminalSequence` | none | A terminal escape sequence for Claude Code to emit on your behalf, such as a desktop notification, window title, or bell. Restricted to OSC `0`/`1`/`2`/`9`/`99`/`777` and BEL. If the value contains anything outside the allowlist, the field is ignored. Use this instead of writing to `/dev/tty`, which is unavailable to hooks |
 
 To stop Claude entirely:
@@ -923,7 +923,7 @@ Not every event supports blocking or controlling behavior through JSON. The even
 | TeammateIdle, TaskCreated, TaskCompleted | Exit code or `continue: false` | Exit code 2 blocks the action with stderr feedback. JSON `{"continue": false, "stopReason": "..."}` also stops the teammate entirely, matching `Stop` hook behavior |
 | PreToolUse | `hookSpecificOutput` | `permissionDecision` (allow/deny/ask/defer), `permissionDecisionReason` |
 | PermissionRequest | `hookSpecificOutput` | `decision.behavior` (allow/deny) |
-| PermissionDenied | `hookSpecificOutput` | `retry: true` tells the model it may retry the denied tool call |
+| PermissionDenied | `hookSpecificOutput` | `retry: true` tells the model it may retry the denied tool call; Claude Code ignores it for [no-verdict denials](#permissiondenied-decision-control) |
 | WorktreeCreate | path return | Command hook prints path on stdout; HTTP hook returns `hookSpecificOutput.worktreePath`. Hook failure or missing path fails creation |
 | Elicitation | `hookSpecificOutput` | `action` (accept/decline/cancel), `content` (form field values for accept) |
 | ElicitationResult | `hookSpecificOutput` | `action` (accept/decline/cancel), `content` (form field values override) |
@@ -1687,7 +1687,7 @@ The `deferred_tool_use` field carries the tool's `id`, `name`, and `input`. The 
 }
 ```
 
-There is no timeout or retry limit. The session remains on disk until you resume it, subject to the [`cleanupPeriodDays`](/docs/en/settings#available-settings) retention sweep that deletes session files after 30 days by default. If the answer is not ready when you resume, the hook can return `"defer"` again and the process exits the same way. The calling process controls when to break the loop by eventually returning `"allow"` or `"deny"` from the hook.
+There is no timeout or retry limit. The session remains on disk until you resume it, subject to the [`cleanupPeriodDays`](/docs/en/settings#available-settings) retention sweep, which deletes session files after 30 days by default, following the [retention sweep rules](/docs/en/claude-directory#cleaned-up-automatically). If the answer is not ready when you resume, the hook can return `"defer"` again and the process exits the same way. The calling process controls when to break the loop by eventually returning `"allow"` or `"deny"` from the hook.
 
 `"defer"` only works when Claude makes a single tool call in the turn. If Claude makes several tool calls at once, `"defer"` is ignored with a warning and the tool proceeds through the normal permission flow. The constraint exists because resume can only re-run one tool: there is no way to defer one call from a batch without leaving the others unresolved.
 
@@ -1972,7 +1972,7 @@ Returning `decision: "block"` or `continue: false` stops the agentic loop before
 
 ### PermissionDenied
 
-Runs when the [auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode) classifier denies a tool call. This hook only fires in auto mode: it doesn't run when you manually deny a permission dialog, when a `PreToolUse` hook blocks a call, or when a `deny` rule matches. Use it to log classifier denials, adjust configuration, or tell the model it may retry the tool call.
+Runs when [auto mode](/docs/en/permission-modes#eliminate-prompts-with-auto-mode) denies a tool call, including when it denies without a classifier verdict because [a safety check separate from auto mode refused the classifier's own request](/docs/en/errors#auto-mode-cannot-determine-the-safety-of-an-action) or its response didn't parse. This hook only fires in auto mode: it doesn't run when you manually deny a permission dialog, when a `PreToolUse` hook blocks a call, or when a `deny` rule matches. Use it to log denials, adjust configuration, or tell the model it may retry the tool call.
 
 Matches on tool name, same values as PreToolUse.
 
@@ -1999,7 +1999,7 @@ In addition to the [common input fields](#common-input-fields), PermissionDenied
 
 | Field | Description |
 | :- | :- |
-| `reason` | The denial reason: the fixed text `Blocked by classifier` in most sessions, or the classifier's written explanation when the session's classifier model provides one. See [Review denials](/docs/en/auto-mode-config#review-denials) |
+| `reason` | The denial reason: the fixed text `Blocked by classifier` in most sessions, or the classifier's written explanation when the session's classifier model provides one. For a denial where a safety check separate from auto mode refused the classifier's request or its response didn't parse, the reason starts with `Auto mode could not evaluate this action and is blocking it for safety`. For a denial because the classifier model was unavailable, the reason is the fixed text `Classifier unavailable`. See [Review denials](/docs/en/auto-mode-config#review-denials) |
 
 #### PermissionDenied decision control
 
@@ -2014,7 +2014,9 @@ PermissionDenied hooks can tell the model it may retry the denied tool call. Ret
 }
 ```
 
-When `retry` is `true`, Claude Code adds a message to the conversation telling the model it may retry the tool call. The denial itself is not reversed. If your hook doesn't return JSON, or returns `retry: false`, the denial stands and the model receives the original rejection message.
+When `retry` is `true`, Claude Code adds a message to the conversation telling the model it may retry the tool call. Claude Code doesn't reverse the denial itself. If your hook doesn't return JSON, or returns `retry: false`, the denial stands and the model receives the original rejection message.
+
+Claude Code ignores `retry: true` when the classifier produced [no verdict on the action](/docs/en/errors#auto-mode-cannot-determine-the-safety-of-an-action): its response didn't parse, or a safety check separate from auto mode refused the classifier's own request. For those denials, Claude Code already tells the model in the rejection message whether to retry later or move on.
 
 ### Notification
 

@@ -433,7 +433,7 @@ Claude Code fires hook events at specific points in its lifecycle. When an event
 | `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion |
 | `PreToolUse` | Before a tool call executes. Can block it |
 | `PermissionRequest` | When a tool call needs a permission decision |
-| `PermissionDenied` | When a tool call is denied by the auto mode classifier. Use JSON `hookSpecificOutput.retry: true` to tell the model it may retry the denied tool call |
+| `PermissionDenied` | When auto mode denies a tool call, including denials without a classifier verdict. Use JSON `hookSpecificOutput.retry: true` to tell the model it may retry the denied tool call. Claude Code ignores `retry` when the classifier produced no verdict |
 | `PostToolUse` | After a tool call succeeds |
 | `PostToolUseFailure` | After a tool call fails |
 | `PostToolBatch` | After a full batch of parallel tool calls resolves, before the next model call |

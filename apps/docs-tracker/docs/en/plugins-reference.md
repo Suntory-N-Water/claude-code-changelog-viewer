@@ -108,7 +108,7 @@ Plugin hooks respond to the same lifecycle events as [user-defined hooks](/docs/
 | `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion |
 | `PreToolUse` | Before a tool call executes. Can block it |
 | `PermissionRequest` | When a tool call needs a permission decision |
-| `PermissionDenied` | When a tool call is denied by the auto mode classifier. Use JSON `hookSpecificOutput.retry: true` to tell the model it may retry the denied tool call |
+| `PermissionDenied` | When auto mode denies a tool call, including denials without a classifier verdict. Use JSON `hookSpecificOutput.retry: true` to tell the model it may retry the denied tool call. Claude Code ignores `retry` when the classifier produced no verdict |
 | `PostToolUse` | After a tool call succeeds |
 | `PostToolUseFailure` | After a tool call fails |
 | `PostToolBatch` | After a full batch of parallel tool calls resolves, before the next model call |
@@ -238,7 +238,7 @@ LSP integration provides:
 | Field | Description |
 | :- | :- |
 | `args` | Command-line arguments for the LSP server |
-| `transport` | Communication transport: `stdio` (default) or `socket` |
+| `transport` | Communication transport: `stdio` (default) or `socket`. Claude Code accepts `socket` but runs every server over stdio, so the stdout protocol rules apply to all servers |
 | `env` | Environment variables to set when starting the server |
 | `initializationOptions` | Options passed to the server during initialization |
 | `settings` | Settings passed via `workspace/didChangeConfiguration` |
@@ -256,6 +256,8 @@ LSP integration provides:
 **Servers that fail to initialize**: Claude Code skips a server whose configuration is invalid, for example one missing `command` or `extensionToLanguage`, and the other configured servers still start. Run `claude --debug` to see why a server was skipped.
 
 A skipped server doesn't claim its file extensions, so another valid server that declares the same extension, from the same or a different plugin, still handles those files.
+
+**Send log output to stderr, not stdout**: Claude Code reads a server's stdout as protocol messages only, and accepts message headers up to 64 KiB and a message body up to 32 MiB. Claude Code disconnects a server that exceeds either limit or writes non-protocol output to stdout, and counts the disconnect as a crash for `restartOnCrash` and `maxRestarts`. When you run with `--debug`, Claude Code writes an error naming the cause to the debug log.
 
 **You must install the language server binary separately.** LSP plugins configure how Claude Code connects to a language server, but they don't include the server itself. If you see `Executable not found in $PATH` in the `/plugin` Errors tab, install the required binary for your language.
 
@@ -879,7 +881,7 @@ A `CLAUDE.md` file at the plugin root is not loaded as project context. Plugins 
 | **LSP servers** | `.lsp.json` | Language server configurations |
 | **Monitors** | `monitors/monitors.json` | Background monitor configurations |
 | **Executables** | `bin/` | Executables added to the Bash tool's `PATH`. Files here are invokable as bare commands in any Bash tool call while the plugin is enabled |
-| **Settings** | `settings.json` | Default configuration applied when the plugin is enabled. Only the [`agent`](/docs/en/sub-agents) and [`subagentStatusLine`](/docs/en/statusline#subagent-status-lines) keys are currently supported |
+| **Settings** | `settings.json` | Default configuration applied when the plugin is enabled. Only the [`agent`](/docs/en/sub-agents) and [`subagentStatusLine`](/docs/en/statusline#subagent-status-lines) keys are supported |
 
 ***
 
