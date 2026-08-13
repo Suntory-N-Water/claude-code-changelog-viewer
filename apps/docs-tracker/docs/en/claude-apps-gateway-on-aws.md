@@ -360,7 +360,9 @@ TG_ARN="$(aws elbv2 create-target-group --name claude-gateway \
   --query 'TargetGroups[0].TargetGroupArn' --output text)"
 ```
 
-Add the HTTPS listener and raise the idle timeout. `--ssl-policy` pins a modern TLS floor, since omitting it falls back to the legacy `ELBSecurityPolicy-2016-08` default, which still accepts TLS 1.0/1.1. The idle timeout matters for streaming: the ALB closes a connection after 60 seconds with no data by default, which cuts off streams during quiet periods, such as long prompt processing before the first token:
+Add the HTTPS listener. `--ssl-policy` pins a modern TLS floor, since omitting it falls back to the legacy `ELBSecurityPolicy-2016-08` default, which still accepts TLS 1.0/1.1.
+
+The ALB closes a connection after 60 seconds with no data by default. The gateway's keepalive pings keep streams inside that default, so raising the timeout adds margin above the ping cadence; the [Troubleshooting](#troubleshooting) row on dropped streams covers the mechanism and older gateways. The commands below add the listener and raise the timeout:
 
 ```bash theme={null}
 aws elbv2 create-listener --load-balancer-arn "$ALB_ARN" \
@@ -425,7 +427,7 @@ For the front end, an Ingress managed by the AWS Load Balancer Controller provis
 - `alb.ingress.kubernetes.io/inbound-cidrs: <your-corporate-cidr>`, so the controller-managed frontend security group admits only your corporate network in place of its `0.0.0.0/0` default
 - `alb.ingress.kubernetes.io/certificate-arn` with the ACM certificate
 - `alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06`, so the listener doesn't fall back to the legacy default policy that accepts TLS 1.0 and 1.1
-- `alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=3600`, so a 60-second data gap in a stream doesn't close the connection
+- `alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=3600`, a margin above the gateway's streaming keepalive; see [Troubleshooting](#troubleshooting)
 
 With IRSA, the AWS SDK reads a projected service-account token and exchanges it with AWS STS, so the pod never needs the EC2 instance metadata service; an egress NetworkPolicy may block `169.254.169.254` for gateway pods. The node hop-limit problem in [Troubleshooting](#troubleshooting) below applies only to clusters that skip IRSA and rely on node instance roles.
 
@@ -455,7 +457,7 @@ For gateway boot and login errors, see the platform-agnostic [troubleshooting ta
 | ECS task stops with `ResourceInitializationError` before the gateway logs anything | The execution role can't read the Secrets Manager secrets, or the private subnets have no path to Secrets Manager or ECR | Grant `secretsmanager:GetSecretValue` on the three `gateway-` secrets' ARNs to the execution role, and provide egress via the NAT gateway, or, without one, interface endpoints for Secrets Manager, ECR, and CloudWatch Logs, which the `awslogs` driver needs at the same stage, plus an S3 gateway endpoint |
 | Gateway boot exits with a Postgres connection-timeout error | The database security group doesn't admit the gateway's security group on 5432, or the service runs outside the database's VPC; the store stops waiting after 5 seconds | Allow 5432 from the gateway's security group on the database's, and run the service in the same VPC as the DB subnet group |
 | Gateway boot exits with a Postgres TLS certificate verification error | The connection string sets `sslmode=verify-full` but the image doesn't trust the RDS CA bundle: the bundle wasn't copied into the image, or `NODE_EXTRA_CA_CERTS` doesn't point at it | Add the build step's two Dockerfile lines that copy the bundle and set `NODE_EXTRA_CA_CERTS`, then rebuild, push under a new tag, and redeploy |
-| Streaming responses drop mid-stream after a quiet period | The ALB idle timeout closes the connection after 60 seconds with no data by default. A stream that is actively emitting tokens isn't affected; one that goes quiet, during long prompt processing before the first token or extended thinking with no streamed output, is cut at the gap | Set the `idle_timeout.timeout_seconds` attribute to `3600`, via `modify-load-balancer-attributes` or the `load-balancer-attributes` Ingress annotation on EKS |
+| Streaming responses drop mid-stream after a quiet period | A gateway older than v2.1.229 on a Bedrock or Claude Platform on AWS upstream sends nothing while the upstream is quiet, for example during extended thinking with no streamed output. The ALB closes a connection after 60 seconds with no data by default, so it cuts the stream at that gap. Gateways v2.1.229 and later keep a quiet stream under that timeout: on those upstreams the gateway emits an SSE `ping` event once about 15 seconds pass with no stream data, and on an Anthropic API upstream it relays the API's own pings | Update the gateway to v2.1.229 or later, or set the `idle_timeout.timeout_seconds` attribute to `3600`, via `modify-load-balancer-attributes` or the `load-balancer-attributes` Ingress annotation on EKS |
 
 ## Telemetry
 
