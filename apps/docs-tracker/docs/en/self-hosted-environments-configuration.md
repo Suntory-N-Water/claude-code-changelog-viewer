@@ -29,6 +29,7 @@ The runner sets the following in the wrapper's environment:
 | :- | :- |
 | `CLAUDE_CODE_SESSION_ACCESS_TOKEN` | The session JWT, prefixed `sk-ant-cc-`. Its `act` claim identifies the session creator, with the creator's email and upstream identity-provider subject when the creating surface recorded them. The value is the token at spawn time; refreshes arrive over the child's stdin, so a wrapper sees only the initial value. See [Verify session identity](/docs/en/self-hosted-environments-identity). |
 | `CCR_SESSION_ACCOUNT_EMAIL` | The session creator's email, pre-extracted by the runner from the token's `act.email` claim without signature verification. Suitable for labelling, such as commit trailers. When the email gates credential issuance, verify the token and read the claim from it instead; see [Provision credentials scoped to the session creator](#provision-credentials-scoped-to-the-session-creator). Unset when the token carries no creator email. Treat as personally identifiable information. |
+| `CLAUDE_RUNNER_CLIENT_PLATFORM` | The client surface that created the session, such as `web_claude_ai`, `desktop_app`, `ios`, `claude_code_cli`, or `scheduled_trigger`. Anthropic records the value once at session creation, so the wrapper and every lifecycle hook see the same value. Use it for adoption analytics and labelling only, not as an authorization signal. Unset when the session has no recorded or recognized surface, so reference it as `${CLAUDE_RUNNER_CLIENT_PLATFORM:-}` under `set -u`. |
 | `CLAUDE_RUNNER_CLAUDE_BIN` | Absolute path to the runner's own Claude Code binary. End your wrapper with `exec "$CLAUDE_RUNNER_CLAUDE_BIN" "$@"` to hand off to the pinned binary without hardcoding an install path. |
 | `CLAUDE_CODE_REMOTE_SESSION_ID` | Session ID in the tagged `cse_...` form. This is the same session the [lifecycle hooks](#lifecycle-hooks) see as `CLAUDE_RUNNER_SESSION_ID` in `session_...` form; the UUID variables match across both, and substituting the `cse_` prefix with `session_` yields the ID shown in the session URL. |
 | `CLAUDE_CODE_REMOTE_SESSION_UUID` | The same session ID in canonical UUID form, for systems that key on UUIDs. |
@@ -93,6 +94,7 @@ Runs once per repository, in place of the runner's built-in clone and fetch. Use
 | `CLAUDE_RUNNER_SESSION_ID` | Session ID in the tagged `session_...` form, for logging and correlation |
 | `CLAUDE_RUNNER_SESSION_UUID` | The same session ID in canonical UUID form |
 | `CLAUDE_RUNNER_API_BASE_URL` | Anthropic API base URL for session-scoped calls |
+| `CLAUDE_RUNNER_CLIENT_PLATFORM` | The client surface that created the session, such as `web_claude_ai`, `desktop_app`, or `ios`. Unset when the session has no recorded or recognized surface. |
 | `CLAUDE_CODE_SESSION_ACCESS_TOKEN` | The session access token, for session-scoped API calls |
 
 The script must leave a working tree at `CLAUDE_RUNNER_CHECKOUT_PATH` checked out at the requested revision. Detached HEAD is fine; the runner creates the session's working branch on top. The runner verifies the path contains a `.git` afterwards; if your hook materializes a non-git source such as Perforce or an unpacked tarball, set `CLAUDE_RUNNER_SKIP_GIT_VERIFY=1` in the runner's environment to skip that check. Git-based flows such as working-branch creation and pushing results require a git checkout, so export outcomes from non-git trees with a [`post-session` hook](#post-session).
@@ -122,6 +124,7 @@ The hook fires on every session end where a child process was spawned, whatever 
 | `CLAUDE_RUNNER_WORKSPACE_PATHS` | Colon-separated absolute paths of the session's working trees. Empty for zero-repo sessions. |
 | `CLAUDE_RUNNER_DEBUG_LOG_PATH` | Path to the session's debug log, still on disk while the hook runs |
 | `CLAUDE_RUNNER_API_BASE_URL` | Anthropic API base URL for session-scoped calls |
+| `CLAUDE_RUNNER_CLIENT_PLATFORM` | The client surface that created the session, such as `web_claude_ai`, `desktop_app`, or `ios`. Unset when the session has no recorded or recognized surface. |
 | `CLAUDE_CODE_SESSION_ACCESS_TOKEN` | The session access token, for session-scoped API calls |
 
 `CLAUDE_RUNNER_EXIT_REASON` takes one of four values:
@@ -199,6 +202,7 @@ The orchestrator runs `${hooks-dir}/spawn-runner` once per spawn request. The ho
 | `CLAUDE_RUNNER_PRIMARY_REPO_REVISION` | Revision of the session's first git source: branch, SHA, or tag. Empty when unspecified. |
 | `CLAUDE_RUNNER_REPO_SOURCES` | JSON array of `{url, revision}` for all the session's git sources, for hooks that route on a secondary repository. Empty when there are no sources. |
 | `CLAUDE_RUNNER_CORRELATION_ID` | The correlation ID supplied at session create, echoed back so the hook can map this work order to the request that created the session. Empty when the session has none. |
+| `CLAUDE_RUNNER_CLIENT_PLATFORM` | The client surface that created the session, such as `web_claude_ai`, `desktop_app`, `ios`, or `scheduled_trigger`, for adoption analytics. Unset when the session has no recorded or recognized surface, and for pre-warming requests; check it with `[ -n "${CLAUDE_RUNNER_CLIENT_PLATFORM:-}" ]`, which stays safe under `set -u`. |
 
 The spawned runner registers with the work order in place of the environment secret:
 
