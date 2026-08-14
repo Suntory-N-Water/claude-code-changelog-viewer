@@ -89,7 +89,13 @@ With GitHub connected and an environment created, you're ready to submit tasks.
 
 From [claude.ai/code](https://claude.ai/code) or the Code tab in the Claude mobile app, click the repository selector below the input box and choose a repository for Claude to work in. Each repository shows a branch selector. Change it to start Claude from a feature branch instead of the default. You can add multiple repositories to work across them in one session.
 
-The mode dropdown next to the input defaults to **Accept edits**, where Claude makes changes and pushes a branch without stopping for approval. Switch to **Plan** if you want Claude to propose an approach and wait for you to approve it before editing files. Cloud sessions don't offer Manual or Bypass permissions. See the [full list of permission modes](/docs/en/permission-modes#available-modes) for what each one allows.
+The mode dropdown next to the input shows the mode the session will run in:
+
+- **Auto**: a classifier reviews Claude's actions instead of asking you. Appears when your organization allows auto mode and the selected model supports it
+- **Accept edits**: Claude makes changes and pushes a branch without stopping for approval
+- **Plan**: Claude proposes an approach and waits for you to approve it before editing files
+
+Cloud sessions don't offer Manual or Bypass permissions. See the [full list of permission modes](/docs/en/permission-modes#available-modes) for what each one allows.
 
 Type a description of what you want and press Enter. Be specific:
 
