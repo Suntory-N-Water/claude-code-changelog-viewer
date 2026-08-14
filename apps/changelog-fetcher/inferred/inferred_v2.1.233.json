@@ -1,0 +1,541 @@
+{
+  "version": "2.1.233",
+  "summary": "Sonnet 5 や Fable 5 などの最新モデルにおいて、余分なコンテキスト消費を防ぐため ToDo/タスク管理ツールがデフォルトで無効化されました。Windows 環境のオートモードにおいて、ファイル書き込みや単純なディレクトリ移動を行う際に不要な手動承認を求めて進行が止まる退行バグが修正されています。また、Windows 上で Cygwin シンボリックリンクやファイルからの入力リダイレクトを使用したコマンド実行のパーミッションチェックが差し戻され、以前のバージョンと同様に動作するようになりました。",
+  "items": [
+    {
+      "id": "3baf8f123028",
+      "content": "- Added GitLab merge request URL support to the `--worktree` flag and the `claude agents` view (where MRs display as `!N`)",
+      "content_ja": "--worktree フラグと claude agents ビュー（マージリクエストが !N と表示される場所）における GitLab マージリクエスト URL のサポートを追加しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "GitLab のマージリクエスト（MR）を使用して作業用ツリー（worktree）を作成したり、エージェントビューで GitLab MR の状態を直感的に確認したりすることができませんでした。",
+        "after": "--worktree フラグに GitLab MR の URL を直接渡してブランチを作成できるようになり、claude agents ビューでもマージリクエストが「!N」形式で識別表示されるようになります。",
+        "benefit": "GitHub だけでなく GitLab を使用している環境でも、マージリクエストの URL を指定するだけで簡単に関連作業用ツリーを構築し、エージェントの状態を確認できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "GitLab ユーザーにとってワークツリー作成やエージェント一覧確認が大幅に便利になる新機能です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "10ea851a48c7",
+      "content": "- Added an opt-in `forward_user_identity` apps gateway setting on Anthropic upstreams that sends the signed-in user's identity as headers, so a proxy behind the gateway can attribute spend per user",
+      "content_ja": "Anthropic アップストリームにおいて、サインインしたユーザーの ID をヘッダーとして送信するオプトイン設定 forward_user_identity を追加し、ゲートウェイの背後にあるプロキシがユーザーごとの消費額を追跡できるようにしました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "Claude apps gateway 経由でリクエストを送信する際、ゲートウェイ背後のリバースプロキシや集計ツールにおいて、どのエンドユーザーがどれだけのトークン消費やコストを発生させたかを個別かつ正確に紐付けて追跡することが困難でした。",
+        "after": "forward_user_identity 設定を有効にすることで、SSO 認証されたユーザーの ID 情報がリクエストヘッダーに付与されてアップストリームに送信されるようになります。",
+        "benefit": "管理者がプロキシ側のログを確認するだけで、誰がどの程度 Claude Code を利用したか個別コストを容易に算出できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ゲートウェイ管理者が個別ユーザーの費用割り当てを行えるようにするためのオプトイン設定が追加されました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/gateways.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        }
+      ]
+    },
+    {
+      "id": "ccb32f2f6004",
+      "content": "- Added opt-in memory cgroup support for Bash tool commands on Linux (`CLAUDE_CODE_TOOL_MEMORY_LIMIT`) so a runaway build can't stall the session",
+      "content_ja": "Linux 上の Bash ツールコマンド向けに、オプトインのメモリ cgroup サポート（CLAUDE_CODE_TOOL_MEMORY_LIMIT）を追加し、暴走したビルドプロセスによってセッションがハングアップするのを防げるようにしました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "Claude Code 内の Bash ツールから実行されたコンパイルやスクリプトが無限ループやメモリリークを起こした場合、システム全体のメモリを食いつぶしてターミナルセッション自体が応答不能になるリスクがありました。",
+        "after": "CLAUDE_CODE_TOOL_MEMORY_LIMIT 環境変数で上限を設定することで、Bash ツールから起動された子プロセス群のメモリ使用量が cgroup によって厳格に制限されます。",
+        "benefit": "ツールが暴走プロセスを実行してしまった場合でも、自分でセッションを強制終了して最初からやり直す必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Linux 上の暴走プロセスによるハングを防ぐためのオプトイン機能の追加です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md"
+        }
+      ]
+    },
+    {
+      "id": "5e7f6b7fe71b",
+      "content": "- Added `CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS` environment variable to configure the WebFetch session URL cache TTL (default unchanged: 15 minutes)",
+      "content_ja": "WebFetch セッションの URL キャッシュ有効期限（TTL）を設定するための環境変数 CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS を追加しました（デフォルトは 15 分のまま変更ありません）。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "WebFetch ツールによる Web ページの取得結果やドメインの安全確認キャッシュの保持時間が固定されており、短期間に何度も更新されるドキュメントを再取得させたい場合や、逆にキャッシュを長く保持させて API 呼び出しを節約したい場合の微調整ができませんでした。",
+        "after": "CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS 環境変数に変数を設定することで、ミリ秒単位で自由なキャッシュ有効期限を定義できるようになります。",
+        "benefit": "更新頻度の高いドキュメントサイトを参照させる際に、手動でキャッシュをクリアするのを待つことなく常に最新のドキュメントを Claude に読み込ませることができます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "WebFetch のキャッシュ保持期間をカスタマイズするための環境変数の追加であり、影響は限定的です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/cost-tracking.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/data-usage.md"
+        }
+      ]
+    },
+    {
+      "id": "20c17811f2b9",
+      "content": "- Fixed cloud sessions occasionally being marked as lost when the environment shut down while Claude was waiting on a permission prompt",
+      "content_ja": "Claude がパーミッション（実行権限）の確認プロンプトを待っている間にランタイム環境がシャットダウンした際、クラウドセッションが稀に消失（lost）状態として誤って記録されてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "シャットダウン時という極めて限定的な状況下におけるクラウドセッションの不正確な状態表示バグの修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "b9cbe288c6b1",
+      "content": "- Fixed MCP v2 connections endlessly reopening the subscriptions/listen stream against servers that terminate long-held streams on a fixed timeout (e.g. serverless hosts)",
+      "content_ja": "サーバーレスホストなど、一定時間のタイムアウトで接続を切断するサーバーに対して、MCP v2 の接続が subscriptions/listen ストリームを無限に再オープンし続ける不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "一定時間で自動的にストリームを切断するタイプの MCP サーバーに接続すると、接続断を異常とみなした Claude Code が無限に接続の再試行ループを繰り返し、ログや CPU リソースを浪費していました。",
+        "after": "サーバー側で意図的に切断されたストリームを適切に検知し、無駄な再接続ループに陥ることなく安定して接続状態を維持・再確立できるようになります。",
+        "benefit": "サーバーレス環境等で構築されたリモート MCP サーバーをエラーハンドリングを気にせず安定して利用し続けられるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "サーバーレス環境の接続切断に伴う無限再オープン問題を解消する MCP のバグ修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp-quickstart.md"
+        }
+      ]
+    },
+    {
+      "id": "ff01acd2920b",
+      "content": "- Fixed Notification hooks not firing for permission prompts when running under Claude Desktop or VS Code",
+      "content_ja": "Claude Desktop または VS Code 上で実行している際に、権限確認プロンプトに対する通知フックが起動しない不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Hooks", "Permissions", "IDE"],
+      "inference": {
+        "before": "Claude Desktop や VS Code の統合ターミナルなどの特定の環境で動かしている際、Claude がユーザーのコマンド承認を求めて停止していても、Notification フックによるデスクトップ通知やサウンドが正常に鳴らず、放置に気づけない不具合がありました。",
+        "after": "これらの環境で実行している場合でも権限要求のイベントが正しくフックされ、デスクトップ通知やカスタムコマンドが確実にトリガーされるようになります。",
+        "benefit": "権限の承認待ちが発生した際に他の作業をしていても、通知音などで即座に気づいてターミナルに戻ることができます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Claude Desktop や VS Code 環境で承認待ち通知が届かなくなる中核機能（Hooks）の不具合修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        }
+      ]
+    },
+    {
+      "id": "0df295dc50d3",
+      "content": "- Fixed idle sessions on Linux sometimes keeping one CPU core at 100% when sandboxing is enabled",
+      "content_ja": "Linux 上でサンドボックス機能が有効な場合、アイドル状態のセッションがまれに CPU 1 コアを 100% 占有し続けてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Linux サンドボックス環境下における、アイドリング時の重大な CPU ループバグを解消します。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "dfbb09eded8c",
+      "content": "- Fixed bundled skill aliases like `/checkup` and `/review` reporting \"Unknown command\" in `-p` mode or with plugins/MCP loaded when a user or project skill shadows the bundled skill",
+      "content_ja": "ユーザーまたはプロジェクト固有のスキルが同梱のスキルをシャドウイングしている場合に、-p モードやプラグイン/MCP ロード中に /checkup や /review などの同梱スキルエイリアスが「Unknown command」を返す不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Skills", "Plugins"],
+      "inference": {
+        "before": "プロジェクト側で独自に作成した review スキルなどが優先される際、Claude Code 組み込みの /review などのショートカット用エイリアスまで連動して無効化され、「不明なコマンド」としてエラーになっていました。",
+        "after": "ユーザー定義スキルが同名の同梱スキルを上書き（シャドウイング）している場合でも、組み込みエイリアスは衝突せずに正常に動作を維持します。",
+        "benefit": "プロジェクトごとに同名のカスタムスキルを作成しても、慣れ親しんだ組み込みのショートカットコマンドをそのまま併用できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "カスタムスキル使用時に組み込みのエイリアスコマンドが誤って破損するのを防ぐ不具合修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/features-overview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/scheduled-tasks.md"
+        }
+      ]
+    },
+    {
+      "id": "5d8ad6d6876d",
+      "content": "- Fixed skill/command argument substitution to prevent argument values from being re-expanded as template markers",
+      "content_ja": "スキルやコマンドの引数置換において、渡された値がテンプレートマーカーとして再度再帰的に展開されてしまうのを防ぐ不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Skills"],
+      "inference": {
+        "before": "カスタムスキルに引数として $ や ${} を含む特定の文字列（コード片や環境変数など）を渡した際、その値が誤って内部のテンプレート変数置換として解釈・再評価され、意図しない値に化けてしまう問題がありました。",
+        "after": "置換は一回のみ実行され、ユーザーから渡された引数の値そのものがそのままプレースホルダーに埋め込まれるようになります。",
+        "benefit": "ドル記号や中括弧を含む複雑な文字列やコード、パスプレースホルダーをエラーの心配なく引数としてスキルに渡すことができるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "スキルへの引数置換バグを修正し、意図しないテンプレートの再展開によるパラメータの破損を防ぎます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/slash-commands.md"
+        }
+      ]
+    },
+    {
+      "id": "a30388e18e1f",
+      "content": "- Fixed Windows paths spelled with the NT `\\??\\` device prefix bypassing UNC path validation, closing an NTLM credential-leak vector",
+      "content_ja": "NT デバイス接頭辞「\\??\\」で記述された Windows のパスが UNC パス検証をバイパスし、NTLM 資格情報漏洩を引き起こす脆弱性を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "特定の NT ネームスペースパス表現を使用することで、本来なら検証によりブロックされるはずの外部ネットワーク共有（UNC）パスがセキュリティ検証をすり抜けてしまい、Windows の NTLM 認証情報が外部に漏洩する潜在的な危険性がありました。",
+        "after": "すべての形式のパス記述において UNC パスおよびネットワークロケーションの検証が厳密に行われ、危険なバイパスが確実にブロックされます。",
+        "benefit": "悪意あるファイル構造やパス操作による Windows ネットワーク認証情報の盗難リスクを気にすることなく安全に作業できます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Windows における NTLM 資格情報漏洩を防止するための重要で緊急度の高いセキュリティ修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/network-config.md"
+        }
+      ]
+    },
+    {
+      "id": "8ff0cb1d9a30",
+      "content": "- Improved `claude self-hosted-runner` session start time: the session branch is now created without rewriting the working tree, and two server round trips no longer block the agent's launch",
+      "content_ja": "claude self-hosted-runner のセッション起動時間を改善しました。ワーキングツリーの書き換えを行わずにセッションブランチを作成するようになり、サーバーとの往復通信 2 回分のエージェント起動ブロッキングを排除しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "セルフホストランナーでセッションを開始するたび、ワーキングツリーの無駄な再生成や余計なネットワークリクエストが発生し、エージェントが動き出すまでに余計な待ち時間がかかっていました。",
+        "after": "ワーキングツリーに触れることなくGitブランチを迅速に作成し、不要な接続シーケンスを排除してランナーセッションが瞬時に開始されるようになります。",
+        "benefit": "セルフホストランナーを使用している環境で、コマンドを打ってから Claude が応答し始めるまでの初期待ち時間が大幅に削減されます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "セルフホストランナー使用時のセッション初期ロード時間を劇的に削減し、起動体感を高めます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-deploy.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-configuration.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w32.md"
+        }
+      ]
+    },
+    {
+      "id": "f96cbacdaf9e",
+      "content": "- Improved apps gateway error forwarding: 400/413 errors from Vertex, Foundry, and Claude Platform on AWS upstreams now carry the upstream's own message; fixes a bug with auto-compact on apps gateway",
+      "content_ja": "apps gateway のエラー転送処理を改善し、Vertex、Foundry、Claude Platform on AWS アップストリームからの 400/413 エラーがアップストリーム独自の詳細メッセージを保持するように修正しました。これにより、ゲートウェイ上の自動要約機能における不具合も解消されます。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "クラウドプロバイダー側のアップストリームでコンテキストサイズ超過（413）などのエラーが発生した際、ゲートウェイが詳細なエラー文を削って不透明な一般エラーを返すため、クライアント側での自動コンパクション（文脈の自動要約縮小）機能が正しく作動しない問題がありました。",
+        "after": "アップストリーム独自の生の 400 や 413 エラーメッセージがそのまま保持されて転送されるため、クライアントの Claude CLI がエラー理由を正確に認識して適切な処理（コンパクション等）を継続できるようになります。",
+        "benefit": "クラウド連携環境においてコンテキストサイズ制限に達した際にも、エラーで突然セッションが死ぬことなく自動的に要約されて会話が継続します。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ゲートウェイのエラーを適正化し、コンテキスト上限に達した際のクライアントの自動縮小処理の動作を修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-on-aws.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-deploy.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway.md"
+        }
+      ]
+    },
+    {
+      "id": "e0b7679d1f92",
+      "content": "- Improved `claude plugin validate` to check a bare `.claude/skills` directory, reporting SKILL.md files whose frontmatter fails to parse",
+      "content_ja": "claude plugin validate が純粋な .claude/skills ディレクトリも検査できるように改善し、フロントマターの解析に失敗した SKILL.md ファイルをレポートするようにしました。",
+      "prefix": "Improved",
+      "feature_areas": ["Skills", "Plugins"],
+      "inference": {
+        "before": "開発中のスキル定義ファイル（SKILL.md）のフロントマター（メタデータ部分）に構文エラーがあっても、事前に検証する手軽な方法がなく、実際に実行してロードエラーになるまで不具合に気づきにくい状態でした。",
+        "after": "プラグインのパッケージ化をしていないシンプルな .claude/skills ディレクトリであっても、検証コマンドを実行するだけでフロントマターの記述ミスを一括検知できます。",
+        "benefit": "カスタムスキルを自作する際、実際に動かしてみることなくコマンド一発でメタデータの設定ミスを発見し、修正できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "パッケージ化されていない生スキルディレクトリの検証をサポートし、事前に定義エラーを検出できるようにします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md"
+        }
+      ]
+    },
+    {
+      "id": "e6d2a283a4ac",
+      "content": "- Improved screen reader mode: the `/effort` selector renders as a numbered list with a typed-number prompt, and hint and dialog text is no longer clipped",
+      "content_ja": "スクリーンリーダーモードを改善し、/effort セレクターを番号付きリストと数値入力プロンプトでレンダリングするように変更したほか、ヒントやダイアログのテキストが途切れないようにしました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "スクリーンリーダーの有効時、思考レベルを選択する /effort メニューが矢印キー操作を前提とした視覚的なセレクターのままになっており、音声ブラウジングで選択しづらかったり、一部の補足テキストが画面外でカットされて読み上げられなかったりしていました。",
+        "after": "すべての選択項目がシンプルな「1, 2, 3...」の番号付きテキストリストとして表示され、希望するオプションの数字を直接入力して Enter を押すだけで選択できるようになります。",
+        "benefit": "スクリーンリーダーを使用している状況でも、キーボードから希望の番号を入力するだけで確実に思考レベルなどの設定を切り替えられます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "/effort 選択メニューが大幅に簡易化され、スクリーンリーダー使用時の極端な表示欠損も改善されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/accessibility.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w29.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "7c4009060f16",
+      "content": "- Improved print mode diagnostics: a `[claude-code:unrecognized_model]` line is written to stderr when a request goes out for a model ID Claude Code doesn't recognize; map it with `modelOverrides` to silence",
+      "content_ja": "プリントモードの診断出力を改善し、Claude Code が認識していないモデル ID に対して要求が送信された際に stderr へ [claude-code:unrecognized_model] を書き出すようにしました。これは modelOverrides で設定マッピングすることで出力を消すことができます。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "社内プロキシやカスタムゲートウェイを介して未知のカスタムモデルや特定エイリアスを使用する際、内部でどのようなモデル解決が行われたか見えず、接続不良の原因調査が困難でした。",
+        "after": "未知のモデル ID が使われた場合は明示的に診断用のエラー行が標準エラー出力に出力され、必要に応じて modelOverrides を用いたマッピングを行うことでこのログを抑制できるようになります。",
+        "benefit": "カスタムプロキシや最新の未登録モデルを利用した環境構築で接続がうまくいかない原因を、診断ログから即座に特定できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "未知のモデル ID が指定された場合に診断ログを吐くようになり、環境構築の診断を支援します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "a13821695271",
+      "content": "- Changed the GitHub app setup tip to no longer appear in repositories whose origin remote is on gitlab.com or bitbucket.org; the enterprise marketplace tip now covers non-GitHub internal git hosts",
+      "content_ja": "GitHub アプリのセットアップ推奨メッセージについて、リモートリポジトリ（origin）が gitlab.com または bitbucket.org の場合には表示しないように変更しました。また、非 GitHub 系の社内ホストに対しては「エンタープライズマーケットプレイス」向けのヒントでカバーするようにしました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "GitLab や Bitbucket をメインで利用しているリポジトリ内で Claude Code を実行しているときでも、無関係な GitHub アプリの連携セットアップを促すノイズメッセージが画面に表示されていました。",
+        "after": "現在の Git リモートサーバーのホスト名が自動で判定され、無関係なプロバイダー用のセットアップ指示が出力から除外されます。",
+        "benefit": "GitLab などの非 GitHub ユーザーが、不要なセットアップ手順に戸惑ったり無駄な案内を読まされたりすることがなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "無関係な非 GitHub リポジトリ（GitLab や Bitbucket など）におけるノイズメッセージの非表示化です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/github-enterprise-server.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-deploy.md"
+        }
+      ]
+    },
+    {
+      "id": "d4d20cbeb5ff",
+      "content": "- Todo/task-tracking tools (TaskCreate/Get/Update/List, TodoWrite) are no longer available on Opus 4.8, Sonnet 5, Fable 5, Mythos 5, and newer models; set `CLAUDE_CODE_ENABLE_TODO_TOOLS=1` to bring them back",
+      "content_ja": "Opus 4.8、Sonnet 5、Fable 5、Mythos 5 およびそれ以降の最新モデルにおいて、タスク/ToDo 管理ツール（TaskCreate/Get/Update/List, TodoWrite）をデフォルトで無効化しました。CLAUDE_CODE_ENABLE_TODO_TOOLS=1 を設定することで再び有効にできます。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "新しいモデルではこれらの ToDo/タスク管理ツールを使わずにタスクの追跡やコード作成を十分行えるにもかかわらず、余計なツール呼び出しがコンテキストを消費し、思考効率の低下につながる場合がありました。",
+        "after": "デフォルトではこれらの関連ツール群が提供されなくなり、必要な場合のみ環境変数で明示的にオプトインして戻す運用になります。",
+        "benefit": "最新モデルにおいて、不要なタスク管理ツールの呼び出しによる無駄なトークン消費や応答遅延が発生しなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "主要な最新モデルにおいて ToDo 管理ツールが標準で提供されなくなる破壊的な変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/about-claude/models/overview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        }
+      ]
+    },
+    {
+      "id": "f72ad26e0716",
+      "content": "- Windows: fixed auto mode repeatedly stopping for manual approval on ordinary `cd <dir> && <command> > file` Bash commands (a 2.1.232 regression)",
+      "content_ja": "Windows 環境において、通常の cd <dir> && <command> > file などの Bash コマンドを実行した際に、オートモード（auto mode）が手動承認を求めて繰り返し停止してしまう不具合（v2.1.232 での退行バグ）を修正しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "直近のアップデート以降、Windows 上で自動実行モード（auto mode）を使用しているにもかかわらず、ただのディレクトリ移動やファイルへの書き出しコマンドを実行するだけで毎回手動での承認プロンプトが表示され、自動実行が一時停止してしまっていました。",
+        "after": "不具合が解消され、一般的なファイルの書き出しや cd コマンドを挟むパイプライン処理はユーザーの手動介入なしに自動的にパスし、流れるように実行されます。",
+        "benefit": "Windows 環境でのオートモード中に、簡単なコマンドの実行のたびに手動で「許可」ボタンを連打させられるストレスが解消されます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Windows のオートモード中に一般的な Bash コマンドで毎回手動確認を求められていた深刻なデグレ不具合を解消します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        }
+      ]
+    },
+    {
+      "id": "18ae5e009268",
+      "content": "- Reverted the 2.1.232 Bash permission changes for Cygwin-style symlinks on Windows and for input redirections (`< file`); a narrower version will return in a later release",
+      "content_ja": "Windows における Cygwin 形式のシンボリックリンクおよび入力リダイレクト（< file）に対する v2.1.232 の Bash 権限変更を元に戻しました。より範囲を絞ったセキュリティ改善が将来のリリースで再導入される予定です。",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "v2.1.232 で追加されたセキュリティ制約により、Cygwin リンクや入力リダイレクトを含むシェルスクリプトが過剰にパーミッション違反として拒否され、開発ワークフローが壊れてしまう問題が生じていました。",
+        "after": "これらの変更が一度リバート（差し戻し）され、従来の動作のまま正常に各種コマンドや Cygwin シンボリックリンクが評価されるようになります。",
+        "benefit": "Windows + Cygwin などの環境で開発している際に、これまで動いていたスクリプトやパイプライン処理がエラーで動かなくなる問題を回避できます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Windows の Cygwin シンボリックリンクやリダイレクトに干渉していた過剰なパーミッション制限を差し戻し、動作の安定を確保します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/checkpointing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        }
+      ]
+    }
+  ]
+}
