@@ -75,7 +75,7 @@ Keyboard shortcuts may vary by platform and terminal. In [fullscreen rendering](
 | :- | :- | :- |
 | `/` at start | Command or skill | See [commands](#commands) and [skills](/docs/en/skills) |
 | `!` at start | Shell mode | Run a command directly, add its output to the session, and have Claude respond to it |
-| `@` | File path mention | Trigger file path autocomplete |
+| `@` | File path mention | Trigger file path autocomplete. In sessions with [cross-session messaging](/docs/en/cross-session-messaging#message-another-session), when you type at least one letter after the `@`, Claude Code also suggests your other live sessions on this machine, so you can tell Claude to message the one you pick. Requires Claude Code v2.1.232 or later |
 | `:` | Emoji shortcode | Type a full `:name:` to insert the emoji, or two or more characters for suggestions. See [Emoji shortcodes](#emoji-shortcodes). Requires Claude Code v2.1.217 or later |
 | `?` on empty input | Toggle the shortcut help panel | Typing `?` when the input already contains text inserts the character |
 
