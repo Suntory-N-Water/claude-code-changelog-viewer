@@ -23,7 +23,7 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公�
 - 既存 JSON が存在しない場合と、JSON が破損・schema 不一致の場合を区別する。後者はファイルパスとエラーを警告する。
 - Docs、schema、metadata、YouTube 関連の主要な JSON・Markdown 出力は、一時ファイルを同一ディレクトリへ書いて rename するアトミック書き込みを使う。
 
-### `apps/notification-worker`
+### `apps/worker`
 
 - Hono + Cloudflare Workers で Discord、Slack、Email の通知登録・配信 API を提供する。
 - D1 の `channels` と通知先別テーブル、通知設定に加え、`notification_deliveries` に version と channel の配信済み組を記録する。Queue の再試行時は配信済みチャンネルをスキップし、重複配信を防ぐ。
@@ -53,7 +53,7 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公�
 
 | Workflow | トリガー | 役割 |
 | --- | --- | --- |
-| `changelog-auto-inference.yml` | notification-worker からの手動 dispatch | CHANGELOG 取得、解析、推論、通知、PR 作成 |
+| `changelog-auto-inference.yml` | changelog-viewer-worker からの手動 dispatch | CHANGELOG 取得、解析、推論、通知、PR 作成 |
 | `fetch-docs.yml` | 3 時間ごと / 手動 | Docs と settings schema の取得、PR 作成・マージ |
 | `fetch-blog.yml` | 1 時間ごと / 手動 | Anthropic Blog の取得 |
 | `fetch-youtube.yml` | 毎日 / 手動 | YouTube 情報の取得 |

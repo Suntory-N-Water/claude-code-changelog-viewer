@@ -10,7 +10,7 @@ import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 
 const logger = getLogger({
-  name: 'notification-worker',
+  name: 'changelog-viewer-worker',
   level: 'INFO',
   format: 'json',
 });

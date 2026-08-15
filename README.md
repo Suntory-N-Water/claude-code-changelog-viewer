@@ -21,7 +21,7 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 │   ├── www/                    # Astro フロントエンド (Cloudflare Workers)
 │   ├── docs-tracker/          # Claude Code ドキュメント取得スクリプト
 │   ├── changelog-fetcher/     # CHANGELOG パーサー
-│   └── notification-worker/   # Discord 通知配信 (Cloudflare Workers)
+│   └── worker/               # 通知配信・MCP・CHANGELOG 検知 (Cloudflare Workers)
 └── .github/workflows/         # GitHub Actions ワークフロー
 ```
 
@@ -48,7 +48,7 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 - 解析結果(git 管理外の中間生成物): `apps/changelog-fetcher/analysis/analysis_v*.json`
 - 推論結果: `apps/changelog-fetcher/inferred/inferred_v*.json`
 
-#### `apps/notification-worker`
+#### `apps/worker`
 
 - Cloudflare Workers + Hono ベースの通知配信 API
 - Discord・Slack・メール(プレビュー版)による新バージョンの自動通知

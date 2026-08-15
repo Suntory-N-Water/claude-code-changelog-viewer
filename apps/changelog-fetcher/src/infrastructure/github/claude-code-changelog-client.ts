@@ -10,7 +10,7 @@ const log = getLogger({ name: 'changelog-fetcher' });
 
 type ClientOptions = {
   githubToken: string;
-  // notification-worker が検知した CHANGELOG.md の sha256。
+  // changelog-viewer-worker が検知した CHANGELOG.md の sha256。
   // 本番 workflow からは workflow_dispatch inputs 経由で必ず渡される。
   // ローカル実行時は未指定にでき、その場合はハッシュ検証をスキップする。
   expectedHash?: string;

@@ -8,7 +8,7 @@ const DISPATCH_URL =
   'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/actions/workflows/changelog-auto-inference.yml/dispatches';
 const RUNS_URL =
   'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/actions/workflows/changelog-auto-inference.yml/runs?event=workflow_dispatch&per_page=100';
-const USER_AGENT = 'notification-worker-changelog-detection';
+const USER_AGENT = 'changelog-viewer-worker-changelog-detection';
 const MAX_ATTEMPTS = 3;
 
 const logger = getLogger({

@@ -13,7 +13,7 @@ import { uploadsRoute } from './routes/uploads';
 import { webhooksRoute } from './routes/webhooks';
 
 const logger = getLogger({
-  name: 'notification-worker',
+  name: 'changelog-viewer-worker',
   level: 'INFO',
   format: 'json',
 });
