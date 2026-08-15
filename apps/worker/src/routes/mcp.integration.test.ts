@@ -26,9 +26,11 @@ const ENVELOPE_META = {
 
 async function postMcp(
   env: CloudflareBindings,
-  method: string,
-  params: Record<string, unknown>,
-  toolName?: string,
+  {
+    method,
+    params,
+    toolName,
+  }: { method: string; params: Record<string, unknown>; toolName?: string },
 ) {
   return app.request(
     '/api/mcp',
@@ -58,12 +60,11 @@ async function callTool(
   name: string,
   args: Record<string, unknown>,
 ) {
-  const response = await postMcp(
-    createTestEnv(db),
-    'tools/call',
-    { name, arguments: args },
-    name,
-  );
+  const response = await postMcp(createTestEnv(db), {
+    method: 'tools/call',
+    params: { name, arguments: args },
+    toolName: name,
+  });
   if (response.status !== 200) {
     throw new Error(`status=${response.status} body=${await response.text()}`);
   }
@@ -138,7 +139,7 @@ describe('POST /api/mcp integration', () => {
         env.MCP_RATE_LIMITER.limit as ReturnType<typeof vi.fn>
       ).mockResolvedValue({ success: false });
 
-      const response = await postMcp(env, 'tools/list', {});
+      const response = await postMcp(env, { method: 'tools/list', params: {} });
 
       expect(response.status).toBe(429);
       db.close();
@@ -183,7 +184,10 @@ describe('POST /api/mcp integration', () => {
     it('search_changelog / get_changelog / get_settings_reference の 3 ツールが公開されること', async () => {
       const db = new FakeD1Database();
 
-      const response = await postMcp(createTestEnv(db), 'tools/list', {});
+      const response = await postMcp(createTestEnv(db), {
+        method: 'tools/list',
+        params: {},
+      });
 
       expect(response.status).toBe(200);
       const body = (await response.json()) as {

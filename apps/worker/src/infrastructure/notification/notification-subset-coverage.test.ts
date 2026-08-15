@@ -31,8 +31,8 @@ describe('NotificationAnalysis サブセットでの notifier 出力', () => {
       subsetAnalysis.version,
       options,
     );
-    expect(payload.content ?? '').toContain('v1.2.3');
-    expect(payload.content ?? '').toContain('機能 A を追加');
+    expect(payload.content).toContain('v1.2.3');
+    expect(payload.content).toContain('機能 A を追加');
   });
 
   it('Slack メッセージを生成できる', () => {

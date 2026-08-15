@@ -6,7 +6,7 @@ const FENCE_PATTERN = /^\s*```/;
 const HEADING_PATTERN = /^(#{1,6})\s+(.*)$/;
 const EXCLUDED_DOCUMENT_NAME = 'changelog.md';
 
-export const SECONDARY_SPLIT_THRESHOLD = 2000;
+const SECONDARY_SPLIT_THRESHOLD = 2000;
 
 export type DocumentInfo = {
   title: string;
@@ -163,16 +163,6 @@ export function chunkMarkdown(content: string): PageChunk[] {
   let buffer: MarkdownLine[] = [];
   let inFence = false;
 
-  const flush = () => {
-    for (const split of splitBuffer(buffer, SECONDARY_SPLIT_THRESHOLD)) {
-      chunks.push({
-        heading,
-        text: split.text,
-        startLine: split.startLine,
-      });
-    }
-  };
-
   for (const [index, line] of lines.entries()) {
     const lineNumber = index + 1;
     if (FENCE_PATTERN.test(line)) {
@@ -183,7 +173,13 @@ export function chunkMarkdown(content: string): PageChunk[] {
 
     const headingMatch = inFence ? null : line.match(HEADING_PATTERN);
     if (headingMatch !== null) {
-      flush();
+      chunks.push(
+        ...splitBuffer(buffer, SECONDARY_SPLIT_THRESHOLD).map((split) => ({
+          heading,
+          text: split.text,
+          startLine: split.startLine,
+        })),
+      );
       heading = headingMatch[2]?.trim() ?? '';
       buffer = [{ lineNumber, text: line }];
       continue;
@@ -192,7 +188,13 @@ export function chunkMarkdown(content: string): PageChunk[] {
     buffer.push({ lineNumber, text: line });
   }
 
-  flush();
+  chunks.push(
+    ...splitBuffer(buffer, SECONDARY_SPLIT_THRESHOLD).map((split) => ({
+      heading,
+      text: split.text,
+      startLine: split.startLine,
+    })),
+  );
   return chunks;
 }
 

@@ -317,6 +317,7 @@ async function syncSettingSchema(db: D1Database, now: Date): Promise<boolean> {
     return false;
   }
 
+  // スキーマを検証してから既存行を削除し、取得した JSON が壊れていても既存データを残す。
   let schema: unknown;
   try {
     schema = JSON.parse(rawSchema) as unknown;
@@ -331,6 +332,7 @@ async function syncSettingSchema(db: D1Database, now: Date): Promise<boolean> {
   }
 
   const entries = flattenSettingSchema(schema);
+  // 削除からメタデータ更新までを同じ batch で実行し、途中状態を D1 に残さない。
   const statements: D1PreparedStatement[] = [
     db.prepare('DELETE FROM setting_schema_entries'),
   ];
