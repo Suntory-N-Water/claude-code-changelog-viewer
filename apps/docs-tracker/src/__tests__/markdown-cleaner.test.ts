@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { cleanMarkdown } from '../lib/markdown-cleaner';
+import { cleanMarkdown } from '@claude-code-changelog-viewer/common';
 
 describe('cleanMarkdown', () => {
   test('通常の Markdown はそのまま保持される', async () => {
