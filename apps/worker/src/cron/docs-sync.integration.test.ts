@@ -203,7 +203,7 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
 
   it('一覧が前回の 50% 未満に減った時は削除せず、十分な一覧なら削除すること', async () => {
     db = new FakeDocsD1Database();
-    const documents = [
+    const documents: [TestDocument, TestDocument, TestDocument] = [
       testDocument('one.md', 'One', '# One\n\none'),
       testDocument('two.md', 'Two', '# Two\n\ntwo'),
       testDocument('three.md', 'Three', '# Three\n\nthree'),
