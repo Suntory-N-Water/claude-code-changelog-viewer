@@ -13,15 +13,15 @@ vi.mock('../infrastructure/channel-notifier', () => ({
 }));
 
 import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
-import { queueConsumer } from '../queue/consumer';
-import { FakeD1Database } from './support/fake-d1';
+import { queueConsumer } from './consumer';
+import { FakeD1Database } from '../test-support/fake-d1';
 import {
   createQueueBatch,
   createQueueMessage,
   createTestEnv,
   findChannelByToken,
   insertDiscordWebhook,
-} from './support/notification-test-support';
+} from '../test-support/notification-test-support';
 
 const validAnalysis: NotificationAnalysis = {
   version: 'v1.0.0',

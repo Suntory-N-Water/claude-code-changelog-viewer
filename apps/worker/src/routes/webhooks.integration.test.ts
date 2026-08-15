@@ -19,13 +19,13 @@ vi.mock('../infrastructure/channel-notifier', () => ({
 }));
 
 import { app } from '../index';
-import { FakeD1Database } from './support/fake-d1';
+import { FakeD1Database } from '../test-support/fake-d1';
 import {
   createTestEnv,
   findChannelByWebhookUrl,
   findNotificationSettings,
   insertDiscordWebhook,
-} from './support/notification-test-support';
+} from '../test-support/notification-test-support';
 
 const validWebhookUrl = 'https://discord.com/api/webhooks/123456/abcdef';
 

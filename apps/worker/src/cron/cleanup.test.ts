@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanupInactiveChannels } from '../cron/cleanup';
+import { cleanupInactiveChannels } from './cleanup';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 import { cleanupInactiveChannels as cleanupInactiveChannelsUsecase } from '../usecases/cleanup-inactive-channels';
-import { FakeD1Database } from './support/fake-d1';
+import { FakeD1Database } from '../test-support/fake-d1';
 import {
   createTestEnv,
   findChannelByToken,
   insertDiscordWebhook,
-} from './support/notification-test-support';
+} from '../test-support/notification-test-support';
 
 describe('休眠チャンネルの削除', () => {
   let db: FakeD1Database | null = null;

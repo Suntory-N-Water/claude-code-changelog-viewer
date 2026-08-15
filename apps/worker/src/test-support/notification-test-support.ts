@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { CHANNEL_ACTIVE_SENTINEL } from '../../db/constants';
+import { CHANNEL_ACTIVE_SENTINEL } from '../db/constants';
 import type { FakeD1Database } from './fake-d1';
 
 export type ChannelRow = {

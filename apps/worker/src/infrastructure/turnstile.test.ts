@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { verifyTurnstileToken } from '../infrastructure/turnstile';
+import { verifyTurnstileToken } from './turnstile';
 
 describe('Turnstile 検証', () => {
   afterEach(() => {

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Hono } from 'hono';
-import { uploadsRoute } from '../routes/uploads';
+import { uploadsRoute } from './uploads';
 
 const sut = new Hono<{ Bindings: CloudflareBindings }>()
   .basePath('/api')

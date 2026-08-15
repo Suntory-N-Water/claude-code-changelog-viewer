@@ -14,8 +14,8 @@ import type {
   IngestSetting,
 } from '@claude-code-changelog-viewer/types';
 import { app } from '../index';
-import { FakeD1Database } from './support/fake-d1';
-import { createTestEnv } from './support/notification-test-support';
+import { FakeD1Database } from '../test-support/fake-d1';
+import { createTestEnv } from '../test-support/notification-test-support';
 
 function createRequest(
   payload: unknown,

@@ -12,12 +12,12 @@ vi.mock('../infrastructure/channel-notifier', () => ({
 }));
 
 import { app } from '../index';
-import { FakeD1Database } from './support/fake-d1';
+import { FakeD1Database } from '../test-support/fake-d1';
 import {
   createTestEnv,
   findChannelByToken,
   insertDiscordWebhook,
-} from './support/notification-test-support';
+} from '../test-support/notification-test-support';
 
 describe('/api/unsubscribe integration', () => {
   let db: FakeD1Database | null = null;

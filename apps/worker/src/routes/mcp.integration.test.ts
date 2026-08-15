@@ -14,8 +14,8 @@ import type {
   IngestSetting,
 } from '@claude-code-changelog-viewer/types';
 import worker, { app } from '../index';
-import { FakeD1Database } from './support/fake-d1';
-import { createTestEnv } from './support/notification-test-support';
+import { FakeD1Database } from '../test-support/fake-d1';
+import { createTestEnv } from '../test-support/notification-test-support';
 
 // 2026-07-28 仕様では params._meta の envelope
 // (protocolVersion / clientCapabilities)と Mcp-* ヘッダーが必須

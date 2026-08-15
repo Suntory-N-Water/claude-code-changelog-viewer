@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Hono } from 'hono';
 import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
-import { dispatchRoute } from '../routes/dispatch';
+import { dispatchRoute } from './dispatch';
 
 function createApp() {
   return new Hono<{ Bindings: CloudflareBindings }>()

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { detectChangelogUpdate } from '../cron/changelog-detection';
+import { detectChangelogUpdate } from './changelog-detection';
 
 const CONTENT_HASH =
   'f7fbc09e193ed3fd94b8de6d283a159323fbabd7b5dc3f5875a5a232e4d65f4f';

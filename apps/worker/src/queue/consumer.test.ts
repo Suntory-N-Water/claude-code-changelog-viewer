@@ -9,7 +9,7 @@ vi.mock('../infrastructure/channel-notifier', () => ({
 }));
 
 import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
-import { queueConsumer } from '../queue/consumer';
+import { queueConsumer } from './consumer';
 
 const validAnalysis: NotificationAnalysis = {
   version: 'v1.0.0',

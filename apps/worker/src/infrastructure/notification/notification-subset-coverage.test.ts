@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
-import { createChangelogMessage } from '../infrastructure/notification/discord';
-import { createSlackChangelogMessage } from '../infrastructure/notification/slack';
+import { createChangelogMessage } from './discord';
+import { createSlackChangelogMessage } from './slack';
 
 // NotificationAnalysis のサブセットだけで各 notifier が出力を生成できることを保証する。
 // dispatch ペイロード同梱経路では related_docs / inference / importance_score は送られないため、
