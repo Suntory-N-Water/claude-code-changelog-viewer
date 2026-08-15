@@ -36,6 +36,6 @@ resource "cloudflare_zero_trust_access_application" "weekly_admin" {
 }
 
 output "weekly_admin_aud" {
-  description = "notification-worker の CF_ACCESS_AUD に設定する Access Application AUD"
+  description = "changelog-viewer-worker の CF_ACCESS_AUD に設定する Access Application AUD"
   value       = cloudflare_zero_trust_access_application.weekly_admin.aud
 }

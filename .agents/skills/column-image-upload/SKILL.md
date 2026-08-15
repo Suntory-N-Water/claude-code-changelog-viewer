@@ -120,7 +120,7 @@ pnpm run build
 - **`scan.py` が「画像が見つからない」で止まる** → 記事に書かれた相対パスが記事ファイルからの相対で解決できていない。記事側のパスを直してから再実行する。
 - **`scan.py` が「PNG・JPEG・WebP のいずれでもない」で止まる** → 拡張子ではなく中身で弾いている。対応形式に変換してよいかユーザーに確認する。勝手に変換しない。
 - **`scan.py` が「frontmatter に slug がない」で止まる** → `apps/www/src/content.config.ts` の `column` コレクションは `slug` を必須にしている。記事側に追加する。
-- **`upload.py` が認証エラーで止まる** → `pnpm --filter notification-worker exec wrangler login` をユーザーに実行してもらう。このスキルからは実行しない。
+- **`upload.py` が認証エラーで止まる** → `pnpm --filter changelog-viewer-worker exec wrangler login` をユーザーに実行してもらう。このスキルからは実行しない。
 - **`upload.py` が途中で止まる** → 記事は書き換わっていないので、原因を解消して `upload.py` から再実行する。先にアップロード済みだったオブジェクトは R2 に残るが、再実行では別のタイムスタンプのキーになるため衝突しない(記事から参照されない孤児が残るだけ)。孤児を消す必要があれば `wrangler r2 object delete weekly-assets/<キー> --remote` をユーザーに提案する。
 - **`rewrite.py` が「記事が scan.py 実行後に変更されている」で止まる** → 手順2以降で記事を編集した。手順2からやり直す。アップロード済みのオブジェクトは孤児になる。
 - **アップロードしたはずのオブジェクトが公開 URL で見えない** → `wrangler r2 object put` は `--remote` がないとローカルの miniflare ストレージに書き込む。`upload.py` は付けているが、手動で叩き直すときは付け忘れない。

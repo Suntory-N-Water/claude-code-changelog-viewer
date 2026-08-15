@@ -5,11 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       detected_hash:
-        description: "notification-worker が検知した CHANGELOG.md の SHA256 ハッシュ"
+        description: "changelog-viewer-worker が検知した CHANGELOG.md の SHA256 ハッシュ"
         required: false
         type: string
       detected_at:
-        description: "notification-worker が検知した時刻 (ISO 8601)"
+        description: "changelog-viewer-worker が検知した時刻 (ISO 8601)"
         required: false
         type: string
 
@@ -342,7 +342,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Wait for notification worker deployment
+      - name: Wait for changelog-viewer-worker deployment
         env:
           GH_TOKEN: ${{ github.token }}
           MERGE_SHA: ${{ needs.pr.outputs.merge_sha }}
@@ -357,23 +357,23 @@ jobs:
             CHECK=$(gh api \
               -H "Accept: application/vnd.github+json" \
               "repos/${GITHUB_REPOSITORY}/commits/${MERGE_SHA}/check-runs" \
-              --jq '[.check_runs[] | select(.name == "Workers Builds: notification-worker")] | sort_by(.started_at) | last | if . == null then "queued\t" else "\(.status)\t\(.conclusion // "")" end')
+              --jq '[.check_runs[] | select(.name == "Workers Builds: changelog-viewer-worker")] | sort_by(.started_at) | last | if . == null then "queued\t" else "\(.status)\t\(.conclusion // "")" end')
             IFS=$'\t' read -r STATUS CONCLUSION <<< "$CHECK"
 
             if [ "$STATUS" = "completed" ] && [ "$CONCLUSION" = "success" ]; then
-              echo "✓ notification-worker のデプロイが完了しました"
+              echo "✓ changelog-viewer-worker のデプロイが完了しました"
               exit 0
             fi
             if [ "$STATUS" = "completed" ]; then
-              echo "❌ notification-worker のデプロイに失敗しました: ${CONCLUSION}" >&2
+              echo "❌ changelog-viewer-worker のデプロイに失敗しました: ${CONCLUSION}" >&2
               exit 1
             fi
 
-            echo "⏳ notification-worker のデプロイを待機中 (${attempt}/60)"
+            echo "⏳ changelog-viewer-worker のデプロイを待機中 (${attempt}/60)"
             sleep 5
           done
 
-          echo "❌ notification-worker のデプロイ待機がタイムアウトしました" >&2
+          echo "❌ changelog-viewer-worker のデプロイ待機がタイムアウトしました" >&2
           exit 1
 
       - name: Download AI outputs
@@ -388,7 +388,7 @@ jobs:
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
           NOTIFIABLE_VERSIONS: ${{ needs.fetch.outputs.notifiable_versions }}
         # inferred JSON は最大 1MB に達し Cloudflare Queues の 1メッセージ上限 (128KB) を超えるため、
-        # notification-worker が利用するフィールドだけに jq で絞り込んでから POST する。
+        # changelog-viewer-worker が利用するフィールドだけに jq で絞り込んでから POST する。
         run: |
           set -euo pipefail
           echo "📤 通知配信をトリガー..."
