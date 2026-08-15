@@ -5,6 +5,7 @@ interface __BaseEnv_CloudflareBindings {
 	CHANGELOG_DETECTION_KV: KVNamespace;
 	WEEKLY_ASSETS: R2Bucket;
 	DB: D1Database;
+	DOCS_DB: D1Database;
 	SEND_EMAIL: SendEmail;
 	NOTIFICATION_QUEUE: Queue;
 	WEBHOOK_RATE_LIMITER: RateLimit;
