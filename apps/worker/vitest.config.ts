@@ -2,7 +2,7 @@ import { defineProject } from 'vitest/config';
 
 export default defineProject({
   test: {
-    name: 'notification-worker',
+    name: 'changelog-viewer-worker',
     env: { AGENT: '1' },
   },
 });

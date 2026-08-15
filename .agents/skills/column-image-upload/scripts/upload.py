@@ -7,7 +7,7 @@ from pathlib import Path
 # 1枚ずつ書き換えると途中で失敗したときに記事が壊れるので、
 # アップロードだけを先に全件終わらせる。1件でも失敗したらここで止める。
 REPO_ROOT = Path(__file__).resolve().parents[4]
-WORKER_DIR = REPO_ROOT / "apps/notification-worker"
+WORKER_DIR = REPO_ROOT / "apps/worker"
 WRANGLER = WORKER_DIR / "node_modules/.bin/wrangler"
 BUCKET = "weekly-assets"
 
