@@ -22,7 +22,7 @@ Extensions plug into different parts of the agentic loop:
 - **[Code intelligence](/docs/en/tools-reference#lsp-tool-behavior)** connects Claude to a language server for symbol-level navigation and live type errors
 - **[MCP](/docs/en/mcp)** connects Claude to external services and tools
 - **[Subagents](/docs/en/sub-agents)** run their own loops in isolated context, returning summaries
-- **[Agent teams](/docs/en/agent-teams)** coordinate multiple independent sessions with shared tasks and peer-to-peer messaging
+- **[Agent teams](/docs/en/agent-teams)** coordinate multiple independent sessions with peer-to-peer messaging, plus a shared task list for [agents that have the Task tools](/docs/en/tools-reference#task-tool-availability)
 - **[Hooks](/docs/en/hooks-guide)** run your script, HTTP request, prompt, or subagent when Claude Code reaches a lifecycle event
 - **[Plugins](/docs/en/plugins)** and **[marketplaces](/docs/en/plugin-marketplaces)** package and distribute these features
 
@@ -122,7 +122,7 @@ Both parallelize work, but they're architecturally different:
 | - | - | - |
 | **Context** | Own context window; results return to the caller | Own context window; fully independent |
 | **Communication** | Reports results back to the main agent only | Teammates message each other directly |
-| **Coordination** | Main agent manages all work | Shared task list with self-coordination |
+| **Coordination** | Main agent manages all work | Self-coordination through messages, plus a shared task list for [agents that have the Task tools](/docs/en/tools-reference#task-tool-availability) |
 | **Best for** | Focused tasks where only the result matters | Complex work requiring discussion and collaboration |
 | **Token cost** | Lower: results summarized back to main context | Higher: each teammate is a separate Claude instance |
 
