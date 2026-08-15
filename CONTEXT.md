@@ -17,6 +17,14 @@ _Avoid_: settings
 Anthropic が公開している Claude Code の英語ドキュメント。推論と設定リファレンス生成の参照元。
 _Avoid_: docs/en
 
+**設定スキーマ**:
+SchemaStore が配布する Claude Code 設定ファイルの JSON Schema。設定リファレンス生成の入力。
+_Avoid_: schema、claude-code-settings.json
+
+**チャンク**:
+公式ドキュメントを見出し単位で分割した、ドキュメント検索の最小単位。
+_Avoid_: スニペット(チャンクから抽出した表示用の断片を指す別の語)
+
 **週次記事**:
 1週間の更新を人が推敲してまとめる記事。
 _Avoid_: weekly、週次まとめ

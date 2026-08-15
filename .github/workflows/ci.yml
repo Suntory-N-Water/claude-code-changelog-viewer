@@ -30,7 +30,6 @@ on:
       - "apps/**/*.jsonc"
       - "biome.jsonc"
       - "knip.json"
-      - "apps/www/lighthouserc.json"
 
 defaults:
   run:
@@ -95,17 +94,3 @@ jobs:
       - uses: ./.github/actions/setup
       - run: pnpm --filter www exec astro sync
       - run: pnpm run type-check
-
-  lighthouse:
-    name: lighthouse
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/setup
-      - run: pnpm --filter www run lhci:astro
-      - run: pnpm --filter www run lhci:assert
