@@ -29,8 +29,7 @@ const validAnalysis: NotificationAnalysis = {
 function postJSON(
   app: ReturnType<typeof createApp>,
   body: unknown,
-  env: unknown,
-  headers: Record<string, string> = {},
+  { env, headers = {} }: { env: unknown; headers?: Record<string, string> },
 ) {
   return app.request(
     '/api/dispatch',
@@ -52,8 +51,7 @@ describe('POST /api/dispatch', () => {
     const res = await postJSON(
       app,
       { version: 'v1.0.0', analysis: validAnalysis },
-      env,
-      { Authorization: 'Bearer test-secret' },
+      { env, headers: { Authorization: 'Bearer test-secret' } },
     );
 
     expect(res.status).toBe(200);
@@ -71,7 +69,7 @@ describe('POST /api/dispatch', () => {
     const res = await postJSON(
       app,
       { version: 'v1.0.0', analysis: validAnalysis },
-      env,
+      { env },
     );
 
     expect(res.status).toBe(401);
@@ -85,8 +83,7 @@ describe('POST /api/dispatch', () => {
     const res = await postJSON(
       app,
       { version: 'v1.0.0', analysis: validAnalysis },
-      env,
-      { Authorization: 'Bearer wrong-secret' },
+      { env, headers: { Authorization: 'Bearer wrong-secret' } },
     );
 
     expect(res.status).toBe(401);
@@ -99,8 +96,7 @@ describe('POST /api/dispatch', () => {
     const res = await postJSON(
       app,
       { version: '1.0.0', analysis: validAnalysis },
-      env,
-      { Authorization: 'Bearer test-secret' },
+      { env, headers: { Authorization: 'Bearer test-secret' } },
     );
 
     expect(res.status).toBe(400);
@@ -109,9 +105,11 @@ describe('POST /api/dispatch', () => {
   it('analysis が欠落している場合 400 を返す', async () => {
     const env = createMockEnv();
 
-    const res = await postJSON(app, { version: 'v1.0.0' }, env, {
-      Authorization: 'Bearer test-secret',
-    });
+    const res = await postJSON(
+      app,
+      { version: 'v1.0.0' },
+      { env, headers: { Authorization: 'Bearer test-secret' } },
+    );
 
     expect(res.status).toBe(400);
   });
@@ -125,8 +123,7 @@ describe('POST /api/dispatch', () => {
         version: 'v1.0.0',
         analysis: { version: 'v1.0.0', items: [{ content_ja: '不正' }] },
       },
-      env,
-      { Authorization: 'Bearer test-secret' },
+      { env, headers: { Authorization: 'Bearer test-secret' } },
     );
 
     expect(res.status).toBe(400);
@@ -145,8 +142,7 @@ describe('POST /api/dispatch', () => {
           items: [{ content: 'x', content_ja: null, prefix: 'feat' }],
         },
       },
-      env,
-      { Authorization: 'Bearer test-secret' },
+      { env, headers: { Authorization: 'Bearer test-secret' } },
     );
 
     expect(res.status).toBe(200);

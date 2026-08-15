@@ -4,6 +4,7 @@ import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { detectChangelogUpdate } from './cron/changelog-detection';
 import { cleanupInactiveChannels } from './cron/cleanup';
+import { syncDocs } from './cron/docs-sync';
 import { queueConsumer } from './queue/consumer';
 import { dispatchRoute } from './routes/dispatch';
 import { ingestChangelogRoute } from './routes/ingest-changelog';
@@ -83,6 +84,11 @@ export default {
     ctx: ExecutionContext,
   ) {
     switch (event.cron) {
+      case '0 */3 * * *':
+        ctx.waitUntil(
+          runCron('ドキュメント検索用 D1 同期 cron', syncDocs(env)),
+        );
+        break;
       case '0 15 * * *':
         ctx.waitUntil(
           runCron(

@@ -3,12 +3,12 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
 import {
+  cleanMarkdown,
   getLogger,
   toError,
   type AppLogger,
 } from '@claude-code-changelog-viewer/common';
 import { z } from 'zod';
-import { cleanMarkdown } from './markdown-cleaner';
 import { fetchWithRetry } from './fetch-with-retry';
 import { atomicWriteFile } from './atomic-write';
 
