@@ -28,6 +28,7 @@ export function createChangelogWorkflowNotifier(
 ): ChangelogNotificationPort {
   return {
     async send(version) {
+      // 保存済みの D1 行を再取得し、AI のメモリ上の結果ではなく永続化済みデータを Queue に渡す。
       const rows = await db
         .select({
           version: changelogVersions.version,

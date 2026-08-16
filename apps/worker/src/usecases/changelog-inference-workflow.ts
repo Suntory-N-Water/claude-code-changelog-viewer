@@ -24,7 +24,7 @@ export type ChangelogParserPort = {
   parse(markdown: string): Promise<readonly ChangelogRelease[]>;
 };
 
-export type ChangelogWorkflowDataPort = {
+export type ExistingChangelogReader = {
   findExistingItems(): Promise<readonly ExistingChangelogItem[]>;
 };
 
@@ -47,19 +47,20 @@ export type ChangelogFailureReporterPort = {
 export type FetchAndClassifyChangelogInput = {
   readonly source: ChangelogMarkdownSourcePort;
   readonly parser: ChangelogParserPort;
-  readonly workflowData: ChangelogWorkflowDataPort;
+  readonly existingChangelogReader: ExistingChangelogReader;
   readonly params: ChangelogWorkflowParams;
 };
 
 export async function fetchAndClassifyChangelog({
   source,
   parser,
-  workflowData,
+  existingChangelogReader,
   params,
 }: FetchAndClassifyChangelogInput): Promise<ChangelogClassification> {
   const markdown = await source.fetchMarkdown(params.detectedHash);
   const releases = await parser.parse(markdown);
-  const existingItems = await workflowData.findExistingItems();
+  // 保存前の D1 スナップショットを基準に、新規バージョンの通知対象を決める。
+  const existingItems = await existingChangelogReader.findExistingItems();
   return classifyChangelogReleases(releases, existingItems, params.detectedAt);
 }
 

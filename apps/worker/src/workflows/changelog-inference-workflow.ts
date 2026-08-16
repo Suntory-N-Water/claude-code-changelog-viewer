@@ -11,7 +11,7 @@ import {
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
 import { createChangelogDiffRepository } from '../infrastructure/drizzle/changelog-diff-repository';
 import { createChangelogInferenceRepository } from '../infrastructure/drizzle/changelog-inference-repository';
-import { createChangelogWorkflowDataPort } from '../infrastructure/drizzle/changelog-workflow-data-port';
+import { createExistingChangelogReader } from '../infrastructure/drizzle/existing-changelog-reader';
 import { createChangelogDocumentSearch } from '../infrastructure/docs-search';
 import { createGitHubChangelogMarkdownSource } from '../infrastructure/github/changelog-source';
 import { createChangelogWorkflowFailureReporter } from '../infrastructure/github/changelog-workflow-failure-reporter';
@@ -74,7 +74,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       }
       const params = paramsResult.data;
       const db = drizzle(this.env.DB);
-      const workflowData = createChangelogWorkflowDataPort(db);
+      const existingChangelogReader = createExistingChangelogReader(db);
       const diffRepository = createChangelogDiffRepository(db);
       const inferenceRepository = createChangelogInferenceRepository(db);
       const source = createGitHubChangelogMarkdownSource(
@@ -101,7 +101,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           fetchAndClassifyChangelog({
             source,
             parser: { parse: parseChangelogReleases },
-            workflowData,
+            existingChangelogReader,
             params,
           }),
       );

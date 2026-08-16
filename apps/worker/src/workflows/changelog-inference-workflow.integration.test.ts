@@ -135,9 +135,20 @@ describe('CHANGELOG 推論 Workflow', () => {
       });
 
       expect(aiRun).toHaveBeenCalledTimes(1);
-      expect(queueSend).toHaveBeenCalledWith(
-        expect.objectContaining({ version: 'v2.1.234' }),
-      );
+      expect(queueSend).toHaveBeenCalledWith({
+        version: 'v2.1.234',
+        analysis: {
+          version: 'v2.1.234',
+          summary: 'Workflow 推論のサポートを追加しました。',
+          items: [
+            {
+              content: '- Added workflow inference support',
+              content_ja: 'Workflow 推論のサポートを追加しました。',
+              prefix: 'Added',
+            },
+          ],
+        },
+      });
       expect(fetchMock).toHaveBeenCalledWith('https://deploy.example/hook', {
         method: 'POST',
       });

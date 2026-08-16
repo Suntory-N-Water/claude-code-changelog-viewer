@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { changelogItems, changelogVersions } from '../../db/schema';
-import type { ChangelogWorkflowDataPort } from '../../usecases/changelog-inference-workflow';
+import type { ExistingChangelogReader } from '../../usecases/changelog-inference-workflow';
 
-export function createChangelogWorkflowDataPort(
+export function createExistingChangelogReader(
   db: DrizzleD1Database,
-): ChangelogWorkflowDataPort {
+): ExistingChangelogReader {
   return {
     async findExistingItems() {
       return db
