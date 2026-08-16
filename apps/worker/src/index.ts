@@ -13,6 +13,8 @@ import { unsubscribeRoute } from './routes/unsubscribe';
 import { uploadsRoute } from './routes/uploads';
 import { webhooksRoute } from './routes/webhooks';
 
+export { ChangelogInferenceWorkflow } from './workflows/changelog-inference-workflow';
+
 const logger = getLogger({
   name: 'changelog-viewer-worker',
   level: 'INFO',

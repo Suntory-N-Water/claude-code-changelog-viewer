@@ -1,3 +1,4 @@
+import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   searchDocsForChangelogEntry,
@@ -11,7 +12,7 @@ type ChunkInput = {
   content: string;
 };
 
-type SeededDb = D1Database & { close: () => void };
+type SeededDb = DrizzleD1Database & { close: () => void };
 
 describe('ドキュメント検索 (FTS5)', () => {
   let db: SeededDb | null = null;
@@ -192,6 +193,28 @@ describe('ドキュメント検索 (FTS5)', () => {
     ]);
   });
 
+  it('長いスニペットを4000文字以内の改行境界で切り詰めること', async () => {
+    const content = [
+      '# Configuration reference',
+      '',
+      '| Name | Description |',
+      '| --- | --- |',
+      ...Array.from(
+        { length: 300 },
+        (_, index) => `| option${index} | Configure option ${index}. |`,
+      ),
+    ].join('\n');
+    db = await seed([{ path: 'settings.md', content }]);
+
+    const [result] = await searchDocsForChangelogEntry(db, 'option');
+
+    expect(result?.snippets[0]?.length).toBeLessThanOrEqual(4000);
+    expect(result?.snippets[0]).toContain('# Configuration reference');
+    expect(result?.snippets[0]).toMatch(
+      /\| option\d+ \| Configure option \d+\. \|$/,
+    );
+  });
+
   it('同義語の片方だけを含む検索語で、もう片方しか書かれていないドキュメントを拾うこと', async () => {
     db = await seed([
       { path: 'conversation.md', content: 'Resume a previous conversation.' },
@@ -205,13 +228,13 @@ describe('ドキュメント検索 (FTS5)', () => {
 });
 
 async function seed(chunks: ChunkInput[]): Promise<SeededDb> {
-  const db = new FakeDocsD1Database();
+  const rawDb = new FakeDocsD1Database();
   const chunkIndexes = new Map<string, number>();
 
   for (const chunk of chunks) {
     const chunkIndex = chunkIndexes.get(chunk.path) ?? 0;
     chunkIndexes.set(chunk.path, chunkIndex + 1);
-    await db
+    await rawDb
       .prepare(
         'INSERT INTO page_chunks_fts (content, path, heading, chunk_index) VALUES (?, ?, ?, ?)',
       )
@@ -219,5 +242,7 @@ async function seed(chunks: ChunkInput[]): Promise<SeededDb> {
       .run();
   }
 
+  const db = drizzle(rawDb as unknown as D1Database) as unknown as SeededDb;
+  db.close = () => rawDb.close();
   return db;
 }

@@ -1,6 +1,12 @@
+import { sql } from 'drizzle-orm';
+import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type { ChangelogDocumentSearchPort } from '../usecases/changelog-inference';
+import type { RelatedDocument } from '../domain/changelog-inference/changelog-inference';
+
 const MAX_FILES = 3;
 const MAX_CHUNKS_PER_FILE = 3;
 const MAX_PARAGRAPHS_PER_SNIPPET = 3;
+const MAX_SNIPPET_CHARS = 4000;
 
 // 実データで確認された言い換えのみ。どちらか一方が含まれていればもう一方を補う
 const SYNONYM_PAIRS: readonly (readonly [string, string])[] = [
@@ -44,38 +50,6 @@ ORDER BY ranked_pages.page_rank, ranked.chunk_rank`;
 // (D1 は LIKE パターンが 50 バイトまでで、末端名 607 件のうち 11 件が超えるため LIKE は使えない)。
 // exact 側は当落だけを決め、順位は fuzzy の BM25 から借りる。
 // exact 単独では全行が同点になり、上位3ファイルがパス名の昇順で決まってしまう
-const SETTING_KEY_SQL = `
-WITH fuzzy AS (
-  SELECT path, content, chunk_index, bm25(page_chunks_fts) AS score
-  FROM page_chunks_fts
-  WHERE page_chunks_fts MATCH ?
-),
-exact AS (
-  SELECT
-    page_chunks_fts.path,
-    page_chunks_fts.content,
-    page_chunks_fts.chunk_index,
-    -- bm25() は負値で小さいほど良い一致。fuzzy に無いチャンクは 0.0 で最下位に置く
-    COALESCE(fuzzy.score, 0.0) AS score
-  FROM page_chunks_fts
-  LEFT JOIN fuzzy
-    ON fuzzy.path = page_chunks_fts.path
-    AND fuzzy.chunk_index = page_chunks_fts.chunk_index
-  WHERE instr(page_chunks_fts.content, ?) > 0
-),
-combined AS (
-  SELECT * FROM exact
-  UNION ALL
-  SELECT * FROM fuzzy WHERE NOT EXISTS (SELECT 1 FROM exact)
-),${RANKING_SQL}`;
-
-const CHANGELOG_ENTRY_SQL = `
-WITH combined AS (
-  SELECT path, content, chunk_index, bm25(page_chunks_fts) AS score
-  FROM page_chunks_fts
-  WHERE page_chunks_fts MATCH ?
-),${RANKING_SQL}`;
-
 type ChunkRow = {
   path: string;
   content: string;
@@ -89,7 +63,7 @@ export type RelatedDoc = {
 };
 
 export async function searchDocsForSettingKey(
-  db: D1Database,
+  db: DrizzleD1Database,
   leafName: string,
 ): Promise<RelatedDoc[]> {
   const words = expandSynonyms(leafName);
@@ -97,17 +71,40 @@ export async function searchDocsForSettingKey(
     return [];
   }
 
-  const result = await db
-    .prepare(SETTING_KEY_SQL)
-    .bind(buildMatchExpression(words), `\`${leafName}\``)
-    .all<ChunkRow>();
-  return groupByFile(result.results, words);
+  const result = await db.all<ChunkRow>(
+    sql`
+      WITH fuzzy AS (
+        SELECT path, content, chunk_index, bm25(page_chunks_fts) AS score
+        FROM page_chunks_fts
+        WHERE page_chunks_fts MATCH ${buildMatchExpression(words)}
+      ),
+      exact AS (
+        SELECT
+          page_chunks_fts.path,
+          page_chunks_fts.content,
+          page_chunks_fts.chunk_index,
+          COALESCE(fuzzy.score, 0.0) AS score
+        FROM page_chunks_fts
+        LEFT JOIN fuzzy
+          ON fuzzy.path = page_chunks_fts.path
+          AND fuzzy.chunk_index = page_chunks_fts.chunk_index
+        WHERE instr(page_chunks_fts.content, ${`\`${leafName}\``}) > 0
+      ),
+      combined AS (
+        SELECT * FROM exact
+        UNION ALL
+        SELECT * FROM fuzzy WHERE NOT EXISTS (SELECT 1 FROM exact)
+      ),
+      ${sql.raw(RANKING_SQL)}
+    `,
+  );
+  return groupByFile(result, words);
 }
 
 // CHANGELOG の箇条書き1行はバッククォート囲みの優先を通さない。
 // 現行も CHANGELOG 推論は BM25 だけを使っており、その動作に揃える
 export async function searchDocsForChangelogEntry(
-  db: D1Database,
+  db: DrizzleD1Database,
   entry: string,
 ): Promise<RelatedDoc[]> {
   const words = expandSynonyms(entry);
@@ -115,11 +112,31 @@ export async function searchDocsForChangelogEntry(
     return [];
   }
 
-  const result = await db
-    .prepare(CHANGELOG_ENTRY_SQL)
-    .bind(buildMatchExpression(words))
-    .all<ChunkRow>();
-  return groupByFile(result.results, words);
+  const result = await db.all<ChunkRow>(
+    sql`
+      WITH combined AS (
+        SELECT path, content, chunk_index, bm25(page_chunks_fts) AS score
+        FROM page_chunks_fts
+        WHERE page_chunks_fts MATCH ${buildMatchExpression(words)}
+      ),
+      ${sql.raw(RANKING_SQL)}
+    `,
+  );
+  return groupByFile(result, words);
+}
+
+export function createChangelogDocumentSearch(
+  db: DrizzleD1Database,
+): ChangelogDocumentSearchPort {
+  return {
+    async searchChangelogEntry(entry) {
+      const documents = await searchDocsForChangelogEntry(db, entry);
+      return documents.map<RelatedDocument>((document) => ({
+        file: document.file,
+        snippets: document.snippets,
+      }));
+    },
+  };
 }
 
 // 語形の原形化は tokenizer の porter が索引側とクエリ側の両方に効くのでここでは行わない
@@ -182,8 +199,9 @@ function selectParagraphs(content: string, querySet: Set<string>): string {
   const paragraphs = content
     .split(/\n\s*\n/)
     .filter((part) => part.trim() !== '');
+
   if (paragraphs.length <= MAX_PARAGRAPHS_PER_SNIPPET) {
-    return content;
+    return truncateAtLineBoundary(content, MAX_SNIPPET_CHARS);
   }
 
   // 見出しと導入段落は検索語を含まなくても文脈として要るので必ず残す
@@ -200,7 +218,32 @@ function selectParagraphs(content: string, querySet: Set<string>): string {
   }
 
   const selected = densest === -1 ? [0, 1] : [0, 1, densest];
-  return selected.map((index) => paragraphs[index]).join('\n\n');
+  return truncateAtLineBoundary(
+    selected.map((index) => paragraphs[index]).join('\n\n'),
+    MAX_SNIPPET_CHARS,
+  );
+}
+
+function truncateAtLineBoundary(content: string, maxChars: number): string {
+  if (content.length <= maxChars) {
+    return content;
+  }
+
+  const lines = content.split('\n');
+  let length = 0;
+  let endIndex = 0;
+  for (const [index, line] of lines.entries()) {
+    const nextLength = length + line.length + (index === 0 ? 0 : 1);
+    if (nextLength > maxChars) {
+      break;
+    }
+    length = nextLength;
+    endIndex = index + 1;
+  }
+
+  return endIndex === 0
+    ? (lines[0] ?? '').slice(0, maxChars)
+    : lines.slice(0, endIndex).join('\n');
 }
 
 // 記号で切るので `key` や (key) のように装飾された語も本文と同じ形になる
