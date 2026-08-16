@@ -2,7 +2,7 @@
 
 ## 概要
 
-pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公式 Docs、設定スキーマ、ブログ、YouTube 情報を収集し、Astro の静的サイトで公開する。CHANGELOG の変化検知と通知 API は Cloudflare Workers、購読情報と配信済み記録は D1、通知処理は Cloudflare Queues を使う。
+pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公式 Docs、設定スキーマを収集し、Astro の静的サイトで公開する。CHANGELOG の変化検知と通知 API は Cloudflare Workers、購読情報と配信済み記録は D1、通知処理は Cloudflare Queues を使う。
 
 内部の Claude Code version は `v2.1.220` のような `v` 付き表記に統一する。ファイル名、metadata / diff、workflow と通知の version、公開 URL は `v` 付きとする。一方、analysis / inferred JSON の本文、CHANGELOG Markdown の見出し、週次記事 frontmatter は既存の外部保存形式として `v` なしを維持し、読み込み時にドメイン表現へ正規化する。
 
@@ -18,10 +18,10 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公�
 
 ### `apps/docs-tracker`
 
-- Claude Code 公式 Docs、settings schema、Anthropic Blog、YouTube メタデータと transcript を取得する。
+- Claude Code 公式 Docs と settings schema を取得する。
 - Docs は `docs/en/`、settings schema は `schema/`、取得状態は `metadata/` に保存する。
 - 既存 JSON が存在しない場合と、JSON が破損・schema 不一致の場合を区別する。後者はファイルパスとエラーを警告する。
-- Docs、schema、metadata、YouTube 関連の主要な JSON・Markdown 出力は、一時ファイルを同一ディレクトリへ書いて rename するアトミック書き込みを使う。
+- Docs、schema、metadata の主要な JSON・Markdown 出力は、一時ファイルを同一ディレクトリへ書いて rename するアトミック書き込みを使う。
 
 ### `apps/worker`
 
@@ -55,9 +55,6 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公�
 | --- | --- | --- |
 | `changelog-auto-inference.yml` | changelog-viewer-worker からの手動 dispatch | CHANGELOG 取得、解析、推論、通知、PR 作成 |
 | `fetch-docs.yml` | 3 時間ごと / 手動 | Docs と settings schema の取得、PR 作成・マージ |
-| `fetch-blog.yml` | 1 時間ごと / 手動 | Anthropic Blog の取得 |
-| `fetch-youtube.yml` | 毎日 / 手動 | YouTube 情報の取得 |
-| `fetch-builtin-data.yml` | 毎日 JST 06:00 / 手動 | Claude Code ビルトイン情報の取得 |
 | `generate-settings-reference.yml` | 毎日 JST 06:00 / 手動 | 設定リファレンスの生成 |
 | `ci.yml` | push / 手動 | TypeScript workspace の検査 |
 | `python-ci.yml` | Python 関連変更の push / 手動 | Docs 検索エンジンなど Python 部分の検査 |
