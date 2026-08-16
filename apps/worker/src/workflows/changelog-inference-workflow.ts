@@ -1,7 +1,5 @@
 import { drizzle } from 'drizzle-orm/d1';
-// biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers ランタイム組み込みモジュール
 import { WorkflowEntrypoint } from 'cloudflare:workers';
-// biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers ランタイム組み込みモジュール
 import type { WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { z } from 'zod';
 import {

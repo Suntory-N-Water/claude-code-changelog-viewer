@@ -1,10 +1,6 @@
-// biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers テストランタイム組み込みモジュール
 import { applyD1Migrations } from 'cloudflare:test';
-// biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers テストランタイム組み込みモジュール
 import { introspectWorkflowInstance } from 'cloudflare:test';
-// biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers テストランタイム組み込みモジュール
 import type { D1Migration } from 'cloudflare:test';
-// biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers ランタイム組み込みモジュール
 import { env } from 'cloudflare:workers';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql } from 'drizzle-orm';
