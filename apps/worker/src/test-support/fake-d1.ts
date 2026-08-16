@@ -137,14 +137,44 @@ export class FakeD1Database {
         PRIMARY KEY (version, item_id, feature_area)
       );
 
+      CREATE TABLE changelog_item_related_docs (
+        version TEXT NOT NULL,
+        item_id TEXT NOT NULL,
+        doc_path TEXT NOT NULL,
+        PRIMARY KEY (version, item_id, doc_path)
+      );
+
+      CREATE TABLE changelog_diff_events (
+        version TEXT NOT NULL,
+        detected_at TEXT NOT NULL,
+        type TEXT NOT NULL,
+        PRIMARY KEY (version, detected_at)
+      );
+
+      CREATE TABLE changelog_diff_event_items (
+        version TEXT NOT NULL,
+        detected_at TEXT NOT NULL,
+        direction TEXT NOT NULL,
+        seq INTEGER NOT NULL,
+        content TEXT NOT NULL,
+        PRIMARY KEY (version, detected_at, direction, seq)
+      );
+
       CREATE TABLE settings_reference (
         key TEXT PRIMARY KEY NOT NULL,
+        leaf_name TEXT,
         slug TEXT NOT NULL,
         source TEXT NOT NULL,
         description_en TEXT NOT NULL,
         description_ja TEXT NOT NULL,
         use_case_ja TEXT,
-        official_doc_urls TEXT
+        fetched_at TEXT NOT NULL
+      );
+
+      CREATE TABLE settings_official_docs (
+        setting_key TEXT NOT NULL,
+        doc_path TEXT NOT NULL,
+        PRIMARY KEY (setting_key, doc_path)
       );
     `);
   }
@@ -154,6 +184,9 @@ export class FakeD1Database {
   }
 
   async batch(statements: FakeD1PreparedStatement[]) {
+    if (statements.length > 100) {
+      throw new Error(`D1 の batch 上限 100 を超過: ${statements.length}`);
+    }
     return Promise.all(statements.map((statement) => statement.run()));
   }
 

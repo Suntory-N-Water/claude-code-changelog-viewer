@@ -10,6 +10,7 @@ vi.mock('../infrastructure/channel-notifier', () => ({
 }));
 
 import type {
+  IngestChangelogDiffEvent,
   IngestChangelogVersion,
   IngestSetting,
 } from '@claude-code-changelog-viewer/types';
@@ -59,12 +60,27 @@ function createVersion(
 function createSetting(overrides: Partial<IngestSetting> = {}): IngestSetting {
   return {
     key: 'advisorModel',
+    leaf_name: 'advisorModel',
     slug: 'advisor-model',
     source: 'settings',
     description_en: 'Model for the server-side advisor tool.',
     description_ja: 'アドバイザーツールのモデルを指定します。',
     use_case_ja: 'アドバイザー機能のモデルを選択します。',
+    fetched_at: '2026-08-16',
     official_doc_urls: ['https://code.claude.com/docs/en/advisor'],
+    ...overrides,
+  };
+}
+
+function createDiffEvent(
+  overrides: Partial<IngestChangelogDiffEvent> = {},
+): IngestChangelogDiffEvent {
+  return {
+    detected_at: '2026-08-16T00:00:00.000Z',
+    version: 'v2.1.98',
+    type: 'items_changed',
+    items_added: ['- Added a new item'],
+    items_removed: ['- Removed an old item'],
     ...overrides,
   };
 }
@@ -328,6 +344,179 @@ describe('POST /api/ingest/changelog integration', () => {
       db.close();
     });
 
+    it('関連ドキュメントを検索用の相対パスに変換し、空配列は行を作らないこと', async () => {
+      const db = new FakeD1Database();
+      const sut = app;
+      const version = createVersion({
+        items: [
+          {
+            id: 'aaaaaaaaaaaa',
+            content: '- Added related docs',
+            prefix: 'Added',
+            related_docs: [
+              { file: 'apps/docs-tracker/docs/en/mcp.md' },
+              { file: 'apps/docs-tracker/docs/en/mcp.md' },
+              { file: 'apps/docs-tracker/docs/en/agent-sdk/typescript.md' },
+            ],
+          },
+          {
+            id: 'bbbbbbbbbbbb',
+            content: '- Added no related docs',
+            prefix: 'Added',
+            related_docs: [],
+          },
+        ],
+      });
+
+      const response = await sut.request(
+        '/api/ingest/changelog',
+        createRequest({ versions: [version] }),
+        createTestEnv(db),
+      );
+
+      expect(response.status).toBe(200);
+      const rows = await db
+        .prepare(
+          `SELECT version, item_id, doc_path
+           FROM changelog_item_related_docs
+           ORDER BY item_id, doc_path`,
+        )
+        .all();
+      expect(rows.results).toEqual([
+        {
+          version: '2.1.98',
+          item_id: 'aaaaaaaaaaaa',
+          doc_path: 'agent-sdk/typescript.md',
+        },
+        {
+          version: '2.1.98',
+          item_id: 'aaaaaaaaaaaa',
+          doc_path: 'mcp.md',
+        },
+      ]);
+      db.close();
+    });
+
+    it('関連ドキュメントが 100 行を超えても分割して取り込めること', async () => {
+      const db = new FakeD1Database();
+      const sut = app;
+      const relatedDocs = Array.from({ length: 101 }, (_, i) => ({
+        file: `apps/docs-tracker/docs/en/generated/${i}.md`,
+      }));
+
+      const response = await sut.request(
+        '/api/ingest/changelog',
+        createRequest({
+          versions: [
+            createVersion({
+              items: [
+                {
+                  id: 'cccccccccccc',
+                  content: '- Added many related docs',
+                  prefix: 'Added',
+                  related_docs: relatedDocs,
+                },
+              ],
+            }),
+          ],
+        }),
+        createTestEnv(db),
+      );
+
+      expect(response.status).toBe(200);
+      const count = await db
+        .prepare('SELECT count(*) AS c FROM changelog_item_related_docs')
+        .first<{ c: number }>();
+      expect(count?.c).toBe(101);
+      db.close();
+    });
+
+    it('差分イベントと追加・削除項目を取り込め、version_removed は項目を持たないこと', async () => {
+      const db = new FakeD1Database();
+      const sut = app;
+      const events = [
+        createDiffEvent(),
+        createDiffEvent({
+          detected_at: '2026-08-16T00:01:00.000Z',
+          version: 'v2.1.88',
+          type: 'version_removed',
+          items_added: [],
+          items_removed: [],
+        }),
+      ];
+
+      const response = await sut.request(
+        '/api/ingest/changelog',
+        createRequest({ diff_events: events }),
+        createTestEnv(db),
+      );
+
+      expect(response.status).toBe(200);
+      expect(
+        (
+          await db
+            .prepare(
+              `SELECT version, detected_at, type
+               FROM changelog_diff_events
+               ORDER BY version`,
+            )
+            .all()
+        ).results,
+      ).toEqual([
+        {
+          version: 'v2.1.88',
+          detected_at: '2026-08-16T00:01:00.000Z',
+          type: 'version_removed',
+        },
+        {
+          version: 'v2.1.98',
+          detected_at: '2026-08-16T00:00:00.000Z',
+          type: 'items_changed',
+        },
+      ]);
+      expect(
+        (
+          await db
+            .prepare(
+              `SELECT version, detected_at, direction, seq, content
+               FROM changelog_diff_event_items
+               ORDER BY direction, seq`,
+            )
+            .all()
+        ).results,
+      ).toEqual([
+        {
+          version: 'v2.1.98',
+          detected_at: '2026-08-16T00:00:00.000Z',
+          direction: 'added',
+          seq: 0,
+          content: '- Added a new item',
+        },
+        {
+          version: 'v2.1.98',
+          detected_at: '2026-08-16T00:00:00.000Z',
+          direction: 'removed',
+          seq: 0,
+          content: '- Removed an old item',
+        },
+      ]);
+
+      await sut.request(
+        '/api/ingest/changelog',
+        createRequest({ diff_events: events }),
+        createTestEnv(db),
+      );
+      const eventCount = await db
+        .prepare('SELECT count(*) AS c FROM changelog_diff_events')
+        .first<{ c: number }>();
+      const itemCount = await db
+        .prepare('SELECT count(*) AS c FROM changelog_diff_event_items')
+        .first<{ c: number }>();
+      expect(eventCount?.c).toBe(2);
+      expect(itemCount?.c).toBe(2);
+      db.close();
+    });
+
     it('search_text が content・content_ja・summary の NFKC 正規化+小文字化で生成され、全角・大文字の揺れを吸収した検索ができること', async () => {
       const db = new FakeD1Database();
       const sut = app;
@@ -390,7 +579,7 @@ describe('POST /api/ingest/changelog integration', () => {
   });
 
   describe('settings の取り込み', () => {
-    it('新規の設定キーを送ると、説明と公式ドキュメント URL(JSON テキスト)が保存されること', async () => {
+    it('新規の設定キーを送ると、表示名・取得日時・公式ドキュメント参照が保存されること', async () => {
       const db = new FakeD1Database();
       const sut = app;
 
@@ -405,17 +594,25 @@ describe('POST /api/ingest/changelog integration', () => {
         await db.prepare('SELECT * FROM settings_reference').first(),
       ).toEqual({
         key: 'advisorModel',
+        leaf_name: 'advisorModel',
         slug: 'advisor-model',
         source: 'settings',
         description_en: 'Model for the server-side advisor tool.',
         description_ja: 'アドバイザーツールのモデルを指定します。',
         use_case_ja: 'アドバイザー機能のモデルを選択します。',
-        official_doc_urls: '["https://code.claude.com/docs/en/advisor"]',
+        fetched_at: '2026-08-16',
+      });
+      expect(
+        await db
+          .prepare('SELECT setting_key, doc_path FROM settings_official_docs')
+          .all(),
+      ).toMatchObject({
+        results: [{ setting_key: 'advisorModel', doc_path: 'advisor.md' }],
       });
       db.close();
     });
 
-    it('use_case_ja と official_doc_urls がない設定でも取り込めること', async () => {
+    it('use_case_ja と公式ドキュメント参照がない設定でも取り込めること', async () => {
       const db = new FakeD1Database();
       const sut = app;
       const setting = createSetting({
@@ -433,10 +630,18 @@ describe('POST /api/ingest/changelog integration', () => {
       expect(
         await db
           .prepare(
-            'SELECT use_case_ja, official_doc_urls FROM settings_reference',
+            'SELECT use_case_ja, leaf_name, fetched_at FROM settings_reference',
           )
           .first(),
-      ).toEqual({ use_case_ja: null, official_doc_urls: null });
+      ).toEqual({
+        use_case_ja: null,
+        leaf_name: 'advisorModel',
+        fetched_at: '2026-08-16',
+      });
+      const docs = await db
+        .prepare('SELECT count(*) AS c FROM settings_official_docs')
+        .first<{ c: number }>();
+      expect(docs?.c).toBe(0);
       db.close();
     });
 
@@ -451,6 +656,7 @@ describe('POST /api/ingest/changelog integration', () => {
       );
       const updated = createSetting({
         description_ja: '更新後の説明です。',
+        official_doc_urls: ['https://code.claude.com/docs/en/model-config'],
       });
 
       const response = await sut.request(
@@ -467,6 +673,31 @@ describe('POST /api/ingest/changelog integration', () => {
           .prepare('SELECT description_ja FROM settings_reference')
           .first(),
       ).toEqual({ description_ja: '更新後の説明です。' });
+      expect(
+        await db.prepare('SELECT doc_path FROM settings_official_docs').all(),
+      ).toMatchObject({ results: [{ doc_path: 'model-config.md' }] });
+      db.close();
+    });
+
+    it('設定キーが 100 件を超えても D1 の batch 上限に合わせて取り込めること', async () => {
+      const db = new FakeD1Database();
+      const sut = app;
+      const settings = Array.from({ length: 101 }, (_, i) =>
+        createSetting({
+          key: `setting-${i}`,
+          leaf_name: `setting${i}`,
+          official_doc_urls: [],
+        }),
+      );
+
+      const response = await sut.request(
+        '/api/ingest/changelog',
+        createRequest({ settings }),
+        createTestEnv(db),
+      );
+
+      expect(response.status).toBe(200);
+      expect((await countAllRows(db)).settings).toBe(101);
       db.close();
     });
   });

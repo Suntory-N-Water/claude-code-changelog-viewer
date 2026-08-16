@@ -83,6 +83,7 @@ export const IngestChangelogItemSchema = z.object({
   content_ja: z.string().nullable().optional(),
   prefix: z.string(),
   feature_areas: z.array(z.string()).nullable().optional(),
+  related_docs: z.array(InferredRelatedDocSchema).nullable().optional(),
   inference: z
     .object({
       before: z.string(),
@@ -103,14 +104,27 @@ export type IngestChangelogVersion = z.infer<
   typeof IngestChangelogVersionSchema
 >;
 
+export const IngestChangelogDiffEventSchema = z.object({
+  detected_at: z.string(),
+  version: z.string().regex(/^v?\d+\.\d+\.\d+$/),
+  type: z.enum(['items_changed', 'version_removed']),
+  items_added: z.array(z.string()),
+  items_removed: z.array(z.string()),
+});
+export type IngestChangelogDiffEvent = z.infer<
+  typeof IngestChangelogDiffEventSchema
+>;
+
 // doc_snippets は意図的に受け取らない(D1 の SQL 文長上限と LLM 向けノイズ対策)
 export const IngestSettingSchema = z.object({
   key: z.string().min(1),
+  leaf_name: z.string().nullable().optional(),
   slug: z.string(),
   source: z.enum(['settings', 'env']),
   description_en: z.string(),
   description_ja: z.string(),
   use_case_ja: z.string().nullable().optional(),
+  fetched_at: z.string(),
   official_doc_urls: z.array(z.string()).nullable().optional(),
 });
 export type IngestSetting = z.infer<typeof IngestSettingSchema>;
@@ -119,6 +133,7 @@ export type IngestSetting = z.infer<typeof IngestSettingSchema>;
 export const IngestChangelogPayloadSchema = z.object({
   versions: z.array(IngestChangelogVersionSchema).max(50).default([]),
   settings: z.array(IngestSettingSchema).default([]),
+  diff_events: z.array(IngestChangelogDiffEventSchema).default([]),
 });
 export type IngestChangelogPayload = z.infer<
   typeof IngestChangelogPayloadSchema

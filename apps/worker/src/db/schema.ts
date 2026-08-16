@@ -116,17 +116,65 @@ export const changelogItemFeatureAreas = sqliteTable(
   ],
 );
 
+export const changelogItemRelatedDocs = sqliteTable(
+  'changelog_item_related_docs',
+  {
+    version: text('version').notNull(),
+    itemId: text('item_id').notNull(),
+    docPath: text('doc_path').notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.version, table.itemId, table.docPath] }),
+  ],
+);
+
+export const changelogDiffEvents = sqliteTable(
+  'changelog_diff_events',
+  {
+    version: text('version').notNull(),
+    detectedAt: text('detected_at').notNull(),
+    type: text('type').notNull().$type<'items_changed' | 'version_removed'>(),
+  },
+  (table) => [primaryKey({ columns: [table.version, table.detectedAt] })],
+);
+
+export const changelogDiffEventItems = sqliteTable(
+  'changelog_diff_event_items',
+  {
+    version: text('version').notNull(),
+    detectedAt: text('detected_at').notNull(),
+    direction: text('direction').notNull().$type<'added' | 'removed'>(),
+    seq: integer('seq').notNull(),
+    content: text('content').notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.version, table.detectedAt, table.direction, table.seq],
+    }),
+  ],
+);
+
 // doc_snippets は意図的に含めない(生の抜粋は LLM にとってノイズで、
 // 156KB のファイルが D1 の SQL 文長上限 100KB に触れる)
 export const settingsReference = sqliteTable('settings_reference', {
   key: text('key').primaryKey(),
+  leafName: text('leaf_name'),
   slug: text('slug').notNull(),
   source: text('source').notNull().$type<'settings' | 'env'>(),
   descriptionEn: text('description_en').notNull(),
   descriptionJa: text('description_ja').notNull(),
   useCaseJa: text('use_case_ja'),
-  officialDocUrls: text('official_doc_urls'), // JSON 配列のテキスト
+  fetchedAt: text('fetched_at').notNull().default(''),
 });
+
+export const settingsOfficialDocs = sqliteTable(
+  'settings_official_docs',
+  {
+    settingKey: text('setting_key').notNull(),
+    docPath: text('doc_path').notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.settingKey, table.docPath] })],
+);
 
 // version・チャンネル単位の配信完了記録。Queue 再試行時の重複送信を防ぐ。
 export const notificationDeliveries = sqliteTable(
