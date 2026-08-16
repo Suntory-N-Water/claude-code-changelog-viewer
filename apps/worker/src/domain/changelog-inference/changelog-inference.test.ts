@@ -25,7 +25,7 @@ const input = {
 } as const;
 
 describe('CHANGELOG 推論の整合性', () => {
-  it('関連ドキュメントの有無に応じて AI 結果を CHANGELOG 項目へ統合すること', () => {
+  it('関連ドキュメントの有無が異なる時、AI 結果を CHANGELOG 項目へ統合すること', () => {
     const result = mergeChangelogInference(input, {
       inferredItems: [
         {
@@ -81,7 +81,7 @@ describe('CHANGELOG 推論の整合性', () => {
     });
   });
 
-  it('推論対象の項目が不足している AI 結果を受け付けないこと', () => {
+  it('推論対象の項目が不足している時、AI 結果を受け付けないこと', () => {
     expect(() =>
       mergeChangelogInference(input, {
         inferredItems: [],
@@ -94,7 +94,7 @@ describe('CHANGELOG 推論の整合性', () => {
     ).toThrow('AI 推論結果の推論項目数が一致しません');
   });
 
-  it('未知の項目に対する機能領域タグを受け付けないこと', () => {
+  it('未知の項目に対する機能領域タグがある時、AI 結果を受け付けないこと', () => {
     expect(() =>
       mergeChangelogInference(input, {
         inferredItems: [

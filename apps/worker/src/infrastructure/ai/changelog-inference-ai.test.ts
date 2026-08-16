@@ -45,7 +45,7 @@ const validResponse = {
 };
 
 describe('Workers AI CHANGELOG adapter', () => {
-  it('Zod で検証した AI 応答を usecase の型へ変換すること', async () => {
+  it('AI 応答が Zod で検証できる時、usecase の型へ変換すること', async () => {
     const run = vi.fn<WorkersAiBinding['run']>().mockResolvedValue({
       response: JSON.stringify(validResponse),
     });
@@ -80,7 +80,7 @@ describe('Workers AI CHANGELOG adapter', () => {
     );
   });
 
-  it('Zod の検証に失敗した AI 応答を再試行可能なエラーにすること', async () => {
+  it('AI 応答の Zod 検証に失敗した時、再試行可能なエラーにすること', async () => {
     const run = vi.fn<WorkersAiBinding['run']>().mockResolvedValue({
       response: JSON.stringify({
         ...validResponse,

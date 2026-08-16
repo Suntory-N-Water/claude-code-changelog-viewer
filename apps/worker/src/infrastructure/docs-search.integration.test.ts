@@ -23,7 +23,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     db = null;
   });
 
-  it('バッククォート囲みが当たったとき、BM25 の結果を混ぜないこと', async () => {
+  it('バッククォート囲みが当たった時、BM25 の結果を混ぜないこと', async () => {
     db = await seed([
       {
         path: 'settings.md',
@@ -46,7 +46,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     ]);
   });
 
-  it('バッククォート囲みが0件のとき、BM25 の結果を返すこと', async () => {
+  it('バッククォート囲みが0件の時、BM25 の結果を返すこと', async () => {
     db = await seed([
       { path: 'overview.md', content: 'Choose the model used for responses.' },
       { path: 'unrelated.md', content: 'Hooks run shell commands.' },
@@ -61,7 +61,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     ]);
   });
 
-  it('バッククォート囲みが複数ファイルに当たったとき、BM25 の良い順に並べること', async () => {
+  it('バッククォート囲みが複数ファイルに当たった時、BM25 の良い順に並べること', async () => {
     db = await seed([
       {
         path: 'z-settings.md',
@@ -82,7 +82,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     ]);
   });
 
-  it('どちらも0件のとき、空を返すこと', async () => {
+  it('検索結果がどちらも0件の時、空を返すこと', async () => {
     db = await seed([
       { path: 'guide.md', content: 'Hooks run shell commands.' },
     ]);
@@ -92,7 +92,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     );
   });
 
-  it('検索語が空白だけのとき、空を返すこと', async () => {
+  it('検索語が空白だけの時、空を返すこと', async () => {
     db = await seed([
       { path: 'guide.md', content: 'Hooks run shell commands.' },
     ]);
@@ -106,7 +106,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     { term: 'a "quoted phrase that never closes', expected: [] },
     { term: '^*()', expected: [] },
   ])(
-    '記号や予約語を含む検索語 $term を、演算子として解釈せず語として扱うこと',
+    '検索語に記号や予約語が含まれる時、演算子として解釈せず語として扱うこと',
     async ({ term, expected }) => {
       db = await seed([
         { path: 'guide.md', content: 'Permission rules use allow and deny.' },
@@ -118,7 +118,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     },
   );
 
-  it('CHANGELOG の入口ではバッククォート囲みを優先しないこと', async () => {
+  it('CHANGELOG の入口から検索する時、バッククォート囲みを優先しないこと', async () => {
     db = await seed([
       {
         path: 'settings.md',
@@ -142,7 +142,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     ]);
   });
 
-  it('ファイルは上位3件、ファイルごとに上位3チャンクに絞ること', async () => {
+  it('検索結果が複数ファイルにまたがる時、上位3ファイルと各3チャンクに絞ること', async () => {
     db = await seed(
       Array.from({ length: 4 }, (_, fileIndex) =>
         Array.from({ length: 4 }, (_, chunkIndex) => ({
@@ -163,7 +163,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     expect(results.map((result) => result.hitCount)).toEqual([4, 4, 4]);
   });
 
-  it('段落が4つ以上のチャンクを、先頭2段落と検索語が最も多い段落に絞ること', async () => {
+  it('段落が4つ以上の時、先頭2段落と検索語が最も多い段落に絞ること', async () => {
     db = await seed([
       {
         path: 'settings.md',
@@ -194,7 +194,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     ]);
   });
 
-  it('長いスニペットを4000文字以内の改行境界で切り詰めること', async () => {
+  it('スニペットが4000文字を超える時、改行境界で切り詰めること', async () => {
     const content = [
       '# Configuration reference',
       '',
@@ -216,7 +216,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     );
   });
 
-  it('長い導入段落があっても検索語を含む段落を残すこと', async () => {
+  it('導入段落が長い時、検索語を含む段落を残すこと', async () => {
     const content = [
       'A'.repeat(3000),
       'B'.repeat(3000),
@@ -236,7 +236,26 @@ describe('ドキュメント検索 (FTS5)', () => {
     );
   });
 
-  it('同義語の片方だけを含む検索語で、もう片方しか書かれていないドキュメントを拾うこと', async () => {
+  it('3段落の導入が長い時、検索語を含む段落を残すこと', async () => {
+    const content = [
+      'A'.repeat(3000),
+      'B'.repeat(3000),
+      'Notification hooks configure permission prompts.',
+    ].join('\n\n');
+    db = await seed([{ path: 'settings.md', content }]);
+
+    const [result] = await searchDocsForChangelogEntry(
+      db,
+      'Notification hooks',
+    );
+
+    expect(result?.snippets[0]?.length).toBeLessThanOrEqual(4000);
+    expect(result?.snippets[0]).toContain(
+      'Notification hooks configure permission prompts.',
+    );
+  });
+
+  it('同義語の片方だけを含む検索語の時、もう片方しか書かれていないドキュメントを拾うこと', async () => {
     db = await seed([
       { path: 'conversation.md', content: 'Resume a previous conversation.' },
       { path: 'unrelated.md', content: 'Set the output style.' },

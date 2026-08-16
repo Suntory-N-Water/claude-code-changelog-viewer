@@ -16,7 +16,7 @@ function release(version: string, ...items: string[]) {
 }
 
 describe('CHANGELOG 差分判定', () => {
-  it('新規・更新・過去の新規バージョンを処理し、新しいバージョンだけ通知対象にすること', () => {
+  it('新規・更新・過去のバージョンがある時、新しいバージョンだけを通知対象にすること', () => {
     const releases = [
       release('v2.1.234', 'new item'),
       release('v2.1.233', 'updated item'),
@@ -59,7 +59,7 @@ describe('CHANGELOG 差分判定', () => {
     ]);
   });
 
-  it('項目の並び順だけが変わったバージョンを変更扱いしないこと', () => {
+  it('項目の並び順だけが変わった時、変更扱いしないこと', () => {
     const result = classifyChangelogReleases(
       [release('v2.1.234', 'first', 'second')],
       [

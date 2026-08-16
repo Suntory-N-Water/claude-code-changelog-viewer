@@ -5,7 +5,6 @@ import type { RelatedDocument } from '../domain/changelog-inference/changelog-in
 
 const MAX_FILES = 3;
 const MAX_CHUNKS_PER_FILE = 3;
-const MAX_PARAGRAPHS_PER_SNIPPET = 3;
 const MAX_SNIPPET_CHARS = 4000;
 
 // 実データで確認された言い換えのみ。どちらか一方が含まれていればもう一方を補う
@@ -200,7 +199,7 @@ function selectParagraphs(content: string, querySet: Set<string>): string {
     .split(/\n\s*\n/)
     .filter((part) => part.trim() !== '');
 
-  if (paragraphs.length <= MAX_PARAGRAPHS_PER_SNIPPET) {
+  if (paragraphs.length <= 2) {
     return truncateAtLineBoundary(content, MAX_SNIPPET_CHARS);
   }
 
@@ -251,9 +250,7 @@ function truncateAtLineBoundary(content: string, maxChars: number): string {
     endIndex = index + 1;
   }
 
-  return endIndex === 0
-    ? (lines[0] ?? '').slice(0, maxChars)
-    : lines.slice(0, endIndex).join('\n');
+  return endIndex === 0 ? '' : lines.slice(0, endIndex).join('\n');
 }
 
 // 記号で切るので `key` や (key) のように装飾された語も本文と同じ形になる

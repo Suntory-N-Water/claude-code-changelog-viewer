@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseChangelogReleases } from './changelog-markdown-parser';
 
 describe('CHANGELOG Markdown parser', () => {
-  it('バージョンと複数行の項目をドメイン入力へ変換すること', async () => {
+  it('バージョンと複数行の項目がある時、ドメイン入力へ変換すること', async () => {
     const result = await parseChangelogReleases(`
 # Changelog
 
@@ -35,7 +35,7 @@ describe('CHANGELOG Markdown parser', () => {
     });
   });
 
-  it('項目のないバージョンを空の項目配列として返すこと', async () => {
+  it('項目のないバージョンの時、空の項目配列として返すこと', async () => {
     await expect(
       parseChangelogReleases('## 2.1.234\n\nNo bullet here'),
     ).resolves.toEqual([{ version: 'v2.1.234', items: [] }]);

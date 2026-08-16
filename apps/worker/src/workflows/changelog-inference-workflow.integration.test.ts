@@ -57,7 +57,7 @@ describe('CHANGELOG 推論 Workflow', () => {
     `);
   });
 
-  it('検出から D1 保存・通知・ビルド起動まで完了し、保存再試行で AI を再実行しないこと', async () => {
+  it('CHANGELOG を検出して D1 保存・通知・ビルド起動まで行う時、保存再試行で AI を再実行しないこと', async () => {
     const release = (await parseChangelogReleases(changelog))[0];
     if (release === undefined) {
       throw new Error('テスト用 CHANGELOG のリリースがありません');
@@ -214,6 +214,126 @@ describe('CHANGELOG 推論 Workflow', () => {
         expect.stringContaining('/issues'),
         expect.objectContaining({ method: 'POST' }),
       );
+    } finally {
+      await instance.dispose();
+    }
+  });
+
+  it('既存バージョンの項目が変わった時、差分イベントを D1 に保存して通知しないこと', async () => {
+    const db = drizzle(testEnv.DB);
+    await db.insert(changelogVersions).values({
+      version: '2.1.234',
+      summary: '古い要約',
+    });
+    await db.insert(changelogItems).values({
+      version: '2.1.234',
+      itemId: 'old-item',
+      content: '- Old workflow behavior',
+      contentJa: null,
+      prefix: 'Changed',
+      inferenceBefore: null,
+      inferenceAfter: null,
+      inferenceBenefit: null,
+      searchText: 'old workflow behavior',
+    });
+    const [release] = await parseChangelogReleases(changelog);
+    const item = release?.items[0];
+    if (item === undefined) {
+      throw new Error('テスト用 CHANGELOG の項目がありません');
+    }
+
+    const aiRun = vi.spyOn(testEnv.AI, 'run').mockResolvedValue({
+      response: JSON.stringify({
+        inferred_items: [
+          {
+            id: item.id,
+            content_ja: 'Workflow 推論のサポートを追加しました。',
+            before: 'Workflow 推論のサポートがありませんでした。',
+            after: 'Workflow 推論のサポートが追加されました。',
+            benefit: 'CHANGELOG の更新を自動で推論して保存できます。',
+          },
+        ],
+        translated_items: [],
+        feature_area_corrections: [],
+        summary: 'Workflow 推論のサポートを追加しました。',
+      }),
+    });
+    const queueSend = vi
+      .spyOn(testEnv.NOTIFICATION_QUEUE, 'send')
+      .mockResolvedValue({
+        metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+      });
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async (input) => {
+        const url = String(input);
+        if (url.includes('/contents/CHANGELOG.md')) {
+          return new Response(changelog, { status: 200 });
+        }
+        if (url === 'https://deploy.example/hook') {
+          return new Response(null, { status: 200 });
+        }
+        throw new Error(`想定外の外部リクエスト: ${url}`);
+      });
+    const instanceId = `issue-901-diff-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.CHANGELOG_INFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+
+      await testEnv.CHANGELOG_INFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {
+          detectedHash: await sha256Hex(changelog),
+          detectedAt: '2026-08-16T00:00:00.000Z',
+        },
+      });
+
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+      await expect(instance.getOutput()).resolves.toEqual({
+        processedVersions: ['v2.1.234'],
+        notifiedVersions: [],
+      });
+      expect(aiRun).toHaveBeenCalledTimes(1);
+      expect(queueSend).not.toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledWith('https://deploy.example/hook', {
+        method: 'POST',
+      });
+
+      await expect(
+        db
+          .select({
+            version: changelogDiffEvents.version,
+            type: changelogDiffEvents.type,
+          })
+          .from(changelogDiffEvents),
+      ).resolves.toEqual([{ version: 'v2.1.234', type: 'items_changed' }]);
+      await expect(
+        db
+          .select({
+            version: changelogDiffEventItems.version,
+            direction: changelogDiffEventItems.direction,
+            content: changelogDiffEventItems.content,
+          })
+          .from(changelogDiffEventItems)
+          .orderBy(sql.raw('changelog_diff_event_items.rowid')),
+      ).resolves.toEqual([
+        {
+          version: 'v2.1.234',
+          direction: 'added',
+          content: '- Added workflow inference support',
+        },
+        {
+          version: 'v2.1.234',
+          direction: 'removed',
+          content: '- Old workflow behavior',
+        },
+      ]);
     } finally {
       await instance.dispose();
     }
