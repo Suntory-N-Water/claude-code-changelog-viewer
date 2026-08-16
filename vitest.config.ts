@@ -6,6 +6,10 @@ export default defineConfig({
     clearMocks: true,
     restoreMocks: true,
     reporters: ['agent'],
-    projects: ['apps/*', 'packages/*'],
+    projects: [
+      'apps/*/vitest.config.ts',
+      'packages/*/vitest.config.ts',
+      'apps/worker/vitest.workflow.config.ts',
+    ],
   },
 });

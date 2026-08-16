@@ -4,7 +4,7 @@ import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 type SQLQueryBindings = SQLInputValue;
 type SqliteRow = Record<string, unknown>;
 
-class FakeD1PreparedStatement {
+class FakeD1PreparedStatement implements D1PreparedStatement {
   constructor(
     private readonly db: DatabaseSync,
     private readonly query: string,
@@ -21,12 +21,14 @@ class FakeD1PreparedStatement {
     return new FakeD1PreparedStatement(this.db, this.query, values);
   }
 
-  async first<T = SqliteRow>(): Promise<T | null> {
+  first<T = unknown>(columnName: string): Promise<T | null>;
+  first<T = SqliteRow>(): Promise<T | null>;
+  async first<T = SqliteRow>(_columnName?: string): Promise<T | null> {
     const row = this.db.prepare(this.query).get(...this.values) as T | null;
     return row ?? null;
   }
 
-  async run<T = SqliteRow>() {
+  async run<T = SqliteRow>(): Promise<D1Result<T>> {
     this.db.prepare(this.query).run(...this.values);
     return {
       success: true,
@@ -35,7 +37,7 @@ class FakeD1PreparedStatement {
     } satisfies D1Result<T>;
   }
 
-  async all<T = SqliteRow>() {
+  async all<T = SqliteRow>(): Promise<D1Result<T>> {
     const results = this.db.prepare(this.query).all(...this.values) as T[];
     return {
       success: true,
@@ -195,7 +197,7 @@ export class FakeD1Database {
   }
 }
 
-export class FakeDocsD1Database {
+export class FakeDocsD1Database implements D1Database {
   private readonly db = new DatabaseSync(':memory:');
 
   constructor() {
@@ -239,15 +241,15 @@ export class FakeDocsD1Database {
     return new FakeD1PreparedStatement(this.db, query);
   }
 
-  async batch<T = SqliteRow>(
-    statements: FakeD1PreparedStatement[],
+  async batch<T = unknown>(
+    statements: D1PreparedStatement[],
   ): Promise<D1Result<T>[]> {
     return Promise.all(statements.map((statement) => statement.run<T>()));
   }
 
   // D1Database を要求する関数にそのまま渡せるようにするための穴埋め。
   // 呼ばれた時点でテスト側の想定違いなので落とす
-  async exec(): Promise<D1ExecResult> {
+  async exec(_query: string): Promise<D1ExecResult> {
     throw new Error('FakeDocsD1Database.exec は未実装');
   }
 
