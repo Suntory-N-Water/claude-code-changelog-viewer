@@ -90,9 +90,6 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         db,
         this.env.NOTIFICATION_QUEUE,
       );
-      const buildTrigger = createDeployHookBuildTrigger(
-        this.env.DEPLOY_HOOK_URL,
-      );
       const classification = await step.do(
         'fetch-and-classify',
         STEP_RETRIES,
@@ -139,6 +136,13 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         classification.versions.length > 0 ||
         classification.diffEvents.length > 0
       ) {
+        const deployHookUrl = this.env.DEPLOY_HOOK_URL;
+        if (deployHookUrl === undefined) {
+          throw new Error(
+            'DEPLOY_HOOK_URL が未設定のため、切り替え前の CHANGELOG 推論 Workflow からビルドを起動できません',
+          );
+        }
+        const buildTrigger = createDeployHookBuildTrigger(deployHookUrl);
         await step.do('trigger-build', STEP_RETRIES, async () =>
           triggerChangelogBuild(buildTrigger),
         );
