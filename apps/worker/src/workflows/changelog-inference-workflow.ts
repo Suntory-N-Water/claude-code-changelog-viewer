@@ -24,6 +24,10 @@ import {
 import {
   fetchAndClassifyChangelog,
   notifyChangelogVersions,
+  reportChangelogWorkflowFailure,
+  saveChangelogDiffs,
+  saveChangelogInference,
+  triggerChangelogBuild,
 } from '../usecases/changelog-inference-workflow';
 
 const WorkflowParamsSchema = z.object({
@@ -54,31 +58,42 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
     processedVersions: string[];
     notifiedVersions: string[];
   }> {
-    const params = WorkflowParamsSchema.parse(event.payload);
-    const db = drizzle(this.env.DB);
-    const workflowData = createChangelogWorkflowDataPort(db);
-    const diffRepository = createChangelogDiffRepository(db);
-    const inferenceRepository = createChangelogInferenceRepository(db);
-    const source = createGitHubChangelogMarkdownSource(
-      this.env.GITHUB_DISPATCH_TOKEN,
-    );
-    const documentSearch = createChangelogDocumentSearch(
-      drizzle(this.env.DOCS_DB),
-    );
-    const inference = createChangelogInferenceAi(
-      this.env.AI as unknown as WorkersAiBinding,
-      this.env.AI_GATEWAY_ID,
-    );
-    const notifier = createChangelogWorkflowNotifier(
-      db,
-      this.env.NOTIFICATION_QUEUE,
-    );
-    const buildTrigger = createDeployHookBuildTrigger(this.env.DEPLOY_HOOK_URL);
+    const paramsResult = WorkflowParamsSchema.safeParse(event.payload);
+    const failureParams = paramsResult.success
+      ? paramsResult.data
+      : { detectedHash: '(不正な payload)', detectedAt: '(不正な payload)' };
     const failureReporter = createChangelogWorkflowFailureReporter(
       this.env.GITHUB_DISPATCH_TOKEN,
     );
 
     try {
+      if (!paramsResult.success) {
+        throw new Error(
+          `Workflow パラメータが不正です: ${z.prettifyError(paramsResult.error)}`,
+        );
+      }
+      const params = paramsResult.data;
+      const db = drizzle(this.env.DB);
+      const workflowData = createChangelogWorkflowDataPort(db);
+      const diffRepository = createChangelogDiffRepository(db);
+      const inferenceRepository = createChangelogInferenceRepository(db);
+      const source = createGitHubChangelogMarkdownSource(
+        this.env.GITHUB_DISPATCH_TOKEN,
+      );
+      const documentSearch = createChangelogDocumentSearch(
+        drizzle(this.env.DOCS_DB),
+      );
+      const inference = createChangelogInferenceAi(
+        this.env.AI as unknown as WorkersAiBinding,
+        this.env.AI_GATEWAY_ID,
+      );
+      const notifier = createChangelogWorkflowNotifier(
+        db,
+        this.env.NOTIFICATION_QUEUE,
+      );
+      const buildTrigger = createDeployHookBuildTrigger(
+        this.env.DEPLOY_HOOK_URL,
+      );
       const classification = await step.do(
         'fetch-and-classify',
         STEP_RETRIES,
@@ -91,10 +106,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           }),
       );
 
-      await step.do('save-diff', STEP_RETRIES, async () => {
-        await diffRepository.saveAll(classification.diffEvents);
-        return { count: classification.diffEvents.length };
-      });
+      await step.do('save-diff', STEP_RETRIES, async () =>
+        saveChangelogDiffs(diffRepository, classification.diffEvents),
+      );
 
       for (const release of classification.versions) {
         const inferenceInput = await step.do(
@@ -107,10 +121,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           STEP_RETRIES,
           async () => inferChangelogRelease(inference, inferenceInput),
         );
-        await step.do(`store-${release.version}`, STEP_RETRIES, async () => {
-          await inferenceRepository.save(inferenceResult);
-          return { version: release.version };
-        });
+        await step.do(`store-${release.version}`, STEP_RETRIES, async () =>
+          saveChangelogInference(inferenceRepository, inferenceResult),
+        );
       }
 
       if (classification.notifiableVersions.length > 0) {
@@ -127,9 +140,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         classification.versions.length > 0 ||
         classification.diffEvents.length > 0
       ) {
-        await step.do('trigger-build', STEP_RETRIES, async () => {
-          await buildTrigger.trigger();
-        });
+        await step.do('trigger-build', STEP_RETRIES, async () =>
+          triggerChangelogBuild(buildTrigger),
+        );
       }
 
       return {
@@ -139,13 +152,13 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         notifiedVersions: [...classification.notifiableVersions],
       };
     } catch (error) {
-      await step.do('create-failure-issue', STEP_RETRIES, async () => {
-        await failureReporter.report({
-          params,
+      await step.do('create-failure-issue', STEP_RETRIES, async () =>
+        reportChangelogWorkflowFailure(failureReporter, {
+          params: failureParams,
           instanceId: event.instanceId,
           error,
-        });
-      });
+        }),
+      );
       throw error;
     }
   }

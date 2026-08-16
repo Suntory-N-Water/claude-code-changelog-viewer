@@ -3,7 +3,13 @@ import {
   type ChangelogClassification,
   type ExistingChangelogItem,
 } from '../domain/changelog-inference/changelog-classification';
-import type { ChangelogRelease } from '../domain/changelog-inference/changelog-inference';
+import type {
+  ChangelogDiffEvent,
+  ChangelogDiffRepository,
+  ChangelogInference,
+  ChangelogInferenceRepository,
+  ChangelogRelease,
+} from '../domain/changelog-inference/changelog-inference';
 
 export type ChangelogWorkflowParams = {
   readonly detectedHash: string;
@@ -64,4 +70,33 @@ export async function notifyChangelogVersions(
   for (const version of versions) {
     await notifier.send(version);
   }
+}
+
+export async function saveChangelogDiffs(
+  repository: ChangelogDiffRepository,
+  events: readonly ChangelogDiffEvent[],
+): Promise<{ count: number }> {
+  await repository.saveAll(events);
+  return { count: events.length };
+}
+
+export async function saveChangelogInference(
+  repository: ChangelogInferenceRepository,
+  inference: ChangelogInference,
+): Promise<{ version: string }> {
+  await repository.save(inference);
+  return { version: inference.version };
+}
+
+export async function triggerChangelogBuild(
+  buildTrigger: ChangelogBuildTriggerPort,
+): Promise<void> {
+  await buildTrigger.trigger();
+}
+
+export async function reportChangelogWorkflowFailure(
+  failureReporter: ChangelogFailureReporterPort,
+  input: Parameters<ChangelogFailureReporterPort['report']>[0],
+): Promise<void> {
+  await failureReporter.report(input);
 }
