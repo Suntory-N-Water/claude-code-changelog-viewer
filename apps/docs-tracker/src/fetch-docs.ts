@@ -66,7 +66,7 @@ async function main() {
   }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
   main().catch((error) => {
     logger.msg('APLG0019', { error: toError(error) });
     process.exit(1);
