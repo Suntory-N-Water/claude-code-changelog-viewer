@@ -1,6 +1,5 @@
 // @ts-check
 
-import { readFileSync } from 'node:fs';
 import { unified } from '@astrojs/markdown-remark';
 import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
@@ -50,11 +49,6 @@ const linkCardOptions = {
   }),
 };
 
-const rootPkg = JSON.parse(
-  readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'),
-);
-const appVersion = rootPkg.version;
-
 export default defineConfig({
   trailingSlash: 'never',
   build: { format: 'file' },
@@ -62,9 +56,6 @@ export default defineConfig({
   cacheDir: './node_modules/.astro',
   vite: {
     plugins: [tailwindcss()],
-    define: {
-      __APP_VERSION__: JSON.stringify(appVersion),
-    },
   },
   output: 'static',
   markdown: {
