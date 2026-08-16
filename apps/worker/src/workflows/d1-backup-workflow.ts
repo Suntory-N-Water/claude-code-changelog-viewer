@@ -49,10 +49,17 @@ export class D1BackupWorkflow extends WorkflowEntrypoint<
     );
 
     try {
+      const accountId = this.env.CLOUDFLARE_ACCOUNT_ID;
+      const apiToken = this.env.D1_REST_API_TOKEN;
+      if (accountId === undefined || apiToken === undefined) {
+        throw new Error(
+          'D1 バックアップ用の secret (CLOUDFLARE_ACCOUNT_ID / D1_REST_API_TOKEN) が未設定です。#906 の切り替え後に設定してください',
+        );
+      }
       const d1Export = createD1ExportClient({
-        accountId: this.env.CLOUDFLARE_ACCOUNT_ID,
+        accountId,
         databaseId: this.env.BACKUP_DATABASE_ID,
-        apiToken: this.env.D1_REST_API_TOKEN,
+        apiToken,
       });
       const store = createD1BackupStore(this.env.D1_BACKUP_BUCKET);
 
