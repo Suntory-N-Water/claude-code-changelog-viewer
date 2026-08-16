@@ -29,10 +29,6 @@ export const ChangelogInferenceResponseSchema = z.object({
   summary: z.string().min(1).describe('バージョン全体の日本語サマリー'),
 });
 
-export type ChangelogInferenceResponse = z.infer<
-  typeof ChangelogInferenceResponseSchema
->;
-
 export const ChangelogInferenceResponseFormat = {
   type: 'json_schema',
   json_schema: {

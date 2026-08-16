@@ -17,6 +17,7 @@ const docsSearchMigrations = await readD1Migrations(
 export default defineConfig({
   plugins: [
     cloudflareTest({
+      remoteBindings: false,
       wrangler: {
         configPath: resolve(workerDirectory, 'wrangler.jsonc'),
       },
