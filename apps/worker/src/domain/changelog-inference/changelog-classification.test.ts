@@ -43,18 +43,18 @@ describe('CHANGELOG 差分判定', () => {
     expect(result.notifiableVersions).toEqual(['v2.1.234']);
     expect(result.diffEvents).toEqual([
       {
-        detected_at: '2026-08-16T00:00:00.000Z',
+        detectedAt: '2026-08-16T00:00:00.000Z',
         version: 'v2.1.233',
         type: 'items_changed',
-        items_added: ['updated item'],
-        items_removed: ['old item'],
+        itemsAdded: ['updated item'],
+        itemsRemoved: ['old item'],
       },
       {
-        detected_at: '2026-08-16T00:00:00.000Z',
+        detectedAt: '2026-08-16T00:00:00.000Z',
         version: 'v2.1.231',
         type: 'version_removed',
-        items_added: [],
-        items_removed: [],
+        itemsAdded: [],
+        itemsRemoved: [],
       },
     ]);
   });

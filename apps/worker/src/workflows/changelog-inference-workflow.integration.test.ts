@@ -172,4 +172,50 @@ describe('CHANGELOG 推論 Workflow', () => {
       await instance.dispose();
     }
   });
+
+  it('CHANGELOG のハッシュが一致しない時、失敗 Issue を作成して Workflow を失敗させること', async () => {
+    const issueBodies: string[] = [];
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async (input, init) => {
+        const url = String(input);
+        if (url.includes('/contents/CHANGELOG.md')) {
+          return new Response(changelog, { status: 200 });
+        }
+        if (url.endsWith('/issues') && init?.method === 'POST') {
+          issueBodies.push(String(init.body));
+          return new Response('{}', { status: 201 });
+        }
+        throw new Error(`想定外の外部リクエスト: ${url}`);
+      });
+    const instanceId = `issue-901-failure-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.CHANGELOG_INFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+
+      await testEnv.CHANGELOG_INFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {
+          detectedHash: '0'.repeat(64),
+          detectedAt: '2026-08-16T00:00:00.000Z',
+        },
+      });
+
+      await expect(instance.waitForStatus('errored')).resolves.not.toThrow();
+      expect(issueBodies).toHaveLength(1);
+      expect(issueBodies[0]).toContain('CHANGELOG ハッシュ不一致');
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/issues'),
+        expect.objectContaining({ method: 'POST' }),
+      );
+    } finally {
+      await instance.dispose();
+    }
+  });
 });

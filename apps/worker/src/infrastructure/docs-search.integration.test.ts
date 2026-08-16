@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
@@ -215,6 +216,26 @@ describe('ドキュメント検索 (FTS5)', () => {
     );
   });
 
+  it('長い導入段落があっても検索語を含む段落を残すこと', async () => {
+    const content = [
+      'A'.repeat(3000),
+      'B'.repeat(3000),
+      'Notification hooks configure permission prompts.',
+      'The status line shows the current model.',
+    ].join('\n\n');
+    db = await seed([{ path: 'settings.md', content }]);
+
+    const [result] = await searchDocsForChangelogEntry(
+      db,
+      'Notification hooks',
+    );
+
+    expect(result?.snippets[0]?.length).toBeLessThanOrEqual(4000);
+    expect(result?.snippets[0]).toContain(
+      'Notification hooks configure permission prompts.',
+    );
+  });
+
   it('同義語の片方だけを含む検索語で、もう片方しか書かれていないドキュメントを拾うこと', async () => {
     db = await seed([
       { path: 'conversation.md', content: 'Resume a previous conversation.' },
@@ -229,20 +250,18 @@ describe('ドキュメント検索 (FTS5)', () => {
 
 async function seed(chunks: ChunkInput[]): Promise<SeededDb> {
   const rawDb = new FakeDocsD1Database();
+  const db = drizzle(rawDb as unknown as D1Database) as unknown as SeededDb;
+  db.close = () => rawDb.close();
   const chunkIndexes = new Map<string, number>();
 
   for (const chunk of chunks) {
     const chunkIndex = chunkIndexes.get(chunk.path) ?? 0;
     chunkIndexes.set(chunk.path, chunkIndex + 1);
-    await rawDb
-      .prepare(
-        'INSERT INTO page_chunks_fts (content, path, heading, chunk_index) VALUES (?, ?, ?, ?)',
-      )
-      .bind(chunk.content, chunk.path, chunk.heading ?? '', chunkIndex)
-      .run();
+    await db.run(sql`
+      INSERT INTO page_chunks_fts (content, path, heading, chunk_index)
+      VALUES (${chunk.content}, ${chunk.path}, ${chunk.heading ?? ''}, ${chunkIndex})
+    `);
   }
 
-  const db = drizzle(rawDb as unknown as D1Database) as unknown as SeededDb;
-  db.close = () => rawDb.close();
   return db;
 }

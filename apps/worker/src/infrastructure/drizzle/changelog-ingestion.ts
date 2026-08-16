@@ -2,7 +2,6 @@ import type {
   IngestChangelogDiffEvent,
   IngestChangelogVersion,
 } from '@claude-code-changelog-viewer/types';
-import type { BatchItem } from 'drizzle-orm/batch';
 import { eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import {
@@ -13,6 +12,12 @@ import {
   changelogItems,
   changelogVersions,
 } from '../../db/schema';
+import {
+  chunk,
+  MAX_BATCH_STATEMENTS,
+  runBatchedStatements,
+  toDocPath,
+} from './d1-ingestion-utils';
 
 // D1 の bound parameters 上限 100/query から逆算した 1 INSERT あたりの行数
 const ITEMS_PER_INSERT = 11; // 9 カラム
@@ -20,42 +25,6 @@ const FEATURE_AREAS_PER_INSERT = 33; // 3 カラム
 const RELATED_DOCS_PER_INSERT = 33; // 3 カラム
 const DIFF_EVENTS_PER_INSERT = 33; // 3 カラム
 const DIFF_EVENT_ITEMS_PER_INSERT = 20; // 5 カラム
-const MAX_BATCH_STATEMENTS = 100;
-
-function chunk<T>(rows: T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < rows.length; i += size) {
-    result.push(rows.slice(i, i + size));
-  }
-  return result;
-}
-
-async function runBatchedStatements(
-  db: DrizzleD1Database,
-  statements: BatchItem<'sqlite'>[],
-): Promise<void> {
-  for (const batchStatements of chunk(statements, MAX_BATCH_STATEMENTS)) {
-    const [first, ...rest] = batchStatements;
-    if (first !== undefined) {
-      await db.batch([first, ...rest]);
-    }
-  }
-}
-
-function toDocPath(value: string): string {
-  // docs 検索用 D1 の pages 主キーに合わせて docs/en/ 以下の .md パスに揃える
-  const normalized = value.replaceAll('\\', '/').split(/[?#]/)[0] ?? value;
-  const marker = 'docs/en/';
-  const markerIndex = normalized.indexOf(marker);
-  const path =
-    markerIndex === -1
-      ? normalized
-      : normalized.slice(markerIndex + marker.length);
-  const withoutTrailingSlash = path.replace(/\/+$/, '');
-  return withoutTrailingSlash.endsWith('.md')
-    ? withoutTrailingSlash
-    : `${withoutTrailingSlash}.md`;
-}
 
 // version 単位の delete → insert を同じ batch で実行し、冪等性と原子性を保つ。
 export async function ingestChangelogVersion(

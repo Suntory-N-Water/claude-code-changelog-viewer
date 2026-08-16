@@ -2,7 +2,6 @@ import {
   IngestChangelogPayloadSchema,
   type IngestSetting,
 } from '@claude-code-changelog-viewer/types';
-import type { BatchItem } from 'drizzle-orm/batch';
 import { eq, sql } from 'drizzle-orm';
 import { type DrizzleD1Database, drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
@@ -11,49 +10,18 @@ import {
   ingestChangelogDiffEvents,
   ingestChangelogVersion,
 } from '../infrastructure/drizzle/changelog-ingestion';
+import {
+  chunk,
+  runBatchedStatements,
+  toDocPath,
+} from '../infrastructure/drizzle/d1-ingestion-utils';
 import { timingSafeEqual } from './dispatch';
 
 const SETTINGS_PER_INSERT = 12; // 8 カラム
 const OFFICIAL_DOCS_PER_INSERT = 50; // 2 カラム
-const MAX_BATCH_STATEMENTS = 100;
 
 function sqlExcluded(column: string) {
   return sql.raw(`excluded.${column}`);
-}
-
-function chunk<T>(rows: T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < rows.length; i += size) {
-    result.push(rows.slice(i, i + size));
-  }
-  return result;
-}
-
-async function runBatchedStatements(
-  db: DrizzleD1Database,
-  statements: BatchItem<'sqlite'>[],
-): Promise<void> {
-  for (const batchStatements of chunk(statements, MAX_BATCH_STATEMENTS)) {
-    const [first, ...rest] = batchStatements;
-    if (first !== undefined) {
-      await db.batch([first, ...rest]);
-    }
-  }
-}
-
-function toDocPath(value: string): string {
-  // docs 検索用 D1 の pages 主キーに合わせて docs/en/ 以下の .md パスに揃える
-  const normalized = value.replaceAll('\\', '/').split(/[?#]/)[0] ?? value;
-  const marker = 'docs/en/';
-  const markerIndex = normalized.indexOf(marker);
-  const path =
-    markerIndex === -1
-      ? normalized
-      : normalized.slice(markerIndex + marker.length);
-  const withoutTrailingSlash = path.replace(/\/+$/, '');
-  return withoutTrailingSlash.endsWith('.md')
-    ? withoutTrailingSlash
-    : `${withoutTrailingSlash}.md`;
 }
 
 async function ingestSettings(

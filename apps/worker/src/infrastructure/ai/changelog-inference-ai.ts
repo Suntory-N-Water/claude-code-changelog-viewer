@@ -27,15 +27,6 @@ export type WorkersAiBinding = {
 const AiResponseEnvelopeSchema = z
   .object({ response: z.unknown() })
   .passthrough();
-const AiChatResponseSchema = z
-  .object({
-    choices: z.array(
-      z.object({
-        message: z.object({ content: z.unknown() }).passthrough(),
-      }),
-    ),
-  })
-  .passthrough();
 
 export function createChangelogInferenceAi(
   ai: WorkersAiBinding,
@@ -99,14 +90,6 @@ function parseAiResponse(response: unknown): unknown {
   const envelope = AiResponseEnvelopeSchema.safeParse(response);
   if (envelope.success) {
     return parseAiResponse(envelope.data.response);
-  }
-
-  const chatResponse = AiChatResponseSchema.safeParse(response);
-  if (chatResponse.success) {
-    const content = chatResponse.data.choices[0]?.message.content;
-    if (content !== undefined) {
-      return parseAiResponse(content);
-    }
   }
 
   return response;

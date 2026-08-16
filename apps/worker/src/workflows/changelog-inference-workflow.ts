@@ -9,7 +9,9 @@ import {
   type WorkersAiBinding,
 } from '../infrastructure/ai/changelog-inference-ai';
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
-import { createChangelogWorkflowRepository } from '../infrastructure/drizzle/changelog-workflow-repository';
+import { createChangelogDiffRepository } from '../infrastructure/drizzle/changelog-diff-repository';
+import { createChangelogInferenceRepository } from '../infrastructure/drizzle/changelog-inference-repository';
+import { createChangelogWorkflowDataPort } from '../infrastructure/drizzle/changelog-workflow-data-port';
 import { createChangelogDocumentSearch } from '../infrastructure/docs-search';
 import { createGitHubChangelogMarkdownSource } from '../infrastructure/github/changelog-source';
 import { createChangelogWorkflowFailureReporter } from '../infrastructure/github/changelog-workflow-failure-reporter';
@@ -53,7 +55,10 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
     notifiedVersions: string[];
   }> {
     const params = WorkflowParamsSchema.parse(event.payload);
-    const repository = createChangelogWorkflowRepository(drizzle(this.env.DB));
+    const db = drizzle(this.env.DB);
+    const workflowData = createChangelogWorkflowDataPort(db);
+    const diffRepository = createChangelogDiffRepository(db);
+    const inferenceRepository = createChangelogInferenceRepository(db);
     const source = createGitHubChangelogMarkdownSource(
       this.env.GITHUB_DISPATCH_TOKEN,
     );
@@ -65,6 +70,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       this.env.AI_GATEWAY_ID,
     );
     const notifier = createChangelogWorkflowNotifier(
+      db,
       this.env.NOTIFICATION_QUEUE,
     );
     const buildTrigger = createDeployHookBuildTrigger(this.env.DEPLOY_HOOK_URL);
@@ -80,13 +86,13 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           fetchAndClassifyChangelog({
             source,
             parser: { parse: parseChangelogReleases },
-            repository,
+            workflowData,
             params,
           }),
       );
 
       await step.do('save-diff', STEP_RETRIES, async () => {
-        await repository.saveDiffEvents(classification.diffEvents);
+        await diffRepository.saveAll(classification.diffEvents);
         return { count: classification.diffEvents.length };
       });
 
@@ -102,7 +108,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           async () => inferChangelogRelease(inference, inferenceInput),
         );
         await step.do(`store-${release.version}`, STEP_RETRIES, async () => {
-          await repository.saveVersion(inferenceResult);
+          await inferenceRepository.save(inferenceResult);
           return { version: release.version };
         });
       }
@@ -110,7 +116,6 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       if (classification.notifiableVersions.length > 0) {
         await step.do('notify', STEP_RETRIES, async () => {
           await notifyChangelogVersions(
-            repository,
             notifier,
             classification.notifiableVersions,
           );

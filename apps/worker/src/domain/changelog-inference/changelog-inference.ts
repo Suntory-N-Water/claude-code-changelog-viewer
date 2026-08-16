@@ -9,6 +9,14 @@ export type ChangelogRelease = {
   readonly items: readonly ChangelogItem[];
 };
 
+export type ChangelogDiffEvent = {
+  readonly detectedAt: string;
+  readonly version: string;
+  readonly type: 'items_changed' | 'version_removed';
+  readonly itemsAdded: readonly string[];
+  readonly itemsRemoved: readonly string[];
+};
+
 export type RelatedDocument = {
   readonly file: string;
   readonly snippets: readonly string[];
@@ -63,6 +71,14 @@ export type ChangelogInference = {
   readonly version: string;
   readonly summary: string;
   readonly items: readonly ChangelogInferenceItem[];
+};
+
+export type ChangelogDiffRepository = {
+  saveAll(events: readonly ChangelogDiffEvent[]): Promise<void>;
+};
+
+export type ChangelogInferenceRepository = {
+  save(inference: ChangelogInference): Promise<void>;
 };
 
 export function mergeChangelogInference(

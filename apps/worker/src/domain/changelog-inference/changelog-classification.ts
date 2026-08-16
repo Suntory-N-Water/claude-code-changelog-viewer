@@ -1,5 +1,7 @@
-import type { IngestChangelogDiffEvent } from '@claude-code-changelog-viewer/types';
-import type { ChangelogRelease } from './changelog-inference';
+import type {
+  ChangelogDiffEvent,
+  ChangelogRelease,
+} from './changelog-inference';
 
 export type ExistingChangelogItem = {
   readonly version: string;
@@ -9,7 +11,7 @@ export type ExistingChangelogItem = {
 
 export type ChangelogClassification = {
   readonly versions: readonly ChangelogRelease[];
-  readonly diffEvents: readonly IngestChangelogDiffEvent[];
+  readonly diffEvents: readonly ChangelogDiffEvent[];
   readonly notifiableVersions: readonly string[];
 };
 
@@ -39,7 +41,7 @@ export function classifyChangelogReleases(
   }
 
   const versions: ChangelogRelease[] = [];
-  const diffEvents: IngestChangelogDiffEvent[] = [];
+  const diffEvents: ChangelogDiffEvent[] = [];
   const notifiableVersions: string[] = [];
   const remoteVersionKeys = new Set<string>();
 
@@ -76,11 +78,11 @@ export function classifyChangelogReleases(
       .filter((content): content is string => content !== null);
     if (itemsAdded.length > 0 || itemsRemoved.length > 0) {
       diffEvents.push({
-        detected_at: detectedAt,
+        detectedAt,
         version: release.version,
         type: 'items_changed',
-        items_added: itemsAdded,
-        items_removed: itemsRemoved,
+        itemsAdded,
+        itemsRemoved,
       });
     }
   }
@@ -90,11 +92,11 @@ export function classifyChangelogReleases(
       continue;
     }
     diffEvents.push({
-      detected_at: detectedAt,
+      detectedAt,
       version: `v${version}`,
       type: 'version_removed',
-      items_added: [],
-      items_removed: [],
+      itemsAdded: [],
+      itemsRemoved: [],
     });
   }
 

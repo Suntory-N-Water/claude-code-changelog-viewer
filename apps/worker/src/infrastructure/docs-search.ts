@@ -217,11 +217,21 @@ function selectParagraphs(content: string, querySet: Set<string>): string {
     }
   }
 
-  const selected = densest === -1 ? [0, 1] : [0, 1, densest];
-  return truncateAtLineBoundary(
-    selected.map((index) => paragraphs[index]).join('\n\n'),
+  const context = paragraphs.slice(0, 2).join('\n\n');
+  if (densest === -1) {
+    return truncateAtLineBoundary(context, MAX_SNIPPET_CHARS);
+  }
+
+  // 検索語を含む段落を先に予算取りし、長い導入段落があっても落とさない
+  const relevant = truncateAtLineBoundary(
+    paragraphs[densest] ?? '',
     MAX_SNIPPET_CHARS,
   );
+  const contextBudget = Math.max(0, MAX_SNIPPET_CHARS - relevant.length - 2);
+  const truncatedContext = truncateAtLineBoundary(context, contextBudget);
+  return [truncatedContext, relevant]
+    .filter((paragraph) => paragraph !== '')
+    .join('\n\n');
 }
 
 function truncateAtLineBoundary(content: string, maxChars: number): string {
