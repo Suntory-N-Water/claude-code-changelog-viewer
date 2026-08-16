@@ -1,0 +1,212 @@
+const MAX_FILES = 3;
+const MAX_CHUNKS_PER_FILE = 3;
+const MAX_PARAGRAPHS_PER_SNIPPET = 3;
+
+// 実データで確認された言い換えのみ。どちらか一方が含まれていればもう一方を補う
+const SYNONYM_PAIRS: readonly (readonly [string, string])[] = [
+  ['session', 'conversation'],
+  ['harness', 'cli'],
+  ['hook', 'hooks'],
+  ['subagent', 'sub-agent'],
+  ['mcp', 'model context protocol'],
+  ['headless', 'non-interactive'],
+  ['slash command', 'custom command'],
+];
+
+// combined (path, content, chunk_index, score) を受け取り、
+// ファイルごと・ファイル間の上位を SQL 内で絞り込む共通部分
+const RANKING_SQL = `
+ranked AS (
+  SELECT
+    path,
+    content,
+    ROW_NUMBER() OVER (PARTITION BY path ORDER BY score, chunk_index) AS chunk_rank,
+    COUNT(*) OVER (PARTITION BY path) AS hit_count,
+    MIN(score) OVER (PARTITION BY path) AS page_score
+  FROM combined
+),
+ranked_pages AS (
+  SELECT
+    path,
+    ROW_NUMBER() OVER (ORDER BY page_score, path) AS page_rank
+  FROM (SELECT DISTINCT path, page_score FROM ranked)
+)
+SELECT ranked.path, ranked.content, ranked.hit_count
+FROM ranked
+JOIN ranked_pages ON ranked_pages.path = ranked.path
+WHERE ranked.chunk_rank <= ${MAX_CHUNKS_PER_FILE}
+  AND ranked_pages.page_rank <= ${MAX_FILES}
+ORDER BY ranked_pages.page_rank, ranked.chunk_rank`;
+
+// バッククォート囲みが1件でも当たったら BM25 側を採用しない。
+// 採否の判断を呼び出し側に置くと、設定リファレンス生成と CHANGELOG 推論で挙動がずれるため SQL に閉じ込める。
+// バッククォートは unicode61 の索引に残らず MATCH で表現できないため、instr() で本文を走査する
+// (D1 は LIKE パターンが 50 バイトまでで、末端名 607 件のうち 11 件が超えるため LIKE は使えない)。
+// exact 側は当落だけを決め、順位は fuzzy の BM25 から借りる。
+// exact 単独では全行が同点になり、上位3ファイルがパス名の昇順で決まってしまう
+const SETTING_KEY_SQL = `
+WITH fuzzy AS (
+  SELECT path, content, chunk_index, bm25(page_chunks_fts) AS score
+  FROM page_chunks_fts
+  WHERE page_chunks_fts MATCH ?
+),
+exact AS (
+  SELECT
+    page_chunks_fts.path,
+    page_chunks_fts.content,
+    page_chunks_fts.chunk_index,
+    -- bm25() は負値で小さいほど良い一致。fuzzy に無いチャンクは 0.0 で最下位に置く
+    COALESCE(fuzzy.score, 0.0) AS score
+  FROM page_chunks_fts
+  LEFT JOIN fuzzy
+    ON fuzzy.path = page_chunks_fts.path
+    AND fuzzy.chunk_index = page_chunks_fts.chunk_index
+  WHERE instr(page_chunks_fts.content, ?) > 0
+),
+combined AS (
+  SELECT * FROM exact
+  UNION ALL
+  SELECT * FROM fuzzy WHERE NOT EXISTS (SELECT 1 FROM exact)
+),${RANKING_SQL}`;
+
+const CHANGELOG_ENTRY_SQL = `
+WITH combined AS (
+  SELECT path, content, chunk_index, bm25(page_chunks_fts) AS score
+  FROM page_chunks_fts
+  WHERE page_chunks_fts MATCH ?
+),${RANKING_SQL}`;
+
+type ChunkRow = {
+  path: string;
+  content: string;
+  hit_count: number;
+};
+
+export type RelatedDoc = {
+  file: string;
+  snippets: string[];
+  hitCount: number;
+};
+
+export async function searchDocsForSettingKey(
+  db: D1Database,
+  leafName: string,
+): Promise<RelatedDoc[]> {
+  const words = expandSynonyms(leafName);
+  if (words.length === 0) {
+    return [];
+  }
+
+  const result = await db
+    .prepare(SETTING_KEY_SQL)
+    .bind(buildMatchExpression(words), `\`${leafName}\``)
+    .all<ChunkRow>();
+  return groupByFile(result.results, words);
+}
+
+// CHANGELOG の箇条書き1行はバッククォート囲みの優先を通さない。
+// 現行も CHANGELOG 推論は BM25 だけを使っており、その動作に揃える
+export async function searchDocsForChangelogEntry(
+  db: D1Database,
+  entry: string,
+): Promise<RelatedDoc[]> {
+  const words = expandSynonyms(entry);
+  if (words.length === 0) {
+    return [];
+  }
+
+  const result = await db
+    .prepare(CHANGELOG_ENTRY_SQL)
+    .bind(buildMatchExpression(words))
+    .all<ChunkRow>();
+  return groupByFile(result.results, words);
+}
+
+// 語形の原形化は tokenizer の porter が索引側とクエリ側の両方に効くのでここでは行わない
+function expandSynonyms(text: string): string[] {
+  const lowered = text.toLowerCase();
+  const additions: string[] = [];
+  for (const [a, b] of SYNONYM_PAIRS) {
+    if (lowered.includes(a) && !lowered.includes(b)) {
+      additions.push(b);
+    }
+    if (lowered.includes(b) && !lowered.includes(a)) {
+      additions.push(a);
+    }
+  }
+
+  return [text, ...additions]
+    .join(' ')
+    .split(/\s+/)
+    .filter((word) => word !== '');
+}
+
+// FTS5 はダブルクォートで囲んだ文字列を AND / OR / NOT / NEAR の予約語判定から外し、
+// 記号もそのまま tokenizer に渡すため、任意の入力を囲めば構文エラーにならない。
+// 空白区切りのままだと暗黙の AND になり長い文章で0件になるため、OR を明示する
+function buildMatchExpression(words: string[]): string {
+  return (
+    words
+      // FTS5 の文字列内でダブルクォート自身を表すには 2 個重ねる
+      .map((word) => `"${word.replaceAll('"', '""')}"`)
+      .join(' OR ')
+  );
+}
+
+// SQL 側が page_rank, chunk_rank 順に返すため、同じ path は必ず連続する。
+// 直前の1件だけを見て畳み込めるのはこの並び順が前提
+function groupByFile(rows: ChunkRow[], queryWords: string[]): RelatedDoc[] {
+  const querySet = new Set(splitIntoWords(queryWords.join(' ')));
+  const docs: RelatedDoc[] = [];
+
+  for (const row of rows) {
+    const snippet = selectParagraphs(row.content, querySet);
+    const current = docs.at(-1);
+    if (current?.file === row.path) {
+      current.snippets.push(snippet);
+      continue;
+    }
+    docs.push({
+      file: row.path,
+      snippets: [snippet],
+      hitCount: row.hit_count,
+    });
+  }
+
+  return docs;
+}
+
+// チャンクは分割が段落境界だけのため長さに上限がなく、本番では最大 116,749 字になる。
+// 全文を渡すと後段の LLM への入力が肥大化するので、段落単位で落とす
+function selectParagraphs(content: string, querySet: Set<string>): string {
+  const paragraphs = content
+    .split(/\n\s*\n/)
+    .filter((part) => part.trim() !== '');
+  if (paragraphs.length <= MAX_PARAGRAPHS_PER_SNIPPET) {
+    return content;
+  }
+
+  // 見出しと導入段落は検索語を含まなくても文脈として要るので必ず残す
+  let densest = -1;
+  let highestDensity = 0;
+  for (let index = 2; index < paragraphs.length; index += 1) {
+    const density = splitIntoWords(paragraphs[index] ?? '').filter((word) =>
+      querySet.has(word),
+    ).length;
+    if (density > highestDensity) {
+      highestDensity = density;
+      densest = index;
+    }
+  }
+
+  const selected = densest === -1 ? [0, 1] : [0, 1, densest];
+  return selected.map((index) => paragraphs[index]).join('\n\n');
+}
+
+// 記号で切るので `key` や (key) のように装飾された語も本文と同じ形になる
+function splitIntoWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word !== '');
+}

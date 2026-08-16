@@ -44,10 +44,18 @@ class FakeD1PreparedStatement {
     } satisfies D1Result<T>;
   }
 
-  async raw<T = unknown[]>(): Promise<T[]> {
+  raw<T = unknown[]>(options: {
+    columnNames: true;
+  }): Promise<[string[], ...T[]]>;
+  raw<T = unknown[]>(options?: { columnNames?: false }): Promise<T[]>;
+  async raw<T = unknown[]>(options?: {
+    columnNames?: boolean;
+  }): Promise<T[] | [string[], ...T[]]> {
     const resultInfo = this.db.prepare(this.query).all(...this.values);
-    const rows = resultInfo.map((row) => Object.values(row));
-    return rows as T[];
+    const rows = resultInfo.map((row) => Object.values(row)) as T[];
+    return options?.columnNames === true
+      ? [Object.keys(resultInfo[0] ?? {}), ...rows]
+      : rows;
   }
 }
 
@@ -198,8 +206,24 @@ export class FakeDocsD1Database {
     return new FakeD1PreparedStatement(this.db, query);
   }
 
-  async batch(statements: FakeD1PreparedStatement[]) {
-    return Promise.all(statements.map((statement) => statement.run()));
+  async batch<T = SqliteRow>(
+    statements: FakeD1PreparedStatement[],
+  ): Promise<D1Result<T>[]> {
+    return Promise.all(statements.map((statement) => statement.run<T>()));
+  }
+
+  // D1Database を要求する関数にそのまま渡せるようにするための穴埋め。
+  // 呼ばれた時点でテスト側の想定違いなので落とす
+  async exec(): Promise<D1ExecResult> {
+    throw new Error('FakeDocsD1Database.exec は未実装');
+  }
+
+  withSession(): D1DatabaseSession {
+    throw new Error('FakeDocsD1Database.withSession は未実装');
+  }
+
+  async dump(): Promise<ArrayBuffer> {
+    throw new Error('FakeDocsD1Database.dump は未実装');
   }
 
   close() {
