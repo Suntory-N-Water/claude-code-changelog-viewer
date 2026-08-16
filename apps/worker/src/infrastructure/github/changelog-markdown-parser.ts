@@ -3,6 +3,7 @@ import type {
   ChangelogItem,
   ChangelogRelease,
 } from '../../domain/changelog-inference/changelog-inference';
+import { formatChangelogVersion } from '../../domain/changelog-inference/changelog-version';
 
 export async function parseChangelogReleases(
   markdown: string,
@@ -40,7 +41,7 @@ export async function parseChangelogReleases(
 
   return Promise.all(
     releases.map(async (release) => ({
-      version: `v${release.version}`,
+      version: formatChangelogVersion(release.version),
       items: await Promise.all(
         parseChangelogEntries(release.content).map((content) =>
           createChangelogItem(content),

@@ -1,11 +1,12 @@
 import { drizzle } from 'drizzle-orm/d1';
 import { WorkflowEntrypoint } from 'cloudflare:workers';
-import type { WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
+import type {
+  WorkflowEvent,
+  WorkflowStep,
+  WorkflowStepConfigWithStaticDelay,
+} from 'cloudflare:workers';
 import { z } from 'zod';
-import {
-  createChangelogInferenceAi,
-  type WorkersAiBinding,
-} from '../infrastructure/ai/changelog-inference-ai';
+import { createChangelogInferenceAi } from '../infrastructure/ai/changelog-inference-ai';
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
 import { createChangelogDiffRepository } from '../infrastructure/drizzle/changelog-diff-repository';
 import { createChangelogInferenceRepository } from '../infrastructure/drizzle/changelog-inference-repository';
@@ -33,11 +34,11 @@ const WorkflowParamsSchema = z.object({
   detectedAt: z.string().min(1),
 });
 
-const STEP_RETRIES = {
+const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
   retries: {
     limit: 3,
-    delay: '10 seconds' as const,
-    backoff: 'exponential' as const,
+    delay: '10 seconds',
+    backoff: 'exponential',
   },
 };
 
@@ -82,7 +83,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         drizzle(this.env.DOCS_DB),
       );
       const inference = createChangelogInferenceAi(
-        this.env.AI as unknown as WorkersAiBinding,
+        this.env.AI,
         this.env.AI_GATEWAY_ID,
       );
       const notifier = createChangelogWorkflowNotifier(

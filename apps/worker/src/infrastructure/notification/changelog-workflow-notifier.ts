@@ -5,6 +5,10 @@ import {
 } from '@claude-code-changelog-viewer/types';
 import { eq, sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import {
+  formatChangelogVersion,
+  normalizeChangelogVersion,
+} from '../../domain/changelog-inference/changelog-version';
 import type { ChangelogNotificationPort } from '../../usecases/changelog-inference-workflow';
 import { changelogItems, changelogVersions } from '../../db/schema';
 
@@ -43,7 +47,9 @@ export function createChangelogWorkflowNotifier(
           changelogItems,
           eq(changelogItems.version, changelogVersions.version),
         )
-        .where(eq(changelogVersions.version, version.replace(/^v/, '')))
+        .where(
+          eq(changelogVersions.version, normalizeChangelogVersion(version)),
+        )
         .orderBy(sql.raw('changelog_items.rowid'));
       const first = rows[0];
       if (first === undefined) {
@@ -51,7 +57,7 @@ export function createChangelogWorkflowNotifier(
       }
 
       const notificationVersion = ClaudeCodeVersionSchema.parse(
-        `v${first.version.replace(/^v/, '')}`,
+        formatChangelogVersion(first.version),
       );
       const analysis = NotificationAnalysisSchema.parse({
         version: notificationVersion,

@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  createChangelogInferenceAi,
-  type WorkersAiBinding,
-} from './changelog-inference-ai';
+import type { ChangelogInferenceInput } from '../../domain/changelog-inference/changelog-inference';
+import { createChangelogInferenceAi } from './changelog-inference-ai';
 
 const input = {
   version: 'v2.1.234',
@@ -25,7 +23,7 @@ const input = {
       relatedDocs: [],
     },
   ],
-} as const;
+} satisfies ChangelogInferenceInput;
 
 const validResponse = {
   inferred_items: [
@@ -44,11 +42,30 @@ const validResponse = {
   summary: '文書化された機能が追加され、誤字が修正されました。',
 };
 
+function chatCompletion(content: object) {
+  return {
+    id: 'test-completion',
+    object: 'chat.completion',
+    created: 0,
+    model: '@cf/google/gemma-4-26b-a4b-it',
+    choices: [
+      {
+        index: 0,
+        message: {
+          role: 'assistant',
+          content: JSON.stringify(content),
+          refusal: null,
+        },
+        finish_reason: 'stop',
+        logprobs: null,
+      },
+    ],
+  };
+}
+
 describe('Workers AI CHANGELOG adapter', () => {
   it('AI 応答が Zod で検証できる時、usecase の型へ変換すること', async () => {
-    const run = vi.fn<WorkersAiBinding['run']>().mockResolvedValue({
-      response: JSON.stringify(validResponse),
-    });
+    const run = vi.fn().mockResolvedValue(chatCompletion(validResponse));
     const sut = createChangelogInferenceAi({ run }, 'project-gateway');
 
     const result = await sut.infer(input);
@@ -74,6 +91,7 @@ describe('Workers AI CHANGELOG adapter', () => {
     expect(run).toHaveBeenCalledWith(
       '@cf/google/gemma-4-26b-a4b-it',
       expect.objectContaining({
+        messages: [{ role: 'user', content: expect.any(String) }],
         response_format: expect.objectContaining({ type: 'json_schema' }),
       }),
       { gateway: { id: 'project-gateway' } },
@@ -81,12 +99,9 @@ describe('Workers AI CHANGELOG adapter', () => {
   });
 
   it('AI 応答の Zod 検証に失敗した時、再試行可能なエラーにすること', async () => {
-    const run = vi.fn<WorkersAiBinding['run']>().mockResolvedValue({
-      response: JSON.stringify({
-        ...validResponse,
-        summary: '',
-      }),
-    });
+    const run = vi
+      .fn()
+      .mockResolvedValue(chatCompletion({ ...validResponse, summary: '' }));
     const sut = createChangelogInferenceAi({ run }, 'project-gateway');
 
     await expect(sut.infer(input)).rejects.toThrow(

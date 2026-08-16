@@ -2,6 +2,10 @@ import type {
   ChangelogDiffEvent,
   ChangelogRelease,
 } from './changelog-inference';
+import {
+  formatChangelogVersion,
+  normalizeChangelogVersion,
+} from './changelog-version';
 
 export type ExistingChangelogItem = {
   readonly version: string;
@@ -22,7 +26,7 @@ export function classifyChangelogReleases(
 ): ChangelogClassification {
   const existingByVersion = new Map<string, Map<string, string | null>>();
   for (const row of existingRows) {
-    const version = normalizeVersion(row.version);
+    const version = normalizeChangelogVersion(row.version);
     const versionItems = existingByVersion.get(version) ?? new Map();
     if (row.itemId !== null) {
       versionItems.set(row.itemId, row.content);
@@ -46,7 +50,7 @@ export function classifyChangelogReleases(
   const remoteVersionKeys = new Set<string>();
 
   for (const release of releases) {
-    const versionKey = normalizeVersion(release.version);
+    const versionKey = normalizeChangelogVersion(release.version);
     remoteVersionKeys.add(versionKey);
     const existingItems = existingByVersion.get(versionKey);
     const remoteItems = new Map(
@@ -93,7 +97,7 @@ export function classifyChangelogReleases(
     }
     diffEvents.push({
       detectedAt,
-      version: `v${version}`,
+      version: formatChangelogVersion(version),
       type: 'version_removed',
       itemsAdded: [],
       itemsRemoved: [],
@@ -101,10 +105,6 @@ export function classifyChangelogReleases(
   }
 
   return { versions, diffEvents, notifiableVersions };
-}
-
-function normalizeVersion(version: string): string {
-  return version.replace(/^v/, '');
 }
 
 function sameItemIds(

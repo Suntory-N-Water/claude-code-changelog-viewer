@@ -35,7 +35,10 @@ export type ChangelogInferenceResponse = z.infer<
 
 export const ChangelogInferenceResponseFormat = {
   type: 'json_schema',
-  json_schema: z.toJSONSchema(ChangelogInferenceResponseSchema, {
-    target: 'draft-07',
-  }),
+  json_schema: {
+    name: 'changelog_inference',
+    schema: z.toJSONSchema(ChangelogInferenceResponseSchema, {
+      target: 'draft-07',
+    }),
+  },
 } as const;

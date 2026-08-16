@@ -4,6 +4,7 @@ import type {
   ChangelogInference,
   ChangelogInferenceRepository,
 } from '../../domain/changelog-inference/changelog-inference';
+import { normalizeChangelogVersion } from '../../domain/changelog-inference/changelog-version';
 import { ingestChangelogVersion } from './changelog-ingestion';
 
 export function createChangelogInferenceRepository(
@@ -20,7 +21,7 @@ function toIngestChangelogVersion(
   inference: ChangelogInference,
 ): IngestChangelogVersion {
   return {
-    version: inference.version.replace(/^v/, ''),
+    version: normalizeChangelogVersion(inference.version),
     summary: inference.summary,
     items: inference.items.map((item) => ({
       id: item.id,

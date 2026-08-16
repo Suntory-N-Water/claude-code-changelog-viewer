@@ -13,14 +13,15 @@ type ChunkInput = {
   content: string;
 };
 
-type SeededDb = DrizzleD1Database & { close: () => void };
+let rawDb: FakeDocsD1Database | null = null;
 
 describe('ドキュメント検索 (FTS5)', () => {
-  let db: SeededDb | null = null;
+  let db: DrizzleD1Database | null = null;
 
   afterEach(() => {
-    db?.close();
+    rawDb?.close();
     db = null;
+    rawDb = null;
   });
 
   it('バッククォート囲みが当たった時、BM25 の結果を混ぜないこと', async () => {
@@ -267,10 +268,9 @@ describe('ドキュメント検索 (FTS5)', () => {
   });
 });
 
-async function seed(chunks: ChunkInput[]): Promise<SeededDb> {
-  const rawDb = new FakeDocsD1Database();
-  const db = drizzle(rawDb as unknown as D1Database) as unknown as SeededDb;
-  db.close = () => rawDb.close();
+async function seed(chunks: ChunkInput[]): Promise<DrizzleD1Database> {
+  rawDb = new FakeDocsD1Database();
+  const db = drizzle(rawDb);
   const chunkIndexes = new Map<string, number>();
 
   for (const chunk of chunks) {

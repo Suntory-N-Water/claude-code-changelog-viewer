@@ -16,13 +16,38 @@ import {
 import { sha256Hex } from '../infrastructure/crypto/sha256-hex';
 import { parseChangelogReleases } from '../infrastructure/github/changelog-markdown-parser';
 
-type TestBindings = Cloudflare.Env & {
-  TEST_DOCS_SEARCH_MIGRATIONS: D1Migration[];
-  TEST_NOTIFICATION_MIGRATIONS: D1Migration[];
-};
+declare global {
+  namespace Cloudflare {
+    interface Env {
+      TEST_DOCS_SEARCH_MIGRATIONS: D1Migration[];
+      TEST_NOTIFICATION_MIGRATIONS: D1Migration[];
+    }
+  }
+}
 
-const testEnv = env as TestBindings;
+const testEnv = env;
 const changelog = `# Changelog\n\n## 2.1.234\n\n- Added workflow inference support\n`;
+
+function chatCompletion(content: object) {
+  return {
+    id: 'test-completion',
+    object: 'chat.completion',
+    created: 0,
+    model: '@cf/google/gemma-4-26b-a4b-it',
+    choices: [
+      {
+        index: 0,
+        message: {
+          role: 'assistant',
+          content: JSON.stringify(content),
+          refusal: null,
+        },
+        finish_reason: 'stop',
+        logprobs: null,
+      },
+    ],
+  };
+}
 
 describe('CHANGELOG 推論 Workflow', () => {
   beforeEach(async () => {
@@ -64,8 +89,8 @@ describe('CHANGELOG 推論 Workflow', () => {
       throw new Error('テスト用 CHANGELOG の項目がありません');
     }
 
-    const aiRun = vi.spyOn(testEnv.AI, 'run').mockResolvedValue({
-      response: JSON.stringify({
+    const aiRun = vi.spyOn(testEnv.AI, 'run').mockResolvedValue(
+      chatCompletion({
         inferred_items: [
           {
             id: item.id,
@@ -81,7 +106,7 @@ describe('CHANGELOG 推論 Workflow', () => {
         ],
         summary: 'Workflow 推論のサポートを追加しました。',
       }),
-    });
+    );
     const queueSend = vi
       .spyOn(testEnv.NOTIFICATION_QUEUE, 'send')
       .mockResolvedValue({
@@ -249,8 +274,8 @@ describe('CHANGELOG 推論 Workflow', () => {
       throw new Error('テスト用 CHANGELOG の項目がありません');
     }
 
-    const aiRun = vi.spyOn(testEnv.AI, 'run').mockResolvedValue({
-      response: JSON.stringify({
+    const aiRun = vi.spyOn(testEnv.AI, 'run').mockResolvedValue(
+      chatCompletion({
         inferred_items: [
           {
             id: item.id,
@@ -264,7 +289,7 @@ describe('CHANGELOG 推論 Workflow', () => {
         feature_area_corrections: [],
         summary: 'Workflow 推論のサポートを追加しました。',
       }),
-    });
+    );
     const queueSend = vi
       .spyOn(testEnv.NOTIFICATION_QUEUE, 'send')
       .mockResolvedValue({

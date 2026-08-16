@@ -3,33 +3,27 @@ import type {
   ChangelogInferenceInput,
 } from '../../domain/changelog-inference/changelog-inference';
 import type { ChangelogInferencePort } from '../../usecases/changelog-inference';
+import { z } from 'zod';
 import {
   ChangelogInferenceResponseFormat,
   ChangelogInferenceResponseSchema,
 } from './changelog-inference-schema';
-import { z } from 'zod';
 
 const MODEL = '@cf/google/gemma-4-26b-a4b-it';
 const MAX_TOKENS = 65536;
 
-export type WorkersAiBinding = {
-  run(
-    model: string,
-    input: {
-      prompt: string;
-      max_tokens: number;
-      response_format: typeof ChangelogInferenceResponseFormat;
-    },
-    options: { gateway: { id: string } },
-  ): Promise<unknown>;
-};
-
-const AiResponseEnvelopeSchema = z
-  .object({ response: z.unknown() })
-  .passthrough();
+const AiChatResponseSchema = z.object({
+  choices: z
+    .array(
+      z.object({
+        message: z.object({ content: z.string().min(1) }),
+      }),
+    )
+    .min(1),
+});
 
 export function createChangelogInferenceAi(
-  ai: WorkersAiBinding,
+  ai: Pick<Cloudflare.Env['AI'], 'run'>,
   gatewayId: string,
 ): ChangelogInferencePort {
   return {
@@ -37,7 +31,7 @@ export function createChangelogInferenceAi(
       const response = await ai.run(
         MODEL,
         {
-          prompt: buildInferencePrompt(input),
+          messages: [{ role: 'user', content: buildInferencePrompt(input) }],
           max_tokens: MAX_TOKENS,
           response_format: ChangelogInferenceResponseFormat,
         },
@@ -79,20 +73,23 @@ export function createChangelogInferenceAi(
 }
 
 function parseAiResponse(response: unknown): unknown {
-  if (typeof response === 'string') {
-    try {
-      return JSON.parse(response);
-    } catch (error) {
-      throw new Error('AI 応答の JSON 解析に失敗しました', { cause: error });
-    }
+  const parsed = AiChatResponseSchema.safeParse(response);
+  if (!parsed.success) {
+    throw new Error(
+      `AI 応答の形式が不正です: ${z.prettifyError(parsed.error)}`,
+    );
   }
 
-  const envelope = AiResponseEnvelopeSchema.safeParse(response);
-  if (envelope.success) {
-    return parseAiResponse(envelope.data.response);
+  const content = parsed.data.choices[0]?.message.content;
+  if (content === undefined) {
+    throw new Error('AI 応答に choices がありません');
   }
 
-  return response;
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    throw new Error('AI 応答の JSON 解析に失敗しました', { cause: error });
+  }
 }
 
 function buildInferencePrompt(input: ChangelogInferenceInput): string {
