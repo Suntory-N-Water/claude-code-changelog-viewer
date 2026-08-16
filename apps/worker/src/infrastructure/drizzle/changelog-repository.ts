@@ -3,6 +3,7 @@ import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import {
   changelogItems,
   changelogVersions,
+  settingsOfficialDocs,
   settingsReference,
 } from '../../db/schema';
 
@@ -91,6 +92,17 @@ export async function findSettingByKey(db: DrizzleD1Database, key: string) {
     .where(eq(settingsReference.key, key))
     .get();
   return row ?? null;
+}
+
+export async function findOfficialDocPathsBySettingKey(
+  db: DrizzleD1Database,
+  key: string,
+) {
+  return db
+    .select({ docPath: settingsOfficialDocs.docPath })
+    .from(settingsOfficialDocs)
+    .where(eq(settingsOfficialDocs.settingKey, key))
+    .orderBy(settingsOfficialDocs.docPath);
 }
 
 export async function searchSettings(

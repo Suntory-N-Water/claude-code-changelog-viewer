@@ -6,6 +6,7 @@ on:
     paths:
       - "apps/changelog-fetcher/inferred/**"
       - "apps/changelog-fetcher/settings/**"
+      - "apps/changelog-fetcher/diff/**"
   workflow_dispatch:
     inputs:
       full:
@@ -64,13 +65,16 @@ jobs:
           if [ "$mode" = "full" ]; then
             find apps/changelog-fetcher/inferred -name '*.json' | sort > /tmp/inferred_files.txt
             find apps/changelog-fetcher/settings -name '*.json' | sort > /tmp/settings_files.txt
+            printf '%s\n' apps/changelog-fetcher/diff/changelog_diff.json > /tmp/diff_files.txt
           else
             git diff --name-only --diff-filter=ACMR "$BEFORE_SHA" "$AFTER_SHA" \
               -- 'apps/changelog-fetcher/inferred/*.json' > /tmp/inferred_files.txt
             git diff --name-only --diff-filter=ACMR "$BEFORE_SHA" "$AFTER_SHA" \
               -- 'apps/changelog-fetcher/settings/*.json' > /tmp/settings_files.txt
+            git diff --name-only --diff-filter=ACMR "$BEFORE_SHA" "$AFTER_SHA" \
+              -- 'apps/changelog-fetcher/diff/changelog_diff.json' > /tmp/diff_files.txt
           fi
-          echo "inferred: $(wc -l < /tmp/inferred_files.txt) 件 / settings: $(wc -l < /tmp/settings_files.txt) 件"
+          echo "inferred: $(wc -l < /tmp/inferred_files.txt) 件 / settings: $(wc -l < /tmp/settings_files.txt) 件 / diff: $(wc -l < /tmp/diff_files.txt) 件"
 
       - name: D1 へ取り込み
         env:
@@ -92,18 +96,22 @@ jobs:
             split -l 50 /tmp/inferred_files.txt /tmp/inferred_batch_
             for batch in /tmp/inferred_batch_*; do
               xargs -a "$batch" jq -s \
-                '{versions: [.[] | {version, summary, items: [.items[] | {id, content, content_ja, prefix, feature_areas, inference}]}]}' \
+                '{versions: [.[] | {version, summary, items: [.items[] | {id, content, content_ja, prefix, feature_areas, related_docs, inference}]}]}' \
                 | post
               echo "✓ $(wc -l < "$batch") バージョンを取り込みました"
             done
           fi
 
-          # doc_snippets などの不要フィールドは jq の射影で落とす
           if [ -s /tmp/settings_files.txt ]; then
             xargs -a /tmp/settings_files.txt jq -s \
-              '{settings: [.[] | {key, slug, source, description_en, description_ja, use_case_ja, official_doc_urls}]}' \
+              '{settings: [.[] | {key, leaf_name, slug, source, description_en, description_ja, use_case_ja, fetched_at, official_doc_urls}]}' \
               | post
             echo "✓ $(wc -l < /tmp/settings_files.txt) 件の settings を取り込みました"
+          fi
+
+          if [ -s /tmp/diff_files.txt ]; then
+            jq '{diff_events: .events}' apps/changelog-fetcher/diff/changelog_diff.json | post
+            echo "✓ 差分イベントを取り込みました"
           fi
 
       - name: Create issue on failure
@@ -112,5 +120,5 @@ jobs:
         with:
           token: ${{ github.token }}
           title: changelog の D1 同期に失敗
-          summary: inferred / settings の D1 取り込みに失敗しました。
+          summary: inferred / settings / diff の D1 取り込みに失敗しました。
           labels: automated-failure,workflow:sync-changelog-to-d1,bug

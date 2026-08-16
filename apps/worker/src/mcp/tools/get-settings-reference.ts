@@ -1,23 +1,31 @@
 import type { McpServer } from '@modelcontextprotocol/server';
+import { getOfficialDocUrl } from '@claude-code-changelog-viewer/common';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { z } from 'zod';
 import {
+  findOfficialDocPathsBySettingKey,
   findSettingByKey,
   listSettingKeys,
   searchSettings,
 } from '../../infrastructure/drizzle/changelog-repository';
 import type { settingsReference } from '../../db/schema';
 
-function toSettingPayload(row: typeof settingsReference.$inferSelect) {
+async function toSettingPayload(
+  db: DrizzleD1Database,
+  row: typeof settingsReference.$inferSelect,
+) {
+  const officialDocs = await findOfficialDocPathsBySettingKey(db, row.key);
   return {
     key: row.key,
     source: row.source,
     description: row.descriptionJa,
     useCase: row.useCaseJa ?? undefined,
     officialDocUrls:
-      row.officialDocUrls === null
+      officialDocs.length === 0
         ? undefined
-        : (JSON.parse(row.officialDocUrls) as string[]),
+        : officialDocs.map(({ docPath }) =>
+            getOfficialDocUrl(`docs/en/${docPath}`),
+          ),
   };
 }
 
@@ -69,7 +77,10 @@ export function registerGetSettingsReferenceTool(
         }
         return {
           content: [
-            { type: 'text', text: JSON.stringify(toSettingPayload(setting)) },
+            {
+              type: 'text',
+              text: JSON.stringify(await toSettingPayload(db, setting)),
+            },
           ],
         };
       }
@@ -79,7 +90,11 @@ export function registerGetSettingsReferenceTool(
           content: [
             {
               type: 'text',
-              text: JSON.stringify(settings.map(toSettingPayload)),
+              text: JSON.stringify(
+                await Promise.all(
+                  settings.map((setting) => toSettingPayload(db, setting)),
+                ),
+              ),
             },
           ],
         };

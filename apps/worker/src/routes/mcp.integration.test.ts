@@ -122,11 +122,13 @@ const vertexItem = {
 
 const advisorSetting: IngestSetting = {
   key: 'advisorModel',
+  leaf_name: 'advisorModel',
   slug: 'advisor-model',
   source: 'settings',
   description_en: 'Model for the server-side advisor tool.',
   description_ja: 'アドバイザーツールのモデルを指定します。',
   use_case_ja: 'アドバイザー機能のモデルを選択します。',
+  fetched_at: '2026-08-16',
   official_doc_urls: ['https://code.claude.com/docs/en/advisor'],
 };
 
@@ -456,10 +458,12 @@ describe('POST /api/mcp integration', () => {
           advisorSetting,
           {
             key: 'ANTHROPIC_MODEL',
+            leaf_name: null,
             slug: 'anthropic-model',
             source: 'env',
             description_en: 'Overrides the default model.',
             description_ja: '既定のモデルを上書きします。',
+            fetched_at: '2026-08-16',
           },
         ],
       });
@@ -481,10 +485,12 @@ describe('POST /api/mcp integration', () => {
           advisorSetting,
           {
             key: 'ANTHROPIC_MODEL',
+            leaf_name: null,
             slug: 'anthropic-model',
             source: 'env',
             description_en: 'Overrides the default model.',
             description_ja: '既定のモデルを上書きします。',
+            fetched_at: '2026-08-16',
           },
         ],
       });

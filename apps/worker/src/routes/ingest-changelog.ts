@@ -1,23 +1,34 @@
 import {
+  type IngestChangelogDiffEvent,
   type IngestChangelogVersion,
   IngestChangelogPayloadSchema,
   type IngestSetting,
 } from '@claude-code-changelog-viewer/types';
+import type { BatchItem } from 'drizzle-orm/batch';
 import { eq, sql } from 'drizzle-orm';
 import { type DrizzleD1Database, drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import {
+  changelogDiffEventItems,
+  changelogDiffEvents,
   changelogItemFeatureAreas,
+  changelogItemRelatedDocs,
   changelogItems,
   changelogVersions,
   settingsReference,
+  settingsOfficialDocs,
 } from '../db/schema';
 import { timingSafeEqual } from './dispatch';
 
 // D1 の bound parameters 上限 100/query から逆算した 1 INSERT あたりの行数
 const ITEMS_PER_INSERT = 11; // 9 カラム
 const FEATURE_AREAS_PER_INSERT = 33; // 3 カラム
-const SETTINGS_PER_INSERT = 14; // 7 カラム
+const RELATED_DOCS_PER_INSERT = 33; // 3 カラム
+const DIFF_EVENTS_PER_INSERT = 33; // 3 カラム
+const DIFF_EVENT_ITEMS_PER_INSERT = 20; // 5 カラム
+const SETTINGS_PER_INSERT = 12; // 8 カラム
+const OFFICIAL_DOCS_PER_INSERT = 50; // 2 カラム
+const MAX_BATCH_STATEMENTS = 100;
 
 function sqlExcluded(column: string) {
   return sql.raw(`excluded.${column}`);
@@ -31,6 +42,18 @@ function chunk<T>(rows: T[], size: number): T[][] {
   return result;
 }
 
+async function runBatchedStatements(
+  db: DrizzleD1Database,
+  statements: BatchItem<'sqlite'>[],
+): Promise<void> {
+  for (const batchStatements of chunk(statements, MAX_BATCH_STATEMENTS)) {
+    const [first, ...rest] = batchStatements;
+    if (first !== undefined) {
+      await db.batch([first, ...rest]);
+    }
+  }
+}
+
 // 全角半角・大文字小文字の揺れを吸収するため NFKC 正規化 + 小文字化する
 function buildSearchText(texts: (string | null | undefined)[]): string {
   return texts
@@ -40,8 +63,22 @@ function buildSearchText(texts: (string | null | undefined)[]): string {
     .toLowerCase();
 }
 
-// version 単位の delete → insert を 1 トランザクションで実行し冪等にする。
-// 包まないと delete 成功・insert 失敗の間に items が空になる。
+function toDocPath(value: string): string {
+  // docs 検索用 D1 の pages 主キーに合わせて docs/en/ 以下の .md パスに揃える
+  const normalized = value.replaceAll('\\', '/').split(/[?#]/)[0] ?? value;
+  const marker = 'docs/en/';
+  const markerIndex = normalized.indexOf(marker);
+  const path =
+    markerIndex === -1
+      ? normalized
+      : normalized.slice(markerIndex + marker.length);
+  const withoutTrailingSlash = path.replace(/\/+$/, '');
+  return withoutTrailingSlash.endsWith('.md')
+    ? withoutTrailingSlash
+    : `${withoutTrailingSlash}.md`;
+}
+
+// version 単位の delete → insert を同じ batch で実行し、冪等性と原子性を保つ。
 async function ingestVersion(
   db: DrizzleD1Database,
   entry: IngestChangelogVersion,
@@ -66,8 +103,24 @@ async function ingestVersion(
       featureArea,
     })),
   );
+  const relatedDocRows = entry.items.flatMap((item) =>
+    [
+      ...new Set(
+        (item.related_docs ?? []).map((relatedDoc) =>
+          toDocPath(relatedDoc.file),
+        ),
+      ),
+    ].map((docPath) => ({
+      version: entry.version,
+      itemId: item.id,
+      docPath,
+    })),
+  );
 
   const statements = [
+    db
+      .delete(changelogItemRelatedDocs)
+      .where(eq(changelogItemRelatedDocs.version, entry.version)),
     db
       .delete(changelogItemFeatureAreas)
       .where(eq(changelogItemFeatureAreas.version, entry.version)),
@@ -84,8 +137,60 @@ async function ingestVersion(
     ...chunk(featureAreaRows, FEATURE_AREAS_PER_INSERT).map((rows) =>
       db.insert(changelogItemFeatureAreas).values(rows),
     ),
+    ...chunk(relatedDocRows, RELATED_DOCS_PER_INSERT).map((rows) =>
+      db.insert(changelogItemRelatedDocs).values(rows),
+    ),
   ] as const;
-  await db.batch([statements[0], ...statements.slice(1)]);
+  if (statements.length > MAX_BATCH_STATEMENTS) {
+    throw new Error(
+      `version ${entry.version} の D1 batch が上限を超えています: ${statements.length}`,
+    );
+  }
+  const [first, ...rest] = statements;
+  if (first !== undefined) {
+    await db.batch([first, ...rest]);
+  }
+}
+
+async function ingestDiffEvents(
+  db: DrizzleD1Database,
+  events: IngestChangelogDiffEvent[],
+): Promise<void> {
+  if (events.length === 0) {
+    return;
+  }
+
+  const eventRows = events.map((event) => ({
+    version: event.version,
+    detectedAt: event.detected_at,
+    type: event.type,
+  }));
+  const itemRows = events.flatMap((event) => [
+    ...event.items_added.map((content, seq) => ({
+      version: event.version,
+      detectedAt: event.detected_at,
+      direction: 'added' as const,
+      seq,
+      content,
+    })),
+    ...event.items_removed.map((content, seq) => ({
+      version: event.version,
+      detectedAt: event.detected_at,
+      direction: 'removed' as const,
+      seq,
+      content,
+    })),
+  ]);
+
+  const statements = [
+    ...chunk(eventRows, DIFF_EVENTS_PER_INSERT).map((rows) =>
+      db.insert(changelogDiffEvents).values(rows).onConflictDoNothing(),
+    ),
+    ...chunk(itemRows, DIFF_EVENT_ITEMS_PER_INSERT).map((rows) =>
+      db.insert(changelogDiffEventItems).values(rows).onConflictDoNothing(),
+    ),
+  ];
+  await runBatchedStatements(db, statements);
 }
 
 async function ingestSettings(
@@ -99,31 +204,58 @@ async function ingestSettings(
     descriptionEn: setting.description_en,
     descriptionJa: setting.description_ja,
     useCaseJa: setting.use_case_ja ?? null,
-    officialDocUrls: setting.official_doc_urls
-      ? JSON.stringify(setting.official_doc_urls)
-      : null,
+    leafName: setting.leaf_name ?? null,
+    fetchedAt: setting.fetched_at,
   }));
+  const officialDocRows = settings.flatMap((setting) =>
+    [
+      ...new Set(
+        (setting.official_doc_urls ?? []).map((url) => toDocPath(url)),
+      ),
+    ].map((docPath) => ({
+      settingKey: setting.key,
+      docPath,
+    })),
+  );
 
-  const [first, ...rest] = chunk(rows, SETTINGS_PER_INSERT).map((chunkRows) =>
+  if (rows.length === 0) {
+    return;
+  }
+
+  const deleteOfficialDocStatements = settings.map((setting) =>
+    db
+      .delete(settingsOfficialDocs)
+      .where(eq(settingsOfficialDocs.settingKey, setting.key)),
+  );
+  const settingStatements = chunk(rows, SETTINGS_PER_INSERT).map((chunkRows) =>
     db
       .insert(settingsReference)
       .values(chunkRows)
       .onConflictDoUpdate({
         target: settingsReference.key,
         set: {
+          leafName: sqlExcluded('leaf_name'),
           slug: sqlExcluded('slug'),
           source: sqlExcluded('source'),
           descriptionEn: sqlExcluded('description_en'),
           descriptionJa: sqlExcluded('description_ja'),
           useCaseJa: sqlExcluded('use_case_ja'),
-          officialDocUrls: sqlExcluded('official_doc_urls'),
+          fetchedAt: sqlExcluded('fetched_at'),
         },
       }),
   );
-  if (first === undefined) {
-    return;
-  }
-  await db.batch([first, ...rest]);
+  const officialDocStatements = chunk(
+    officialDocRows,
+    OFFICIAL_DOCS_PER_INSERT,
+  ).map((chunkRows) =>
+    db.insert(settingsOfficialDocs).values(chunkRows).onConflictDoNothing(),
+  );
+  const statements = [
+    ...deleteOfficialDocStatements,
+    ...settingStatements,
+    ...officialDocStatements,
+  ];
+  await runBatchedStatements(db, statements);
 }
 
 export const ingestChangelogRoute = new Hono<{
@@ -144,17 +276,19 @@ export const ingestChangelogRoute = new Hono<{
   if (!parseResult.success) {
     return c.json({ error: 'リクエストが不正です' }, 400);
   }
-  const { versions, settings } = parseResult.data;
+  const { versions, settings, diff_events: diffEvents } = parseResult.data;
 
   const db = drizzle(c.env.DB);
   for (const entry of versions) {
     await ingestVersion(db, entry);
   }
+  await ingestDiffEvents(db, diffEvents);
   await ingestSettings(db, settings);
 
   return c.json({
     success: true,
     versions: versions.length,
     settings: settings.length,
+    diffEvents: diffEvents.length,
   });
 });
