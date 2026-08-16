@@ -14,6 +14,7 @@ import { uploadsRoute } from './routes/uploads';
 import { webhooksRoute } from './routes/webhooks';
 
 export { ChangelogInferenceWorkflow } from './workflows/changelog-inference-workflow';
+export { D1BackupWorkflow } from './workflows/d1-backup-workflow';
 
 const logger = getLogger({
   name: 'changelog-viewer-worker',

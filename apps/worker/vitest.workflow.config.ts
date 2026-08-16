@@ -24,6 +24,8 @@ export default defineConfig({
       miniflare: {
         bindings: {
           CF_ACCESS_AUD: 'test-access-aud',
+          CLOUDFLARE_ACCOUNT_ID: 'test-account-id',
+          D1_REST_API_TOKEN: 'test-d1-rest-api-token',
           DEPLOY_HOOK_URL: 'https://deploy.example/hook',
           DISPATCH_SECRET: 'test-dispatch-secret',
           EMAIL_ENCRYPTION_KEY: 'test-email-encryption-key',
@@ -37,12 +39,7 @@ export default defineConfig({
   ],
   test: {
     clearMocks: true,
-    include: [
-      resolve(
-        workerDirectory,
-        'src/workflows/changelog-inference-workflow.integration.test.ts',
-      ),
-    ],
+    include: [resolve(workerDirectory, 'src/workflows/*.integration.test.ts')],
     name: 'changelog-viewer-worker-workflow',
     restoreMocks: true,
   },
