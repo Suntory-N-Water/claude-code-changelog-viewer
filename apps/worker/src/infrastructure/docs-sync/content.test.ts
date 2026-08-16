@@ -3,7 +3,7 @@ import {
   chunkMarkdown,
   flattenSettingSchema,
   mergeDocumentLists,
-} from './docs-sync-content';
+} from './content';
 
 describe('ドキュメント同期用のコンテンツ処理', () => {
   it('コードフェンス内の見出しをチャンク境界にしないこと', () => {

@@ -1,7 +1,7 @@
 import type { ChannelRepository } from '../domain/channel/channel-repository';
 
 export type CleanupInactiveChannelsInput = {
-  readonly cutoffDate: Date;
+  readonly now: Date;
 };
 
 export type CleanupInactiveChannelsResult = {
@@ -13,7 +13,9 @@ export async function cleanupInactiveChannels(
   repository: ChannelRepository,
   input: CleanupInactiveChannelsInput,
 ): Promise<CleanupInactiveChannelsResult> {
-  const channels = await repository.findDeactivatedBefore(input.cutoffDate);
+  const cutoffDate = new Date(input.now);
+  cutoffDate.setDate(cutoffDate.getDate() - 30);
+  const channels = await repository.findDeactivatedBefore(cutoffDate);
 
   for (const channel of channels) {
     await repository.delete(channel.id);

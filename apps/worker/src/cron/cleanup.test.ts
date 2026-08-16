@@ -57,7 +57,7 @@ describe('休眠チャンネルの削除', () => {
     );
 
     const result = await cleanupInactiveChannelsUsecase(repository, {
-      cutoffDate: new Date('2026-01-02T00:00:00.000Z'),
+      now: new Date('2026-02-01T00:00:00.000Z'),
     });
 
     expect(result).toEqual({ deletedCount: 1 });
