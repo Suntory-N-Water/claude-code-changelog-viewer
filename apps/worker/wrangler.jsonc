@@ -10,7 +10,9 @@
     "SITE_URL": "https://claude-code-log.com",
     "EMAIL_FROM": "noreply@claude-code-log.com",
     "CF_ACCESS_TEAM_DOMAIN": "1202ayasnppk.cloudflareaccess.com",
-    "AI_GATEWAY_ID": "default"
+    "AI_GATEWAY_ID": "default",
+    // R2 へ export する対象。d1_databases の DB と同じデータベースを指す
+    "BACKUP_DATABASE_ID": "d4301e1b-c7ae-427d-8017-8735b01e5943"
   },
   "secrets": {
     "required": [
@@ -19,7 +21,9 @@
       "EMAIL_ENCRYPTION_KEY",
       "GITHUB_DISPATCH_TOKEN",
       "CF_ACCESS_AUD",
-      "DEPLOY_HOOK_URL"
+      "DEPLOY_HOOK_URL",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "D1_REST_API_TOKEN"
     ]
   },
   "ai": {
@@ -30,6 +34,14 @@
       "name": "changelog-inference",
       "binding": "CHANGELOG_INFERENCE_WORKFLOW",
       "class_name": "ChangelogInferenceWorkflow"
+    },
+    {
+      "name": "d1-backup",
+      "binding": "D1_BACKUP_WORKFLOW",
+      "class_name": "D1BackupWorkflow",
+      // 曜日フィールドは 1-7 で 1 が日曜のため、数値ではなくテキストで土曜を指定する。
+      // UTC 土曜 17:00 = JST 日曜 2:00 で、既存 cron と重ならない
+      "schedules": ["0 17 * * SAT"]
     }
   ],
   "send_email": [
@@ -79,6 +91,10 @@
     {
       "binding": "WEEKLY_ASSETS",
       "bucket_name": "weekly-assets"
+    },
+    {
+      "binding": "D1_BACKUP_BUCKET",
+      "bucket_name": "changelog-viewer-d1-backup"
     }
   ],
   "queues": {

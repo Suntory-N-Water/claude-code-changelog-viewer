@@ -10,10 +10,16 @@ export default defineProject({
           import.meta.url,
         ),
       ),
+      'cloudflare:workflows': fileURLToPath(
+        new URL(
+          './src/test-support/cloudflare-workflows-stub.ts',
+          import.meta.url,
+        ),
+      ),
     },
   },
   test: {
-    exclude: ['src/workflows/changelog-inference-workflow.integration.test.ts'],
+    exclude: ['src/workflows/*.integration.test.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}'],
     name: 'changelog-viewer-worker',
     env: { AGENT: '1' },
