@@ -13,7 +13,6 @@ import { createSettingsReferenceFailureReporter } from '../infrastructure/github
 import { createSettingsDocumentSearch } from '../infrastructure/docs-search';
 import {
   buildSettingsReferenceInput,
-  inferSettingsReference,
   loadSettingsReferenceEntries,
   saveSettingsReferences,
 } from '../usecases/settings-reference';
@@ -68,6 +67,9 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         this.env.AI_GATEWAY_ID,
       );
       const repository = createSettingsReferenceRepository(db);
+      const fetchedAt = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'Asia/Tokyo',
+      }).format(new Date());
 
       const entries = await step.do('load-entries', STEP_RETRIES, async () =>
         loadSettingsReferenceEntries(entrySource, params),
@@ -92,10 +94,14 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         const translations = await step.do(
           `infer-${batchIndex}`,
           STEP_RETRIES,
-          async () => inferSettingsReference(inference, input),
+          async () => inference.infer(input),
         );
         await step.do(`store-${batchIndex}`, STEP_RETRIES, async () =>
-          saveSettingsReferences(repository, input, translations),
+          saveSettingsReferences(repository, {
+            input,
+            translations,
+            fetchedAt,
+          }),
         );
       }
 

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { syncDocs } from './sync-docs';
 
+const emptyContentParser = {
+  parseEnvVarsMd: () => [],
+  parsePublicEnvEntriesFromDocs: () => [],
+};
+
 describe('ドキュメント同期ユースケース', () => {
   it('変更されたページと新しい設定スキーマを保存する', async () => {
     const changedPages: unknown[] = [];
@@ -50,6 +55,7 @@ describe('ドキュメント同期ユースケース', () => {
           replacedSchemas.push(schema);
         },
       },
+      contentParser: emptyContentParser,
     };
 
     const result = await syncDocs(dependencies, {
@@ -125,6 +131,46 @@ Claude Code reads \`CLAUDE_CODE_MENTION_ONLY\` from the environment.
         contentHash: 'guide-hash',
       },
     ];
+    const markdownEntries = [
+      {
+        key: 'CLAUDE_CODE_MD_ONLY',
+        source: 'env' as const,
+        description: 'From env-vars.md',
+        parentDescriptions: '[]',
+        valueType: '',
+        defaultValue: null,
+        enumValues: null,
+      },
+      {
+        key: 'CLAUDE_CODE_PRIORITY',
+        source: 'env' as const,
+        description: 'Markdown wins',
+        parentDescriptions: '[]',
+        valueType: '',
+        defaultValue: null,
+        enumValues: null,
+      },
+    ];
+    const docsEntries = [
+      {
+        key: 'CLAUDE_CODE_DOCS_ONLY',
+        source: 'env' as const,
+        description: 'From docs table',
+        parentDescriptions: '[]',
+        valueType: '',
+        defaultValue: null,
+        enumValues: null,
+      },
+      {
+        key: 'CLAUDE_CODE_MENTION_ONLY',
+        source: 'env' as const,
+        description: 'Claude Code reads CLAUDE_CODE_MENTION_ONLY',
+        parentDescriptions: '[]',
+        valueType: '',
+        defaultValue: null,
+        enumValues: null,
+      },
+    ];
     const dependencies = {
       source: {
         fetchDocumentList: async () =>
@@ -179,6 +225,10 @@ Claude Code reads \`CLAUDE_CODE_MENTION_ONLY\` from the environment.
         replaceSettingSchema: async (schema: unknown) => {
           replacedSchemas.push(schema);
         },
+      },
+      contentParser: {
+        parseEnvVarsMd: () => markdownEntries,
+        parsePublicEnvEntriesFromDocs: () => docsEntries,
       },
     };
 
@@ -265,6 +315,7 @@ Claude Code reads \`CLAUDE_CODE_MENTION_ONLY\` from the environment.
           replacedSchemas.push(schema);
         },
       },
+      contentParser: emptyContentParser,
     };
 
     await syncDocs(dependencies, {

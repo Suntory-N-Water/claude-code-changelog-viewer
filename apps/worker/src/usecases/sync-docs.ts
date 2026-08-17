@@ -1,9 +1,5 @@
 import { toError } from '@claude-code-changelog-viewer/common';
 import { isSafeToDeleteStaleDocuments } from '../domain/docs-sync/document-sync';
-import {
-  parseEnvVarsMd,
-  parsePublicEnvEntriesFromDocs,
-} from '../infrastructure/docs-sync/content';
 
 export type DocumentInfo = {
   readonly title: string;
@@ -52,9 +48,20 @@ export type DocsSearchStore = {
   replaceSettingSchema(schema: SettingSchemaSnapshot, now: Date): Promise<void>;
 };
 
+export type SettingSchemaContentParser = {
+  parseEnvVarsMd(
+    markdown: string,
+    pages: ReadonlyMap<string, string>,
+  ): readonly SettingSchemaEntry[];
+  parsePublicEnvEntriesFromDocs(
+    pages: ReadonlyMap<string, string>,
+  ): readonly SettingSchemaEntry[];
+};
+
 export type SyncDocsDependencies = {
   readonly source: OfficialDocsSource;
   readonly store: DocsSearchStore;
+  readonly contentParser: SettingSchemaContentParser;
 };
 
 export type SyncDocsInput = {
@@ -149,8 +156,11 @@ export async function syncDocs(
     ([path]) => path.split('/').at(-1) === 'env-vars.md',
   )?.[1];
   const markdownEntries =
-    envVarsPage === undefined ? [] : parseEnvVarsMd(envVarsPage, pageContents);
-  const docsEntries = parsePublicEnvEntriesFromDocs(pageContents);
+    envVarsPage === undefined
+      ? []
+      : dependencies.contentParser.parseEnvVarsMd(envVarsPage, pageContents);
+  const docsEntries =
+    dependencies.contentParser.parsePublicEnvEntriesFromDocs(pageContents);
   const mergedEntries = mergeSettingSchemaEntries(
     schema.entries,
     markdownEntries,

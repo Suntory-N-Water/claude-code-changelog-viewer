@@ -10,10 +10,6 @@ export const SettingsReferenceResponseSchema = z.object({
   ),
 });
 
-export type SettingsReferenceResponse = z.infer<
-  typeof SettingsReferenceResponseSchema
->;
-
 export const SettingsReferenceResponseFormat = {
   type: 'json_schema',
   json_schema: {

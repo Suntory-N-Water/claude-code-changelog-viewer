@@ -97,6 +97,12 @@ export type SettingsReferenceRepositoryPort = {
   }): Promise<void>;
 };
 
+type SettingsReferenceSaveInput = {
+  readonly input: SettingsReferenceInput;
+  readonly translations: readonly SettingsReferenceTranslation[];
+  readonly fetchedAt: string;
+};
+
 const MAX_DOC_SNIPPET_CHARS = 8000;
 const MAX_RELATED_CHANGELOGS = 5;
 const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
@@ -177,24 +183,14 @@ export async function buildSettingsReferenceInput(
   };
 }
 
-export async function inferSettingsReference(
-  ai: SettingsReferenceAiPort,
-  input: SettingsReferenceInput,
-): Promise<readonly SettingsReferenceTranslation[]> {
-  return ai.infer(input);
-}
-
 export async function saveSettingsReferences(
   repository: SettingsReferenceRepositoryPort,
-  input: SettingsReferenceInput,
-  translations: readonly SettingsReferenceTranslation[],
+  saveInput: SettingsReferenceSaveInput,
 ): Promise<{ count: number }> {
+  const { input, translations, fetchedAt } = saveInput;
   const translationsById = new Map(
     translations.map((translation) => [translation.id, translation]),
   );
-  const fetchedAt = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'Asia/Tokyo',
-  }).format(new Date());
   const records = input.entries.flatMap((entry) => {
     const translation = translationsById.get(entry.id);
     if (translation === undefined) {
