@@ -67,9 +67,10 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         this.env.AI_GATEWAY_ID,
       );
       const repository = createSettingsReferenceRepository(db);
+      // replay で日付が変わらないよう、実行時刻ではなく起動時刻を使う。
       const fetchedAt = new Intl.DateTimeFormat('sv-SE', {
         timeZone: 'Asia/Tokyo',
-      }).format(new Date());
+      }).format(event.timestamp);
 
       const entries = await step.do('load-entries', STEP_RETRIES, async () =>
         loadSettingsReferenceEntries(entrySource, params),
