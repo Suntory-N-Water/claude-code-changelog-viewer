@@ -1,4 +1,8 @@
 import { getLogger } from '@claude-code-changelog-viewer/common';
+import {
+  parseEnvVarsMd,
+  parsePublicEnvEntriesFromDocs,
+} from '../infrastructure/docs-sync/content';
 import { createDocsSearchStore } from '../infrastructure/docs-sync/docs-search-store';
 import { createOfficialDocsSource } from '../infrastructure/docs-sync/official-docs-source';
 import { syncDocs as syncDocsUsecase } from '../usecases/sync-docs';
@@ -18,6 +22,7 @@ export async function syncDocs(
     {
       source: createOfficialDocsSource(),
       store: createDocsSearchStore(bindings.DOCS_DB),
+      contentParser: { parseEnvVarsMd, parsePublicEnvEntriesFromDocs },
     },
     { now },
   );

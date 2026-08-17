@@ -3,6 +3,8 @@ import {
   chunkMarkdown,
   flattenSettingSchema,
   mergeDocumentLists,
+  parseEnvVarsMd,
+  parsePublicEnvEntriesFromDocs,
 } from './content';
 
 describe('ドキュメント同期用のコンテンツ処理', () => {
@@ -78,6 +80,70 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         enumValues: null,
       },
     ]);
+  });
+
+  it('env-vars.md の環境変数テーブルを抽出すること', () => {
+    const entries = parseEnvVarsMd(`
+| Environment variable | Description |
+| - | - |
+| \`CLAUDE_CODE_TABLE_TEST\` | Table description |
+`);
+
+    expect(entries).toMatchObject([
+      {
+        key: 'CLAUDE_CODE_TABLE_TEST',
+        source: 'env',
+        description: 'Table description',
+      },
+    ]);
+  });
+
+  it('env-vars.md の純粋な See 参照をページ本文から解決すること', () => {
+    const entries = parseEnvVarsMd(
+      `
+| Environment variable | Description |
+| - | - |
+| \`CLAUDE_CODE_SEE_TEST\` | See [Configuration](/en/configuration#environment-variables) |
+`,
+      new Map([
+        [
+          'configuration.md',
+          `# Configuration
+
+## Environment variables
+
+| Environment variable | Description |
+| - | - |
+| \`CLAUDE_CODE_SEE_TEST\` | Resolved description |
+`,
+        ],
+      ]),
+    );
+
+    expect(entries[0]?.description).toBe('Resolved description');
+  });
+
+  it('docs 本文中の公開環境変数の言及を抽出すること', () => {
+    const entries = parsePublicEnvEntriesFromDocs(
+      new Map([
+        [
+          'guide.md',
+          'Claude Code reads `CLAUDE_CODE_MENTION_TEST` from the environment.',
+        ],
+        ['env-vars.md', 'Claude Code reads `CLAUDE_CODE_EXCLUDED`'],
+      ]),
+    );
+
+    expect(entries).toMatchObject([
+      {
+        key: 'CLAUDE_CODE_MENTION_TEST',
+        source: 'env',
+        description: expect.stringContaining('CLAUDE_CODE_MENTION_TEST'),
+      },
+    ]);
+    expect(entries.some((entry) => entry.key === 'CLAUDE_CODE_EXCLUDED')).toBe(
+      false,
+    );
   });
 
   it('llms.txt のパスを優先し、changelog.md を除外すること', () => {

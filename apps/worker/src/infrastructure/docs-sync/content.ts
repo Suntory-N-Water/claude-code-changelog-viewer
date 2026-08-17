@@ -308,6 +308,125 @@ export function flattenSettingSchema(schema: unknown): SettingSchemaEntry[] {
   return entries;
 }
 
+/** env-vars.md の Markdown テーブルから環境変数エントリを抽出する。 */
+export function parseEnvVarsMd(
+  markdown: string,
+  pages: ReadonlyMap<string, string> = new Map(),
+): SettingSchemaEntry[] {
+  const { entries, rawDescriptions } = parseEnvTableRows(markdown);
+
+  if (pages.size === 0) {
+    return entries;
+  }
+
+  return entries.map((entry) => {
+    const rawDescription = rawDescriptions.get(entry.key);
+    if (rawDescription === undefined) {
+      return entry;
+    }
+
+    const pureSeeMatch = rawDescription
+      .trim()
+      .match(/^See \[.+\]\((\/en\/.+)\)$/);
+    if (pureSeeMatch === null) {
+      return entry;
+    }
+
+    const linkTarget = pureSeeMatch[1];
+    if (linkTarget === undefined) {
+      return entry;
+    }
+
+    const [relativeDocPath, anchorFragment = ''] = linkTarget
+      .replace(/^\/en\//, '')
+      .split('#');
+    if (relativeDocPath === undefined) {
+      return entry;
+    }
+
+    const docPath = relativeDocPath.endsWith('.md')
+      ? relativeDocPath
+      : `${relativeDocPath}.md`;
+    const content = pages.get(docPath);
+    if (content === undefined) {
+      return entry;
+    }
+
+    const section = anchorFragment
+      ? findSectionByAnchor(content, anchorFragment)
+      : (findSectionByAnchor(content, 'environment-variables') ?? content);
+    if (section === null) {
+      return entry;
+    }
+
+    const directDescription = resolveDescriptionFromSection(entry.key, section);
+    if (directDescription !== null) {
+      return { ...entry, description: directDescription };
+    }
+
+    const fallbackMatch = entry.key.match(
+      /^ANTHROPIC_DEFAULT_([A-Z]+)_MODEL(?:_(NAME|DESCRIPTION|SUPPORTED_CAPABILITIES))?$/,
+    );
+    if (fallbackMatch !== null) {
+      const tierName = fallbackMatch[1];
+      const suffix = fallbackMatch[2] ?? '';
+      if (tierName !== undefined) {
+        const displayTierName = tierName[0] + tierName.slice(1).toLowerCase();
+        const fallbackKey = `ANTHROPIC_DEFAULT_OPUS_MODEL${suffix ? `_${suffix}` : ''}`;
+        const fallbackDescription = resolveDescriptionFromSection(
+          fallbackKey,
+          section,
+        );
+        if (fallbackDescription !== null) {
+          return {
+            ...entry,
+            description: fallbackDescription.replace(/Opus/g, displayTierName),
+          };
+        }
+      }
+    }
+
+    if (entry.key === 'ANTHROPIC_CUSTOM_MODEL_OPTION_SUPPORTED_CAPABILITIES') {
+      const fallbackDescription = resolveDescriptionFromSection(
+        'ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES',
+        section,
+      );
+      if (fallbackDescription !== null) {
+        return {
+          ...entry,
+          description: fallbackDescription.replace(
+            /pinned Opus model/g,
+            'custom model option',
+          ),
+        };
+      }
+    }
+
+    return entry;
+  });
+}
+
+/** docs/en 本文にある公開環境変数の言及から環境変数エントリを抽出する。 */
+export function parsePublicEnvEntriesFromDocs(
+  pages: ReadonlyMap<string, string>,
+): SettingSchemaEntry[] {
+  const entries: SettingSchemaEntry[] = [];
+
+  for (const [file, content] of pages) {
+    const filename = file.split('/').at(-1);
+    if (filename === 'changelog.md' || filename === 'env-vars.md') {
+      continue;
+    }
+
+    entries.push(
+      ...parseEnvTableRows(content, { environmentTableOnly: true }).entries,
+    );
+    entries.push(...extractPublicEnvMentions(content));
+  }
+
+  return entries;
+}
+
 export function isSettingSchema(
   value: unknown,
 ): value is JsonObject & { properties: JsonObject } {
@@ -382,4 +501,235 @@ function createSettingSchemaEntry({
 
 function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isEnvName(value: string): boolean {
+  return /^[A-Z_][A-Z0-9_]*$/.test(value);
+}
+
+function isLikelyPublicEnvName(value: string): boolean {
+  if (!isEnvName(value) || value.length === 1) {
+    return false;
+  }
+
+  return (
+    /^(?:ANTHROPIC_|AWS_|BETA_|CLAUDE_|CLOUD_|DISABLE_|ENABLE_|GCLOUD_|GOOGLE_|OTEL_)/.test(
+      value,
+    ) || new Set(['TRACEPARENT', 'TRACESTATE']).has(value)
+  );
+}
+
+function stripMarkdown(value: string): string {
+  return value
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\\_/g, '_')
+    .trim();
+}
+
+type EnvTableParseResult = {
+  entries: SettingSchemaEntry[];
+  rawDescriptions: Map<string, string>;
+};
+
+function parseEnvTableRows(
+  markdown: string,
+  opts: { environmentTableOnly?: boolean } = {},
+): EnvTableParseResult {
+  const entries: SettingSchemaEntry[] = [];
+  const rawDescriptions = new Map<string, string>();
+  let inEnvironmentTable = false;
+
+  for (const line of markdown.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('|')) {
+      const cells = trimmed
+        .split('|')
+        .slice(1, -1)
+        .map((cell) => stripMarkdown(cell).toLowerCase());
+      if (cells.some((cell) => /^environment variables?$/.test(cell))) {
+        inEnvironmentTable = true;
+        continue;
+      }
+    } else {
+      inEnvironmentTable = false;
+    }
+
+    if (opts.environmentTableOnly && !inEnvironmentTable) {
+      continue;
+    }
+
+    const match = trimmed.match(/^\|\s*`([A-Z_][A-Z0-9_]*)`\s*\|(.+)$/);
+    if (!match?.[1] || !match[2]) {
+      continue;
+    }
+
+    const descriptionRaw = match[2].split('|')[0]?.trim() ?? '';
+    const description = stripMarkdown(descriptionRaw);
+    rawDescriptions.set(match[1], descriptionRaw);
+    entries.push(createEnvironmentSettingSchemaEntry(match[1], description));
+
+    if (
+      /(?:also accepted|older name|legacy name|alias)/i.test(descriptionRaw)
+    ) {
+      for (const aliasMatch of descriptionRaw.matchAll(
+        /`([A-Z_][A-Z0-9_]*)`/g,
+      )) {
+        const key = aliasMatch[1];
+        if (key && key !== match[1]) {
+          rawDescriptions.set(key, descriptionRaw);
+          entries.push(createEnvironmentSettingSchemaEntry(key, description));
+        }
+      }
+    }
+  }
+
+  return { entries, rawDescriptions };
+}
+
+function createEnvironmentSettingSchemaEntry(
+  key: string,
+  description: string,
+): SettingSchemaEntry {
+  return {
+    key,
+    source: 'env',
+    description,
+    parentDescriptions: '[]',
+    valueType: '',
+    defaultValue: null,
+    enumValues: null,
+  };
+}
+
+function extractPublicEnvMentions(markdown: string): SettingSchemaEntry[] {
+  const entries: SettingSchemaEntry[] = [];
+  const lines = markdown.split('\n');
+
+  for (const [index, line] of lines.entries()) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      continue;
+    }
+
+    const keys = extractPublicEnvKeysFromLine(trimmed);
+    if (keys.length === 0) {
+      continue;
+    }
+
+    for (const key of keys) {
+      entries.push(
+        createEnvironmentSettingSchemaEntry(
+          key,
+          findNearbyDescription(lines, index, key),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
+
+function extractPublicEnvKeysFromLine(line: string): string[] {
+  const keys = new Set<string>();
+  const envPhrase =
+    /Claude Code[^.]*\b(?:uses|reads|exports|injects|forwards|inherits)|\b(?:CLI|SDK)[^.]*\b(?:uses|reads|exports|injects|forwards|inherits)|\b(?:Claude Code|CLI|SDK)[^.]*\brequires/i;
+  if (envPhrase.test(line)) {
+    for (const match of line.matchAll(/`([A-Z_][A-Z0-9_]*)(?:=[^`]*)?`/g)) {
+      const key = match[1];
+      if (key && isLikelyPublicEnvName(key)) {
+        keys.add(key);
+      }
+    }
+  }
+
+  return [...keys];
+}
+
+function findNearbyDescription(
+  lines: string[],
+  index: number,
+  key: string,
+): string {
+  const candidates = [
+    lines[index],
+    lines[index - 1],
+    lines[index - 2],
+    lines[index + 1],
+  ];
+
+  for (const candidate of candidates) {
+    const stripped = stripMarkdown(candidate ?? '');
+    if (
+      stripped &&
+      !stripped.startsWith('```') &&
+      (stripped.includes(key) ||
+        /environment variable|Claude Code/i.test(stripped))
+    ) {
+      return stripped;
+    }
+  }
+
+  return key;
+}
+
+function findSectionByAnchor(content: string, anchor: string): string | null {
+  const targetAnchor = anchor.replace(/^#/, '').trim().toLowerCase();
+  const lines = content.split('\n');
+  let sectionStart = -1;
+  let sectionLevel = 0;
+
+  const toAnchor = (value: string): string =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[`]/g, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = lines[index]?.match(/^(#{1,6})\s+(.+?)\s*$/);
+    if (match == null) {
+      continue;
+    }
+
+    const headingMarker = match[1];
+    const headingText = match[2];
+    if (headingMarker === undefined || headingText === undefined) {
+      continue;
+    }
+
+    const level = headingMarker.length;
+    if (sectionStart !== -1 && level <= sectionLevel) {
+      return lines.slice(sectionStart, index).join('\n').trim();
+    }
+
+    if (toAnchor(headingText) === targetAnchor) {
+      sectionStart = index + 1;
+      sectionLevel = level;
+    }
+  }
+
+  return sectionStart === -1
+    ? null
+    : lines.slice(sectionStart).join('\n').trim();
+}
+
+function resolveDescriptionFromSection(
+  envKey: string,
+  section: string,
+): string | null {
+  for (const line of section.split('\n')) {
+    const trimmed = line.trim();
+    const match = trimmed.match(/^\|\s*`([A-Z_][A-Z0-9_]*)`\s*\|(.+)$/);
+    if (match?.[1] !== envKey || !match[2]) {
+      continue;
+    }
+
+    const descriptionRaw = match[2].split('|')[0]?.trim() ?? '';
+    return stripMarkdown(descriptionRaw);
+  }
+
+  return null;
 }

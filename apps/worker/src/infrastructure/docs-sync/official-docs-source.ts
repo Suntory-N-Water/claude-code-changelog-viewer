@@ -75,7 +75,7 @@ export function createOfficialDocsSource(): OfficialDocsSource {
 
       let schema: unknown;
       try {
-        schema = JSON.parse(rawSchema) as unknown;
+        schema = JSON.parse(rawSchema);
       } catch (error) {
         throw new Error(
           `設定スキーマの JSON パースに失敗しました: ${toError(error).message}`,

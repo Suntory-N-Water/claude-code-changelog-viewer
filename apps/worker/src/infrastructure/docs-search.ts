@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import type { ChangelogDocumentSearchPort } from '../usecases/changelog-inference';
 import type { RelatedDocument } from '../domain/changelog-inference/changelog-inference';
+import type { SettingsReferenceDocumentSearchPort } from '../usecases/settings-reference';
 
 const MAX_FILES = 3;
 const MAX_CHUNKS_PER_FILE = 3;
@@ -134,6 +135,16 @@ export function createChangelogDocumentSearch(
         file: document.file,
         snippets: document.snippets,
       }));
+    },
+  };
+}
+
+export function createSettingsDocumentSearch(
+  db: DrizzleD1Database,
+): SettingsReferenceDocumentSearchPort {
+  return {
+    async searchSettingKey(leafName) {
+      return searchDocsForSettingKey(db, leafName);
     },
   };
 }

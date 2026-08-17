@@ -48,9 +48,20 @@ export type DocsSearchStore = {
   replaceSettingSchema(schema: SettingSchemaSnapshot, now: Date): Promise<void>;
 };
 
+export type SettingSchemaContentParser = {
+  parseEnvVarsMd(
+    markdown: string,
+    pages: ReadonlyMap<string, string>,
+  ): readonly SettingSchemaEntry[];
+  parsePublicEnvEntriesFromDocs(
+    pages: ReadonlyMap<string, string>,
+  ): readonly SettingSchemaEntry[];
+};
+
 export type SyncDocsDependencies = {
   readonly source: OfficialDocsSource;
   readonly store: DocsSearchStore;
+  readonly contentParser: SettingSchemaContentParser;
 };
 
 export type SyncDocsInput = {
@@ -98,12 +109,15 @@ export async function syncDocs(
   const changedPages: StoredPage[] = [];
   let skippedCount = 0;
   let failedCount = 0;
+  const pageContents = new Map<string, string>();
 
   for (const outcome of outcomes) {
     if ('error' in outcome) {
       failedCount += 1;
       continue;
     }
+
+    pageContents.set(outcome.page.path, outcome.page.content);
 
     if (existingHashes.get(outcome.page.path) === outcome.page.contentHash) {
       skippedCount += 1;
@@ -138,8 +152,25 @@ export async function syncDocs(
   const schema = await dependencies.source.fetchSettingSchema();
   const previousSchemaHash = await dependencies.store.loadSettingSchemaHash();
   const schemaUpdated = previousSchemaHash !== schema.contentHash;
-  if (schemaUpdated) {
-    await dependencies.store.replaceSettingSchema(schema, input.now);
+  const envVarsPage = [...pageContents.entries()].find(
+    ([path]) => path.split('/').at(-1) === 'env-vars.md',
+  )?.[1];
+  const markdownEntries =
+    envVarsPage === undefined
+      ? []
+      : dependencies.contentParser.parseEnvVarsMd(envVarsPage, pageContents);
+  const docsEntries =
+    dependencies.contentParser.parsePublicEnvEntriesFromDocs(pageContents);
+  const mergedEntries = mergeSettingSchemaEntries(
+    schema.entries,
+    markdownEntries,
+    docsEntries,
+  );
+  if (failedCount === 0 && (schemaUpdated || changedPages.length > 0)) {
+    await dependencies.store.replaceSettingSchema(
+      { ...schema, entries: mergedEntries },
+      input.now,
+    );
   }
 
   return {
@@ -152,6 +183,42 @@ export async function syncDocs(
     skippedBySafetyGuard,
     schemaUpdated,
   };
+}
+
+function mergeSettingSchemaEntries(
+  schemaEntries: readonly SettingSchemaEntry[],
+  markdownEntries: readonly SettingSchemaEntry[],
+  docsEntries: readonly SettingSchemaEntry[],
+): SettingSchemaEntry[] {
+  const schemaSettings = schemaEntries.filter(
+    (entry) => entry.source === 'settings',
+  );
+  const schemaEnvEntries = schemaEntries.filter(
+    (entry) => entry.source === 'env',
+  );
+  const markdownKeys = new Set(markdownEntries.map((entry) => entry.key));
+  const schemaOnly = schemaEnvEntries.filter(
+    (entry) => !markdownKeys.has(entry.key),
+  );
+  const existingKeys = new Set(
+    [...markdownEntries, ...schemaOnly].map((entry) => entry.key),
+  );
+  const docsOnly = docsEntries.filter((entry) => !existingKeys.has(entry.key));
+  const result: SettingSchemaEntry[] = [];
+  const seenKeys = new Set<string>();
+  for (const entry of [
+    ...schemaSettings,
+    ...markdownEntries,
+    ...schemaOnly,
+    ...docsOnly,
+  ]) {
+    if (seenKeys.has(entry.key)) {
+      continue;
+    }
+    seenKeys.add(entry.key);
+    result.push(entry);
+  }
+  return result;
 }
 
 type PageFetchOutcome =
