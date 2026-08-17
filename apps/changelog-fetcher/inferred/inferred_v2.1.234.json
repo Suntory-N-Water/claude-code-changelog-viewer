@@ -1,0 +1,1290 @@
+{
+  "version": "2.1.234",
+  "summary": "内蔵 `claude-api` スキルの取得ロジックが遅延ロードに変更され、初期ロード時のコンテキスト（トークン）消費コストが 200k+ から 25k へと劇的に削減されました。フルスクリーン（TUI）描画が強化され、思考中・実行中の mid-turn であっても `/add-dir` によるフォルダ追加や `/permissions` のルール変更、および各種設定ダイアログが即時に割り込んで展開可能です。Windows 環境下での NT ネームスペースパスを悪用した NTLM 資格情報漏洩セキュリティリスクへの対策や、設定ファイルが書き込み禁止の際に起動処理がフリーズする不具合も修正されています。",
+  "items": [
+    {
+      "id": "30202db05ce7",
+      "content": "- Added the optional `CLAUDE_CODE_PROJECT_DIR_NAME` environment variable: hosts that give each session its own config directory can choose a short name for the per-project transcript directory",
+      "content_ja": "任意の環境変数 `CLAUDE_CODE_PROJECT_DIR_NAME` を追加しました。セッションごとに独自の設定ディレクトリを提供するホストにおいて、プロジェクトごとの文字起こし（transcript）保存ディレクトリに短い任意の名前を指定できるようになります。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "プロジェクトの絶対パスから非英数字をハイフンに置換した名前が自動生成されていましたが、200文字を超える場合は切り詰められた上でハッシュ値が付与されるなど、ファイルシステム制限の厳しいセッション管理環境においてディレクトリ名の制御が困難でした。",
+        "after": "環境変数 `CLAUDE_CODE_PROJECT_DIR_NAME` を設定することで、セッションごとに独立した設定フォルダを持つようなホスト環境で、プロジェクト用の一時ディレクトリに対して短い識別名などを任意に指定できるようになります。",
+        "benefit": "セッションの実行環境やホストの制約に合わせてプロジェクトフォルダの命名規則を調整するための、複雑なパス変換ロジックを自前で組む必要がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定の開発環境下でディレクトリ名の文字数上限を回避できる環境変数の追加であり、影響は限定的です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-configuration.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sessions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/sessions.md"
+        }
+      ]
+    },
+    {
+      "id": "ca85a2e03dbf",
+      "content": "- Added the `selection:clear` keybinding action, so a key can be bound to clear an in-app text selection; also works in the agents view",
+      "content_ja": "キーバインディングのアクションとして `selection:clear` を追加しました。キーを割り当てることで、アプリ内のテキスト選択状態を解除できるようになり、エージェントビュー内でも動作します。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "フルスクリーンモードなどのアプリ内テキスト選択において、キーボード操作から選択状態を明示的に解除するための専用のキーバインドアクションが存在しませんでした。",
+        "after": "`selection:clear` アクションが用意され、`~/.claude/keybindings.json` で任意のキーを割り当てることで、キーボードから素早くアクティブなテキスト選択範囲を解除できるようになります。",
+        "benefit": "選択状態を解除するためにマウスをクリックし直したり、不要なテキスト選択が残ったまま操作を続けたりする必要がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "フルスクリーン表示でのテキスト選択解除のためのキーバインドアクション追加であり、設定から追加可能な補助機能です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/voice-dictation.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "id": "c1a1c8f04687",
+      "content": "- Added a GitLab merge request badge to the footer and statusline: repos with a GitLab remote and an authenticated glab CLI show MR !N with draft/pending/green states",
+      "content_ja": "フッターとステータスラインに GitLab のマージリクエスト（MR）バッジを追加しました。GitLab のリモートリポジトリを持ち、認証済みの `glab` CLI が利用可能な環境において、MR 番号（!N）が下書き、保留、グリーンなどの状態に応じた色付きで表示されます。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "GitHub のプルリクエスト情報（PR #N）のみがフッターに表示され、GitLab をメインに利用している開発プロジェクトではマージリクエストのレビュー状況を対話型セッション内で直感的に確認できませんでした。",
+        "after": "GitLab リモートが検出され、`glab` CLI がセットアップされていれば、フッターに「MR !N」というバッジがカラー表示され、現在のレビューやビルドのステータスが即座に確認できるようになります。",
+        "benefit": "マージリクエストのステータスを確認するために、WebブラウザでGitLabを開いたり別ターミナルでglabコマンドを叩いたりする必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "フッターへの GitLab MR ステータスカラー表示の追加であり、GitLab を利用するユーザーにとって視認性が向上する改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md"
+        }
+      ]
+    },
+    {
+      "id": "eb41a714e351",
+      "content": "- Claude Code now continues your session automatically when a claude.ai usage limit resets; turn it off in `/config` (\"Continue automatically at usage limit\")",
+      "content_ja": "claude.ai の利用上限（usage limit）がリセットされた際、セッションを自動的に再開する機能を追加しました。この挙動は `/config` 内の「Continue automatically at usage limit」から無効化できます。",
+      "prefix": "Changed",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "利用枠やクレジットの制限に達してセッションが一時停止した場合、制限リセット後にユーザーが手動で復帰指示を出すまで会話がストップしたままになっていました。",
+        "after": "制限が解除されると Claude Code が自動的に未完了のセッションを再開し、タスクの実行を継続するようになります。",
+        "benefit": "制限のリセット時間を時計で確認しながら、手動でコマンドを再実行して復帰させる手間がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "制限リセット後の自動復帰機能は、何もしなくてもセッション継続挙動がデフォルトで変わる重要な変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fast-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        }
+      ]
+    },
+    {
+      "id": "dc9160a61fa0",
+      "content": "- Claude is now told to use your account email only to identify you, and not to send it to unrelated services unless you ask",
+      "content_ja": "Claude に対し、アカウントのメールアドレスはユーザーの識別子としてのみ使用し、ユーザーの指示がない限り無関係な外部サービスに送信しないよう明示しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "メールアドレスの安全な取り扱いを指示するプロンプト側の変更であり、動作確認上の大きな変化はありません。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "25ed08a2ae3c",
+      "content": "- Security: remote file reads, session restore, CLAUDE.md includes, workflow scripts and file uploads now reject Windows NT-namespace (`\\??\\`) paths, hardening the remaining pre-approval file accesses against the NTLM credential-leak vector",
+      "content_ja": "セキュリティ対策として、リモートファイルの読み取り、セッション復元、`CLAUDE.md` のインクルード、ワークフロースクリプト、ファイルのアップロードにおいて、Windows の NT ネームスペース（`\\??\\`）パスを拒否するように変更し、未承認のファイルアクセスを通じた NTLM 認証情報漏洩のリスクを排除しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions", "Memory"],
+      "inference": {
+        "before": "Windows 環境下で特定の NT ネームスペース形式のパスを処理する際、事前にユーザーの承認を経ないままファイルアクセスが行われ、ネットワーク共有への不正アクセス等による NTLM 認証情報漏洩のセキュリティリスクが潜在していました。",
+        "after": "Windows の NT ネームスペース（`\\??\\`）を含む不審なパスを用いた操作が検出された時点で強制的に拒否され、事前承認前のアカウント情報の漏洩を防ぐ強固なガードレールが適用されます。",
+        "benefit": "悪意あるリポジトリやファイル構成による Windows 特有の資格情報奪取攻撃を回避するための、複雑なセキュリティ設定を個別に施す必要がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Windows 環境の資格情報窃盗（NTLM リーク）脆弱性を回避するための重大なセキュリティガードレールの適用です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/chrome.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/security.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/file-checkpointing.md"
+        }
+      ]
+    },
+    {
+      "id": "529b11a3fb0b",
+      "content": "- Fixed auto mode in very long sessions repeatedly re-checking and denying sandboxed commands' network access after the conversation had been compacted",
+      "content_ja": "非常に長いセッションにおいて、会話履歴の圧縮（compaction）が行われた後に、オート（Auto）モードがサンドボックス化されたコマンドのネットワークアクセス制限を繰り返し再確認して拒否してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "長時間のやり取りでコンテキスト圧縮が発生すると、以前に承認または処理が完了していたサンドボックスコマンドのネットワークアクセス情報がリセットされ、同一の確認と拒否が無限ループして処理が滞ることがありました。",
+        "after": "圧縮後もサンドボックス環境におけるネットワークアクセスの評価状態が正しく引き継がれ、無駄な再評価やコマンド拒否のループが発生しなくなります。",
+        "benefit": "長いセッションの途中で、すでに解決したはずのネットワークアクセス許可に関するエラーやプロンプトへの対処を何度も強いられることがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "長いセッションで生じていたオートモードでの権限エラーやネットワークアクセスの不具合を解消する重要な修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        }
+      ]
+    },
+    {
+      "id": "27be4d9f1769",
+      "content": "- Fixed session-scoped permission answers (including denies) being dropped when answering background subagent tool permission prompts",
+      "content_ja": "バックグラウンドで動作するサブエージェントのツール実行に対するアクセス許可プロンプトに応答した際、セッションスコープの許可（および拒否）の回答が失われてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions", "Sub-agents"],
+      "inference": {
+        "before": "メインセッションのバックグラウンドでサブエージェントを実行中にツール許可を求められ、ユーザーが「このセッション中のみ許可/拒否」を選択しても、その決定が適切に保持されずに再度プロンプトが表示されていました。",
+        "after": "バックグラウンドのサブエージェントに対する許可要求であっても、セッション単位で指定した承認や拒否の選択結果が正しく記憶され、セッション終了まで適用され続けます。",
+        "benefit": "同じセッション内でサブエージェントがツールを起動するたびに、同じ承認ダイアログを何度もクリックして答え直す必要がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "サブエージェントに対するセッションスコープの権限回答が破棄される問題の修正であり、権限マネージャーの根幹に関わります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/subagents.md"
+        }
+      ]
+    },
+    {
+      "id": "426f67fc1326",
+      "content": "- Fixed a crash when an API response on the non-streaming fallback path (typically via third-party gateways) contained a thinking block missing its thinking field or a text block missing its text field",
+      "content_ja": "非ストリーミングのフォールバックパス（主にサードパーティ製ゲートウェイ経由）での API レスポンスにおいて、thinking（思考）ブロック内の thinking フィールドや、text（テキスト）ブロック内の text フィールドが欠落している場合にクラッシュする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Amazon Bedrock や Google Cloud、サードパーティ製プロキシなどを経由した非ストリーミング接続時に、API レスポンスのJSON構造内に特定のフィールドが抜けていると、エラーハンドリングが追いつかずツール全体がクラッシュしていました。",
+        "after": "レスポンス内の thinking や text フィールドが空、あるいはオブジェクト構造として不完全な場合でも、パースエラーを起こさずに堅牢にフォールバック処理を行います。",
+        "benefit": "サードパーティ製プロキシや自社構築のLLMゲートウェイを利用している開発者が、特定の応答パターンでツール自体が突然異常終了する現象に悩まされることがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "サードパーティプロキシ経由時の特定APIレスポンスの欠損によるアプリ強制クラッシュを修正するバグフィックスです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "08cba15821a0",
+      "content": "- Fixed markdown rendering becoming extremely slow for some messages containing unusual Unicode sequences",
+      "content_ja": "特殊な Unicode シーケンスを含む特定のメッセージにおいて、マークダウンの描画速度が極端に低下する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定の絵文字や特殊 Unicode を含むメッセージ受信時の極端な描画遅延フリーズ現象を修正するバグフィックスです。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "c98686e794c1",
+      "content": "- Fixed `SendMessage` rejecting a recipient copied from `ListAgents` when the session name is at the 200-character cap or emoji-heavy",
+      "content_ja": "セッション名が200文字の上限に達している、または絵文字が多く含まれている場合に、`SendMessage` ツールが `ListAgents` から取得した送信先を拒否してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "他セッションにメッセージを送るクロスセッション機能において、宛先のセッション名が極端に長いか絵文字コードを多用していると、文字数制限やエンコーディングパースに引っかかり、メッセージが送信できない不具合がありました。",
+        "after": "セッション名が制限値の上限付近であったり、複雑な絵文字が含まれていたりしても適切に正規化が行われ、`SendMessage` によるメッセージ送信が安定して動作するようになります。",
+        "benefit": "セッション名の長さを削ったり、送信のために絵文字を消したりする不自然なリネーム作業を行う必要がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定名でクロスセッションメッセージングが拒否される不具合のピンポイントな修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "a1c49f387192",
+      "content": "- Fixed repository detection mis-reading the host of git remotes with unusual userinfo, producing links and repo-specific behavior for the wrong host",
+      "content_ja": "特殊なユーザー情報（userinfo）を含む Git のリモート URL において、リポジトリ検出時にホスト名を誤って読み取ってしまい、無関係なホストに対してリポジトリ固有の動作やリンク生成を行ってしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "SSHキーの指定や認証トークンが埋め込まれた非標準的な Git リモート URL を使用している場合、ホスト認識ロジックが誤動作し、GitHub や GitLab への正しい関連付けリンクや連携機能が働きませんでした。",
+        "after": "特殊なユーザー情報が含まれる Git リモート URL からも正確にホスト部分が抽出され、対象のホスト（GitLab 等）に応じた各種統合機能やアイコン表示が正しく実行されます。",
+        "benefit": "認証情報付きのカスタム Git URL を使用しているプロジェクトで、リモート連携バッジやリンクが機能しない原因を調べる必要がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Git リモート URL のパース不具合による他社ホスト誤判別の修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md"
+        }
+      ]
+    },
+    {
+      "id": "2c67e4fd6dc9",
+      "content": "- Fixed MCP diagnostics printing resolved secrets: scope-conflict warnings now show the configured `${VAR}` form, and connection-failure details show only the server origin",
+      "content_ja": "MCP の診断情報出力において、解決済みのシークレットが出力される問題を修正しました。スコープ競合の警告では設定された `${VAR}` 形式がそのまま表示され、接続失敗の詳細表示ではサーバーのオリジン情報のみを表示するよう制限しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "接続に失敗した MCP サーバーのデバッグ情報を出力した際、展開後の認証トークンやパスワード、秘密の情報を含んだ展開済みのフル URL がターミナルやログにそのままプレーンテキストで露出していました。",
+        "after": "環境変数部分はプレースホルダーの `${VAR}` のまま安全にマスク表示され、接続失敗のエラーテキストに含まれる恐れのあるセンシティブな認証文字列やパラメータ付きの URL は徹底的に隠蔽されます。",
+        "benefit": "デバッグログやターミナルの出力結果を他者に共有する際に、意図せずトークンやAPIキーが画面に映り込んでしまう危険を警戒する必要がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ターミナル上のデバッグ診断表示において意図せずシークレット情報がプレーンテキストで流出する重大な不具合の修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-config.md"
+        }
+      ]
+    },
+    {
+      "id": "35da8fc19ae9",
+      "content": "- Fixed `strictKnownMarketplaces` allowlists accepting SCP-style git marketplace sources whose host differs from the one git would actually connect to",
+      "content_ja": "`strictKnownMarketplaces` による制限リストが、実際に git コマンドが接続するホストとは異なる、SCP 形式で指定された Git マーケットプレイスソースを誤って許可してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins", "Settings"],
+      "inference": {
+        "before": "管理者が `strictKnownMarketplaces` で特定の信頼された Git ホストのみにプラグインの取得元を制限していても、SCP スタイルの接続文字列を偽装することで、制限をバイパスして意図しないホストからプラグインを導入できてしまう抜け穴がありました。",
+        "after": "SCP 形式の Git URL に対しても厳密なホストチェックが入り、接続先が管理ポリシーで許可されたマーケットプレイスに正確に合致するかどうか、ネットワーク通信の前に厳密に強制検証されます。",
+        "benefit": "組織内の開発者が、管理者の意図しない非公式の外部サーバーから悪意あるプラグインを誤って取り込んでしまうセキュリティリスクについて不安を抱く必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "SCP 形式の指定で組織のマーケットプレイス許可リストをバイパスできてしまうセキュリティの穴の修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-enterprise-server.md"
+        }
+      ]
+    },
+    {
+      "id": "e2deb028dbe6",
+      "content": "- Fixed modal text such as the `/login` OAuth URL losing characters when copied in fullscreen",
+      "content_ja": "フルスクリーンモードのターミナルにおいて、`/login` の OAuth 認証用 URL などのダイアログテキストをコピーした際に、一部の文字が欠落してコピーされてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "フルスクリーン描画（TUI）がアクティブな状態で表示されたログイン URL などを範囲選択してクリップボードにコピーすると、画面端や改行の扱いで一部の文字がちぎれ、不完全な URL になってブラウザで開けない現象が起きていました。",
+        "after": "フルスクリーンレンダラーがモーダルダイアログの表示テキストを保持する処理が安定し、どの領域からコピーしても一切の文字欠けなしで完全にテキストを取得できるようになります。",
+        "benefit": "コピーした URL の末尾が削れてログインエラーになった際、手動で1文字ずつ足りないコードを打ち直してログインを試行する必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "フルスクリーンモードのダイアログからコピーした際の致命的な文字欠けバグの修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
+    },
+    {
+      "id": "473cfaab4d4c",
+      "content": "- Fixed a `---` horizontal rule in rendered markdown running into the line after it",
+      "content_ja": "描画されたマークダウン内の `---` による水平線が、直後の行に干渉して表示が崩れる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "マークダウン表示時の水平線が崩れる軽微な見た目の不具合修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "365fca9b9ff6",
+      "content": "- Fixed consecutive shell commands splitting into multiple \"Ran 1 shell command\" rows when todo/task updates were interleaved between them",
+      "content_ja": "複数の連続するシェルコマンドを実行する際、処理の間にToDoやタスクの更新が挟まると、コマンド履歴行が「Ran 1 shell command」として細切れに分割して表示されてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "シェル履歴表示の「Ran 1 shell command」行が細切れになる軽微な描画問題の修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "7c61af9e6197",
+      "content": "- Fixed dialogs like `/permissions` opened while a `!` shell command was running being dismissed when the command finished",
+      "content_ja": "`!` で実行したシェルコマンドの実行中に開いた `/permissions` などの確認ダイアログが、バックグラウンドのシェルコマンドが完了したタイミングで勝手に閉じられてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "シェルコマンドを走らせている間にユーザーが別コマンドで権限設定画面ダイアログなどを開いて設定変更しようとしても、背後で走っていたプロセスが終了した途端にダイアログが強制終了して元の画面に戻されていました。",
+        "after": "シェルコマンドの完了シグナルによって最前面のアクティブなダイアログやモーダルのフォーカスが破壊されないようにイベントが分離され、設定作業を最後まで中断せずに行えるようになります。",
+        "benefit": "バックグラウンドタスクの終了タイミングを見計らってから設定画面を開く、といった窮屈な待ち時間を気にする必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "バックグラウンド処理の完了時に目の前の設定ダイアログが勝手に閉じてしまう不便な割り込み競合の修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "4e6d21b209d3",
+      "content": "- Fixed a queued `!` shell command being sent to the model as plain text after pressing up-arrow to edit the queued input",
+      "content_ja": "キューに入っている `!` シェルコマンドに対して上矢印キーを押して入力編集を行おうとした際に、そのコマンドがシェルコマンドとしてではなくプレーンテキストとしてモデルに誤送信されてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Claude が応答中に「次に行うコマンド」として `! npm run build` のようにシェルコマンドを事前に入力してキューに溜めた後、その文字列を編集しようと矢印キーを操作すると、シェルコマンドの識別子（!）が無視され、ただの会話用プロンプトとして送信されていました。",
+        "after": "キューに入った事前シェルコマンドを編集した場合でも、シェルコマンド（!）としての属性が内部で正しく維持され、実行時もテキストメッセージではなく実際のターミナルコマンドとして正しくトリガーされます。",
+        "benefit": "実行待ちキューに入れたコマンドのタイポに気づいて手動修正する際、一度登録をキャンセルして最初から打ち直す手間がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "キューに入っているコマンドを上矢印で編集した際に、シェルモード（!）が解除されて平文送信されてしまう致命的な誤爆バグの修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/commands.md"
+        }
+      ]
+    },
+    {
+      "id": "8c1c846fff11",
+      "content": "- Fixed queued messages reappearing in the prompt history while still queued, Esc while selecting a queued message no longer interrupts the turn, and `!` mode no longer sticks after a mid-turn submit",
+      "content_ja": "キューにたまっているメッセージが送信待ち状態のままプロンプト履歴に再出現してしまう問題、キュー選択中に Esc キーを押すとターンそのものが中断されてしまう問題、およびコマンド実行完了後に `!` シェルモードが解除されずそのまま残ってしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "キューが処理されている最中に、ユーザー入力履歴（プロンプト履歴）の整合性が崩れて未送信のメッセージが混入したり、エスケープによるUI操作が実行中の会話ターン自体を落としてしまったり、シェルモードが維持され続けてコマンド入力が暴発する不具合がありました。",
+        "after": "キューマネージャーと入力バッファ、ショートカットキーの競合状態が整理され、送信待ちメッセージの表示や、ターン中断・シェルモード切り替えがそれぞれの適切なスコープで正確に動作するようになります。",
+        "benefit": "複数コマンドの連続投入時や履歴編集時に、想定外の入力送信やセッションの意図しない中断に警戒して操作スピードを落とす必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "キューに入ったメッセージが重複表示されたり、Esc キーで異常な強制停止に陥るターンのバグフィックスです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/streaming-vs-single-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "5fe4a15b1850",
+      "content": "- Fixed accepting the \"Try the new fullscreen renderer?\" prompt restarting the session without its permission mode (e.g. `--dangerously-skip-permissions`), tool allow/deny rules, model or effort flags",
+      "content_ja": "「新しいフルスクリーンレンダラーを試しますか？」というプロンプトを承認してセッションを再起動した際に、元の起動オプションで指定していた権限スキップフラグ（`--dangerously-skip-permissions`）やツール許可・拒否ルール、モデル・エフォート指定の各種オプションが失われてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions", "Settings"],
+      "inference": {
+        "before": "ターミナルのリニューアルを促すプロンプトに同意して画面を TUI に移行させると、安全性の高いデフォルト設定のセッションとして初期化されてしまい、起動時に指定していたコマンドラインオプションやカスタムセキュリティポリシー、使用モデルの引き継ぎが解除されていました。",
+        "after": "新しいフルスクリーンレンダラーへの移行による再起動時も、元のセッションに適用されていたすべての引数、許可フラグ、ポリシー、モデル指定（Sonnet 5/Opus 5等）が漏れなく新しいプロセスへ引き渡されます。",
+        "benefit": "表示モードを TUI に変更した後に、以前と同じ実行環境にするためにセッションを一度閉じて複雑な引数付きでコマンドを実行し直す必要がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "TUIレンダラー移行承認プロンプトを承諾すると、起動時に渡した各種引数やスキップフラグがクリアされる重大なバグの修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        }
+      ]
+    },
+    {
+      "id": "ea482730115f",
+      "content": "- Fixed `/tui` dropping launch `--allowed-tools`/`--disallowed-tools` rules when it restarts; it now declines to switch, with the reason, when the session has restrictions a restart can't carry over",
+      "content_ja": "`/tui` コマンドで再起動した際、起動時に指定していたツールの明示的な許可・不許可ルール（`--allowed-tools`/`--disallowed-tools`）が破棄されてしまう問題を修正しました。今後は、再起動時に引き継げない制約がセッションに含まれている場合、移行を行わずにその理由を通知します。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "`/tui` コマンドでフルスクリーンモードへ切り替えた際に、ユーザーが引数制限したツール利用の禁止ポリシーがクリアされ、予期せず広範なツールの使用許可がモデルに付与されてしまうセキュリティの抜け道がありました。",
+        "after": "切り替え時もツール制約パラメータが正確に維持され、万が一プロセスの再起動プロセスで制約情報を安全に持ち越せないと判断された場合は、切り替えを安全に拒否して理由を説明するメッセージが表示されます。",
+        "benefit": "フルスクリーンモードへの切り替えコマンドを実行した際に、自分が課したツールの使用制限ルールが外れていないかをわざわざ再設定して確認する手間がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "TUI起動時に指定したツールの明示的制限リストがリセットされる不具合を修正し、引き継げない場合は安全に移行を拒否します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "7f458d0d9a4f",
+      "content": "- Fixed trust prompts omitting the repository-wide scope warning when the directory was first seen before the repository existed there",
+      "content_ja": "リポジトリが作成される前に最初に対象のディレクトリが読み込まれた場合、信頼確認（trust）プロンプトでリポジトリ全体のスコープに対するセキュリティ警告の表示が省略されてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "最初から Git 管理下にないフォルダを新規リポジトリ化した際の、初回の trust 警告表示漏れのセキュリティ修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "7b6124d43c48",
+      "content": "- Fixed a case where an IDE diff tab closing during a permission re-prompt could answer the new prompt with the previous input",
+      "content_ja": "権限の再確認プロンプトが表示されている最中に IDE の diff タブを閉じると、以前に入力した内容が自動で新しいプロンプトの回答として誤適用されてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "IDE 上で差分確認タブを閉じた際、入力バッファが誤回答として適用されてしまう IDE 統合側の挙動の修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "0cb363b19d0d",
+      "content": "- Fixed: files sent to the user during Remote Control sessions hosted by Claude Code Desktop or VS Code now upload, so they open on phone and web instead of showing an empty card",
+      "content_ja": "Claude Code デスクトップまたは VS Code がホストするリモートコントロール（Remote Control）セッションの実行中に、ユーザーに送信されたファイルが正常にアップロードされず、スマートフォンやWeb側で空のカードとして表示されてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "デスクトップアプリや VS Code 経由でリモートコントロールを利用している際、Claude が何らかの成果物ファイルなどをスマホやブラウザに提示しても、実データがサーバーに転送されないため中身のない壊れたファイルカードが表示されていました。",
+        "after": "ファイル転送パイプラインが正しく接続され、セッション中に Claude から送られたすべての対象ファイルがスマホの Claude アプリや `claude.ai/code` Web画面上で即座にプレビュー・ダウンロード可能になります。",
+        "benefit": "生成されたコードやドキュメントを外出先のスマートフォンから確認するためだけに、一度帰宅してPCのローカルフォルダを直接開き直す必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "デスクトップ版や VS Code のリモートコントロールセッション中に生成ファイルが送信されない不具合の修正であり、スマホ連携ユーザーに強く影響します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        }
+      ]
+    },
+    {
+      "id": "df01f1689d21",
+      "content": "- Fixed: after `/login` while `CLAUDE_CODE_OAUTH_TOKEN` is set, the stale-token reminder no longer leaks into Claude's automatically resumed turn — it now appears only to you",
+      "content_ja": "環境変数 `CLAUDE_CODE_OAUTH_TOKEN` が設定されている状態で `/login` を実行した際、期限切れトークン警告（stale-token reminder）が Claude の自動再開されたターンに注入されてしまう問題を修正しました。このリマインダーはユーザー向けにのみ表示されます。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "事前に環境変数でトークンを渡している状態でログイン処理を走らせると、警告用のシステムテキストがそのまま Claude の入力プロンプトコンテキスト側に漏れ出し、AI が不要なエラー処理や不自然な応答を始める原因になっていました。",
+        "after": "期限切れトークンに関するリマインダー警告はターミナルを操作する人間の画面上にのみ正しくトースト表示され、AI のコンテキストや会話のターンを汚染することはなくなります。",
+        "benefit": "再開された会話の中で、AI が「古いトークンを検出しました」というシステム警告のメッセージに勝手に反応して作業を中断するのを防ぐためのプロンプト修正が不要になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "OAuthトークンに関する警告テキストが AI の送信コンテキストに漏えいして会話のターンを汚染する問題の修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/authentication.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "8db94fa741e3",
+      "content": "- Fixed: permission previews now relay only to channel servers admitted by the inbound trust gate, and a server's explicit permission-capability opt-out is honored",
+      "content_ja": "権限確認のプレビュー通知の転送先を、インバウンドの信頼ゲート（trust gate）によって承認されたチャネルサーバーのみに制限しました。また、サーバー側で明示的にオプトアウトが指定されている場合は、その設定に従うように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "未確認のサードパーティ製チャネルや、組織の信頼ポリシーを通過していないサーバーに対しても、ツールの実行承認プロンプトの内容（コマンドの引数やファイルパスを含む機密情報）が並行して送信されるおそれがありました。",
+        "after": "明示的に組織の信頼を得て承認されたセキュアなチャネルサーバーのみにプロンプトが中継（relay）され、セキュリティリスクの高い経路や拒否設定を表明しているエンドポイントには情報が送出されなくなります。",
+        "benefit": "リモート中継機能を利用する際に、ローカルの機密コマンドやパス情報がセキュリティ審査を通っていない未確認のサーバーへ流出するのを心配する必要がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "権限確認時のコマンド情報などが承認外のサードパーティチャネルサーバーに転送されるリスクを防ぐ重要なアクセス制御の修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/channels-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/channels.md"
+        }
+      ]
+    },
+    {
+      "id": "b0ae5e3d4e72",
+      "content": "- Fixed: credential masking on relayed permission previews can no longer hide commands, paths, or destinations from the approver; oversized private-key blocks now redact under full-strength redaction",
+      "content_ja": "中継された権限プレビュー表示における認証情報のマスキング処理を強化し、承認画面からコマンド、パス、または送信先の情報が誤って隠蔽されないように修正しました。また、大きすぎる秘密鍵ブロックは完全なレッドアウト（黒塗り）対象になります。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "資格情報マスク処理のバグで承認者に本来見せるべきコマンドやパス、宛先までが誤って隠蔽されてしまう表示バグの修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "2840dec04724",
+      "content": "- Fixed: provider API tokens that mask on permission previews now mask even when directly followed by shell delimiters",
+      "content_ja": "権限プレビューでマスクされるプロバイダーの API トークンについて、トークンの直後にシェルのデリミタ記号が続いている場合でも正しくマスキングが行われるように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "シェルの区切り文字直前のトークンプレビューマスクに関するエッジケースのセキュリティバグフィックスです。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "02c4e19f8929",
+      "content": "- Fixed Claude Desktop inter-session messages being silently dropped by the recipient session when cross-session messaging read as disabled, which left the sender's query \"thinking\" for many minutes",
+      "content_ja": "クロスセッションメッセージングが実質的に無効化されている状況で、Claude Desktop からのセッション間メッセージを受信側のセッションが黙って破棄してしまい、送信側が「thinking（思考中）」のまま何分間もフリーズしてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッション A から セッション B へメッセージを送った際、B 側のクロスセッション受信が無効になっていると何もエラーを返さずに通信を遮断したため、A 側の AI が応答待ち状態のままタイムアウトまで操作不能になっていました。",
+        "after": "受信が無効、または拒否ポリシーが設定されている場合、直ちに送信側セッションへ通信拒否のシグナルが返るようになり、送信側の Claude は待機状態を即座に脱して適切な代替のアクションをとるようになります。",
+        "benefit": "他のローカルセッションへのメッセージ送信を指示したまま、画面がいつまでも「思考中」で固まって強制終了せざるを得なくなるトラブルを避けることができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "クロスセッションが無効のとき、メッセージ送信側がエラーを受け取れずに何分間も画面が「思考中」でフリーズしてしまうバグの修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        }
+      ]
+    },
+    {
+      "id": "2d79636c8aaf",
+      "content": "- Remote Control: signing this computer in to a different claude.ai account or organization now stops the running session within seconds and says why, instead of a misleading HTTP 404 hours later",
+      "content_ja": "リモートコントロール中に、このコンピューターを別の `claude.ai` アカウントまたは組織にサインインし直した場合、数時間後に分かりづらい「HTTP 404」エラーを返すのではなく、数秒以内に実行中のリモートセッションを直ちに安全に停止して理由を表示するように挙動を改善しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "リモートコントロールの実行中に別のターミナルやブラウザから別組織のアカウントへサインイン操作を行うと、接続セッションの死活管理が正しく同期されず、長時間経った後に突然無関係な 404 NotFound エラーが表示されて原因究明が困難でした。",
+        "after": "認証情報の変更を検知した瞬間に、古いセッションが適切な切断メッセージと共に即座に自動シャットダウンされ、現在のサインイン状況とセッションの所有権の不一致がその場で明確に提示されます。",
+        "benefit": "組織やアカウントのアカウント切り替えを行った際に、接続不良の原因が認証情報の不整合によるものなのか、サーバー障害なのかを自分で調べて迷う必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "リモートコントロール中にアカウントが切り替わった場合、数時間後の不可解な HTTP 404 エラーではなく即時に安全なシャットダウンを行います。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        }
+      ]
+    },
+    {
+      "id": "fc9f941b243d",
+      "content": "- Remote Control sessions started from Claude Code Desktop or VS Code now keep phones and claude.ai/code updated on the session's permission mode (and claude.ai/code on the model) as they change",
+      "content_ja": "Claude Code デスクトップ版または VS Code 拡張機能から開始したリモートコントロールセッションにおいて、実行中のパーミッションモードの変更状況（およびモデルの切り替え情報）が、接続中のスマートフォンや `claude.ai/code` 上にリアルタイムに反映・更新されるように改善しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "PC のターミナル側でパーミッション設定を「Manual」から「Accept Edits」に変更しても、スマホアプリやブラウザの UI 上の表示ステータスが古いモードのまま同期されず、現在の実行権限レベルに食い違いが生じていました。",
+        "after": "PC・拡張機能・スマートフォン・Webブラウザのすべての画面間で権限モードの切り替えイベントが完璧に同期され、どの端末から見ても常に最新のセキュリティ許可状態がリアルタイムで一貫して表示されるようになります。",
+        "benefit": "スマートフォンから操作を継続する際、PC側のターミナルが今どのような承認モードで動作しているかを手元で正確に把握できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "PC 側での許可モード（Manual / Accept Edits 等）の変更状況が、連動しているスマートフォンアプリ画面にも同期して追従するようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mobile.md"
+        }
+      ]
+    },
+    {
+      "id": "b77307c26608",
+      "content": "- Remote Control: effort picks made on a phone or on claude.ai/code now apply to terminal- and Desktop/VS Code-hosted sessions, and the session publishes its effort level to connected clients",
+      "content_ja": "リモートコントロール中にスマートフォンや `claude.ai/code` 上で行ったエフォートレベル（effort level）の選択が、ターミナルやデスクトップ/VS Code 拡張機能上で実行されているセッションにも即座に適用され、そのエフォート状態がすべての接続クライアントにパブリッシュされるように改善しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "外出先などスマホ画面から Claude の「思考の深さ（エフォート）」を変更しても、実際に処理を行っているPCローカルのセッションエンジンにその設定値が正しく伝わらず、以前のエフォート設定のまま処理が実行されていました。",
+        "after": "どのデバイスの UI からエフォートスライダーを操作しても、PCの実セッションに思考エフォートレベルが瞬時に伝播・適用され、関連するすべての画面の表示も同期更新されるようになります。",
+        "benefit": "スマートフォンから重いバグの修正を依頼する際、AIの思考の深さ（エフォートレベル）を最大に切り替えるために一度PCの前に戻る必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "スマホから変更したエフォートレベル（思考の深さ）が、現在バックグラウンド稼働中のローカルセッションにも正しく適用され連動するようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mobile.md"
+        }
+      ]
+    },
+    {
+      "id": "708e0157b4fb",
+      "content": "- `SendMessage` and `ListAgents` now say when your account's session list was too long to check completely, instead of treating unseen sessions as absent",
+      "content_ja": "`SendMessage` および `ListAgents` ツールにおいて、接続アカウントに関連付けられている稼働セッション数が多すぎて上限に達し、すべてをチェックしきれなかった場合に、単に対象セッションが「存在しない」とみなすのではなく、リストが長すぎて完全な走査ができなかった旨を正しく報告するように仕様を変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "実行中のクラウドセッションが大量にある場合、これまでは検出限界から溢れたセッションを「オフライン/存在しないセッション」として誤認し、メッセージが送れずにそのまま処理が失敗していました。",
+        "after": "セッション数がスケールの上限を超えた場合でも、「上限超過のため一部のセッションが未走査である」旨の明確なシステム警告が Claude とユーザーに返され、部分的な検索結果であることを認知できるようになります。",
+        "benefit": "目的のセッション宛てにメッセージが届かない際、セッション自体が本当に消えてしまったのか、単にツール側のリスト取得数の上限に引っかかっただけなのかを区別できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "極めて多忙なクラウドセッションを抱えるユーザーにおいて、検索漏れによるエージェント未検出を防ぎ、制限状態を正しく明示するように変更されました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "c11ed7a08932",
+      "content": "- Expired Anthropic profile credential now points you at `/login` when a claude.ai login would take precedence",
+      "content_ja": "期限切れの Anthropic プロファイル資格情報を検出した際、`claude.ai` のログイン認証が優先される状況であれば、エラーを吐いて停止するのではなく、ユーザーに直接 `/login` コマンドの実行を案内するように誘導を改善しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "環境変数や設定ファイルでプロファイル資格情報の有効期限が切れると、より優先度の高い汎用のサインイン経路が利用可能であるにもかかわらず、ただ認証エラーを発生させてリクエストを停止させていました。",
+        "after": "認証処理の優先順位が整理され、有効な `claude.ai` ログインで代替可能な場合は「`/login` を実行してサインインを更新してください」とスムーズな解決手段が提示されるようになります。",
+        "benefit": "プロファイル認証切れエラーが出た際に、どの環境変数をリセットしてログインし直せばいいか迷い、マニュアルを探す手間がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "プロファイル認証切れエラー時に、適切な解決手段（`/login` の案内）を提示することで、認証トラブルからの復帰経路を明確にしました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/authentication.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "2054c914bb7c",
+      "content": "- Improved the transcript: your own prompts now render markdown (highlighted code blocks, inline code, lists) the same way replies do",
+      "content_ja": "文字起こし（transcript）画面のレンダリングを向上させ、ユーザー自身の過去の入力プロンプト内のマークダウン表記（ハイライト付きコードブロック、インラインコード、箇条書きリストなど）を、AI 側の返答と同じように綺麗に装飾して表示するように改善しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "AI 側の返信はマークダウンが美しくフォーマットされて表示されていた一方、ユーザー自身が入力した複雑なマークダウンコードや箇条書きは、ただのプレーンテキストとしてベタ書きでターミナル上にレンダリングされていました。",
+        "after": "自分が入力を送信した内容に含まれるマークダウン要素も完璧にパースされ、色付きのシンタックスハイライトコードブロックや整形されたリストとして履歴画面に美しく描画されるようになります。",
+        "benefit": "過去のセッションを `/resume` で復元した際、自分が過去にどんなコード片を貼って指示を出していたかを格段に読み返しやすくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "文字起こし・会話ログ履歴においてユーザー自身のプロンプトに入ったコードブロックやリストがマークダウン装飾されて圧倒的に読みやすくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "2e974cd2418b",
+      "content": "- Improved the \"API returned an empty or malformed response\" error to say what came back (content type, body kind, size, request ID) and why the original streaming request failed",
+      "content_ja": "「API returned an empty or malformed response」という API エラーメッセージを強化し、レスポンスの具体的なコンテンツタイプ、ボディの種類、パケットサイズ、およびリクエスト ID を明示し、元のストリーミングリクエストが失敗した原因の詳細を報告するように改善しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "LLMゲートウェイなどでデータ変換ミスやタイムアウトが起きて空のデータが返ってきた際、単に「レスポンスが壊れています」とだけ通知されるため、ネットワーク側の問題なのか API の上限エラーなのか切り分けが困難でした。",
+        "after": "「リクエストID: req_...、受信サイズ: 0バイト、型: text/html」のように、ゲートウェイやインフラのどこがエラーの原因になっているかを一発で突き止められるネットワーク詳細メタ情報がエラー文に内包されます。",
+        "benefit": "接続エラーが発生した際に、社内のプロキシ設定やAPI中継サーバーの担当者に提示するための詳細なデバッグ情報を自分でパケットキャプチャして調べる必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "APIの破損レスポンスエラーにおいて、ネットワーク層の問題やリクエストIDなど、インフラ調査用の必須デバッグ情報が詳しく出力されるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        }
+      ]
+    },
+    {
+      "id": "e8d0379c61c8",
+      "content": "- Improved auto-generated session titles to read as short, specific names (e.g. \"Login button bug\") rather than sentences restating your request (e.g. \"Fix the login button on mobile\")",
+      "content_ja": "セッション履歴用に自動生成されるセッションのタイトルが、ユーザーの依頼した具体的な文章を長々と繰り返す形式（例: 「Fix the login button on mobile」）から、短く具体的な名前（例: 「Login button bug」）になるように調整しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "新しく始めた会話に付けられる自動タイトルが、自分の入力した最初のプロンプト文をそのままコピペしたような長い冗長な記述になりがちで、セッション履歴一覧の画面が文字で埋まって読みづらくなっていました。",
+        "after": "AI がコンテキストを要約し、プロジェクト管理ツール（Jira等）のチケット名のように短くスマートに整理された「バグや機能名」を抽出してセッション名に割り当てます。",
+        "benefit": "膨大なセッション履歴リストの中から、過去に行った目的の作業セッションを素早く見つけて復元できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "自動生成されるセッションのタイトルがチケット名のようにスッキリと短い実用的な名称になり、セッション管理画面の視認性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "e448cf7ff231",
+      "content": "- Reduced the context cost of loading the built-in `claude-api` skill from ~200k+ tokens to ~25k by loading reference docs on demand",
+      "content_ja": "内蔵されている `claude-api` スキルを読み込む際のコンテキストコストについて、関連するリファレンスドキュメントをオンデマンドで部分的に遅延ロードするように変更し、従来の約 200k+ トークンから約 25k トークンへと劇的に削減しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Skills"],
+      "inference": {
+        "before": "`claude-api` などの大規模な仕様解説を含む内蔵スキルをセッション内で一度でもロードすると、巨大なAPI定義ドキュメント全体がコンテキストウィンドウの先頭に一括して詰め込まれるため、会話履歴で使えるトークン残量が最初から極端に削られていました。",
+        "after": "スキルの定義は最小限の説明のみで読み込まれ、具体的なAPIの使い方やリファレンスの詳細は Claude が実際にその情報を必要として呼び出した瞬間にのみ必要な部分だけがコンテキストに追加されるようになります。",
+        "benefit": "重いリファレンス系のスキルを使用する際に、AIのトークン消費量を節約し、セッションがすぐに文字数オーバー（オートコンパクト）になって過去の重要な対話履歴が消えてしまうのを防ぐことができます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "内蔵 API スキルロード時の初期消費コンテキスト（トークン）が 200k+ から 25k へと 8 分の 1 以下に激減し、会話リソースを大きく節約できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/features-overview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        }
+      ]
+    },
+    {
+      "id": "2ee37735eb66",
+      "content": "- `/permissions` can now be opened while Claude is working — rule changes apply to the rest of the current turn",
+      "content_ja": "Claude がバックグラウンドで思考・作業を行っている間にも、`/permissions` コマンドを開いてルール変更を行えるようにしました。変更されたパーミッションルールは、現在処理中のターンの残りの処理から即座に適用されます。",
+      "prefix": "Added",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "AI が複雑なタスクを実行して複数行のコマンドやファイルを書き換えている最中は、設定インターフェースを同時に呼び出すことができず、許可設定を変更するためにはタスクが完全に終了するのを待つか、セッションを強制終了するしかありませんでした。",
+        "after": "AI が処理を進めている最中であっても割り込んで `/permissions` 画面を展開でき、危険なコマンドを検知した瞬間にその場で対象ツールの使用許可を「Deny」に締め出すことが可能になります。",
+        "benefit": "AIが予期しないファイル変更やネットワーク通信を始めそうになった際、タスク全体が完了して手遅れになるのを待たずに、その場ですぐにアクセス権限を剥奪して処理を制御できるようになります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "AI が裏で作業を実行している最中にも、`/permissions` 設定画面を開いてリアルタイムに特定の危険なコマンドなどのツール許可を剥奪・変更できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        }
+      ]
+    },
+    {
+      "id": "d3aa77f535f9",
+      "content": "- `/add-dir <path>` can now be used while Claude is working; `/add-dir`, `/autocompact`, `/theme`, `/help`, `/config` and `/advisor` dialogs open mid-turn in the fullscreen TUI",
+      "content_ja": "Claude の思考・稼働中であっても、`/add-dir <path>` コマンドを使用してディレクトリを mid-turn で追加できるようにしました。また、フルスクリーン（TUI）環境下において、`/add-dir`、`/autocompact`、`/theme`、`/help`、`/config`、`/advisor` などの各種ダイアログが、AI の出力を阻害せずに mid-turn で直接ポップアップ開くように改善しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "AI が実行を完了するまでは追加の作業ディレクトリパスを指定したり、ヘルプダイアログやテーマカラー設定を変更するコマンドを入力することができず、並行して別のワークスペースに権限を与えるなどの柔軟な割り込み操作ができませんでした。",
+        "after": "フルスクリーン描画レイヤーが強化され、AI の出力を画面の奥に維持したまま、手前に重ねて安全に設定ダイアログを表示・編集して、現在の処理中のタスクに即座に新しいディレクトリコンテキストを適用できます。",
+        "benefit": "AIが作業中に「別のフォルダにあるリファレンスコードも読んでほしい」と言い出した際、今の対話を中断したり終了させたりせずに、その場でフォルダを追加するだけで済むようになります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "TUIモード下において、思考中・実行中の mid-turn でも割り込みで `/add-dir` によるフォルダ追加や、テーマ設定などの全ポップアップダイアログが開けます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sessions.md"
+        }
+      ]
+    },
+    {
+      "id": "bc34c36ed220",
+      "content": "- `/goal` now clears itself with a notice when a turn dies on an unrecoverable error (e.g. revoked auth, an exhausted credit balance, or a context overflow) instead of staying armed",
+      "content_ja": "認証情報の無効化、クレジット残高不足、あるいはコンテキスト制限の超過など、復旧不可能なエラーによって現在のターンが異常終了した際、`/goal` 設定が有効化されたまま待機し続けるのを防ぎ、エラー通知と共に自動的にゴール設定を解除するように挙動を変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "アカウント停止や資金切れなどの致命的エラーでタスクの実行が継続できなくなった場合でも、設定した「目標（Goal）」状態が有効なまま内部で維持され続け、エラー解消後もセッションが異常な内部状態のまま膠着することがありました。",
+        "after": "継続不能な深刻なシステムエラーが発生すると即座にアクティブなゴールが自動でパージ（clear）され、エラーの原因とともにクリーンな状態にセッションがリセットされます。",
+        "benefit": "セッションが致命的なエラーで止まった後、古いゴール設定が残っていることに気づかないまま作業を再開してAIが混乱するのを防ぐために、手動でゴールクリアコマンドを入力する手間がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "資金不足やコンテキストオーバーなどでの強制中断ターンにおいて、以前の `/goal` 状態が不適切に待機状態のまま残るのを自動クリアして防止します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/goal.md"
+        }
+      ]
+    },
+    {
+      "id": "ee40ce4e42f5",
+      "content": "- `/goal`: when background tasks keep a goal waiting for 30+ minutes, Claude now checks in on them instead of waiting indefinitely (set `CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0` to opt out)",
+      "content_ja": "`/goal` 機能において、バックグラウンドタスクの影響で目標解決が 30 分以上待機状態になっている場合、Claude が無限に待ち続けるのを防ぎ、自動で現在のタスクの進捗状況を確認（check-in）するように挙動を変更しました（`CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0` で無効化可能です）。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "シェルプロセスやサブエージェントがスタックして応答が返ってこなくなっても、設定された Goal が「待ち」を指示し続けるため、Claude はタイムアウトなしで何時間もセッションを放置したまま無反応になっていました。",
+        "after": "30分間進捗がない場合に Claude が自立的に割り込みを発生させ、実行中のバックグラウンドタスクが生きているか、ハングアップしていないかを確認してユーザーに報告するターンが挟まれます。",
+        "benefit": "バックグラウンドで走らせたテストスイートやデプロイコマンドがフリーズしている際、PCの前で何時間も無駄に完了を待ち続けることがなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "バックグラウンドタスクがフリーズしてゴールがいつまでも完了しない場合、30分経つと Claude が自律的に現在のタスク状況をチェックインします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/scheduled-tasks.md"
+        }
+      ]
+    },
+    {
+      "id": "5d6651c4d3f1",
+      "content": "- `claude setup-token` now rejects unexpected extra arguments instead of silently ignoring them",
+      "content_ja": "`claude setup-token` コマンドを実行する際、想定外の余分な引数が渡された場合は、これらを黙って無視するのではなく、エラーとして明確に拒否するように挙動を変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "トークンセットアップコマンドの後ろにタイポや誤ったオプション引数を付けて実行した際、システムが警告なしでそれらを無視してトークンを生成してしまい、意図しない設定で登録が完了してしまうことがありました。",
+        "after": "許可されていない余計なパラメータが末尾に入っている場合は直ちにコマンドラインエラーが発生し、コマンドが失敗するため、意図しない設定でのトークン生成ミスを防げます。",
+        "benefit": "設定用コマンドの引数を打ち間違えたまま処理が正常終了してしまい、後から想定外の設定でトークンが作られていたことに気付いてやり直すリスクがなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "トークン作成用のコマンド実行時に、想定外のパラメータをタイポしたままで処理が正常終了して誤設定が作られるのを防ぐため、厳格にエラーを返します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        }
+      ]
+    },
+    {
+      "id": "927a86eb2e6e",
+      "content": "- Changed Esc in fullscreen mode to no longer clear a mouse text selection: it interrupts or dismisses as usual and the selection stays highlighted",
+      "content_ja": "フルスクリーンモード中に Esc キーを押した際の挙動を変更し、選択中のマウスによるテキスト選択ハイライトを勝手に消去しないようにしました。エスケープキーは通常通りプロンプトのキャンセルやダイアログの非表示アクションをトリガーし、選択範囲はそのまま画面上に維持されます。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "フルスクリーン TUI でログの一部をマウス選択した状態で、邪魔なポップアップダイアログを消そうとして Esc キーを押すと、ダイアログだけでなく苦労してドラッグ選択したテキストの反転表示まで一緒にクリアされてしまっていました。",
+        "after": "Esc キーの入力イベントと、アプリ内のテキスト選択クリアアクション（`selection:clear`）のトリガーが分離され、Esc は前面のUI操作のキャンセルにのみ作用し、選択された文字ハイライトは明示的に解除するまでそのまま残ります。",
+        "benefit": "コピーするために長文のログをドラッグ選択している最中に、他のダイアログを閉じるために Esc を押して、また最初から選択し直す羽目になるイライラがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "フルスクリーン表示時にEscを押した際、ポップアップダイアログだけを消去し、ログのマウス選択ハイライト状態を意図せず解除しないように動作を切り分けました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        }
+      ]
+    },
+    {
+      "id": "f527efb2ac68",
+      "content": "- Removed the redundant \"Allowed by auto mode classifier\" line that auto mode showed under every Agent tool call",
+      "content_ja": "オート（Auto）モードがすべてのサブエージェント（Agent）ツール呼び出しの下部に表示していた、冗長な「Allowed by auto mode classifier」という承認理由ログ行を削除しました。",
+      "prefix": "Removed",
+      "feature_areas": [],
+      "inference": {
+        "before": "オートモード利用時にサブエージェントが内部のヘルパーツールを起動するたびに、画面上に「オートモード分類器により許可されました」という全く同じ解説行が何度も繰り返し出力され、ログ画面が不要に行数を取って埋まってしまっていました。",
+        "after": "サブエージェント呼び出しにおけるオートモードの承認済み表示がスリム化され、本来必要なツール実行結果とログメッセージだけがクリアに表示されるようになります。",
+        "benefit": "大量の自動ツール実行ログを見返す際に、同じ承認文が何画面分も連続して流れるのをスクロールして読み飛ばす必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "オートモード実行時のサブエージェント呼び出しごとに毎行表示されていた、重複した不要な承認ログテキスト出力を削除して画面をクリーンにします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/auto-mode-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        }
+      ]
+    },
+    {
+      "id": "e7150a16225a",
+      "content": "- Removed the \"Default teammate model\" setting from `/config`; agent-team teammates now use the leader's model unless the spawn names one",
+      "content_ja": "`/config` から「Default teammate model」の設定項目を削除しました。エージェントチームのチームメイト（teammate）は、起動時に個別のモデル名が指定されていない限り、自動的にリーダー（メインセッション）と同じモデルを使用するように仕様を統一しました。",
+      "prefix": "Removed",
+      "feature_areas": ["Settings", "Agent Teams"],
+      "inference": {
+        "before": "`/config` でデフォルトのチームメイト用モデルがグローバル指定されていたため、メインセッションを Opus 5 などの高性能モデルに切り替えても、裏で起動する並列チームメイトが古いデフォルト指定（Haiku等）のまま実行されてしまい、共同作業のクオリティが意図せず下がる原因になっていました。",
+        "after": "メインセッションのモデル（Sonnet 5/Opus 5等）がチームメイトにも自動で伝播するようになり、タスク呼び出しのパラメータで直接モデルを指定しない限り、チーム全体のエンジンのバージョンが一律で同期されるようになります。",
+        "benefit": "メインセッションのモデルを切り替えた後に、並列処理を行うチームメイトの思考精度を合わせるために `/config` を開いてサブモデルの設定を毎回変更する必要がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "サブチームメイトのモデル指定をメインセッションと同じに統一し、意図せず並列チームメイトの処理モデルレベルが落ちて精度が落ちる現象を防ぎます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "80080a211430",
+      "content": "- Dimmed the elapsed-time counter on the running tool header so it no longer competes with the bold counts",
+      "content_ja": "稼働中のツールヘッダーに表示される経過時間カウンターの文字色を薄くし、太字で表示される実行数カウントと視覚的に競合しないように表示を調整しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ヘッダー内の経過時間カウンターの明るさを抑え、実行中プロセスの重要カウント値との視覚的な競合を改善しました。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "c9b509ae289a",
+      "content": "- Background task notifications delivered between turns are now sent to the model inside `<system-reminder>` tags, matching mid-turn delivery",
+      "content_ja": "会話のターンの合間（between turns）に配信されたバックグラウンドタスクの通知について、ミッドターン（mid-turn）での配信と同様に、モデルに対して `<system-reminder>` タグでラップして送信するように挙動を統一しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "バックグラウンドプロセスの完了などの通知が、AIが次に話し始める直前（ターンの合間）に到着した場合、タグでの保護が不十分な平文テキスト形式でシステムプロンプトに挿入され、AIがその通知を人間からの直接のメッセージ指示と誤認して挙動がブレる問題がありました。",
+        "after": "すべてのタイミングのバックグラウンド通知が厳密に `<system-reminder>` タグでカプセル化されて AI に渡されるため、AI はこれがユーザーの言葉ではなくシステムイベントであることを正しく区別して分析に組み込めるようになります。",
+        "benefit": "バックグラウンドタスクの終了メッセージをAIが読み違え、「ユーザーから新しいタスクが指示された」と勘違いして全く異なるタスクを開始してしまうのを防ぐためのプロンプト調整が必要なくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ターンの合間に受信したシステム通知についても、AIが人間からの直接プロンプトと混同しないよう `<system-reminder>` タグで正確にカプセル化を適用します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/channels-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "1ebf62b824f8",
+      "content": "- Mantle: skip the admin-pin availability probe at startup when a main-loop model is already picked",
+      "content_ja": "Mantle：メインループで使用するモデルが既に選択されている場合は、起動時の管理者用PIN（admin-pin）の可用性チェック処理をスキップするようにしました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "起動時の特定の内部整合性チェック（admin-pin）処理をスキップし、起動速度を高めるための内部的なコード改善です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "508201c2b966",
+      "content": "- Windows: startup no longer stalls on repeated rename retries when `~/.claude.json` is read-only",
+      "content_ja": "Windows 環境下において、設定ファイル `~/.claude.json` が「読み取り専用（read-only）」に設定されている場合に、ツールの起動処理が内部での無限の書き換え・リネーム再試行（rename retries）ループに陥ってフリーズする問題を修正しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "ユーザー環境や管理者権限の関係でホームディレクトリの設定ファイルが書き込み禁止になっていると、起動シーケンス中にファイルロックまたは更新処理が失敗し続け、何分間もターミナルが真っ黒なままフリーズして起動しませんでした。",
+        "after": "読み取り専用属性を検出した場合は迅速にリネーム試行をスキップして起動処理がバイパスされるようになり、設定の書き込みは行わずに読み込み専用のままスムーズに CLI セッションが開始します。",
+        "benefit": "共有PCや制限された企業ネットワーク端末で設定ファイルが保護されているときに、ツールの起動が無限フリーズしてタスクを開始できなくなるトラブルが解消されます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows 環境下でファイルシステムアクセス権がない場合に、設定ファイルをリネームし続けて起動シーケンスが無限にハングする問題の解決です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/python.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        }
+      ]
+    }
+  ]
+}
