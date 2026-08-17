@@ -1,25 +1,22 @@
 export type D1ExportPort = {
   start(): Promise<string>;
   fetchDump(bookmark: string): Promise<{
-    readonly filename: string;
-    readonly body: ReadableStream;
+    filename: string;
+    body: ReadableStream;
   }>;
 };
 
 export type BackupStorePort = {
-  save(key: string, body: ReadableStream): Promise<{ readonly size: number }>;
+  save(key: string, body: ReadableStream): Promise<{ size: number }>;
 };
 
 export type BackupFailureReporterPort = {
-  report(input: {
-    readonly instanceId: string;
-    readonly error: unknown;
-  }): Promise<void>;
+  report(input: { instanceId: string; error: unknown }): Promise<void>;
 };
 
 export type StoreD1BackupInput = {
-  readonly bookmark: string;
-  readonly exportedAt: string;
+  bookmark: string;
+  exportedAt: string;
 };
 
 export async function storeD1Backup(

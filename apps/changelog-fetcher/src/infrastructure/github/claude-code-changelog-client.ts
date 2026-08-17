@@ -17,8 +17,8 @@ type ClientOptions = {
 };
 
 export class ClaudeCodeChangelogClient implements ChangelogSourcePort {
-  private readonly githubToken: string;
-  private readonly expectedHash?: string;
+  private githubToken: string;
+  private expectedHash?: string;
 
   constructor(options: ClientOptions) {
     this.githubToken = options.githubToken;
@@ -66,10 +66,7 @@ export class ClaudeCodeChangelogClient implements ChangelogSourcePort {
 }
 
 class HashMismatchError extends Error {
-  constructor(
-    readonly expected: string,
-    readonly actual: string,
-  ) {
+  constructor(expected: string, actual: string) {
     super(`CHANGELOG ハッシュ不一致: expected=${expected} actual=${actual}`);
     this.name = 'HashMismatchError';
   }

@@ -10,20 +10,20 @@ import type { NotificationFrequency } from '../domain/channel/notification-frequ
 
 /** 通知購読ユースケースへ渡す入力。routes層でHTTP入力を値オブジェクトへ変換してから渡す。 */
 export type SubscribeInput = {
-  readonly address: ChannelAddress;
-  readonly frequency: NotificationFrequency;
+  address: ChannelAddress;
+  frequency: NotificationFrequency;
 };
 
 /** 通知購読ユースケースの実行結果。HTTPステータスや表示文言への変換はroutes層で行う。 */
 export type SubscribeResult =
   | {
-      readonly ok: true;
-      readonly channel: Channel;
-      readonly status: 'created' | 'reactivated';
+      ok: true;
+      channel: Channel;
+      status: 'created' | 'reactivated';
     }
   | {
-      readonly ok: false;
-      readonly error: 'already_registered' | 'invalid_notification_destination';
+      ok: false;
+      error: 'already_registered' | 'invalid_notification_destination';
     };
 
 /**

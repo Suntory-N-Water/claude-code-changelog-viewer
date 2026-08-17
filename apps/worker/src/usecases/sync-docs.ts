@@ -2,48 +2,48 @@ import { toError } from '@claude-code-changelog-viewer/common';
 import { isSafeToDeleteStaleDocuments } from '../domain/docs-sync/document-sync';
 
 export type DocumentInfo = {
-  readonly title: string;
-  readonly url: string;
-  readonly path: string;
+  title: string;
+  url: string;
+  path: string;
 };
 
 export type StoredPage = DocumentInfo & {
-  readonly content: string;
-  readonly contentHash: string;
+  content: string;
+  contentHash: string;
 };
 
 export type SettingSchemaEntry = {
-  readonly key: string;
-  readonly source: 'settings' | 'env';
-  readonly description: string;
-  readonly parentDescriptions: string;
-  readonly valueType: string;
-  readonly defaultValue: string | null;
-  readonly enumValues: string | null;
+  key: string;
+  source: 'settings' | 'env';
+  description: string;
+  parentDescriptions: string;
+  valueType: string;
+  defaultValue: string | null;
+  enumValues: string | null;
 };
 
 export type SettingSchemaSnapshot = {
-  readonly contentHash: string;
-  readonly entries: readonly SettingSchemaEntry[];
+  contentHash: string;
+  entries: SettingSchemaEntry[];
 };
 
 /** 公式ドキュメントと設定スキーマの取得を抽象化する port。 */
 export type OfficialDocsSource = {
-  fetchDocumentList(): Promise<readonly DocumentInfo[]>;
+  fetchDocumentList(): Promise<DocumentInfo[]>;
   fetchPage(document: DocumentInfo): Promise<StoredPage>;
   fetchSettingSchema(): Promise<SettingSchemaSnapshot>;
 };
 
 export type ExistingPage = {
-  readonly path: string;
-  readonly contentHash: string;
+  path: string;
+  contentHash: string;
 };
 
 /** docs-search 用 D1 への読み書きを抽象化する port。 */
 export type DocsSearchStore = {
-  loadExistingPages(): Promise<readonly ExistingPage[]>;
-  writeChangedPages(pages: readonly StoredPage[], now: Date): Promise<void>;
-  deletePages(paths: readonly string[]): Promise<void>;
+  loadExistingPages(): Promise<ExistingPage[]>;
+  writeChangedPages(pages: StoredPage[], now: Date): Promise<void>;
+  deletePages(paths: string[]): Promise<void>;
   loadSettingSchemaHash(): Promise<string | null>;
   replaceSettingSchema(schema: SettingSchemaSnapshot, now: Date): Promise<void>;
 };
@@ -52,31 +52,31 @@ export type SettingSchemaContentParser = {
   parseEnvVarsMd(
     markdown: string,
     pages: ReadonlyMap<string, string>,
-  ): readonly SettingSchemaEntry[];
+  ): SettingSchemaEntry[];
   parsePublicEnvEntriesFromDocs(
     pages: ReadonlyMap<string, string>,
-  ): readonly SettingSchemaEntry[];
+  ): SettingSchemaEntry[];
 };
 
 export type SyncDocsDependencies = {
-  readonly source: OfficialDocsSource;
-  readonly store: DocsSearchStore;
-  readonly contentParser: SettingSchemaContentParser;
+  source: OfficialDocsSource;
+  store: DocsSearchStore;
+  contentParser: SettingSchemaContentParser;
 };
 
 export type SyncDocsInput = {
-  readonly now: Date;
+  now: Date;
 };
 
 export type SyncDocsResult = {
-  readonly documentCount: number;
-  readonly successfulCount: number;
-  readonly failedCount: number;
-  readonly changedCount: number;
-  readonly skippedCount: number;
-  readonly deletedCount: number;
-  readonly skippedBySafetyGuard: boolean;
-  readonly schemaUpdated: boolean;
+  documentCount: number;
+  successfulCount: number;
+  failedCount: number;
+  changedCount: number;
+  skippedCount: number;
+  deletedCount: number;
+  skippedBySafetyGuard: boolean;
+  schemaUpdated: boolean;
 };
 
 const PAGE_BATCH_SIZE = 5;
@@ -186,9 +186,9 @@ export async function syncDocs(
 }
 
 function mergeSettingSchemaEntries(
-  schemaEntries: readonly SettingSchemaEntry[],
-  markdownEntries: readonly SettingSchemaEntry[],
-  docsEntries: readonly SettingSchemaEntry[],
+  schemaEntries: SettingSchemaEntry[],
+  markdownEntries: SettingSchemaEntry[],
+  docsEntries: SettingSchemaEntry[],
 ): SettingSchemaEntry[] {
   const schemaSettings = schemaEntries.filter(
     (entry) => entry.source === 'settings',
@@ -222,12 +222,12 @@ function mergeSettingSchemaEntries(
 }
 
 type PageFetchOutcome =
-  | { readonly page: StoredPage }
-  | { readonly document: DocumentInfo; readonly error: Error };
+  | { page: StoredPage }
+  | { document: DocumentInfo; error: Error };
 
 async function fetchPages(
   source: OfficialDocsSource,
-  documents: readonly DocumentInfo[],
+  documents: DocumentInfo[],
 ): Promise<PageFetchOutcome[]> {
   const outcomes: PageFetchOutcome[] = [];
 

@@ -9,7 +9,7 @@ const MAX_CHUNKS_PER_FILE = 3;
 const MAX_SNIPPET_CHARS = 4000;
 
 // 実データで確認された言い換えのみ。どちらか一方が含まれていればもう一方を補う
-const SYNONYM_PAIRS: readonly (readonly [string, string])[] = [
+const SYNONYM_PAIRS: [string, string][] = [
   ['session', 'conversation'],
   ['harness', 'cli'],
   ['hook', 'hooks'],

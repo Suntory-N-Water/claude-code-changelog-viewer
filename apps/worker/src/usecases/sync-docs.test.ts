@@ -44,10 +44,10 @@ describe('ドキュメント同期ユースケース', () => {
       },
       store: {
         loadExistingPages: async () => [],
-        writeChangedPages: async (pages: readonly unknown[]) => {
+        writeChangedPages: async (pages: unknown[]) => {
           changedPages.push(...pages);
         },
-        deletePages: async (paths: readonly string[]) => {
+        deletePages: async (paths: string[]) => {
           deletedPaths.push([...paths]);
         },
         loadSettingSchemaHash: async () => null,

@@ -6,33 +6,33 @@ import { recordFailure, resetFailure } from '../domain/channel/channel-failure';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
 
 export type DispatchChangelogNotificationsInput = {
-  readonly analysis: NotificationAnalysis;
-  readonly version: string;
-  readonly frequency: NotificationFrequency;
-  readonly failedAt: Date;
-  readonly sendIntervalMs: number;
+  analysis: NotificationAnalysis;
+  version: string;
+  frequency: NotificationFrequency;
+  failedAt: Date;
+  sendIntervalMs: number;
 };
 
 export type DispatchChangelogNotificationsResult = {
-  readonly channelCount: number;
-  readonly skippedCount: number;
-  readonly shouldRetry: boolean;
-  readonly failures: readonly DispatchFailure[];
+  channelCount: number;
+  skippedCount: number;
+  shouldRetry: boolean;
+  failures: DispatchFailure[];
 };
 
 export type DispatchFailure =
   | {
-      readonly type: 'rate_limit';
-      readonly channel: Channel;
+      type: 'rate_limit';
+      channel: Channel;
     }
   | {
-      readonly type: 'temporary_failure';
-      readonly channel: Channel;
+      type: 'temporary_failure';
+      channel: Channel;
     }
   | {
-      readonly type: 'exception';
-      readonly channel: Channel;
-      readonly error: unknown;
+      type: 'exception';
+      channel: Channel;
+      error: unknown;
     };
 
 /**

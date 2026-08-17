@@ -6,20 +6,20 @@ import { deactivate, isActive } from '../domain/channel/channel-lifecycle';
 
 /** 配信停止ユースケースへ渡す入力。routes層で外部入力を値オブジェクトへ変換してから渡す。 */
 export type UnsubscribeInput = {
-  readonly token: ChannelToken;
-  readonly unsubscribedAt: Date;
+  token: ChannelToken;
+  unsubscribedAt: Date;
 };
 
 /** 配信停止ユースケースの実行結果。HTTPレスポンスへの変換はroutes層で行う。 */
 export type UnsubscribeResult =
   | {
-      readonly ok: true;
-      readonly channel: Channel;
-      readonly notification: 'sent' | 'failed';
+      ok: true;
+      channel: Channel;
+      notification: 'sent' | 'failed';
     }
   | {
-      readonly ok: false;
-      readonly error: 'not_found' | 'already_deactivated';
+      ok: false;
+      error: 'not_found' | 'already_deactivated';
     };
 
 /**

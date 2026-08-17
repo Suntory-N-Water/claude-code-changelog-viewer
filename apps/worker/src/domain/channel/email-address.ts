@@ -1,7 +1,7 @@
 declare const emailAddressBrand: unique symbol;
 
 export type EmailAddress = string & {
-  readonly [emailAddressBrand]: unknown;
+  [emailAddressBrand]: unknown;
 };
 
 /**

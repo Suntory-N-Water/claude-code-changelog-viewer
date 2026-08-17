@@ -1,7 +1,7 @@
 declare const channelTokenBrand: unique symbol;
 
 export type ChannelToken = string & {
-  readonly [channelTokenBrand]: unknown;
+  [channelTokenBrand]: unknown;
 };
 
 export function createChannelToken(value: string): ChannelToken {

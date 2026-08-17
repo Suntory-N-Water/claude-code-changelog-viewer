@@ -19,7 +19,7 @@ export function createSettingsReferenceRepository(
   db: DrizzleD1Database,
 ): SettingsReferenceRepositoryPort {
   return {
-    async save({ records }: { records: readonly SettingsReferenceRecord[] }) {
+    async save({ records }: { records: SettingsReferenceRecord[] }) {
       if (records.length === 0) {
         return;
       }

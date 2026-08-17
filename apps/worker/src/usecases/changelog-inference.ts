@@ -8,7 +8,7 @@ import {
 } from '../domain/changelog-inference/changelog-inference';
 
 export type ChangelogDocumentSearchPort = {
-  searchChangelogEntry(entry: string): Promise<readonly RelatedDocument[]>;
+  searchChangelogEntry(entry: string): Promise<RelatedDocument[]>;
 };
 
 export type ChangelogInferencePort = {

@@ -11,27 +11,24 @@ export type ChangelogSource = {
 
 /** GitHub workflow の起動と実行状態取得を抽象化する port。 */
 export type ChangelogWorkflow = {
-  dispatch(input: {
-    readonly hash: string;
-    readonly detectedAt: string;
-  }): Promise<void>;
+  dispatch(input: { hash: string; detectedAt: string }): Promise<void>;
   findStatus(dispatchedHash: string): Promise<ChangelogWorkflowStatus>;
 };
 
 export type DetectChangelogUpdateDependencies = {
-  readonly source: ChangelogSource;
-  readonly workflow: ChangelogWorkflow;
-  readonly stateRepository: ChangelogDetectionStateRepository;
+  source: ChangelogSource;
+  workflow: ChangelogWorkflow;
+  stateRepository: ChangelogDetectionStateRepository;
 };
 
 export type DetectChangelogUpdateInput = {
-  readonly now: Date;
+  now: Date;
 };
 
 export type DetectChangelogUpdateResult = {
-  readonly action: 'dispatched' | 'waiting' | 'confirmed' | 'max_attempts';
-  readonly contentHash: string;
-  readonly previousHash: string | null;
+  action: 'dispatched' | 'waiting' | 'confirmed' | 'max_attempts';
+  contentHash: string;
+  previousHash: string | null;
 };
 
 /** CHANGELOG の変化を検知し、推論 workflow の起動状態を更新する。 */

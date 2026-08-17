@@ -1,106 +1,98 @@
 import { createSettingSlugFromKey } from '../domain/settings-reference/setting-slug';
 
 export type SettingsReferenceWorkflowParams = {
-  readonly targetKeys?: readonly string[] | undefined;
+  targetKeys?: string[] | undefined;
 };
 
 export type SettingsReferenceFailureReporterPort = {
   report(input: {
-    readonly params: SettingsReferenceWorkflowParams;
-    readonly instanceId: string;
-    readonly error: unknown;
+    params: SettingsReferenceWorkflowParams;
+    instanceId: string;
+    error: unknown;
   }): Promise<void>;
 };
 
 export type SettingsReferenceEntry = {
-  readonly key: string;
-  readonly source: 'settings' | 'env';
-  readonly descriptionEn: string;
-  readonly parentDescriptions: readonly string[];
-  readonly schemaDefault?: string;
-  readonly schemaEnum?: readonly string[];
+  key: string;
+  source: 'settings' | 'env';
+  descriptionEn: string;
+  parentDescriptions: string[];
+  schemaDefault?: string;
+  schemaEnum?: string[];
 };
 
 export type RelatedSettingDocument = {
-  readonly file: string;
-  readonly snippets: readonly string[];
+  file: string;
+  snippets: string[];
 };
 
 export type RelatedSettingChangelog = {
-  readonly version: string;
-  readonly contentJa?: string;
-  readonly inference?: {
-    readonly before: string;
-    readonly after: string;
-    readonly benefit: string;
+  version: string;
+  contentJa?: string;
+  inference?: {
+    before: string;
+    after: string;
+    benefit: string;
   };
 };
 
 export type SettingsReferenceEntrySourcePort = {
-  loadEntries(): Promise<readonly SettingsReferenceEntry[]>;
+  loadEntries(): Promise<SettingsReferenceEntry[]>;
   loadExistingKeys(): Promise<ReadonlySet<string>>;
-  findRelatedChangelogs(
-    key: string,
-  ): Promise<readonly RelatedSettingChangelog[]>;
+  findRelatedChangelogs(key: string): Promise<RelatedSettingChangelog[]>;
 };
 
 export type SettingsReferenceDocumentSearchPort = {
-  searchSettingKey(
-    leafName: string,
-  ): Promise<readonly RelatedSettingDocument[]>;
+  searchSettingKey(leafName: string): Promise<RelatedSettingDocument[]>;
 };
 
 export type SettingsReferenceInputEntry = {
-  readonly id: number;
-  readonly key: string;
-  readonly source: 'settings' | 'env';
-  readonly descriptionEn: string;
-  readonly parentDescriptions: readonly string[];
-  readonly docSnippets: readonly string[];
-  readonly officialDocs: readonly string[];
-  readonly relatedChangelog: readonly RelatedSettingChangelog[];
-  readonly schemaDefault?: string;
-  readonly schemaEnum?: readonly string[];
+  id: number;
+  key: string;
+  source: 'settings' | 'env';
+  descriptionEn: string;
+  parentDescriptions: string[];
+  docSnippets: string[];
+  officialDocs: string[];
+  relatedChangelog: RelatedSettingChangelog[];
+  schemaDefault?: string;
+  schemaEnum?: string[];
 };
 
 export type SettingsReferenceInput = {
-  readonly entries: readonly SettingsReferenceInputEntry[];
+  entries: SettingsReferenceInputEntry[];
 };
 
 export type SettingsReferenceTranslation = {
-  readonly id: number;
-  readonly descriptionJa: string;
-  readonly useCaseJa: string;
+  id: number;
+  descriptionJa: string;
+  useCaseJa: string;
 };
 
 export type SettingsReferenceAiPort = {
-  infer(
-    input: SettingsReferenceInput,
-  ): Promise<readonly SettingsReferenceTranslation[]>;
+  infer(input: SettingsReferenceInput): Promise<SettingsReferenceTranslation[]>;
 };
 
 export type SettingsReferenceRecord = {
-  readonly key: string;
-  readonly leafName: string;
-  readonly slug: string;
-  readonly source: 'settings' | 'env';
-  readonly descriptionEn: string;
-  readonly descriptionJa: string;
-  readonly useCaseJa: string | null;
-  readonly fetchedAt: string;
-  readonly officialDocs: readonly string[];
+  key: string;
+  leafName: string;
+  slug: string;
+  source: 'settings' | 'env';
+  descriptionEn: string;
+  descriptionJa: string;
+  useCaseJa: string | null;
+  fetchedAt: string;
+  officialDocs: string[];
 };
 
 export type SettingsReferenceRepositoryPort = {
-  save(input: {
-    readonly records: readonly SettingsReferenceRecord[];
-  }): Promise<void>;
+  save(input: { records: SettingsReferenceRecord[] }): Promise<void>;
 };
 
 type SettingsReferenceSaveInput = {
-  readonly input: SettingsReferenceInput;
-  readonly translations: readonly SettingsReferenceTranslation[];
-  readonly fetchedAt: string;
+  input: SettingsReferenceInput;
+  translations: SettingsReferenceTranslation[];
+  fetchedAt: string;
 };
 
 const MAX_DOC_SNIPPET_CHARS = 8000;
@@ -110,7 +102,7 @@ const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
 export async function loadSettingsReferenceEntries(
   source: SettingsReferenceEntrySourcePort,
   params: SettingsReferenceWorkflowParams,
-): Promise<readonly SettingsReferenceEntry[]> {
+): Promise<SettingsReferenceEntry[]> {
   const [entries, existingKeys] = await Promise.all([
     source.loadEntries(),
     source.loadExistingKeys(),
@@ -126,7 +118,7 @@ export async function loadSettingsReferenceEntries(
 export async function buildSettingsReferenceInput(
   documentSearch: SettingsReferenceDocumentSearchPort,
   entrySource: SettingsReferenceEntrySourcePort,
-  entries: readonly SettingsReferenceEntry[],
+  entries: SettingsReferenceEntry[],
 ): Promise<SettingsReferenceInput> {
   return {
     entries: await Promise.all(

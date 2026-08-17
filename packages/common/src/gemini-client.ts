@@ -67,19 +67,19 @@ type GenerateInput<T> = {
 };
 
 export class GeminiModelsExhaustedError extends Error {
-  constructor(readonly lastError: Error) {
+  constructor(public lastError: Error) {
     super(`全Geminiモデルが失敗しました: ${lastError.message}`);
     this.name = 'GeminiModelsExhaustedError';
   }
 }
 
 export class GeminiClient {
-  private readonly api: GeminiApi;
-  private readonly lastRequestTimes = new Map<GeminiModelType, number>();
+  private api: GeminiApi;
+  private lastRequestTimes = new Map<GeminiModelType, number>();
 
   constructor(
     apiKey: string,
-    private readonly log: AppLogger,
+    private log: AppLogger,
     dependencies: GeminiClientDependencies = {},
   ) {
     if (!apiKey) {

@@ -14,9 +14,9 @@ const ExportResponseSchema = z.object({
 });
 
 export type D1ExportClientConfig = {
-  readonly accountId: string;
-  readonly databaseId: string;
-  readonly apiToken: string;
+  accountId: string;
+  databaseId: string;
+  apiToken: string;
 };
 
 /** D1 の export は Workers binding に無く、REST API のポーリングでしか取得できない。 */

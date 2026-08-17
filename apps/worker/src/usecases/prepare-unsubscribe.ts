@@ -3,14 +3,14 @@ import type { ChannelRepository } from '../domain/channel/channel-repository';
 import { isActive } from '../domain/channel/channel-lifecycle';
 
 export type PrepareUnsubscribeInput = {
-  readonly token: ChannelToken;
+  token: ChannelToken;
 };
 
 export type PrepareUnsubscribeResult =
-  | { readonly ok: true; readonly token: ChannelToken }
+  | { ok: true; token: ChannelToken }
   | {
-      readonly ok: false;
-      readonly error: 'not_found' | 'already_deactivated';
+      ok: false;
+      error: 'not_found' | 'already_deactivated';
     };
 
 /** 配信停止確認画面を表示できる有効チャンネルか確認する。 */

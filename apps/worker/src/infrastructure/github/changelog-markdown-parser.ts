@@ -7,7 +7,7 @@ import { formatChangelogVersion } from '../../domain/changelog-inference/changel
 
 export async function parseChangelogReleases(
   markdown: string,
-): Promise<readonly ChangelogRelease[]> {
+): Promise<ChangelogRelease[]> {
   const releases: Array<{ version: string; content: string }> = [];
   let currentVersion: string | null = null;
   const lines: string[] = [];

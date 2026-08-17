@@ -42,12 +42,12 @@ type DocFetchMetadata = z.infer<typeof docFetchMetadataSchema>;
 type PartialDocFetchMetadata = z.infer<typeof partialDocFetchMetadataSchema>;
 
 export class ClaudeDocsFetcher {
-  private readonly docsMapUrl =
+  private docsMapUrl =
     'https://code.claude.com/docs/en/claude_code_docs_map.md';
-  private readonly llmsUrl = 'https://code.claude.com/docs/llms.txt';
-  private readonly docsDir: string;
-  private readonly metadataDir: string;
-  private readonly log: AppLogger;
+  private llmsUrl = 'https://code.claude.com/docs/llms.txt';
+  private docsDir: string;
+  private metadataDir: string;
+  private log: AppLogger;
 
   constructor(rootDir: string = '.') {
     this.docsDir = path.join(rootDir, 'docs', 'en');

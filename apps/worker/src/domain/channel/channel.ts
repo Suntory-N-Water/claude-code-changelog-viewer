@@ -10,7 +10,7 @@ declare const channelIdBrand: unique symbol;
 
 /** チャンネル集約を一意に識別するID。 */
 export type ChannelId = string & {
-  readonly [channelIdBrand]: unknown;
+  [channelIdBrand]: unknown;
 };
 
 /** 空文字でない文字列からChannelIdを生成する。 */
@@ -30,41 +30,41 @@ export type DeactivationReason = 'user' | 'system';
 
 /** 通知配信が有効な状態。 */
 export type ActiveChannelStatus = {
-  readonly type: 'active';
+  type: 'active';
 };
 
 /** 通知配信が停止されている状態。 */
 export type DeactivatedChannelStatus = {
-  readonly type: 'deactivated';
-  readonly reason: DeactivationReason;
-  readonly deactivatedAt: Date;
+  type: 'deactivated';
+  reason: DeactivationReason;
+  deactivatedAt: Date;
 };
 
 /** チャンネルの配信状態。 */
 export type ChannelStatus = ActiveChannelStatus | DeactivatedChannelStatus;
 
 type ChannelBase<TType extends ChannelType> = {
-  readonly id: ChannelId;
-  readonly type: TType;
-  readonly token: ChannelToken;
-  readonly notificationFrequency: NotificationFrequency;
-  readonly status: ChannelStatus;
-  readonly failCount: number;
+  id: ChannelId;
+  type: TType;
+  token: ChannelToken;
+  notificationFrequency: NotificationFrequency;
+  status: ChannelStatus;
+  failCount: number;
 };
 
 /** Discord Webhook を通知先に持つチャンネル。 */
 export type DiscordChannel = ChannelBase<'DSC'> & {
-  readonly webhookUrl: DiscordWebhookUrl;
+  webhookUrl: DiscordWebhookUrl;
 };
 
 /** Slack Webhook を通知先に持つチャンネル。 */
 export type SlackChannel = ChannelBase<'SLK'> & {
-  readonly webhookUrl: SlackWebhookUrl;
+  webhookUrl: SlackWebhookUrl;
 };
 
 /** Emailアドレスを通知先に持つチャンネル。 */
 export type EmailChannel = ChannelBase<'EML'> & {
-  readonly emailAddress: EmailAddress;
+  emailAddress: EmailAddress;
 };
 
 /** 通知チャンネル集約。通知設定は集約内の notificationFrequency として扱う。 */

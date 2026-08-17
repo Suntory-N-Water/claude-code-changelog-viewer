@@ -17,7 +17,7 @@ export type ImpactAssessment = {
 };
 
 export type AnalyzedChangelogEntryId = string & {
-  readonly __brand: 'AnalyzedChangelogEntryId';
+  __brand: 'AnalyzedChangelogEntryId';
 };
 
 export type AnalyzedChangelogEntry = {

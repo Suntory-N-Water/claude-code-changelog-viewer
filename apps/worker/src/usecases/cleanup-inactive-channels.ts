@@ -1,11 +1,11 @@
 import type { ChannelRepository } from '../domain/channel/channel-repository';
 
 export type CleanupInactiveChannelsInput = {
-  readonly now: Date;
+  now: Date;
 };
 
 export type CleanupInactiveChannelsResult = {
-  readonly deletedCount: number;
+  deletedCount: number;
 };
 
 /** 指定日時より前に停止されたチャンネルを削除する。 */
