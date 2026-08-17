@@ -16,7 +16,7 @@ type SettingSchemaMetaRow = {
 /** D1 の docs-search schema を DocsSearchStore port として実装する。 */
 export function createDocsSearchStore(db: D1Database): DocsSearchStore {
   return {
-    async loadExistingPages(): Promise<readonly ExistingPage[]> {
+    async loadExistingPages(): Promise<ExistingPage[]> {
       const result = await db
         .prepare('SELECT path, content_hash FROM pages')
         .all<{ path: string; content_hash: string }>();
@@ -144,7 +144,7 @@ export function createDocsSearchStore(db: D1Database): DocsSearchStore {
 
 async function runBatchedStatements(
   db: D1Database,
-  statementGroups: readonly D1PreparedStatement[][],
+  statementGroups: D1PreparedStatement[][],
 ): Promise<void> {
   let currentBatch: D1PreparedStatement[] = [];
 
@@ -164,7 +164,7 @@ async function runBatchedStatements(
   }
 }
 
-function splitIntoChunks<T>(items: readonly T[], size: number): T[][] {
+function splitIntoChunks<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let index = 0; index < items.length; index += size) {
     chunks.push(items.slice(index, index + size));

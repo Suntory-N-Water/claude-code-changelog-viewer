@@ -15,7 +15,7 @@ export type NavItem = {
 };
 
 /** ヘッダーとモバイルメニューに並べる主要セクション */
-export const NAV_ITEMS: readonly NavItem[] = [
+export const NAV_ITEMS: NavItem[] = [
   {
     href: '/posts/weekly',
     label: '週次まとめ',
@@ -45,11 +45,11 @@ type FooterLink = {
 
 type FooterSection = {
   title: string;
-  links: readonly FooterLink[];
+  links: FooterLink[];
 };
 
 /** フッターの列。コンテンツ / サイト情報 / 外部リソースで分ける */
-export const FOOTER_SECTIONS: readonly FooterSection[] = [
+export const FOOTER_SECTIONS: FooterSection[] = [
   {
     title: 'コンテンツ',
     links: [

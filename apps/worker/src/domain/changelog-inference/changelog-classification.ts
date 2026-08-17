@@ -8,20 +8,20 @@ import {
 } from './changelog-version';
 
 export type ExistingChangelogItem = {
-  readonly version: string;
-  readonly itemId: string | null;
-  readonly content: string | null;
+  version: string;
+  itemId: string | null;
+  content: string | null;
 };
 
 export type ChangelogClassification = {
-  readonly versions: readonly ChangelogRelease[];
-  readonly diffEvents: readonly ChangelogDiffEvent[];
-  readonly notifiableVersions: readonly string[];
+  versions: ChangelogRelease[];
+  diffEvents: ChangelogDiffEvent[];
+  notifiableVersions: string[];
 };
 
 export function classifyChangelogReleases(
-  releases: readonly ChangelogRelease[],
-  existingRows: readonly ExistingChangelogItem[],
+  releases: ChangelogRelease[],
+  existingRows: ExistingChangelogItem[],
   detectedAt: string,
 ): ChangelogClassification {
   const existingByVersion = new Map<string, Map<string, string | null>>();

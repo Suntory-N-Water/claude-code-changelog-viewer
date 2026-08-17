@@ -13,17 +13,17 @@ import type { ChangelogNotificationPort } from '../../usecases/changelog-inferen
 import { changelogItems, changelogVersions } from '../../db/schema';
 
 type NotificationQueueMessage = {
-  readonly version: string;
-  readonly analysis: NotificationAnalysis;
+  version: string;
+  analysis: NotificationAnalysis;
 };
 
 type NotificationRow = {
-  readonly version: string;
-  readonly summary: string | null;
-  readonly itemId: string | null;
-  readonly content: string | null;
-  readonly contentJa: string | null;
-  readonly prefix: string | null;
+  version: string;
+  summary: string | null;
+  itemId: string | null;
+  content: string | null;
+  contentJa: string | null;
+  prefix: string | null;
 };
 
 export function createChangelogWorkflowNotifier(
@@ -67,9 +67,9 @@ export function createChangelogWorkflowNotifier(
             (
               row,
             ): row is NotificationRow & {
-              readonly itemId: string;
-              readonly content: string;
-              readonly prefix: string;
+              itemId: string;
+              content: string;
+              prefix: string;
             } =>
               row.itemId !== null &&
               row.content !== null &&

@@ -1,7 +1,7 @@
 declare const slackWebhookUrlBrand: unique symbol;
 
 export type SlackWebhookUrl = string & {
-  readonly [slackWebhookUrlBrand]: unknown;
+  [slackWebhookUrlBrand]: unknown;
 };
 
 const SLACK_WEBHOOK_REGEX =

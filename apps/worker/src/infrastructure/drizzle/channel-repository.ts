@@ -33,20 +33,20 @@ import { createSlackWebhookUrl } from '../../domain/channel/slack-webhook-url';
 import { decryptEmail, encryptEmail, hashEmail } from './email-crypto';
 
 type CommonChannelRow = {
-  readonly id: string;
-  readonly channelType: 'DSC' | 'SLK' | 'EML';
-  readonly token: string;
-  readonly deactivatedAt: string;
-  readonly deactivatedReason: 'none' | 'user' | 'system';
-  readonly failCount: number;
-  readonly frequency: 'IMM' | 'WEK';
+  id: string;
+  channelType: 'DSC' | 'SLK' | 'EML';
+  token: string;
+  deactivatedAt: string;
+  deactivatedReason: 'none' | 'user' | 'system';
+  failCount: number;
+  frequency: 'IMM' | 'WEK';
 };
 
 /** Drizzle/D1を使ってChannelRepository portを実装する。 */
 export class DrizzleChannelRepository implements ChannelRepository {
   constructor(
-    private readonly db: DrizzleD1Database<Record<string, never>>,
-    private readonly emailEncryptionKey: string,
+    private db: DrizzleD1Database<Record<string, never>>,
+    private emailEncryptionKey: string,
   ) {}
 
   /** IDで共通行を取得し、Channel集約へ復元する。 */
@@ -435,8 +435,8 @@ function toDomainStatus(row: CommonChannelRow): ChannelStatus {
 
 /** ドメインの状態表現をDBの deactivated_at / deactivated_reason へ変換する。 */
 function toPersistenceStatus(status: ChannelStatus): {
-  readonly deactivatedAt: string;
-  readonly deactivatedReason: 'none' | 'user' | 'system';
+  deactivatedAt: string;
+  deactivatedReason: 'none' | 'user' | 'system';
 } {
   if (status.type === 'active') {
     return {

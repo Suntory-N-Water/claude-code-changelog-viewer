@@ -32,7 +32,7 @@ const logger = getLogger({
 /** 公式ドキュメントと SchemaStore を HTTP から取得する adapter。 */
 export function createOfficialDocsSource(): OfficialDocsSource {
   return {
-    async fetchDocumentList(): Promise<readonly DocumentInfo[]> {
+    async fetchDocumentList(): Promise<DocumentInfo[]> {
       const [docsMapContent, llmsContent] = await Promise.all([
         fetchText(DOCS_MAP_URL, 'text/markdown, text/plain, */*'),
         fetchText(LLMS_URL, 'text/markdown, text/plain, */*'),

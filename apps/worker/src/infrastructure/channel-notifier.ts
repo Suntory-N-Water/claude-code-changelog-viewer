@@ -29,20 +29,18 @@ import {
 } from './notification/slack';
 
 export type ChannelNotifierConfig = {
-  readonly sendEmail: SendEmail;
-  readonly emailFrom: string;
-  readonly workerUrl: string;
-  readonly siteUrl: string;
+  sendEmail: SendEmail;
+  emailFrom: string;
+  workerUrl: string;
+  siteUrl: string;
 };
 
 /** Discord/Slack/Email の送信処理をChannelNotifier portとして実装する。 */
 export class InfrastructureChannelNotifier implements ChannelNotifier {
-  constructor(private readonly config: ChannelNotifierConfig) {}
+  constructor(private config: ChannelNotifierConfig) {}
 
   /** 登録時のテスト通知を送信する。 */
-  async sendTestNotification(
-    channel: Channel,
-  ): Promise<{ readonly ok: boolean }> {
+  async sendTestNotification(channel: Channel): Promise<{ ok: boolean }> {
     const unsubscribeUrl = this.createUnsubscribeUrl(channel);
 
     switch (channel.type) {

@@ -118,7 +118,7 @@ export const INFERENCE_TASK_SCHEMA = {
  * 注: 全項目の推論・翻訳・サマリーを1回のリクエストで処理
  */
 export class GeminiClient {
-  private readonly client: CommonGeminiClient;
+  private client: CommonGeminiClient;
 
   constructor(apiKey: string, logger: AppLogger) {
     this.client = new CommonGeminiClient(apiKey, logger);

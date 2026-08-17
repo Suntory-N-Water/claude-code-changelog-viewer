@@ -23,7 +23,7 @@ export function createSettingsEntrySource(
   docsDb: D1Database,
 ): SettingsReferenceEntrySourcePort {
   return {
-    async loadEntries(): Promise<readonly SettingsReferenceEntry[]> {
+    async loadEntries(): Promise<SettingsReferenceEntry[]> {
       const result = await docsDb
         .prepare(
           `SELECT key, source, description, parent_descriptions, default_value, enum_values
@@ -55,7 +55,7 @@ export function createSettingsEntrySource(
 
     async findRelatedChangelogs(
       key: string,
-    ): Promise<readonly RelatedSettingChangelog[]> {
+    ): Promise<RelatedSettingChangelog[]> {
       const conditions = buildChangelogSearchTerms(key).flatMap((term) => [
         sql`instr(${changelogItems.content}, ${term}) > 0`,
         sql`instr(coalesce(${changelogItems.contentJa}, ''), ${term}) > 0`,

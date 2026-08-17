@@ -28,9 +28,9 @@ type SchemaMetadata = z.infer<typeof schemaMetadataSchema>;
 type JsonObject = z.infer<typeof jsonObjectSchema>;
 
 export class SchemaFetcher {
-  private readonly schemaDir: string;
-  private readonly metadataDir: string;
-  private readonly log: AppLogger;
+  private schemaDir: string;
+  private metadataDir: string;
+  private log: AppLogger;
 
   constructor(rootDir: string = '.') {
     this.schemaDir = path.join(rootDir, 'schema');

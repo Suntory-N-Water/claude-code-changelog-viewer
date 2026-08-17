@@ -12,8 +12,8 @@ import type {
 } from '../domain/changelog-inference/changelog-inference';
 
 export type ChangelogWorkflowParams = {
-  readonly detectedHash: string;
-  readonly detectedAt: string;
+  detectedHash: string;
+  detectedAt: string;
 };
 
 export type ChangelogMarkdownSourcePort = {
@@ -21,11 +21,11 @@ export type ChangelogMarkdownSourcePort = {
 };
 
 export type ChangelogParserPort = {
-  parse(markdown: string): Promise<readonly ChangelogRelease[]>;
+  parse(markdown: string): Promise<ChangelogRelease[]>;
 };
 
 export type ExistingChangelogReader = {
-  findExistingItems(): Promise<readonly ExistingChangelogItem[]>;
+  findExistingItems(): Promise<ExistingChangelogItem[]>;
 };
 
 export type ChangelogNotificationPort = {
@@ -38,17 +38,17 @@ export type ChangelogBuildTriggerPort = {
 
 export type ChangelogFailureReporterPort = {
   report(input: {
-    readonly params: ChangelogWorkflowParams;
-    readonly instanceId: string;
-    readonly error: unknown;
+    params: ChangelogWorkflowParams;
+    instanceId: string;
+    error: unknown;
   }): Promise<void>;
 };
 
 export type FetchAndClassifyChangelogInput = {
-  readonly source: ChangelogMarkdownSourcePort;
-  readonly parser: ChangelogParserPort;
-  readonly existingChangelogReader: ExistingChangelogReader;
-  readonly params: ChangelogWorkflowParams;
+  source: ChangelogMarkdownSourcePort;
+  parser: ChangelogParserPort;
+  existingChangelogReader: ExistingChangelogReader;
+  params: ChangelogWorkflowParams;
 };
 
 export async function fetchAndClassifyChangelog({
@@ -66,7 +66,7 @@ export async function fetchAndClassifyChangelog({
 
 export async function notifyChangelogVersions(
   notifier: ChangelogNotificationPort,
-  versions: readonly string[],
+  versions: string[],
 ): Promise<void> {
   for (const version of versions) {
     await notifier.send(version);
@@ -75,7 +75,7 @@ export async function notifyChangelogVersions(
 
 export async function saveChangelogDiffs(
   repository: ChangelogDiffRepository,
-  events: readonly ChangelogDiffEvent[],
+  events: ChangelogDiffEvent[],
 ): Promise<{ count: number }> {
   await repository.saveAll(events);
   return { count: events.length };

@@ -22,7 +22,7 @@ const input = {
       relatedDocs: [],
     },
   ],
-} as const;
+};
 
 describe('CHANGELOG 推論の整合性', () => {
   it('関連ドキュメントの有無が異なる時、AI 結果を CHANGELOG 項目へ統合すること', () => {

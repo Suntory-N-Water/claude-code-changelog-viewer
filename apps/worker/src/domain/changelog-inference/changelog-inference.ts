@@ -1,80 +1,80 @@
 export type ChangelogItem = {
-  readonly id: string;
-  readonly content: string;
-  readonly prefix: string;
+  id: string;
+  content: string;
+  prefix: string;
 };
 
 export type ChangelogRelease = {
-  readonly version: string;
-  readonly items: readonly ChangelogItem[];
+  version: string;
+  items: ChangelogItem[];
 };
 
 export type ChangelogDiffEvent = {
-  readonly detectedAt: string;
-  readonly version: string;
-  readonly type: 'items_changed' | 'version_removed';
-  readonly itemsAdded: readonly string[];
-  readonly itemsRemoved: readonly string[];
+  detectedAt: string;
+  version: string;
+  type: 'items_changed' | 'version_removed';
+  itemsAdded: string[];
+  itemsRemoved: string[];
 };
 
 export type RelatedDocument = {
-  readonly file: string;
-  readonly snippets: readonly string[];
+  file: string;
+  snippets: string[];
 };
 
 export type ChangelogInferenceInputItem = ChangelogItem & {
-  readonly relatedDocs: readonly RelatedDocument[];
+  relatedDocs: RelatedDocument[];
 };
 
 export type ChangelogInferenceInput = {
-  readonly version: string;
-  readonly items: readonly ChangelogInferenceInputItem[];
+  version: string;
+  items: ChangelogInferenceInputItem[];
 };
 
 export type InferenceExplanation = {
-  readonly before: string;
-  readonly after: string;
-  readonly benefit: string;
+  before: string;
+  after: string;
+  benefit: string;
 };
 
 export type ChangelogAiInferenceItem = {
-  readonly id: string;
-  readonly contentJa: string;
-  readonly inference: InferenceExplanation;
+  id: string;
+  contentJa: string;
+  inference: InferenceExplanation;
 };
 
 export type ChangelogAiTranslationItem = {
-  readonly id: string;
-  readonly contentJa: string;
+  id: string;
+  contentJa: string;
 };
 
 export type ChangelogAiFeatureAreaCorrection = {
-  readonly id: string;
-  readonly featureAreas: readonly string[];
+  id: string;
+  featureAreas: string[];
 };
 
 export type ChangelogAiResult = {
-  readonly inferredItems: readonly ChangelogAiInferenceItem[];
-  readonly translatedItems: readonly ChangelogAiTranslationItem[];
-  readonly featureAreaCorrections: readonly ChangelogAiFeatureAreaCorrection[];
-  readonly summary: string;
+  inferredItems: ChangelogAiInferenceItem[];
+  translatedItems: ChangelogAiTranslationItem[];
+  featureAreaCorrections: ChangelogAiFeatureAreaCorrection[];
+  summary: string;
 };
 
 export type ChangelogInferenceItem = ChangelogItem & {
-  readonly contentJa: string;
-  readonly featureAreas: readonly string[];
-  readonly relatedDocs: readonly RelatedDocument[];
-  readonly inference?: InferenceExplanation;
+  contentJa: string;
+  featureAreas: string[];
+  relatedDocs: RelatedDocument[];
+  inference?: InferenceExplanation;
 };
 
 export type ChangelogInference = {
-  readonly version: string;
-  readonly summary: string;
-  readonly items: readonly ChangelogInferenceItem[];
+  version: string;
+  summary: string;
+  items: ChangelogInferenceItem[];
 };
 
 export type ChangelogDiffRepository = {
-  saveAll(events: readonly ChangelogDiffEvent[]): Promise<void>;
+  saveAll(events: ChangelogDiffEvent[]): Promise<void>;
 };
 
 export type ChangelogInferenceRepository = {
@@ -139,8 +139,8 @@ export function mergeChangelogInference(
 }
 
 function assertItemIds(
-  expectedIds: readonly string[],
-  actualIds: readonly string[],
+  expectedIds: string[],
+  actualIds: string[],
   resultName: string,
 ): void {
   const expected = new Set(expectedIds);

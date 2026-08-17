@@ -33,7 +33,7 @@ export function createSettingsReferenceAi(
   gatewayId: string,
 ): SettingsReferenceAiPort {
   return {
-    async infer(input): Promise<readonly SettingsReferenceTranslation[]> {
+    async infer(input): Promise<SettingsReferenceTranslation[]> {
       const response = await ai.run(
         MODEL,
         {
@@ -173,7 +173,7 @@ export function buildSettingsReferencePrompt(
 
 function buildSchemaText(
   schemaDefault: string | undefined,
-  schemaEnum: readonly string[] | undefined,
+  schemaEnum: string[] | undefined,
 ): string {
   const parts: string[] = [];
   if (schemaDefault !== undefined) {

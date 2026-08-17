@@ -1,7 +1,7 @@
 declare const notificationFrequencyBrand: unique symbol;
 
 export type NotificationFrequency = ('IMM' | 'WEK') & {
-  readonly [notificationFrequencyBrand]: unknown;
+  [notificationFrequencyBrand]: unknown;
 };
 
 export function createNotificationFrequency(

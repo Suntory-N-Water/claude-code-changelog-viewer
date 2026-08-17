@@ -6,9 +6,9 @@ type SqliteRow = Record<string, unknown>;
 
 class FakeD1PreparedStatement implements D1PreparedStatement {
   constructor(
-    private readonly db: DatabaseSync,
-    private readonly query: string,
-    private readonly values: SQLQueryBindings[] = [],
+    private db: DatabaseSync,
+    private query: string,
+    private values: SQLQueryBindings[] = [],
   ) {}
 
   bind(...values: SQLQueryBindings[]) {
@@ -62,7 +62,7 @@ class FakeD1PreparedStatement implements D1PreparedStatement {
 }
 
 export class FakeD1Database {
-  private readonly db = new DatabaseSync(':memory:');
+  private db = new DatabaseSync(':memory:');
 
   constructor() {
     this.db.exec(`
@@ -198,7 +198,7 @@ export class FakeD1Database {
 }
 
 export class FakeDocsD1Database implements D1Database {
-  private readonly db = new DatabaseSync(':memory:');
+  private db = new DatabaseSync(':memory:');
 
   constructor() {
     this.db.exec(`

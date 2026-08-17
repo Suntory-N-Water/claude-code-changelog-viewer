@@ -1,7 +1,7 @@
 declare const discordWebhookUrlBrand: unique symbol;
 
 export type DiscordWebhookUrl = string & {
-  readonly [discordWebhookUrlBrand]: unknown;
+  [discordWebhookUrlBrand]: unknown;
 };
 
 const DISCORD_WEBHOOK_REGEX =

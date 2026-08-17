@@ -7,9 +7,9 @@ import type { SlackWebhookUrl } from './slack-webhook-url';
 
 /** リポジトリが通知先の重複検索に使うアドレス表現。 */
 export type ChannelAddress =
-  | { readonly type: 'DSC'; readonly value: DiscordWebhookUrl }
-  | { readonly type: 'SLK'; readonly value: SlackWebhookUrl }
-  | { readonly type: 'EML'; readonly value: EmailAddress };
+  | { type: 'DSC'; value: DiscordWebhookUrl }
+  | { type: 'SLK'; value: SlackWebhookUrl }
+  | { type: 'EML'; value: EmailAddress };
 
 /** Channel集約の永続化を抽象化するport。実装はinfrastructure層に置く。 */
 export type ChannelRepository = {
