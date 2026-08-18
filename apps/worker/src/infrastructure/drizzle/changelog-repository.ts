@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql, type SQL } from 'drizzle-orm';
+import { and, eq, sql, type SQL } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import {
   changelogDiffEventItems,
