@@ -1,5 +1,5 @@
 -- ローカル画面確認用の最小シード。
--- apps/worker/scripts/generate-seed.ts で本番 D1 から再生成できる。
+-- apps/worker/scripts/generate-seed.ts が src/db/schema.ts から生成する。
 
 DELETE FROM settings_official_docs;
 DELETE FROM settings_reference;

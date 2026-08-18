@@ -2,11 +2,24 @@ import { execFile } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import type { AnySQLiteTable } from 'drizzle-orm/sqlite-core';
+import { drizzle } from 'drizzle-orm/sqlite-proxy';
 import {
   buildChangelogSearchTerms,
   getLogger,
   PREFIX_ORDER,
 } from '@claude-code-changelog-viewer/common';
+import type { RemoteCallback } from 'drizzle-orm/sqlite-proxy';
+import {
+  changelogDiffEventItems,
+  changelogDiffEvents,
+  changelogItems,
+  changelogItemFeatureAreas,
+  changelogItemRelatedDocs,
+  changelogVersions,
+  settingsOfficialDocs,
+  settingsReference,
+} from '../src/db/schema';
 
 const execFileAsync = promisify(execFile);
 const logger = getLogger({ name: 'worker-seed-generator' });
@@ -14,15 +27,15 @@ const workerDirectory = fileURLToPath(new URL('..', import.meta.url));
 const seedPath = fileURLToPath(new URL('../seed/seed.sql', import.meta.url));
 type Row = Record<string, unknown>;
 
-const tableNames = {
-  versions: 'changelog_versions',
-  items: 'changelog_items',
-  featureAreas: 'changelog_item_feature_areas',
-  relatedDocs: 'changelog_item_related_docs',
-  diffEvents: 'changelog_diff_events',
-  diffEventItems: 'changelog_diff_event_items',
-  settings: 'settings_reference',
-  officialDocs: 'settings_official_docs',
+const tables = {
+  versions: changelogVersions,
+  items: changelogItems,
+  featureAreas: changelogItemFeatureAreas,
+  relatedDocs: changelogItemRelatedDocs,
+  diffEvents: changelogDiffEvents,
+  diffEventItems: changelogDiffEventItems,
+  settings: settingsReference,
+  officialDocs: settingsOfficialDocs,
 } as const;
 
 function rowText(row: Row, column: string): string {
@@ -62,11 +75,11 @@ function semverCompareDesc(a: string, b: string): number {
 }
 
 function itemKey(row: Row): string {
-  return `${rowText(row, 'version')}\u0000${rowText(row, 'item_id')}`;
+  return `${rowText(row, 'version')}\u0000${rowText(row, 'itemId')}`;
 }
 
 function eventKey(row: Row): string {
-  return `${rowText(row, 'version')}\u0000${rowText(row, 'detected_at')}`;
+  return `${rowText(row, 'version')}\u0000${rowText(row, 'detectedAt')}`;
 }
 
 function settingHasOfficialDocs(
@@ -80,13 +93,40 @@ function settingMatchesItem(setting: Row, item: Row): boolean {
   const content =
     rowText(item, 'content') +
     ' ' +
-    (hasValue(item, 'content_ja') ? String(rowValue(item, 'content_ja')) : '');
+    (hasValue(item, 'contentJa') ? String(rowValue(item, 'contentJa')) : '');
   return buildChangelogSearchTerms(rowText(setting, 'key')).some((term) =>
     content.includes(term),
   );
 }
 
-async function selectTable(tableName: string): Promise<Row[]> {
+function isRecord(value: unknown): value is Row {
+  return typeof value === 'object' && value !== null;
+}
+
+function parseD1Rows(output: string): unknown[][] {
+  const jsonStart = output.indexOf('[');
+  if (jsonStart === -1) {
+    throw new Error('wrangler の JSON 出力を解釈できません');
+  }
+  const parsed: unknown = JSON.parse(output.slice(jsonStart));
+  const first = Array.isArray(parsed) ? parsed[0] : parsed;
+  if (
+    !isRecord(first) ||
+    !Array.isArray(first.results) ||
+    !first.results.every(isRecord)
+  ) {
+    throw new Error('D1 の結果を解釈できません');
+  }
+  return first.results.map((row) =>
+    Object.keys(row).map((column) => row[column]),
+  );
+}
+
+// Node.js から本番 D1 binding は直接取得できないため、Drizzle の proxy を Wrangler CLI に接続する。
+const remoteQuery: RemoteCallback = async (query, params) => {
+  if (params.length > 0) {
+    throw new Error('seed generator の D1 クエリにパラメータはありません');
+  }
   const result = await execFileAsync(
     'pnpm',
     [
@@ -97,7 +137,7 @@ async function selectTable(tableName: string): Promise<Row[]> {
       'notification-db',
       '--remote',
       '--command',
-      `SELECT * FROM ${tableName}`,
+      query,
       '--json',
     ],
     {
@@ -105,26 +145,13 @@ async function selectTable(tableName: string): Promise<Row[]> {
       maxBuffer: 32 * 1024 * 1024,
     },
   );
+  return { rows: parseD1Rows(String(result.stdout)) };
+};
 
-  const output = String(result.stdout).trim();
-  const jsonStart = output.indexOf('[');
-  if (jsonStart === -1) {
-    throw new Error(`wrangler の JSON 出力を解釈できません: ${tableName}`);
-  }
-  const parsed: unknown = JSON.parse(output.slice(jsonStart));
-  const first = Array.isArray(parsed) ? parsed[0] : parsed;
-  if (
-    typeof first !== 'object' ||
-    first === null ||
-    !('results' in first) ||
-    !Array.isArray(first.results) ||
-    !first.results.every(
-      (row: unknown) => typeof row === 'object' && row !== null,
-    )
-  ) {
-    throw new Error(`D1 の結果を解釈できません: ${tableName}`);
-  }
-  return first.results as Row[];
+const db = drizzle(remoteQuery);
+
+async function selectTable(table: AnySQLiteTable): Promise<Row[]> {
+  return (await db.select().from(table).all()) as Row[];
 }
 
 function sqlValue(value: unknown): string {
@@ -146,27 +173,32 @@ function sqlValue(value: unknown): string {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
-function buildInsert(tableName: string, rows: Row[]): string {
-  const first = rows[0];
-  if (first === undefined) {
+function inlineParams(query: { sql: string; params: unknown[] }): string {
+  let parameterIndex = 0;
+  const sql = query.sql.replaceAll('?', () => {
+    const value = query.params[parameterIndex];
+    parameterIndex += 1;
+    return sqlValue(value);
+  });
+  if (parameterIndex !== query.params.length) {
+    throw new Error('Drizzle の SQL パラメータ数を解釈できません');
+  }
+  return sql;
+}
+
+function buildDelete(table: AnySQLiteTable): string {
+  return `${db.delete(table).toSQL().sql};`;
+}
+
+function buildInsert(table: AnySQLiteTable, rows: Row[]): string {
+  if (rows.length === 0) {
     return '';
   }
-  const columns = Object.keys(first);
-  const values = rows
-    .map(
-      (row) =>
-        `  (${columns.map((column) => sqlValue(row[column])).join(', ')})`,
-    )
-    .join(',\n');
-  return (
-    'INSERT INTO ' +
-    tableName +
-    ' (' +
-    columns.join(', ') +
-    ') VALUES\n' +
-    values +
-    ';'
-  );
+  const query = db
+    .insert(table)
+    .values(rows as never)
+    .toSQL();
+  return `${inlineParams(query)};`;
 }
 
 async function generateSeed(): Promise<void> {
@@ -181,14 +213,14 @@ async function generateSeed(): Promise<void> {
     settingRows,
     officialDocRows,
   ] = await Promise.all([
-    selectTable(tableNames.versions),
-    selectTable(tableNames.items),
-    selectTable(tableNames.featureAreas),
-    selectTable(tableNames.relatedDocs),
-    selectTable(tableNames.diffEvents),
-    selectTable(tableNames.diffEventItems),
-    selectTable(tableNames.settings),
-    selectTable(tableNames.officialDocs),
+    selectTable(tables.versions),
+    selectTable(tables.items),
+    selectTable(tables.featureAreas),
+    selectTable(tables.relatedDocs),
+    selectTable(tables.diffEvents),
+    selectTable(tables.diffEventItems),
+    selectTable(tables.settings),
+    selectTable(tables.officialDocs),
   ]);
 
   const sortedVersions = [...versionRows].sort((a, b) =>
@@ -205,7 +237,7 @@ async function generateSeed(): Promise<void> {
   for (const row of featureAreaRows) {
     const key = itemKey(row);
     const areas = featureAreasByItem.get(key) ?? new Set<string>();
-    areas.add(rowText(row, 'feature_area'));
+    areas.add(rowText(row, 'featureArea'));
     featureAreasByItem.set(key, areas);
   }
   const relatedDocKeys = new Set(relatedDocRows.map(itemKey));
@@ -234,18 +266,18 @@ async function generateSeed(): Promise<void> {
   for (const prefix of availablePrefixes.slice(0, 5)) {
     firstItem((row) => rowText(row, 'prefix') === prefix, `prefix=${prefix}`);
   }
-  firstItem((row) => hasValue(row, 'content_ja'), 'content_ja あり');
-  firstItem((row) => !hasValue(row, 'content_ja'), 'content_ja なし');
+  firstItem((row) => hasValue(row, 'contentJa'), 'content_ja あり');
+  firstItem((row) => !hasValue(row, 'contentJa'), 'content_ja なし');
   firstItem(
     (row) =>
-      ['inference_before', 'inference_after', 'inference_benefit'].every(
+      ['inferenceBefore', 'inferenceAfter', 'inferenceBenefit'].every(
         (column) => hasValue(row, column),
       ),
     'inference あり',
   );
   firstItem(
     (row) =>
-      !['inference_before', 'inference_after', 'inference_benefit'].every(
+      !['inferenceBefore', 'inferenceAfter', 'inferenceBenefit'].every(
         (column) => hasValue(row, column),
       ),
     'inference なし',
@@ -262,7 +294,7 @@ async function generateSeed(): Promise<void> {
   );
 
   const availableAreas = [
-    ...new Set(featureAreaRows.map((row) => rowText(row, 'feature_area'))),
+    ...new Set(featureAreaRows.map((row) => rowText(row, 'featureArea'))),
   ].sort();
   if (availableAreas.length < 3) {
     throw new Error('feature_areas が3種類未満です');
@@ -270,9 +302,9 @@ async function generateSeed(): Promise<void> {
   const itemKeysByArea = new Map<string, Set<string>>();
   for (const row of featureAreaRows) {
     const keys =
-      itemKeysByArea.get(rowText(row, 'feature_area')) ?? new Set<string>();
+      itemKeysByArea.get(rowText(row, 'featureArea')) ?? new Set<string>();
     keys.add(itemKey(row));
-    itemKeysByArea.set(rowText(row, 'feature_area'), keys);
+    itemKeysByArea.set(rowText(row, 'featureArea'), keys);
   }
   const pageArea = availableAreas.find(
     (area) => (itemKeysByArea.get(area)?.size ?? 0) >= 3,
@@ -317,7 +349,7 @@ async function generateSeed(): Promise<void> {
   addVersionWith((row) => !hasValue(row, 'summary'), 'summary なし');
 
   const officialDocKeys = new Set(
-    officialDocRows.map((row) => rowText(row, 'setting_key')),
+    officialDocRows.map((row) => rowText(row, 'settingKey')),
   );
   const selectedSettingKeys = new Set<string>();
   const addSetting = (row: Row | undefined, reason: string): void => {
@@ -352,10 +384,10 @@ async function generateSeed(): Promise<void> {
     'source=settings',
   );
   firstSetting((row) => rowText(row, 'source') === 'env', 'source=env');
-  firstSetting((row) => hasValue(row, 'leaf_name'), 'leaf_name あり');
-  firstSetting((row) => !hasValue(row, 'leaf_name'), 'leaf_name なし');
-  firstSetting((row) => hasValue(row, 'use_case_ja'), 'use_case_ja あり');
-  firstSetting((row) => !hasValue(row, 'use_case_ja'), 'use_case_ja なし');
+  firstSetting((row) => hasValue(row, 'leafName'), 'leaf_name あり');
+  firstSetting((row) => !hasValue(row, 'leafName'), 'leaf_name なし');
+  firstSetting((row) => hasValue(row, 'useCaseJa'), 'use_case_ja あり');
+  firstSetting((row) => !hasValue(row, 'useCaseJa'), 'use_case_ja なし');
   firstSetting(
     (row) => settingHasOfficialDocs(row, officialDocKeys),
     'official_doc_urls あり',
@@ -452,7 +484,7 @@ async function generateSeed(): Promise<void> {
     selectedSettingKeys.has(rowText(row, 'key')),
   );
   const selectedOfficialDocRows = officialDocRows.filter((row) =>
-    selectedSettingKeys.has(rowText(row, 'setting_key')),
+    selectedSettingKeys.has(rowText(row, 'settingKey')),
   );
   const selectedDiffEventRows = diffEventRows.filter((row) =>
     selectedEventKeys.has(eventKey(row)),
@@ -464,23 +496,23 @@ async function generateSeed(): Promise<void> {
   const sql = [
     '-- ローカル画面確認用。generate-seed.ts で本番 D1 から再生成する。',
     '',
-    'DELETE FROM settings_official_docs;',
-    'DELETE FROM settings_reference;',
-    'DELETE FROM changelog_item_related_docs;',
-    'DELETE FROM changelog_item_feature_areas;',
-    'DELETE FROM changelog_items;',
-    'DELETE FROM changelog_versions;',
-    'DELETE FROM changelog_diff_event_items;',
-    'DELETE FROM changelog_diff_events;',
+    buildDelete(tables.officialDocs),
+    buildDelete(tables.settings),
+    buildDelete(tables.relatedDocs),
+    buildDelete(tables.featureAreas),
+    buildDelete(tables.items),
+    buildDelete(tables.versions),
+    buildDelete(tables.diffEventItems),
+    buildDelete(tables.diffEvents),
     '',
-    buildInsert(tableNames.versions, selectedVersionRows),
-    buildInsert(tableNames.items, selectedItemRows),
-    buildInsert(tableNames.featureAreas, selectedFeatureAreaRows),
-    buildInsert(tableNames.relatedDocs, selectedRelatedDocRows),
-    buildInsert(tableNames.diffEvents, selectedDiffEventRows),
-    buildInsert(tableNames.diffEventItems, selectedDiffEventItemRows),
-    buildInsert(tableNames.settings, selectedSettingRows),
-    buildInsert(tableNames.officialDocs, selectedOfficialDocRows),
+    buildInsert(tables.versions, selectedVersionRows),
+    buildInsert(tables.items, selectedItemRows),
+    buildInsert(tables.featureAreas, selectedFeatureAreaRows),
+    buildInsert(tables.relatedDocs, selectedRelatedDocRows),
+    buildInsert(tables.diffEvents, selectedDiffEventRows),
+    buildInsert(tables.diffEventItems, selectedDiffEventItemRows),
+    buildInsert(tables.settings, selectedSettingRows),
+    buildInsert(tables.officialDocs, selectedOfficialDocRows),
   ]
     .filter((statement) => statement.length > 0)
     .join('\n\n');
