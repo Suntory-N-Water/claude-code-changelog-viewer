@@ -34,7 +34,7 @@ Everything that makes Claude Code powerful is available in the SDK.
 | MCP | Connect external tools and data sources via the Model Context Protocol | [MCP](/docs/en/agent-sdk/mcp) |
 | Permissions | Control which tools run automatically, which need approval | [Permissions](/docs/en/agent-sdk/permissions) |
 | Sessions | Maintain context across exchanges, resume or fork later | [Sessions](/docs/en/agent-sdk/sessions) |
-| Skills, commands, and memory | Load automatically from your project's `.claude/` and from `~/.claude/`, same as Claude Code | [Skills](/docs/en/agent-sdk/skills), [Commands](/docs/en/agent-sdk/slash-commands), [Memory](/docs/en/agent-sdk/modifying-system-prompts), [Configuration loading](/docs/en/agent-sdk/claude-code-features) |
+| Skills, commands, and memory | Load automatically from your project's `.claude/` and from `~/.claude/`, same as Claude Code | [Skills](/docs/en/agent-sdk/skills), [Commands](/docs/en/agent-sdk/skills#commands-in-agent-sdk-sessions), [Memory](/docs/en/agent-sdk/modifying-system-prompts), [Configuration loading](/docs/en/agent-sdk/claude-code-features) |
 | Plugins | Package skills, agents, hooks, and MCP servers, and load them by local path | [Plugins](/docs/en/agent-sdk/plugins) |
 
 ## Get started
