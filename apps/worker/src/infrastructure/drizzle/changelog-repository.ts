@@ -89,25 +89,17 @@ export async function findChangelogVersion(
   };
 }
 
-export async function listChangelogVersions(
-  db: DrizzleD1Database,
-  params: { offset: number; limit: number },
-) {
+export async function listChangelogVersions(db: DrizzleD1Database) {
   return db
     .select({
       version: changelogVersions.version,
       summary: changelogVersions.summary,
     })
     .from(changelogVersions)
-    .orderBy(changelogVersions.version)
-    .limit(params.limit)
-    .offset(params.offset);
+    .orderBy(changelogVersions.version);
 }
 
-export async function findChangelogItemsByVersions(
-  db: DrizzleD1Database,
-  versions: string[],
-) {
+export async function listChangelogItems(db: DrizzleD1Database) {
   return db
     .select({
       version: changelogItems.version,
@@ -120,14 +112,10 @@ export async function findChangelogItemsByVersions(
       inferenceBenefit: changelogItems.inferenceBenefit,
     })
     .from(changelogItems)
-    .where(inArray(changelogItems.version, versions))
     .orderBy(sql`rowid`);
 }
 
-export async function findFeatureAreasByVersions(
-  db: DrizzleD1Database,
-  versions: string[],
-) {
+export async function listFeatureAreas(db: DrizzleD1Database) {
   return db
     .select({
       version: changelogItemFeatureAreas.version,
@@ -135,7 +123,6 @@ export async function findFeatureAreasByVersions(
       featureArea: changelogItemFeatureAreas.featureArea,
     })
     .from(changelogItemFeatureAreas)
-    .where(inArray(changelogItemFeatureAreas.version, versions))
     .orderBy(
       changelogItemFeatureAreas.version,
       changelogItemFeatureAreas.itemId,
@@ -143,10 +130,7 @@ export async function findFeatureAreasByVersions(
     );
 }
 
-export async function findRelatedDocsByVersions(
-  db: DrizzleD1Database,
-  versions: string[],
-) {
+export async function listRelatedDocs(db: DrizzleD1Database) {
   return db
     .select({
       version: changelogItemRelatedDocs.version,
@@ -154,7 +138,6 @@ export async function findRelatedDocsByVersions(
       docPath: changelogItemRelatedDocs.docPath,
     })
     .from(changelogItemRelatedDocs)
-    .where(inArray(changelogItemRelatedDocs.version, versions))
     .orderBy(
       changelogItemRelatedDocs.version,
       changelogItemRelatedDocs.itemId,
