@@ -177,7 +177,7 @@ See note 4
 See note 4
 
 1 On Google Cloud's Agent Platform, web search is available for Claude 4 models and later.
-2 On these providers, auto mode supports only Claude Sonnet 5, Opus 4.7 or later, and Fable 5. See [Auto mode configuration](/docs/en/auto-mode-config). In v2.1.158 through v2.1.206, auto mode on these providers also required setting `CLAUDE_CODE_ENABLE_AUTO_MODE=1`; v2.1.207 removed the requirement.
+2 On these providers, auto mode supports only Claude Sonnet 5, Opus 4.7 or later, and Fable 5. See [Auto mode configuration](/docs/en/auto-mode-config). The built-in starting permission mode on these providers is Manual. See [which mode a session starts in](/docs/en/permission-modes#which-mode-a-session-starts-in). In v2.1.158 through v2.1.206, auto mode on these providers also required setting `CLAUDE_CODE_ENABLE_AUTO_MODE=1`; v2.1.207 removed the requirement.
 3 Explicit intervals such as `/loop every 2 hours` work on every provider. On Amazon Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, and Microsoft Foundry, `/loop` cannot pick its own interval or supply the default maintenance prompt, so a prompt with no interval runs every 10 minutes, and `/loop` with no arguments shows the usage message. See [Scheduled tasks](/docs/en/scheduled-tasks).
 4 Subject to your agreement with the cloud provider.
 5 Dashboard and API only. [Contribution metrics](/docs/en/analytics#enable-contribution-metrics) requires a claude.ai Team or Enterprise organization.
