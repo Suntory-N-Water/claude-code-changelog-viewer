@@ -1,0 +1,500 @@
+{
+  "version": "2.1.235",
+  "summary": "権限確認ダイアログにおいて、表示される文言と「次回から確認しない」がカバーする実際の承認範囲が厳密に一致するようになり、情報が表示しきれない場合は自動許可のオプションが非表示になります。また、`/ultrareview` などのクラウドセッションがバックグラウンドで動作している際のメモリやCPUの無駄な消費が抑制され、VS Codeの再起動やリロード時に開いているClaudeタブ間で勝手にフォーカスが移動する不具合も修正されました。",
+  "items": [
+    {
+      "id": "f81031255394",
+      "content": "- Added an optional `spellcheck` setting that underlines misspelled words in the prompt input as you type, using your installed `aspell`, `hunspell`, or `ispell`",
+      "content_ja": "プロンプト入力時に入力されたスペルミスのある単語に下線を引く、オプションのスペルチェック設定を追加した",
+      "prefix": "Added",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "プロンプトを入力する際、スペルミスがあっても画面上で強調表示されないため、送信するまで誤字に気づきにくい状況だった",
+        "after": "利用環境にインストールされている aspell、hunspell、または ispell を使用して、入力中のスペルミスのある単語の下にリアルタイムで下線が表示されるようになる",
+        "benefit": "プロンプト内の誤字やタイポに送信する前に気づくことができるようになる"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "オプションの設定項目であり、ユーザー自身がオプトインする必要があるため影響は限定的です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/python.md"
+        }
+      ]
+    },
+    {
+      "id": "f7f57b8f72b9",
+      "content": "- Fixed whole-prompt-cache invalidation when a language server disconnected or reconnected mid-session",
+      "content_ja": "セッションの途中で言語サーバー（LSP）が切断または再接続した際に、プロンプト全体のキャッシュが無効化されてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "切断・再接続時のプロンプトキャッシュ無効化を防ぐことで、一部環境でのレスポンス速度とコスト効率が改善されます。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "f3fbe226f432",
+      "content": "- Fixed nested markdown list items misaligning at depth 3+ and added a hanging indent to wrapped list items in the terminal UI",
+      "content_ja": "ネストされたマークダウンのリスト項目が深さ3以上で位置ずれする問題を修正し、ターミナルUIで折り返されたリスト項目にぶら下げインデントを追加した",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ターミナルUI上で深い階層構造を持つマークダウンのリストを表示した際、インデントが崩れたり、長い行が折り返された時にリストの先頭位置が揃わなくなったりして視認性が低下していた",
+        "after": "深さ3以上のネストでもリスト項目が正しく整列し、折り返されたテキストにも適切なぶら下げインデントが適用されてきれいに整形表示されるようになる",
+        "benefit": "ターミナル画面上で複雑なリスト構造をストレスなく読み取ることができるようになる"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ターミナル上でのマークダウンリストのレイアウト崩れを防ぐ軽微なUI改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        }
+      ]
+    },
+    {
+      "id": "acc0d92bcf1d",
+      "content": "- Fixed prompt input highlights (slash commands, keywords, mentions) appearing shifted by one or more characters in some multi-line prompts",
+      "content_ja": "複数行のプロンプトにおいて、スラッシュコマンド、キーワード、メンションなどのハイライト表示が1文字以上ずれて表示される問題を修正した",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "長文や複数行にわたるプロンプトを入力する際、コマンドや @メンションの文字色ハイライトの位置が本来の文字列から横にずれてしまい、入力内容が視覚的に確認しづらかった",
+        "after": "プロンプトが複数行になっても、スラッシュコマンドや各種キーワード、メンションのハイライト位置が正確に一致して表示されるようになる",
+        "benefit": "入力中のコマンドや参照ファイルが正しく認識されているかをひと目で確認できるようになる"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "複数行プロンプトでのハイライト位置のバグを修正するものであり、表示上の利便性改善に留まります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "8b873852d285",
+      "content": "- Fixed Shift+Tab inside the permission prompt's comment field approving the edit and granting session-wide edit permission instead of closing the field",
+      "content_ja": "権限プロンプトのコメント入力フィールド内で Shift+Tab を押した際、フィールドを閉じる代わりに編集を承認してセッション全体の編集権限を付与してしまう問題を修正した",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "編集権限を求めるプロンプトのコメント入力欄でキーボード操作を行う際、Shift+Tab を押すと入力欄が閉じずに変更が勝手に承認され、意図しないセッション全体への編集許可が与えられていた",
+        "after": "コメント入力欄で Shift+Tab を押した場合は、編集の承認や権限の自動付与を行わず、適切に入力欄を閉じる挙動になる",
+        "benefit": "キーボード操作の押し間違えによって意図しないファイル編集の全許可を与えてしまう心配がなくなる"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "意図しない権限の自動承認というセキュリティ・権限管理に直結する誤動作を修正する重要な変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-configuration.md"
+        }
+      ]
+    },
+    {
+      "id": "aabc41ceeaee",
+      "content": "- Fixed the Agent tool advertising a general-purpose default in sessions where that agent is unavailable: an omitted `subagent_type` there now gets a clear error listing the available agents",
+      "content_ja": "エージェントが利用できないセッションにおいて、Agentツールが汎用的なデフォルトエージェントを提示する問題を修正し、`subagent_type`が省略された場合に利用可能なエージェントの一覧を示す明確なエラーを返すように変更した",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "必要なエージェントが起動できないセッションでAgentツールを呼び出した際、存在しない、または利用できない汎用エージェントを誤って提示し、エラーの根本原因が分かりにくかった",
+        "after": "対象のエージェントが利用できない場合は、省略された `subagent_type` を検知して、現在有効なエージェントを一覧表示する親切なエラーメッセージを表示するようになる",
+        "benefit": "サブエージェントの設定ミスが発生した際、どのエージェント名を指定すればよいか即座に判断できるようになる"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "サブエージェントが見つからない際のエラー処理の改善であり、特定の機能制限時のみ発生します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/subagents.md"
+        }
+      ]
+    },
+    {
+      "id": "2dc0ff0eddf2",
+      "content": "- Fixed notebook cell delete/replace approval dialogs silently omitting the existing cell content when the notebook or cell could not be read; the dialog now says why",
+      "content_ja": "ノートブックやセルを読み込めない場合、ノートブックのセル削除・置換承認ダイアログが既存のセル内容を何も説明せず省略していた問題を修正し、理由を表示するように変更した",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Jupyterノートブックのファイルを読み込めないエラーが発生した際、セルの置換や削除を確認するダイアログに既存セルのコンテンツが表示されず、なぜ中身が空なのか原因が分からなかった",
+        "after": "読み込み失敗などの問題が発生した場合には、承認ダイアログ内に「なぜセル内容を表示できないのか」の具体的な理由がテキストで明記されるようになる",
+        "benefit": "セルの変更や削除を承認する前に、ファイル読み込みエラーなどの問題を把握して安全に操作を判断できるようになる"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Jupyterノートブックのエラー発生時の警告ダイアログにおける説明不足を補う軽微な改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/python.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        }
+      ]
+    },
+    {
+      "id": "5f23b7f7fd95",
+      "content": "- Fixed slash commands run while Claude is responding showing HTML entities instead of the actual characters",
+      "content_ja": "Claudeが応答している最中に実行されたスラッシュコマンドにおいて、実際の文字の代わりにHTMLエンティティが表示されてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "応答中にスラッシュコマンドを実行した際の表示の乱れを直す、エッジケースのバグ修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "27ee021869e5",
+      "content": "- Fixed the prompt footer not showing the \"Update installed\" restart notice after a background auto-update",
+      "content_ja": "バックグラウンドでの自動アップデート完了後に、プロンプトのフッターに「アップデートがインストールされました」という再起動の通知が表示されない問題を修正した",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "裏側で新しいバージョンのダウンロードとインストールが正常に完了していても、ターミナル画面上に再起動を促す案内が表示されず、アップデートが完了したことに気づきにくかった",
+        "after": "バックグラウンドでの自動アップデートが完了すると、次のプロンプト入力領域のフッター部分に再起動を促す明確なメッセージが表示されるようになる",
+        "benefit": "最新機能やバグ修正を適用するための再起動タイミングを逃さずに把握できるようになる"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "自動アップデート完了時の再起動メッセージが表示されない不具合を解消する表示系の修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        }
+      ]
+    },
+    {
+      "id": "1ce83b312958",
+      "content": "- Fixed the expanded task list (`ctrl+t`) always starting collapsed when resuming or relaunching into a session that still has open tasks",
+      "content_ja": "未完了のタスクが残っているセッションを再開または再起動した際、展開されていたタスクリスト（`ctrl+t`）が常に折りたたまれた状態で開始する問題を修正した",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "タスクを残したままセッションに再接続したりアプリを起動し直したりした際、前回せっかく展開していたタスクリストの表示がリセットされ、毎回手動でリストを開き直す必要があった",
+        "after": "未完了タスクが存在するセッションを復元・再開した際、展開状態が引き継がれ、タスクリストが開いた状態でセッションが開始するようになる",
+        "benefit": "セッション再開時に毎回手動でタスクリストを展開し直す手間が省ける"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "セッション再開時に毎回タスクリストが閉じてしまう使い勝手の悪さを修正するものです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "12d0a34b8092",
+      "content": "- Improved memory and CPU usage while cloud sessions such as `/ultrareview` or `/autofix-pr` run in the background — their event streams are no longer re-scanned and re-rendered on every update",
+      "content_ja": "`/ultrareview` や `/autofix-pr` などのクラウドセッションがバックグラウンドで実行されている間のメモリとCPUの使用率を改善し、更新ごとにイベントストリームを再スキャンおよび再レンダリングしないように変更した",
+      "prefix": "Improved",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "大規模なコードレビューやプルリクエストの自動修正などを裏で走らせている際、情報の更新があるたびにイベントの履歴全体を最初から走査して画面を描画し直していたため、無駄な負荷がかかり動作が重くなっていた",
+        "after": "更新が発生しても差分のみを効率的に処理し、イベントストリーム全体を何度も再スキャン・再描画しない仕組みに最適化される",
+        "benefit": "重いバックグラウンドタスクが動作している間も、PCのファンが回り続けたりエディタの動作が重くなったりするのを防ぐことができる"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "バックグラウンドで動作するクラウドセッション全体のメモリとCPU使用率を最適化する大きな改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w15.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/index.md"
+        }
+      ]
+    },
+    {
+      "id": "f9df7731eab9",
+      "content": "- Improved permission dialogs: display text and \"don't ask again\" options now always match what a grant would cover, and \"don't ask again\" is withheld when contents cannot be fully displayed",
+      "content_ja": "権限確認ダイアログの改善を行い、表示されるテキストと「次回から確認しない」の選択肢が実際に許可される範囲と常に一致するようにし、内容を完全に表示しきれない場合は「次回から確認しない」のオプションを表示しないように変更した",
+      "prefix": "Improved",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "権限を許可する際のダイアログ表示において、「今後確認しない」を選択した際に実際に適用される許可範囲と画面の説明が微妙にずれていたり、情報がはみ出して読めない状態でもチェックボックスが選択できたりして誤操作に繋がりやすかった",
+        "after": "画面上の文言と適用される許可ルールが厳密に一致し、内容が収まりきらない場合には安易な自動許可を避けるためチェックボックスを非表示にするように制御される",
+        "benefit": "意図しないファイル書き込みやコマンド実行の自動許可を未然に防ぎ、安全に開発を進められるようになる"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "権限確認ダイアログの表示と自動承認の適用範囲の不一致を是正する、重要な安全性の改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/python.md"
+        }
+      ]
+    },
+    {
+      "id": "96f01d0406ca",
+      "content": "- Improved the embedded `grep` in native macOS/Linux builds: pathological patterns now fail fast instead of exhausting memory, and `-m N` with `-A/-C` prints correct context",
+      "content_ja": "macOSおよびLinuxのネイティブビルドに組み込まれている `grep` ツールを改善し、非効率なパターンが指定された場合にメモリを使い果たす前に即座に失敗するようにし、`-m N` オプションと `-A` または `-C` オプションを併用した際に正しいコンテキスト行数を出力するように修正した",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "複雑すぎる、または処理の重い正規表現パターンで検索を実行した際、プロセスがメモリを大量に消費してフリーズすることがあり、検索マッチ数制限と前後行表示オプションを組み合わせた時に表示される行数が不正確になる問題があった",
+        "after": "負荷の高い検索パターンはメモリが枯渇する前に高速に中断してエラーを返し、検索の最大ヒット数制限と前後の行（Context）表示を同時に指定しても仕様通り正しい行数がターミナルに出力されるようになる",
+        "benefit": "暴走する検索処理によって開発ツール全体がクラッシュするのを防ぎ、正しいコンテキスト情報からコードを素早く探索できるようになる"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "組み込みgrepの暴走によるメモリ枯渇を防ぎ、オプション指定時の検索精度を向上させます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "e8e1ed242c8f",
+      "content": "- Improved the context-limit error to say when auto-compact is off and point to `/config` to re-enable it",
+      "content_ja": "コンテキスト制限エラーが発生した際、自動要約（auto-compact）機能がオフになっていることを明記し、`/config` を使って再有効化を促すメッセージを表示するように改善した",
+      "prefix": "Improved",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "会話履歴や読み込んだファイルがモデルの制限上限（コンテキストウィンドウ）を超えた際、自動要約機能が無効化されているのが原因であっても単に上限エラーとしか表示されず、どう対処すべきか分かりにくかった",
+        "after": "エラーメッセージ内で「自動要約機能が現在オフになっている」事実を伝え、設定画面である `/config` から簡単に再有効化できる案内が提示されるようになる",
+        "benefit": "コンテキスト上限に達して会話が中断してしまった際に、どのように設定を直せば自動要約で会話を続行できるか即座に分かるようになる"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "コンテキスト上限エラー時の原因が明確になり、設定の案内が提示されるようになる有用な改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/context-window.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        }
+      ]
+    },
+    {
+      "id": "47af747d9b8e",
+      "content": "- Vim mode: NORMAL mode and cursor position are now preserved when toggling the detailed transcript (ctrl+o) or closing a panel",
+      "content_ja": "Vimモードにおいて、詳細な会話履歴（`ctrl+o`）の表示切り替えやパネルを閉じた際に、NORMALモードの状態とカーソル位置が維持されるように変更した",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Vimキーバインドを使用している際、詳細な会話履歴（トランスクリプト）画面を開閉したりパネルを閉じたりすると、それまでNORMALモードにしていた設定やカーソルがあった行位置がリセットされてしまい、入力のたびに操作し直す必要があった",
+        "after": "どのようなパネルの開閉操作を行っても、VimのNORMALモードの状態と直前のカーソル位置が完全に保持されるようになる",
+        "benefit": "Vimモードでの入力作業中に画面の切り替えを行っても、モードや入力位置が崩れずスムーズにコーディングを再開できるようになる"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Vimキーバインドを使用する開発者にとって、表示切り替えで状態がリセットされない重要な操作性改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "ba436d3adc86",
+      "content": "- Dialogs: arrow keys and Enter pressed in quick succession now select the option you navigated to instead of the previously highlighted one",
+      "content_ja": "ダイアログ操作において、矢印キーとEnterキーを素早く連続して押した際、直前に強調表示されていた選択肢ではなく、移動先の選択肢が正しく選択されるように変更した",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "権限ダイアログなどでキーボードの矢印キーを連打して選択肢を素早く切り替え、すぐにEnterキーを押すと、一瞬前にフォーカスがあたっていた古い方のボタンが決定されてしまう問題があった",
+        "after": "キー入力の反応速度が向上し、Enterキーを押した瞬間に確実に選択されている選択肢がそのまま実行されるようになる",
+        "benefit": "矢印キーでの高速な選択操作を行った際の決定ミスや、意図しないボタンの誤入力を防ぐことができる"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ダイアログでの素早い矢印キーとEnter操作の連打による決定ミスを防ぐ操作応答の改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/checkpointing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/accessibility.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        }
+      ]
+    },
+    {
+      "id": "a7ea6304d1d7",
+      "content": "- `SendMessage` now refuses messages too large for cross-session delivery up front instead of silently dropping them",
+      "content_ja": "`SendMessage` ツールにおいて、クロスセッション配信の許容サイズを超えるメッセージについて、サイレントに破棄するのではなく、送信を試みる段階でエラーを返して拒否するように変更した",
+      "prefix": "Changed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "他の独立したClaude Codeセッションにメッセージを送信する際、上限サイズを超える巨大なデータを送ろうとすると、ツール側で何もエラーを出さずにメッセージが途中で消えてしまっていたため、送信できたかどうかが分からなかった",
+        "after": "送信ボタンを押したりツールを実行したりした段階でサイズ上限チェックが走り、制限を超える大容量メッセージは送信前にエラーとして明示的に弾かれるようになる",
+        "benefit": "相手のセッションにメッセージが届いていないことに気づかないまま、作業の返信を待ち続けてしまう時間をなくすことができる"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "サイズ超過メッセージを送信前にエラーとして弾くようになり、サイレントな通信失敗を防ぎます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        }
+      ]
+    },
+    {
+      "id": "43ad925ce26e",
+      "content": "- Remote Control: `claude rc` now applies the same enterprise-gateway availability check as interactive startup",
+      "content_ja": "リモートコントロール機能において、`claude rc` コマンド実行時にもインタラクティブ起動時と同様のエンタープライズ・ゲートウェイ接続性のチェックを適用するように変更した",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "社内ネットワークプロキシやカスタムAPIエンドポイントを経由している環境で `claude rc` コマンドを実行した際、非互換性チェックが事前に行われず、接続確立に失敗した後のエラー解析が難しかった",
+        "after": "リモート接続を開始する際にも、社内のLLMゲートウェイ設定などをあらかじめ検証し、利用できない環境であれば起動時に即座に分かりやすい警告が表示されるようになる",
+        "benefit": "企業内ネットワークでの制限や設定ミスによるリモート接続エラーを、起動段階で即座に発見して対処できるようになる"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "リモートコントロール開始時にも企業用ゲートウェイの接続検証を強制するようにしたセキュリティ・インフラ管理の強化です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-connect.md"
+        }
+      ]
+    },
+    {
+      "id": "1d195a554a28",
+      "content": "- [VSCode] Fixed focus jumping between open Claude tabs on its own when a window with several Claude panels is restored or reloaded",
+      "content_ja": "VS Codeにおいて、複数のClaudeパネルを開いているウィンドウを復元またはリロードした際、開いているClaudeタブ間でフォーカスが勝手に移動してしまう問題を修正した",
+      "prefix": "Fixed",
+      "feature_areas": ["IDE"],
+      "inference": {
+        "before": "VS Codeのウィンドウをリロードしたり再起動したりした際、エディタ内に並べて開いていた複数のClaude Code会話タブの間でカーソルのフォーカスが自動的にあちこち飛び移ってしまい、直前の作業位置を見失っていた",
+        "after": "エディタウィンドウを復元した際にも、各パネルのフォーカス位置がリロード前の正しい状態でそのまま保持されるようになる",
+        "benefit": "VS Codeの再起動やウィンドウ復元を行った直後も、フォーカスが乱れることなく作業を継続できるようになる"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "VS Code内の複数パネルを復元した際のフォーカス暴走を抑える不具合修正であり、IDE利用者の体験を安定させます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    }
+  ]
+}
