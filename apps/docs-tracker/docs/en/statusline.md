@@ -182,8 +182,9 @@ Claude Code sends the following JSON fields to your script via stdin:
 | `output_style.name` | Name of the current output style |
 | `vim.mode` | Current vim mode (`NORMAL`, `INSERT`, `VISUAL`, or `VISUAL LINE`) when [vim mode](/docs/en/interactive-mode#vim-editor-mode) is enabled |
 | `agent.name` | Agent name when running with the `--agent` flag or agent settings configured |
-| `pr.number`, `pr.url` | Open pull request for the current branch. Mirrors the PR badge in the bottom status bar. Absent until a PR is found, when not in a git repository, or once the PR merges or closes |
+| `pr.number`, `pr.url` | Open pull request for the current branch. Mirrors the PR badge in the footer. In a repository with a GitLab remote, Claude Code fills these fields from the branch's open [merge request](/docs/en/interactive-mode#gitlab-merge-requests) instead, so `pr.number` is the merge request number. Merge request data requires Claude Code v2.1.234 or later. Absent when not in a git repository, until a pull request or merge request is found, or once it merges or closes |
 | `pr.review_state` | Review status of the open PR: `approved`, `pending`, `changes_requested`, or `draft`. May be independently absent even when `pr` is present |
+| `pr.kind` | `mr` when `pr` describes a [GitLab merge request](/docs/en/interactive-mode#gitlab-merge-requests). Absent for GitHub pull requests, so scripts written before this field keep working. For a merge request, Claude Code sets `review_state` to `approved` when GitLab reports it mergeable, `pending` for any other open state, and `draft` for a draft. Requires Claude Code v2.1.234 or later |
 | `worktree.name` | Name of the active worktree. Present only during `--worktree` sessions |
 | `worktree.path` | Absolute path to the worktree directory |
 | `worktree.branch` | Git branch name for the worktree (for example, `"worktree-my-feature"`). Absent for hook-based worktrees |
@@ -286,7 +287,7 @@ Your status line command receives this JSON structure via stdin:
 - `effort`: appears only when the current model supports the reasoning effort parameter
 - `vim`: appears only when vim mode is enabled
 - `agent`: appears only when running with the `--agent` flag or agent settings configured
-- `pr`: appears only while an open PR is found for the current branch, and is removed once the PR merges or closes. `pr.review_state` may be independently absent
+- `pr`: appears only while an open PR or GitLab merge request is found for the current branch, and is removed once it merges or closes. `pr.review_state` and `pr.kind` may be independently absent
 - `worktree`: appears only during `--worktree` sessions. When present, `branch` and `original_branch` may also be absent for hook-based worktrees
 - `rate_limits`: appears only for Claude.ai subscribers (Pro/Max) after the first API response in the session. Each window (`five_hour`, `seven_day`) may be independently absent. Use `jq -r '.rate_limits.five_hour.used_percentage // empty'` to handle absence gracefully.
 
@@ -1040,7 +1041,7 @@ Community projects like [ccstatusline](https://github.com/sirmalloc/ccstatusline
 
 **Workspace trust required**
 
-- Because `statusLine` executes a shell command, Claude Code runs it under the same [workspace trust rule as hooks in settings files](/docs/en/permissions#what-runs-before-you-trust-a-folder). Accepting the dialog for the folder or one of its parent directories is enough.
+- Because `statusLine` executes a shell command, Claude Code runs it under the same [workspace trust rule as hooks in settings files](/docs/en/permissions#what-runs-before-you-trust-a-folder). Accepting the dialog for the folder, or for a parent directory whose trust extends to it, is enough.
 - Until then, the status line stays blank, and `claude --debug` logs `Status line command skipped: workspace trust not accepted`. Restart Claude Code and accept the trust dialog to enable it.
 
 **Script errors or hangs**
