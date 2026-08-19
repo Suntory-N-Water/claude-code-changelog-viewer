@@ -3,7 +3,6 @@ import type { Loader } from 'astro/loaders';
 
 const SITE_DATA_ORIGIN =
   process.env.SITE_DATA_ORIGIN ?? 'https://claude-code-log.com';
-const CHANGELOG_PAGE_SIZE = 50;
 
 type ChangelogResponse = {
   versions: {
@@ -23,7 +22,6 @@ type ChangelogResponse = {
       };
     }[];
   }[];
-  hasMore: boolean;
 };
 
 type SettingsResponse = {
@@ -63,44 +61,44 @@ async function fetchSiteData<T>(path: string): Promise<T> {
 export const changelogLoader: Loader = {
   name: 'site-data-changelog',
   async load({ store, parseData }) {
-    store.clear();
-
-    for (let offset = 0; ; offset += CHANGELOG_PAGE_SIZE) {
-      const response = await fetchSiteData<ChangelogResponse>(
-        `/api/site-data/changelog?offset=${offset}&limit=${CHANGELOG_PAGE_SIZE}`,
+    if (process.env.SITE_DATA_SKIP_FETCH) {
+      console.warn(
+        'SITE_DATA_SKIP_FETCH が設定されているため、サイトデータの取得を省略します',
       );
-      for (const version of response.versions) {
-        const id = `v${version.version}`;
-        const data = await parseData({
-          id,
-          data: {
-            version: version.version,
-            ...(version.summary === undefined
-              ? {}
-              : { summary: version.summary }),
-            items: version.items.map((item) => ({
-              id: item.id,
-              content: item.content,
-              ...(item.content_ja === undefined
-                ? {}
-                : { content_ja: item.content_ja }),
-              prefix: item.prefix,
-              feature_areas: item.feature_areas,
-              related_docs: item.related_docs.map(({ doc_path }) => ({
-                file: `docs/en/${doc_path}`,
-              })),
-              ...(item.inference === undefined
-                ? {}
-                : { inference: item.inference }),
-            })),
-          },
-        });
-        store.set({ id, data });
-      }
+      return;
+    }
 
-      if (!response.hasMore) {
-        break;
-      }
+    store.clear();
+    const response = await fetchSiteData<ChangelogResponse>(
+      '/api/site-data/changelog',
+    );
+    for (const version of response.versions) {
+      const id = `v${version.version}`;
+      const data = await parseData({
+        id,
+        data: {
+          version: version.version,
+          ...(version.summary === undefined
+            ? {}
+            : { summary: version.summary }),
+          items: version.items.map((item) => ({
+            id: item.id,
+            content: item.content,
+            ...(item.content_ja === undefined
+              ? {}
+              : { content_ja: item.content_ja }),
+            prefix: item.prefix,
+            feature_areas: item.feature_areas,
+            related_docs: item.related_docs.map(({ doc_path }) => ({
+              file: `docs/en/${doc_path}`,
+            })),
+            ...(item.inference === undefined
+              ? {}
+              : { inference: item.inference }),
+          })),
+        },
+      });
+      store.set({ id, data });
     }
   },
 };
@@ -108,6 +106,13 @@ export const changelogLoader: Loader = {
 export const settingsReferenceLoader: Loader = {
   name: 'site-data-settings-reference',
   async load({ store, parseData }) {
+    if (process.env.SITE_DATA_SKIP_FETCH) {
+      console.warn(
+        'SITE_DATA_SKIP_FETCH が設定されているため、サイトデータの取得を省略します',
+      );
+      return;
+    }
+
     store.clear();
     const response = await fetchSiteData<SettingsResponse>(
       '/api/site-data/settings',
@@ -132,6 +137,13 @@ export const settingsReferenceLoader: Loader = {
 export const diffLoader: Loader = {
   name: 'site-data-diff',
   async load({ store, parseData }) {
+    if (process.env.SITE_DATA_SKIP_FETCH) {
+      console.warn(
+        'SITE_DATA_SKIP_FETCH が設定されているため、サイトデータの取得を省略します',
+      );
+      return;
+    }
+
     store.clear();
     const response = await fetchSiteData<DiffResponse>('/api/site-data/diff');
 

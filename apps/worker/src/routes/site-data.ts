@@ -1,21 +1,15 @@
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
-import { z } from 'zod';
 import {
-  findChangelogItemsByVersions,
-  findFeatureAreasByVersions,
-  findRelatedDocsByVersions,
   listAllOfficialDocs,
+  listChangelogItems,
   listChangelogVersions,
   listDiffEventItems,
   listDiffEvents,
+  listFeatureAreas,
+  listRelatedDocs,
   listSettingsReference,
 } from '../infrastructure/drizzle/changelog-repository';
-
-const ChangelogQuerySchema = z.object({
-  offset: z.coerce.number().int().min(0).default(0),
-  limit: z.coerce.number().int().min(1).max(50).default(50),
-});
 
 export const siteDataRoute = new Hono<{
   Bindings: CloudflareBindings;
@@ -34,32 +28,14 @@ siteDataRoute.use('*', async (c, next) => {
 });
 
 siteDataRoute.get('/changelog', async (c) => {
-  const parseResult = ChangelogQuerySchema.safeParse(c.req.query());
-  if (!parseResult.success) {
-    return c.json({ error: 'クエリパラメータが不正です' }, 400);
-  }
-
-  const { offset, limit } = parseResult.data;
   const db = drizzle(c.env.DB);
-  const versionRows = await listChangelogVersions(db, {
-    offset,
-    limit: limit + 1,
-  });
-  const pageRows = versionRows.slice(0, limit);
-  const versions = pageRows.map((row) => row.version);
-
-  let itemRows: Awaited<ReturnType<typeof findChangelogItemsByVersions>> = [];
-  let featureAreaRows: Awaited<ReturnType<typeof findFeatureAreasByVersions>> =
-    [];
-  let relatedDocRows: Awaited<ReturnType<typeof findRelatedDocsByVersions>> =
-    [];
-  if (versions.length > 0) {
-    [itemRows, featureAreaRows, relatedDocRows] = await Promise.all([
-      findChangelogItemsByVersions(db, versions),
-      findFeatureAreasByVersions(db, versions),
-      findRelatedDocsByVersions(db, versions),
+  const [versionRows, itemRows, featureAreaRows, relatedDocRows] =
+    await Promise.all([
+      listChangelogVersions(db),
+      listChangelogItems(db),
+      listFeatureAreas(db),
+      listRelatedDocs(db),
     ]);
-  }
 
   const featureAreasByVersion = new Map<string, Map<string, string[]>>();
   for (const row of featureAreaRows) {
@@ -116,12 +92,11 @@ siteDataRoute.get('/changelog', async (c) => {
   }
 
   return c.json({
-    versions: pageRows.map((row) => ({
+    versions: versionRows.map((row) => ({
       version: row.version,
       ...(row.summary === null ? {} : { summary: row.summary }),
       items: itemsByVersion.get(row.version) ?? [],
     })),
-    hasMore: versionRows.length > limit,
   });
 });
 

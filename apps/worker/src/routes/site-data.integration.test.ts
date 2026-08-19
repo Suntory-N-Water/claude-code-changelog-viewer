@@ -68,7 +68,7 @@ const secondItem = {
 };
 
 describe('GET /api/site-data integration', () => {
-  it('ページングとバージョンごとの item 紐付けを返すこと', async () => {
+  it('全バージョンと item の関連データを返すこと', async () => {
     const db = new FakeD1Database();
     await seed(db, {
       versions: [
@@ -86,13 +86,13 @@ describe('GET /api/site-data integration', () => {
       ],
     });
 
-    const firstPage = await app.request(
-      '/api/site-data/changelog?offset=0&limit=2',
+    const response = await app.request(
+      '/api/site-data/changelog',
       {},
       createTestEnv(db),
     );
-    expect(firstPage.status).toBe(200);
-    expect(await firstPage.json()).toEqual({
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
       versions: [
         {
           version: '1.0.0',
@@ -125,19 +125,11 @@ describe('GET /api/site-data integration', () => {
             },
           ],
         },
+        {
+          version: '1.0.2',
+          items: [],
+        },
       ],
-      hasMore: true,
-    });
-
-    const secondPage = await app.request(
-      '/api/site-data/changelog?offset=2&limit=2',
-      {},
-      createTestEnv(db),
-    );
-    expect(secondPage.status).toBe(200);
-    expect(await secondPage.json()).toEqual({
-      versions: [{ version: '1.0.2', items: [] }],
-      hasMore: false,
     });
     db.close();
   });
@@ -237,34 +229,6 @@ describe('GET /api/site-data integration', () => {
           official_docs: [{ doc_path: 'alpha.md' }, { doc_path: 'zeta.md' }],
         },
       ],
-    });
-    db.close();
-  });
-
-  it('存在しない offset は空配列と hasMore: false を返すこと', async () => {
-    const db = new FakeD1Database();
-    const response = await app.request(
-      '/api/site-data/changelog?offset=100&limit=50',
-      {},
-      createTestEnv(db),
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ versions: [], hasMore: false });
-    db.close();
-  });
-
-  it('クエリパラメータが不正な場合は 400 を返すこと', async () => {
-    const db = new FakeD1Database();
-    const response = await app.request(
-      '/api/site-data/changelog?offset=-1&limit=51',
-      {},
-      createTestEnv(db),
-    );
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({
-      error: 'クエリパラメータが不正です',
     });
     db.close();
   });

@@ -1,5 +1,9 @@
 import { describe, expect, test, vi } from 'vitest';
-import { changelogLoader, settingsReferenceLoader } from '../site-data-loader';
+import {
+  changelogLoader,
+  diffLoader,
+  settingsReferenceLoader,
+} from '../site-data-loader';
 
 function createLoaderContext() {
   const entries = new Map<string, unknown>();
@@ -16,43 +20,31 @@ function createLoaderContext() {
 }
 
 describe('site data loader', () => {
-  test('changelog のページングを hasMore が false になるまで繰り返す', async () => {
+  test('changelog の全件を1回のリクエストで読み込む', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch');
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            versions: [
-              {
-                version: '1.0.0',
-                items: [],
-              },
-            ],
-            hasMore: true,
-          }),
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            versions: [
-              {
-                version: '1.0.1',
-                items: [],
-              },
-            ],
-            hasMore: false,
-          }),
-        ),
-      );
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          versions: [
+            {
+              version: '1.0.0',
+              items: [],
+            },
+            {
+              version: '1.0.1',
+              items: [],
+            },
+          ],
+        }),
+      ),
+    );
     const context = createLoaderContext();
 
     await changelogLoader.load(context as never);
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls.map(([request]) => String(request))).toEqual([
-      'https://claude-code-log.com/api/site-data/changelog?offset=0&limit=50',
-      'https://claude-code-log.com/api/site-data/changelog?offset=50&limit=50',
+      'https://claude-code-log.com/api/site-data/changelog',
     ]);
     expect([...context.entries.keys()]).toEqual(['v1.0.0', 'v1.0.1']);
     fetchMock.mockRestore();
@@ -77,7 +69,6 @@ describe('site data loader', () => {
               ],
             },
           ],
-          hasMore: false,
         }),
       ),
     );
@@ -138,5 +129,29 @@ describe('site data loader', () => {
       settingsReferenceLoader.load(context as never),
     ).rejects.toThrow('HTTP 503');
     fetchMock.mockRestore();
+  });
+
+  test('SITE_DATA_SKIP_FETCH が設定されている時、全 loader の取得を省略する', async () => {
+    const original = process.env.SITE_DATA_SKIP_FETCH;
+    process.env.SITE_DATA_SKIP_FETCH = '1';
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    const warnMock = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    try {
+      await changelogLoader.load(createLoaderContext() as never);
+      await settingsReferenceLoader.load(createLoaderContext() as never);
+      await diffLoader.load(createLoaderContext() as never);
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(warnMock).toHaveBeenCalledTimes(3);
+    } finally {
+      if (original === undefined) {
+        delete process.env.SITE_DATA_SKIP_FETCH;
+      } else {
+        process.env.SITE_DATA_SKIP_FETCH = original;
+      }
+      fetchMock.mockRestore();
+      warnMock.mockRestore();
+    }
   });
 });

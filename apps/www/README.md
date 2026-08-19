@@ -1,46 +1,52 @@
-# Astro Starter Kit: Basics
+# www
 
-```sh
-pnpm create astro@latest -- --template basics
+画面をローカルで確認する手順です。コマンドはリポジトリのルートで実行します。
+
+## A. 本番データ・本番 Worker(既定)
+
+```bash
+pnpm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+既定の取得先は `https://claude-code-log.com` です。
 
-## 🚀 Project Structure
+## B. 本番データ・ローカル Worker コード
 
-Inside of your Astro project, you'll see the following folders and files:
+Worker 側の変更を本番データで確認する場合です。Cloudflare の認証が必要です。
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
+```bash
+# ターミナル1
+pnpm run dev:worker:remote
+
+# ターミナル2
+SITE_DATA_ORIGIN=http://localhost:8787 pnpm run dev
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## C. シードデータ・完全ローカル(オフライン可)
 
-## 🧞 Commands
+初回だけ、ローカル D1 にマイグレーションとシードを投入します。
 
-All commands are run from the root of the project, from a terminal:
+```bash
+# 初回のみ
+cd apps/worker && pnpm run db:migrate && pnpm run db:seed
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+その後、2つのターミナルで起動します。
 
-## 👀 Want to learn more?
+```bash
+# ターミナル1
+pnpm run dev:worker
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+# ターミナル2
+SITE_DATA_ORIGIN=http://localhost:8787 pnpm run dev
+```
+
+## シードの再生成(管理者のみ)
+
+`generate-seed.ts` は本番 D1 から条件に合う行を抽出します。Cloudflare の認証が必要なため、管理者だけが実行してください。
+
+```bash
+pnpm run worker:generate-seed
+```
+
+生成結果は `apps/worker/seed/seed.sql` に出力されます。再生成後は、ローカル D1 に `pnpm run worker:seed` で再投入してください。
