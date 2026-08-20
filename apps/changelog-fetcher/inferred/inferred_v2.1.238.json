@@ -1,0 +1,945 @@
+{
+  "version": "2.1.238",
+  "summary": "セルフホストランナーの接続安定性とセキュリティが大幅に強化されました。特に MCP ツール利用時にフォルダごとの信頼確認が必須となり、認証処理の環境分離が行われたため安全性が高まっています。また、Fullscreen モードのキー操作やセッション管理の不具合など、運用を妨げる細かなバグも多く解消されています。",
+  "items": [
+    {
+      "id": "c8799762db01",
+      "content": "- Added a `keybindingFlavor` setting: set it to `\"readline\"` to make Ctrl+W in the prompt delete back to the previous whitespace, as in Bash; the default (`\"classic\"`) is unchanged",
+      "content_ja": "プロンプトで Ctrl+W を押した際に、Bash のように直前の空白まで削除する挙動を選択できる `keybindingFlavor` 設定を追加しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "Ctrl+W を押すと、以前の挙動では空白だけでなく単語全体を削除していました。",
+        "after": "設定で `readline` を指定することで、Bash と同様に直前の空白までを削除するようになります。",
+        "benefit": "Bash のキー操作に慣れている場合、プロンプト編集時の違和感なくコマンドを修正できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "キー入力の挙動という頻繁な操作に影響するため medium とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/accessibility.md"
+        }
+      ]
+    },
+    {
+      "id": "7e8c6e5e855f",
+      "content": "- Plugin marketplaces: `headersHelper` on a url marketplace or a catalog entry runs a command that mints HTTP headers (e.g. a short-lived token) for catalog and same-origin archive fetches",
+      "content_ja": "マーケットプレイスおよびプラグインのカタログ取得時に、`headersHelper` を実行して動的な HTTP ヘッダー（一時トークンなど）を生成できるようになりました。",
+      "prefix": "Changed",
+      "feature_areas": ["Plugins", "MCP"],
+      "inference": {
+        "before": "カタログ取得時のヘッダーは静的な値のみ利用可能でした。",
+        "after": "コマンドを実行し、その出力を認証用ヘッダーとして利用できるようになります。",
+        "benefit": "認証が必要な非公開カタログへのアクセス時に、トークンの手動更新が不要になります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プラグインの認証機構に関わる重要な変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "ebe211e759ed",
+      "content": "- A catalog entry's `headersHelper` runs only when you install or update that plugin, after its command is shown; `claude plugin install/update` ask `[y/N]` (or pass `-y`)",
+      "content_ja": "プラグインのインストールや更新時にのみ `headersHelper` を実行するように変更し、意図しないコマンド実行を防ぐため確認を挟むようにしました。",
+      "prefix": "Changed",
+      "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "インストール時以外でもバックグラウンドで `headersHelper` が再実行される可能性がありました。",
+        "after": "コマンドの実行前に内容が表示され、ユーザーの承認が必要になりました。",
+        "benefit": "知らない間にプラグインの認証用コマンドが勝手に実行されることを防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "プラグインのセキュリティと承認フローに関わる重要な変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "7f504e4107fd",
+      "content": "- Added `claude self-hosted-runner --defer-shutdown-max-min <minutes>`: on SIGTERM, keep serving attached sessions, park what is left after that many minutes, then exit",
+      "content_ja": "セルフホストランナーに `--defer-shutdown-max-min` を追加しました。SIGTERM 受信後、指定時間まで接続中のセッションを継続してから終了します。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "SIGTERM を受信すると、即座にセッションが中断される可能性がありました。",
+        "after": "実行中のセッションを一定時間まで継続し、安全に終了処理を待機できます。",
+        "benefit": "デプロイ時の再起動などで実行中の作業を中断させずに済みます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セルフホスト環境の運用に直接影響するため high とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-deploy.md"
+        }
+      ]
+    },
+    {
+      "id": "1fa8593cd3cf",
+      "content": "- Added `claude self-hosted-runner --proxy-authorization-command` / `--proxy-authorization-file` for egress proxies that require a freshly issued `Proxy-Authorization` header on every connection",
+      "content_ja": "エグレスプロキシ用に `Proxy-Authorization` ヘッダーを生成する `claude self-hosted-runner --proxy-authorization-command` オプション等を追加しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "毎回新鮮なプロキシ用ヘッダーが求められる環境では、認証を通すことが困難でした。",
+        "after": "接続ごとにコマンドを実行して最新のトークンをヘッダーに含められるようになります。",
+        "benefit": "厳格なプロキシ環境下でも、手動認証なしでセルフホストランナーを運用できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定のプロキシ環境下での利用可否を左右する機能追加です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-testing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-rollout.md"
+        }
+      ]
+    },
+    {
+      "id": "73337f2f5090",
+      "content": "- Fixed unbounded memory growth in long interactive sessions: subagent tool results are now released once they leave the recent display window",
+      "content_ja": "長時間対話におけるメモリ消費を改善するため、サブエージェントのツール結果を画面表示から外れた時点で解放するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "サブエージェントの実行結果が長期間保持され、メモリ消費が増大することがありました。",
+        "after": "不要になったツール結果を自動的に解放することで、メモリ使用量を抑えます。",
+        "benefit": "長時間のセッションでも、メモリ不足によるクラッシュを気にせず利用できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "長時間のセッションにおける安定性を左右する修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "96b3d2bf9a49",
+      "content": "- Fixed custom, project, and plugin output styles drifting back to the default voice mid-session",
+      "content_ja": "カスタム設定やプロジェクト単位の出力スタイルが、途中でデフォルトの音声に戻ってしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "エージェントの発話スタイルの一貫性に関わる修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "d00dc61d82b7",
+      "content": "- Fixed `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION=true` not keeping prompt suggestions on when your account is near, but not over, its usage limit",
+      "content_ja": "アカウントの利用制限に近い状態でも、プロンプトサジェスト機能が正しく有効化されるように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "制限に近い状態では、設定が `true` でもサジェストが非表示になる不具合がありました。",
+        "after": "利用制限の状況に関わらず、設定に応じたサジェスト機能が維持されます。",
+        "benefit": "制限ギリギリの環境でも、快適な補完機能を利用し続けられます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "アカウント制限時のサジェスト機能の不具合修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "01727313c8ba",
+      "content": "- Fixed worktree-isolation Bash refusals telling you to remove a redirect when the command had none",
+      "content_ja": "ワークツリー分離機能において、実際にはリダイレクトがない Bash コマンドに対して不当な警告が出ないように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "コマンドにリダイレクトがない場合でも、誤って制限の警告が表示されることがありました。",
+        "after": "リダイレクトの有無を正しく判定し、不要な警告を抑制します。",
+        "benefit": "正当なコマンド実行を阻害されることがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ワークツリー分離時の不当なエラー回避に関わる修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        }
+      ]
+    },
+    {
+      "id": "e3463c823c19",
+      "content": "- Fixed self-hosted runners occasionally being removed by the server after a single slow or lost poll request, handing their healthy session to another runner",
+      "content_ja": "セルフホストランナーにおいて、遅延したポール要求が原因で正常なセッションが別のランナーに再割り当てされてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "一時的な通信遅延により、ランナーがサーバー側で削除されセッションが中断されることがありました。",
+        "after": "通信状況を考慮し、正常なセッションを保持するように改善しました。",
+        "benefit": "ネットワーク環境が不安定な場合でも、作業が中断されずに済みます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セルフホストランナーの接続安定性に関する重要な修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-configuration.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-deploy.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-quickstart.md"
+        }
+      ]
+    },
+    {
+      "id": "e55d7b9b7add",
+      "content": "- Fixed MCP elicitation dialogs showing nothing for URLs longer than 4,096 characters, and permission prompts dropping the \"don't ask again\" option when the project path didn't fit the terminal width",
+      "content_ja": "長い URL の MCP 対話ダイアログの表示不具合や、端末幅不足で権限確認のチェックボックスが隠れる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP", "Permissions"],
+      "inference": {
+        "before": "4,096 文字以上の URL ではダイアログが空で表示され、権限確認も適切に行えませんでした。",
+        "after": "長い URL でもダイアログが正しく表示され、権限確認の選択肢も見失わなくなります。",
+        "benefit": "複雑な設定や長い URL を扱う MCP サーバーでもストレスなく操作できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "MCP ツール利用時の操作性に関わる重要な修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "e267753f1765",
+      "content": "- Fixed leftover `/tmp/claude-*-cwd` files when a Bash command is killed, times out, or is interrupted",
+      "content_ja": "Bash コマンドが中断やタイムアウトした際に、`/tmp/claude-*-cwd` ファイルが残留する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ファイル残留という軽微な問題の修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "fb83605e65a7",
+      "content": "- Fixed held Backspace being ignored on terminals that send Ctrl+H for Backspace when keystrokes arrive in large bursts (slow SSH/mosh links)",
+      "content_ja": "接続が遅いリンクなどで大量の入力を一気に受信した場合に、Backspace キーが無視される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定の通信環境下での入力不具合の修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "f0c871be83a0",
+      "content": "- Fixed text-wrapping in permission prompt diffs: lines containing wide multi-code-point characters (such as emoji) or tabs are no longer clipped",
+      "content_ja": "アクセス権限プロンプトの差分表示におけるテキスト折り返し処理を修正し、絵文字などのマルチコードポイント文字やタブ文字を含む行が途中で切れないように改善しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "アクセス権限プロンプトで差分（diff）を表示する際、絵文字などの幅の広いマルチコードポイント文字やタブ文字がふくまれる行があると、テキストの折り返し処理が正しく行われず、端の部分が画面外に切れて見えなくなっていました。",
+        "after": "テキスト折り返しの処理ロジックを修正したため、絵文字やタブ文字が含まれる行であっても、正しく幅が計算されて折り返され、すべての内容がプロンプト上に表示されるようになります。",
+        "benefit": "差分表示の中に絵文字やタブが含まれていても、テキストが途切れることなくすべての変更内容を正確に確認できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "アクセス権限プロンプトのUIにおける表示崩れの修正であり、中核ツールの挙動や設定に直接的な影響を及ぼさないため、影響度は中程度と判定しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "5f8c2a889557",
+      "content": "- Fixed killing a suspended (Ctrl+Z) session sometimes leaving the terminal in bracketed-paste mode with the cursor hidden",
+      "content_ja": "Ctrl+Z で中断したセッションを終了させると、ブラケット付きペーストモードのままカーソルが消える不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "表示不具合の修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "36bc279198fb",
+      "content": "- Fixed stdio MCP servers receiving a `server/discover` request before `initialize`, forcing lazy servers to start their backend on every session open",
+      "content_ja": "stdio MCP サーバーが initialize 前に discover 要求を受け取らないように修正し、バックエンドの不必要な再起動を抑制しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "毎回 discover 要求でバックエンドが強制的に起動され、処理が冗長になっていました。",
+        "after": "初期化が完了した後に適切に要求が処理されます。",
+        "benefit": "不要なプロセス生成がなくなり、ツール起動がスムーズになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "MCP サーバーの初期化に関わる挙動の改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "3f6043ee12a0",
+      "content": "- Fixed a proxy's refusal of a connection being reported as a generic network error instead of naming the proxy",
+      "content_ja": "プロキシによる接続拒否が発生した際、汎用エラーではなくどのプロキシが原因かを明確に表示するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "プロキシ側でのエラーが原因でも「ネットワークエラー」としか表示されませんでした。",
+        "after": "ブロックしているプロキシ名を表示し、原因特定を容易にします。",
+        "benefit": "ネットワークトラブルの際に、原因がクライアント側かプロキシ側かをすぐに判断できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プロキシ接続時のトラブルシューティングに役立つ変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "4f6e217ab6cb",
+      "content": "- Fixed the `/model` and `/effort` cache-miss warning appearing when the prompt cache had already expired",
+      "content_ja": "プロンプトキャッシュが期限切れの際に、`/model` や `/effort` コマンドで不必要な警告が出ないようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "キャッシュが既に切れているにも関わらず、キャッシュミス警告が表示されていました。",
+        "after": "状態を正しく認識し、無意味な警告を非表示にします。",
+        "benefit": "混乱を招く余計なエラーメッセージを見なくて済みます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "無意味な警告を抑制する表示の微修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/authentication.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w16.md"
+        }
+      ]
+    },
+    {
+      "id": "373f3b3a73ca",
+      "content": "- Fixed per-task Stop from the Remote Control tasks panel doing nothing on CLI-hosted sessions",
+      "content_ja": "CLI ホストされたセッションで、Remote Control のタスクパネルから「停止」ボタンが機能しない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Remote Control の操作不具合修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "f7b13fe68af1",
+      "content": "- Fixed remote sessions exiting when a client delivered a user message without a valid role",
+      "content_ja": "リモートセッションにおいて、クライアントが不正な役割のユーザーメッセージを送った際に終了してしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Remote Control の接続安定性に関わる修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "1b0ef6822f4b",
+      "content": "- Fixed Remote Control sessions started by `claude remote-control` inheriting session-scoped environment variables from the launching shell",
+      "content_ja": "`claude remote-control` で開始されたセッションが、起動元シェルから環境変数を継承しないように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "起動時の環境変数が予期せず Remote Control セッションに混入していました。",
+        "after": "環境変数を分離し、クリーンな状態でセッションを開始します。",
+        "benefit": "ローカルの特定の変数に依存せず、常に安定した環境でリモート操作ができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッション環境の分離に関する重要な修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-connect.md"
+        }
+      ]
+    },
+    {
+      "id": "b3fdd91c95c1",
+      "content": "- Fixed a Remote Control session whose process crashed staying unavailable until `claude remote-control` was restarted; it can now be reused when you next message it",
+      "content_ja": "Remote Control セッションのプロセスがクラッシュしても、再起動なしで次回メッセージ送信時に自動的に再接続できるように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッションがクラッシュすると、手動で再起動するまで利用不可の状態でした。",
+        "after": "クラッシュしても状態が回復し、メッセージ送信で自動的にセッションが復帰します。",
+        "benefit": "万が一のクラッシュ時でも、いちいち再起動の手間をかける必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Remote Control の利便性向上に関わる重要な修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-connect.md"
+        }
+      ]
+    },
+    {
+      "id": "e6d71a6697c6",
+      "content": "- Fixed Remote Control messages sent from the web or Desktop while Claude is mid-turn disappearing from the transcript after the turn finishes",
+      "content_ja": "Claude が回答生成中に web/Desktop から送られたメッセージが、完了後に消滅する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "処理中のメッセージが、完了した回答によって上書きされることがありました。",
+        "after": "送信されたメッセージが正確にトランスクリプトに残るようになります。",
+        "benefit": "やり取りの途中で送信した追加指示を見失わずに済みます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "トランスクリプトのデータ整合性に関する修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        }
+      ]
+    },
+    {
+      "id": "8c60820321a8",
+      "content": "- Fixed Remote Control model picks made on a phone or web not updating the model shown in the terminal",
+      "content_ja": "スマホや web 側で変更したモデル選択が、ターミナル側に即座に反映されない不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "UI 同期に関する修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "e7f765ad6ada",
+      "content": "- Fixed Remote Control disconnecting with \"login expired\" when a brief network hiccup delays renewing your sign-in; it now retries and stays connected",
+      "content_ja": "一時的な通信不安定でサインインの更新が遅れた際に、「login expired」として切断されるのではなく再試行して維持するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "通信がわずかに途切れるだけで、ログイン切れとしてセッションが終了していました。",
+        "after": "接続を維持するための再試行処理が行われます。",
+        "benefit": "一時的な瞬断によるセッションの強制ログアウトを回避できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "通信不安定時のセッション維持能力に関わる修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/authentication.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "d6a7cead7436",
+      "content": "- Fixed Remote Control reporting a failed reconnect on sign-out; signing out now ends the session with a clear message",
+      "content_ja": "サインアウト時の再接続失敗報告を改善し、適切にセッション終了メッセージが表示されるように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "サインアウト時に混乱を招くエラーメッセージが出る場合がありました。",
+        "after": "サインアウト操作が正しく認識され、明快なメッセージで終了します。",
+        "benefit": "ログアウト後の状態が正しく通知され、操作の迷いがなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "終了処理の明確化に関わる修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "f2395176944f",
+      "content": "- Fixed `ListAgents`/`SendMessage` reporting \"Remote Control is not connected\" in sessions run by `claude remote-control` (server mode) or Desktop/IDE hosts; they now list and reach Remote Control peers",
+      "content_ja": "サーバーモードや Desktop/IDE ホスト上のセッションで `ListAgents`/`SendMessage` が接続エラーを返さないように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "特定のホスト環境で、Remote Control に接続できないと誤認される不具合がありました。",
+        "after": "ピアとして正しく認識され、メッセージをリストおよび送信可能になります。",
+        "benefit": "異なるホスト間での連携機能が正しく動作するようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ホスト間連携の不具合修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mobile.md"
+        }
+      ]
+    },
+    {
+      "id": "7df354b20d42",
+      "content": "- Fixed `ListAgents` and `SendMessage` exposing the idle worker that the agent view pre-warms for your next background session; it now appears only once a task claims it",
+      "content_ja": "エージェントビューでバックグラウンド用に準備中のワーカが、未割り当ての段階でリストに表示されないように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "まだタスクが割り当てられていないワーカがリストに残り、混乱を与えていました。",
+        "after": "タスクが確実に割り当てられたワーカのみを表示します。",
+        "benefit": "現在進行中の実質的なタスクだけをリスト上で確認できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "リスト表示の正確性に関する修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        }
+      ]
+    },
+    {
+      "id": "e5ed2c26ae13",
+      "content": "- Cross-session messaging: sending to a session on this machine that refuses inbound messages (e.g. `crossSessionInbound: \"refuse\"`) now reports \"refused\" to the sender instead of a silent success",
+      "content_ja": "受信拒否設定されているセッションへのクロスセッションメッセージ送信時に、成功と偽らず「refused」と正しく報告するようにしました。",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "受信拒否されていても、送信側は「成功」と誤認してしまう場合がありました。",
+        "after": "受信側の拒否状況を送信側に正確に通知します。",
+        "benefit": "メッセージがなぜ届かなかったのかを確認する手間が省けます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セッション間メッセージングの動作通知に関わる修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        }
+      ]
+    },
+    {
+      "id": "a4468b282b18",
+      "content": "- Cross-session messaging: a session whose inbox drops your messages (rate limit or full queue) now tells your session, instead of the messages vanishing silently",
+      "content_ja": "受信側のセッションが一杯でメッセージを捨てた際に、送信側へサイレントに消えるのではなく通知するようにしました。",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "レート制限などでメッセージが破棄されると、送信側には何も伝わりませんでした。",
+        "after": "メッセージの破棄状況を送信側に通知します。",
+        "benefit": "届かない理由がわからないまま送信し続ける必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "メッセージ送受信の信頼性と通知に関わる修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        }
+      ]
+    },
+    {
+      "id": "ac78fa3c6766",
+      "content": "- Improved startup: bare `claude` starts sooner on macOS",
+      "content_ja": "macOS において、claude コマンドの起動速度を改善しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "起動速度という日常的な体験に影響する改善です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "e527f892f1c2",
+      "content": "- Improved Bash tool permission checking for zsh-specific syntax in shell conditionals",
+      "content_ja": "Bash ツールにおいて、zsh 特有の条件付き構文に対する権限チェックを改善しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "シェルの構文判別に関する権限チェックの改善です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "ed0813f69ca4",
+      "content": "- Improved Remote Control connection resilience: brief HTTP 403 refusals from a network edge, VPN, or proxy are now tolerated for up to 3 minutes, with the refusing party named when a block persists",
+      "content_ja": "ネットワーク等の HTTP 403 拒否を最大 3 分間猶予し、それでもブロックされる場合は拒否元を表示するようにしました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "即座に切断されるため、一時的な制限と恒久的なブロックの判別が困難でした。",
+        "after": "一定時間再試行を行い、解決しない場合はブロックしているプロキシ等を明示します。",
+        "benefit": "一時的な通信制限で作業が止まるのを防ぎつつ、設定ミスをすぐに特定できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "接続トラブルシューティングの向上と復旧能力の改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
+    },
+    {
+      "id": "773582760a72",
+      "content": "- Improved startup responsiveness: the automatic update check now runs about 10 seconds after launch instead of competing with startup for CPU",
+      "content_ja": "自動アップデートチェックを起動から約 10 秒遅らせることで、起動時の CPU 競合を抑え、応答性を向上させました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "起動後の応答性という日常体験の改善です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "919a33066922",
+      "content": "- Updated the bundled `claude-api` skill for the Managed Agents Aug 19 release: web search/fetch domain settings and memory stores on self-hosted sandboxes",
+      "content_ja": "Managed Agents（8月19日リリース版）に対応するため、同梱されている「claude-api」スキルを更新し、セルフホスト型サンドボックス環境におけるWeb検索・Web取得のドメイン設定およびメモリ保存機能に対応しました。",
+      "prefix": "Updated",
+      "feature_areas": ["Skills", "Memory"],
+      "inference": {
+        "before": "セルフホストされたサンドボックス環境でManaged Agentsを動かす際、WebSearchツールやWebFetchツールでの独自ドメイン設定や、セッションをまたぐメモリ保存領域を適切に連動させて制御する仕組みが不足していました。",
+        "after": "同梱の「claude-api」スキルがアップデートされ、組織固有のセルフホスト環境であっても、Web検索・取得のアクセス許可ドメイン設定やメモリ保存機能が正しく適用されるようになります。",
+        "benefit": "セルフホスト環境のサンドボックスから、セキュリティポリシーに沿った安全なWeb検索やメモリ機能を利用できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "セルフホスト環境でManaged Agentsを利用する特定の組織ユーザーにのみ影響するAPIスキルの更新であるため、影響度は限定的です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandbox-environments.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/overview.md"
+        }
+      ]
+    },
+    {
+      "id": "9a599bbabde0",
+      "content": "- Changed Ctrl+L and Cmd+K in fullscreen to always just repaint — the double-press `/clear` shortcut was removed, and 1-row nvim terminals no longer trigger automatic `/clear` loops",
+      "content_ja": "Fullscreen モードで Ctrl+L と Cmd+K を再描画のみに変更し、誤操作を防ぐために `/clear` のダブルプレスを無効化しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "キーを押すだけで意図せず会話が消去されてしまう事故がありました。",
+        "after": "クリア処理は明示的な操作を必要とし、再描画専用のキーとなります。",
+        "benefit": "重要な会話履歴をうっかり消してしまう事故を防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Fullscreen モードの基本操作に関わる変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "36348899d5bf",
+      "content": "- Changed `claude mcp list` and `claude mcp get` to show disabled servers as `⊘ Disabled` instead of connecting to them for a health check",
+      "content_ja": "`claude mcp list` 等で、無効なサーバーのヘルスチェックを行わず、状態を `⊘ Disabled` として表示するようにしました。",
+      "prefix": "Changed",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "無効なサーバーに対しても接続を試みるため、リスト表示が遅延していました。",
+        "after": "接続試行を省略し、状態を即座にラベルとして表示します。",
+        "benefit": "無効な MCP サーバーが混ざっていても、コマンドのレスポンスが高速化します。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ツール管理画面の表示高速化に関わる改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "8cf279619230",
+      "content": "- MCP `headersHelper` in a project `.mcp.json`, and inline MCP servers in project or `--add-dir` agent files, now require that folder's trust dialog to have been accepted (also under `claude -p`)",
+      "content_ja": "プロジェクト `.mcp.json` 等の MCP 設定が、フォルダのワークスペース信頼ダイアログで承認されていない限り読み込まれないようにしました。",
+      "prefix": "Changed",
+      "feature_areas": ["MCP", "Permissions"],
+      "inference": {
+        "before": "信頼されていないフォルダでも、設定次第で読み込まれてしまう場合がありました。",
+        "after": "ワークスペースの信頼承認を必須とし、意図しないツール連携を防ぎます。",
+        "benefit": "リポジトリ由来の MCP ツール実行に対するセキュリティが強化されます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "プロジェクト由来の MCP ツールに対するセキュリティ強化です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        }
+      ]
+    },
+    {
+      "id": "e191a287d445",
+      "content": "- MCP `headersHelper` from a project `.mcp.json`, plugin, or agent file runs without inherited credential env vars; user, managed and claude.ai-scope helpers now run from the Claude config dir",
+      "content_ja": "プロジェクト MCP 設定の `headersHelper` が環境変数を継承しないようにし、ヘルパーの実行場所を設定ディレクトリに限定しました。",
+      "prefix": "Changed",
+      "feature_areas": ["MCP", "Permissions"],
+      "inference": {
+        "before": "環境変数が予期せずヘルパーに引き継がれ、意図しない挙動の要因となっていました。",
+        "after": "実行環境を制限し、環境変数の継承を防ぐことで安全性を高めます。",
+        "benefit": "環境変数に依存しない、より予測可能な認証処理が行えます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": true,
+        "reason": "認証とセキュリティ分離に関する重要な変更です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/debug-your-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    }
+  ]
+}
