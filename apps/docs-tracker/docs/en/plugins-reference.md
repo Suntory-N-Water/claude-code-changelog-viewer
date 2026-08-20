@@ -1201,7 +1201,7 @@ This shows:
 
 | Issue | Cause | Solution |
 | :- | :- | :- |
-| Plugin not loading | Invalid `plugin.json` | Run `claude plugin validate ./my-plugin` or `/plugin validate ./my-plugin`, where `./my-plugin` is your plugin directory, to check `plugin.json`, skill/agent/command frontmatter, and `hooks/hooks.json` for syntax and schema errors |
+| Plugin not loading | Invalid `plugin.json` | Run `claude plugin validate ./my-plugin` or `/plugin validate ./my-plugin`, where `./my-plugin` is your plugin directory, to check `plugin.json`, `hooks/hooks.json`, and the frontmatter of the skills, agents, and commands in the plugin's default directories for syntax and schema errors. See [Validate a plugin or a directory without a manifest](/docs/en/plugin-marketplaces#validate-a-plugin-or-a-directory-without-a-manifest) for what a run covers |
 | Skills not appearing | Wrong directory structure | Ensure `skills/` or `commands/` is at the plugin root, not inside `.claude-plugin/` |
 | Hooks not firing | Script not executable | Run `chmod +x script.sh` |
 | MCP server fails | Missing `${CLAUDE_PLUGIN_ROOT}` | Use variable for all plugin paths |
