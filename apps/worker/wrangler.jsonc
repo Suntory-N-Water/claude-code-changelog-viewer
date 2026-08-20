@@ -20,7 +20,10 @@
       "DISPATCH_SECRET",
       "EMAIL_ENCRYPTION_KEY",
       "GITHUB_DISPATCH_TOKEN",
-      "CF_ACCESS_AUD"
+      "CF_ACCESS_AUD",
+      "DEPLOY_HOOK_URL",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "D1_REST_API_TOKEN"
     ]
   },
   "ai": {
@@ -35,12 +38,16 @@
     {
       "name": "d1-backup",
       "binding": "D1_BACKUP_WORKFLOW",
-      "class_name": "D1BackupWorkflow"
+      "class_name": "D1BackupWorkflow",
+      // 曜日フィールドは 1-7 で 1 が日曜のため、数値ではなくテキストで土曜を指定する。
+      // UTC 土曜 17:00 = JST 日曜 2:00 で、既存 cron と重ならない
+      "schedules": ["0 17 * * SAT"]
     },
     {
       "name": "settings-reference",
       "binding": "SETTINGS_REFERENCE_WORKFLOW",
-      "class_name": "SettingsReferenceWorkflow"
+      "class_name": "SettingsReferenceWorkflow",
+      "schedules": ["0 21 * * *"]
     }
   ],
   "send_email": [

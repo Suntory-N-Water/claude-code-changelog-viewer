@@ -7,18 +7,24 @@ const NOW = new Date('2026-07-25T09:00:00.000Z');
 const PREVIOUS_DISPATCH_AT = '2026-07-25T08:55:00.000Z';
 const CHANGELOG_URL =
   'https://api.github.com/repos/anthropics/claude-code/contents/CHANGELOG.md?ref=main';
-const DISPATCH_URL =
-  'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/actions/workflows/changelog-auto-inference.yml/dispatches';
-const RUNS_URL =
-  'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/actions/workflows/changelog-auto-inference.yml/runs?event=workflow_dispatch&per_page=100';
 
-function createBindings(state: unknown = null) {
+function createBindings(
+  state: unknown = null,
+  workflowStatus: string = 'running',
+) {
+  const workflow = {
+    createBatch: vi.fn(async () => []),
+    get: vi.fn(async () => ({
+      status: vi.fn(async () => ({ status: workflowStatus })),
+    })),
+  };
   return {
     CHANGELOG_DETECTION_KV: {
       get: vi.fn(async () => (state === null ? null : JSON.stringify(state))),
       put: vi.fn(async () => undefined),
     },
     GITHUB_DISPATCH_TOKEN: 'test-token',
+    CHANGELOG_INFERENCE_WORKFLOW: workflow,
   } as unknown as CloudflareBindings;
 }
 
@@ -34,36 +40,18 @@ function previousState(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function mockGitHub(run?: { status: string; conclusion: string | null }) {
-  vi.mocked(global.fetch).mockImplementation(async (input, init) => {
+function mockGitHub() {
+  vi.mocked(global.fetch).mockImplementation(async (input) => {
     if (input === CHANGELOG_URL) {
       return new Response('CHANGELOG content');
-    }
-    if (input === RUNS_URL) {
-      return Response.json({
-        workflow_runs: run
-          ? [
-              {
-                name: `Fetch and Analyze CHANGELOG (${CONTENT_HASH})`,
-                ...run,
-              },
-            ]
-          : [],
-      });
-    }
-    if (input === DISPATCH_URL && init?.method === 'POST') {
-      return new Response(null, { status: 204 });
     }
     throw new Error(`想定外のリクエスト: ${String(input)}`);
   });
 }
 
-function dispatchRequests() {
-  return vi
-    .mocked(global.fetch)
-    .mock.calls.filter(
-      ([input, init]) => input === DISPATCH_URL && init?.method === 'POST',
-    );
+function dispatchRequests(bindings: CloudflareBindings) {
+  return vi.mocked(bindings.CHANGELOG_INFERENCE_WORKFLOW.createBatch).mock
+    .calls;
 }
 
 function storedState(bindings: CloudflareBindings) {
@@ -89,21 +77,21 @@ describe('CHANGELOG 更新検知', () => {
 
     await detectChangelogUpdate(bindings, NOW);
 
-    expect(dispatchRequests()).toHaveLength(1);
+    expect(dispatchRequests(bindings)).toHaveLength(1);
   });
 
   it('前回の run が未完了の時、再起動しないこと', async () => {
     const bindings = createBindings(previousState());
-    mockGitHub({ status: 'in_progress', conclusion: null });
+    mockGitHub();
 
     await detectChangelogUpdate(bindings, NOW);
 
-    expect(dispatchRequests()).toHaveLength(0);
+    expect(dispatchRequests(bindings)).toHaveLength(0);
   });
 
   it('前回の run が成功した時、検知ハッシュを確定すること', async () => {
-    const bindings = createBindings(previousState());
-    mockGitHub({ status: 'completed', conclusion: 'success' });
+    const bindings = createBindings(previousState(), 'complete');
+    mockGitHub();
 
     await detectChangelogUpdate(bindings, NOW);
 
@@ -111,12 +99,12 @@ describe('CHANGELOG 更新検知', () => {
   });
 
   it('前回の run が失敗した時、上限未満なら再起動すること', async () => {
-    const bindings = createBindings(previousState());
-    mockGitHub({ status: 'completed', conclusion: 'failure' });
+    const bindings = createBindings(previousState(), 'errored');
+    mockGitHub();
 
     await detectChangelogUpdate(bindings, NOW);
 
-    expect(dispatchRequests()).toHaveLength(1);
+    expect(dispatchRequests(bindings)).toHaveLength(1);
     expect(storedState(bindings)).toMatchObject({ attempts: 2 });
   });
 
@@ -126,7 +114,7 @@ describe('CHANGELOG 更新検知', () => {
 
     await detectChangelogUpdate(bindings, NOW);
 
-    expect(dispatchRequests()).toHaveLength(0);
+    expect(dispatchRequests(bindings)).toHaveLength(0);
   });
 
   it('旧形式の状態を読み込んだ時、新規検知として扱うこと', async () => {
@@ -140,6 +128,6 @@ describe('CHANGELOG 更新検知', () => {
 
     await detectChangelogUpdate(bindings, NOW);
 
-    expect(dispatchRequests()).toHaveLength(1);
+    expect(dispatchRequests(bindings)).toHaveLength(1);
   });
 });

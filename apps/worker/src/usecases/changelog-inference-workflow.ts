@@ -32,10 +32,6 @@ export type ChangelogNotificationPort = {
   send(version: string): Promise<void>;
 };
 
-export type ChangelogBuildTriggerPort = {
-  trigger(): Promise<void>;
-};
-
 export type ChangelogFailureReporterPort = {
   report(input: {
     params: ChangelogWorkflowParams;
@@ -87,12 +83,6 @@ export async function saveChangelogInference(
 ): Promise<{ version: string }> {
   await repository.save(inference);
   return { version: inference.version };
-}
-
-export async function triggerChangelogBuild(
-  buildTrigger: ChangelogBuildTriggerPort,
-): Promise<void> {
-  await buildTrigger.trigger();
 }
 
 export async function reportChangelogWorkflowFailure(

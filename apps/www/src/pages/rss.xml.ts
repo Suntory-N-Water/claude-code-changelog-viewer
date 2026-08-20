@@ -1,30 +1,9 @@
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { getCollection } from 'astro:content';
 import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
 import { SITE_TITLE } from '../lib/constants';
 import { semverCompareDesc } from '../lib/semver';
-
-async function loadLastFetchTime(): Promise<Date> {
-  try {
-    const raw = await readFile(
-      join(
-        process.cwd(),
-        '..',
-        'changelog-fetcher',
-        'metadata',
-        'last_fetch.json',
-      ),
-      'utf-8',
-    );
-    const data = JSON.parse(raw) as { lastFetchTime: string };
-    return new Date(data.lastFetchTime);
-  } catch {
-    return new Date();
-  }
-}
 
 /** inference 情報を含む HTML コンテンツを生成 */
 function buildContentHtml(
@@ -76,7 +55,7 @@ function convertContentToCdata(xml: string): string {
 
 export async function GET(context: APIContext) {
   const changelogs = await getCollection('changelog');
-  const pubDate = await loadLastFetchTime();
+  const pubDate = new Date();
 
   const sorted = changelogs.sort((a, b) =>
     semverCompareDesc(a.data.version, b.data.version),

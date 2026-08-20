@@ -7,6 +7,7 @@ import type {
 } from 'cloudflare:workers';
 import { z } from 'zod';
 import { createSettingsReferenceAi } from '../infrastructure/ai/settings-reference-ai';
+import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
 import { createSettingsReferenceRepository } from '../infrastructure/drizzle/settings-reference-repository';
 import { createSettingsEntrySource } from '../infrastructure/drizzle/settings-entry-source';
 import { createSettingsReferenceFailureReporter } from '../infrastructure/github/settings-reference-failure-reporter';
@@ -43,7 +44,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
     event: WorkflowEvent<SettingsReferenceWorkflowParams>,
     step: WorkflowStep,
   ): Promise<{ processedKeys: string[] }> {
-    const paramsResult = WorkflowParamsSchema.safeParse(event.payload);
+    const paramsResult = WorkflowParamsSchema.safeParse(event.payload ?? {});
     const failureParams: SettingsReferenceWorkflowParams = paramsResult.success
       ? paramsResult.data
       : {};
@@ -67,6 +68,9 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         this.env.AI_GATEWAY_ID,
       );
       const repository = createSettingsReferenceRepository(db);
+      const buildTrigger = createDeployHookBuildTrigger(
+        this.env.DEPLOY_HOOK_URL,
+      );
       // replay で日付が変わらないよう、実行時刻ではなく起動時刻を使う。
       const fetchedAt = new Intl.DateTimeFormat('sv-SE', {
         timeZone: 'Asia/Tokyo',
@@ -103,6 +107,12 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
             translations,
             fetchedAt,
           }),
+        );
+      }
+
+      if (entries.length > 0) {
+        await step.do('trigger-build', STEP_RETRIES, async () =>
+          buildTrigger.trigger(),
         );
       }
 

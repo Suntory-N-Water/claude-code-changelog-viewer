@@ -1,8 +1,8 @@
-import type { ChangelogBuildTriggerPort } from '../../usecases/changelog-inference-workflow';
+import type { BuildTriggerPort } from '../../usecases/build-trigger';
 
 export function createDeployHookBuildTrigger(
   deployHookUrl: string,
-): ChangelogBuildTriggerPort {
+): BuildTriggerPort {
   return {
     async trigger() {
       const response = await fetch(deployHookUrl, { method: 'POST' });
