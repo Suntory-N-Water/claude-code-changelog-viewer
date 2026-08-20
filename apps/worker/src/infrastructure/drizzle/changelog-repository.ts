@@ -1,7 +1,11 @@
 import { and, eq, sql, type SQL } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import {
+  changelogDiffEventItems,
+  changelogDiffEvents,
   changelogItems,
+  changelogItemFeatureAreas,
+  changelogItemRelatedDocs,
   changelogVersions,
   settingsOfficialDocs,
   settingsReference,
@@ -83,6 +87,95 @@ export async function findChangelogVersion(
     summary: versionRow.summary,
     items,
   };
+}
+
+export async function listChangelogVersions(db: DrizzleD1Database) {
+  return db
+    .select({
+      version: changelogVersions.version,
+      summary: changelogVersions.summary,
+    })
+    .from(changelogVersions)
+    .orderBy(changelogVersions.version);
+}
+
+export async function listChangelogItems(db: DrizzleD1Database) {
+  return db
+    .select({
+      version: changelogItems.version,
+      itemId: changelogItems.itemId,
+      content: changelogItems.content,
+      contentJa: changelogItems.contentJa,
+      prefix: changelogItems.prefix,
+      inferenceBefore: changelogItems.inferenceBefore,
+      inferenceAfter: changelogItems.inferenceAfter,
+      inferenceBenefit: changelogItems.inferenceBenefit,
+    })
+    .from(changelogItems)
+    .orderBy(sql`rowid`);
+}
+
+export async function listFeatureAreas(db: DrizzleD1Database) {
+  return db
+    .select({
+      version: changelogItemFeatureAreas.version,
+      itemId: changelogItemFeatureAreas.itemId,
+      featureArea: changelogItemFeatureAreas.featureArea,
+    })
+    .from(changelogItemFeatureAreas)
+    .orderBy(
+      changelogItemFeatureAreas.version,
+      changelogItemFeatureAreas.itemId,
+      changelogItemFeatureAreas.featureArea,
+    );
+}
+
+export async function listRelatedDocs(db: DrizzleD1Database) {
+  return db
+    .select({
+      version: changelogItemRelatedDocs.version,
+      itemId: changelogItemRelatedDocs.itemId,
+      docPath: changelogItemRelatedDocs.docPath,
+    })
+    .from(changelogItemRelatedDocs)
+    .orderBy(
+      changelogItemRelatedDocs.version,
+      changelogItemRelatedDocs.itemId,
+      changelogItemRelatedDocs.docPath,
+    );
+}
+
+export async function listSettingsReference(db: DrizzleD1Database) {
+  return db.select().from(settingsReference).orderBy(settingsReference.key);
+}
+
+export async function listAllOfficialDocs(db: DrizzleD1Database) {
+  return db
+    .select({
+      settingKey: settingsOfficialDocs.settingKey,
+      docPath: settingsOfficialDocs.docPath,
+    })
+    .from(settingsOfficialDocs)
+    .orderBy(settingsOfficialDocs.settingKey, settingsOfficialDocs.docPath);
+}
+
+export async function listDiffEvents(db: DrizzleD1Database) {
+  return db
+    .select()
+    .from(changelogDiffEvents)
+    .orderBy(changelogDiffEvents.version, changelogDiffEvents.detectedAt);
+}
+
+export async function listDiffEventItems(db: DrizzleD1Database) {
+  return db
+    .select()
+    .from(changelogDiffEventItems)
+    .orderBy(
+      changelogDiffEventItems.version,
+      changelogDiffEventItems.detectedAt,
+      changelogDiffEventItems.direction,
+      changelogDiffEventItems.seq,
+    );
 }
 
 export async function findSettingByKey(db: DrizzleD1Database, key: string) {

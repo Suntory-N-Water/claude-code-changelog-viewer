@@ -2,7 +2,7 @@ import type { CollectionEntry } from 'astro:content';
 import { TZDate } from '@date-fns/tz';
 import { format } from 'date-fns';
 
-export type DiffEvent = CollectionEntry<'diff'>['data']['events'][number];
+export type DiffEvent = CollectionEntry<'diff'>['data'];
 
 /** ISO文字列をJSTの「yyyy年M月d日 H時m分」形式にフォーマット */
 export function formatDiffDateTime(iso: string): string {
@@ -16,13 +16,11 @@ export function buildDiffMap(
 ): Map<string, DiffEvent[]> {
   const map = new Map<string, DiffEvent[]>();
   for (const entry of entries) {
-    for (const event of entry.data.events) {
-      const existing = map.get(event.version);
-      if (existing) {
-        existing.push(event);
-      } else {
-        map.set(event.version, [event]);
-      }
+    const existing = map.get(entry.data.version);
+    if (existing) {
+      existing.push(entry.data);
+    } else {
+      map.set(entry.data.version, [entry.data]);
     }
   }
   return map;

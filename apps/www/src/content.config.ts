@@ -1,12 +1,14 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import {
+  changelogLoader,
+  diffLoader,
+  settingsReferenceLoader,
+} from './lib/site-data-loader';
 
 const changelogCollection = defineCollection({
-  loader: glob({
-    pattern: 'inferred_v*.json',
-    base: './src/content/changelog',
-  }),
+  loader: changelogLoader,
   schema: z.object({
     version: z.string(),
     summary: z.string().optional(), // バージョン全体のサマリー(日本語)
@@ -35,17 +37,13 @@ const changelogCollection = defineCollection({
 });
 
 const diffCollection = defineCollection({
-  loader: glob({ pattern: '**/*.json', base: './src/content/diff' }),
+  loader: diffLoader,
   schema: z.object({
-    events: z.array(
-      z.object({
-        detected_at: z.iso.datetime(),
-        version: z.string(),
-        type: z.enum(['items_changed', 'version_removed']),
-        items_added: z.array(z.string()),
-        items_removed: z.array(z.string()),
-      }),
-    ),
+    detected_at: z.iso.datetime(),
+    version: z.string(),
+    type: z.enum(['items_changed', 'version_removed']),
+    items_added: z.array(z.string()),
+    items_removed: z.array(z.string()),
   }),
 });
 
@@ -83,7 +81,7 @@ const columnCollection = defineCollection({
 });
 
 const settingsReferenceCollection = defineCollection({
-  loader: glob({ pattern: '**/*.json', base: './src/content/settings' }),
+  loader: settingsReferenceLoader,
   schema: z.object({
     key: z.string(),
     leaf_name: z.string().optional(),
@@ -92,11 +90,8 @@ const settingsReferenceCollection = defineCollection({
     description_en: z.string(),
     description_ja: z.string(),
     use_case_ja: z.string().optional(),
-    parent_descriptions: z.array(z.string()),
-    doc_snippets: z.array(z.string()),
     official_doc_urls: z.array(z.string().url()).optional(),
     fetched_at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    related_changelog: z.array(z.unknown()),
   }),
 });
 

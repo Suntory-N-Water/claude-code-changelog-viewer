@@ -9,6 +9,7 @@ import { queueConsumer } from './queue/consumer';
 import { dispatchRoute } from './routes/dispatch';
 import { ingestChangelogRoute } from './routes/ingest-changelog';
 import { mcpRoute } from './routes/mcp';
+import { siteDataRoute } from './routes/site-data';
 import { unsubscribeRoute } from './routes/unsubscribe';
 import { uploadsRoute } from './routes/uploads';
 import { webhooksRoute } from './routes/webhooks';
@@ -57,6 +58,7 @@ app.route('/webhooks', webhooksRoute);
 app.route('/dispatch', dispatchRoute);
 app.route('/ingest/changelog', ingestChangelogRoute);
 app.route('/mcp', mcpRoute);
+app.route('/site-data', siteDataRoute);
 app.route('/unsubscribe', unsubscribeRoute);
 app.route('/uploads', uploadsRoute);
 

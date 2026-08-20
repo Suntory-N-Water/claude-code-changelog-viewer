@@ -9,10 +9,17 @@ export type ChangelogSource = {
   fetchContentHash(): Promise<string>;
 };
 
-/** GitHub workflow の起動と実行状態取得を抽象化する port。 */
+/** 推論 workflow の起動と実行状態取得を抽象化する port。 */
 export type ChangelogWorkflow = {
-  dispatch(input: { hash: string; detectedAt: string }): Promise<void>;
-  findStatus(dispatchedHash: string): Promise<ChangelogWorkflowStatus>;
+  dispatch(input: {
+    hash: string;
+    detectedAt: string;
+    attempts: number;
+  }): Promise<void>;
+  findStatus(input: {
+    hash: string;
+    attempts: number;
+  }): Promise<ChangelogWorkflowStatus>;
 };
 
 export type DetectChangelogUpdateDependencies = {
@@ -46,9 +53,10 @@ export async function detectChangelogUpdate(
     checkedAt,
   });
   if (decision.action === 'check_workflow' && previous !== null) {
-    const workflowStatus = await dependencies.workflow.findStatus(
-      previous.lastDispatchedHash,
-    );
+    const workflowStatus = await dependencies.workflow.findStatus({
+      hash: previous.lastDispatchedHash,
+      attempts: previous.attempts,
+    });
     decision = decideChangelogDetection({
       previous,
       contentHash,
@@ -61,6 +69,7 @@ export async function detectChangelogUpdate(
     await dependencies.workflow.dispatch({
       hash: decision.state.lastDispatchedHash,
       detectedAt: decision.state.lastDispatchedAt,
+      attempts: decision.state.attempts,
     });
   }
 

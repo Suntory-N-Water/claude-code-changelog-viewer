@@ -90,6 +90,12 @@ describe('設定リファレンス生成 Workflow', () => {
         ],
       }),
     );
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${String(input)}`);
+    });
     const instanceId = `issue-902-store-retry-${crypto.randomUUID()}`;
     const instance = await introspectWorkflowInstance(
       testEnv.SETTINGS_REFERENCE_WORKFLOW,
@@ -175,6 +181,12 @@ describe('設定リファレンス生成 Workflow', () => {
         ],
       }),
     );
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${String(input)}`);
+    });
 
     const skippedId = `issue-902-skip-${crypto.randomUUID()}`;
     const skipped = await introspectWorkflowInstance(
@@ -228,6 +240,12 @@ describe('設定リファレンス生成 Workflow', () => {
           use_case_ja: '',
         })),
       });
+    });
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${String(input)}`);
     });
     const instanceId = `issue-902-batch-${crypto.randomUUID()}`;
     const instance = await introspectWorkflowInstance(

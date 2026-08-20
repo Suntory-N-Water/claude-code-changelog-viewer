@@ -1,7 +1,7 @@
 import { getLogger } from '@claude-code-changelog-viewer/common';
 import { createGitHubChangelogSource } from '../infrastructure/github/changelog-source';
-import { createGitHubChangelogWorkflow } from '../infrastructure/github/changelog-workflow';
 import { createChangelogDetectionStateRepository } from '../infrastructure/kv/changelog-detection-state-store';
+import { createChangelogInferenceDispatcher } from '../infrastructure/workflows/changelog-inference-dispatcher';
 import { detectChangelogUpdate as detectChangelogUpdateUsecase } from '../usecases/detect-changelog-update';
 
 const logger = getLogger({
@@ -18,7 +18,9 @@ export async function detectChangelogUpdate(
   const result = await detectChangelogUpdateUsecase(
     {
       source: createGitHubChangelogSource(bindings.GITHUB_DISPATCH_TOKEN),
-      workflow: createGitHubChangelogWorkflow(bindings.GITHUB_DISPATCH_TOKEN),
+      workflow: createChangelogInferenceDispatcher(
+        bindings.CHANGELOG_INFERENCE_WORKFLOW,
+      ),
       stateRepository: createChangelogDetectionStateRepository(
         bindings.CHANGELOG_DETECTION_KV,
       ),
@@ -27,7 +29,7 @@ export async function detectChangelogUpdate(
   );
 
   if (result.action === 'dispatched') {
-    logger.info('CHANGELOG の変化を検知、workflow_dispatch を起動', {
+    logger.info('CHANGELOG の変化を検知、推論 Workflow を起動', {
       previousHash: result.previousHash,
       newHash: result.contentHash,
     });
