@@ -94,11 +94,12 @@ export function decideChangelogDetection({
   }
 
   if (workflowStatus === 'failed') {
+    // lastDispatchedAt は差分イベントの detected_at になるため、再起動しても更新しない。
+    // 更新すると同じ変化が試行回数ぶん別々の detected_at で記録される
     return {
       action: 'dispatch',
       state: {
         ...checkedState,
-        lastDispatchedAt: checkedAt,
         attempts: previous.attempts + 1,
       },
     };

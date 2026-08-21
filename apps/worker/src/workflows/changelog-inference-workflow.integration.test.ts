@@ -27,6 +27,19 @@ declare global {
 
 const testEnv = env;
 const changelog = `# Changelog\n\n## 2.1.234\n\n- Added workflow inference support\n`;
+// v2.1.238 で Workers AI がタイムアウトしたのは 39 項目。ここでは 3 バッチに割れる最小の件数で再現する
+const LARGE_RELEASE_ITEM_COUNT = 23;
+const largeChangelog = [
+  '# Changelog',
+  '',
+  '## 2.1.238',
+  '',
+  ...Array.from(
+    { length: LARGE_RELEASE_ITEM_COUNT },
+    (_, index) => `- Added workflow inference support for case ${index}`,
+  ),
+  '',
+].join('\n');
 
 function chatCompletion(content: object) {
   return {
@@ -155,7 +168,8 @@ describe('CHANGELOG 推論 Workflow', () => {
         notifiedVersions: ['v2.1.234'],
       });
 
-      expect(aiRun).toHaveBeenCalledTimes(1);
+      // 項目推論とサマリー生成で 1 回ずつ呼ばれる
+      expect(aiRun).toHaveBeenCalledTimes(2);
       expect(queueSend).toHaveBeenCalledWith({
         version: 'v2.1.234',
         analysis: {
@@ -331,7 +345,8 @@ describe('CHANGELOG 推論 Workflow', () => {
         processedVersions: ['v2.1.234'],
         notifiedVersions: [],
       });
-      expect(aiRun).toHaveBeenCalledTimes(1);
+      // 項目推論とサマリー生成で 1 回ずつ呼ばれる
+      expect(aiRun).toHaveBeenCalledTimes(2);
       expect(queueSend).not.toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledWith('https://deploy.example/hook', {
         method: 'POST',
@@ -366,6 +381,109 @@ describe('CHANGELOG 推論 Workflow', () => {
           content: '- Old workflow behavior',
         },
       ]);
+    } finally {
+      await instance.dispose();
+    }
+  });
+
+  it('1バージョンの項目数が多い時、推論をバッチに分けて保存を1回にまとめること', async () => {
+    const release = (await parseChangelogReleases(largeChangelog))[0];
+    if (release === undefined) {
+      throw new Error('テスト用 CHANGELOG のリリースがありません');
+    }
+
+    const inferredIdBatches: string[][] = [];
+    const summaryPrompts: string[] = [];
+    const aiRun = vi.spyOn(testEnv.AI, 'run').mockImplementation((async (
+      _model: string,
+      options: {
+        messages: [{ content: string }];
+        response_format: { json_schema: { name: string } };
+      },
+    ) => {
+      const prompt = options.messages[0].content;
+      if (options.response_format.json_schema.name === 'changelog_summary') {
+        summaryPrompts.push(prompt);
+        return chatCompletion({ summary: '多数の変更を追加しました。' });
+      }
+
+      const ids = [...prompt.matchAll(/^### 項目 id=(.+)$/gm)].map(
+        (match) => match[1] ?? '',
+      );
+      inferredIdBatches.push(ids);
+      return chatCompletion({
+        inferred_items: ids.map((id) => ({
+          id,
+          content_ja: `項目 ${id} の変更を追加しました。`,
+          before: '対応する機能がありませんでした。',
+          after: '対応する機能が追加されました。',
+          benefit: '追加された機能をそのまま利用できます。',
+        })),
+        translated_items: [],
+        feature_area_corrections: [],
+      });
+    }) as unknown as typeof testEnv.AI.run);
+    vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
+      metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+    });
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/contents/CHANGELOG.md')) {
+        return new Response(largeChangelog, { status: 200 });
+      }
+      if (url === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${url}`);
+    });
+
+    const instanceId = `issue-955-batch-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.CHANGELOG_INFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+
+      await testEnv.CHANGELOG_INFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {
+          detectedHash: await sha256Hex(largeChangelog),
+          detectedAt: '2026-08-21T00:00:00.000Z',
+        },
+      });
+
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+
+      // BATCH_SIZE = 10 なので 23 項目は 10 / 10 / 3 に割れ、サマリーが 1 回加わる
+      expect(inferredIdBatches.map((batch) => batch.length)).toEqual([
+        10, 10, 3,
+      ]);
+      expect(inferredIdBatches.flat()).toEqual(
+        release.items.map((item) => item.id),
+      );
+      expect(summaryPrompts).toHaveLength(1);
+      expect(aiRun).toHaveBeenCalledTimes(4);
+
+      await expect(
+        instance.waitForStepResult({ name: `store-${release.version}` }),
+      ).resolves.toEqual({ version: release.version });
+
+      const db = drizzle(testEnv.DB);
+      await expect(
+        db
+          .select({ version: changelogVersions.version })
+          .from(changelogVersions),
+      ).resolves.toEqual([{ version: '2.1.238' }]);
+      await expect(
+        db
+          .select({ itemId: changelogItems.itemId })
+          .from(changelogItems)
+          .where(eq(changelogItems.version, '2.1.238')),
+      ).resolves.toHaveLength(LARGE_RELEASE_ITEM_COUNT);
     } finally {
       await instance.dispose();
     }

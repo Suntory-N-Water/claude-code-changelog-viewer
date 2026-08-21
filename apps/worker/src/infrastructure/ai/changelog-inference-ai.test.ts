@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ChangelogInferenceInput } from '../../domain/changelog-inference/changelog-inference';
-import { createChangelogInferenceAi } from './changelog-inference-ai';
+import type {
+  ChangelogInferenceInput,
+  ChangelogRelease,
+} from '../../domain/changelog-inference/changelog-inference';
+import {
+  createChangelogItemInferenceAi,
+  createChangelogSummaryAi,
+} from './changelog-inference-ai';
 
 const input = {
   version: 'v2.1.234',
@@ -25,6 +31,15 @@ const input = {
   ],
 } satisfies ChangelogInferenceInput;
 
+const release = {
+  version: 'v2.1.234',
+  items: input.items.map(({ id, content, prefix }) => ({
+    id,
+    content,
+    prefix,
+  })),
+} satisfies ChangelogRelease;
+
 const validResponse = {
   inferred_items: [
     {
@@ -39,7 +54,6 @@ const validResponse = {
     { id: 'without-docs', content_ja: '小さな誤字を修正しました。' },
   ],
   feature_area_corrections: [{ id: 'with-docs', feature_areas: ['Settings'] }],
-  summary: '文書化された機能が追加され、誤字が修正されました。',
 };
 
 function chatCompletion(content: object) {
@@ -66,9 +80,9 @@ function chatCompletion(content: object) {
 describe('Workers AI CHANGELOG adapter', () => {
   it('AI 応答が Zod で検証できる時、usecase の型へ変換すること', async () => {
     const run = vi.fn().mockResolvedValue(chatCompletion(validResponse));
-    const sut = createChangelogInferenceAi({ run }, 'project-gateway');
+    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
 
-    const result = await sut.infer(input);
+    const result = await sut.inferItems(input);
 
     expect(result).toEqual({
       inferredItems: [
@@ -86,7 +100,6 @@ describe('Workers AI CHANGELOG adapter', () => {
         { id: 'without-docs', contentJa: '小さな誤字を修正しました。' },
       ],
       featureAreaCorrections: [{ id: 'with-docs', featureAreas: ['Settings'] }],
-      summary: '文書化された機能が追加され、誤字が修正されました。',
     });
     expect(run).toHaveBeenCalledWith(
       '@cf/google/gemma-4-26b-a4b-it',
@@ -99,13 +112,42 @@ describe('Workers AI CHANGELOG adapter', () => {
   });
 
   it('AI 応答の Zod 検証に失敗した時、再試行可能なエラーにすること', async () => {
+    const run = vi.fn().mockResolvedValue(
+      chatCompletion({
+        ...validResponse,
+        translated_items: [{ id: 'without-docs', content_ja: '短い' }],
+      }),
+    );
+    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
+
+    await expect(sut.inferItems(input)).rejects.toThrow(
+      'AI 推論結果の形式が不正です',
+    );
+  });
+
+  it('サマリー生成では原文だけをプロンプトに渡すこと', async () => {
     const run = vi
       .fn()
-      .mockResolvedValue(chatCompletion({ ...validResponse, summary: '' }));
-    const sut = createChangelogInferenceAi({ run }, 'project-gateway');
+      .mockResolvedValue(
+        chatCompletion({ summary: '文書化された機能が追加されました。' }),
+      );
+    const sut = createChangelogSummaryAi({ run }, 'project-gateway');
 
-    await expect(sut.infer(input)).rejects.toThrow(
-      'AI 推論結果の形式が不正です',
+    await expect(sut.summarize(release)).resolves.toBe(
+      '文書化された機能が追加されました。',
+    );
+
+    const prompt = run.mock.calls[0]?.[1]?.messages?.[0]?.content;
+    expect(prompt).toContain('- [Added] - Added a documented feature');
+    expect(prompt).not.toContain('The feature automates the repeated setup.');
+  });
+
+  it('サマリーの AI 応答が空の時、再試行可能なエラーにすること', async () => {
+    const run = vi.fn().mockResolvedValue(chatCompletion({ summary: '' }));
+    const sut = createChangelogSummaryAi({ run }, 'project-gateway');
+
+    await expect(sut.summarize(release)).rejects.toThrow(
+      'AI サマリー結果の形式が不正です',
     );
   });
 });

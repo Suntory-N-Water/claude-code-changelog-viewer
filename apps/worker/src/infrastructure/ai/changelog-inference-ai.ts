@@ -1,12 +1,18 @@
 import type {
-  ChangelogAiResult,
   ChangelogInferenceInput,
+  ChangelogItemsAiResult,
+  ChangelogRelease,
 } from '../../domain/changelog-inference/changelog-inference';
-import type { ChangelogInferencePort } from '../../usecases/changelog-inference';
+import type {
+  ChangelogItemInferencePort,
+  ChangelogSummaryPort,
+} from '../../usecases/changelog-inference';
 import { z } from 'zod';
 import {
-  ChangelogInferenceResponseFormat,
-  ChangelogInferenceResponseSchema,
+  ChangelogItemsResponseFormat,
+  ChangelogItemsResponseSchema,
+  ChangelogSummaryResponseFormat,
+  ChangelogSummaryResponseSchema,
 } from './changelog-inference-schema';
 
 const MODEL = '@cf/google/gemma-4-26b-a4b-it';
@@ -22,22 +28,22 @@ const AiChatResponseSchema = z.object({
     .min(1),
 });
 
-export function createChangelogInferenceAi(
+export function createChangelogItemInferenceAi(
   ai: Pick<Cloudflare.Env['AI'], 'run'>,
   gatewayId: string,
-): ChangelogInferencePort {
+): ChangelogItemInferencePort {
   return {
-    async infer(input): Promise<ChangelogAiResult> {
+    async inferItems(input): Promise<ChangelogItemsAiResult> {
       const response = await ai.run(
         MODEL,
         {
-          messages: [{ role: 'user', content: buildInferencePrompt(input) }],
+          messages: [{ role: 'user', content: buildItemsPrompt(input) }],
           max_tokens: MAX_TOKENS,
-          response_format: ChangelogInferenceResponseFormat,
+          response_format: ChangelogItemsResponseFormat,
         },
         { gateway: { id: gatewayId } },
       );
-      const parsed = ChangelogInferenceResponseSchema.safeParse(
+      const parsed = ChangelogItemsResponseSchema.safeParse(
         parseAiResponse(response),
       );
       if (!parsed.success) {
@@ -66,8 +72,36 @@ export function createChangelogInferenceAi(
             featureAreas: item.feature_areas,
           }),
         ),
-        summary: parsed.data.summary,
       };
+    },
+  };
+}
+
+export function createChangelogSummaryAi(
+  ai: Pick<Cloudflare.Env['AI'], 'run'>,
+  gatewayId: string,
+): ChangelogSummaryPort {
+  return {
+    async summarize(release): Promise<string> {
+      const response = await ai.run(
+        MODEL,
+        {
+          messages: [{ role: 'user', content: buildSummaryPrompt(release) }],
+          max_tokens: MAX_TOKENS,
+          response_format: ChangelogSummaryResponseFormat,
+        },
+        { gateway: { id: gatewayId } },
+      );
+      const parsed = ChangelogSummaryResponseSchema.safeParse(
+        parseAiResponse(response),
+      );
+      if (!parsed.success) {
+        throw new Error(
+          `AI サマリー結果の形式が不正です: ${z.prettifyError(parsed.error)}`,
+        );
+      }
+
+      return parsed.data.summary;
     },
   };
 }
@@ -92,7 +126,14 @@ function parseAiResponse(response: unknown): unknown {
   }
 }
 
-function buildInferencePrompt(input: ChangelogInferenceInput): string {
+const PROMPT_PREAMBLE = [
+  '## 前提',
+  '- Claude Code は開発者向けの AI アシスタント CLI ツールである',
+  '- 技術用語を適切に日本語化し、開発者にとって自然な日本語で表現する',
+  '- CHANGELOG の原文や関連ドキュメントにない内容を捏造しない',
+].join('\n');
+
+function buildItemsPrompt(input: ChangelogInferenceInput): string {
   const inferenceItems = input.items
     .filter((item) => item.relatedDocs.length > 0)
     .map((item) => {
@@ -119,26 +160,19 @@ function buildInferencePrompt(input: ChangelogInferenceInput): string {
       ].join('\n'),
     )
     .join('\n\n');
-  const allItems = input.items
-    .map((item) => `- [${item.prefix}] ${item.content}`)
-    .join('\n');
   const featureAreaItems = input.items
     .map((item) => `- id=${item.id}, content: ${item.content}`)
     .join('\n');
 
   return [
-    '## 前提',
-    '- Claude Code は開発者向けの AI アシスタント CLI ツールである',
-    '- 技術用語を適切に日本語化し、開発者にとって自然な日本語で表現する',
-    '- CHANGELOG の原文や関連ドキュメントにない内容を捏造しない',
+    PROMPT_PREAMBLE,
     '',
-    `## 状況\nバージョン ${input.version} の CHANGELOG を処理する。全 ${input.items.length} 項目。`,
+    `## 状況\nバージョン ${input.version} の CHANGELOG のうち ${input.items.length} 項目を処理する。`,
     '',
-    '以下の4つのタスクを一度に実行する:',
+    '以下の3つのタスクを一度に実行する:',
     '1. 関連ドキュメントがある項目の翻訳と Before / After / Benefit の推論',
     '2. 関連ドキュメントがない項目の翻訳',
-    '3. バージョン全体の日本語サマリー',
-    '4. 各項目の機能領域タグの付与',
+    '3. 各項目の機能領域タグの付与',
     '',
     '# タスク1: 推論と翻訳',
     '- snippets に記載がない推測は避ける',
@@ -155,14 +189,24 @@ function buildInferencePrompt(input: ChangelogInferenceInput): string {
     '',
     translationItems || '(対象なし)',
     '',
-    '# タスク3: サマリー',
-    '2〜3文で、具体的な変更を最大3件だけ取り上げる。CHANGELOG にない効果を補わない。',
-    `バージョン ${input.version} の全変更項目:`,
-    allItems,
-    '',
-    '# タスク4: 機能領域タグ',
+    '# タスク3: 機能領域タグ',
     '該当する項目だけを返し、1項目に複数タグを付けてもよい。該当しなければ返さない。',
     'タグ候補: IDE, Hooks, MCP, Skills, Agent Teams, Sub-agents, Plan, Plugins, Settings, Memory, Permissions',
     featureAreaItems,
+  ].join('\n');
+}
+
+function buildSummaryPrompt(release: ChangelogRelease): string {
+  return [
+    PROMPT_PREAMBLE,
+    '',
+    `## 状況\nバージョン ${release.version} の CHANGELOG 全 ${release.items.length} 項目からサマリーを書く。`,
+    '',
+    '# タスク: サマリー',
+    '2〜3文で、具体的な変更を最大3件だけ取り上げる。CHANGELOG にない効果を補わない。',
+    `バージョン ${release.version} の全変更項目:`,
+    release.items
+      .map((item) => `- [${item.prefix}] ${item.content}`)
+      .join('\n'),
   ].join('\n');
 }

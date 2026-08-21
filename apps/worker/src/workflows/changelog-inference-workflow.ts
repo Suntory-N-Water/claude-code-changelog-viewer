@@ -6,7 +6,11 @@ import type {
   WorkflowStepConfigWithStaticDelay,
 } from 'cloudflare:workers';
 import { z } from 'zod';
-import { createChangelogInferenceAi } from '../infrastructure/ai/changelog-inference-ai';
+import type { ChangelogItemInference } from '../domain/changelog-inference/changelog-inference';
+import {
+  createChangelogItemInferenceAi,
+  createChangelogSummaryAi,
+} from '../infrastructure/ai/changelog-inference-ai';
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
 import { createChangelogDiffRepository } from '../infrastructure/drizzle/changelog-diff-repository';
 import { createChangelogInferenceRepository } from '../infrastructure/drizzle/changelog-inference-repository';
@@ -18,7 +22,7 @@ import { parseChangelogReleases } from '../infrastructure/github/changelog-markd
 import { createChangelogWorkflowNotifier } from '../infrastructure/notification/changelog-workflow-notifier';
 import {
   buildChangelogInferenceInput,
-  inferChangelogRelease,
+  inferChangelogItemBatch,
 } from '../usecases/changelog-inference';
 import {
   fetchAndClassifyChangelog,
@@ -40,6 +44,10 @@ const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
     backoff: 'exponential',
   },
 };
+
+// 1バッチの入力量が Workers AI のタイムアウトに届かない範囲に収める。
+// 設定リファレンス生成の 30 より小さいのは、1項目に関連ドキュメントの snippets が付くため
+const BATCH_SIZE = 10;
 
 export type ChangelogInferenceWorkflowParams = z.infer<
   typeof WorkflowParamsSchema
@@ -81,7 +89,11 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       const documentSearch = createChangelogDocumentSearch(
         drizzle(this.env.DOCS_DB),
       );
-      const inference = createChangelogInferenceAi(
+      const inference = createChangelogItemInferenceAi(
+        this.env.AI,
+        this.env.AI_GATEWAY_ID,
+      );
+      const summarizer = createChangelogSummaryAi(
         this.env.AI,
         this.env.AI_GATEWAY_ID,
       );
@@ -114,13 +126,41 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           STEP_RETRIES,
           async () => buildChangelogInferenceInput(documentSearch, release),
         );
-        const inferenceResult = await step.do(
-          `infer-${release.version}`,
+        const itemInferences: ChangelogItemInference[] = [];
+        for (
+          let batchStart = 0, batchIndex = 0;
+          batchStart < inferenceInput.items.length;
+          batchStart += BATCH_SIZE, batchIndex += 1
+        ) {
+          const batch = {
+            version: inferenceInput.version,
+            items: inferenceInput.items.slice(
+              batchStart,
+              batchStart + BATCH_SIZE,
+            ),
+          };
+          itemInferences.push(
+            ...(await step.do(
+              `infer-${release.version}-${batchIndex}`,
+              STEP_RETRIES,
+              async () => inferChangelogItemBatch(inference, batch),
+            )),
+          );
+        }
+
+        // サマリーは全項目を見る必要があるため、バッチ分割せず原文だけを渡して1回で作る
+        const { summary } = await step.do(
+          `summarize-${release.version}`,
           STEP_RETRIES,
-          async () => inferChangelogRelease(inference, inferenceInput),
+          async () => ({ summary: await summarizer.summarize(release) }),
         );
+
         await step.do(`store-${release.version}`, STEP_RETRIES, async () =>
-          saveChangelogInference(inferenceRepository, inferenceResult),
+          saveChangelogInference(inferenceRepository, {
+            input: inferenceInput,
+            itemInferences,
+            summary,
+          }),
         );
       }
 

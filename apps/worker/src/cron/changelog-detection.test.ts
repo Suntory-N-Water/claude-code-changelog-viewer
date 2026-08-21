@@ -105,7 +105,13 @@ describe('CHANGELOG 更新検知', () => {
     await detectChangelogUpdate(bindings, NOW);
 
     expect(dispatchRequests(bindings)).toHaveLength(1);
-    expect(storedState(bindings)).toMatchObject({ attempts: 2 });
+    expect(storedState(bindings)).toMatchObject({
+      attempts: 2,
+      lastDispatchedAt: PREVIOUS_DISPATCH_AT,
+    });
+    expect(dispatchRequests(bindings)[0]?.[0]).toMatchObject([
+      { params: { detectedAt: PREVIOUS_DISPATCH_AT } },
+    ]);
   });
 
   it('再起動回数が上限に達した時、再起動しないこと', async () => {
