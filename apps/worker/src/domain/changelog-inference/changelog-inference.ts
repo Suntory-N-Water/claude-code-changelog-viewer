@@ -53,11 +53,17 @@ export type ChangelogAiFeatureAreaCorrection = {
   featureAreas: string[];
 };
 
-export type ChangelogAiResult = {
+export type ChangelogItemsAiResult = {
   inferredItems: ChangelogAiInferenceItem[];
   translatedItems: ChangelogAiTranslationItem[];
   featureAreaCorrections: ChangelogAiFeatureAreaCorrection[];
-  summary: string;
+};
+
+export type ChangelogItemInference = {
+  id: string;
+  contentJa: string;
+  featureAreas: string[];
+  inference?: InferenceExplanation;
 };
 
 export type ChangelogInferenceItem = ChangelogItem & {
@@ -81,14 +87,13 @@ export type ChangelogInferenceRepository = {
   save(inference: ChangelogInference): Promise<void>;
 };
 
-export function mergeChangelogInference(
-  input: ChangelogInferenceInput,
-  aiResult: ChangelogAiResult,
-): ChangelogInference {
-  const inferenceItems = input.items.filter(
-    (item) => item.relatedDocs.length > 0,
-  );
-  const translationItems = input.items.filter(
+// AI 呼び出しはバッチに分かれるため、突き合わせもバッチに含まれる項目だけを対象にする
+export function mergeChangelogItemInferences(
+  items: ChangelogInferenceInputItem[],
+  aiResult: ChangelogItemsAiResult,
+): ChangelogItemInference[] {
+  const inferenceItems = items.filter((item) => item.relatedDocs.length > 0);
+  const translationItems = items.filter(
     (item) => item.relatedDocs.length === 0,
   );
 
@@ -117,25 +122,21 @@ export function mergeChangelogInference(
   );
 
   for (const id of featureAreasById.keys()) {
-    if (!input.items.some((item) => item.id === id)) {
+    if (!items.some((item) => item.id === id)) {
       throw new Error(`AI 推論結果に未知の item id があります: ${id}`);
     }
   }
 
-  return {
-    version: input.version,
-    summary: aiResult.summary,
-    items: input.items.map((item) => {
-      const inferred = inferredById.get(item.id);
-      const translated = translatedById.get(item.id);
-      return {
-        ...item,
-        contentJa: inferred?.contentJa ?? translated?.contentJa ?? '',
-        featureAreas: featureAreasById.get(item.id) ?? [],
-        ...(inferred === undefined ? {} : { inference: inferred.inference }),
-      };
-    }),
-  };
+  return items.map((item) => {
+    const inferred = inferredById.get(item.id);
+    const translated = translatedById.get(item.id);
+    return {
+      id: item.id,
+      contentJa: inferred?.contentJa ?? translated?.contentJa ?? '',
+      featureAreas: featureAreasById.get(item.id) ?? [],
+      ...(inferred === undefined ? {} : { inference: inferred.inference }),
+    };
+  });
 }
 
 function assertItemIds(

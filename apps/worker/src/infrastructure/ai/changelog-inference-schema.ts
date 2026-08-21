@@ -15,7 +15,7 @@ const FeatureAreaCorrectionSchema = z.object({
   feature_areas: z.array(z.string().min(1)),
 });
 
-export const ChangelogInferenceResponseSchema = z.object({
+export const ChangelogItemsResponseSchema = z.object({
   inferred_items: z
     .array(InferredItemSchema)
     .describe('関連ドキュメントがある項目の推論と翻訳結果'),
@@ -26,14 +26,27 @@ export const ChangelogInferenceResponseSchema = z.object({
     .array(FeatureAreaCorrectionSchema)
     .default([])
     .describe('機能領域タグの付与結果。該当項目だけを返す'),
+});
+
+export const ChangelogItemsResponseFormat = {
+  type: 'json_schema',
+  json_schema: {
+    name: 'changelog_items',
+    schema: z.toJSONSchema(ChangelogItemsResponseSchema, {
+      target: 'draft-07',
+    }),
+  },
+} as const;
+
+export const ChangelogSummaryResponseSchema = z.object({
   summary: z.string().min(1).describe('バージョン全体の日本語サマリー'),
 });
 
-export const ChangelogInferenceResponseFormat = {
+export const ChangelogSummaryResponseFormat = {
   type: 'json_schema',
   json_schema: {
-    name: 'changelog_inference',
-    schema: z.toJSONSchema(ChangelogInferenceResponseSchema, {
+    name: 'changelog_summary',
+    schema: z.toJSONSchema(ChangelogSummaryResponseSchema, {
       target: 'draft-07',
     }),
   },

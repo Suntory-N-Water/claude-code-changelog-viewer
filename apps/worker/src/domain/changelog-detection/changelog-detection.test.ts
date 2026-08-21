@@ -50,7 +50,7 @@ describe('CHANGELOG 検知状態', () => {
     });
   });
 
-  it('起動した workflow が失敗した時、試行回数を増やして再起動する', () => {
+  it('起動した workflow が失敗した時、検知時刻を保ったまま試行回数を増やして再起動する', () => {
     expect(
       decideChangelogDetection({
         previous: {
@@ -70,7 +70,7 @@ describe('CHANGELOG 検知状態', () => {
       state: {
         contentHash: 'same-hash',
         lastCheckedAt: '2026-08-16T00:05:00.000Z',
-        lastDispatchedAt: '2026-08-16T00:05:00.000Z',
+        lastDispatchedAt: '2026-08-15T23:55:00.000Z',
         lastDispatchedHash: 'same-hash',
         attempts: 2,
         confirmed: false,

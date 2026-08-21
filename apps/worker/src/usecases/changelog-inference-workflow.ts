@@ -6,8 +6,9 @@ import {
 import type {
   ChangelogDiffEvent,
   ChangelogDiffRepository,
-  ChangelogInference,
+  ChangelogInferenceInput,
   ChangelogInferenceRepository,
+  ChangelogItemInference,
   ChangelogRelease,
 } from '../domain/changelog-inference/changelog-inference';
 
@@ -77,12 +78,36 @@ export async function saveChangelogDiffs(
   return { count: events.length };
 }
 
+export type SaveChangelogInferenceInput = {
+  input: ChangelogInferenceInput;
+  itemInferences: ChangelogItemInference[];
+  summary: string;
+};
+
 export async function saveChangelogInference(
   repository: ChangelogInferenceRepository,
-  inference: ChangelogInference,
+  { input, itemInferences, summary }: SaveChangelogInferenceInput,
 ): Promise<{ version: string }> {
-  await repository.save(inference);
-  return { version: inference.version };
+  const inferenceById = new Map(
+    itemInferences.map((itemInference) => [itemInference.id, itemInference]),
+  );
+
+  await repository.save({
+    version: input.version,
+    summary,
+    items: input.items.map((item) => {
+      const itemInference = inferenceById.get(item.id);
+      return {
+        ...item,
+        contentJa: itemInference?.contentJa ?? '',
+        featureAreas: itemInference?.featureAreas ?? [],
+        ...(itemInference?.inference === undefined
+          ? {}
+          : { inference: itemInference.inference }),
+      };
+    }),
+  });
+  return { version: input.version };
 }
 
 export async function reportChangelogWorkflowFailure(
