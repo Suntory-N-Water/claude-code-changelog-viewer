@@ -1,0 +1,1552 @@
+{
+  "version": "2.1.239",
+  "summary": "プロキシ環境下における接続挙動が強化され、Amazon Bedrock 接続時にレスポンスヘッダーが改変されてもストリーミング接続が維持されるようになり、サイレントな非ストリーミングへのフォールバックによる API 課金倍増の問題が解消されました。また、Linux のサンドボックス機能で `extensions.worktreeConfig` が設定されている場合に `git status` などのコマンドが正常に動作しない不具合が修正され、Windows 環境でも `SendMessage` や `ListAgents` を用いたセッション間メッセージングによるエージェントの相互通信連携が完全に動作するようになっています。",
+  "items": [
+    {
+      "id": "42f3f23b535f",
+      "content": "- Cost estimates (`/cost`, status line, `--max-budget-usd`) now include the 1.1× US-only-inference premium for data-residency workspaces",
+      "content_ja": "データレジデンシーワークスペース向けに、米国のみでのインファレンスに伴う1.1倍のプレミアム料金を考慮したコスト見積もり（`/cost`、ステータスライン、`--max-budget-usd`）に対応しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "データレジデンシーを指定したワークスペースにおける米国限定インファレンス向けの追加プレミアム料金（1.1倍）がコスト見積もりに反映されませんでした。このため、実際の請求額や予算制限との間に乖離が生じ、正確な消費管理が難しくなっていました。",
+        "after": "`/cost` コマンド、ステータスライン、および `--max-budget-usd` オプションによるすべてのコスト見積もりに1.1倍のプレミアム料金が自動的に加算されるようになります。実際の使用条件に則した正確な料金推移が常に表示されます。",
+        "benefit": "実際の請求額に近い正確な消費コストや残予算をリアルタイムに把握できるようになります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "データレジデンシーを指定する一部の企業ユーザーにおける予算管理やコスト見積もりの精度に影響するため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        }
+      ]
+    },
+    {
+      "id": "1327365bef5a",
+      "content": "- Added the one-time fullscreen renderer offer on Bedrock, Vertex, Foundry and other previously excluded setups; new installs there now start in fullscreen",
+      "content_ja": "Bedrock、Vertex、Foundry などの環境において、初回起動時に全画面レンダラーへの切り替えを提案するダイアログを表示し、新規インストール時には自動的にフルスクリーンモードで起動する機能を追加しました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "Bedrock や Vertex などのサードパーティプラットフォームを利用している環境では、全画面レンダラー（フルスクリーンモード）の自動的な提供や初回起動時の移行提案ダイアログの表示対象から除外されていました。そのため、クラシックレンダラーのまま利用し続ける必要がありました。",
+        "after": "新規インストール時に自動的にフルスクリーンモードが有効化され、既存の環境でも初回起動時に一回限りの移行提案ダイアログが表示されるようになります。これにより、フリッカーのない快適なインターフェースをすぐに利用できます。",
+        "benefit": "手動で設定を変更することなく、初回起動時から自動的に快適な全画面インターフェースで開発を開始できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Bedrockなどのサードパーティ環境で一律全画面レンダラーが既定となるため影響度は大きいですが、移行はいつでもオプトアウト可能なため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "id": "2c10676f7f2e",
+      "content": "- Added `/claude-api upgrade` to migrate Python projects from `anthropic` 0.x to 1.x, and updated the skill's Python reference for 1.x (timeouts use `anthropic.Timeout`, not `httpx.Timeout`)",
+      "content_ja": "Python プロジェクトにおける `anthropic` ライブラリを 0.x から 1.x に移行するための `/claude-api upgrade` コマンドを追加し、タイムアウトに `anthropic.Timeout` を使用するようスキルの Python リファレンスを更新しました。",
+      "prefix": "Added",
+      "feature_areas": ["Skills"],
+      "inference": {
+        "before": "Python プロジェクトで古い `anthropic` SDK（0.x）を使用している場合、手動でコードを書き換えて 1.x にアップグレードする必要がありました。また、タイムアウトの設定に `httpx.Timeout` が参照されたままになっていました。",
+        "after": "`/claude-api upgrade` コマンドを実行するだけで、プロジェクト内の API 移行が自動的に行われます。さらに、スキルの Python リファレンスも更新され、タイムアウトには 1.x に準拠した `anthropic.Timeout` が正しく使用されるようになります。",
+        "benefit": "古い API コードを検索して手動で書き換える手間をかけることなく、1コマンドで最新の SDK 仕様に適合させることができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Python開発者のSDKアップグレードをコマンド1つで大幅に助ける機能であるため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/python.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/network-config.md"
+        }
+      ]
+    },
+    {
+      "id": "0ef02f434f40",
+      "content": "- Cloud sessions: plugins synced from claude.ai now show as `name@synced`, work with `claude plugin enable/disable <name>@synced`, and never override a same-named plugin you installed",
+      "content_ja": "クラウドセッションにおいて、claude.ai から同期されたプラグインに `@synced` サフィックスを付与して表示し、ローカルにインストールした同名プラグインを上書きしないように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "claude.ai から同期されたプラグインと、手動でインストールした同名のローカルプラグインが競合した場合に上書きされる懸念がありました。また、同期されたプラグインを明確に区別して有効化・無効化する手段が提供されていませんでした。",
+        "after": "同期されたプラグインは `name@synced` の形式で明確に識別され、`claude plugin enable/disable <name>@synced` で個別に制御できます。ローカルに自身でインストールしたプラグインが勝手に上書きされることもありません。",
+        "benefit": "自分で導入したプラグインの設定を壊される心配をすることなく、同期プラグインとローカルプラグインを安全に共存させることができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "クラウド同期プラグインとローカルプラグインの競合破損を防ぐ安全な名前空間管理の改善であるため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-dependencies.md"
+        }
+      ]
+    },
+    {
+      "id": "1a43dfc08a93",
+      "content": "- Alpine/musl builds: native image paste, clipboard, and audio-capture add-ons now load (musl-built binaries instead of glibc ones refused by the runtime)",
+      "content_ja": "Alpine Linux や musl 採用環境において、glibc 依存バイナリの拒否を回避するため、musl ビルドされたバイナリをロードすることで、ネイティブの画像貼り付け、クリップボード、オーディオキャプチャのアドオンが正常に動作するように改善しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Alpine Linux などの musl 採用環境では、ネイティブアドオンが glibc 依存のバイナリであったため、実行時エラーとしてロードを拒否されていました。これにより、画像の貼り付けやクリップボード、音声入力を利用した開発作業が行えませんでした。",
+        "after": "musl 向けにビルドされた専用のネイティブバイナリが適切に検出され、ロードされるようになります。Alpine 環境でも制限なく画像貼り付け、クリップボード連携、オーディオキャプチャのアドオンが機能します。",
+        "benefit": "Alpine コンテナ環境などで、アドオンの互換性エラーに悩まされることなく音声やクリップボード機能をそのまま利用できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Alpine Linuxを使用する特定のコンテナ化環境下におけるアドオン不具合を直接修正するため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-deploy.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-deploy.md"
+        }
+      ]
+    },
+    {
+      "id": "283688f90786",
+      "content": "- The usage-limit message shown when your monthly spend limit is already used up now also says when your session or weekly limit resets",
+      "content_ja": "月間の利用上限金額（spend limit）に達した際に表示されるエラーメッセージにおいて、セッション制限や週間制限がリセットされる具体的な日時を合わせて通知するように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "月間の予算上限や spend limit に達した際に表示されるエラーメッセージに、セッションや週間制限がいつリセットされるかの情報が含まれていませんでした。そのため、いつ作業を再開できるようになるのかを個別に管理者へ確認する必要がありました。",
+        "after": " spend limit 到達時のメッセージ内に、セッション制限や週間制限の具体的なリセット時刻が明記されるようになります。制限解除のタイミングを正確に見通すことができます。",
+        "benefit": "作業再開までの待ち時間を知るために、管理者へ問い合わせたりドキュメントを確認したりする必要がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "利用上限に達した時のエラー情報の視認性向上に留まるため影響は軽微です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-spend-limits.md"
+        }
+      ]
+    },
+    {
+      "id": "1d5a6b172f77",
+      "content": "- Fixed Bedrock streaming behind proxies that strip the response Content-Type header, which silently doubled billed API calls by re-running every turn non-streaming",
+      "content_ja": "プロキシがレスポンスの Content-Type ヘッダーを削除してしまう環境において、Bedrock へのストリーミング接続が失敗し、非ストリーミングで再実行されて API 課金がサイレントに倍増していた不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "社内プロキシなどが Amazon Bedrock からのレスポンスヘッダーに含まれる Content-Type を削除・改変してしまうと、Claude Code はストリーミング処理を諦め、裏でサイレントに非ストリーミング通信でリトライしていました。その結果、1回のターンで2倍の API 料金が課金されていました。",
+        "after": "Content-Type ヘッダーがプロキシによって削除されている場合でも、ストリーミングレスポンスを正しくデコードして処理を継続します。サイレントな非ストリーミングへのフォールバックが発生しなくなります。",
+        "benefit": "不健全なリトライによる不要な API 課金の重複を防ぎ、想定外のコスト超過を回避できます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "特定のプロキシの背後にあるBedrock連携で、サイレントに課金が2倍になっていた致命的な挙動を是正するため重要度は高いです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md"
+        }
+      ]
+    },
+    {
+      "id": "f05fa8185f62",
+      "content": "- Fixed Claude Code hanging at startup behind an HTTPS proxy when using Bedrock with an SSO profile and `awsAuthRefresh` — the credential pre-check now honors `HTTPS_PROXY`",
+      "content_ja": "HTTPS プロキシ環境下で AWS SSO プロファイルと `awsAuthRefresh` を組み合わせて Bedrock を使用する際、起動時の認証情報事前チェックが `HTTPS_PROXY` 環境変数を無視してハングアップする不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "HTTPS プロキシの背後から AWS SSO と `awsAuthRefresh` を設定して Bedrock を利用しようとすると、起動時の資格情報事前チェックプロセスがプロキシを無視して直接接続を試みていました。このため接続が確立できず、起動時に CLI がフリーズしていました。",
+        "after": "起動時の事前チェック処理がシステムに設定された `HTTPS_PROXY` 環境変数を正しく参照し、プロキシ経由で認証トークンの解決を行うようになります。ハングアップすることなく正常に起動します。",
+        "benefit": "プロキシ環境下でも起動時フリーズに阻まれることなく、AWS SSO 連携を安定して利用できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プロキシ背後のAWS SSO連携において、起動時にハングアップし動作が停止するのを修正するため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-platform-on-aws.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md"
+        }
+      ]
+    },
+    {
+      "id": "d4debe43398f",
+      "content": "- Fixed a raw crash dump when starting Claude Code from a directory that no longer exists; it now prints a clear message",
+      "content_ja": "すでに削除されて存在しないディレクトリから Claude Code を起動した際に、未加工のクラッシュログを出力するのではなく、分かりやすいエラーメッセージを表示して終了するように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "別の端末や処理によってカレントディレクトリが物理的に削除された状態で Claude Code を起動すると、スタックトレースや生のエラーダンプがそのまま画面に表示され、何が原因で起動に失敗したのかが直感的に分かりませんでした。",
+        "after": "対象のディレクトリが存在しないことを検知し、スタックトレースを吐く代わりに「ディレクトリが存在しない」旨を知らせる明快なエラーメッセージを印刷して安全に終了します。",
+        "benefit": "未加工のクラッシュ画面に混乱することなく、起動元ディレクトリの問題であると即座に理解して対処できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ディレクトリ削除に伴う稀な起動時のクラッシュダンプ表示を丁寧な警告に差し替えるだけなので軽微です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        }
+      ]
+    },
+    {
+      "id": "e32cd7741d88",
+      "content": "- Fixed Edit and Write calls pausing for about 5 seconds in JetBrains IDE terminals when the Claude Code plugin is connected",
+      "content_ja": "JetBrains 系 IDE の内蔵ターミナルから Claude Code プラグインを接続して使用している際に、Edit および Write ツールの実行が約5秒間一時停止する不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["IDE"],
+      "inference": {
+        "before": "JetBrains IDE のターミナル内で Claude Code プラグインを接続して開発していると、ファイルの編集（Edit）や書き込み（Write）のツールを呼び出すたびに約5秒間の無駄なウェイトが発生し、スムーズなコード生成が妨げられていました。",
+        "after": "プラグインとの通信競合やイベント待ちの処理が最適化され、Edit や Write の呼び出しが遅延なく即座に完了するようになります。ターミナル上での作業テンポが妨げられません。",
+        "benefit": "ファイル変更時の不自然なフリーズを待つ必要がなくなり、テンポよく開発を継続できます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "JetBrainsのIDEターミナルにおいて、中核ツールであるEdit/Writeの実行が毎回5秒停止する重大なフリーズ問題を修正するため影響度は大きいです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/jetbrains.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "id": "b05bd096cad2",
+      "content": "- Fixed a race where pressing Esc with a prompt queued could let the next turn finish early, leaving the session idle while Claude was still working and letting a later resubmit repeat actions",
+      "content_ja": "プロンプトが送信キューに溜まっている状態で Esc キーを押すと、次のターンが異常に早く終了してしまい、Claude が処理中であるにもかかわらずセッションがアイドル状態と誤認され、再送信時に同じアクションが重複実行される競合状態を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "プロンプトがキューに入っているタイミングで Esc キーを押して中断を試みると、内部のタスク完了判定が狂い、処理の途中で CLI が入力を受け付けるアイドル状態に戻ってしまうことがありました。この状態で再送信を行うと、同じファイル編集などの動作が繰り返されていました。",
+        "after": "Esc キー押下時の状態遷移管理が修正され、実行中のタスクが確実に停止または同期されるようになります。Claude が処理を継続している間に CLI がアイドル状態に戻ったり、後続コマンドが重複処理を引き起こしたりすることはありません。",
+        "benefit": "割り込みや再送信操作を行った際に、意図しないコードの上書きや重複実行に悩まされることがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Esc割り込み時の競合によるコマンドの不整合や重複アクションといった誤作動を防ぐ重要な修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "id": "e5a6be85af20",
+      "content": "- Fixed WebFetch retaining expired page content in memory for the whole session instead of the intended 15 minutes",
+      "content_ja": "WebFetch ツールが取得したページのキャッシュデータを、本来設定されている15分間ではなく、セッション終了時まで永続的にメモリ内に保持し続けてしまうメモリリーク問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "WebFetchの長期メモリリークに伴うセッションのパフォーマンス低下を緩和するバグ修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "3e13b62f1041",
+      "content": "- Fixed cloud sessions (Claude Code on the web, desktop and mobile apps) resuming out of plan mode after an idle worker restart",
+      "content_ja": "Web、デスクトップ、およびモバイルアプリのクラウドセッションにおいて、ワーカーのアイドル再起動が発生した後に、プランモード（Plan mode）から意図せず抜けた状態でセッションが再開してしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plan"],
+      "inference": {
+        "before": "クラウドセッションを使用中、一定時間操作がないなどの理由でバックグラウンドのワーカープロセスが再起動されると、直前まで設定していた「プランモード」が勝手に解除され、デフォルトのパーミッションモード（編集を自動承認するモードなど）に戻ってしまっていました。",
+        "after": "アイドルからの復帰・再起動時にも元のセッションからプランモードの状態が確実に復元され、ユーザーが承認するまでファイル変更が行われない安全な動作状態が維持されます。",
+        "benefit": "セッション復帰後に、意図しない自動編集が実行されるのを防ぐためにパーミッションモードを再設定する必要がなくなります。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "クラウドセッション再起動時に最も重要なパーミッションであるプランモードがサイレントに解除されてしまう危険を防ぐため影響度は高いです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/web-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cloud-environments.md"
+        }
+      ]
+    },
+    {
+      "id": "e33ab78f789d",
+      "content": "- Fixed MCP elicitation forms taller than the terminal being clipped in fullscreen mode: the form now fits the window, with hidden fields reachable by scrolling and Accept/Decline always visible",
+      "content_ja": "フルスクリーンモードにおいて、端末の縦幅よりも長い MCP フォームダイアログが表示された際にフォームが切り捨てられてしまう問題を修正し、スクロール可能にして「承認／拒否」ボタンを常に表示するように改善しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "フルスクリーン表示の際、MCP サーバーから要求された入力フォーム（Elicitationフォーム）の項目数が多いと、端末の表示領域をはみ出した部分が切り捨てられて非表示になっていました。また、画面外に追いやられた「Accept」や「Decline」のボタンが押せなくなっていました。",
+        "after": "ダイアログ全体がウィンドウ枠内に収まるようにレイアウト調整され、溢れた項目はスクロールで追えるようになります。さらに、意思決定に必要な「Accept/Decline」ボタンは画面下部に常に固定表示されます。",
+        "benefit": "画面が小さい端末でも、はみ出た入力項目を見落としたりボタンが押せなくて操作不能になったりするトラブルが防げます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "MCPの入力プロンプトが画面サイズにより切り捨てられ操作不能になるエッジケースの表示修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "id": "084c7dac0fc9",
+      "content": "- Fixed remote MCP servers staying failed after a transient 5xx on a mid-session reconnect in cloud sessions or via SDK `setMcpServers()`",
+      "content_ja": "クラウドセッションや SDK の `setMcpServers()` 経由でリモート MCP サーバーを接続している際、一時的な 5xx エラーによる再接続失敗後に、接続が復旧してもサーバーが永続的にエラー状態のままになる不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッションの途中で一時的なネットワークの瞬断やサーバーエラー（5xx）が発生してリモート MCP との接続が切れた場合、その後にサーバーが正常復帰しても、Claude Code 側は自動的に再接続を成功させられず、手動でリロードするまでサーバーを失敗状態として扱い続けていました。",
+        "after": "接続監視および再接続処理が強化され、一時的な 5xx エラーから復帰したリモート MCP サーバーに対して、適切な再接続試行が行われ自動的に稼働状態へと復元されます。",
+        "benefit": "インフラの瞬間的なエラーの後に、わざわざ手動で接続をリセットしたりセッションを立ち上げ直したりする必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "リモートMCPサーバーとのネットワーク瞬断後に、セッションがエラーでスタックする不便を自動再接続で解消するため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        }
+      ]
+    },
+    {
+      "id": "9eaad6c8d14c",
+      "content": "- Fixed custom session titles disappearing from `/resume` after more than ~64 KB of conversation was written following the rename",
+      "content_ja": "セッション名を変更した後に約 64 KB 以上の会話内容が書き込まれると、変更後のカスタムセッション名が `/resume` 一覧から消えてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "長いセッションにおいてリネームしたカスタムタイトルが一覧から消失する問題の修正であり、影響は軽微です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "3ca4a725cf17",
+      "content": "- Fixed `claude -c`/resume picking up sessions from a different directory whose path differed only by characters like `_`, `-`, or `.`",
+      "content_ja": "`claude -c` や `/resume` コマンドで過去のセッションを再開する際、アンダースコアやハイフン、ドットなどの記号の有無しか違わない、類似したパスの別ディレクトリのセッションを誤って読み込んでしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "たとえば `my-project` と `my_project` のように、パスに含まれる記号だけが異なる別のフォルダが同一マシン上に存在する場合、セッション履歴の検索パスが部分一致処理により混同され、全く関係のない別ディレクトリの作業履歴が呼び出される問題がありました。",
+        "after": "ディレクトリのパス比較処理が厳密になり、特殊文字や区切り文字を正しく識別して、現在実行しているのと完全に一致する正確なプロジェクトディレクトリのセッションのみを復元するようになります。",
+        "benefit": "名前の似ている別プロジェクトの履歴が誤って混ざり込み、予期しないコンテキストで会話が再開されるのを防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "類似したフォルダ名を持つ別プロジェクトの会話履歴が意図せず再開される混乱を防ぐため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/deep-links.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        }
+      ]
+    },
+    {
+      "id": "7f994815c255",
+      "content": "- Fixed `/resume` and the agents view showing a session as recently changed (and reordering it) when only its file was touched or it was merely reopened",
+      "content_ja": "`/resume` やエージェントビューにおいて、セッションファイルを単に開いただけであったり、タイムスタンプが更新されただけであったりする場合に、そのセッションを「最近変更されたセッション」として誤ってソート順を最上位に並び替えてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "内容の変更（新しいメッセージの送受信など）を行わず、セッションをただ開いてプレビューしたり確認したりしただけでも、更新時間順のソートメカニズムによって「最近変更されたセッション」として扱われ、セッション一覧の並び順が勝手に入れ替わっていました。",
+        "after": "ソート順を決定する更新フラグの基準が修正され、実際のメッセージ送信やタスクの進行が伴わない単純なセッションの閲覧・再オープンでは変更扱いにならず、一覧の順序が安定します。",
+        "benefit": "過去の履歴を少し確認しただけで一覧の並び順がシャッフルされ、お目当てのセッションを見失ってしまうストレスがなくなます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ただプレビューしただけでセッション履歴の並び順が勝手に変わる不便な並び替えの挙動を修正するため軽微です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/communications-kit.md"
+        }
+      ]
+    },
+    {
+      "id": "55508dfbd009",
+      "content": "- Fixed `/resume` in all-projects mode telling you to `cd` into a deleted directory (e.g. a removed worktree); such sessions now resume in the current directory",
+      "content_ja": "全プロジェクトを対象とした `/resume` のセッション復元において、削除済みのディレクトリ（削除された Git ワークツリーなど）に自動的に `cd` しようとして失敗する問題を修正し、そのようなセッションは現在のディレクトリで直接復元するように変更しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "既にローカルから削除してしまった古い作業用フォルダや Git ワークツリーに関連づけられているセッションを `/resume` 経由で復元しようとすると、その存在しないディレクトリへの移動（cd）を試みてエラーが発生し、再開に失敗していました。",
+        "after": "元の保存先ディレクトリが削除されていることを検出した場合、パス移動を行わず、現在 CLI を開いているカレントディレクトリ上でセッション履歴をそのまま展開し、スムーズに会話を再開できます。",
+        "benefit": "削除された古いブランチやフォルダの履歴であっても、エラーに邪魔されることなく今いる場所から直接引き継いで作業できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "削除済みディレクトリのセッション再開時に、cd移動に失敗してクラッシュする挙動を回復するため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sessions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        }
+      ]
+    },
+    {
+      "id": "22a79edb4690",
+      "content": "- Fixed the `dark-ansi` theme rendering expanded tool results in fullscreen mode with text the same color as the background",
+      "content_ja": "`dark-ansi` テーマを使用している際、フルスクリーンモードで展開されたツール実行結果（expanded tool results）の文字色が背景色と同一になってしまい読めなくなる不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ターミナル設定で `dark-ansi` テーマを選択しフルスクリーンモードで実行していると、折りたたまれていたツールの詳細出力をマウスでクリックして展開した際、表示されるログのテキストカラーがターミナルの背景色と同一色にマッピングされてしまい、文字が事実上不可視になっていました。",
+        "after": "展開されたツール結果のテキスト領域に対して、`dark-ansi` テーマのカラー定義が正しく適用されるようにスタイル設計が修正され、背景から浮き上がる適切なコントラストでログテキストが表示されます。",
+        "benefit": "ログを確認するために、わざわざ別のテーマに切り替えたりテキストを選択反転させて文字を読んだりする手間がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "特定のANSIテーマにおいて、フルスクリーンモードの展開テキストが文字化け（背景同色）して完全に視認不可になる現象の修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "id": "3bfa25fcb76b",
+      "content": "- Fixed the fullscreen renderer prompt reappearing on every launch when it could never be answered; it now stops after being shown on three launches",
+      "content_ja": "全画面レンダラーへの切り替えプロンプトが、回答不可能なターミナル環境下であっても毎回起動するたびに再表示されていた問題を修正し、3回表示した後は提案を停止するように変更しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "レンダラーの切り替えが不可能な環境下で毎回同一プロンプトを表示する無限ループを停止させるためのバグ修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "3649e5915442",
+      "content": "- Fixed `.worktreeinclude` patterns starting with `**/` silently matching nothing when the target lived in a gitignored directory",
+      "content_ja": "`.worktreeinclude` 内で `**/` から始まるファイル指定パターンを記述した際、その対象ファイルが gitignore 指定されたディレクトリ内にあると、パターンが正常にマッチせず無視されてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "隔離されたワークツリー環境へ特定の除外ファイルをコピーするために `.worktreeinclude` に `**/config/.env` のような記述を行っても、その親ディレクトリが `.gitignore` に登録されていると、検索の段階で無視されてしまい、新しいワークツリーにファイルがコピーされませんでした。",
+        "after": "`.worktreeinclude` に定義されたパターンマッチングは、親フォルダが gitignore 対象であっても強制的にスキャンを行い、指定されたファイルを正しく解決してワークツリーへと引き継ぎます。",
+        "benefit": "gitignore ディレクトリ配下の設定ファイルをワークツリーへ引き継ぐために、手動でコピーする手間がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "gitignoreされたフォルダ配下の設定ファイルをワークツリーに複製する際に、設定が無視されるのを防ぐ重要なバグ修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        }
+      ]
+    },
+    {
+      "id": "f03e65aa7ca2",
+      "content": "- Fixed agents, skills, and commands whose `.md` file starts with a UTF-8 BOM being silently ignored",
+      "content_ja": "エージェント、スキル、コマンドを定義する `.md` ファイルの先頭に UTF-8 の BOM（Byte Order Mark）が含まれている場合に、ファイルがサイレントに無視されてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "BOMを持つ特定のファイルが読み込まれずにサイレントに無視されるのを防ぐファイルパース不具合の解消です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "d2bd9ff6fb56",
+      "content": "- Fixed `/insights` echoing literal `<message>` tags in its response on some models",
+      "content_ja": "一部の LLM モデルにおいて、`/insights` コマンドを使用した際の出力に不要なリテラルタグ `<message>` がそのまま混入してエコー表示される不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "特定の一部のモデルに `/insights` を実行させると、モデルの応答内にシステム制御用のプレーンな XML タグ（`<message>`）がパースされずにそのままテキストとして出力され、画面表示を汚していました。",
+        "after": "応答テキストから不要な構造化タグが適切にフィルタリング・ストリップされ、人間が読みやすいクリーンなインサイトテキストのみが表示されるようになります。",
+        "benefit": "不自然なシステムタグに邪魔されることなく、モデルの分析結果を素直に読み進めることができます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "モデルの出力内にシステムタグがエコーされる見た目の問題を修正するマイナーチェンジです。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-dependencies.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-testing.md"
+        }
+      ]
+    },
+    {
+      "id": "0b78ff56d57a",
+      "content": "- Fixed marketplace `metadata.pluginRoot` having no effect: bare plugin source names now resolve under it as the docs describe",
+      "content_ja": "プラグインマーケットプレイスの設定 Manifest において、`metadata.pluginRoot` が機能していなかった不具合を修正し、ドキュメントに記載されている通りに相対的なプラグインソースのベースパスとして解決されるように改善しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "マーケットプレイスの構成ファイル（`marketplace.json`）内で、プラグインファイルのベースディレクトリを指定する `metadata.pluginRoot` を設定していても、システム側で完全に無視されていました。このため、各プラグインのエントリに冗長な相対パスを毎回記述する必要がありました。",
+        "after": "システムが `metadata.pluginRoot` を正しく認識し、その下に配置されたプラグインソース名を期待通り相対的に解決します。マーケットプレイスの定義ファイルをクリーンに保つことができます。",
+        "benefit": "マーケットプレイス登録時のプラグイン定義ごとに、毎回長いフォルダパスを記述して回る必要がなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プラグインのマーケットプレイスにおけるベースパス設定が効いていなかった不具合を修正する開発者向けの修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-dependencies.md"
+        }
+      ]
+    },
+    {
+      "id": "e33b45f63737",
+      "content": "- Fixed mouse movement in browser-based terminals inserting text like `\"35;150;7M\"` into the prompt when a mouse report arrived split across writes",
+      "content_ja": "ブラウザベースのターミナル（Webターミナル等）でマウス操作を行った際、マウス座標のレポートデータが分割されて届くと、プロンプト入力欄に `",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ブラウザを介したターミナル環境や特定のターミナルエミュレータ上で、フルスクリーンモードによるマウス入力を処理する際、ネットワークのパケット遅延などによりマウスデータが分割されて CLI に届くと、文字入力と誤認識されて `35;150;7M` のようなゴミ文字列がプロンプト欄に勝手に書き込まれていました。",
+        "after": "マウスイベントのエスケープシーケンスのバッファリングとパース処理が強化され、どれだけ分割されて受信しても文字入力とは混同せず、マウス操作イベントとして正しく破棄または処理されます。",
+        "benefit": "マウス操作を行うたびに、入力欄に混入した無意味な数字や記号をわざわざバックスペースで消す必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ブラウザベースのターミナルで、マウスドラッグのパケット分割時に無意味な座標記号がプロンプトへ勝手に印字されるイライラを解消します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/scheduled-tasks.md"
+        }
+      ]
+    },
+    {
+      "id": "92357f830e08",
+      "content": "- Fixed custom theme overrides for the effort/ultracode status badge colors being ignored",
+      "content_ja": "カスタムテーマ設定において、`effort` や `ultracode` などのステータスバッジ色に対する配色オーバーライド指定が無視されてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ユーザーが作成したカスタムテーマファイル（`~/.claude/themes/` 配下）で、高負荷推論（effort）や高度なコード生成（ultracode）のバッジカラーをカスタマイズするための特定のトークンを設定していても、適用されずにデフォルトの配色で描画されていました。",
+        "after": "カスタムテーマのパース処理において、バッジ用の配色オーバーライド指定が正常に読み込まれ、ユーザーが定義した好みの色でステータスエリアが鮮やかに描画されるようになります。",
+        "benefit": "ターミナルの背景色とステータスバッジの配色の相性が悪い場合に、見やすい好みの配色へと確実に変更することができます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "カスタムテーマのバッジオーバーライドという、特定のスタイリング要素にのみ関係する表示の修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        }
+      ]
+    },
+    {
+      "id": "daa24c58024f",
+      "content": "- Fixed OpenTelemetry trace fragmentation: tool executions deferred by a `PreToolUse` hook now resume in the original turn's trace instead of starting a new trace",
+      "content_ja": "OpenTelemetry によるトレースが分断される問題を修正し、`PreToolUse` フックによって実行が遅延・保留されたツール呼び出しについても、新しいトレースを生成せず元の実行ターンのトレース内に含めて記録するように改善しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Hooks"],
+      "inference": {
+        "before": "分散トレース（Tracing）を有効化している際、`PreToolUse` フックが介入して一時的に保留されたツール実行処理が、親の実行コンテキストから切り離され、独立した別のルートトレースとして記録されてしまっていました。このため、実行フローの依存関係を追跡するのが困難でした。",
+        "after": "フック経由で遅延実行されるツールのスパンが、元の親ターン（`claude_code.interaction`）のコンテキストを正しく引き継ぎ、同一のトレースツリー内に子スパンとして一元的に記録されるようになります。",
+        "benefit": "可観測性プラットフォーム側でトレースログを調査する際、フック処理されたイベントを1つの文脈としてスムーズに追跡できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "PreToolUseフック使用時に、テレメトリの分散トレースが細切れになって文脈が消失する問題のインフラ的な修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/observability.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-config.md"
+        }
+      ]
+    },
+    {
+      "id": "886853cad3fd",
+      "content": "- Fixed vim mode in the agent view: Escape now switches to NORMAL mode and keeps your text instead of clearing the prompt",
+      "content_ja": "エージェントビューの入力欄で Vim モードを有効にしている際、Escape キーを押すと入力中のテキストが消去されるのではなく、正常に NORMAL モードへと移行するように挙動を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "エージェントビュー内で Vim キーバインドを使用してプロンプトを編集しているとき、INSERT モードから NORMAL モードへ抜けようとして Escape キーを押すと、Vim モードの移行ではなく画面全体のリセット処理とみなされ、書きかけのテキストがすべて綺麗に消去されてしまっていました。",
+        "after": "Escape キーは入力テキストを保持したまま、純粋に Vim の NORMAL モードへの切り替えキーとして機能するようイベント制御が分離されます。",
+        "benefit": "書きかけのプロンプトが NORMAL モードへの移行時に消えてしまう心配をせず、Vim キーバインドで効率的に文章を編集できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Vimキーバインドでエージェントビューのプロンプトを編集している際、Escapeキーが入力中の文字列を全消去して台無しにする挙動を防ぐため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "2543ca16259f",
+      "content": "- Fixed the `selection:copy` keybinding silently dropping a text selection that had been extended with Shift+Arrow keys",
+      "content_ja": "`Shift` + 矢印キーで範囲選択を拡張したテキストに対して、`selection:copy` キーバインドによるクリップボードへのコピーが機能せずサイレントに無視される不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "キーボードショートカット（`Shift` + 矢印キー）を使ってターミナル上の表示テキストを細かく範囲選択した後に、コピー用のショートカットキーを実行しても、選択した内容がクリップボードに登録されずサイレントに無視されていました。",
+        "after": "キーボードによる拡張選択範囲が、コピー処理モジュールに正しく受け渡されるように処理が修正され、キーバインドからでも確実に選択テキストがクリップボードに格納されます。",
+        "benefit": "マウスを使わずにキーボードだけで特定のログやコードを選択し、別ウィンドウへスムーズに貼り付けることができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "キーボードで慎重に選択したテキストのコピーが、キーバインドから実行するとサイレントに失敗して落とされるのを修正するため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "791a2ecda0a0",
+      "content": "- Fixed the `/voice` startup tip still appearing after voice dictation was enabled via the `voice.enabled` setting",
+      "content_ja": "設定ファイル内の `voice.enabled` で既に音声入力が有効化されているにもかかわらず、起動時に「音声入力が利用可能です」という不要なヒントメッセージが表示され続ける問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "設定ファイル（`settings.json`）であらかじめ音声入力を常時有効（`\"voice.enabled\": true`）にしているにもかかわらず、起動するたびに「`/voice` で音声入力を開始できます」という初心者向けの導入ヒントメッセージが表示され、画面のスペースを無駄に占有していました。",
+        "after": "起動時に `voice.enabled` の設定状態が参照され、有効になっている場合は不要なスタートアップヒントメッセージの表示を自動的にスキップします。",
+        "benefit": "既に機能を使いこなしている場合に、毎回同じ案内メッセージで起動画面を邪魔されることがなくなります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "すでに音声入力をオンにしているユーザーに対して表示され続ける無駄な起動ヘルプを非表示にする軽微な表示改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/voice-dictation.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        }
+      ]
+    },
+    {
+      "id": "549f5f10e6dc",
+      "content": "- Fixed shell-mode (`!`) Tab completion dropping the `./` from a `./script` path, which left a command the shell couldn't run",
+      "content_ja": "シェルモード（`!` プレフィックス）での Tab 補完時、`./script` のような相対パスの先頭にある `./` が脱落し、シェルが実行できない形式のコマンドに補完されてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "カレントディレクトリにある実行スクリプトを呼び出すために `!./scr` まで入力して Tab キーを押すと、自動補完された結果から `./` が消えて単なる `script` になってしまい、パスが通っていないために実行エラーを引き起こしていました。",
+        "after": "ファイルパス補完が、パスの形式を維持したまま補完を行うように修正され、`./` プレフィックスを残した正しい相対ファイルパスとしてプロンプトに補完入力されます。",
+        "benefit": "スクリプト実行パスを補完した後に、わざわざ手動で `./` を先頭に書き直す手間がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "シェルモード補完時に `./` が欠落して即座に実行不可能な無効コマンドになってしまう致命的な入力処理のバグを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "id": "a70998570b90",
+      "content": "- Fixed fullscreen mode answering a permission prompt or pressing a button when you clicked the terminal window only to bring it back into focus",
+      "content_ja": "フルスクリーンモードにおいて、非アクティブなターミナルウィンドウをクリックしてフォーカスを戻そうとした際に、クリック位置にあったボタンの押下やパーミッション承認が意図せずトリガーされてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "他のウィンドウで作業をした後に、Claude Code が動作しているターミナルをクリックしてアクティブ（フォーカス状態）にしようとすると、そのクリックイベントがそのまま CLI の UI 要素に突き抜けてしまい、確認プロンプトの「承認」やボタンが予期せず実行されていました。",
+        "after": "非アクティブ状態から最初に受けるクリック（フォーカス復帰用のクリック）は、UI要素の選択アクションをトリガーしないようイベントを保護します。これにより、ただウィンドウをクリックしただけで処理が暴走するのを防ぎます。",
+        "benefit": "別の作業からターミナルに戻る際、プロンプトの「Yes」などを誤ってクリックして意図しない変更を実行させてしまう事故がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ターミナルウィンドウにフォーカスを戻そうとクリックしただけで、背後の「許可」ボタンなどが誤クリックで暴走する事故を防ぐ重要なインタラクション修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        }
+      ]
+    },
+    {
+      "id": "1ec216b5b62d",
+      "content": "- Fixed slash-command panels (e.g. `/config`, `/model`) in fullscreen mode covering the latest messages; the conversation now stays pinned above the panel",
+      "content_ja": "フルスクリーンモード中に `/config` や `/model` などの設定用スラッシュコマンドパネルを開いた際、会話の最新メッセージがパネルに隠れて見えなくなる問題を修正し、常にパネルより上に会話履歴を押し上げるようにレイアウトを修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "フルスクリーン描画中に画面下部で設定メニューなどを開くと、現在表示されていた直近のやり取りや出力ログがその設定パネルの裏に潜り込んで隠れてしまい、内容を確認しながら設定変更を行うことができませんでした。",
+        "after": "設定パネルがポップアップした際、メインの会話表示エリアが自動的に縮小され、最新のメッセージが常に設定パネルの上部に収まるようにレイアウトが連動して押し上げられます。",
+        "benefit": "直前のエラーメッセージややり取りの内容を目で確認しながら、モデルの変更や設定変更を安心して行うことができます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "フルスクリーンモード中に、`/config` パネルの裏にメッセージが潜り込んで見えなくなる表示崩れの修正です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "id": "48e0bc7e0365",
+      "content": "- Fixed the `/workflows` detail dialog overflowing the terminal and losing its header off-screen when opened while Claude is still responding",
+      "content_ja": "Claude がまだ応答を生成している最中に `/workflows` の詳細ダイアログを開くと、ダイアログが端末画面をはみ出し、ヘッダー部分が画面外に消えて操作不能になる不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "モデルが何かを考えて返答を出力している途中で、手動で `/workflows` コマンドを実行してダイアログを重ねて開くと、描画領域の計算がストリーミング中のログによって崩れ、ダイアログのタイトルや操作ボタンなどの上部領域が画面の上に突き抜けて隠れてしまっていました。",
+        "after": "非同期描画中のターミナル占有スペースが正しく再計算されるようになり、モデルの出力と並行して workflows ダイアログを開いた場合でも、ダイアログ全体が正常なサイズで画面内に正しく配置されます。",
+        "benefit": "Claude の応答が終わるのを待たずにワークフロー設定を安全に確認・操作できるようになります。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "モデルの出力中に手動でコマンドダイアログを開くと、ダイアログのタイトルが画面外にはみ出して表示が壊れるバグを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "id": "6b0b1450e9c3",
+      "content": "- Fixed the Linux sandbox making a nonexistent `.git/config.worktree` unreadable, which broke every sandboxed git command in repos with `extensions.worktreeConfig` set",
+      "content_ja": "Linux のサンドボックス機能において、リポジトリに `extensions.worktreeConfig` がセットされている場合に、存在しない `.git/config.worktree` ファイルを「読み取り不可」にしようと誤作動し、サンドボックス内のすべての git コマンドが壊れる不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "Git の拡張設定（`extensions.worktreeConfig`）が有効な状態で Linux のサンドボックス機能（bubblewrap等）を利用すると、本来存在しないはずの個別ワークツリー用ファイルを保護しようとして不適切なマウント操作が行われ、サンドボックス内で `git status` などのコマンドが一切通らなくなっていました。",
+        "after": "ファイルの存在チェックが適正化され、`.git/config.worktree` が存在しない場合は保護対象から外します。これにより、サンドボックスが作動している最中であっても、通常通りあらゆる git コマンドを実行させることができます。",
+        "benefit": "ワークツリーを多用する開発リポジトリでも、サンドボックス保護をかけた状態で不自由なく git 操作をエージェントに任せられます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Linux環境でサンドボックス内のすべての git コマンドが `worktreeConfig` 設定により実行不能に壊れていた深刻なシステムバグを修正するため高影響度です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandbox-environments.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/large-codebases.md"
+        }
+      ]
+    },
+    {
+      "id": "6850191310af",
+      "content": "- Fixed hooks failing with \"posix_spawn ENOENT\" after the session's working directory was deleted; they now run from the project root or home directory instead",
+      "content_ja": "セッションの作業ディレクトリが途中で削除された後にフックが \"posix_spawn ENOENT\" エラーでクラッシュする問題を修正し、プロジェクトルートまたはプロジェクトホームディレクトリからフックを実行するように変更しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "作業ディレクトリの物理的な削除後に、フック実行時にシステムがプロセス起動エラーを起こしてクラッシュするのを防ぐ修正です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "53839f92249f",
+      "content": "- Fixed `claudeMdExcludes` not excluding a symlinked `.claude/rules` file when the pattern names the rules directory or the symlink rather than its target",
+      "content_ja": "プロジェクトの `claudeMdExcludes` のパス判定において、シンボリックリンクされた `.claude/rules` ディレクトリがパターンにマッチせず、無視設定がすり抜けて不要なルールファイルが読み込まれてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Memory"],
+      "inference": {
+        "before": "複数のプロジェクトで共通のルールをシンボリックリンクして `.claude/rules` に配置している場合、`claudeMdExcludes` に除外対象として `.claude/rules/` やシンボリックリンク名を指定しても、リンク先の絶対パスで判定されてマッチせず、除外が無視されてしまっていました。",
+        "after": "シンボリックリンク自体のパスおよび論理パスについても適切に除外スキャンの段階で評価され、`claudeMdExcludes` に設定した通りのパターンでシンボリックリンク先の CLAUDE.md やルールが確実にロード対象から除外されます。",
+        "benefit": "共通ルールをシンボリックリンクで管理している大規模プロジェクトで、不要なルールがメモリにロードされてコンテキストを圧迫するのを防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "シンボリックリンクされたルールの除外に `claudeMdExcludes` が一致せず、ロード除外設定を無視して読み込まれていたデータロード不具合を修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/large-codebases.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/memory.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permissions.md"
+        }
+      ]
+    },
+    {
+      "id": "83e1a5e4ada2",
+      "content": "- Fixed runaway session-title syncing to Remote Control when two Claude Code processes shared one background job's state (2.1.232 regression); title updates are now deduplicated and rate-limited",
+      "content_ja": "2つの Claude Code プロセスが単一のバックグラウンドジョブのステートを共有している際に、Remote Control へのセッションタイトルの同期処理が無限ループして暴走する問題（2.1.232でのデグレード）を修正し、同期のデデュプリケーションとレートリミットを導入しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "前回のバージョン（2.1.232）から、同一ジョブのステートをマルチプロセスで共有している状況において、Remote Control を通じた Web 画面へのセッション名同期が衝突を起こし、無限に更新リクエストを送信し続ける暴走状態になり、通信パフォーマンスを阻害していました。",
+        "after": "更新データのデデュプリケーション（重複排除）と一定時間あたりのレートリミット（送信制限）が適用され、同じタイトル変更要求の連鎖によるネットワーク帯域や CPU の無駄遣いを完全に防止します。",
+        "benefit": "Remote Control を併用している状態でのバックグラウンドタスク動作中に、CLI や同期サーバーに余計な負荷がかかるのを防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "共有ステートによるプロセスの競合によって、セッションタイトル同期のAPIリクエストが無限に暴走していたリグレッションを修正するため重要です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/corporate-launcher.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/security.md"
+        }
+      ]
+    },
+    {
+      "id": "6ecc30b40418",
+      "content": "- Fixed sessions whose title starts with `/` being unaddressable by `SendMessage` and shown as \"(untitled)\" in `ListAgents`",
+      "content_ja": "スラッシュ `/` で始まるセッション名を持つセッションに対し、`SendMessage` ツールがアドレス不能になり、また `ListAgents` 実行時に \"(untitled)\" と表示されてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "セッションのタイトル命名で先頭に `/` を含めて保存すると、スラッシュコマンドや絶対パスの解釈と干渉を起こしてしまい、他のセッションから `SendMessage` でメッセージを送ろうとしても「エージェントが見つからない」エラーになるか、宛先として正しく選択できない不具合がありました。",
+        "after": "エージェントの一覧取得および配信ルーティングロジックが、特殊文字で始まるタイトル文字列を正規化して適切にルーティングするように修正され、名前の先頭に `/` が含まれていても確実に他のセッションからアドレス指定して通信できるようになります。",
+        "benefit": "特定のブランチ名など、スラッシュを含む名前を付けたセッション同士でも、問題なくメッセージを送り合って連携させることができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ブランチ名などに使われる `/` を名前の先頭に持つセッションに対して、相互メッセージが宛先不明になってメッセージングが完全に失敗していたのを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w32.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "4dfca35a20e5",
+      "content": "- Fixed Ctrl+W, Ctrl+U, Ctrl+K, Option+Backspace, Option+D and vim `df`/`dt` leaving a broken `[Pasted text #N]` placeholder when the cursor was inside it",
+      "content_ja": "カーソルが `[Pasted text #N]` などのペーストテキスト用プレースホルダーの内部にある状態で、Ctrl+W、Ctrl+U、Ctrl+K、Option+Backspace、Option+D、または Vim の `df`/`dt` を実行した際、プレースホルダーが破損した文字化け状態で残存してしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "長いテキストを貼り付けた際に生成される `[Pasted text #1]` のような入力欄のバッジ表示に対して、その途中にカーソルを置いて部分的な文字削除ショートカット（単語削除など）を実行すると、バッジの一部がちぎれて単なる崩れたテキスト文字列になり、内部のデータ参照が破壊されて正常に送信できなくなっていました。",
+        "after": "各テキスト削除・編集コマンドおよび Vim モードの演算子がプレースホルダーを「アトミック（分割不可能な1文字）」として扱うようにキーボードロジックが統合され、プレースホルダー上で削除操作を行った場合はバッジ全体が安全に一括削除されます。",
+        "benefit": "貼り付けテキストのバッジがある行を編集する際、誤って中途半端な部分削除で入力バッファのデータ構造を破壊してしまう心配がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "プロンプト編集で長いペーストを折りたたむバッジ領域上で特定の削除コマンドを実行した際、データ構造を壊して文字化け送信になる挙動を防ぐ安全な編集ロジックの改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/accessibility.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        }
+      ]
+    },
+    {
+      "id": "a21c7901401c",
+      "content": "- Fixed masked (password-style) inputs such as the login code field letting their text be pasted back with Ctrl+Y elsewhere or saved to prompt history when cleared with double Esc",
+      "content_ja": "ログイン用の認証コード入力フィールドなど、伏せ字（パスワードスタイル）にされた機密入力欄において、入力された文字列が誤って Ctrl+Y のペースト履歴バッファに保存されたり、ダブル Esc でのクリア時にプロンプト履歴に登録されたりしてしまうセキュリティ問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "サインイン時などの伏せ字入力フォームで入力・削除した機密文字列が、入力支援バッファに一時保存されてしまっていました。そのため、別のチャット画面で `Ctrl+Y`（履歴の貼り付け）を押した際や、入力履歴（Upキー）を辿った際に、生のワンタイムコードやパスワードが画面上に復元されてしまう恐れがありました。",
+        "after": "マスク属性が設定されたテキスト入力フィールドでは、文字編集や `double Esc` などの割り込みクリアが発生した場合でも、データが通常のクリップボード履歴バッファやコマンド履歴ログに絶対に蓄積されないよう安全に保護されます。",
+        "benefit": "認証コードの入力後に、誤操作で意図せず機密性の高い文字列をコマンドラインに露出させてしまうリスクがなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "認証トークン入力などのマスクされた伏せ字欄のテキストが、履歴貼り付けで再度露出される重大なセキュリティリークバグを修正します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/checkpointing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
+    },
+    {
+      "id": "55f565158f94",
+      "content": "- Fixed Ctrl+Backspace deleting one character instead of a word in search boxes",
+      "content_ja": "検索ボックスなどで `Ctrl` + `Backspace` を押した際、単語単位での削除ではなく、通常の1文字削除としてしか機能しなかった不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッション選択時の検索エリアや各種インタラクティブダイアログの入力ボックスにおいて、一般的なキーボードショートカットである `Ctrl` + `Backspace` を押しても、1単語ごとのクリアにならず、単に直前の1文字しか消去されないため、長いキーワードを打ち直す際に手間がかかっていました。",
+        "after": "各種テキストフィールドコンポーネントが、単語境界を正しく判別する単語単位削除のキーイベントを適切に解釈するようになり、`Ctrl` + `Backspace`（macOS では `Option` + `Delete`）で1単語丸ごと瞬時に削除できます。",
+        "benefit": "検索キーワードの間違いやパス指定を素早くリセットし、ストレスなくスムーズに検索文字を打ち直すことができます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "検索ボックス上などで単語削除ショートカットが作動しない不便を修正するマイナーな文字入力の改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/accessibility.md"
+        }
+      ]
+    },
+    {
+      "id": "d65dc4b8e602",
+      "content": "- Fixed a request rejected by an organization policy check being re-sent before the rejection was shown",
+      "content_ja": "組織ポリシーのチェックによって拒否されたツール実行要求が、拒否の警告画面が描画される前に誤って再送信されてしまう不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "ポリシー拒否メッセージが出る前に拒否された要求が裏で再送信されていたのを修正する内部的な競合解決です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "86a8b71046bb",
+      "content": "- Improved the reminder shown after compaction so a skill's original arguments are not re-run as a new request",
+      "content_ja": "会話の圧縮（Compaction）が発生した後に表示されるリマインダー内容を改善し、前に実行したスキルの引数が新しいリクエストとして二重に重複送信される不具合を解消しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Compaction（会話の自動要約）が発生した際、昔呼び出した古いスキルの実行引数が新規メッセージとして誤って多重実行されるバグを解消します。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "604adb1fa9c3",
+      "content": "- Long file paths on tool-use rows now truncate in the middle to stay on one line",
+      "content_ja": "ツール実行行における長いファイルパス表示について、一行に綺麗に収まるようパスの中間部分を省略（...）して折りたたむように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "長いファイルパス表示が一行を折り返して画面レイアウトを汚すのを防ぐ、単なる見た目の表示微調整です。"
+      },
+      "related_docs": []
+    },
+    {
+      "id": "0ab65712761d",
+      "content": "- Remote sessions keep sending keep-alives while a long `SessionStart` or `Setup` hook runs, so the container is not idle-reaped mid-hook",
+      "content_ja": "クラウドセッションにおいて、長い時間を要する `SessionStart` や `Setup` フックを実行している最中にも、リモートセッションがアクティブキープアライブ（接続維持信号）を送信し続けることで、処理の途中でコンテナがアイドルと判定されて強制破棄されるのを防止しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Hooks"],
+      "inference": {
+        "before": "クラウドコンテナ上で重い環境構築や依存関係のインストールを実行する `Setup` や `SessionStart` のスタートアップフックが数分間にわたり走り続けると、外部への対話トラフィックがないため、クラウドホストから「通信が途絶えた（アイドル状態）」とみなされてコンテナを途中で強制終了されることがありました。",
+        "after": "フックが動いている裏で、バックグラウンドにて継続的なハートビート通信を自動で維持します。これにより、初期設定プロセスの長さにかかわらず、セッション環境が完了するまで勝手に刈り取られることなく保護されます。",
+        "benefit": "重たい依存関係の解決を行う初期設定スクリプトを実行した際に、途中でセッションが切断されてやり直す羽目になる事態を防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "クラウドセッション上での重い初期化フック（Setupなど）がタイムアウトで途中破棄されてしまう問題を防ぐため中程度とします。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/self-hosted-environments-deploy.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cloud-environments.md"
+        }
+      ]
+    },
+    {
+      "id": "b2e597632c48",
+      "content": "- `/goal`: repeat check-ins on long-running background work now back off (30 min, then 1 h, then every 2 h) instead of repeating every 30 minutes",
+      "content_ja": "`/goal` 機能において、長時間稼働しているバックグラウンドタスクに対するモデルの定期状況確認の頻度を、従来の「常に30分ごと」から、進捗に応じて自動で間隔を広げるバックオフ方式（30分、次は1時間、その後は2時間ごと）に変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ゴール監視モードにおいてバックグラウンドで長いシェルコマンドや分散エージェントを走らせている際、進捗をチェックするための割り込みコール（check-in）が30分おきに発生していました。単に待ち時間が必要なタスクでも頻繁にモデルを呼び出すため、APIトークンコストを余分に消費していました。",
+        "after": "バックグラウンドタスクの実行時間が長引くにつれて、状況チェックのタイマー間隔が「30分 → 1時間 → 以降2時間ごと」へと緩やかに自動で緩和（バックオフ）されます。これにより、余計なモデル巡回回数が減少し、API 料金の浪費を抑えられます。",
+        "benefit": "数時間かかるビルドや並列テストを監視させる際、モデルが頻繁に進捗状況を問い合わせてトークンを過剰に浪費するのを防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "長時間放置される自動実行ゴールの監視チェックをバックオフ制御にすることで、APIトークン料金の余分な垂れ流しを自動で制限するため便利です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/scheduled-tasks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/goal.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "e4187bde2b7f",
+      "content": "- `/goal`: resuming a session from the `claude --resume` picker now restores its active goal",
+      "content_ja": "`claude --resume` によるセッションピッカーからセッションを再開した際に、そのセッションで直前に稼働していた「アクティブなゴール（Active Goal）」を正しく記憶して復元するように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "目標達成まで Claude を自律動作させる `/goal` 機能がまだ実行中だったセッションを一度抜け、後から `claude --resume` を使って再開した際、設定されていたゴールの条件が破棄されていました。そのため、再度同じゴールを手動で設定し直す必要がありました。",
+        "after": "セッション復元時に、直前のアクティブなゴールとその完了チェック条件が自動的に読み込まれてバックグラウンドで再開されます。ターンカウンターや予算枠は再開に合わせてゼロリセットされます。",
+        "benefit": "途中で中断した大規模な自動実行タスクを、再度同じゴール設定の手順を踏むことなく、レジュームするだけで続きから進めることができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "セッションピッカーから履歴をレジュームした際に、以前実行していた自動化ゴールが消滅するのを防ぎ状態を自動復元するため便利です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/goal.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sessions.md"
+        }
+      ]
+    },
+    {
+      "id": "6941ff17fc84",
+      "content": "- `ListAgents` now tells a session its own name (the one peers use to message it), and `SendMessage` to your own name says so instead of \"no agent named …\"",
+      "content_ja": "`ListAgents` ツールにおいて自身のセッション名をモデル自身に認識させ、また `SendMessage` を自分の名前に対して送信した場合には「そのような名前のエージェントはいない」というエラーを出さずに、送信先が自己自身であることを適切に通知するように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッション間メッセージングを使用している際、Claude は自分のセッションが何という名前で認識されているかを知る手段がなく、誤って自分自身のセッション名宛てに `SendMessage` を呼んでしまうことがありました。その際、「該当エージェントなし」のエラーになり不必要な混乱を招いていました。",
+        "after": "`ListAgents` の結果に自己のセッション情報が適切に含まれ、モデルが現在のアイデンティティを正確に自認できるようになります。また、自己宛ての `SendMessage` には明示的な制御応答が返されるようになります。",
+        "benefit": "メッセージの送信先をモデルが混同して自分宛てに宛先エラーを起こし、連携作業がスタックするのを防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "会話を自律連動させるメッセージングツールにおいて、自セッションへの誤送信でパニックエラーを引き起こすのを防止するため便利です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        }
+      ]
+    },
+    {
+      "id": "74e8838552ee",
+      "content": "- `ListAgents` and `/list-agents` now list your live teammates (previously only subagents and other sessions appeared, so a reachable teammate looked absent)",
+      "content_ja": "`ListAgents` および `/list-agents` コマンドによる宛先リストにおいて、現在稼働中のインプロセス「チームメイト（Teammates）」を一覧に列挙するように改善しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "エージェントチーム（Agent Teams）を有効化して開発を行っている際、`ListAgents` や `/list-agents` の実行結果に「サブエージェント」や「別マシンの外部セッション」は並びましたが、同じプロセスで稼働する「チームメイト」が抜け落ちていたため、Claude が宛先を見落とす問題がありました。",
+        "after": "同じ会話環境で自律動作するチームメイトたちもアドレス可能な宛先エージェントとしてしっかりと一覧にリストアップされるため、Claude がチームメンバーの存在を見落とすことなくスムーズに協調タスクを管理します。",
+        "benefit": "同じプロジェクトチーム内のメンバーにメッセージを振る際、宛先が見つからないために Claude が連係プレイを諦める現象を防げます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "agent-teamsで協調作業を行う際、同じ画面内のチームメンバーのセッションが宛先一覧から抜け落ちていた不具合を解消するため便利です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        }
+      ]
+    },
+    {
+      "id": "7827fad4a01c",
+      "content": "- `keybindingFlavor: \"readline\"` now also matches Bash for word keys: Alt+F and Ctrl/Option+→ stop at the end of the word, Alt+D deletes to it (Ctrl+Y pastes it back), and punctuation separates words",
+      "content_ja": "キーバインドの挙動定義で `keybindingFlavor: \"readline\"` を指定した際、単語単位の操作キー（Alt+F, Alt+D, Ctrl/Option+→ 等）の挙動が Bash の標準的な Readline 仕様と完全に一致するように修正し、記号や句読点を単語の区切りとして正しく認識するように改善しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "キーバインド設定で `readline` スタイルを選択していても、`Alt+F`（単語1つ進む）や `Alt+D`（単語削除）などのキーが一般的な Linux ターミナルの単語境界判定と乖離しており、ピリオドやスラッシュなどの記号を無視して飛ばしてしまうため、パス等の編集時に不便でした。",
+        "after": "Bash 等の標準的な仕様に準拠し、記号・句読点が厳密に単語境界として機能するようになります。`Alt+F` は単語の末尾でピタッと止まり、`Alt+D` で削除したパス文字列は `Ctrl+Y` でその通りに復元貼り付けできます。",
+        "benefit": "普段シェルを触るのと同じ感覚で、パスやフラグが含まれるプロンプトテキストをキーボードだけで極めて精密に編集できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "readlineキーバインド設定時に、単語境界がパス記号を飛び越えてしまう不正確な判定をBashと同等に修正し、編集精度を大幅に向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/voice-dictation.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/accessibility.md"
+        }
+      ]
+    },
+    {
+      "id": "bc38a3425197",
+      "content": "- Persistent retry mode (`CLAUDE_CODE_RETRY_WATCHDOG`) now fails immediately on organization spend-limit and out-of-credits errors instead of waiting indefinitely for a reset",
+      "content_ja": "継続的な自動リトライモード（`CLAUDE_CODE_RETRY_WATCHDOG`）が有効な場合であっても、組織の利用枠上限（spend-limit）やクレジット残高不足などの回復不能な課金エラーが発生した際には、待機を続けずに即座にエラーとして終了するように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "CI サーバーなどの自動化実行で `CLAUDE_CODE_RETRY_WATCHDOG=1` を設定している際、API サーバーの一時的な過負荷（429や529）だけでなく、組織の月間予算オーバーやクレジット切れといった「時間が経っても自動では復旧しない課金エラー」に対しても、無駄に最大300回・約3時間もの無限ループ待機を試みてしまい、CI ジョブを詰まらせていました。",
+        "after": "リトライ監視ロジックがエラーレスポンスを厳密に分類し、解決に手動のアクション（請求管理者のチャージや上限変更）が必要な「429 billing_error」などを検出した場合は、1回目の試行で即座にリトライを打ち切ってプロセスをエラー終了させます。",
+        "benefit": "クレジット切れなどの解決不能な問題が起きた際に、CI ビルドやバッチ処理が何時間もスタックして課金時間やキューを浪費するのを防げます。"
+      },
+      "impact": {
+        "level": "high",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "自動リトライ機能がオンの際、残高不足などの即座に回復不能なエラーに対しても数時間無限にリトライ待機してCIパイプラインを詰まらせる大損害を防ぎます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-spend-limits.md"
+        }
+      ]
+    },
+    {
+      "id": "7813cd4911f9",
+      "content": "- Claude in Chrome: `/clear` now closes the session's Chrome tab group, and empty groups are closed on `/resume` and when Claude Code exits",
+      "content_ja": "Chrome 連携モード（Claude in Chrome）において、`/clear` コマンド実行時に現在のセッションに関連づけられている Chrome のタブグループを自動的に閉じるようにし、セッション終了時や `/resume` による切り替え時にも残った空のグループをクリーンアップするように変更しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ブラウザを自動制御する Chrome 連携機能を使用中、`/clear` を使って会話を完全にリフレッシュしたり、別のスレッドに切り替えたりしても、それまで Claude が操作していたブラウザのタブやグループウィンドウがそのまま画面に残骸として溜まり続け、デスクトップが雑然としていました。",
+        "after": "`/clear` が実行されると、そのセッションが管理していた Chrome の対象タブグループが自動で全終了されます。さらに、セッション切り替え（/resume）や Claude Code 終了の際にも、参照先を失った不要な空のタブグループが自動的に閉じられます。",
+        "benefit": "ブラウザを用いた自動化やテストの実行後に、散らかったテスト用タブやウィンドウを毎回マウスで手動で閉じる必要がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "ブラウザ制御のChrome自動化において、セッションクリア時や退出時に不要な空タブやグループが自動的に閉じられデスクトップを綺麗に保ちます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/checkpointing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/chrome.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "id": "f73085080bbd",
+      "content": "- Remote sessions: images uploaded from mobile now include their saved file path, so Claude can copy them into files it creates",
+      "content_ja": "リモートセッションにおいて、モバイル端末からアップロードされた画像に保存先ファイルパスが含まれるようになり、Claudeが作成するファイル内にそれらの画像をコピーできるようになりました。",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "リモートセッション中にモバイル端末から画像をアップロードした際、画像の保存先ファイルパス情報が保持されていませんでした。そのため、Claudeが新しく作成するファイルにそれらの画像をコピーして配置することが困難でした。",
+        "after": "モバイル端末からアップロードされた画像にローカルでの保存先ファイルパス情報が自動で付与されるようになります。これにより、Claudeはアップロードされた画像を認識し、自身が生成するファイル構成の中に適切にコピーして配置できます。",
+        "benefit": "リモートセッション中にモバイルからアップロードした画像を、Claudeに指示して作成中のファイルへ手動で配置し直す手間がなくなります。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "リモートセッションにおけるモバイルからの画像アップロード時のファイル操作が便利になる特定のユースケース向け機能追加であるため、影響度はmediumと判定します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/chrome.md"
+        }
+      ]
+    },
+    {
+      "id": "1dd138a5654c",
+      "content": "- Claude Code on the web: requests from Bash and other tools to non-API anthropic.com hosts (e.g. www, docs) now go through the session's network proxy, so your environment's allowed domains apply",
+      "content_ja": "Web 版の Claude Code（Claude Code on the web）において、Bash やその他の内蔵ツールから送信される、非 API 系の anthropic.com サブドメイン（www や docs など）への通信リクエストについても、セッションに割り当てられたネットワークプロキシを確実に経由するようにルート制限を修正しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Web 版セッションでサンドボックスが稼働している際、API用の `api.anthropic.com` 以外のドメイン（公式ドキュメントサイトなど）へのリクエストが、設定された環境の社内プロキシ制限をすり抜けて直通通信を試みることがありました。このため、社内プロキシによる厳格なドメインホワイトリストポリシーに違反する問題がありました。",
+        "after": "anthropic.com 傘下のすべての静的サイトやドキュメント参照宛ての HTTP トラフィックについても、例外なく開発環境に設定されたネットワークプロキシトンネルを強制的に通過するようになり、環境側で設定したネットワークの許可境界が完璧に保護されます。",
+        "benefit": "社内ネットワークからの通信先を厳しく制限しているセキュリティ要件下でも、ドメインのすり抜けが発生しないため安全に Web 版を使用できます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": true,
+        "breaking": false,
+        "reason": "Webセッション経由の内部サイトへの全てのHTTPトラフィックがプロキシ規制を確実にバイパスせず通過するようセキュリティ保護します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/network-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cloud-environments.md"
+        }
+      ]
+    },
+    {
+      "id": "2951ad53665b",
+      "content": "- Remote Control: clearer message and `claude doctor` wording when Remote Control isn't enabled for your account",
+      "content_ja": "Remote Control 機能がアカウントに対してまだ有効化されていない、またはポリシー制限されている場合に、原因を特定しやすくするためにエラーメッセージの文面をより明確な内容に改善し、`claude doctor` での表示を親切にしました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "アカウントの展開ロールアウトが届いていない、または組織管理者によって Remote Control がオフにされている際、「Remote Control が有効化されていません」という簡素な表示しか出ず、自分の契約プランの問題なのか、キャッシュの期限切れなのか、社内ポリシー制限なのかを切り分けられませんでした。",
+        "after": "エラーメッセージが具体的になり、ログインキャッシュをリフレッシュ（`claude auth logout && login`）すべきかどうかの指示や、組織ポリシーで不許可にされている旨が細かく診断テキストとして出力されます。さらに `claude doctor` を走らせることで、失敗した個別の検証ステップを明確に診断できます。",
+        "benefit": "Remote Control が繋がらない原因が、自身の組織設定、アカウントのプラン、または一時的な未対応状態のいずれであるかを、管理者に聞くことなく自分で判断できます。"
+      },
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Remote Controlが組織設定などで利用できない状況について、設定ログの原因を特定しやすくする親切なメッセージ改善です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-connect.md"
+        }
+      ]
+    },
+    {
+      "id": "19782b5ef031",
+      "content": "- Windows: cross-session messaging is now available, so Claude Code sessions across your machines can message each other with `SendMessage` and find each other with `ListAgents`, as on macOS and Linux",
+      "content_ja": "Windows 環境において、同一マシンや他デバイス上の Claude Code セッション同士を接続して通信する「セッション間メッセージング（cross-session messaging）」に対応し、`SendMessage` や `ListAgents` を完全に利用できるようにしました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "異なるターミナルやデバイス間でエージェント同士を相互にチャット・連係動作させるセッション間メッセージング機能が、macOS および Linux のみで先行実装されており、Windows 環境（WSL を含まない直接のネイティブコマンドプロンプトや PowerShell 等）では利用できませんでした。",
+        "after": "Windows のネットワークパイプおよびメッセージポートの仕様がサポートされ、Windows 上でも複数のセッション間で互いの状況を `SendMessage` で自動通信して自律連係させたり、`ListAgents` で他の実行中のセッションを探し出したりできます。",
+        "benefit": "Windows 環境のまま、異なるコマンド窓で動作している別々の Claude 開発セッションを、自分でコピー＆ペーストを介在させることなく連動させることができます。"
+      },
+      "impact": {
+        "level": "medium",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "Windows上のマルチコンソールや他マシンのセッション同士を連係させる、cross-session messagingの完全なWindows対応です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cross-session-messaging.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w32.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "06a5a11bd702",
+      "content": "- [VSCode] \"View usage\" in the usage-limit banner now sits inline with the warning text instead of floating mid-banner",
+      "content_ja": "[VSCode] 利用制限警告バナー内の「View usage」リンクの表示位置を、中途半端な浮きを排除して警告テキストの横に綺麗に並ぶようにインライン化しました。",
+      "prefix": "Changed",
+      "feature_areas": ["IDE"],
+      "impact": {
+        "level": "low",
+        "default_behavior_change": false,
+        "breaking": false,
+        "reason": "VS Code警告バナー内のボタン配置のわずかなレイアウト修正であり、実質的な機能への影響はありません。"
+      },
+      "related_docs": []
+    }
+  ]
+}
