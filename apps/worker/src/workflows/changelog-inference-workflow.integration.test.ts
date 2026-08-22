@@ -46,7 +46,7 @@ function chatCompletion(content: object) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/google/gemma-4-26b-a4b-it',
+    model: '@cf/zai-org/glm-4.7-flash',
     choices: [
       {
         index: 0,

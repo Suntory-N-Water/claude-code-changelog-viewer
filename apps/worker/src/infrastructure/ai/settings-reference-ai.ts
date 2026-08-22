@@ -10,8 +10,11 @@ import {
   SettingsReferenceResponseSchema,
 } from './settings-reference-schema';
 
-const MODEL = '@cf/google/gemma-4-26b-a4b-it';
-const MAX_TOKENS = 65536;
+const MODEL = '@cf/zai-org/glm-4.7-flash';
+// JSON schema 制約下では文字列の途中でも空白が合法な継続になるため、モデルが閉じ括弧を出せずに
+// 空白を吐き続けることがある。上限を切って、暴走しても数十秒で打ち切らせ step の再試行に回す。
+// 8192 は D1 の生成済み 622 件のうち最も長い 30 件(9,445字)から見積もった約5,400トークンの1.5倍
+const MAX_COMPLETION_TOKENS = 8192;
 const MODEL_CONTEXT = [
   '- CHANGELOG の原文や snippets に記載されていないモデル名・バージョン番号・スペック値を捏造しないこと',
   '- CHANGELOG の原文に具体的なモデル名が記載されている場合はそのまま使用すること',
@@ -43,7 +46,9 @@ export function createSettingsReferenceAi(
               content: buildSettingsReferencePrompt(input),
             },
           ],
-          max_tokens: MAX_TOKENS,
+          max_completion_tokens: MAX_COMPLETION_TOKENS,
+          // 思考トークンは出力本体の数倍に達し、量が回ごとに大きく揺れる
+          chat_template_kwargs: { enable_thinking: false },
           response_format: SettingsReferenceResponseFormat,
         },
         { gateway: { id: gatewayId } },
