@@ -1,9 +1,6 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
-import { createGitHubHeaders } from './github-headers';
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { reportWorkflowFailureIssue } from './workflow-failure-issue';
 import type { BackupFailureReporterPort } from '../../usecases/d1-backup-workflow';
-
-const FAILURE_ISSUE_URL =
-  'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/issues';
 
 const logger = getLogger({
   name: 'infrastructure.github.d1-backup-failure-reporter',
@@ -11,7 +8,6 @@ const logger = getLogger({
   level: 'INFO',
   format: 'json',
 });
-
 export function createD1BackupFailureReporter(
   githubToken: string,
 ): BackupFailureReporterPort {
@@ -19,39 +15,35 @@ export function createD1BackupFailureReporter(
     async report({ instanceId, error }) {
       const detail =
         error instanceof Error ? (error.stack ?? error.message) : String(error);
-      const response = await fetch(FAILURE_ISSUE_URL, {
-        method: 'POST',
-        headers: {
-          ...createGitHubHeaders(githubToken, 'application/vnd.github+json'),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      try {
+        await reportWorkflowFailureIssue(githubToken, {
           title: 'D1 バックアップ Workflow に失敗',
-          body: [
+          workflowLabel: 'workflow:d1-backup',
+          description: [
+            '## エラー詳細',
+            '',
             '正データ用 D1 の R2 への export が失敗しました。',
             '',
-            `- Workflow instance: ${instanceId}`,
+            '**ワークフロー**: D1 バックアップ Workflow',
+            `**Workflow instance**: ${instanceId}`,
             '',
             '```text',
             detail,
             '```',
+            '',
+            '詳細は Cloudflare Workflow のログを確認してください。',
           ].join('\n'),
-          labels: ['automated-failure', 'bug'],
-        }),
-      });
-      if (!response.ok) {
+        });
+        logger.info('失敗通知 Issue を作成しました', {
+          'workflow.instance_id': instanceId,
+        });
+      } catch (error) {
         logger.error('失敗通知 Issue の作成に失敗しました', {
           'workflow.instance_id': instanceId,
-          'http.response.status_code': response.status,
+          error: toError(error),
         });
-        throw new Error(
-          `失敗通知 Issue の作成に失敗しました: ${response.status} ${response.statusText}`,
-        );
+        throw error;
       }
-      logger.info('失敗通知 Issue を作成しました', {
-        'workflow.instance_id': instanceId,
-        'http.response.status_code': response.status,
-      });
     },
   };
 }

@@ -42,15 +42,17 @@ const WorkflowParamsSchema = z.object({
   detectedAt: z.string().min(1),
 });
 
+// AI 出力が空白ループに落ちる頻度が実測で約3割あり、3 回では 6 バッチ中どれかが落ち切る確率が
+// 15% 残る。5 回まで許すと 1.5% まで下がる
 const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
   retries: {
-    limit: 3,
+    limit: 5,
     delay: '10 seconds',
     backoff: 'exponential',
   },
 };
 
-// 1バッチの入力量が Workers AI のタイムアウトに届かない範囲に収める。
+// 10 項目で出力が約 2,000 トークンに収まり、MAX_COMPLETION_TOKENS の範囲に余裕を持って入る。
 // 設定リファレンス生成の 30 より小さいのは、1項目に関連ドキュメントの snippets が付くため
 const BATCH_SIZE = 10;
 

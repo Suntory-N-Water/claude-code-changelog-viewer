@@ -27,9 +27,11 @@ const WorkflowParamsSchema = z.object({
   targetKeys: z.array(z.string().min(1)).optional(),
 });
 
+// CHANGELOG 推論と同じく AI 出力が空白ループに落ちて上限で打ち切られることがあるため、
+// 再試行の回数に余裕を持たせる
 const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
   retries: {
-    limit: 3,
+    limit: 5,
     delay: '10 seconds',
     backoff: 'exponential',
   },

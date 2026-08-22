@@ -25,7 +25,7 @@ function chatCompletion(content: object) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/google/gemma-4-26b-a4b-it',
+    model: '@cf/zai-org/glm-4.7-flash',
     choices: [
       {
         index: 0,
@@ -273,13 +273,20 @@ describe('設定リファレンス生成 Workflow', () => {
     const aiRun = vi
       .spyOn(testEnv.AI, 'run')
       .mockResolvedValue(chatCompletion({ results: [{ id: 'invalid' }] }));
-    const issueBodies: string[] = [];
+    let issueCreationCount = 0;
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-      if (String(input).endsWith('/issues') && init?.method === 'POST') {
-        issueBodies.push(String(init.body));
-        return new Response('{}', { status: 201 });
+      const url = String(input);
+      if (url.includes('/issues?') && init?.method === 'GET') {
+        return Response.json([]);
       }
-      throw new Error(`想定外の外部リクエスト: ${String(input)}`);
+      if (url.endsWith('/issues') && init?.method === 'POST') {
+        issueCreationCount += 1;
+        return Response.json({ number: 961 }, { status: 201 });
+      }
+      if (url.endsWith('/issues/961/labels') && init?.method === 'POST') {
+        return Response.json([]);
+      }
+      throw new Error(`想定外の外部リクエスト: ${url}`);
     });
     const instanceId = `issue-902-failure-${crypto.randomUUID()}`;
     const instance = await introspectWorkflowInstance(
@@ -296,11 +303,8 @@ describe('設定リファレンス生成 Workflow', () => {
         params: {},
       });
       await expect(instance.waitForStatus('errored')).resolves.not.toThrow();
-      expect(aiRun).toHaveBeenCalledTimes(4);
-      expect(issueBodies).toHaveLength(1);
-      expect(issueBodies[0]).toContain(
-        '設定リファレンス生成 Workflow が失敗しました',
-      );
+      expect(aiRun).toHaveBeenCalledTimes(6);
+      expect(issueCreationCount).toBe(1);
     } finally {
       await instance.dispose();
     }

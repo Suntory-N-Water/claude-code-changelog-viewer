@@ -1,9 +1,6 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
-import { createGitHubHeaders } from './github-headers';
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { reportWorkflowFailureIssue } from './workflow-failure-issue';
 import type { SettingsReferenceFailureReporterPort } from '../../usecases/settings-reference';
-
-const FAILURE_ISSUE_URL =
-  'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/issues';
 
 const logger = getLogger({
   name: 'infrastructure.github.settings-reference-failure-reporter',
@@ -11,7 +8,6 @@ const logger = getLogger({
   level: 'INFO',
   format: 'json',
 });
-
 export function createSettingsReferenceFailureReporter(
   githubToken: string,
 ): SettingsReferenceFailureReporterPort {
@@ -20,40 +16,36 @@ export function createSettingsReferenceFailureReporter(
       const detail =
         error instanceof Error ? (error.stack ?? error.message) : String(error);
       const targetKeys = params.targetKeys?.join(', ') ?? '指定なし';
-      const response = await fetch(FAILURE_ISSUE_URL, {
-        method: 'POST',
-        headers: {
-          ...createGitHubHeaders(githubToken, 'application/vnd.github+json'),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      try {
+        await reportWorkflowFailureIssue(githubToken, {
           title: '設定リファレンス生成 Workflow に失敗',
-          body: [
+          workflowLabel: 'workflow:generate-settings-reference',
+          description: [
+            '## エラー詳細',
+            '',
             '設定リファレンス生成 Workflow が失敗しました。',
             '',
-            `- Workflow instance: ${instanceId}`,
-            `- targetKeys: ${targetKeys}`,
+            '**ワークフロー**: 設定リファレンス生成 Workflow',
+            `**Workflow instance**: ${instanceId}`,
+            `**対象キー**: ${targetKeys}`,
             '',
             '```text',
             detail,
             '```',
+            '',
+            '詳細は Cloudflare Workflow のログを確認してください。',
           ].join('\n'),
-          labels: ['automated-failure', 'bug'],
-        }),
-      });
-      if (!response.ok) {
+        });
+        logger.info('失敗通知 Issue を作成しました', {
+          'workflow.instance_id': instanceId,
+        });
+      } catch (error) {
         logger.error('失敗通知 Issue の作成に失敗しました', {
           'workflow.instance_id': instanceId,
-          'http.response.status_code': response.status,
+          error: toError(error),
         });
-        throw new Error(
-          `失敗通知 Issue の作成に失敗しました: ${response.status} ${response.statusText}`,
-        );
+        throw error;
       }
-      logger.info('失敗通知 Issue を作成しました', {
-        'workflow.instance_id': instanceId,
-        'http.response.status_code': response.status,
-      });
     },
   };
 }

@@ -61,7 +61,7 @@ function chatCompletion(content: object) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/google/gemma-4-26b-a4b-it',
+    model: '@cf/zai-org/glm-4.7-flash',
     choices: [
       {
         index: 0,
@@ -102,10 +102,12 @@ describe('Workers AI CHANGELOG adapter', () => {
       featureAreaCorrections: [{ id: 'with-docs', featureAreas: ['Settings'] }],
     });
     expect(run).toHaveBeenCalledWith(
-      '@cf/google/gemma-4-26b-a4b-it',
+      '@cf/zai-org/glm-4.7-flash',
       expect.objectContaining({
         messages: [{ role: 'user', content: expect.any(String) }],
         response_format: expect.objectContaining({ type: 'json_schema' }),
+        max_completion_tokens: 4096,
+        chat_template_kwargs: { enable_thinking: false },
       }),
       { gateway: { id: 'project-gateway' } },
     );

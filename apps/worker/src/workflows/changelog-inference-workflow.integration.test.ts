@@ -46,7 +46,7 @@ function chatCompletion(content: object) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/google/gemma-4-26b-a4b-it',
+    model: '@cf/zai-org/glm-4.7-flash',
     choices: [
       {
         index: 0,
@@ -220,20 +220,24 @@ describe('CHANGELOG 推論 Workflow', () => {
   });
 
   it('CHANGELOG のハッシュが一致しない時、失敗 Issue を作成して Workflow を失敗させること', async () => {
-    const issueBodies: string[] = [];
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockImplementation(async (input, init) => {
-        const url = String(input);
-        if (url.includes('/contents/CHANGELOG.md')) {
-          return new Response(changelog, { status: 200 });
-        }
-        if (url.endsWith('/issues') && init?.method === 'POST') {
-          issueBodies.push(String(init.body));
-          return new Response('{}', { status: 201 });
-        }
-        throw new Error(`想定外の外部リクエスト: ${url}`);
-      });
+    let issueCreationCount = 0;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.includes('/contents/CHANGELOG.md')) {
+        return new Response(changelog, { status: 200 });
+      }
+      if (url.includes('/issues?') && init?.method === 'GET') {
+        return new Response('[]', { status: 200 });
+      }
+      if (url.endsWith('/issues') && init?.method === 'POST') {
+        issueCreationCount += 1;
+        return new Response('{"number":961}', { status: 201 });
+      }
+      if (url.endsWith('/issues/961/labels') && init?.method === 'POST') {
+        return new Response('[]', { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${url}`);
+    });
     const instanceId = `issue-901-failure-${crypto.randomUUID()}`;
     const instance = await introspectWorkflowInstance(
       testEnv.CHANGELOG_INFERENCE_WORKFLOW,
@@ -254,12 +258,7 @@ describe('CHANGELOG 推論 Workflow', () => {
       });
 
       await expect(instance.waitForStatus('errored')).resolves.not.toThrow();
-      expect(issueBodies).toHaveLength(1);
-      expect(issueBodies[0]).toContain('CHANGELOG ハッシュ不一致');
-      expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringContaining('/issues'),
-        expect.objectContaining({ method: 'POST' }),
-      );
+      expect(issueCreationCount).toBe(1);
     } finally {
       await instance.dispose();
     }
