@@ -25,7 +25,7 @@ function chatCompletion(content: object) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/google/gemma-4-26b-a4b-it',
+    model: '@cf/zai-org/glm-4.7-flash',
     choices: [
       {
         index: 0,
@@ -303,7 +303,7 @@ describe('設定リファレンス生成 Workflow', () => {
         params: {},
       });
       await expect(instance.waitForStatus('errored')).resolves.not.toThrow();
-      expect(aiRun).toHaveBeenCalledTimes(4);
+      expect(aiRun).toHaveBeenCalledTimes(6);
       expect(issueCreationCount).toBe(1);
     } finally {
       await instance.dispose();

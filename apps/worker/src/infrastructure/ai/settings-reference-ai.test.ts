@@ -100,10 +100,12 @@ describe('Workers AI 設定リファレンス adapter', () => {
 
     await sut.infer(input);
 
-    expect(run.mock.calls[0]?.[0]).toEqual(expect.any(String));
+    expect(run.mock.calls[0]?.[0]).toEqual('@cf/zai-org/glm-4.7-flash');
     expect(run.mock.calls[0]?.[1]).toEqual(
       expect.objectContaining({
         response_format: expect.objectContaining({ type: 'json_schema' }),
+        max_completion_tokens: 8192,
+        chat_template_kwargs: { enable_thinking: false },
       }),
     );
     expect(run.mock.calls[0]?.[2]).toEqual({

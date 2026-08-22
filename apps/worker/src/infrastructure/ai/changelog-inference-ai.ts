@@ -15,8 +15,11 @@ import {
   ChangelogSummaryResponseSchema,
 } from './changelog-inference-schema';
 
-const MODEL = '@cf/google/gemma-4-26b-a4b-it';
-const MAX_TOKENS = 65536;
+const MODEL = '@cf/zai-org/glm-4.7-flash';
+// JSON schema 制約下では文字列の途中でも空白が合法な継続になるため、モデルが閉じ括弧を出せずに
+// 空白を吐き続けることがある。上限を出力実測値(約2,000)の2倍に切って、暴走しても数十秒で
+// 打ち切らせ、step の再試行に回す。65536 のままだと Workers AI の約240秒に達してしまう
+const MAX_COMPLETION_TOKENS = 4096;
 
 const AiChatResponseSchema = z.object({
   choices: z
@@ -38,7 +41,9 @@ export function createChangelogItemInferenceAi(
         MODEL,
         {
           messages: [{ role: 'user', content: buildItemsPrompt(input) }],
-          max_tokens: MAX_TOKENS,
+          max_completion_tokens: MAX_COMPLETION_TOKENS,
+          // 思考トークンは出力本体の数倍に達し、量が回ごとに大きく揺れる
+          chat_template_kwargs: { enable_thinking: false },
           response_format: ChangelogItemsResponseFormat,
         },
         { gateway: { id: gatewayId } },
@@ -87,7 +92,8 @@ export function createChangelogSummaryAi(
         MODEL,
         {
           messages: [{ role: 'user', content: buildSummaryPrompt(release) }],
-          max_tokens: MAX_TOKENS,
+          max_completion_tokens: MAX_COMPLETION_TOKENS,
+          chat_template_kwargs: { enable_thinking: false },
           response_format: ChangelogSummaryResponseFormat,
         },
         { gateway: { id: gatewayId } },
