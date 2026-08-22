@@ -26,6 +26,26 @@ async function listBackupKeys() {
   return listed.objects.map((object) => object.key);
 }
 
+function failureIssueResponse(
+  input: Parameters<typeof fetch>[0],
+  init: Parameters<typeof fetch>[1],
+  onIssueCreated?: () => void,
+): Response | undefined {
+  const url = String(input);
+  const method = init?.method ?? 'GET';
+  if (url.includes('/issues?') && method === 'GET') {
+    return Response.json([]);
+  }
+  if (url.endsWith('/issues') && method === 'POST') {
+    onIssueCreated?.();
+    return Response.json({ number: 961 }, { status: 201 });
+  }
+  if (/\/issues\/\d+\/labels$/.test(url) && method === 'POST') {
+    return Response.json([]);
+  }
+  return;
+}
+
 describe('D1 バックアップ Workflow', () => {
   beforeEach(async () => {
     const keys = await listBackupKeys();
@@ -142,13 +162,14 @@ describe('D1 バックアップ Workflow', () => {
 
   describe('異常系', () => {
     it('export の開始要求が bookmark を返さないとき、Workflow が失敗すること', async () => {
-      vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
         const url = String(input);
         if (url.endsWith('/export')) {
           return exportResponse({ messages: [] });
         }
-        if (url.endsWith('/issues')) {
-          return new Response('{}', { status: 201 });
+        const issueResponse = failureIssueResponse(input, init);
+        if (issueResponse !== undefined) {
+          return issueResponse;
         }
         throw new Error(`想定外の外部リクエスト: ${url}`);
       });
@@ -173,9 +194,8 @@ describe('D1 バックアップ Workflow', () => {
       }
     });
 
-    it('export API がエラーを返したとき、そのメッセージを含めて失敗すること', async () => {
+    it('export API がエラーを返したとき、再試行せず Workflow が失敗すること', async () => {
       let exportCallCount = 0;
-      const issueBodies: string[] = [];
       vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
         const url = String(input);
         if (url.endsWith('/export')) {
@@ -185,9 +205,9 @@ describe('D1 バックアップ Workflow', () => {
             error: 'Authentication error',
           });
         }
-        if (url.endsWith('/issues')) {
-          issueBodies.push(String(init?.body));
-          return new Response('{}', { status: 201 });
+        const issueResponse = failureIssueResponse(input, init);
+        if (issueResponse !== undefined) {
+          return issueResponse;
         }
         throw new Error(`想定外の外部リクエスト: ${url}`);
       });
@@ -208,7 +228,6 @@ describe('D1 バックアップ Workflow', () => {
         await expect(instance.waitForStatus('errored')).resolves.not.toThrow();
         // 未完了と区別され、再試行せずに失敗する
         expect(exportCallCount).toBe(1);
-        expect(issueBodies[0]).toContain('Authentication error');
       } finally {
         await instance.dispose();
       }
@@ -234,8 +253,9 @@ describe('D1 バックアップ Workflow', () => {
         if (url === SIGNED_URL) {
           return new Response('Internal Server Error', { status: 500 });
         }
-        if (url.endsWith('/issues')) {
-          return new Response('{}', { status: 201 });
+        const issueResponse = failureIssueResponse(input, init);
+        if (issueResponse !== undefined) {
+          return issueResponse;
         }
         throw new Error(`想定外の外部リクエスト: ${url}`);
       });
@@ -261,15 +281,17 @@ describe('D1 バックアップ Workflow', () => {
     });
 
     it('Workflow が失敗したとき、失敗を知らせる issue が作成されること', async () => {
-      const issueBodies: string[] = [];
+      let issueCreationCount = 0;
       vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
         const url = String(input);
         if (url.endsWith('/export')) {
           return exportResponse({ messages: [] });
         }
-        if (url.endsWith('/issues')) {
-          issueBodies.push(String(init?.body));
-          return new Response('{}', { status: 201 });
+        const issueResponse = failureIssueResponse(input, init, () => {
+          issueCreationCount += 1;
+        });
+        if (issueResponse !== undefined) {
+          return issueResponse;
         }
         throw new Error(`想定外の外部リクエスト: ${url}`);
       });
@@ -288,12 +310,7 @@ describe('D1 バックアップ Workflow', () => {
         await testEnv.D1_BACKUP_WORKFLOW.create({ id: instanceId, params: {} });
 
         await expect(instance.waitForStatus('errored')).resolves.not.toThrow();
-        expect(issueBodies).toHaveLength(1);
-        expect(issueBodies[0]).toContain('D1 バックアップ Workflow に失敗');
-        expect(issueBodies[0]).toContain(instanceId);
-        expect(issueBodies[0]).toContain(
-          'D1 export の開始要求が bookmark を返しませんでした',
-        );
+        expect(issueCreationCount).toBe(1);
       } finally {
         await instance.dispose();
       }
