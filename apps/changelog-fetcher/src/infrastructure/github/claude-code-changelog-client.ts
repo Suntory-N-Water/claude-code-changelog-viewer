@@ -53,7 +53,7 @@ export class ClaudeCodeChangelogClient implements ChangelogSourcePort {
       if (actualHash !== this.expectedHash) {
         // 検知後に上流が更新された場合、再取得しても古い期待値には一致しないため即時失敗する。
         log.msg('APLG0025', {
-          params: [this.expectedHash, actualHash],
+          attrs: { arg0: this.expectedHash, arg1: actualHash },
         });
         throw new HashMismatchError(this.expectedHash, actualHash);
       }

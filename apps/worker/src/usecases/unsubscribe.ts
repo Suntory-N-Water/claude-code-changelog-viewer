@@ -1,8 +1,16 @@
+import { getLogger } from '@claude-code-changelog-viewer/common';
 import type { Channel } from '../domain/channel/channel';
 import type { ChannelNotifier } from '../domain/channel/channel-notifier';
 import type { ChannelRepository } from '../domain/channel/channel-repository';
 import type { ChannelToken } from '../domain/channel/channel-token';
 import { deactivate, isActive } from '../domain/channel/channel-lifecycle';
+
+const logger = getLogger({
+  name: 'usecases.unsubscribe',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 /** 配信停止ユースケースへ渡す入力。routes層で外部入力を値オブジェクトへ変換してから渡す。 */
 export type UnsubscribeInput = {
@@ -34,10 +42,17 @@ export async function unsubscribe(
 ): Promise<UnsubscribeResult> {
   const channel = await repository.findByToken(input.token);
   if (!channel) {
+    logger.warn('配信停止対象が見つかりませんでした', {
+      reason: 'not_found',
+    });
     return { ok: false, error: 'not_found' };
   }
 
   if (!isActive(channel)) {
+    logger.warn('配信停止対象は既に停止しています', {
+      reason: 'already_deactivated',
+      channel_type: channel.type,
+    });
     return { ok: false, error: 'already_deactivated' };
   }
 
@@ -47,12 +62,21 @@ export async function unsubscribe(
   const notificationResult =
     await notifier.sendUnsubscribeNotification(deactivatedChannel);
   if (!notificationResult.ok) {
+    logger.warn('配信停止通知に失敗しました', {
+      channel_type: deactivatedChannel.type,
+      notification: 'failed',
+    });
     return {
       ok: true,
       channel: deactivatedChannel,
       notification: 'failed',
     };
   }
+
+  logger.info('配信停止が完了しました', {
+    channel_type: deactivatedChannel.type,
+    notification: 'sent',
+  });
 
   return { ok: true, channel: deactivatedChannel, notification: 'sent' };
 }

@@ -1,4 +1,5 @@
 import { cloudflareAccess } from '@hono/cloudflare-access';
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import type { MiddlewareHandler } from 'hono';
@@ -37,6 +38,13 @@ const imageTypes = [
   },
 ] as const;
 
+const logger = getLogger({
+  name: 'routes.uploads',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
+
 export const uploadsRoute = new Hono<{
   Bindings: CloudflareBindings;
 }>();
@@ -67,6 +75,10 @@ uploadsRoute.post(
     if (result.success) {
       return;
     }
+    logger.warn('アップロードリクエストの検証に失敗しました', {
+      route: 'uploads',
+      error: result.error,
+    });
     return c.json(
       { error: result.error[0]?.message ?? 'リクエストが不正です' },
       400,
@@ -82,6 +94,11 @@ uploadsRoute.post(
       ),
     );
     if (!imageType) {
+      logger.warn('画像形式の検証に失敗しました', {
+        route: 'uploads',
+        week,
+        item_id: itemId,
+      });
       return c.json({ error: 'PNG・JPEG・WebPのみアップロードできます' }, 400);
     }
 
@@ -91,9 +108,20 @@ uploadsRoute.post(
       await c.env.WEEKLY_ASSETS.put(key, buffer, {
         httpMetadata: { contentType: imageType.contentType },
       });
-    } catch {
+    } catch (error) {
+      logger.error('画像の保存に失敗しました', {
+        route: 'uploads',
+        key,
+        error: toError(error),
+      });
       return c.json({ error: '画像の保存に失敗しました' }, 500);
     }
+
+    logger.info('画像を保存しました', {
+      route: 'uploads',
+      key,
+      content_type: imageType.contentType,
+    });
 
     return c.json({ url: `https://assets.claude-code-log.com/${key}` });
   },

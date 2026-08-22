@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import {
   DISCORD_BOT_AVATAR_URL,
   DISCORD_SUPPRESS_EMBEDS,
@@ -9,6 +10,13 @@ import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import { groupChangelogItemsByPrefix } from './changelog-message';
 
 const BOT_USERNAME = 'CCログ超訳 Bot';
+
+const logger = getLogger({
+  name: 'infrastructure.notification.discord',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 const PREFIX_LABELS: Record<Prefix, string> = {
   Breaking: '🚨 破壊的変更',
@@ -37,10 +45,23 @@ export async function sendToDiscord(
   webhookUrl: string,
   payload: DiscordWebhookPayload,
 ): Promise<DiscordSendResult> {
-  const response = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+  let response: Response;
+  try {
+    response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    logger.error('Discord 通知の送信に失敗しました', {
+      'notification.channel_type': 'DSC',
+      error: toError(error),
+    });
+    throw error;
+  }
+  logger.info('Discord 通知の送信結果を受信しました', {
+    'notification.channel_type': 'DSC',
+    'http.response.status_code': response.status,
   });
   return { ok: response.ok, status: response.status };
 }

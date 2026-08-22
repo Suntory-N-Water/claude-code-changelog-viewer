@@ -42,8 +42,7 @@ export async function inferBenefits(input: {
   }
 
   log.msg('APLG0001', {
-    params: ['AI推論'],
-    attrs: { totalItems: input.analysis.items.length },
+    attrs: { arg0: 'AI推論', totalItems: input.analysis.items.length },
   });
 
   const missingBeforeInitial = findMissingInferenceItems(analysis);
@@ -60,7 +59,7 @@ export async function inferBenefits(input: {
     })),
     ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
   });
-  log.msg('APLG0002', { params: ['バージョンサマリー生成'] });
+  log.msg('APLG0002', { attrs: { arg0: 'バージョンサマリー生成' } });
 
   const missingAfterInitial = findMissingInferenceItems(analysis);
   if (missingAfterInitial.length === 0) {

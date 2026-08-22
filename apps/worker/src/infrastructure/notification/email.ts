@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 // biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers ランタイム組み込みモジュール
 import { EmailMessage } from 'cloudflare:email';
 import type { Prefix } from '@claude-code-changelog-viewer/common';
@@ -28,6 +29,13 @@ const PREFIX_LABELS: Record<Prefix, string> = {
   Enabled: '✅ 有効化',
 };
 
+const logger = getLogger({
+  name: 'infrastructure.notification.email',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
+
 /** Cloudflare Email Bindingでメールを送信する。 */
 export async function sendToEmail(
   sendEmail: SendEmail,
@@ -42,7 +50,19 @@ export async function sendToEmail(
   msg.addMessage({ contentType: 'text/html', data: payload.html });
 
   const message = new EmailMessage(fromAddress, toAddress, msg.asRaw());
-  await sendEmail.send(message);
+  try {
+    await sendEmail.send(message);
+  } catch (error) {
+    logger.error('メール通知の送信に失敗しました', {
+      'notification.channel_type': 'EML',
+      error: toError(error),
+    });
+    throw error;
+  }
+  logger.info('メール通知を送信しました', {
+    'notification.channel_type': 'EML',
+    'http.response.status_code': 200,
+  });
   return { ok: true, status: 200 };
 }
 

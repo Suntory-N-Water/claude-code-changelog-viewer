@@ -1,7 +1,15 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { createMcpHandler } from '@modelcontextprotocol/server';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { createChangelogMcpServer } from '../mcp/server';
+
+const logger = getLogger({
+  name: 'routes.mcp',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 export const mcpRoute = new Hono<{ Bindings: CloudflareBindings }>().all(
   '/',
@@ -12,6 +20,10 @@ export const mcpRoute = new Hono<{ Bindings: CloudflareBindings }>().all(
     });
     if (!rateLimit.success) {
       c.header('Retry-After', '60');
+      logger.warn('レート制限を超過しました', {
+        route: 'mcp',
+        'client.address': clientKey,
+      });
       return c.json({ error: 'リクエストが多すぎます' }, 429);
     }
 
@@ -23,6 +35,19 @@ export const mcpRoute = new Hono<{ Bindings: CloudflareBindings }>().all(
       () => createChangelogMcpServer(drizzle(c.env.DB)),
       { legacy: 'stateless' },
     );
-    return handler.fetch(c.req.raw);
+    try {
+      const response = await handler.fetch(c.req.raw);
+      logger.info('MCP リクエストが完了しました', {
+        route: 'mcp',
+        'http.response.status_code': response.status,
+      });
+      return response;
+    } catch (error) {
+      logger.error('MCP リクエストに失敗しました', {
+        route: 'mcp',
+        error: toError(error),
+      });
+      throw error;
+    }
   },
 );

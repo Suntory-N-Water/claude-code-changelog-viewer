@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { z } from 'zod';
 import type {
   SettingsReferenceAiPort,
@@ -17,6 +18,13 @@ const MODEL_CONTEXT = [
   '- CHANGELOG の原文に具体的なモデル名が記載されている場合はそのまま使用すること',
 ].join('\n');
 
+const logger = getLogger({
+  name: 'infrastructure.ai.settings-reference',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
+
 const AiChatResponseSchema = z.object({
   choices: z
     .array(
@@ -25,6 +33,16 @@ const AiChatResponseSchema = z.object({
       }),
     )
     .min(1),
+  usage: z
+    .object({
+      prompt_tokens: z.number(),
+      completion_tokens: z.number(),
+      total_tokens: z.number(),
+      prompt_tokens_details: z
+        .object({ cached_tokens: z.number().optional() })
+        .optional(),
+    })
+    .optional(),
 });
 
 /** Workers AI を設定リファレンス生成 port に接続する adapter。 */
@@ -34,20 +52,32 @@ export function createSettingsReferenceAi(
 ): SettingsReferenceAiPort {
   return {
     async infer(input): Promise<SettingsReferenceTranslation[]> {
-      const response = await ai.run(
-        MODEL,
-        {
-          messages: [
-            {
-              role: 'user',
-              content: buildSettingsReferencePrompt(input),
-            },
-          ],
-          max_tokens: MAX_TOKENS,
-          response_format: SettingsReferenceResponseFormat,
-        },
-        { gateway: { id: gatewayId } },
-      );
+      const startedAt = Date.now();
+      let response: unknown;
+      try {
+        response = await ai.run(
+          MODEL,
+          {
+            messages: [
+              {
+                role: 'user',
+                content: buildSettingsReferencePrompt(input),
+              },
+            ],
+            max_tokens: MAX_TOKENS,
+            response_format: SettingsReferenceResponseFormat,
+          },
+          { gateway: { id: gatewayId } },
+        );
+      } catch (error) {
+        logger.error('Workers AI の呼び出しに失敗しました', {
+          'ai.model': MODEL,
+          'ai.duration_ms': Date.now() - startedAt,
+          error: toError(error),
+        });
+        throw error;
+      }
+      logAiUsage(response, startedAt);
       const parsed = SettingsReferenceResponseSchema.safeParse(
         parseAiResponse(response),
       );
@@ -64,6 +94,19 @@ export function createSettingsReferenceAi(
       }));
     },
   };
+}
+
+function logAiUsage(response: unknown, startedAt: number): void {
+  const parsed = AiChatResponseSchema.safeParse(response);
+  const usage = parsed.success ? parsed.data.usage : undefined;
+  logger.info('Workers AI の呼び出しが完了しました', {
+    'ai.model': MODEL,
+    'ai.usage.prompt_tokens': usage?.prompt_tokens,
+    'ai.usage.completion_tokens': usage?.completion_tokens,
+    'ai.usage.total_tokens': usage?.total_tokens,
+    'ai.usage.cached_tokens': usage?.prompt_tokens_details?.cached_tokens ?? 0,
+    'ai.duration_ms': Date.now() - startedAt,
+  });
 }
 
 function parseAiResponse(response: unknown): unknown {

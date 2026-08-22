@@ -16,7 +16,7 @@ async function main() {
     process.exit(1);
   }
 
-  log.msg('APLG0001', { params: [`CHANGELOG 解析 (${version})`] });
+  log.msg('APLG0001', { attrs: { arg0: `CHANGELOG 解析 (${version})` } });
 
   const changelogPath = path.join(process.cwd(), 'changelogs', `${version}.md`);
   const changelogContent = await fs.readFile(changelogPath, 'utf-8');
@@ -34,8 +34,7 @@ async function main() {
     `analysis_${version}.json`,
   );
   log.msg('APLG0002', {
-    params: ['解析'],
-    attrs: { outputPath, totalItems: analysis.items.length },
+    attrs: { arg0: '解析', outputPath, totalItems: analysis.items.length },
   });
 }
 

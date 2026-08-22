@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import type {
   ChangelogInferenceInput,
   ChangelogItemsAiResult,
@@ -18,6 +19,13 @@ import {
 const MODEL = '@cf/google/gemma-4-26b-a4b-it';
 const MAX_TOKENS = 65536;
 
+const logger = getLogger({
+  name: 'infrastructure.ai.changelog-inference',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
+
 const AiChatResponseSchema = z.object({
   choices: z
     .array(
@@ -26,6 +34,16 @@ const AiChatResponseSchema = z.object({
       }),
     )
     .min(1),
+  usage: z
+    .object({
+      prompt_tokens: z.number(),
+      completion_tokens: z.number(),
+      total_tokens: z.number(),
+      prompt_tokens_details: z
+        .object({ cached_tokens: z.number().optional() })
+        .optional(),
+    })
+    .optional(),
 });
 
 export function createChangelogItemInferenceAi(
@@ -34,15 +52,27 @@ export function createChangelogItemInferenceAi(
 ): ChangelogItemInferencePort {
   return {
     async inferItems(input): Promise<ChangelogItemsAiResult> {
-      const response = await ai.run(
-        MODEL,
-        {
-          messages: [{ role: 'user', content: buildItemsPrompt(input) }],
-          max_tokens: MAX_TOKENS,
-          response_format: ChangelogItemsResponseFormat,
-        },
-        { gateway: { id: gatewayId } },
-      );
+      const startedAt = Date.now();
+      let response: unknown;
+      try {
+        response = await ai.run(
+          MODEL,
+          {
+            messages: [{ role: 'user', content: buildItemsPrompt(input) }],
+            max_tokens: MAX_TOKENS,
+            response_format: ChangelogItemsResponseFormat,
+          },
+          { gateway: { id: gatewayId } },
+        );
+      } catch (error) {
+        logger.error('Workers AI の呼び出しに失敗しました', {
+          'ai.model': MODEL,
+          'ai.duration_ms': Date.now() - startedAt,
+          error: toError(error),
+        });
+        throw error;
+      }
+      logAiUsage(response, startedAt);
       const parsed = ChangelogItemsResponseSchema.safeParse(
         parseAiResponse(response),
       );
@@ -83,15 +113,27 @@ export function createChangelogSummaryAi(
 ): ChangelogSummaryPort {
   return {
     async summarize(release): Promise<string> {
-      const response = await ai.run(
-        MODEL,
-        {
-          messages: [{ role: 'user', content: buildSummaryPrompt(release) }],
-          max_tokens: MAX_TOKENS,
-          response_format: ChangelogSummaryResponseFormat,
-        },
-        { gateway: { id: gatewayId } },
-      );
+      const startedAt = Date.now();
+      let response: unknown;
+      try {
+        response = await ai.run(
+          MODEL,
+          {
+            messages: [{ role: 'user', content: buildSummaryPrompt(release) }],
+            max_tokens: MAX_TOKENS,
+            response_format: ChangelogSummaryResponseFormat,
+          },
+          { gateway: { id: gatewayId } },
+        );
+      } catch (error) {
+        logger.error('Workers AI の呼び出しに失敗しました', {
+          'ai.model': MODEL,
+          'ai.duration_ms': Date.now() - startedAt,
+          error: toError(error),
+        });
+        throw error;
+      }
+      logAiUsage(response, startedAt);
       const parsed = ChangelogSummaryResponseSchema.safeParse(
         parseAiResponse(response),
       );
@@ -104,6 +146,19 @@ export function createChangelogSummaryAi(
       return parsed.data.summary;
     },
   };
+}
+
+function logAiUsage(response: unknown, startedAt: number): void {
+  const parsed = AiChatResponseSchema.safeParse(response);
+  const usage = parsed.success ? parsed.data.usage : undefined;
+  logger.info('Workers AI の呼び出しが完了しました', {
+    'ai.model': MODEL,
+    'ai.usage.prompt_tokens': usage?.prompt_tokens,
+    'ai.usage.completion_tokens': usage?.completion_tokens,
+    'ai.usage.total_tokens': usage?.total_tokens,
+    'ai.usage.cached_tokens': usage?.prompt_tokens_details?.cached_tokens ?? 0,
+    'ai.duration_ms': Date.now() - startedAt,
+  });
 }
 
 function parseAiResponse(response: unknown): unknown {

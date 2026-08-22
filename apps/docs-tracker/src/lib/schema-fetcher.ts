@@ -43,7 +43,7 @@ export class SchemaFetcher {
   async init(): Promise<void> {
     await fs.mkdir(this.schemaDir, { recursive: true });
     await fs.mkdir(this.metadataDir, { recursive: true });
-    this.log.msg('APLG0004', { params: ['スキーマディレクトリ'] });
+    this.log.msg('APLG0004', { attrs: { arg0: 'スキーマディレクトリ' } });
   }
 
   private extractTopLevelProperties(schema: JsonObject): string[] {
@@ -89,7 +89,7 @@ export class SchemaFetcher {
   }
 
   async fetchSchema(): Promise<void> {
-    this.log.msg('APLG0003', { params: ['settings.json スキーマ'] });
+    this.log.msg('APLG0003', { attrs: { arg0: 'settings.json スキーマ' } });
 
     await this.init();
 
@@ -113,7 +113,7 @@ export class SchemaFetcher {
 
     const schemaPath = path.join(this.schemaDir, SCHEMA_FILENAME);
     await atomicWriteFile(schemaPath, rawJson);
-    this.log.msg('APLG0007', { params: ['スキーマ'] });
+    this.log.msg('APLG0007', { attrs: { arg0: 'スキーマ' } });
 
     const currentProperties = this.extractTopLevelProperties(schema);
     const prevProperties = previousSchema
@@ -161,8 +161,8 @@ export class SchemaFetcher {
     await atomicWriteFile(metadataPath, JSON.stringify(metadata, null, 2));
 
     this.log.msg('APLG0002', {
-      params: ['スキーマ取得'],
       attrs: {
+        arg0: 'スキーマ取得',
         'schema.propertyCount': currentProperties.length,
         'schema.addedCount': addedProperties.length,
         'schema.removedCount': removedProperties.length,

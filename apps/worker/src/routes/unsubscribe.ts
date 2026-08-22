@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
@@ -6,6 +7,13 @@ import { unsubscribe } from '../usecases/unsubscribe';
 import { createChannelToken } from '../domain/channel/channel-token';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
+
+const logger = getLogger({
+  name: 'routes.unsubscribe',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 const baseStyle = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -138,6 +146,7 @@ export const unsubscribeRoute = new Hono<{
   .get('/', async (c) => {
     const tokenText = c.req.query('token')?.trim() ?? '';
     if (tokenText === '') {
+      logger.warn('配信停止トークンがありません', { route: 'unsubscribe' });
       return renderUnsubscribeErrorResponse(c, 'missing_token');
     }
 
@@ -145,13 +154,28 @@ export const unsubscribeRoute = new Hono<{
       c.env.DB,
       c.env.EMAIL_ENCRYPTION_KEY,
     );
-    const result = await prepareUnsubscribe(repository, {
-      token: createChannelToken(tokenText),
-    });
+    let result: Awaited<ReturnType<typeof prepareUnsubscribe>>;
+    try {
+      result = await prepareUnsubscribe(repository, {
+        token: createChannelToken(tokenText),
+      });
+    } catch (error) {
+      logger.error('配信停止の確認に失敗しました', {
+        route: 'unsubscribe',
+        error: toError(error),
+      });
+      throw error;
+    }
 
     if (!result.ok) {
+      logger.warn('配信停止を確認できませんでした', {
+        route: 'unsubscribe',
+        reason: result.error,
+      });
       return renderUnsubscribeErrorResponse(c, result.error);
     }
+
+    logger.info('配信停止を確認しました', { route: 'unsubscribe' });
 
     return c.html(renderConfirm(c.env.SITE_URL, result.token));
   })
@@ -161,6 +185,7 @@ export const unsubscribeRoute = new Hono<{
     const tokenText =
       typeof body['token'] === 'string' ? body['token'].trim() : '';
     if (tokenText === '') {
+      logger.warn('配信停止トークンがありません', { route: 'unsubscribe' });
       return renderUnsubscribeErrorResponse(c, 'missing_token');
     }
 
@@ -169,14 +194,32 @@ export const unsubscribeRoute = new Hono<{
       c.env.EMAIL_ENCRYPTION_KEY,
     );
     const notifier = createChannelNotifier(c.env);
-    const result = await unsubscribe(repository, notifier, {
-      token: createChannelToken(tokenText),
-      unsubscribedAt: new Date(),
-    });
+    let result: Awaited<ReturnType<typeof unsubscribe>>;
+    try {
+      result = await unsubscribe(repository, notifier, {
+        token: createChannelToken(tokenText),
+        unsubscribedAt: new Date(),
+      });
+    } catch (error) {
+      logger.error('配信停止に失敗しました', {
+        route: 'unsubscribe',
+        error: toError(error),
+      });
+      throw error;
+    }
 
     if (!result.ok) {
+      logger.warn('配信停止を実行できませんでした', {
+        route: 'unsubscribe',
+        reason: result.error,
+      });
       return renderUnsubscribeErrorResponse(c, result.error);
     }
+
+    logger.info('配信停止が完了しました', {
+      route: 'unsubscribe',
+      notification: result.notification,
+    });
 
     return c.html(
       renderResult(

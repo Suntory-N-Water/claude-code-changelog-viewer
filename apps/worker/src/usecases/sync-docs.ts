@@ -1,5 +1,12 @@
-import { toError } from '@claude-code-changelog-viewer/common';
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { isSafeToDeleteStaleDocuments } from '../domain/docs-sync/document-sync';
+
+const logger = getLogger({
+  name: 'usecases.sync-docs',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 export type DocumentInfo = {
   title: string;
@@ -103,6 +110,17 @@ export async function syncDocs(
 
   const existingPages = await dependencies.store.loadExistingPages();
   const outcomes = await fetchPages(dependencies.source, documents);
+  const failedPages = outcomes.filter(
+    (outcome): outcome is { document: DocumentInfo; error: Error } =>
+      'error' in outcome,
+  );
+  if (failedPages.length > 0) {
+    logger.warn('ドキュメントページの取得に失敗しました', {
+      'resource.count': failedPages.length,
+      'resource.paths': failedPages.map(({ document }) => document.path),
+      'exception.messages': failedPages.map(({ error }) => error.message),
+    });
+  }
   const existingHashes = new Map(
     existingPages.map((page) => [page.path, page.contentHash]),
   );

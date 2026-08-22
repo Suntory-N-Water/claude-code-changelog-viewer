@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { NonRetryableError } from 'cloudflare:workflows';
 import { z } from 'zod';
 import type { D1ExportPort } from '../../usecases/d1-backup-workflow';
@@ -11,6 +12,13 @@ const ExportResponseSchema = z.object({
       .object({ filename: z.string(), signed_url: z.string() })
       .optional(),
   }),
+});
+
+const logger = getLogger({
+  name: 'infrastructure.d1.export-client',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
 });
 
 export type D1ExportClientConfig = {
@@ -28,20 +36,31 @@ export function createD1ExportClient({
   const endpoint = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/export`;
 
   async function requestExport(currentBookmark?: string) {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        output_format: 'polling',
-        ...(currentBookmark === undefined
-          ? {}
-          : { current_bookmark: currentBookmark }),
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          output_format: 'polling',
+          ...(currentBookmark === undefined
+            ? {}
+            : { current_bookmark: currentBookmark }),
+        }),
+      });
+    } catch (error) {
+      logger.error('D1 export API の呼び出しに失敗しました', {
+        error: toError(error),
+      });
+      throw error;
+    }
     if (!response.ok) {
+      logger.error('D1 export API の呼び出しに失敗しました', {
+        'http.response.status_code': response.status,
+      });
       throw new Error(
         `D1 export API の呼び出しに失敗しました: ${response.status} ${response.statusText}`,
       );
@@ -57,10 +76,19 @@ export function createD1ExportClient({
     const { result } = parsed.data;
     // 未完了は再試行で解消するが、status: 'error' は再試行しても変わらないため即座に失敗させる。
     if (result.status === 'error') {
+      logger.error('D1 export に失敗しました', {
+        'd1.export.status': result.status,
+      });
       throw new NonRetryableError(
         `D1 export に失敗しました: ${result.error ?? '(エラーメッセージなし)'}`,
       );
     }
+
+    logger.info('D1 export API の応答を受信しました', {
+      'http.response.status_code': response.status,
+      'd1.export.status': result.status ?? 'in_progress',
+      'd1.export.completed': result.result !== undefined,
+    });
 
     return result;
   }
@@ -81,8 +109,19 @@ export function createD1ExportClient({
         throw new Error('D1 export がまだ完了していません');
       }
 
-      const dump = await fetch(result.result.signed_url);
+      let dump: Response;
+      try {
+        dump = await fetch(result.result.signed_url);
+      } catch (error) {
+        logger.error('D1 export のダウンロードに失敗しました', {
+          error: toError(error),
+        });
+        throw error;
+      }
       if (!dump.ok) {
+        logger.error('D1 export のダウンロードに失敗しました', {
+          'http.response.status_code': dump.status,
+        });
         throw new Error(
           `D1 export のダウンロードに失敗しました: ${dump.status} ${dump.statusText}`,
         );
@@ -90,6 +129,11 @@ export function createD1ExportClient({
       if (dump.body === null) {
         throw new Error('D1 export のダウンロード応答に本文がありませんでした');
       }
+
+      logger.info('D1 export をダウンロードしました', {
+        'http.response.status_code': dump.status,
+        'resource.name': result.result.filename,
+      });
 
       return { filename: result.result.filename, body: dump.body };
     },

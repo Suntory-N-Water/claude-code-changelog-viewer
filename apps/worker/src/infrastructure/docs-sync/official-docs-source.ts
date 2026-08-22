@@ -1,8 +1,4 @@
-import {
-  cleanMarkdown,
-  getLogger,
-  toError,
-} from '@claude-code-changelog-viewer/common';
+import { cleanMarkdown, toError } from '@claude-code-changelog-viewer/common';
 import type {
   DocumentInfo,
   OfficialDocsSource,
@@ -22,12 +18,6 @@ const DOCS_MAP_URL = 'https://code.claude.com/docs/en/claude_code_docs_map.md';
 const LLMS_URL = 'https://code.claude.com/docs/llms.txt';
 const SCHEMA_URL = 'https://www.schemastore.org/claude-code-settings.json';
 const USER_AGENT = 'changelog-viewer-worker-docs-sync';
-
-const logger = getLogger({
-  name: 'docs-search-sync',
-  level: 'INFO',
-  format: 'json',
-});
 
 /** 公式ドキュメントと SchemaStore を HTTP から取得する adapter。 */
 export function createOfficialDocsSource(): OfficialDocsSource {
@@ -61,10 +51,6 @@ export function createOfficialDocsSource(): OfficialDocsSource {
         };
       } catch (error) {
         const normalizedError = toError(error);
-        logger.warn('ドキュメントの取得をスキップしました', {
-          path: document.path,
-          'exception.message': normalizedError.message,
-        });
         throw normalizedError;
       }
     },
@@ -115,11 +101,6 @@ async function fetchText(url: string, accept: string): Promise<string> {
         throw error;
       }
 
-      logger.warn('HTTP 取得を再試行します', {
-        url,
-        attempt: attempt + 1,
-        maxRetries,
-      });
       await new Promise((resolve) =>
         setTimeout(resolve, retryDelayMs * 2 ** attempt),
       );

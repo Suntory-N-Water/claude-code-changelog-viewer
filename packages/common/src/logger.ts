@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import type { LogId } from './log-messages/catalog.js';
 import { LOG_CATALOG } from './log-messages/catalog.js';
 
@@ -10,7 +11,6 @@ type LogFn = {
 };
 
 type MsgOptions = {
-  params?: ReadonlyArray<string | number>;
   attrs?: Record<string, unknown>;
   error?: Error;
 };
@@ -28,9 +28,27 @@ type AppLogger = {
 
 type LoggerOptions = {
   name: string;
+  serviceName?: string;
   level?: LogLevel;
   format?: 'pretty' | 'json';
 };
+
+const logContextStorage = new AsyncLocalStorage<Record<string, unknown>>();
+
+const SENSITIVE_KEYS = new Set([
+  'token',
+  'secret',
+  'webhookurl',
+  'email',
+  'emailaddress',
+  'authorization',
+  'apitoken',
+  'encryptionkey',
+  'jwt',
+  'password',
+]);
+
+const OMIT = Symbol('omit');
 
 const LOG_LEVEL_MAP: Record<LogLevel, number> = {
   TRACE: 10,
@@ -63,23 +81,9 @@ function resolveLevel(): LogLevel {
   return 'INFO';
 }
 
-function resolveTemplate(
-  template: string,
-  params?: ReadonlyArray<string | number>,
-): string {
-  if (!params || params.length === 0) {
-    return template;
-  }
-  let result = template;
-  for (let i = 0; i < params.length; i++) {
-    result = result.replaceAll(`$${i}`, String(params[i]));
-  }
-  return result;
-}
-
 function extractErrorAttrs(error: Error): Record<string, unknown> {
   const attrs: Record<string, unknown> = {
-    'exception.type': error.constructor.name,
+    'exception.type': error.name || error.constructor.name || 'Error',
     'exception.message': error.message,
   };
   if (error.stack) {
@@ -125,16 +129,17 @@ function formatPretty(
     output = `${time} ${paddedLevel} [${serviceName}] ${message}`;
   }
 
-  const keys = Object.keys(attrs).filter((k) => k !== 'log.id');
+  const stackTrace = attrs['exception.stack_trace'];
+  const keys = Object.keys(attrs).filter(
+    (key) => key !== 'log.id' && key !== 'exception.stack_trace',
+  );
   if (keys.length > 0) {
-    for (const key of keys) {
-      const value = attrs[key];
-      if (key === 'exception.stack_trace' && typeof value === 'string') {
-        output += `\n  ${key}:\n    ${value.split('\n').join('\n    ')}`;
-      } else {
-        output += `\n  ${key}: ${value}`;
-      }
-    }
+    output += ` ${keys.map((key) => `${key}=${formatPrettyValue(attrs[key])}`).join(' ')}`;
+  }
+  if (typeof stackTrace === 'string') {
+    output += `\n  exception.stack_trace:\n    ${stackTrace
+      .split('\n')
+      .join('\n    ')}`;
   }
 
   return output;
@@ -154,12 +159,112 @@ function formatJson(
     ...attrs,
   };
 
-  delete record['exception.stack_trace'];
-
   return JSON.stringify(record);
 }
 
+function formatPrettyValue(value: unknown): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (value !== null && typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function expandErrors(
+  value: unknown,
+  state: { expanded: boolean; attrs?: Record<string, unknown> },
+): unknown {
+  if (value instanceof Error) {
+    if (!state.expanded) {
+      state.expanded = true;
+      state.attrs = extractErrorAttrs(value);
+      return OMIT;
+    }
+    return value.message;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      const expanded = expandErrors(item, state);
+      return expanded === OMIT ? undefined : expanded;
+    });
+  }
+
+  if (isPlainObject(value)) {
+    const result: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(value)) {
+      const expanded = expandErrors(child, state);
+      if (expanded !== OMIT) {
+        result[key] = expanded;
+      }
+    }
+    return result;
+  }
+
+  return value;
+}
+
+function normalizeKey(key: string): string {
+  return key.toLowerCase().replaceAll('_', '').replaceAll('.', '');
+}
+
+function maskSensitiveValues(value: unknown, key?: string): unknown {
+  if (key !== undefined && SENSITIVE_KEYS.has(normalizeKey(key))) {
+    return '***';
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => maskSensitiveValues(item));
+  }
+
+  if (isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([childKey, childValue]) => [
+        childKey,
+        maskSensitiveValues(childValue, childKey),
+      ]),
+    );
+  }
+
+  return value;
+}
+
+function prepareAttrs(
+  baseAttrs: Record<string, unknown>,
+  extra?: Record<string, unknown> | Error,
+): Record<string, unknown> {
+  const attrs = { ...baseAttrs };
+  if (extra instanceof Error) {
+    attrs['error'] = extra;
+  } else if (extra) {
+    Object.assign(attrs, extra);
+  }
+
+  const errorState: { expanded: boolean; attrs?: Record<string, unknown> } = {
+    expanded: false,
+  };
+  const expanded = expandErrors(attrs, errorState);
+  if (!isPlainObject(expanded)) {
+    return attrs;
+  }
+  if (errorState.attrs) {
+    Object.assign(expanded, errorState.attrs);
+  }
+  return maskSensitiveValues(expanded) as Record<string, unknown>;
+}
+
 function createLogger(
+  loggerName: string,
   serviceName: string,
   minLevel: number,
   format: 'pretty' | 'json',
@@ -174,13 +279,8 @@ function createLogger(
       return;
     }
 
-    let attrs: Record<string, unknown> = { ...baseAttrs };
-
-    if (extra instanceof Error) {
-      attrs = { ...attrs, ...extractErrorAttrs(extra) };
-    } else if (extra) {
-      attrs = { ...attrs, ...extra };
-    }
+    const contextAttrs = logContextStorage.getStore() ?? {};
+    const attrs = prepareAttrs({ ...baseAttrs, ...contextAttrs }, extra);
 
     const formatted =
       format === 'pretty'
@@ -192,15 +292,14 @@ function createLogger(
 
   function msgFn(id: LogId, options?: MsgOptions): void {
     const entry = LOG_CATALOG[id];
-    const message = resolveTemplate(entry.template, options?.params);
     const attrs: Record<string, unknown> = {
       'log.id': id,
       ...(options?.attrs ?? {}),
     };
     if (options?.error) {
-      Object.assign(attrs, extractErrorAttrs(options.error));
+      attrs['error'] = options.error;
     }
-    log(entry.level, message, attrs);
+    log(entry.level, entry.template, attrs);
   }
 
   const logger: AppLogger = {
@@ -218,7 +317,7 @@ function createLogger(
       log('FATAL', msg, extra),
     msg: msgFn,
     child: (bindings: Record<string, unknown>) =>
-      createLogger(serviceName, minLevel, format, {
+      createLogger(loggerName, serviceName, minLevel, format, {
         ...baseAttrs,
         ...bindings,
       }),
@@ -232,8 +331,25 @@ function getLogger(options: LoggerOptions): AppLogger {
   const format = options.format ?? detectFormat();
   const minLevel = LOG_LEVEL_MAP[level];
 
-  return createLogger(options.name, minLevel, format, {});
+  return createLogger(
+    options.name,
+    options.serviceName ?? options.name,
+    minLevel,
+    format,
+    {
+      'logger.name': options.name,
+    },
+  );
 }
 
-export { getLogger };
+function runWithLogContext<T>(attrs: Record<string, unknown>, fn: () => T): T {
+  const current = logContextStorage.getStore() ?? {};
+  return logContextStorage.run({ ...current, ...attrs }, fn);
+}
+
+function getLogContext(): Readonly<Record<string, unknown>> {
+  return logContextStorage.getStore() ?? {};
+}
+
+export { getLogContext, getLogger, runWithLogContext };
 export type { AppLogger, LogFn, LoggerOptions, LogId, LogLevel, MsgOptions };

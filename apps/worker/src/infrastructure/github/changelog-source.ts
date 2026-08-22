@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import type { ChangelogSource } from '../../usecases/detect-changelog-update';
 import type { ChangelogMarkdownSourcePort } from '../../usecases/changelog-inference-workflow';
 import { sha256Hex } from '../crypto/sha256-hex';
@@ -6,30 +7,56 @@ import { createGitHubHeaders } from './github-headers';
 const CHANGELOG_URL =
   'https://api.github.com/repos/anthropics/claude-code/contents/CHANGELOG.md?ref=main';
 
+const logger = getLogger({
+  name: 'infrastructure.github.changelog-source',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
+
 export async function fetchChangelogMarkdown(
   token: string,
   expectedHash?: string,
 ): Promise<string> {
-  const response = await fetch(CHANGELOG_URL, {
-    headers: createGitHubHeaders(token, 'application/vnd.github.raw'),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `CHANGELOG.md の取得に失敗しました: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  const markdown = await response.text();
-  if (expectedHash !== undefined) {
-    const actualHash = await sha256Hex(markdown);
-    if (actualHash !== expectedHash) {
+  try {
+    const response = await fetch(CHANGELOG_URL, {
+      headers: createGitHubHeaders(token, 'application/vnd.github.raw'),
+    });
+    if (!response.ok) {
       throw new Error(
-        `CHANGELOG ハッシュ不一致: expected=${expectedHash} actual=${actualHash}`,
+        `CHANGELOG.md の取得に失敗しました: ${response.status} ${response.statusText}`,
       );
     }
-  }
 
-  return markdown;
+    const markdown = await response.text();
+    if (expectedHash !== undefined) {
+      const actualHash = await sha256Hex(markdown);
+      if (actualHash !== expectedHash) {
+        logger.msg('APLG0025', {
+          attrs: {
+            'hash.expected': expectedHash,
+            'hash.actual': actualHash,
+          },
+        });
+        throw new Error(
+          `CHANGELOG ハッシュ不一致: expected=${expectedHash} actual=${actualHash}`,
+        );
+      }
+    }
+
+    logger.info('CHANGELOG を取得しました', {
+      'resource.name': 'CHANGELOG.md',
+      'http.response.status_code': response.status,
+      'content.size': markdown.length,
+    });
+    return markdown;
+  } catch (error) {
+    logger.error('GitHub から CHANGELOG の取得に失敗しました', {
+      'resource.name': 'CHANGELOG.md',
+      error: toError(error),
+    });
+    throw error;
+  }
 }
 
 /** GitHub 上の Claude Code CHANGELOG を取得する source adapter。 */

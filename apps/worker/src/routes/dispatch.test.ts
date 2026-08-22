@@ -60,6 +60,7 @@ describe('POST /api/dispatch', () => {
     expect(env.NOTIFICATION_QUEUE.send).toHaveBeenCalledWith({
       version: 'v1.0.0',
       analysis: validAnalysis,
+      traceId: expect.any(String),
     });
   });
 

@@ -6,7 +6,9 @@ import { SchemaFetcher } from './lib/schema-fetcher';
 const logger = getLogger({ name: 'docs-tracker' });
 
 async function main() {
-  logger.msg('APLG0001', { params: ['Claude Code Settings Schema Fetcher'] });
+  logger.msg('APLG0001', {
+    attrs: { arg0: 'Claude Code Settings Schema Fetcher' },
+  });
 
   const startTime = Date.now();
 
@@ -16,8 +18,7 @@ async function main() {
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.msg('APLG0002', {
-      params: ['処理'],
-      attrs: { 'elapsed.seconds': elapsed },
+      attrs: { arg0: '処理', 'elapsed.seconds': elapsed },
     });
 
     process.exit(0);

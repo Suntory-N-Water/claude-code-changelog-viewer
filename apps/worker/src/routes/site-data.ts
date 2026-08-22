@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import {
@@ -11,6 +12,13 @@ import {
   listSettingsReference,
 } from '../infrastructure/drizzle/changelog-repository';
 
+const logger = getLogger({
+  name: 'routes.site-data',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
+
 export const siteDataRoute = new Hono<{
   Bindings: CloudflareBindings;
 }>();
@@ -22,6 +30,10 @@ siteDataRoute.use('*', async (c, next) => {
   });
   if (!rateLimit.success) {
     c.header('Retry-After', '60');
+    logger.warn('レート制限を超過しました', {
+      route: 'site-data',
+      'client.address': clientKey,
+    });
     return c.json({ error: 'リクエストが多すぎます' }, 429);
   }
   return next();
@@ -29,13 +41,25 @@ siteDataRoute.use('*', async (c, next) => {
 
 siteDataRoute.get('/changelog', async (c) => {
   const db = drizzle(c.env.DB);
-  const [versionRows, itemRows, featureAreaRows, relatedDocRows] =
-    await Promise.all([
-      listChangelogVersions(db),
-      listChangelogItems(db),
-      listFeatureAreas(db),
-      listRelatedDocs(db),
-    ]);
+  let versionRows: Awaited<ReturnType<typeof listChangelogVersions>>;
+  let itemRows: Awaited<ReturnType<typeof listChangelogItems>>;
+  let featureAreaRows: Awaited<ReturnType<typeof listFeatureAreas>>;
+  let relatedDocRows: Awaited<ReturnType<typeof listRelatedDocs>>;
+  try {
+    [versionRows, itemRows, featureAreaRows, relatedDocRows] =
+      await Promise.all([
+        listChangelogVersions(db),
+        listChangelogItems(db),
+        listFeatureAreas(db),
+        listRelatedDocs(db),
+      ]);
+  } catch (error) {
+    logger.error('CHANGELOG データの取得に失敗しました', {
+      route: 'site-data/changelog',
+      error: toError(error),
+    });
+    throw error;
+  }
 
   const featureAreasByVersion = new Map<string, Map<string, string[]>>();
   for (const row of featureAreaRows) {
@@ -91,21 +115,36 @@ siteDataRoute.get('/changelog', async (c) => {
     itemsByVersion.set(row.version, items);
   }
 
-  return c.json({
+  const response = {
     versions: versionRows.map((row) => ({
       version: row.version,
       ...(row.summary === null ? {} : { summary: row.summary }),
       items: itemsByVersion.get(row.version) ?? [],
     })),
+  };
+  logger.info('CHANGELOG データを返しました', {
+    route: 'site-data/changelog',
+    versions: response.versions.length,
   });
+  return c.json(response);
 });
 
 siteDataRoute.get('/settings', async (c) => {
   const db = drizzle(c.env.DB);
-  const [settingRows, officialDocRows] = await Promise.all([
-    listSettingsReference(db),
-    listAllOfficialDocs(db),
-  ]);
+  let settingRows: Awaited<ReturnType<typeof listSettingsReference>>;
+  let officialDocRows: Awaited<ReturnType<typeof listAllOfficialDocs>>;
+  try {
+    [settingRows, officialDocRows] = await Promise.all([
+      listSettingsReference(db),
+      listAllOfficialDocs(db),
+    ]);
+  } catch (error) {
+    logger.error('設定リファレンスの取得に失敗しました', {
+      route: 'site-data/settings',
+      error: toError(error),
+    });
+    throw error;
+  }
 
   const officialDocsBySetting = new Map<string, { doc_path: string }[]>();
   for (const row of officialDocRows) {
@@ -114,7 +153,7 @@ siteDataRoute.get('/settings', async (c) => {
     officialDocsBySetting.set(row.settingKey, docs);
   }
 
-  return c.json({
+  const response = {
     settings: settingRows.map((row) => ({
       key: row.key,
       ...(row.leafName === null ? {} : { leaf_name: row.leafName }),
@@ -126,15 +165,30 @@ siteDataRoute.get('/settings', async (c) => {
       fetched_at: row.fetchedAt,
       official_docs: officialDocsBySetting.get(row.key) ?? [],
     })),
+  };
+  logger.info('設定リファレンスを返しました', {
+    route: 'site-data/settings',
+    settings: response.settings.length,
   });
+  return c.json(response);
 });
 
 siteDataRoute.get('/diff', async (c) => {
   const db = drizzle(c.env.DB);
-  const [eventRows, itemRows] = await Promise.all([
-    listDiffEvents(db),
-    listDiffEventItems(db),
-  ]);
+  let eventRows: Awaited<ReturnType<typeof listDiffEvents>>;
+  let itemRows: Awaited<ReturnType<typeof listDiffEventItems>>;
+  try {
+    [eventRows, itemRows] = await Promise.all([
+      listDiffEvents(db),
+      listDiffEventItems(db),
+    ]);
+  } catch (error) {
+    logger.error('CHANGELOG 差分の取得に失敗しました', {
+      route: 'site-data/diff',
+      error: toError(error),
+    });
+    throw error;
+  }
 
   const itemsByEvent = new Map<
     string,
@@ -147,7 +201,7 @@ siteDataRoute.get('/diff', async (c) => {
     itemsByEvent.set(eventKey, items);
   }
 
-  return c.json({
+  const response = {
     events: eventRows.map((row) => {
       const items = itemsByEvent.get(
         `${row.version}\u0000${row.detectedAt}`,
@@ -163,5 +217,10 @@ siteDataRoute.get('/diff', async (c) => {
         items_removed: items.removed,
       };
     }),
+  };
+  logger.info('CHANGELOG 差分を返しました', {
+    route: 'site-data/diff',
+    events: response.events.length,
   });
+  return c.json(response);
 });

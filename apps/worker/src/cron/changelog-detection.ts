@@ -5,7 +5,8 @@ import { createChangelogInferenceDispatcher } from '../infrastructure/workflows/
 import { detectChangelogUpdate as detectChangelogUpdateUsecase } from '../usecases/detect-changelog-update';
 
 const logger = getLogger({
-  name: 'changelog-detection',
+  name: 'cron.changelog-detection',
+  serviceName: 'changelog-viewer-worker',
   level: 'INFO',
   format: 'json',
 });
@@ -30,11 +31,13 @@ export async function detectChangelogUpdate(
 
   if (result.action === 'dispatched') {
     logger.info('CHANGELOG の変化を検知、推論 Workflow を起動', {
-      previousHash: result.previousHash,
-      newHash: result.contentHash,
+      'changelog.previous_hash': result.previousHash,
+      'changelog.content_hash': result.contentHash,
     });
     return;
   }
 
-  logger.info('CHANGELOG に変化なし', { hash: result.contentHash });
+  logger.info('CHANGELOG に変化なし', {
+    'changelog.content_hash': result.contentHash,
+  });
 }

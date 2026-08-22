@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import {
   IngestChangelogPayloadSchema,
   type IngestSetting,
@@ -19,6 +20,13 @@ import { timingSafeEqual } from './dispatch';
 
 const SETTINGS_PER_INSERT = 12; // 8 カラム
 const OFFICIAL_DOCS_PER_INSERT = 50; // 2 カラム
+
+const logger = getLogger({
+  name: 'routes.ingest-changelog',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 function sqlExcluded(column: string) {
   return sql.raw(`excluded.${column}`);
@@ -98,6 +106,7 @@ export const ingestChangelogRoute = new Hono<{
     `Bearer ${c.env.DISPATCH_SECRET}`,
   );
   if (!isValid) {
+    logger.warn('認証に失敗しました', { route: 'ingest-changelog' });
     return c.json({ error: '認証に失敗しました' }, 401);
   }
 
@@ -105,16 +114,35 @@ export const ingestChangelogRoute = new Hono<{
     await c.req.json(),
   );
   if (!parseResult.success) {
+    logger.warn('リクエストの検証に失敗しました', {
+      route: 'ingest-changelog',
+      error: parseResult.error,
+    });
     return c.json({ error: 'リクエストが不正です' }, 400);
   }
   const { versions, settings, diff_events: diffEvents } = parseResult.data;
 
-  const db = drizzle(c.env.DB);
-  for (const entry of versions) {
-    await ingestChangelogVersion(db, entry);
+  try {
+    const db = drizzle(c.env.DB);
+    for (const entry of versions) {
+      await ingestChangelogVersion(db, entry);
+    }
+    await ingestChangelogDiffEvents(db, diffEvents);
+    await ingestSettings(db, settings);
+  } catch (error) {
+    logger.error('CHANGELOG の保存に失敗しました', {
+      route: 'ingest-changelog',
+      error: toError(error),
+    });
+    throw error;
   }
-  await ingestChangelogDiffEvents(db, diffEvents);
-  await ingestSettings(db, settings);
+
+  logger.info('CHANGELOG を保存しました', {
+    route: 'ingest-changelog',
+    versions: versions.length,
+    settings: settings.length,
+    diff_events: diffEvents.length,
+  });
 
   return c.json({
     success: true,

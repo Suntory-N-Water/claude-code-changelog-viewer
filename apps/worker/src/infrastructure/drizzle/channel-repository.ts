@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { and, eq, lt, sql } from 'drizzle-orm';
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { CHANNEL_ACTIVE_SENTINEL } from '../../db/constants';
@@ -31,6 +32,13 @@ import {
 } from '../../domain/channel/notification-frequency';
 import { createSlackWebhookUrl } from '../../domain/channel/slack-webhook-url';
 import { decryptEmail, encryptEmail, hashEmail } from './email-crypto';
+
+const logger = getLogger({
+  name: 'infrastructure.drizzle.channel-repository',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 type CommonChannelRow = {
   id: string;
@@ -75,42 +83,56 @@ export class DrizzleChannelRepository implements ChannelRepository {
 
   /** Channel集約をスーパータイプ/サブタイプ/通知設定テーブルへ保存する。 */
   async save(channel: Channel): Promise<void> {
-    const status = toPersistenceStatus(channel.status);
+    try {
+      const status = toPersistenceStatus(channel.status);
 
-    await this.db
-      .insert(channels)
-      .values({
-        id: channel.id,
-        channelType: channel.type,
-        token: channel.token,
-        deactivatedAt: status.deactivatedAt,
-        deactivatedReason: status.deactivatedReason,
-        failCount: channel.failCount,
-      })
-      .onConflictDoUpdate({
-        target: channels.id,
-        set: {
+      await this.db
+        .insert(channels)
+        .values({
+          id: channel.id,
           channelType: channel.type,
           token: channel.token,
           deactivatedAt: status.deactivatedAt,
           deactivatedReason: status.deactivatedReason,
           failCount: channel.failCount,
-          updatedAt: sql`datetime('now')`,
-        },
+        })
+        .onConflictDoUpdate({
+          target: channels.id,
+          set: {
+            channelType: channel.type,
+            token: channel.token,
+            deactivatedAt: status.deactivatedAt,
+            deactivatedReason: status.deactivatedReason,
+            failCount: channel.failCount,
+            updatedAt: sql`datetime('now')`,
+          },
+        });
+
+      await this.saveNotificationSetting(channel);
+
+      switch (channel.type) {
+        case 'DSC':
+          await this.saveDiscordChannel(channel);
+          break;
+        case 'SLK':
+          await this.saveSlackChannel(channel);
+          break;
+        case 'EML':
+          await this.saveEmailChannel(channel);
+          break;
+      }
+      logger.info('チャンネルを保存しました', {
+        'channel.id': channel.id,
+        'channel.type': channel.type,
+        'channel.fail_count': channel.failCount,
       });
-
-    await this.saveNotificationSetting(channel);
-
-    switch (channel.type) {
-      case 'DSC':
-        await this.saveDiscordChannel(channel);
-        return;
-      case 'SLK':
-        await this.saveSlackChannel(channel);
-        return;
-      case 'EML':
-        await this.saveEmailChannel(channel);
-        return;
+    } catch (error) {
+      logger.error('チャンネルの保存に失敗しました', {
+        'channel.id': channel.id,
+        'channel.type': channel.type,
+        error: toError(error),
+      });
+      throw error;
     }
   }
 
@@ -142,10 +164,23 @@ export class DrizzleChannelRepository implements ChannelRepository {
   }
 
   async recordDelivered(version: string, channelId: ChannelId): Promise<void> {
-    await this.db
-      .insert(notificationDeliveries)
-      .values({ version, channelId })
-      .onConflictDoNothing();
+    try {
+      await this.db
+        .insert(notificationDeliveries)
+        .values({ version, channelId })
+        .onConflictDoNothing();
+    } catch (error) {
+      logger.error('通知配信結果の保存に失敗しました', {
+        'channel.id': channelId,
+        'notification.version': version,
+        error: toError(error),
+      });
+      throw error;
+    }
+    logger.info('通知配信結果を保存しました', {
+      'channel.id': channelId,
+      'notification.version': version,
+    });
   }
 
   /** 指定日時より前に停止されたチャンネルを復元して返す。 */
@@ -158,18 +193,29 @@ export class DrizzleChannelRepository implements ChannelRepository {
 
   /** Channel集約に対応する全テーブルの行を削除する。 */
   async delete(id: ChannelId): Promise<void> {
-    await this.db.batch([
-      this.db
-        .delete(notificationDeliveries)
-        .where(eq(notificationDeliveries.channelId, id)),
-      this.db.delete(discordChannels).where(eq(discordChannels.channelId, id)),
-      this.db.delete(slackChannels).where(eq(slackChannels.channelId, id)),
-      this.db.delete(emailChannels).where(eq(emailChannels.channelId, id)),
-      this.db
-        .delete(notificationSettings)
-        .where(eq(notificationSettings.channelId, id)),
-      this.db.delete(channels).where(eq(channels.id, id)),
-    ]);
+    try {
+      await this.db.batch([
+        this.db
+          .delete(notificationDeliveries)
+          .where(eq(notificationDeliveries.channelId, id)),
+        this.db
+          .delete(discordChannels)
+          .where(eq(discordChannels.channelId, id)),
+        this.db.delete(slackChannels).where(eq(slackChannels.channelId, id)),
+        this.db.delete(emailChannels).where(eq(emailChannels.channelId, id)),
+        this.db
+          .delete(notificationSettings)
+          .where(eq(notificationSettings.channelId, id)),
+        this.db.delete(channels).where(eq(channels.id, id)),
+      ]);
+    } catch (error) {
+      logger.error('チャンネルの削除に失敗しました', {
+        'channel.id': id,
+        error: toError(error),
+      });
+      throw error;
+    }
+    logger.info('チャンネルを削除しました', { 'channel.id': id });
   }
 
   /** Discord Webhook URLから対応するチャンネルIDを引き、Channel集約を復元する。 */
