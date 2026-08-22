@@ -29,11 +29,12 @@ describe('CHANGELOG 差分判定', () => {
       { version: '2.1.231', itemId: 'removed-0', content: 'removed item' },
     ];
 
-    const result = classifyChangelogReleases(
+    const result = classifyChangelogReleases({
       releases,
-      existing,
-      '2026-08-16T00:00:00.000Z',
-    );
+      existingRows: existing,
+      recordedRemovedVersions: [],
+      detectedAt: '2026-08-16T00:00:00.000Z',
+    });
 
     expect(result.versions.map((item) => item.version)).toEqual([
       'v2.1.234',
@@ -60,19 +61,60 @@ describe('CHANGELOG 差分判定', () => {
   });
 
   it('項目の並び順だけが変わった時、変更扱いしないこと', () => {
-    const result = classifyChangelogReleases(
-      [release('v2.1.234', 'first', 'second')],
-      [
+    const result = classifyChangelogReleases({
+      releases: [release('v2.1.234', 'first', 'second')],
+      existingRows: [
         { version: '2.1.234', itemId: 'v2.1.234-1', content: 'second' },
         { version: '2.1.234', itemId: 'v2.1.234-0', content: 'first' },
       ],
-      '2026-08-16T00:00:00.000Z',
-    );
+      recordedRemovedVersions: [],
+      detectedAt: '2026-08-16T00:00:00.000Z',
+    });
 
     expect(result).toEqual({
       versions: [],
       diffEvents: [],
       notifiableVersions: [],
     });
+  });
+
+  it('削除済みバージョンを記録済みの時、同じ CHANGELOG を再処理しても差分イベントを積まないこと', () => {
+    const existing: ExistingChangelogItem[] = [
+      { version: '2.1.234', itemId: 'v2.1.234-0', content: 'same item' },
+      { version: '2.1.231', itemId: 'removed-0', content: 'removed item' },
+    ];
+
+    const result = classifyChangelogReleases({
+      releases: [release('v2.1.234', 'same item')],
+      existingRows: existing,
+      recordedRemovedVersions: ['v2.1.231'],
+      detectedAt: '2026-08-17T00:00:00.000Z',
+    });
+
+    expect(result.diffEvents).toEqual([]);
+  });
+
+  it('別のバージョンが記録済みでも、新しく消えたバージョンは1件記録すること', () => {
+    const existing: ExistingChangelogItem[] = [
+      { version: '2.1.231', itemId: 'removed-0', content: 'removed item' },
+      { version: '2.1.230', itemId: 'newly-removed-0', content: 'gone item' },
+    ];
+
+    const result = classifyChangelogReleases({
+      releases: [],
+      existingRows: existing,
+      recordedRemovedVersions: ['v2.1.231'],
+      detectedAt: '2026-08-17T00:00:00.000Z',
+    });
+
+    expect(result.diffEvents).toEqual([
+      {
+        detectedAt: '2026-08-17T00:00:00.000Z',
+        version: 'v2.1.230',
+        type: 'version_removed',
+        itemsAdded: [],
+        itemsRemoved: [],
+      },
+    ]);
   });
 });
