@@ -27,6 +27,7 @@ export type ChangelogParserPort = {
 
 export type ExistingChangelogReader = {
   findExistingItems(): Promise<ExistingChangelogItem[]>;
+  findRecordedRemovedVersions(): Promise<string[]>;
 };
 
 export type ChangelogNotificationPort = {
@@ -58,7 +59,14 @@ export async function fetchAndClassifyChangelog({
   const releases = await parser.parse(markdown);
   // 保存前の D1 スナップショットを基準に、新規バージョンの通知対象を決める。
   const existingItems = await existingChangelogReader.findExistingItems();
-  return classifyChangelogReleases(releases, existingItems, params.detectedAt);
+  const recordedRemovedVersions =
+    await existingChangelogReader.findRecordedRemovedVersions();
+  return classifyChangelogReleases({
+    releases,
+    existingRows: existingItems,
+    recordedRemovedVersions,
+    detectedAt: params.detectedAt,
+  });
 }
 
 export async function notifyChangelogVersions(

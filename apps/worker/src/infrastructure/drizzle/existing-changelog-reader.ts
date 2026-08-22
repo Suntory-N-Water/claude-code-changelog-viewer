@@ -1,6 +1,10 @@
 import { eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import { changelogItems, changelogVersions } from '../../db/schema';
+import {
+  changelogDiffEvents,
+  changelogItems,
+  changelogVersions,
+} from '../../db/schema';
 import type { ExistingChangelogReader } from '../../usecases/changelog-inference-workflow';
 
 export function createExistingChangelogReader(
@@ -19,6 +23,14 @@ export function createExistingChangelogReader(
           changelogItems,
           eq(changelogItems.version, changelogVersions.version),
         );
+    },
+
+    async findRecordedRemovedVersions() {
+      const rows = await db
+        .selectDistinct({ version: changelogDiffEvents.version })
+        .from(changelogDiffEvents)
+        .where(eq(changelogDiffEvents.type, 'version_removed'));
+      return rows.map((row) => row.version);
     },
   };
 }

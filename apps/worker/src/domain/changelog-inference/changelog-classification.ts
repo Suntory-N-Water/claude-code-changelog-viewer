@@ -19,11 +19,21 @@ export type ChangelogClassification = {
   notifiableVersions: string[];
 };
 
-export function classifyChangelogReleases(
-  releases: ChangelogRelease[],
-  existingRows: ExistingChangelogItem[],
-  detectedAt: string,
-): ChangelogClassification {
+export type ClassifyChangelogReleasesInput = {
+  releases: ChangelogRelease[];
+  existingRows: ExistingChangelogItem[];
+  // バージョン削除は一度きりの出来事だが「D1 にあって remote にない」状態は続くため、
+  // 記録済みのバージョンを渡して再検出を抑える
+  recordedRemovedVersions: string[];
+  detectedAt: string;
+};
+
+export function classifyChangelogReleases({
+  releases,
+  existingRows,
+  recordedRemovedVersions,
+  detectedAt,
+}: ClassifyChangelogReleasesInput): ChangelogClassification {
   const existingByVersion = new Map<string, Map<string, string | null>>();
   for (const row of existingRows) {
     const version = normalizeChangelogVersion(row.version);
@@ -91,8 +101,14 @@ export function classifyChangelogReleases(
     }
   }
 
+  const recordedRemovedVersionKeys = new Set(
+    recordedRemovedVersions.map(normalizeChangelogVersion),
+  );
   for (const version of existingByVersion.keys()) {
-    if (remoteVersionKeys.has(version)) {
+    if (
+      remoteVersionKeys.has(version) ||
+      recordedRemovedVersionKeys.has(version)
+    ) {
       continue;
     }
     diffEvents.push({
