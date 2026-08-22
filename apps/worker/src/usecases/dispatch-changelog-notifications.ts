@@ -1,9 +1,17 @@
+import { getLogger } from '@claude-code-changelog-viewer/common';
 import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import type { Channel } from '../domain/channel/channel';
 import type { ChannelNotifier } from '../domain/channel/channel-notifier';
 import type { ChannelRepository } from '../domain/channel/channel-repository';
 import { recordFailure, resetFailure } from '../domain/channel/channel-failure';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
+
+const logger = getLogger({
+  name: 'usecases.dispatch-changelog-notifications',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 export type DispatchChangelogNotificationsInput = {
   analysis: NotificationAnalysis;
@@ -92,10 +100,18 @@ export async function dispatchChangelogNotifications(
     }
   }
 
-  return {
+  const result = {
     channelCount: channels.length,
     skippedCount,
     shouldRetry: failures.length > 0,
     failures,
   };
+  logger.info('通知配信の結果を集計しました', {
+    'notification.channel_count': result.channelCount,
+    'notification.skipped_count': result.skippedCount,
+    'notification.failure_count': result.failures.length,
+    'notification.should_retry': result.shouldRetry,
+    'notification.version': input.version,
+  });
+  return result;
 }

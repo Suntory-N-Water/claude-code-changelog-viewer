@@ -1,4 +1,9 @@
 import { drizzle } from 'drizzle-orm/d1';
+import {
+  getLogger,
+  runWithLogContext,
+  toError,
+} from '@claude-code-changelog-viewer/common';
 import { WorkflowEntrypoint } from 'cloudflare:workers';
 import type {
   WorkflowEvent,
@@ -51,6 +56,13 @@ const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
 // 設定リファレンス生成の 30 より小さいのは、1項目に関連ドキュメントの snippets が付くため
 const BATCH_SIZE = 10;
 
+const logger = getLogger({
+  name: 'workflows.changelog-inference',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
+
 export type ChangelogInferenceWorkflowParams = z.infer<
   typeof WorkflowParamsSchema
 >;
@@ -66,6 +78,22 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
     processedVersions: string[];
     notifiedVersions: string[];
   }> {
+    return runWithLogContext(
+      {
+        trace_id: event.instanceId,
+        'workflow.name': 'changelog-inference',
+      },
+      async () => this.runWorkflow(event, step),
+    );
+  }
+
+  private async runWorkflow(
+    event: WorkflowEvent<ChangelogInferenceWorkflowParams>,
+    step: WorkflowStep,
+  ): Promise<{
+    processedVersions: string[];
+    notifiedVersions: string[];
+  }> {
     const paramsResult = WorkflowParamsSchema.safeParse(event.payload);
     const failureParams = paramsResult.success
       ? paramsResult.data
@@ -73,6 +101,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
     const failureReporter = createChangelogWorkflowFailureReporter(
       this.env.GITHUB_DISPATCH_TOKEN,
     );
+    logger.info('Workflow を開始します', {
+      'workflow.name': 'changelog-inference',
+    });
 
     try {
       if (!paramsResult.success) {
@@ -117,10 +148,16 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
             params,
           }),
       );
+      logger.info('Workflow step が完了しました', {
+        'workflow.step': 'fetch-and-classify',
+      });
 
       await step.do('save-diff', STEP_RETRIES, async () =>
         saveChangelogDiffs(diffRepository, classification.diffEvents),
       );
+      logger.info('Workflow step が完了しました', {
+        'workflow.step': 'save-diff',
+      });
 
       for (const release of classification.versions) {
         const inferenceInput = await step.do(
@@ -128,6 +165,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           STEP_RETRIES,
           async () => buildChangelogInferenceInput(documentSearch, release),
         );
+        logger.info('Workflow step が完了しました', {
+          'workflow.step': `build-inference-input-${release.version}`,
+        });
         const itemInferences: ChangelogItemInference[] = [];
         for (
           let batchStart = 0, batchIndex = 0;
@@ -145,9 +185,16 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
             ...(await step.do(
               `infer-${release.version}-${batchIndex}`,
               STEP_RETRIES,
-              async () => inferChangelogItemBatch(inference, batch),
+              async () =>
+                runWithLogContext({ 'ai.batch_index': batchIndex }, () =>
+                  inferChangelogItemBatch(inference, batch),
+                ),
             )),
           );
+          logger.info('Workflow step が完了しました', {
+            'workflow.step': `infer-${release.version}-${batchIndex}`,
+            'ai.batch_index': batchIndex,
+          });
         }
 
         // サマリーは全項目を見る必要があるため、バッチ分割せず原文だけを渡して1回で作る
@@ -156,6 +203,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           STEP_RETRIES,
           async () => ({ summary: await summarizer.summarize(release) }),
         );
+        logger.info('Workflow step が完了しました', {
+          'workflow.step': `summarize-${release.version}`,
+        });
 
         await step.do(`store-${release.version}`, STEP_RETRIES, async () =>
           saveChangelogInference(inferenceRepository, {
@@ -164,6 +214,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
             summary,
           }),
         );
+        logger.info('Workflow step が完了しました', {
+          'workflow.step': `store-${release.version}`,
+        });
       }
 
       if (classification.notifiableVersions.length > 0) {
@@ -174,6 +227,11 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           );
           return { versions: classification.notifiableVersions };
         });
+        logger.info('Workflow step が完了しました', {
+          'workflow.step': 'notify',
+          'notification.version_count':
+            classification.notifiableVersions.length,
+        });
       }
 
       if (
@@ -183,8 +241,15 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         await step.do('trigger-build', STEP_RETRIES, async () =>
           buildTrigger.trigger(),
         );
+        logger.info('Workflow step が完了しました', {
+          'workflow.step': 'trigger-build',
+        });
       }
 
+      logger.info('Workflow が完了しました', {
+        'workflow.name': 'changelog-inference',
+        'workflow.version_count': classification.versions.length,
+      });
       return {
         processedVersions: [...classification.versions].map(
           (release) => release.version,
@@ -192,6 +257,10 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         notifiedVersions: [...classification.notifiableVersions],
       };
     } catch (error) {
+      logger.error('Workflow に失敗しました', {
+        'workflow.name': 'changelog-inference',
+        error: toError(error),
+      });
       await step.do('create-failure-issue', STEP_RETRIES, async () =>
         reportChangelogWorkflowFailure(failureReporter, {
           params: failureParams,
@@ -199,6 +268,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           error,
         }),
       );
+      logger.info('Workflow step が完了しました', {
+        'workflow.step': 'create-failure-issue',
+      });
       throw error;
     }
   }

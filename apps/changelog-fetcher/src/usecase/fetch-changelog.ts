@@ -52,10 +52,10 @@ export async function fetchChangelog(input: {
   store: ChangelogStorePort;
   detectedAt?: Date;
 }): Promise<FetchChangelogResult> {
-  log.msg('APLG0003', { params: ['CHANGELOG.md'] });
+  log.msg('APLG0003', { attrs: { arg0: 'CHANGELOG.md' } });
   const releases = await input.source.fetchReleases();
 
-  log.msg('APLG0020', { params: ['CHANGELOG エントリー'] });
+  log.msg('APLG0020', { attrs: { arg0: 'CHANGELOG エントリー' } });
   const existingMetadata = await input.store.loadMetadata();
   const diffEvents = [...(await input.store.loadDiffEvents())];
   const detectedAt = input.detectedAt ?? new Date();
@@ -99,7 +99,7 @@ export async function fetchChangelog(input: {
 
         if (!isDuplicateDiffEvent(diffEvents, candidate)) {
           diffEvents.push(candidate);
-          log.msg('APLG0007', { params: [`${versionKey} の項目差分`] });
+          log.msg('APLG0007', { attrs: { arg0: `${versionKey} の項目差分` } });
         }
       }
     }
@@ -138,7 +138,7 @@ export async function fetchChangelog(input: {
 
     if (!isDuplicateDiffEvent(diffEvents, candidate)) {
       diffEvents.push(candidate);
-      log.msg('APLG0010', { params: [`${metadataVersionKey} の削除`] });
+      log.msg('APLG0010', { attrs: { arg0: `${metadataVersionKey} の削除` } });
     }
   }
 
@@ -148,7 +148,7 @@ export async function fetchChangelog(input: {
     versions: newMetadata,
   });
 
-  log.msg('APLG0002', { params: ['CHANGELOG の取得'] });
+  log.msg('APLG0002', { attrs: { arg0: 'CHANGELOG の取得' } });
 
   return {
     newCount,

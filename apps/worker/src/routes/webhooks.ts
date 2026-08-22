@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { subscribe, type SubscribeInput } from '../usecases/subscribe';
@@ -20,6 +21,13 @@ import {
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 import { verifyTurnstileToken } from '../infrastructure/turnstile';
+
+const logger = getLogger({
+  name: 'routes.webhooks',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 const RequestSchema = z.discriminatedUnion('channel_type', [
   z.object({
@@ -51,11 +59,19 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     });
     if (!rateLimit.success) {
       c.header('Retry-After', '60');
+      logger.warn('レート制限を超過しました', {
+        route: 'webhooks',
+        'client.address': clientKey,
+      });
       return c.json({ error: '登録リクエストが多すぎます' }, 429);
     }
 
     const parseResult = RequestSchema.safeParse(await c.req.json());
     if (!parseResult.success) {
+      logger.warn('リクエストの検証に失敗しました', {
+        route: 'webhooks',
+        error: parseResult.error,
+      });
       return c.json({ error: 'リクエストが不正です' }, 400);
     }
     const data = parseResult.data;
@@ -65,6 +81,10 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       c.env.TURNSTILE_SECRET_KEY,
     );
     if (!turnstileValid) {
+      logger.warn('Turnstile の検証に失敗しました', {
+        route: 'webhooks',
+        channel_type: data.channel_type,
+      });
       return c.json({ error: 'Turnstile検証に失敗しました' }, 403);
     }
 
@@ -76,9 +96,24 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     const frequency = createNotificationFrequency(data.frequency);
     const input = createSubscribeInput(data, frequency);
 
-    const result = await subscribe(repository, notifier, input);
+    let result: Awaited<ReturnType<typeof subscribe>>;
+    try {
+      result = await subscribe(repository, notifier, input);
+    } catch (error) {
+      logger.error('購読登録に失敗しました', {
+        route: 'webhooks',
+        channel_type: data.channel_type,
+        error: toError(error),
+      });
+      throw error;
+    }
 
     if (!result.ok) {
+      logger.warn('購読登録を受け付けませんでした', {
+        route: 'webhooks',
+        channel_type: data.channel_type,
+        reason: result.error,
+      });
       switch (result.error) {
         case 'already_registered':
           return c.json({ error: '既に登録済みです' }, 409);
@@ -86,6 +121,12 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
           return c.json({ error: '通知先が無効です' }, 400);
       }
     }
+
+    logger.info('購読登録が完了しました', {
+      route: 'webhooks',
+      channel_type: data.channel_type,
+      subscription_status: result.status,
+    });
 
     return c.json({ success: true });
   },

@@ -63,14 +63,14 @@ export class ClaudeDocsFetcher {
   async init(): Promise<void> {
     await fs.mkdir(this.docsDir, { recursive: true });
     await fs.mkdir(this.metadataDir, { recursive: true });
-    this.log.msg('APLG0004', { params: ['ディレクトリ'] });
+    this.log.msg('APLG0004', { attrs: { arg0: 'ディレクトリ' } });
   }
 
   /**
    * Fetch docs map to get list of all documentation pages
    */
   async fetchDocsMap(): Promise<DocInfo[]> {
-    this.log.msg('APLG0003', { params: ['ドキュメントマップ'] });
+    this.log.msg('APLG0003', { attrs: { arg0: 'ドキュメントマップ' } });
 
     try {
       const response = await fetchWithRetry({
@@ -86,14 +86,16 @@ export class ClaudeDocsFetcher {
 
       const docs = this.parseDocsMap(content);
       this.log.msg('APLG0010', {
-        params: ['ドキュメントページ'],
-        attrs: { 'doc.count': docs.length },
+        attrs: { arg0: 'ドキュメントページ', 'doc.count': docs.length },
       });
 
       return docs;
     } catch (error) {
       if (error instanceof Error) {
-        this.log.msg('APLG0015', { params: ['ドキュメントマップ'], error });
+        this.log.msg('APLG0015', {
+          attrs: { arg0: 'ドキュメントマップ' },
+          error,
+        });
       }
       throw error;
     }
@@ -133,7 +135,7 @@ export class ClaudeDocsFetcher {
    * Fetch llms.txt to get list of all documentation URLs
    */
   async fetchLlmsTxt(): Promise<DocInfo[]> {
-    this.log.msg('APLG0003', { params: ['llms.txt'] });
+    this.log.msg('APLG0003', { attrs: { arg0: 'llms.txt' } });
 
     try {
       const response = await fetchWithRetry({
@@ -146,14 +148,13 @@ export class ClaudeDocsFetcher {
 
       const docs = this.parseLlmsTxt(content);
       this.log.msg('APLG0010', {
-        params: ['llms.txt ページ'],
-        attrs: { 'doc.count': docs.length },
+        attrs: { arg0: 'llms.txt ページ', 'doc.count': docs.length },
       });
 
       return docs;
     } catch (error) {
       if (error instanceof Error) {
-        this.log.msg('APLG0011', { params: ['llms.txt'], error });
+        this.log.msg('APLG0011', { attrs: { arg0: 'llms.txt' }, error });
       }
       // Return empty array on failure (fallback to docs_map only)
       return [];
@@ -273,8 +274,7 @@ export class ClaudeDocsFetcher {
     } catch (error) {
       if (error instanceof Error) {
         this.log.msg('APLG0015', {
-          params: ['ドキュメント'],
-          attrs: { 'doc.title': docInfo.title },
+          attrs: { arg0: 'ドキュメント', 'doc.title': docInfo.title },
           error,
         });
       }
@@ -325,7 +325,7 @@ source: ${docInfo.url}
       return stdout.trim() === 'changed';
     } catch (_error) {
       // If git command fails (e.g., not a git repo), assume there are changes
-      this.log.msg('APLG0013', { params: ['git diff'] });
+      this.log.msg('APLG0013', { attrs: { arg0: 'git diff' } });
       return true;
     }
   }
@@ -355,7 +355,7 @@ source: ${docInfo.url}
       await atomicWriteFile(metadataPath, JSON.stringify(metadata, null, 2));
     } catch (error) {
       if (error instanceof Error) {
-        this.log.msg('APLG0017', { params: ['メタデータ'], error });
+        this.log.msg('APLG0017', { attrs: { arg0: 'メタデータ' }, error });
       }
     }
   }
@@ -412,15 +412,13 @@ source: ${docInfo.url}
       try {
         await fs.unlink(filePath);
         this.log.msg('APLG0005', {
-          params: ['不要なファイル'],
-          attrs: { 'file.name': file },
+          attrs: { arg0: '不要なファイル', 'file.name': file },
         });
         deletedCount += 1;
       } catch (error) {
         if (error instanceof Error) {
           this.log.msg('APLG0016', {
-            params: ['ファイル'],
-            attrs: { 'file.name': file },
+            attrs: { arg0: 'ファイル', 'file.name': file },
             error,
           });
         }
@@ -429,8 +427,7 @@ source: ${docInfo.url}
 
     if (deletedCount > 0) {
       this.log.msg('APLG0006', {
-        params: ['不要なファイル'],
-        attrs: { 'cleanup.count': deletedCount },
+        attrs: { arg0: '不要なファイル', 'cleanup.count': deletedCount },
       });
     }
 
@@ -442,11 +439,11 @@ source: ${docInfo.url}
    * Fetches both docs_map and llms.txt in parallel for comprehensive coverage
    */
   async fetchAllDocs(): Promise<void> {
-    this.log.msg('APLG0001', { params: ['ドキュメントの取得'] });
+    this.log.msg('APLG0001', { attrs: { arg0: 'ドキュメントの取得' } });
 
     await this.init();
 
-    this.log.msg('APLG0003', { params: ['ドキュメントソース'] });
+    this.log.msg('APLG0003', { attrs: { arg0: 'ドキュメントソース' } });
     const [docsMapDocs, llmsDocs] = await Promise.all([
       this.fetchDocsMap(),
       this.fetchLlmsTxt(),
@@ -455,12 +452,14 @@ source: ${docInfo.url}
     // Merge document lists (docs_map has better titles, llms.txt may have newer docs)
     const docs = this.mergeDocLists(docsMapDocs, llmsDocs);
     this.log.msg('APLG0010', {
-      params: ['マージ後のユニークドキュメント'],
-      attrs: { 'doc.total': docs.length },
+      attrs: {
+        arg0: 'マージ後のユニークドキュメント',
+        'doc.total': docs.length,
+      },
     });
 
     if (docs.length === 0) {
-      this.log.msg('APLG0012', { params: ['ドキュメントページ'] });
+      this.log.msg('APLG0012', { attrs: { arg0: 'ドキュメントページ' } });
       return;
     }
 
@@ -495,8 +494,8 @@ source: ${docInfo.url}
     if (failed.length > 0) {
       for (const f of failed) {
         this.log.msg('APLG0015', {
-          params: ['ドキュメント'],
           attrs: {
+            arg0: 'ドキュメント',
             'doc.filename': f.filename,
             'exception.message': f.error,
           },
@@ -506,8 +505,7 @@ source: ${docInfo.url}
 
     if (deletedCount > 0) {
       this.log.msg('APLG0006', {
-        params: ['不要なドキュメント'],
-        attrs: { 'cleanup.count': deletedCount },
+        attrs: { arg0: '不要なドキュメント', 'cleanup.count': deletedCount },
       });
     }
 
@@ -525,13 +523,13 @@ source: ${docInfo.url}
     if (hasChanges) {
       const now = `${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC`;
       metadata.lastMapUpdate = now;
-      this.log.msg('APLG0007', { params: ['ドキュメント'] });
+      this.log.msg('APLG0007', { attrs: { arg0: 'ドキュメント' } });
     } else {
-      this.log.msg('APLG0008', { params: ['ドキュメント'] });
+      this.log.msg('APLG0008', { attrs: { arg0: 'ドキュメント' } });
     }
 
     await this.saveMetadata(metadata);
 
-    this.log.msg('APLG0002', { params: ['ドキュメントの取得'] });
+    this.log.msg('APLG0002', { attrs: { arg0: 'ドキュメントの取得' } });
   }
 }

@@ -32,7 +32,7 @@ async function main(): Promise<void> {
   await store.saveFetchSummary(result.summary);
 
   if (result.newCount === 0 && result.updatedCount === 0) {
-    log.msg('APLG0008', { params: ['CHANGELOG'] });
+    log.msg('APLG0008', { attrs: { arg0: 'CHANGELOG' } });
     process.exit(1);
   }
 }

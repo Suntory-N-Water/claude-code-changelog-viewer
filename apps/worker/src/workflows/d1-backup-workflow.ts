@@ -1,4 +1,8 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import {
+  getLogger,
+  runWithLogContext,
+  toError,
+} from '@claude-code-changelog-viewer/common';
 import { WorkflowEntrypoint } from 'cloudflare:workers';
 import type {
   WorkflowEvent,
@@ -11,7 +15,8 @@ import { createD1BackupStore } from '../infrastructure/r2/d1-backup-store';
 import { storeD1Backup } from '../usecases/d1-backup-workflow';
 
 const logger = getLogger({
-  name: 'd1-backup-workflow',
+  name: 'workflows.d1-backup',
+  serviceName: 'changelog-viewer-worker',
   level: 'INFO',
   format: 'json',
 });
@@ -44,44 +49,77 @@ export class D1BackupWorkflow extends WorkflowEntrypoint<
     event: WorkflowEvent<D1BackupWorkflowParams>,
     step: WorkflowStep,
   ): Promise<{ key: string; size: number }> {
-    const failureReporter = createD1BackupFailureReporter(
-      this.env.GITHUB_DISPATCH_TOKEN,
+    return runWithLogContext(
+      {
+        trace_id: event.instanceId,
+        'workflow.name': 'd1-backup',
+      },
+      async () => {
+        const failureReporter = createD1BackupFailureReporter(
+          this.env.GITHUB_DISPATCH_TOKEN,
+        );
+        logger.info('Workflow を開始します', {
+          'workflow.name': 'd1-backup',
+        });
+
+        try {
+          const d1Export = createD1ExportClient({
+            accountId: this.env.CLOUDFLARE_ACCOUNT_ID,
+            databaseId: this.env.BACKUP_DATABASE_ID,
+            apiToken: this.env.D1_REST_API_TOKEN,
+          });
+          const store = createD1BackupStore(this.env.D1_BACKUP_BUCKET);
+
+          const bookmark = await step.do(
+            'start-export',
+            START_EXPORT_RETRIES,
+            async () => d1Export.start(),
+          );
+          logger.info('Workflow step が完了しました', {
+            'workflow.step': 'start-export',
+          });
+          const stored = await step.do(
+            'store-backup',
+            STORE_BACKUP_RETRIES,
+            async () =>
+              storeD1Backup(d1Export, store, {
+                bookmark,
+                // 再試行で保存先キーが変わらないよう、実行時刻ではなく起動時刻を使う。
+                exportedAt: event.timestamp.toISOString(),
+              }),
+          );
+          logger.info('Workflow step が完了しました', {
+            'workflow.step': 'store-backup',
+          });
+
+          logger.msg('APLG0021', {
+            attrs: {
+              'resource.name': '正データ用 D1 のバックアップ',
+              key: stored.key,
+              size: stored.size,
+            },
+          });
+          logger.info('Workflow が完了しました', {
+            'workflow.name': 'd1-backup',
+          });
+          return stored;
+        } catch (error) {
+          logger.error('Workflow に失敗しました', {
+            'workflow.name': 'd1-backup',
+            error: toError(error),
+          });
+          await step.do(
+            'create-failure-issue',
+            START_EXPORT_RETRIES,
+            async () =>
+              failureReporter.report({ instanceId: event.instanceId, error }),
+          );
+          logger.info('Workflow step が完了しました', {
+            'workflow.step': 'create-failure-issue',
+          });
+          throw error;
+        }
+      },
     );
-
-    try {
-      const d1Export = createD1ExportClient({
-        accountId: this.env.CLOUDFLARE_ACCOUNT_ID,
-        databaseId: this.env.BACKUP_DATABASE_ID,
-        apiToken: this.env.D1_REST_API_TOKEN,
-      });
-      const store = createD1BackupStore(this.env.D1_BACKUP_BUCKET);
-
-      const bookmark = await step.do(
-        'start-export',
-        START_EXPORT_RETRIES,
-        async () => d1Export.start(),
-      );
-      const stored = await step.do(
-        'store-backup',
-        STORE_BACKUP_RETRIES,
-        async () =>
-          storeD1Backup(d1Export, store, {
-            bookmark,
-            // 再試行で保存先キーが変わらないよう、実行時刻ではなく起動時刻を使う。
-            exportedAt: event.timestamp.toISOString(),
-          }),
-      );
-
-      logger.msg('APLG0021', {
-        params: ['正データ用 D1 のバックアップ'],
-        attrs: { key: stored.key, size: stored.size },
-      });
-      return stored;
-    } catch (error) {
-      await step.do('create-failure-issue', START_EXPORT_RETRIES, async () =>
-        failureReporter.report({ instanceId: event.instanceId, error }),
-      );
-      throw error;
-    }
   }
 }

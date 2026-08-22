@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import {
   ClaudeCodeVersionSchema,
   NotificationAnalysisSchema,
@@ -26,6 +27,13 @@ type NotificationRow = {
   prefix: string | null;
 };
 
+const logger = getLogger({
+  name: 'infrastructure.notification.changelog-workflow-notifier',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
+
 export function createChangelogWorkflowNotifier(
   db: DrizzleD1Database,
   queue: Queue<NotificationQueueMessage>,
@@ -33,24 +41,33 @@ export function createChangelogWorkflowNotifier(
   return {
     async send(version) {
       // 保存済みの D1 行を再取得し、AI のメモリ上の結果ではなく永続化済みデータを Queue に渡す。
-      const rows = await db
-        .select({
-          version: changelogVersions.version,
-          summary: changelogVersions.summary,
-          itemId: changelogItems.itemId,
-          content: changelogItems.content,
-          contentJa: changelogItems.contentJa,
-          prefix: changelogItems.prefix,
-        })
-        .from(changelogVersions)
-        .leftJoin(
-          changelogItems,
-          eq(changelogItems.version, changelogVersions.version),
-        )
-        .where(
-          eq(changelogVersions.version, normalizeChangelogVersion(version)),
-        )
-        .orderBy(sql.raw('changelog_items.rowid'));
+      let rows: NotificationRow[];
+      try {
+        rows = await db
+          .select({
+            version: changelogVersions.version,
+            summary: changelogVersions.summary,
+            itemId: changelogItems.itemId,
+            content: changelogItems.content,
+            contentJa: changelogItems.contentJa,
+            prefix: changelogItems.prefix,
+          })
+          .from(changelogVersions)
+          .leftJoin(
+            changelogItems,
+            eq(changelogItems.version, changelogVersions.version),
+          )
+          .where(
+            eq(changelogVersions.version, normalizeChangelogVersion(version)),
+          )
+          .orderBy(sql.raw('changelog_items.rowid'));
+      } catch (error) {
+        logger.error('通知データの取得に失敗しました', {
+          'notification.version': version,
+          error: toError(error),
+        });
+        throw error;
+      }
       const first = rows[0];
       if (first === undefined) {
         throw new Error(`通知対象のバージョンが D1 にありません: ${version}`);
@@ -81,7 +98,19 @@ export function createChangelogWorkflowNotifier(
             prefix: row.prefix,
           })),
       });
-      await queue.send({ version: notificationVersion, analysis });
+      try {
+        await queue.send({ version: notificationVersion, analysis });
+      } catch (error) {
+        logger.error('通知をキューに投入できませんでした', {
+          'notification.version': notificationVersion,
+          error: toError(error),
+        });
+        throw error;
+      }
+      logger.info('通知をキューに投入しました', {
+        'notification.version': notificationVersion,
+        'notification.item_count': analysis.items.length,
+      });
     },
   };
 }

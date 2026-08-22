@@ -1,4 +1,8 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import {
+  getLogger,
+  runWithLogContext,
+  toError,
+} from '@claude-code-changelog-viewer/common';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
@@ -19,7 +23,8 @@ export { D1BackupWorkflow } from './workflows/d1-backup-workflow';
 export { SettingsReferenceWorkflow } from './workflows/settings-reference-workflow';
 
 const logger = getLogger({
-  name: 'changelog-viewer-worker',
+  name: 'worker.index',
+  serviceName: 'changelog-viewer-worker',
   level: 'INFO',
   format: 'json',
 });
@@ -31,19 +36,27 @@ export const app = new Hono<{ Bindings: CloudflareBindings }>().basePath(
 app.use('*', secureHeaders());
 app.use('*', async (c, next) => {
   const start = Date.now();
-  logger.msg('APLG0030', {
-    attrs: { method: c.req.method, path: c.req.path },
-  });
-  await next();
-  logger.msg('APLG0031', {
-    attrs: {
-      method: c.req.method,
-      path: c.req.path,
-      status: c.res.status,
-      elapsedMs: Date.now() - start,
-    },
+  const traceId = c.req.header('cf-ray') ?? crypto.randomUUID();
+  const requestAttrs = {
+    'http.request.method': c.req.method,
+    'url.path': c.req.path,
+  };
+  return runWithLogContext({ trace_id: traceId, ...requestAttrs }, async () => {
+    logger.msg('APLG0030', { attrs: requestAttrs });
+    try {
+      await next();
+    } finally {
+      logger.msg('APLG0031', {
+        attrs: {
+          ...requestAttrs,
+          'http.response.status_code': c.res.status,
+          'http.server.request.duration_ms': Date.now() - start,
+        },
+      });
+    }
   });
 });
+
 app.use(
   '/webhooks',
   cors({
@@ -62,14 +75,22 @@ app.route('/site-data', siteDataRoute);
 app.route('/unsubscribe', unsubscribeRoute);
 app.route('/uploads', uploadsRoute);
 
-async function runCron(name: string, task: Promise<void>): Promise<void> {
-  logger.msg('APLG0001', { params: [name] });
-  try {
-    await task;
-    logger.msg('APLG0002', { params: [name] });
-  } catch (error) {
-    logger.error(`${name} が失敗`, toError(error));
-  }
+async function runCron(name: string, task: () => Promise<void>): Promise<void> {
+  return runWithLogContext(
+    { trace_id: crypto.randomUUID(), 'job.name': name },
+    async () => {
+      logger.msg('APLG0001', { attrs: { 'job.name': name } });
+      try {
+        await task();
+        logger.msg('APLG0002', { attrs: { 'job.name': name } });
+      } catch (error) {
+        logger.error('cron の実行に失敗しました', {
+          'job.name': name,
+          error: toError(error),
+        });
+      }
+    },
+  );
 }
 
 export default {
@@ -92,20 +113,19 @@ export default {
     switch (event.cron) {
       case '0 */3 * * *':
         ctx.waitUntil(
-          runCron('ドキュメント検索用 D1 同期 cron', syncDocs(env)),
+          runCron('ドキュメント検索用 D1 同期 cron', () => syncDocs(env)),
         );
         break;
       case '0 15 * * *':
         ctx.waitUntil(
-          runCron(
-            '非アクティブチャンネル cleanup cron',
+          runCron('非アクティブチャンネル cleanup cron', () =>
             cleanupInactiveChannels(env),
           ),
         );
         break;
       case '*/5 * * * *':
         ctx.waitUntil(
-          runCron('CHANGELOG 検知 cron', detectChangelogUpdate(env)),
+          runCron('CHANGELOG 検知 cron', () => detectChangelogUpdate(env)),
         );
         break;
       default:

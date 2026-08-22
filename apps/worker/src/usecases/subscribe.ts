@@ -1,3 +1,4 @@
+import { getLogger } from '@claude-code-changelog-viewer/common';
 import type { Channel } from '../domain/channel/channel';
 import { createChannel } from '../domain/channel/channel';
 import type { ChannelNotifier } from '../domain/channel/channel-notifier';
@@ -7,6 +8,13 @@ import type {
 } from '../domain/channel/channel-repository';
 import { isActive, reactivate } from '../domain/channel/channel-lifecycle';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
+
+const logger = getLogger({
+  name: 'usecases.subscribe',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 /** 通知購読ユースケースへ渡す入力。routes層でHTTP入力を値オブジェクトへ変換してから渡す。 */
 export type SubscribeInput = {
@@ -42,6 +50,10 @@ export async function subscribe(
   const existing = await repository.findByAddress(input.address);
   if (existing) {
     if (isActive(existing)) {
+      logger.warn('購読登録を受け付けませんでした', {
+        reason: 'already_registered',
+        channel_type: existing.type,
+      });
       return { ok: false, error: 'already_registered' };
     }
 
@@ -51,25 +63,43 @@ export async function subscribe(
       existing.status.type === 'deactivated' &&
       existing.status.reason === 'user'
     ) {
+      logger.warn('購読登録を受け付けませんでした', {
+        reason: 'already_registered',
+        channel_type: existing.type,
+      });
       return { ok: false, error: 'already_registered' };
     }
 
     const channel = reactivate(existing);
     const testResult = await notifier.sendTestNotification(channel);
     if (!testResult.ok) {
+      logger.warn('通知先の検証に失敗しました', {
+        channel_type: channel.type,
+      });
       return { ok: false, error: 'invalid_notification_destination' };
     }
 
     await repository.save(channel);
+    logger.info('購読を再有効化しました', {
+      channel_type: channel.type,
+      subscription_status: 'reactivated',
+    });
     return { ok: true, channel, status: 'reactivated' };
   }
 
   const channel = createChannel(input.address, input.frequency);
   const testResult = await notifier.sendTestNotification(channel);
   if (!testResult.ok) {
+    logger.warn('通知先の検証に失敗しました', {
+      channel_type: channel.type,
+    });
     return { ok: false, error: 'invalid_notification_destination' };
   }
 
   await repository.save(channel);
+  logger.info('購読を登録しました', {
+    channel_type: channel.type,
+    subscription_status: 'created',
+  });
   return { ok: true, channel, status: 'created' };
 }

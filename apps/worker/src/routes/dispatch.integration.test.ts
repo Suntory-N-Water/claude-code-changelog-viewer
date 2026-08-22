@@ -51,7 +51,13 @@ describe('POST /api/dispatch integration', () => {
     const response = await sut.request('/api/dispatch', request, env);
 
     expect(response.status).toBe(200);
-    expect(queued).toEqual([{ version: 'v1.0.0', analysis: validAnalysis }]);
+    expect(queued).toEqual([
+      {
+        version: 'v1.0.0',
+        analysis: validAnalysis,
+        traceId: expect.any(String),
+      },
+    ]);
     db.close();
   });
 

@@ -1,3 +1,4 @@
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import type { Prefix } from '@claude-code-changelog-viewer/common';
 import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import { groupChangelogItemsByPrefix } from './changelog-message';
@@ -31,15 +32,35 @@ const PREFIX_LABELS: Record<Prefix, string> = {
 
 const SLACK_SECTION_MAX_LENGTH = 3000;
 
+const logger = getLogger({
+  name: 'infrastructure.notification.slack',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
+
 /** Slack Incoming Webhookへ通知を送信する。 */
 export async function sendToSlack(
   webhookUrl: string,
   payload: SlackPayload,
 ): Promise<SlackSendResult> {
-  const response = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+  let response: Response;
+  try {
+    response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    logger.error('Slack 通知の送信に失敗しました', {
+      'notification.channel_type': 'SLK',
+      error: toError(error),
+    });
+    throw error;
+  }
+  logger.info('Slack 通知の送信結果を受信しました', {
+    'notification.channel_type': 'SLK',
+    'http.response.status_code': response.status,
   });
   return { ok: response.ok, status: response.status };
 }

@@ -29,7 +29,7 @@ export async function analyzeChangelog(input: {
   const version = createChangelogVersion(input.version);
   const entries = input.entries;
 
-  log.msg('APLG0010', { params: [`${entries.length} 件の項目`] });
+  log.msg('APLG0010', { attrs: { arg0: `${entries.length} 件の項目` } });
 
   const merged = mergeAnalysisEntries(
     entries,

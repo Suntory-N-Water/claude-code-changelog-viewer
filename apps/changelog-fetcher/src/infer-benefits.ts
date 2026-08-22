@@ -76,7 +76,7 @@ async function main(): Promise<void> {
   const analysisPath = join(analysisDir, `analysis_${version}.json`);
   const inferredPath = join(inferredDir, `inferred_${version}.json`);
 
-  log.msg('APLG0003', { params: [analysisPath] });
+  log.msg('APLG0003', { attrs: { arg0: analysisPath } });
   const rawAnalysis = readFileSync(analysisPath, 'utf-8');
   const parsedAnalysis = JSON.parse(rawAnalysis);
   const analysisJson = AnalysisSchema.parse(parsedAnalysis);
@@ -152,7 +152,7 @@ async function main(): Promise<void> {
   mkdirSync(inferredDir, { recursive: true });
   const serializedInferred = JSON.stringify(inferred, null, 2);
   writeFileSync(inferredPath, serializedInferred, 'utf-8');
-  log.msg('APLG0021', { params: [inferredPath] });
+  log.msg('APLG0021', { attrs: { arg0: inferredPath } });
 
   const completedCount = inferred.items.filter(
     (item) => item.inference !== undefined && item.content_ja !== undefined,
