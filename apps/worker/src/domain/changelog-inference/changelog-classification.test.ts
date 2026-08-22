@@ -117,4 +117,18 @@ describe('CHANGELOG 差分判定', () => {
       },
     ]);
   });
+
+  it('記録済みバージョンが v なしの表記で渡された時も、重複を積まないこと', () => {
+    const result = classifyChangelogReleases({
+      releases: [release('v2.1.234', 'same item')],
+      existingRows: [
+        { version: '2.1.234', itemId: 'v2.1.234-0', content: 'same item' },
+        { version: '2.1.231', itemId: 'removed-0', content: 'removed item' },
+      ],
+      recordedRemovedVersions: ['2.1.231'],
+      detectedAt: '2026-08-17T00:00:00.000Z',
+    });
+
+    expect(result.diffEvents).toEqual([]);
+  });
 });

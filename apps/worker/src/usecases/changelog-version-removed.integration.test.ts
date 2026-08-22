@@ -1,3 +1,4 @@
+import { asc } from 'drizzle-orm';
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -13,62 +14,62 @@ import {
   saveChangelogDiffs,
 } from './changelog-inference-workflow';
 
-const REMOTE_MARKDOWN = '（parser をフェイクにするため中身は使わない）';
+// D1 と remote で同じ項目を返し、項目差分による items_changed が混ざらないようにする
+const ITEMS: Record<string, { id: string; content: string }> = {
+  'v2.1.234': { id: 'v2.1.234-0', content: 'kept item' },
+  'v2.1.231': { id: 'v2.1.231-0', content: 'removed item' },
+};
 
 describe('version_removed の重複記録', () => {
-  let fakeD1: FakeD1Database;
   let db: DrizzleD1Database;
 
   beforeEach(async () => {
-    fakeD1 = new FakeD1Database();
-    db = drizzle(fakeD1 as unknown as D1Database);
-    await db.insert(changelogVersions).values([
-      { version: '2.1.234', summary: null },
-      { version: '2.1.231', summary: null },
-    ]);
-    await db.insert(changelogItems).values([
-      {
-        version: '2.1.234',
-        itemId: 'v2.1.234-0',
-        content: 'same item',
-        contentJa: null,
-        prefix: 'Changed',
-        inferenceBefore: null,
-        inferenceAfter: null,
-        inferenceBenefit: null,
-        searchText: 'same item',
-      },
-      {
-        version: '2.1.231',
-        itemId: 'removed-0',
-        content: 'removed item',
-        contentJa: null,
-        prefix: 'Changed',
-        inferenceBefore: null,
-        inferenceAfter: null,
-        inferenceBenefit: null,
-        searchText: 'removed item',
-      },
-    ]);
+    db = drizzle(new FakeD1Database() as unknown as D1Database);
+    await ingestVersions(['v2.1.234', 'v2.1.231']);
   });
+
+  function itemOf(version: string) {
+    const item = ITEMS[version];
+    if (item === undefined) {
+      throw new Error(`ITEMS に未定義のバージョンです: ${version}`);
+    }
+    return item;
+  }
+
+  // changelog_versions は v なし、changelog_diff_events は v 付きで保存される
+  async function ingestVersions(versions: string[]) {
+    for (const version of versions) {
+      const item = itemOf(version);
+      await db
+        .insert(changelogVersions)
+        .values({ version: version.replace(/^v/, ''), summary: null });
+      await db.insert(changelogItems).values({
+        version: version.replace(/^v/, ''),
+        itemId: item.id,
+        content: item.content,
+        contentJa: null,
+        prefix: 'Changed',
+        inferenceBefore: null,
+        inferenceAfter: null,
+        inferenceBenefit: null,
+        searchText: item.content,
+      });
+    }
+  }
 
   async function processChangelog(
     remoteVersions: string[],
     detectedAt: string,
   ) {
     const classification = await fetchAndClassifyChangelog({
-      source: { fetchMarkdown: async () => REMOTE_MARKDOWN },
+      source: {
+        fetchMarkdown: async () => '（parser をフェイクにするため未使用）',
+      },
       parser: {
         parse: async () =>
           remoteVersions.map((version) => ({
             version,
-            items: [
-              {
-                id: `${version}-0`,
-                content: version === 'v2.1.234' ? 'same item' : 'gone item',
-                prefix: 'Changed',
-              },
-            ],
+            items: [{ ...itemOf(version), prefix: 'Changed' }],
           })),
       },
       existingChangelogReader: createExistingChangelogReader(db),
@@ -78,7 +79,6 @@ describe('version_removed の重複記録', () => {
       createChangelogDiffRepository(db),
       classification.diffEvents,
     );
-    return classification;
   }
 
   async function readDiffEvents() {
@@ -88,7 +88,11 @@ describe('version_removed の重複記録', () => {
         detectedAt: changelogDiffEvents.detectedAt,
         type: changelogDiffEvents.type,
       })
-      .from(changelogDiffEvents);
+      .from(changelogDiffEvents)
+      .orderBy(
+        asc(changelogDiffEvents.version),
+        asc(changelogDiffEvents.detectedAt),
+      );
   }
 
   it('同じ CHANGELOG を続けて2回処理しても行が増えないこと', async () => {
@@ -117,6 +121,51 @@ describe('version_removed の重複記録', () => {
       {
         version: 'v2.1.234',
         detectedAt: '2026-08-17T00:00:00.000Z',
+        type: 'version_removed',
+      },
+    ]);
+  });
+
+  it('items_changed だけが記録済みのバージョンが消えた時、削除を記録すること', async () => {
+    await db.insert(changelogDiffEvents).values({
+      version: 'v2.1.234',
+      detectedAt: '2026-08-15T00:00:00.000Z',
+      type: 'items_changed',
+    });
+
+    await processChangelog(['v2.1.231'], '2026-08-16T00:00:00.000Z');
+
+    expect(await readDiffEvents()).toEqual([
+      {
+        version: 'v2.1.234',
+        detectedAt: '2026-08-15T00:00:00.000Z',
+        type: 'items_changed',
+      },
+      {
+        version: 'v2.1.234',
+        detectedAt: '2026-08-16T00:00:00.000Z',
+        type: 'version_removed',
+      },
+    ]);
+  });
+
+  // 追跡するには削除検出時に changelog_versions の行を消す必要があり、
+  // サイトの表示からバージョンが消える副作用を伴うため、記録しない挙動を仕様として固定する
+  it('削除済みのバージョンが再追加されてから再び消えた時、2度目は記録しないこと', async () => {
+    await processChangelog(['v2.1.234'], '2026-08-16T00:00:00.000Z');
+
+    // 削除を検出しても D1 の行は残るため、remote に戻るだけで再追加になる
+    await processChangelog(
+      ['v2.1.234', 'v2.1.231'],
+      '2026-08-17T00:00:00.000Z',
+    );
+
+    await processChangelog(['v2.1.234'], '2026-08-18T00:00:00.000Z');
+
+    expect(await readDiffEvents()).toEqual([
+      {
+        version: 'v2.1.231',
+        detectedAt: '2026-08-16T00:00:00.000Z',
         type: 'version_removed',
       },
     ]);
