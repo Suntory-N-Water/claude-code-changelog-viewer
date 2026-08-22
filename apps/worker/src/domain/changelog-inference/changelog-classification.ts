@@ -23,7 +23,10 @@ export type ClassifyChangelogReleasesInput = {
   releases: ChangelogRelease[];
   existingRows: ExistingChangelogItem[];
   // バージョン削除は一度きりの出来事だが「D1 にあって remote にない」状態は続くため、
-  // 記録済みのバージョンを渡して再検出を抑える
+  // 記録済みのバージョンを渡して再検出を抑える。
+  // 削除後に再追加されたバージョンが再び消えた場合、2度目は記録されない。
+  // 追跡するには削除検出時に changelog_versions の行を消す必要があり、
+  // サイトの表示からバージョンが消える副作用を伴うため踏み込んでいない
   recordedRemovedVersions: string[];
   detectedAt: string;
 };
