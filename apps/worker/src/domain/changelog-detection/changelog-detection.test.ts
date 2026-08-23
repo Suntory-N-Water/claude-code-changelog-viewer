@@ -77,4 +77,108 @@ describe('CHANGELOG 検知状態', () => {
       },
     });
   });
+
+  it('同じ内容が確認済みのとき、確認済みのまま確認時刻だけ更新されること', () => {
+    const previous = {
+      contentHash: 'same-hash',
+      lastCheckedAt: '2026-08-16T00:00:00.000Z',
+      lastDispatchedAt: '2026-08-15T23:55:00.000Z',
+      lastDispatchedHash: 'same-hash',
+      attempts: 1,
+      confirmed: true,
+    };
+
+    const result = decideChangelogDetection({
+      previous,
+      contentHash: 'same-hash',
+      checkedAt: '2026-08-16T00:05:00.000Z',
+    });
+
+    expect(result).toEqual({
+      action: 'confirmed',
+      state: {
+        ...previous,
+        lastCheckedAt: '2026-08-16T00:05:00.000Z',
+      },
+    });
+  });
+
+  it('最大回数で起動した workflow が実行中のとき、完了待ちであること', () => {
+    const previous = {
+      contentHash: 'same-hash',
+      lastCheckedAt: '2026-08-16T00:00:00.000Z',
+      lastDispatchedAt: '2026-08-15T23:55:00.000Z',
+      lastDispatchedHash: 'same-hash',
+      attempts: 3,
+      confirmed: false,
+    };
+
+    const result = decideChangelogDetection({
+      previous,
+      contentHash: 'same-hash',
+      checkedAt: '2026-08-16T00:05:00.000Z',
+      workflowStatus: 'pending',
+    });
+
+    expect(result).toEqual({
+      action: 'wait',
+      state: {
+        ...previous,
+        lastCheckedAt: '2026-08-16T00:05:00.000Z',
+      },
+    });
+  });
+
+  it('最大回数で起動した workflow が成功したとき、検知が確定すること', () => {
+    const previous = {
+      contentHash: 'same-hash',
+      lastCheckedAt: '2026-08-16T00:00:00.000Z',
+      lastDispatchedAt: '2026-08-15T23:55:00.000Z',
+      lastDispatchedHash: 'same-hash',
+      attempts: 3,
+      confirmed: false,
+    };
+
+    const result = decideChangelogDetection({
+      previous,
+      contentHash: 'same-hash',
+      checkedAt: '2026-08-16T00:05:00.000Z',
+      workflowStatus: 'succeeded',
+    });
+
+    expect(result).toEqual({
+      action: 'confirmed',
+      state: {
+        ...previous,
+        lastCheckedAt: '2026-08-16T00:05:00.000Z',
+        confirmed: true,
+      },
+    });
+  });
+
+  it('最大回数で起動した workflow が失敗したとき、再起動しないこと', () => {
+    const previous = {
+      contentHash: 'same-hash',
+      lastCheckedAt: '2026-08-16T00:00:00.000Z',
+      lastDispatchedAt: '2026-08-15T23:55:00.000Z',
+      lastDispatchedHash: 'same-hash',
+      attempts: 3,
+      confirmed: false,
+    };
+
+    const result = decideChangelogDetection({
+      previous,
+      contentHash: 'same-hash',
+      checkedAt: '2026-08-16T00:05:00.000Z',
+      workflowStatus: 'failed',
+    });
+
+    expect(result).toEqual({
+      action: 'max_attempts',
+      state: {
+        ...previous,
+        lastCheckedAt: '2026-08-16T00:05:00.000Z',
+      },
+    });
+  });
 });

@@ -18,6 +18,10 @@ type SlackPayload = {
   blocks?: SlackBlock[];
 };
 
+type SlackBlockPayload = SlackPayload & {
+  blocks: SlackBlock[];
+};
+
 const PREFIX_LABELS: Record<Prefix, string> = {
   Breaking: ':rotating_light: 破壊的変更',
   Added: ':sparkles: 追加',
@@ -70,7 +74,7 @@ export function createSlackChangelogMessage(
   data: NotificationAnalysis,
   version: string,
   options: { unsubscribeUrl: string; siteUrl: string },
-): SlackPayload {
+): SlackBlockPayload {
   const { unsubscribeUrl, siteUrl } = options;
   const viewerUrl = `${siteUrl}/changelog/${version}/`;
   const summary =
