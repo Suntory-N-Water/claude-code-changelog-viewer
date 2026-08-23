@@ -69,7 +69,7 @@ describe('D1 バックアップ Workflow', () => {
                     signed_url: SIGNED_URL,
                   },
                 }
-              : { at_bookmark: EXPORT_BOOKMARK },
+              : { at_bookmark: EXPORT_BOOKMARK, status: 'active' },
           );
         }
         if (url === SIGNED_URL) {
@@ -116,12 +116,19 @@ describe('D1 バックアップ Workflow', () => {
         const url = String(input);
         if (url.endsWith('/export')) {
           if (!isPolling(init)) {
-            return exportResponse({ at_bookmark: EXPORT_BOOKMARK });
+            return exportResponse({
+              at_bookmark: EXPORT_BOOKMARK,
+              status: 'active',
+            });
           }
           pollCount += 1;
           return exportResponse(
             pollCount === 1
-              ? { at_bookmark: EXPORT_BOOKMARK, messages: ['エクスポート中'] }
+              ? {
+                  at_bookmark: EXPORT_BOOKMARK,
+                  status: 'active',
+                  messages: ['エクスポート中'],
+                }
               : {
                   at_bookmark: EXPORT_BOOKMARK,
                   status: 'complete',
@@ -247,7 +254,7 @@ describe('D1 バックアップ Workflow', () => {
                     signed_url: SIGNED_URL,
                   },
                 }
-              : { at_bookmark: EXPORT_BOOKMARK },
+              : { at_bookmark: EXPORT_BOOKMARK, status: 'active' },
           );
         }
         if (url === SIGNED_URL) {

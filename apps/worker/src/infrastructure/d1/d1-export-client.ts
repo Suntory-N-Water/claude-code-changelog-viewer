@@ -3,11 +3,14 @@ import { NonRetryableError } from 'cloudflare:workflows';
 import { z } from 'zod';
 import type { D1ExportPort } from '../../usecases/d1-backup-workflow';
 
+// API リファレンスは status を complete / error のみと書いているが、
+// 実際は進行中を表す値 (active 等) も返る。wrangler 自身も complete / error 以外を
+// 進行中として扱っているため、ここでも列挙せず開いた文字列で受ける。
 const ExportResponseSchema = z.object({
   result: z.object({
     at_bookmark: z.string().optional(),
     error: z.string().optional(),
-    status: z.enum(['complete', 'error']).optional(),
+    status: z.string().optional(),
     result: z
       .object({ filename: z.string(), signed_url: z.string() })
       .optional(),
