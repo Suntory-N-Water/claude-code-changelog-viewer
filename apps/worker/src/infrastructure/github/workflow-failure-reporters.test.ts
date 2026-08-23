@@ -51,6 +51,7 @@ type StoredIssue = {
 
 function installGitHubIssueApi(
   initialIssues: StoredIssue[] = [],
+  { rejectLabeling = false }: { rejectLabeling?: boolean } = {},
 ): StoredIssue[] {
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input);
@@ -85,6 +86,9 @@ function installGitHubIssueApi(
     }
     const labelRequest = /\/issues\/(\d+)\/labels$/.exec(url);
     if (method === 'POST' && labelRequest !== null) {
+      if (rejectLabeling) {
+        return new Response(null, { status: 403, statusText: 'Forbidden' });
+      }
       const issue = initialIssues.find(
         ({ number }) => number === Number(labelRequest[1]),
       );
@@ -151,6 +155,14 @@ describe('Workflow 失敗 Issue', () => {
         'bug',
       ]),
     );
+  });
+
+  it('ラベル付与が拒否されても、Issue 作成は成功として扱うこと', async () => {
+    const issues = installGitHubIssueApi([], { rejectLabeling: true });
+    const reporter = createChangelogWorkflowFailureReporter('github-token');
+
+    await expect(reporter.report(changelogFailure)).resolves.toBeUndefined();
+    expect(issues).toHaveLength(1);
   });
 
   it('別 Workflow の open Issue がある時、CHANGELOG 用 Issue は作成すること', async () => {

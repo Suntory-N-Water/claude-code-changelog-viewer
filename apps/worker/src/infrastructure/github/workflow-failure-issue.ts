@@ -1,4 +1,12 @@
+import { getLogger } from '@claude-code-changelog-viewer/common';
 import { createGitHubHeaders } from './github-headers';
+
+const logger = getLogger({
+  name: 'infrastructure.github.workflow-failure-issue',
+  serviceName: 'changelog-viewer-worker',
+  level: 'INFO',
+  format: 'json',
+});
 
 const FAILURE_ISSUE_URL =
   'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/issues';
@@ -38,9 +46,12 @@ async function addFailureIssueLabels(
     body: JSON.stringify({ labels }),
   });
   if (!response.ok) {
-    throw new Error(
-      `失敗通知 Issue のラベル付与に失敗しました: ${response.status} ${response.statusText}`,
-    );
+    // ラベルは付帯情報でしかない。ここで throw すると Workflow の catch 内で
+    // 元の失敗原因がラベル付与エラーに置き換わり、真因が追えなくなる。
+    logger.warn('失敗通知 Issue のラベル付与に失敗しました', {
+      'http.response.status_code': response.status,
+      'github.issue.number': issueNumber,
+    });
   }
 }
 
