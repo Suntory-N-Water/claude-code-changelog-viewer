@@ -75,11 +75,8 @@ export function decideChangelogDetection({
     lastCheckedAt: checkedAt,
   };
 
-  if (
-    previous.confirmed ||
-    previous.attempts >= CHANGELOG_DETECTION_MAX_ATTEMPTS
-  ) {
-    return { action: 'max_attempts', state: checkedState };
+  if (previous.confirmed) {
+    return { action: 'confirmed', state: checkedState };
   }
 
   if (workflowStatus === undefined) {
@@ -93,17 +90,21 @@ export function decideChangelogDetection({
     };
   }
 
-  if (workflowStatus === 'failed') {
-    // lastDispatchedAt は差分イベントの detected_at になるため、再起動しても更新しない。
-    // 更新すると同じ変化が試行回数ぶん別々の detected_at で記録される
-    return {
-      action: 'dispatch',
-      state: {
-        ...checkedState,
-        attempts: previous.attempts + 1,
-      },
-    };
+  if (workflowStatus !== 'failed') {
+    return { action: 'wait', state: checkedState };
   }
 
-  return { action: 'wait', state: checkedState };
+  if (previous.attempts >= CHANGELOG_DETECTION_MAX_ATTEMPTS) {
+    return { action: 'max_attempts', state: checkedState };
+  }
+
+  // lastDispatchedAt は差分イベントの detected_at になるため、再起動しても更新しない。
+  // 更新すると同じ変化が試行回数ぶん別々の detected_at で記録される
+  return {
+    action: 'dispatch',
+    state: {
+      ...checkedState,
+      attempts: previous.attempts + 1,
+    },
+  };
 }
