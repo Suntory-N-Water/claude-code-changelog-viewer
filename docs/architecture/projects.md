@@ -2,26 +2,16 @@
 
 ## 概要
 
-pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公式 Docs、設定スキーマを収集し、Astro の静的サイトで公開する。CHANGELOG の変化検知と通知 API は Cloudflare Workers、購読情報と配信済み記録は D1、通知処理は Cloudflare Queues を使う。
+pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG と設定リファレンスを D1 に集約し、Astro の静的サイトで公開する。CHANGELOG の変化検知と通知 API は Cloudflare Workers、購読情報と配信済み記録は D1、通知処理は Cloudflare Queues を使う。
 
-内部の Claude Code version は `v2.1.220` のような `v` 付き表記に統一する。ファイル名、metadata / diff、workflow と通知の version、公開 URL は `v` 付きとする。一方、analysis / inferred JSON の本文、CHANGELOG Markdown の見出し、週次記事 frontmatter は既存の外部保存形式として `v` なしを維持し、読み込み時にドメイン表現へ正規化する。
+内部の Claude Code version は `v2.1.220` のような `v` 付き表記に統一する。workflow と通知の version、公開 URL は `v` 付きとする。一方、CHANGELOG Markdown の見出し、週次記事 frontmatter は既存の外部保存形式として `v` なしを維持し、読み込み時にドメイン表現へ正規化する。
 
 ## Workspace
 
 ### `apps/changelog-fetcher`
 
-- GitHub の公式 CHANGELOG を取得し、変更検知、Docs 検索、Gemini による翻訳・推論を行う。
-- 主な出力は `changelogs/`、`analysis/`、`inferred/`、`diff/`、`settings/`、`metadata/`。中間生成物の `analysis/` は git 管理外とし、必要な環境で再生成する。
-- `infer:no-ai` は `infer-benefits.ts --no-ai` を実行し、既存の推論結果を再利用する。破損した inferred JSON は警告して未取得として扱う。
-- Docs 検索エンジンの子プロセスにはタイムアウトを設け、完了・失敗・タイムアウトの各経路でタイマーとプロセスを終了処理する。
+- CHANGELOG の解析、Docs 検索、Gemini による翻訳・推論を行う。サイト表示用のデータは D1 を経由する。
 - 週次記事は `posts/weekly/` に生成する。
-
-### `apps/docs-tracker`
-
-- Claude Code 公式 Docs と settings schema を取得する。
-- Docs は `docs/en/`、settings schema は `schema/`、取得状態は `metadata/` に保存する。
-- 既存 JSON が存在しない場合と、JSON が破損・schema 不一致の場合を区別する。後者はファイルパスとエラーを警告する。
-- Docs、schema、metadata の主要な JSON・Markdown 出力は、一時ファイルを同一ディレクトリへ書いて rename するアトミック書き込みを使う。
 
 ### `apps/worker`
 
@@ -35,10 +25,7 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公�
 ### `apps/www`
 
 - Astro + Tailwind CSS の静的サイトを生成し、Cloudflare Workers Static Assets で配信する。
-- Content Collections は次の symlink を通じて他 app の生成物を参照する。
-  - `src/content/changelog` → `apps/changelog-fetcher/inferred`
-  - `src/content/diff` → `apps/changelog-fetcher/diff`
-  - `src/content/settings` → `apps/changelog-fetcher/settings`
+- Content Collections は Worker の site-data endpoint から D1 のデータを読み出す。
 - CHANGELOG 一覧・トップは共通の version card データ生成を使う。
 - prefix の表示名・スタイル・アイコンは `src/lib/prefix.ts` に集約する。
 - 週次選定画面は Astro component を表示責務に絞り、型、初期化、画像 upload、リンク行操作を `src/lib/weekly-selection/` に分離する。
@@ -53,15 +40,11 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG、公�
 
 | Workflow | トリガー | 役割 |
 | --- | --- | --- |
-| `changelog-auto-inference.yml` | changelog-viewer-worker からの手動 dispatch | CHANGELOG 取得、解析、推論、通知、PR 作成 |
-| `fetch-docs.yml` | 3 時間ごと / 手動 | Docs と settings schema の取得、PR 作成・マージ |
-| `generate-settings-reference.yml` | 毎日 JST 06:00 / 手動 | 設定リファレンスの生成 |
 | `ci.yml` | push / 手動 | TypeScript workspace の検査 |
-| `python-ci.yml` | Python 関連変更の push / 手動 | Docs 検索エンジンなど Python 部分の検査 |
 | `github-actions-lint.yml` | workflow 関連変更 | GitHub Actions の静的解析 |
 | `weekly-report.yml` | Issue 操作 | 週次記事用 Issue の処理 |
 
-共通の Node/pnpm セットアップは `.github/actions/setup`、Python/uv セットアップは `.github/actions/setup-uv` に置く。
+共通の Node/pnpm セットアップは `.github/actions/setup` に置く。
 
 ## インフラと開発支援
 

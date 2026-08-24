@@ -354,9 +354,9 @@ describe('POST /api/ingest/changelog integration', () => {
             content: '- Added related docs',
             prefix: 'Added',
             related_docs: [
-              { file: 'apps/docs-tracker/docs/en/mcp.md' },
-              { file: 'apps/docs-tracker/docs/en/mcp.md' },
-              { file: 'apps/docs-tracker/docs/en/agent-sdk/typescript.md' },
+              { file: 'docs/en/mcp.md' },
+              { file: 'docs/en/mcp.md' },
+              { file: 'docs/en/agent-sdk/typescript.md' },
             ],
           },
           {
@@ -401,7 +401,7 @@ describe('POST /api/ingest/changelog integration', () => {
       const db = new FakeD1Database();
       const sut = app;
       const relatedDocs = Array.from({ length: 101 }, (_, i) => ({
-        file: `apps/docs-tracker/docs/en/generated/${i}.md`,
+        file: `docs/en/generated/${i}.md`,
       }));
 
       const response = await sut.request(

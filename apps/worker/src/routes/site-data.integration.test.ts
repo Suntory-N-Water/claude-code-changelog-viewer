@@ -53,10 +53,7 @@ const firstItem = {
   content: '- Added first item',
   prefix: 'Added',
   feature_areas: ['Settings', 'Model'],
-  related_docs: [
-    { file: 'apps/docs-tracker/docs/en/zeta.md' },
-    { file: 'apps/docs-tracker/docs/en/alpha.md' },
-  ],
+  related_docs: [{ file: 'docs/en/zeta.md' }, { file: 'docs/en/alpha.md' }],
 };
 
 const secondItem = {
@@ -64,7 +61,7 @@ const secondItem = {
   content: '- Fixed second item',
   prefix: 'Fixed',
   feature_areas: ['Permissions'],
-  related_docs: [{ file: 'apps/docs-tracker/docs/en/permissions.md' }],
+  related_docs: [{ file: 'docs/en/permissions.md' }],
 };
 
 describe('GET /api/site-data integration', () => {
@@ -79,7 +76,7 @@ describe('GET /api/site-data integration', () => {
             content: '- Added third item',
             prefix: 'Added',
             feature_areas: ['CLI'],
-            related_docs: [{ file: 'apps/docs-tracker/docs/en/cli.md' }],
+            related_docs: [{ file: 'docs/en/cli.md' }],
           },
         ]),
         createVersion('1.0.2', []),
