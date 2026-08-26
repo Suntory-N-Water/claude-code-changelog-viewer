@@ -2,12 +2,12 @@
 
 Claude Code の更新履歴を分かりやすく表示する Web サイト。
 
-GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメントを取得し、Cloudflare Workers 上でホスティングされた静的サイトで提供します。
+Cloudflare Workers と D1 を使って、Claude Code の更新履歴を提供します。
 
 ## 特徴
 
-- GitHub Actions で CHANGELOG とドキュメントを定期取得
-- AI による CHANGELOG の自動翻訳・推論(Gemini API 使用)
+- D1 をデータソースにした CHANGELOG と設定リファレンスの提供
+- AI による CHANGELOG の翻訳・推論(Gemini API 使用)
 - Discord・Slack・メールによる新バージョンの自動通知
 - pnpm workspace によるモノレポ構成
 - Astro + Cloudflare Workers による高速な静的サイト
@@ -19,8 +19,7 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 .
 ├── apps/
 │   ├── www/                    # Astro フロントエンド (Cloudflare Workers)
-│   ├── docs-tracker/          # Claude Code ドキュメント取得スクリプト
-│   ├── changelog-fetcher/     # CHANGELOG パーサー
+│   ├── changelog-fetcher/     # CHANGELOG の解析・週次記事生成
 │   └── worker/               # 通知配信・MCP・CHANGELOG 検知 (Cloudflare Workers)
 └── .github/workflows/         # GitHub Actions ワークフロー
 ```
@@ -33,20 +32,11 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 - Tailwind CSS によるスタイリング
 - Cloudflare Workers へデプロイ
 
-#### `apps/docs-tracker`
-
-- Claude Code の公式ドキュメントを取得
-- 3時間おきに定期実行
-- 取得状況: `apps/docs-tracker/metadata/last_update.json`
-
 #### `apps/changelog-fetcher`
 
-- CHANGELOG.md をパースして JSON 化
-- Gemini API による自動翻訳・推論
-- 毎時実行
-- 取得状況: `apps/changelog-fetcher/metadata/last_fetch.json`
-- 解析結果(git 管理外の中間生成物): `apps/changelog-fetcher/analysis/analysis_v*.json`
-- 推論結果: `apps/changelog-fetcher/inferred/inferred_v*.json`
+- CHANGELOG の解析と週次記事の生成
+- Gemini API による翻訳・推論
+- 週次記事: `apps/changelog-fetcher/posts/weekly/`
 
 #### `apps/worker`
 
@@ -88,7 +78,6 @@ graph TD
 
     subgraph "GitHub Actions"
         FETCH_CL[変更履歴取得]
-        FETCH_DOC[ドキュメント取得]
     end
 
     subgraph "Cloudflare Workers"
@@ -105,10 +94,9 @@ graph TD
     EMAIL[メール]
 
     GH -->|変更履歴を提供| FETCH_CL
-    GH -->|ドキュメントを提供| FETCH_DOC
     FETCH_CL -->|翻訳を依頼| GEMINI
-    FETCH_CL -->|解析結果を反映| WWW
-    FETCH_DOC -->|取得結果を反映| WWW
+    FETCH_CL -->|サイトデータを反映| D1
+    D1 -->|データを読み出し| WWW
     FETCH_CL -->|配信をトリガー| NW
 
     USER -->|サイトを閲覧| WWW
@@ -123,7 +111,6 @@ graph TD
     style GH fill:#f3e5f5
     style GEMINI fill:#f3e5f5
     style FETCH_CL fill:#c8e6c9
-    style FETCH_DOC fill:#c8e6c9
     style WWW fill:#fff3e0
     style NW fill:#fff3e0
     style D1 fill:#e3f2fd
