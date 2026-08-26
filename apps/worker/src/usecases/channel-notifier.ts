@@ -1,7 +1,7 @@
 import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
-import type { Channel } from './channel';
+import type { Channel } from '../domain/channel/channel';
 
-/** 外部通知APIへの送信結果。インフラ層がHTTPステータスをkindに変換して返す。 */
+/** 外部通知APIへの送信結果。adapterがHTTPステータスを意味のある種別に変換して返す。 */
 export type NotificationResult =
   | { ok: true }
   | {
@@ -15,7 +15,7 @@ export type ChangelogNotificationInput = {
   version: string;
 };
 
-/** Channelへの外部通知送信を抽象化するport。実装はinfrastructure層に置く。 */
+/** usecaseが必要とする外部通知能力を抽象化するapplication port。 */
 export type ChannelNotifier = {
   /** 登録時に通知先が実際に送信可能か確認するテスト通知を送る。 */
   sendTestNotification(channel: Channel): Promise<{ ok: boolean }>;

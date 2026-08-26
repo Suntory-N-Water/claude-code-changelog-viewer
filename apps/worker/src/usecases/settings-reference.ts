@@ -75,7 +75,7 @@ export type SettingsReferenceAiPort = {
 
 export type SettingsReferenceRecord = {
   key: string;
-  leafName: string;
+  leafName: string | null;
   slug: string;
   source: 'settings' | 'env';
   descriptionEn: string;

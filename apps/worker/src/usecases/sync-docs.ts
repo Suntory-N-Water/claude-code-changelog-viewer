@@ -1,4 +1,5 @@
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { mergeSettingSchemaEntries } from '../domain/docs-sync/setting-schema';
 import { isSafeToDeleteStaleDocuments } from '../domain/docs-sync/document-sync';
 
 const logger = getLogger({
@@ -201,42 +202,6 @@ export async function syncDocs(
     skippedBySafetyGuard,
     schemaUpdated,
   };
-}
-
-function mergeSettingSchemaEntries(
-  schemaEntries: SettingSchemaEntry[],
-  markdownEntries: SettingSchemaEntry[],
-  docsEntries: SettingSchemaEntry[],
-): SettingSchemaEntry[] {
-  const schemaSettings = schemaEntries.filter(
-    (entry) => entry.source === 'settings',
-  );
-  const schemaEnvEntries = schemaEntries.filter(
-    (entry) => entry.source === 'env',
-  );
-  const markdownKeys = new Set(markdownEntries.map((entry) => entry.key));
-  const schemaOnly = schemaEnvEntries.filter(
-    (entry) => !markdownKeys.has(entry.key),
-  );
-  const existingKeys = new Set(
-    [...markdownEntries, ...schemaOnly].map((entry) => entry.key),
-  );
-  const docsOnly = docsEntries.filter((entry) => !existingKeys.has(entry.key));
-  const result: SettingSchemaEntry[] = [];
-  const seenKeys = new Set<string>();
-  for (const entry of [
-    ...schemaSettings,
-    ...markdownEntries,
-    ...schemaOnly,
-    ...docsOnly,
-  ]) {
-    if (seenKeys.has(entry.key)) {
-      continue;
-    }
-    seenKeys.add(entry.key);
-    result.push(entry);
-  }
-  return result;
 }
 
 type PageFetchOutcome =

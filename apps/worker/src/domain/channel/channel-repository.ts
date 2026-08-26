@@ -1,15 +1,7 @@
 import type { Channel, ChannelId } from './channel';
+import type { ChannelAddress } from './channel-address';
 import type { ChannelToken } from './channel-token';
-import type { DiscordWebhookUrl } from './discord-webhook-url';
-import type { EmailAddress } from './email-address';
 import type { NotificationFrequency } from './notification-frequency';
-import type { SlackWebhookUrl } from './slack-webhook-url';
-
-/** リポジトリが通知先の重複検索に使うアドレス表現。 */
-export type ChannelAddress =
-  | { type: 'DSC'; value: DiscordWebhookUrl }
-  | { type: 'SLK'; value: SlackWebhookUrl }
-  | { type: 'EML'; value: EmailAddress };
 
 /** Channel集約の永続化を抽象化するport。実装はinfrastructure層に置く。 */
 export type ChannelRepository = {

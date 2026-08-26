@@ -1,6 +1,6 @@
 import type { ChannelToken } from './channel-token';
 import { createChannelToken } from './channel-token';
-import type { ChannelAddress } from './channel-repository';
+import type { ChannelAddress } from './channel-address';
 import type { DiscordWebhookUrl } from './discord-webhook-url';
 import type { EmailAddress } from './email-address';
 import type { NotificationFrequency } from './notification-frequency';

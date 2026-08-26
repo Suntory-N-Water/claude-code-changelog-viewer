@@ -5,7 +5,7 @@ import type {
   SettingsReferenceRecord,
   SettingsReferenceRepositoryPort,
 } from '../../usecases/settings-reference';
-import { chunk, runBatchedStatements } from './d1-ingestion-utils';
+import { chunk, runBatchedStatements, toDocPath } from './d1-ingestion-utils';
 
 const SETTINGS_PER_INSERT = 12;
 const OFFICIAL_DOCS_PER_INSERT = 50;
@@ -25,7 +25,7 @@ export function createSettingsReferenceRepository(
       }
 
       const officialDocRows = records.flatMap((record) =>
-        [...new Set(record.officialDocs)].map((docPath) => ({
+        [...new Set(record.officialDocs.map(toDocPath))].map((docPath) => ({
           settingKey: record.key,
           docPath,
         })),

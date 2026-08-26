@@ -1,13 +1,11 @@
 import { getLogger } from '@claude-code-changelog-viewer/common';
 import type { Channel } from '../domain/channel/channel';
 import { createChannel } from '../domain/channel/channel';
-import type { ChannelNotifier } from '../domain/channel/channel-notifier';
-import type {
-  ChannelAddress,
-  ChannelRepository,
-} from '../domain/channel/channel-repository';
+import type { ChannelAddress } from '../domain/channel/channel-address';
+import type { ChannelRepository } from '../domain/channel/channel-repository';
 import { isActive, reactivate } from '../domain/channel/channel-lifecycle';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
+import type { ChannelNotifier } from './channel-notifier';
 
 const logger = getLogger({
   name: 'usecases.subscribe',
