@@ -1,9 +1,9 @@
 import { getLogger } from '@claude-code-changelog-viewer/common';
 import type { Channel } from '../domain/channel/channel';
-import type { ChannelNotifier } from '../domain/channel/channel-notifier';
 import type { ChannelRepository } from '../domain/channel/channel-repository';
 import type { ChannelToken } from '../domain/channel/channel-token';
 import { deactivate, isActive } from '../domain/channel/channel-lifecycle';
+import type { ChannelNotifier } from './channel-notifier';
 
 const logger = getLogger({
   name: 'usecases.unsubscribe',

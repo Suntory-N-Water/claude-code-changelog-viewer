@@ -32,8 +32,6 @@ import {
 import {
   fetchAndClassifyChangelog,
   notifyChangelogVersions,
-  reportChangelogWorkflowFailure,
-  saveChangelogDiffs,
   saveChangelogInference,
 } from '../usecases/changelog-inference-workflow';
 
@@ -153,7 +151,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       });
 
       await step.do('save-diff', STEP_RETRIES, async () =>
-        saveChangelogDiffs(diffRepository, classification.diffEvents),
+        diffRepository.saveAll(classification.diffEvents),
       );
       logger.info('Workflow step が完了しました', {
         'workflow.step': 'save-diff',
@@ -262,7 +260,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         error: toError(error),
       });
       await step.do('create-failure-issue', STEP_RETRIES, async () =>
-        reportChangelogWorkflowFailure(failureReporter, {
+        failureReporter.report({
           params: failureParams,
           instanceId: event.instanceId,
           error,

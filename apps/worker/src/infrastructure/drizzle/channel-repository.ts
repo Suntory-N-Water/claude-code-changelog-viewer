@@ -16,14 +16,12 @@ import {
   type ChannelStatus,
   createChannelId,
 } from '../../domain/channel/channel';
+import type { ChannelAddress } from '../../domain/channel/channel-address';
 import {
   type ChannelToken,
   createChannelToken,
 } from '../../domain/channel/channel-token';
-import type {
-  ChannelAddress,
-  ChannelRepository,
-} from '../../domain/channel/channel-repository';
+import type { ChannelRepository } from '../../domain/channel/channel-repository';
 import { createDiscordWebhookUrl } from '../../domain/channel/discord-webhook-url';
 import { createEmailAddress } from '../../domain/channel/email-address';
 import {

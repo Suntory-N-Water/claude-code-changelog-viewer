@@ -9,10 +9,7 @@ import {
 import { createChangelogDiffRepository } from '../infrastructure/drizzle/changelog-diff-repository';
 import { createExistingChangelogReader } from '../infrastructure/drizzle/existing-changelog-reader';
 import { FakeD1Database } from '../test-support/fake-d1';
-import {
-  fetchAndClassifyChangelog,
-  saveChangelogDiffs,
-} from './changelog-inference-workflow';
+import { fetchAndClassifyChangelog } from './changelog-inference-workflow';
 
 // D1 と remote で同じ項目を返し、項目差分による items_changed が混ざらないようにする
 const ITEMS: Record<string, { id: string; content: string }> = {
@@ -75,10 +72,7 @@ describe('version_removed の重複記録', () => {
       existingChangelogReader: createExistingChangelogReader(db),
       params: { detectedHash: 'a'.repeat(64), detectedAt },
     });
-    await saveChangelogDiffs(
-      createChangelogDiffRepository(db),
-      classification.diffEvents,
-    );
+    await createChangelogDiffRepository(db).saveAll(classification.diffEvents);
   }
 
   async function readDiffEvents() {

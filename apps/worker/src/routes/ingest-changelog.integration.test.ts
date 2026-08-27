@@ -612,6 +612,34 @@ describe('POST /api/ingest/changelog integration', () => {
       db.close();
     });
 
+    it('同じ公式ドキュメントを異なる形式で指定しても、正規化後に一意に保存すること', async () => {
+      const db = new FakeD1Database();
+      const sut = app;
+      const setting = createSetting({
+        official_doc_urls: [
+          'https://code.claude.com/docs/en/advisor',
+          'docs/en/advisor.md',
+          'https://code.claude.com/docs/en/advisor?utm_source=test',
+        ],
+      });
+
+      const response = await sut.request(
+        '/api/ingest/changelog',
+        createRequest({ settings: [setting] }),
+        createTestEnv(db),
+      );
+
+      expect(response.status).toBe(200);
+      expect(
+        await db
+          .prepare('SELECT setting_key, doc_path FROM settings_official_docs')
+          .all(),
+      ).toMatchObject({
+        results: [{ setting_key: 'advisorModel', doc_path: 'advisor.md' }],
+      });
+      db.close();
+    });
+
     it('use_case_ja と公式ドキュメント参照がない設定でも取り込めること', async () => {
       const db = new FakeD1Database();
       const sut = app;

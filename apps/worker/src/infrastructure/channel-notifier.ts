@@ -8,7 +8,7 @@ import type {
   ChangelogNotificationInput,
   ChannelNotifier,
   NotificationResult,
-} from '../domain/channel/channel-notifier';
+} from '../usecases/channel-notifier';
 import {
   createChangelogMessage,
   createTestMessage,

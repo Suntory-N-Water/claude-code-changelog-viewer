@@ -1,10 +1,10 @@
 import { getLogger } from '@claude-code-changelog-viewer/common';
 import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import type { Channel } from '../domain/channel/channel';
-import type { ChannelNotifier } from '../domain/channel/channel-notifier';
 import type { ChannelRepository } from '../domain/channel/channel-repository';
 import { recordFailure, resetFailure } from '../domain/channel/channel-failure';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
+import type { ChannelNotifier } from './channel-notifier';
 
 const logger = getLogger({
   name: 'usecases.dispatch-changelog-notifications',

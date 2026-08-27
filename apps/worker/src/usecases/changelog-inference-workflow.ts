@@ -4,8 +4,6 @@ import {
   type ExistingChangelogItem,
 } from '../domain/changelog-inference/changelog-classification';
 import type {
-  ChangelogDiffEvent,
-  ChangelogDiffRepository,
   ChangelogInferenceInput,
   ChangelogInferenceRepository,
   ChangelogItemInference,
@@ -78,14 +76,6 @@ export async function notifyChangelogVersions(
   }
 }
 
-export async function saveChangelogDiffs(
-  repository: ChangelogDiffRepository,
-  events: ChangelogDiffEvent[],
-): Promise<{ count: number }> {
-  await repository.saveAll(events);
-  return { count: events.length };
-}
-
 export type SaveChangelogInferenceInput = {
   input: ChangelogInferenceInput;
   itemInferences: ChangelogItemInference[];
@@ -116,11 +106,4 @@ export async function saveChangelogInference(
     }),
   });
   return { version: input.version };
-}
-
-export async function reportChangelogWorkflowFailure(
-  failureReporter: ChangelogFailureReporterPort,
-  input: Parameters<ChangelogFailureReporterPort['report']>[0],
-): Promise<void> {
-  await failureReporter.report(input);
 }

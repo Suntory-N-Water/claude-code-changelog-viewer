@@ -9,6 +9,7 @@ import {
 } from '@claude-code-changelog-viewer/types';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { timingSafeEqual } from '../infrastructure/crypto/timing-safe-equal';
 
 const RequestSchema = z.object({
   version: ClaudeCodeVersionSchema,
@@ -21,17 +22,6 @@ const logger = getLogger({
   level: 'INFO',
   format: 'json',
 });
-
-export async function timingSafeEqual(a: string, b: string): Promise<boolean> {
-  const enc = new TextEncoder();
-  const [ha, hb] = await Promise.all([
-    crypto.subtle.digest('SHA-256', enc.encode(a)),
-    crypto.subtle.digest('SHA-256', enc.encode(b)),
-  ]);
-  const va = new Uint8Array(ha);
-  const vb = new Uint8Array(hb);
-  return va.length === vb.length && va.every((byte, i) => byte === vb[i]);
-}
 
 export const dispatchRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
   '/',
