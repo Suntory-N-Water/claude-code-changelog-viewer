@@ -53,27 +53,17 @@ argument-hint: "[--input-file <path>]"
 
 以降の手順はすべて `$INPUT_JSON` を入力パスとして参照する。
 
-### 2. 選定バージョンの analysis を生成する
-
-入力 JSON に含まれる version を重複なく取り出し、各 version の analysis を生成する。analysis は git 管理外の生成データなので、既存ファイルの有無にかかわらず抽出スクリプトの実行前に必ず生成する。
-
-```bash
-jq -r '.items[].version' "$INPUT_JSON" | sort -u | while read -r version; do
-  pnpm run analyze "v${version#v}"
-done
-```
-
-### 3. 抽出スクリプトで素材を取得
+### 2. 抽出スクリプトで素材を取得
 
 ```bash
 python3 <skill_dir>/scripts/extract.py "$INPUT_JSON" > .tmp/extracted.json
 ```
 
-`inferred_v{version}.json` は1件30KB超になることがあり、丸ごと読むとトークンを浪費する。このスクリプトは選定された `id` に該当する item だけを取り出し、`content`(英語原文) / `content_ja` / `inference`(before/after/benefit) / `comment` / `prefix` / `has_snippets` と、frontmatter 用の `version_min` / `version_max` / `versions`(全件) を返す。`has_snippets` は `analysis_v{version}.json` 側の `related_docs[].snippets` を見て判定する(inferred JSON の `related_docs` には `file` しかなく `snippets` は含まれない)。`content_ja` や `inference` の記載内容に疑問が生じたら、まず出力済みの `content`(英語原文)で裏取りする。出力 JSON は次の手順で skeleton.py にそのまま渡す。**inferred JSON を直接 Read してはいけない。** 必ずこのスクリプト経由で取得する。
+changelog の正データは D1 にあり、このスクリプトが Worker の `/api/site-data/changelog` から全バージョンを取得する(取得先の origin は環境変数 `SITE_DATA_ORIGIN` で切り替えられる。既定は `https://claude-code-log.com`)。レスポンスは全バージョン分で 4MB 弱あり、丸ごと読むとトークンを浪費する。このスクリプトは選定された `id` に該当する item だけを取り出し、`content`(英語原文) / `content_ja` / `inference`(before/after/benefit) / `comment` / `prefix` と、frontmatter 用の `version_min` / `version_max` / `versions`(全件) を返す。`inference` は item によっては存在しない(その場合は本文素材が選定コメントと `content_ja` だけになる)。`content_ja` や `inference` の記載内容に疑問が生じたら、まず出力済みの `content`(英語原文)で裏取りする。出力 JSON は次の手順で skeleton.py にそのまま渡す。**API のレスポンスを直接 Read / WebFetch してはいけない。** 必ずこのスクリプト経由で取得する。
 
-id 不一致や version ファイル欠落があればスクリプトがエラーで止まる。その場合は入力 JSON を確認する。
+id 不一致や version 欠落、API の取得失敗があればスクリプトがエラーで止まる。その場合は入力 JSON と取得先を確認する。
 
-### 4. skeleton を書き出す
+### 3. skeleton を書き出す
 
 ```bash
 python3 <skill_dir>/scripts/skeleton.py .tmp/extracted.json
@@ -83,17 +73,7 @@ extract.py の出力 JSON を渡すと、`apps/changelog-fetcher/posts/weekly/{w
 英語原文は各 `###` 見出しの直後へ blockquote として出力する。このとき先頭の Markdown リストマーカー(`- ` など)はスクリプトが除去する(blockquote 内で引用がリスト表示されるのを防ぐため)。
 frontmatter には選定時の全アイテム数(`total_items`)と、選定した各 item の ID・version・コメント(`selected_items`)も保存する。`selected_items` は入力の並び順によらず version 昇順(同一 version 内は入力順)に揃う。items は古い→新しいバージョンの昇順で並び、同一バージョンの複数項目は1つの `## v{version}` 下にまとまる。**`### 見出し = content_ja` はここで byte 単位で確定する。以降 content_ja は一切タイプしない**(更新履歴カードと1文字も違わないことをこれで保証する)。
 
-### 5. 必要な item だけ snippets を追加取得
-
-`inference` が薄い、またはコメントが仕様の技術的な詳細を求めていて inference と content_ja だけでは本文が書けない item に限り、次を実行する(`has_snippets` が true の item のみ意味がある)。
-
-```bash
-python3 <skill_dir>/scripts/snippets.py <version> <id>
-```
-
-`analysis_v{version}.json` も大きいので、全件取得はしない。書けない item に絞って呼ぶ。
-
-### 6. プレースホルダを埋める
+### 4. プレースホルダを埋める
 
 skeleton の `<!-- intro -->` と各 `<!-- body -->`、そして frontmatter の `description` 内の `<!-- desc -->` を Edit で置き換える。この3種類以外(バージョン見出し・変更内容の見出し・締めの定型文・description の定型文と期間)には一切触れない(スクリプトが確定済み)。
 
@@ -111,11 +91,11 @@ skeleton の `<!-- intro -->` と各 `<!-- body -->`、そして frontmatter の
 
 **本文は体験・意見に特化する。** 見出し(content_ja)が事実を担うので、本文で事実を言い換えて繰り返してはいけない。最優先の素材は選定時のコメントで、選定者が実際に使って感じた温度を地の文に反映する。inference の before→after→benefit はコメントの体験を裏付ける補助として使い、changelog の翻訳をそのまま貼るだけにはしない。
 
-### 7. 埋めた本文を読み返して直す
+### 5. 埋めた本文を読み返して直す
 
 書いた直後は「それっぽく」書けたつもりでも、体言止め・倒置法・内輪のジャーゴンや安易な比喩が紛れやすい。read → write で終わらせず、埋めた intro と各 body を `<skill_dir>/references/voice-and-tone.md` の「避けるべき表現」に一度照らして読み返す。特に、選定者本人の具体的な体験ではなく、誰が書いても同じになる汎用的な「テックブログ声」になっている文を探し、コメントにある具体へ戻すか削る。
 
-本文にコマンド名・フラグ・スラッシュコマンド・製品名・モデル名などの固有名詞を書いたら、入力コメントや content_ja のカタカナ表記を鵜呑みにせず正式名称に直す(例: 「レジューム」→ `--resume`)。確認はローカルの公式ドキュメントで足りる。見当たらなければそのまま残し、Web を延々と探し回らない。
+本文にコマンド名・フラグ・スラッシュコマンド・製品名・モデル名などの固有名詞を書いたら、入力コメントや content_ja のカタカナ表記を鵜呑みにせず正式名称に直す(例: 「レジューム」→ `--resume`)。確認は extract.py が出力した `content`(英語原文)で足りる。そこに出てこなければそのまま残し、Web を延々と探し回らない。
 
 ここまでやって手順は完了する(推敲の促しや公開はしない。後続の人手または GitHub Actions が担う)。
 
@@ -179,7 +159,7 @@ https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
 
 - frontmatter(`description` の要点 `<!-- desc -->` を除く)・冒頭の定型文・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・英語原文の引用・末尾の締めの定型文と公式 CHANGELOG リンクはスクリプトが確定済み。**Edit で書き換えない**(content_ja と英語原文 verbatim、versions 全件、定型文の期間表記がここで保証されている)。
 - 英語原文の引用は先頭の Markdown リストマーカー(`- ` など)がスクリプトで除去された状態で出力される。
-- `description` は定型文と期間(年跨ぎでも両端に年を入れた `{開始日}〜{終了日}`)が確定済みで、要点部分の `<!-- desc -->` だけを手順5で埋める(frontmatter で書き換えてよいのはここだけ)。
+- `description` は定型文と期間(年跨ぎでも両端に年を入れた `{開始日}〜{終了日}`)が確定済みで、要点部分の `<!-- desc -->` だけを手順4で埋める(frontmatter で書き換えてよいのはここだけ)。
 - バージョンは古い→新しいの昇順で `## v{version}` セクションになり、同一バージョンの複数項目はその下に `### {content_ja}` として並ぶ。
 - 各 `<!-- body -->` は直前の `### 見出し` に対応する。プレースホルダの位置・個数は変えない。
 - 画像添付がある item の `<img>` タグは `<!-- body -->` 直後に自動生成される。alt・src・行位置を変更しない。
