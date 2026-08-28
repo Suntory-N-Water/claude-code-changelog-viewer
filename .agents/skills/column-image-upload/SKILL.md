@@ -1,6 +1,6 @@
 ---
 name: column-image-upload
-description: コラム記事(`apps/www/src/content/posts/column/`)に相対パスで貼られたローカル画像を R2 バケット `weekly-assets` にアップロードし、記事内の参照を `https://assets.claude-code-log.com/` を指す `<img>` に書き換えて、ローカルの画像ファイルを削除する。`/column-image-upload` の実行時、または「コラムの画像を R2 に上げて」「記事の画像を公開 URL に差し替えて」「画像を貼ったコラムを公開できる状態にして」等の依頼時に使う。週次アップデート記事(`apps/changelog-fetcher/posts/weekly/`)の画像は管理画面からアップロード済みなので対象外。`public/` 配下の静的画像・OGP 画像の差し替えや、記事の執筆・推敲そのものにも使わない。macOS 専用(`sips` に依存する)。
+description: コラム記事(`apps/www/src/content/posts/column/`)に相対パスで貼られたローカル画像を R2 バケット `weekly-assets` にアップロードし、記事内の参照を `https://assets.claude-code-log.com/` を指す `<img>` に書き換えて、ローカルの画像ファイルを削除する。`/column-image-upload` の実行時、または「コラムの画像を R2 に上げて」「記事の画像を公開 URL に差し替えて」「画像を貼ったコラムを公開できる状態にして」等の依頼時に使う。週次アップデート記事(`apps/www/src/content/posts/weekly/`)の画像は管理画面からアップロード済みなので対象外。`public/` 配下の静的画像・OGP 画像の差し替えや、記事の執筆・推敲そのものにも使わない。macOS 専用(`sips` に依存する)。
 argument-hint: "[記事のパス | slug]"
 ---
 
@@ -74,7 +74,7 @@ pnpm run build
 
 ## 出力される `<img>` の形
 
-`apps/changelog-fetcher/posts/weekly/2026-w30.md` の記法に `width` / `height` を足したもの。属性の順序も含めてこの形になる。
+`apps/www/src/content/posts/weekly/2026-w30.md` の記法に `width` / `height` を足したもの。属性の順序も含めてこの形になる。
 
 ```html
 <img

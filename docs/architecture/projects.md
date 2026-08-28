@@ -10,7 +10,7 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG と設
 
 ### `apps/changelog-fetcher`
 
-- 週次記事(`posts/weekly/`)と評価用ラベル(`eval/`)だけを持つ。実行コードはない。
+- 評価用ラベル(`eval/`)だけを持つ。実行コードはない。週次記事の Markdown は `apps/www/src/content/posts/weekly/` に置く。
 - 記事の生成は weekly-post skill が担い、素材は Worker の site-data API 経由で D1 から取得する。CHANGELOG の解析・Docs 検索・翻訳・推論は `apps/worker` に移行済み。
 
 ### `apps/worker`
@@ -29,7 +29,7 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG と設
 - CHANGELOG 一覧・トップは共通の version card データ生成を使う。
 - prefix の表示名・スタイル・アイコンは `src/lib/prefix.ts` に集約する。
 - 週次選定画面は Astro component を表示責務に絞り、型、初期化、画像 upload、リンク行操作を `src/lib/weekly-selection/` に分離する。
-- `src/content/posts/weekly` は changelog-fetcher の週次記事を参照し、`src/content/posts/column` はコラムを保持する。
+- `src/content/posts/weekly` は週次記事、`src/content/posts/column` はコラムを保持する。
 
 ### `packages/common` / `packages/types`
 
