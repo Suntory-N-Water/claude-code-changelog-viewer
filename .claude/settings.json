@@ -45,19 +45,21 @@
       "Bash(ls:*)",
       "Bash(python3:*)"
     ],
-    "deny": [
-      "Bash(rm -rf:*)",
-      "Bash(sudo:*)",
-      "Read(.env)",
-      "Bash(.env)",
-      "Read(.dev.vars)",
-      "Bash(.dev.vars)",
-      "Edit(.env*)",
-      "Edit(.dev.vars)",
-      "NotebookEdit"
-    ]
+    "deny": ["Bash(rm -rf:*)", "Bash(sudo:*)"]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/setup-remote.sh",
+            "statusMessage": "リモート環境の依存をインストール中..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -65,26 +67,6 @@
             "type": "command",
             "command": "bun run --silent -i ~/.claude/scripts/typescript/fix-brackets.ts",
             "statusMessage": "ブラケット修正中..."
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bun run --silent -i ~/.claude/scripts/typescript/no-restricted-edit.ts"
-          }
-        ]
-      },
-      {
-        "matcher": "WebFetch|Fetch",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bun run --silent -i ~/.claude/scripts/typescript/web-fetch-advice.ts"
           }
         ]
       }
