@@ -7,7 +7,7 @@ from pathlib import Path
 # LLM に content_ja を一度もタイプさせないため、frontmatter・見出しはこのスクリプトが直接書き出す。
 # LLM が埋めるのはプレースホルダ(冒頭ひとこと・各本文・description の要点)だけに限定する。
 REPO_ROOT = Path(__file__).resolve().parents[4]
-WEEKLY_DIR = REPO_ROOT / "apps/changelog-fetcher/posts/weekly"
+WEEKLY_DIR = REPO_ROOT / "apps/www/src/content/posts/weekly"
 
 
 def main():

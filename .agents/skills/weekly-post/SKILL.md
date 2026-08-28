@@ -6,7 +6,7 @@ argument-hint: "[--input-file <path>]"
 
 # 週次アップデート記事の生成
 
-管理画面で選定・コメントされた changelog アイテムの JSON を入力に、Claude Code ユーザー向けの週次アップデート記事を生成し、`apps/changelog-fetcher/posts/weekly/{week}.md` に書き出す。
+管理画面で選定・コメントされた changelog アイテムの JSON を入力に、Claude Code ユーザー向けの週次アップデート記事を生成し、`apps/www/src/content/posts/weekly/{week}.md` に書き出す。
 
 読者は Claude Code を業務で日常使いしている開発者で、価値は「自分のワークフローがどう変わるか」を筆者の体験ベースで受け取れること。単なる changelog の翻訳貼り付けには価値がない。人間の選定眼とコメントを核に据える。
 
@@ -69,7 +69,7 @@ id 不一致や version 欠落、API の取得失敗があればスクリプト�
 python3 <skill_dir>/scripts/skeleton.py .tmp/extracted.json
 ```
 
-extract.py の出力 JSON を渡すと、`apps/changelog-fetcher/posts/weekly/{week}.md` に frontmatter・冒頭の定型文(`{期間}の変更で、個人的に気になったものをピックアップしました。`)・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・英語原文の引用・締めの定型文と公式 CHANGELOG リンク・プレースホルダ(`description` の要点 `<!-- desc -->`、`<!-- intro -->`、item ごとの `<!-- body -->`)を書き出す。description は定型文と期間(年跨ぎでも両端に年を入れた `{開始日}〜{終了日}`)まで確定済みで、要点部分の `<!-- desc -->` だけが未記入。
+extract.py の出力 JSON を渡すと、`apps/www/src/content/posts/weekly/{week}.md` に frontmatter・冒頭の定型文(`{期間}の変更で、個人的に気になったものをピックアップしました。`)・バージョン見出し(`## v{version}`)・変更内容の見出し(`### {content_ja}`)・英語原文の引用・締めの定型文と公式 CHANGELOG リンク・プレースホルダ(`description` の要点 `<!-- desc -->`、`<!-- intro -->`、item ごとの `<!-- body -->`)を書き出す。description は定型文と期間(年跨ぎでも両端に年を入れた `{開始日}〜{終了日}`)まで確定済みで、要点部分の `<!-- desc -->` だけが未記入。
 英語原文は各 `###` 見出しの直後へ blockquote として出力する。このとき先頭の Markdown リストマーカー(`- ` など)はスクリプトが除去する(blockquote 内で引用がリスト表示されるのを防ぐため)。
 frontmatter には選定時の全アイテム数(`total_items`)と、選定した各 item の ID・version・コメント(`selected_items`)も保存する。`selected_items` は入力の並び順によらず version 昇順(同一 version 内は入力順)に揃う。items は古い→新しいバージョンの昇順で並び、同一バージョンの複数項目は1つの `## v{version}` 下にまとまる。**`### 見出し = content_ja` はここで byte 単位で確定する。以降 content_ja は一切タイプしない**(更新履歴カードと1文字も違わないことをこれで保証する)。
 
