@@ -10,8 +10,8 @@ pnpm workspace 上の TypeScript モノレポ。Claude Code の CHANGELOG と設
 
 ### `apps/changelog-fetcher`
 
-- CHANGELOG の解析、Docs 検索、Gemini による翻訳・推論を行う。サイト表示用のデータは D1 を経由する。
-- 週次記事は `posts/weekly/` に生成する。
+- 週次記事(`posts/weekly/`)と評価用ラベル(`eval/`)だけを持つ。実行コードはない。
+- 記事の生成は weekly-post skill が担い、素材は Worker の site-data API 経由で D1 から取得する。CHANGELOG の解析・Docs 検索・翻訳・推論は `apps/worker` に移行済み。
 
 ### `apps/worker`
 

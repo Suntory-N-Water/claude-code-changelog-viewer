@@ -19,7 +19,7 @@ Cloudflare Workers と D1 を使って、Claude Code の更新履歴を提供し
 .
 ├── apps/
 │   ├── www/                    # Astro フロントエンド (Cloudflare Workers)
-│   ├── changelog-fetcher/     # CHANGELOG の解析・週次記事生成
+│   ├── changelog-fetcher/     # 週次アップデート記事の Markdown
 │   └── worker/               # 通知配信・MCP・CHANGELOG 検知 (Cloudflare Workers)
 └── .github/workflows/         # GitHub Actions ワークフロー
 ```
@@ -34,9 +34,9 @@ Cloudflare Workers と D1 を使って、Claude Code の更新履歴を提供し
 
 #### `apps/changelog-fetcher`
 
-- CHANGELOG の解析と週次記事の生成
-- Gemini API による翻訳・推論
-- 週次記事: `apps/changelog-fetcher/posts/weekly/`
+- 週次アップデート記事の Markdown 置き場: `apps/changelog-fetcher/posts/weekly/`
+- 記事の生成は weekly-post skill が担い、素材は Worker の site-data API 経由で D1 から取得する
+- CHANGELOG の解析・翻訳・推論は `apps/worker` の Workflows に移行済み
 
 #### `apps/worker`
 

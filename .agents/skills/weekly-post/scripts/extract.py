@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 import json
+import os
 import re
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
-# inferred JSON を丸ごと context に載せるとトークンを浪費するので、該当 id の item だけに絞る。
-REPO_ROOT = Path(__file__).resolve().parents[4]
-INFERRED_DIR = REPO_ROOT / "apps/changelog-fetcher/inferred"
-ANALYSIS_DIR = REPO_ROOT / "apps/changelog-fetcher/analysis"
+# changelog の正データは D1 にあり、読み取りは Worker の site-data API 経由に限る。
+# 全 changelog を丸ごと context に載せるとトークンを浪費するので、該当 id の item だけに絞る。
+SITE_DATA_ORIGIN = os.environ.get("SITE_DATA_ORIGIN", "https://claude-code-log.com")
+CHANGELOG_PATH = "/api/site-data/changelog"
+# 全バージョン(実測 4MB 弱)を1リクエストで受けるため、既定より長めに取る
+FETCH_TIMEOUT_SECONDS = 120
+# 既定の User-Agent(Python-urllib/x.y)は Cloudflare の bot 判定で 403 になるため明示する
+USER_AGENT = "weekly-post-extract/1.0 (+https://claude-code-log.com)"
 
 
 def version_key(v):
@@ -20,39 +27,34 @@ def main():
 
     week = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 
-    # 同じ version を item ごとに開き直さないよう索引をキャッシュする
-    inferred_cache = {}
-    analysis_cache = {}
+    url = f"{SITE_DATA_ORIGIN.rstrip('/')}{CHANGELOG_PATH}"
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT_SECONDS) as response:
+            changelog = json.loads(response.read().decode("utf-8"))
+    except urllib.error.URLError as error:
+        sys.exit(f"changelog の取得に失敗しました ({url}): {error}")
+
+    # API は全バージョンを返すので、id 引きできる形に一度だけ畳む
+    items_by_version = {
+        version["version"]: {item["id"]: item for item in version["items"]}
+        for version in changelog["versions"]
+    }
+
     out_items = []
     for sel in week["items"]:
         version = sel["version"]
-        if version not in inferred_cache:
-            path = INFERRED_DIR / f"inferred_v{version}.json"
-            if not path.exists():
-                sys.exit(f"inferred file not found: {path}")
-            data = json.loads(path.read_text(encoding="utf-8"))
-            inferred_cache[version] = {it["id"]: it for it in data["items"]}
-        if version not in analysis_cache:
-            path = ANALYSIS_DIR / f"analysis_v{version}.json"
-            if not path.exists():
-                sys.exit(f"analysis file not found: {path}")
-            data = json.loads(path.read_text(encoding="utf-8"))
-            analysis_cache[version] = {it["id"]: it for it in data["items"]}
+        items = items_by_version.get(version)
+        if items is None:
+            sys.exit(f"version not found in changelog API: v{version}")
 
-        item = inferred_cache[version].get(sel["id"])
+        item = items.get(sel["id"])
         if item is None:
             sys.exit(f"id not found in v{version}: {sel['id']}")
 
-        # snippets は analysis JSON にのみ含まれる(inferred JSON の related_docs は file のみ)
-        analysis_item = analysis_cache[version].get(sel["id"])
-        has_snippets = bool(
-            analysis_item
-            and any(d.get("snippets") for d in analysis_item.get("related_docs", []))
-        )
-
-        # inferred JSON の content は CHANGELOG の Markdown リスト項目そのままで、
-        # 先頭に "- "/"* "/"+ " が残る。skeleton の引用ブロックで `> - ...` にならないよう
-        # ここで剥がして、後続処理は content を素の一文として扱えるようにする。
+        # content は CHANGELOG の Markdown リスト項目そのままで、先頭に "- "/"* "/"+ " が残る。
+        # skeleton の引用ブロックで `> - ...` にならないようここで剥がして、
+        # 後続処理は content を素の一文として扱えるようにする。
         content = item.get("content")
         if content is not None:
             content = re.sub(r"^[-*+]\s+", "", content)
@@ -68,7 +70,6 @@ def main():
                 "image_url": sel.get("image_url"),
                 "links": sel.get("links") or [],
                 "inference": item.get("inference"),
-                "has_snippets": has_snippets,
             }
         )
 

@@ -47,7 +47,7 @@ def main():
     lines = [
         "---",
         f"title: {q(title)}",
-        # 定型文＋期間はここで確定。要点部分の <!-- desc --> だけを手順5で埋める。
+        # 定型文＋期間はここで確定。要点部分の <!-- desc --> だけを手順4で埋める。
         f"description: {q(description)}",
         f"date: {q(data['period_end'])}",
         f"period_start: {q(data['period_start'])}",
