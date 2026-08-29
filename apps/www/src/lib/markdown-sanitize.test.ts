@@ -1,7 +1,7 @@
 import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 import { remarkAlert } from 'remark-github-blockquote-alert';
 import { describe, expect, test } from 'vitest';
-import { markdownRehypePlugins } from '../markdown-sanitize';
+import { markdownRehypePlugins } from './markdown-sanitize';
 
 const processor = await createMarkdownProcessor({
   remarkPlugins: [remarkAlert],

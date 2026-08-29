@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { truncateForDiscord } from '../discord';
+import { truncateForDiscord } from './discord';
 
 describe('truncateForDiscord', () => {
   it('2000文字以下はそのまま返す', () => {

@@ -3,7 +3,7 @@ import {
   changelogLoader,
   diffLoader,
   settingsReferenceLoader,
-} from '../site-data-loader';
+} from './site-data-loader';
 
 function createLoaderContext() {
   const entries = new Map<string, unknown>();

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { buildDiffMap } from '../changelog-diff';
+import { buildDiffMap } from './changelog-diff';
 
 describe('buildDiffMap', () => {
   test('同一バージョンの複数イベントを1つの配列にまとめる', () => {
