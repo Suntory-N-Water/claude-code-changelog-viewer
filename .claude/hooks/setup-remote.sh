@@ -13,7 +13,8 @@ if ! command -v pnpm >/dev/null 2>&1; then
 fi
 
 log=$(mktemp)
-if pnpm install --frozen-lockfile >"$log" 2>&1; then
+# CI 判定時 lefthook は hooks の設置を飛ばすので、cloud では明示的に有効化する
+if LEFTHOOK=1 pnpm install --frozen-lockfile >"$log" 2>&1; then
   echo "pnpm install が完了しました。"
 else
   # SessionStart は失敗してもセッションを止められないため、原因を context に流す
