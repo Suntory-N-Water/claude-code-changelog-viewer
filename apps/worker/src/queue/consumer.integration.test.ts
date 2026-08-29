@@ -279,4 +279,91 @@ describe('queueConsumer integration', () => {
       deactivated_at: '9999-12-31',
     });
   });
+
+  describe('メッセージ検証', () => {
+    it('不正なメッセージボディは ack して無視する', async () => {
+      db = new FakeD1Database();
+      const message = createQueueMessage({ invalid: 'body' });
+
+      await runWithTimers(
+        callConsumer(createQueueBatch([message]), createTestEnv(db)),
+      );
+
+      expect(message.ack).toHaveBeenCalled();
+      expect(message.retry).not.toHaveBeenCalled();
+      expect(mockedSendChangelogNotification).not.toHaveBeenCalled();
+    });
+
+    it('version が v で始まらないメッセージは ack して無視する', async () => {
+      db = new FakeD1Database();
+      const message = createQueueMessage({
+        version: '1.0.0',
+        analysis: validAnalysis,
+      });
+
+      await runWithTimers(
+        callConsumer(createQueueBatch([message]), createTestEnv(db)),
+      );
+
+      expect(message.ack).toHaveBeenCalled();
+      expect(message.retry).not.toHaveBeenCalled();
+      expect(mockedSendChangelogNotification).not.toHaveBeenCalled();
+    });
+
+    it('analysis が欠落しているメッセージは ack して無視する', async () => {
+      db = new FakeD1Database();
+      const message = createQueueMessage({ version: 'v1.0.0' });
+
+      await runWithTimers(
+        callConsumer(createQueueBatch([message]), createTestEnv(db)),
+      );
+
+      expect(message.ack).toHaveBeenCalled();
+      expect(message.retry).not.toHaveBeenCalled();
+      expect(mockedSendChangelogNotification).not.toHaveBeenCalled();
+    });
+  });
+
+  it('停止済みチャンネルしかない場合は通知を送らず ack する', async () => {
+    db = new FakeD1Database();
+    const message = createQueueMessage(buildBody());
+    const env = createTestEnv(db);
+    await insertDiscordWebhook(db, {
+      id: 'deactivated-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/deactivated',
+      token: 'deactivated-token',
+      deactivatedAt: '2026-01-01 00:00:00',
+      deactivatedReason: 'system',
+    });
+
+    await runWithTimers(callConsumer(createQueueBatch([message]), env));
+
+    expect(message.ack).toHaveBeenCalled();
+    expect(mockedSendChangelogNotification).not.toHaveBeenCalled();
+  });
+
+  it('1 つのバッチに複数バージョンが含まれる時、各バージョンを順に配信する', async () => {
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+    await insertDiscordWebhook(db, {
+      id: 'active-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
+      token: 'active-token',
+    });
+    mockedSendChangelogNotification.mockResolvedValue({ ok: true });
+    const firstMessage = createQueueMessage(buildBody('v1.0.0'));
+    const secondMessage = createQueueMessage(buildBody('v2.0.0'));
+
+    await runWithTimers(
+      callConsumer(createQueueBatch([firstMessage, secondMessage]), env),
+    );
+
+    expect(firstMessage.ack).toHaveBeenCalled();
+    expect(secondMessage.ack).toHaveBeenCalled();
+    expect(
+      mockedSendChangelogNotification.mock.calls.map(
+        ([, input]) => input.version,
+      ),
+    ).toEqual(['v1.0.0', 'v2.0.0']);
+  });
 });
