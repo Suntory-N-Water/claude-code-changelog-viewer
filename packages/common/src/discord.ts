@@ -5,11 +5,6 @@ export type DiscordWebhookPayload = {
   flags?: number;
 };
 
-export type DiscordSendResult = {
-  ok: boolean;
-  status: number;
-};
-
 export const DISCORD_BOT_AVATAR_URL =
   'https://claude-code-log.com/icon.png' as const;
 
@@ -23,16 +18,4 @@ export function truncateForDiscord(content: string, suffix: string): string {
     return content;
   }
   return `${content.substring(0, DISCORD_MAX_LENGTH - suffix.length)}${suffix}`;
-}
-
-export async function sendToDiscord(
-  webhookUrl: string,
-  payload: DiscordWebhookPayload,
-): Promise<DiscordSendResult> {
-  const response = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  return { ok: response.ok, status: response.status };
 }

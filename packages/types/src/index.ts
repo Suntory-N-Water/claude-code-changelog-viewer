@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 export const ClaudeCodeVersionSchema = z.string().regex(/^v\d+\.\d+\.\d+$/);
-export type ClaudeCodeVersion = z.infer<typeof ClaudeCodeVersionSchema>;
 
 export const RelatedDocSchema = z.object({
   file: z.string(),
@@ -9,7 +8,6 @@ export const RelatedDocSchema = z.object({
   snippets: z.array(z.string()),
   snippet_scores: z.array(z.number()).optional(),
 });
-export type RelatedDoc = z.infer<typeof RelatedDocSchema>;
 
 export const InferenceResultSchema = z.object({
   before: z.string().min(10).max(500),
@@ -24,9 +22,6 @@ export const InferenceWithTranslationSchema = z.object({
   after: z.string().min(10).max(500),
   benefit: z.string().min(10).max(500),
 });
-export type InferenceWithTranslation = z.infer<
-  typeof InferenceWithTranslationSchema
->;
 
 export const ImpactAssessmentSchema = z.object({
   level: z.enum(['high', 'medium', 'low']),
@@ -34,7 +29,6 @@ export const ImpactAssessmentSchema = z.object({
   breaking: z.boolean(),
   reason: z.string(),
 });
-export type ImpactAssessment = z.infer<typeof ImpactAssessmentSchema>;
 
 export const ChangelogItemSchema = z.object({
   id: z.string().length(12), // sha256(content)[0:12]
@@ -46,14 +40,6 @@ export const ChangelogItemSchema = z.object({
   inference: InferenceResultSchema.optional(),
   impact: ImpactAssessmentSchema.optional(),
 });
-export type ChangelogItem = z.infer<typeof ChangelogItemSchema>;
-
-export const AnalysisSchema = z.object({
-  version: z.string(),
-  summary: z.string().optional(),
-  items: z.array(ChangelogItemSchema),
-});
-export type Analysis = z.infer<typeof AnalysisSchema>;
 
 export const InferredRelatedDocSchema = z.object({
   file: z.string(),
@@ -66,13 +52,6 @@ export const InferredChangelogItemSchema = ChangelogItemSchema.omit({
   related_docs: z.array(InferredRelatedDocSchema),
 });
 export type InferredChangelogItem = z.infer<typeof InferredChangelogItemSchema>;
-
-export const InferredAnalysisSchema = AnalysisSchema.omit({
-  items: true,
-}).extend({
-  items: z.array(InferredChangelogItemSchema),
-});
-export type InferredAnalysis = z.infer<typeof InferredAnalysisSchema>;
 
 // D1 取り込み用ペイロード。inferred ファイルの version は 'v' プレフィックスなし。
 // 旧バージョンのファイルには summary / content_ja / feature_areas / inference がなく、
@@ -93,7 +72,6 @@ export const IngestChangelogItemSchema = z.object({
     .nullable()
     .optional(),
 });
-export type IngestChangelogItem = z.infer<typeof IngestChangelogItemSchema>;
 
 export const IngestChangelogVersionSchema = z.object({
   version: z.string().regex(/^\d+\.\d+\.\d+$/),
@@ -135,9 +113,6 @@ export const IngestChangelogPayloadSchema = z.object({
   settings: z.array(IngestSettingSchema).default([]),
   diff_events: z.array(IngestChangelogDiffEventSchema).default([]),
 });
-export type IngestChangelogPayload = z.infer<
-  typeof IngestChangelogPayloadSchema
->;
 
 // 通知 payload を Cloudflare Queues の 128KB 上限内に収めるため
 // notifier 実装が参照するフィールドのみを抽出した型。
@@ -147,9 +122,6 @@ export const NotificationChangelogItemSchema = z.object({
   content_ja: z.string().nullable().optional(),
   prefix: z.string(),
 });
-export type NotificationChangelogItem = z.infer<
-  typeof NotificationChangelogItemSchema
->;
 
 export const NotificationAnalysisSchema = z.object({
   version: z.string(),
