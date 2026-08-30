@@ -15,7 +15,7 @@ import type {
   IngestSetting,
 } from '@claude-code-changelog-viewer/types';
 import { app } from '../index';
-import { FakeD1Database } from '../test-support/fake-d1';
+import { FakeD1Database, FakeDocsD1Database } from '../test-support/fake-d1';
 import { createTestEnv } from '../test-support/notification-test-support';
 
 async function seed(
@@ -168,6 +168,11 @@ describe('GET /api/site-data integration', () => {
 
   it('設定リファレンスと公式ドキュメントを key / doc_path 順で返すこと', async () => {
     const db = new FakeD1Database();
+    const docsDb = new FakeDocsD1Database();
+    await seedSettingSchema(docsDb, [
+      { key: 'alpha', valueType: 'string', defaultValue: '"latest"' },
+      { key: 'zeta', valueType: '', defaultValue: null },
+    ]);
     await seed(db, {
       settings: [
         {
@@ -199,7 +204,7 @@ describe('GET /api/site-data integration', () => {
     const response = await app.request(
       '/api/site-data/settings',
       {},
-      createTestEnv(db),
+      createTestEnv(db, docsDb),
     );
 
     expect(response.status).toBe(200);
@@ -212,6 +217,8 @@ describe('GET /api/site-data integration', () => {
           source: 'settings',
           description_en: 'Alpha',
           description_ja: 'アルファ',
+          value_type: 'string',
+          default_value: 'latest',
           fetched_at: '2026-08-16',
           official_docs: [{ doc_path: 'model.md' }],
         },
@@ -228,5 +235,22 @@ describe('GET /api/site-data integration', () => {
       ],
     });
     db.close();
+    docsDb.close();
   });
 });
+
+async function seedSettingSchema(
+  docsDb: FakeDocsD1Database,
+  entries: { key: string; valueType: string; defaultValue: string | null }[],
+) {
+  for (const entry of entries) {
+    await docsDb
+      .prepare(
+        `INSERT INTO setting_schema_entries
+           (key, source, description, parent_descriptions, value_type, default_value, enum_values)
+         VALUES (?, 'settings', '', '[]', ?, ?, NULL)`,
+      )
+      .bind(entry.key, entry.valueType, entry.defaultValue)
+      .run();
+  }
+}

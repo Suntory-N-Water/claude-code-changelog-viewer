@@ -82,6 +82,27 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
     ]);
   });
 
+  it('配列の要素型を string[] の形にすること', () => {
+    const entries = flattenSettingSchema({
+      properties: {
+        allow: { type: 'array', items: { type: 'string' } },
+        matrix: {
+          type: 'array',
+          items: { type: 'array', items: { type: 'number' } },
+        },
+        mixed: { type: 'array', items: { type: ['string', 'number'] } },
+        untyped: { type: 'array' },
+      },
+    });
+
+    expect(entries.map((entry) => [entry.key, entry.valueType])).toEqual([
+      ['allow', 'string[]'],
+      ['matrix', 'number[][]'],
+      ['mixed', 'array'],
+      ['untyped', 'array'],
+    ]);
+  });
+
   it('env-vars.md の環境変数テーブルを抽出すること', () => {
     const entries = parseEnvVarsMd(`
 | Environment variable | Description |

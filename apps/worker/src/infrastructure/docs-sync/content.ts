@@ -473,13 +473,7 @@ function createSettingSchemaEntry({
   parentDescriptions,
 }: SettingSchemaEntryInput): SettingSchemaEntry {
   const node = isJsonObject(value) ? value : {};
-  const type = node['type'];
-  const valueType =
-    typeof type === 'string'
-      ? type
-      : Array.isArray(type)
-        ? JSON.stringify(type)
-        : '';
+  const valueType = formatValueType(node);
   const defaultValue = Object.hasOwn(node, 'default')
     ? (JSON.stringify(node['default']) ?? null)
     : null;
@@ -497,6 +491,22 @@ function createSettingSchemaEntry({
     defaultValue,
     enumValues,
   };
+}
+
+function formatValueType(node: JsonObject): string {
+  const type = node['type'];
+  if (typeof type !== 'string') {
+    return Array.isArray(type) ? JSON.stringify(type) : '';
+  }
+  if (type !== 'array') {
+    return type;
+  }
+
+  // JSON Schema の type だけでは `array` としか分からず、読者が要素に何を書けるか判断できない
+  const items = isJsonObject(node['items'])
+    ? formatValueType(node['items'])
+    : '';
+  return /^[a-z]+(?:\[\])*$/.test(items) ? `${items}[]` : 'array';
 }
 
 function isJsonObject(value: unknown): value is JsonObject {
