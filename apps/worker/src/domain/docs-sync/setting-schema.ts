@@ -41,3 +41,14 @@ export function mergeSettingSchemaEntries<T extends SettingSchemaCandidate>(
 
   return result;
 }
+
+/** 保存時に JSON 化された既定値を、設定ファイルに書く形へ戻す。 */
+export function formatSchemaDefaultValue(stored: string): string {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(stored);
+  } catch {
+    return stored.trim();
+  }
+  return typeof parsed === 'string' ? parsed.trim() : JSON.stringify(parsed);
+}

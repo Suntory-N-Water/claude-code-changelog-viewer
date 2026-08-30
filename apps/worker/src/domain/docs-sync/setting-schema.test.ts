@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { mergeSettingSchemaEntries } from './setting-schema';
+import {
+  formatSchemaDefaultValue,
+  mergeSettingSchemaEntries,
+} from './setting-schema';
 
 type Entry = {
   key: string;
@@ -56,4 +59,20 @@ describe('設定スキーマ統合ポリシー', () => {
       ),
     ).toEqual([entry('setting.duplicate', 'settings')]);
   });
+});
+
+describe('既定値の表記', () => {
+  it.each([
+    ['文字列', '"latest"', 'latest'],
+    ['真偽値', 'true', 'true'],
+    ['数値', '5', '5'],
+    ['空の配列', '[]', '[]'],
+    ['オブジェクト', '{"a":1}', '{"a":1}'],
+    ['JSON として読めない値', 'latest', 'latest'],
+  ])(
+    '%s のとき、設定ファイルに書く形で返すこと',
+    (_label, stored, expected) => {
+      expect(formatSchemaDefaultValue(stored)).toBe(expected);
+    },
+  );
 });

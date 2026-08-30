@@ -15,7 +15,7 @@ import type {
   IngestSetting,
 } from '@claude-code-changelog-viewer/types';
 import { app } from '../index';
-import { FakeD1Database } from '../test-support/fake-d1';
+import { FakeD1Database, FakeDocsD1Database } from '../test-support/fake-d1';
 import { createTestEnv } from '../test-support/notification-test-support';
 
 async function seed(
@@ -168,6 +168,7 @@ describe('GET /api/site-data integration', () => {
 
   it('設定リファレンスと公式ドキュメントを key / doc_path 順で返すこと', async () => {
     const db = new FakeD1Database();
+    const docsDb = new FakeDocsD1Database();
     await seed(db, {
       settings: [
         {
@@ -199,7 +200,7 @@ describe('GET /api/site-data integration', () => {
     const response = await app.request(
       '/api/site-data/settings',
       {},
-      createTestEnv(db),
+      createTestEnv(db, docsDb),
     );
 
     expect(response.status).toBe(200);
@@ -228,5 +229,98 @@ describe('GET /api/site-data integration', () => {
       ],
     });
     db.close();
+    docsDb.close();
+  });
+
+  it('公式の型と既定値を持つキーのとき、その項目だけを応答に含めること', async () => {
+    const db = new FakeD1Database();
+    const docsDb = new FakeDocsD1Database();
+    await seedSettingSchema(docsDb, [
+      { key: 'model', valueType: 'string', defaultValue: '"latest"' },
+      { key: 'permissions.allow', valueType: 'string[]', defaultValue: null },
+      { key: 'CLAUDE_CODE_TEST', valueType: '', defaultValue: '""' },
+    ]);
+    await seed(db, {
+      settings: [
+        createSetting('CLAUDE_CODE_TEST', 'env'),
+        createSetting('model', 'settings'),
+        createSetting('permissions.allow', 'settings'),
+      ],
+    });
+
+    const response = await app.request(
+      '/api/site-data/settings',
+      {},
+      createTestEnv(db, docsDb),
+    );
+
+    expect(await response.json()).toEqual({
+      settings: [
+        {
+          key: 'CLAUDE_CODE_TEST',
+          leaf_name: 'CLAUDE_CODE_TEST',
+          slug: 'claude-code-test',
+          source: 'env',
+          description_en: 'CLAUDE_CODE_TEST',
+          description_ja: 'CLAUDE_CODE_TEST の説明',
+          fetched_at: '2026-08-16',
+          official_docs: [],
+        },
+        {
+          key: 'model',
+          leaf_name: 'model',
+          slug: 'model',
+          source: 'settings',
+          description_en: 'model',
+          description_ja: 'model の説明',
+          value_type: 'string',
+          default_value: 'latest',
+          fetched_at: '2026-08-16',
+          official_docs: [],
+        },
+        {
+          key: 'permissions.allow',
+          leaf_name: 'allow',
+          slug: 'permissions-allow',
+          source: 'settings',
+          description_en: 'permissions.allow',
+          description_ja: 'permissions.allow の説明',
+          value_type: 'string[]',
+          fetched_at: '2026-08-16',
+          official_docs: [],
+        },
+      ],
+    });
+    db.close();
+    docsDb.close();
   });
 });
+
+function createSetting(key: string, source: 'settings' | 'env'): IngestSetting {
+  return {
+    key,
+    leaf_name: key.split('.').at(-1) ?? key,
+    slug: key.toLowerCase().replaceAll(/[._]/g, '-'),
+    source,
+    description_en: key,
+    description_ja: `${key} の説明`,
+    fetched_at: '2026-08-16',
+    official_doc_urls: [],
+  };
+}
+
+async function seedSettingSchema(
+  docsDb: FakeDocsD1Database,
+  entries: { key: string; valueType: string; defaultValue: string | null }[],
+) {
+  for (const entry of entries) {
+    await docsDb
+      .prepare(
+        `INSERT INTO setting_schema_entries
+           (key, source, description, parent_descriptions, value_type, default_value, enum_values)
+         VALUES (?, 'settings', '', '[]', ?, ?, NULL)`,
+      )
+      .bind(entry.key, entry.valueType, entry.defaultValue)
+      .run();
+  }
+}

@@ -82,6 +82,24 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
     ]);
   });
 
+  it.each([
+    ['要素が文字列', { type: 'string' }, 'string[]'],
+    ['要素が配列', { type: 'array', items: { type: 'number' } }, 'number[][]'],
+    ['要素の型が複数', { type: ['string', 'number'] }, 'array'],
+    ['要素の指定がない', undefined, 'array'],
+  ])(
+    '配列の設定項目で %s のとき、書ける値が分かる型を返すこと',
+    (_label, items, expected) => {
+      const entries = flattenSettingSchema({
+        properties: {
+          allow: { type: 'array', ...(items === undefined ? {} : { items }) },
+        },
+      });
+
+      expect(entries[0]?.valueType).toBe(expected);
+    },
+  );
+
   it('env-vars.md の環境変数テーブルを抽出すること', () => {
     const entries = parseEnvVarsMd(`
 | Environment variable | Description |

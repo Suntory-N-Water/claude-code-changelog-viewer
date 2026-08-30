@@ -11,6 +11,7 @@ import {
   listRelatedDocs,
   listSettingsReference,
 } from '../infrastructure/drizzle/changelog-repository';
+import { loadSettingSchemaDisplays } from '../infrastructure/docs-sync/setting-schema-reader';
 
 const logger = getLogger({
   name: 'routes.site-data',
@@ -133,10 +134,12 @@ siteDataRoute.get('/settings', async (c) => {
   const db = drizzle(c.env.DB);
   let settingRows: Awaited<ReturnType<typeof listSettingsReference>>;
   let officialDocRows: Awaited<ReturnType<typeof listAllOfficialDocs>>;
+  let schemaDisplays: Awaited<ReturnType<typeof loadSettingSchemaDisplays>>;
   try {
-    [settingRows, officialDocRows] = await Promise.all([
+    [settingRows, officialDocRows, schemaDisplays] = await Promise.all([
       listSettingsReference(db),
       listAllOfficialDocs(db),
+      loadSettingSchemaDisplays(c.env.DOCS_DB),
     ]);
   } catch (error) {
     logger.error('設定リファレンスの取得に失敗しました', {
@@ -154,17 +157,26 @@ siteDataRoute.get('/settings', async (c) => {
   }
 
   const response = {
-    settings: settingRows.map((row) => ({
-      key: row.key,
-      ...(row.leafName === null ? {} : { leaf_name: row.leafName }),
-      slug: row.slug,
-      source: row.source,
-      description_en: row.descriptionEn,
-      description_ja: row.descriptionJa,
-      ...(row.useCaseJa === null ? {} : { use_case_ja: row.useCaseJa }),
-      fetched_at: row.fetchedAt,
-      official_docs: officialDocsBySetting.get(row.key) ?? [],
-    })),
+    settings: settingRows.map((row) => {
+      const schema = schemaDisplays.get(row.key);
+      return {
+        key: row.key,
+        ...(row.leafName === null ? {} : { leaf_name: row.leafName }),
+        slug: row.slug,
+        source: row.source,
+        description_en: row.descriptionEn,
+        description_ja: row.descriptionJa,
+        ...(row.useCaseJa === null ? {} : { use_case_ja: row.useCaseJa }),
+        ...(schema?.valueType === undefined
+          ? {}
+          : { value_type: schema.valueType }),
+        ...(schema?.defaultValue === undefined
+          ? {}
+          : { default_value: schema.defaultValue }),
+        fetched_at: row.fetchedAt,
+        official_docs: officialDocsBySetting.get(row.key) ?? [],
+      };
+    }),
   };
   logger.info('設定リファレンスを返しました', {
     route: 'site-data/settings',

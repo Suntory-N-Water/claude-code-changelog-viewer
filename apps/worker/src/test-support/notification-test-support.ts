@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { CHANNEL_ACTIVE_SENTINEL } from '../db/constants';
-import type { FakeD1Database } from './fake-d1';
+import type { FakeD1Database, FakeDocsD1Database } from './fake-d1';
 
 export type ChannelRow = {
   id: string;
@@ -13,9 +13,10 @@ export type ChannelRow = {
 
 const TEST_EMAIL_ENCRYPTION_KEY = 'test-email-encryption-key-32bytes!!';
 
-export function createTestEnv(db: FakeD1Database) {
+export function createTestEnv(db: FakeD1Database, docsDb?: FakeDocsD1Database) {
   return {
     DB: db,
+    DOCS_DB: docsDb,
     DISPATCH_SECRET: 'dispatch-secret',
     NOTIFICATION_QUEUE: {
       send: vi.fn(() => Promise.resolve(undefined)),
