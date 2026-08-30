@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { summarizeSettingDescription } from './settings-reference';
+import {
+  buildSettingValueOptions,
+  summarizeSettingDescription,
+} from './settings-reference';
 
 describe('summarizeSettingDescription', () => {
   test.each([
@@ -40,5 +43,26 @@ describe('summarizeSettingDescription', () => {
     const description = '設定を有効にします';
 
     expect(summarizeSettingDescription(description)).toBe(description);
+  });
+});
+
+describe('buildSettingValueOptions', () => {
+  test('既定値が選択肢に含まれるとき、その値だけに既定の印が付く', () => {
+    expect(buildSettingValueOptions(['stable', 'latest'], 'latest')).toEqual([
+      { value: 'stable', isDefault: false },
+      { value: 'latest', isDefault: true },
+    ]);
+  });
+
+  test.each([
+    ['既定値がないとき', undefined],
+    ['既定値が選択肢にないとき', 'nightly'],
+  ])('%s、どの値にも既定の印が付かない', (_caseName, defaultValue) => {
+    expect(
+      buildSettingValueOptions(['stable', 'latest'], defaultValue),
+    ).toEqual([
+      { value: 'stable', isDefault: false },
+      { value: 'latest', isDefault: false },
+    ]);
   });
 });

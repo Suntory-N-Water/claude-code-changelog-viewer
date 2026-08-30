@@ -35,6 +35,7 @@ type SettingsResponse = {
     use_case_ja?: string;
     value_type?: string;
     default_value?: string;
+    enum_values?: string[];
     fetched_at: string;
     official_docs: { doc_path: string }[];
   }[];
