@@ -294,6 +294,64 @@ describe('GET /api/site-data integration', () => {
     db.close();
     docsDb.close();
   });
+
+  it('公式の選択肢を持つキーのとき、その値の並びを応答に含めること', async () => {
+    const db = new FakeD1Database();
+    const docsDb = new FakeDocsD1Database();
+    await seedSettingSchema(docsDb, [
+      {
+        key: 'model',
+        valueType: 'string',
+        defaultValue: '"latest"',
+        enumValues: '["stable","latest"]',
+      },
+      { key: 'verbose', valueType: 'boolean', defaultValue: 'false' },
+    ]);
+    await seed(db, {
+      settings: [
+        createSetting('model', 'settings'),
+        createSetting('verbose', 'settings'),
+      ],
+    });
+
+    const response = await app.request(
+      '/api/site-data/settings',
+      {},
+      createTestEnv(db, docsDb),
+    );
+
+    expect(await response.json()).toEqual({
+      settings: [
+        {
+          key: 'model',
+          leaf_name: 'model',
+          slug: 'model',
+          source: 'settings',
+          description_en: 'model',
+          description_ja: 'model の説明',
+          value_type: 'string',
+          default_value: 'latest',
+          enum_values: ['stable', 'latest'],
+          fetched_at: '2026-08-16',
+          official_docs: [],
+        },
+        {
+          key: 'verbose',
+          leaf_name: 'verbose',
+          slug: 'verbose',
+          source: 'settings',
+          description_en: 'verbose',
+          description_ja: 'verbose の説明',
+          value_type: 'boolean',
+          default_value: 'false',
+          fetched_at: '2026-08-16',
+          official_docs: [],
+        },
+      ],
+    });
+    db.close();
+    docsDb.close();
+  });
 });
 
 function createSetting(key: string, source: 'settings' | 'env'): IngestSetting {
@@ -311,16 +369,26 @@ function createSetting(key: string, source: 'settings' | 'env'): IngestSetting {
 
 async function seedSettingSchema(
   docsDb: FakeDocsD1Database,
-  entries: { key: string; valueType: string; defaultValue: string | null }[],
+  entries: {
+    key: string;
+    valueType: string;
+    defaultValue: string | null;
+    enumValues?: string;
+  }[],
 ) {
   for (const entry of entries) {
     await docsDb
       .prepare(
         `INSERT INTO setting_schema_entries
            (key, source, description, parent_descriptions, value_type, default_value, enum_values)
-         VALUES (?, 'settings', '', '[]', ?, ?, NULL)`,
+         VALUES (?, 'settings', '', '[]', ?, ?, ?)`,
       )
-      .bind(entry.key, entry.valueType, entry.defaultValue)
+      .bind(
+        entry.key,
+        entry.valueType,
+        entry.defaultValue,
+        entry.enumValues ?? null,
+      )
       .run();
   }
 }

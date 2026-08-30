@@ -52,3 +52,14 @@ export function formatSchemaDefaultValue(stored: string): string {
   }
   return typeof parsed === 'string' ? parsed.trim() : JSON.stringify(parsed);
 }
+
+/** 保存時に JSON 化された選択肢を、表示できる値の並びへ戻す。 */
+export function parseSchemaEnumValues(stored: string): string[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(stored);
+  } catch {
+    return [];
+  }
+  return Array.isArray(parsed) ? parsed.map(String) : [];
+}

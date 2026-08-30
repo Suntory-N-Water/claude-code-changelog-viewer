@@ -25,6 +25,22 @@ export type ChangelogItemWithVersion = {
   item: InferredChangelogItem;
 };
 
+export type SettingValueOption = {
+  value: string;
+  isDefault: boolean;
+};
+
+/** 取りうる値の表の行を、既定値にあたる値へ印を付けて組む。 */
+export function buildSettingValueOptions(
+  enumValues: readonly string[],
+  defaultValue: string | undefined,
+): SettingValueOption[] {
+  return enumValues.map((value) => ({
+    value,
+    isDefault: defaultValue !== undefined && value === defaultValue,
+  }));
+}
+
 export function getSourceLabel(source: 'settings' | 'env'): string {
   return source === 'settings' ? 'settings.json' : '環境変数';
 }

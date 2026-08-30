@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   formatSchemaDefaultValue,
   mergeSettingSchemaEntries,
+  parseSchemaEnumValues,
 } from './setting-schema';
 
 type Entry = {
@@ -75,4 +76,16 @@ describe('既定値の表記', () => {
       expect(formatSchemaDefaultValue(stored)).toBe(expected);
     },
   );
+});
+
+describe('選択肢の表記', () => {
+  it.each([
+    ['文字列の配列', '["stable","latest"]', ['stable', 'latest']],
+    ['数値の配列', '[0,1]', ['0', '1']],
+    ['空の配列', '[]', []],
+    ['配列ではない値', '"latest"', []],
+    ['JSON として読めない値', 'stable, latest', []],
+  ])('%s のとき、表示できる値の並びを返すこと', (_label, stored, expected) => {
+    expect(parseSchemaEnumValues(stored)).toEqual(expected);
+  });
 });
