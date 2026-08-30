@@ -1,4 +1,5 @@
 ---
+import { TZDate } from '@date-fns/tz';
 import { getCollection } from 'astro:content';
 import { format, parseISO } from 'date-fns';
 import Icon from '../components/Icon.astro';
@@ -16,6 +17,7 @@ import {
   MIN_ITEMS_FOR_PAGE,
   toFeatureAreaSlug,
 } from '../lib/feature-area';
+import { getReleaseMap } from '../lib/release-map';
 import { semverCompareDesc } from '../lib/semver';
 
 const sortedChangelogs = await getCollection('changelog');
@@ -80,6 +82,19 @@ if (latestColumn) {
 }
 
 const latestVersion = sortedChangelogs[0].data.version;
+const latestReleaseAt = (await getReleaseMap()).get(latestVersion);
+if (latestReleaseAt === undefined) {
+  throw new Error(
+    `Claude Code最新版 v${latestVersion} のリリース日を取得できませんでした`,
+  );
+}
+const latestReleaseDate = format(
+  new TZDate(latestReleaseAt, 'Asia/Tokyo'),
+  'yyyy年M月d日',
+);
+const latestVersionLabel = `v${latestVersion}(${latestReleaseDate}リリース)`;
+const pageTitle = `Claude Code最新版 v${latestVersion} - ${SITE_TITLE}`;
+const pageDescription = `Claude Codeの最新版は${latestVersionLabel}です。公式 CHANGELOG の変更履歴を AI が日本語で解説し、Skills・Hooks・MCP・Memory など機能別に絞り込めます。`;
 const totalVersions = sortedChangelogs.length;
 const totalChanges = sortedChangelogs.reduce(
   (sum, entry) => sum + entry.data.items.length,
@@ -117,8 +132,8 @@ const topAreas = [...areaMap.entries()]
 ---
 
 <Layout
-  title='CCログ超訳: Claude Codeの変更履歴をAIが日本語解説'
-  description='Claude Code(Anthropic公式CLIツール)の変更履歴。Skills・Hooks・MCP・Memoryなど機能別にアップデート内容を絞り込み、AIが新機能・バグ修正・改善点を日本語で解説します。'
+  title={pageTitle}
+  description={pageDescription}
   jsonLd={{ type: 'website' }}
   faqItems={faqItems}
 >
@@ -126,14 +141,25 @@ const topAreas = [...areaMap.entries()]
     <div class='max-w-6xl mx-auto'>
       <header class='mb-16 sm:mb-20 max-w-4xl'>
         <div
-          class='flex flex-wrap items-end gap-x-6 gap-y-3 border-b border-[hsl(var(--cc-gray))] pb-6 mb-8'
+          class='flex flex-wrap items-end gap-x-6 gap-y-4 border-b border-[hsl(var(--cc-gray))] pb-6 mb-8'
         >
-          <a
-            href={`/changelog/v${latestVersion}`}
-            class='font-mono text-5xl sm:text-6xl lg:text-7xl font-bold tabular-nums leading-none tracking-tight text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-          >
-            v{latestVersion}
-          </a>
+          <section aria-labelledby='latest-version-label'>
+            <p
+              id='latest-version-label'
+              class='text-sm font-semibold text-[hsl(var(--cc-main-black)/0.6)] mb-2'
+            >
+              Claude Codeの最新版
+            </p>
+            <a
+              href={`/changelog/v${latestVersion}`}
+              class='font-mono text-5xl sm:text-6xl lg:text-7xl font-bold tabular-nums leading-none tracking-tight text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+            >
+              v{latestVersion}
+            </a>
+            <p class='mt-2 text-xs text-[hsl(var(--cc-main-black)/0.55)]'>
+              リリース日: {latestReleaseDate}
+            </p>
+          </section>
           <dl
             class='font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] flex flex-col gap-1 pb-1'
           >

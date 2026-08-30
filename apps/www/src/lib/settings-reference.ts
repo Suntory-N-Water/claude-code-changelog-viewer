@@ -1,6 +1,25 @@
 import { buildChangelogSearchTerms } from '@claude-code-changelog-viewer/common';
 import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
 
+const SETTING_SUMMARY_MAX_LENGTH = 80;
+
+/** 設定一覧カードに表示する、検索対象外の短い要約を作る。 */
+export function summarizeSettingDescription(description: string): string {
+  const plainText = description
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\s+/gu, ' ')
+    .trim();
+  // 設定名やパスには ASCII のピリオドが含まれるため、文末判定は日本語の句点に限定する。
+  const firstSentence = plainText.split(/(?<=[。！？])/u)[0] ?? plainText;
+  const characters = Array.from(firstSentence);
+
+  if (characters.length <= SETTING_SUMMARY_MAX_LENGTH) {
+    return firstSentence;
+  }
+  return `${characters.slice(0, SETTING_SUMMARY_MAX_LENGTH - 1).join('')}…`;
+}
+
 export type ChangelogItemWithVersion = {
   version: string;
   item: InferredChangelogItem;

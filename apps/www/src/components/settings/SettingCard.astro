@@ -1,19 +1,17 @@
 ---
 import Badge from '../ui/Badge.astro';
 import CardLink from '../ui/CardLink.astro';
-import { formatSettingDescription } from '../../lib/format-changelog-content';
 import { getSourceLabel } from '../../lib/settings-reference';
 
 type Props = {
   slug: string;
   keyName: string;
   source: 'settings' | 'env';
-  descriptionJa: string;
+  summary: string;
 };
 
-const { slug, keyName, source, descriptionJa } = Astro.props;
+const { slug, keyName, source, summary } = Astro.props;
 const sourceLabel = getSourceLabel(source);
-const descriptionHtml = formatSettingDescription(descriptionJa);
 ---
 
 <CardLink href={`/reference/settings/${slug}`} padding='md' iconSize='sm'>
@@ -25,8 +23,5 @@ const descriptionHtml = formatSettingDescription(descriptionJa);
   <div class='mb-2'>
     <Badge class='font-medium'>{sourceLabel}</Badge>
   </div>
-  <div
-    class='text-sm text-gray-600 leading-relaxed line-clamp-2 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[hsl(var(--cc-gray))] [&_code]:text-[hsl(var(--cc-main-black))] [&_code]:text-xs [&_code]:font-mono'
-    set:html={descriptionHtml}
-  />
+  <p class='text-sm text-gray-600 leading-relaxed line-clamp-1'>{summary}</p>
 </CardLink>
