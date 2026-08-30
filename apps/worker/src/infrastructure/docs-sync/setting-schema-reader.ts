@@ -1,3 +1,5 @@
+import { formatSchemaDefaultValue } from '../../domain/docs-sync/setting-schema';
+
 export type SettingSchemaDisplay = {
   valueType?: string;
   defaultValue?: string;
@@ -22,7 +24,9 @@ export async function loadSettingSchemaDisplays(
   const displays = new Map<string, SettingSchemaDisplay>();
   for (const row of result.results) {
     const defaultValue =
-      row.default_value === null ? '' : formatDefaultValue(row.default_value);
+      row.default_value === null
+        ? ''
+        : formatSchemaDefaultValue(row.default_value);
     const display: SettingSchemaDisplay = {
       ...(row.value_type === '' ? {} : { valueType: row.value_type }),
       ...(defaultValue === '' ? {} : { defaultValue }),
@@ -32,15 +36,4 @@ export async function loadSettingSchemaDisplays(
     }
   }
   return displays;
-}
-
-/** 保存時に JSON 化された既定値を、設定ファイルに書く形に戻す。 */
-export function formatDefaultValue(stored: string): string {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(stored);
-  } catch {
-    return stored.trim();
-  }
-  return typeof parsed === 'string' ? parsed.trim() : JSON.stringify(parsed);
 }

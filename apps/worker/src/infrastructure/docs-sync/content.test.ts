@@ -82,26 +82,23 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
     ]);
   });
 
-  it('配列の要素型を string[] の形にすること', () => {
-    const entries = flattenSettingSchema({
-      properties: {
-        allow: { type: 'array', items: { type: 'string' } },
-        matrix: {
-          type: 'array',
-          items: { type: 'array', items: { type: 'number' } },
+  it.each([
+    ['要素が文字列', { type: 'string' }, 'string[]'],
+    ['要素が配列', { type: 'array', items: { type: 'number' } }, 'number[][]'],
+    ['要素の型が複数', { type: ['string', 'number'] }, 'array'],
+    ['要素の指定がない', undefined, 'array'],
+  ])(
+    '配列の設定項目で %s のとき、書ける値が分かる型を返すこと',
+    (_label, items, expected) => {
+      const entries = flattenSettingSchema({
+        properties: {
+          allow: { type: 'array', ...(items === undefined ? {} : { items }) },
         },
-        mixed: { type: 'array', items: { type: ['string', 'number'] } },
-        untyped: { type: 'array' },
-      },
-    });
+      });
 
-    expect(entries.map((entry) => [entry.key, entry.valueType])).toEqual([
-      ['allow', 'string[]'],
-      ['matrix', 'number[][]'],
-      ['mixed', 'array'],
-      ['untyped', 'array'],
-    ]);
-  });
+      expect(entries[0]?.valueType).toBe(expected);
+    },
+  );
 
   it('env-vars.md の環境変数テーブルを抽出すること', () => {
     const entries = parseEnvVarsMd(`
