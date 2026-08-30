@@ -5,6 +5,10 @@ const LLMS_URL_PATTERN =
 const FENCE_PATTERN = /^\s*```/;
 const HEADING_PATTERN = /^(#{1,6})\s+(.*)$/;
 const EXCLUDED_DOCUMENT_NAME = 'changelog.md';
+const SETTING_KEY_PATTERN = /^`([A-Za-z][\w.]*)`$/;
+// 保存する本文は cleanMarkdown が箇条書きを `-` に揃えるが、公式の原文は `*` を使う
+const SETTING_SCOPE_PATTERN = /^[-*]\s+\*\*Scope\*\*:\s*\[?`([^`]+)`/;
+const JSON_FENCE_PATTERN = /^\s*```json(?:\s|$)/;
 
 const SECONDARY_SPLIT_THRESHOLD = 2000;
 
@@ -28,6 +32,14 @@ export type SettingSchemaEntry = {
   valueType: string;
   defaultValue: string | null;
   enumValues: string | null;
+  scope: string | null;
+  example: string | null;
+};
+
+export type SettingsReferenceSection = {
+  key: string;
+  scope: string | null;
+  example: string | null;
 };
 
 type MarkdownLine = {
@@ -406,6 +418,58 @@ export function parseEnvVarsMd(
   });
 }
 
+/** settings-reference.md の設定キーのセクションから記述場所と記述例を抽出する。 */
+export function parseSettingsReferenceMd(
+  markdown: string,
+): SettingsReferenceSection[] {
+  const sections: SettingsReferenceSection[] = [];
+  let current: SettingsReferenceSection | null = null;
+  let exampleLines: string[] | null = null;
+
+  for (const line of markdown.split('\n')) {
+    if (exampleLines !== null) {
+      if (FENCE_PATTERN.test(line)) {
+        if (current !== null) {
+          current.example = exampleLines.join('\n');
+        }
+        exampleLines = null;
+        continue;
+      }
+      exampleLines.push(line);
+      continue;
+    }
+
+    const headingMatch = line.match(HEADING_PATTERN);
+    if (headingMatch !== null) {
+      const keyMatch = headingMatch[2]?.match(SETTING_KEY_PATTERN);
+      const key = headingMatch[1]?.length === 3 ? keyMatch?.[1] : undefined;
+      if (key === undefined) {
+        current = null;
+        continue;
+      }
+      current = { key, scope: null, example: null };
+      sections.push(current);
+      continue;
+    }
+
+    if (current === null) {
+      continue;
+    }
+
+    const scopeMatch = line.match(SETTING_SCOPE_PATTERN);
+    if (scopeMatch !== null && current.scope === null) {
+      current.scope = scopeMatch[1] ?? null;
+      continue;
+    }
+
+    if (current.example === null && JSON_FENCE_PATTERN.test(line)) {
+      exampleLines = [];
+    }
+  }
+
+  return sections;
+}
+
 /** docs/en 本文にある公開環境変数の言及から環境変数エントリを抽出する。 */
 export function parsePublicEnvEntriesFromDocs(
   pages: ReadonlyMap<string, string>,
@@ -490,6 +554,8 @@ function createSettingSchemaEntry({
     valueType,
     defaultValue,
     enumValues,
+    scope: null,
+    example: null,
   };
 }
 
@@ -609,6 +675,8 @@ function createEnvironmentSettingSchemaEntry(
     valueType: '',
     defaultValue: null,
     enumValues: null,
+    scope: null,
+    example: null,
   };
 }
 

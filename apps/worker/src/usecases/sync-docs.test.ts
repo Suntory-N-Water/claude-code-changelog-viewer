@@ -4,6 +4,7 @@ import { syncDocs } from './sync-docs';
 const emptyContentParser = {
   parseEnvVarsMd: () => [],
   parsePublicEnvEntriesFromDocs: () => [],
+  parseSettingsReferenceMd: () => [],
 };
 
 describe('ドキュメント同期ユースケース', () => {
@@ -38,6 +39,8 @@ describe('ドキュメント同期ユースケース', () => {
               valueType: 'array',
               defaultValue: '[]',
               enumValues: '["Read","Write"]',
+              scope: null,
+              example: null,
             },
           ],
         }),
@@ -94,6 +97,8 @@ describe('ドキュメント同期ユースケース', () => {
             valueType: 'array',
             defaultValue: '[]',
             enumValues: '["Read","Write"]',
+            scope: null,
+            example: null,
           },
         ],
       },
@@ -137,6 +142,8 @@ describe('ドキュメント同期ユースケース', () => {
         valueType: '',
         defaultValue: null,
         enumValues: null,
+        scope: null,
+        example: null,
       },
     ];
     const docsEntries = [
@@ -148,6 +155,8 @@ describe('ドキュメント同期ユースケース', () => {
         valueType: '',
         defaultValue: null,
         enumValues: null,
+        scope: null,
+        example: null,
       },
     ];
     const dependencies = {
@@ -174,6 +183,8 @@ describe('ドキュメント同期ユースケース', () => {
               valueType: 'array',
               defaultValue: '[]',
               enumValues: null,
+              scope: null,
+              example: null,
             },
           ],
         }),
@@ -190,6 +201,7 @@ describe('ドキュメント同期ユースケース', () => {
       contentParser: {
         parseEnvVarsMd: () => markdownEntries,
         parsePublicEnvEntriesFromDocs: () => docsEntries,
+        parseSettingsReferenceMd: () => [],
       },
     };
 

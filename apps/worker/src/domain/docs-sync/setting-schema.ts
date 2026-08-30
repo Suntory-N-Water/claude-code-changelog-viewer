@@ -63,3 +63,37 @@ export function parseSchemaEnumValues(stored: string): string[] {
   }
   return Array.isArray(parsed) ? parsed.map(String) : [];
 }
+
+const SCOPE_LABELS = new Map([
+  ['Any file', 'どの設定ファイルでも可'],
+  ['Managed', '管理者設定のみ'],
+  ['User or managed', 'ユーザー設定または管理者設定'],
+  ['Global config', 'グローバル設定のみ'],
+  ['User, local, or managed', 'ユーザー設定・ローカル設定・管理者設定'],
+]);
+
+/** 公式リファレンスの記述場所を日本語にする。対応表にない値は英語を出さずハイフンにする。 */
+export function formatSettingScope(scope: string): string {
+  return SCOPE_LABELS.get(scope.trim()) ?? '-';
+}
+
+type SettingsReferenceDetail = {
+  key: string;
+  scope: string | null;
+  example: string | null;
+};
+
+/** 公式リファレンスの記述場所と記述例を、同じキーを持つエントリへ取り込む。 */
+export function applySettingsReferenceDetails<
+  T extends SettingsReferenceDetail,
+>(entries: readonly T[], details: readonly SettingsReferenceDetail[]): T[] {
+  const detailsByKey = new Map(details.map((detail) => [detail.key, detail]));
+
+  return entries.map((entry) => {
+    const detail = detailsByKey.get(entry.key);
+    if (detail === undefined) {
+      return entry;
+    }
+    return { ...entry, scope: detail.scope, example: detail.example };
+  });
+}

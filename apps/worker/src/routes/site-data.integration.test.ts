@@ -352,6 +352,101 @@ describe('GET /api/site-data integration', () => {
     db.close();
     docsDb.close();
   });
+
+  it('公式の記述場所と記述例を持つキーのとき、日本語の記述場所とともに応答に含めること', async () => {
+    const db = new FakeD1Database();
+    const docsDb = new FakeDocsD1Database();
+    await seedSettingSchema(docsDb, [
+      {
+        key: 'model',
+        valueType: 'string',
+        defaultValue: null,
+        scope: 'Any file',
+        example: '{\n  "model": "opus"\n}',
+      },
+      { key: 'verbose', valueType: 'boolean', defaultValue: null },
+    ]);
+    await seed(db, {
+      settings: [
+        createSetting('CLAUDE_CODE_TEST', 'env'),
+        createSetting('model', 'settings'),
+        createSetting('verbose', 'settings'),
+      ],
+    });
+
+    const response = await app.request(
+      '/api/site-data/settings',
+      {},
+      createTestEnv(db, docsDb),
+    );
+
+    expect(await response.json()).toEqual({
+      settings: [
+        {
+          key: 'CLAUDE_CODE_TEST',
+          leaf_name: 'CLAUDE_CODE_TEST',
+          slug: 'claude-code-test',
+          source: 'env',
+          description_en: 'CLAUDE_CODE_TEST',
+          description_ja: 'CLAUDE_CODE_TEST の説明',
+          fetched_at: '2026-08-16',
+          official_docs: [],
+        },
+        {
+          key: 'model',
+          leaf_name: 'model',
+          slug: 'model',
+          source: 'settings',
+          description_en: 'model',
+          description_ja: 'model の説明',
+          value_type: 'string',
+          scope: 'どの設定ファイルでも可',
+          example: '{\n  "model": "opus"\n}',
+          fetched_at: '2026-08-16',
+          official_docs: [],
+        },
+        {
+          key: 'verbose',
+          leaf_name: 'verbose',
+          slug: 'verbose',
+          source: 'settings',
+          description_en: 'verbose',
+          description_ja: 'verbose の説明',
+          value_type: 'boolean',
+          fetched_at: '2026-08-16',
+          official_docs: [],
+        },
+      ],
+    });
+    db.close();
+    docsDb.close();
+  });
+
+  it('対応表にない記述場所のとき、ハイフンを応答に含めること', async () => {
+    const db = new FakeD1Database();
+    const docsDb = new FakeDocsD1Database();
+    await seedSettingSchema(docsDb, [
+      {
+        key: 'model',
+        valueType: '',
+        defaultValue: null,
+        scope: 'Project only',
+      },
+    ]);
+    await seed(db, { settings: [createSetting('model', 'settings')] });
+
+    const response = await app.request(
+      '/api/site-data/settings',
+      {},
+      createTestEnv(db, docsDb),
+    );
+
+    expect(await response.json()).toMatchObject({
+      settings: [{ key: 'model', scope: '-' }],
+    });
+    db.close();
+    docsDb.close();
+  });
 });
 
 function createSetting(key: string, source: 'settings' | 'env'): IngestSetting {
@@ -374,20 +469,24 @@ async function seedSettingSchema(
     valueType: string;
     defaultValue: string | null;
     enumValues?: string;
+    scope?: string;
+    example?: string;
   }[],
 ) {
   for (const entry of entries) {
     await docsDb
       .prepare(
         `INSERT INTO setting_schema_entries
-           (key, source, description, parent_descriptions, value_type, default_value, enum_values)
-         VALUES (?, 'settings', '', '[]', ?, ?, ?)`,
+           (key, source, description, parent_descriptions, value_type, default_value, enum_values, scope, example)
+         VALUES (?, 'settings', '', '[]', ?, ?, ?, ?, ?)`,
       )
       .bind(
         entry.key,
         entry.valueType,
         entry.defaultValue,
         entry.enumValues ?? null,
+        entry.scope ?? null,
+        entry.example ?? null,
       )
       .run();
   }

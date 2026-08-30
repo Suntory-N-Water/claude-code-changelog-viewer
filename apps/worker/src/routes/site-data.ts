@@ -176,6 +176,8 @@ siteDataRoute.get('/settings', async (c) => {
         ...(schema?.enumValues === undefined
           ? {}
           : { enum_values: schema.enumValues }),
+        ...(schema?.scope === undefined ? {} : { scope: schema.scope }),
+        ...(schema?.example === undefined ? {} : { example: schema.example }),
         fetched_at: row.fetchedAt,
         official_docs: officialDocsBySetting.get(row.key) ?? [],
       };

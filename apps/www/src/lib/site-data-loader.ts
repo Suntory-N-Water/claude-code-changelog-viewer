@@ -36,6 +36,8 @@ type SettingsResponse = {
     value_type?: string;
     default_value?: string;
     enum_values?: string[];
+    scope?: string;
+    example?: string;
     fetched_at: string;
     official_docs: { doc_path: string }[];
   }[];
