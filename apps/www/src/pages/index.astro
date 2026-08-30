@@ -83,12 +83,16 @@ if (latestColumn) {
 
 const latestVersion = sortedChangelogs[0].data.version;
 const latestReleaseAt = (await getReleaseMap()).get(latestVersion);
-const latestReleaseDate = latestReleaseAt
-  ? format(new TZDate(latestReleaseAt, 'Asia/Tokyo'), 'yyyy年M月d日')
-  : undefined;
-const latestVersionLabel = latestReleaseDate
-  ? `v${latestVersion}(${latestReleaseDate}リリース)`
-  : `v${latestVersion}`;
+if (latestReleaseAt === undefined) {
+  throw new Error(
+    `Claude Code最新版 v${latestVersion} のリリース日を取得できませんでした`,
+  );
+}
+const latestReleaseDate = format(
+  new TZDate(latestReleaseAt, 'Asia/Tokyo'),
+  'yyyy年M月d日',
+);
+const latestVersionLabel = `v${latestVersion}(${latestReleaseDate}リリース)`;
 const pageTitle = `Claude Code最新版 ${latestVersionLabel} - ${SITE_TITLE}`;
 const pageDescription = `Claude Codeの最新版は${latestVersionLabel}です。公式 CHANGELOG の変更履歴を AI が日本語で解説し、Skills・Hooks・MCP・Memory など機能別に絞り込めます。`;
 const totalVersions = sortedChangelogs.length;
@@ -152,13 +156,9 @@ const topAreas = [...areaMap.entries()]
             >
               v{latestVersion}
             </a>
-            {
-              latestReleaseDate && (
-                <p class='mt-2 text-xs text-[hsl(var(--cc-main-black)/0.55)]'>
-                  リリース日: {latestReleaseDate}
-                </p>
-              )
-            }
+            <p class='mt-2 text-xs text-[hsl(var(--cc-main-black)/0.55)]'>
+              リリース日: {latestReleaseDate}
+            </p>
           </section>
           <dl
             class='font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] flex flex-col gap-1 pb-1'
