@@ -268,11 +268,7 @@ const pageDescription =
               <div data-key={entry.data.key.toLowerCase()}>
                 <SettingCard
                   slug={entry.data.slug}
-                  keyName={
-                    entry.data.leaf_name ??
-                    entry.data.key.split('.').at(-1) ??
-                    entry.data.key
-                  }
+                  keyName={entry.data.key}
                   source={entry.data.source}
                   summary={summarizeSettingDescription(
                     entry.data.description_ja,
@@ -301,11 +297,7 @@ const pageDescription =
               <div data-key={entry.data.key.toLowerCase()}>
                 <SettingCard
                   slug={entry.data.slug}
-                  keyName={
-                    entry.data.leaf_name ??
-                    entry.data.key.split('.').at(-1) ??
-                    entry.data.key
-                  }
+                  keyName={entry.data.key}
                   source={entry.data.source}
                   summary={summarizeSettingDescription(
                     entry.data.description_ja,
@@ -388,8 +380,9 @@ const pageDescription =
         let groupVisible = 0;
         for (const card of cards) {
           const key = card.dataset.key ?? '';
-          const searchText = `${key} ${settingsSearchData[key] ?? ''}`;
-          const visible = q === '' || searchText.includes(q);
+          const description = settingsSearchData[key] ?? '';
+          const visible =
+            q === '' || key.includes(q) || description.includes(q);
           card.style.display = visible ? '' : 'none';
           if (visible) {
             groupVisible += 1;
