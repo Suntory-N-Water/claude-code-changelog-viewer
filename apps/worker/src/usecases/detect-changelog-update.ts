@@ -65,6 +65,10 @@ export async function detectChangelogUpdate(
     });
   }
 
+  // Workflow 起動後に状態保存だけ失敗すると、次回も同じ一意 ID で起動して
+  // 永続的に失敗する。先に再開地点を保存し、起動失敗は次の tick で回復する。
+  await dependencies.stateRepository.save(decision.state);
+
   if (decision.action === 'dispatch') {
     await dependencies.workflow.dispatch({
       hash: decision.state.lastDispatchedHash,
@@ -72,8 +76,6 @@ export async function detectChangelogUpdate(
       attempts: decision.state.attempts,
     });
   }
-
-  await dependencies.stateRepository.save(decision.state);
 
   return {
     action:
