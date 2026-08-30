@@ -10,7 +10,8 @@ export function summarizeSettingDescription(description: string): string {
     .replace(/`([^`]+)`/g, '$1')
     .replace(/\s+/gu, ' ')
     .trim();
-  const firstSentence = plainText.split(/(?<=[。！？.!?])/u)[0] ?? plainText;
+  // 設定名やパスには ASCII のピリオドが含まれるため、文末判定は日本語の句点に限定する。
+  const firstSentence = plainText.split(/(?<=[。！？])/u)[0] ?? plainText;
   const characters = Array.from(firstSentence);
 
   if (characters.length <= SETTING_SUMMARY_MAX_LENGTH) {
