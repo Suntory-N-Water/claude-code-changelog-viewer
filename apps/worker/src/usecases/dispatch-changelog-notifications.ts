@@ -65,19 +65,31 @@ export async function dispatchChangelogNotifications(
     }
     let shouldStop = false;
 
+    let notificationResult:
+      | Awaited<ReturnType<ChannelNotifier['sendChangelogNotification']>>
+      | undefined;
     try {
-      const result = await notifier.sendChangelogNotification(channel, {
+      notificationResult = await notifier.sendChangelogNotification(channel, {
         analysis: input.analysis,
         version: input.version,
       });
+    } catch (error) {
+      failures.push({ type: 'exception', channel, error });
+    }
 
-      if (!result.ok && result.failureKind === 'rate_limit') {
+    if (notificationResult !== undefined) {
+      if (
+        !notificationResult.ok &&
+        notificationResult.failureKind === 'rate_limit'
+      ) {
         failures.push({ type: 'rate_limit', channel });
         shouldStop = true;
-      } else if (!result.ok && result.failureKind === 'permanent') {
+      } else if (
+        !notificationResult.ok &&
+        notificationResult.failureKind === 'permanent'
+      ) {
         await repository.save(recordFailure(channel, input.failedAt));
-      } else if (!result.ok) {
-        await repository.save(recordFailure(channel, input.failedAt));
+      } else if (!notificationResult.ok) {
         failures.push({ type: 'temporary_failure', channel });
       } else {
         await repository.recordDelivered(input.version, channel.id);
@@ -86,9 +98,6 @@ export async function dispatchChangelogNotifications(
           await repository.save(resetChannel);
         }
       }
-    } catch (error) {
-      await repository.save(recordFailure(channel, input.failedAt));
-      failures.push({ type: 'exception', channel, error });
     }
 
     if (shouldStop) {

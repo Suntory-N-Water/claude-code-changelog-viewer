@@ -191,7 +191,7 @@ describe('queueConsumer integration', () => {
     expect(message.ack).not.toHaveBeenCalled();
   });
 
-  it('一時障害の時、失敗回数を記録して message.retry が呼ばれる', async () => {
+  it('一時障害の時、恒久失敗回数を増やさず message.retry が呼ばれること', async () => {
     db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const env = createTestEnv(db);
@@ -210,7 +210,7 @@ describe('queueConsumer integration', () => {
     expect(message.retry).toHaveBeenCalled();
     expect(message.ack).not.toHaveBeenCalled();
     expect(await findChannelByToken(db, 'temporary-token')).toMatchObject({
-      fail_count: 1,
+      fail_count: 0,
     });
   });
 
@@ -247,7 +247,7 @@ describe('queueConsumer integration', () => {
     ).toHaveLength(1);
   });
 
-  it('一部チャンネルで例外が発生しても他のチャンネルの DB 状態が正しく更新される', async () => {
+  it('一部チャンネルで送信例外が発生しても恒久失敗回数を増やさず他の配信を続けること', async () => {
     db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
@@ -272,7 +272,7 @@ describe('queueConsumer integration', () => {
     expect(message.retry).toHaveBeenCalled();
     expect(message.ack).not.toHaveBeenCalled();
     expect(await findChannelByToken(db, 'error-token')).toMatchObject({
-      fail_count: 1,
+      fail_count: 0,
     });
     expect(await findChannelByToken(db, 'success-token')).toMatchObject({
       fail_count: 0,
