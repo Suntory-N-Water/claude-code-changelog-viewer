@@ -82,6 +82,13 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
     ).resolves.toMatchObject({
       results: [
         {
+          key: 'permissions',
+          source: 'settings',
+          description: 'Permission settings',
+          parent_descriptions: '[]',
+          value_type: 'object',
+        },
+        {
           key: 'permissions.allow',
           source: 'settings',
           description: 'Allowed tools',
@@ -89,6 +96,11 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
           value_type: 'array',
           default_value: '[]',
           enum_values: '["Read","Write"]',
+        },
+        {
+          key: 'env',
+          source: 'settings',
+          value_type: 'object',
         },
         {
           key: 'CLAUDE_CODE_TEST',
@@ -286,11 +298,13 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
         .all(),
     ).resolves.toMatchObject({
       results: [
+        { key: 'permissions', scope: null, example: null },
         {
           key: 'permissions.allow',
           scope: 'User or managed',
           example: '{ "permissions": { "allow": ["Read"] } }',
         },
+        { key: 'env', scope: null, example: null },
         { key: 'CLAUDE_CODE_TEST', scope: null, example: null },
       ],
     });

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Icon from '../../../components/Icon.astro';
+import SettingChildTree from '../../../components/settings/SettingChildTree.astro';
 import ChangelogItemCard from '../../../components/changelog/ChangelogItemCard.astro';
 import BackLink from '../../../components/ui/BackLink.astro';
 import Button from '../../../components/ui/Button.astro';
@@ -19,6 +20,7 @@ import {
   formatUseCaseJa,
 } from '../../../lib/format-changelog-content';
 import {
+  buildSettingChildTrees,
   buildSettingValueOptions,
   collectFeatureAreas,
   extractOfficialDocUrls,
@@ -33,18 +35,28 @@ export async function getStaticPaths() {
   const changelogs = await getCollection('changelog');
   const changelogData = extractChangelogData(changelogs);
   const linkedAreas = getLinkedAreas(changelogData);
+  const childTrees = buildSettingChildTrees(
+    settings.map((entry) => entry.data),
+  );
 
   return settings.map((entry) => {
     const relatedItems = findRelatedChangelogs(entry.data.key, changelogData);
     const settingAreas = collectFeatureAreas(relatedItems);
     return {
       params: { slug: entry.data.slug },
-      props: { entry: entry.data, relatedItems, linkedAreas, settingAreas },
+      props: {
+        entry: entry.data,
+        relatedItems,
+        linkedAreas,
+        settingAreas,
+        childNodes: childTrees.get(entry.data.key) ?? [],
+      },
     };
   });
 }
 
-const { entry, relatedItems, linkedAreas, settingAreas } = Astro.props;
+const { entry, relatedItems, linkedAreas, settingAreas, childNodes } =
+  Astro.props;
 
 const versionGroups = groupByVersion(relatedItems, semverCompareDesc);
 const sourceLabel = getSourceLabel(entry.source);
@@ -88,7 +100,8 @@ const siteUrl = import.meta.env.SITE;
 const pageTitle = `${displayName} - Claude Code 設定リファレンス`;
 const pageDescription = entry.description_ja.slice(0, 120);
 
-const hasContent = useCaseHtml !== null || versionGroups.length > 0;
+const hasContent =
+  useCaseHtml !== null || versionGroups.length > 0 || childNodes.length > 0;
 ---
 
 <Layout
@@ -182,6 +195,22 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
                   ))}
                 </tbody>
               </table>
+            </div>
+          </section>
+        )
+      }
+
+      {
+        childNodes.length > 0 && (
+          <section class='mb-8'>
+            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>
+              含まれる設定
+              <span class='ml-2 text-sm font-normal tabular-nums text-gray-500'>
+                {childNodes.length}件
+              </span>
+            </h2>
+            <div class='overflow-hidden rounded-lg border border-[hsl(var(--cc-gray))]'>
+              <SettingChildTree nodes={childNodes} />
             </div>
           </section>
         )

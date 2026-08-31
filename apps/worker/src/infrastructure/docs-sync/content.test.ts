@@ -33,7 +33,7 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
     expect(chunks[1]?.startLine).toBeGreaterThan(1);
   });
 
-  it('設定スキーマを設定項目と環境変数のリーフに展開すること', () => {
+  it('設定スキーマをオブジェクト自身と配下の設定項目・環境変数に展開すること', () => {
     const entries = flattenSettingSchema({
       properties: {
         $schema: { type: 'string' },
@@ -51,6 +51,7 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         },
         env: {
           type: 'object',
+          description: 'Environment variables',
           properties: {
             CLAUDE_CODE_TEST: {
               type: 'string',
@@ -63,6 +64,17 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
 
     expect(entries).toEqual([
       {
+        key: 'permissions',
+        source: 'settings',
+        description: 'Permission settings',
+        parentDescriptions: '[]',
+        valueType: 'object',
+        defaultValue: null,
+        enumValues: null,
+        scope: null,
+        example: null,
+      },
+      {
         key: 'permissions.allow',
         source: 'settings',
         description: 'Allowed tools',
@@ -70,6 +82,17 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'array',
         defaultValue: '[]',
         enumValues: JSON.stringify(['Read', 'Write']),
+        scope: null,
+        example: null,
+      },
+      {
+        key: 'env',
+        source: 'settings',
+        description: 'Environment variables',
+        parentDescriptions: '[]',
+        valueType: 'object',
+        defaultValue: null,
+        enumValues: null,
         scope: null,
         example: null,
       },
@@ -85,6 +108,46 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         example: null,
       },
     ]);
+  });
+
+  it('オブジェクトが入れ子のとき、途中のオブジェクトもエントリにすること', () => {
+    const entries = flattenSettingSchema({
+      properties: {
+        sandbox: {
+          type: 'object',
+          description: 'Sandbox settings',
+          properties: {
+            network: {
+              type: 'object',
+              description: 'Network isolation',
+              properties: {
+                tlsTerminate: {
+                  type: 'object',
+                  description: 'TLS termination',
+                  properties: {
+                    enabled: { type: 'boolean', description: 'Enable' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(entries.map((entry) => entry.key)).toEqual([
+      'sandbox',
+      'sandbox.network',
+      'sandbox.network.tlsTerminate',
+      'sandbox.network.tlsTerminate.enabled',
+    ]);
+    expect(entries.at(-1)?.parentDescriptions).toBe(
+      JSON.stringify([
+        'Sandbox settings',
+        'Network isolation',
+        'TLS termination',
+      ]),
+    );
   });
 
   it.each([

@@ -11,6 +11,7 @@ import {
   listRelatedDocs,
   listSettingsReference,
 } from '../infrastructure/drizzle/changelog-repository';
+import { resolveSettingSlugs } from '../domain/settings-reference/setting-slug';
 import { loadSettingSchemaDisplays } from '../infrastructure/docs-sync/setting-schema-reader';
 
 const logger = getLogger({
@@ -156,13 +157,15 @@ siteDataRoute.get('/settings', async (c) => {
     officialDocsBySetting.set(row.settingKey, docs);
   }
 
+  const slugs = resolveSettingSlugs(settingRows);
+
   const response = {
     settings: settingRows.map((row) => {
       const schema = schemaDisplays.get(row.key);
       return {
         key: row.key,
         ...(row.leafName === null ? {} : { leaf_name: row.leafName }),
-        slug: row.slug,
+        slug: slugs.get(row.key) ?? row.slug,
         source: row.source,
         description_en: row.descriptionEn,
         description_ja: row.descriptionJa,

@@ -41,6 +41,61 @@ export function buildSettingValueOptions(
   }));
 }
 
+export type SettingTreeEntry = {
+  key: string;
+  slug: string;
+  source: 'settings' | 'env';
+  description_ja: string;
+  value_type?: string | undefined;
+};
+
+export type SettingChildNode = {
+  key: string;
+  leafName: string;
+  slug: string;
+  valueType: string | undefined;
+  summary: string;
+  children: SettingChildNode[];
+};
+
+/**
+ * 親オブジェクトのキーから、その配下に並べる設定の木を組む。
+ *
+ * 親子はキーのドット区切りだけで決まる。env の子は環境変数として別のキー体系を持つため、
+ * `env` の配下には並ばない。
+ */
+export function buildSettingChildTrees(
+  entries: readonly SettingTreeEntry[],
+): Map<string, SettingChildNode[]> {
+  const settings = entries
+    .filter((entry) => entry.source === 'settings')
+    .sort((a, b) => a.key.localeCompare(b.key));
+  const nodesByKey = new Map<string, SettingChildNode>(
+    settings.map((entry) => [
+      entry.key,
+      {
+        key: entry.key,
+        leafName: entry.key.split('.').at(-1) ?? entry.key,
+        slug: entry.slug,
+        valueType: entry.value_type,
+        summary: summarizeSettingDescription(entry.description_ja),
+        children: [],
+      },
+    ]),
+  );
+
+  for (const node of nodesByKey.values()) {
+    const parentKey = node.key.split('.').slice(0, -1).join('.');
+    nodesByKey.get(parentKey)?.children.push(node);
+  }
+
+  return new Map(
+    [...nodesByKey.values()]
+      .filter((node) => node.children.length > 0)
+      .map((node) => [node.key, node.children]),
+  );
+}
+
 export function getSourceLabel(source: 'settings' | 'env'): string {
   return source === 'settings' ? 'settings.json' : '環境変数';
 }
