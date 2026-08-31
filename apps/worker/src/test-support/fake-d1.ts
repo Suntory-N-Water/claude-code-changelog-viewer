@@ -97,7 +97,18 @@ export class FakeD1Database {
     if (statements.length > 100) {
       throw new Error(`D1 の batch 上限 100 を超過: ${statements.length}`);
     }
-    return Promise.all(statements.map((statement) => statement.run()));
+    this.db.exec('BEGIN');
+    try {
+      const results: D1Result[] = [];
+      for (const statement of statements) {
+        results.push(await statement.run());
+      }
+      this.db.exec('COMMIT');
+      return results;
+    } catch (error) {
+      this.db.exec('ROLLBACK');
+      throw error;
+    }
   }
 
   close() {
