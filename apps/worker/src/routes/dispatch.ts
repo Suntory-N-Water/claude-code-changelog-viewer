@@ -10,6 +10,7 @@ import {
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { timingSafeEqual } from '../infrastructure/crypto/timing-safe-equal';
+import { parseJsonBody } from './json-body';
 
 const RequestSchema = z.object({
   version: ClaudeCodeVersionSchema,
@@ -37,7 +38,16 @@ export const dispatchRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       return c.json({ error: '認証に失敗しました' }, 401);
     }
 
-    const parseResult = RequestSchema.safeParse(await c.req.json());
+    const jsonBody = await parseJsonBody(c.req);
+    if (!jsonBody.ok) {
+      logger.warn('リクエストの検証に失敗しました', {
+        route: 'dispatch',
+        reason: 'malformed_json',
+      });
+      return c.json({ error: 'リクエストが不正です' }, 400);
+    }
+
+    const parseResult = RequestSchema.safeParse(jsonBody.value);
     if (!parseResult.success) {
       logger.warn('リクエストの検証に失敗しました', {
         route: 'dispatch',

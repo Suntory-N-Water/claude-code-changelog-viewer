@@ -8,6 +8,7 @@ import {
 } from '../infrastructure/drizzle/changelog-ingestion';
 import { timingSafeEqual } from '../infrastructure/crypto/timing-safe-equal';
 import { createSettingsReferenceRepository } from '../infrastructure/drizzle/settings-reference-repository';
+import { parseJsonBody } from './json-body';
 
 const logger = getLogger({
   name: 'routes.ingest-changelog',
@@ -29,9 +30,16 @@ export const ingestChangelogRoute = new Hono<{
     return c.json({ error: '認証に失敗しました' }, 401);
   }
 
-  const parseResult = IngestChangelogPayloadSchema.safeParse(
-    await c.req.json(),
-  );
+  const jsonBody = await parseJsonBody(c.req);
+  if (!jsonBody.ok) {
+    logger.warn('リクエストの検証に失敗しました', {
+      route: 'ingest-changelog',
+      reason: 'malformed_json',
+    });
+    return c.json({ error: 'リクエストが不正です' }, 400);
+  }
+
+  const parseResult = IngestChangelogPayloadSchema.safeParse(jsonBody.value);
   if (!parseResult.success) {
     logger.warn('リクエストの検証に失敗しました', {
       route: 'ingest-changelog',

@@ -83,8 +83,7 @@ export class DrizzleChannelRepository implements ChannelRepository {
   async save(channel: Channel): Promise<void> {
     try {
       const status = toPersistenceStatus(channel.status);
-
-      await this.db
+      const channelStatement = this.db
         .insert(channels)
         .values({
           id: channel.id,
@@ -105,19 +104,45 @@ export class DrizzleChannelRepository implements ChannelRepository {
             updatedAt: sql`datetime('now')`,
           },
         });
-
-      await this.saveNotificationSetting(channel);
+      const notificationSettingStatement =
+        this.createNotificationSettingStatement(channel);
 
       switch (channel.type) {
         case 'DSC':
-          await this.saveDiscordChannel(channel);
+          await this.db.batch([
+            channelStatement,
+            notificationSettingStatement,
+            this.createDiscordChannelStatement(channel),
+          ]);
           break;
         case 'SLK':
-          await this.saveSlackChannel(channel);
+          await this.db.batch([
+            channelStatement,
+            notificationSettingStatement,
+            this.createSlackChannelStatement(channel),
+          ]);
           break;
-        case 'EML':
-          await this.saveEmailChannel(channel);
+        case 'EML': {
+          // 暗号処理で失敗した場合も、DB batch を始める前なので部分保存されない。
+          const emailHash = await hashEmail(
+            channel.emailAddress,
+            this.emailEncryptionKey,
+          );
+          const emailEncrypted = await encryptEmail(
+            channel.emailAddress,
+            this.emailEncryptionKey,
+          );
+          await this.db.batch([
+            channelStatement,
+            notificationSettingStatement,
+            this.createEmailChannelStatement(
+              channel,
+              emailHash,
+              emailEncrypted,
+            ),
+          ]);
           break;
+        }
       }
       logger.info('チャンネルを保存しました', {
         'channel.id': channel.id,
@@ -396,8 +421,8 @@ export class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** Channel集約内の通知頻度を notification_settings に保存する。 */
-  private async saveNotificationSetting(channel: Channel): Promise<void> {
-    await this.db
+  private createNotificationSettingStatement(channel: Channel) {
+    return this.db
       .insert(notificationSettings)
       .values({
         id: `ns_${channel.id}`,
@@ -413,8 +438,10 @@ export class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** Discord 固有の通知先を discord_channels に保存する。 */
-  private async saveDiscordChannel(channel: Extract<Channel, { type: 'DSC' }>) {
-    await this.db
+  private createDiscordChannelStatement(
+    channel: Extract<Channel, { type: 'DSC' }>,
+  ) {
+    return this.db
       .insert(discordChannels)
       .values({ channelId: channel.id, webhookUrl: channel.webhookUrl })
       .onConflictDoUpdate({
@@ -424,8 +451,10 @@ export class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** Slack 固有の通知先を slack_channels に保存する。 */
-  private async saveSlackChannel(channel: Extract<Channel, { type: 'SLK' }>) {
-    await this.db
+  private createSlackChannelStatement(
+    channel: Extract<Channel, { type: 'SLK' }>,
+  ) {
+    return this.db
       .insert(slackChannels)
       .values({ channelId: channel.id, webhookUrl: channel.webhookUrl })
       .onConflictDoUpdate({
@@ -435,18 +464,12 @@ export class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** Email 固有の通知先を email_channels に保存する。 */
-  private async saveEmailChannel(channel: Extract<Channel, { type: 'EML' }>) {
-    // メールは平文保存しない。検索用に HMAC ハッシュ、送信用に暗号化済み本文を保存する。
-    const emailHash = await hashEmail(
-      channel.emailAddress,
-      this.emailEncryptionKey,
-    );
-    const emailEncrypted = await encryptEmail(
-      channel.emailAddress,
-      this.emailEncryptionKey,
-    );
-
-    await this.db
+  private createEmailChannelStatement(
+    channel: Extract<Channel, { type: 'EML' }>,
+    emailHash: string,
+    emailEncrypted: string,
+  ) {
+    return this.db
       .insert(emailChannels)
       .values({ channelId: channel.id, emailHash, emailEncrypted })
       .onConflictDoUpdate({
