@@ -21,6 +21,7 @@ import {
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 import { verifyTurnstileToken } from '../infrastructure/turnstile';
+import { parseJsonBody } from './json-body';
 
 const logger = getLogger({
   name: 'routes.webhooks',
@@ -66,7 +67,16 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       return c.json({ error: '登録リクエストが多すぎます' }, 429);
     }
 
-    const parseResult = RequestSchema.safeParse(await c.req.json());
+    const jsonBody = await parseJsonBody(c.req);
+    if (!jsonBody.ok) {
+      logger.warn('リクエストの検証に失敗しました', {
+        route: 'webhooks',
+        reason: 'malformed_json',
+      });
+      return c.json({ error: 'リクエストが不正です' }, 400);
+    }
+
+    const parseResult = RequestSchema.safeParse(jsonBody.value);
     if (!parseResult.success) {
       logger.warn('リクエストの検証に失敗しました', {
         route: 'webhooks',

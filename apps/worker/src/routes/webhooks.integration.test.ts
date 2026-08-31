@@ -302,4 +302,23 @@ describe('POST /api/webhooks integration', () => {
 
     expect(response.status).toBe(400);
   });
+
+  it('JSON が壊れているとき、400を返して登録しないこと', async () => {
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+
+    const response = await app.request(
+      '/api/webhooks',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{',
+      },
+      env,
+    );
+
+    expect(response.status).toBe(400);
+    expect(mockedVerifyTurnstile).not.toHaveBeenCalled();
+    expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toBeNull();
+  });
 });

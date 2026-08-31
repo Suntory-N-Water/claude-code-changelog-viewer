@@ -160,6 +160,28 @@ describe('POST /api/ingest/changelog integration', () => {
       expect(await countAllRows(db)).toEqual(emptyCounts);
       db.close();
     });
+
+    it('JSON が壊れている場合、400 を返し DB は変更されないこと', async () => {
+      const db = new FakeD1Database();
+      const sut = app;
+
+      const response = await sut.request(
+        '/api/ingest/changelog',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer dispatch-secret',
+            'Content-Type': 'application/json',
+          },
+          body: '{',
+        },
+        createTestEnv(db),
+      );
+
+      expect(response.status).toBe(400);
+      expect(await countAllRows(db)).toEqual(emptyCounts);
+      db.close();
+    });
   });
 
   describe('changelog の取り込み', () => {

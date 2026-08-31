@@ -101,6 +101,29 @@ describe('POST /api/dispatch integration', () => {
     db.close();
   });
 
+  it('JSON が壊れているとき、400を返して Queue を変更しないこと', async () => {
+    const db = new FakeD1Database();
+    const sut = app;
+    const { env, queued } = createQueueEnv(db);
+
+    const response = await sut.request(
+      '/api/dispatch',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer dispatch-secret',
+          'Content-Type': 'application/json',
+        },
+        body: '{',
+      },
+      env,
+    );
+
+    expect(response.status).toBe(400);
+    expect(queued).toEqual([]);
+    db.close();
+  });
+
   it('日本語要約と翻訳が null のとき、有効な payload として Queue に投入されること', async () => {
     const db = new FakeD1Database();
     const sut = app;
