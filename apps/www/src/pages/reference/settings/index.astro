@@ -8,9 +8,16 @@ import TabButton from '../../../components/ui/TabButton.astro';
 import Accordion from '../../../components/ui/Accordion.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { escapeJsonForScript } from '../../../lib/escape-html';
-import { summarizeSettingDescription } from '../../../lib/settings-reference';
+import {
+  buildSettingChildTrees,
+  summarizeSettingDescription,
+} from '../../../lib/settings-reference';
 
 const allSettings = await getCollection('settingsReference');
+
+const childTrees = buildSettingChildTrees(
+  allSettings.map((entry) => entry.data),
+);
 
 const settingsItems = allSettings
   .filter((e) => e.data.source === 'settings')
@@ -273,6 +280,7 @@ const pageDescription =
                   summary={summarizeSettingDescription(
                     entry.data.description_ja,
                   )}
+                  childCount={childTrees.get(entry.data.key)?.length ?? 0}
                 />
               </div>
             ))

@@ -295,6 +295,34 @@ describe('GET /api/site-data integration', () => {
     docsDb.close();
   });
 
+  it('同じ slug になるキーが2件あるとき、別々の slug で返すこと', async () => {
+    const db = new FakeD1Database();
+    const docsDb = new FakeDocsD1Database();
+    await seed(db, {
+      settings: [
+        createSetting('voice.enabled', 'settings'),
+        createSetting('voiceEnabled', 'settings'),
+      ],
+    });
+
+    const response = await app.request(
+      '/api/site-data/settings',
+      {},
+      createTestEnv(db, docsDb),
+    );
+
+    const body = (await response.json()) as {
+      settings: { key: string; slug: string }[];
+    };
+
+    expect(body.settings.map(({ key, slug }) => ({ key, slug }))).toEqual([
+      { key: 'voice.enabled', slug: 'voice--enabled' },
+      { key: 'voiceEnabled', slug: 'voice-enabled' },
+    ]);
+    db.close();
+    docsDb.close();
+  });
+
   it('公式の選択肢を持つキーのとき、その値の並びを応答に含めること', async () => {
     const db = new FakeD1Database();
     const docsDb = new FakeDocsD1Database();

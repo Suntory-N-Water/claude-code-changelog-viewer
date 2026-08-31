@@ -49,7 +49,7 @@ type MarkdownLine = {
 
 type JsonObject = Record<string, unknown>;
 
-type CollectLeafContext = {
+type CollectSchemaContext = {
   keyPath: string;
   source: 'settings' | 'env';
   parentDescriptions: string[];
@@ -291,11 +291,19 @@ export function flattenSettingSchema(schema: unknown): SettingSchemaEntry[] {
     }
 
     if (key === 'env') {
-      const envProperties = isJsonObject(value)
-        ? isJsonObject(value['properties'])
-          ? value['properties']
-          : {}
+      const envNode = isJsonObject(value) ? value : {};
+      const envProperties = isJsonObject(envNode['properties'])
+        ? envNode['properties']
         : {};
+      // env の子は環境変数として別扱いにするが、env 自体は設定ファイルに書く設定項目
+      entries.push(
+        createSettingSchemaEntry({
+          key,
+          source: 'settings',
+          value: envNode,
+          parentDescriptions: [],
+        }),
+      );
       for (const [envKey, envValue] of Object.entries(envProperties)) {
         entries.push(
           createSettingSchemaEntry({
@@ -309,7 +317,7 @@ export function flattenSettingSchema(schema: unknown): SettingSchemaEntry[] {
       continue;
     }
 
-    collectLeafEntries(value, {
+    collectSchemaEntries(value, {
       keyPath: key,
       source: 'settings',
       parentDescriptions: [],
@@ -497,21 +505,25 @@ export function isSettingSchema(
   return isJsonObject(value) && isJsonObject(value['properties']);
 }
 
-function collectLeafEntries(value: unknown, context: CollectLeafContext): void {
+function collectSchemaEntries(
+  value: unknown,
+  context: CollectSchemaContext,
+): void {
   const { keyPath, source, parentDescriptions, entries } = context;
   const node = isJsonObject(value) ? value : {};
+  entries.push(
+    createSettingSchemaEntry({
+      key: keyPath,
+      source,
+      value: node,
+      parentDescriptions,
+    }),
+  );
+
   const properties = isJsonObject(node['properties'])
     ? node['properties']
     : null;
   if (properties === null) {
-    entries.push(
-      createSettingSchemaEntry({
-        key: keyPath,
-        source,
-        value: node,
-        parentDescriptions,
-      }),
-    );
     return;
   }
 
@@ -521,7 +533,7 @@ function collectLeafEntries(value: unknown, context: CollectLeafContext): void {
       : parentDescriptions;
 
   for (const [childKey, childValue] of Object.entries(properties)) {
-    collectLeafEntries(childValue, {
+    collectSchemaEntries(childValue, {
       keyPath: keyPath ? `${keyPath}.${childKey}` : childKey,
       source,
       parentDescriptions: currentParentDescriptions,
