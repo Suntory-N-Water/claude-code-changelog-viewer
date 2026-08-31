@@ -5,6 +5,7 @@ import {
   mergeDocumentLists,
   parseEnvVarsMd,
   parsePublicEnvEntriesFromDocs,
+  parseSettingsReferenceMd,
 } from './content';
 
 describe('ドキュメント同期用のコンテンツ処理', () => {
@@ -69,6 +70,8 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'array',
         defaultValue: '[]',
         enumValues: JSON.stringify(['Read', 'Write']),
+        scope: null,
+        example: null,
       },
       {
         key: 'CLAUDE_CODE_TEST',
@@ -78,6 +81,8 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'string',
         defaultValue: null,
         enumValues: null,
+        scope: null,
+        example: null,
       },
     ]);
   });
@@ -193,6 +198,134 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         url: 'https://code.claude.com/docs/en/reference/guide.md',
         path: 'reference/guide.md',
       },
+    ]);
+  });
+});
+
+describe('公式の設定リファレンスの解析', () => {
+  it('セクションから、キー・記述場所・記述例を取り出すこと', () => {
+    const markdown = [
+      '# Claude Code settings reference',
+      '',
+      '### `autoUpdatesChannel`',
+      '',
+      'Choose which release channel auto-updates follow.',
+      '',
+      '- **Scope**: [`Any file`](#scopes). Set it in managed settings to enforce one channel.',
+      '- **Type**: string, one of:',
+      '- **Default**: unset',
+      '',
+      '```json settings.json theme={null}',
+      '{',
+      '  "autoUpdatesChannel": "stable"',
+      '}',
+      '```',
+      '',
+      'Claude Code writes `"stable"` to your user settings.',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)).toEqual([
+      {
+        key: 'autoUpdatesChannel',
+        scope: 'Any file',
+        example: '{\n  "autoUpdatesChannel": "stable"\n}',
+      },
+    ]);
+  });
+
+  it('ドット付きのキーと、複数のセクションを扱うこと', () => {
+    const markdown = [
+      '### `permissions.allow`',
+      '',
+      '- **Scope**: [`User or managed`](#scopes).',
+      '',
+      '```json settings.json theme={null}',
+      '{ "permissions": { "allow": ["Read"] } }',
+      '```',
+      '',
+      '## See also',
+      '',
+      '* [Configure permissions](/docs/en/permissions)',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)).toEqual([
+      {
+        key: 'permissions.allow',
+        scope: 'User or managed',
+        example: '{ "permissions": { "allow": ["Read"] } }',
+      },
+    ]);
+  });
+
+  it('JSON ブロックを複数持つセクションのとき、最初のものを記述例にすること', () => {
+    const markdown = [
+      '### `model`',
+      '',
+      '- **Scope**: [`Any file`](#scopes).',
+      '',
+      '```json settings.json theme={null}',
+      '{ "model": "opus" }',
+      '```',
+      '',
+      'An organization can enforce it:',
+      '',
+      '```json managed-settings.json theme={null}',
+      '{ "model": "sonnet" }',
+      '```',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.example).toBe(
+      '{ "model": "opus" }',
+    );
+  });
+
+  it('JSON ブロックを持たないセクションのとき、記述例を持たない結果を返すこと', () => {
+    const markdown = [
+      '### `teammateDefaultModel`',
+      '',
+      '- **Scope**: [`Global config`](#scopes). On v2.1.233 and earlier.',
+      '',
+      '```bash theme={null}',
+      'claude config set model opus',
+      '```',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)).toEqual([
+      { key: 'teammateDefaultModel', scope: 'Global config', example: null },
+    ]);
+  });
+
+  it('Scope 行を持たないセクションのとき、記述場所を持たない結果を返すこと', () => {
+    const markdown = [
+      '### `unknownKey`',
+      '',
+      '- **Type**: string',
+      '',
+      '```json settings.json theme={null}',
+      '{ "unknownKey": "value" }',
+      '```',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)).toEqual([
+      { key: 'unknownKey', scope: null, example: '{ "unknownKey": "value" }' },
+    ]);
+  });
+
+  it('公式の原文が `*` の箇条書きのとき、記述場所を取り出すこと', () => {
+    const markdown = [
+      '### `model`',
+      '',
+      '* **Scope**: [`Managed`](#scopes).',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.scope).toBe('Managed');
+  });
+
+  it('Scope が想定と違う書式のとき、その項目だけを持たない結果を返すこと', () => {
+    const markdown = ['### `oddKey`', '', '- **Scope**: unknown'].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)).toEqual([
+      { key: 'oddKey', scope: null, example: null },
     ]);
   });
 });

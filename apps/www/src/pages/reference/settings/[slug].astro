@@ -5,6 +5,7 @@ import ChangelogItemCard from '../../../components/changelog/ChangelogItemCard.a
 import BackLink from '../../../components/ui/BackLink.astro';
 import Button from '../../../components/ui/Button.astro';
 import Card from '../../../components/ui/Card.astro';
+import CodeBlock from '../../../components/ui/CodeBlock.astro';
 import Layout from '../../../layouts/Layout.astro';
 import {
   extractChangelogData,
@@ -65,9 +66,14 @@ const relatedAreaLinks = [...settingAreas]
   }));
 
 const schemaChips = [
-  ...(entry.value_type ? [{ label: '型', value: entry.value_type }] : []),
+  ...(entry.value_type
+    ? [{ label: '型', value: entry.value_type, mono: true }]
+    : []),
   ...(entry.default_value
-    ? [{ label: '既定値', value: entry.default_value }]
+    ? [{ label: '既定値', value: entry.default_value, mono: true }]
+    : []),
+  ...(entry.scope
+    ? [{ label: '記述場所', value: entry.scope, mono: false }]
     : []),
 ];
 
@@ -122,14 +128,20 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
         {
           schemaChips.length > 0 && (
             <div class='flex flex-wrap gap-2 mb-4'>
-              {schemaChips.map(({ label, value }) => (
+              {schemaChips.map(({ label, value, mono }) => (
                 <span class='inline-flex items-center gap-1.5 max-w-full overflow-x-auto whitespace-nowrap px-2.5 py-1 rounded-md border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-gray)/0.2)] text-xs'>
                   <span class='text-[hsl(var(--cc-main-black)/0.6)]'>
                     {label}
                   </span>
-                  <code class='font-mono text-[hsl(var(--cc-main-black))]'>
-                    {value}
-                  </code>
+                  {mono ? (
+                    <code class='font-mono text-[hsl(var(--cc-main-black))]'>
+                      {value}
+                    </code>
+                  ) : (
+                    <span class='text-[hsl(var(--cc-main-black))]'>
+                      {value}
+                    </span>
+                  )}
                 </span>
               ))}
             </div>
@@ -171,6 +183,17 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
                 </tbody>
               </table>
             </div>
+          </section>
+        )
+      }
+
+      {
+        entry.example && (
+          <section class='mb-8'>
+            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>
+              記述例
+            </h2>
+            <CodeBlock code={entry.example} label='記述例' />
           </section>
         )
       }

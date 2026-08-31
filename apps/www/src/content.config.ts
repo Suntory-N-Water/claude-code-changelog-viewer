@@ -93,6 +93,8 @@ const settingsReferenceCollection = defineCollection({
     value_type: z.string().optional(),
     default_value: z.string().optional(),
     enum_values: z.array(z.string()).optional(),
+    scope: z.string().optional(),
+    example: z.string().optional(),
     official_doc_urls: z.array(z.string().url()).optional(),
     fetched_at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   }),

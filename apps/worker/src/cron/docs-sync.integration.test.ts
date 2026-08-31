@@ -260,6 +260,41 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
       db.prepare('SELECT path, content_hash, updated_at FROM pages').all(),
     ).resolves.toEqual(before);
   });
+
+  it('公式の設定リファレンスがあるとき、記述場所と記述例を保存すること', async () => {
+    db = new FakeDocsD1Database();
+    const settingsReference = testDocument(
+      'settings-reference.md',
+      'Settings reference',
+      [
+        '### `permissions.allow`',
+        '',
+        '- **Scope**: [`User or managed`](#scopes). Set it per project.',
+        '',
+        '```json settings.json theme={null}',
+        '{ "permissions": { "allow": ["Read"] } }',
+        '```',
+      ].join('\n'),
+    );
+    mockRemote({ documents: [settingsReference] });
+
+    await syncDocs(testEnv(db), new Date('2026-08-16T00:00:00.000Z'));
+
+    await expect(
+      db
+        .prepare('SELECT key, scope, example FROM setting_schema_entries')
+        .all(),
+    ).resolves.toMatchObject({
+      results: [
+        {
+          key: 'permissions.allow',
+          scope: 'User or managed',
+          example: '{ "permissions": { "allow": ["Read"] } }',
+        },
+        { key: 'CLAUDE_CODE_TEST', scope: null, example: null },
+      ],
+    });
+  });
 });
 
 function testEnv(db: FakeDocsD1Database): CloudflareBindings {

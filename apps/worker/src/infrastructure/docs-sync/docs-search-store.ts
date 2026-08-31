@@ -2,7 +2,7 @@ import type { DocsSearchStore, ExistingPage } from '../../usecases/sync-docs';
 import { chunkMarkdown, type PageChunk } from './content';
 
 const CHUNKS_PER_INSERT = 25;
-const SETTINGS_PER_INSERT = 14;
+const SETTINGS_PER_INSERT = 11;
 const MAX_BATCH_STATEMENTS = 100;
 
 type PageChunkRow = PageChunk & {
@@ -105,7 +105,9 @@ export function createDocsSearchStore(db: D1Database): DocsSearchStore {
         db.prepare('DELETE FROM setting_schema_entries'),
       ];
       for (const rows of splitIntoChunks(schema.entries, SETTINGS_PER_INSERT)) {
-        const placeholders = rows.map(() => '(?, ?, ?, ?, ?, ?, ?)').join(', ');
+        const placeholders = rows
+          .map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?)')
+          .join(', ');
         const values = rows.flatMap((entry) => [
           entry.key,
           entry.source,
@@ -114,12 +116,14 @@ export function createDocsSearchStore(db: D1Database): DocsSearchStore {
           entry.valueType,
           entry.defaultValue,
           entry.enumValues,
+          entry.scope,
+          entry.example,
         ]);
         statements.push(
           db
             .prepare(
               `INSERT INTO setting_schema_entries
-                 (key, source, description, parent_descriptions, value_type, default_value, enum_values)
+                 (key, source, description, parent_descriptions, value_type, default_value, enum_values, scope, example)
                VALUES ${placeholders}`,
             )
             .bind(...values),

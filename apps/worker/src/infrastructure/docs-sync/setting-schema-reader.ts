@@ -1,5 +1,6 @@
 import {
   formatSchemaDefaultValue,
+  formatSettingScope,
   parseSchemaEnumValues,
 } from '../../domain/docs-sync/setting-schema';
 
@@ -7,6 +8,8 @@ export type SettingSchemaDisplay = {
   valueType?: string;
   defaultValue?: string;
   enumValues?: string[];
+  scope?: string;
+  example?: string;
 };
 
 type SettingSchemaDisplayRow = {
@@ -14,6 +17,8 @@ type SettingSchemaDisplayRow = {
   value_type: string;
   default_value: string | null;
   enum_values: string | null;
+  scope: string | null;
+  example: string | null;
 };
 
 /** 公式の型・既定値・選択肢を、表示できる値を持つキーだけ返す。 */
@@ -22,7 +27,7 @@ export async function loadSettingSchemaDisplays(
 ): Promise<Map<string, SettingSchemaDisplay>> {
   const result = await docsDb
     .prepare(
-      'SELECT key, value_type, default_value, enum_values FROM setting_schema_entries',
+      'SELECT key, value_type, default_value, enum_values, scope, example FROM setting_schema_entries',
     )
     .all<SettingSchemaDisplayRow>();
 
@@ -38,6 +43,10 @@ export async function loadSettingSchemaDisplays(
       ...(row.value_type === '' ? {} : { valueType: row.value_type }),
       ...(defaultValue === '' ? {} : { defaultValue }),
       ...(enumValues.length === 0 ? {} : { enumValues }),
+      ...(row.scope === null ? {} : { scope: formatSettingScope(row.scope) }),
+      ...(row.example === null || row.example === ''
+        ? {}
+        : { example: row.example }),
     };
     if (Object.keys(display).length > 0) {
       displays.set(row.key, display);

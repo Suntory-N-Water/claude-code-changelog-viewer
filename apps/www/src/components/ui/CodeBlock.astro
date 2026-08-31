@@ -1,0 +1,56 @@
+---
+import Icon from '../Icon.astro';
+
+type Props = {
+  code: string;
+  label?: string;
+  class?: string;
+};
+
+const { code, label = 'コード', class: className } = Astro.props;
+---
+
+<div
+  class:list={[
+    'relative rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-gray)/0.15)]',
+    className,
+  ]}
+  data-code-block
+>
+  <button
+    type='button'
+    class='absolute top-2 right-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-xs text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-black))] transition-colors'
+    data-copy-button
+    aria-label={`${label}をコピー`}
+  >
+    <Icon name='copy-sm' class='w-3.5 h-3.5' aria-hidden='true' />
+    <span data-copy-label>コピー</span>
+  </button>
+  <pre
+    class='overflow-x-auto px-4 py-3 pr-24 text-sm leading-relaxed'><code class='font-mono text-[hsl(var(--cc-main-black))]' data-copy-source>{code}</code></pre>
+</div>
+
+<script>
+  for (const block of document.querySelectorAll<HTMLElement>(
+    '[data-code-block]',
+  )) {
+    const button = block.querySelector<HTMLButtonElement>('[data-copy-button]');
+    const label = block.querySelector<HTMLElement>('[data-copy-label]');
+    const source = block.querySelector<HTMLElement>('[data-copy-source]');
+    if (!button || !label || !source) {
+      continue;
+    }
+
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(source.textContent ?? '');
+        label.textContent = 'コピーしました';
+        setTimeout(() => {
+          label.textContent = 'コピー';
+        }, 2000);
+      } catch {
+        // クリップボードが使えない環境では、選択してコピーしてもらう
+      }
+    });
+  }
+</script>

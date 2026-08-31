@@ -2,6 +2,7 @@ import { getLogger } from '@claude-code-changelog-viewer/common';
 import {
   parseEnvVarsMd,
   parsePublicEnvEntriesFromDocs,
+  parseSettingsReferenceMd,
 } from '../infrastructure/docs-sync/content';
 import { createDocsSearchStore } from '../infrastructure/docs-sync/docs-search-store';
 import { createOfficialDocsSource } from '../infrastructure/docs-sync/official-docs-source';
@@ -23,7 +24,11 @@ export async function syncDocs(
     {
       source: createOfficialDocsSource(),
       store: createDocsSearchStore(bindings.DOCS_DB),
-      contentParser: { parseEnvVarsMd, parsePublicEnvEntriesFromDocs },
+      contentParser: {
+        parseEnvVarsMd,
+        parsePublicEnvEntriesFromDocs,
+        parseSettingsReferenceMd,
+      },
     },
     { now },
   );
