@@ -102,6 +102,8 @@ export const IngestSettingSchema = z.object({
   description_en: z.string(),
   description_ja: z.string(),
   use_case_ja: z.string().nullable().optional(),
+  enum_descriptions_ja: z.string().nullable().optional(),
+  default_note_ja: z.string().nullable().optional(),
   fetched_at: z.string(),
   official_doc_urls: z.array(z.string()).nullable().optional(),
 });

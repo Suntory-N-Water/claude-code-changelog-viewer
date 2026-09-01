@@ -28,8 +28,10 @@ export type SettingSchemaEntry = {
   valueType: string;
   defaultValue: string | null;
   enumValues: string | null;
+  enumDescriptions: string | null;
   scope: string | null;
   example: string | null;
+  defaultNote: string | null;
 };
 
 export type SettingSchemaSnapshot = {

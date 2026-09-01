@@ -11,7 +11,8 @@ const SETTING_SCOPE_PATTERN = /^[-*]\s+\*\*Scope\*\*:\s*\[?`([^`]+)`/;
 const SETTING_TYPE_PATTERN = /^[-*]\s+\*\*Type\*\*:\s*(.+)$/;
 const SETTING_DEFAULT_PATTERN = /^[-*]\s+\*\*Default\*\*:\s*(.+)$/;
 const SETTING_LIST_ITEM_PATTERN = /^[-*]\s/;
-const SETTING_ENUM_ITEM_PATTERN = /^\s+[-*]\s+`([^`]+)`/;
+const SETTING_ENUM_ITEM_PATTERN = /^\s+[-*]\s+`([^`]+)`(?::\s*(.+?))?\s*$/;
+const SETTING_DEFAULT_UNSET_PATTERN = /^unset\.?$/i;
 const SETTING_ENUM_INLINE_PATTERN =
   /\bone of\s+((?:`[^`]+`(?:,\s*or\s+|,\s*|\s+or\s+)?)+)/;
 const SETTING_ENUM_LIST_HEAD_PATTERN = /^[^,]*,\s*one of:\s*$/;
@@ -39,8 +40,10 @@ export type SettingSchemaEntry = {
   valueType: string;
   defaultValue: string | null;
   enumValues: string | null;
+  enumDescriptions: string | null;
   scope: string | null;
   example: string | null;
+  defaultNote: string | null;
 };
 
 type MarkdownLine = {
@@ -434,7 +437,7 @@ export function parseSettingsReferenceMd(
   const sections: SettingSchemaEntry[] = [];
   let current: SettingSchemaEntry | null = null;
   let descriptionLines: string[] | null = null;
-  let enumItems: string[] | null = null;
+  let enumItems: { value: string; description: string }[] | null = null;
   let exampleLines: string[] | null = null;
 
   const finishDescription = () => {
@@ -449,7 +452,15 @@ export function parseSettingsReferenceMd(
       return;
     }
     if (enumItems.length > 0) {
-      current.enumValues = JSON.stringify(enumItems);
+      current.enumValues = JSON.stringify(enumItems.map((item) => item.value));
+      const described = enumItems.filter((item) => item.description !== '');
+      if (described.length > 0) {
+        current.enumDescriptions = JSON.stringify(
+          Object.fromEntries(
+            described.map((item) => [item.value, item.description]),
+          ),
+        );
+      }
     }
     enumItems = null;
   };
@@ -520,7 +531,14 @@ export function parseSettingsReferenceMd(
     const defaultMatch = line.match(SETTING_DEFAULT_PATTERN);
     if (defaultMatch !== null) {
       finishEnum();
-      current.defaultValue = parseReferenceDefaultValue(defaultMatch[1] ?? '');
+      const written = (defaultMatch[1] ?? '').trim();
+      current.defaultValue = parseReferenceDefaultValue(written);
+      // 既定値を値として読み取れた行に補足はなく、`unset` だけの行は読者に何も伝えない
+      current.defaultNote =
+        current.defaultValue === null &&
+        !SETTING_DEFAULT_UNSET_PATTERN.test(written)
+          ? written
+          : null;
       continue;
     }
 
@@ -534,7 +552,10 @@ export function parseSettingsReferenceMd(
     if (enumItems !== null) {
       const enumMatch = line.match(SETTING_ENUM_ITEM_PATTERN);
       if (enumMatch?.[1] !== undefined) {
-        enumItems.push(unquoteEnumValue(enumMatch[1]));
+        enumItems.push({
+          value: unquoteEnumValue(enumMatch[1]),
+          description: enumMatch[2]?.trim() ?? '',
+        });
         continue;
       }
       if (line.trim() !== '') {
@@ -561,8 +582,10 @@ function createSettingsReferenceEntry(key: string): SettingSchemaEntry {
     valueType: '',
     defaultValue: null,
     enumValues: null,
+    enumDescriptions: null,
     scope: null,
     example: null,
+    defaultNote: null,
   };
 }
 
@@ -714,8 +737,10 @@ function createSettingSchemaEntry({
     valueType,
     defaultValue,
     enumValues,
+    enumDescriptions: null,
     scope: null,
     example: null,
+    defaultNote: null,
   };
 }
 
@@ -835,8 +860,10 @@ function createEnvironmentSettingSchemaEntry(
     valueType: '',
     defaultValue: null,
     enumValues: null,
+    enumDescriptions: null,
     scope: null,
     example: null,
+    defaultNote: null,
   };
 }
 

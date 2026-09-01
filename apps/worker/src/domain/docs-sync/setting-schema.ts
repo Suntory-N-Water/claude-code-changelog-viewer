@@ -6,13 +6,16 @@ export type SettingSchemaFields = {
   valueType: string;
   defaultValue: string | null;
   enumValues: string | null;
+  enumDescriptions: string | null;
   scope: string | null;
   example: string | null;
+  defaultNote: string | null;
 };
 
 /**
  * settings、env-vars.md、docs本文、公式リファレンスの4系統を統合する。
- * キーの集合は和集合、型・既定値・選択肢・説明は先の3系統を優先し、記述場所と記述例は公式リファレンスだけが持つ。
+ * キーの集合は和集合、型・既定値・選択肢・説明は先の3系統を優先し、
+ * 記述場所・記述例・選択肢ごとの説明・既定値の補足は公式リファレンスだけが持つ。
  */
 export type SettingSchemaSources = {
   schemaEntries: readonly SettingSchemaFields[];
@@ -86,8 +89,10 @@ function applyReferenceFields(
     valueType: entry.valueType === '' ? reference.valueType : entry.valueType,
     defaultValue: entry.defaultValue ?? reference.defaultValue,
     enumValues: entry.enumValues ?? reference.enumValues,
+    enumDescriptions: reference.enumDescriptions,
     scope: reference.scope,
     example: reference.example,
+    defaultNote: reference.defaultNote,
   };
 }
 

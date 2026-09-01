@@ -142,7 +142,13 @@ describe('設定リファレンス生成ユースケース', () => {
           ],
         },
         translations: [
-          { id: 0, descriptionJa: 'テスト用の環境変数です。', useCaseJa: '' },
+          {
+            id: 0,
+            descriptionJa: 'テスト用の環境変数です。',
+            useCaseJa: '',
+            enumDescriptionsJa: [],
+            defaultNoteJa: '',
+          },
         ],
         fetchedAt: '2026-08-17',
       },
@@ -160,11 +166,90 @@ describe('設定リファレンス生成ユースケース', () => {
             descriptionEn: 'Test environment variable',
             descriptionJa: 'テスト用の環境変数です。',
             useCaseJa: null,
+            enumDescriptionsJa: null,
+            defaultNoteJa: null,
             fetchedAt: '2026-08-17',
             officialDocs: ['guide.md'],
           },
         ],
       },
     ]);
+  });
+  it('選択肢ごとの説明と既定値の補足を、英文のある値だけ日本語で保存すること', async () => {
+    const saved: { records: unknown[] }[] = [];
+    await saveSettingsReferences(
+      {
+        save: async (input) => {
+          saved.push(input);
+        },
+      },
+      {
+        input: {
+          entries: [
+            {
+              id: 0,
+              key: 'autoUpdatesChannel',
+              source: 'settings',
+              descriptionEn: 'Choose which release channel updates follow.',
+              parentDescriptions: [],
+              docSnippets: [],
+              officialDocs: [],
+              relatedChangelog: [],
+              enumDescriptions: {
+                latest: 'updates follow the most recent release',
+                stable: 'updates follow a week-old version',
+              },
+              defaultNote: 'unset, so Claude Code follows `"latest"`',
+            },
+          ],
+        },
+        translations: [
+          {
+            id: 0,
+            descriptionJa: '自動更新が追いかけるリリース系統を選ぶ。',
+            useCaseJa: '',
+            enumDescriptionsJa: [
+              { value: 'latest', descriptionJa: '最新のリリースを追いかける' },
+              { value: 'nightly', descriptionJa: '毎晩のビルドを追いかける' },
+            ],
+            defaultNoteJa: '未設定のときは `"latest"` を追いかける',
+          },
+        ],
+        fetchedAt: '2026-08-17',
+      },
+    );
+
+    expect(saved[0]?.records[0]).toMatchObject({
+      enumDescriptionsJa: '{"latest":"最新のリリースを追いかける"}',
+      defaultNoteJa: '未設定のときは `"latest"` を追いかける',
+    });
+  });
+
+  it('英文の選択肢の説明と既定値の補足を AI への入力に含めること', async () => {
+    const input = await buildSettingsReferenceInput(
+      {
+        searchSettingKey: async () => [],
+      },
+      {
+        loadEntries: async () => [],
+        loadExistingKeys: async () => new Set(),
+        findRelatedChangelogs: async () => [],
+      },
+      [
+        {
+          key: 'autoUpdatesChannel',
+          source: 'settings',
+          descriptionEn: 'Choose which release channel updates follow.',
+          parentDescriptions: [],
+          enumDescriptions: { latest: 'the most recent release' },
+          defaultNote: 'unset, so Claude Code follows `"latest"`',
+        },
+      ],
+    );
+
+    expect(input.entries[0]).toMatchObject({
+      enumDescriptions: { latest: 'the most recent release' },
+      defaultNote: 'unset, so Claude Code follows `"latest"`',
+    });
   });
 });

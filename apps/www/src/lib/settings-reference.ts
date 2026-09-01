@@ -28,17 +28,25 @@ export type ChangelogItemWithVersion = {
 export type SettingValueOption = {
   value: string;
   isDefault: boolean;
+  description?: string;
 };
 
-/** 取りうる値の表の行を、既定値にあたる値へ印を付けて組む。 */
+/** 取りうる値の表の行を、既定値にあたる値へ印を付け、説明のある値へ説明を添えて組む。 */
 export function buildSettingValueOptions(
   enumValues: readonly string[],
   defaultValue: string | undefined,
+  descriptions: Readonly<Record<string, string>> = {},
 ): SettingValueOption[] {
-  return enumValues.map((value) => ({
-    value,
-    isDefault: defaultValue !== undefined && value === defaultValue,
-  }));
+  return enumValues.map((value) => {
+    const description = descriptions[value];
+    return {
+      value,
+      isDefault: defaultValue !== undefined && value === defaultValue,
+      ...(description === undefined || description === ''
+        ? {}
+        : { description }),
+    };
+  });
 }
 
 export type SettingTreeEntry = {

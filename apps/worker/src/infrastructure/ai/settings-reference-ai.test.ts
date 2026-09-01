@@ -69,6 +69,8 @@ describe('Workers AI 設定リファレンス adapter', () => {
             description_ja: 'アクセスを許可する追加ディレクトリです。',
             use_case_ja:
               '- プロジェクト外のディレクトリを参照する場合に使います。',
+            enum_descriptions_ja: [],
+            default_note_ja: '',
           },
         ],
       }),
@@ -80,6 +82,65 @@ describe('Workers AI 設定リファレンス adapter', () => {
         id: 0,
         descriptionJa: 'アクセスを許可する追加ディレクトリです。',
         useCaseJa: '- プロジェクト外のディレクトリを参照する場合に使います。',
+        enumDescriptionsJa: [],
+        defaultNoteJa: '',
+      },
+    ]);
+  });
+
+  it('選択肢ごとの英文と既定値の補足があるとき、原文を AI 向けの入力に含めること', () => {
+    const result = buildSettingsReferencePrompt({
+      entries: [
+        {
+          id: 0,
+          key: 'autoUpdatesChannel',
+          source: 'settings',
+          descriptionEn: 'Choose which release channel updates follow.',
+          parentDescriptions: [],
+          docSnippets: [],
+          officialDocs: [],
+          relatedChangelog: [],
+          enumDescriptions: {
+            latest: 'updates follow the most recent release',
+          },
+          defaultNote: 'unset, so Claude Code follows `"latest"`',
+        },
+      ],
+    });
+
+    expect(result).toContain(
+      '- `"latest"`: updates follow the most recent release',
+    );
+    expect(result).toContain('unset, so Claude Code follows `"latest"`');
+  });
+
+  it('選択肢ごとの日本語説明を返す AI 応答のとき、値ごとに取り出すこと', async () => {
+    const run = vi.fn().mockResolvedValue(
+      chatCompletion({
+        results: [
+          {
+            id: 0,
+            description_ja: 'アクセスを許可する追加ディレクトリです。',
+            use_case_ja: '',
+            enum_descriptions_ja: [
+              { value: 'latest', description_ja: '最新のリリースを追いかける' },
+            ],
+            default_note_ja: '未設定のときは最新を追いかける',
+          },
+        ],
+      }),
+    );
+    const sut = createSettingsReferenceAi({ run }, 'project-gateway');
+
+    await expect(sut.infer(input)).resolves.toEqual([
+      {
+        id: 0,
+        descriptionJa: 'アクセスを許可する追加ディレクトリです。',
+        useCaseJa: '',
+        enumDescriptionsJa: [
+          { value: 'latest', descriptionJa: '最新のリリースを追いかける' },
+        ],
+        defaultNoteJa: '未設定のときは最新を追いかける',
       },
     ]);
   });
@@ -92,6 +153,8 @@ describe('Workers AI 設定リファレンス adapter', () => {
             id: 0,
             description_ja: 'アクセスを許可する追加ディレクトリです。',
             use_case_ja: '',
+            enum_descriptions_ja: [],
+            default_note_ja: '',
           },
         ],
       }),

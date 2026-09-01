@@ -55,6 +55,21 @@ describe('buildSettingValueOptions', () => {
     ]);
   });
 
+  test('選択肢ごとの説明があるとき、その値の行に説明が付く', () => {
+    expect(
+      buildSettingValueOptions(['stable', 'latest'], 'latest', {
+        stable: 'おおむね1週間前のリリースを追いかける',
+      }),
+    ).toEqual([
+      {
+        value: 'stable',
+        isDefault: false,
+        description: 'おおむね1週間前のリリースを追いかける',
+      },
+      { value: 'latest', isDefault: true },
+    ]);
+  });
+
   test.each([
     ['既定値がないとき', undefined],
     ['既定値が選択肢にないとき', 'nightly'],

@@ -622,6 +622,8 @@ describe('POST /api/ingest/changelog integration', () => {
         description_en: 'Model for the server-side advisor tool.',
         description_ja: 'アドバイザーツールのモデルを指定します。',
         use_case_ja: 'アドバイザー機能のモデルを選択します。',
+        enum_descriptions_ja: null,
+        default_note_ja: null,
         fetched_at: '2026-08-16',
       });
       expect(
