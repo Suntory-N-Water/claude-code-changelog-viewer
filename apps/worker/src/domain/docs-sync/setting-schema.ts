@@ -1,14 +1,32 @@
-type SettingSchemaCandidate = {
+export type SettingSchemaFields = {
   key: string;
   source: 'settings' | 'env';
+  description: string;
+  parentDescriptions: string;
+  valueType: string;
+  defaultValue: string | null;
+  enumValues: string | null;
+  scope: string | null;
+  example: string | null;
 };
 
-/** settings、env-vars.md、docs本文の優先順位に従って設定スキーマを統合する。 */
-export function mergeSettingSchemaEntries<T extends SettingSchemaCandidate>(
-  schemaEntries: readonly T[],
-  markdownEntries: readonly T[],
-  docsEntries: readonly T[],
-): T[] {
+/**
+ * settings、env-vars.md、docs本文、公式リファレンスの4系統を統合する。
+ * キーの集合は和集合、型・既定値・選択肢・説明は先の3系統を優先し、記述場所と記述例は公式リファレンスだけが持つ。
+ */
+export type SettingSchemaSources = {
+  schemaEntries: readonly SettingSchemaFields[];
+  markdownEntries: readonly SettingSchemaFields[];
+  docsEntries: readonly SettingSchemaFields[];
+  referenceEntries: readonly SettingSchemaFields[];
+};
+
+export function mergeSettingSchemaEntries({
+  schemaEntries,
+  markdownEntries,
+  docsEntries,
+  referenceEntries,
+}: SettingSchemaSources): SettingSchemaFields[] {
   const schemaSettings = schemaEntries.filter(
     (entry) => entry.source === 'settings',
   );
@@ -23,7 +41,10 @@ export function mergeSettingSchemaEntries<T extends SettingSchemaCandidate>(
     [...markdownEntries, ...schemaOnly].map((entry) => entry.key),
   );
   const docsOnly = docsEntries.filter((entry) => !existingKeys.has(entry.key));
-  const result: T[] = [];
+  const referenceByKey = new Map(
+    referenceEntries.map((entry) => [entry.key, entry]),
+  );
+  const result: SettingSchemaFields[] = [];
   const seenKeys = new Set<string>();
 
   for (const entry of [
@@ -36,10 +57,38 @@ export function mergeSettingSchemaEntries<T extends SettingSchemaCandidate>(
       continue;
     }
     seenKeys.add(entry.key);
+    result.push(applyReferenceFields(entry, referenceByKey.get(entry.key)));
+  }
+
+  for (const entry of referenceEntries) {
+    if (seenKeys.has(entry.key)) {
+      continue;
+    }
+    seenKeys.add(entry.key);
     result.push(entry);
   }
 
   return result;
+}
+
+function applyReferenceFields(
+  entry: SettingSchemaFields,
+  reference: SettingSchemaFields | undefined,
+): SettingSchemaFields {
+  if (reference === undefined) {
+    return entry;
+  }
+
+  return {
+    ...entry,
+    description:
+      entry.description === '' ? reference.description : entry.description,
+    valueType: entry.valueType === '' ? reference.valueType : entry.valueType,
+    defaultValue: entry.defaultValue ?? reference.defaultValue,
+    enumValues: entry.enumValues ?? reference.enumValues,
+    scope: reference.scope,
+    example: reference.example,
+  };
 }
 
 /** 保存時に JSON 化された既定値を、設定ファイルに書く形へ戻す。 */
@@ -75,25 +124,4 @@ const SCOPE_LABELS = new Map([
 /** 公式リファレンスの記述場所を日本語にする。対応表にない値は英語を出さずハイフンにする。 */
 export function formatSettingScope(scope: string): string {
   return SCOPE_LABELS.get(scope.trim()) ?? '-';
-}
-
-type SettingsReferenceDetail = {
-  key: string;
-  scope: string | null;
-  example: string | null;
-};
-
-/** 公式リファレンスの記述場所と記述例を、同じキーを持つエントリへ取り込む。 */
-export function applySettingsReferenceDetails<
-  T extends SettingsReferenceDetail,
->(entries: readonly T[], details: readonly SettingsReferenceDetail[]): T[] {
-  const detailsByKey = new Map(details.map((detail) => [detail.key, detail]));
-
-  return entries.map((entry) => {
-    const detail = detailsByKey.get(entry.key);
-    if (detail === undefined) {
-      return entry;
-    }
-    return { ...entry, scope: detail.scope, example: detail.example };
-  });
 }

@@ -309,6 +309,68 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
       ],
     });
   });
+
+  it('公式リファレンスにしかないキーのとき、設定項目として保存し、schemastore がある項目は変えないこと', async () => {
+    db = new FakeDocsD1Database();
+    const settingsReference = testDocument(
+      'settings-reference.md',
+      'Settings reference',
+      [
+        '### `permissions.allow`',
+        '',
+        '- **Scope**: [`User or managed`](#scopes).',
+        '- **Type**: array of permission rule strings',
+        '- **Default**: `["Bash"]`',
+        '',
+        '### `ultracode`',
+        '',
+        'Turn on ultracode for the main conversation.',
+        '',
+        '- **Scope**: [`Any file`](#scopes)',
+        '- **Type**: Boolean',
+        '- **Default**: `false`',
+        '',
+        '```json settings.json theme={null}',
+        '{ "ultracode": true }',
+        '```',
+      ].join('\n'),
+    );
+    mockRemote({ documents: [settingsReference] });
+
+    await syncDocs(testEnv(db), new Date('2026-08-16T00:00:00.000Z'));
+
+    await expect(
+      db
+        .prepare(
+          'SELECT key, source, description, value_type, default_value, enum_values, scope, example FROM setting_schema_entries WHERE key IN (?, ?)',
+        )
+        .bind('permissions.allow', 'ultracode')
+        .all(),
+    ).resolves.toMatchObject({
+      results: [
+        {
+          key: 'permissions.allow',
+          source: 'settings',
+          description: 'Allowed tools',
+          value_type: 'array',
+          default_value: '[]',
+          enum_values: '["Read","Write"]',
+          scope: 'User or managed',
+          example: null,
+        },
+        {
+          key: 'ultracode',
+          source: 'settings',
+          description: 'Turn on ultracode for the main conversation.',
+          value_type: 'boolean',
+          default_value: 'false',
+          enum_values: null,
+          scope: 'Any file',
+          example: '{ "ultracode": true }',
+        },
+      ],
+    });
+  });
 });
 
 function testEnv(db: FakeDocsD1Database): CloudflareBindings {
