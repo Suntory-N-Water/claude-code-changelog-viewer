@@ -19,8 +19,10 @@ const entry = (
   valueType: '',
   defaultValue: null,
   enumValues: null,
+  enumDescriptions: null,
   scope: null,
   example: null,
+  defaultNote: null,
   ...overrides,
 });
 
@@ -156,6 +158,32 @@ describe('設定スキーマ統合ポリシー', () => {
         enumValues: '["on","off"]',
         scope: 'Any file',
         example: '{ "spellcheck": true }',
+      }),
+    ]);
+  });
+
+  it('選択肢の説明と既定値の補足は、schemastore に値があっても公式リファレンスから取ること', () => {
+    const result = mergeSettingSchemaEntries({
+      schemaEntries: [
+        entry('autoUpdatesChannel', 'settings', {
+          enumDescriptions: '{"latest":"schemastore"}',
+          defaultNote: 'schemastore',
+        }),
+      ],
+      markdownEntries: [],
+      docsEntries: [],
+      referenceEntries: [
+        entry('autoUpdatesChannel', 'settings', {
+          enumDescriptions: '{"latest":"every release"}',
+          defaultNote: 'unset, so Claude Code follows `"latest"`',
+        }),
+      ],
+    });
+
+    expect(result).toEqual([
+      entry('autoUpdatesChannel', 'settings', {
+        enumDescriptions: '{"latest":"every release"}',
+        defaultNote: 'unset, so Claude Code follows `"latest"`',
       }),
     ]);
   });

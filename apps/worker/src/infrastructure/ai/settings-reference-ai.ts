@@ -96,6 +96,11 @@ export function createSettingsReferenceAi(
         id: item.id,
         descriptionJa: item.description_ja,
         useCaseJa: item.use_case_ja,
+        enumDescriptionsJa: item.enum_descriptions_ja.map((description) => ({
+          value: description.value,
+          descriptionJa: description.description_ja,
+        })),
+        defaultNoteJa: item.default_note_ja,
       }));
     },
   };
@@ -190,6 +195,10 @@ export function buildSettingsReferencePrompt(
     '  - 固定フォーマットは不要。AI が重要な情報を選んで箇条書きにする',
     '  - ドキュメントや更新履歴に記載がない内容は書かない',
     '  - 箇条書きは「- 」で始める',
+    '- enum_descriptions_ja: 「選択肢ごとの英語の説明」がある場合、値ごとに英文を1文の日本語へ訳して返す。ない場合は空配列を返す',
+    '  - value は英文に並んだ値をそのまま返し、英文にない値を作らない',
+    '  - `"stable"` のような値そのものは設定ファイルに書く文字列なので、日本語に置き換えない',
+    '- default_note_ja: 「既定値の英語の補足」がある場合、1文の日本語へ訳して返す。ない場合は空文字で返す',
     '- id は入力値をそのまま返すこと',
     '- use_case_ja が空文字の場合、コンテキストなしとして扱う',
     '',
@@ -209,6 +218,10 @@ export function buildSettingsReferencePrompt(
     '- use_case_ja: スキーマ情報から読み取れるデフォルト値・選択肢を箇条書きで表現する。スキーマ情報がない場合は空文字で返す',
     '  - description_en・スキーマに記載のない内容は書かない',
     '  - 箇条書きは「- 」で始める',
+    '- enum_descriptions_ja: 「選択肢ごとの英語の説明」がある場合、値ごとに英文を1文の日本語へ訳して返す。ない場合は空配列を返す',
+    '  - value は英文に並んだ値をそのまま返し、英文にない値を作らない',
+    '  - `"stable"` のような値そのものは設定ファイルに書く文字列なので、日本語に置き換えない',
+    '- default_note_ja: 「既定値の英語の補足」がある場合、1文の日本語へ訳して返す。ない場合は空文字で返す',
     '- id は入力値をそのまま返すこと',
     '',
     '## 対象エントリ',
@@ -235,6 +248,28 @@ function buildSchemaText(
   return parts.length > 0
     ? ['### スキーマ情報', `- ${parts.join(', ')}`].join('\n')
     : '';
+}
+
+/** 選択肢ごとの説明と既定値の補足を、公式の英文のまま AI に渡す。 */
+function buildOfficialTextsSection(entry: SettingsReferenceInputEntry): string {
+  const sections: string[] = [];
+  if (entry.enumDescriptions !== undefined) {
+    sections.push(
+      [
+        '### 選択肢ごとの英語の説明',
+        ...Object.entries(entry.enumDescriptions).map(
+          ([value, description]) =>
+            `- \`${JSON.stringify(value)}\`: ${description}`,
+        ),
+      ].join('\n'),
+    );
+  }
+  if (entry.defaultNote !== undefined) {
+    sections.push(
+      ['### 既定値の英語の補足', `- ${entry.defaultNote}`].join('\n'),
+    );
+  }
+  return sections.join('\n');
 }
 
 function buildContextEntry(entry: SettingsReferenceInputEntry): string {
@@ -281,6 +316,7 @@ function buildContextEntry(entry: SettingsReferenceInputEntry): string {
     `- 英語説明: ${entry.descriptionEn}`,
     parentText,
     schemaText,
+    buildOfficialTextsSection(entry),
     docsText,
     changelogText,
   ]
@@ -298,6 +334,7 @@ function buildTranslationEntry(entry: SettingsReferenceInputEntry): string {
     `- キー: \`${entry.key}\``,
     `- 英語説明: ${entry.descriptionEn}`,
     schemaText,
+    buildOfficialTextsSection(entry),
   ]
     .filter((line) => line.length > 0)
     .join('\n');

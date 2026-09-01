@@ -450,6 +450,78 @@ describe('GET /api/site-data integration', () => {
     docsDb.close();
   });
 
+  it('選択肢ごとの日本語説明があるとき、値と説明の対応と既定値の補足を応答に含めること', async () => {
+    const db = new FakeD1Database();
+    const docsDb = new FakeDocsD1Database();
+    await seedSettingSchema(docsDb, [
+      {
+        key: 'model',
+        valueType: 'string',
+        defaultValue: null,
+        enumValues: '["stable","latest"]',
+      },
+    ]);
+    await seed(db, {
+      settings: [
+        {
+          ...createSetting('model', 'settings'),
+          enum_descriptions_ja:
+            '{"stable":"おおむね1週間前のリリースを追いかける"}',
+          default_note_ja: '未設定のときは `"latest"` を追いかける',
+        },
+      ],
+    });
+
+    const response = await app.request(
+      '/api/site-data/settings',
+      {},
+      createTestEnv(db, docsDb),
+    );
+
+    expect(await response.json()).toMatchObject({
+      settings: [
+        {
+          key: 'model',
+          enum_values: ['stable', 'latest'],
+          enum_descriptions_ja: {
+            stable: 'おおむね1週間前のリリースを追いかける',
+          },
+          default_note_ja: '未設定のときは `"latest"` を追いかける',
+        },
+      ],
+    });
+    db.close();
+    docsDb.close();
+  });
+
+  it('選択肢ごとの日本語説明がないとき、その項目を応答に含めないこと', async () => {
+    const db = new FakeD1Database();
+    const docsDb = new FakeDocsD1Database();
+    await seedSettingSchema(docsDb, [
+      {
+        key: 'model',
+        valueType: 'string',
+        defaultValue: null,
+        enumValues: '["stable"]',
+      },
+    ]);
+    await seed(db, { settings: [createSetting('model', 'settings')] });
+
+    const response = await app.request(
+      '/api/site-data/settings',
+      {},
+      createTestEnv(db, docsDb),
+    );
+    const body = (await response.json()) as {
+      settings: Record<string, unknown>[];
+    };
+
+    expect(body.settings[0]).not.toHaveProperty('enum_descriptions_ja');
+    expect(body.settings[0]).not.toHaveProperty('default_note_ja');
+    db.close();
+    docsDb.close();
+  });
+
   it('対応表にない記述場所のとき、ハイフンを応答に含めること', async () => {
     const db = new FakeD1Database();
     const docsDb = new FakeDocsD1Database();

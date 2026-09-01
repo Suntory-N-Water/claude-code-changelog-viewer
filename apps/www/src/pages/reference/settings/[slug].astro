@@ -62,6 +62,11 @@ const versionGroups = groupByVersion(relatedItems, semverCompareDesc);
 const sourceLabel = getSourceLabel(entry.source);
 const descriptionJaHtml = formatSettingDescription(entry.description_ja);
 const descriptionEnHtml = formatSettingDescription(entry.description_en);
+// 既定値そのものが読み取れているキーは chip に出るため、補足は未設定のキーにだけ添える
+const defaultNoteHtml =
+  entry.default_note_ja && !entry.default_value
+    ? formatSettingDescription(entry.default_note_ja)
+    : null;
 const useCaseHtml = entry.use_case_ja
   ? formatUseCaseJa(entry.use_case_ja)
   : null;
@@ -92,6 +97,10 @@ const schemaChips = [
 const valueOptions = buildSettingValueOptions(
   entry.enum_values ?? [],
   entry.default_value,
+  entry.enum_descriptions_ja ?? {},
+);
+const hasValueDescription = valueOptions.some(
+  (option) => option.description !== undefined,
 );
 
 const displayName = entry.leaf_name ?? entry.key.split('.').at(-1) ?? entry.key;
@@ -164,6 +173,14 @@ const hasContent =
           class='text-base leading-relaxed text-[hsl(var(--cc-main-black))] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[hsl(var(--cc-gray))] [&_code]:text-sm [&_code]:font-mono'
           set:html={descriptionJaHtml}
         />
+        {
+          defaultNoteHtml !== null && (
+            <p class='mt-3 text-sm leading-relaxed text-[hsl(var(--cc-main-black)/0.7)] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[hsl(var(--cc-gray))] [&_code]:text-xs [&_code]:font-mono'>
+              <span class='font-medium'>既定値: </span>
+              <span set:html={defaultNoteHtml} />
+            </p>
+          )
+        }
       </header>
 
       {
@@ -175,7 +192,7 @@ const hasContent =
             <div class='overflow-x-auto rounded-lg border border-[hsl(var(--cc-gray))]'>
               <table class='w-full text-sm border-collapse'>
                 <tbody>
-                  {valueOptions.map(({ value, isDefault }) => (
+                  {valueOptions.map(({ value, isDefault, description }) => (
                     <tr class='border-b border-[hsl(var(--cc-gray)/0.6)] last:border-b-0 align-top'>
                       <th
                         scope='row'
@@ -190,7 +207,11 @@ const hasContent =
                           </span>
                         )}
                       </th>
-                      <td class='w-full px-4 py-2.5 leading-relaxed text-[hsl(var(--cc-main-black)/0.8)]' />
+                      {hasValueDescription && (
+                        <td class='w-full px-4 py-2.5 leading-relaxed text-[hsl(var(--cc-main-black)/0.8)]'>
+                          {description}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

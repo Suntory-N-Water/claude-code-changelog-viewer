@@ -72,8 +72,10 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'object',
         defaultValue: null,
         enumValues: null,
+        enumDescriptions: null,
         scope: null,
         example: null,
+        defaultNote: null,
       },
       {
         key: 'permissions.allow',
@@ -83,8 +85,10 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'array',
         defaultValue: '[]',
         enumValues: JSON.stringify(['Read', 'Write']),
+        enumDescriptions: null,
         scope: null,
         example: null,
+        defaultNote: null,
       },
       {
         key: 'env',
@@ -94,8 +98,10 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'object',
         defaultValue: null,
         enumValues: null,
+        enumDescriptions: null,
         scope: null,
         example: null,
+        defaultNote: null,
       },
       {
         key: 'CLAUDE_CODE_TEST',
@@ -105,8 +111,10 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'string',
         defaultValue: null,
         enumValues: null,
+        enumDescriptions: null,
         scope: null,
         example: null,
+        defaultNote: null,
       },
     ]);
   });
@@ -278,8 +286,10 @@ describe('公式の設定リファレンスの解析', () => {
     valueType: '',
     defaultValue: null,
     enumValues: null,
+    enumDescriptions: null,
     scope: null,
     example: null,
+    defaultNote: null,
     ...overrides,
   });
 
@@ -314,6 +324,8 @@ describe('公式の設定リファレンスの解析', () => {
         valueType: 'string',
         defaultValue: '"latest"',
         enumValues: '["latest","stable"]',
+        enumDescriptions:
+          '{"latest":"every release","stable":"releases that have been out for a week"}',
         scope: 'Any file',
         example: '{\n  "autoUpdatesChannel": "stable"\n}',
       }),
@@ -521,6 +533,83 @@ describe('公式の設定リファレンスの解析', () => {
 
     expect(parseSettingsReferenceMd(markdown)[0]?.enumValues).toBeNull();
   });
+
+  it('選択肢に説明が続くとき、値ごとの英語の説明を取り出すこと', () => {
+    const markdown = [
+      '### `autoUpdatesChannel`',
+      '',
+      '* **Type**: string, one of:',
+      '  * `"latest"`: updates follow the most recent release',
+      '  * `"stable"`: updates follow a version that is about one week old',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumDescriptions).toBe(
+      '{"latest":"updates follow the most recent release","stable":"updates follow a version that is about one week old"}',
+    );
+  });
+
+  it('説明のない選択肢が混じるとき、その値だけを持たない説明を返すこと', () => {
+    const markdown = [
+      '### `mixedKey`',
+      '',
+      '- **Type**: string, one of:',
+      '  - `"on"`',
+      '  - `"off"`: nothing runs',
+    ].join('\n');
+
+    const [entry] = parseSettingsReferenceMd(markdown);
+
+    expect(entry?.enumValues).toBe('["on","off"]');
+    expect(entry?.enumDescriptions).toBe('{"off":"nothing runs"}');
+  });
+
+  it('選択肢がどれも説明を持たないとき、説明を持たない結果を返すこと', () => {
+    const markdown = [
+      '### `feedbackDrafts`',
+      '',
+      '- **Type**: string, one of:',
+      '  - `"notify"`',
+      '  - `"quiet"`',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumDescriptions).toBeNull();
+  });
+
+  it('選択肢が同じ行に並ぶとき、説明を持たない結果を返すこと', () => {
+    const markdown = [
+      '### `feedbackDrafts`',
+      '',
+      '- **Type**: string, one of `"notify"`, `"quiet"`, or `"off"`',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumDescriptions).toBeNull();
+  });
+
+  it.each([
+    ['unset, so Claude Code follows `"latest"`'],
+    ['`true`, switch automatically'],
+    ['not locked'],
+  ])(
+    '既定値が %s と書かれているとき、補足文を英語のまま取り出すこと',
+    (written) => {
+      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
+        '\n',
+      );
+
+      expect(parseSettingsReferenceMd(markdown)[0]?.defaultNote).toBe(written);
+    },
+  );
+
+  it.each([['unset'], ['`"latest"`']])(
+    '既定値が %s だけのとき、補足文を持たない結果を返すこと',
+    (written) => {
+      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
+        '\n',
+      );
+
+      expect(parseSettingsReferenceMd(markdown)[0]?.defaultNote).toBeNull();
+    },
+  );
 
   it('設定キーの見出しを持たない本文のとき、空の並びを返すこと', () => {
     const markdown = [

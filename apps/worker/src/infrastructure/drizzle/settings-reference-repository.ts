@@ -7,7 +7,8 @@ import type {
 } from '../../usecases/settings-reference';
 import { chunk, runBatchedStatements, toDocPath } from './d1-ingestion-utils';
 
-const SETTINGS_PER_INSERT = 12;
+// D1 の bound parameters 上限 100 を、1 行 10 列で割った件数
+const SETTINGS_PER_INSERT = 10;
 const OFFICIAL_DOCS_PER_INSERT = 50;
 
 function sqlExcluded(column: string) {
@@ -48,6 +49,8 @@ export function createSettingsReferenceRepository(
                 descriptionEn: record.descriptionEn,
                 descriptionJa: record.descriptionJa,
                 useCaseJa: record.useCaseJa,
+                enumDescriptionsJa: record.enumDescriptionsJa,
+                defaultNoteJa: record.defaultNoteJa,
                 fetchedAt: record.fetchedAt,
               })),
             )
@@ -60,6 +63,8 @@ export function createSettingsReferenceRepository(
                 descriptionEn: sqlExcluded('description_en'),
                 descriptionJa: sqlExcluded('description_ja'),
                 useCaseJa: sqlExcluded('use_case_ja'),
+                enumDescriptionsJa: sqlExcluded('enum_descriptions_ja'),
+                defaultNoteJa: sqlExcluded('default_note_ja'),
                 fetchedAt: sqlExcluded('fetched_at'),
               },
             }),

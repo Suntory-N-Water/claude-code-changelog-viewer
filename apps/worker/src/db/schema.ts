@@ -164,6 +164,9 @@ export const settingsReference = sqliteTable('settings_reference', {
   descriptionEn: text('description_en').notNull(),
   descriptionJa: text('description_ja').notNull(),
   useCaseJa: text('use_case_ja'),
+  // 値をキーにした JSON。公式リファレンスの選択肢ごとの英文を日本語にしたもの
+  enumDescriptionsJa: text('enum_descriptions_ja'),
+  defaultNoteJa: text('default_note_ja'),
   fetchedAt: text('fetched_at').notNull().default(''),
 });
 

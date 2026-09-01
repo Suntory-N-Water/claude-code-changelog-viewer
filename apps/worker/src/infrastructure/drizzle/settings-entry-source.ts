@@ -2,6 +2,7 @@ import { buildChangelogSearchTerms } from '@claude-code-changelog-viewer/common'
 import { or, sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { changelogItems, settingsReference } from '../../db/schema';
+import { parseEnumDescriptions } from '../../domain/settings-reference/enum-descriptions';
 import type {
   RelatedSettingChangelog,
   SettingsReferenceEntry,
@@ -15,6 +16,8 @@ type SettingSchemaRow = {
   parent_descriptions: string;
   default_value: string | null;
   enum_values: string | null;
+  enum_descriptions: string | null;
+  default_note: string | null;
 };
 
 /** docs-search 用 D1 と正データ用 D1 の読み取りを設定リファレンス用 port に接続する。 */
@@ -26,24 +29,32 @@ export function createSettingsEntrySource(
     async loadEntries(): Promise<SettingsReferenceEntry[]> {
       const result = await docsDb
         .prepare(
-          `SELECT key, source, description, parent_descriptions, default_value, enum_values
+          `SELECT key, source, description, parent_descriptions, default_value, enum_values,
+                  enum_descriptions, default_note
            FROM setting_schema_entries
            ORDER BY key`,
         )
         .all<SettingSchemaRow>();
 
-      return result.results.map((row) => ({
-        key: row.key,
-        source: row.source === 'env' ? 'env' : 'settings',
-        descriptionEn: row.description,
-        parentDescriptions: parseStringArray(row.parent_descriptions),
-        ...(row.default_value === null
-          ? {}
-          : { schemaDefault: row.default_value }),
-        ...(row.enum_values === null
-          ? {}
-          : { schemaEnum: parseStringArray(row.enum_values) }),
-      }));
+      return result.results.map((row) => {
+        const enumDescriptions = parseEnumDescriptions(row.enum_descriptions);
+        return {
+          key: row.key,
+          source: row.source === 'env' ? 'env' : 'settings',
+          descriptionEn: row.description,
+          parentDescriptions: parseStringArray(row.parent_descriptions),
+          ...(row.default_value === null
+            ? {}
+            : { schemaDefault: row.default_value }),
+          ...(row.enum_values === null
+            ? {}
+            : { schemaEnum: parseStringArray(row.enum_values) }),
+          ...(enumDescriptions === undefined ? {} : { enumDescriptions }),
+          ...(row.default_note === null
+            ? {}
+            : { defaultNote: row.default_note }),
+        };
+      });
     },
 
     async loadExistingKeys(): Promise<ReadonlySet<string>> {

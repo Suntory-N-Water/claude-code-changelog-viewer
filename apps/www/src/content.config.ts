@@ -93,6 +93,8 @@ const settingsReferenceCollection = defineCollection({
     value_type: z.string().optional(),
     default_value: z.string().optional(),
     enum_values: z.array(z.string()).optional(),
+    enum_descriptions_ja: z.record(z.string(), z.string()).optional(),
+    default_note_ja: z.string().optional(),
     scope: z.string().optional(),
     example: z.string().optional(),
     official_doc_urls: z.array(z.string().url()).optional(),

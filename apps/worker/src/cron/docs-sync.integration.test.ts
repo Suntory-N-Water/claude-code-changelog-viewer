@@ -310,6 +310,43 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
     });
   });
 
+  it('公式の選択肢に説明が付くとき、選択肢ごとの英文と既定値の補足を保存すること', async () => {
+    db = new FakeDocsD1Database();
+    const settingsReference = testDocument(
+      'settings-reference.md',
+      'Settings reference',
+      [
+        '### `autoUpdatesChannel`',
+        '',
+        'Choose which release channel auto-updates follow.',
+        '',
+        '* **Scope**: [`Any file`](#scopes).',
+        '* **Type**: string, one of:',
+        '  * `"latest"`: updates follow the most recent release',
+        '  * `"stable"`: updates follow a week-old version',
+        '* **Default**: unset, so Claude Code follows `"latest"`',
+      ].join('\n'),
+    );
+    mockRemote({ documents: [settingsReference] });
+
+    await syncDocs(testEnv(db), new Date('2026-08-16T00:00:00.000Z'));
+
+    await expect(
+      db
+        .prepare(
+          'SELECT enum_values, enum_descriptions, default_value, default_note FROM setting_schema_entries WHERE key = ?',
+        )
+        .bind('autoUpdatesChannel')
+        .first(),
+    ).resolves.toEqual({
+      enum_values: '["latest","stable"]',
+      enum_descriptions:
+        '{"latest":"updates follow the most recent release","stable":"updates follow a week-old version"}',
+      default_value: null,
+      default_note: 'unset, so Claude Code follows `"latest"`',
+    });
+  });
+
   it('公式リファレンスにしかないキーのとき、設定項目として保存し、schemastore がある項目は変えないこと', async () => {
     db = new FakeDocsD1Database();
     const settingsReference = testDocument(
