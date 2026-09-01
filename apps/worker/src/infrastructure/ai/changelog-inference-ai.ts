@@ -34,6 +34,7 @@ const AiChatResponseSchema = z.object({
     .array(
       z.object({
         message: z.object({ content: z.string().min(1) }),
+        finish_reason: z.string().optional(),
       }),
     )
     .min(1),
@@ -175,11 +176,20 @@ function parseAiResponse(response: unknown): unknown {
     );
   }
 
-  const content = parsed.data.choices[0]?.message.content;
-  if (content === undefined) {
+  const choice = parsed.data.choices[0];
+  if (choice === undefined) {
     throw new Error('AI 応答に choices がありません');
   }
 
+  // 打ち切られた応答は JSON として必ず壊れる。同じバッチを再試行しても結果は変わらないため、
+  // 「解析に失敗」ではなく打ち切りだと分かるメッセージにする
+  if (choice.finish_reason === 'length') {
+    throw new Error(
+      `AI 応答が出力上限で打ち切られました: max_completion_tokens=${MAX_COMPLETION_TOKENS}`,
+    );
+  }
+
+  const content = choice.message.content;
   try {
     return JSON.parse(content);
   } catch (error) {
