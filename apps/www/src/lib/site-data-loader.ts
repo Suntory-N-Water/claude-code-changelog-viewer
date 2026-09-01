@@ -36,6 +36,8 @@ type SettingsResponse = {
     value_type?: string;
     default_value?: string;
     enum_values?: string[];
+    enum_descriptions_ja?: Record<string, string>;
+    default_note_ja?: string;
     scope?: string;
     example?: string;
     fetched_at: string;

@@ -8,6 +8,14 @@ const EXCLUDED_DOCUMENT_NAME = 'changelog.md';
 const SETTING_KEY_PATTERN = /^`([A-Za-z][\w.]*)`$/;
 // 保存する本文は cleanMarkdown が箇条書きを `-` に揃えるが、公式の原文は `*` を使う
 const SETTING_SCOPE_PATTERN = /^[-*]\s+\*\*Scope\*\*:\s*\[?`([^`]+)`/;
+const SETTING_TYPE_PATTERN = /^[-*]\s+\*\*Type\*\*:\s*(.+)$/;
+const SETTING_DEFAULT_PATTERN = /^[-*]\s+\*\*Default\*\*:\s*(.+)$/;
+const SETTING_LIST_ITEM_PATTERN = /^[-*]\s/;
+const SETTING_ENUM_ITEM_PATTERN = /^\s+[-*]\s+`([^`]+)`(?::\s*(.+?))?\s*$/;
+const SETTING_DEFAULT_UNSET_PATTERN = /^unset\.?$/i;
+const SETTING_ENUM_INLINE_PATTERN =
+  /\bone of\s+((?:`[^`]+`(?:,\s*or\s+|,\s*|\s+or\s+)?)+)/;
+const SETTING_ENUM_LIST_HEAD_PATTERN = /^[^,]*,\s*one of:\s*$/;
 const JSON_FENCE_PATTERN = /^\s*```json(?:\s|$)/;
 
 const SECONDARY_SPLIT_THRESHOLD = 2000;
@@ -32,14 +40,10 @@ export type SettingSchemaEntry = {
   valueType: string;
   defaultValue: string | null;
   enumValues: string | null;
+  enumDescriptions: string | null;
   scope: string | null;
   example: string | null;
-};
-
-export type SettingsReferenceSection = {
-  key: string;
-  scope: string | null;
-  example: string | null;
+  defaultNote: string | null;
 };
 
 type MarkdownLine = {
@@ -426,13 +430,40 @@ export function parseEnvVarsMd(
   });
 }
 
-/** settings-reference.md の設定キーのセクションから記述場所と記述例を抽出する。 */
+/** settings-reference.md の設定キーのセクションから、説明・型・既定値・選択肢・記述場所・記述例を抽出する。 */
 export function parseSettingsReferenceMd(
   markdown: string,
-): SettingsReferenceSection[] {
-  const sections: SettingsReferenceSection[] = [];
-  let current: SettingsReferenceSection | null = null;
+): SettingSchemaEntry[] {
+  const sections: SettingSchemaEntry[] = [];
+  let current: SettingSchemaEntry | null = null;
+  let descriptionLines: string[] | null = null;
+  let enumItems: { value: string; description: string }[] | null = null;
   let exampleLines: string[] | null = null;
+
+  const finishDescription = () => {
+    if (current === null || descriptionLines === null) {
+      return;
+    }
+    current.description = descriptionLines.join(' ').trim();
+    descriptionLines = null;
+  };
+  const finishEnum = () => {
+    if (current === null || enumItems === null) {
+      return;
+    }
+    if (enumItems.length > 0) {
+      current.enumValues = JSON.stringify(enumItems.map((item) => item.value));
+      const described = enumItems.filter((item) => item.description !== '');
+      if (described.length > 0) {
+        current.enumDescriptions = JSON.stringify(
+          Object.fromEntries(
+            described.map((item) => [item.value, item.description]),
+          ),
+        );
+      }
+    }
+    enumItems = null;
+  };
 
   for (const line of markdown.split('\n')) {
     if (exampleLines !== null) {
@@ -449,13 +480,16 @@ export function parseSettingsReferenceMd(
 
     const headingMatch = line.match(HEADING_PATTERN);
     if (headingMatch !== null) {
+      finishDescription();
+      finishEnum();
       const keyMatch = headingMatch[2]?.match(SETTING_KEY_PATTERN);
       const key = headingMatch[1]?.length === 3 ? keyMatch?.[1] : undefined;
       if (key === undefined) {
         current = null;
         continue;
       }
-      current = { key, scope: null, example: null };
+      current = createSettingsReferenceEntry(key);
+      descriptionLines = [];
       sections.push(current);
       continue;
     }
@@ -464,10 +498,69 @@ export function parseSettingsReferenceMd(
       continue;
     }
 
+    if (descriptionLines !== null) {
+      const isParagraphLine =
+        line.trim() !== '' &&
+        !SETTING_LIST_ITEM_PATTERN.test(line) &&
+        !FENCE_PATTERN.test(line);
+      if (isParagraphLine) {
+        descriptionLines.push(line.trim());
+        continue;
+      }
+      // 説明は見出し直後の1段落だけを取り、以降の補足や箇条書きは含めない
+      if (descriptionLines.length > 0 || line.trim() !== '') {
+        finishDescription();
+      }
+    }
+
+    const typeMatch = line.match(SETTING_TYPE_PATTERN);
+    if (typeMatch !== null) {
+      finishEnum();
+      const written = typeMatch[1] ?? '';
+      current.valueType = normalizeReferenceValueType(written);
+      if (current.valueType === 'string') {
+        if (SETTING_ENUM_LIST_HEAD_PATTERN.test(written)) {
+          enumItems = [];
+        } else {
+          current.enumValues = parseInlineEnumValues(written);
+        }
+      }
+      continue;
+    }
+
+    const defaultMatch = line.match(SETTING_DEFAULT_PATTERN);
+    if (defaultMatch !== null) {
+      finishEnum();
+      const written = (defaultMatch[1] ?? '').trim();
+      current.defaultValue = parseReferenceDefaultValue(written);
+      // 既定値を値として読み取れた行に補足はなく、`unset` だけの行は読者に何も伝えない
+      current.defaultNote =
+        current.defaultValue === null &&
+        !SETTING_DEFAULT_UNSET_PATTERN.test(written)
+          ? written
+          : null;
+      continue;
+    }
+
     const scopeMatch = line.match(SETTING_SCOPE_PATTERN);
     if (scopeMatch !== null && current.scope === null) {
+      finishEnum();
       current.scope = scopeMatch[1] ?? null;
       continue;
+    }
+
+    if (enumItems !== null) {
+      const enumMatch = line.match(SETTING_ENUM_ITEM_PATTERN);
+      if (enumMatch?.[1] !== undefined) {
+        enumItems.push({
+          value: unquoteEnumValue(enumMatch[1]),
+          description: enumMatch[2]?.trim() ?? '',
+        });
+        continue;
+      }
+      if (line.trim() !== '') {
+        finishEnum();
+      }
     }
 
     if (current.example === null && JSON_FENCE_PATTERN.test(line)) {
@@ -475,7 +568,85 @@ export function parseSettingsReferenceMd(
     }
   }
 
+  finishDescription();
+  finishEnum();
   return sections;
+}
+
+function createSettingsReferenceEntry(key: string): SettingSchemaEntry {
+  return {
+    key,
+    source: 'settings',
+    description: '',
+    parentDescriptions: '[]',
+    valueType: '',
+    defaultValue: null,
+    enumValues: null,
+    enumDescriptions: null,
+    scope: null,
+    example: null,
+    defaultNote: null,
+  };
+}
+
+/** 公式リファレンスの散文の型を、JSON スキーマと同じ型名にする。読み取れない言い回しは型なしにする。 */
+function normalizeReferenceValueType(written: string): string {
+  const head = (written.split(/[,;]|\.\s/)[0] ?? '').trim().toLowerCase();
+  if (/^boolean$/.test(head)) {
+    return 'boolean';
+  }
+  if (/^(?:the )?string/.test(head)) {
+    return 'string';
+  }
+  if (/^integer/.test(head)) {
+    return 'integer';
+  }
+  if (/^number/.test(head)) {
+    return 'number';
+  }
+  if (/^object/.test(head)) {
+    return 'object';
+  }
+  if (/^array\b/.test(head)) {
+    if (/\bobjects?$/.test(head)) {
+      return 'object[]';
+    }
+    return /\bstrings?$/.test(head) ? 'string[]' : 'array';
+  }
+  return '';
+}
+
+/** 公式リファレンスの散文の既定値から、設定ファイルに書ける値だけを取り出す。 */
+function parseReferenceDefaultValue(written: string): string | null {
+  const literal = written.trim().match(/^`([^`]+)`$/)?.[1];
+  if (literal === undefined) {
+    return null;
+  }
+  try {
+    return JSON.stringify(JSON.parse(literal));
+  } catch {
+    return null;
+  }
+}
+
+function parseInlineEnumValues(written: string): string | null {
+  const listed = written.match(SETTING_ENUM_INLINE_PATTERN)?.[1];
+  if (listed === undefined) {
+    return null;
+  }
+  const values = [...listed.matchAll(/`([^`]+)`/g)].map((match) =>
+    unquoteEnumValue(match[1] ?? ''),
+  );
+  return values.length === 0 ? null : JSON.stringify(values);
+}
+
+function unquoteEnumValue(written: string): string {
+  try {
+    const parsed: unknown = JSON.parse(written);
+    return typeof parsed === 'string' ? parsed : written;
+  } catch {
+    return written;
+  }
 }
 
 /** docs/en 本文にある公開環境変数の言及から環境変数エントリを抽出する。 */
@@ -566,8 +737,10 @@ function createSettingSchemaEntry({
     valueType,
     defaultValue,
     enumValues,
+    enumDescriptions: null,
     scope: null,
     example: null,
+    defaultNote: null,
   };
 }
 
@@ -687,8 +860,10 @@ function createEnvironmentSettingSchemaEntry(
     valueType: '',
     defaultValue: null,
     enumValues: null,
+    enumDescriptions: null,
     scope: null,
     example: null,
+    defaultNote: null,
   };
 }
 

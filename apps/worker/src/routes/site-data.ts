@@ -12,6 +12,7 @@ import {
   listSettingsReference,
 } from '../infrastructure/drizzle/changelog-repository';
 import { resolveSettingSlugs } from '../domain/settings-reference/setting-slug';
+import { parseEnumDescriptions } from '../domain/settings-reference/enum-descriptions';
 import { loadSettingSchemaDisplays } from '../infrastructure/docs-sync/setting-schema-reader';
 
 const logger = getLogger({
@@ -162,6 +163,7 @@ siteDataRoute.get('/settings', async (c) => {
   const response = {
     settings: settingRows.map((row) => {
       const schema = schemaDisplays.get(row.key);
+      const enumDescriptionsJa = parseEnumDescriptions(row.enumDescriptionsJa);
       return {
         key: row.key,
         ...(row.leafName === null ? {} : { leaf_name: row.leafName }),
@@ -179,6 +181,12 @@ siteDataRoute.get('/settings', async (c) => {
         ...(schema?.enumValues === undefined
           ? {}
           : { enum_values: schema.enumValues }),
+        ...(enumDescriptionsJa === undefined
+          ? {}
+          : { enum_descriptions_ja: enumDescriptionsJa }),
+        ...(row.defaultNoteJa === null
+          ? {}
+          : { default_note_ja: row.defaultNoteJa }),
         ...(schema?.scope === undefined ? {} : { scope: schema.scope }),
         ...(schema?.example === undefined ? {} : { example: schema.example }),
         fetched_at: row.fetchedAt,

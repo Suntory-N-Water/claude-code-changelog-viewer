@@ -64,6 +64,8 @@ export const ingestChangelogRoute = new Hono<{
         descriptionEn: setting.description_en,
         descriptionJa: setting.description_ja,
         useCaseJa: setting.use_case_ja ?? null,
+        enumDescriptionsJa: setting.enum_descriptions_ja ?? null,
+        defaultNoteJa: setting.default_note_ja ?? null,
         fetchedAt: setting.fetched_at,
         officialDocs: setting.official_doc_urls ?? [],
       })),

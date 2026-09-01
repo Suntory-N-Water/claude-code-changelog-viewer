@@ -1,45 +1,53 @@
 import { describe, expect, it } from 'vitest';
 import {
-  applySettingsReferenceDetails,
   formatSchemaDefaultValue,
   formatSettingScope,
   mergeSettingSchemaEntries,
   parseSchemaEnumValues,
+  type SettingSchemaFields,
 } from './setting-schema';
-
-type Entry = {
-  key: string;
-  source: 'settings' | 'env';
-  description: string;
-};
 
 const entry = (
   key: string,
-  source: Entry['source'],
-  description = key,
-): Entry => ({ key, source, description });
+  source: SettingSchemaFields['source'],
+  overrides: Partial<SettingSchemaFields> = {},
+): SettingSchemaFields => ({
+  key,
+  source,
+  description: key,
+  parentDescriptions: '[]',
+  valueType: '',
+  defaultValue: null,
+  enumValues: null,
+  enumDescriptions: null,
+  scope: null,
+  example: null,
+  defaultNote: null,
+  ...overrides,
+});
 
 describe('設定スキーマ統合ポリシー', () => {
   it('settings、env-vars.md、スキーマ、docs本文の優先順位で統合する', () => {
-    const result = mergeSettingSchemaEntries(
-      [
+    const result = mergeSettingSchemaEntries({
+      schemaEntries: [
         entry('setting.only', 'settings'),
-        entry('ENV_PRIORITY', 'env', 'schema'),
+        entry('ENV_PRIORITY', 'env', { description: 'schema' }),
         entry('ENV_SCHEMA_ONLY', 'env'),
       ],
-      [
-        entry('ENV_PRIORITY', 'env', 'markdown'),
+      markdownEntries: [
+        entry('ENV_PRIORITY', 'env', { description: 'markdown' }),
         entry('ENV_MARKDOWN_ONLY', 'env'),
       ],
-      [
-        entry('ENV_MARKDOWN_ONLY', 'env', 'docs duplicate'),
+      docsEntries: [
+        entry('ENV_MARKDOWN_ONLY', 'env', { description: 'docs duplicate' }),
         entry('ENV_DOCS_ONLY', 'env'),
       ],
-    );
+      referenceEntries: [],
+    });
 
     expect(result).toEqual([
       entry('setting.only', 'settings'),
-      entry('ENV_PRIORITY', 'env', 'markdown'),
+      entry('ENV_PRIORITY', 'env', { description: 'markdown' }),
       entry('ENV_MARKDOWN_ONLY', 'env'),
       entry('ENV_SCHEMA_ONLY', 'env'),
       entry('ENV_DOCS_ONLY', 'env'),
@@ -47,20 +55,151 @@ describe('設定スキーマ統合ポリシー', () => {
   });
 
   it('空入力では空配列を返す', () => {
-    expect(mergeSettingSchemaEntries([], [], [])).toEqual([]);
+    expect(
+      mergeSettingSchemaEntries({
+        schemaEntries: [],
+        markdownEntries: [],
+        docsEntries: [],
+        referenceEntries: [],
+      }),
+    ).toEqual([]);
   });
 
   it('同じ入力元内の重複キーを一件にする', () => {
     expect(
-      mergeSettingSchemaEntries(
-        [
+      mergeSettingSchemaEntries({
+        schemaEntries: [
           entry('setting.duplicate', 'settings'),
-          entry('setting.duplicate', 'settings', 'later'),
+          entry('setting.duplicate', 'settings', { description: 'later' }),
         ],
-        [],
-        [],
-      ),
+        markdownEntries: [],
+        docsEntries: [],
+        referenceEntries: [],
+      }),
     ).toEqual([entry('setting.duplicate', 'settings')]);
+  });
+
+  it('公式リファレンスにしかないキーのとき、設定項目として並びに加えること', () => {
+    const officialOnly = entry('ultracode', 'settings', {
+      description: 'Turn on ultracode.',
+      valueType: 'boolean',
+      scope: 'Any file',
+      example: '{ "ultracode": true }',
+    });
+
+    expect(
+      mergeSettingSchemaEntries({
+        schemaEntries: [entry('model', 'settings')],
+        markdownEntries: [],
+        docsEntries: [],
+        referenceEntries: [officialOnly],
+      }),
+    ).toEqual([entry('model', 'settings'), officialOnly]);
+  });
+
+  it('schemastore が型・既定値・選択肢・説明を持つとき、公式リファレンスの値で上書きしないこと', () => {
+    const result = mergeSettingSchemaEntries({
+      schemaEntries: [
+        entry('model', 'settings', {
+          description: 'schemastore',
+          valueType: 'string',
+          defaultValue: '"opus"',
+          enumValues: '["opus","sonnet"]',
+        }),
+      ],
+      markdownEntries: [],
+      docsEntries: [],
+      referenceEntries: [
+        entry('model', 'settings', {
+          description: 'official reference',
+          valueType: 'array',
+          defaultValue: '"sonnet"',
+          enumValues: '["fable"]',
+          scope: 'Any file',
+          example: '{ "model": "opus" }',
+        }),
+      ],
+    });
+
+    expect(result).toEqual([
+      entry('model', 'settings', {
+        description: 'schemastore',
+        valueType: 'string',
+        defaultValue: '"opus"',
+        enumValues: '["opus","sonnet"]',
+        scope: 'Any file',
+        example: '{ "model": "opus" }',
+      }),
+    ]);
+  });
+
+  it('schemastore が型・既定値・選択肢・説明を持たないとき、公式リファレンスの値で埋めること', () => {
+    const result = mergeSettingSchemaEntries({
+      schemaEntries: [entry('spellcheck', 'settings', { description: '' })],
+      markdownEntries: [],
+      docsEntries: [],
+      referenceEntries: [
+        entry('spellcheck', 'settings', {
+          description: 'Check spelling in the prompt input.',
+          valueType: 'object',
+          defaultValue: 'true',
+          enumValues: '["on","off"]',
+          scope: 'Any file',
+          example: '{ "spellcheck": true }',
+        }),
+      ],
+    });
+
+    expect(result).toEqual([
+      entry('spellcheck', 'settings', {
+        description: 'Check spelling in the prompt input.',
+        valueType: 'object',
+        defaultValue: 'true',
+        enumValues: '["on","off"]',
+        scope: 'Any file',
+        example: '{ "spellcheck": true }',
+      }),
+    ]);
+  });
+
+  it('選択肢の説明と既定値の補足は、schemastore に値があっても公式リファレンスから取ること', () => {
+    const result = mergeSettingSchemaEntries({
+      schemaEntries: [
+        entry('autoUpdatesChannel', 'settings', {
+          enumDescriptions: '{"latest":"schemastore"}',
+          defaultNote: 'schemastore',
+        }),
+      ],
+      markdownEntries: [],
+      docsEntries: [],
+      referenceEntries: [
+        entry('autoUpdatesChannel', 'settings', {
+          enumDescriptions: '{"latest":"every release"}',
+          defaultNote: 'unset, so Claude Code follows `"latest"`',
+        }),
+      ],
+    });
+
+    expect(result).toEqual([
+      entry('autoUpdatesChannel', 'settings', {
+        enumDescriptions: '{"latest":"every release"}',
+        defaultNote: 'unset, so Claude Code follows `"latest"`',
+      }),
+    ]);
+  });
+
+  it('公式リファレンスにセクションが無いキーのとき、記述場所と記述例を持たないままにすること', () => {
+    expect(
+      mergeSettingSchemaEntries({
+        schemaEntries: [],
+        markdownEntries: [entry('CLAUDE_CODE_TEST', 'env')],
+        docsEntries: [],
+        referenceEntries: [entry('model', 'settings', { scope: 'Any file' })],
+      }),
+    ).toEqual([
+      entry('CLAUDE_CODE_TEST', 'env'),
+      entry('model', 'settings', { scope: 'Any file' }),
+    ]);
   });
 });
 
@@ -105,43 +244,5 @@ describe('記述場所の表記', () => {
 
   it('対応表にない値のとき、ハイフンを返すこと', () => {
     expect(formatSettingScope('Project only')).toBe('-');
-  });
-});
-
-describe('公式リファレンスの記述場所と記述例の取り込み', () => {
-  const detail = (
-    key: string,
-    scope: string | null = null,
-    example: string | null = null,
-  ) => ({ key, scope, example });
-
-  it('同じキーのセクションがあるとき、記述場所と記述例を付けること', () => {
-    const result = applySettingsReferenceDetails(
-      [detail('model'), detail('permissions.allow')],
-      [
-        detail('model', 'Any file', '{ "model": "opus" }'),
-        detail('permissions.allow', 'User or managed', null),
-      ],
-    );
-
-    expect(result).toEqual([
-      detail('model', 'Any file', '{ "model": "opus" }'),
-      detail('permissions.allow', 'User or managed', null),
-    ]);
-  });
-
-  it('セクションが無いキーのとき、記述場所と記述例を持たないままにすること', () => {
-    expect(
-      applySettingsReferenceDetails([detail('CLAUDE_CODE_TEST')], []),
-    ).toEqual([detail('CLAUDE_CODE_TEST')]);
-  });
-
-  it('公式リファレンスにしかないキーのとき、エントリを増やさないこと', () => {
-    expect(
-      applySettingsReferenceDetails(
-        [detail('model')],
-        [detail('officialOnly', 'Managed', '{ "officialOnly": true }')],
-      ),
-    ).toEqual([detail('model')]);
   });
 });

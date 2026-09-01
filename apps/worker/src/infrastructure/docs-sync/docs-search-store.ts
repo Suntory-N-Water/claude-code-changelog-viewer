@@ -106,7 +106,7 @@ export function createDocsSearchStore(db: D1Database): DocsSearchStore {
       ];
       for (const rows of splitIntoChunks(schema.entries, SETTINGS_PER_INSERT)) {
         const placeholders = rows
-          .map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?)')
+          .map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
           .join(', ');
         const values = rows.flatMap((entry) => [
           entry.key,
@@ -116,14 +116,16 @@ export function createDocsSearchStore(db: D1Database): DocsSearchStore {
           entry.valueType,
           entry.defaultValue,
           entry.enumValues,
+          entry.enumDescriptions,
           entry.scope,
           entry.example,
+          entry.defaultNote,
         ]);
         statements.push(
           db
             .prepare(
               `INSERT INTO setting_schema_entries
-                 (key, source, description, parent_descriptions, value_type, default_value, enum_values, scope, example)
+                 (key, source, description, parent_descriptions, value_type, default_value, enum_values, enum_descriptions, scope, example, default_note)
                VALUES ${placeholders}`,
             )
             .bind(...values),

@@ -1,3 +1,4 @@
+import { buildEnumDescriptionsJa } from '../domain/settings-reference/enum-descriptions';
 import { createSettingSlugFromKey } from '../domain/settings-reference/setting-slug';
 
 export type SettingsReferenceWorkflowParams = {
@@ -19,6 +20,8 @@ export type SettingsReferenceEntry = {
   parentDescriptions: string[];
   schemaDefault?: string;
   schemaEnum?: string[];
+  enumDescriptions?: Record<string, string>;
+  defaultNote?: string;
 };
 
 export type RelatedSettingDocument = {
@@ -57,6 +60,8 @@ export type SettingsReferenceInputEntry = {
   relatedChangelog: RelatedSettingChangelog[];
   schemaDefault?: string;
   schemaEnum?: string[];
+  enumDescriptions?: Record<string, string>;
+  defaultNote?: string;
 };
 
 export type SettingsReferenceInput = {
@@ -67,6 +72,8 @@ export type SettingsReferenceTranslation = {
   id: number;
   descriptionJa: string;
   useCaseJa: string;
+  enumDescriptionsJa: { value: string; descriptionJa: string }[];
+  defaultNoteJa: string;
 };
 
 export type SettingsReferenceAiPort = {
@@ -81,6 +88,8 @@ export type SettingsReferenceRecord = {
   descriptionEn: string;
   descriptionJa: string;
   useCaseJa: string | null;
+  enumDescriptionsJa: string | null;
+  defaultNoteJa: string | null;
   fetchedAt: string;
   officialDocs: string[];
 };
@@ -169,6 +178,12 @@ export async function buildSettingsReferenceInput(
           ...(entry.schemaEnum === undefined
             ? {}
             : { schemaEnum: [...entry.schemaEnum] }),
+          ...(entry.enumDescriptions === undefined
+            ? {}
+            : { enumDescriptions: { ...entry.enumDescriptions } }),
+          ...(entry.defaultNote === undefined
+            ? {}
+            : { defaultNote: entry.defaultNote }),
         };
       }),
     ),
@@ -199,6 +214,14 @@ export async function saveSettingsReferences(
         descriptionEn: entry.descriptionEn,
         descriptionJa: translation.descriptionJa,
         useCaseJa: translation.useCaseJa === '' ? null : translation.useCaseJa,
+        enumDescriptionsJa: buildEnumDescriptionsJa(
+          entry.enumDescriptions,
+          translation.enumDescriptionsJa,
+        ),
+        defaultNoteJa:
+          entry.defaultNote === undefined || translation.defaultNoteJa === ''
+            ? null
+            : translation.defaultNoteJa,
         fetchedAt,
         officialDocs: [...entry.officialDocs],
       },

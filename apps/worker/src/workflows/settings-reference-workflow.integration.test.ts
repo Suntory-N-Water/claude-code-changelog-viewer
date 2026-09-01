@@ -86,6 +86,8 @@ describe('設定リファレンス生成 Workflow', () => {
             description_ja: 'アクセスを許可する追加ディレクトリです。',
             use_case_ja:
               '- プロジェクト外のディレクトリを参照する場合に使います。',
+            enum_descriptions_ja: [],
+            default_note_ja: '',
           },
         ],
       }),
@@ -177,6 +179,8 @@ describe('設定リファレンス生成 Workflow', () => {
             id: 0,
             description_ja: '再生成した説明です。',
             use_case_ja: '',
+            enum_descriptions_ja: [],
+            default_note_ja: '',
           },
         ],
       }),
@@ -227,6 +231,130 @@ describe('設定リファレンス生成 Workflow', () => {
     }
   });
 
+  it('targetKeys で選んだキーだけ、選択肢の説明と既定値の補足を日本語で保存する', async () => {
+    await testEnv.DOCS_DB.prepare(
+      `INSERT INTO setting_schema_entries
+       (key, source, description, parent_descriptions, value_type, default_value, enum_values, enum_descriptions, default_note)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+      .bind(
+        'autoUpdatesChannel',
+        'settings',
+        'Choose which release channel auto-updates follow.',
+        '[]',
+        'string',
+        null,
+        '["latest","stable"]',
+        '{"latest":"updates follow the most recent release","stable":"updates follow a week-old version"}',
+        'unset, so Claude Code follows `"latest"`',
+      )
+      .run();
+    await testEnv.DOCS_DB.prepare(
+      `INSERT INTO setting_schema_entries
+       (key, source, description, parent_descriptions, value_type, default_value, enum_values)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    )
+      .bind(
+        'model',
+        'settings',
+        'Model for the session.',
+        '[]',
+        'string',
+        null,
+        null,
+      )
+      .run();
+
+    const db = drizzle(testEnv.DB);
+    await db.insert(settingsReference).values([
+      {
+        key: 'autoUpdatesChannel',
+        leafName: 'autoUpdatesChannel',
+        slug: 'auto-updates-channel',
+        source: 'settings',
+        descriptionEn: 'Choose which release channel auto-updates follow.',
+        descriptionJa: '自動更新が追いかけるリリース系統を選ぶ。',
+        useCaseJa: null,
+        fetchedAt: '2026-08-16',
+      },
+      {
+        key: 'model',
+        leafName: 'model',
+        slug: 'model',
+        source: 'settings',
+        descriptionEn: 'Model for the session.',
+        descriptionJa: 'セッションで使うモデルを指定する。',
+        useCaseJa: null,
+        fetchedAt: '2026-08-16',
+      },
+    ]);
+
+    vi.spyOn(testEnv.AI, 'run').mockResolvedValue(
+      chatCompletion({
+        results: [
+          {
+            id: 0,
+            description_ja: '自動更新が追いかけるリリース系統を選ぶ。',
+            use_case_ja: '',
+            enum_descriptions_ja: [
+              { value: 'latest', description_ja: '最新のリリースを追いかける' },
+              {
+                value: 'stable',
+                description_ja: 'おおむね1週間前のリリースを追いかける',
+              },
+              { value: 'nightly', description_ja: '毎晩のビルドを追いかける' },
+            ],
+            default_note_ja: '未設定のときは `"latest"` を追いかける',
+          },
+        ],
+      }),
+    );
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${String(input)}`);
+    });
+
+    const instanceId = `issue-991-target-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.SETTINGS_REFERENCE_WORKFLOW,
+      instanceId,
+    );
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+      await testEnv.SETTINGS_REFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: { targetKeys: ['autoUpdatesChannel'] },
+      });
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+
+      const rows = await db
+        .select()
+        .from(settingsReference)
+        .orderBy(settingsReference.key);
+
+      expect(rows).toMatchObject([
+        {
+          key: 'autoUpdatesChannel',
+          enumDescriptionsJa:
+            '{"latest":"最新のリリースを追いかける","stable":"おおむね1週間前のリリースを追いかける"}',
+          defaultNoteJa: '未設定のときは `"latest"` を追いかける',
+        },
+        {
+          key: 'model',
+          descriptionJa: 'セッションで使うモデルを指定する。',
+          enumDescriptionsJa: null,
+          defaultNoteJa: null,
+        },
+      ]);
+    } finally {
+      await instance.dispose();
+    }
+  });
+
   it('31件の設定項目を30件ずつの AI バッチに分ける', async () => {
     await seedSettingSchema(31);
     let callCount = 0;
@@ -238,6 +366,8 @@ describe('設定リファレンス生成 Workflow', () => {
           id,
           description_ja: `説明 ${id}です。`,
           use_case_ja: '',
+          enum_descriptions_ja: [],
+          default_note_ja: '',
         })),
       });
     });

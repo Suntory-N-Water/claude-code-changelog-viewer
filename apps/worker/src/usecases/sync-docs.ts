@@ -1,8 +1,5 @@
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
-import {
-  applySettingsReferenceDetails,
-  mergeSettingSchemaEntries,
-} from '../domain/docs-sync/setting-schema';
+import { mergeSettingSchemaEntries } from '../domain/docs-sync/setting-schema';
 import { isSafeToDeleteStaleDocuments } from '../domain/docs-sync/document-sync';
 
 const logger = getLogger({
@@ -31,14 +28,10 @@ export type SettingSchemaEntry = {
   valueType: string;
   defaultValue: string | null;
   enumValues: string | null;
+  enumDescriptions: string | null;
   scope: string | null;
   example: string | null;
-};
-
-export type SettingsReferenceSection = {
-  key: string;
-  scope: string | null;
-  example: string | null;
+  defaultNote: string | null;
 };
 
 export type SettingSchemaSnapshot = {
@@ -75,7 +68,7 @@ export type SettingSchemaContentParser = {
   parsePublicEnvEntriesFromDocs(
     pages: ReadonlyMap<string, string>,
   ): SettingSchemaEntry[];
-  parseSettingsReferenceMd(markdown: string): SettingsReferenceSection[];
+  parseSettingsReferenceMd(markdown: string): SettingSchemaEntry[];
 };
 
 export type SyncDocsDependencies = {
@@ -195,16 +188,18 @@ export async function syncDocs(
   const settingsReferencePage = [...pageContents.entries()].find(
     ([path]) => path.split('/').at(-1) === 'settings-reference.md',
   )?.[1];
-  const referenceSections =
+  const referenceEntries =
     settingsReferencePage === undefined
       ? []
       : dependencies.contentParser.parseSettingsReferenceMd(
           settingsReferencePage,
         );
-  const mergedEntries = applySettingsReferenceDetails(
-    mergeSettingSchemaEntries(schema.entries, markdownEntries, docsEntries),
-    referenceSections,
-  );
+  const mergedEntries = mergeSettingSchemaEntries({
+    schemaEntries: schema.entries,
+    markdownEntries,
+    docsEntries,
+    referenceEntries,
+  });
   if (failedCount === 0 && (schemaUpdated || changedPages.length > 0)) {
     await dependencies.store.replaceSettingSchema(
       { ...schema, entries: mergedEntries },

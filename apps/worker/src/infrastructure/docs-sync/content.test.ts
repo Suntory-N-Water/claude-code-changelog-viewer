@@ -7,6 +7,7 @@ import {
   parsePublicEnvEntriesFromDocs,
   parseSettingsReferenceMd,
 } from './content';
+import type { SettingSchemaEntry } from './content';
 
 describe('ドキュメント同期用のコンテンツ処理', () => {
   it('コードフェンス内の見出しをチャンク境界にしないこと', () => {
@@ -71,8 +72,10 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'object',
         defaultValue: null,
         enumValues: null,
+        enumDescriptions: null,
         scope: null,
         example: null,
+        defaultNote: null,
       },
       {
         key: 'permissions.allow',
@@ -82,8 +85,10 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'array',
         defaultValue: '[]',
         enumValues: JSON.stringify(['Read', 'Write']),
+        enumDescriptions: null,
         scope: null,
         example: null,
+        defaultNote: null,
       },
       {
         key: 'env',
@@ -93,8 +98,10 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'object',
         defaultValue: null,
         enumValues: null,
+        enumDescriptions: null,
         scope: null,
         example: null,
+        defaultNote: null,
       },
       {
         key: 'CLAUDE_CODE_TEST',
@@ -104,8 +111,10 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         valueType: 'string',
         defaultValue: null,
         enumValues: null,
+        enumDescriptions: null,
         scope: null,
         example: null,
+        defaultNote: null,
       },
     ]);
   });
@@ -266,7 +275,25 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
 });
 
 describe('公式の設定リファレンスの解析', () => {
-  it('セクションから、キー・記述場所・記述例を取り出すこと', () => {
+  const section = (
+    key: string,
+    overrides: Partial<SettingSchemaEntry> = {},
+  ): SettingSchemaEntry => ({
+    key,
+    source: 'settings',
+    description: '',
+    parentDescriptions: '[]',
+    valueType: '',
+    defaultValue: null,
+    enumValues: null,
+    enumDescriptions: null,
+    scope: null,
+    example: null,
+    defaultNote: null,
+    ...overrides,
+  });
+
+  it('セクションから、キー・説明・型・既定値・選択肢・記述場所・記述例を取り出すこと', () => {
     const markdown = [
       '# Claude Code settings reference',
       '',
@@ -274,9 +301,13 @@ describe('公式の設定リファレンスの解析', () => {
       '',
       'Choose which release channel auto-updates follow.',
       '',
+      'A second paragraph that repeats the guidance.',
+      '',
       '- **Scope**: [`Any file`](#scopes). Set it in managed settings to enforce one channel.',
       '- **Type**: string, one of:',
-      '- **Default**: unset',
+      '  - `"latest"`: every release',
+      '  - `"stable"`: releases that have been out for a week',
+      '- **Default**: `"latest"`',
       '',
       '```json settings.json theme={null}',
       '{',
@@ -288,11 +319,16 @@ describe('公式の設定リファレンスの解析', () => {
     ].join('\n');
 
     expect(parseSettingsReferenceMd(markdown)).toEqual([
-      {
-        key: 'autoUpdatesChannel',
+      section('autoUpdatesChannel', {
+        description: 'Choose which release channel auto-updates follow.',
+        valueType: 'string',
+        defaultValue: '"latest"',
+        enumValues: '["latest","stable"]',
+        enumDescriptions:
+          '{"latest":"every release","stable":"releases that have been out for a week"}',
         scope: 'Any file',
         example: '{\n  "autoUpdatesChannel": "stable"\n}',
-      },
+      }),
     ]);
   });
 
@@ -312,11 +348,10 @@ describe('公式の設定リファレンスの解析', () => {
     ].join('\n');
 
     expect(parseSettingsReferenceMd(markdown)).toEqual([
-      {
-        key: 'permissions.allow',
+      section('permissions.allow', {
         scope: 'User or managed',
         example: '{ "permissions": { "allow": ["Read"] } }',
-      },
+      }),
     ]);
   });
 
@@ -354,7 +389,7 @@ describe('公式の設定リファレンスの解析', () => {
     ].join('\n');
 
     expect(parseSettingsReferenceMd(markdown)).toEqual([
-      { key: 'teammateDefaultModel', scope: 'Global config', example: null },
+      section('teammateDefaultModel', { scope: 'Global config' }),
     ]);
   });
 
@@ -370,7 +405,10 @@ describe('公式の設定リファレンスの解析', () => {
     ].join('\n');
 
     expect(parseSettingsReferenceMd(markdown)).toEqual([
-      { key: 'unknownKey', scope: null, example: '{ "unknownKey": "value" }' },
+      section('unknownKey', {
+        valueType: 'string',
+        example: '{ "unknownKey": "value" }',
+      }),
     ]);
   });
 
@@ -387,8 +425,201 @@ describe('公式の設定リファレンスの解析', () => {
   it('Scope が想定と違う書式のとき、その項目だけを持たない結果を返すこと', () => {
     const markdown = ['### `oddKey`', '', '- **Scope**: unknown'].join('\n');
 
-    expect(parseSettingsReferenceMd(markdown)).toEqual([
-      { key: 'oddKey', scope: null, example: null },
-    ]);
+    expect(parseSettingsReferenceMd(markdown)).toEqual([section('oddKey')]);
+  });
+
+  it.each([
+    ['Boolean', 'boolean'],
+    ['Boolean; only the JSON Boolean `true` takes effect', 'boolean'],
+    ['string, a shell command line', 'string'],
+    ['the string `"disable"`', 'string'],
+    [
+      'number of tokens, from `100000` to `1000000`. Claude Code caps it',
+      'number',
+    ],
+    ['integer, milliseconds, minimum `1000`', 'integer'],
+    ['object with the sub-keys below', 'object'],
+    ['array of path strings, using the sandbox path prefixes', 'string[]'],
+    [
+      'array of objects, each with `marketplace` and `plugin` strings',
+      'object[]',
+    ],
+    ['array of model aliases or IDs', 'array'],
+  ])(
+    '型が %s と書かれているとき、%s として読み取ること',
+    (written, expected) => {
+      const markdown = ['### `someKey`', '', `- **Type**: ${written}`].join(
+        '\n',
+      );
+
+      expect(parseSettingsReferenceMd(markdown)[0]?.valueType).toBe(expected);
+    },
+  );
+
+  it('型が対応表にない言い回しのとき、型を持たない結果を返すこと', () => {
+    const markdown = [
+      '### `strictPluginOnlyCustomization`',
+      '',
+      '- **Type**: `true` to lock all four kinds, or an array naming the kinds',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.valueType).toBe('');
+  });
+
+  it.each([
+    ['`false`', 'false'],
+    ['`true`', 'true'],
+    ['`"first-wins"`', '"first-wins"'],
+    ['`500000`', '500000'],
+  ])(
+    '既定値が %s と書かれているとき、設定ファイルに書く値として読み取ること',
+    (written, expected) => {
+      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
+        '\n',
+      );
+
+      expect(parseSettingsReferenceMd(markdown)[0]?.defaultValue).toBe(
+        expected,
+      );
+    },
+  );
+
+  it.each([
+    ['unset'],
+    ['unset, so Claude Code picks a window tuned for your model'],
+    ['not locked'],
+    ['`"bash"`, or `"powershell"` on Windows when Bash is unavailable'],
+  ])(
+    '既定値が %s と散文で書かれているとき、既定値を持たない結果を返すこと',
+    (written) => {
+      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
+        '\n',
+      );
+
+      expect(parseSettingsReferenceMd(markdown)[0]?.defaultValue).toBeNull();
+    },
+  );
+
+  it('選択肢が同じ行に並ぶとき、選択肢として読み取ること', () => {
+    const markdown = [
+      '### `feedbackDrafts`',
+      '',
+      '- **Type**: string, one of `"notify"`, `"quiet"`, or `"off"`',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumValues).toBe(
+      '["notify","quiet","off"]',
+    );
+  });
+
+  it('子のキーごとの選択肢を並べたオブジェクトのとき、選択肢を持たない結果を返すこと', () => {
+    const markdown = [
+      '### `sandbox.credentials.sigv4`',
+      '',
+      '- **Type**: object with `streaming` and `presigned`, each one of:',
+      '  - `"deny"`: the proxy fails the request',
+      '  - `"passthrough"`: the proxy forwards the request',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumValues).toBeNull();
+  });
+
+  it('選択肢を言葉で説明しているとき、選択肢を持たない結果を返すこと', () => {
+    const markdown = [
+      '### `advisorModel`',
+      '',
+      '- **Type**: string, one of the aliases `"fable"`, `"opus"`, or `"sonnet"`, or a full model ID such as `"claude-opus-5"`',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumValues).toBeNull();
+  });
+
+  it('選択肢に説明が続くとき、値ごとの英語の説明を取り出すこと', () => {
+    const markdown = [
+      '### `autoUpdatesChannel`',
+      '',
+      '* **Type**: string, one of:',
+      '  * `"latest"`: updates follow the most recent release',
+      '  * `"stable"`: updates follow a version that is about one week old',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumDescriptions).toBe(
+      '{"latest":"updates follow the most recent release","stable":"updates follow a version that is about one week old"}',
+    );
+  });
+
+  it('説明のない選択肢が混じるとき、その値だけを持たない説明を返すこと', () => {
+    const markdown = [
+      '### `mixedKey`',
+      '',
+      '- **Type**: string, one of:',
+      '  - `"on"`',
+      '  - `"off"`: nothing runs',
+    ].join('\n');
+
+    const [entry] = parseSettingsReferenceMd(markdown);
+
+    expect(entry?.enumValues).toBe('["on","off"]');
+    expect(entry?.enumDescriptions).toBe('{"off":"nothing runs"}');
+  });
+
+  it('選択肢がどれも説明を持たないとき、説明を持たない結果を返すこと', () => {
+    const markdown = [
+      '### `feedbackDrafts`',
+      '',
+      '- **Type**: string, one of:',
+      '  - `"notify"`',
+      '  - `"quiet"`',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumDescriptions).toBeNull();
+  });
+
+  it('選択肢が同じ行に並ぶとき、説明を持たない結果を返すこと', () => {
+    const markdown = [
+      '### `feedbackDrafts`',
+      '',
+      '- **Type**: string, one of `"notify"`, `"quiet"`, or `"off"`',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumDescriptions).toBeNull();
+  });
+
+  it.each([
+    ['unset, so Claude Code follows `"latest"`'],
+    ['`true`, switch automatically'],
+    ['not locked'],
+  ])(
+    '既定値が %s と書かれているとき、補足文を英語のまま取り出すこと',
+    (written) => {
+      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
+        '\n',
+      );
+
+      expect(parseSettingsReferenceMd(markdown)[0]?.defaultNote).toBe(written);
+    },
+  );
+
+  it.each([['unset'], ['`"latest"`']])(
+    '既定値が %s だけのとき、補足文を持たない結果を返すこと',
+    (written) => {
+      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
+        '\n',
+      );
+
+      expect(parseSettingsReferenceMd(markdown)[0]?.defaultNote).toBeNull();
+    },
+  );
+
+  it('設定キーの見出しを持たない本文のとき、空の並びを返すこと', () => {
+    const markdown = [
+      '## Scopes',
+      '',
+      'Claude Code reads settings from several files.',
+      '',
+      '- **Scope**: [`Any file`](#scopes)',
+    ].join('\n');
+
+    expect(parseSettingsReferenceMd(markdown)).toEqual([]);
   });
 });
