@@ -310,6 +310,28 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
     });
   });
 
+  it('設定項目が1回の INSERT に収まらない件数のとき、分割して保存すること', async () => {
+    db = new FakeDocsD1Database();
+    const properties = Object.fromEntries(
+      Array.from({ length: 40 }, (_, index) => [
+        `setting${index}`,
+        { type: 'string', description: `Setting ${index}` },
+      ]),
+    );
+    mockRemote({
+      documents: [testDocument('guide.md', 'Guide', '# Guide\n\n本文')],
+      schema: JSON.stringify({ properties }),
+    });
+
+    await syncDocs(testEnv(db), new Date('2026-08-16T00:00:00.000Z'));
+
+    await expect(
+      db
+        .prepare('SELECT COUNT(*) AS total FROM setting_schema_entries')
+        .first(),
+    ).resolves.toEqual({ total: 40 });
+  });
+
   it('公式の選択肢に説明が付くとき、選択肢ごとの英文と既定値の補足を保存すること', async () => {
     db = new FakeDocsD1Database();
     const settingsReference = testDocument(

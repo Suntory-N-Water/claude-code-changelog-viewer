@@ -2,7 +2,8 @@ import type { DocsSearchStore, ExistingPage } from '../../usecases/sync-docs';
 import { chunkMarkdown, type PageChunk } from './content';
 
 const CHUNKS_PER_INSERT = 25;
-const SETTINGS_PER_INSERT = 11;
+// D1 の bound parameters 上限 100 を、1 行 11 列で割った件数
+const SETTINGS_PER_INSERT = 9;
 const MAX_BATCH_STATEMENTS = 100;
 
 type PageChunkRow = PageChunk & {
