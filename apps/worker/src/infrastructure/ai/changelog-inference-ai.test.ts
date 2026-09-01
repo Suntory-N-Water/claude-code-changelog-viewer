@@ -57,6 +57,10 @@ const validResponse = {
 };
 
 function chatCompletion(content: object) {
+  return rawChatCompletion(JSON.stringify(content), 'stop');
+}
+
+function rawChatCompletion(content: string, finishReason: string) {
   return {
     id: 'test-completion',
     object: 'chat.completion',
@@ -67,15 +71,17 @@ function chatCompletion(content: object) {
         index: 0,
         message: {
           role: 'assistant',
-          content: JSON.stringify(content),
+          content,
           refusal: null,
         },
-        finish_reason: 'stop',
+        finish_reason: finishReason,
         logprobs: null,
       },
     ],
   };
 }
+
+const truncatedJson = `{"inferred_items":[{"id":"with-docs","content_ja":"文書化された機能を追`;
 
 describe('Workers AI CHANGELOG adapter', () => {
   it('AI 応答が Zod で検証できる時、usecase の型へ変換すること', async () => {
@@ -124,6 +130,41 @@ describe('Workers AI CHANGELOG adapter', () => {
 
     await expect(sut.inferItems(input)).rejects.toThrow(
       'AI 推論結果の形式が不正です',
+    );
+  });
+
+  it('AI 応答が出力上限で打ち切られた時、打ち切りと分かるエラーにすること', async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValue(rawChatCompletion(truncatedJson, 'length'));
+    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
+
+    await expect(sut.inferItems(input)).rejects.toThrow(
+      'AI 応答が出力上限で打ち切られました',
+    );
+  });
+
+  it('打ち切られていない AI 応答が JSON として壊れている時、解析失敗のエラーにすること', async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValue(rawChatCompletion('not json at all', 'stop'));
+    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
+
+    await expect(sut.inferItems(input)).rejects.toThrow(
+      'AI 応答の JSON 解析に失敗しました',
+    );
+  });
+
+  it('サマリーの AI 応答が出力上限で打ち切られた時、打ち切りと分かるエラーにすること', async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValue(
+        rawChatCompletion('{"summary":"文書化された機', 'length'),
+      );
+    const sut = createChangelogSummaryAi({ run }, 'project-gateway');
+
+    await expect(sut.summarize(release)).rejects.toThrow(
+      'AI 応答が出力上限で打ち切られました',
     );
   });
 

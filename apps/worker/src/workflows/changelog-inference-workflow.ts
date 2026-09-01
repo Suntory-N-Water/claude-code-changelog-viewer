@@ -50,9 +50,11 @@ const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
   },
 };
 
-// 10 項目で出力が約 2,000 トークンに収まり、MAX_COMPLETION_TOKENS の範囲に余裕を持って入る。
+// 1項目につき content_ja / before / after / benefit の日本語4文を返すため、原文が長い
+// リリース (v2.1.257 の 104 項目) では 10 項目で MAX_COMPLETION_TOKENS を超えて出力が打ち切られた。
+// 打ち切りは入力内容で決まるので再試行しても回復せず、5 に下げて上限の半分以下に収める。
 // 設定リファレンス生成の 30 より小さいのは、1項目に関連ドキュメントの snippets が付くため
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 5;
 
 const logger = getLogger({
   name: 'workflows.changelog-inference',

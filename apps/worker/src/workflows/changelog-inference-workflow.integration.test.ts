@@ -457,15 +457,15 @@ describe('CHANGELOG 推論 Workflow', () => {
 
       await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
 
-      // BATCH_SIZE = 10 なので 23 項目は 10 / 10 / 3 に割れ、サマリーが 1 回加わる
+      // BATCH_SIZE = 5 なので 23 項目は 5 / 5 / 5 / 5 / 3 に割れ、サマリーが 1 回加わる
       expect(inferredIdBatches.map((batch) => batch.length)).toEqual([
-        10, 10, 3,
+        5, 5, 5, 5, 3,
       ]);
       expect(inferredIdBatches.flat()).toEqual(
         release.items.map((item) => item.id),
       );
       expect(summaryPrompts).toHaveLength(1);
-      expect(aiRun).toHaveBeenCalledTimes(4);
+      expect(aiRun).toHaveBeenCalledTimes(6);
 
       await expect(
         instance.waitForStepResult({ name: `store-${release.version}` }),
