@@ -121,21 +121,8 @@ describe('Workers AI CHANGELOG adapter', () => {
     );
   });
 
-  it('AI 応答の Zod 検証に失敗した時、再試行可能なエラーにすること', async () => {
-    const run = vi.fn().mockResolvedValue(
-      chatCompletion({
-        ...validResponse,
-        translated_items: [{ id: 'without-docs', content_ja: '短い' }],
-      }),
-    );
-    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
-
-    await expect(sut.inferItems(input)).rejects.toThrow(
-      'AI 推論結果の形式が不正です',
-    );
-  });
-
   it('AI 応答が出力上限で打ち切られた時、打ち切りと分かるエラーにすること', async () => {
+    // このメッセージは諦めた項目の GitHub Issue にそのまま載るため、原因が読み取れる必要がある
     const run = vi
       .fn()
       .mockResolvedValue(rawChatCompletion(truncatedJson, 'length'));
@@ -146,36 +133,49 @@ describe('Workers AI CHANGELOG adapter', () => {
     );
   });
 
-  it('Workflow の step 境界を越えて文字列になった AI 応答の失敗を、諦めてよい失敗と判定できること', () => {
-    // stop で空白の連続を切り落とすと末尾に空白が残らず finish_reason も stop のままなので、
-    // 打ち切りは JSON 解析の失敗として現れる
-    expect(
-      isUnusableAiResponseError(
-        new Error(
-          'AI 応答が出力上限で打ち切られました: max_completion_tokens=4096',
+  describe('AI 応答が使えない失敗', () => {
+    it.each([
+      ['出力上限に達した応答', rawChatCompletion(truncatedJson, 'length')],
+      // stop で空白の連続を切り落とすと末尾に空白が残らず finish_reason も stop のままになるため、
+      // 打ち切りは壊れた JSON としてしか現れない
+      [
+        'stop で切り落とされた壊れた JSON',
+        rawChatCompletion(truncatedJson, 'stop'),
+      ],
+      ['JSON ですらない応答', rawChatCompletion('not json at all', 'stop')],
+      [
+        'スキーマを満たさない応答',
+        rawChatCompletion(
+          JSON.stringify({
+            ...validResponse,
+            translated_items: [{ id: 'without-docs', content_ja: '短い' }],
+          }),
+          'stop',
         ),
-      ),
-    ).toBe(true);
-    expect(
-      isUnusableAiResponseError(new Error('AI 応答の JSON 解析に失敗しました')),
-    ).toBe(true);
-    expect(
-      isUnusableAiResponseError(new Error('AI 推論結果の形式が不正です: ...')),
-    ).toBe(true);
-    expect(
-      isUnusableAiResponseError(new Error('D1_ERROR: database is locked')),
-    ).toBe(false);
-  });
+      ],
+    ])('%s のとき、その項目を諦めてよい失敗になること', async (_, response) => {
+      const run = vi.fn().mockResolvedValue(response);
+      const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
 
-  it('打ち切られていない AI 応答が JSON として壊れている時、解析失敗のエラーにすること', async () => {
-    const run = vi
-      .fn()
-      .mockResolvedValue(rawChatCompletion('not json at all', 'stop'));
-    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
+      const error = await sut
+        .inferItems(input)
+        .catch((caught: unknown) => caught);
 
-    await expect(sut.inferItems(input)).rejects.toThrow(
-      'AI 応答の JSON 解析に失敗しました',
-    );
+      expect(isUnusableAiResponseError(error)).toBe(true);
+    });
+
+    it('Workers AI の呼び出し自体が失敗したとき、諦めてよい失敗にはしないこと', async () => {
+      const run = vi
+        .fn()
+        .mockRejectedValue(new Error('AiError: 5030: capacity exceeded'));
+      const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
+
+      const error = await sut
+        .inferItems(input)
+        .catch((caught: unknown) => caught);
+
+      expect(isUnusableAiResponseError(error)).toBe(false);
+    });
   });
 
   it('サマリーの AI 応答が出力上限で打ち切られた時、打ち切りと分かるエラーにすること', async () => {
