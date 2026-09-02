@@ -21,6 +21,20 @@ const MODEL = '@cf/zai-org/glm-4.7-flash';
 // 空白を吐き続けることがある。上限を出力実測値(約2,000)の2倍に切って、暴走しても数十秒で
 // 打ち切らせ、step の再試行に回す。65536 のままだと Workers AI の約240秒に達してしまう
 const MAX_COMPLETION_TOKENS = 4096;
+// JSON 文法は値の区切りに空白を何個でも許すため、モデルが閉じ括弧に進めなくなると
+// 空白だけを上限まで出し続ける。実測ではこの stop により 1 回の失敗が
+// 113〜171 秒 / 4,096 トークンから 18 秒 / 792 トークンに縮む
+const WHITESPACE_RUN_STOP = ' '.repeat(24);
+
+const TRUNCATED_MESSAGE = 'AI 応答が出力上限で打ち切られました';
+
+/**
+ * Workflow の step 境界を越えるとエラーは再生成され instanceof が使えないため、
+ * メッセージで判定する。
+ */
+export function isAiResponseTruncatedError(error: unknown): boolean {
+  return error instanceof Error && error.message.startsWith(TRUNCATED_MESSAGE);
+}
 
 const logger = getLogger({
   name: 'infrastructure.ai.changelog-inference',
@@ -66,6 +80,7 @@ export function createChangelogItemInferenceAi(
             max_completion_tokens: MAX_COMPLETION_TOKENS,
             // 思考トークンは出力本体の数倍に達し、量が回ごとに大きく揺れる
             chat_template_kwargs: { enable_thinking: false },
+            stop: [WHITESPACE_RUN_STOP],
             response_format: ChangelogItemsResponseFormat,
           },
           { gateway: { id: gatewayId } },
@@ -128,6 +143,7 @@ export function createChangelogSummaryAi(
             messages: [{ role: 'user', content: buildSummaryPrompt(release) }],
             max_completion_tokens: MAX_COMPLETION_TOKENS,
             chat_template_kwargs: { enable_thinking: false },
+            stop: [WHITESPACE_RUN_STOP],
             response_format: ChangelogSummaryResponseFormat,
           },
           { gateway: { id: gatewayId } },
@@ -181,15 +197,21 @@ function parseAiResponse(response: unknown): unknown {
     throw new Error('AI 応答に choices がありません');
   }
 
-  // 打ち切られた応答は JSON として必ず壊れる。同じバッチを再試行しても結果は変わらないため、
-  // 「解析に失敗」ではなく打ち切りだと分かるメッセージにする
+  // 打ち切られた応答は JSON として必ず壊れる。「解析に失敗」ではなく打ち切りだと分かる
+  // メッセージにして、呼び出し側が諦める判断をできるようにする
   if (choice.finish_reason === 'length') {
     throw new Error(
-      `AI 応答が出力上限で打ち切られました: max_completion_tokens=${MAX_COMPLETION_TOKENS}`,
+      `${TRUNCATED_MESSAGE}: max_completion_tokens=${MAX_COMPLETION_TOKENS}`,
     );
   }
 
   const content = choice.message.content;
+  // WHITESPACE_RUN_STOP で止まった場合 finish_reason は stop のままなので、
+  // 末尾に残った空白の連続で見分ける。正常な JSON がこの形になることはない
+  if (/\s{8,}$/.test(content)) {
+    throw new Error(`${TRUNCATED_MESSAGE}: 空白の連続で打ち切りました`);
+  }
+
   try {
     return JSON.parse(content);
   } catch (error) {

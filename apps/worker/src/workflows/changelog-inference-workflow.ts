@@ -15,7 +15,9 @@ import type { ChangelogItemInference } from '../domain/changelog-inference/chang
 import {
   createChangelogItemInferenceAi,
   createChangelogSummaryAi,
+  isAiResponseTruncatedError,
 } from '../infrastructure/ai/changelog-inference-ai';
+import { createChangelogInferenceSkipReporter } from '../infrastructure/github/changelog-inference-skip-reporter';
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
 import { createChangelogDiffRepository } from '../infrastructure/drizzle/changelog-diff-repository';
 import { createChangelogInferenceRepository } from '../infrastructure/drizzle/changelog-inference-repository';
@@ -50,11 +52,10 @@ const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
   },
 };
 
-// 1項目につき content_ja / before / after / benefit の日本語4文を返すため、原文が長い
-// リリース (v2.1.257 の 104 項目) では 10 項目で MAX_COMPLETION_TOKENS を超えて出力が打ち切られた。
-// 打ち切りは入力内容で決まるので再試行しても回復せず、5 に下げて上限の半分以下に収める。
-// 設定リファレンス生成の 30 より小さいのは、1項目に関連ドキュメントの snippets が付くため
-const BATCH_SIZE = 5;
+// 制約付きデコードの空白ループは 1 回のリクエストで生成させる配列要素が増えるほど起きやすい。
+// 実測では同じ 5 項目が毎回失敗し、1 項目ずつなら 5 項目中 4 項目が 10 秒前後で成功した。
+// 残る 1 項目は単独でも失敗するため、失敗を 1 項目に切り離す目的も兼ねて 1 にする
+const BATCH_SIZE = 1;
 
 const logger = getLogger({
   name: 'workflows.changelog-inference',
@@ -137,6 +138,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       const buildTrigger = createDeployHookBuildTrigger(
         this.env.DEPLOY_HOOK_URL,
       );
+      const skipReporter = createChangelogInferenceSkipReporter(
+        this.env.GITHUB_DISPATCH_TOKEN,
+      );
       const classification = await step.do(
         'fetch-and-classify',
         STEP_RETRIES,
@@ -169,6 +173,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           'workflow.step': `build-inference-input-${release.version}`,
         });
         const itemInferences: ChangelogItemInference[] = [];
+        const skippedItems: { id: string; content: string }[] = [];
         for (
           let batchStart = 0, batchIndex = 0;
           batchStart < inferenceInput.items.length;
@@ -181,16 +186,43 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
               batchStart + BATCH_SIZE,
             ),
           };
-          itemInferences.push(
-            ...(await step.do(
-              `infer-${release.version}-${batchIndex}`,
-              STEP_RETRIES,
-              async () =>
-                runWithLogContext({ 'ai.batch_index': batchIndex }, () =>
-                  inferChangelogItemBatch(inference, batch),
-                ),
-            )),
-          );
+          try {
+            itemInferences.push(
+              ...(await step.do(
+                `infer-${release.version}-${batchIndex}`,
+                STEP_RETRIES,
+                async () =>
+                  runWithLogContext({ 'ai.batch_index': batchIndex }, () =>
+                    inferChangelogItemBatch(inference, batch),
+                  ),
+              )),
+            );
+          } catch (error) {
+            // 空白ループによる打ち切りは再試行を使い切っても回復しないことがある。
+            // ここで諦めないとリリース全体が保存されないため、この項目だけ英語原文で残す
+            if (!isAiResponseTruncatedError(error)) {
+              throw error;
+            }
+            logger.warn('推論を諦めて原文のまま保存します', {
+              'workflow.step': `infer-${release.version}-${batchIndex}`,
+              'changelog.version': release.version,
+              'changelog.item_ids': batch.items.map((item) => item.id),
+            });
+            skippedItems.push(
+              ...batch.items.map((item) => ({
+                id: item.id,
+                content: item.content,
+              })),
+            );
+            itemInferences.push(
+              ...batch.items.map((item) => ({
+                id: item.id,
+                contentJa: '',
+                featureAreas: [],
+              })),
+            );
+            continue;
+          }
           logger.info('Workflow step が完了しました', {
             'workflow.step': `infer-${release.version}-${batchIndex}`,
             'ai.batch_index': batchIndex,
@@ -217,6 +249,22 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         logger.info('Workflow step が完了しました', {
           'workflow.step': `store-${release.version}`,
         });
+
+        if (skippedItems.length > 0) {
+          await step.do(
+            `report-skipped-${release.version}`,
+            STEP_RETRIES,
+            async () =>
+              skipReporter.report({
+                version: release.version,
+                items: skippedItems,
+              }),
+          );
+          logger.info('Workflow step が完了しました', {
+            'workflow.step': `report-skipped-${release.version}`,
+            'changelog.skipped_item_count': skippedItems.length,
+          });
+        }
       }
 
       if (classification.notifiableVersions.length > 0) {

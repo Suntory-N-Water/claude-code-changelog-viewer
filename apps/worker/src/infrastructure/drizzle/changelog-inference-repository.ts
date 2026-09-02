@@ -26,7 +26,9 @@ function toIngestChangelogVersion(
     items: inference.items.map((item) => ({
       id: item.id,
       content: item.content,
-      content_ja: item.contentJa,
+      // 推論を諦めた項目は日本語を持たない。空文字のまま保存すると
+      // 「翻訳済みだが本文が空」と区別できなくなるため NULL で保存する
+      content_ja: item.contentJa === '' ? undefined : item.contentJa,
       prefix: item.prefix,
       feature_areas: [...item.featureAreas],
       related_docs: item.relatedDocs.map((doc) => ({ file: doc.file })),
