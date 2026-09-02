@@ -47,6 +47,8 @@ export function createChangelogInferenceSkipReporter(
           item.content,
           '```',
           '',
+          `最後のエラー: ${item.reason}`,
+          '',
         ]),
         '再処理の方法を決めるまで、この Issue を open のままにしてください。',
       ].join('\n');

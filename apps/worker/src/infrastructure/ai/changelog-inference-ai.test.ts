@@ -6,7 +6,7 @@ import type {
 import {
   createChangelogItemInferenceAi,
   createChangelogSummaryAi,
-  isAiResponseTruncatedError,
+  isUnusableAiResponseError,
 } from './changelog-inference-ai';
 
 const input = {
@@ -146,31 +146,24 @@ describe('Workers AI CHANGELOG adapter', () => {
     );
   });
 
-  it('stop 指定で空白の連続が切り落とされた時、打ち切りと分かるエラーにすること', async () => {
-    const run = vi
-      .fn()
-      .mockResolvedValue(
-        rawChatCompletion(`${truncatedJson}${' '.repeat(30)}`, 'stop'),
-      );
-    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
-
-    await expect(sut.inferItems(input)).rejects.toThrow(
-      'AI 応答が出力上限で打ち切られました',
-    );
-  });
-
-  it('Workflow の step 境界を越えて文字列になった打ち切りエラーを、打ち切りと判定できること', () => {
+  it('Workflow の step 境界を越えて文字列になった AI 応答の失敗を、諦めてよい失敗と判定できること', () => {
+    // stop で空白の連続を切り落とすと末尾に空白が残らず finish_reason も stop のままなので、
+    // 打ち切りは JSON 解析の失敗として現れる
     expect(
-      isAiResponseTruncatedError(
+      isUnusableAiResponseError(
         new Error(
           'AI 応答が出力上限で打ち切られました: max_completion_tokens=4096',
         ),
       ),
     ).toBe(true);
     expect(
-      isAiResponseTruncatedError(
-        new Error('AI 応答の JSON 解析に失敗しました'),
-      ),
+      isUnusableAiResponseError(new Error('AI 応答の JSON 解析に失敗しました')),
+    ).toBe(true);
+    expect(
+      isUnusableAiResponseError(new Error('AI 推論結果の形式が不正です: ...')),
+    ).toBe(true);
+    expect(
+      isUnusableAiResponseError(new Error('D1_ERROR: database is locked')),
     ).toBe(false);
   });
 

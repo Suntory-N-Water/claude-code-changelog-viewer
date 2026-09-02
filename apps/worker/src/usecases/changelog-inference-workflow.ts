@@ -43,7 +43,7 @@ export type ChangelogFailureReporterPort = {
 export type ChangelogInferenceSkipReporterPort = {
   report(input: {
     version: string;
-    items: { id: string; content: string }[];
+    items: { id: string; content: string; reason: string }[];
   }): Promise<void>;
 };
 
