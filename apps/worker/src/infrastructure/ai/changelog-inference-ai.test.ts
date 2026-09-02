@@ -6,6 +6,7 @@ import type {
 import {
   createChangelogItemInferenceAi,
   createChangelogSummaryAi,
+  isAiResponseTruncatedError,
 } from './changelog-inference-ai';
 
 const input = {
@@ -114,6 +115,7 @@ describe('Workers AI CHANGELOG adapter', () => {
         response_format: expect.objectContaining({ type: 'json_schema' }),
         max_completion_tokens: 4096,
         chat_template_kwargs: { enable_thinking: false },
+        stop: [' '.repeat(24)],
       }),
       { gateway: { id: 'project-gateway' } },
     );
@@ -142,6 +144,34 @@ describe('Workers AI CHANGELOG adapter', () => {
     await expect(sut.inferItems(input)).rejects.toThrow(
       'AI 応答が出力上限で打ち切られました',
     );
+  });
+
+  it('stop 指定で空白の連続が切り落とされた時、打ち切りと分かるエラーにすること', async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValue(
+        rawChatCompletion(`${truncatedJson}${' '.repeat(30)}`, 'stop'),
+      );
+    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
+
+    await expect(sut.inferItems(input)).rejects.toThrow(
+      'AI 応答が出力上限で打ち切られました',
+    );
+  });
+
+  it('Workflow の step 境界を越えて文字列になった打ち切りエラーを、打ち切りと判定できること', () => {
+    expect(
+      isAiResponseTruncatedError(
+        new Error(
+          'AI 応答が出力上限で打ち切られました: max_completion_tokens=4096',
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      isAiResponseTruncatedError(
+        new Error('AI 応答の JSON 解析に失敗しました'),
+      ),
+    ).toBe(false);
   });
 
   it('打ち切られていない AI 応答が JSON として壊れている時、解析失敗のエラーにすること', async () => {

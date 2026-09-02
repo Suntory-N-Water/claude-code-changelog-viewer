@@ -62,6 +62,28 @@ function chatCompletion(content: object) {
   };
 }
 
+// 空白ループで出力上限に達した応答。finish_reason は length になる
+function truncatedCompletion() {
+  return {
+    id: 'test-completion',
+    object: 'chat.completion',
+    created: 0,
+    model: '@cf/zai-org/glm-4.7-flash',
+    choices: [
+      {
+        index: 0,
+        message: {
+          role: 'assistant',
+          content: `{"inferred_items":[{"id":"x","content_ja":"途中${' '.repeat(40)}`,
+          refusal: null,
+        },
+        finish_reason: 'length',
+        logprobs: null,
+      },
+    ],
+  };
+}
+
 describe('CHANGELOG 推論 Workflow', () => {
   beforeEach(async () => {
     await applyD1Migrations(testEnv.DB, testEnv.TEST_NOTIFICATION_MIGRATIONS);
@@ -385,6 +407,136 @@ describe('CHANGELOG 推論 Workflow', () => {
     }
   });
 
+  it('ある項目の推論が打ち切られ続ける時、その項目を原文のまま保存して Issue を作ること', async () => {
+    const twoItemChangelog = [
+      '# Changelog',
+      '',
+      '## 2.1.240',
+      '',
+      '- Added workflow inference support for the healthy case',
+      '- Added workflow inference support for the doomed case',
+      '',
+    ].join('\n');
+    const release = (await parseChangelogReleases(twoItemChangelog))[0];
+    if (release === undefined) {
+      throw new Error('テスト用 CHANGELOG のリリースがありません');
+    }
+    const [healthyItem, doomedItem] = release.items;
+    if (healthyItem === undefined || doomedItem === undefined) {
+      throw new Error('テスト用 CHANGELOG の項目が足りません');
+    }
+
+    vi.spyOn(testEnv.AI, 'run').mockImplementation((async (
+      _model: string,
+      options: {
+        messages: [{ content: string }];
+        response_format: { json_schema: { name: string } };
+      },
+    ) => {
+      const prompt = options.messages[0].content;
+      if (options.response_format.json_schema.name === 'changelog_summary') {
+        return chatCompletion({ summary: '2 件の変更を追加しました。' });
+      }
+      if (prompt.includes(doomedItem.id)) {
+        return truncatedCompletion();
+      }
+      return chatCompletion({
+        inferred_items: [
+          {
+            id: healthyItem.id,
+            content_ja: '正常に処理できる項目を追加しました。',
+            before: '対応する機能がありませんでした。',
+            after: '対応する機能が追加されました。',
+            benefit: '追加された機能をそのまま利用できます。',
+          },
+        ],
+        translated_items: [],
+        feature_area_corrections: [],
+      });
+    }) as unknown as typeof testEnv.AI.run);
+    vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
+      metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+    });
+
+    const skipIssueBodies: string[] = [];
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.includes('/contents/CHANGELOG.md')) {
+        return new Response(twoItemChangelog, { status: 200 });
+      }
+      if (url === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      if (url.includes('/issues?') && init?.method === 'GET') {
+        return new Response('[]', { status: 200 });
+      }
+      if (url.endsWith('/issues') && init?.method === 'POST') {
+        const payload = JSON.parse(String(init.body)) as { body: string };
+        skipIssueBodies.push(payload.body);
+        return new Response(JSON.stringify({ number: 1 }), { status: 201 });
+      }
+      if (url.includes('/labels')) {
+        return new Response('[]', { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${url}`);
+    });
+
+    const instanceId = `skip-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.CHANGELOG_INFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+
+      await testEnv.CHANGELOG_INFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {
+          detectedHash: await sha256Hex(twoItemChangelog),
+          detectedAt: '2026-09-02T00:00:00.000Z',
+        },
+      });
+
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+
+      const db = drizzle(testEnv.DB);
+      const stored = await db
+        .select({
+          itemId: changelogItems.itemId,
+          content: changelogItems.content,
+          contentJa: changelogItems.contentJa,
+          inferenceBefore: changelogItems.inferenceBefore,
+        })
+        .from(changelogItems)
+        .where(eq(changelogItems.version, '2.1.240'));
+
+      expect(stored).toEqual(
+        expect.arrayContaining([
+          {
+            itemId: healthyItem.id,
+            content: '- Added workflow inference support for the healthy case',
+            contentJa: '正常に処理できる項目を追加しました。',
+            inferenceBefore: '対応する機能がありませんでした。',
+          },
+          {
+            itemId: doomedItem.id,
+            content: '- Added workflow inference support for the doomed case',
+            contentJa: null,
+            inferenceBefore: null,
+          },
+        ]),
+      );
+      expect(skipIssueBodies).toHaveLength(1);
+      expect(skipIssueBodies[0]).toContain(doomedItem.id);
+      expect(skipIssueBodies[0]).not.toContain(healthyItem.id);
+    } finally {
+      await instance.dispose();
+    }
+  });
+
   it('1バージョンの項目数が多い時、推論をバッチに分けて保存を1回にまとめること', async () => {
     const release = (await parseChangelogReleases(largeChangelog))[0];
     if (release === undefined) {
@@ -457,15 +609,15 @@ describe('CHANGELOG 推論 Workflow', () => {
 
       await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
 
-      // BATCH_SIZE = 5 なので 23 項目は 5 / 5 / 5 / 5 / 3 に割れ、サマリーが 1 回加わる
-      expect(inferredIdBatches.map((batch) => batch.length)).toEqual([
-        5, 5, 5, 5, 3,
-      ]);
+      // 1 項目 1 リクエストなので 23 項目は 23 回に割れ、サマリーが 1 回加わる
+      expect(inferredIdBatches.map((batch) => batch.length)).toEqual(
+        Array.from({ length: LARGE_RELEASE_ITEM_COUNT }, () => 1),
+      );
       expect(inferredIdBatches.flat()).toEqual(
         release.items.map((item) => item.id),
       );
       expect(summaryPrompts).toHaveLength(1);
-      expect(aiRun).toHaveBeenCalledTimes(6);
+      expect(aiRun).toHaveBeenCalledTimes(LARGE_RELEASE_ITEM_COUNT + 1);
 
       await expect(
         instance.waitForStepResult({ name: `store-${release.version}` }),

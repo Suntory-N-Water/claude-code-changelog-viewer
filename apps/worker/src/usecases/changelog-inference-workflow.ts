@@ -40,6 +40,13 @@ export type ChangelogFailureReporterPort = {
   }): Promise<void>;
 };
 
+export type ChangelogInferenceSkipReporterPort = {
+  report(input: {
+    version: string;
+    items: { id: string; content: string }[];
+  }): Promise<void>;
+};
+
 export type FetchAndClassifyChangelogInput = {
   source: ChangelogMarkdownSourcePort;
   parser: ChangelogParserPort;
