@@ -27,13 +27,30 @@ const MAX_COMPLETION_TOKENS = 4096;
 const WHITESPACE_RUN_STOP = ' '.repeat(24);
 
 const TRUNCATED_MESSAGE = 'AI 応答が出力上限で打ち切られました';
+const PARSE_FAILED_MESSAGE = 'AI 応答の JSON 解析に失敗しました';
+const ITEMS_SCHEMA_FAILED_MESSAGE = 'AI 推論結果の形式が不正です';
+
+// WHITESPACE_RUN_STOP で止まった応答は空白が切り落とされるため末尾に空白が残らず、
+// finish_reason も stop のままで、打ち切りは JSON 解析の失敗として現れる。
+// 応答の形が壊れている失敗は再試行を尽くしても回復しないことがあるので、
+// 呼び出し側がその項目を諦める判断に使えるようまとめて扱う
+const UNUSABLE_RESPONSE_MESSAGES = [
+  TRUNCATED_MESSAGE,
+  PARSE_FAILED_MESSAGE,
+  ITEMS_SCHEMA_FAILED_MESSAGE,
+];
 
 /**
  * Workflow の step 境界を越えるとエラーは再生成され instanceof が使えないため、
  * メッセージで判定する。
  */
-export function isAiResponseTruncatedError(error: unknown): boolean {
-  return error instanceof Error && error.message.startsWith(TRUNCATED_MESSAGE);
+export function isUnusableAiResponseError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    UNUSABLE_RESPONSE_MESSAGES.some((message) =>
+      error.message.startsWith(message),
+    )
+  );
 }
 
 const logger = getLogger({
@@ -99,7 +116,7 @@ export function createChangelogItemInferenceAi(
       );
       if (!parsed.success) {
         throw new Error(
-          `AI 推論結果の形式が不正です: ${z.prettifyError(parsed.error)}`,
+          `${ITEMS_SCHEMA_FAILED_MESSAGE}: ${z.prettifyError(parsed.error)}`,
         );
       }
 
@@ -205,17 +222,10 @@ function parseAiResponse(response: unknown): unknown {
     );
   }
 
-  const content = choice.message.content;
-  // WHITESPACE_RUN_STOP で止まった場合 finish_reason は stop のままなので、
-  // 末尾に残った空白の連続で見分ける。正常な JSON がこの形になることはない
-  if (/\s{8,}$/.test(content)) {
-    throw new Error(`${TRUNCATED_MESSAGE}: 空白の連続で打ち切りました`);
-  }
-
   try {
-    return JSON.parse(content);
+    return JSON.parse(choice.message.content);
   } catch (error) {
-    throw new Error('AI 応答の JSON 解析に失敗しました', { cause: error });
+    throw new Error(PARSE_FAILED_MESSAGE, { cause: error });
   }
 }
 

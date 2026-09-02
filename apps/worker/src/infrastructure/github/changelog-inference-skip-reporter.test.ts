@@ -7,6 +7,7 @@ const skippedItems = [
     id: 'a1b2c3d4e5f6',
     content:
       '- Fixed worktree-isolated sessions refusing Bash loops and heredocs',
+    reason: 'AI 応答の JSON 解析に失敗しました',
   },
 ];
 

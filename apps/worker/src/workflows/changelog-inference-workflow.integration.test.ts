@@ -62,7 +62,8 @@ function chatCompletion(content: object) {
   };
 }
 
-// 空白ループで出力上限に達した応答。finish_reason は length になる
+// 空白ループを stop で切った応答。空白は切り落とされ finish_reason も stop のままなので、
+// 途中で切れた JSON だけが残る
 function truncatedCompletion() {
   return {
     id: 'test-completion',
@@ -74,10 +75,10 @@ function truncatedCompletion() {
         index: 0,
         message: {
           role: 'assistant',
-          content: `{"inferred_items":[{"id":"x","content_ja":"途中${' '.repeat(40)}`,
+          content: '{"inferred_items":[{"id":"x","content_ja":"途中',
           refusal: null,
         },
-        finish_reason: 'length',
+        finish_reason: 'stop',
         logprobs: null,
       },
     ],

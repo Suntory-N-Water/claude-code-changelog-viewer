@@ -15,7 +15,7 @@ import type { ChangelogItemInference } from '../domain/changelog-inference/chang
 import {
   createChangelogItemInferenceAi,
   createChangelogSummaryAi,
-  isAiResponseTruncatedError,
+  isUnusableAiResponseError,
 } from '../infrastructure/ai/changelog-inference-ai';
 import { createChangelogInferenceSkipReporter } from '../infrastructure/github/changelog-inference-skip-reporter';
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
@@ -173,7 +173,8 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           'workflow.step': `build-inference-input-${release.version}`,
         });
         const itemInferences: ChangelogItemInference[] = [];
-        const skippedItems: { id: string; content: string }[] = [];
+        const skippedItems: { id: string; content: string; reason: string }[] =
+          [];
         for (
           let batchStart = 0, batchIndex = 0;
           batchStart < inferenceInput.items.length;
@@ -200,18 +201,21 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           } catch (error) {
             // 空白ループによる打ち切りは再試行を使い切っても回復しないことがある。
             // ここで諦めないとリリース全体が保存されないため、この項目だけ英語原文で残す
-            if (!isAiResponseTruncatedError(error)) {
+            if (!isUnusableAiResponseError(error)) {
               throw error;
             }
+            const reason = toError(error).message;
             logger.warn('推論を諦めて原文のまま保存します', {
               'workflow.step': `infer-${release.version}-${batchIndex}`,
               'changelog.version': release.version,
               'changelog.item_ids': batch.items.map((item) => item.id),
+              error: toError(error),
             });
             skippedItems.push(
               ...batch.items.map((item) => ({
                 id: item.id,
                 content: item.content,
+                reason,
               })),
             );
             itemInferences.push(
