@@ -147,7 +147,7 @@ describe('設定リファレンス生成ユースケース', () => {
             descriptionJa: 'テスト用の環境変数です。',
             useCaseJa: '',
             enumDescriptionsJa: [],
-            defaultNoteJa: '',
+            defaultNoteJa: '既定値の補足です。',
           },
         ],
         fetchedAt: '2026-08-17',
@@ -222,6 +222,48 @@ describe('設定リファレンス生成ユースケース', () => {
     expect(saved[0]?.records[0]).toMatchObject({
       enumDescriptionsJa: '{"latest":"最新のリリースを追いかける"}',
       defaultNoteJa: '未設定のときは `"latest"` を追いかける',
+    });
+  });
+
+  it('既定値の補足が英語だけのとき、補足を保存しないこと', async () => {
+    const saved: { records: unknown[] }[] = [];
+    await saveSettingsReferences(
+      {
+        save: async (input) => {
+          saved.push(input);
+        },
+      },
+      {
+        input: {
+          entries: [
+            {
+              id: 0,
+              key: 'autoUpdatesChannel',
+              source: 'settings',
+              descriptionEn: 'Choose which release channel updates follow.',
+              parentDescriptions: [],
+              docSnippets: [],
+              officialDocs: [],
+              relatedChangelog: [],
+              defaultNote: 'unset, so Claude Code follows `"latest"`',
+            },
+          ],
+        },
+        translations: [
+          {
+            id: 0,
+            descriptionJa: '自動更新が追いかけるリリース系統を選ぶ。',
+            useCaseJa: '',
+            enumDescriptionsJa: [],
+            defaultNoteJa: 'unset, so Claude Code follows `"latest"`',
+          },
+        ],
+        fetchedAt: '2026-08-17',
+      },
+    );
+
+    expect(saved[0]?.records[0]).toMatchObject({
+      defaultNoteJa: null,
     });
   });
 

@@ -227,6 +227,12 @@ export function buildSettingsReferencePrompt(
     '## 対象エントリ',
     '',
     translationSection || '(対象なし)',
+    '',
+    '---',
+    '',
+    '# 出力前の確認',
+    '- `_ja` で終わる値はすべて自然な日本語で返し、英語の原文をそのまま返さないこと',
+    '- 日本語にする内容がない場合は、文字列を空文字または配列を空配列で返すこと',
   ]
     .join('\n')
     .trim();
