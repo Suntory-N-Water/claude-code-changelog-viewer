@@ -11,7 +11,7 @@ import {
   SettingsReferenceResponseSchema,
 } from './settings-reference-schema';
 
-const MODEL = '@cf/zai-org/glm-4.7-flash';
+const MODEL = '@cf/zai-org/glm-5.3-flash';
 // JSON schema 制約下では文字列の途中でも空白が合法な継続になるため、モデルが閉じ括弧を出せずに
 // 空白を吐き続けることがある。上限を切って、暴走しても数十秒で打ち切らせ step の再試行に回す。
 // 8192 は D1 の生成済み 622 件のうち最も長い 30 件(9,445字)から見積もった約5,400トークンの1.5倍

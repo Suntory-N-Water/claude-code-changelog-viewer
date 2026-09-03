@@ -16,7 +16,7 @@ import {
   ChangelogSummaryResponseSchema,
 } from './changelog-inference-schema';
 
-const MODEL = '@cf/zai-org/glm-4.7-flash';
+const MODEL = '@cf/zai-org/glm-5.3-flash';
 // JSON schema 制約下では文字列の途中でも空白が合法な継続になるため、モデルが閉じ括弧を出せずに
 // 空白を吐き続けることがある。上限を出力実測値(約2,000)の2倍に切って、暴走しても数十秒で
 // 打ち切らせ、step の再試行に回す。65536 のままだと Workers AI の約240秒に達してしまう

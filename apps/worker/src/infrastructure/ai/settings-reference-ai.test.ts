@@ -163,7 +163,7 @@ describe('Workers AI 設定リファレンス adapter', () => {
 
     await sut.infer(input);
 
-    expect(run.mock.calls[0]?.[0]).toEqual('@cf/zai-org/glm-4.7-flash');
+    expect(run.mock.calls[0]?.[0]).toEqual('@cf/zai-org/glm-5.3-flash');
     expect(run.mock.calls[0]?.[1]).toEqual(
       expect.objectContaining({
         response_format: expect.objectContaining({ type: 'json_schema' }),
