@@ -46,7 +46,7 @@ function chatCompletion(content: object) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/zai-org/glm-4.7-flash',
+    model: '@cf/zai-org/glm-5.3-flash',
     choices: [
       {
         index: 0,
@@ -69,7 +69,7 @@ function truncatedCompletion() {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/zai-org/glm-4.7-flash',
+    model: '@cf/zai-org/glm-5.3-flash',
     choices: [
       {
         index: 0,

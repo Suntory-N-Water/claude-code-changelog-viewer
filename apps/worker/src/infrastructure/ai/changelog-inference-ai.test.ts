@@ -66,7 +66,7 @@ function rawChatCompletion(content: string, finishReason: string) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/zai-org/glm-4.7-flash',
+    model: '@cf/zai-org/glm-5.3-flash',
     choices: [
       {
         index: 0,
@@ -109,7 +109,7 @@ describe('Workers AI CHANGELOG adapter', () => {
       featureAreaCorrections: [{ id: 'with-docs', featureAreas: ['Settings'] }],
     });
     expect(run).toHaveBeenCalledWith(
-      '@cf/zai-org/glm-4.7-flash',
+      '@cf/zai-org/glm-5.3-flash',
       expect.objectContaining({
         messages: [{ role: 'user', content: expect.any(String) }],
         response_format: expect.objectContaining({ type: 'json_schema' }),
