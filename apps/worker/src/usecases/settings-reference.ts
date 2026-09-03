@@ -107,6 +107,8 @@ type SettingsReferenceSaveInput = {
 const MAX_DOC_SNIPPET_CHARS = 8000;
 const MAX_RELATED_CHANGELOGS = 5;
 const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
+const JAPANESE_TEXT_PATTERN =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
 
 export async function loadSettingsReferenceEntries(
   source: SettingsReferenceEntrySourcePort,
@@ -205,6 +207,11 @@ export async function saveSettingsReferences(
     }
 
     const leafName = entry.key.split('.').at(-1) ?? entry.key;
+    const defaultNoteJa =
+      entry.defaultNote !== undefined &&
+      JAPANESE_TEXT_PATTERN.test(translation.defaultNoteJa)
+        ? translation.defaultNoteJa
+        : null;
     return [
       {
         key: entry.key,
@@ -218,10 +225,7 @@ export async function saveSettingsReferences(
           entry.enumDescriptions,
           translation.enumDescriptionsJa,
         ),
-        defaultNoteJa:
-          entry.defaultNote === undefined || translation.defaultNoteJa === ''
-            ? null
-            : translation.defaultNoteJa,
+        defaultNoteJa,
         fetchedAt,
         officialDocs: [...entry.officialDocs],
       },
