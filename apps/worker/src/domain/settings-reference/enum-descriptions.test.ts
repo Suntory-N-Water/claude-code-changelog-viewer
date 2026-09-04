@@ -38,6 +38,21 @@ describe('選択肢ごとの日本語説明の組み立て', () => {
     ).toBe('{"stable":"おおむね1週間前のリリース"}');
   });
 
+  it('AI が引用符込みの値を返したとき、引用符を外して照合すること', () => {
+    expect(
+      buildEnumDescriptionsJa(
+        {
+          latest: 'the most recent release',
+          stable: 'a week-old version',
+        },
+        [
+          { value: '"latest"', descriptionJa: '最新のリリース' },
+          { value: '`stable`', descriptionJa: 'おおむね1週間前のリリース' },
+        ],
+      ),
+    ).toBe('{"latest":"最新のリリース","stable":"おおむね1週間前のリリース"}');
+  });
+
   it('日本語が空文字のとき、その値を捨てること', () => {
     expect(
       buildEnumDescriptionsJa({ latest: 'the most recent release' }, [
