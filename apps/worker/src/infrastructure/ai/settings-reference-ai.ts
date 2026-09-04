@@ -197,7 +197,7 @@ export function buildSettingsReferencePrompt(
     '  - 箇条書きは「- 」で始める',
     '- enum_descriptions_ja: 「選択肢ごとの英語の説明」がある場合、値ごとに英文を1文の日本語へ訳して返す。ない場合は空配列を返す',
     '  - value は英文に並んだ値をそのまま返し、英文にない値を作らない',
-    '  - `"stable"` のような値そのものは設定ファイルに書く文字列なので、日本語に置き換えない',
+    '  - value は `stable` のように引用符を付けずに返し、値そのものを日本語に置き換えない',
     '- default_note_ja: 「既定値の英語の補足」がある場合、1文の日本語へ訳して返す。ない場合は空文字で返す',
     '- id は入力値をそのまま返すこと',
     '- use_case_ja が空文字の場合、コンテキストなしとして扱う',
@@ -220,7 +220,7 @@ export function buildSettingsReferencePrompt(
     '  - 箇条書きは「- 」で始める',
     '- enum_descriptions_ja: 「選択肢ごとの英語の説明」がある場合、値ごとに英文を1文の日本語へ訳して返す。ない場合は空配列を返す',
     '  - value は英文に並んだ値をそのまま返し、英文にない値を作らない',
-    '  - `"stable"` のような値そのものは設定ファイルに書く文字列なので、日本語に置き換えない',
+    '  - value は `stable` のように引用符を付けずに返し、値そのものを日本語に置き換えない',
     '- default_note_ja: 「既定値の英語の補足」がある場合、1文の日本語へ訳して返す。ない場合は空文字で返す',
     '- id は入力値をそのまま返すこと',
     '',
@@ -264,8 +264,8 @@ function buildOfficialTextsSection(entry: SettingsReferenceInputEntry): string {
       [
         '### 選択肢ごとの英語の説明',
         ...Object.entries(entry.enumDescriptions).map(
-          ([value, description]) =>
-            `- \`${JSON.stringify(value)}\`: ${description}`,
+          // 引用符を付けて示すと AI が引用符ごと写して返し、保存前の照合で捨てられる
+          ([value, description]) => `- \`${value}\`: ${description}`,
         ),
       ].join('\n'),
     );

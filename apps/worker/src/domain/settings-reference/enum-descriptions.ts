@@ -4,6 +4,14 @@ export type EnumDescriptionTranslation = {
 };
 
 /**
+ * AI は入力の値を引用符ごと写して返すことがあるため、照合前に引用符を外す。
+ * 引用符の有無だけで英文にない値と判定すると、全件が捨てられる。
+ */
+function normalizeEnumValue(value: string): string {
+  return value.trim().replace(/^["'`]+|["'`]+$/g, '');
+}
+
+/**
  * AI が返した選択肢ごとの日本語説明を、保存する JSON にする。
  *
  * 公式の英文にある値だけを残す。英文にない値は AI が作り出したものであり、
@@ -19,12 +27,12 @@ export function buildEnumDescriptionsJa(
 
   const translationByValue = new Map(
     translations.map((translation) => [
-      translation.value,
+      normalizeEnumValue(translation.value),
       translation.descriptionJa.trim(),
     ]),
   );
   const pairs = Object.keys(source).flatMap((value) => {
-    const descriptionJa = translationByValue.get(value);
+    const descriptionJa = translationByValue.get(normalizeEnumValue(value));
     return descriptionJa === undefined || descriptionJa === ''
       ? []
       : [[value, descriptionJa] as const];

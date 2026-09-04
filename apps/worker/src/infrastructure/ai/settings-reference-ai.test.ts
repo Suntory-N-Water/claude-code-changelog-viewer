@@ -109,7 +109,7 @@ describe('Workers AI 設定リファレンス adapter', () => {
     });
 
     expect(result).toContain(
-      '- `"latest"`: updates follow the most recent release',
+      '- `latest`: updates follow the most recent release',
     );
     expect(result).toContain('unset, so Claude Code follows `"latest"`');
   });
