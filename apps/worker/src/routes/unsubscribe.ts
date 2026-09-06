@@ -1,4 +1,5 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
@@ -8,12 +9,7 @@ import { createChannelToken } from '../domain/channel/channel-token';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 
-const logger = getLogger({
-  name: 'routes.unsubscribe',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('routes.unsubscribe');
 
 const baseStyle = `
   * { margin: 0; padding: 0; box-sizing: border-box; }

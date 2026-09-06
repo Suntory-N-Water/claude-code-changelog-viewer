@@ -1,16 +1,11 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
 import type { Channel } from '../domain/channel/channel';
 import type { ChannelRepository } from '../domain/channel/channel-repository';
 import type { ChannelToken } from '../domain/channel/channel-token';
 import { deactivate, isActive } from '../domain/channel/channel-lifecycle';
 import type { ChannelNotifier } from './channel-notifier';
 
-const logger = getLogger({
-  name: 'usecases.unsubscribe',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('usecases.unsubscribe');
 
 /** 配信停止ユースケースへ渡す入力。routes層で外部入力を値オブジェクトへ変換してから渡す。 */
 export type UnsubscribeInput = {

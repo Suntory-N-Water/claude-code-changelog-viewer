@@ -1,4 +1,5 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import { and, eq, lt, sql } from 'drizzle-orm';
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { CHANNEL_ACTIVE_SENTINEL } from '../../db/constants';
@@ -31,12 +32,7 @@ import {
 import { createSlackWebhookUrl } from '../../domain/channel/slack-webhook-url';
 import { decryptEmail, encryptEmail, hashEmail } from './email-crypto';
 
-const logger = getLogger({
-  name: 'infrastructure.drizzle.channel-repository',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('infrastructure.drizzle.channel-repository');
 
 type CommonChannelRow = {
   id: string;
@@ -49,7 +45,7 @@ type CommonChannelRow = {
 };
 
 /** Drizzle/D1を使ってChannelRepository portを実装する。 */
-export class DrizzleChannelRepository implements ChannelRepository {
+class DrizzleChannelRepository implements ChannelRepository {
   constructor(
     private db: DrizzleD1Database<Record<string, never>>,
     private emailEncryptionKey: string,

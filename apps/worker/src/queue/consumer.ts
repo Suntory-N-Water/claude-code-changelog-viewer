@@ -1,5 +1,5 @@
+import { workerLogger } from '../logger';
 import {
-  getLogger,
   runWithLogContext,
   toError,
 } from '@claude-code-changelog-viewer/common';
@@ -13,12 +13,7 @@ import { createNotificationFrequency } from '../domain/channel/notification-freq
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 
-const logger = getLogger({
-  name: 'queue.consumer',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('queue.consumer');
 
 const SEND_INTERVAL_MS = 1000;
 

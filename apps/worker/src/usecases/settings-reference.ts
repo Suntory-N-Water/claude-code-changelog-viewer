@@ -45,9 +45,9 @@ export type SettingsReferenceEntrySourcePort = {
   findRelatedChangelogs(key: string): Promise<RelatedSettingChangelog[]>;
 };
 
-export type SettingsReferenceDocumentSearchPort = {
-  searchSettingKey(leafName: string): Promise<RelatedSettingDocument[]>;
-};
+export type SettingsReferenceDocumentSearchPort = (
+  leafName: string,
+) => Promise<RelatedSettingDocument[]>;
 
 export type SettingsReferenceInputEntry = {
   id: number;
@@ -136,7 +136,7 @@ export async function buildSettingsReferenceInput(
       entries.map(async (entry, id) => {
         const leafName = entry.key.split('.').at(-1) ?? entry.key;
         const [documents, relatedChangelog] = await Promise.all([
-          documentSearch.searchSettingKey(leafName),
+          documentSearch(leafName),
           entrySource.findRelatedChangelogs(entry.key),
         ]);
         const filteredDocuments = documents.filter(

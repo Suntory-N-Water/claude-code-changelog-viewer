@@ -1,4 +1,3 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import type {
   ChangelogInferenceInput,
   ChangelogItemsAiResult,
@@ -15,8 +14,15 @@ import {
   ChangelogSummaryResponseFormat,
   ChangelogSummaryResponseSchema,
 } from './changelog-inference-schema';
+import {
+  logAiFailure,
+  logAiUsage,
+  MODEL,
+  parseAiResponse,
+  PARSE_FAILED_MESSAGE,
+  TRUNCATED_MESSAGE,
+} from './workers-ai';
 
-const MODEL = '@cf/zai-org/glm-5.3-flash';
 // JSON schema 制約下では文字列の途中でも空白が合法な継続になるため、モデルが閉じ括弧を出せずに
 // 空白を吐き続けることがある。上限を出力実測値(約2,000)の2倍に切って、暴走しても数十秒で
 // 打ち切らせ、step の再試行に回す。65536 のままだと Workers AI の約240秒に達してしまう
@@ -26,8 +32,6 @@ const MAX_COMPLETION_TOKENS = 4096;
 // 113〜171 秒 / 4,096 トークンから 18 秒 / 792 トークンに縮む
 const WHITESPACE_RUN_STOP = ' '.repeat(24);
 
-const TRUNCATED_MESSAGE = 'AI 応答が出力上限で打ち切られました';
-const PARSE_FAILED_MESSAGE = 'AI 応答の JSON 解析に失敗しました';
 const ITEMS_SCHEMA_FAILED_MESSAGE = 'AI 推論結果の形式が不正です';
 
 // WHITESPACE_RUN_STOP で止まった応答は空白が切り落とされるため末尾に空白が残らず、
@@ -53,34 +57,6 @@ export function isUnusableAiResponseError(error: unknown): boolean {
   );
 }
 
-const logger = getLogger({
-  name: 'infrastructure.ai.changelog-inference',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
-
-const AiChatResponseSchema = z.object({
-  choices: z
-    .array(
-      z.object({
-        message: z.object({ content: z.string().min(1) }),
-        finish_reason: z.string().optional(),
-      }),
-    )
-    .min(1),
-  usage: z
-    .object({
-      prompt_tokens: z.number(),
-      completion_tokens: z.number(),
-      total_tokens: z.number(),
-      prompt_tokens_details: z
-        .object({ cached_tokens: z.number().optional() })
-        .optional(),
-    })
-    .optional(),
-});
-
 export function createChangelogItemInferenceAi(
   ai: Pick<Cloudflare.Env['AI'], 'run'>,
   gatewayId: string,
@@ -103,16 +79,12 @@ export function createChangelogItemInferenceAi(
           { gateway: { id: gatewayId } },
         );
       } catch (error) {
-        logger.error('Workers AI の呼び出しに失敗しました', {
-          'ai.model': MODEL,
-          'ai.duration_ms': Date.now() - startedAt,
-          error: toError(error),
-        });
+        logAiFailure(error, startedAt);
         throw error;
       }
       logAiUsage(response, startedAt);
       const parsed = ChangelogItemsResponseSchema.safeParse(
-        parseAiResponse(response),
+        parseAiResponse(response, MAX_COMPLETION_TOKENS),
       );
       if (!parsed.success) {
         throw new Error(
@@ -166,16 +138,12 @@ export function createChangelogSummaryAi(
           { gateway: { id: gatewayId } },
         );
       } catch (error) {
-        logger.error('Workers AI の呼び出しに失敗しました', {
-          'ai.model': MODEL,
-          'ai.duration_ms': Date.now() - startedAt,
-          error: toError(error),
-        });
+        logAiFailure(error, startedAt);
         throw error;
       }
       logAiUsage(response, startedAt);
       const parsed = ChangelogSummaryResponseSchema.safeParse(
-        parseAiResponse(response),
+        parseAiResponse(response, MAX_COMPLETION_TOKENS),
       );
       if (!parsed.success) {
         throw new Error(
@@ -186,47 +154,6 @@ export function createChangelogSummaryAi(
       return parsed.data.summary;
     },
   };
-}
-
-function logAiUsage(response: unknown, startedAt: number): void {
-  const parsed = AiChatResponseSchema.safeParse(response);
-  const usage = parsed.success ? parsed.data.usage : undefined;
-  logger.info('Workers AI の呼び出しが完了しました', {
-    'ai.model': MODEL,
-    'ai.usage.prompt_tokens': usage?.prompt_tokens,
-    'ai.usage.completion_tokens': usage?.completion_tokens,
-    'ai.usage.total_tokens': usage?.total_tokens,
-    'ai.usage.cached_tokens': usage?.prompt_tokens_details?.cached_tokens ?? 0,
-    'ai.duration_ms': Date.now() - startedAt,
-  });
-}
-
-function parseAiResponse(response: unknown): unknown {
-  const parsed = AiChatResponseSchema.safeParse(response);
-  if (!parsed.success) {
-    throw new Error(
-      `AI 応答の形式が不正です: ${z.prettifyError(parsed.error)}`,
-    );
-  }
-
-  const choice = parsed.data.choices[0];
-  if (choice === undefined) {
-    throw new Error('AI 応答に choices がありません');
-  }
-
-  // 打ち切られた応答は JSON として必ず壊れる。「解析に失敗」ではなく打ち切りだと分かる
-  // メッセージにして、呼び出し側が諦める判断をできるようにする
-  if (choice.finish_reason === 'length') {
-    throw new Error(
-      `${TRUNCATED_MESSAGE}: max_completion_tokens=${MAX_COMPLETION_TOKENS}`,
-    );
-  }
-
-  try {
-    return JSON.parse(choice.message.content);
-  } catch (error) {
-    throw new Error(PARSE_FAILED_MESSAGE, { cause: error });
-  }
 }
 
 const PROMPT_PREAMBLE = [

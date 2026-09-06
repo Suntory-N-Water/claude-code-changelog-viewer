@@ -1,4 +1,3 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { z } from 'zod';
 import type {
   SettingsReferenceAiPort,
@@ -10,8 +9,8 @@ import {
   SettingsReferenceResponseFormat,
   SettingsReferenceResponseSchema,
 } from './settings-reference-schema';
+import { logAiFailure, logAiUsage, MODEL, parseAiResponse } from './workers-ai';
 
-const MODEL = '@cf/zai-org/glm-5.3-flash';
 // JSON schema 制約下では文字列の途中でも空白が合法な継続になるため、モデルが閉じ括弧を出せずに
 // 空白を吐き続けることがある。上限を切って、暴走しても数十秒で打ち切らせ step の再試行に回す。
 // 8192 は D1 の生成済み 622 件のうち最も長い 30 件(9,445字)から見積もった約5,400トークンの1.5倍
@@ -20,33 +19,6 @@ const MODEL_CONTEXT = [
   '- CHANGELOG の原文や snippets に記載されていないモデル名・バージョン番号・スペック値を捏造しないこと',
   '- CHANGELOG の原文に具体的なモデル名が記載されている場合はそのまま使用すること',
 ].join('\n');
-
-const logger = getLogger({
-  name: 'infrastructure.ai.settings-reference',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
-
-const AiChatResponseSchema = z.object({
-  choices: z
-    .array(
-      z.object({
-        message: z.object({ content: z.string().min(1) }),
-      }),
-    )
-    .min(1),
-  usage: z
-    .object({
-      prompt_tokens: z.number(),
-      completion_tokens: z.number(),
-      total_tokens: z.number(),
-      prompt_tokens_details: z
-        .object({ cached_tokens: z.number().optional() })
-        .optional(),
-    })
-    .optional(),
-});
 
 /** Workers AI を設定リファレンス生成 port に接続する adapter。 */
 export function createSettingsReferenceAi(
@@ -75,16 +47,12 @@ export function createSettingsReferenceAi(
           { gateway: { id: gatewayId } },
         );
       } catch (error) {
-        logger.error('Workers AI の呼び出しに失敗しました', {
-          'ai.model': MODEL,
-          'ai.duration_ms': Date.now() - startedAt,
-          error: toError(error),
-        });
+        logAiFailure(error, startedAt);
         throw error;
       }
       logAiUsage(response, startedAt);
       const parsed = SettingsReferenceResponseSchema.safeParse(
-        parseAiResponse(response),
+        parseAiResponse(response, MAX_COMPLETION_TOKENS),
       );
       if (!parsed.success) {
         throw new Error(
@@ -104,39 +72,6 @@ export function createSettingsReferenceAi(
       }));
     },
   };
-}
-
-function logAiUsage(response: unknown, startedAt: number): void {
-  const parsed = AiChatResponseSchema.safeParse(response);
-  const usage = parsed.success ? parsed.data.usage : undefined;
-  logger.info('Workers AI の呼び出しが完了しました', {
-    'ai.model': MODEL,
-    'ai.usage.prompt_tokens': usage?.prompt_tokens,
-    'ai.usage.completion_tokens': usage?.completion_tokens,
-    'ai.usage.total_tokens': usage?.total_tokens,
-    'ai.usage.cached_tokens': usage?.prompt_tokens_details?.cached_tokens ?? 0,
-    'ai.duration_ms': Date.now() - startedAt,
-  });
-}
-
-function parseAiResponse(response: unknown): unknown {
-  const parsed = AiChatResponseSchema.safeParse(response);
-  if (!parsed.success) {
-    throw new Error(
-      `AI 応答の形式が不正です: ${z.prettifyError(parsed.error)}`,
-    );
-  }
-
-  const content = parsed.data.choices[0]?.message.content;
-  if (content === undefined) {
-    throw new Error('AI 応答に choices がありません');
-  }
-
-  try {
-    return JSON.parse(content);
-  } catch (error) {
-    throw new Error('AI 応答の JSON 解析に失敗しました', { cause: error });
-  }
 }
 
 export function buildSettingsReferencePrompt(

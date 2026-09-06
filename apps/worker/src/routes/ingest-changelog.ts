@@ -1,94 +1,81 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { toError } from '@claude-code-changelog-viewer/common';
 import { IngestChangelogPayloadSchema } from '@claude-code-changelog-viewer/types';
+import { sValidator } from '@hono/standard-validator';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
+import { bearerAuth } from 'hono/bearer-auth';
+import { workerLogger } from '../logger';
 import {
   ingestChangelogDiffEvents,
   ingestChangelogVersion,
 } from '../infrastructure/drizzle/changelog-ingestion';
-import { timingSafeEqual } from '../infrastructure/crypto/timing-safe-equal';
 import { createSettingsReferenceRepository } from '../infrastructure/drizzle/settings-reference-repository';
-import { parseJsonBody } from './json-body';
 
-const logger = getLogger({
-  name: 'routes.ingest-changelog',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('routes.ingest-changelog');
 
 export const ingestChangelogRoute = new Hono<{
   Bindings: CloudflareBindings;
-}>().post('/', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  const isValid = await timingSafeEqual(
-    authHeader ?? '',
-    `Bearer ${c.env.DISPATCH_SECRET}`,
-  );
-  if (!isValid) {
-    logger.warn('認証に失敗しました', { route: 'ingest-changelog' });
-    return c.json({ error: '認証に失敗しました' }, 401);
-  }
-
-  const jsonBody = await parseJsonBody(c.req);
-  if (!jsonBody.ok) {
-    logger.warn('リクエストの検証に失敗しました', {
-      route: 'ingest-changelog',
-      reason: 'malformed_json',
-    });
-    return c.json({ error: 'リクエストが不正です' }, 400);
-  }
-
-  const parseResult = IngestChangelogPayloadSchema.safeParse(jsonBody.value);
-  if (!parseResult.success) {
-    logger.warn('リクエストの検証に失敗しました', {
-      route: 'ingest-changelog',
-      error: parseResult.error,
-    });
-    return c.json({ error: 'リクエストが不正です' }, 400);
-  }
-  const { versions, settings, diff_events: diffEvents } = parseResult.data;
-
-  try {
-    const db = drizzle(c.env.DB);
-    for (const entry of versions) {
-      await ingestChangelogVersion(db, entry);
+}>().post(
+  '/',
+  // token 指定の bearerAuth は内部で定数時間比較を行う。env は起動時に決まらないため毎回組み立てる
+  (c, next) =>
+    bearerAuth<{ Bindings: CloudflareBindings }>({
+      token: c.env.DISPATCH_SECRET,
+    })(c, next),
+  sValidator('json', IngestChangelogPayloadSchema, (result, c) => {
+    if (!result.success) {
+      logger.warn('リクエストの検証に失敗しました', {
+        route: 'ingest-changelog',
+        error: result.error,
+      });
+      return c.json({ error: 'リクエストが不正です' }, 400);
     }
-    await ingestChangelogDiffEvents(db, diffEvents);
-    await createSettingsReferenceRepository(db).save({
-      records: settings.map((setting) => ({
-        key: setting.key,
-        leafName: setting.leaf_name ?? null,
-        slug: setting.slug,
-        source: setting.source,
-        descriptionEn: setting.description_en,
-        descriptionJa: setting.description_ja,
-        useCaseJa: setting.use_case_ja ?? null,
-        enumDescriptionsJa: setting.enum_descriptions_ja ?? null,
-        defaultNoteJa: setting.default_note_ja ?? null,
-        fetchedAt: setting.fetched_at,
-        officialDocs: setting.official_doc_urls ?? [],
-      })),
-    });
-  } catch (error) {
-    logger.error('CHANGELOG の保存に失敗しました', {
+    return;
+  }),
+  async (c) => {
+    const { versions, settings, diff_events: diffEvents } = c.req.valid('json');
+
+    try {
+      const db = drizzle(c.env.DB);
+      for (const entry of versions) {
+        await ingestChangelogVersion(db, entry);
+      }
+      await ingestChangelogDiffEvents(db, diffEvents);
+      await createSettingsReferenceRepository(db).save({
+        records: settings.map((setting) => ({
+          key: setting.key,
+          leafName: setting.leaf_name ?? null,
+          slug: setting.slug,
+          source: setting.source,
+          descriptionEn: setting.description_en,
+          descriptionJa: setting.description_ja,
+          useCaseJa: setting.use_case_ja ?? null,
+          enumDescriptionsJa: setting.enum_descriptions_ja ?? null,
+          defaultNoteJa: setting.default_note_ja ?? null,
+          fetchedAt: setting.fetched_at,
+          officialDocs: setting.official_doc_urls ?? [],
+        })),
+      });
+    } catch (error) {
+      logger.error('CHANGELOG の保存に失敗しました', {
+        route: 'ingest-changelog',
+        error: toError(error),
+      });
+      throw error;
+    }
+
+    logger.info('CHANGELOG を保存しました', {
       route: 'ingest-changelog',
-      error: toError(error),
+      versions: versions.length,
+      settings: settings.length,
+      diff_events: diffEvents.length,
     });
-    throw error;
-  }
 
-  logger.info('CHANGELOG を保存しました', {
-    route: 'ingest-changelog',
-    versions: versions.length,
-    settings: settings.length,
-    diff_events: diffEvents.length,
-  });
-
-  return c.json({
-    success: true,
-    versions: versions.length,
-    settings: settings.length,
-    diffEvents: diffEvents.length,
-  });
-});
+    return c.json({
+      success: true,
+      versions: versions.length,
+      settings: settings.length,
+      diffEvents: diffEvents.length,
+    });
+  },
+);

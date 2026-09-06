@@ -1,16 +1,12 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 
 type TurnstileVerifyResponse = {
   success: boolean;
   'error-codes': string[];
 };
 
-const logger = getLogger({
-  name: 'infrastructure.turnstile',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('infrastructure.turnstile');
 
 export async function verifyTurnstileToken(
   token: string,

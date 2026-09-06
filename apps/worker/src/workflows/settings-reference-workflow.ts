@@ -1,6 +1,6 @@
+import { workerLogger } from '../logger';
 import { drizzle } from 'drizzle-orm/d1';
 import {
-  getLogger,
   runWithLogContext,
   toError,
 } from '@claude-code-changelog-viewer/common';
@@ -15,13 +15,15 @@ import { createSettingsReferenceAi } from '../infrastructure/ai/settings-referen
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
 import { createSettingsReferenceRepository } from '../infrastructure/drizzle/settings-reference-repository';
 import { createSettingsEntrySource } from '../infrastructure/drizzle/settings-entry-source';
-import { createSettingsReferenceFailureReporter } from '../infrastructure/github/settings-reference-failure-reporter';
-import { createSettingsDocumentSearch } from '../infrastructure/docs-search';
+import { createWorkflowFailureReporter } from '../infrastructure/github/workflow-failure-issue';
+import { searchDocsForSettingKey } from '../infrastructure/docs-search';
+import type { SettingsReferenceFailureReporterPort } from '../usecases/settings-reference';
 import {
   buildSettingsReferenceInput,
   loadSettingsReferenceEntries,
   saveSettingsReferences,
 } from '../usecases/settings-reference';
+import { createStepRunner } from './run-step';
 
 const WorkflowParamsSchema = z.object({
   targetKeys: z.array(z.string().min(1)).optional(),
@@ -39,12 +41,7 @@ const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
 
 const BATCH_SIZE = 30;
 
-const logger = getLogger({
-  name: 'workflows.settings-reference',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('workflows.settings-reference');
 
 export type SettingsReferenceWorkflowParams = z.infer<
   typeof WorkflowParamsSchema
@@ -75,9 +72,16 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
     const failureParams: SettingsReferenceWorkflowParams = paramsResult.success
       ? paramsResult.data
       : {};
-    const failureReporter = createSettingsReferenceFailureReporter(
-      this.env.GITHUB_DISPATCH_TOKEN,
-    );
+    const runStep = createStepRunner(step);
+    const failureReporter: SettingsReferenceFailureReporterPort =
+      createWorkflowFailureReporter(this.env.GITHUB_DISPATCH_TOKEN, {
+        name: '設定リファレンス生成 Workflow',
+        workflowLabel: 'workflow:generate-settings-reference',
+        summary: '設定リファレンス生成 Workflow が失敗しました。',
+        extraFields: ({ params }) => [
+          `**対象キー**: ${params.targetKeys?.join(', ') ?? '指定なし'}`,
+        ],
+      });
     logger.info('Workflow を開始します', {
       'workflow.name': 'settings-reference',
     });
@@ -92,7 +96,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
       const db = drizzle(this.env.DB);
       const docsDb = drizzle(this.env.DOCS_DB);
       const entrySource = createSettingsEntrySource(db, this.env.DOCS_DB);
-      const documentSearch = createSettingsDocumentSearch(docsDb);
+      const documentSearch = searchDocsForSettingKey.bind(null, docsDb);
       const inference = createSettingsReferenceAi(
         this.env.AI,
         this.env.AI_GATEWAY_ID,
@@ -106,13 +110,9 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         timeZone: 'Asia/Tokyo',
       }).format(event.timestamp);
 
-      const entries = await step.do('load-entries', STEP_RETRIES, async () =>
+      const entries = await runStep('load-entries', STEP_RETRIES, async () =>
         loadSettingsReferenceEntries(entrySource, params),
       );
-      logger.info('Workflow step が完了しました', {
-        'workflow.step': 'load-entries',
-        'settings.entry_count': entries.length,
-      });
 
       for (
         let batchStart = 0, batchIndex = 0;
@@ -120,7 +120,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         batchStart += BATCH_SIZE, batchIndex += 1
       ) {
         const batchEntries = entries.slice(batchStart, batchStart + BATCH_SIZE);
-        const input = await step.do(
+        const input = await runStep(
           `build-input-${batchIndex}`,
           STEP_RETRIES,
           async () =>
@@ -130,11 +130,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
               batchEntries,
             ),
         );
-        logger.info('Workflow step が完了しました', {
-          'workflow.step': `build-input-${batchIndex}`,
-          'ai.batch_index': batchIndex,
-        });
-        const translations = await step.do(
+        const translations = await runStep(
           `infer-${batchIndex}`,
           STEP_RETRIES,
           async () =>
@@ -142,30 +138,19 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
               inference.infer(input),
             ),
         );
-        logger.info('Workflow step が完了しました', {
-          'workflow.step': `infer-${batchIndex}`,
-          'ai.batch_index': batchIndex,
-        });
-        await step.do(`store-${batchIndex}`, STEP_RETRIES, async () =>
+        await runStep(`store-${batchIndex}`, STEP_RETRIES, async () =>
           saveSettingsReferences(repository, {
             input,
             translations,
             fetchedAt,
           }),
         );
-        logger.info('Workflow step が完了しました', {
-          'workflow.step': `store-${batchIndex}`,
-          'ai.batch_index': batchIndex,
-        });
       }
 
       if (entries.length > 0) {
-        await step.do('trigger-build', STEP_RETRIES, async () =>
+        await runStep('trigger-build', STEP_RETRIES, async () =>
           buildTrigger.trigger(),
         );
-        logger.info('Workflow step が完了しました', {
-          'workflow.step': 'trigger-build',
-        });
       }
 
       logger.info('Workflow が完了しました', {
@@ -178,16 +163,13 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         'workflow.name': 'settings-reference',
         error: toError(error),
       });
-      await step.do('create-failure-issue', STEP_RETRIES, async () =>
+      await runStep('create-failure-issue', STEP_RETRIES, async () =>
         failureReporter.report({
           params: failureParams,
           instanceId: event.instanceId,
           error,
         }),
       );
-      logger.info('Workflow step が完了しました', {
-        'workflow.step': 'create-failure-issue',
-      });
       throw error;
     }
   }

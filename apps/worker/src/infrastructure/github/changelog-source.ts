@@ -1,4 +1,5 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import type { ChangelogSource } from '../../usecases/detect-changelog-update';
 import type { ChangelogMarkdownSourcePort } from '../../usecases/changelog-inference-workflow';
 import { sha256Hex } from '../crypto/sha256-hex';
@@ -7,12 +8,7 @@ import { createGitHubHeaders } from './github-headers';
 const CHANGELOG_URL =
   'https://api.github.com/repos/anthropics/claude-code/contents/CHANGELOG.md?ref=main';
 
-const logger = getLogger({
-  name: 'infrastructure.github.changelog-source',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('infrastructure.github.changelog-source');
 
 export async function fetchChangelogMarkdown(
   token: string,

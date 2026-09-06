@@ -11,9 +11,9 @@ import {
 // 設定リファレンス生成の MAX_DOC_SNIPPET_CHARS と同じ値
 const MAX_SNIPPET_CHARS_PER_ITEM = 8000;
 
-export type ChangelogDocumentSearchPort = {
-  searchChangelogEntry(entry: string): Promise<RelatedDocument[]>;
-};
+export type ChangelogDocumentSearchPort = (
+  entry: string,
+) => Promise<RelatedDocument[]>;
 
 export type ChangelogItemInferencePort = {
   inferItems(input: ChangelogInferenceInput): Promise<ChangelogItemsAiResult>;
@@ -31,9 +31,7 @@ export async function buildChangelogInferenceInput(
     version: release.version,
     items: await Promise.all(
       release.items.map(async (item) => {
-        const documents = await documentSearch.searchChangelogEntry(
-          item.content,
-        );
+        const documents = await documentSearch(item.content);
         let remaining = MAX_SNIPPET_CHARS_PER_ITEM;
         // 予算を使い切ったファイルも file 名は保存対象なので、snippets を空にして残す
         const relatedDocs = documents.map((document) => {

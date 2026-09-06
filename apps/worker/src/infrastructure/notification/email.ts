@@ -1,4 +1,5 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 // biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers ランタイム組み込みモジュール
 import { EmailMessage } from 'cloudflare:email';
 import type { Prefix } from '@claude-code-changelog-viewer/common';
@@ -29,12 +30,7 @@ const PREFIX_LABELS: Record<Prefix, string> = {
   Enabled: '✅ 有効化',
 };
 
-const logger = getLogger({
-  name: 'infrastructure.notification.email',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('infrastructure.notification.email');
 
 /** Cloudflare Email Bindingでメールを送信する。 */
 export async function sendToEmail(

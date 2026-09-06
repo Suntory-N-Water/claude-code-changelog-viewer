@@ -1,8 +1,5 @@
 import { sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import type { ChangelogDocumentSearchPort } from '../usecases/changelog-inference';
-import type { RelatedDocument } from '../domain/changelog-inference/changelog-inference';
-import type { SettingsReferenceDocumentSearchPort } from '../usecases/settings-reference';
 
 const MAX_FILES = 3;
 const MAX_CHUNKS_PER_FILE = 3;
@@ -123,30 +120,6 @@ export async function searchDocsForChangelogEntry(
     `,
   );
   return groupByFile(result, words);
-}
-
-export function createChangelogDocumentSearch(
-  db: DrizzleD1Database,
-): ChangelogDocumentSearchPort {
-  return {
-    async searchChangelogEntry(entry) {
-      const documents = await searchDocsForChangelogEntry(db, entry);
-      return documents.map<RelatedDocument>((document) => ({
-        file: document.file,
-        snippets: document.snippets,
-      }));
-    },
-  };
-}
-
-export function createSettingsDocumentSearch(
-  db: DrizzleD1Database,
-): SettingsReferenceDocumentSearchPort {
-  return {
-    async searchSettingKey(leafName) {
-      return searchDocsForSettingKey(db, leafName);
-    },
-  };
 }
 
 // 語形の原形化は tokenizer の porter が索引側とクエリ側の両方に効くのでここでは行わない

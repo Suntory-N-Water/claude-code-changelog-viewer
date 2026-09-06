@@ -1,4 +1,6 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
+import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { subscribe, type SubscribeInput } from '../usecases/subscribe';
@@ -21,14 +23,9 @@ import {
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 import { verifyTurnstileToken } from '../infrastructure/turnstile';
-import { parseJsonBody } from './json-body';
+import { rateLimit } from './rate-limit';
 
-const logger = getLogger({
-  name: 'routes.webhooks',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('routes.webhooks');
 
 const RequestSchema = z.discriminatedUnion('channel_type', [
   z.object({
@@ -53,38 +50,23 @@ const RequestSchema = z.discriminatedUnion('channel_type', [
 
 export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
   '/',
+  rateLimit(
+    (env) => env.WEBHOOK_RATE_LIMITER,
+    'webhook-registration',
+    '登録リクエストが多すぎます',
+  ),
+  sValidator('json', RequestSchema, (result, c) => {
+    if (!result.success) {
+      logger.warn('リクエストの検証に失敗しました', {
+        route: 'webhooks',
+        error: result.error,
+      });
+      return c.json({ error: 'リクエストが不正です' }, 400);
+    }
+    return;
+  }),
   async (c) => {
-    const clientKey = c.req.header('CF-Connecting-IP') ?? 'unknown-client';
-    const rateLimit = await c.env.WEBHOOK_RATE_LIMITER.limit({
-      key: `webhook-registration:${clientKey}`,
-    });
-    if (!rateLimit.success) {
-      c.header('Retry-After', '60');
-      logger.warn('レート制限を超過しました', {
-        route: 'webhooks',
-        'client.address': clientKey,
-      });
-      return c.json({ error: '登録リクエストが多すぎます' }, 429);
-    }
-
-    const jsonBody = await parseJsonBody(c.req);
-    if (!jsonBody.ok) {
-      logger.warn('リクエストの検証に失敗しました', {
-        route: 'webhooks',
-        reason: 'malformed_json',
-      });
-      return c.json({ error: 'リクエストが不正です' }, 400);
-    }
-
-    const parseResult = RequestSchema.safeParse(jsonBody.value);
-    if (!parseResult.success) {
-      logger.warn('リクエストの検証に失敗しました', {
-        route: 'webhooks',
-        error: parseResult.error,
-      });
-      return c.json({ error: 'リクエストが不正です' }, 400);
-    }
-    const data = parseResult.data;
+    const data = c.req.valid('json');
 
     const turnstileValid = await verifyTurnstileToken(
       data.turnstile_token,

@@ -1,4 +1,4 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
 import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import type { Channel } from '../domain/channel/channel';
 import type { ChannelRepository } from '../domain/channel/channel-repository';
@@ -6,12 +6,7 @@ import { recordFailure, resetFailure } from '../domain/channel/channel-failure';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
 import type { ChannelNotifier } from './channel-notifier';
 
-const logger = getLogger({
-  name: 'usecases.dispatch-changelog-notifications',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('usecases.dispatch-changelog-notifications');
 
 export type DispatchChangelogNotificationsInput = {
   analysis: NotificationAnalysis;

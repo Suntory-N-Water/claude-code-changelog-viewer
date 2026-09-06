@@ -1,4 +1,5 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import {
   ClaudeCodeVersionSchema,
   NotificationAnalysisSchema,
@@ -27,12 +28,9 @@ type NotificationRow = {
   prefix: string | null;
 };
 
-const logger = getLogger({
-  name: 'infrastructure.notification.changelog-workflow-notifier',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger(
+  'infrastructure.notification.changelog-workflow-notifier',
+);
 
 export function createChangelogWorkflowNotifier(
   db: DrizzleD1Database,

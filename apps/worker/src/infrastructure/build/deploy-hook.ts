@@ -1,12 +1,8 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import type { BuildTriggerPort } from '../../usecases/build-trigger';
 
-const logger = getLogger({
-  name: 'infrastructure.build.deploy-hook',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('infrastructure.build.deploy-hook');
 
 export function createDeployHookBuildTrigger(
   deployHookUrl: string,

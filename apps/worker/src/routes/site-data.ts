@@ -1,4 +1,5 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import {
@@ -14,33 +15,22 @@ import {
 import { resolveSettingSlugs } from '../domain/settings-reference/setting-slug';
 import { parseEnumDescriptions } from '../domain/settings-reference/enum-descriptions';
 import { loadSettingSchemaDisplays } from '../infrastructure/docs-sync/setting-schema-reader';
+import { rateLimit } from './rate-limit';
 
-const logger = getLogger({
-  name: 'routes.site-data',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('routes.site-data');
 
 export const siteDataRoute = new Hono<{
   Bindings: CloudflareBindings;
 }>();
 
-siteDataRoute.use('*', async (c, next) => {
-  const clientKey = c.req.header('CF-Connecting-IP') ?? 'unknown-client';
-  const rateLimit = await c.env.SITE_DATA_RATE_LIMITER.limit({
-    key: `site-data:${clientKey}`,
-  });
-  if (!rateLimit.success) {
-    c.header('Retry-After', '60');
-    logger.warn('レート制限を超過しました', {
-      route: 'site-data',
-      'client.address': clientKey,
-    });
-    return c.json({ error: 'リクエストが多すぎます' }, 429);
-  }
-  return next();
-});
+siteDataRoute.use(
+  '*',
+  rateLimit(
+    (env) => env.SITE_DATA_RATE_LIMITER,
+    'site-data',
+    'リクエストが多すぎます',
+  ),
+);
 
 siteDataRoute.get('/changelog', async (c) => {
   const db = drizzle(c.env.DB);

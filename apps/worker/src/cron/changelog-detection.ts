@@ -1,15 +1,10 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
 import { createGitHubChangelogSource } from '../infrastructure/github/changelog-source';
 import { createChangelogDetectionStateRepository } from '../infrastructure/kv/changelog-detection-state-store';
 import { createChangelogInferenceDispatcher } from '../infrastructure/workflows/changelog-inference-dispatcher';
 import { detectChangelogUpdate as detectChangelogUpdateUsecase } from '../usecases/detect-changelog-update';
 
-const logger = getLogger({
-  name: 'cron.changelog-detection',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('cron.changelog-detection');
 
 /** ScheduledEvent と Cloudflare binding を検知 usecase へ接続する entry point。 */
 export async function detectChangelogUpdate(

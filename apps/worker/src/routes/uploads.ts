@@ -1,5 +1,6 @@
+import { workerLogger } from '../logger';
 import { cloudflareAccess } from '@hono/cloudflare-access';
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { toError } from '@claude-code-changelog-viewer/common';
 import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import type { MiddlewareHandler } from 'hono';
@@ -38,12 +39,7 @@ const imageTypes = [
   },
 ] as const;
 
-const logger = getLogger({
-  name: 'routes.uploads',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('routes.uploads');
 
 export const uploadsRoute = new Hono<{
   Bindings: CloudflareBindings;
