@@ -3,6 +3,7 @@ import { createWorkflowFailureReporter } from './workflow-failure-issue';
 
 const changelogFailure = {
   instanceId: 'changelog-inference-1',
+  detectedAt: '2026-08-20T20:35:06.978Z',
   error: new Error('推論失敗'),
 };
 
@@ -11,7 +12,7 @@ function createChangelogReporter(githubToken: string) {
     name: 'CHANGELOG 推論 Workflow',
     workflowLabel: 'workflow:changelog-auto-inference',
     summary: 'CHANGELOG 推論 Workflow が失敗しました。',
-    extraFields: () => ['**検出時刻**: 2026-08-20T20:35:06.978Z'],
+    extraFields: ({ detectedAt }) => [`**検出時刻**: ${detectedAt}`],
   });
 }
 
@@ -83,16 +84,28 @@ function installGitHubIssueApi(
 }
 
 describe('Workflow 失敗 Issue', () => {
-  it('同じ失敗が再通知されても、Issue を1件だけ作成して必要なラベルを付けること', async () => {
+  it('失敗が初めて通知されたとき、失敗内容とラベルを備えた Issue を作成すること', async () => {
     const issues = installGitHubIssueApi();
     const reporter = createChangelogReporter('github-token');
 
     await reporter.report(changelogFailure);
+
     expect(issues).toHaveLength(1);
     const createdIssue = issues[0];
     if (createdIssue === undefined) {
       throw new Error('作成された Issue が保存されていません');
     }
+    expect(createdIssue.title).toBe('CHANGELOG 推論 Workflow に失敗');
+    expect(createdIssue.body).toContain(
+      'CHANGELOG 推論 Workflow が失敗しました。',
+    );
+    expect(createdIssue.body).toContain(
+      '**Workflow instance**: changelog-inference-1',
+    );
+    expect(createdIssue.body).toContain(
+      '**検出時刻**: 2026-08-20T20:35:06.978Z',
+    );
+    expect(createdIssue.body).toContain('推論失敗');
     expect(createdIssue.labels).toEqual(
       expect.arrayContaining([
         'automated-failure',
@@ -100,9 +113,20 @@ describe('Workflow 失敗 Issue', () => {
         'bug',
       ]),
     );
+  });
 
+  it('同じ失敗が再通知されたとき、Issue を新しく作成しないこと', async () => {
+    const issues = installGitHubIssueApi();
+    const reporter = createChangelogReporter('github-token');
+    await reporter.report(changelogFailure);
+    const createdIssue = issues[0];
+    if (createdIssue === undefined) {
+      throw new Error('作成された Issue が保存されていません');
+    }
+    // 人が本文を書き換えて機械識別子が消えても、ラベルだけで同一の失敗と判定できる
     createdIssue.title = '人が変更したタイトル';
     createdIssue.body = '人が変更した本文';
+
     await reporter.report(changelogFailure);
 
     expect(issues).toHaveLength(1);
@@ -139,7 +163,7 @@ describe('Workflow 失敗 Issue', () => {
     expect(issues).toHaveLength(1);
   });
 
-  it('別 Workflow の open Issue がある時、CHANGELOG 用 Issue は作成すること', async () => {
+  it('別 Workflow の open Issue があるとき、CHANGELOG 用 Issue を作成すること', async () => {
     const issues = installGitHubIssueApi([
       {
         number: 951,
