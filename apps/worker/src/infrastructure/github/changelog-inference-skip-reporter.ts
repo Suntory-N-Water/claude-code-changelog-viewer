@@ -1,16 +1,13 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
 import { createGitHubHeaders } from './github-headers';
 import type { ChangelogInferenceSkipReporterPort } from '../../usecases/changelog-inference-workflow';
 
 const ISSUE_URL =
   'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/issues';
 
-const logger = getLogger({
-  name: 'infrastructure.github.changelog-inference-skip-reporter',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger(
+  'infrastructure.github.changelog-inference-skip-reporter',
+);
 
 type GitHubIssueListItem = {
   readonly number: number;

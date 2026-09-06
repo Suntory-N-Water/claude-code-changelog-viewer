@@ -1,4 +1,5 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import { z } from 'zod';
 import type {
   ChangelogDetectionState,
@@ -7,12 +8,7 @@ import type {
 
 const KV_KEY = 'changelog-detection-state';
 
-const logger = getLogger({
-  name: 'infrastructure.kv.changelog-detection-state',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('infrastructure.kv.changelog-detection-state');
 
 const ChangelogDetectionStateSchema = z.object({
   contentHash: z.string(),

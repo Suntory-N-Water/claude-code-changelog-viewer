@@ -1,4 +1,5 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import { NonRetryableError } from 'cloudflare:workflows';
 import { z } from 'zod';
 import type { D1ExportPort } from '../../usecases/d1-backup-workflow';
@@ -17,12 +18,7 @@ const ExportResponseSchema = z.object({
   }),
 });
 
-const logger = getLogger({
-  name: 'infrastructure.d1.export-client',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('infrastructure.d1.export-client');
 
 export type D1ExportClientConfig = {
   accountId: string;

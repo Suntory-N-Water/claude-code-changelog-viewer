@@ -1,5 +1,5 @@
+import { workerLogger } from '../logger';
 import {
-  getLogger,
   runWithLogContext,
   toError,
 } from '@claude-code-changelog-viewer/common';
@@ -10,16 +10,13 @@ import type {
   WorkflowStepConfigWithStaticDelay,
 } from 'cloudflare:workers';
 import { createD1ExportClient } from '../infrastructure/d1/d1-export-client';
-import { createD1BackupFailureReporter } from '../infrastructure/github/d1-backup-failure-reporter';
+import { createWorkflowFailureReporter } from '../infrastructure/github/workflow-failure-issue';
 import { createD1BackupStore } from '../infrastructure/r2/d1-backup-store';
+import type { BackupFailureReporterPort } from '../usecases/d1-backup-workflow';
 import { storeD1Backup } from '../usecases/d1-backup-workflow';
+import { createStepRunner } from './run-step';
 
-const logger = getLogger({
-  name: 'workflows.d1-backup',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('workflows.d1-backup');
 
 const START_EXPORT_RETRIES: WorkflowStepConfigWithStaticDelay = {
   retries: {
@@ -55,9 +52,13 @@ export class D1BackupWorkflow extends WorkflowEntrypoint<
         'workflow.name': 'd1-backup',
       },
       async () => {
-        const failureReporter = createD1BackupFailureReporter(
-          this.env.GITHUB_DISPATCH_TOKEN,
-        );
+        const runStep = createStepRunner(step);
+        const failureReporter: BackupFailureReporterPort =
+          createWorkflowFailureReporter(this.env.GITHUB_DISPATCH_TOKEN, {
+            name: 'D1 バックアップ Workflow',
+            workflowLabel: 'workflow:d1-backup',
+            summary: '正データ用 D1 の R2 への export が失敗しました。',
+          });
         logger.info('Workflow を開始します', {
           'workflow.name': 'd1-backup',
         });
@@ -70,15 +71,12 @@ export class D1BackupWorkflow extends WorkflowEntrypoint<
           });
           const store = createD1BackupStore(this.env.D1_BACKUP_BUCKET);
 
-          const bookmark = await step.do(
+          const bookmark = await runStep(
             'start-export',
             START_EXPORT_RETRIES,
             async () => d1Export.start(),
           );
-          logger.info('Workflow step が完了しました', {
-            'workflow.step': 'start-export',
-          });
-          const stored = await step.do(
+          const stored = await runStep(
             'store-backup',
             STORE_BACKUP_RETRIES,
             async () =>
@@ -88,9 +86,6 @@ export class D1BackupWorkflow extends WorkflowEntrypoint<
                 exportedAt: event.timestamp.toISOString(),
               }),
           );
-          logger.info('Workflow step が完了しました', {
-            'workflow.step': 'store-backup',
-          });
 
           logger.msg('APLG0021', {
             attrs: {
@@ -108,15 +103,12 @@ export class D1BackupWorkflow extends WorkflowEntrypoint<
             'workflow.name': 'd1-backup',
             error: toError(error),
           });
-          await step.do(
+          await runStep(
             'create-failure-issue',
             START_EXPORT_RETRIES,
             async () =>
               failureReporter.report({ instanceId: event.instanceId, error }),
           );
-          logger.info('Workflow step が完了しました', {
-            'workflow.step': 'create-failure-issue',
-          });
           throw error;
         }
       },

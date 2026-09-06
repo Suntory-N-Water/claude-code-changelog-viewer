@@ -1,13 +1,9 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import { mergeSettingSchemaEntries } from '../domain/docs-sync/setting-schema';
 import { isSafeToDeleteStaleDocuments } from '../domain/docs-sync/document-sync';
 
-const logger = getLogger({
-  name: 'usecases.sync-docs',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('usecases.sync-docs');
 
 export type DocumentInfo = {
   title: string;

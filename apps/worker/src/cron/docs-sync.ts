@@ -1,4 +1,4 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
 import {
   parseEnvVarsMd,
   parsePublicEnvEntriesFromDocs,
@@ -8,12 +8,7 @@ import { createDocsSearchStore } from '../infrastructure/docs-sync/docs-search-s
 import { createOfficialDocsSource } from '../infrastructure/docs-sync/official-docs-source';
 import { syncDocs as syncDocsUsecase } from '../usecases/sync-docs';
 
-const logger = getLogger({
-  name: 'cron.docs-sync',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('cron.docs-sync');
 
 /** ScheduledEvent と Cloudflare binding をドキュメント同期 usecase へ接続する entry point。 */
 export async function syncDocs(

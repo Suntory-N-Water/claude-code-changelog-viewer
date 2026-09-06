@@ -1,12 +1,8 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
 import { createGitHubHeaders } from './github-headers';
 
-const logger = getLogger({
-  name: 'infrastructure.github.workflow-failure-issue',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('infrastructure.github.workflow-failure-issue');
 
 const FAILURE_ISSUE_URL =
   'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/issues';
@@ -124,4 +120,54 @@ export async function reportWorkflowFailureIssue(
     throw new Error('失敗通知 Issue の作成結果に Issue 番号がありません');
   }
   await addFailureIssueLabels(githubToken, createdIssue.number, issueLabels);
+}
+
+export function createWorkflowFailureReporter<
+  T extends { instanceId: string; error: unknown },
+>(
+  githubToken: string,
+  options: {
+    name: string;
+    workflowLabel: `workflow:${string}`;
+    summary: string;
+    extraFields?: (input: T) => string[];
+  },
+): { report(input: T): Promise<void> } {
+  return {
+    async report(input) {
+      const { instanceId, error } = input;
+      const detail =
+        error instanceof Error ? (error.stack ?? error.message) : String(error);
+      try {
+        await reportWorkflowFailureIssue(githubToken, {
+          title: `${options.name} に失敗`,
+          workflowLabel: options.workflowLabel,
+          description: [
+            '## エラー詳細',
+            '',
+            options.summary,
+            '',
+            `**ワークフロー**: ${options.name}`,
+            `**Workflow instance**: ${instanceId}`,
+            ...(options.extraFields?.(input) ?? []),
+            '',
+            '```text',
+            detail,
+            '```',
+            '',
+            '詳細は Cloudflare Workflow のログを確認してください。',
+          ].join('\n'),
+        });
+        logger.info('失敗通知 Issue を作成しました', {
+          'workflow.instance_id': instanceId,
+        });
+      } catch (reportError) {
+        logger.error('失敗通知 Issue の作成に失敗しました', {
+          'workflow.instance_id': instanceId,
+          error: toError(reportError),
+        });
+        throw reportError;
+      }
+    },
+  };
 }

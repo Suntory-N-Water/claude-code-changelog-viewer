@@ -1,46 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createChangelogWorkflowFailureReporter } from './changelog-workflow-failure-reporter';
-import { createD1BackupFailureReporter } from './d1-backup-failure-reporter';
-import { createSettingsReferenceFailureReporter } from './settings-reference-failure-reporter';
+import { createWorkflowFailureReporter } from './workflow-failure-issue';
 
 const changelogFailure = {
-  params: {
-    detectedHash: 'a'.repeat(64),
-    detectedAt: '2026-08-20T20:35:06.978Z',
-  },
   instanceId: 'changelog-inference-1',
   error: new Error('推論失敗'),
 };
 
-const reporterCases = [
-  {
+function createChangelogReporter(githubToken: string) {
+  return createWorkflowFailureReporter<typeof changelogFailure>(githubToken, {
     name: 'CHANGELOG 推論 Workflow',
     workflowLabel: 'workflow:changelog-auto-inference',
-    createReport: (githubToken: string) => async () =>
-      createChangelogWorkflowFailureReporter(githubToken).report(
-        changelogFailure,
-      ),
-  },
-  {
-    name: '設定リファレンス生成 Workflow',
-    workflowLabel: 'workflow:generate-settings-reference',
-    createReport: (githubToken: string) => async () =>
-      createSettingsReferenceFailureReporter(githubToken).report({
-        params: {},
-        instanceId: 'settings-reference-1',
-        error: new Error('推論失敗'),
-      }),
-  },
-  {
-    name: 'D1 バックアップ Workflow',
-    workflowLabel: 'workflow:d1-backup',
-    createReport: (githubToken: string) => async () =>
-      createD1BackupFailureReporter(githubToken).report({
-        instanceId: 'd1-backup-1',
-        error: new Error('バックアップ失敗'),
-      }),
-  },
-] as const;
+    summary: 'CHANGELOG 推論 Workflow が失敗しました。',
+    extraFields: () => ['**検出時刻**: 2026-08-20T20:35:06.978Z'],
+  });
+}
 
 type StoredIssue = {
   number: number;
@@ -110,29 +83,30 @@ function installGitHubIssueApi(
 }
 
 describe('Workflow 失敗 Issue', () => {
-  it.each(reporterCases)(
-    '$name は同じ失敗が再通知されても、Issue を1件だけ作成して必要なラベルを付けること',
-    async ({ workflowLabel, createReport }) => {
-      const issues = installGitHubIssueApi();
-      const report = createReport('github-token');
+  it('同じ失敗が再通知されても、Issue を1件だけ作成して必要なラベルを付けること', async () => {
+    const issues = installGitHubIssueApi();
+    const reporter = createChangelogReporter('github-token');
 
-      await report();
-      expect(issues).toHaveLength(1);
-      const createdIssue = issues[0];
-      if (createdIssue === undefined) {
-        throw new Error('作成された Issue が保存されていません');
-      }
-      expect(createdIssue.labels).toEqual(
-        expect.arrayContaining(['automated-failure', workflowLabel, 'bug']),
-      );
+    await reporter.report(changelogFailure);
+    expect(issues).toHaveLength(1);
+    const createdIssue = issues[0];
+    if (createdIssue === undefined) {
+      throw new Error('作成された Issue が保存されていません');
+    }
+    expect(createdIssue.labels).toEqual(
+      expect.arrayContaining([
+        'automated-failure',
+        'workflow:changelog-auto-inference',
+        'bug',
+      ]),
+    );
 
-      createdIssue.title = '人が変更したタイトル';
-      createdIssue.body = '人が変更した本文';
-      await report();
+    createdIssue.title = '人が変更したタイトル';
+    createdIssue.body = '人が変更した本文';
+    await reporter.report(changelogFailure);
 
-      expect(issues).toHaveLength(1);
-    },
-  );
+    expect(issues).toHaveLength(1);
+  });
 
   it('機械識別子だけがある open Issue は作成せず、不足ラベルを補うこと', async () => {
     const issues = installGitHubIssueApi([
@@ -143,7 +117,7 @@ describe('Workflow 失敗 Issue', () => {
         labels: [],
       },
     ]);
-    const reporter = createChangelogWorkflowFailureReporter('github-token');
+    const reporter = createChangelogReporter('github-token');
 
     await reporter.report(changelogFailure);
 
@@ -159,7 +133,7 @@ describe('Workflow 失敗 Issue', () => {
 
   it('ラベル付与が拒否されても、Issue 作成は成功として扱うこと', async () => {
     const issues = installGitHubIssueApi([], { rejectLabeling: true });
-    const reporter = createChangelogWorkflowFailureReporter('github-token');
+    const reporter = createChangelogReporter('github-token');
 
     await expect(reporter.report(changelogFailure)).resolves.toBeUndefined();
     expect(issues).toHaveLength(1);
@@ -174,7 +148,7 @@ describe('Workflow 失敗 Issue', () => {
         labels: ['automated-failure', 'workflow:d1-backup', 'bug'],
       },
     ]);
-    const reporter = createChangelogWorkflowFailureReporter('github-token');
+    const reporter = createChangelogReporter('github-token');
 
     await reporter.report(changelogFailure);
 

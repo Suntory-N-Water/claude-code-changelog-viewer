@@ -1,4 +1,4 @@
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../logger';
 import type { Channel } from '../domain/channel/channel';
 import { createChannel } from '../domain/channel/channel';
 import type { ChannelAddress } from '../domain/channel/channel-address';
@@ -7,12 +7,7 @@ import { isActive, reactivate } from '../domain/channel/channel-lifecycle';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
 import type { ChannelNotifier } from './channel-notifier';
 
-const logger = getLogger({
-  name: 'usecases.subscribe',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('usecases.subscribe');
 
 /** 通知購読ユースケースへ渡す入力。routes層でHTTP入力を値オブジェクトへ変換してから渡す。 */
 export type SubscribeInput = {

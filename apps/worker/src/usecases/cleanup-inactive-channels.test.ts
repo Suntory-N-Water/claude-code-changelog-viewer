@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanupInactiveChannels } from './cleanup';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
-import { cleanupInactiveChannels as cleanupInactiveChannelsUsecase } from '../usecases/cleanup-inactive-channels';
+import { cleanupInactiveChannels } from './cleanup-inactive-channels';
 import { FakeD1Database } from '../test-support/fake-d1';
 import {
   createTestEnv,
@@ -35,7 +34,10 @@ describe('休眠チャンネルの削除', () => {
       deactivatedReason: 'user',
     });
 
-    await cleanupInactiveChannels(env, new Date('2026-02-01T00:00:00.000Z'));
+    await cleanupInactiveChannels(
+      createChannelRepository(env.DB, env.EMAIL_ENCRYPTION_KEY),
+      { now: new Date('2026-02-01T00:00:00.000Z') },
+    );
 
     expect(await findChannelByToken(db, 'expired-token')).toBeNull();
     expect(await findChannelByToken(db, 'boundary-token')).not.toBeNull();
@@ -51,14 +53,11 @@ describe('休眠チャンネルの削除', () => {
       deactivatedAt: '2026-01-01 00:00:00',
       deactivatedReason: 'user',
     });
-    const repository = createChannelRepository(
-      env.DB,
-      env.EMAIL_ENCRYPTION_KEY,
-    );
 
-    const result = await cleanupInactiveChannelsUsecase(repository, {
-      now: new Date('2026-02-01T00:00:00.000Z'),
-    });
+    const result = await cleanupInactiveChannels(
+      createChannelRepository(env.DB, env.EMAIL_ENCRYPTION_KEY),
+      { now: new Date('2026-02-01T00:00:00.000Z') },
+    );
 
     expect(result).toEqual({ deletedCount: 1 });
   });

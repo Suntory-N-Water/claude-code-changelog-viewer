@@ -1,12 +1,8 @@
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { workerLogger } from '../../logger';
+import { toError } from '@claude-code-changelog-viewer/common';
 import type { BackupStorePort } from '../../usecases/d1-backup-workflow';
 
-const logger = getLogger({
-  name: 'infrastructure.r2.d1-backup-store',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('infrastructure.r2.d1-backup-store');
 
 export function createD1BackupStore(bucket: R2Bucket): BackupStorePort {
   return {

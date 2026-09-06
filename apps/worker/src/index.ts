@@ -1,5 +1,5 @@
+import { workerLogger } from './logger';
 import {
-  getLogger,
   runWithLogContext,
   toError,
 } from '@claude-code-changelog-viewer/common';
@@ -7,8 +7,9 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { detectChangelogUpdate } from './cron/changelog-detection';
-import { cleanupInactiveChannels } from './cron/cleanup';
 import { syncDocs } from './cron/docs-sync';
+import { createChannelRepository } from './infrastructure/drizzle/channel-repository';
+import { cleanupInactiveChannels } from './usecases/cleanup-inactive-channels';
 import { queueConsumer } from './queue/consumer';
 import { dispatchRoute } from './routes/dispatch';
 import { ingestChangelogRoute } from './routes/ingest-changelog';
@@ -22,12 +23,7 @@ export { ChangelogInferenceWorkflow } from './workflows/changelog-inference-work
 export { D1BackupWorkflow } from './workflows/d1-backup-workflow';
 export { SettingsReferenceWorkflow } from './workflows/settings-reference-workflow';
 
-const logger = getLogger({
-  name: 'worker.index',
-  serviceName: 'changelog-viewer-worker',
-  level: 'INFO',
-  format: 'json',
-});
+const logger = workerLogger('worker.index');
 
 export const app = new Hono<{ Bindings: CloudflareBindings }>().basePath(
   '/api',
@@ -118,9 +114,12 @@ export default {
         break;
       case '0 15 * * *':
         ctx.waitUntil(
-          runCron('非アクティブチャンネル cleanup cron', () =>
-            cleanupInactiveChannels(env),
-          ),
+          runCron('非アクティブチャンネル cleanup cron', async () => {
+            await cleanupInactiveChannels(
+              createChannelRepository(env.DB, env.EMAIL_ENCRYPTION_KEY),
+              { now: new Date() },
+            );
+          }),
         );
         break;
       case '*/5 * * * *':

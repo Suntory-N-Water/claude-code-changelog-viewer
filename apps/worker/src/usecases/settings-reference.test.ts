@@ -68,13 +68,11 @@ describe('設定リファレンス生成ユースケース', () => {
 
   it('env-vars.md を除外し、ドキュメント抜粋を8000文字と更新履歴を5件までに制限すること', async () => {
     const input = await buildSettingsReferenceInput(
-      {
-        searchSettingKey: async () => [
-          { file: 'env-vars.md', snippets: ['重複する説明'] },
-          { file: 'guide.md', snippets: ['A'.repeat(7999), 'ignored'] },
-          { file: 'reference.md', snippets: ['次のファイル'] },
-        ],
-      },
+      async () => [
+        { file: 'env-vars.md', snippets: ['重複する説明'] },
+        { file: 'guide.md', snippets: ['A'.repeat(7999), 'ignored'] },
+        { file: 'reference.md', snippets: ['次のファイル'] },
+      ],
       {
         loadEntries: async () => [],
         loadExistingKeys: async () => new Set(),
@@ -269,9 +267,7 @@ describe('設定リファレンス生成ユースケース', () => {
 
   it('英文の選択肢の説明と既定値の補足を AI への入力に含めること', async () => {
     const input = await buildSettingsReferenceInput(
-      {
-        searchSettingKey: async () => [],
-      },
+      async () => [],
       {
         loadEntries: async () => [],
         loadExistingKeys: async () => new Set(),
