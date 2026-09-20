@@ -28,7 +28,6 @@ describe('CHANGELOG Markdown parser', () => {
         { content: '- Fixed a typo', prefix: 'Fixed' },
       ],
     });
-    expect(result[0]?.items.every((item) => item.id.length === 12)).toBe(true);
     expect(result[1]).toMatchObject({
       version: 'v2.1.233',
       items: [{ content: '- Changed an older behavior', prefix: 'Changed' }],

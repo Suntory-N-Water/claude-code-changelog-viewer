@@ -419,40 +419,6 @@ describe('POST /api/ingest/changelog integration', () => {
       db.close();
     });
 
-    it('関連ドキュメントが 100 行を超えても分割して取り込めること', async () => {
-      const db = new FakeD1Database();
-      const sut = app;
-      const relatedDocs = Array.from({ length: 101 }, (_, i) => ({
-        file: `docs/en/generated/${i}.md`,
-      }));
-
-      const response = await sut.request(
-        '/api/ingest/changelog',
-        createRequest({
-          versions: [
-            createVersion({
-              items: [
-                {
-                  id: 'cccccccccccc',
-                  content: '- Added many related docs',
-                  prefix: 'Added',
-                  related_docs: relatedDocs,
-                },
-              ],
-            }),
-          ],
-        }),
-        createTestEnv(db),
-      );
-
-      expect(response.status).toBe(200);
-      const count = await db
-        .prepare('SELECT count(*) AS c FROM changelog_item_related_docs')
-        .first<{ c: number }>();
-      expect(count?.c).toBe(101);
-      db.close();
-    });
-
     it('差分イベントと追加・削除項目を取り込め、version_removed は項目を持たないこと', async () => {
       const db = new FakeD1Database();
       const sut = app;

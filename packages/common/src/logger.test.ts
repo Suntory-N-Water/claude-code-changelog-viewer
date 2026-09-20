@@ -104,16 +104,6 @@ describe('logger', () => {
     expect(record['exception.stack_trace']).toBeTypeOf('string');
   });
 
-  it('ERROR の JSON にスタックトレースを含める', () => {
-    const logger = createLogger();
-
-    const record = captureJson('error', () =>
-      logger.error('x', new Error('boom')),
-    );
-
-    expect(record).toHaveProperty('exception.stack_trace');
-  });
-
   it('コンテキストの属性をログへ付与する', () => {
     const logger = createLogger();
 

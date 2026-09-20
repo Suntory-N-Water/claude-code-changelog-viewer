@@ -217,26 +217,6 @@ describe('ドキュメント検索 (FTS5)', () => {
     );
   });
 
-  it('導入段落が長い時、検索語を含む段落を残すこと', async () => {
-    const content = [
-      'A'.repeat(3000),
-      'B'.repeat(3000),
-      'Notification hooks configure permission prompts.',
-      'The status line shows the current model.',
-    ].join('\n\n');
-    db = await seed([{ path: 'settings.md', content }]);
-
-    const [result] = await searchDocsForChangelogEntry(
-      db,
-      'Notification hooks',
-    );
-
-    expect(result?.snippets[0]?.length).toBeLessThanOrEqual(4000);
-    expect(result?.snippets[0]).toContain(
-      'Notification hooks configure permission prompts.',
-    );
-  });
-
   it('3段落の導入が長い時、検索語を含む段落を残すこと', async () => {
     const content = [
       'A'.repeat(3000),
