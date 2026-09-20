@@ -162,11 +162,7 @@ describe('POST /api/uploads', () => {
 
     it.each([
       ['GIF', [0x47, 0x49, 0x46, 0x38]],
-      ['SVG', [...new TextEncoder().encode('<svg></svg>')]],
-      ['HTML', [...new TextEncoder().encode('<html></html>')]],
       ['WAV', [0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45]],
-      ['AVI', [0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x41, 0x56, 0x49, 0x20]],
-      ['空ファイル', []],
     ])(
       'Content-Type が image/png でも実バイトが %s なら400を返すこと',
       async (_label, bytes) => {

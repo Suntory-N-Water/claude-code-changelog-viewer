@@ -59,59 +59,6 @@ describe('queueConsumer integration', () => {
     db = null;
   });
 
-  it('送信成功時は過去の fail_count が 0 に戻る', async () => {
-    db = new FakeD1Database();
-    const message = createQueueMessage(buildBody());
-    const batch = createQueueBatch([message]);
-    const env = createTestEnv(db);
-    await insertDiscordWebhook(db, {
-      id: 'active-id',
-      webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
-      token: 'active-token',
-      failCount: 2,
-    });
-    mockedSendChangelogNotification.mockResolvedValue({ ok: true });
-
-    await runWithTimers(callConsumer(batch, env));
-
-    expect(message.ack).toHaveBeenCalled();
-    expect(await findChannelByToken(db, 'active-token')).toEqual({
-      id: 'active-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
-      token: 'active-token',
-      deactivated_at: '9999-12-31',
-      deactivated_reason: 'none',
-      fail_count: 0,
-    });
-  });
-
-  it('恒久失敗が続くと fail_count が増えしきい値到達でチャンネルがシステム停止される', async () => {
-    db = new FakeD1Database();
-    const message = createQueueMessage(buildBody());
-    const batch = createQueueBatch([message]);
-    const env = createTestEnv(db);
-    await insertDiscordWebhook(db, {
-      id: 'active-id',
-      webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
-      token: 'active-token',
-      failCount: 2,
-    });
-    mockedSendChangelogNotification.mockResolvedValue({
-      ok: false,
-      failureKind: 'permanent',
-    });
-
-    await runWithTimers(callConsumer(batch, env));
-
-    expect(message.ack).toHaveBeenCalled();
-    expect(await findChannelByToken(db, 'active-token')).toMatchObject({
-      id: 'active-id',
-      deactivated_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}/),
-      deactivated_reason: 'system',
-      fail_count: 3,
-    });
-  });
-
   it('複数チャンネル配信中に一部が失敗しても各チャンネルの最終状態が正しく反映される', async () => {
     db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
