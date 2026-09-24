@@ -1,7 +1,8 @@
-import type {
-  ChangelogInferenceInput,
-  ChangelogItemsAiResult,
-  ChangelogRelease,
+import {
+  FEATURE_AREAS,
+  type ChangelogInferenceInput,
+  type ChangelogItemsAiResult,
+  type ChangelogRelease,
 } from '../../domain/changelog-inference/changelog-inference';
 import type {
   ChangelogItemInferencePort,
@@ -221,7 +222,7 @@ function buildItemsPrompt(input: ChangelogInferenceInput): string {
     '',
     '# タスク3: 機能領域タグ',
     '該当する項目だけを返し、1項目に複数タグを付けてもよい。該当しなければ返さない。',
-    'タグ候補: IDE, Hooks, MCP, Skills, Agent Teams, Sub-agents, Plan, Plugins, Settings, Memory, Permissions',
+    `タグ候補: ${FEATURE_AREAS.join(', ')}`,
     featureAreaItems,
   ].join('\n');
 }

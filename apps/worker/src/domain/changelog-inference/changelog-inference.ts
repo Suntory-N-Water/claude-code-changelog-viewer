@@ -53,6 +53,39 @@ export type ChangelogAiFeatureAreaCorrection = {
   featureAreas: string[];
 };
 
+export const FEATURE_AREAS = [
+  'IDE',
+  'Hooks',
+  'MCP',
+  'Skills',
+  'Agent Teams',
+  'Sub-agents',
+  'Plan',
+  'Plugins',
+  'Settings',
+  'Memory',
+  'Permissions',
+] as const;
+
+// サイトはタグを小文字化した URL でページを作り、大文字小文字違いの重複があるとビルドを失敗させる。
+// AI は候補を示しても "Ide" や候補外のタグを返すため、保存前に候補の表記へ揃え、候補外は捨てる
+const FEATURE_AREA_BY_LOWERCASE = new Map<string, string>(
+  FEATURE_AREAS.map((area) => [area.toLowerCase(), area]),
+);
+
+function normalizeFeatureAreas(areas: string[]): string[] {
+  return [
+    ...new Set(
+      areas.flatMap((area) => {
+        const canonical = FEATURE_AREA_BY_LOWERCASE.get(
+          area.trim().toLowerCase(),
+        );
+        return canonical === undefined ? [] : [canonical];
+      }),
+    ),
+  ];
+}
+
 export type ChangelogItemsAiResult = {
   inferredItems: ChangelogAiInferenceItem[];
   translatedItems: ChangelogAiTranslationItem[];
@@ -117,7 +150,7 @@ export function mergeChangelogItemInferences(
   const featureAreasById = new Map(
     aiResult.featureAreaCorrections.map((item) => [
       item.id,
-      [...new Set(item.featureAreas)],
+      normalizeFeatureAreas(item.featureAreas),
     ]),
   );
 
