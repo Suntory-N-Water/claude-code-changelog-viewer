@@ -62,6 +62,34 @@ describe('CHANGELOG 推論の整合性', () => {
     ]);
   });
 
+  it('機能領域タグが候補と大文字小文字違いや候補外の時、候補の表記に揃えて候補外を捨てること', () => {
+    const result = mergeChangelogItemInferences(items, {
+      inferredItems: [
+        {
+          id: 'with-docs',
+          contentJa: '文書化された機能を追加しました。',
+          inference: {
+            before: '繰り返しの設定を手動で行う必要がありました。',
+            after: '設定を自動化する機能が追加されました。',
+            benefit: '繰り返しの設定作業を毎回行わずに済みます。',
+          },
+        },
+      ],
+      translatedItems: [
+        { id: 'without-docs', contentJa: '小さな誤字を修正しました。' },
+      ],
+      featureAreaCorrections: [
+        { id: 'with-docs', featureAreas: ['Ide', 'IDE', 'settings', 'UI'] },
+        { id: 'without-docs', featureAreas: ['設定'] },
+      ],
+    });
+
+    expect(result.map((item) => item.featureAreas)).toEqual([
+      ['IDE', 'Settings'],
+      [],
+    ]);
+  });
+
   it('推論対象の項目が不足している時、AI 結果を受け付けないこと', () => {
     expect(() =>
       mergeChangelogItemInferences(items, {

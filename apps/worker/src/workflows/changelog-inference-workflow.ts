@@ -11,7 +11,10 @@ import type {
   WorkflowStepConfigWithStaticDelay,
 } from 'cloudflare:workers';
 import { z } from 'zod';
-import type { ChangelogItemInference } from '../domain/changelog-inference/changelog-inference';
+import type {
+  ChangelogInferenceInput,
+  ChangelogItemInference,
+} from '../domain/changelog-inference/changelog-inference';
 import {
   createChangelogItemInferenceAi,
   createChangelogSummaryAi,
@@ -58,6 +61,10 @@ const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
 // 実測では同じ 5 項目が毎回失敗し、1 項目ずつなら 5 項目中 4 項目が 10 秒前後で成功した。
 // 残る 1 項目は単独でも失敗するため、失敗を 1 項目に切り離す目的も兼ねて 1 にする
 const BATCH_SIZE = 1;
+
+// 1 項目の snippets は最大 8000 字で、約 180 項目のリリースを 1 step にまとめると
+// step の戻り値の上限 1MiB を超えうる。20 項目なら最大でも約 160KB に収まる
+const SEARCH_CHUNK_SIZE = 20;
 
 const logger = workerLogger('workflows.changelog-inference');
 
@@ -164,11 +171,29 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       );
 
       for (const release of classification.versions) {
-        const inferenceInput = await runStep(
-          `build-inference-input-${release.version}`,
-          STEP_RETRIES,
-          async () => buildChangelogInferenceInput(documentSearch, release),
-        );
+        const inferenceInput: ChangelogInferenceInput = {
+          version: release.version,
+          items: [],
+        };
+        for (
+          let chunkStart = 0, chunkIndex = 0;
+          chunkStart < release.items.length;
+          chunkStart += SEARCH_CHUNK_SIZE, chunkIndex += 1
+        ) {
+          const chunk = await runStep(
+            `build-inference-input-${release.version}-${chunkIndex}`,
+            STEP_RETRIES,
+            async () =>
+              buildChangelogInferenceInput(documentSearch, {
+                ...release,
+                items: release.items.slice(
+                  chunkStart,
+                  chunkStart + SEARCH_CHUNK_SIZE,
+                ),
+              }),
+          );
+          inferenceInput.items.push(...chunk.items);
+        }
         const itemInferences: ChangelogItemInference[] = [];
         const skippedItems: { id: string; content: string; reason: string }[] =
           [];
