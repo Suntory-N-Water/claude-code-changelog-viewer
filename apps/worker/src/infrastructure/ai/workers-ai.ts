@@ -13,7 +13,9 @@ const AiChatResponseSchema = z.object({
   choices: z
     .array(
       z.object({
-        message: z.object({ content: z.string().min(1) }),
+        // 思考だけで上限を使い切ると content が空のまま length で打ち切られる。
+        // ここで弾くと打ち切りとして扱えず項目を諦められないため、空文字を許して下の判定に任せる
+        message: z.object({ content: z.string() }),
         finish_reason: z.string().optional(),
       }),
     )

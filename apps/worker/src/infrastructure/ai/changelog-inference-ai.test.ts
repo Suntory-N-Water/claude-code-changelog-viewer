@@ -136,6 +136,8 @@ describe('Workers AI CHANGELOG adapter', () => {
   describe('AI 応答が使えない失敗', () => {
     it.each([
       ['出力上限に達した応答', rawChatCompletion(truncatedJson, 'length')],
+      // enable_thinking: false でも思考モードで動くことがあり、思考だけで上限を使い切ると本文が空になる
+      ['思考で上限を使い切った空の応答', rawChatCompletion('', 'length')],
       // stop で空白の連続を切り落とすと末尾に空白が残らず finish_reason も stop のままになるため、
       // 打ち切りは壊れた JSON としてしか現れない
       [
