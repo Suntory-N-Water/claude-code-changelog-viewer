@@ -15,10 +15,7 @@ import {
   toFeatureAreaSlug,
   getFeatureAreaLabel,
 } from '../../../lib/feature-area';
-import {
-  formatSettingDescription,
-  formatUseCaseJa,
-} from '../../../lib/format-changelog-content';
+import { formatSettingDescription, formatUseCaseJa } from '../../../lib/format-changelog-content';
 import {
   buildSettingChildTrees,
   buildSettingValueOptions,
@@ -35,9 +32,7 @@ export async function getStaticPaths() {
   const changelogs = await getCollection('changelog');
   const changelogData = extractChangelogData(changelogs);
   const linkedAreas = getLinkedAreas(changelogData);
-  const childTrees = buildSettingChildTrees(
-    settings.map((entry) => entry.data),
-  );
+  const childTrees = buildSettingChildTrees(settings.map((entry) => entry.data));
 
   return settings.map((entry) => {
     const relatedItems = findRelatedChangelogs(entry.data.key, changelogData);
@@ -55,8 +50,7 @@ export async function getStaticPaths() {
   });
 }
 
-const { entry, relatedItems, linkedAreas, settingAreas, childNodes } =
-  Astro.props;
+const { entry, relatedItems, linkedAreas, settingAreas, childNodes } = Astro.props;
 
 const versionGroups = groupByVersion(relatedItems, semverCompareDesc);
 const sourceLabel = getSourceLabel(entry.source);
@@ -67,9 +61,7 @@ const defaultNoteHtml =
   entry.default_note_ja && !entry.default_value
     ? formatSettingDescription(entry.default_note_ja)
     : null;
-const useCaseHtml = entry.use_case_ja
-  ? formatUseCaseJa(entry.use_case_ja)
-  : null;
+const useCaseHtml = entry.use_case_ja ? formatUseCaseJa(entry.use_case_ja) : null;
 const officialLinks = mergeOfficialDocUrls(
   extractOfficialDocUrls(entry.description_en),
   entry.official_doc_urls ?? [],
@@ -83,15 +75,9 @@ const relatedAreaLinks = [...settingAreas]
   }));
 
 const schemaChips = [
-  ...(entry.value_type
-    ? [{ label: '型', value: entry.value_type, mono: true }]
-    : []),
-  ...(entry.default_value
-    ? [{ label: '既定値', value: entry.default_value, mono: true }]
-    : []),
-  ...(entry.scope
-    ? [{ label: '記述場所', value: entry.scope, mono: false }]
-    : []),
+  ...(entry.value_type ? [{ label: '型', value: entry.value_type, mono: true }] : []),
+  ...(entry.default_value ? [{ label: '既定値', value: entry.default_value, mono: true }] : []),
+  ...(entry.scope ? [{ label: '記述場所', value: entry.scope, mono: false }] : []),
 ];
 
 const valueOptions = buildSettingValueOptions(
@@ -99,9 +85,7 @@ const valueOptions = buildSettingValueOptions(
   entry.default_value,
   entry.enum_descriptions_ja ?? {},
 );
-const hasValueDescription = valueOptions.some(
-  (option) => option.description !== undefined,
-);
+const hasValueDescription = valueOptions.some((option) => option.description !== undefined);
 
 const displayName = entry.key;
 
@@ -109,8 +93,7 @@ const siteUrl = import.meta.env.SITE;
 const pageTitle = `${displayName} - Claude Code 設定リファレンス`;
 const pageDescription = entry.description_ja.slice(0, 120);
 
-const hasContent =
-  useCaseHtml !== null || versionGroups.length > 0 || childNodes.length > 0;
+const hasContent = useCaseHtml !== null || versionGroups.length > 0 || childNodes.length > 0;
 ---
 
 <Layout
@@ -129,9 +112,7 @@ const hasContent =
   <div class='min-h-dvh py-12 sm:py-16 px-4' data-pagefind-body>
     <div class='max-w-4xl mx-auto'>
       <nav class='mb-8' aria-label='パンくずリスト' data-pagefind-ignore>
-        <BackLink href='/reference/settings' tone='accent'>
-          設定リファレンス一覧に戻る
-        </BackLink>
+        <BackLink href='/reference/settings' tone='accent'> 設定リファレンス一覧に戻る </BackLink>
       </nav>
 
       <header class='mb-8'>
@@ -152,17 +133,11 @@ const hasContent =
             <div class='flex flex-wrap gap-2 mb-4'>
               {schemaChips.map(({ label, value, mono }) => (
                 <span class='inline-flex items-center gap-1.5 max-w-full overflow-x-auto whitespace-nowrap px-2.5 py-1 rounded-md border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-gray)/0.2)] text-xs'>
-                  <span class='text-[hsl(var(--cc-main-black)/0.6)]'>
-                    {label}
-                  </span>
+                  <span class='text-[hsl(var(--cc-main-black)/0.6)]'>{label}</span>
                   {mono ? (
-                    <code class='font-mono text-[hsl(var(--cc-main-black))]'>
-                      {value}
-                    </code>
+                    <code class='font-mono text-[hsl(var(--cc-main-black))]'>{value}</code>
                   ) : (
-                    <span class='text-[hsl(var(--cc-main-black))]'>
-                      {value}
-                    </span>
+                    <span class='text-[hsl(var(--cc-main-black))]'>{value}</span>
                   )}
                 </span>
               ))}
@@ -186,21 +161,14 @@ const hasContent =
       {
         valueOptions.length > 0 && (
           <section class='mb-8'>
-            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>
-              取りうる値
-            </h2>
+            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>取りうる値</h2>
             <div class='overflow-x-auto rounded-lg border border-[hsl(var(--cc-gray))]'>
               <table class='w-full text-sm border-collapse'>
                 <tbody>
                   {valueOptions.map(({ value, isDefault, description }) => (
                     <tr class='border-b border-[hsl(var(--cc-gray)/0.6)] last:border-b-0 align-top'>
-                      <th
-                        scope='row'
-                        class='whitespace-nowrap px-4 py-2.5 text-left font-normal'
-                      >
-                        <code class='font-mono text-[hsl(var(--cc-main-black))]'>
-                          {value}
-                        </code>
+                      <th scope='row' class='whitespace-nowrap px-4 py-2.5 text-left font-normal'>
+                        <code class='font-mono text-[hsl(var(--cc-main-black))]'>{value}</code>
                         {isDefault && (
                           <span class='ml-2 inline-block px-1.5 py-0.5 rounded text-[11px] bg-[hsl(var(--cc-main-orange)/0.1)] text-[hsl(var(--cc-main-orange))]'>
                             既定
@@ -240,9 +208,7 @@ const hasContent =
       {
         entry.example && (
           <section class='mb-8'>
-            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>
-              記述例
-            </h2>
+            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>記述例</h2>
             <CodeBlock code={entry.example} label='記述例' />
           </section>
         )
@@ -256,9 +222,7 @@ const hasContent =
             variant='accent'
             class='mb-8 p-5 bg-[hsl(var(--cc-main-orange)/0.05)] border-[hsl(var(--cc-main-orange)/0.2)]'
           >
-            <h2 class='text-base font-bold text-[hsl(var(--cc-main-black))] mb-3'>
-              使い方・用途
-            </h2>
+            <h2 class='text-base font-bold text-[hsl(var(--cc-main-black))] mb-3'>使い方・用途</h2>
             <div
               class='text-sm leading-relaxed text-[hsl(var(--cc-main-black))] space-y-1'
               set:html={useCaseHtml}
@@ -277,20 +241,13 @@ const hasContent =
             class='w-3.5 h-3.5 text-gray-400 shrink-0'
             aria-hidden='true'
           />
-          <span class='text-xs font-medium text-gray-400'
-            >英語原文(公式ドキュメントより)</span
-          >
+          <span class='text-xs font-medium text-gray-400'>英語原文(公式ドキュメントより)</span>
         </div>
-        <p
-          class='text-sm text-gray-600 leading-relaxed'
-          set:html={descriptionEnHtml}
-        />
+        <p class='text-sm text-gray-600 leading-relaxed' set:html={descriptionEnHtml} />
         {
           officialLinks.length > 0 && (
             <div class='mt-4'>
-              <h4 class='font-semibold text-sm text-gray-600 mb-2'>
-                関連ドキュメント
-              </h4>
+              <h4 class='font-semibold text-sm text-gray-600 mb-2'>関連ドキュメント</h4>
               <ul class='space-y-1.5'>
                 {officialLinks.map(({ label, url }) => (
                   <li>
@@ -339,10 +296,7 @@ const hasContent =
                   </div>
                   <div class='space-y-6'>
                     {group.items.map((item) => (
-                      <ChangelogItemCard
-                        item={item}
-                        linkedAreas={linkedAreas}
-                      />
+                      <ChangelogItemCard item={item} linkedAreas={linkedAreas} />
                     ))}
                   </div>
                 </div>
@@ -355,25 +309,15 @@ const hasContent =
       <!-- 情報が少ないページ向けの補足 -->
       {
         !hasContent && (
-          <Card
-            as='section'
-            variant='dashed'
-            padding='none'
-            class='mb-8 py-10 text-center'
-          >
-            <p class='text-sm text-gray-400'>
-              まだ変更履歴との関連付けはありません
-            </p>
+          <Card as='section' variant='dashed' padding='none' class='mb-8 py-10 text-center'>
+            <p class='text-sm text-gray-400'>まだ変更履歴との関連付けはありません</p>
           </Card>
         )
       }
 
       {
         relatedAreaLinks.length > 0 && (
-          <nav
-            class='mt-8 pt-8 border-t border-[hsl(var(--cc-gray))]'
-            data-pagefind-ignore
-          >
+          <nav class='mt-8 pt-8 border-t border-[hsl(var(--cc-gray))]' data-pagefind-ignore>
             <h2 class='text-base font-bold text-[hsl(var(--cc-main-black))] mb-3'>
               関連する機能エリア
             </h2>

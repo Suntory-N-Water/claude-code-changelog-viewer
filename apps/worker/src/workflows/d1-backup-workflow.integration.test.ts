@@ -5,8 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const testEnv = env;
 const EXPORT_BOOKMARK = '00000085-0000024a-00004ffb-0000000000000000';
 const SIGNED_URL = 'https://export.example/notification-db-dump.sql';
-const DUMP =
-  "CREATE TABLE channels (id TEXT);\nINSERT INTO channels VALUES ('1');\n";
+const DUMP = "CREATE TABLE channels (id TEXT);\nINSERT INTO channels VALUES ('1');\n";
 
 function exportResponse(result: object) {
   return new Response(JSON.stringify({ result, success: true }), {
@@ -79,10 +78,7 @@ describe('D1 バックアップ Workflow', () => {
       });
 
       const instanceId = `issue-900-${crypto.randomUUID()}`;
-      const instance = await introspectWorkflowInstance(
-        testEnv.D1_BACKUP_WORKFLOW,
-        instanceId,
-      );
+      const instance = await introspectWorkflowInstance(testEnv.D1_BACKUP_WORKFLOW, instanceId);
 
       try {
         await instance.modify(async (modifier) => {
@@ -95,9 +91,7 @@ describe('D1 バックアップ Workflow', () => {
 
         const keys = await listBackupKeys();
         expect(keys).toHaveLength(1);
-        expect(keys[0]).toMatch(
-          /^notification-db\/\d{4}-\d{2}-\d{2}\/notification-db-dump\.sql$/,
-        );
+        expect(keys[0]).toMatch(/^notification-db\/\d{4}-\d{2}-\d{2}\/notification-db-dump\.sql$/);
 
         const stored = await testEnv.D1_BACKUP_BUCKET.get(String(keys[0]));
         await expect(stored?.text()).resolves.toBe(DUMP);
@@ -146,10 +140,7 @@ describe('D1 バックアップ Workflow', () => {
       });
 
       const instanceId = `issue-900-polling-${crypto.randomUUID()}`;
-      const instance = await introspectWorkflowInstance(
-        testEnv.D1_BACKUP_WORKFLOW,
-        instanceId,
-      );
+      const instance = await introspectWorkflowInstance(testEnv.D1_BACKUP_WORKFLOW, instanceId);
 
       try {
         await instance.modify(async (modifier) => {
@@ -182,10 +173,7 @@ describe('D1 バックアップ Workflow', () => {
       });
 
       const instanceId = `issue-900-no-bookmark-${crypto.randomUUID()}`;
-      const instance = await introspectWorkflowInstance(
-        testEnv.D1_BACKUP_WORKFLOW,
-        instanceId,
-      );
+      const instance = await introspectWorkflowInstance(testEnv.D1_BACKUP_WORKFLOW, instanceId);
 
       try {
         await instance.modify(async (modifier) => {
@@ -220,10 +208,7 @@ describe('D1 バックアップ Workflow', () => {
       });
 
       const instanceId = `issue-900-api-error-${crypto.randomUUID()}`;
-      const instance = await introspectWorkflowInstance(
-        testEnv.D1_BACKUP_WORKFLOW,
-        instanceId,
-      );
+      const instance = await introspectWorkflowInstance(testEnv.D1_BACKUP_WORKFLOW, instanceId);
 
       try {
         await instance.modify(async (modifier) => {
@@ -268,10 +253,7 @@ describe('D1 バックアップ Workflow', () => {
       });
 
       const instanceId = `issue-900-download-error-${crypto.randomUUID()}`;
-      const instance = await introspectWorkflowInstance(
-        testEnv.D1_BACKUP_WORKFLOW,
-        instanceId,
-      );
+      const instance = await introspectWorkflowInstance(testEnv.D1_BACKUP_WORKFLOW, instanceId);
 
       try {
         await instance.modify(async (modifier) => {
@@ -304,10 +286,7 @@ describe('D1 バックアップ Workflow', () => {
       });
 
       const instanceId = `issue-900-failure-issue-${crypto.randomUUID()}`;
-      const instance = await introspectWorkflowInstance(
-        testEnv.D1_BACKUP_WORKFLOW,
-        instanceId,
-      );
+      const instance = await introspectWorkflowInstance(testEnv.D1_BACKUP_WORKFLOW, instanceId);
 
       try {
         await instance.modify(async (modifier) => {

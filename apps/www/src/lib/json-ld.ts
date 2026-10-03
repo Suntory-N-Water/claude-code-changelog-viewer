@@ -66,12 +66,7 @@ function buildWebSiteNode(params: WebSiteNodeParams) {
     publisher: { '@id': `${params.siteUrl}/#organization` },
     copyrightHolder: { '@id': `${params.siteUrl}/#organization` },
     copyrightYear: COPYRIGHT_YEAR,
-    knowsAbout: [
-      'Claude Code',
-      'Anthropic',
-      'AI coding assistant',
-      'changelog',
-    ],
+    knowsAbout: ['Claude Code', 'Anthropic', 'AI coding assistant', 'changelog'],
     potentialAction: {
       '@type': 'SearchAction',
       target: {

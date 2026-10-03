@@ -5,16 +5,10 @@ export default defineProject({
   resolve: {
     alias: {
       'cloudflare:workers': fileURLToPath(
-        new URL(
-          './src/test-support/cloudflare-workers-stub.ts',
-          import.meta.url,
-        ),
+        new URL('./src/test-support/cloudflare-workers-stub.ts', import.meta.url),
       ),
       'cloudflare:workflows': fileURLToPath(
-        new URL(
-          './src/test-support/cloudflare-workflows-stub.ts',
-          import.meta.url,
-        ),
+        new URL('./src/test-support/cloudflare-workflows-stub.ts', import.meta.url),
       ),
     },
   },

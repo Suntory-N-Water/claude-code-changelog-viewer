@@ -25,9 +25,7 @@ const AiChatResponseSchema = z.object({
       prompt_tokens: z.number(),
       completion_tokens: z.number(),
       total_tokens: z.number(),
-      prompt_tokens_details: z
-        .object({ cached_tokens: z.number().optional() })
-        .optional(),
+      prompt_tokens_details: z.object({ cached_tokens: z.number().optional() }).optional(),
     })
     .optional(),
 });
@@ -53,15 +51,10 @@ export function logAiUsage(response: unknown, startedAt: number): void {
   });
 }
 
-export function parseAiResponse(
-  response: unknown,
-  maxCompletionTokens: number,
-): unknown {
+export function parseAiResponse(response: unknown, maxCompletionTokens: number): unknown {
   const parsed = AiChatResponseSchema.safeParse(response);
   if (!parsed.success) {
-    throw new Error(
-      `AI 応答の形式が不正です: ${z.prettifyError(parsed.error)}`,
-    );
+    throw new Error(`AI 応答の形式が不正です: ${z.prettifyError(parsed.error)}`);
   }
 
   const choice = parsed.data.choices[0];
@@ -72,9 +65,7 @@ export function parseAiResponse(
   // 打ち切られた応答は JSON として必ず壊れる。「解析に失敗」ではなく打ち切りだと分かる
   // メッセージにして、呼び出し側が諦める判断をできるようにする
   if (choice.finish_reason === 'length') {
-    throw new Error(
-      `${TRUNCATED_MESSAGE}: max_completion_tokens=${maxCompletionTokens}`,
-    );
+    throw new Error(`${TRUNCATED_MESSAGE}: max_completion_tokens=${maxCompletionTokens}`);
   }
 
   try {

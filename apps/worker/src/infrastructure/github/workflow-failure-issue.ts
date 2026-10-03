@@ -19,13 +19,8 @@ type WorkflowFailureIssue = {
   readonly workflowLabel: `workflow:${string}`;
 };
 
-function hasAllLabels(
-  issue: GitHubIssueListItem,
-  labels: readonly string[],
-): boolean {
-  return labels.every((label) =>
-    issue.labels.some((issueLabel) => issueLabel.name === label),
-  );
+function hasAllLabels(issue: GitHubIssueListItem, labels: readonly string[]): boolean {
+  return labels.every((label) => issue.labels.some((issueLabel) => issueLabel.name === label));
 }
 
 async function addFailureIssueLabels(
@@ -77,9 +72,7 @@ export async function reportWorkflowFailureIssue(
     }
     const issues = await response.json<GitHubIssueListItem[]>();
     existingIssue = issues.find(
-      (issue) =>
-        issue.body?.includes(issueMarker) === true ||
-        hasAllLabels(issue, duplicateLabels),
+      (issue) => issue.body?.includes(issueMarker) === true || hasAllLabels(issue, duplicateLabels),
     );
     if (existingIssue !== undefined || issues.length < 100) {
       break;
@@ -89,11 +82,7 @@ export async function reportWorkflowFailureIssue(
 
   if (existingIssue !== undefined) {
     if (!hasAllLabels(existingIssue, issueLabels)) {
-      await addFailureIssueLabels(
-        githubToken,
-        existingIssue.number,
-        issueLabels,
-      );
+      await addFailureIssueLabels(githubToken, existingIssue.number, issueLabels);
     }
     return;
   }
@@ -122,9 +111,7 @@ export async function reportWorkflowFailureIssue(
   await addFailureIssueLabels(githubToken, createdIssue.number, issueLabels);
 }
 
-export function createWorkflowFailureReporter<
-  T extends { instanceId: string; error: unknown },
->(
+export function createWorkflowFailureReporter<T extends { instanceId: string; error: unknown }>(
   githubToken: string,
   options: {
     name: string;
@@ -136,8 +123,7 @@ export function createWorkflowFailureReporter<
   return {
     async report(input) {
       const { instanceId, error } = input;
-      const detail =
-        error instanceof Error ? (error.stack ?? error.message) : String(error);
+      const detail = error instanceof Error ? (error.stack ?? error.message) : String(error);
       try {
         await reportWorkflowFailureIssue(githubToken, {
           title: `${options.name} に失敗`,

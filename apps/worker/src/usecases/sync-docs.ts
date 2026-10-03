@@ -57,13 +57,8 @@ export type DocsSearchStore = {
 };
 
 export type SettingSchemaContentParser = {
-  parseEnvVarsMd(
-    markdown: string,
-    pages: ReadonlyMap<string, string>,
-  ): SettingSchemaEntry[];
-  parsePublicEnvEntriesFromDocs(
-    pages: ReadonlyMap<string, string>,
-  ): SettingSchemaEntry[];
+  parseEnvVarsMd(markdown: string, pages: ReadonlyMap<string, string>): SettingSchemaEntry[];
+  parsePublicEnvEntriesFromDocs(pages: ReadonlyMap<string, string>): SettingSchemaEntry[];
   parseSettingsReferenceMd(markdown: string): SettingSchemaEntry[];
 };
 
@@ -113,8 +108,7 @@ export async function syncDocs(
   const existingPages = await dependencies.store.loadExistingPages();
   const outcomes = await fetchPages(dependencies.source, documents);
   const failedPages = outcomes.filter(
-    (outcome): outcome is { document: DocumentInfo; error: Error } =>
-      'error' in outcome,
+    (outcome): outcome is { document: DocumentInfo; error: Error } => 'error' in outcome,
   );
   if (failedPages.length > 0) {
     logger.warn('ドキュメントページの取得に失敗しました', {
@@ -123,9 +117,7 @@ export async function syncDocs(
       'exception.messages': failedPages.map(({ error }) => error.message),
     });
   }
-  const existingHashes = new Map(
-    existingPages.map((page) => [page.path, page.contentHash]),
-  );
+  const existingHashes = new Map(existingPages.map((page) => [page.path, page.contentHash]));
   const changedPages: StoredPage[] = [];
   let skippedCount = 0;
   let failedCount = 0;
@@ -159,9 +151,7 @@ export async function syncDocs(
   let skippedBySafetyGuard = false;
 
   if (stalePaths.length > 0) {
-    if (
-      !isSafeToDeleteStaleDocuments(existingPages.length, expectedPaths.size)
-    ) {
+    if (!isSafeToDeleteStaleDocuments(existingPages.length, expectedPaths.size)) {
       skippedBySafetyGuard = true;
     } else {
       await dependencies.store.deletePages(stalePaths);
@@ -179,17 +169,14 @@ export async function syncDocs(
     envVarsPage === undefined
       ? []
       : dependencies.contentParser.parseEnvVarsMd(envVarsPage, pageContents);
-  const docsEntries =
-    dependencies.contentParser.parsePublicEnvEntriesFromDocs(pageContents);
+  const docsEntries = dependencies.contentParser.parsePublicEnvEntriesFromDocs(pageContents);
   const settingsReferencePage = [...pageContents.entries()].find(
     ([path]) => path.split('/').at(-1) === 'settings-reference.md',
   )?.[1];
   const referenceEntries =
     settingsReferencePage === undefined
       ? []
-      : dependencies.contentParser.parseSettingsReferenceMd(
-          settingsReferencePage,
-        );
+      : dependencies.contentParser.parseSettingsReferenceMd(settingsReferencePage);
   const mergedEntries = mergeSettingSchemaEntries({
     schemaEntries: schema.entries,
     markdownEntries,
@@ -197,10 +184,7 @@ export async function syncDocs(
     referenceEntries,
   });
   if (failedCount === 0 && (schemaUpdated || changedPages.length > 0)) {
-    await dependencies.store.replaceSettingSchema(
-      { ...schema, entries: mergedEntries },
-      input.now,
-    );
+    await dependencies.store.replaceSettingSchema({ ...schema, entries: mergedEntries }, input.now);
   }
 
   return {
@@ -215,9 +199,7 @@ export async function syncDocs(
   };
 }
 
-type PageFetchOutcome =
-  | { page: StoredPage }
-  | { document: DocumentInfo; error: Error };
+type PageFetchOutcome = { page: StoredPage } | { document: DocumentInfo; error: Error };
 
 async function fetchPages(
   source: OfficialDocsSource,

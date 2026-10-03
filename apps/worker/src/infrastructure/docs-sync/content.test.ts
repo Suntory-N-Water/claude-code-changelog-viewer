@@ -15,10 +15,7 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
       '# Overview\n\n```bash\n# command option\n```\n\n## Details\n\n本文',
     );
 
-    expect(chunks.map((chunk) => chunk.heading)).toEqual([
-      'Overview',
-      'Details',
-    ]);
+    expect(chunks.map((chunk) => chunk.heading)).toEqual(['Overview', 'Details']);
     expect(chunks[0]?.text).toContain('# command option');
   });
 
@@ -151,11 +148,7 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
       'sandbox.network.tlsTerminate.enabled',
     ]);
     expect(entries.at(-1)?.parentDescriptions).toBe(
-      JSON.stringify([
-        'Sandbox settings',
-        'Network isolation',
-        'TLS termination',
-      ]),
+      JSON.stringify(['Sandbox settings', 'Network isolation', 'TLS termination']),
     );
   });
 
@@ -164,18 +157,15 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
     ['要素が配列', { type: 'array', items: { type: 'number' } }, 'number[][]'],
     ['要素の型が複数', { type: ['string', 'number'] }, 'array'],
     ['要素の指定がない', undefined, 'array'],
-  ])(
-    '配列の設定項目で %s のとき、書ける値が分かる型を返すこと',
-    (_label, items, expected) => {
-      const entries = flattenSettingSchema({
-        properties: {
-          allow: { type: 'array', ...(items === undefined ? {} : { items }) },
-        },
-      });
+  ])('配列の設定項目で %s のとき、書ける値が分かる型を返すこと', (_label, items, expected) => {
+    const entries = flattenSettingSchema({
+      properties: {
+        allow: { type: 'array', ...(items === undefined ? {} : { items }) },
+      },
+    });
 
-      expect(entries[0]?.valueType).toBe(expected);
-    },
-  );
+    expect(entries[0]?.valueType).toBe(expected);
+  });
 
   it('env-vars.md の環境変数テーブルを抽出すること', () => {
     const entries = parseEnvVarsMd(`
@@ -221,10 +211,7 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
   it('docs 本文中の公開環境変数の言及を抽出すること', () => {
     const entries = parsePublicEnvEntriesFromDocs(
       new Map([
-        [
-          'guide.md',
-          'Claude Code reads `CLAUDE_CODE_MENTION_TEST` from the environment.',
-        ],
+        ['guide.md', 'Claude Code reads `CLAUDE_CODE_MENTION_TEST` from the environment.'],
         ['env-vars.md', 'Claude Code reads `CLAUDE_CODE_EXCLUDED`'],
       ]),
     );
@@ -236,9 +223,7 @@ describe('ドキュメント同期用のコンテンツ処理', () => {
         description: expect.stringContaining('CLAUDE_CODE_MENTION_TEST'),
       },
     ]);
-    expect(entries.some((entry) => entry.key === 'CLAUDE_CODE_EXCLUDED')).toBe(
-      false,
-    );
+    expect(entries.some((entry) => entry.key === 'CLAUDE_CODE_EXCLUDED')).toBe(false);
   });
 
   it('llms.txt のパスを優先し、changelog.md を除外すること', () => {
@@ -372,9 +357,7 @@ describe('公式の設定リファレンスの解析', () => {
       '```',
     ].join('\n');
 
-    expect(parseSettingsReferenceMd(markdown)[0]?.example).toBe(
-      '{ "model": "opus" }',
-    );
+    expect(parseSettingsReferenceMd(markdown)[0]?.example).toBe('{ "model": "opus" }');
   });
 
   it('JSON ブロックを持たないセクションのとき、記述例を持たない結果を返すこと', () => {
@@ -413,11 +396,7 @@ describe('公式の設定リファレンスの解析', () => {
   });
 
   it('公式の原文が `*` の箇条書きのとき、記述場所を取り出すこと', () => {
-    const markdown = [
-      '### `model`',
-      '',
-      '* **Scope**: [`Managed`](#scopes).',
-    ].join('\n');
+    const markdown = ['### `model`', '', '* **Scope**: [`Managed`](#scopes).'].join('\n');
 
     expect(parseSettingsReferenceMd(markdown)[0]?.scope).toBe('Managed');
   });
@@ -433,28 +412,17 @@ describe('公式の設定リファレンスの解析', () => {
     ['Boolean; only the JSON Boolean `true` takes effect', 'boolean'],
     ['string, a shell command line', 'string'],
     ['the string `"disable"`', 'string'],
-    [
-      'number of tokens, from `100000` to `1000000`. Claude Code caps it',
-      'number',
-    ],
+    ['number of tokens, from `100000` to `1000000`. Claude Code caps it', 'number'],
     ['integer, milliseconds, minimum `1000`', 'integer'],
     ['object with the sub-keys below', 'object'],
     ['array of path strings, using the sandbox path prefixes', 'string[]'],
-    [
-      'array of objects, each with `marketplace` and `plugin` strings',
-      'object[]',
-    ],
+    ['array of objects, each with `marketplace` and `plugin` strings', 'object[]'],
     ['array of model aliases or IDs', 'array'],
-  ])(
-    '型が %s と書かれているとき、%s として読み取ること',
-    (written, expected) => {
-      const markdown = ['### `someKey`', '', `- **Type**: ${written}`].join(
-        '\n',
-      );
+  ])('型が %s と書かれているとき、%s として読み取ること', (written, expected) => {
+    const markdown = ['### `someKey`', '', `- **Type**: ${written}`].join('\n');
 
-      expect(parseSettingsReferenceMd(markdown)[0]?.valueType).toBe(expected);
-    },
-  );
+    expect(parseSettingsReferenceMd(markdown)[0]?.valueType).toBe(expected);
+  });
 
   it('型が対応表にない言い回しのとき、型を持たない結果を返すこと', () => {
     const markdown = [
@@ -474,13 +442,9 @@ describe('公式の設定リファレンスの解析', () => {
   ])(
     '既定値が %s と書かれているとき、設定ファイルに書く値として読み取ること',
     (written, expected) => {
-      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
-        '\n',
-      );
+      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join('\n');
 
-      expect(parseSettingsReferenceMd(markdown)[0]?.defaultValue).toBe(
-        expected,
-      );
+      expect(parseSettingsReferenceMd(markdown)[0]?.defaultValue).toBe(expected);
     },
   );
 
@@ -489,16 +453,11 @@ describe('公式の設定リファレンスの解析', () => {
     ['unset, so Claude Code picks a window tuned for your model'],
     ['not locked'],
     ['`"bash"`, or `"powershell"` on Windows when Bash is unavailable'],
-  ])(
-    '既定値が %s と散文で書かれているとき、既定値を持たない結果を返すこと',
-    (written) => {
-      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
-        '\n',
-      );
+  ])('既定値が %s と散文で書かれているとき、既定値を持たない結果を返すこと', (written) => {
+    const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join('\n');
 
-      expect(parseSettingsReferenceMd(markdown)[0]?.defaultValue).toBeNull();
-    },
-  );
+    expect(parseSettingsReferenceMd(markdown)[0]?.defaultValue).toBeNull();
+  });
 
   it('選択肢が同じ行に並ぶとき、選択肢として読み取ること', () => {
     const markdown = [
@@ -507,9 +466,7 @@ describe('公式の設定リファレンスの解析', () => {
       '- **Type**: string, one of `"notify"`, `"quiet"`, or `"off"`',
     ].join('\n');
 
-    expect(parseSettingsReferenceMd(markdown)[0]?.enumValues).toBe(
-      '["notify","quiet","off"]',
-    );
+    expect(parseSettingsReferenceMd(markdown)[0]?.enumValues).toBe('["notify","quiet","off"]');
   });
 
   it('子のキーごとの選択肢を並べたオブジェクトのとき、選択肢を持たない結果を返すこと', () => {
@@ -589,23 +546,16 @@ describe('公式の設定リファレンスの解析', () => {
     ['unset, so Claude Code follows `"latest"`'],
     ['`true`, switch automatically'],
     ['not locked'],
-  ])(
-    '既定値が %s と書かれているとき、補足文を英語のまま取り出すこと',
-    (written) => {
-      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
-        '\n',
-      );
+  ])('既定値が %s と書かれているとき、補足文を英語のまま取り出すこと', (written) => {
+    const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join('\n');
 
-      expect(parseSettingsReferenceMd(markdown)[0]?.defaultNote).toBe(written);
-    },
-  );
+    expect(parseSettingsReferenceMd(markdown)[0]?.defaultNote).toBe(written);
+  });
 
   it.each([['unset'], ['`"latest"`']])(
     '既定値が %s だけのとき、補足文を持たない結果を返すこと',
     (written) => {
-      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join(
-        '\n',
-      );
+      const markdown = ['### `someKey`', '', `- **Default**: ${written}`].join('\n');
 
       expect(parseSettingsReferenceMd(markdown)[0]?.defaultNote).toBeNull();
     },

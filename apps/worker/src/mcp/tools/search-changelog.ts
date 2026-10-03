@@ -3,10 +3,7 @@ import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { z } from 'zod';
 import { searchChangelogItems } from '../../infrastructure/drizzle/changelog-repository';
 
-export function registerSearchChangelogTool(
-  server: McpServer,
-  db: DrizzleD1Database,
-): void {
+export function registerSearchChangelogTool(server: McpServer, db: DrizzleD1Database): void {
   server.registerTool(
     'search_changelog',
     {
@@ -15,11 +12,7 @@ export function registerSearchChangelogTool(
         '「どのバージョンでこの機能が入ったか」を調べるときに使う。' +
         'バージョン番号がわかっている場合は get_changelog を使う。',
       inputSchema: z.object({
-        query: z
-          .string()
-          .min(1)
-          .max(50)
-          .describe('検索キーワード。日本語・英語のどちらでもよい'),
+        query: z.string().min(1).max(50).describe('検索キーワード。日本語・英語のどちらでもよい'),
         prefix: z
           .string()
           .optional()

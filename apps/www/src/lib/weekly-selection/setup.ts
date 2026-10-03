@@ -9,12 +9,8 @@ export function setupWeeklySelection() {
   }
 
   const { week, periodStart, periodEnd, totalItems } = root.dataset;
-  const imageTemplate = document.querySelector<HTMLTemplateElement>(
-    '#weekly-image-template',
-  );
-  const linkRowTemplate = document.querySelector<HTMLTemplateElement>(
-    '#weekly-link-row-template',
-  );
+  const imageTemplate = document.querySelector<HTMLTemplateElement>('#weekly-image-template');
+  const linkRowTemplate = document.querySelector<HTMLTemplateElement>('#weekly-link-row-template');
   const copyButton = root.querySelector<HTMLButtonElement>('#copy-button');
   const clearButton = root.querySelector<HTMLButtonElement>('#clear-button');
   if (
@@ -35,17 +31,13 @@ export function setupWeeklySelection() {
   const imageSlots = new Map<string, ReturnType<typeof setupImageUpload>>();
   let state: WeeklySelectionState = {};
   try {
-    state = JSON.parse(
-      localStorage.getItem(storageKey) ?? '{}',
-    ) as WeeklySelectionState;
+    state = JSON.parse(localStorage.getItem(storageKey) ?? '{}') as WeeklySelectionState;
   } catch {
     state = {};
   }
 
   const controls = sections.map((section) => {
-    const checkbox = section.querySelector<HTMLInputElement>(
-      'input[type="checkbox"]',
-    );
+    const checkbox = section.querySelector<HTMLInputElement>('input[type="checkbox"]');
     const comment = section.querySelector<HTMLElement>('[data-comment]');
     const textarea = comment?.querySelector<HTMLTextAreaElement>('textarea');
     const links = section.querySelector<HTMLElement>('[data-links]');

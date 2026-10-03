@@ -49,10 +49,7 @@ type InsertDiscordWebhookParams = {
   frequency?: 'IMM' | 'WEK';
 };
 
-export async function insertDiscordWebhook(
-  db: FakeD1Database,
-  params: InsertDiscordWebhookParams,
-) {
+export async function insertDiscordWebhook(db: FakeD1Database, params: InsertDiscordWebhookParams) {
   const {
     id,
     webhookUrl,
@@ -72,9 +69,7 @@ export async function insertDiscordWebhook(
     .run();
 
   await db
-    .prepare(
-      'INSERT INTO discord_channels (channel_id, webhook_url) VALUES (?, ?)',
-    )
+    .prepare('INSERT INTO discord_channels (channel_id, webhook_url) VALUES (?, ?)')
     .bind(id, webhookUrl)
     .run();
 
@@ -122,9 +117,7 @@ export async function findNotificationSettings(
   channelId: string,
 ): Promise<{ id: string; channel_id: string; frequency: string } | null> {
   return db
-    .prepare(
-      'SELECT id, channel_id, frequency FROM notification_settings WHERE channel_id = ?',
-    )
+    .prepare('SELECT id, channel_id, frequency FROM notification_settings WHERE channel_id = ?')
     .bind(channelId)
     .first();
 }
@@ -140,9 +133,7 @@ export function createQueueMessage(body: unknown) {
   };
 }
 
-export function createQueueBatch(
-  messages: ReturnType<typeof createQueueMessage>[],
-) {
+export function createQueueBatch(messages: ReturnType<typeof createQueueMessage>[]) {
   return {
     messages,
     queue: 'test-queue',

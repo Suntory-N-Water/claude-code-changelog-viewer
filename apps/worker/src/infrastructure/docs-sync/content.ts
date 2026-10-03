@@ -1,7 +1,6 @@
 const DOCUMENT_PATH_PATTERN = /\/docs\/en\/(.+\.md)/;
 const DOCUMENT_LINK_PATTERN = /\[([^\]]+)\]\((https:\/\/[^)]+\.md)\)/g;
-const LLMS_URL_PATTERN =
-  /https:\/\/code\.claude\.com\/docs\/en\/([^\s)]+\.md)/g;
+const LLMS_URL_PATTERN = /https:\/\/code\.claude\.com\/docs\/en\/([^\s)]+\.md)/g;
 const FENCE_PATTERN = /^\s*```/;
 const HEADING_PATTERN = /^(#{1,6})\s+(.*)$/;
 const EXCLUDED_DOCUMENT_NAME = 'changelog.md';
@@ -13,8 +12,7 @@ const SETTING_DEFAULT_PATTERN = /^[-*]\s+\*\*Default\*\*:\s*(.+)$/;
 const SETTING_LIST_ITEM_PATTERN = /^[-*]\s/;
 const SETTING_ENUM_ITEM_PATTERN = /^\s+[-*]\s+`([^`]+)`(?::\s*(.+?))?\s*$/;
 const SETTING_DEFAULT_UNSET_PATTERN = /^unset\.?$/i;
-const SETTING_ENUM_INLINE_PATTERN =
-  /\bone of\s+((?:`[^`]+`(?:,\s*or\s+|,\s*|\s+or\s+)?)+)/;
+const SETTING_ENUM_INLINE_PATTERN = /\bone of\s+((?:`[^`]+`(?:,\s*or\s+|,\s*|\s+or\s+)?)+)/;
 const SETTING_ENUM_LIST_HEAD_PATTERN = /^[^,]*,\s*one of:\s*$/;
 const JSON_FENCE_PATTERN = /^\s*```json(?:\s|$)/;
 
@@ -274,9 +272,7 @@ function splitBuffer(
   }
 
   emit();
-  return segments.length > 0
-    ? segments
-    : [{ startLine: firstLine.lineNumber, text: fullText }];
+  return segments.length > 0 ? segments : [{ startLine: firstLine.lineNumber, text: fullText }];
 }
 
 export function flattenSettingSchema(schema: unknown): SettingSchemaEntry[] {
@@ -284,9 +280,7 @@ export function flattenSettingSchema(schema: unknown): SettingSchemaEntry[] {
     return [];
   }
 
-  const properties = isJsonObject(schema['properties'])
-    ? schema['properties']
-    : {};
+  const properties = isJsonObject(schema['properties']) ? schema['properties'] : {};
   const entries: SettingSchemaEntry[] = [];
 
   for (const [key, value] of Object.entries(properties)) {
@@ -296,9 +290,7 @@ export function flattenSettingSchema(schema: unknown): SettingSchemaEntry[] {
 
     if (key === 'env') {
       const envNode = isJsonObject(value) ? value : {};
-      const envProperties = isJsonObject(envNode['properties'])
-        ? envNode['properties']
-        : {};
+      const envProperties = isJsonObject(envNode['properties']) ? envNode['properties'] : {};
       // env の子は環境変数として別扱いにするが、env 自体は設定ファイルに書く設定項目
       entries.push(
         createSettingSchemaEntry({
@@ -349,9 +341,7 @@ export function parseEnvVarsMd(
       return entry;
     }
 
-    const pureSeeMatch = rawDescription
-      .trim()
-      .match(/^See \[.+\]\((\/en\/.+)\)$/);
+    const pureSeeMatch = rawDescription.trim().match(/^See \[.+\]\((\/en\/.+)\)$/);
     if (pureSeeMatch === null) {
       return entry;
     }
@@ -361,16 +351,12 @@ export function parseEnvVarsMd(
       return entry;
     }
 
-    const [relativeDocPath, anchorFragment = ''] = linkTarget
-      .replace(/^\/en\//, '')
-      .split('#');
+    const [relativeDocPath, anchorFragment = ''] = linkTarget.replace(/^\/en\//, '').split('#');
     if (relativeDocPath === undefined) {
       return entry;
     }
 
-    const docPath = relativeDocPath.endsWith('.md')
-      ? relativeDocPath
-      : `${relativeDocPath}.md`;
+    const docPath = relativeDocPath.endsWith('.md') ? relativeDocPath : `${relativeDocPath}.md`;
     const content = pages.get(docPath);
     if (content === undefined) {
       return entry;
@@ -397,10 +383,7 @@ export function parseEnvVarsMd(
       if (tierName !== undefined) {
         const displayTierName = tierName[0] + tierName.slice(1).toLowerCase();
         const fallbackKey = `ANTHROPIC_DEFAULT_OPUS_MODEL${suffix ? `_${suffix}` : ''}`;
-        const fallbackDescription = resolveDescriptionFromSection(
-          fallbackKey,
-          section,
-        );
+        const fallbackDescription = resolveDescriptionFromSection(fallbackKey, section);
         if (fallbackDescription !== null) {
           return {
             ...entry,
@@ -418,10 +401,7 @@ export function parseEnvVarsMd(
       if (fallbackDescription !== null) {
         return {
           ...entry,
-          description: fallbackDescription.replace(
-            /pinned Opus model/g,
-            'custom model option',
-          ),
+          description: fallbackDescription.replace(/pinned Opus model/g, 'custom model option'),
         };
       }
     }
@@ -431,9 +411,7 @@ export function parseEnvVarsMd(
 }
 
 /** settings-reference.md の設定キーのセクションから、説明・型・既定値・選択肢・記述場所・記述例を抽出する。 */
-export function parseSettingsReferenceMd(
-  markdown: string,
-): SettingSchemaEntry[] {
+export function parseSettingsReferenceMd(markdown: string): SettingSchemaEntry[] {
   const sections: SettingSchemaEntry[] = [];
   let current: SettingSchemaEntry | null = null;
   let descriptionLines: string[] | null = null;
@@ -456,9 +434,7 @@ export function parseSettingsReferenceMd(
       const described = enumItems.filter((item) => item.description !== '');
       if (described.length > 0) {
         current.enumDescriptions = JSON.stringify(
-          Object.fromEntries(
-            described.map((item) => [item.value, item.description]),
-          ),
+          Object.fromEntries(described.map((item) => [item.value, item.description])),
         );
       }
     }
@@ -500,9 +476,7 @@ export function parseSettingsReferenceMd(
 
     if (descriptionLines !== null) {
       const isParagraphLine =
-        line.trim() !== '' &&
-        !SETTING_LIST_ITEM_PATTERN.test(line) &&
-        !FENCE_PATTERN.test(line);
+        line.trim() !== '' && !SETTING_LIST_ITEM_PATTERN.test(line) && !FENCE_PATTERN.test(line);
       if (isParagraphLine) {
         descriptionLines.push(line.trim());
         continue;
@@ -535,8 +509,7 @@ export function parseSettingsReferenceMd(
       current.defaultValue = parseReferenceDefaultValue(written);
       // 既定値を値として読み取れた行に補足はなく、`unset` だけの行は読者に何も伝えない
       current.defaultNote =
-        current.defaultValue === null &&
-        !SETTING_DEFAULT_UNSET_PATTERN.test(written)
+        current.defaultValue === null && !SETTING_DEFAULT_UNSET_PATTERN.test(written)
           ? written
           : null;
       continue;
@@ -661,25 +634,18 @@ export function parsePublicEnvEntriesFromDocs(
       continue;
     }
 
-    entries.push(
-      ...parseEnvTableRows(content, { environmentTableOnly: true }).entries,
-    );
+    entries.push(...parseEnvTableRows(content, { environmentTableOnly: true }).entries);
     entries.push(...extractPublicEnvMentions(content));
   }
 
   return entries;
 }
 
-export function isSettingSchema(
-  value: unknown,
-): value is JsonObject & { properties: JsonObject } {
+export function isSettingSchema(value: unknown): value is JsonObject & { properties: JsonObject } {
   return isJsonObject(value) && isJsonObject(value['properties']);
 }
 
-function collectSchemaEntries(
-  value: unknown,
-  context: CollectSchemaContext,
-): void {
+function collectSchemaEntries(value: unknown, context: CollectSchemaContext): void {
   const { keyPath, source, parentDescriptions, entries } = context;
   const node = isJsonObject(value) ? value : {};
   entries.push(
@@ -691,9 +657,7 @@ function collectSchemaEntries(
     }),
   );
 
-  const properties = isJsonObject(node['properties'])
-    ? node['properties']
-    : null;
+  const properties = isJsonObject(node['properties']) ? node['properties'] : null;
   if (properties === null) {
     return;
   }
@@ -731,8 +695,7 @@ function createSettingSchemaEntry({
   return {
     key,
     source,
-    description:
-      typeof node['description'] === 'string' ? node['description'] : '',
+    description: typeof node['description'] === 'string' ? node['description'] : '',
     parentDescriptions: JSON.stringify(parentDescriptions),
     valueType,
     defaultValue,
@@ -754,9 +717,7 @@ function formatValueType(node: JsonObject): string {
   }
 
   // JSON Schema の type だけでは `array` としか分からず、読者が要素に何を書けるか判断できない
-  const items = isJsonObject(node['items'])
-    ? formatValueType(node['items'])
-    : '';
+  const items = isJsonObject(node['items']) ? formatValueType(node['items']) : '';
   return /^[a-z]+(?:\[\])*$/.test(items) ? `${items}[]` : 'array';
 }
 
@@ -830,12 +791,8 @@ function parseEnvTableRows(
     rawDescriptions.set(match[1], descriptionRaw);
     entries.push(createEnvironmentSettingSchemaEntry(match[1], description));
 
-    if (
-      /(?:also accepted|older name|legacy name|alias)/i.test(descriptionRaw)
-    ) {
-      for (const aliasMatch of descriptionRaw.matchAll(
-        /`([A-Z_][A-Z0-9_]*)`/g,
-      )) {
+    if (/(?:also accepted|older name|legacy name|alias)/i.test(descriptionRaw)) {
+      for (const aliasMatch of descriptionRaw.matchAll(/`([A-Z_][A-Z0-9_]*)`/g)) {
         const key = aliasMatch[1];
         if (key && key !== match[1]) {
           rawDescriptions.set(key, descriptionRaw);
@@ -848,10 +805,7 @@ function parseEnvTableRows(
   return { entries, rawDescriptions };
 }
 
-function createEnvironmentSettingSchemaEntry(
-  key: string,
-  description: string,
-): SettingSchemaEntry {
+function createEnvironmentSettingSchemaEntry(key: string, description: string): SettingSchemaEntry {
   return {
     key,
     source: 'env',
@@ -884,10 +838,7 @@ function extractPublicEnvMentions(markdown: string): SettingSchemaEntry[] {
 
     for (const key of keys) {
       entries.push(
-        createEnvironmentSettingSchemaEntry(
-          key,
-          findNearbyDescription(lines, index, key),
-        ),
+        createEnvironmentSettingSchemaEntry(key, findNearbyDescription(lines, index, key)),
       );
     }
   }
@@ -911,25 +862,15 @@ function extractPublicEnvKeysFromLine(line: string): string[] {
   return [...keys];
 }
 
-function findNearbyDescription(
-  lines: string[],
-  index: number,
-  key: string,
-): string {
-  const candidates = [
-    lines[index],
-    lines[index - 1],
-    lines[index - 2],
-    lines[index + 1],
-  ];
+function findNearbyDescription(lines: string[], index: number, key: string): string {
+  const candidates = [lines[index], lines[index - 1], lines[index - 2], lines[index + 1]];
 
   for (const candidate of candidates) {
     const stripped = stripMarkdown(candidate ?? '');
     if (
       stripped &&
       !stripped.startsWith('```') &&
-      (stripped.includes(key) ||
-        /environment variable|Claude Code/i.test(stripped))
+      (stripped.includes(key) || /environment variable|Claude Code/i.test(stripped))
     ) {
       return stripped;
     }
@@ -976,15 +917,10 @@ function findSectionByAnchor(content: string, anchor: string): string | null {
     }
   }
 
-  return sectionStart === -1
-    ? null
-    : lines.slice(sectionStart).join('\n').trim();
+  return sectionStart === -1 ? null : lines.slice(sectionStart).join('\n').trim();
 }
 
-function resolveDescriptionFromSection(
-  envKey: string,
-  section: string,
-): string | null {
+function resolveDescriptionFromSection(envKey: string, section: string): string | null {
   for (const line of section.split('\n')) {
     const trimmed = line.trim();
     const match = trimmed.match(/^\|\s*`([A-Z_][A-Z0-9_]*)`\s*\|(.+)$/);

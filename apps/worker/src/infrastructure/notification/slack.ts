@@ -38,8 +38,7 @@ export function createSlackChangelogMessage(
 ): SlackBlockPayload {
   const { unsubscribeUrl, siteUrl } = options;
   const viewerUrl = `${siteUrl}/changelog/${version}/`;
-  const summary =
-    data.summary || 'Claude Code の新しいバージョンがリリースされました。';
+  const summary = data.summary || 'Claude Code の新しいバージョンがリリースされました。';
 
   const blocks: SlackBlock[] = [
     {

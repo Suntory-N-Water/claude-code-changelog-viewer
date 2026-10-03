@@ -26,9 +26,7 @@ import {
 const validAnalysis: NotificationAnalysis = {
   version: 'v1.0.0',
   summary: 'テスト用サマリー',
-  items: [
-    { content: 'Added new feature', content_ja: '新機能', prefix: 'feat' },
-  ],
+  items: [{ content: 'Added new feature', content_ja: '新機能', prefix: 'feat' }],
 };
 
 function buildBody(version = 'v1.0.0') {
@@ -188,9 +186,7 @@ describe('queueConsumer integration', () => {
     expect(retryMessage.ack).toHaveBeenCalled();
     expect(mockedSendChangelogNotification).toHaveBeenCalledTimes(3);
     expect(
-      mockedSendChangelogNotification.mock.calls.filter(
-        ([channel]) => channel.id === 'success-id',
-      ),
+      mockedSendChangelogNotification.mock.calls.filter(([channel]) => channel.id === 'success-id'),
     ).toHaveLength(1);
   });
 
@@ -232,9 +228,7 @@ describe('queueConsumer integration', () => {
       db = new FakeD1Database();
       const message = createQueueMessage({ invalid: 'body' });
 
-      await runWithTimers(
-        callConsumer(createQueueBatch([message]), createTestEnv(db)),
-      );
+      await runWithTimers(callConsumer(createQueueBatch([message]), createTestEnv(db)));
 
       expect(message.ack).toHaveBeenCalled();
       expect(message.retry).not.toHaveBeenCalled();
@@ -248,9 +242,7 @@ describe('queueConsumer integration', () => {
         analysis: validAnalysis,
       });
 
-      await runWithTimers(
-        callConsumer(createQueueBatch([message]), createTestEnv(db)),
-      );
+      await runWithTimers(callConsumer(createQueueBatch([message]), createTestEnv(db)));
 
       expect(message.ack).toHaveBeenCalled();
       expect(message.retry).not.toHaveBeenCalled();
@@ -261,9 +253,7 @@ describe('queueConsumer integration', () => {
       db = new FakeD1Database();
       const message = createQueueMessage({ version: 'v1.0.0' });
 
-      await runWithTimers(
-        callConsumer(createQueueBatch([message]), createTestEnv(db)),
-      );
+      await runWithTimers(callConsumer(createQueueBatch([message]), createTestEnv(db)));
 
       expect(message.ack).toHaveBeenCalled();
       expect(message.retry).not.toHaveBeenCalled();
@@ -301,16 +291,13 @@ describe('queueConsumer integration', () => {
     const firstMessage = createQueueMessage(buildBody('v1.0.0'));
     const secondMessage = createQueueMessage(buildBody('v2.0.0'));
 
-    await runWithTimers(
-      callConsumer(createQueueBatch([firstMessage, secondMessage]), env),
-    );
+    await runWithTimers(callConsumer(createQueueBatch([firstMessage, secondMessage]), env));
 
     expect(firstMessage.ack).toHaveBeenCalled();
     expect(secondMessage.ack).toHaveBeenCalled();
-    expect(
-      mockedSendChangelogNotification.mock.calls.map(
-        ([, input]) => input.version,
-      ),
-    ).toEqual(['v1.0.0', 'v2.0.0']);
+    expect(mockedSendChangelogNotification.mock.calls.map(([, input]) => input.version)).toEqual([
+      'v1.0.0',
+      'v2.0.0',
+    ]);
   });
 });

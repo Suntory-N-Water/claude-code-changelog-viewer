@@ -21,9 +21,7 @@ const imageCases = [
   },
   {
     label: 'WebP',
-    bytes: [
-      0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
-    ],
+    bytes: [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50],
     extension: 'webp',
     contentType: 'image/webp',
   },
@@ -66,11 +64,7 @@ describe('POST /api/uploads', () => {
           WEEKLY_ASSETS: { put } as unknown as R2Bucket,
         });
 
-        const response = await sut.request(
-          '/api/uploads',
-          createUploadRequest([...bytes]),
-          env,
-        );
+        const response = await sut.request('/api/uploads', createUploadRequest([...bytes]), env);
 
         expect(response.status).toBe(200);
         expect(await response.json()).toEqual({
@@ -82,9 +76,7 @@ describe('POST /api/uploads', () => {
         });
         expect(put).toHaveBeenCalledWith(
           expect.stringMatching(
-            new RegExp(
-              `^weekly/2026-w28/ea64434ed3ad-\\d{8}-\\d{6}\\.${extension}$`,
-            ),
+            new RegExp(`^weekly/2026-w28/ea64434ed3ad-\\d{8}-\\d{6}\\.${extension}$`),
           ),
           expect.any(ArrayBuffer),
           { httpMetadata: { contentType } },
@@ -133,11 +125,7 @@ describe('POST /api/uploads', () => {
       body.append('week', '2026-w28');
       body.append('itemId', 'ea64434ed3ad');
 
-      const response = await sut.request(
-        '/api/uploads',
-        { method: 'POST', body },
-        createEnv(),
-      );
+      const response = await sut.request('/api/uploads', { method: 'POST', body }, createEnv());
 
       expect(response.status).toBe(400);
     });
@@ -150,11 +138,7 @@ describe('POST /api/uploads', () => {
         WEEKLY_ASSETS: { put } as unknown as R2Bucket,
       });
 
-      const response = await sut.request(
-        '/api/uploads',
-        createUploadRequest(bytes),
-        env,
-      );
+      const response = await sut.request('/api/uploads', createUploadRequest(bytes), env);
 
       expect(response.status).toBe(400);
       expect(put).not.toHaveBeenCalled();
@@ -163,26 +147,16 @@ describe('POST /api/uploads', () => {
     it.each([
       ['GIF', [0x47, 0x49, 0x46, 0x38]],
       ['WAV', [0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45]],
-    ])(
-      'Content-Type が image/png でも実バイトが %s なら400を返すこと',
-      async (_label, bytes) => {
-        const body = new FormData();
-        body.append(
-          'file',
-          new File([new Uint8Array(bytes)], 'fake.png', { type: 'image/png' }),
-        );
-        body.append('week', '2026-w28');
-        body.append('itemId', 'ea64434ed3ad');
+    ])('Content-Type が image/png でも実バイトが %s なら400を返すこと', async (_label, bytes) => {
+      const body = new FormData();
+      body.append('file', new File([new Uint8Array(bytes)], 'fake.png', { type: 'image/png' }));
+      body.append('week', '2026-w28');
+      body.append('itemId', 'ea64434ed3ad');
 
-        const response = await sut.request(
-          '/api/uploads',
-          { method: 'POST', body },
-          createEnv(),
-        );
+      const response = await sut.request('/api/uploads', { method: 'POST', body }, createEnv());
 
-        expect(response.status).toBe(400);
-      },
-    );
+      expect(response.status).toBe(400);
+    });
   });
 
   describe('Access 認証を行う時', () => {

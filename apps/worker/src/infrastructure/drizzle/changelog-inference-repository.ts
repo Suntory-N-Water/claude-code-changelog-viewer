@@ -17,9 +17,7 @@ export function createChangelogInferenceRepository(
   };
 }
 
-function toIngestChangelogVersion(
-  inference: ChangelogInference,
-): IngestChangelogVersion {
+function toIngestChangelogVersion(inference: ChangelogInference): IngestChangelogVersion {
   return {
     version: normalizeChangelogVersion(inference.version),
     summary: inference.summary,

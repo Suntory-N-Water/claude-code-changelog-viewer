@@ -5,9 +5,7 @@ import type { ChangelogInferenceSkipReporterPort } from '../../usecases/changelo
 const ISSUE_URL =
   'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/issues';
 
-const logger = workerLogger(
-  'infrastructure.github.changelog-inference-skip-reporter',
-);
+const logger = workerLogger('infrastructure.github.changelog-inference-skip-reporter');
 
 type GitHubIssueListItem = {
   readonly number: number;
@@ -75,10 +73,7 @@ export function createChangelogInferenceSkipReporter(
   };
 }
 
-async function findOpenIssue(
-  githubToken: string,
-  marker: string,
-): Promise<boolean> {
+async function findOpenIssue(githubToken: string, marker: string): Promise<boolean> {
   for (let page = 1; ; page += 1) {
     const url = new URL(ISSUE_URL);
     url.searchParams.set('state', 'open');
@@ -89,9 +84,7 @@ async function findOpenIssue(
       headers: createGitHubHeaders(githubToken, 'application/vnd.github+json'),
     });
     if (!response.ok) {
-      throw new Error(
-        `既存 Issue の取得に失敗しました: ${response.status} ${response.statusText}`,
-      );
+      throw new Error(`既存 Issue の取得に失敗しました: ${response.status} ${response.statusText}`);
     }
     const issues = await response.json<GitHubIssueListItem[]>();
     if (issues.some((issue) => issue.body?.includes(marker) === true)) {

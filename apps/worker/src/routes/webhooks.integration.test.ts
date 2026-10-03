@@ -1,10 +1,8 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
-const { mockedVerifyTurnstile, mockedSendTestNotification } = vi.hoisted(
-  () => ({
-    mockedVerifyTurnstile: vi.fn(),
-    mockedSendTestNotification: vi.fn(),
-  }),
-);
+const { mockedVerifyTurnstile, mockedSendTestNotification } = vi.hoisted(() => ({
+  mockedVerifyTurnstile: vi.fn(),
+  mockedSendTestNotification: vi.fn(),
+}));
 
 vi.mock('../infrastructure/turnstile', () => ({
   verifyTurnstileToken: mockedVerifyTurnstile,
@@ -60,11 +58,7 @@ describe('POST /api/webhooks integration', () => {
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendTestNotification.mockResolvedValue({ ok: true });
 
-    const response = await app.request(
-      '/api/webhooks',
-      createRequestInit(),
-      env,
-    );
+    const response = await app.request('/api/webhooks', createRequestInit(), env);
 
     expect(response.status).toBe(200);
     const saved = await findChannelByWebhookUrl(db, validWebhookUrl);
@@ -124,11 +118,7 @@ describe('POST /api/webhooks integration', () => {
     });
     mockedVerifyTurnstile.mockResolvedValue(true);
 
-    const response = await app.request(
-      '/api/webhooks',
-      createRequestInit(),
-      env,
-    );
+    const response = await app.request('/api/webhooks', createRequestInit(), env);
 
     expect(response.status).toBe(409);
     expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toEqual({
@@ -155,11 +145,7 @@ describe('POST /api/webhooks integration', () => {
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendTestNotification.mockResolvedValue({ ok: true });
 
-    const response = await app.request(
-      '/api/webhooks',
-      createRequestInit(),
-      env,
-    );
+    const response = await app.request('/api/webhooks', createRequestInit(), env);
 
     expect(response.status).toBe(200);
     expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toEqual({
@@ -185,11 +171,7 @@ describe('POST /api/webhooks integration', () => {
     });
     mockedVerifyTurnstile.mockResolvedValue(true);
 
-    const response = await app.request(
-      '/api/webhooks',
-      createRequestInit(),
-      env,
-    );
+    const response = await app.request('/api/webhooks', createRequestInit(), env);
 
     expect(response.status).toBe(409);
     expect(mockedSendTestNotification).not.toHaveBeenCalled();
@@ -208,11 +190,7 @@ describe('POST /api/webhooks integration', () => {
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(false);
 
-    const response = await app.request(
-      '/api/webhooks',
-      createRequestInit(),
-      env,
-    );
+    const response = await app.request('/api/webhooks', createRequestInit(), env);
 
     expect(response.status).toBe(403);
     expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toBeNull();
@@ -225,11 +203,7 @@ describe('POST /api/webhooks integration', () => {
       limit: vi.fn(() => Promise.resolve({ success: false })),
     } as unknown as RateLimit;
 
-    const response = await app.request(
-      '/api/webhooks',
-      createRequestInit(),
-      env,
-    );
+    const response = await app.request('/api/webhooks', createRequestInit(), env);
 
     expect(response.status).toBe(429);
     expect(response.headers.get('Retry-After')).toBe('60');
@@ -243,11 +217,7 @@ describe('POST /api/webhooks integration', () => {
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendTestNotification.mockResolvedValue({ ok: false });
 
-    const response = await app.request(
-      '/api/webhooks',
-      createRequestInit(),
-      env,
-    );
+    const response = await app.request('/api/webhooks', createRequestInit(), env);
 
     expect(response.status).toBe(400);
     expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toBeNull();

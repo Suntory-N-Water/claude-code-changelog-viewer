@@ -3,10 +3,8 @@ type GitHubRelease = {
   published_at: string;
 };
 
-const GITHUB_RELEASES_API_URL =
-  'https://api.github.com/repos/anthropics/claude-code/releases';
-const GITHUB_RELEASES_ATOM_URL =
-  'https://github.com/anthropics/claude-code/releases.atom';
+const GITHUB_RELEASES_API_URL = 'https://api.github.com/repos/anthropics/claude-code/releases';
+const GITHUB_RELEASES_ATOM_URL = 'https://github.com/anthropics/claude-code/releases.atom';
 const GITHUB_USER_AGENT = 'claude-code-changelog-viewer';
 
 // GitHub Releases の公開日時キャッシュ(ビルド中に1回だけ fetch)
@@ -51,15 +49,12 @@ async function fetchReleaseMap(): Promise<Map<string, string>> {
   try {
     // ページネーションで全リリースを取得(最大300件)
     for (let page = 1; page <= 3; page += 1) {
-      const res = await fetch(
-        `${GITHUB_RELEASES_API_URL}?per_page=100&page=${page}`,
-        {
-          headers: {
-            Accept: 'application/vnd.github+json',
-            'User-Agent': GITHUB_USER_AGENT,
-          },
+      const res = await fetch(`${GITHUB_RELEASES_API_URL}?per_page=100&page=${page}`, {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          'User-Agent': GITHUB_USER_AGENT,
         },
-      );
+      });
       if (!res.ok) {
         throw new Error(`GitHub API: ${res.status}`);
       }

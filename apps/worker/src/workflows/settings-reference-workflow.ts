@@ -1,9 +1,6 @@
 import { workerLogger } from '../logger';
 import { drizzle } from 'drizzle-orm/d1';
-import {
-  runWithLogContext,
-  toError,
-} from '@claude-code-changelog-viewer/common';
+import { runWithLogContext, toError } from '@claude-code-changelog-viewer/common';
 import { WorkflowEntrypoint } from 'cloudflare:workers';
 import type {
   WorkflowEvent,
@@ -43,9 +40,7 @@ const BATCH_SIZE = 30;
 
 const logger = workerLogger('workflows.settings-reference');
 
-export type SettingsReferenceWorkflowParams = z.infer<
-  typeof WorkflowParamsSchema
->;
+export type SettingsReferenceWorkflowParams = z.infer<typeof WorkflowParamsSchema>;
 
 export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
   CloudflareBindings,
@@ -73,38 +68,33 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
       ? paramsResult.data
       : {};
     const runStep = createStepRunner(step);
-    const failureReporter: SettingsReferenceFailureReporterPort =
-      createWorkflowFailureReporter(this.env.GITHUB_DISPATCH_TOKEN, {
+    const failureReporter: SettingsReferenceFailureReporterPort = createWorkflowFailureReporter(
+      this.env.GITHUB_DISPATCH_TOKEN,
+      {
         name: '設定リファレンス生成 Workflow',
         workflowLabel: 'workflow:generate-settings-reference',
         summary: '設定リファレンス生成 Workflow が失敗しました。',
         extraFields: ({ params }) => [
           `**対象キー**: ${params.targetKeys?.join(', ') ?? '指定なし'}`,
         ],
-      });
+      },
+    );
     logger.info('Workflow を開始します', {
       'workflow.name': 'settings-reference',
     });
 
     try {
       if (!paramsResult.success) {
-        throw new Error(
-          `Workflow パラメータが不正です: ${z.prettifyError(paramsResult.error)}`,
-        );
+        throw new Error(`Workflow パラメータが不正です: ${z.prettifyError(paramsResult.error)}`);
       }
       const params = paramsResult.data;
       const db = drizzle(this.env.DB);
       const docsDb = drizzle(this.env.DOCS_DB);
       const entrySource = createSettingsEntrySource(db, this.env.DOCS_DB);
       const documentSearch = searchDocsForSettingKey.bind(null, docsDb);
-      const inference = createSettingsReferenceAi(
-        this.env.AI,
-        this.env.AI_GATEWAY_ID,
-      );
+      const inference = createSettingsReferenceAi(this.env.AI, this.env.AI_GATEWAY_ID);
       const repository = createSettingsReferenceRepository(db);
-      const buildTrigger = createDeployHookBuildTrigger(
-        this.env.DEPLOY_HOOK_URL,
-      );
+      const buildTrigger = createDeployHookBuildTrigger(this.env.DEPLOY_HOOK_URL);
       // replay で日付が変わらないよう、実行時刻ではなく起動時刻を使う。
       const fetchedAt = new Intl.DateTimeFormat('sv-SE', {
         timeZone: 'Asia/Tokyo',
@@ -120,23 +110,11 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         batchStart += BATCH_SIZE, batchIndex += 1
       ) {
         const batchEntries = entries.slice(batchStart, batchStart + BATCH_SIZE);
-        const input = await runStep(
-          `build-input-${batchIndex}`,
-          STEP_RETRIES,
-          async () =>
-            buildSettingsReferenceInput(
-              documentSearch,
-              entrySource,
-              batchEntries,
-            ),
+        const input = await runStep(`build-input-${batchIndex}`, STEP_RETRIES, async () =>
+          buildSettingsReferenceInput(documentSearch, entrySource, batchEntries),
         );
-        const translations = await runStep(
-          `infer-${batchIndex}`,
-          STEP_RETRIES,
-          async () =>
-            runWithLogContext({ 'ai.batch_index': batchIndex }, () =>
-              inference.infer(input),
-            ),
+        const translations = await runStep(`infer-${batchIndex}`, STEP_RETRIES, async () =>
+          runWithLogContext({ 'ai.batch_index': batchIndex }, () => inference.infer(input)),
         );
         await runStep(`store-${batchIndex}`, STEP_RETRIES, async () =>
           saveSettingsReferences(repository, {
@@ -148,9 +126,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
       }
 
       if (entries.length > 0) {
-        await runStep('trigger-build', STEP_RETRIES, async () =>
-          buildTrigger.trigger(),
-        );
+        await runStep('trigger-build', STEP_RETRIES, async () => buildTrigger.trigger());
       }
 
       logger.info('Workflow が完了しました', {

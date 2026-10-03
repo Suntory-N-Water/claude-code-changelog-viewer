@@ -1,17 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { detectChangelogUpdate } from './changelog-detection';
 
-const CONTENT_HASH =
-  'f7fbc09e193ed3fd94b8de6d283a159323fbabd7b5dc3f5875a5a232e4d65f4f';
+const CONTENT_HASH = 'f7fbc09e193ed3fd94b8de6d283a159323fbabd7b5dc3f5875a5a232e4d65f4f';
 const NOW = new Date('2026-07-25T09:00:00.000Z');
 const PREVIOUS_DISPATCH_AT = '2026-07-25T08:55:00.000Z';
 const CHANGELOG_URL =
   'https://api.github.com/repos/anthropics/claude-code/contents/CHANGELOG.md?ref=main';
 
-function createBindings(
-  state: unknown = null,
-  workflowStatus: string = 'running',
-) {
+function createBindings(state: unknown = null, workflowStatus: string = 'running') {
   const workflow = {
     createBatch: vi.fn(async () => []),
     get: vi.fn(async () => ({
@@ -50,8 +46,7 @@ function mockGitHub() {
 }
 
 function dispatchRequests(bindings: CloudflareBindings) {
-  return vi.mocked(bindings.CHANGELOG_INFERENCE_WORKFLOW.createBatch).mock
-    .calls;
+  return vi.mocked(bindings.CHANGELOG_INFERENCE_WORKFLOW.createBatch).mock.calls;
 }
 
 function storedState(bindings: CloudflareBindings) {

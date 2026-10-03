@@ -52,9 +52,7 @@ const UNUSABLE_RESPONSE_MESSAGES = [
 export function isUnusableAiResponseError(error: unknown): boolean {
   return (
     error instanceof Error &&
-    UNUSABLE_RESPONSE_MESSAGES.some((message) =>
-      error.message.startsWith(message),
-    )
+    UNUSABLE_RESPONSE_MESSAGES.some((message) => error.message.startsWith(message))
   );
 }
 
@@ -88,9 +86,7 @@ export function createChangelogItemInferenceAi(
         parseAiResponse(response, MAX_COMPLETION_TOKENS),
       );
       if (!parsed.success) {
-        throw new Error(
-          `${ITEMS_SCHEMA_FAILED_MESSAGE}: ${z.prettifyError(parsed.error)}`,
-        );
+        throw new Error(`${ITEMS_SCHEMA_FAILED_MESSAGE}: ${z.prettifyError(parsed.error)}`);
       }
 
       return {
@@ -107,12 +103,10 @@ export function createChangelogItemInferenceAi(
           id: item.id,
           contentJa: item.content_ja,
         })),
-        featureAreaCorrections: parsed.data.feature_area_corrections.map(
-          (item) => ({
-            id: item.id,
-            featureAreas: item.feature_areas,
-          }),
-        ),
+        featureAreaCorrections: parsed.data.feature_area_corrections.map((item) => ({
+          id: item.id,
+          featureAreas: item.feature_areas,
+        })),
       };
     },
   };
@@ -147,9 +141,7 @@ export function createChangelogSummaryAi(
         parseAiResponse(response, MAX_COMPLETION_TOKENS),
       );
       if (!parsed.success) {
-        throw new Error(
-          `AI サマリー結果の形式が不正です: ${z.prettifyError(parsed.error)}`,
-        );
+        throw new Error(`AI サマリー結果の形式が不正です: ${z.prettifyError(parsed.error)}`);
       }
 
       return parsed.data.summary;
@@ -184,11 +176,9 @@ function buildItemsPrompt(input: ChangelogInferenceInput): string {
   const translationItems = input.items
     .filter((item) => item.relatedDocs.length === 0)
     .map((item) =>
-      [
-        `### 項目 id=${item.id}`,
-        `- prefix: ${item.prefix}`,
-        `- content: ${item.content}`,
-      ].join('\n'),
+      [`### 項目 id=${item.id}`, `- prefix: ${item.prefix}`, `- content: ${item.content}`].join(
+        '\n',
+      ),
     )
     .join('\n\n');
   const featureAreaItems = input.items
@@ -236,8 +226,6 @@ function buildSummaryPrompt(release: ChangelogRelease): string {
     '# タスク: サマリー',
     '2〜3文で、具体的な変更を最大3件だけ取り上げる。CHANGELOG にない効果を補わない。',
     `バージョン ${release.version} の全変更項目:`,
-    release.items
-      .map((item) => `- [${item.prefix}] ${item.content}`)
-      .join('\n'),
+    release.items.map((item) => `- [${item.prefix}] ${item.content}`).join('\n'),
   ].join('\n');
 }

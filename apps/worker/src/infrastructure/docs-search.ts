@@ -179,9 +179,7 @@ function groupByFile(rows: ChunkRow[], queryWords: string[]): RelatedDoc[] {
 // チャンクは分割が段落境界だけのため長さに上限がなく、本番では最大 116,749 字になる。
 // 全文を渡すと後段の LLM への入力が肥大化するので、段落単位で落とす
 function selectParagraphs(content: string, querySet: Set<string>): string {
-  const paragraphs = content
-    .split(/\n\s*\n/)
-    .filter((part) => part.trim() !== '');
+  const paragraphs = content.split(/\n\s*\n/).filter((part) => part.trim() !== '');
 
   if (paragraphs.length <= 2) {
     return truncateAtLineBoundary(content, MAX_SNIPPET_CHARS);
@@ -206,15 +204,10 @@ function selectParagraphs(content: string, querySet: Set<string>): string {
   }
 
   // 検索語を含む段落を先に予算取りし、長い導入段落があっても落とさない
-  const relevant = truncateAtLineBoundary(
-    paragraphs[densest] ?? '',
-    MAX_SNIPPET_CHARS,
-  );
+  const relevant = truncateAtLineBoundary(paragraphs[densest] ?? '', MAX_SNIPPET_CHARS);
   const contextBudget = Math.max(0, MAX_SNIPPET_CHARS - relevant.length - 2);
   const truncatedContext = truncateAtLineBoundary(context, contextBudget);
-  return [truncatedContext, relevant]
-    .filter((paragraph) => paragraph !== '')
-    .join('\n\n');
+  return [truncatedContext, relevant].filter((paragraph) => paragraph !== '').join('\n\n');
 }
 
 function truncateAtLineBoundary(content: string, maxChars: number): string {

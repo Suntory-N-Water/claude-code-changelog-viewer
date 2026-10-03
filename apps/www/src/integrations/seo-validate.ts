@@ -65,9 +65,9 @@ function validateHtml(filePath: string, content: string): Issue[] {
     });
   }
 
-  const imgWithoutAlt = (
-    content.match(/<img(?![^>]*\balt=)[^>]*>/gi) ?? []
-  ).filter((img) => !img.includes('aria-hidden'));
+  const imgWithoutAlt = (content.match(/<img(?![^>]*\balt=)[^>]*>/gi) ?? []).filter(
+    (img) => !img.includes('aria-hidden'),
+  );
   if (imgWithoutAlt.length > 0) {
     issues.push({
       file: rel,
@@ -117,9 +117,7 @@ function checkDuplicateTitles(files: string[]): Issue[] {
   return issues;
 }
 
-export function seoValidate(
-  options: { failOnError?: boolean } = {},
-): AstroIntegration {
+export function seoValidate(options: { failOnError?: boolean } = {}): AstroIntegration {
   const { failOnError = false } = options;
 
   return {
@@ -150,14 +148,10 @@ export function seoValidate(
           logger.error(`[SEO] ${issue.file}: ${issue.message}`);
         }
 
-        logger.info(
-          `SEO 検証完了: ${errors.length} エラー, ${warns.length} 警告`,
-        );
+        logger.info(`SEO 検証完了: ${errors.length} エラー, ${warns.length} 警告`);
 
         if (failOnError && errors.length > 0) {
-          throw new Error(
-            `SEO バリデーションエラーが ${errors.length} 件あります`,
-          );
+          throw new Error(`SEO バリデーションエラーが ${errors.length} 件あります`);
         }
       },
     },

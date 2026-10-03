@@ -1,8 +1,5 @@
 import type { Channel } from '../domain/channel/channel';
-import type {
-  ChannelNotifier,
-  NotificationResult,
-} from '../usecases/channel-notifier';
+import type { ChannelNotifier, NotificationResult } from '../usecases/channel-notifier';
 import {
   createChangelogMessage,
   createTestMessage,
@@ -22,9 +19,7 @@ import {
 import { postWebhook } from './notification/webhook';
 
 /** Cloudflare BindingsからChannelNotifier portの実装を作成する。 */
-export function createChannelNotifier(
-  bindings: CloudflareBindings,
-): ChannelNotifier {
+export function createChannelNotifier(bindings: CloudflareBindings): ChannelNotifier {
   const unsubscribeUrl = (channel: Channel) =>
     `${bindings.WORKER_URL}/api/unsubscribe?token=${channel.token}`;
 
@@ -32,11 +27,7 @@ export function createChannelNotifier(
     async sendTestNotification(channel) {
       switch (channel.type) {
         case 'DSC':
-          return postWebhook(
-            channel.webhookUrl,
-            createTestMessage(unsubscribeUrl(channel)),
-            'DSC',
-          );
+          return postWebhook(channel.webhookUrl, createTestMessage(unsubscribeUrl(channel)), 'DSC');
         case 'SLK':
           return postWebhook(
             channel.webhookUrl,
@@ -62,11 +53,7 @@ export function createChannelNotifier(
           return toNotificationResult(
             await postWebhook(
               channel.webhookUrl,
-              createChangelogMessage(
-                input.analysis,
-                input.version,
-                messageOptions,
-              ),
+              createChangelogMessage(input.analysis, input.version, messageOptions),
               'DSC',
             ),
           );
@@ -74,11 +61,7 @@ export function createChannelNotifier(
           return toNotificationResult(
             await postWebhook(
               channel.webhookUrl,
-              createSlackChangelogMessage(
-                input.analysis,
-                input.version,
-                messageOptions,
-              ),
+              createSlackChangelogMessage(input.analysis, input.version, messageOptions),
               'SLK',
             ),
           );
@@ -87,11 +70,7 @@ export function createChannelNotifier(
             await sendToEmail(bindings.SEND_EMAIL, {
               fromAddress: bindings.EMAIL_FROM,
               toAddress: channel.emailAddress,
-              payload: createEmailChangelogMessage(
-                input.analysis,
-                input.version,
-                messageOptions,
-              ),
+              payload: createEmailChangelogMessage(input.analysis, input.version, messageOptions),
             }),
           );
       }
@@ -101,19 +80,11 @@ export function createChannelNotifier(
       switch (channel.type) {
         case 'DSC':
           return toNotificationResult(
-            await postWebhook(
-              channel.webhookUrl,
-              createUnsubscribeNotification(),
-              'DSC',
-            ),
+            await postWebhook(channel.webhookUrl, createUnsubscribeNotification(), 'DSC'),
           );
         case 'SLK':
           return toNotificationResult(
-            await postWebhook(
-              channel.webhookUrl,
-              createSlackUnsubscribeNotification(),
-              'SLK',
-            ),
+            await postWebhook(channel.webhookUrl, createSlackUnsubscribeNotification(), 'SLK'),
           );
         case 'EML':
           return toNotificationResult(
@@ -129,10 +100,7 @@ export function createChannelNotifier(
 }
 
 /** HTTPステータスをドメインの失敗種別に変換する。 */
-function toNotificationResult(raw: {
-  ok: boolean;
-  status: number;
-}): NotificationResult {
+function toNotificationResult(raw: { ok: boolean; status: number }): NotificationResult {
   if (raw.ok) {
     return { ok: true };
   }

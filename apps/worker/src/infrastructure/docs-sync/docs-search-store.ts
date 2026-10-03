@@ -46,17 +46,8 @@ export function createDocsSearchStore(db: D1Database): DocsSearchStore {
                  content_hash = excluded.content_hash,
                  updated_at = excluded.updated_at`,
             )
-            .bind(
-              page.path,
-              page.title,
-              page.url,
-              page.content,
-              page.contentHash,
-              updatedAt,
-            ),
-          db
-            .prepare('DELETE FROM page_chunks_fts WHERE path = ?')
-            .bind(page.path),
+            .bind(page.path, page.title, page.url, page.content, page.contentHash, updatedAt),
+          db.prepare('DELETE FROM page_chunks_fts WHERE path = ?').bind(page.path),
         ];
 
         for (const chunkRows of splitIntoChunks(chunks, CHUNKS_PER_INSERT)) {
@@ -102,13 +93,9 @@ export function createDocsSearchStore(db: D1Database): DocsSearchStore {
     },
 
     async replaceSettingSchema(schema, now): Promise<void> {
-      const statements: D1PreparedStatement[] = [
-        db.prepare('DELETE FROM setting_schema_entries'),
-      ];
+      const statements: D1PreparedStatement[] = [db.prepare('DELETE FROM setting_schema_entries')];
       for (const rows of splitIntoChunks(schema.entries, SETTINGS_PER_INSERT)) {
-        const placeholders = rows
-          .map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-          .join(', ');
+        const placeholders = rows.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
         const values = rows.flatMap((entry) => [
           entry.key,
           entry.source,
@@ -156,10 +143,7 @@ async function runBatchedStatements(
   let currentBatch: D1PreparedStatement[] = [];
 
   for (const group of statementGroups) {
-    if (
-      currentBatch.length > 0 &&
-      currentBatch.length + group.length > MAX_BATCH_STATEMENTS
-    ) {
+    if (currentBatch.length > 0 && currentBatch.length + group.length > MAX_BATCH_STATEMENTS) {
       await db.batch(currentBatch);
       currentBatch = [];
     }

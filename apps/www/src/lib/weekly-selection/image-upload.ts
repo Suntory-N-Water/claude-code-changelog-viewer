@@ -16,9 +16,7 @@ export function setupImageUpload(input: {
   state: WeeklySelectionState;
   save: SaveWeeklySelectionItem;
 }) {
-  const slot = input.template.content.firstElementChild?.cloneNode(
-    true,
-  ) as HTMLElement;
+  const slot = input.template.content.firstElementChild?.cloneNode(true) as HTMLElement;
   const dropzone = slot.querySelector<HTMLButtonElement>('[data-dropzone]');
   const fileInput = slot.querySelector<HTMLInputElement>('[data-file]');
   const preview = slot.querySelector<HTMLElement>('[data-preview]');
@@ -40,9 +38,7 @@ export function setupImageUpload(input: {
     throw new Error('画像アップロード UI の初期化に失敗しました');
   }
   const formControls = [
-    ...slot.querySelectorAll<HTMLInputElement | HTMLButtonElement>(
-      'input, button',
-    ),
+    ...slot.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input, button'),
   ];
 
   const render = (url?: string) => {
@@ -100,8 +96,7 @@ export function setupImageUpload(input: {
       render(result.url);
       input.save({ imageUrl: result.url });
     } catch (cause) {
-      error.textContent =
-        cause instanceof Error ? cause.message : 'アップロードに失敗しました';
+      error.textContent = cause instanceof Error ? cause.message : 'アップロードに失敗しました';
       error.hidden = false;
     } finally {
       uploading = false;

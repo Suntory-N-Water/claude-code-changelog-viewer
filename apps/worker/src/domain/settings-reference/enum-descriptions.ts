@@ -42,9 +42,7 @@ export function buildEnumDescriptionsJa(
 }
 
 /** 保存された選択肢ごとの説明を、値と説明の対応へ戻す。 */
-export function parseEnumDescriptions(
-  stored: string | null,
-): Record<string, string> | undefined {
+export function parseEnumDescriptions(stored: string | null): Record<string, string> | undefined {
   if (stored === null) {
     return;
   }

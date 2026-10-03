@@ -5,9 +5,7 @@ import type {
 } from '../../domain/changelog-inference/changelog-inference';
 import { formatChangelogVersion } from '../../domain/changelog-inference/changelog-version';
 
-export async function parseChangelogReleases(
-  markdown: string,
-): Promise<ChangelogRelease[]> {
+export async function parseChangelogReleases(markdown: string): Promise<ChangelogRelease[]> {
   const releases: Array<{ version: string; content: string }> = [];
   let currentVersion: string | null = null;
   const lines: string[] = [];
@@ -43,9 +41,7 @@ export async function parseChangelogReleases(
     releases.map(async (release) => ({
       version: formatChangelogVersion(release.version),
       items: await Promise.all(
-        parseChangelogEntries(release.content).map((content) =>
-          createChangelogItem(content),
-        ),
+        parseChangelogEntries(release.content).map((content) => createChangelogItem(content)),
       ),
     })),
   );
@@ -123,9 +119,7 @@ function classifyChangelogPrefix(content: string): string {
   if (/^-\s*(New|Introducing|Introduced)\b/i.test(normalizedContent)) {
     return 'Added';
   }
-  if (
-    /(can now|now supports?|now allows?|now includes?)/i.test(normalizedContent)
-  ) {
+  if (/(can now|now supports?|now allows?|now includes?)/i.test(normalizedContent)) {
     return 'Added';
   }
   if (/^-\s*(Made|Make)\b/i.test(normalizedContent)) {

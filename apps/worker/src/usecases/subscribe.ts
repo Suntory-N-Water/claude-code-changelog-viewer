@@ -52,10 +52,7 @@ export async function subscribe(
 
     // unsubscribeのtokenは宛先の受信者しか知り得ないため'user'停止は本人の意思表示だが、
     // 'system'停止は配信失敗の閾値超過にすぎず本人の意思とは無関係。
-    if (
-      existing.status.type === 'deactivated' &&
-      existing.status.reason === 'user'
-    ) {
+    if (existing.status.type === 'deactivated' && existing.status.reason === 'user') {
       logger.warn('購読登録を受け付けませんでした', {
         reason: 'already_registered',
         channel_type: existing.type,

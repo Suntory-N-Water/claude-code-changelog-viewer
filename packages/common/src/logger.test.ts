@@ -5,10 +5,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function captureJson(
-  method: 'log' | 'error',
-  action: () => void,
-): Record<string, unknown> {
+function captureJson(method: 'log' | 'error', action: () => void): Record<string, unknown> {
   const output = vi.spyOn(console, method).mockImplementation(() => undefined);
 
   action();
@@ -61,9 +58,7 @@ describe('logger', () => {
   it('emailAddress をマスキングする', () => {
     const logger = createLogger();
 
-    const record = captureJson('log', () =>
-      logger.info('x', { emailAddress: 'a@example.com' }),
-    );
+    const record = captureJson('log', () => logger.info('x', { emailAddress: 'a@example.com' }));
 
     expect(record['emailAddress']).toBe('***');
   });
@@ -71,9 +66,7 @@ describe('logger', () => {
   it('prompt_tokens は token の部分一致でマスキングしない', () => {
     const logger = createLogger();
 
-    const record = captureJson('log', () =>
-      logger.info('x', { 'ai.usage.prompt_tokens': 1200 }),
-    );
+    const record = captureJson('log', () => logger.info('x', { 'ai.usage.prompt_tokens': 1200 }));
 
     expect(record['ai.usage.prompt_tokens']).toBe(1200);
   });
@@ -95,9 +88,7 @@ describe('logger', () => {
   it('第2引数の Error を exception 属性へ展開する', () => {
     const logger = createLogger();
 
-    const record = captureJson('error', () =>
-      logger.error('x', new Error('boom')),
-    );
+    const record = captureJson('error', () => logger.error('x', new Error('boom')));
 
     expect(record['exception.message']).toBe('boom');
     expect(record['exception.type']).toBe('Error');

@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  classifyChangelogReleases,
-  type ExistingChangelogItem,
-} from './changelog-classification';
+import { classifyChangelogReleases, type ExistingChangelogItem } from './changelog-classification';
 
 function release(version: string, ...items: string[]) {
   return {

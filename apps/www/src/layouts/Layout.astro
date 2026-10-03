@@ -7,11 +7,7 @@ import ScrollToTop from '../components/ScrollToTop.astro';
 import SearchModal from '../components/SearchModal.astro';
 import { SITE_TITLE } from '../lib/constants';
 import { escapeJsonForScript } from '../lib/escape-html';
-import {
-  type BreadcrumbItem,
-  type FAQItem,
-  generateGraphJsonLd,
-} from '../lib/json-ld';
+import { type BreadcrumbItem, type FAQItem, generateGraphJsonLd } from '../lib/json-ld';
 import { NAV_ITEMS } from '../lib/navigation';
 
 type JsonLdData =
@@ -34,8 +30,7 @@ type Props = {
   noindex?: boolean;
 };
 
-const { title, description, image, jsonLd, breadcrumbs, faqItems, noindex } =
-  Astro.props;
+const { title, description, image, jsonLd, breadcrumbs, faqItems, noindex } = Astro.props;
 // build.format: 'file' のため pathname は `/posts/column.html` の形で来る
 const pathname = Astro.url.pathname.replace(/\.html$/, '');
 const navItems = NAV_ITEMS.map((item) => ({
@@ -46,10 +41,7 @@ const defaultDescription =
   'Claude Codeの変更履歴をAIが分析。各アップデートの新機能・バグ修正・改善点を日本語で分かりやすく解説し、ユーザーへの具体的な恩恵をまとめています。';
 const pageDescription = description || defaultDescription;
 const siteUrl = import.meta.env.SITE;
-const canonicalUrl = new URL(
-  pathname.replace(/\/index$/, '') || '/',
-  siteUrl,
-).toString();
+const canonicalUrl = new URL(pathname.replace(/\/index$/, '') || '/', siteUrl).toString();
 const ogImage = image || `${siteUrl}/og-image.png`;
 
 // JSON-LD 生成(単一 @graph)
@@ -122,10 +114,7 @@ if (jsonLd?.type === 'website') {
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1' />
     <meta name='description' content={pageDescription} />
-    <meta
-      name='google-site-verification'
-      content='IxfdBiGbDvwfMwQwWqxxx7wvaw0k2P8o-DOxfpsIx-0'
-    />
+    <meta name='google-site-verification' content='IxfdBiGbDvwfMwQwWqxxx7wvaw0k2P8o-DOxfpsIx-0' />
     <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
     <link rel='apple-touch-icon' href='/icon.png' />
     <link rel='canonical' href={canonicalUrl} data-pagefind-meta='url[href]' />
@@ -139,17 +128,9 @@ if (jsonLd?.type === 'website') {
         ? 'noindex'
         : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'}
     />
-    <link
-      rel='alternate'
-      type='application/rss+xml'
-      title={SITE_TITLE}
-      href='/rss.xml'
-    />
+    <link rel='alternate' type='application/rss+xml' title={SITE_TITLE} href='/rss.xml' />
 
-    <meta
-      property='og:type'
-      content={jsonLd?.type === 'article' ? 'article' : 'website'}
-    />
+    <meta property='og:type' content={jsonLd?.type === 'article' ? 'article' : 'website'} />
     <meta property='og:site_name' content={SITE_TITLE} />
     <meta property='og:url' content={canonicalUrl} />
     <meta property='og:title' content={title} />
@@ -164,16 +145,9 @@ if (jsonLd?.type === 'website') {
     <meta name='twitter:description' content={pageDescription} />
     <meta name='twitter:image' content={ogImage} />
 
-    {
-      graphJsonLd && (
-        <script is:inline type='application/ld+json' set:html={graphJsonLd} />
-      )
-    }
+    {graphJsonLd && <script is:inline type='application/ld+json' set:html={graphJsonLd} />}
 
-    <script
-      async
-      is:inline
-      src='https://www.googletagmanager.com/gtag/js?id=G-2815S79087'></script>
+    <script async is:inline src='https://www.googletagmanager.com/gtag/js?id=G-2815S79087'></script>
     <script is:inline>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -188,9 +162,7 @@ if (jsonLd?.type === 'website') {
     <header
       class='sticky top-0 z-50 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm border-b border-[hsl(var(--cc-gray))]'
     >
-      <nav
-        class='max-w-6xl mx-auto px-4 h-12 flex items-center justify-between gap-2'
-      >
+      <nav class='max-w-6xl mx-auto px-4 h-12 flex items-center justify-between gap-2'>
         <a
           href='/'
           class='text-sm font-bold text-[hsl(var(--cc-main-black))] hover:text-[hsl(var(--cc-main-orange))] transition-colors shrink-0'

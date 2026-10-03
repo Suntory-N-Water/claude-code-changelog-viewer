@@ -10,10 +10,7 @@ import {
 } from '../../infrastructure/drizzle/changelog-repository';
 import type { settingsReference } from '../../db/schema';
 
-async function toSettingPayload(
-  db: DrizzleD1Database,
-  row: typeof settingsReference.$inferSelect,
-) {
+async function toSettingPayload(db: DrizzleD1Database, row: typeof settingsReference.$inferSelect) {
   const officialDocs = await findOfficialDocPathsBySettingKey(db, row.key);
   return {
     key: row.key,
@@ -23,16 +20,11 @@ async function toSettingPayload(
     officialDocUrls:
       officialDocs.length === 0
         ? undefined
-        : officialDocs.map(({ docPath }) =>
-            getOfficialDocUrl(`docs/en/${docPath}`),
-          ),
+        : officialDocs.map(({ docPath }) => getOfficialDocUrl(`docs/en/${docPath}`)),
   };
 }
 
-export function registerGetSettingsReferenceTool(
-  server: McpServer,
-  db: DrizzleD1Database,
-): void {
+export function registerGetSettingsReferenceTool(server: McpServer, db: DrizzleD1Database): void {
   server.registerTool(
     'get_settings_reference',
     {
@@ -41,23 +33,14 @@ export function registerGetSettingsReferenceTool(
         'key を指定すると完全一致で 1 件、query を指定するとキーワード検索、' +
         'どちらも指定しない場合はキー名の一覧だけを返す。key と query の両方を指定した場合は key を優先する。',
       inputSchema: z.object({
-        key: z
-          .string()
-          .optional()
-          .describe('設定キー名の完全一致(例: model, ANTHROPIC_MODEL)'),
+        key: z.string().optional().describe('設定キー名の完全一致(例: model, ANTHROPIC_MODEL)'),
         query: z
           .string()
           .min(1)
           .max(50)
           .optional()
           .describe('キー名と説明文を対象にしたキーワード検索'),
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(30)
-          .default(10)
-          .describe('query 検索時の最大件数'),
+        limit: z.number().int().min(1).max(30).default(10).describe('query 検索時の最大件数'),
       }),
       annotations: { readOnlyHint: true },
     },
@@ -91,9 +74,7 @@ export function registerGetSettingsReferenceTool(
             {
               type: 'text',
               text: JSON.stringify(
-                await Promise.all(
-                  settings.map((setting) => toSettingPayload(db, setting)),
-                ),
+                await Promise.all(settings.map((setting) => toSettingPayload(db, setting))),
               ),
             },
           ],
@@ -101,9 +82,7 @@ export function registerGetSettingsReferenceTool(
       }
       const keys = await listSettingKeys(db);
       const payload = {
-        settings: keys
-          .filter((row) => row.source === 'settings')
-          .map((row) => row.key),
+        settings: keys.filter((row) => row.source === 'settings').map((row) => row.key),
         env: keys.filter((row) => row.source === 'env').map((row) => row.key),
       };
       return { content: [{ type: 'text', text: JSON.stringify(payload) }] };

@@ -28,12 +28,7 @@ export function toDocPath(value: string): string {
   const normalized = value.replaceAll('\\', '/').split(/[?#]/)[0] ?? value;
   const marker = 'docs/en/';
   const markerIndex = normalized.indexOf(marker);
-  const path =
-    markerIndex === -1
-      ? normalized
-      : normalized.slice(markerIndex + marker.length);
+  const path = markerIndex === -1 ? normalized : normalized.slice(markerIndex + marker.length);
   const withoutTrailingSlash = path.replace(/\/+$/, '');
-  return withoutTrailingSlash.endsWith('.md')
-    ? withoutTrailingSlash
-    : `${withoutTrailingSlash}.md`;
+  return withoutTrailingSlash.endsWith('.md') ? withoutTrailingSlash : `${withoutTrailingSlash}.md`;
 }

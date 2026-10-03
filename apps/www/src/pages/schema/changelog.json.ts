@@ -3,8 +3,7 @@ import type { APIRoute } from 'astro';
 import { buildArticleNode } from '../../lib/json-ld';
 
 export const GET: APIRoute = async ({ site }) => {
-  const siteUrl =
-    site?.toString().replace(/\/$/, '') ?? 'https://claude-code-log.com';
+  const siteUrl = site?.toString().replace(/\/$/, '') ?? 'https://claude-code-log.com';
 
   const changelogs = await getCollection('changelog');
 

@@ -34,9 +34,7 @@ export async function fetchChangelogMarkdown(
             'hash.actual': actualHash,
           },
         });
-        throw new Error(
-          `CHANGELOG ハッシュ不一致: expected=${expectedHash} actual=${actualHash}`,
-        );
+        throw new Error(`CHANGELOG ハッシュ不一致: expected=${expectedHash} actual=${actualHash}`);
       }
     }
 
@@ -65,11 +63,8 @@ export function createGitHubChangelogSource(token: string): ChangelogSource {
 }
 
 /** CHANGELOG 本文を Workflow 用 port として取得する source adapter。 */
-export function createGitHubChangelogMarkdownSource(
-  token: string,
-): ChangelogMarkdownSourcePort {
+export function createGitHubChangelogMarkdownSource(token: string): ChangelogMarkdownSourcePort {
   return {
-    fetchMarkdown: (expectedHash) =>
-      fetchChangelogMarkdown(token, expectedHash),
+    fetchMarkdown: (expectedHash) => fetchChangelogMarkdown(token, expectedHash),
   };
 }

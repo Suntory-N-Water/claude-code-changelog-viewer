@@ -54,8 +54,7 @@ export async function unsubscribe(
   const deactivatedChannel = deactivate(channel, 'user', input.unsubscribedAt);
   await repository.save(deactivatedChannel);
 
-  const notificationResult =
-    await notifier.sendUnsubscribeNotification(deactivatedChannel);
+  const notificationResult = await notifier.sendUnsubscribeNotification(deactivatedChannel);
   if (!notificationResult.ok) {
     logger.warn('配信停止通知に失敗しました', {
       channel_type: deactivatedChannel.type,

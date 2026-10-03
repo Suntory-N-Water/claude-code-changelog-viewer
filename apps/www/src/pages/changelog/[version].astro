@@ -6,11 +6,7 @@ import Button from '../../components/ui/Button.astro';
 import PrefixTableOfContents from '../../components/changelog/PrefixTableOfContents.astro';
 import Icon from '../../components/Icon.astro';
 import Layout from '../../layouts/Layout.astro';
-import {
-  buildDiffMap,
-  type DiffEvent,
-  formatDiffDateTime,
-} from '../../lib/changelog-diff';
+import { buildDiffMap, type DiffEvent, formatDiffDateTime } from '../../lib/changelog-diff';
 import { extractChangelogData, getLinkedAreas } from '../../lib/feature-area';
 import { formatChangelogContent } from '../../lib/format-changelog-content';
 import {
@@ -49,27 +45,14 @@ export async function getStaticPaths() {
   }));
 }
 
-const {
-  entry,
-  prevVersion,
-  nextVersion,
-  latestVersion,
-  linkedAreas,
-  diffEvents,
-} = Astro.props;
+const { entry, prevVersion, nextVersion, latestVersion, linkedAreas, diffEvents } = Astro.props;
 const { version, items, summary } = entry.data;
 
 // 差分ステータス算出
-const removedEvent = diffEvents.find(
-  (e: DiffEvent) => e.type === 'version_removed',
-);
+const removedEvent = diffEvents.find((e: DiffEvent) => e.type === 'version_removed');
 const isRemoved = !!removedEvent;
-const removedDate = removedEvent
-  ? formatDiffDateTime(removedEvent.detected_at)
-  : '';
-const itemChangeEvents = diffEvents.filter(
-  (e: DiffEvent) => e.type === 'items_changed',
-);
+const removedDate = removedEvent ? formatDiffDateTime(removedEvent.detected_at) : '';
+const itemChangeEvents = diffEvents.filter((e: DiffEvent) => e.type === 'items_changed');
 const hasItemChanges = itemChangeEvents.length > 0;
 
 // メタタグ用 description: summary があれば使用、なければ変更項目数を含めた詳細テキスト
@@ -131,11 +114,7 @@ const totalItemCount = items.length;
       {
         version !== latestVersion && (
           <div class='mb-6 flex items-start gap-2 px-4 py-3 rounded-lg bg-[hsl(var(--cc-gray)/0.5)] border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.85)]'>
-            <Icon
-              name='info-circle'
-              class='w-4 h-4 shrink-0 mt-0.5'
-              aria-hidden='true'
-            />
+            <Icon name='info-circle' class='w-4 h-4 shrink-0 mt-0.5' aria-hidden='true' />
             <div>
               <p>このバージョン以降にも更新があります。</p>
               <a
@@ -206,11 +185,7 @@ const totalItemCount = items.length;
                 class='changelog-history-trigger p-0 mt-2 text-gray-600 hover:bg-transparent'
               >
                 公式のCHANGELOG.mdでの変更履歴
-                <Icon
-                  name='chevron-down'
-                  class='w-3.5 h-3.5'
-                  aria-hidden='true'
-                />
+                <Icon name='chevron-down' class='w-3.5 h-3.5' aria-hidden='true' />
               </Button>
               <div
                 id='changelog-history-popover'
@@ -239,14 +214,10 @@ const totalItemCount = items.length;
                       <p class='font-medium text-gray-700'>
                         {formatDiffDateTime(event.detected_at)}
                         {event.items_added.length > 0 && (
-                          <span class='text-green-700 ml-2'>
-                            +{event.items_added.length}件追加
-                          </span>
+                          <span class='text-green-700 ml-2'>+{event.items_added.length}件追加</span>
                         )}
                         {event.items_removed.length > 0 && (
-                          <span class='text-red-700 ml-2'>
-                            -{event.items_removed.length}件削除
-                          </span>
+                          <span class='text-red-700 ml-2'>-{event.items_removed.length}件削除</span>
                         )}
                       </p>
                       {event.items_added.length > 0 && (
@@ -293,9 +264,7 @@ const totalItemCount = items.length;
       <div class='space-y-10'>
         {
           prefixGroups.map((group) => {
-            const { style, icon: iconPath } = getPrefixPresentation(
-              group.prefix,
-            );
+            const { style, icon: iconPath } = getPrefixPresentation(group.prefix);
             return (
               <section id={`prefix-${group.prefix.toLowerCase()}`}>
                 <div class='sticky top-12 z-10 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
@@ -312,11 +281,7 @@ const totalItemCount = items.length;
                           stroke-width='2.5'
                           aria-hidden='true'
                         >
-                          <path
-                            stroke-linecap='round'
-                            stroke-linejoin='round'
-                            d={iconPath}
-                          />
+                          <path stroke-linecap='round' stroke-linejoin='round' d={iconPath} />
                         </svg>
                       )}
                       {group.prefix}
@@ -345,9 +310,7 @@ const totalItemCount = items.length;
       <aside
         class='mt-10 p-5 bg-[hsl(var(--cc-main-orange)/0.04)] border border-[hsl(var(--cc-gray))] rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4'
       >
-        <p class='text-sm text-gray-600'>
-          Claude Codeの新バージョンを見逃さない
-        </p>
+        <p class='text-sm text-gray-600'>Claude Codeの新バージョンを見逃さない</p>
         <Button href='/notify' size='sm' shape='pill' data-cta='notify'>
           <Icon name='bell' class='w-4 h-4' aria-hidden='true' />
           更新通知を受け取る
@@ -402,12 +365,7 @@ const totalItemCount = items.length;
           shape='pill'
           aria-label='URLをコピー'
         >
-          <Icon
-            name='copy'
-            id='copy-url-icon'
-            class='w-3.5 h-3.5'
-            aria-hidden='true'
-          />
+          <Icon name='copy' id='copy-url-icon' class='w-3.5 h-3.5' aria-hidden='true' />
           <span id='copy-url-label'>URLをコピー</span>
         </Button>
       </div>
@@ -423,8 +381,7 @@ const totalItemCount = items.length;
               class='inline-flex items-center gap-1 text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
               data-version-nav='prev'
             >
-              <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />v
-              {prevVersion}
+              <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />v{prevVersion}
             </a>
           ) : (
             <span />
@@ -450,9 +407,7 @@ const totalItemCount = items.length;
 
   <script>
     function initChangelogInteractions() {
-      const version =
-        document.querySelector<HTMLHeadingElement>('h1')?.textContent?.trim() ??
-        '';
+      const version = document.querySelector<HTMLHeadingElement>('h1')?.textContent?.trim() ?? '';
 
       // Web Share API (対応環境のみシェアボタンを表示、フォールバックは非表示)
       const webShareBtn = document.getElementById('web-share-btn');
@@ -463,9 +418,7 @@ const totalItemCount = items.length;
           url: location.href,
         };
         const canShareData =
-          typeof navigator.canShare === 'function'
-            ? navigator.canShare(shareData)
-            : true;
+          typeof navigator.canShare === 'function' ? navigator.canShare(shareData) : true;
         if (canShareData) {
           webShareBtn.hidden = false;
           // 個別シェアリンク (X / はてブ / コピー) を非表示にして統合
@@ -515,17 +468,15 @@ const totalItemCount = items.length;
       }
 
       // シェアリンク (X / はてブ)
-      document
-        .querySelectorAll<HTMLAnchorElement>('[data-share]')
-        .forEach((el) => {
-          el.addEventListener('click', () => {
-            window.gtag?.('event', 'share_clicked', {
-              event_category: 'engagement',
-              share_method: el.dataset.share,
-              version,
-            });
+      document.querySelectorAll<HTMLAnchorElement>('[data-share]').forEach((el) => {
+        el.addEventListener('click', () => {
+          window.gtag?.('event', 'share_clicked', {
+            event_category: 'engagement',
+            share_method: el.dataset.share,
+            version,
           });
         });
+      });
 
       // 通知CTA
       document
@@ -539,17 +490,15 @@ const totalItemCount = items.length;
         });
 
       // 前後バージョンナビゲーション
-      document
-        .querySelectorAll<HTMLAnchorElement>('[data-version-nav]')
-        .forEach((el) => {
-          el.addEventListener('click', () => {
-            window.gtag?.('event', 'version_nav_clicked', {
-              event_category: 'engagement',
-              direction: el.dataset.versionNav,
-              from_version: version,
-            });
+      document.querySelectorAll<HTMLAnchorElement>('[data-version-nav]').forEach((el) => {
+        el.addEventListener('click', () => {
+          window.gtag?.('event', 'version_nav_clicked', {
+            event_category: 'engagement',
+            direction: el.dataset.versionNav,
+            from_version: version,
           });
         });
+      });
 
       // スクロール深度 (25% / 50% / 75% / 100%)
       const milestones = [25, 50, 75, 100];

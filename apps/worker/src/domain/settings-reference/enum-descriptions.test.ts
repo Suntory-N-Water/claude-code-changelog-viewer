@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildEnumDescriptionsJa,
-  parseEnumDescriptions,
-} from './enum-descriptions';
+import { buildEnumDescriptionsJa, parseEnumDescriptions } from './enum-descriptions';
 
 describe('選択肢ごとの日本語説明の組み立て', () => {
   it('英文のある値だけを、英文と同じ並びで JSON にすること', () => {
@@ -31,10 +28,9 @@ describe('選択肢ごとの日本語説明の組み立て', () => {
 
   it('AI が返さなかった値を、説明のないままにすること', () => {
     expect(
-      buildEnumDescriptionsJa(
-        { latest: 'the most recent release', stable: 'a week-old version' },
-        [{ value: 'stable', descriptionJa: 'おおむね1週間前のリリース' }],
-      ),
+      buildEnumDescriptionsJa({ latest: 'the most recent release', stable: 'a week-old version' }, [
+        { value: 'stable', descriptionJa: 'おおむね1週間前のリリース' },
+      ]),
     ).toBe('{"stable":"おおむね1週間前のリリース"}');
   });
 
@@ -63,9 +59,7 @@ describe('選択肢ごとの日本語説明の組み立て', () => {
 
   it('英文がないとき、AI の出力を使わないこと', () => {
     expect(
-      buildEnumDescriptionsJa(undefined, [
-        { value: 'latest', descriptionJa: '最新のリリース' },
-      ]),
+      buildEnumDescriptionsJa(undefined, [{ value: 'latest', descriptionJa: '最新のリリース' }]),
     ).toBeNull();
   });
 });

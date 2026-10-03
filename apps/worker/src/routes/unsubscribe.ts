@@ -129,10 +129,7 @@ function renderUnsubscribeErrorResponse(
   error: UnsubscribeError,
 ) {
   const content = unsubscribeErrorMessages[error];
-  return c.html(
-    renderResult(c.env.SITE_URL, content.title, content.message),
-    content.status,
-  );
+  return c.html(renderResult(c.env.SITE_URL, content.title, content.message), content.status);
 }
 
 export const unsubscribeRoute = new Hono<{
@@ -146,10 +143,7 @@ export const unsubscribeRoute = new Hono<{
       return renderUnsubscribeErrorResponse(c, 'missing_token');
     }
 
-    const repository = createChannelRepository(
-      c.env.DB,
-      c.env.EMAIL_ENCRYPTION_KEY,
-    );
+    const repository = createChannelRepository(c.env.DB, c.env.EMAIL_ENCRYPTION_KEY);
     let result: Awaited<ReturnType<typeof prepareUnsubscribe>>;
     try {
       result = await prepareUnsubscribe(repository, {
@@ -178,17 +172,13 @@ export const unsubscribeRoute = new Hono<{
   // POST: 実際に配信停止を実行
   .post('/', async (c) => {
     const body = await c.req.parseBody();
-    const tokenText =
-      typeof body['token'] === 'string' ? body['token'].trim() : '';
+    const tokenText = typeof body['token'] === 'string' ? body['token'].trim() : '';
     if (tokenText === '') {
       logger.warn('配信停止トークンがありません', { route: 'unsubscribe' });
       return renderUnsubscribeErrorResponse(c, 'missing_token');
     }
 
-    const repository = createChannelRepository(
-      c.env.DB,
-      c.env.EMAIL_ENCRYPTION_KEY,
-    );
+    const repository = createChannelRepository(c.env.DB, c.env.EMAIL_ENCRYPTION_KEY);
     const notifier = createChannelNotifier(c.env);
     let result: Awaited<ReturnType<typeof unsubscribe>>;
     try {
@@ -218,10 +208,6 @@ export const unsubscribeRoute = new Hono<{
     });
 
     return c.html(
-      renderResult(
-        c.env.SITE_URL,
-        '通知を停止しました',
-        '今後、更新通知は送信されません。',
-      ),
+      renderResult(c.env.SITE_URL, '通知を停止しました', '今後、更新通知は送信されません。'),
     );
   });

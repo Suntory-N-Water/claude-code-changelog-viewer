@@ -30,26 +30,14 @@ export function setupForm(config: FormConfig) {
   } = config;
 
   const form = document.getElementById(formId) as HTMLFormElement | null;
-  const input = document.getElementById(
-    webhookInputId,
-  ) as HTMLInputElement | null;
+  const input = document.getElementById(webhookInputId) as HTMLInputElement | null;
   const urlError = document.getElementById(webhookErrorId);
-  const submitBtn = document.getElementById(
-    submitButtonId,
-  ) as HTMLButtonElement | null;
+  const submitBtn = document.getElementById(submitButtonId) as HTMLButtonElement | null;
   const submitText = document.getElementById(submitTextId);
   const spinner = document.getElementById(submitSpinnerId);
   const resultMessage = document.getElementById(resultMessageId);
 
-  if (
-    !form ||
-    !input ||
-    !urlError ||
-    !submitBtn ||
-    !submitText ||
-    !spinner ||
-    !resultMessage
-  ) {
+  if (!form || !input || !urlError || !submitBtn || !submitText || !spinner || !resultMessage) {
     return;
   }
 
@@ -104,8 +92,7 @@ export function setupForm(config: FormConfig) {
 
       if (response.ok) {
         resultMessage.className = successClass;
-        resultMessage.textContent =
-          '登録が完了しました。テスト通知を送信しました。';
+        resultMessage.textContent = '登録が完了しました。テスト通知を送信しました。';
         window.gtag?.('event', 'notify_signup', {
           event_category: 'engagement',
           event_label: channel_type,
@@ -115,13 +102,11 @@ export function setupForm(config: FormConfig) {
         resultMessage.textContent = '既に登録済みです。';
       } else {
         resultMessage.className = errorClass;
-        resultMessage.textContent =
-          data.error ?? '登録に失敗しました。もう一度お試しください。';
+        resultMessage.textContent = data.error ?? '登録に失敗しました。もう一度お試しください。';
       }
     } catch {
       resultMessage.className = errorClass;
-      resultMessage.textContent =
-        'ネットワークエラーが発生しました。もう一度お試しください。';
+      resultMessage.textContent = 'ネットワークエラーが発生しました。もう一度お試しください。';
     } finally {
       resultMessage.classList.remove('hidden');
       submitText.textContent = '登録する';

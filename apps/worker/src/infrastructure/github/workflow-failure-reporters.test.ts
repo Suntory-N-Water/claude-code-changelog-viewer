@@ -50,9 +50,7 @@ function installGitHubIssueApi(
         title: typeof payload.title === 'string' ? payload.title : '',
         body: typeof payload.body === 'string' ? payload.body : null,
         labels: Array.isArray(payload.labels)
-          ? payload.labels.filter(
-              (label): label is string => typeof label === 'string',
-            )
+          ? payload.labels.filter((label): label is string => typeof label === 'string')
           : [],
       };
       initialIssues.push(issue);
@@ -63,17 +61,13 @@ function installGitHubIssueApi(
       if (rejectLabeling) {
         return new Response(null, { status: 403, statusText: 'Forbidden' });
       }
-      const issue = initialIssues.find(
-        ({ number }) => number === Number(labelRequest[1]),
-      );
+      const issue = initialIssues.find(({ number }) => number === Number(labelRequest[1]));
       if (issue === undefined) {
         throw new Error(`ラベル付与対象の Issue がありません: ${url}`);
       }
       const payload = JSON.parse(String(init?.body)) as { labels?: unknown };
       const labels = Array.isArray(payload.labels)
-        ? payload.labels.filter(
-            (label): label is string => typeof label === 'string',
-          )
+        ? payload.labels.filter((label): label is string => typeof label === 'string')
         : [];
       issue.labels = [...new Set([...issue.labels, ...labels])];
       return new Response(null, { status: 200 });
@@ -96,22 +90,12 @@ describe('Workflow 失敗 Issue', () => {
       throw new Error('作成された Issue が保存されていません');
     }
     expect(createdIssue.title).toBe('CHANGELOG 推論 Workflow に失敗');
-    expect(createdIssue.body).toContain(
-      'CHANGELOG 推論 Workflow が失敗しました。',
-    );
-    expect(createdIssue.body).toContain(
-      '**Workflow instance**: changelog-inference-1',
-    );
-    expect(createdIssue.body).toContain(
-      '**検出時刻**: 2026-08-20T20:35:06.978Z',
-    );
+    expect(createdIssue.body).toContain('CHANGELOG 推論 Workflow が失敗しました。');
+    expect(createdIssue.body).toContain('**Workflow instance**: changelog-inference-1');
+    expect(createdIssue.body).toContain('**検出時刻**: 2026-08-20T20:35:06.978Z');
     expect(createdIssue.body).toContain('推論失敗');
     expect(createdIssue.labels).toEqual(
-      expect.arrayContaining([
-        'automated-failure',
-        'workflow:changelog-auto-inference',
-        'bug',
-      ]),
+      expect.arrayContaining(['automated-failure', 'workflow:changelog-auto-inference', 'bug']),
     );
   });
 
@@ -147,11 +131,7 @@ describe('Workflow 失敗 Issue', () => {
 
     expect(issues).toHaveLength(1);
     expect(issues[0]?.labels).toEqual(
-      expect.arrayContaining([
-        'automated-failure',
-        'workflow:changelog-auto-inference',
-        'bug',
-      ]),
+      expect.arrayContaining(['automated-failure', 'workflow:changelog-auto-inference', 'bug']),
     );
   });
 
@@ -178,11 +158,7 @@ describe('Workflow 失敗 Issue', () => {
 
     expect(issues).toHaveLength(2);
     expect(issues[1]?.labels).toEqual(
-      expect.arrayContaining([
-        'automated-failure',
-        'workflow:changelog-auto-inference',
-        'bug',
-      ]),
+      expect.arrayContaining(['automated-failure', 'workflow:changelog-auto-inference', 'bug']),
     );
   });
 });

@@ -16,10 +16,9 @@ export const mcpRoute = new Hono<{ Bindings: CloudflareBindings }>().all(
     // McpServer を手動で WebStandardStreamableHTTPServerTransport に connect する構成では
     // server/discover ハンドラが登録されず 2025 era 止まりになる。
     // legacy: 'stateless' により 2025 era のクライアントもステートレスで処理される
-    const handler = createMcpHandler(
-      () => createChangelogMcpServer(drizzle(c.env.DB)),
-      { legacy: 'stateless' },
-    );
+    const handler = createMcpHandler(() => createChangelogMcpServer(drizzle(c.env.DB)), {
+      legacy: 'stateless',
+    });
     try {
       const response = await handler.fetch(c.req.raw);
       logger.info('MCP リクエストが完了しました', {

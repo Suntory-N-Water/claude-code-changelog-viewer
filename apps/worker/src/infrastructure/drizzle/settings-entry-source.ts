@@ -43,30 +43,20 @@ export function createSettingsEntrySource(
           source: row.source === 'env' ? 'env' : 'settings',
           descriptionEn: row.description,
           parentDescriptions: parseStringArray(row.parent_descriptions),
-          ...(row.default_value === null
-            ? {}
-            : { schemaDefault: row.default_value }),
-          ...(row.enum_values === null
-            ? {}
-            : { schemaEnum: parseStringArray(row.enum_values) }),
+          ...(row.default_value === null ? {} : { schemaDefault: row.default_value }),
+          ...(row.enum_values === null ? {} : { schemaEnum: parseStringArray(row.enum_values) }),
           ...(enumDescriptions === undefined ? {} : { enumDescriptions }),
-          ...(row.default_note === null
-            ? {}
-            : { defaultNote: row.default_note }),
+          ...(row.default_note === null ? {} : { defaultNote: row.default_note }),
         };
       });
     },
 
     async loadExistingKeys(): Promise<ReadonlySet<string>> {
-      const rows = await db
-        .select({ key: settingsReference.key })
-        .from(settingsReference);
+      const rows = await db.select({ key: settingsReference.key }).from(settingsReference);
       return new Set(rows.map((row) => row.key));
     },
 
-    async findRelatedChangelogs(
-      key: string,
-    ): Promise<RelatedSettingChangelog[]> {
+    async findRelatedChangelogs(key: string): Promise<RelatedSettingChangelog[]> {
       const conditions = buildChangelogSearchTerms(key).flatMap((term) => [
         sql`instr(${changelogItems.content}, ${term}) > 0`,
         sql`instr(coalesce(${changelogItems.contentJa}, ''), ${term}) > 0`,
@@ -85,11 +75,7 @@ export function createSettingsEntrySource(
       rows.sort((a, b) => {
         const partsA = a.version.split('.').map(Number);
         const partsB = b.version.split('.').map(Number);
-        for (
-          let index = 0;
-          index < Math.max(partsA.length, partsB.length);
-          index += 1
-        ) {
+        for (let index = 0; index < Math.max(partsA.length, partsB.length); index += 1) {
           const difference = (partsB[index] ?? 0) - (partsA[index] ?? 0);
           if (difference !== 0) {
             return difference;

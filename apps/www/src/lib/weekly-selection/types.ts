@@ -7,6 +7,4 @@ export type WeeklySelectionItemState = {
 
 export type WeeklySelectionState = Record<string, WeeklySelectionItemState>;
 
-export type SaveWeeklySelectionItem = (
-  patch?: Partial<WeeklySelectionItemState>,
-) => void;
+export type SaveWeeklySelectionItem = (patch?: Partial<WeeklySelectionItemState>) => void;

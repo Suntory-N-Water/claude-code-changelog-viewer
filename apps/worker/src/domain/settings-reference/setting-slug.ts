@@ -1,8 +1,5 @@
 /** 設定キーと発生元から settings_reference 用の slug を生成する。 */
-export function createSettingSlugFromKey(
-  key: string,
-  source: 'settings' | 'env',
-): string {
+export function createSettingSlugFromKey(key: string, source: 'settings' | 'env'): string {
   if (source === 'env') {
     return key.toLowerCase().replace(/_/g, '-');
   }
@@ -28,10 +25,7 @@ export function resolveSettingSlugs(
   const keysByBaseSlug = new Map<string, string[]>();
   for (const { key, source } of candidates) {
     const baseSlug = createSettingSlugFromKey(key, source);
-    keysByBaseSlug.set(baseSlug, [
-      ...(keysByBaseSlug.get(baseSlug) ?? []),
-      key,
-    ]);
+    keysByBaseSlug.set(baseSlug, [...(keysByBaseSlug.get(baseSlug) ?? []), key]);
   }
 
   const slugs = new Map<string, string>();
@@ -40,9 +34,7 @@ export function resolveSettingSlugs(
     const baseSlug = createSettingSlugFromKey(key, source);
     const hasConflict = (keysByBaseSlug.get(baseSlug)?.length ?? 0) > 1;
     const slug =
-      hasConflict && key.includes('.')
-        ? key.split('.').map(toKebabCase).join('--')
-        : baseSlug;
+      hasConflict && key.includes('.') ? key.split('.').map(toKebabCase).join('--') : baseSlug;
 
     let uniqueSlug = slug;
     for (let suffix = 2; usedSlugs.has(uniqueSlug); suffix += 1) {

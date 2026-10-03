@@ -34,19 +34,14 @@ export async function loadSettingSchemaDisplays(
   const displays = new Map<string, SettingSchemaDisplay>();
   for (const row of result.results) {
     const defaultValue =
-      row.default_value === null
-        ? ''
-        : formatSchemaDefaultValue(row.default_value);
-    const enumValues =
-      row.enum_values === null ? [] : parseSchemaEnumValues(row.enum_values);
+      row.default_value === null ? '' : formatSchemaDefaultValue(row.default_value);
+    const enumValues = row.enum_values === null ? [] : parseSchemaEnumValues(row.enum_values);
     const display: SettingSchemaDisplay = {
       ...(row.value_type === '' ? {} : { valueType: row.value_type }),
       ...(defaultValue === '' ? {} : { defaultValue }),
       ...(enumValues.length === 0 ? {} : { enumValues }),
       ...(row.scope === null ? {} : { scope: formatSettingScope(row.scope) }),
-      ...(row.example === null || row.example === ''
-        ? {}
-        : { example: row.example }),
+      ...(row.example === null || row.example === '' ? {} : { example: row.example }),
     };
     if (Object.keys(display).length > 0) {
       displays.set(row.key, display);

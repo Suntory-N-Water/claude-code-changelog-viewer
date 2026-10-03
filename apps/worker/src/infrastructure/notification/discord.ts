@@ -62,9 +62,7 @@ export function createChangelogMessage(
 }
 
 /** Discord向けの登録テスト通知メッセージを生成する。 */
-export function createTestMessage(
-  unsubscribeUrl: string,
-): DiscordWebhookPayload {
+export function createTestMessage(unsubscribeUrl: string): DiscordWebhookPayload {
   return {
     content:
       '✅ **CCログ超訳 Bot** の通知登録が完了しました！\n\n' +

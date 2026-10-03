@@ -6,9 +6,7 @@ import type {
 } from '../../domain/changelog-inference/changelog-inference';
 import { ingestChangelogDiffEvents } from './changelog-ingestion';
 
-export function createChangelogDiffRepository(
-  db: DrizzleD1Database,
-): ChangelogDiffRepository {
+export function createChangelogDiffRepository(db: DrizzleD1Database): ChangelogDiffRepository {
   return {
     async saveAll(events) {
       const ingestionEvents: IngestChangelogDiffEvent[] = events.map((event) =>
@@ -19,9 +17,7 @@ export function createChangelogDiffRepository(
   };
 }
 
-function toIngestChangelogDiffEvent(
-  event: ChangelogDiffEvent,
-): IngestChangelogDiffEvent {
+function toIngestChangelogDiffEvent(event: ChangelogDiffEvent): IngestChangelogDiffEvent {
   return {
     detected_at: event.detectedAt,
     version: event.version,

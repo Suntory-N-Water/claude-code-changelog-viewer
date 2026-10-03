@@ -74,21 +74,15 @@ export function createSettingsReferenceAi(
   };
 }
 
-export function buildSettingsReferencePrompt(
-  input: SettingsReferenceInput,
-): string {
+export function buildSettingsReferencePrompt(input: SettingsReferenceInput): string {
   const withContext = input.entries.filter(
-    (entry) =>
-      entry.docSnippets.length > 0 || entry.relatedChangelog.length > 0,
+    (entry) => entry.docSnippets.length > 0 || entry.relatedChangelog.length > 0,
   );
   const withoutContext = input.entries.filter(
-    (entry) =>
-      entry.docSnippets.length === 0 && entry.relatedChangelog.length === 0,
+    (entry) => entry.docSnippets.length === 0 && entry.relatedChangelog.length === 0,
   );
 
-  const contextSection = withContext
-    .map((entry) => buildContextEntry(entry))
-    .join('\n\n');
+  const contextSection = withContext.map((entry) => buildContextEntry(entry)).join('\n\n');
   const translationSection = withoutContext
     .map((entry) => buildTranslationEntry(entry))
     .join('\n\n');
@@ -182,13 +176,9 @@ function buildSchemaText(
     parts.push(`デフォルト値: ${JSON.stringify(schemaDefault)}`);
   }
   if (schemaEnum !== undefined && schemaEnum.length > 0) {
-    parts.push(
-      `選択肢: [${schemaEnum.map((value) => JSON.stringify(value)).join(', ')}]`,
-    );
+    parts.push(`選択肢: [${schemaEnum.map((value) => JSON.stringify(value)).join(', ')}]`);
   }
-  return parts.length > 0
-    ? ['### スキーマ情報', `- ${parts.join(', ')}`].join('\n')
-    : '';
+  return parts.length > 0 ? ['### スキーマ情報', `- ${parts.join(', ')}`].join('\n') : '';
 }
 
 /** 選択肢ごとの説明と既定値の補足を、公式の英文のまま AI に渡す。 */
@@ -206,23 +196,18 @@ function buildOfficialTextsSection(entry: SettingsReferenceInputEntry): string {
     );
   }
   if (entry.defaultNote !== undefined) {
-    sections.push(
-      ['### 既定値の英語の補足', `- ${entry.defaultNote}`].join('\n'),
-    );
+    sections.push(['### 既定値の英語の補足', `- ${entry.defaultNote}`].join('\n'));
   }
   return sections.join('\n');
 }
 
 function buildContextEntry(entry: SettingsReferenceInputEntry): string {
-  const sourceLabel =
-    entry.source === 'settings' ? 'settings.json 設定' : '環境変数';
+  const sourceLabel = entry.source === 'settings' ? 'settings.json 設定' : '環境変数';
   const parentText =
     entry.parentDescriptions.length > 0
       ? [
           '### 親オブジェクトの説明',
-          entry.parentDescriptions
-            .map((description) => `- ${description}`)
-            .join('\n'),
+          entry.parentDescriptions.map((description) => `- ${description}`).join('\n'),
         ].join('\n')
       : '';
   const docsText =
@@ -267,8 +252,7 @@ function buildContextEntry(entry: SettingsReferenceInputEntry): string {
 }
 
 function buildTranslationEntry(entry: SettingsReferenceInputEntry): string {
-  const sourceLabel =
-    entry.source === 'settings' ? 'settings.json 設定' : '環境変数';
+  const sourceLabel = entry.source === 'settings' ? 'settings.json 設定' : '環境変数';
   const schemaText = buildSchemaText(entry.schemaDefault, entry.schemaEnum);
   return [
     `#### エントリ id=${entry.id} (${sourceLabel})`,

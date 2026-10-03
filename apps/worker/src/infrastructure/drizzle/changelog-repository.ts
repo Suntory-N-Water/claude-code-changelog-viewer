@@ -17,20 +17,13 @@ export type ChangelogSearchParams = {
   limit: number;
 };
 
-export async function searchChangelogItems(
-  db: DrizzleD1Database,
-  params: ChangelogSearchParams,
-) {
+export async function searchChangelogItems(db: DrizzleD1Database, params: ChangelogSearchParams) {
   // search_text は取り込み時に NFKC 正規化 + 小文字化済みのため、クエリ側も揃える。
   // D1 は LIKE パターン長が 50 バイトのため instr() で検索する
   const normalizedQuery = params.query.normalize('NFKC').toLowerCase();
-  const conditions: SQL[] = [
-    sql`instr(${changelogItems.searchText}, ${normalizedQuery}) > 0`,
-  ];
+  const conditions: SQL[] = [sql`instr(${changelogItems.searchText}, ${normalizedQuery}) > 0`];
   if (params.prefix !== undefined) {
-    conditions.push(
-      sql`lower(${changelogItems.prefix}) = ${params.prefix.toLowerCase()}`,
-    );
+    conditions.push(sql`lower(${changelogItems.prefix}) = ${params.prefix.toLowerCase()}`);
   }
   // バージョン降順は SQL で表現できない(semver のテキスト比較が壊れる)ため、
   // 全該当行を取得して JS 側でソートする。items は 4386 行で全件でも性能内
@@ -60,10 +53,7 @@ export async function searchChangelogItems(
   return rows.slice(0, params.limit);
 }
 
-export async function findChangelogVersion(
-  db: DrizzleD1Database,
-  version: string,
-) {
+export async function findChangelogVersion(db: DrizzleD1Database, version: string) {
   const versionRow = await db
     .select()
     .from(changelogVersions)
@@ -179,18 +169,11 @@ export async function listDiffEventItems(db: DrizzleD1Database) {
 }
 
 export async function findSettingByKey(db: DrizzleD1Database, key: string) {
-  const row = await db
-    .select()
-    .from(settingsReference)
-    .where(eq(settingsReference.key, key))
-    .get();
+  const row = await db.select().from(settingsReference).where(eq(settingsReference.key, key)).get();
   return row ?? null;
 }
 
-export async function findOfficialDocPathsBySettingKey(
-  db: DrizzleD1Database,
-  key: string,
-) {
+export async function findOfficialDocPathsBySettingKey(db: DrizzleD1Database, key: string) {
   return db
     .select({ docPath: settingsOfficialDocs.docPath })
     .from(settingsOfficialDocs)
@@ -198,11 +181,7 @@ export async function findOfficialDocPathsBySettingKey(
     .orderBy(settingsOfficialDocs.docPath);
 }
 
-export async function searchSettings(
-  db: DrizzleD1Database,
-  query: string,
-  limit: number,
-) {
+export async function searchSettings(db: DrizzleD1Database, query: string, limit: number) {
   // settings_reference には search_text がないため、対象カラムを連結して instr で引く。
   // SQLite の lower() は ASCII のみ対象だが、日本語は大文字小文字の揺れがないため足りる
   const normalizedQuery = query.normalize('NFKC').toLowerCase();

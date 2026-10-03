@@ -25,11 +25,7 @@ export const siteDataRoute = new Hono<{
 
 siteDataRoute.use(
   '*',
-  rateLimit(
-    (env) => env.SITE_DATA_RATE_LIMITER,
-    'site-data',
-    'リクエストが多すぎます',
-  ),
+  rateLimit((env) => env.SITE_DATA_RATE_LIMITER, 'site-data', 'リクエストが多すぎます'),
 );
 
 siteDataRoute.get('/changelog', async (c) => {
@@ -39,13 +35,12 @@ siteDataRoute.get('/changelog', async (c) => {
   let featureAreaRows: Awaited<ReturnType<typeof listFeatureAreas>>;
   let relatedDocRows: Awaited<ReturnType<typeof listRelatedDocs>>;
   try {
-    [versionRows, itemRows, featureAreaRows, relatedDocRows] =
-      await Promise.all([
-        listChangelogVersions(db),
-        listChangelogItems(db),
-        listFeatureAreas(db),
-        listRelatedDocs(db),
-      ]);
+    [versionRows, itemRows, featureAreaRows, relatedDocRows] = await Promise.all([
+      listChangelogVersions(db),
+      listChangelogItems(db),
+      listFeatureAreas(db),
+      listRelatedDocs(db),
+    ]);
   } catch (error) {
     logger.error('CHANGELOG データの取得に失敗しました', {
       route: 'site-data/changelog',
@@ -56,22 +51,17 @@ siteDataRoute.get('/changelog', async (c) => {
 
   const featureAreasByVersion = new Map<string, Map<string, string[]>>();
   for (const row of featureAreaRows) {
-    const areasByItem =
-      featureAreasByVersion.get(row.version) ?? new Map<string, string[]>();
+    const areasByItem = featureAreasByVersion.get(row.version) ?? new Map<string, string[]>();
     const areas = areasByItem.get(row.itemId) ?? [];
     areas.push(row.featureArea);
     areasByItem.set(row.itemId, areas);
     featureAreasByVersion.set(row.version, areasByItem);
   }
 
-  const relatedDocsByVersion = new Map<
-    string,
-    Map<string, { doc_path: string }[]>
-  >();
+  const relatedDocsByVersion = new Map<string, Map<string, { doc_path: string }[]>>();
   for (const row of relatedDocRows) {
     const docsByItem =
-      relatedDocsByVersion.get(row.version) ??
-      new Map<string, { doc_path: string }[]>();
+      relatedDocsByVersion.get(row.version) ?? new Map<string, { doc_path: string }[]>();
     const docs = docsByItem.get(row.itemId) ?? [];
     docs.push({ doc_path: row.docPath });
     docsByItem.set(row.itemId, docs);
@@ -84,10 +74,8 @@ siteDataRoute.get('/changelog', async (c) => {
       id: row.itemId,
       content: row.content,
       prefix: row.prefix,
-      feature_areas:
-        featureAreasByVersion.get(row.version)?.get(row.itemId) ?? [],
-      related_docs:
-        relatedDocsByVersion.get(row.version)?.get(row.itemId) ?? [],
+      feature_areas: featureAreasByVersion.get(row.version)?.get(row.itemId) ?? [],
+      related_docs: relatedDocsByVersion.get(row.version)?.get(row.itemId) ?? [],
     };
     if (row.contentJa !== null) {
       item['content_ja'] = row.contentJa;
@@ -162,21 +150,11 @@ siteDataRoute.get('/settings', async (c) => {
         description_en: row.descriptionEn,
         description_ja: row.descriptionJa,
         ...(row.useCaseJa === null ? {} : { use_case_ja: row.useCaseJa }),
-        ...(schema?.valueType === undefined
-          ? {}
-          : { value_type: schema.valueType }),
-        ...(schema?.defaultValue === undefined
-          ? {}
-          : { default_value: schema.defaultValue }),
-        ...(schema?.enumValues === undefined
-          ? {}
-          : { enum_values: schema.enumValues }),
-        ...(enumDescriptionsJa === undefined
-          ? {}
-          : { enum_descriptions_ja: enumDescriptionsJa }),
-        ...(row.defaultNoteJa === null
-          ? {}
-          : { default_note_ja: row.defaultNoteJa }),
+        ...(schema?.valueType === undefined ? {} : { value_type: schema.valueType }),
+        ...(schema?.defaultValue === undefined ? {} : { default_value: schema.defaultValue }),
+        ...(schema?.enumValues === undefined ? {} : { enum_values: schema.enumValues }),
+        ...(enumDescriptionsJa === undefined ? {} : { enum_descriptions_ja: enumDescriptionsJa }),
+        ...(row.defaultNoteJa === null ? {} : { default_note_ja: row.defaultNoteJa }),
         ...(schema?.scope === undefined ? {} : { scope: schema.scope }),
         ...(schema?.example === undefined ? {} : { example: schema.example }),
         fetched_at: row.fetchedAt,
@@ -196,10 +174,7 @@ siteDataRoute.get('/diff', async (c) => {
   let eventRows: Awaited<ReturnType<typeof listDiffEvents>>;
   let itemRows: Awaited<ReturnType<typeof listDiffEventItems>>;
   try {
-    [eventRows, itemRows] = await Promise.all([
-      listDiffEvents(db),
-      listDiffEventItems(db),
-    ]);
+    [eventRows, itemRows] = await Promise.all([listDiffEvents(db), listDiffEventItems(db)]);
   } catch (error) {
     logger.error('CHANGELOG 差分の取得に失敗しました', {
       route: 'site-data/diff',
@@ -208,10 +183,7 @@ siteDataRoute.get('/diff', async (c) => {
     throw error;
   }
 
-  const itemsByEvent = new Map<
-    string,
-    { added: string[]; removed: string[] }
-  >();
+  const itemsByEvent = new Map<string, { added: string[]; removed: string[] }>();
   for (const row of itemRows) {
     const eventKey = `${row.version}\u0000${row.detectedAt}`;
     const items = itemsByEvent.get(eventKey) ?? { added: [], removed: [] };
@@ -221,9 +193,7 @@ siteDataRoute.get('/diff', async (c) => {
 
   const response = {
     events: eventRows.map((row) => {
-      const items = itemsByEvent.get(
-        `${row.version}\u0000${row.detectedAt}`,
-      ) ?? {
+      const items = itemsByEvent.get(`${row.version}\u0000${row.detectedAt}`) ?? {
         added: [],
         removed: [],
       };

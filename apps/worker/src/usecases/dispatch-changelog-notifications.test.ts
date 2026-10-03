@@ -9,9 +9,7 @@ describe('CHANGELOG 通知配信ユースケース', () => {
     const channel = createChannel(
       {
         type: 'DSC',
-        value: createDiscordWebhookUrl(
-          'https://discord.com/api/webhooks/123456/database-error',
-        ),
+        value: createDiscordWebhookUrl('https://discord.com/api/webhooks/123456/database-error'),
       },
       createNotificationFrequency('IMM'),
     );

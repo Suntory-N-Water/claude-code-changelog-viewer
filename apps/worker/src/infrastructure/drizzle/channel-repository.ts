@@ -18,10 +18,7 @@ import {
   createChannelId,
 } from '../../domain/channel/channel';
 import type { ChannelAddress } from '../../domain/channel/channel-address';
-import {
-  type ChannelToken,
-  createChannelToken,
-} from '../../domain/channel/channel-token';
+import { type ChannelToken, createChannelToken } from '../../domain/channel/channel-token';
 import type { ChannelRepository } from '../../domain/channel/channel-repository';
 import { createDiscordWebhookUrl } from '../../domain/channel/discord-webhook-url';
 import { createEmailAddress } from '../../domain/channel/email-address';
@@ -100,8 +97,7 @@ class DrizzleChannelRepository implements ChannelRepository {
             updatedAt: sql`datetime('now')`,
           },
         });
-      const notificationSettingStatement =
-        this.createNotificationSettingStatement(channel);
+      const notificationSettingStatement = this.createNotificationSettingStatement(channel);
 
       switch (channel.type) {
         case 'DSC':
@@ -120,22 +116,12 @@ class DrizzleChannelRepository implements ChannelRepository {
           break;
         case 'EML': {
           // 暗号処理で失敗した場合も、DB batch を始める前なので部分保存されない。
-          const emailHash = await hashEmail(
-            channel.emailAddress,
-            this.emailEncryptionKey,
-          );
-          const emailEncrypted = await encryptEmail(
-            channel.emailAddress,
-            this.emailEncryptionKey,
-          );
+          const emailHash = await hashEmail(channel.emailAddress, this.emailEncryptionKey);
+          const emailEncrypted = await encryptEmail(channel.emailAddress, this.emailEncryptionKey);
           await this.db.batch([
             channelStatement,
             notificationSettingStatement,
-            this.createEmailChannelStatement(
-              channel,
-              emailHash,
-              emailEncrypted,
-            ),
+            this.createEmailChannelStatement(channel, emailHash, emailEncrypted),
           ]);
           break;
         }
@@ -156,9 +142,7 @@ class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** 指定頻度の有効チャンネルを復元して返す。 */
-  async findActiveByFrequency(
-    frequency: NotificationFrequency,
-  ): Promise<Channel[]> {
+  async findActiveByFrequency(frequency: NotificationFrequency): Promise<Channel[]> {
     const rows = await this.findCommonChannels(
       and(
         // CHANNEL_ACTIVE_SENTINEL は deactivated_at が「有効中」を示す番兵値。
@@ -204,9 +188,7 @@ class DrizzleChannelRepository implements ChannelRepository {
 
   /** 指定日時より前に停止されたチャンネルを復元して返す。 */
   async findDeactivatedBefore(date: Date): Promise<Channel[]> {
-    const rows = await this.findCommonChannels(
-      lt(channels.deactivatedAt, toSqlDateTime(date)),
-    );
+    const rows = await this.findCommonChannels(lt(channels.deactivatedAt, toSqlDateTime(date)));
     return this.restoreChannels(rows);
   }
 
@@ -214,17 +196,11 @@ class DrizzleChannelRepository implements ChannelRepository {
   async delete(id: ChannelId): Promise<void> {
     try {
       await this.db.batch([
-        this.db
-          .delete(notificationDeliveries)
-          .where(eq(notificationDeliveries.channelId, id)),
-        this.db
-          .delete(discordChannels)
-          .where(eq(discordChannels.channelId, id)),
+        this.db.delete(notificationDeliveries).where(eq(notificationDeliveries.channelId, id)),
+        this.db.delete(discordChannels).where(eq(discordChannels.channelId, id)),
         this.db.delete(slackChannels).where(eq(slackChannels.channelId, id)),
         this.db.delete(emailChannels).where(eq(emailChannels.channelId, id)),
-        this.db
-          .delete(notificationSettings)
-          .where(eq(notificationSettings.channelId, id)),
+        this.db.delete(notificationSettings).where(eq(notificationSettings.channelId, id)),
         this.db.delete(channels).where(eq(channels.id, id)),
       ]);
     } catch (error) {
@@ -238,9 +214,7 @@ class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** Discord Webhook URLから対応するチャンネルIDを引き、Channel集約を復元する。 */
-  private async findByDiscordWebhookUrl(
-    webhookUrl: string,
-  ): Promise<Channel | null> {
+  private async findByDiscordWebhookUrl(webhookUrl: string): Promise<Channel | null> {
     const rows = await this.db
       .select({ channelId: discordChannels.channelId })
       .from(discordChannels)
@@ -254,9 +228,7 @@ class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** Slack Webhook URLから対応するチャンネルIDを引き、Channel集約を復元する。 */
-  private async findBySlackWebhookUrl(
-    webhookUrl: string,
-  ): Promise<Channel | null> {
+  private async findBySlackWebhookUrl(webhookUrl: string): Promise<Channel | null> {
     const rows = await this.db
       .select({ channelId: slackChannels.channelId })
       .from(slackChannels)
@@ -270,9 +242,7 @@ class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** EmailアドレスのHMACハッシュから対応するチャンネルIDを引き、Channel集約を復元する。 */
-  private async findByEmailAddress(
-    emailAddress: string,
-  ): Promise<Channel | null> {
+  private async findByEmailAddress(emailAddress: string): Promise<Channel | null> {
     // メールは平文保存しない。検索には HMAC ハッシュ、送信時には暗号化済み本文の復号を使う。
     const emailHash = await hashEmail(emailAddress, this.emailEncryptionKey);
     const rows = await this.db
@@ -288,9 +258,7 @@ class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** 1件取得用の共通行取得ヘルパー。 */
-  private async findCommonChannel(
-    where: ReturnType<typeof eq>,
-  ): Promise<CommonChannelRow | null> {
+  private async findCommonChannel(where: ReturnType<typeof eq>): Promise<CommonChannelRow | null> {
     const rows = await this.findCommonChannels(where);
     return rows[0] ?? null;
   }
@@ -300,10 +268,7 @@ class DrizzleChannelRepository implements ChannelRepository {
    * サブタイプ固有値は restoreChannel で channel_type に応じて追加取得する。
    */
   private async findCommonChannels(
-    where:
-      | ReturnType<typeof and>
-      | ReturnType<typeof eq>
-      | ReturnType<typeof lt>,
+    where: ReturnType<typeof and> | ReturnType<typeof eq> | ReturnType<typeof lt>,
   ): Promise<CommonChannelRow[]> {
     return this.db
       .select({
@@ -316,10 +281,7 @@ class DrizzleChannelRepository implements ChannelRepository {
         frequency: notificationSettings.frequency,
       })
       .from(channels)
-      .innerJoin(
-        notificationSettings,
-        eq(notificationSettings.channelId, channels.id),
-      )
+      .innerJoin(notificationSettings, eq(notificationSettings.channelId, channels.id))
       .where(where);
   }
 
@@ -343,9 +305,7 @@ class DrizzleChannelRepository implements ChannelRepository {
    * channels の共通行と各サブタイプテーブルの行から、ドメインの Channel 集約を復元する。
    * 共通行がない、または対応するサブタイプ行がない場合は null を返す。
    */
-  private async restoreChannel(
-    row: CommonChannelRow | null,
-  ): Promise<Channel | null> {
+  private async restoreChannel(row: CommonChannelRow | null): Promise<Channel | null> {
     if (!row) {
       return null;
     }
@@ -402,10 +362,7 @@ class DrizzleChannelRepository implements ChannelRepository {
         }
 
         // メールは平文保存しない。送信用のドメインモデル復元時のみ復号する。
-        const emailAddress = await decryptEmail(
-          subtype.emailEncrypted,
-          this.emailEncryptionKey,
-        );
+        const emailAddress = await decryptEmail(subtype.emailEncrypted, this.emailEncryptionKey);
 
         return {
           ...base,
@@ -434,9 +391,7 @@ class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** Discord 固有の通知先を discord_channels に保存する。 */
-  private createDiscordChannelStatement(
-    channel: Extract<Channel, { type: 'DSC' }>,
-  ) {
+  private createDiscordChannelStatement(channel: Extract<Channel, { type: 'DSC' }>) {
     return this.db
       .insert(discordChannels)
       .values({ channelId: channel.id, webhookUrl: channel.webhookUrl })
@@ -447,9 +402,7 @@ class DrizzleChannelRepository implements ChannelRepository {
   }
 
   /** Slack 固有の通知先を slack_channels に保存する。 */
-  private createSlackChannelStatement(
-    channel: Extract<Channel, { type: 'SLK' }>,
-  ) {
+  private createSlackChannelStatement(channel: Extract<Channel, { type: 'SLK' }>) {
     return this.db
       .insert(slackChannels)
       .values({ channelId: channel.id, webhookUrl: channel.webhookUrl })

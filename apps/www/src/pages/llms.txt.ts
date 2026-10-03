@@ -33,12 +33,8 @@ export async function GET(context: APIContext) {
       label: getFeatureAreaLabel(area),
     }));
 
-  const weeklyPosts = [...posts].sort((a, b) =>
-    b.data.date.localeCompare(a.data.date),
-  );
-  const columnPosts = [...columns].sort((a, b) =>
-    b.data.date.localeCompare(a.data.date),
-  );
+  const weeklyPosts = [...posts].sort((a, b) => b.data.date.localeCompare(a.data.date));
+  const columnPosts = [...columns].sort((a, b) => b.data.date.localeCompare(a.data.date));
 
   const sortedSettings = [...settings].sort((a, b) => {
     if (a.data.source !== b.data.source) {
@@ -81,9 +77,7 @@ export async function GET(context: APIContext) {
   for (const entry of weeklyPosts) {
     const slug = entry.id.split('/').pop();
     const summary = entry.data.description ? `: ${entry.data.description}` : '';
-    lines.push(
-      `- [${entry.data.title}](${site}/posts/weekly/${slug})${summary}`,
-    );
+    lines.push(`- [${entry.data.title}](${site}/posts/weekly/${slug})${summary}`);
   }
 
   lines.push('', '## Columns', '');
@@ -95,12 +89,8 @@ export async function GET(context: APIContext) {
 
   lines.push('', '## Settings Reference', '');
   for (const entry of sortedSettings) {
-    const summary = entry.data.description_ja
-      ? `: ${entry.data.description_ja}`
-      : '';
-    lines.push(
-      `- [${entry.data.key}](${site}/reference/settings/${entry.data.slug})${summary}`,
-    );
+    const summary = entry.data.description_ja ? `: ${entry.data.description_ja}` : '';
+    lines.push(`- [${entry.data.key}](${site}/reference/settings/${entry.data.slug})${summary}`);
   }
 
   // TextEncoder でエンコードしないと Astro dev サーバーで日本語が文字化けする

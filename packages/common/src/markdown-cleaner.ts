@@ -93,18 +93,12 @@ function remarkStripMdxComponents() {
         return index;
       }
 
-      if (
-        node.type === 'mdxFlowExpression' ||
-        node.type === 'mdxTextExpression'
-      ) {
+      if (node.type === 'mdxFlowExpression' || node.type === 'mdxTextExpression') {
         parent.children.splice(index, 1);
         return index;
       }
 
-      if (
-        node.type === 'mdxJsxFlowElement' ||
-        node.type === 'mdxJsxTextElement'
-      ) {
+      if (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') {
         const tagName = (node as { name?: string | null }).name;
 
         if (tagName && REMOVE_TAGS.has(tagName)) {
@@ -117,11 +111,7 @@ function remarkStripMdxComponents() {
           return index;
         }
 
-        parent.children.splice(
-          index,
-          1,
-          ...(node.children as (typeof parent.children)[number][]),
-        );
+        parent.children.splice(index, 1, ...(node.children as (typeof parent.children)[number][]));
         return index;
       }
 

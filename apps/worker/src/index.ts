@@ -1,8 +1,5 @@
 import { workerLogger } from './logger';
-import {
-  runWithLogContext,
-  toError,
-} from '@claude-code-changelog-viewer/common';
+import { runWithLogContext, toError } from '@claude-code-changelog-viewer/common';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
@@ -25,9 +22,7 @@ export { SettingsReferenceWorkflow } from './workflows/settings-reference-workfl
 
 const logger = workerLogger('worker.index');
 
-export const app = new Hono<{ Bindings: CloudflareBindings }>().basePath(
-  '/api',
-);
+export const app = new Hono<{ Bindings: CloudflareBindings }>().basePath('/api');
 
 app.use('*', secureHeaders());
 app.use('*', async (c, next) => {
@@ -72,21 +67,18 @@ app.route('/unsubscribe', unsubscribeRoute);
 app.route('/uploads', uploadsRoute);
 
 async function runCron(name: string, task: () => Promise<void>): Promise<void> {
-  return runWithLogContext(
-    { trace_id: crypto.randomUUID(), 'job.name': name },
-    async () => {
-      logger.msg('APLG0001', { attrs: { 'job.name': name } });
-      try {
-        await task();
-        logger.msg('APLG0002', { attrs: { 'job.name': name } });
-      } catch (error) {
-        logger.error('cron の実行に失敗しました', {
-          'job.name': name,
-          error: toError(error),
-        });
-      }
-    },
-  );
+  return runWithLogContext({ trace_id: crypto.randomUUID(), 'job.name': name }, async () => {
+    logger.msg('APLG0001', { attrs: { 'job.name': name } });
+    try {
+      await task();
+      logger.msg('APLG0002', { attrs: { 'job.name': name } });
+    } catch (error) {
+      logger.error('cron の実行に失敗しました', {
+        'job.name': name,
+        error: toError(error),
+      });
+    }
+  });
 }
 
 export default {
@@ -101,16 +93,10 @@ export default {
     return app.fetch(request, env, ctx);
   },
   queue: queueConsumer,
-  async scheduled(
-    event: ScheduledEvent,
-    env: CloudflareBindings,
-    ctx: ExecutionContext,
-  ) {
+  async scheduled(event: ScheduledEvent, env: CloudflareBindings, ctx: ExecutionContext) {
     switch (event.cron) {
       case '0 */3 * * *':
-        ctx.waitUntil(
-          runCron('ドキュメント検索用 D1 同期 cron', () => syncDocs(env)),
-        );
+        ctx.waitUntil(runCron('ドキュメント検索用 D1 同期 cron', () => syncDocs(env)));
         break;
       case '0 15 * * *':
         ctx.waitUntil(
@@ -123,9 +109,7 @@ export default {
         );
         break;
       case '*/5 * * * *':
-        ctx.waitUntil(
-          runCron('CHANGELOG 検知 cron', () => detectChangelogUpdate(env)),
-        );
+        ctx.waitUntil(runCron('CHANGELOG 検知 cron', () => detectChangelogUpdate(env)));
         break;
       default:
         logger.warn('未対応の cron トリガー', { cron: event.cron });

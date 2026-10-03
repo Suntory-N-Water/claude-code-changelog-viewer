@@ -3,10 +3,7 @@ import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { z } from 'zod';
 import { findChangelogVersion } from '../../infrastructure/drizzle/changelog-repository';
 
-export function registerGetChangelogTool(
-  server: McpServer,
-  db: DrizzleD1Database,
-): void {
+export function registerGetChangelogTool(server: McpServer, db: DrizzleD1Database): void {
   server.registerTool(
     'get_changelog',
     {
@@ -40,8 +37,7 @@ export function registerGetChangelogTool(
         summary: found.summary ?? undefined,
         items: found.items.map((item) => ({
           prefix: item.prefix,
-          content:
-            lang === 'ja' ? (item.contentJa ?? item.content) : item.content,
+          content: lang === 'ja' ? (item.contentJa ?? item.content) : item.content,
           // benefit は日本語でしか存在しないため en では返さない
           benefit: lang === 'ja' ? (item.benefit ?? undefined) : undefined,
         })),

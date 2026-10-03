@@ -57,9 +57,7 @@ export async function GET(context: APIContext) {
   const changelogs = await getCollection('changelog');
   const pubDate = new Date();
 
-  const sorted = changelogs.sort((a, b) =>
-    semverCompareDesc(a.data.version, b.data.version),
-  );
+  const sorted = changelogs.sort((a, b) => semverCompareDesc(a.data.version, b.data.version));
   const latest = sorted.slice(0, 5);
 
   const items = latest.flatMap((entry) => {

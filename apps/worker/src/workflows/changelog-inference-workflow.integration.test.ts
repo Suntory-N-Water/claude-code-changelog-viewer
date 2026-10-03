@@ -88,10 +88,7 @@ function truncatedCompletion() {
 describe('CHANGELOG 推論 Workflow', () => {
   beforeEach(async () => {
     await applyD1Migrations(testEnv.DB, testEnv.TEST_NOTIFICATION_MIGRATIONS);
-    await applyD1Migrations(
-      testEnv.DOCS_DB,
-      testEnv.TEST_DOCS_SEARCH_MIGRATIONS,
-    );
+    await applyD1Migrations(testEnv.DOCS_DB, testEnv.TEST_DOCS_SEARCH_MIGRATIONS);
 
     const notificationDb = drizzle(testEnv.DB);
     await notificationDb.delete(changelogDiffEventItems);
@@ -137,29 +134,23 @@ describe('CHANGELOG 推論 Workflow', () => {
           },
         ],
         translated_items: [],
-        feature_area_corrections: [
-          { id: item.id, feature_areas: ['Workflow'] },
-        ],
+        feature_area_corrections: [{ id: item.id, feature_areas: ['Workflow'] }],
         summary: 'Workflow 推論のサポートを追加しました。',
       }),
     );
-    const queueSend = vi
-      .spyOn(testEnv.NOTIFICATION_QUEUE, 'send')
-      .mockResolvedValue({
-        metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
-      });
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockImplementation(async (input) => {
-        const url = String(input);
-        if (url.includes('/contents/CHANGELOG.md')) {
-          return new Response(changelog, { status: 200 });
-        }
-        if (url === 'https://deploy.example/hook') {
-          return new Response(null, { status: 200 });
-        }
-        throw new Error(`想定外の外部リクエスト: ${url}`);
-      });
+    const queueSend = vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
+      metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+    });
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/contents/CHANGELOG.md')) {
+        return new Response(changelog, { status: 200 });
+      }
+      if (url === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${url}`);
+    });
 
     const instanceId = `issue-901-${crypto.randomUUID()}`;
     const instance = await introspectWorkflowInstance(
@@ -222,10 +213,7 @@ describe('CHANGELOG 推論 Workflow', () => {
           inferenceBenefit: changelogItems.inferenceBenefit,
         })
         .from(changelogVersions)
-        .innerJoin(
-          changelogItems,
-          eq(changelogItems.version, changelogVersions.version),
-        )
+        .innerJoin(changelogItems, eq(changelogItems.version, changelogVersions.version))
         .where(eq(changelogVersions.version, '2.1.234'));
       expect(stored).toEqual([
         {
@@ -326,23 +314,19 @@ describe('CHANGELOG 推論 Workflow', () => {
         summary: 'Workflow 推論のサポートを追加しました。',
       }),
     );
-    const queueSend = vi
-      .spyOn(testEnv.NOTIFICATION_QUEUE, 'send')
-      .mockResolvedValue({
-        metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
-      });
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockImplementation(async (input) => {
-        const url = String(input);
-        if (url.includes('/contents/CHANGELOG.md')) {
-          return new Response(changelog, { status: 200 });
-        }
-        if (url === 'https://deploy.example/hook') {
-          return new Response(null, { status: 200 });
-        }
-        throw new Error(`想定外の外部リクエスト: ${url}`);
-      });
+    const queueSend = vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
+      metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+    });
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/contents/CHANGELOG.md')) {
+        return new Response(changelog, { status: 200 });
+      }
+      if (url === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${url}`);
+    });
     const instanceId = `issue-901-diff-${crypto.randomUUID()}`;
     const instance = await introspectWorkflowInstance(
       testEnv.CHANGELOG_INFERENCE_WORKFLOW,
@@ -559,9 +543,7 @@ describe('CHANGELOG 推論 Workflow', () => {
         return chatCompletion({ summary: '多数の変更を追加しました。' });
       }
 
-      const ids = [...prompt.matchAll(/^### 項目 id=(.+)$/gm)].map(
-        (match) => match[1] ?? '',
-      );
+      const ids = [...prompt.matchAll(/^### 項目 id=(.+)$/gm)].map((match) => match[1] ?? '');
       inferredIdBatches.push(ids);
       return chatCompletion({
         inferred_items: ids.map((id) => ({
@@ -614,9 +596,7 @@ describe('CHANGELOG 推論 Workflow', () => {
       expect(inferredIdBatches.map((batch) => batch.length)).toEqual(
         Array.from({ length: LARGE_RELEASE_ITEM_COUNT }, () => 1),
       );
-      expect(inferredIdBatches.flat()).toEqual(
-        release.items.map((item) => item.id),
-      );
+      expect(inferredIdBatches.flat()).toEqual(release.items.map((item) => item.id));
       expect(summaryPrompts).toHaveLength(1);
       expect(aiRun).toHaveBeenCalledTimes(LARGE_RELEASE_ITEM_COUNT + 1);
 
@@ -626,9 +606,7 @@ describe('CHANGELOG 推論 Workflow', () => {
 
       const db = drizzle(testEnv.DB);
       await expect(
-        db
-          .select({ version: changelogVersions.version })
-          .from(changelogVersions),
+        db.select({ version: changelogVersions.version }).from(changelogVersions),
       ).resolves.toEqual([{ version: '2.1.238' }]);
       await expect(
         db

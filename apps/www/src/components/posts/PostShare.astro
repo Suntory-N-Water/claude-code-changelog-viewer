@@ -19,12 +19,7 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
   aria-labelledby='share-heading'
 >
   <div id='share-section' class='flex flex-wrap items-center gap-2.5'>
-    <span
-      id='share-heading'
-      class='text-sm text-[hsl(var(--cc-main-black)/0.5)]'
-    >
-      シェア
-    </span>
+    <span id='share-heading' class='text-sm text-[hsl(var(--cc-main-black)/0.5)]'> シェア </span>
     <Button
       id='web-share-btn'
       type='button'
@@ -75,12 +70,7 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
       class='hover:border-[hsl(var(--cc-main-black)/0.3)] hover:text-[hsl(var(--cc-main-black)/0.85)] hover:bg-[hsl(var(--cc-gray)/0.3)]'
       aria-label='URLをコピー'
     >
-      <Icon
-        name='copy'
-        id='copy-url-icon'
-        class='w-3.5 h-3.5'
-        aria-hidden='true'
-      />
+      <Icon name='copy' id='copy-url-icon' class='w-3.5 h-3.5' aria-hidden='true' />
       <span id='copy-url-label'>URLをコピー</span>
     </Button>
   </div>
@@ -93,9 +83,7 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
       return;
     }
 
-    const title =
-      document.querySelector<HTMLHeadingElement>('h1')?.textContent?.trim() ??
-      '';
+    const title = document.querySelector<HTMLHeadingElement>('h1')?.textContent?.trim() ?? '';
     const slug = location.pathname.split('/').filter(Boolean).pop() ?? '';
 
     // Web Share API 対応環境では統合ボタンを表示し、個別リンクは隠す
@@ -103,9 +91,7 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
     if (webShareBtn instanceof HTMLButtonElement && 'share' in navigator) {
       const shareData = { title, text: title, url: location.href };
       const canShareData =
-        typeof navigator.canShare === 'function'
-          ? navigator.canShare(shareData)
-          : true;
+        typeof navigator.canShare === 'function' ? navigator.canShare(shareData) : true;
       if (canShareData) {
         webShareBtn.hidden = false;
         document
@@ -154,17 +140,15 @@ const hatenaShareUrl = `https://b.hatena.ne.jp/entry/s/${shareUrlParts.host}${sh
     }
 
     // シェアリンク (X / はてブ)
-    document
-      .querySelectorAll<HTMLAnchorElement>('#share-section [data-share]')
-      .forEach((el) => {
-        el.addEventListener('click', () => {
-          window.gtag?.('event', 'share_clicked', {
-            event_category: 'engagement',
-            share_method: el.dataset.share,
-            slug,
-          });
+    document.querySelectorAll<HTMLAnchorElement>('#share-section [data-share]').forEach((el) => {
+      el.addEventListener('click', () => {
+        window.gtag?.('event', 'share_clicked', {
+          event_category: 'engagement',
+          share_method: el.dataset.share,
+          slug,
         });
       });
+    });
   }
 
   initPostShare();

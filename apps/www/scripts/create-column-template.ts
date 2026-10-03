@@ -9,9 +9,7 @@ import { format } from 'date-fns/format';
 
 const execFileAsync = promisify(execFile);
 
-const COLUMN_DIR = fileURLToPath(
-  new URL('../src/content/posts/column/', import.meta.url),
-);
+const COLUMN_DIR = fileURLToPath(new URL('../src/content/posts/column/', import.meta.url));
 // content.config.ts の columnCollection と同じ制約
 const SLUG_PATTERN = /^[a-z0-9-]+$/;
 
@@ -30,9 +28,7 @@ async function createBranch(slug: string): Promise<void> {
     console.log(`🌿 ブランチを作成しました: ${branch}\n`);
   } catch (error) {
     console.error('⚠️  ブランチの作成に失敗しました');
-    console.error(
-      `   ${error instanceof Error ? error.message : String(error)}`,
-    );
+    console.error(`   ${error instanceof Error ? error.message : String(error)}`);
     console.error('   手動でブランチを作成してください\n');
   }
 }

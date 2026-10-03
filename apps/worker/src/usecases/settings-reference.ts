@@ -107,8 +107,7 @@ type SettingsReferenceSaveInput = {
 const MAX_DOC_SNIPPET_CHARS = 8000;
 const MAX_RELATED_CHANGELOGS = 5;
 const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
-const JAPANESE_TEXT_PATTERN =
-  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
+const JAPANESE_TEXT_PATTERN = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
 
 export async function loadSettingsReferenceEntries(
   source: SettingsReferenceEntrySourcePort,
@@ -118,12 +117,9 @@ export async function loadSettingsReferenceEntries(
     source.loadEntries(),
     source.loadExistingKeys(),
   ]);
-  const targetKeys =
-    params.targetKeys === undefined ? undefined : new Set(params.targetKeys);
+  const targetKeys = params.targetKeys === undefined ? undefined : new Set(params.targetKeys);
 
-  return entries.filter(
-    (entry) => targetKeys?.has(entry.key) ?? !existingKeys.has(entry.key),
-  );
+  return entries.filter((entry) => targetKeys?.has(entry.key) ?? !existingKeys.has(entry.key));
 }
 
 export async function buildSettingsReferenceInput(
@@ -140,12 +136,9 @@ export async function buildSettingsReferenceInput(
           entrySource.findRelatedChangelogs(entry.key),
         ]);
         const filteredDocuments = documents.filter(
-          (document) =>
-            !EXCLUDED_DOC_FILES.has(document.file.split('/').at(-1) ?? ''),
+          (document) => !EXCLUDED_DOC_FILES.has(document.file.split('/').at(-1) ?? ''),
         );
-        const officialDocs = [
-          ...new Set(filteredDocuments.map((document) => document.file)),
-        ];
+        const officialDocs = [...new Set(filteredDocuments.map((document) => document.file))];
         const docSnippets: string[] = [];
         let snippetLength = 0;
         for (const document of filteredDocuments) {
@@ -174,18 +167,12 @@ export async function buildSettingsReferenceInput(
           docSnippets,
           officialDocs,
           relatedChangelog: relatedChangelog.slice(0, MAX_RELATED_CHANGELOGS),
-          ...(entry.schemaDefault === undefined
-            ? {}
-            : { schemaDefault: entry.schemaDefault }),
-          ...(entry.schemaEnum === undefined
-            ? {}
-            : { schemaEnum: [...entry.schemaEnum] }),
+          ...(entry.schemaDefault === undefined ? {} : { schemaDefault: entry.schemaDefault }),
+          ...(entry.schemaEnum === undefined ? {} : { schemaEnum: [...entry.schemaEnum] }),
           ...(entry.enumDescriptions === undefined
             ? {}
             : { enumDescriptions: { ...entry.enumDescriptions } }),
-          ...(entry.defaultNote === undefined
-            ? {}
-            : { defaultNote: entry.defaultNote }),
+          ...(entry.defaultNote === undefined ? {} : { defaultNote: entry.defaultNote }),
         };
       }),
     ),
@@ -208,8 +195,7 @@ export async function saveSettingsReferences(
 
     const leafName = entry.key.split('.').at(-1) ?? entry.key;
     const defaultNoteJa =
-      entry.defaultNote !== undefined &&
-      JAPANESE_TEXT_PATTERN.test(translation.defaultNoteJa)
+      entry.defaultNote !== undefined && JAPANESE_TEXT_PATTERN.test(translation.defaultNoteJa)
         ? translation.defaultNoteJa
         : null;
     return [

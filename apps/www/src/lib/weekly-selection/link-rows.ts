@@ -8,8 +8,7 @@ export function setupLinkRows(input: {
   save: SaveWeeklySelectionItem;
 }) {
   const rows = input.container.querySelector<HTMLElement>('[data-link-rows]');
-  const addButton =
-    input.container.querySelector<HTMLButtonElement>('[data-link-add]');
+  const addButton = input.container.querySelector<HTMLButtonElement>('[data-link-add]');
   if (!rows || !addButton) {
     throw new Error('関連リンク UI の初期化に失敗しました');
   }
@@ -20,13 +19,10 @@ export function setupLinkRows(input: {
       .filter(Boolean);
 
   const addRow = (value?: string) => {
-    const row = input.template.content.firstElementChild?.cloneNode(
-      true,
-    ) as HTMLElement;
+    const row = input.template.content.firstElementChild?.cloneNode(true) as HTMLElement;
     const linkInput = row.querySelector<HTMLInputElement>('[data-link]');
     const error = row.querySelector<HTMLElement>('[data-link-error]');
-    const removeButton =
-      row.querySelector<HTMLButtonElement>('[data-link-remove]');
+    const removeButton = row.querySelector<HTMLButtonElement>('[data-link-remove]');
     if (!linkInput || !error || !removeButton) {
       throw new Error('関連リンク行の初期化に失敗しました');
     }
@@ -42,9 +38,7 @@ export function setupLinkRows(input: {
           valid = false;
         }
       }
-      error.textContent = valid
-        ? ''
-        : 'http:// または https:// から始まる URL を入力してください';
+      error.textContent = valid ? '' : 'http:// または https:// から始まる URL を入力してください';
       error.hidden = valid;
     });
     removeButton.addEventListener('click', () => {

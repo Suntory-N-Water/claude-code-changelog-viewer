@@ -14,12 +14,8 @@ export async function detectChangelogUpdate(
   const result = await detectChangelogUpdateUsecase(
     {
       source: createGitHubChangelogSource(bindings.GITHUB_DISPATCH_TOKEN),
-      workflow: createChangelogInferenceDispatcher(
-        bindings.CHANGELOG_INFERENCE_WORKFLOW,
-      ),
-      stateRepository: createChangelogDetectionStateRepository(
-        bindings.CHANGELOG_DETECTION_KV,
-      ),
+      workflow: createChangelogInferenceDispatcher(bindings.CHANGELOG_INFERENCE_WORKFLOW),
+      stateRepository: createChangelogDetectionStateRepository(bindings.CHANGELOG_DETECTION_KV),
     },
     { now },
   );

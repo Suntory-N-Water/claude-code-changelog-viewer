@@ -51,9 +51,7 @@ const validResponse = {
       benefit: '繰り返しの設定作業を毎回行わずに済みます。',
     },
   ],
-  translated_items: [
-    { id: 'without-docs', content_ja: '小さな誤字を修正しました。' },
-  ],
+  translated_items: [{ id: 'without-docs', content_ja: '小さな誤字を修正しました。' }],
   feature_area_corrections: [{ id: 'with-docs', feature_areas: ['Settings'] }],
 };
 
@@ -103,9 +101,7 @@ describe('Workers AI CHANGELOG adapter', () => {
           },
         },
       ],
-      translatedItems: [
-        { id: 'without-docs', contentJa: '小さな誤字を修正しました。' },
-      ],
+      translatedItems: [{ id: 'without-docs', contentJa: '小さな誤字を修正しました。' }],
       featureAreaCorrections: [{ id: 'with-docs', featureAreas: ['Settings'] }],
     });
     expect(run).toHaveBeenCalledWith(
@@ -123,14 +119,10 @@ describe('Workers AI CHANGELOG adapter', () => {
 
   it('AI 応答が出力上限で打ち切られた時、打ち切りと分かるエラーにすること', async () => {
     // このメッセージは諦めた項目の GitHub Issue にそのまま載るため、原因が読み取れる必要がある
-    const run = vi
-      .fn()
-      .mockResolvedValue(rawChatCompletion(truncatedJson, 'length'));
+    const run = vi.fn().mockResolvedValue(rawChatCompletion(truncatedJson, 'length'));
     const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
 
-    await expect(sut.inferItems(input)).rejects.toThrow(
-      'AI 応答が出力上限で打ち切られました',
-    );
+    await expect(sut.inferItems(input)).rejects.toThrow('AI 応答が出力上限で打ち切られました');
   });
 
   describe('AI 応答が使えない失敗', () => {
@@ -140,10 +132,7 @@ describe('Workers AI CHANGELOG adapter', () => {
       ['思考で上限を使い切った空の応答', rawChatCompletion('', 'length')],
       // stop で空白の連続を切り落とすと末尾に空白が残らず finish_reason も stop のままになるため、
       // 打ち切りは壊れた JSON としてしか現れない
-      [
-        'stop で切り落とされた壊れた JSON',
-        rawChatCompletion(truncatedJson, 'stop'),
-      ],
+      ['stop で切り落とされた壊れた JSON', rawChatCompletion(truncatedJson, 'stop')],
       ['JSON ですらない応答', rawChatCompletion('not json at all', 'stop')],
       [
         'スキーマを満たさない応答',
@@ -159,22 +148,16 @@ describe('Workers AI CHANGELOG adapter', () => {
       const run = vi.fn().mockResolvedValue(response);
       const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
 
-      const error = await sut
-        .inferItems(input)
-        .catch((caught: unknown) => caught);
+      const error = await sut.inferItems(input).catch((caught: unknown) => caught);
 
       expect(isUnusableAiResponseError(error)).toBe(true);
     });
 
     it('Workers AI の呼び出し自体が失敗したとき、諦めてよい失敗にはしないこと', async () => {
-      const run = vi
-        .fn()
-        .mockRejectedValue(new Error('AiError: 5030: capacity exceeded'));
+      const run = vi.fn().mockRejectedValue(new Error('AiError: 5030: capacity exceeded'));
       const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
 
-      const error = await sut
-        .inferItems(input)
-        .catch((caught: unknown) => caught);
+      const error = await sut.inferItems(input).catch((caught: unknown) => caught);
 
       expect(isUnusableAiResponseError(error)).toBe(false);
     });
@@ -183,27 +166,19 @@ describe('Workers AI CHANGELOG adapter', () => {
   it('サマリーの AI 応答が出力上限で打ち切られた時、打ち切りと分かるエラーにすること', async () => {
     const run = vi
       .fn()
-      .mockResolvedValue(
-        rawChatCompletion('{"summary":"文書化された機', 'length'),
-      );
+      .mockResolvedValue(rawChatCompletion('{"summary":"文書化された機', 'length'));
     const sut = createChangelogSummaryAi({ run }, 'project-gateway');
 
-    await expect(sut.summarize(release)).rejects.toThrow(
-      'AI 応答が出力上限で打ち切られました',
-    );
+    await expect(sut.summarize(release)).rejects.toThrow('AI 応答が出力上限で打ち切られました');
   });
 
   it('サマリー生成では原文だけをプロンプトに渡すこと', async () => {
     const run = vi
       .fn()
-      .mockResolvedValue(
-        chatCompletion({ summary: '文書化された機能が追加されました。' }),
-      );
+      .mockResolvedValue(chatCompletion({ summary: '文書化された機能が追加されました。' }));
     const sut = createChangelogSummaryAi({ run }, 'project-gateway');
 
-    await expect(sut.summarize(release)).resolves.toBe(
-      '文書化された機能が追加されました。',
-    );
+    await expect(sut.summarize(release)).resolves.toBe('文書化された機能が追加されました。');
 
     const prompt = run.mock.calls[0]?.[1]?.messages?.[0]?.content;
     expect(prompt).toContain('- [Added] - Added a documented feature');
@@ -214,8 +189,6 @@ describe('Workers AI CHANGELOG adapter', () => {
     const run = vi.fn().mockResolvedValue(chatCompletion({ summary: '' }));
     const sut = createChangelogSummaryAi({ run }, 'project-gateway');
 
-    await expect(sut.summarize(release)).rejects.toThrow(
-      'AI サマリー結果の形式が不正です',
-    );
+    await expect(sut.summarize(release)).rejects.toThrow('AI サマリー結果の形式が不正です');
   });
 });

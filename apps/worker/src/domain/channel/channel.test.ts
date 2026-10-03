@@ -9,9 +9,7 @@ import { createEmailAddress } from './email-address';
 import { createNotificationFrequency } from './notification-frequency';
 import { createSlackWebhookUrl } from './slack-webhook-url';
 
-function createDiscordChannel(
-  overrides: Partial<Channel> = {},
-): Extract<Channel, { type: 'DSC' }> {
+function createDiscordChannel(overrides: Partial<Channel> = {}): Extract<Channel, { type: 'DSC' }> {
   return {
     id: createChannelId('channel-id'),
     type: 'DSC',
@@ -19,9 +17,7 @@ function createDiscordChannel(
     notificationFrequency: createNotificationFrequency('IMM'),
     status: { type: 'active' },
     failCount: 0,
-    webhookUrl: createDiscordWebhookUrl(
-      'https://discord.com/api/webhooks/123456/abcdef',
-    ),
+    webhookUrl: createDiscordWebhookUrl('https://discord.com/api/webhooks/123456/abcdef'),
     ...overrides,
   } as Extract<Channel, { type: 'DSC' }>;
 }
@@ -32,9 +28,7 @@ describe('通知チャンネルの生成', () => {
       label: 'Discord Webhook',
       address: {
         type: 'DSC' as const,
-        value: createDiscordWebhookUrl(
-          'https://discord.com/api/webhooks/123456/abcdef',
-        ),
+        value: createDiscordWebhookUrl('https://discord.com/api/webhooks/123456/abcdef'),
       },
       addressProperty: 'webhookUrl',
     },
@@ -42,9 +36,7 @@ describe('通知チャンネルの生成', () => {
       label: 'Slack Webhook',
       address: {
         type: 'SLK' as const,
-        value: createSlackWebhookUrl(
-          'https://hooks.slack.com/services/ABC123/DEF456/token789',
-        ),
+        value: createSlackWebhookUrl('https://hooks.slack.com/services/ABC123/DEF456/token789'),
       },
       addressProperty: 'webhookUrl',
     },
@@ -56,24 +48,21 @@ describe('通知チャンネルの生成', () => {
       },
       addressProperty: 'emailAddress',
     },
-  ])(
-    '$label を登録するとき、有効な初期状態であること',
-    ({ address, addressProperty }) => {
-      const frequency = createNotificationFrequency('IMM');
+  ])('$label を登録するとき、有効な初期状態であること', ({ address, addressProperty }) => {
+    const frequency = createNotificationFrequency('IMM');
 
-      const channel = createChannel(address, frequency);
+    const channel = createChannel(address, frequency);
 
-      expect(channel).toMatchObject({
-        type: address.type,
-        notificationFrequency: frequency,
-        status: { type: 'active' },
-        failCount: 0,
-        [addressProperty]: address.value,
-      });
-      expect(channel.id).not.toBe('');
-      expect(channel.token).not.toBe('');
-    },
-  );
+    expect(channel).toMatchObject({
+      type: address.type,
+      notificationFrequency: frequency,
+      status: { type: 'active' },
+      failCount: 0,
+      [addressProperty]: address.value,
+    });
+    expect(channel.id).not.toBe('');
+    expect(channel.token).not.toBe('');
+  });
 });
 
 describe('通知チャンネルの配信状態', () => {

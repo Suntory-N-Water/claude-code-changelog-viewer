@@ -33,9 +33,7 @@ export function createSettingsReferenceRepository(
       );
       const statements = [
         ...records.map((record) =>
-          db
-            .delete(settingsOfficialDocs)
-            .where(eq(settingsOfficialDocs.settingKey, record.key)),
+          db.delete(settingsOfficialDocs).where(eq(settingsOfficialDocs.settingKey, record.key)),
         ),
         ...chunk([...records], SETTINGS_PER_INSERT).map((rows) =>
           db

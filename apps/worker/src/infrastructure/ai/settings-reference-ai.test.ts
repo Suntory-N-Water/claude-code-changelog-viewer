@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SettingsReferenceInput } from '../../usecases/settings-reference';
-import {
-  buildSettingsReferencePrompt,
-  createSettingsReferenceAi,
-} from './settings-reference-ai';
+import { buildSettingsReferencePrompt, createSettingsReferenceAi } from './settings-reference-ai';
 
 const input: SettingsReferenceInput = {
   entries: [
@@ -25,8 +22,7 @@ function chatCompletion(content: object | string) {
     choices: [
       {
         message: {
-          content:
-            typeof content === 'string' ? content : JSON.stringify(content),
+          content: typeof content === 'string' ? content : JSON.stringify(content),
         },
       },
     ],
@@ -67,8 +63,7 @@ describe('Workers AI 設定リファレンス adapter', () => {
           {
             id: 0,
             description_ja: 'アクセスを許可する追加ディレクトリです。',
-            use_case_ja:
-              '- プロジェクト外のディレクトリを参照する場合に使います。',
+            use_case_ja: '- プロジェクト外のディレクトリを参照する場合に使います。',
             enum_descriptions_ja: [],
             default_note_ja: '',
           },
@@ -108,9 +103,7 @@ describe('Workers AI 設定リファレンス adapter', () => {
       ],
     });
 
-    expect(result).toContain(
-      '- `latest`: updates follow the most recent release',
-    );
+    expect(result).toContain('- `latest`: updates follow the most recent release');
     expect(result).toContain('unset, so Claude Code follows `"latest"`');
   });
 
@@ -137,9 +130,7 @@ describe('Workers AI 設定リファレンス adapter', () => {
         id: 0,
         descriptionJa: 'アクセスを許可する追加ディレクトリです。',
         useCaseJa: '',
-        enumDescriptionsJa: [
-          { value: 'latest', descriptionJa: '最新のリリースを追いかける' },
-        ],
+        enumDescriptionsJa: [{ value: 'latest', descriptionJa: '最新のリリースを追いかける' }],
         defaultNoteJa: '未設定のときは最新を追いかける',
       },
     ]);
@@ -187,19 +178,13 @@ describe('Workers AI 設定リファレンス adapter', () => {
     const run = vi.fn().mockResolvedValue(chatCompletion('not-json'));
     const sut = createSettingsReferenceAi({ run }, 'project-gateway');
 
-    await expect(sut.infer(input)).rejects.toThrow(
-      'AI 応答の JSON 解析に失敗しました',
-    );
+    await expect(sut.infer(input)).rejects.toThrow('AI 応答の JSON 解析に失敗しました');
   });
 
   it('AI 応答の結果スキーマが不正な時、エラーになること', async () => {
-    const run = vi
-      .fn()
-      .mockResolvedValue(chatCompletion({ results: [{ id: 'invalid' }] }));
+    const run = vi.fn().mockResolvedValue(chatCompletion({ results: [{ id: 'invalid' }] }));
     const sut = createSettingsReferenceAi({ run }, 'project-gateway');
 
-    await expect(sut.infer(input)).rejects.toThrow(
-      'AI 設定リファレンス結果の形式が不正です',
-    );
+    await expect(sut.infer(input)).rejects.toThrow('AI 設定リファレンス結果の形式が不正です');
   });
 });

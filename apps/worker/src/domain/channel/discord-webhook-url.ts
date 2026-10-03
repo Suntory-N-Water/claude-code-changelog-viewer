@@ -4,8 +4,7 @@ export type DiscordWebhookUrl = string & {
   [discordWebhookUrlBrand]: unknown;
 };
 
-const DISCORD_WEBHOOK_REGEX =
-  /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
+const DISCORD_WEBHOOK_REGEX = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 
 export function isValidDiscordWebhookUrl(value: string): boolean {
   return DISCORD_WEBHOOK_REGEX.test(value);

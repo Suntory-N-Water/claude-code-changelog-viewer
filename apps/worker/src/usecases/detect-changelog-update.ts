@@ -11,15 +11,8 @@ export type ChangelogSource = {
 
 /** 推論 workflow の起動と実行状態取得を抽象化する port。 */
 export type ChangelogWorkflow = {
-  dispatch(input: {
-    hash: string;
-    detectedAt: string;
-    attempts: number;
-  }): Promise<void>;
-  findStatus(input: {
-    hash: string;
-    attempts: number;
-  }): Promise<ChangelogWorkflowStatus>;
+  dispatch(input: { hash: string; detectedAt: string; attempts: number }): Promise<void>;
+  findStatus(input: { hash: string; attempts: number }): Promise<ChangelogWorkflowStatus>;
 };
 
 export type DetectChangelogUpdateDependencies = {

@@ -1,9 +1,6 @@
 import { workerLogger } from '../logger';
 import { drizzle } from 'drizzle-orm/d1';
-import {
-  runWithLogContext,
-  toError,
-} from '@claude-code-changelog-viewer/common';
+import { runWithLogContext, toError } from '@claude-code-changelog-viewer/common';
 import { WorkflowEntrypoint } from 'cloudflare:workers';
 import type {
   WorkflowEvent,
@@ -68,9 +65,7 @@ const SEARCH_CHUNK_SIZE = 20;
 
 const logger = workerLogger('workflows.changelog-inference');
 
-export type ChangelogInferenceWorkflowParams = z.infer<
-  typeof WorkflowParamsSchema
->;
+export type ChangelogInferenceWorkflowParams = z.infer<typeof WorkflowParamsSchema>;
 
 export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
   CloudflareBindings,
@@ -104,8 +99,9 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       ? paramsResult.data
       : { detectedHash: '(不正な payload)', detectedAt: '(不正な payload)' };
     const runStep = createStepRunner(step);
-    const failureReporter: ChangelogFailureReporterPort =
-      createWorkflowFailureReporter(this.env.GITHUB_DISPATCH_TOKEN, {
+    const failureReporter: ChangelogFailureReporterPort = createWorkflowFailureReporter(
+      this.env.GITHUB_DISPATCH_TOKEN,
+      {
         name: 'CHANGELOG 推論 Workflow',
         workflowLabel: 'workflow:changelog-auto-inference',
         summary: 'CHANGELOG 推論 Workflow が失敗しました。',
@@ -113,57 +109,35 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           `**検出時刻**: ${params.detectedAt}`,
           `**検出ハッシュ**: ${params.detectedHash}`,
         ],
-      });
+      },
+    );
     logger.info('Workflow を開始します', {
       'workflow.name': 'changelog-inference',
     });
 
     try {
       if (!paramsResult.success) {
-        throw new Error(
-          `Workflow パラメータが不正です: ${z.prettifyError(paramsResult.error)}`,
-        );
+        throw new Error(`Workflow パラメータが不正です: ${z.prettifyError(paramsResult.error)}`);
       }
       const params = paramsResult.data;
       const db = drizzle(this.env.DB);
       const existingChangelogReader = createExistingChangelogReader(db);
       const diffRepository = createChangelogDiffRepository(db);
       const inferenceRepository = createChangelogInferenceRepository(db);
-      const source = createGitHubChangelogMarkdownSource(
-        this.env.GITHUB_DISPATCH_TOKEN,
-      );
-      const documentSearch = searchDocsForChangelogEntry.bind(
-        null,
-        drizzle(this.env.DOCS_DB),
-      );
-      const inference = createChangelogItemInferenceAi(
-        this.env.AI,
-        this.env.AI_GATEWAY_ID,
-      );
-      const summarizer = createChangelogSummaryAi(
-        this.env.AI,
-        this.env.AI_GATEWAY_ID,
-      );
-      const notifier = createChangelogWorkflowNotifier(
-        db,
-        this.env.NOTIFICATION_QUEUE,
-      );
-      const buildTrigger = createDeployHookBuildTrigger(
-        this.env.DEPLOY_HOOK_URL,
-      );
-      const skipReporter = createChangelogInferenceSkipReporter(
-        this.env.GITHUB_DISPATCH_TOKEN,
-      );
-      const classification = await runStep(
-        'fetch-and-classify',
-        STEP_RETRIES,
-        async () =>
-          fetchAndClassifyChangelog({
-            source,
-            parser: { parse: parseChangelogReleases },
-            existingChangelogReader,
-            params,
-          }),
+      const source = createGitHubChangelogMarkdownSource(this.env.GITHUB_DISPATCH_TOKEN);
+      const documentSearch = searchDocsForChangelogEntry.bind(null, drizzle(this.env.DOCS_DB));
+      const inference = createChangelogItemInferenceAi(this.env.AI, this.env.AI_GATEWAY_ID);
+      const summarizer = createChangelogSummaryAi(this.env.AI, this.env.AI_GATEWAY_ID);
+      const notifier = createChangelogWorkflowNotifier(db, this.env.NOTIFICATION_QUEUE);
+      const buildTrigger = createDeployHookBuildTrigger(this.env.DEPLOY_HOOK_URL);
+      const skipReporter = createChangelogInferenceSkipReporter(this.env.GITHUB_DISPATCH_TOKEN);
+      const classification = await runStep('fetch-and-classify', STEP_RETRIES, async () =>
+        fetchAndClassifyChangelog({
+          source,
+          parser: { parse: parseChangelogReleases },
+          existingChangelogReader,
+          params,
+        }),
       );
 
       await runStep('save-diff', STEP_RETRIES, async () =>
@@ -186,17 +160,13 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
             async () =>
               buildChangelogInferenceInput(documentSearch, {
                 ...release,
-                items: release.items.slice(
-                  chunkStart,
-                  chunkStart + SEARCH_CHUNK_SIZE,
-                ),
+                items: release.items.slice(chunkStart, chunkStart + SEARCH_CHUNK_SIZE),
               }),
           );
           inferenceInput.items.push(...chunk.items);
         }
         const itemInferences: ChangelogItemInference[] = [];
-        const skippedItems: { id: string; content: string; reason: string }[] =
-          [];
+        const skippedItems: { id: string; content: string; reason: string }[] = [];
         for (
           let batchStart = 0, batchIndex = 0;
           batchStart < inferenceInput.items.length;
@@ -204,20 +174,14 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         ) {
           const batch = {
             version: inferenceInput.version,
-            items: inferenceInput.items.slice(
-              batchStart,
-              batchStart + BATCH_SIZE,
-            ),
+            items: inferenceInput.items.slice(batchStart, batchStart + BATCH_SIZE),
           };
           try {
             itemInferences.push(
-              ...(await runStep(
-                `infer-${release.version}-${batchIndex}`,
-                STEP_RETRIES,
-                async () =>
-                  runWithLogContext({ 'ai.batch_index': batchIndex }, () =>
-                    inferChangelogItemBatch(inference, batch),
-                  ),
+              ...(await runStep(`infer-${release.version}-${batchIndex}`, STEP_RETRIES, async () =>
+                runWithLogContext({ 'ai.batch_index': batchIndex }, () =>
+                  inferChangelogItemBatch(inference, batch),
+                ),
               )),
             );
           } catch (error) {
@@ -287,27 +251,18 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           {
             ...STEP_RETRIES,
             attrs: {
-              'notification.version_count':
-                classification.notifiableVersions.length,
+              'notification.version_count': classification.notifiableVersions.length,
             },
           },
           async () => {
-            await notifyChangelogVersions(
-              notifier,
-              classification.notifiableVersions,
-            );
+            await notifyChangelogVersions(notifier, classification.notifiableVersions);
             return { versions: classification.notifiableVersions };
           },
         );
       }
 
-      if (
-        classification.versions.length > 0 ||
-        classification.diffEvents.length > 0
-      ) {
-        await runStep('trigger-build', STEP_RETRIES, async () =>
-          buildTrigger.trigger(),
-        );
+      if (classification.versions.length > 0 || classification.diffEvents.length > 0) {
+        await runStep('trigger-build', STEP_RETRIES, async () => buildTrigger.trigger());
       }
 
       logger.info('Workflow が完了しました', {
@@ -315,9 +270,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         'workflow.version_count': classification.versions.length,
       });
       return {
-        processedVersions: [...classification.versions].map(
-          (release) => release.version,
-        ),
+        processedVersions: [...classification.versions].map((release) => release.version),
         notifiedVersions: [...classification.notifiableVersions],
       };
     } catch (error) {

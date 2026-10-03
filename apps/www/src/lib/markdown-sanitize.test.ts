@@ -8,8 +8,7 @@ const processor = await createMarkdownProcessor({
   rehypePlugins: [...markdownRehypePlugins],
 });
 
-const render = async (markdown: string) =>
-  (await processor.render(markdown)).code;
+const render = async (markdown: string) => (await processor.render(markdown)).code;
 
 describe('記事本文のサニタイズ', () => {
   test('script 要素を除去する', async () => {
@@ -34,17 +33,13 @@ describe('記事本文のサニタイズ', () => {
   });
 
   test('target は _blank 以外を除去する', async () => {
-    const html = await render(
-      '<a href="https://example.com/" target="_self">link</a>\n',
-    );
+    const html = await render('<a href="https://example.com/" target="_self">link</a>\n');
 
     expect(html).not.toContain('target=');
   });
 
   test('rel は noopener / noreferrer / nofollow 以外の値を除去する', async () => {
-    const html = await render(
-      '<a href="https://example.com/" rel="opener nofollow">link</a>\n',
-    );
+    const html = await render('<a href="https://example.com/" rel="opener nofollow">link</a>\n');
 
     expect(html).toContain('rel="nofollow"');
   });

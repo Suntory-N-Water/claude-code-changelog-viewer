@@ -12,9 +12,7 @@ const ExportResponseSchema = z.object({
     at_bookmark: z.string().optional(),
     error: z.string().optional(),
     status: z.string().optional(),
-    result: z
-      .object({ filename: z.string(), signed_url: z.string() })
-      .optional(),
+    result: z.object({ filename: z.string(), signed_url: z.string() }).optional(),
   }),
 });
 
@@ -45,9 +43,7 @@ export function createD1ExportClient({
         },
         body: JSON.stringify({
           output_format: 'polling',
-          ...(currentBookmark === undefined
-            ? {}
-            : { current_bookmark: currentBookmark }),
+          ...(currentBookmark === undefined ? {} : { current_bookmark: currentBookmark }),
         }),
       });
     } catch (error) {
@@ -67,9 +63,7 @@ export function createD1ExportClient({
 
     const parsed = ExportResponseSchema.safeParse(await response.json());
     if (!parsed.success) {
-      throw new Error(
-        `D1 export API の応答形式が不正です: ${z.prettifyError(parsed.error)}`,
-      );
+      throw new Error(`D1 export API の応答形式が不正です: ${z.prettifyError(parsed.error)}`);
     }
 
     const { result } = parsed.data;

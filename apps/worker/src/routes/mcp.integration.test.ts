@@ -9,10 +9,7 @@ vi.mock('../infrastructure/channel-notifier', () => ({
   }),
 }));
 
-import type {
-  IngestChangelogVersion,
-  IngestSetting,
-} from '@claude-code-changelog-viewer/types';
+import type { IngestChangelogVersion, IngestSetting } from '@claude-code-changelog-viewer/types';
 import worker, { app } from '../index';
 import { FakeD1Database } from '../test-support/fake-d1';
 import { createTestEnv } from '../test-support/notification-test-support';
@@ -55,11 +52,7 @@ async function postMcp(
 }
 
 // ツール結果の content[0].text(JSON 文字列)を parse して返す
-async function callTool(
-  db: FakeD1Database,
-  name: string,
-  args: Record<string, unknown>,
-) {
+async function callTool(db: FakeD1Database, name: string, args: Record<string, unknown>) {
   const response = await postMcp(createTestEnv(db), {
     method: 'tools/call',
     params: { name, arguments: args },
@@ -102,9 +95,7 @@ function createVersion(
   items: IngestChangelogVersion['items'],
   summary?: string,
 ): IngestChangelogVersion {
-  return summary === undefined
-    ? { version, items }
-    : { version, summary, items };
+  return summary === undefined ? { version, items } : { version, summary, items };
 }
 
 const vertexItem = {
@@ -137,9 +128,9 @@ describe('POST /api/mcp integration', () => {
     it('制限超過時、429 を返すこと', async () => {
       const db = new FakeD1Database();
       const env = createTestEnv(db);
-      (
-        env.MCP_RATE_LIMITER.limit as ReturnType<typeof vi.fn>
-      ).mockResolvedValue({ success: false });
+      (env.MCP_RATE_LIMITER.limit as ReturnType<typeof vi.fn>).mockResolvedValue({
+        success: false,
+      });
 
       const response = await postMcp(env, { method: 'tools/list', params: {} });
 
@@ -217,8 +208,7 @@ describe('POST /api/mcp integration', () => {
         {
           version: '2.1.98',
           prefix: 'Added',
-          content:
-            'Google Vertex AI 用のセットアップウィザードを追加しました。',
+          content: 'Google Vertex AI 用のセットアップウィザードを追加しました。',
           benefit: '素早く確実に使い始めることができます。',
         },
       ]);
@@ -232,8 +222,7 @@ describe('POST /api/mcp integration', () => {
           createVersion('0.2.106', [
             {
               id: '12b4d4c67835',
-              content:
-                '- MCP SSE server configs can now specify custom headers',
+              content: '- MCP SSE server configs can now specify custom headers',
               prefix: 'Added',
             },
           ]),
@@ -316,9 +305,10 @@ describe('POST /api/mcp integration', () => {
         query: 'permission',
       });
 
-      expect(
-        (payload as { version: string }[]).map((row) => row.version),
-      ).toEqual(['2.1.10', '2.1.9']);
+      expect((payload as { version: string }[]).map((row) => row.version)).toEqual([
+        '2.1.10',
+        '2.1.9',
+      ]);
       db.close();
     });
 
@@ -363,9 +353,7 @@ describe('POST /api/mcp integration', () => {
     it('存在するバージョンを指定すると、summary と全 item(日本語)が返ること', async () => {
       const db = new FakeD1Database();
       await seed(db, {
-        versions: [
-          createVersion('2.1.98', [vertexItem], 'Vertex AI 対応のリリース。'),
-        ],
+        versions: [createVersion('2.1.98', [vertexItem], 'Vertex AI 対応のリリース。')],
       });
 
       const { isError, payload } = await callTool(db, 'get_changelog', {
@@ -379,8 +367,7 @@ describe('POST /api/mcp integration', () => {
         items: [
           {
             prefix: 'Added',
-            content:
-              'Google Vertex AI 用のセットアップウィザードを追加しました。',
+            content: 'Google Vertex AI 用のセットアップウィザードを追加しました。',
             benefit: '素早く確実に使い始めることができます。',
           },
         ],
@@ -423,11 +410,9 @@ describe('POST /api/mcp integration', () => {
       const db = new FakeD1Database();
       await seed(db, { settings: [advisorSetting] });
 
-      const { isError, payload } = await callTool(
-        db,
-        'get_settings_reference',
-        { key: 'advisorModel' },
-      );
+      const { isError, payload } = await callTool(db, 'get_settings_reference', {
+        key: 'advisorModel',
+      });
 
       expect(isError).toBe(false);
       expect(payload).toEqual({
@@ -472,9 +457,7 @@ describe('POST /api/mcp integration', () => {
         query: 'アドバイザー',
       });
 
-      expect(payload).toEqual([
-        expect.objectContaining({ key: 'advisorModel' }),
-      ]);
+      expect(payload).toEqual([expect.objectContaining({ key: 'advisorModel' })]);
       db.close();
     });
 

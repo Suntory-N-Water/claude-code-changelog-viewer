@@ -1,8 +1,7 @@
 import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = ({ site }) => {
-  const siteUrl =
-    site?.toString().replace(/\/$/, '') ?? 'https://claude-code-log.com';
+  const siteUrl = site?.toString().replace(/\/$/, '') ?? 'https://claude-code-log.com';
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <schemamapindex>

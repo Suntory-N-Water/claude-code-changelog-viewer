@@ -51,9 +51,7 @@ export function getFeatureAreaLabel(area: string): string {
 
 /** SEO description 取得(未知エリアはテンプレート生成) */
 export function getFeatureAreaDescription(area: string): string {
-  return (
-    FEATURE_AREA_DESCRIPTIONS[area] ?? `Claude Codeの${area}に関する変更履歴`
-  );
+  return FEATURE_AREA_DESCRIPTIONS[area] ?? `Claude Codeの${area}に関する変更履歴`;
 }
 
 export type FeatureAreaItem = { version: string; item: InferredChangelogItem };
@@ -143,9 +141,7 @@ export function validateSlugUniqueness(areas: string[]): void {
     }
   }
 
-  const collisions = [...slugToAreas.entries()].filter(
-    ([, names]) => names.length > 1,
-  );
+  const collisions = [...slugToAreas.entries()].filter(([, names]) => names.length > 1);
   if (collisions.length > 0) {
     const details = collisions
       .map(([slug, names]) => `"${slug}" ← [${names.join(', ')}]`)

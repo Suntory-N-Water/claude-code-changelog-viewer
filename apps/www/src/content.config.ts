@@ -1,11 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
-import {
-  changelogLoader,
-  diffLoader,
-  settingsReferenceLoader,
-} from './lib/site-data-loader';
+import { changelogLoader, diffLoader, settingsReferenceLoader } from './lib/site-data-loader';
 
 const changelogCollection = defineCollection({
   loader: changelogLoader,

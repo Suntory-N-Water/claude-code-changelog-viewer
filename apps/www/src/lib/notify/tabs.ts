@@ -17,19 +17,11 @@ export function setupTabs() {
   const panelSlack = document.getElementById('panel-slack');
   const panelEmail = document.getElementById('panel-email');
 
-  if (
-    !tabDiscord ||
-    !tabSlack ||
-    !tabEmail ||
-    !panelDiscord ||
-    !panelSlack ||
-    !panelEmail
-  ) {
+  if (!tabDiscord || !tabSlack || !tabEmail || !panelDiscord || !panelSlack || !panelEmail) {
     return;
   }
 
-  const activeTabClass =
-    'border-[hsl(var(--cc-main-orange))] text-[hsl(var(--cc-main-orange))]';
+  const activeTabClass = 'border-[hsl(var(--cc-main-orange))] text-[hsl(var(--cc-main-orange))]';
   const inactiveTabClass =
     'border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]';
 
@@ -50,9 +42,7 @@ export function setupTabs() {
       tab.className = tab.className
         .replace(isActive ? inactiveTabClass : activeTabClass, '')
         .trim();
-      tab.classList.add(
-        ...(isActive ? activeTabClass : inactiveTabClass).split(' '),
-      );
+      tab.classList.add(...(isActive ? activeTabClass : inactiveTabClass).split(' '));
     }
 
     if (updateUrl) {

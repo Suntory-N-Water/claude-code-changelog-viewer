@@ -12,12 +12,7 @@ import {
   changelogItems,
   changelogVersions,
 } from '../../db/schema';
-import {
-  chunk,
-  MAX_BATCH_STATEMENTS,
-  runBatchedStatements,
-  toDocPath,
-} from './d1-ingestion-utils';
+import { chunk, MAX_BATCH_STATEMENTS, runBatchedStatements, toDocPath } from './d1-ingestion-utils';
 
 // D1 の bound parameters 上限 100/query から逆算した 1 INSERT あたりの行数
 const ITEMS_PER_INSERT = 11; // 9 カラム
@@ -56,36 +51,24 @@ export async function ingestChangelogVersion(
     })),
   );
   const relatedDocRows = entry.items.flatMap((item) =>
-    [
-      ...new Set(
-        (item.related_docs ?? []).map((relatedDoc) =>
-          toDocPath(relatedDoc.file),
-        ),
-      ),
-    ].map((docPath) => ({
-      version: entry.version,
-      itemId: item.id,
-      docPath,
-    })),
+    [...new Set((item.related_docs ?? []).map((relatedDoc) => toDocPath(relatedDoc.file)))].map(
+      (docPath) => ({
+        version: entry.version,
+        itemId: item.id,
+        docPath,
+      }),
+    ),
   );
 
   const statements = [
-    db
-      .delete(changelogItemRelatedDocs)
-      .where(eq(changelogItemRelatedDocs.version, entry.version)),
+    db.delete(changelogItemRelatedDocs).where(eq(changelogItemRelatedDocs.version, entry.version)),
     db
       .delete(changelogItemFeatureAreas)
       .where(eq(changelogItemFeatureAreas.version, entry.version)),
     db.delete(changelogItems).where(eq(changelogItems.version, entry.version)),
-    db
-      .delete(changelogVersions)
-      .where(eq(changelogVersions.version, entry.version)),
-    db
-      .insert(changelogVersions)
-      .values({ version: entry.version, summary: entry.summary ?? null }),
-    ...chunk(itemRows, ITEMS_PER_INSERT).map((rows) =>
-      db.insert(changelogItems).values(rows),
-    ),
+    db.delete(changelogVersions).where(eq(changelogVersions.version, entry.version)),
+    db.insert(changelogVersions).values({ version: entry.version, summary: entry.summary ?? null }),
+    ...chunk(itemRows, ITEMS_PER_INSERT).map((rows) => db.insert(changelogItems).values(rows)),
     ...chunk(featureAreaRows, FEATURE_AREAS_PER_INSERT).map((rows) =>
       db.insert(changelogItemFeatureAreas).values(rows),
     ),

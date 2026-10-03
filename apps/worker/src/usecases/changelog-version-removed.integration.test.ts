@@ -1,11 +1,7 @@
 import { asc } from 'drizzle-orm';
 import { drizzle, type DrizzleD1Database } from 'drizzle-orm/d1';
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  changelogDiffEvents,
-  changelogItems,
-  changelogVersions,
-} from '../db/schema';
+import { changelogDiffEvents, changelogItems, changelogVersions } from '../db/schema';
 import { createChangelogDiffRepository } from '../infrastructure/drizzle/changelog-diff-repository';
 import { createExistingChangelogReader } from '../infrastructure/drizzle/existing-changelog-reader';
 import { FakeD1Database } from '../test-support/fake-d1';
@@ -54,10 +50,7 @@ describe('version_removed の重複記録', () => {
     }
   }
 
-  async function processChangelog(
-    remoteVersions: string[],
-    detectedAt: string,
-  ) {
+  async function processChangelog(remoteVersions: string[], detectedAt: string) {
     const classification = await fetchAndClassifyChangelog({
       source: {
         fetchMarkdown: async () => '（parser をフェイクにするため未使用）',
@@ -83,10 +76,7 @@ describe('version_removed の重複記録', () => {
         type: changelogDiffEvents.type,
       })
       .from(changelogDiffEvents)
-      .orderBy(
-        asc(changelogDiffEvents.version),
-        asc(changelogDiffEvents.detectedAt),
-      );
+      .orderBy(asc(changelogDiffEvents.version), asc(changelogDiffEvents.detectedAt));
   }
 
   it('同じ CHANGELOG を続けて2回処理しても行が増えないこと', async () => {
@@ -149,10 +139,7 @@ describe('version_removed の重複記録', () => {
     await processChangelog(['v2.1.234'], '2026-08-16T00:00:00.000Z');
 
     // 削除を検出しても D1 の行は残るため、remote に戻るだけで再追加になる
-    await processChangelog(
-      ['v2.1.234', 'v2.1.231'],
-      '2026-08-17T00:00:00.000Z',
-    );
+    await processChangelog(['v2.1.234', 'v2.1.231'], '2026-08-17T00:00:00.000Z');
 
     await processChangelog(['v2.1.234'], '2026-08-18T00:00:00.000Z');
 

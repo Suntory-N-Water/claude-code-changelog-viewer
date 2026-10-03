@@ -4,9 +4,7 @@ export type NotificationFrequency = ('IMM' | 'WEK') & {
   [notificationFrequencyBrand]: unknown;
 };
 
-export function createNotificationFrequency(
-  value: string,
-): NotificationFrequency {
+export function createNotificationFrequency(value: string): NotificationFrequency {
   if (value !== 'IMM' && value !== 'WEK') {
     throw new Error('通知頻度の形式が不正です');
   }

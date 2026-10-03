@@ -1,15 +1,9 @@
 import { eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import {
-  changelogDiffEvents,
-  changelogItems,
-  changelogVersions,
-} from '../../db/schema';
+import { changelogDiffEvents, changelogItems, changelogVersions } from '../../db/schema';
 import type { ExistingChangelogReader } from '../../usecases/changelog-inference-workflow';
 
-export function createExistingChangelogReader(
-  db: DrizzleD1Database,
-): ExistingChangelogReader {
+export function createExistingChangelogReader(db: DrizzleD1Database): ExistingChangelogReader {
   return {
     async findExistingItems() {
       return db
@@ -19,10 +13,7 @@ export function createExistingChangelogReader(
           content: changelogItems.content,
         })
         .from(changelogVersions)
-        .leftJoin(
-          changelogItems,
-          eq(changelogItems.version, changelogVersions.version),
-        );
+        .leftJoin(changelogItems, eq(changelogItems.version, changelogVersions.version));
     },
 
     async findRecordedRemovedVersions() {

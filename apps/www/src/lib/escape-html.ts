@@ -17,8 +17,5 @@ export function escapeHtml(str: string): string {
  * JSON-LD など type="application/json" なスクリプトで使用する
  */
 export function escapeJsonForScript(json: string): string {
-  return json
-    .replace(/</g, '\\u003c')
-    .replace(/>/g, '\\u003e')
-    .replace(/&/g, '\\u0026');
+  return json.replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 }

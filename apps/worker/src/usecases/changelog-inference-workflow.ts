@@ -64,8 +64,7 @@ export async function fetchAndClassifyChangelog({
   const releases = await parser.parse(markdown);
   // 保存前の D1 スナップショットを基準に、新規バージョンの通知対象を決める。
   const existingItems = await existingChangelogReader.findExistingItems();
-  const recordedRemovedVersions =
-    await existingChangelogReader.findRecordedRemovedVersions();
+  const recordedRemovedVersions = await existingChangelogReader.findRecordedRemovedVersions();
   return classifyChangelogReleases({
     releases,
     existingRows: existingItems,
@@ -106,9 +105,7 @@ export async function saveChangelogInference(
         ...item,
         contentJa: itemInference?.contentJa ?? '',
         featureAreas: itemInference?.featureAreas ?? [],
-        ...(itemInference?.inference === undefined
-          ? {}
-          : { inference: itemInference.inference }),
+        ...(itemInference?.inference === undefined ? {} : { inference: itemInference.inference }),
       };
     }),
   });

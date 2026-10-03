@@ -35,12 +35,8 @@ describe('CHANGELOG 推論の整合性', () => {
           },
         },
       ],
-      translatedItems: [
-        { id: 'without-docs', contentJa: '小さな誤字を修正しました。' },
-      ],
-      featureAreaCorrections: [
-        { id: 'with-docs', featureAreas: ['Settings', 'Settings'] },
-      ],
+      translatedItems: [{ id: 'without-docs', contentJa: '小さな誤字を修正しました。' }],
+      featureAreaCorrections: [{ id: 'with-docs', featureAreas: ['Settings', 'Settings'] }],
     });
 
     expect(result).toEqual([
@@ -75,28 +71,21 @@ describe('CHANGELOG 推論の整合性', () => {
           },
         },
       ],
-      translatedItems: [
-        { id: 'without-docs', contentJa: '小さな誤字を修正しました。' },
-      ],
+      translatedItems: [{ id: 'without-docs', contentJa: '小さな誤字を修正しました。' }],
       featureAreaCorrections: [
         { id: 'with-docs', featureAreas: ['Ide', 'IDE', 'settings', 'UI'] },
         { id: 'without-docs', featureAreas: ['設定'] },
       ],
     });
 
-    expect(result.map((item) => item.featureAreas)).toEqual([
-      ['IDE', 'Settings'],
-      [],
-    ]);
+    expect(result.map((item) => item.featureAreas)).toEqual([['IDE', 'Settings'], []]);
   });
 
   it('推論対象の項目が不足している時、AI 結果を受け付けないこと', () => {
     expect(() =>
       mergeChangelogItemInferences(items, {
         inferredItems: [],
-        translatedItems: [
-          { id: 'without-docs', contentJa: '小さな誤字を修正しました。' },
-        ],
+        translatedItems: [{ id: 'without-docs', contentJa: '小さな誤字を修正しました。' }],
         featureAreaCorrections: [],
       }),
     ).toThrow('AI 推論結果の推論項目数が一致しません');
@@ -116,9 +105,7 @@ describe('CHANGELOG 推論の整合性', () => {
             },
           },
         ],
-        translatedItems: [
-          { id: 'without-docs', contentJa: '小さな誤字を修正しました。' },
-        ],
+        translatedItems: [{ id: 'without-docs', contentJa: '小さな誤字を修正しました。' }],
         featureAreaCorrections: [{ id: 'unknown', featureAreas: ['Settings'] }],
       }),
     ).toThrow('AI 推論結果に未知の item id があります: unknown');

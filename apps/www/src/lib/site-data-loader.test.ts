@@ -1,9 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import {
-  changelogLoader,
-  diffLoader,
-  settingsReferenceLoader,
-} from './site-data-loader';
+import { changelogLoader, diffLoader, settingsReferenceLoader } from './site-data-loader';
 
 function createLoaderContext() {
   const entries = new Map<string, unknown>();
@@ -13,9 +9,7 @@ function createLoaderContext() {
       entries.set(id, data);
     }),
   };
-  const parseData = vi.fn(({ data }: { data: unknown }) =>
-    Promise.resolve(data),
-  );
+  const parseData = vi.fn(({ data }: { data: unknown }) => Promise.resolve(data));
   return { entries, store, parseData };
 }
 
@@ -125,9 +119,7 @@ describe('site data loader', () => {
     fetchMock.mockResolvedValueOnce(new Response('失敗', { status: 503 }));
     const context = createLoaderContext();
 
-    await expect(
-      settingsReferenceLoader.load(context as never),
-    ).rejects.toThrow('HTTP 503');
+    await expect(settingsReferenceLoader.load(context as never)).rejects.toThrow('HTTP 503');
     fetchMock.mockRestore();
   });
 

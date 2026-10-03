@@ -1,8 +1,5 @@
 import { workerLogger } from '../logger';
-import {
-  runWithLogContext,
-  toError,
-} from '@claude-code-changelog-viewer/common';
+import { runWithLogContext, toError } from '@claude-code-changelog-viewer/common';
 import { WorkflowEntrypoint } from 'cloudflare:workers';
 import type {
   WorkflowEvent,
@@ -53,12 +50,14 @@ export class D1BackupWorkflow extends WorkflowEntrypoint<
       },
       async () => {
         const runStep = createStepRunner(step);
-        const failureReporter: BackupFailureReporterPort =
-          createWorkflowFailureReporter(this.env.GITHUB_DISPATCH_TOKEN, {
+        const failureReporter: BackupFailureReporterPort = createWorkflowFailureReporter(
+          this.env.GITHUB_DISPATCH_TOKEN,
+          {
             name: 'D1 バックアップ Workflow',
             workflowLabel: 'workflow:d1-backup',
             summary: '正データ用 D1 の R2 への export が失敗しました。',
-          });
+          },
+        );
         logger.info('Workflow を開始します', {
           'workflow.name': 'd1-backup',
         });
@@ -71,20 +70,15 @@ export class D1BackupWorkflow extends WorkflowEntrypoint<
           });
           const store = createD1BackupStore(this.env.D1_BACKUP_BUCKET);
 
-          const bookmark = await runStep(
-            'start-export',
-            START_EXPORT_RETRIES,
-            async () => d1Export.start(),
+          const bookmark = await runStep('start-export', START_EXPORT_RETRIES, async () =>
+            d1Export.start(),
           );
-          const stored = await runStep(
-            'store-backup',
-            STORE_BACKUP_RETRIES,
-            async () =>
-              storeD1Backup(d1Export, store, {
-                bookmark,
-                // 再試行で保存先キーが変わらないよう、実行時刻ではなく起動時刻を使う。
-                exportedAt: event.timestamp.toISOString(),
-              }),
+          const stored = await runStep('store-backup', STORE_BACKUP_RETRIES, async () =>
+            storeD1Backup(d1Export, store, {
+              bookmark,
+              // 再試行で保存先キーが変わらないよう、実行時刻ではなく起動時刻を使う。
+              exportedAt: event.timestamp.toISOString(),
+            }),
           );
 
           logger.msg('APLG0021', {
@@ -103,11 +97,8 @@ export class D1BackupWorkflow extends WorkflowEntrypoint<
             'workflow.name': 'd1-backup',
             error: toError(error),
           });
-          await runStep(
-            'create-failure-issue',
-            START_EXPORT_RETRIES,
-            async () =>
-              failureReporter.report({ instanceId: event.instanceId, error }),
+          await runStep('create-failure-issue', START_EXPORT_RETRIES, async () =>
+            failureReporter.report({ instanceId: event.instanceId, error }),
           );
           throw error;
         }

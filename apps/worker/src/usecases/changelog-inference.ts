@@ -12,9 +12,7 @@ import {
 // 設定リファレンス生成の MAX_DOC_SNIPPET_CHARS と同じ値
 const MAX_SNIPPET_CHARS_PER_ITEM = 8000;
 
-export type ChangelogDocumentSearchPort = (
-  entry: string,
-) => Promise<RelatedDocument[]>;
+export type ChangelogDocumentSearchPort = (entry: string) => Promise<RelatedDocument[]>;
 
 export type ChangelogItemInferencePort = {
   inferItems(input: ChangelogInferenceInput): Promise<ChangelogItemsAiResult>;
@@ -57,8 +55,5 @@ export async function inferChangelogItemBatch(
   inference: ChangelogItemInferencePort,
   batch: ChangelogInferenceInput,
 ): Promise<ChangelogItemInference[]> {
-  return mergeChangelogItemInferences(
-    batch.items,
-    await inference.inferItems(batch),
-  );
+  return mergeChangelogItemInferences(batch.items, await inference.inferItems(batch));
 }

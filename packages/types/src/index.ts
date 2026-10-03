@@ -78,9 +78,7 @@ export const IngestChangelogVersionSchema = z.object({
   summary: z.string().nullable().optional(),
   items: z.array(IngestChangelogItemSchema),
 });
-export type IngestChangelogVersion = z.infer<
-  typeof IngestChangelogVersionSchema
->;
+export type IngestChangelogVersion = z.infer<typeof IngestChangelogVersionSchema>;
 
 export const IngestChangelogDiffEventSchema = z.object({
   detected_at: z.string(),
@@ -89,9 +87,7 @@ export const IngestChangelogDiffEventSchema = z.object({
   items_added: z.array(z.string()),
   items_removed: z.array(z.string()),
 });
-export type IngestChangelogDiffEvent = z.infer<
-  typeof IngestChangelogDiffEventSchema
->;
+export type IngestChangelogDiffEvent = z.infer<typeof IngestChangelogDiffEventSchema>;
 
 // doc_snippets は意図的に受け取らない(D1 の SQL 文長上限と LLM 向けノイズ対策)
 export const IngestSettingSchema = z.object({

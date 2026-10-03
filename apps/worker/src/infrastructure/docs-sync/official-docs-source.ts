@@ -28,18 +28,12 @@ export function createOfficialDocsSource(): OfficialDocsSource {
         fetchText(LLMS_URL, 'text/markdown, text/plain, */*'),
       ]);
 
-      return mergeDocumentLists(
-        parseDocsMap(docsMapContent),
-        parseLlmsTxt(llmsContent),
-      );
+      return mergeDocumentLists(parseDocsMap(docsMapContent), parseLlmsTxt(llmsContent));
     },
 
     async fetchPage(document): Promise<StoredPage> {
       try {
-        const markdown = await fetchText(
-          document.url,
-          'text/markdown, text/plain, */*',
-        );
+        const markdown = await fetchText(document.url, 'text/markdown, text/plain, */*');
         const content =
           `---\ntitle: ${document.title}\nsource: ${document.url}\n---\n\n` +
           (await cleanMarkdown(markdown));
@@ -63,9 +57,7 @@ export function createOfficialDocsSource(): OfficialDocsSource {
       try {
         schema = JSON.parse(rawSchema);
       } catch (error) {
-        throw new Error(
-          `設定スキーマの JSON パースに失敗しました: ${toError(error).message}`,
-        );
+        throw new Error(`設定スキーマの JSON パースに失敗しました: ${toError(error).message}`);
       }
 
       if (!isSettingSchema(schema)) {
@@ -101,9 +93,7 @@ async function fetchText(url: string, accept: string): Promise<string> {
         throw error;
       }
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, retryDelayMs * 2 ** attempt),
-      );
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs * 2 ** attempt));
     }
   }
 

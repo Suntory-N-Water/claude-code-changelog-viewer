@@ -11,10 +11,7 @@ import { syncDocs as syncDocsUsecase } from '../usecases/sync-docs';
 const logger = workerLogger('cron.docs-sync');
 
 /** ScheduledEvent と Cloudflare binding をドキュメント同期 usecase へ接続する entry point。 */
-export async function syncDocs(
-  bindings: CloudflareBindings,
-  now = new Date(),
-): Promise<void> {
+export async function syncDocs(bindings: CloudflareBindings, now = new Date()): Promise<void> {
   const result = await syncDocsUsecase(
     {
       source: createOfficialDocsSource(),

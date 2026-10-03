@@ -45,11 +45,7 @@ describe('/api/unsubscribe integration', () => {
       deactivatedAt: '9999-12-31',
     });
 
-    const response = await app.request(
-      '/api/unsubscribe?token=active-token',
-      {},
-      env,
-    );
+    const response = await app.request('/api/unsubscribe?token=active-token', {}, env);
 
     expect(response.status).toBe(200);
     expect(await response.text()).toContain('通知停止の確認');
@@ -125,11 +121,7 @@ describe('/api/unsubscribe integration', () => {
     db = new FakeD1Database();
     const env = createTestEnv(db);
 
-    const response = await app.request(
-      '/api/unsubscribe?token=missing-token',
-      {},
-      env,
-    );
+    const response = await app.request('/api/unsubscribe?token=missing-token', {}, env);
 
     expect(response.status).toBe(404);
     expect(await response.text()).toContain('該当する登録が見つかりません');

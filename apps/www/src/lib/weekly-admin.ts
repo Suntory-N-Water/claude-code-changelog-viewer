@@ -72,8 +72,6 @@ export async function getWeeklyAdminWeeks(): Promise<WeeklyAdminWeek[]> {
   return [...weeks.values()].map((week) => ({
     ...week,
     // 同一バージョン内の並びは JSON の記載順を保つ(toSorted は安定ソート)
-    items: week.items.toSorted((a, b) =>
-      semverCompareDesc(a.version, b.version),
-    ),
+    items: week.items.toSorted((a, b) => semverCompareDesc(a.version, b.version)),
   }));
 }

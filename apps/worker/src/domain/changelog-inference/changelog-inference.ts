@@ -77,9 +77,7 @@ function normalizeFeatureAreas(areas: string[]): string[] {
   return [
     ...new Set(
       areas.flatMap((area) => {
-        const canonical = FEATURE_AREA_BY_LOWERCASE.get(
-          area.trim().toLowerCase(),
-        );
+        const canonical = FEATURE_AREA_BY_LOWERCASE.get(area.trim().toLowerCase());
         return canonical === undefined ? [] : [canonical];
       }),
     ),
@@ -126,9 +124,7 @@ export function mergeChangelogItemInferences(
   aiResult: ChangelogItemsAiResult,
 ): ChangelogItemInference[] {
   const inferenceItems = items.filter((item) => item.relatedDocs.length > 0);
-  const translationItems = items.filter(
-    (item) => item.relatedDocs.length === 0,
-  );
+  const translationItems = items.filter((item) => item.relatedDocs.length === 0);
 
   assertItemIds(
     inferenceItems.map((item) => item.id),
@@ -141,12 +137,8 @@ export function mergeChangelogItemInferences(
     '翻訳',
   );
 
-  const inferredById = new Map(
-    aiResult.inferredItems.map((item) => [item.id, item]),
-  );
-  const translatedById = new Map(
-    aiResult.translatedItems.map((item) => [item.id, item]),
-  );
+  const inferredById = new Map(aiResult.inferredItems.map((item) => [item.id, item]));
+  const translatedById = new Map(aiResult.translatedItems.map((item) => [item.id, item]));
   const featureAreasById = new Map(
     aiResult.featureAreaCorrections.map((item) => [
       item.id,
@@ -172,11 +164,7 @@ export function mergeChangelogItemInferences(
   });
 }
 
-function assertItemIds(
-  expectedIds: string[],
-  actualIds: string[],
-  resultName: string,
-): void {
+function assertItemIds(expectedIds: string[], actualIds: string[], resultName: string): void {
   const expected = new Set(expectedIds);
   const actual = new Set(actualIds);
   if (

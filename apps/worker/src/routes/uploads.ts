@@ -75,10 +75,7 @@ uploadsRoute.post(
       route: 'uploads',
       error: result.error,
     });
-    return c.json(
-      { error: result.error[0]?.message ?? 'リクエストが不正です' },
-      400,
-    );
+    return c.json({ error: result.error[0]?.message ?? 'リクエストが不正です' }, 400);
   }),
   async (c) => {
     const { file, week, itemId } = c.req.valid('form');

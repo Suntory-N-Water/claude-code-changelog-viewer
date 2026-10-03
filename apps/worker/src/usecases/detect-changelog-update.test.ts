@@ -18,11 +18,7 @@ describe('CHANGELOG 更新検知ユースケース', () => {
         fetchContentHash: async () => 'new-hash',
       },
       workflow: {
-        dispatch: async (input: {
-          hash: string;
-          detectedAt: string;
-          attempts: number;
-        }) => {
+        dispatch: async (input: { hash: string; detectedAt: string; attempts: number }) => {
           dispatched.push(input);
         },
         findStatus: async (): Promise<ChangelogWorkflowStatus> => 'pending',
@@ -73,11 +69,7 @@ describe('CHANGELOG 更新検知ユースケース', () => {
         fetchContentHash: async () => 'same-hash',
       },
       workflow: {
-        dispatch: async (input: {
-          hash: string;
-          detectedAt: string;
-          attempts: number;
-        }) => {
+        dispatch: async (input: { hash: string; detectedAt: string; attempts: number }) => {
           dispatched.push(input);
         },
         findStatus: async (): Promise<ChangelogWorkflowStatus> => 'pending',
@@ -130,11 +122,7 @@ describe('CHANGELOG 更新検知ユースケース', () => {
         fetchContentHash: async () => 'new-hash',
       },
       workflow: {
-        dispatch: async (input: {
-          hash: string;
-          detectedAt: string;
-          attempts: number;
-        }) => {
+        dispatch: async (input: { hash: string; detectedAt: string; attempts: number }) => {
           dispatched.push(input);
         },
         findStatus: async (): Promise<ChangelogWorkflowStatus> => 'pending',
@@ -169,11 +157,7 @@ describe('CHANGELOG 更新検知ユースケース', () => {
         fetchContentHash: async () => 'new-hash',
       },
       workflow: {
-        dispatch: async (input: {
-          hash: string;
-          detectedAt: string;
-          attempts: number;
-        }) => {
+        dispatch: async (input: { hash: string; detectedAt: string; attempts: number }) => {
           dispatchCount += 1;
           if (dispatchCount === 1) {
             throw new Error('workflow 起動の一時的な失敗');

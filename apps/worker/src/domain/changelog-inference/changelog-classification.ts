@@ -1,11 +1,5 @@
-import type {
-  ChangelogDiffEvent,
-  ChangelogRelease,
-} from './changelog-inference';
-import {
-  formatChangelogVersion,
-  normalizeChangelogVersion,
-} from './changelog-version';
+import type { ChangelogDiffEvent, ChangelogRelease } from './changelog-inference';
+import { formatChangelogVersion, normalizeChangelogVersion } from './changelog-version';
 
 export type ExistingChangelogItem = {
   version: string;
@@ -49,10 +43,7 @@ export function classifyChangelogReleases({
 
   let latestExistingVersion: string | null = null;
   for (const version of existingByVersion.keys()) {
-    if (
-      latestExistingVersion === null ||
-      compareVersions(version, latestExistingVersion) > 0
-    ) {
+    if (latestExistingVersion === null || compareVersions(version, latestExistingVersion) > 0) {
       latestExistingVersion = version;
     }
   }
@@ -66,9 +57,7 @@ export function classifyChangelogReleases({
     const versionKey = normalizeChangelogVersion(release.version);
     remoteVersionKeys.add(versionKey);
     const existingItems = existingByVersion.get(versionKey);
-    const remoteItems = new Map(
-      release.items.map((item) => [item.id, item.content]),
-    );
+    const remoteItems = new Map(release.items.map((item) => [item.id, item.content]));
 
     if (existingItems === undefined) {
       versions.push(release);
@@ -108,10 +97,7 @@ export function classifyChangelogReleases({
     recordedRemovedVersions.map(normalizeChangelogVersion),
   );
   for (const version of existingByVersion.keys()) {
-    if (
-      remoteVersionKeys.has(version) ||
-      recordedRemovedVersionKeys.has(version)
-    ) {
+    if (remoteVersionKeys.has(version) || recordedRemovedVersionKeys.has(version)) {
       continue;
     }
     diffEvents.push({

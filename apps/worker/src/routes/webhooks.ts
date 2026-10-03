@@ -8,18 +8,12 @@ import {
   createDiscordWebhookUrl,
   isValidDiscordWebhookUrl,
 } from '../domain/channel/discord-webhook-url';
-import {
-  createEmailAddress,
-  isValidEmailAddress,
-} from '../domain/channel/email-address';
+import { createEmailAddress, isValidEmailAddress } from '../domain/channel/email-address';
 import {
   createNotificationFrequency,
   type NotificationFrequency,
 } from '../domain/channel/notification-frequency';
-import {
-  createSlackWebhookUrl,
-  isValidSlackWebhookUrl,
-} from '../domain/channel/slack-webhook-url';
+import { createSlackWebhookUrl, isValidSlackWebhookUrl } from '../domain/channel/slack-webhook-url';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 import { verifyTurnstileToken } from '../infrastructure/turnstile';
@@ -80,10 +74,7 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       return c.json({ error: 'Turnstile検証に失敗しました' }, 403);
     }
 
-    const repository = createChannelRepository(
-      c.env.DB,
-      c.env.EMAIL_ENCRYPTION_KEY,
-    );
+    const repository = createChannelRepository(c.env.DB, c.env.EMAIL_ENCRYPTION_KEY);
     const notifier = createChannelNotifier(c.env);
     const frequency = createNotificationFrequency(data.frequency);
     const input = createSubscribeInput(data, frequency);

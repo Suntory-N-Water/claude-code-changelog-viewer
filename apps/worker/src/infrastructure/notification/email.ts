@@ -70,17 +70,14 @@ export function createEmailChangelogMessage(
 ): EmailPayload {
   const { unsubscribeUrl, siteUrl } = options;
   const viewerUrl = `${siteUrl}/changelog/${version}/`;
-  const summary =
-    data.summary || 'Claude Code の新しいバージョンがリリースされました。';
+  const summary = data.summary || 'Claude Code の新しいバージョンがリリースされました。';
 
   const groups = groupChangelogItemsByPrefix(data.items);
 
   const sectionsHtml = groups
     .map(({ prefix, items }) => {
       const label = PREFIX_LABELS[prefix as Prefix] ?? prefix;
-      const listItems = items
-        .map((item) => `<li>${item.content_ja || item.content}</li>`)
-        .join('');
+      const listItems = items.map((item) => `<li>${item.content_ja || item.content}</li>`).join('');
       return `<h3 style="margin:16px 0 8px">${label} (${items.length}件)</h3><ul style="margin:0;padding-left:20px">${listItems}</ul>`;
     })
     .join('');
@@ -104,9 +101,7 @@ export function createEmailChangelogMessage(
   const sectionsText = groups
     .map(({ prefix, items }) => {
       const label = PREFIX_LABELS[prefix as Prefix] ?? prefix;
-      const lines = items
-        .map((item) => `  - ${item.content_ja || item.content}`)
-        .join('\n');
+      const lines = items.map((item) => `  - ${item.content_ja || item.content}`).join('\n');
       return `${label} (${items.length}件)\n${lines}`;
     })
     .join('\n\n');

@@ -21,15 +21,11 @@ async function loadNotoSansJp(text: string): Promise<ArrayBuffer> {
   const cssUrl = `https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@600&text=${encodeURIComponent(text)}`;
   const cssResponse = await fetch(cssUrl);
   if (!cssResponse.ok) {
-    throw new Error(
-      `Google Fonts の CSS 取得に失敗しました: ${cssResponse.status} ${cssUrl}`,
-    );
+    throw new Error(`Google Fonts の CSS 取得に失敗しました: ${cssResponse.status} ${cssUrl}`);
   }
   const fontUrl = (await cssResponse.text()).match(/src: url\(([^)]+)\)/)?.[1];
   if (!fontUrl) {
-    throw new Error(
-      'Google Fonts の CSS からフォント URL を取り出せませんでした',
-    );
+    throw new Error('Google Fonts の CSS からフォント URL を取り出せませんでした');
   }
   const fontResponse = await fetch(fontUrl);
   if (!fontResponse.ok) {

@@ -3,11 +3,7 @@ import type { D1Migration } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { drizzle } from 'drizzle-orm/d1';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  changelogItems,
-  settingsOfficialDocs,
-  settingsReference,
-} from '../db/schema';
+import { changelogItems, settingsOfficialDocs, settingsReference } from '../db/schema';
 
 declare global {
   namespace Cloudflare {
@@ -44,10 +40,7 @@ function chatCompletion(content: object) {
 describe('設定リファレンス生成 Workflow', () => {
   beforeEach(async () => {
     await applyD1Migrations(testEnv.DB, testEnv.TEST_NOTIFICATION_MIGRATIONS);
-    await applyD1Migrations(
-      testEnv.DOCS_DB,
-      testEnv.TEST_DOCS_SEARCH_MIGRATIONS,
-    );
+    await applyD1Migrations(testEnv.DOCS_DB, testEnv.TEST_DOCS_SEARCH_MIGRATIONS);
 
     const db = drizzle(testEnv.DB);
     await db.delete(settingsOfficialDocs);
@@ -84,8 +77,7 @@ describe('設定リファレンス生成 Workflow', () => {
           {
             id: 0,
             description_ja: 'アクセスを許可する追加ディレクトリです。',
-            use_case_ja:
-              '- プロジェクト外のディレクトリを参照する場合に使います。',
+            use_case_ja: '- プロジェクト外のディレクトリを参照する場合に使います。',
             enum_descriptions_ja: [],
             default_note_ja: '',
           },
@@ -107,11 +99,7 @@ describe('設定リファレンス生成 Workflow', () => {
     try {
       await instance.modify(async (modifier) => {
         await modifier.disableRetryDelays();
-        await modifier.mockStepError(
-          { name: 'store-0' },
-          new Error('保存の一時的な失敗'),
-          1,
-        );
+        await modifier.mockStepError({ name: 'store-0' }, new Error('保存の一時的な失敗'), 1);
       });
 
       await testEnv.SETTINGS_REFERENCE_WORKFLOW.create({
@@ -212,10 +200,7 @@ describe('設定リファレンス生成 Workflow', () => {
     }
 
     const targetId = `issue-902-target-${crypto.randomUUID()}`;
-    const target = await introspectWorkflowInstance(
-      testEnv.SETTINGS_REFERENCE_WORKFLOW,
-      targetId,
-    );
+    const target = await introspectWorkflowInstance(testEnv.SETTINGS_REFERENCE_WORKFLOW, targetId);
     try {
       await target.modify(async (modifier) => {
         await modifier.disableRetryDelays();
@@ -254,15 +239,7 @@ describe('設定リファレンス生成 Workflow', () => {
        (key, source, description, parent_descriptions, value_type, default_value, enum_values)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
-      .bind(
-        'model',
-        'settings',
-        'Model for the session.',
-        '[]',
-        'string',
-        null,
-        null,
-      )
+      .bind('model', 'settings', 'Model for the session.', '[]', 'string', null, null)
       .run();
 
     const db = drizzle(testEnv.DB);
@@ -331,10 +308,7 @@ describe('設定リファレンス生成 Workflow', () => {
       });
       await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
 
-      const rows = await db
-        .select()
-        .from(settingsReference)
-        .orderBy(settingsReference.key);
+      const rows = await db.select().from(settingsReference).orderBy(settingsReference.key);
 
       expect(rows).toMatchObject([
         {
@@ -443,10 +417,7 @@ describe('設定リファレンス生成 Workflow', () => {
 
 async function seedSettingSchema(count = 1): Promise<void> {
   for (let index = 0; index < count; index += 1) {
-    const key =
-      index === 0
-        ? 'permissions.additionalDirectories'
-        : `permissions.setting${index}`;
+    const key = index === 0 ? 'permissions.additionalDirectories' : `permissions.setting${index}`;
     await testEnv.DOCS_DB.prepare(
       `INSERT INTO setting_schema_entries
        (key, source, description, parent_descriptions, value_type, default_value, enum_values)

@@ -73,16 +73,10 @@ export async function dispatchChangelogNotifications(
     }
 
     if (notificationResult !== undefined) {
-      if (
-        !notificationResult.ok &&
-        notificationResult.failureKind === 'rate_limit'
-      ) {
+      if (!notificationResult.ok && notificationResult.failureKind === 'rate_limit') {
         failures.push({ type: 'rate_limit', channel });
         shouldStop = true;
-      } else if (
-        !notificationResult.ok &&
-        notificationResult.failureKind === 'permanent'
-      ) {
+      } else if (!notificationResult.ok && notificationResult.failureKind === 'permanent') {
         await repository.save(recordFailure(channel, input.failedAt));
       } else if (!notificationResult.ok) {
         failures.push({ type: 'temporary_failure', channel });

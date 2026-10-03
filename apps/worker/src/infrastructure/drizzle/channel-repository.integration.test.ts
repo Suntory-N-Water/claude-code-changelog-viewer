@@ -17,21 +17,13 @@ describe('DrizzleChannelRepository integration', () => {
 
   it('サブタイプの保存に失敗したとき、Channel 集約を部分保存しないこと', async () => {
     db = new FakeD1Database();
-    const repository = createChannelRepository(
-      db as unknown as D1Database,
-      EMAIL_ENCRYPTION_KEY,
-    );
+    const repository = createChannelRepository(db as unknown as D1Database, EMAIL_ENCRYPTION_KEY);
     const address = {
       type: 'DSC',
-      value: createDiscordWebhookUrl(
-        'https://discord.com/api/webhooks/123456/duplicate',
-      ),
+      value: createDiscordWebhookUrl('https://discord.com/api/webhooks/123456/duplicate'),
     } as const;
     const first = createChannel(address, createNotificationFrequency('IMM'));
-    const duplicate = createChannel(
-      address,
-      createNotificationFrequency('IMM'),
-    );
+    const duplicate = createChannel(address, createNotificationFrequency('IMM'));
     await repository.save(first);
 
     await expect(repository.save(duplicate)).rejects.toThrow();

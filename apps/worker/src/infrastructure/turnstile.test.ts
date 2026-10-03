@@ -38,9 +38,7 @@ describe('Turnstile 検証', () => {
   });
 
   it('検証 API が HTTP エラーの時、検証済みにならないこと', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response('', { status: 503 }),
-    );
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('', { status: 503 }));
 
     const result = await verifyTurnstileToken('token', 'secret');
 

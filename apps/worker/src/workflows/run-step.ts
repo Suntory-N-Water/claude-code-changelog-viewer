@@ -1,7 +1,4 @@
-import type {
-  WorkflowStep,
-  WorkflowStepConfigWithStaticDelay,
-} from 'cloudflare:workers';
+import type { WorkflowStep, WorkflowStepConfigWithStaticDelay } from 'cloudflare:workers';
 import { workerLogger } from '../logger';
 
 const logger = workerLogger('workflows.step');

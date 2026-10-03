@@ -35,9 +35,7 @@ class FakeD1PreparedStatement implements D1PreparedStatement {
   bind(...values: SQLQueryBindings[]) {
     // 実 D1 の制約 (bound parameters 100/query) を再現し、分割漏れを検出する
     if (values.length > 100) {
-      throw new Error(
-        `D1 の bound parameters 上限 100 を超過: ${values.length}`,
-      );
+      throw new Error(`D1 の bound parameters 上限 100 を超過: ${values.length}`);
     }
     return new FakeD1PreparedStatement(this.db, this.query, values);
   }
@@ -67,18 +65,12 @@ class FakeD1PreparedStatement implements D1PreparedStatement {
     } satisfies D1Result<T>;
   }
 
-  raw<T = unknown[]>(options: {
-    columnNames: true;
-  }): Promise<[string[], ...T[]]>;
+  raw<T = unknown[]>(options: { columnNames: true }): Promise<[string[], ...T[]]>;
   raw<T = unknown[]>(options?: { columnNames?: false }): Promise<T[]>;
-  async raw<T = unknown[]>(options?: {
-    columnNames?: boolean;
-  }): Promise<T[] | [string[], ...T[]]> {
+  async raw<T = unknown[]>(options?: { columnNames?: boolean }): Promise<T[] | [string[], ...T[]]> {
     const resultInfo = this.db.prepare(this.query).all(...this.values);
     const rows = resultInfo.map((row) => Object.values(row)) as T[];
-    return options?.columnNames === true
-      ? [Object.keys(resultInfo[0] ?? {}), ...rows]
-      : rows;
+    return options?.columnNames === true ? [Object.keys(resultInfo[0] ?? {}), ...rows] : rows;
   }
 }
 
@@ -127,9 +119,7 @@ export class FakeDocsD1Database implements D1Database {
     return new FakeD1PreparedStatement(this.db, query);
   }
 
-  async batch<T = unknown>(
-    statements: D1PreparedStatement[],
-  ): Promise<D1Result<T>[]> {
+  async batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]> {
     return Promise.all(statements.map((statement) => statement.run<T>()));
   }
 

@@ -24,8 +24,7 @@ const markdownSanitizeSchema: Options = {
     // 残したまま 'className' を足すと remark-link-card-plus の class が空文字になる
     a: [
       ...(defaultAttributes['a'] ?? []).filter(
-        (attribute) =>
-          !(Array.isArray(attribute) && attribute[0] === 'className'),
+        (attribute) => !(Array.isArray(attribute) && attribute[0] === 'className'),
       ),
       'className',
       // remark-link-card-plus が出力する target="_blank" rel="noreferrer noopener" だけを通す。
@@ -50,7 +49,7 @@ const markdownSanitizeSchema: Options = {
  * この順序が壊れると防御が無効になるため、astro.config.mjs 側で組み立てず
  * ここから配列ごと渡してテストと共有する。
  */
-export const markdownRehypePlugins: [
-  typeof rehypeRaw,
-  [typeof rehypeSanitize, Options],
-] = [rehypeRaw, [rehypeSanitize, markdownSanitizeSchema]];
+export const markdownRehypePlugins: [typeof rehypeRaw, [typeof rehypeSanitize, Options]] = [
+  rehypeRaw,
+  [rehypeSanitize, markdownSanitizeSchema],
+];

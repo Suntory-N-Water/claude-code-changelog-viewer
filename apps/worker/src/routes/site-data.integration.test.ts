@@ -83,11 +83,7 @@ describe('GET /api/site-data integration', () => {
       ],
     });
 
-    const response = await app.request(
-      '/api/site-data/changelog',
-      {},
-      createTestEnv(db),
-    );
+    const response = await app.request('/api/site-data/changelog', {}, createTestEnv(db));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       versions: [
@@ -145,11 +141,7 @@ describe('GET /api/site-data integration', () => {
       ],
     });
 
-    const response = await app.request(
-      '/api/site-data/diff',
-      {},
-      createTestEnv(db),
-    );
+    const response = await app.request('/api/site-data/diff', {}, createTestEnv(db));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
@@ -197,11 +189,7 @@ describe('GET /api/site-data integration', () => {
       ],
     });
 
-    const response = await app.request(
-      '/api/site-data/settings',
-      {},
-      createTestEnv(db, docsDb),
-    );
+    const response = await app.request('/api/site-data/settings', {}, createTestEnv(db, docsDb));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
@@ -248,11 +236,7 @@ describe('GET /api/site-data integration', () => {
       ],
     });
 
-    const response = await app.request(
-      '/api/site-data/settings',
-      {},
-      createTestEnv(db, docsDb),
-    );
+    const response = await app.request('/api/site-data/settings', {}, createTestEnv(db, docsDb));
 
     expect(await response.json()).toEqual({
       settings: [
@@ -305,11 +289,7 @@ describe('GET /api/site-data integration', () => {
       ],
     });
 
-    const response = await app.request(
-      '/api/site-data/settings',
-      {},
-      createTestEnv(db, docsDb),
-    );
+    const response = await app.request('/api/site-data/settings', {}, createTestEnv(db, docsDb));
 
     const body = (await response.json()) as {
       settings: { key: string; slug: string }[];
@@ -336,17 +316,10 @@ describe('GET /api/site-data integration', () => {
       { key: 'verbose', valueType: 'boolean', defaultValue: 'false' },
     ]);
     await seed(db, {
-      settings: [
-        createSetting('model', 'settings'),
-        createSetting('verbose', 'settings'),
-      ],
+      settings: [createSetting('model', 'settings'), createSetting('verbose', 'settings')],
     });
 
-    const response = await app.request(
-      '/api/site-data/settings',
-      {},
-      createTestEnv(db, docsDb),
-    );
+    const response = await app.request('/api/site-data/settings', {}, createTestEnv(db, docsDb));
 
     expect(await response.json()).toEqual({
       settings: [
@@ -402,11 +375,7 @@ describe('GET /api/site-data integration', () => {
       ],
     });
 
-    const response = await app.request(
-      '/api/site-data/settings',
-      {},
-      createTestEnv(db, docsDb),
-    );
+    const response = await app.request('/api/site-data/settings', {}, createTestEnv(db, docsDb));
 
     expect(await response.json()).toEqual({
       settings: [
@@ -465,18 +434,13 @@ describe('GET /api/site-data integration', () => {
       settings: [
         {
           ...createSetting('model', 'settings'),
-          enum_descriptions_ja:
-            '{"stable":"おおむね1週間前のリリースを追いかける"}',
+          enum_descriptions_ja: '{"stable":"おおむね1週間前のリリースを追いかける"}',
           default_note_ja: '未設定のときは `"latest"` を追いかける',
         },
       ],
     });
 
-    const response = await app.request(
-      '/api/site-data/settings',
-      {},
-      createTestEnv(db, docsDb),
-    );
+    const response = await app.request('/api/site-data/settings', {}, createTestEnv(db, docsDb));
 
     expect(await response.json()).toMatchObject({
       settings: [
@@ -507,11 +471,7 @@ describe('GET /api/site-data integration', () => {
     ]);
     await seed(db, { settings: [createSetting('model', 'settings')] });
 
-    const response = await app.request(
-      '/api/site-data/settings',
-      {},
-      createTestEnv(db, docsDb),
-    );
+    const response = await app.request('/api/site-data/settings', {}, createTestEnv(db, docsDb));
     const body = (await response.json()) as {
       settings: Record<string, unknown>[];
     };
@@ -535,11 +495,7 @@ describe('GET /api/site-data integration', () => {
     ]);
     await seed(db, { settings: [createSetting('model', 'settings')] });
 
-    const response = await app.request(
-      '/api/site-data/settings',
-      {},
-      createTestEnv(db, docsDb),
-    );
+    const response = await app.request('/api/site-data/settings', {}, createTestEnv(db, docsDb));
 
     expect(await response.json()).toMatchObject({
       settings: [{ key: 'model', scope: '-' }],

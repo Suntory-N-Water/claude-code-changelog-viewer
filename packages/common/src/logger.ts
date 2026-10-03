@@ -137,9 +137,7 @@ function formatPretty(
     output += ` ${keys.map((key) => `${key}=${formatPrettyValue(attrs[key])}`).join(' ')}`;
   }
   if (typeof stackTrace === 'string') {
-    output += `\n  exception.stack_trace:\n    ${stackTrace
-      .split('\n')
-      .join('\n    ')}`;
+    output += `\n  exception.stack_trace:\n    ${stackTrace.split('\n').join('\n    ')}`;
   }
 
   return output;
@@ -270,11 +268,7 @@ function createLogger(
   format: 'pretty' | 'json',
   baseAttrs: Record<string, unknown>,
 ): AppLogger {
-  function log(
-    level: LogLevel,
-    msg: string,
-    extra?: Record<string, unknown> | Error,
-  ): void {
+  function log(level: LogLevel, msg: string, extra?: Record<string, unknown> | Error): void {
     if (LOG_LEVEL_MAP[level] < minLevel) {
       return;
     }
@@ -303,18 +297,12 @@ function createLogger(
   }
 
   const logger: AppLogger = {
-    trace: (msg: string, extra?: Record<string, unknown> | Error) =>
-      log('TRACE', msg, extra),
-    debug: (msg: string, extra?: Record<string, unknown> | Error) =>
-      log('DEBUG', msg, extra),
-    info: (msg: string, extra?: Record<string, unknown> | Error) =>
-      log('INFO', msg, extra),
-    warn: (msg: string, extra?: Record<string, unknown> | Error) =>
-      log('WARN', msg, extra),
-    error: (msg: string, extra?: Record<string, unknown> | Error) =>
-      log('ERROR', msg, extra),
-    fatal: (msg: string, extra?: Record<string, unknown> | Error) =>
-      log('FATAL', msg, extra),
+    trace: (msg: string, extra?: Record<string, unknown> | Error) => log('TRACE', msg, extra),
+    debug: (msg: string, extra?: Record<string, unknown> | Error) => log('DEBUG', msg, extra),
+    info: (msg: string, extra?: Record<string, unknown> | Error) => log('INFO', msg, extra),
+    warn: (msg: string, extra?: Record<string, unknown> | Error) => log('WARN', msg, extra),
+    error: (msg: string, extra?: Record<string, unknown> | Error) => log('ERROR', msg, extra),
+    fatal: (msg: string, extra?: Record<string, unknown> | Error) => log('FATAL', msg, extra),
     msg: msgFn,
     child: (bindings: Record<string, unknown>) =>
       createLogger(loggerName, serviceName, minLevel, format, {
@@ -331,15 +319,9 @@ function getLogger(options: LoggerOptions): AppLogger {
   const format = options.format ?? detectFormat();
   const minLevel = LOG_LEVEL_MAP[level];
 
-  return createLogger(
-    options.name,
-    options.serviceName ?? options.name,
-    minLevel,
-    format,
-    {
-      'logger.name': options.name,
-    },
-  );
+  return createLogger(options.name, options.serviceName ?? options.name, minLevel, format, {
+    'logger.name': options.name,
+  });
 }
 
 function runWithLogContext<T>(attrs: Record<string, unknown>, fn: () => T): T {

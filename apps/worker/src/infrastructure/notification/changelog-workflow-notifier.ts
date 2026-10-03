@@ -28,9 +28,7 @@ type NotificationRow = {
   prefix: string | null;
 };
 
-const logger = workerLogger(
-  'infrastructure.notification.changelog-workflow-notifier',
-);
+const logger = workerLogger('infrastructure.notification.changelog-workflow-notifier');
 
 export function createChangelogWorkflowNotifier(
   db: DrizzleD1Database,
@@ -51,13 +49,8 @@ export function createChangelogWorkflowNotifier(
             prefix: changelogItems.prefix,
           })
           .from(changelogVersions)
-          .leftJoin(
-            changelogItems,
-            eq(changelogItems.version, changelogVersions.version),
-          )
-          .where(
-            eq(changelogVersions.version, normalizeChangelogVersion(version)),
-          )
+          .leftJoin(changelogItems, eq(changelogItems.version, changelogVersions.version))
+          .where(eq(changelogVersions.version, normalizeChangelogVersion(version)))
           .orderBy(sql.raw('changelog_items.rowid'));
       } catch (error) {
         logger.error('通知データの取得に失敗しました', {
@@ -85,10 +78,7 @@ export function createChangelogWorkflowNotifier(
               itemId: string;
               content: string;
               prefix: string;
-            } =>
-              row.itemId !== null &&
-              row.content !== null &&
-              row.prefix !== null,
+            } => row.itemId !== null && row.content !== null && row.prefix !== null,
           )
           .map((row) => ({
             content: row.content,

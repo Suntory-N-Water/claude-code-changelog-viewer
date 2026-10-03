@@ -61,11 +61,7 @@ function normalizeVersion(version: string): string {
 function semverCompareDesc(a: string, b: string): number {
   const partsA = normalizeVersion(a).split('.').map(Number);
   const partsB = normalizeVersion(b).split('.').map(Number);
-  for (
-    let index = 0;
-    index < Math.max(partsA.length, partsB.length);
-    index += 1
-  ) {
+  for (let index = 0; index < Math.max(partsA.length, partsB.length); index += 1) {
     const difference = (partsB[index] ?? 0) - (partsA[index] ?? 0);
     if (difference !== 0) {
       return difference;
@@ -82,10 +78,7 @@ function eventKey(row: Row): string {
   return `${rowText(row, 'version')}\u0000${rowText(row, 'detectedAt')}`;
 }
 
-function settingHasOfficialDocs(
-  setting: Row,
-  officialDocKeys: Set<string>,
-): boolean {
+function settingHasOfficialDocs(setting: Row, officialDocKeys: Set<string>): boolean {
   return officialDocKeys.has(rowText(setting, 'key'));
 }
 
@@ -94,9 +87,7 @@ function settingMatchesItem(setting: Row, item: Row): boolean {
     rowText(item, 'content') +
     ' ' +
     (hasValue(item, 'contentJa') ? String(rowValue(item, 'contentJa')) : '');
-  return buildChangelogSearchTerms(rowText(setting, 'key')).some((term) =>
-    content.includes(term),
-  );
+  return buildChangelogSearchTerms(rowText(setting, 'key')).some((term) => content.includes(term));
 }
 
 function isRecord(value: unknown): value is Row {
@@ -110,16 +101,10 @@ function parseD1Rows(output: string): unknown[][] {
   }
   const parsed: unknown = JSON.parse(output.slice(jsonStart));
   const first = Array.isArray(parsed) ? parsed[0] : parsed;
-  if (
-    !isRecord(first) ||
-    !Array.isArray(first.results) ||
-    !first.results.every(isRecord)
-  ) {
+  if (!isRecord(first) || !Array.isArray(first.results) || !first.results.every(isRecord)) {
     throw new Error('D1 の結果を解釈できません');
   }
-  return first.results.map((row) =>
-    Object.keys(row).map((column) => row[column]),
-  );
+  return first.results.map((row) => Object.keys(row).map((column) => row[column]));
 }
 
 // Node.js から本番 D1 binding は直接取得できないため、Drizzle の proxy を Wrangler CLI に接続する。
@@ -244,16 +229,11 @@ async function generateSeed(): Promise<void> {
   const selectedItemKeys = new Set<string>();
   const addItem = (row: Row | undefined, reason: string): void => {
     if (row === undefined) {
-      throw new Error(
-        `シード条件を満たす changelog item がありません: ${reason}`,
-      );
+      throw new Error(`シード条件を満たす changelog item がありません: ${reason}`);
     }
     selectedItemKeys.add(itemKey(row));
   };
-  const firstItem = (
-    predicate: (row: Row) => boolean,
-    reason: string,
-  ): void => {
+  const firstItem = (predicate: (row: Row) => boolean, reason: string): void => {
     addItem(sortedItems.find(predicate), reason);
   };
 
@@ -270,28 +250,22 @@ async function generateSeed(): Promise<void> {
   firstItem((row) => !hasValue(row, 'contentJa'), 'content_ja なし');
   firstItem(
     (row) =>
-      ['inferenceBefore', 'inferenceAfter', 'inferenceBenefit'].every(
-        (column) => hasValue(row, column),
+      ['inferenceBefore', 'inferenceAfter', 'inferenceBenefit'].every((column) =>
+        hasValue(row, column),
       ),
     'inference あり',
   );
   firstItem(
     (row) =>
-      !['inferenceBefore', 'inferenceAfter', 'inferenceBenefit'].every(
-        (column) => hasValue(row, column),
+      !['inferenceBefore', 'inferenceAfter', 'inferenceBenefit'].every((column) =>
+        hasValue(row, column),
       ),
     'inference なし',
   );
   firstItem((row) => relatedDocKeys.has(itemKey(row)), 'related_docs あり');
   firstItem((row) => !relatedDocKeys.has(itemKey(row)), 'related_docs なし');
-  firstItem(
-    (row) => (featureAreasByItem.get(itemKey(row))?.size ?? 0) > 0,
-    'feature_areas あり',
-  );
-  firstItem(
-    (row) => (featureAreasByItem.get(itemKey(row))?.size ?? 0) === 0,
-    'feature_areas なし',
-  );
+  firstItem((row) => (featureAreasByItem.get(itemKey(row))?.size ?? 0) > 0, 'feature_areas あり');
+  firstItem((row) => (featureAreasByItem.get(itemKey(row))?.size ?? 0) === 0, 'feature_areas なし');
 
   const availableAreas = [
     ...new Set(featureAreaRows.map((row) => rowText(row, 'featureArea'))),
@@ -301,18 +275,13 @@ async function generateSeed(): Promise<void> {
   }
   const itemKeysByArea = new Map<string, Set<string>>();
   for (const row of featureAreaRows) {
-    const keys =
-      itemKeysByArea.get(rowText(row, 'featureArea')) ?? new Set<string>();
+    const keys = itemKeysByArea.get(rowText(row, 'featureArea')) ?? new Set<string>();
     keys.add(itemKey(row));
     itemKeysByArea.set(rowText(row, 'featureArea'), keys);
   }
-  const pageArea = availableAreas.find(
-    (area) => (itemKeysByArea.get(area)?.size ?? 0) >= 3,
-  );
+  const pageArea = availableAreas.find((area) => (itemKeysByArea.get(area)?.size ?? 0) >= 3);
   if (pageArea === undefined) {
-    throw new Error(
-      'feature_area ページの生成に必要な item が3件以上ありません',
-    );
+    throw new Error('feature_area ページの生成に必要な item が3件以上ありません');
   }
   for (const key of [...(itemKeysByArea.get(pageArea) ?? [])].slice(0, 3)) {
     addItem(
@@ -328,17 +297,12 @@ async function generateSeed(): Promise<void> {
   }
 
   const selectedVersionNumbers = new Set(
-    sortedVersions
-      .slice(0, 3)
-      .map((row) => normalizeVersion(rowText(row, 'version'))),
+    sortedVersions.slice(0, 3).map((row) => normalizeVersion(rowText(row, 'version'))),
   );
   for (const key of selectedItemKeys) {
     selectedVersionNumbers.add(normalizeVersion(key.split('\u0000')[0] ?? ''));
   }
-  const addVersionWith = (
-    predicate: (row: Row) => boolean,
-    reason: string,
-  ): void => {
+  const addVersionWith = (predicate: (row: Row) => boolean, reason: string): void => {
     const row = sortedVersions.find(predicate);
     if (row === undefined) {
       throw new Error(`シード条件を満たす version がありません: ${reason}`);
@@ -348,9 +312,7 @@ async function generateSeed(): Promise<void> {
   addVersionWith((row) => hasValue(row, 'summary'), 'summary あり');
   addVersionWith((row) => !hasValue(row, 'summary'), 'summary なし');
 
-  const officialDocKeys = new Set(
-    officialDocRows.map((row) => rowText(row, 'settingKey')),
-  );
+  const officialDocKeys = new Set(officialDocRows.map((row) => rowText(row, 'settingKey')));
   const selectedSettingKeys = new Set<string>();
   const addSetting = (row: Row | undefined, reason: string): void => {
     if (row === undefined) {
@@ -358,10 +320,7 @@ async function generateSeed(): Promise<void> {
     }
     selectedSettingKeys.add(rowText(row, 'key'));
   };
-  const firstSetting = (
-    predicate: (row: Row) => boolean,
-    reason: string,
-  ): void => {
+  const firstSetting = (predicate: (row: Row) => boolean, reason: string): void => {
     addSetting(settingRows.find(predicate), reason);
   };
   const relatedSetting = settingRows.find((setting) =>
@@ -371,31 +330,20 @@ async function generateSeed(): Promise<void> {
     throw new Error('changelog と関連付けられる setting がありません');
   }
   addSetting(relatedSetting, 'changelog との関連表示');
-  const relatedItem = sortedItems.find((item) =>
-    settingMatchesItem(relatedSetting, item),
-  );
+  const relatedItem = sortedItems.find((item) => settingMatchesItem(relatedSetting, item));
   addItem(relatedItem, '設定キーに一致する changelog item');
   if (relatedItem === undefined) {
     throw new Error('設定キーに一致する changelog item がありません');
   }
   selectedVersionNumbers.add(normalizeVersion(rowText(relatedItem, 'version')));
-  firstSetting(
-    (row) => rowText(row, 'source') === 'settings',
-    'source=settings',
-  );
+  firstSetting((row) => rowText(row, 'source') === 'settings', 'source=settings');
   firstSetting((row) => rowText(row, 'source') === 'env', 'source=env');
   firstSetting((row) => hasValue(row, 'leafName'), 'leaf_name あり');
   firstSetting((row) => !hasValue(row, 'leafName'), 'leaf_name なし');
   firstSetting((row) => hasValue(row, 'useCaseJa'), 'use_case_ja あり');
   firstSetting((row) => !hasValue(row, 'useCaseJa'), 'use_case_ja なし');
-  firstSetting(
-    (row) => settingHasOfficialDocs(row, officialDocKeys),
-    'official_doc_urls あり',
-  );
-  firstSetting(
-    (row) => !settingHasOfficialDocs(row, officialDocKeys),
-    'official_doc_urls なし',
-  );
+  firstSetting((row) => settingHasOfficialDocs(row, officialDocKeys), 'official_doc_urls あり');
+  firstSetting((row) => !settingHasOfficialDocs(row, officialDocKeys), 'official_doc_urls なし');
   firstSetting(
     (row) => /\[[^\]]+\]\([^)]+\)/.test(rowText(row, 'description_en')),
     'description_en の Markdown リンク',
@@ -417,8 +365,7 @@ async function generateSeed(): Promise<void> {
       ),
   );
   const changedEvent =
-    selectedChangedEvent ??
-    diffEventRows.find((row) => rowText(row, 'type') === 'items_changed');
+    selectedChangedEvent ?? diffEventRows.find((row) => rowText(row, 'type') === 'items_changed');
   const hasChangelogVersion = (event: Row): boolean =>
     sortedVersions.some(
       (version) =>
@@ -427,10 +374,8 @@ async function generateSeed(): Promise<void> {
     );
   const removedEvent =
     diffEventRows.find(
-      (row) =>
-        rowText(row, 'type') === 'version_removed' && hasChangelogVersion(row),
-    ) ??
-    diffEventRows.find((row) => rowText(row, 'type') === 'version_removed');
+      (row) => rowText(row, 'type') === 'version_removed' && hasChangelogVersion(row),
+    ) ?? diffEventRows.find((row) => rowText(row, 'type') === 'version_removed');
   if (
     changedEvent === undefined ||
     removedEvent === undefined ||
@@ -445,10 +390,7 @@ async function generateSeed(): Promise<void> {
       selectedVersionNumbers.add(normalizeVersion(rowText(event, 'version')));
     }
   }
-  const selectedEventKeys = new Set([
-    eventKey(changedEvent),
-    eventKey(removedEvent),
-  ]);
+  const selectedEventKeys = new Set([eventKey(changedEvent), eventKey(removedEvent)]);
 
   const itemsByVersion = new Map<string, Row[]>();
   for (const row of sortedItems) {
@@ -459,10 +401,7 @@ async function generateSeed(): Promise<void> {
   }
   for (const version of selectedVersionNumbers) {
     const items = itemsByVersion.get(version) ?? [];
-    if (
-      items.length > 0 &&
-      !items.some((row) => selectedItemKeys.has(itemKey(row)))
-    ) {
+    if (items.length > 0 && !items.some((row) => selectedItemKeys.has(itemKey(row)))) {
       addItem(items[0], `version=${version} の表示用 item`);
     }
   }
@@ -470,9 +409,7 @@ async function generateSeed(): Promise<void> {
   const selectedVersionRows = sortedVersions.filter((row) =>
     selectedVersionNumbers.has(normalizeVersion(rowText(row, 'version'))),
   );
-  const selectedItemRows = itemRows.filter((row) =>
-    selectedItemKeys.has(itemKey(row)),
-  );
+  const selectedItemRows = itemRows.filter((row) => selectedItemKeys.has(itemKey(row)));
   const selectedItemKeySet = new Set(selectedItemRows.map(itemKey));
   const selectedFeatureAreaRows = featureAreaRows.filter((row) =>
     selectedItemKeySet.has(itemKey(row)),
@@ -486,9 +423,7 @@ async function generateSeed(): Promise<void> {
   const selectedOfficialDocRows = officialDocRows.filter((row) =>
     selectedSettingKeys.has(rowText(row, 'settingKey')),
   );
-  const selectedDiffEventRows = diffEventRows.filter((row) =>
-    selectedEventKeys.has(eventKey(row)),
-  );
+  const selectedDiffEventRows = diffEventRows.filter((row) => selectedEventKeys.has(eventKey(row)));
   const selectedDiffEventItemRows = diffEventItemRows.filter((row) =>
     selectedEventKeys.has(eventKey(row)),
   );

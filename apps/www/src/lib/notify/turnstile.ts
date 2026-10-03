@@ -3,10 +3,7 @@ declare global {
   interface Window {
     turnstile?: {
       reset: (widgetId?: string) => void;
-      render: (
-        container: string | HTMLElement,
-        options: Record<string, unknown>,
-      ) => string;
+      render: (container: string | HTMLElement, options: Record<string, unknown>) => string;
     };
     onDiscordTurnstileSuccess?: () => void;
     onDiscordTurnstileExpired?: () => void;
@@ -51,10 +48,7 @@ const callbackMap: Record<
  * 指定コンテナに Turnstile ウィジェットをレンダリングする。
  * すでにレンダリング済み、またはコンテナ / turnstile API が未準備の場合はスキップ。
  */
-export function renderTurnstileFor(
-  containerId: string,
-  key: keyof TurnstileWidgetIds,
-) {
+export function renderTurnstileFor(containerId: string, key: keyof TurnstileWidgetIds) {
   const container = document.getElementById(containerId);
   if (!container || !window.turnstile || turnstileWidgets[key]) {
     return;

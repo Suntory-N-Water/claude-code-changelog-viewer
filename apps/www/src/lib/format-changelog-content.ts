@@ -9,10 +9,7 @@ const CODE_TAG =
  * - 先頭の `-` プレフィックスを削除
  */
 export function formatChangelogContent(content: string): string {
-  return escapeHtml(content.replace(/^-\s+/, '')).replace(
-    /`([^`]+)`/g,
-    CODE_TAG,
-  );
+  return escapeHtml(content.replace(/^-\s+/, '')).replace(/`([^`]+)`/g, CODE_TAG);
 }
 
 const CLAUDE_CODE_DOCS_BASE = 'https://code.claude.com/docs';
@@ -53,10 +50,7 @@ export function formatUseCaseJa(content: string): string {
   });
   const result = htmlLines.join('');
   if (result.includes('<li')) {
-    return result.replace(
-      /(<li[^>]*>.*?<\/li>)+/gs,
-      '<ul class="space-y-1 list-outside">$&</ul>',
-    );
+    return result.replace(/(<li[^>]*>.*?<\/li>)+/gs, '<ul class="space-y-1 list-outside">$&</ul>');
   }
   return result;
 }

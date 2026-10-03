@@ -30,32 +30,17 @@ export function mergeSettingSchemaEntries({
   docsEntries,
   referenceEntries,
 }: SettingSchemaSources): SettingSchemaFields[] {
-  const schemaSettings = schemaEntries.filter(
-    (entry) => entry.source === 'settings',
-  );
-  const schemaEnvEntries = schemaEntries.filter(
-    (entry) => entry.source === 'env',
-  );
+  const schemaSettings = schemaEntries.filter((entry) => entry.source === 'settings');
+  const schemaEnvEntries = schemaEntries.filter((entry) => entry.source === 'env');
   const markdownKeys = new Set(markdownEntries.map((entry) => entry.key));
-  const schemaOnly = schemaEnvEntries.filter(
-    (entry) => !markdownKeys.has(entry.key),
-  );
-  const existingKeys = new Set(
-    [...markdownEntries, ...schemaOnly].map((entry) => entry.key),
-  );
+  const schemaOnly = schemaEnvEntries.filter((entry) => !markdownKeys.has(entry.key));
+  const existingKeys = new Set([...markdownEntries, ...schemaOnly].map((entry) => entry.key));
   const docsOnly = docsEntries.filter((entry) => !existingKeys.has(entry.key));
-  const referenceByKey = new Map(
-    referenceEntries.map((entry) => [entry.key, entry]),
-  );
+  const referenceByKey = new Map(referenceEntries.map((entry) => [entry.key, entry]));
   const result: SettingSchemaFields[] = [];
   const seenKeys = new Set<string>();
 
-  for (const entry of [
-    ...schemaSettings,
-    ...markdownEntries,
-    ...schemaOnly,
-    ...docsOnly,
-  ]) {
+  for (const entry of [...schemaSettings, ...markdownEntries, ...schemaOnly, ...docsOnly]) {
     if (seenKeys.has(entry.key)) {
       continue;
     }
@@ -84,8 +69,7 @@ function applyReferenceFields(
 
   return {
     ...entry,
-    description:
-      entry.description === '' ? reference.description : entry.description,
+    description: entry.description === '' ? reference.description : entry.description,
     valueType: entry.valueType === '' ? reference.valueType : entry.valueType,
     defaultValue: entry.defaultValue ?? reference.defaultValue,
     enumValues: entry.enumValues ?? reference.enumValues,

@@ -18,10 +18,7 @@ import { app } from '../index';
 import { FakeD1Database } from '../test-support/fake-d1';
 import { createTestEnv } from '../test-support/notification-test-support';
 
-function createRequest(
-  payload: unknown,
-  secret = 'dispatch-secret',
-): RequestInit {
+function createRequest(payload: unknown, secret = 'dispatch-secret'): RequestInit {
   return {
     method: 'POST',
     headers: {
@@ -32,9 +29,7 @@ function createRequest(
   };
 }
 
-function createVersion(
-  overrides: Partial<IngestChangelogVersion> = {},
-): IngestChangelogVersion {
+function createVersion(overrides: Partial<IngestChangelogVersion> = {}): IngestChangelogVersion {
   return {
     version: '2.1.98',
     summary: 'Vertex AI のセットアップウィザードが追加されました。',
@@ -42,8 +37,7 @@ function createVersion(
       {
         id: 'f595cf9fcf9b',
         content: '- Added interactive Google Vertex AI setup wizard',
-        content_ja:
-          'Google Vertex AI 用のセットアップウィザードを追加しました。',
+        content_ja: 'Google Vertex AI 用のセットアップウィザードを追加しました。',
         prefix: 'Added',
         feature_areas: ['Settings', 'Model'],
         inference: {
@@ -118,11 +112,7 @@ describe('POST /api/ingest/changelog integration', () => {
       const request = createRequest({ versions: [createVersion()] });
       delete (request.headers as Record<string, string>)['Authorization'];
 
-      const response = await sut.request(
-        '/api/ingest/changelog',
-        request,
-        createTestEnv(db),
-      );
+      const response = await sut.request('/api/ingest/changelog', request, createTestEnv(db));
 
       expect(response.status).toBe(401);
       expect(await countAllRows(db)).toEqual(emptyCounts);
@@ -196,11 +186,7 @@ describe('POST /api/ingest/changelog integration', () => {
       );
 
       expect(response.status).toBe(200);
-      expect(
-        await db
-          .prepare('SELECT version, summary FROM changelog_versions')
-          .first(),
-      ).toEqual({
+      expect(await db.prepare('SELECT version, summary FROM changelog_versions').first()).toEqual({
         version: '2.1.98',
         summary: 'Vertex AI のセットアップウィザードが追加されました。',
       });
@@ -216,17 +202,14 @@ describe('POST /api/ingest/changelog integration', () => {
         version: '2.1.98',
         item_id: 'f595cf9fcf9b',
         content: '- Added interactive Google Vertex AI setup wizard',
-        content_ja:
-          'Google Vertex AI 用のセットアップウィザードを追加しました。',
+        content_ja: 'Google Vertex AI 用のセットアップウィザードを追加しました。',
         prefix: 'Added',
         inference_before: '手動で環境変数を構成する必要がありました。',
         inference_after: 'ウィザード形式で設定を進められるようになりました。',
         inference_benefit: '素早く確実に使い始めることができます。',
       });
       const featureAreas = await db
-        .prepare(
-          'SELECT feature_area FROM changelog_item_feature_areas ORDER BY feature_area',
-        )
+        .prepare('SELECT feature_area FROM changelog_item_feature_areas ORDER BY feature_area')
         .all<{ feature_area: string }>();
       expect(featureAreas.results).toEqual([
         { feature_area: 'Model' },
@@ -300,11 +283,10 @@ describe('POST /api/ingest/changelog integration', () => {
         featureAreas: 0,
         settings: 0,
       });
-      expect(
-        await db
-          .prepare('SELECT item_id, content FROM changelog_items')
-          .first(),
-      ).toEqual({ item_id: 'aaaaaaaaaaaa', content: '- Replaced item' });
+      expect(await db.prepare('SELECT item_id, content FROM changelog_items').first()).toEqual({
+        item_id: 'aaaaaaaaaaaa',
+        content: '- Replaced item',
+      });
       db.close();
     });
 
@@ -355,9 +337,7 @@ describe('POST /api/ingest/changelog integration', () => {
 
       expect(response.status).toBe(200);
       const featureAreas = await db
-        .prepare(
-          'SELECT feature_area FROM changelog_item_feature_areas ORDER BY feature_area',
-        )
+        .prepare('SELECT feature_area FROM changelog_item_feature_areas ORDER BY feature_area')
         .all<{ feature_area: string }>();
       expect(featureAreas.results).toEqual([
         { feature_area: 'Model' },
@@ -578,9 +558,7 @@ describe('POST /api/ingest/changelog integration', () => {
       );
 
       expect(response.status).toBe(200);
-      expect(
-        await db.prepare('SELECT * FROM settings_reference').first(),
-      ).toEqual({
+      expect(await db.prepare('SELECT * FROM settings_reference').first()).toEqual({
         key: 'advisorModel',
         leaf_name: 'advisorModel',
         slug: 'advisor-model',
@@ -593,9 +571,7 @@ describe('POST /api/ingest/changelog integration', () => {
         fetched_at: '2026-08-16',
       });
       expect(
-        await db
-          .prepare('SELECT setting_key, doc_path FROM settings_official_docs')
-          .all(),
+        await db.prepare('SELECT setting_key, doc_path FROM settings_official_docs').all(),
       ).toMatchObject({
         results: [{ setting_key: 'advisorModel', doc_path: 'advisor.md' }],
       });
@@ -621,9 +597,7 @@ describe('POST /api/ingest/changelog integration', () => {
 
       expect(response.status).toBe(200);
       expect(
-        await db
-          .prepare('SELECT setting_key, doc_path FROM settings_official_docs')
-          .all(),
+        await db.prepare('SELECT setting_key, doc_path FROM settings_official_docs').all(),
       ).toMatchObject({
         results: [{ setting_key: 'advisorModel', doc_path: 'advisor.md' }],
       });
@@ -647,9 +621,7 @@ describe('POST /api/ingest/changelog integration', () => {
       expect(response.status).toBe(200);
       expect(
         await db
-          .prepare(
-            'SELECT use_case_ja, leaf_name, fetched_at FROM settings_reference',
-          )
+          .prepare('SELECT use_case_ja, leaf_name, fetched_at FROM settings_reference')
           .first(),
       ).toEqual({
         use_case_ja: null,
@@ -686,14 +658,12 @@ describe('POST /api/ingest/changelog integration', () => {
       expect(response.status).toBe(200);
       const counts = await countAllRows(db);
       expect(counts.settings).toBe(1);
-      expect(
-        await db
-          .prepare('SELECT description_ja FROM settings_reference')
-          .first(),
-      ).toEqual({ description_ja: '更新後の説明です。' });
-      expect(
-        await db.prepare('SELECT doc_path FROM settings_official_docs').all(),
-      ).toMatchObject({ results: [{ doc_path: 'model-config.md' }] });
+      expect(await db.prepare('SELECT description_ja FROM settings_reference').first()).toEqual({
+        description_ja: '更新後の説明です。',
+      });
+      expect(await db.prepare('SELECT doc_path FROM settings_official_docs').all()).toMatchObject({
+        results: [{ doc_path: 'model-config.md' }],
+      });
       db.close();
     });
 

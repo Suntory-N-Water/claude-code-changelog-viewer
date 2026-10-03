@@ -1,11 +1,5 @@
 import { sql } from 'drizzle-orm';
-import {
-  index,
-  integer,
-  primaryKey,
-  sqliteTable,
-  text,
-} from 'drizzle-orm/sqlite-core';
+import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { CHANNEL_ACTIVE_SENTINEL } from './constants';
 
 // スーパータイプ: 全チャンネル共通情報
@@ -13,14 +7,10 @@ export const channels = sqliteTable(
   'channels',
   {
     id: text('id').primaryKey(),
-    channelType: text('channel_type', { length: 3 })
-      .notNull()
-      .$type<'DSC' | 'SLK' | 'EML'>(),
+    channelType: text('channel_type', { length: 3 }).notNull().$type<'DSC' | 'SLK' | 'EML'>(),
     token: text('token').notNull().unique(),
     // CHANNEL_ACTIVE_SENTINEL = 有効中、それ以外 = 無効化日時
-    deactivatedAt: text('deactivated_at')
-      .notNull()
-      .default(CHANNEL_ACTIVE_SENTINEL),
+    deactivatedAt: text('deactivated_at').notNull().default(CHANNEL_ACTIVE_SENTINEL),
     // 'none' = 有効中、'user' = ユーザー停止、'system' = 失敗閾値超過
     deactivatedReason: text('deactivated_reason')
       .notNull()
@@ -67,14 +57,10 @@ export const notificationSettings = sqliteTable(
     channelId: text('channel_id')
       .notNull()
       .references(() => channels.id),
-    frequency: text('frequency', { length: 3 })
-      .notNull()
-      .$type<'IMM' | 'WEK'>(),
+    frequency: text('frequency', { length: 3 }).notNull().$type<'IMM' | 'WEK'>(),
     createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   },
-  (table) => [
-    index('idx_notification_settings_channel_id').on(table.channelId),
-  ],
+  (table) => [index('idx_notification_settings_channel_id').on(table.channelId)],
 );
 
 // changelog 系テーブル: MCP サーバーの読み取り用。通知系とは独立。
@@ -111,9 +97,7 @@ export const changelogItemFeatureAreas = sqliteTable(
     itemId: text('item_id').notNull(),
     featureArea: text('feature_area').notNull(),
   },
-  (table) => [
-    primaryKey({ columns: [table.version, table.itemId, table.featureArea] }),
-  ],
+  (table) => [primaryKey({ columns: [table.version, table.itemId, table.featureArea] })],
 );
 
 export const changelogItemRelatedDocs = sqliteTable(
@@ -123,9 +107,7 @@ export const changelogItemRelatedDocs = sqliteTable(
     itemId: text('item_id').notNull(),
     docPath: text('doc_path').notNull(),
   },
-  (table) => [
-    primaryKey({ columns: [table.version, table.itemId, table.docPath] }),
-  ],
+  (table) => [primaryKey({ columns: [table.version, table.itemId, table.docPath] })],
 );
 
 export const changelogDiffEvents = sqliteTable(

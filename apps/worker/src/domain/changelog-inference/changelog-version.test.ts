@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  formatChangelogVersion,
-  normalizeChangelogVersion,
-} from './changelog-version';
+import { formatChangelogVersion, normalizeChangelogVersion } from './changelog-version';
 
 describe('CHANGELOG バージョン', () => {
   it('v 付きのバージョンを正規化すると、v なしの形式を返すこと', () => {

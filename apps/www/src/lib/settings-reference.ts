@@ -42,9 +42,7 @@ export function buildSettingValueOptions(
     return {
       value,
       isDefault: defaultValue !== undefined && value === defaultValue,
-      ...(description === undefined || description === ''
-        ? {}
-        : { description }),
+      ...(description === undefined || description === '' ? {} : { description }),
     };
   });
 }
@@ -122,9 +120,7 @@ export function findRelatedChangelogs(
     for (const item of items) {
       if (
         searchTerms.some(
-          (term) =>
-            item.content.includes(term) ||
-            (item.content_ja?.includes(term) ?? false),
+          (term) => item.content.includes(term) || (item.content_ja?.includes(term) ?? false),
         )
       ) {
         results.push({ version, item });
@@ -134,9 +130,7 @@ export function findRelatedChangelogs(
   return results;
 }
 
-export function collectFeatureAreas(
-  items: ChangelogItemWithVersion[],
-): Set<string> {
+export function collectFeatureAreas(items: ChangelogItemWithVersion[]): Set<string> {
   const areas = new Set<string>();
   for (const { item } of items) {
     for (const area of item.feature_areas ?? []) {
@@ -159,9 +153,7 @@ export function getOfficialDocLinkLabel(url: string): string {
  * - Markdown リンク [text](/en/path) / [text](https://...)
  * - 裸の URL: See https://...
  */
-export function extractOfficialDocUrls(
-  descriptionEn: string,
-): { label: string; url: string }[] {
+export function extractOfficialDocUrls(descriptionEn: string): { label: string; url: string }[] {
   const results: { label: string; url: string }[] = [];
   const seen = new Set<string>();
 

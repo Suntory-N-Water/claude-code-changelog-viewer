@@ -211,12 +211,9 @@ describe('既定値の表記', () => {
     ['空の配列', '[]', '[]'],
     ['オブジェクト', '{"a":1}', '{"a":1}'],
     ['JSON として読めない値', 'latest', 'latest'],
-  ])(
-    '%s のとき、設定ファイルに書く形で返すこと',
-    (_label, stored, expected) => {
-      expect(formatSchemaDefaultValue(stored)).toBe(expected);
-    },
-  );
+  ])('%s のとき、設定ファイルに書く形で返すこと', (_label, stored, expected) => {
+    expect(formatSchemaDefaultValue(stored)).toBe(expected);
+  });
 });
 
 describe('選択肢の表記', () => {

@@ -29,9 +29,7 @@ function createQueueEnv(db: FakeD1Database) {
 const validAnalysis: NotificationAnalysis = {
   version: 'v1.0.0',
   summary: 'テスト用サマリー',
-  items: [
-    { content: 'Added new feature', content_ja: '新機能', prefix: 'feat' },
-  ],
+  items: [{ content: 'Added new feature', content_ja: '新機能', prefix: 'feat' }],
 };
 
 describe('POST /api/dispatch integration', () => {

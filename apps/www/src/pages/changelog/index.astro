@@ -6,17 +6,12 @@ import { buildDiffMap, buildVersionData } from '../../lib/changelog-diff';
 import { semverCompareDesc } from '../../lib/semver';
 
 const sortedChangelogs = await getCollection('changelog');
-sortedChangelogs.sort((a, b) =>
-  semverCompareDesc(a.data.version, b.data.version),
-);
+sortedChangelogs.sort((a, b) => semverCompareDesc(a.data.version, b.data.version));
 
 const diffEntries = await getCollection('diff');
 const diffMap = buildDiffMap(diffEntries);
 
-const totalChanges = sortedChangelogs.reduce(
-  (sum, entry) => sum + entry.data.items.length,
-  0,
-);
+const totalChanges = sortedChangelogs.reduce((sum, entry) => sum + entry.data.items.length, 0);
 
 const versionData = buildVersionData(sortedChangelogs, diffMap);
 
@@ -49,24 +44,18 @@ for (const v of versionData) {
     <div class='max-w-6xl mx-auto'>
       <header class='mb-12 max-w-4xl'>
         <nav aria-label='パンくずリスト' class='text-sm text-gray-400 mb-6'>
-          <a
-            href='/'
-            class='hover:text-[hsl(var(--cc-main-orange))] transition-colors duration-150'
+          <a href='/' class='hover:text-[hsl(var(--cc-main-orange))] transition-colors duration-150'
             >ホーム</a
           >
           <span class='mx-2 select-none'>/</span>
-          <span class='text-[hsl(var(--cc-main-black)/0.7)]'
-            >全バージョン一覧</span
-          >
+          <span class='text-[hsl(var(--cc-main-black)/0.7)]'>全バージョン一覧</span>
         </nav>
         <h1
           class='text-3xl sm:text-4xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-3'
         >
           全バージョン一覧
         </h1>
-        <p
-          class='font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] tabular-nums'
-        >
+        <p class='font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] tabular-nums'>
           <span class='text-[hsl(var(--cc-main-black))]'
             >{new Intl.NumberFormat('ja-JP').format(versionData.length)}</span
           > versions

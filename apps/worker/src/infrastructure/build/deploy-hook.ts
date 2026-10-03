@@ -4,9 +4,7 @@ import type { BuildTriggerPort } from '../../usecases/build-trigger';
 
 const logger = workerLogger('infrastructure.build.deploy-hook');
 
-export function createDeployHookBuildTrigger(
-  deployHookUrl: string,
-): BuildTriggerPort {
+export function createDeployHookBuildTrigger(deployHookUrl: string): BuildTriggerPort {
   return {
     async trigger() {
       let response: Response;

@@ -36,20 +36,14 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
 
   it('公式ドキュメントと設定スキーマを D1 に保存し、FTS5 を同期すること', async () => {
     db = new FakeDocsD1Database();
-    const document = testDocument(
-      'guide.md',
-      'Guide',
-      '# Guide\n\nHooks are useful.',
-    );
+    const document = testDocument('guide.md', 'Guide', '# Guide\n\nHooks are useful.');
     mockRemote({ documents: [document] });
 
     await syncDocs(testEnv(db), new Date('2026-08-16T00:00:00.000Z'));
 
     await expect(
       db
-        .prepare(
-          'SELECT title, source_url, content_hash FROM pages WHERE path = ?',
-        )
+        .prepare('SELECT title, source_url, content_hash FROM pages WHERE path = ?')
         .bind('guide.md')
         .first(),
     ).resolves.toMatchObject({
@@ -110,9 +104,7 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
       ],
     });
     await expect(
-      db
-        .prepare('SELECT content_hash FROM setting_schema_meta WHERE id = 1')
-        .first(),
+      db.prepare('SELECT content_hash FROM setting_schema_meta WHERE id = 1').first(),
     ).resolves.toMatchObject({ content_hash: expect.any(String) });
   });
 
@@ -131,10 +123,7 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
     await syncDocs(env, new Date('2026-08-16T03:00:00.000Z'));
 
     await expect(
-      db
-        .prepare('SELECT updated_at FROM pages WHERE path = ?')
-        .bind('guide.md')
-        .first(),
+      db.prepare('SELECT updated_at FROM pages WHERE path = ?').bind('guide.md').first(),
     ).resolves.toEqual(before);
   });
 
@@ -152,19 +141,13 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
     await syncDocs(env);
 
     await expect(
-      db
-        .prepare('SELECT content FROM page_chunks_fts ORDER BY chunk_index')
-        .all(),
+      db.prepare('SELECT content FROM page_chunks_fts ORDER BY chunk_index').all(),
     ).resolves.toMatchObject({
-      results: expect.arrayContaining([
-        { content: expect.stringContaining('new permissions') },
-      ]),
+      results: expect.arrayContaining([{ content: expect.stringContaining('new permissions') }]),
     });
     await expect(
       db
-        .prepare(
-          'SELECT content FROM page_chunks_fts WHERE page_chunks_fts MATCH ?',
-        )
+        .prepare('SELECT content FROM page_chunks_fts WHERE page_chunks_fts MATCH ?')
         .bind('old')
         .all(),
     ).resolves.toMatchObject({ results: [] });
@@ -172,16 +155,8 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
 
   it('一部ページの取得に失敗しても他のページを同期し、失敗ページを保持すること', async () => {
     db = new FakeDocsD1Database();
-    const stable = testDocument(
-      'stable.md',
-      'Stable',
-      '# Stable\n\nold content',
-    );
-    const failed = testDocument(
-      'failed.md',
-      'Failed',
-      '# Failed\n\nold content',
-    );
+    const stable = testDocument('stable.md', 'Stable', '# Stable\n\nold content');
+    const failed = testDocument('failed.md', 'Failed', '# Failed\n\nold content');
     const env = testEnv(db);
     mockRemote({ documents: [stable, failed] });
     await syncDocs(env);
@@ -196,18 +171,12 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
     await syncPromise;
 
     await expect(
-      db
-        .prepare('SELECT content FROM pages WHERE path = ?')
-        .bind('stable.md')
-        .first(),
+      db.prepare('SELECT content FROM pages WHERE path = ?').bind('stable.md').first(),
     ).resolves.toMatchObject({
       content: expect.stringContaining('new content'),
     });
     await expect(
-      db
-        .prepare('SELECT content FROM pages WHERE path = ?')
-        .bind('failed.md')
-        .first(),
+      db.prepare('SELECT content FROM pages WHERE path = ?').bind('failed.md').first(),
     ).resolves.toMatchObject({
       content: expect.stringContaining('old content'),
     });
@@ -229,24 +198,18 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
 
     mockRemote({ documents: [one] });
     await syncDocs(env);
-    await expect(
-      db.prepare('SELECT COUNT(*) AS count FROM pages').first(),
-    ).resolves.toEqual({
+    await expect(db.prepare('SELECT COUNT(*) AS count FROM pages').first()).resolves.toEqual({
       count: 3,
     });
 
     mockRemote({ documents: [one, two] });
     await syncDocs(env);
-    await expect(
-      db.prepare('SELECT COUNT(*) AS count FROM pages').first(),
-    ).resolves.toEqual({
+    await expect(db.prepare('SELECT COUNT(*) AS count FROM pages').first()).resolves.toEqual({
       count: 2,
     });
     await expect(
       db
-        .prepare(
-          'SELECT path FROM page_chunks_fts WHERE page_chunks_fts MATCH ?',
-        )
+        .prepare('SELECT path FROM page_chunks_fts WHERE page_chunks_fts MATCH ?')
         .bind('three')
         .all(),
     ).resolves.toMatchObject({ results: [] });
@@ -258,9 +221,7 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
     const env = testEnv(db);
     mockRemote({ documents: [document] });
     await syncDocs(env);
-    const before = await db
-      .prepare('SELECT path, content_hash, updated_at FROM pages')
-      .all();
+    const before = await db.prepare('SELECT path, content_hash, updated_at FROM pages').all();
 
     mockRemote({ documents: [document], listFailure: true });
     vi.useFakeTimers();
@@ -293,9 +254,7 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
     await syncDocs(testEnv(db), new Date('2026-08-16T00:00:00.000Z'));
 
     await expect(
-      db
-        .prepare('SELECT key, scope, example FROM setting_schema_entries')
-        .all(),
+      db.prepare('SELECT key, scope, example FROM setting_schema_entries').all(),
     ).resolves.toMatchObject({
       results: [
         { key: 'permissions', scope: null, example: null },
@@ -326,9 +285,7 @@ describe('ドキュメント検索用 D1 同期 cron', () => {
     await syncDocs(testEnv(db), new Date('2026-08-16T00:00:00.000Z'));
 
     await expect(
-      db
-        .prepare('SELECT COUNT(*) AS total FROM setting_schema_entries')
-        .first(),
+      db.prepare('SELECT COUNT(*) AS total FROM setting_schema_entries').first(),
     ).resolves.toEqual({ total: 40 });
   });
 
@@ -436,11 +393,7 @@ function testEnv(db: FakeDocsD1Database): CloudflareBindings {
   return { DOCS_DB: db } as unknown as CloudflareBindings;
 }
 
-function testDocument(
-  path: string,
-  title: string,
-  content: string,
-): TestDocument {
+function testDocument(path: string, title: string, content: string): TestDocument {
   return { path, title, content };
 }
 
@@ -473,17 +426,12 @@ function mockRemote(state: RemoteState): void {
       },
     });
   const byUrl = new Map(
-    state.documents.map((document) => [
-      `${DOCS_BASE_URL}${document.path}`,
-      document,
-    ]),
+    state.documents.map((document) => [`${DOCS_BASE_URL}${document.path}`, document]),
   );
   const docsMap = state.documents
     .map((document) => `[${document.title}](${DOCS_BASE_URL}${document.path})`)
     .join('\n');
-  const llms = state.documents
-    .map((document) => `${DOCS_BASE_URL}${document.path}`)
-    .join('\n');
+  const llms = state.documents.map((document) => `${DOCS_BASE_URL}${document.path}`).join('\n');
 
   vi.mocked(globalThis.fetch).mockImplementation(async (input) => {
     const url = String(input);

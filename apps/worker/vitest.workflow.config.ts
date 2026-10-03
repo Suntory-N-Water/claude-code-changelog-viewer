@@ -1,9 +1,6 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  cloudflareTest,
-  readD1Migrations,
-} from '@cloudflare/vitest-pool-workers';
+import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers';
 import { defineConfig } from 'vitest/config';
 
 const workerDirectory = dirname(fileURLToPath(import.meta.url));

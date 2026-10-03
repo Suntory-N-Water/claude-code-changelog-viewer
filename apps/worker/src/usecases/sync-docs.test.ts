@@ -169,12 +169,9 @@ describe('ドキュメント同期ユースケース', () => {
     ];
     const dependencies = {
       source: {
-        fetchDocumentList: async () =>
-          pages.map(({ path, title, url }) => ({ path, title, url })),
+        fetchDocumentList: async () => pages.map(({ path, title, url }) => ({ path, title, url })),
         fetchPage: async (document: { path: string }) => {
-          const page = pages.find(
-            (candidate) => candidate.path === document.path,
-          );
+          const page = pages.find((candidate) => candidate.path === document.path);
           if (page === undefined) {
             throw new Error(`未知のページ: ${document.path}`);
           }
@@ -218,14 +215,9 @@ describe('ドキュメント同期ユースケース', () => {
     await syncDocs(dependencies, { now: new Date('2026-08-16T00:00:00.000Z') });
 
     expect(replacedSchemas[0]).toMatchObject({ contentHash: 'schema-hash' });
-    const savedEntries = (replacedSchemas[0] as { entries: { key: string }[] })
-      .entries;
+    const savedEntries = (replacedSchemas[0] as { entries: { key: string }[] }).entries;
     expect(savedEntries.map(({ key }) => key)).toEqual(
-      expect.arrayContaining([
-        'permissions.allow',
-        'CLAUDE_CODE_MD_ONLY',
-        'CLAUDE_CODE_DOCS_ONLY',
-      ]),
+      expect.arrayContaining(['permissions.allow', 'CLAUDE_CODE_MD_ONLY', 'CLAUDE_CODE_DOCS_ONLY']),
     );
     expect(savedEntries).toHaveLength(3);
   });

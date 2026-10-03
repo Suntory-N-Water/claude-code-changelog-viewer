@@ -11,9 +11,7 @@ export function formatDiffDateTime(iso: string): string {
 }
 
 /** diff コレクションのエントリからバージョンをキーにした Map を構築する */
-export function buildDiffMap(
-  entries: CollectionEntry<'diff'>[],
-): Map<string, DiffEvent[]> {
+export function buildDiffMap(entries: CollectionEntry<'diff'>[]): Map<string, DiffEvent[]> {
   const map = new Map<string, DiffEvent[]>();
   for (const entry of entries) {
     const existing = map.get(entry.data.version);

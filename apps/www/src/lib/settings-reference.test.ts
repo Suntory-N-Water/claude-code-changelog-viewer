@@ -35,9 +35,7 @@ describe('summarizeSettingDescription', () => {
   test('81文字のとき、末尾を省略記号に置き換えて80文字にする', () => {
     const description = 'あ'.repeat(81);
 
-    expect(summarizeSettingDescription(description)).toBe(
-      `${'あ'.repeat(79)}…`,
-    );
+    expect(summarizeSettingDescription(description)).toBe(`${'あ'.repeat(79)}…`);
   });
 
   test('日本語の句点がない80文字未満のとき、全文を返す', () => {
@@ -74,9 +72,7 @@ describe('buildSettingValueOptions', () => {
     ['既定値がないとき', undefined],
     ['既定値が選択肢にないとき', 'nightly'],
   ])('%s、どの値にも既定の印が付かない', (_caseName, defaultValue) => {
-    expect(
-      buildSettingValueOptions(['stable', 'latest'], defaultValue),
-    ).toEqual([
+    expect(buildSettingValueOptions(['stable', 'latest'], defaultValue)).toEqual([
       { value: 'stable', isDefault: false },
       { value: 'latest', isDefault: false },
     ]);
@@ -159,9 +155,7 @@ describe('buildSettingChildTrees', () => {
   });
 
   test('子を持たないキーのとき、行を返さない', () => {
-    expect(
-      buildSettingChildTrees(entries).get('sandbox.enabled'),
-    ).toBeUndefined();
+    expect(buildSettingChildTrees(entries).get('sandbox.enabled')).toBeUndefined();
   });
 
   test('env のとき、環境変数のキーを子に含めない', () => {

@@ -35,8 +35,8 @@ describe('CHANGELOG Markdown parser', () => {
   });
 
   it('項目のないバージョンの時、空の項目配列として返すこと', async () => {
-    await expect(
-      parseChangelogReleases('## 2.1.234\n\nNo bullet here'),
-    ).resolves.toEqual([{ version: 'v2.1.234', items: [] }]);
+    await expect(parseChangelogReleases('## 2.1.234\n\nNo bullet here')).resolves.toEqual([
+      { version: 'v2.1.234', items: [] },
+    ]);
   });
 });
