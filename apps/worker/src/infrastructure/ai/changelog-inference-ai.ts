@@ -21,6 +21,7 @@ import {
   MODEL,
   parseAiResponse,
   PARSE_FAILED_MESSAGE,
+  REASONING_EFFORT,
   TRUNCATED_MESSAGE,
 } from './workers-ai';
 
@@ -70,8 +71,7 @@ export function createChangelogItemInferenceAi(
           {
             messages: [{ role: 'user', content: buildItemsPrompt(input) }],
             max_completion_tokens: MAX_COMPLETION_TOKENS,
-            // 思考トークンは出力本体の数倍に達し、量が回ごとに大きく揺れる
-            chat_template_kwargs: { enable_thinking: false },
+            reasoning_effort: REASONING_EFFORT,
             stop: [WHITESPACE_RUN_STOP],
             response_format: ChangelogItemsResponseFormat,
           },
@@ -126,7 +126,7 @@ export function createChangelogSummaryAi(
           {
             messages: [{ role: 'user', content: buildSummaryPrompt(release) }],
             max_completion_tokens: MAX_COMPLETION_TOKENS,
-            chat_template_kwargs: { enable_thinking: false },
+            reasoning_effort: REASONING_EFFORT,
             stop: [WHITESPACE_RUN_STOP],
             response_format: ChangelogSummaryResponseFormat,
           },

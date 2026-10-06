@@ -9,7 +9,7 @@ import {
   SettingsReferenceResponseFormat,
   SettingsReferenceResponseSchema,
 } from './settings-reference-schema';
-import { logAiFailure, logAiUsage, MODEL, parseAiResponse } from './workers-ai';
+import { logAiFailure, logAiUsage, MODEL, parseAiResponse, REASONING_EFFORT } from './workers-ai';
 
 // JSON schema 制約下では文字列の途中でも空白が合法な継続になるため、モデルが閉じ括弧を出せずに
 // 空白を吐き続けることがある。上限を切って、暴走しても数十秒で打ち切らせ step の再試行に回す。
@@ -40,8 +40,7 @@ export function createSettingsReferenceAi(
               },
             ],
             max_completion_tokens: MAX_COMPLETION_TOKENS,
-            // 思考トークンは出力本体の数倍に達し、量が回ごとに大きく揺れる
-            chat_template_kwargs: { enable_thinking: false },
+            reasoning_effort: REASONING_EFFORT,
             response_format: SettingsReferenceResponseFormat,
           },
           { gateway: { id: gatewayId } },

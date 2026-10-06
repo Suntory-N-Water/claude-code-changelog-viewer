@@ -159,7 +159,7 @@ describe('Workers AI 設定リファレンス adapter', () => {
       expect.objectContaining({
         response_format: expect.objectContaining({ type: 'json_schema' }),
         max_completion_tokens: 8192,
-        chat_template_kwargs: { enable_thinking: false },
+        reasoning_effort: 'low',
       }),
     );
     expect(run.mock.calls[0]?.[2]).toEqual({

@@ -4,6 +4,11 @@ import { workerLogger } from '../../logger';
 
 export const MODEL = '@cf/zai-org/glm-5.3-flash';
 
+// 思考トークンは出力本体の数倍に達し、量が回ごとに大きく揺れる。
+// chat_template_kwargs.enable_thinking: false は 2026-10 頃から無視されるようになり、
+// reasoning_effort: 'none' でも思考が残る。'low' だけが思考をほぼ 0 に抑える
+export const REASONING_EFFORT = 'low';
+
 export const TRUNCATED_MESSAGE = 'AI 応答が出力上限で打ち切られました';
 export const PARSE_FAILED_MESSAGE = 'AI 応答の JSON 解析に失敗しました';
 
