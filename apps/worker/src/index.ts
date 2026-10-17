@@ -17,6 +17,7 @@ import { uploadsRoute } from './routes/uploads';
 import { webhooksRoute } from './routes/webhooks';
 
 export { ChangelogInferenceWorkflow } from './workflows/changelog-inference-workflow';
+export { ChangelogRegenerationWorkflow } from './workflows/changelog-regeneration-workflow';
 export { D1BackupWorkflow } from './workflows/d1-backup-workflow';
 export { SettingsReferenceWorkflow } from './workflows/settings-reference-workflow';
 
