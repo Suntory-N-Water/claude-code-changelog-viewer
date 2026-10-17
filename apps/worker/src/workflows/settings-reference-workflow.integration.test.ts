@@ -362,7 +362,7 @@ describe('設定リファレンス生成 Workflow', () => {
     const aiRun = mockAi({
       settings_translation: (inputs) => {
         // バッチの件数はプロンプトに並んだ項目の数で数える
-        const prompt = (inputs as { messages: { content: string }[] }).messages[0]?.content ?? '';
+        const prompt = (inputs as { messages: [{ content: string }] }).messages[0].content;
         const count = prompt.match(/### 項目 id=/g)?.length ?? 0;
         translationBatchSizes.push(count);
         return translationResponse(count);
