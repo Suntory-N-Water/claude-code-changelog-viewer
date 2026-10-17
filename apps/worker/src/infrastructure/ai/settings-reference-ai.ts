@@ -18,9 +18,9 @@ import {
   withoutDoubleQuotes,
 } from './workers-ai';
 
-// 30 件の翻訳は本番データで約 3,000〜4,000 トークン出力する
+// 30 件の翻訳は本番データで約 4,300 トークン出力した (2026-10-17 計測、3 バッチの平均)
 const TRANSLATION_MAX_COMPLETION_TOKENS = 8192;
-// 1 件の用途は箇条書き 3 行で 300 トークン前後に収まる
+// 1 件の用途は平均約 150 トークン出力した (同計測、81 件)
 const USE_CASE_MAX_COMPLETION_TOKENS = 2048;
 
 const TRANSLATION_SCHEMA_FAILED_MESSAGE = 'AI 設定翻訳結果の形式が不正です';
