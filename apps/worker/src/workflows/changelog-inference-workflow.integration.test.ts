@@ -8,7 +8,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   changelogDiffEventItems,
   changelogDiffEvents,
-  changelogItemFeatureAreas,
   changelogItemRelatedDocs,
   changelogItems,
   changelogVersions,
@@ -97,7 +96,6 @@ function singleItemCompletion(kind: string, id: string) {
           benefit: 'CHANGELOG の更新を自動で推論して保存できます。',
         },
       ],
-      feature_area_corrections: [],
     });
   }
   return chatCompletion({ summary: 'Workflow 推論のサポートを追加しました。' });
@@ -136,7 +134,6 @@ describe('CHANGELOG 推論 Workflow', () => {
     await notificationDb.delete(changelogDiffEventItems);
     await notificationDb.delete(changelogDiffEvents);
     await notificationDb.delete(changelogItemRelatedDocs);
-    await notificationDb.delete(changelogItemFeatureAreas);
     await notificationDb.delete(changelogItems);
     await notificationDb.delete(changelogVersions);
 
@@ -447,7 +444,6 @@ describe('CHANGELOG 推論 Workflow', () => {
           id,
           benefit: '追加された機能をそのまま利用できます。',
         })),
-        feature_area_corrections: [],
       });
     });
     vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
@@ -559,7 +555,6 @@ describe('CHANGELOG 推論 Workflow', () => {
           id,
           benefit: '追加された機能をそのまま利用できます。',
         })),
-        feature_area_corrections: [],
       });
     });
     vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({

@@ -1,5 +1,6 @@
 import {
   mergeChangelogItemInferences,
+  needsBenefit,
   verifyChangelogTranslations,
   type ChangelogAiTranslationItem,
   type ChangelogInferenceInput,
@@ -61,6 +62,9 @@ export async function inferChangelogItemBatch(
   inference: ChangelogItemInferencePort,
   batch: ChangelogInferenceInput,
 ): Promise<ChangelogItemInference[]> {
+  if (!batch.items.some(needsBenefit)) {
+    return batch.items.map((item) => ({ id: item.id }));
+  }
   return mergeChangelogItemInferences(batch.items, await inference.inferItems(batch));
 }
 

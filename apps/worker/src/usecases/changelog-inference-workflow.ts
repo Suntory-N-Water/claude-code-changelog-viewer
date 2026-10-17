@@ -109,7 +109,6 @@ export async function saveChangelogInference(
       return {
         ...item,
         contentJa: contentJaById.get(item.id) ?? '',
-        featureAreas: itemInference?.featureAreas ?? [],
         ...(itemInference?.benefit === undefined ? {} : { benefit: itemInference.benefit }),
       };
     }),

@@ -3,12 +3,6 @@ import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import Button from '../components/ui/Button.astro';
 import Card from '../components/ui/Card.astro';
-import {
-  aggregateByFeatureArea,
-  extractChangelogData,
-  MIN_ITEMS_FOR_PAGE,
-  toFeatureAreaSlug,
-} from '../lib/feature-area';
 import { semverCompareDesc } from '../lib/semver';
 
 // ビルド時に全 URL を生成してクライアントサイド JS にインライン埋め込み
@@ -16,12 +10,7 @@ const changelogs = await getCollection('changelog');
 
 const changelogUrls = changelogs.map((e) => `/changelog/v${e.data.version}`);
 
-const areaMap = aggregateByFeatureArea(extractChangelogData(changelogs));
-const featureUrls = [...areaMap.entries()]
-  .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
-  .map(([area]) => `/features/${toFeatureAreaSlug(area)}`);
-
-const staticUrls = ['/', '/features', '/about', '/notify', '/privacy'];
+const staticUrls = ['/', '/about', '/notify', '/privacy'];
 
 const allUrls = JSON.stringify([
   ...staticUrls,
@@ -30,7 +19,6 @@ const allUrls = JSON.stringify([
     const bv = b.replace('/changelog/v', '');
     return semverCompareDesc(av, bv);
   }),
-  ...featureUrls,
 ]);
 ---
 

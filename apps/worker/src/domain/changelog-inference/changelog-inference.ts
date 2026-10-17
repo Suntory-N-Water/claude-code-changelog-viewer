@@ -47,56 +47,17 @@ export type ChangelogAiTranslationItem = {
   contentJa: string;
 };
 
-export type ChangelogAiFeatureAreaCorrection = {
-  id: string;
-  featureAreas: string[];
-};
-
-export const FEATURE_AREAS = [
-  'IDE',
-  'Hooks',
-  'MCP',
-  'Skills',
-  'Agent Teams',
-  'Sub-agents',
-  'Plan',
-  'Plugins',
-  'Settings',
-  'Memory',
-  'Permissions',
-] as const;
-
-// サイトはタグを小文字化した URL でページを作り、大文字小文字違いの重複があるとビルドを失敗させる。
-// AI は候補を示しても "Ide" や候補外のタグを返すため、保存前に候補の表記へ揃え、候補外は捨てる
-const FEATURE_AREA_BY_LOWERCASE = new Map<string, string>(
-  FEATURE_AREAS.map((area) => [area.toLowerCase(), area]),
-);
-
-function normalizeFeatureAreas(areas: string[]): string[] {
-  return [
-    ...new Set(
-      areas.flatMap((area) => {
-        const canonical = FEATURE_AREA_BY_LOWERCASE.get(area.trim().toLowerCase());
-        return canonical === undefined ? [] : [canonical];
-      }),
-    ),
-  ];
-}
-
 export type ChangelogItemsAiResult = {
   inferredItems: ChangelogAiInferenceItem[];
-  featureAreaCorrections: ChangelogAiFeatureAreaCorrection[];
 };
 
 export type ChangelogItemInference = {
   id: string;
-  featureAreas: string[];
   benefit?: string;
 };
 
 export type ChangelogInferenceItem = ChangelogItem & {
   contentJa: string;
-  featureAreas: string[];
   relatedDocs: RelatedDocument[];
   benefit?: string;
 };
@@ -120,8 +81,8 @@ export function mergeChangelogItemInferences(
   items: ChangelogInferenceInputItem[],
   aiResult: ChangelogItemsAiResult,
 ): ChangelogItemInference[] {
-  // モデルは対象外と指示した項目にも変更後を書くことがある。使える機能領域タグまで
-  // 捨てないよう、対象外の項目の変更後だけを除いてから id の一致を確かめる
+  // モデルは対象外と指示した項目にも変更後を書くことがある。対象項目の変更後は正しく
+  // 返却されているのにバッチごと捨てないよう、対象外の項目の変更後だけを除いてから id の一致を確かめる
   const skippedIds = new Set(items.filter((item) => !needsBenefit(item)).map((item) => item.id));
   const inferredItems = aiResult.inferredItems.filter((item) => !skippedIds.has(item.id));
   assertItemIds(
@@ -131,24 +92,10 @@ export function mergeChangelogItemInferences(
   );
 
   const inferredById = new Map(inferredItems.map((item) => [item.id, item]));
-  const featureAreasById = new Map(
-    aiResult.featureAreaCorrections.map((item) => [
-      item.id,
-      normalizeFeatureAreas(item.featureAreas),
-    ]),
-  );
-
-  for (const id of featureAreasById.keys()) {
-    if (!items.some((item) => item.id === id)) {
-      throw new Error(`AI 推論結果に未知の item id があります: ${id}`);
-    }
-  }
-
   return items.map((item) => {
     const inferred = inferredById.get(item.id);
     return {
       id: item.id,
-      featureAreas: featureAreasById.get(item.id) ?? [],
       ...(inferred === undefined ? {} : { benefit: inferred.benefit }),
     };
   });

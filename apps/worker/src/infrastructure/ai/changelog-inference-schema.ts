@@ -12,11 +12,6 @@ const TranslatedItemSchema = z.object({
   content_ja: z.string().min(1).max(500),
 });
 
-const FeatureAreaCorrectionSchema = z.object({
-  id: z.string().min(1),
-  feature_areas: z.array(z.string().min(1)),
-});
-
 export const ChangelogTranslationResponseSchema = z.object({
   translated_items: z.array(TranslatedItemSchema).describe('各項目の日本語訳'),
 });
@@ -33,10 +28,6 @@ export const ChangelogTranslationResponseFormat = {
 
 export const ChangelogItemsResponseSchema = z.object({
   inferred_items: z.array(InferredItemSchema).describe('変更後を書く対象の項目の推論結果'),
-  feature_area_corrections: z
-    .array(FeatureAreaCorrectionSchema)
-    .default([])
-    .describe('機能領域タグの付与結果。該当項目だけを返す'),
 });
 
 export const ChangelogItemsResponseFormat = {

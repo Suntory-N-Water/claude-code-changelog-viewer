@@ -21,7 +21,6 @@ export const ChangelogItemSchema = z.object({
   content: z.string(), // 英語原文
   content_ja: z.string().optional(), // 日本語翻訳
   prefix: z.string(),
-  feature_areas: z.array(z.string()).optional(), // 機能領域タグ
   related_docs: z.array(RelatedDocSchema),
   benefit: z.string().min(1).max(500).optional(), // 変更後
   impact: ImpactAssessmentSchema.optional(),
@@ -40,14 +39,13 @@ export const InferredChangelogItemSchema = ChangelogItemSchema.omit({
 export type InferredChangelogItem = z.infer<typeof InferredChangelogItemSchema>;
 
 // D1 取り込み用ペイロード。inferred ファイルの version は 'v' プレフィックスなし。
-// 旧バージョンのファイルには summary / content_ja / feature_areas / benefit がなく、
+// 旧バージョンのファイルには summary / content_ja / benefit がなく、
 // jq の射影では欠落キーが null になるため nullable + optional にする。
 export const IngestChangelogItemSchema = z.object({
   id: z.string().length(12),
   content: z.string(),
   content_ja: z.string().nullable().optional(),
   prefix: z.string(),
-  feature_areas: z.array(z.string()).nullable().optional(),
   related_docs: z.array(InferredRelatedDocSchema).nullable().optional(),
   benefit: z.string().nullable().optional(),
 });

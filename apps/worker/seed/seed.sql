@@ -4,7 +4,6 @@
 DELETE FROM settings_official_docs;
 DELETE FROM settings_reference;
 DELETE FROM changelog_item_related_docs;
-DELETE FROM changelog_item_feature_areas;
 DELETE FROM changelog_items;
 DELETE FROM changelog_versions;
 DELETE FROM changelog_diff_event_items;
@@ -99,18 +98,6 @@ INSERT INTO changelog_items (
     NULL,
     'fixed skills and mcp documentation links in the status screen.'
   );
-
-INSERT INTO changelog_item_feature_areas (version, item_id, feature_area) VALUES
-  ('2.1.234', 'aaaaaaaaaaaa', 'Permissions'),
-  ('2.1.234', 'aaaaaaaaaaaa', 'MCP'),
-  ('2.1.234', 'bbbbbbbbbbbb', 'MCP'),
-  ('2.1.234', 'cccccccccccc', 'Plugins'),
-  ('2.1.234', 'dddddddddddd', 'Settings'),
-  ('2.1.234', 'eeeeeeeeeeee', 'IDE'),
-  ('2.1.233', 'gggggggggggg', 'Skills'),
-  ('2.1.233', 'hhhhhhhhhhhh', 'Hooks'),
-  ('2.1.233', 'iiiiiiiiiiii', 'Sub-agents'),
-  ('2.1.232', 'jjjjjjjjjjjj', 'MCP');
 
 INSERT INTO changelog_item_related_docs (version, item_id, doc_path) VALUES
   ('2.1.234', 'aaaaaaaaaaaa', 'permissions.md'),

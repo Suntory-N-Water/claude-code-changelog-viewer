@@ -1,0 +1,1 @@
+DROP TABLE `changelog_item_feature_areas`;

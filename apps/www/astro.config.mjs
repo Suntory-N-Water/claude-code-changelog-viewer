@@ -128,9 +128,6 @@ export default defineConfig({
         if (path.startsWith('/posts')) {
           return { ...item, changefreq: ChangeFreqEnum.WEEKLY, priority: 0.7 };
         }
-        if (path.startsWith('/features')) {
-          return { ...item, changefreq: ChangeFreqEnum.WEEKLY, priority: 0.7 };
-        }
         return { ...item, changefreq: ChangeFreqEnum.MONTHLY, priority: 0.5 };
       },
     }),

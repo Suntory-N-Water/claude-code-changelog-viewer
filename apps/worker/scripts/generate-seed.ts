@@ -14,7 +14,6 @@ import {
   changelogDiffEventItems,
   changelogDiffEvents,
   changelogItems,
-  changelogItemFeatureAreas,
   changelogItemRelatedDocs,
   changelogVersions,
   settingsOfficialDocs,
@@ -30,7 +29,6 @@ type Row = Record<string, unknown>;
 const tables = {
   versions: changelogVersions,
   items: changelogItems,
-  featureAreas: changelogItemFeatureAreas,
   relatedDocs: changelogItemRelatedDocs,
   diffEvents: changelogDiffEvents,
   diffEventItems: changelogDiffEventItems,
@@ -191,7 +189,6 @@ async function generateSeed(): Promise<void> {
   const [
     versionRows,
     itemRows,
-    featureAreaRows,
     relatedDocRows,
     diffEventRows,
     diffEventItemRows,
@@ -200,7 +197,6 @@ async function generateSeed(): Promise<void> {
   ] = await Promise.all([
     selectTable(tables.versions),
     selectTable(tables.items),
-    selectTable(tables.featureAreas),
     selectTable(tables.relatedDocs),
     selectTable(tables.diffEvents),
     selectTable(tables.diffEventItems),
@@ -218,13 +214,6 @@ async function generateSeed(): Promise<void> {
   const sortedItems = [...itemRows].sort((a, b) =>
     semverCompareDesc(rowText(a, 'version'), rowText(b, 'version')),
   );
-  const featureAreasByItem = new Map<string, Set<string>>();
-  for (const row of featureAreaRows) {
-    const key = itemKey(row);
-    const areas = featureAreasByItem.get(key) ?? new Set<string>();
-    areas.add(rowText(row, 'featureArea'));
-    featureAreasByItem.set(key, areas);
-  }
   const relatedDocKeys = new Set(relatedDocRows.map(itemKey));
   const selectedItemKeys = new Set<string>();
   const addItem = (row: Row | undefined, reason: string): void => {
@@ -252,37 +241,6 @@ async function generateSeed(): Promise<void> {
   firstItem((row) => !hasValue(row, 'inferenceBenefit'), 'benefit なし');
   firstItem((row) => relatedDocKeys.has(itemKey(row)), 'related_docs あり');
   firstItem((row) => !relatedDocKeys.has(itemKey(row)), 'related_docs なし');
-  firstItem((row) => (featureAreasByItem.get(itemKey(row))?.size ?? 0) > 0, 'feature_areas あり');
-  firstItem((row) => (featureAreasByItem.get(itemKey(row))?.size ?? 0) === 0, 'feature_areas なし');
-
-  const availableAreas = [
-    ...new Set(featureAreaRows.map((row) => rowText(row, 'featureArea'))),
-  ].sort();
-  if (availableAreas.length < 3) {
-    throw new Error('feature_areas が3種類未満です');
-  }
-  const itemKeysByArea = new Map<string, Set<string>>();
-  for (const row of featureAreaRows) {
-    const keys = itemKeysByArea.get(rowText(row, 'featureArea')) ?? new Set<string>();
-    keys.add(itemKey(row));
-    itemKeysByArea.set(rowText(row, 'featureArea'), keys);
-  }
-  const pageArea = availableAreas.find((area) => (itemKeysByArea.get(area)?.size ?? 0) >= 3);
-  if (pageArea === undefined) {
-    throw new Error('feature_area ページの生成に必要な item が3件以上ありません');
-  }
-  for (const key of [...(itemKeysByArea.get(pageArea) ?? [])].slice(0, 3)) {
-    addItem(
-      sortedItems.find((row) => itemKey(row) === key),
-      `feature_area ページ=${pageArea}`,
-    );
-  }
-  for (const area of availableAreas.slice(0, 3)) {
-    firstItem(
-      (row) => featureAreasByItem.get(itemKey(row))?.has(area) ?? false,
-      `feature_area=${area}`,
-    );
-  }
 
   const selectedVersionNumbers = new Set(
     sortedVersions.slice(0, 3).map((row) => normalizeVersion(rowText(row, 'version'))),
@@ -399,9 +357,6 @@ async function generateSeed(): Promise<void> {
   );
   const selectedItemRows = itemRows.filter((row) => selectedItemKeys.has(itemKey(row)));
   const selectedItemKeySet = new Set(selectedItemRows.map(itemKey));
-  const selectedFeatureAreaRows = featureAreaRows.filter((row) =>
-    selectedItemKeySet.has(itemKey(row)),
-  );
   const selectedRelatedDocRows = relatedDocRows.filter((row) =>
     selectedItemKeySet.has(itemKey(row)),
   );
@@ -422,7 +377,6 @@ async function generateSeed(): Promise<void> {
     buildDelete(tables.officialDocs),
     buildDelete(tables.settings),
     buildDelete(tables.relatedDocs),
-    buildDelete(tables.featureAreas),
     buildDelete(tables.items),
     buildDelete(tables.versions),
     buildDelete(tables.diffEventItems),
@@ -430,7 +384,6 @@ async function generateSeed(): Promise<void> {
     '',
     buildInsert(tables.versions, selectedVersionRows),
     buildInsert(tables.items, selectedItemRows),
-    buildInsert(tables.featureAreas, selectedFeatureAreaRows),
     buildInsert(tables.relatedDocs, selectedRelatedDocRows),
     buildInsert(tables.diffEvents, selectedDiffEventRows),
     buildInsert(tables.diffEventItems, selectedDiffEventItemRows),

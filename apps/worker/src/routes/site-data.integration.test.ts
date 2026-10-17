@@ -52,7 +52,6 @@ const firstItem = {
   id: 'aaaaaaaaaaaa',
   content: '- Added first item',
   prefix: 'Added',
-  feature_areas: ['Settings', 'Model'],
   related_docs: [{ file: 'docs/en/zeta.md' }, { file: 'docs/en/alpha.md' }],
 };
 
@@ -60,7 +59,6 @@ const secondItem = {
   id: 'bbbbbbbbbbbb',
   content: '- Fixed second item',
   prefix: 'Fixed',
-  feature_areas: ['Permissions'],
   related_docs: [{ file: 'docs/en/permissions.md' }],
 };
 
@@ -75,7 +73,6 @@ describe('GET /api/site-data integration', () => {
             id: 'cccccccccccc',
             content: '- Added third item',
             prefix: 'Added',
-            feature_areas: ['CLI'],
             related_docs: [{ file: 'docs/en/cli.md' }],
           },
         ]),
@@ -94,14 +91,12 @@ describe('GET /api/site-data integration', () => {
               id: 'aaaaaaaaaaaa',
               content: '- Added first item',
               prefix: 'Added',
-              feature_areas: ['Model', 'Settings'],
               related_docs: [{ doc_path: 'alpha.md' }, { doc_path: 'zeta.md' }],
             },
             {
               id: 'bbbbbbbbbbbb',
               content: '- Fixed second item',
               prefix: 'Fixed',
-              feature_areas: ['Permissions'],
               related_docs: [{ doc_path: 'permissions.md' }],
             },
           ],
@@ -113,7 +108,6 @@ describe('GET /api/site-data integration', () => {
               id: 'cccccccccccc',
               content: '- Added third item',
               prefix: 'Added',
-              feature_areas: ['CLI'],
               related_docs: [{ doc_path: 'cli.md' }],
             },
           ],

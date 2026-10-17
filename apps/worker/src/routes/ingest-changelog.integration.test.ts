@@ -39,7 +39,6 @@ function createVersion(overrides: Partial<IngestChangelogVersion> = {}): IngestC
         content: '- Added interactive Google Vertex AI setup wizard',
         content_ja: 'Google Vertex AI 用のセットアップウィザードを追加しました。',
         prefix: 'Added',
-        feature_areas: ['Settings', 'Model'],
         benefit: '素早く確実に使い始めることができます。',
       },
     ],
@@ -76,14 +75,11 @@ function createDiffEvent(
 }
 
 async function countAllRows(db: FakeD1Database) {
-  const [versions, items, featureAreas, settings] = await Promise.all([
+  const [versions, items, settings] = await Promise.all([
     db.prepare('SELECT count(*) AS c FROM changelog_versions').first<{
       c: number;
     }>(),
     db.prepare('SELECT count(*) AS c FROM changelog_items').first<{
-      c: number;
-    }>(),
-    db.prepare('SELECT count(*) AS c FROM changelog_item_feature_areas').first<{
       c: number;
     }>(),
     db.prepare('SELECT count(*) AS c FROM settings_reference').first<{
@@ -93,12 +89,11 @@ async function countAllRows(db: FakeD1Database) {
   return {
     versions: versions?.c,
     items: items?.c,
-    featureAreas: featureAreas?.c,
     settings: settings?.c,
   };
 }
 
-const emptyCounts = { versions: 0, items: 0, featureAreas: 0, settings: 0 };
+const emptyCounts = { versions: 0, items: 0, settings: 0 };
 
 describe('POST /api/ingest/changelog integration', () => {
   describe('認証', () => {
@@ -171,7 +166,7 @@ describe('POST /api/ingest/changelog integration', () => {
   });
 
   describe('changelog の取り込み', () => {
-    it('新規バージョンを送ると、summary・items・feature areas が保存されること', async () => {
+    it('新規バージョンを送ると、summary・items が保存されること', async () => {
       const db = new FakeD1Database();
       const sut = app;
 
@@ -201,13 +196,6 @@ describe('POST /api/ingest/changelog integration', () => {
         prefix: 'Added',
         inference_benefit: '素早く確実に使い始めることができます。',
       });
-      const featureAreas = await db
-        .prepare('SELECT feature_area FROM changelog_item_feature_areas ORDER BY feature_area')
-        .all<{ feature_area: string }>();
-      expect(featureAreas.results).toEqual([
-        { feature_area: 'Model' },
-        { feature_area: 'Settings' },
-      ]);
       db.close();
     });
 
@@ -273,7 +261,6 @@ describe('POST /api/ingest/changelog integration', () => {
       expect(await countAllRows(db)).toEqual({
         versions: 1,
         items: 1,
-        featureAreas: 0,
         settings: 0,
       });
       expect(await db.prepare('SELECT item_id, content FROM changelog_items').first()).toEqual({
@@ -308,34 +295,35 @@ describe('POST /api/ingest/changelog integration', () => {
       db.close();
     });
 
-    it('同一 item 内で feature_area が重複していても、一意化して取り込めること', async () => {
+    it('feature_areas を含む旧形式のペイロードを送ったとき、取り込みが成功すること', async () => {
       const db = new FakeD1Database();
       const sut = app;
-      const version = createVersion({
-        items: [
+      const legacyPayload = {
+        versions: [
           {
-            id: 'f595cf9fcf9b',
-            content: '- Added something',
-            prefix: 'Added',
-            feature_areas: ['Settings', 'Model', 'Settings'],
+            version: '2.1.110',
+            items: [
+              {
+                id: '44f5d2690b62',
+                content: '- Added something',
+                prefix: 'Added',
+                feature_areas: ['Settings', 'Model'],
+              },
+            ],
           },
         ],
-      });
+      };
 
       const response = await sut.request(
         '/api/ingest/changelog',
-        createRequest({ versions: [version] }),
+        createRequest(legacyPayload),
         createTestEnv(db),
       );
 
       expect(response.status).toBe(200);
-      const featureAreas = await db
-        .prepare('SELECT feature_area FROM changelog_item_feature_areas ORDER BY feature_area')
-        .all<{ feature_area: string }>();
-      expect(featureAreas.results).toEqual([
-        { feature_area: 'Model' },
-        { feature_area: 'Settings' },
-      ]);
+      expect(await db.prepare('SELECT item_id FROM changelog_items').first()).toEqual({
+        item_id: '44f5d2690b62',
+      });
       db.close();
     });
 
@@ -519,7 +507,6 @@ describe('POST /api/ingest/changelog integration', () => {
         id: `id${String(i).padStart(10, '0')}`,
         content: `- Item ${i}`,
         prefix: 'Added',
-        feature_areas: ['Settings'],
       }));
 
       const response = await sut.request(
@@ -532,7 +519,6 @@ describe('POST /api/ingest/changelog integration', () => {
       expect(await countAllRows(db)).toEqual({
         versions: 1,
         items: 60,
-        featureAreas: 60,
         settings: 0,
       });
       db.close();

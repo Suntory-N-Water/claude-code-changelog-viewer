@@ -1,5 +1,4 @@
 import {
-  FEATURE_AREAS,
   ITEM_IDS_MISMATCH_MESSAGE,
   needsBenefit,
   type ChangelogAiTranslationItem,
@@ -117,10 +116,6 @@ export function createChangelogItemInferenceAi(
           id: item.id,
           benefit: item.benefit,
         })),
-        featureAreaCorrections: parsed.data.feature_area_corrections.map((item) => ({
-          id: item.id,
-          featureAreas: item.feature_areas,
-        })),
       };
     },
   };
@@ -225,8 +220,8 @@ function buildTranslationPrompt(release: ChangelogRelease): string {
 }
 
 function buildItemsPrompt(input: ChangelogInferenceInput): string {
-  const inferenceItems = input.items
-    .filter(needsBenefit)
+  const targetItems = input.items.filter(needsBenefit);
+  const inferenceItems = targetItems
     .map((item) => {
       const relatedDocs = item.relatedDocs
         .map((doc) => `#### ${doc.file}\n${withoutDoubleQuotes(doc.snippets.join('\n'))}`)
@@ -241,22 +236,15 @@ function buildItemsPrompt(input: ChangelogInferenceInput): string {
       ].join('\n');
     })
     .join('\n\n');
-  const featureAreaItems = input.items
-    .map((item) => `- id=${item.id}, content: ${withoutDoubleQuotes(item.content)}`)
-    .join('\n');
 
   return [
     PROMPT_PREAMBLE,
     '',
     MODEL_NAME_RULES,
     '',
-    `## 状況\nバージョン ${input.version} の CHANGELOG のうち ${input.items.length} 項目を処理する。`,
+    `## 状況\nバージョン ${input.version} の CHANGELOG のうち ${targetItems.length} 項目の変更後 (benefit) を推論する。`,
     '',
-    '以下の2つのタスクを一度に実行する:',
-    '1. 対象項目の変更後 (benefit) の推論',
-    '2. 各項目の機能領域タグの付与',
-    '',
-    '# タスク1: 変更後',
+    '# タスク: 変更後',
     '- benefit には、この変更で利用者にとって何が変わるのかを1〜2文で書く',
     '- 関連情報から分かる、その機能の用途や利用者が困っていた場面を踏まえて書く',
     '- 原文の翻訳や言い換えにしない。変更前の問題や症状を書かない',
@@ -264,12 +252,7 @@ function buildItemsPrompt(input: ChangelogInferenceInput): string {
     '- 自然な日本語の動詞の終止形で終える',
     '- id は入力値をそのまま返す',
     '',
-    inferenceItems || '(対象なし)',
-    '',
-    '# タスク2: 機能領域タグ',
-    '該当する項目だけを返し、1項目に複数タグを付けてもよい。該当しなければ返さない。',
-    `タグ候補: ${FEATURE_AREAS.join(', ')}`,
-    featureAreaItems,
+    inferenceItems,
   ].join('\n');
 }
 

@@ -7,7 +7,6 @@ import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import {
   changelogDiffEventItems,
   changelogDiffEvents,
-  changelogItemFeatureAreas,
   changelogItemRelatedDocs,
   changelogItems,
   changelogVersions,
@@ -16,7 +15,6 @@ import { chunk, MAX_BATCH_STATEMENTS, runBatchedStatements, toDocPath } from './
 
 // D1 の bound parameters 上限 100/query から逆算した 1 INSERT あたりの行数
 const ITEMS_PER_INSERT = 11; // 9 カラム
-const FEATURE_AREAS_PER_INSERT = 33; // 3 カラム
 const RELATED_DOCS_PER_INSERT = 33; // 3 カラム
 const DIFF_EVENTS_PER_INSERT = 33; // 3 カラム
 const DIFF_EVENT_ITEMS_PER_INSERT = 20; // 5 カラム
@@ -39,15 +37,6 @@ export async function ingestChangelogVersion(
       .normalize('NFKC')
       .toLowerCase(),
   }));
-  // 実データには同一 item 内で feature_area が重複する例があり
-  // (v2.1.110 の 44f5d2690b62)、複合 PK に違反するため除去する
-  const featureAreaRows = entry.items.flatMap((item) =>
-    [...new Set(item.feature_areas ?? [])].map((featureArea) => ({
-      version: entry.version,
-      itemId: item.id,
-      featureArea,
-    })),
-  );
   const relatedDocRows = entry.items.flatMap((item) =>
     [...new Set((item.related_docs ?? []).map((relatedDoc) => toDocPath(relatedDoc.file)))].map(
       (docPath) => ({
@@ -60,16 +49,10 @@ export async function ingestChangelogVersion(
 
   const statements = [
     db.delete(changelogItemRelatedDocs).where(eq(changelogItemRelatedDocs.version, entry.version)),
-    db
-      .delete(changelogItemFeatureAreas)
-      .where(eq(changelogItemFeatureAreas.version, entry.version)),
     db.delete(changelogItems).where(eq(changelogItems.version, entry.version)),
     db.delete(changelogVersions).where(eq(changelogVersions.version, entry.version)),
     db.insert(changelogVersions).values({ version: entry.version, summary: entry.summary ?? null }),
     ...chunk(itemRows, ITEMS_PER_INSERT).map((rows) => db.insert(changelogItems).values(rows)),
-    ...chunk(featureAreaRows, FEATURE_AREAS_PER_INSERT).map((rows) =>
-      db.insert(changelogItemFeatureAreas).values(rows),
-    ),
     ...chunk(relatedDocRows, RELATED_DOCS_PER_INSERT).map((rows) =>
       db.insert(changelogItemRelatedDocs).values(rows),
     ),

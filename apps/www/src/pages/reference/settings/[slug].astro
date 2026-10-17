@@ -4,25 +4,17 @@ import Icon from '../../../components/Icon.astro';
 import SettingChildTree from '../../../components/settings/SettingChildTree.astro';
 import ChangelogItemCard from '../../../components/changelog/ChangelogItemCard.astro';
 import BackLink from '../../../components/ui/BackLink.astro';
-import Button from '../../../components/ui/Button.astro';
 import Card from '../../../components/ui/Card.astro';
 import CodeBlock from '../../../components/ui/CodeBlock.astro';
 import Layout from '../../../layouts/Layout.astro';
-import {
-  extractChangelogData,
-  getLinkedAreas,
-  groupByVersion,
-  toFeatureAreaSlug,
-  getFeatureAreaLabel,
-} from '../../../lib/feature-area';
 import { formatSettingDescription, formatUseCaseJa } from '../../../lib/format-changelog-content';
 import {
   buildSettingChildTrees,
   buildSettingValueOptions,
-  collectFeatureAreas,
   extractOfficialDocUrls,
   findRelatedChangelogs,
   getSourceLabel,
+  groupByVersion,
   mergeOfficialDocUrls,
 } from '../../../lib/settings-reference';
 import { semverCompareDesc } from '../../../lib/semver';
@@ -30,27 +22,23 @@ import { semverCompareDesc } from '../../../lib/semver';
 export async function getStaticPaths() {
   const settings = await getCollection('settingsReference');
   const changelogs = await getCollection('changelog');
-  const changelogData = extractChangelogData(changelogs);
-  const linkedAreas = getLinkedAreas(changelogData);
+  const changelogData = changelogs.map((changelog) => ({
+    version: changelog.data.version,
+    items: changelog.data.items,
+  }));
   const childTrees = buildSettingChildTrees(settings.map((entry) => entry.data));
 
-  return settings.map((entry) => {
-    const relatedItems = findRelatedChangelogs(entry.data.key, changelogData);
-    const settingAreas = collectFeatureAreas(relatedItems);
-    return {
-      params: { slug: entry.data.slug },
-      props: {
-        entry: entry.data,
-        relatedItems,
-        linkedAreas,
-        settingAreas,
-        childNodes: childTrees.get(entry.data.key) ?? [],
-      },
-    };
-  });
+  return settings.map((entry) => ({
+    params: { slug: entry.data.slug },
+    props: {
+      entry: entry.data,
+      relatedItems: findRelatedChangelogs(entry.data.key, changelogData),
+      childNodes: childTrees.get(entry.data.key) ?? [],
+    },
+  }));
 }
 
-const { entry, relatedItems, linkedAreas, settingAreas, childNodes } = Astro.props;
+const { entry, relatedItems, childNodes } = Astro.props;
 
 const versionGroups = groupByVersion(relatedItems, semverCompareDesc);
 const sourceLabel = getSourceLabel(entry.source);
@@ -66,13 +54,6 @@ const officialLinks = mergeOfficialDocUrls(
   extractOfficialDocUrls(entry.description_en),
   entry.official_doc_urls ?? [],
 );
-
-const relatedAreaLinks = [...settingAreas]
-  .filter((area) => linkedAreas.has(area))
-  .map((area) => ({
-    slug: toFeatureAreaSlug(area),
-    label: getFeatureAreaLabel(area),
-  }));
 
 const schemaChips = [
   ...(entry.value_type ? [{ label: '型', value: entry.value_type, mono: true }] : []),
@@ -296,7 +277,7 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0 || childNode
                   </div>
                   <div class='space-y-6'>
                     {group.items.map((item) => (
-                      <ChangelogItemCard item={item} linkedAreas={linkedAreas} />
+                      <ChangelogItemCard item={item} />
                     ))}
                   </div>
                 </div>
@@ -312,23 +293,6 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0 || childNode
           <Card as='section' variant='dashed' padding='none' class='mb-8 py-10 text-center'>
             <p class='text-sm text-gray-400'>まだ変更履歴との関連付けはありません</p>
           </Card>
-        )
-      }
-
-      {
-        relatedAreaLinks.length > 0 && (
-          <nav class='mt-8 pt-8 border-t border-[hsl(var(--cc-gray))]' data-pagefind-ignore>
-            <h2 class='text-base font-bold text-[hsl(var(--cc-main-black))] mb-3'>
-              関連する機能エリア
-            </h2>
-            <div class='flex flex-wrap gap-3'>
-              {relatedAreaLinks.map(({ slug, label }) => (
-                <Button href={`/features/${slug}`} variant='outline' size='sm'>
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </nav>
         )
       }
     </div>

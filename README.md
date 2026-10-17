@@ -31,7 +31,6 @@ pnpm workspace のモノレポで、`apps/www`(公開サイト)と `apps/worker`
 
 - 主な画面
   - `/changelog`、`/changelog/v{version}` — バージョン一覧と詳細(要約・変更項目・差分・関連ドキュメント)
-  - `/features`、`/features/{area}` — 機能エリア別のまとめ
   - `/reference/settings`、`/reference/settings/{slug}` — settings.json と環境変数のリファレンス
   - `/posts/weekly`、`/posts/column` — 週次アップデート記事とコラム(ローカルの Markdown)
   - `/notify` — 通知の登録フォーム(Turnstile でボット判定し Worker へ POST)

@@ -54,7 +54,6 @@ export const FOOTER_SECTIONS: FooterSection[] = [
     title: 'コンテンツ',
     links: [
       { href: '/', label: 'バージョンの変更履歴', icon: 'list' },
-      { href: '/features', label: '機能エリア別の変更履歴', icon: 'grid' },
       ...NAV_ITEMS.map(({ href, label, icon }) => ({ href, label, icon })),
     ],
   },

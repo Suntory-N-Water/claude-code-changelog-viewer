@@ -24,35 +24,15 @@ const items = [
 const benefit = '繰り返しの設定作業を毎回行わずに済む。';
 
 describe('CHANGELOG 推論の整合性', () => {
-  it('関連ドキュメントの有無が異なるとき、変更後と機能領域タグを項目ごとにまとめること', () => {
+  it('関連ドキュメントがある項目とない項目が同じバッチにあるとき、関連ドキュメントがある項目だけに変更後が付くこと', () => {
     const result = mergeChangelogItemInferences(items, {
       inferredItems: [{ id: 'with-docs', benefit }],
-      featureAreaCorrections: [{ id: 'with-docs', featureAreas: ['Settings', 'Settings'] }],
     });
 
-    expect(result).toEqual([
-      { id: 'with-docs', featureAreas: ['Settings'], benefit },
-      { id: 'without-docs', featureAreas: [] },
-    ]);
+    expect(result).toEqual([{ id: 'with-docs', benefit }, { id: 'without-docs' }]);
   });
 
-  it('Fixed の項目のとき、関連ドキュメントがあっても変更後を作らず機能領域タグだけを残すこと', () => {
-    const fixedItem = {
-      id: 'fixed-with-docs',
-      content: '- Fixed a crash in the documented feature',
-      prefix: 'Fixed',
-      relatedDocs: [{ file: 'features.md', snippets: ['The feature automates the setup.'] }],
-    };
-
-    const result = mergeChangelogItemInferences([fixedItem], {
-      inferredItems: [],
-      featureAreaCorrections: [{ id: 'fixed-with-docs', featureAreas: ['Settings'] }],
-    });
-
-    expect(result).toEqual([{ id: 'fixed-with-docs', featureAreas: ['Settings'] }]);
-  });
-
-  it('変更後を求めていない項目の変更後が AI 結果に含まれているとき、その変更後を捨てて機能領域タグを残すこと', () => {
+  it('変更後を求めていない項目の変更後を AI が返したとき、その変更後を採用しないこと', () => {
     const fixedItem = {
       id: 'fixed-with-docs',
       content: '- Fixed a crash in the documented feature',
@@ -62,40 +42,26 @@ describe('CHANGELOG 推論の整合性', () => {
 
     const result = mergeChangelogItemInferences([fixedItem], {
       inferredItems: [{ id: 'fixed-with-docs', benefit }],
-      featureAreaCorrections: [{ id: 'fixed-with-docs', featureAreas: ['Settings'] }],
     });
 
-    expect(result).toEqual([{ id: 'fixed-with-docs', featureAreas: ['Settings'] }]);
-  });
-
-  it('機能領域タグが候補と大文字小文字違いや候補外のとき、候補の表記に揃えて候補外を捨てること', () => {
-    const result = mergeChangelogItemInferences(items, {
-      inferredItems: [{ id: 'with-docs', benefit }],
-      featureAreaCorrections: [
-        { id: 'with-docs', featureAreas: ['Ide', 'IDE', 'settings', 'UI'] },
-        { id: 'without-docs', featureAreas: ['設定'] },
-      ],
-    });
-
-    expect(result.map((item) => item.featureAreas)).toEqual([['IDE', 'Settings'], []]);
+    expect(result).toEqual([{ id: 'fixed-with-docs' }]);
   });
 
   it('推論対象の項目が不足しているとき、AI 結果を受け付けないこと', () => {
-    expect(() =>
-      mergeChangelogItemInferences(items, {
-        inferredItems: [],
-        featureAreaCorrections: [],
-      }),
-    ).toThrow('AI 結果の項目 id が入力と一致しません (推論)');
+    expect(() => mergeChangelogItemInferences(items, { inferredItems: [] })).toThrow(
+      'AI 結果の項目 id が入力と一致しません (推論)',
+    );
   });
 
-  it('バッチに含まれない項目に対する機能領域タグがあるとき、AI 結果を受け付けないこと', () => {
+  it('バッチにない項目の変更後を AI が返したとき、推論結果全体を採用しないこと', () => {
     expect(() =>
       mergeChangelogItemInferences(items, {
-        inferredItems: [{ id: 'with-docs', benefit }],
-        featureAreaCorrections: [{ id: 'unknown', featureAreas: ['Settings'] }],
+        inferredItems: [
+          { id: 'with-docs', benefit },
+          { id: 'unknown', benefit },
+        ],
       }),
-    ).toThrow('AI 推論結果に未知の item id があります: unknown');
+    ).toThrow('AI 結果の項目 id が入力と一致しません (推論)');
   });
 
   it('翻訳結果から入力の項目が欠けているとき、AI 結果を受け付けないこと', () => {

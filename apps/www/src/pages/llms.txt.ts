@@ -2,13 +2,6 @@ import { getCollection } from 'astro:content';
 import type { APIContext } from 'astro';
 import { SITE_TITLE } from '../lib/constants';
 import { semverCompareDesc } from '../lib/semver';
-import {
-  MIN_ITEMS_FOR_PAGE,
-  aggregateByFeatureArea,
-  extractChangelogData,
-  getFeatureAreaLabel,
-  toFeatureAreaSlug,
-} from '../lib/feature-area';
 
 export async function GET(context: APIContext) {
   const site = context.site?.href.replace(/\/$/, '') ?? '';
@@ -24,15 +17,6 @@ export async function GET(context: APIContext) {
     semverCompareDesc(a.data.version, b.data.version),
   );
 
-  const areaMap = aggregateByFeatureArea(extractChangelogData(changelogs));
-  const areas = [...areaMap.entries()]
-    .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
-    .sort(([, a], [, b]) => b.length - a.length)
-    .map(([area]) => ({
-      slug: toFeatureAreaSlug(area),
-      label: getFeatureAreaLabel(area),
-    }));
-
   const weeklyPosts = [...posts].sort((a, b) => b.data.date.localeCompare(a.data.date));
   const columnPosts = [...columns].sort((a, b) => b.data.date.localeCompare(a.data.date));
 
@@ -46,12 +30,11 @@ export async function GET(context: APIContext) {
   const lines: string[] = [
     `# ${SITE_TITLE}`,
     '',
-    '> A viewer for the official Claude Code CHANGELOG with Japanese translations and summaries. Browse changes by version and feature area.',
+    '> A viewer for the official Claude Code CHANGELOG with Japanese translations and summaries. Browse changes by version.',
     '',
     '## Main Pages',
     '',
     `- [Home](${site}/): Latest changelog entries`,
-    `- [Feature Areas](${site}/features): Browse changelog history by feature category`,
     `- [Weekly Posts](${site}/posts/weekly): Weekly roundups of notable Claude Code updates`,
     `- [Columns](${site}/posts/column): Hands-on articles about using and operating Claude Code`,
     `- [Settings Reference](${site}/reference/settings): Look up Claude Code settings and environment variables`,
@@ -66,11 +49,6 @@ export async function GET(context: APIContext) {
     const v = entry.data.version;
     const summary = entry.data.summary ? `: ${entry.data.summary}` : '';
     lines.push(`- [v${v}](${site}/changelog/v${v})${summary}`);
-  }
-
-  lines.push('', '## Feature Areas', '');
-  for (const { slug, label } of areas) {
-    lines.push(`- [${label}](${site}/features/${slug})`);
   }
 
   lines.push('', '## Weekly Posts', '');

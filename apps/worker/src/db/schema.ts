@@ -88,16 +88,6 @@ export const changelogItems = sqliteTable(
   (table) => [primaryKey({ columns: [table.version, table.itemId] })],
 );
 
-export const changelogItemFeatureAreas = sqliteTable(
-  'changelog_item_feature_areas',
-  {
-    version: text('version').notNull(),
-    itemId: text('item_id').notNull(),
-    featureArea: text('feature_area').notNull(),
-  },
-  (table) => [primaryKey({ columns: [table.version, table.itemId, table.featureArea] })],
-);
-
 export const changelogItemRelatedDocs = sqliteTable(
   'changelog_item_related_docs',
   {

@@ -50,7 +50,6 @@ const validResponse = {
       benefit: '繰り返しの設定作業を毎回行わずに済む。',
     },
   ],
-  feature_area_corrections: [{ id: 'with-docs', feature_areas: ['Settings'] }],
 };
 
 function chatCompletion(content: object) {
@@ -94,7 +93,6 @@ describe('Workers AI CHANGELOG adapter', () => {
           benefit: '繰り返しの設定作業を毎回行わずに済む。',
         },
       ],
-      featureAreaCorrections: [{ id: 'with-docs', featureAreas: ['Settings'] }],
     });
     expect(run).toHaveBeenCalledWith(
       '@cf/zai-org/glm-5.3-flash',
@@ -248,7 +246,6 @@ describe('Workers AI CHANGELOG adapter', () => {
     const run = vi.fn().mockResolvedValue(
       chatCompletion({
         inferred_items: [{ id: 'with-docs', benefit: '手間が減る。' }],
-        feature_area_corrections: [],
       }),
     );
     const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
@@ -258,15 +255,14 @@ describe('Workers AI CHANGELOG adapter', () => {
     expect(result.inferredItems).toEqual([{ id: 'with-docs', benefit: '手間が減る。' }]);
   });
 
-  it('関連ドキュメントがある Fixed の項目のとき、プロンプトで変更後を求めず機能領域タグだけを求めること', async () => {
-    const run = vi
-      .fn()
-      .mockResolvedValue(chatCompletion({ inferred_items: [], feature_area_corrections: [] }));
+  it('変更後を求める項目と求めない項目が混在するとき、プロンプトには求める項目だけが載ること', async () => {
+    const run = vi.fn().mockResolvedValue(chatCompletion(validResponse));
     const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
 
     await sut.inferItems({
       version: 'v2.1.234',
       items: [
+        ...input.items,
         {
           id: 'fixed-with-docs',
           content: '- Fixed a crash in the documented feature',
@@ -277,9 +273,9 @@ describe('Workers AI CHANGELOG adapter', () => {
     });
 
     const prompt: string = run.mock.calls[0]?.[1]?.messages?.[0]?.content;
-    const [benefitTask, featureAreaTask] = prompt.split('# タスク2');
-    expect(benefitTask).not.toContain('id=fixed-with-docs');
-    expect(featureAreaTask).toContain('id=fixed-with-docs');
+    expect(prompt).toContain('id=with-docs');
+    expect(prompt).not.toContain('id=without-docs');
+    expect(prompt).not.toContain('id=fixed-with-docs');
   });
 
   it('サマリーの AI 応答が出力上限で打ち切られた時、打ち切りと分かるエラーにすること', async () => {
