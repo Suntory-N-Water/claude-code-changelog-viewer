@@ -212,16 +212,19 @@ describe('ドキュメント検索 (FTS5)', () => {
     );
   });
 
-  it('CHANGELOG の項目がストップワードと先頭の分類語でしか一致しないドキュメントの時、そのドキュメントを返さないこと', async () => {
-    db = await seed([
-      { path: 'release-notes.md', content: 'This was fixed in the latest release.' },
-      { path: 'errors.md', content: 'A crash report is written on exit.' },
-    ]);
+  it.each(['- Fixed the crash when it exits', '- [VSCode] Fixed the crash when it exits'])(
+    'CHANGELOG の項目 %s がストップワードと先頭の分類語でしか一致しないドキュメントの時、そのドキュメントを返さないこと',
+    async (entry) => {
+      db = await seed([
+        { path: 'release-notes.md', content: 'This was fixed in the latest release.' },
+        { path: 'errors.md', content: 'A crash report is written on exit.' },
+      ]);
 
-    const results = await searchDocsForChangelogEntry(db, '- Fixed the crash when it exits', 0);
+      const results = await searchDocsForChangelogEntry(db, entry, 0);
 
-    expect(results.map((result) => result.file)).toEqual(['errors.md']);
-  });
+      expect(results.map((result) => result.file)).toEqual(['errors.md']);
+    },
+  );
 
   it('CHANGELOG の項目と一部の語しか一致しないファイルの時、足切りして返さないこと', async () => {
     db = await seed([

@@ -185,8 +185,10 @@ function removeChangelogNoise(entry: string): string {
     const tokens = splitIntoWords(word);
     return tokens.length > 0 && !tokens.every((token) => STOP_WORDS.has(token));
   });
-  if (LEADING_PREFIX_WORDS.has(splitIntoWords(words[0] ?? '').join(' '))) {
-    words.shift();
+  // `[VSCode] Fixed ...` のように分類語の前に対象のタグが付く項目がある
+  const prefixIndex = words.findIndex((word) => !/^\[.*\]$/.test(word));
+  if (LEADING_PREFIX_WORDS.has(splitIntoWords(words[prefixIndex] ?? '').join(' '))) {
+    words.splice(prefixIndex, 1);
   }
   return words.join(' ');
 }
