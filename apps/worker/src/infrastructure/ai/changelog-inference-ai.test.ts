@@ -27,8 +27,8 @@ const input = {
     },
     {
       id: 'without-docs',
-      content: '- Fixed a small typo',
-      prefix: 'Fixed',
+      content: '- Added a small option',
+      prefix: 'Added',
       relatedDocs: [],
     },
   ],
@@ -47,9 +47,7 @@ const validResponse = {
   inferred_items: [
     {
       id: 'with-docs',
-      before: '繰り返しの設定を手動で行う必要がありました。',
-      after: '設定を自動化する機能が追加されました。',
-      benefit: '繰り返しの設定作業を毎回行わずに済みます。',
+      benefit: '繰り返しの設定作業を毎回行わずに済む。',
     },
   ],
   feature_area_corrections: [{ id: 'with-docs', feature_areas: ['Settings'] }],
@@ -80,7 +78,7 @@ function rawChatCompletion(content: string, finishReason: string) {
   };
 }
 
-const truncatedJson = `{"inferred_items":[{"id":"with-docs","before":"繰り返しの設定を手動で`;
+const truncatedJson = `{"inferred_items":[{"id":"with-docs","benefit":"繰り返しの設定作業を`;
 
 describe('Workers AI CHANGELOG adapter', () => {
   it('AI 応答が Zod で検証できる時、usecase の型へ変換すること', async () => {
@@ -93,11 +91,7 @@ describe('Workers AI CHANGELOG adapter', () => {
       inferredItems: [
         {
           id: 'with-docs',
-          inference: {
-            before: '繰り返しの設定を手動で行う必要がありました。',
-            after: '設定を自動化する機能が追加されました。',
-            benefit: '繰り返しの設定作業を毎回行わずに済みます。',
-          },
+          benefit: '繰り返しの設定作業を毎回行わずに済む。',
         },
       ],
       featureAreaCorrections: [{ id: 'with-docs', featureAreas: ['Settings'] }],
@@ -250,17 +244,10 @@ describe('Workers AI CHANGELOG adapter', () => {
     ]);
   });
 
-  it('推論の before / after / benefit が 10 字未満のとき、推論を受け付けること', async () => {
+  it('変更後が 10 字未満のとき、推論を受け付けること', async () => {
     const run = vi.fn().mockResolvedValue(
       chatCompletion({
-        inferred_items: [
-          {
-            id: 'with-docs',
-            before: '手動だった。',
-            after: '自動になった。',
-            benefit: '手間が減る。',
-          },
-        ],
+        inferred_items: [{ id: 'with-docs', benefit: '手間が減る。' }],
         feature_area_corrections: [],
       }),
     );
@@ -268,12 +255,31 @@ describe('Workers AI CHANGELOG adapter', () => {
 
     const result = await sut.inferItems(input);
 
-    expect(result.inferredItems).toEqual([
-      {
-        id: 'with-docs',
-        inference: { before: '手動だった。', after: '自動になった。', benefit: '手間が減る。' },
-      },
-    ]);
+    expect(result.inferredItems).toEqual([{ id: 'with-docs', benefit: '手間が減る。' }]);
+  });
+
+  it('関連ドキュメントがある Fixed の項目のとき、プロンプトで変更後を求めず機能領域タグだけを求めること', async () => {
+    const run = vi
+      .fn()
+      .mockResolvedValue(chatCompletion({ inferred_items: [], feature_area_corrections: [] }));
+    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
+
+    await sut.inferItems({
+      version: 'v2.1.234',
+      items: [
+        {
+          id: 'fixed-with-docs',
+          content: '- Fixed a crash in the documented feature',
+          prefix: 'Fixed',
+          relatedDocs: [{ file: 'features.md', snippets: ['The feature automates the setup.'] }],
+        },
+      ],
+    });
+
+    const prompt: string = run.mock.calls[0]?.[1]?.messages?.[0]?.content;
+    const [benefitTask, featureAreaTask] = prompt.split('# タスク2');
+    expect(benefitTask).not.toContain('id=fixed-with-docs');
+    expect(featureAreaTask).toContain('id=fixed-with-docs');
   });
 
   it('サマリーの AI 応答が出力上限で打ち切られた時、打ち切りと分かるエラーにすること', async () => {

@@ -80,16 +80,8 @@ siteDataRoute.get('/changelog', async (c) => {
     if (row.contentJa !== null) {
       item['content_ja'] = row.contentJa;
     }
-    if (
-      row.inferenceBefore !== null &&
-      row.inferenceAfter !== null &&
-      row.inferenceBenefit !== null
-    ) {
-      item['inference'] = {
-        before: row.inferenceBefore,
-        after: row.inferenceAfter,
-        benefit: row.inferenceBenefit,
-      };
+    if (row.inferenceBenefit !== null) {
+      item['benefit'] = row.inferenceBenefit;
     }
     const items = itemsByVersion.get(row.version) ?? [];
     items.push(item);

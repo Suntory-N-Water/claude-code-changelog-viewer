@@ -97,8 +97,6 @@ export async function listChangelogItems(db: DrizzleD1Database) {
       content: changelogItems.content,
       contentJa: changelogItems.contentJa,
       prefix: changelogItems.prefix,
-      inferenceBefore: changelogItems.inferenceBefore,
-      inferenceAfter: changelogItems.inferenceAfter,
       inferenceBenefit: changelogItems.inferenceBenefit,
     })
     .from(changelogItems)

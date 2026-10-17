@@ -5,21 +5,16 @@ import type { APIContext } from 'astro';
 import { SITE_TITLE } from '../lib/constants';
 import { semverCompareDesc } from '../lib/semver';
 
-/** inference 情報を含む HTML コンテンツを生成 */
+/** 変更後を含む HTML コンテンツを生成 */
 function buildContentHtml(
-  item: Pick<InferredChangelogItem, 'content' | 'content_ja' | 'inference'>,
+  item: Pick<InferredChangelogItem, 'content' | 'content_ja' | 'benefit'>,
   version: string,
 ): string {
   const text = item.content_ja ?? item.content;
   const parts: string[] = [`<p>${escapeHtml(text)}</p>`];
 
-  if (item.inference) {
-    parts.push(
-      '<hr/>',
-      `<h4>変更前</h4><p>${escapeHtml(item.inference.before)}</p>`,
-      `<h4>変更後</h4><p>${escapeHtml(item.inference.after)}</p>`,
-      `<h4>利点</h4><p>${escapeHtml(item.inference.benefit)}</p>`,
-    );
+  if (item.benefit) {
+    parts.push('<hr/>', `<h4>変更後</h4><p>${escapeHtml(item.benefit)}</p>`);
   }
 
   parts.push('<hr/>', `<p><small>v${escapeHtml(version)}</small></p>`);

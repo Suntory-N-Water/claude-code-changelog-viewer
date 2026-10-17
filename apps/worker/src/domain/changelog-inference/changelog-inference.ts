@@ -31,16 +31,16 @@ export type ChangelogInferenceInput = {
   items: ChangelogInferenceInputItem[];
 };
 
-export type InferenceExplanation = {
-  before: string;
-  after: string;
+export type ChangelogAiInferenceItem = {
+  id: string;
   benefit: string;
 };
 
-export type ChangelogAiInferenceItem = {
-  id: string;
-  inference: InferenceExplanation;
-};
+// バグ修正は読み手が流し読みするため、翻訳だけで足りる。関連ドキュメントがない項目は、
+// 原文だけでは翻訳の言い換えしか書けない
+export function needsBenefit(item: ChangelogInferenceInputItem): boolean {
+  return item.prefix !== 'Fixed' && item.relatedDocs.length > 0;
+}
 
 export type ChangelogAiTranslationItem = {
   id: string;
@@ -91,14 +91,14 @@ export type ChangelogItemsAiResult = {
 export type ChangelogItemInference = {
   id: string;
   featureAreas: string[];
-  inference?: InferenceExplanation;
+  benefit?: string;
 };
 
 export type ChangelogInferenceItem = ChangelogItem & {
   contentJa: string;
   featureAreas: string[];
   relatedDocs: RelatedDocument[];
-  inference?: InferenceExplanation;
+  benefit?: string;
 };
 
 export type ChangelogInference = {
@@ -121,7 +121,7 @@ export function mergeChangelogItemInferences(
   aiResult: ChangelogItemsAiResult,
 ): ChangelogItemInference[] {
   assertItemIds(
-    items.filter((item) => item.relatedDocs.length > 0).map((item) => item.id),
+    items.filter(needsBenefit).map((item) => item.id),
     aiResult.inferredItems.map((item) => item.id),
     '推論',
   );
@@ -145,7 +145,7 @@ export function mergeChangelogItemInferences(
     return {
       id: item.id,
       featureAreas: featureAreasById.get(item.id) ?? [],
-      ...(inferred === undefined ? {} : { inference: inferred.inference }),
+      ...(inferred === undefined ? {} : { benefit: inferred.benefit }),
     };
   });
 }

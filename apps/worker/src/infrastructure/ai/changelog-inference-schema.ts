@@ -4,8 +4,6 @@ import { z } from 'zod';
 // 下限は空文字を弾くだけにする
 const InferredItemSchema = z.object({
   id: z.string().min(1),
-  before: z.string().min(1).max(500),
-  after: z.string().min(1).max(500),
   benefit: z.string().min(1).max(500),
 });
 
@@ -34,7 +32,7 @@ export const ChangelogTranslationResponseFormat = {
 } as const;
 
 export const ChangelogItemsResponseSchema = z.object({
-  inferred_items: z.array(InferredItemSchema).describe('関連ドキュメントがある項目の推論結果'),
+  inferred_items: z.array(InferredItemSchema).describe('変更後を書く対象の項目の推論結果'),
   feature_area_corrections: z
     .array(FeatureAreaCorrectionSchema)
     .default([])

@@ -1,6 +1,7 @@
 import {
   FEATURE_AREAS,
   ITEM_IDS_MISMATCH_MESSAGE,
+  needsBenefit,
   type ChangelogAiTranslationItem,
   type ChangelogInferenceInput,
   type ChangelogItemsAiResult,
@@ -114,11 +115,7 @@ export function createChangelogItemInferenceAi(
       return {
         inferredItems: parsed.data.inferred_items.map((item) => ({
           id: item.id,
-          inference: {
-            before: item.before,
-            after: item.after,
-            benefit: item.benefit,
-          },
+          benefit: item.benefit,
         })),
         featureAreaCorrections: parsed.data.feature_area_corrections.map((item) => ({
           id: item.id,
@@ -229,7 +226,7 @@ function buildTranslationPrompt(release: ChangelogRelease): string {
 
 function buildItemsPrompt(input: ChangelogInferenceInput): string {
   const inferenceItems = input.items
-    .filter((item) => item.relatedDocs.length > 0)
+    .filter(needsBenefit)
     .map((item) => {
       const relatedDocs = item.relatedDocs
         .map((doc) => `#### ${doc.file}\n${withoutDoubleQuotes(doc.snippets.join('\n'))}`)
@@ -256,14 +253,15 @@ function buildItemsPrompt(input: ChangelogInferenceInput): string {
     `## 状況\nバージョン ${input.version} の CHANGELOG のうち ${input.items.length} 項目を処理する。`,
     '',
     '以下の2つのタスクを一度に実行する:',
-    '1. 関連ドキュメントがある項目の Before / After / Benefit の推論',
+    '1. 対象項目の変更後 (benefit) の推論',
     '2. 各項目の機能領域タグの付与',
     '',
-    '# タスク1: 推論',
-    '- snippets に記載がない推測は避ける',
-    '- before / after は変更前後を具体的に2〜3文で書く',
-    '- benefit はユーザーの行動変化を1文で書く',
-    '- benefit は自然な日本語の動詞の終止形で終える',
+    '# タスク1: 変更後',
+    '- benefit には、この変更で利用者にとって何が変わるのかを1〜2文で書く',
+    '- 関連情報から分かる、その機能の用途や利用者が困っていた場面を踏まえて書く',
+    '- 原文の翻訳や言い換えにしない。変更前の問題や症状を書かない',
+    '- 関連情報に記載がない効果や推測は書かない',
+    '- 自然な日本語の動詞の終止形で終える',
     '- id は入力値をそのまま返す',
     '',
     inferenceItems || '(対象なし)',

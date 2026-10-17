@@ -32,11 +32,7 @@ export type RelatedSettingDocument = {
 export type RelatedSettingChangelog = {
   version: string;
   contentJa?: string;
-  inference?: {
-    before: string;
-    after: string;
-    benefit: string;
-  };
+  benefit?: string;
 };
 
 export type SettingsReferenceEntrySourcePort = {

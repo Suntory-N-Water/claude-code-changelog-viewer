@@ -9,13 +9,6 @@ export const RelatedDocSchema = z.object({
   snippet_scores: z.array(z.number()).optional(),
 });
 
-export const InferenceResultSchema = z.object({
-  before: z.string().min(10).max(500),
-  after: z.string().min(10).max(500),
-  benefit: z.string().min(10).max(500),
-});
-export type InferenceResult = z.infer<typeof InferenceResultSchema>;
-
 export const ImpactAssessmentSchema = z.object({
   level: z.enum(['high', 'medium', 'low']),
   default_behavior_change: z.boolean(),
@@ -30,7 +23,7 @@ export const ChangelogItemSchema = z.object({
   prefix: z.string(),
   feature_areas: z.array(z.string()).optional(), // 機能領域タグ
   related_docs: z.array(RelatedDocSchema),
-  inference: InferenceResultSchema.optional(),
+  benefit: z.string().min(1).max(500).optional(), // 変更後
   impact: ImpactAssessmentSchema.optional(),
 });
 
@@ -47,7 +40,7 @@ export const InferredChangelogItemSchema = ChangelogItemSchema.omit({
 export type InferredChangelogItem = z.infer<typeof InferredChangelogItemSchema>;
 
 // D1 取り込み用ペイロード。inferred ファイルの version は 'v' プレフィックスなし。
-// 旧バージョンのファイルには summary / content_ja / feature_areas / inference がなく、
+// 旧バージョンのファイルには summary / content_ja / feature_areas / benefit がなく、
 // jq の射影では欠落キーが null になるため nullable + optional にする。
 export const IngestChangelogItemSchema = z.object({
   id: z.string().length(12),
@@ -56,14 +49,7 @@ export const IngestChangelogItemSchema = z.object({
   prefix: z.string(),
   feature_areas: z.array(z.string()).nullable().optional(),
   related_docs: z.array(InferredRelatedDocSchema).nullable().optional(),
-  inference: z
-    .object({
-      before: z.string(),
-      after: z.string(),
-      benefit: z.string(),
-    })
-    .nullable()
-    .optional(),
+  benefit: z.string().nullable().optional(),
 });
 
 export const IngestChangelogVersionSchema = z.object({

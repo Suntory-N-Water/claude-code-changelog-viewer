@@ -30,7 +30,7 @@ function toIngestChangelogVersion(inference: ChangelogInference): IngestChangelo
       prefix: item.prefix,
       feature_areas: [...item.featureAreas],
       related_docs: item.relatedDocs.map((doc) => ({ file: doc.file })),
-      ...(item.inference === undefined ? {} : { inference: item.inference }),
+      ...(item.benefit === undefined ? {} : { benefit: item.benefit }),
     })),
   };
 }

@@ -248,20 +248,8 @@ async function generateSeed(): Promise<void> {
   }
   firstItem((row) => hasValue(row, 'contentJa'), 'content_ja あり');
   firstItem((row) => !hasValue(row, 'contentJa'), 'content_ja なし');
-  firstItem(
-    (row) =>
-      ['inferenceBefore', 'inferenceAfter', 'inferenceBenefit'].every((column) =>
-        hasValue(row, column),
-      ),
-    'inference あり',
-  );
-  firstItem(
-    (row) =>
-      !['inferenceBefore', 'inferenceAfter', 'inferenceBenefit'].every((column) =>
-        hasValue(row, column),
-      ),
-    'inference なし',
-  );
+  firstItem((row) => hasValue(row, 'inferenceBenefit'), 'benefit あり');
+  firstItem((row) => !hasValue(row, 'inferenceBenefit'), 'benefit なし');
   firstItem((row) => relatedDocKeys.has(itemKey(row)), 'related_docs あり');
   firstItem((row) => !relatedDocKeys.has(itemKey(row)), 'related_docs なし');
   firstItem((row) => (featureAreasByItem.get(itemKey(row))?.size ?? 0) > 0, 'feature_areas あり');

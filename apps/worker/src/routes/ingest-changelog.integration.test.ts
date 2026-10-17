@@ -40,11 +40,7 @@ function createVersion(overrides: Partial<IngestChangelogVersion> = {}): IngestC
         content_ja: 'Google Vertex AI 用のセットアップウィザードを追加しました。',
         prefix: 'Added',
         feature_areas: ['Settings', 'Model'],
-        inference: {
-          before: '手動で環境変数を構成する必要がありました。',
-          after: 'ウィザード形式で設定を進められるようになりました。',
-          benefit: '素早く確実に使い始めることができます。',
-        },
+        benefit: '素早く確実に使い始めることができます。',
       },
     ],
     ...overrides,
@@ -193,8 +189,7 @@ describe('POST /api/ingest/changelog integration', () => {
       expect(
         await db
           .prepare(
-            `SELECT version, item_id, content, content_ja, prefix,
-                    inference_before, inference_after, inference_benefit
+            `SELECT version, item_id, content, content_ja, prefix, inference_benefit
              FROM changelog_items`,
           )
           .first(),
@@ -204,8 +199,6 @@ describe('POST /api/ingest/changelog integration', () => {
         content: '- Added interactive Google Vertex AI setup wizard',
         content_ja: 'Google Vertex AI 用のセットアップウィザードを追加しました。',
         prefix: 'Added',
-        inference_before: '手動で環境変数を構成する必要がありました。',
-        inference_after: 'ウィザード形式で設定を進められるようになりました。',
         inference_benefit: '素早く確実に使い始めることができます。',
       });
       const featureAreas = await db
@@ -218,7 +211,7 @@ describe('POST /api/ingest/changelog integration', () => {
       db.close();
     });
 
-    it('summary・content_ja・inference を持たない旧形式でも取り込めること', async () => {
+    it('summary・content_ja・benefit を持たない旧形式でも取り込めること', async () => {
       const db = new FakeD1Database();
       const sut = app;
       const oldFormat: IngestChangelogVersion = {
@@ -242,11 +235,11 @@ describe('POST /api/ingest/changelog integration', () => {
       expect(
         await db
           .prepare(
-            `SELECT summary, content_ja, inference_before
+            `SELECT summary, content_ja, inference_benefit
              FROM changelog_versions v JOIN changelog_items i ON v.version = i.version`,
           )
           .first(),
-      ).toEqual({ summary: null, content_ja: null, inference_before: null });
+      ).toEqual({ summary: null, content_ja: null, inference_benefit: null });
       db.close();
     });
 

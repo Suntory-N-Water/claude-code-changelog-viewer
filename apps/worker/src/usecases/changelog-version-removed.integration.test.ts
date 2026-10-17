@@ -42,8 +42,6 @@ describe('version_removed の重複記録', () => {
         content: item.content,
         contentJa: null,
         prefix: 'Changed',
-        inferenceBefore: null,
-        inferenceAfter: null,
         inferenceBenefit: null,
         searchText: item.content,
       });

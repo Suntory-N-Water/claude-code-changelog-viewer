@@ -94,8 +94,6 @@ function singleItemCompletion(kind: string, id: string) {
       inferred_items: [
         {
           id,
-          before: 'Workflow 推論のサポートがありませんでした。',
-          after: 'Workflow 推論のサポートが追加されました。',
           benefit: 'CHANGELOG の更新を自動で推論して保存できます。',
         },
       ],
@@ -237,8 +235,6 @@ describe('CHANGELOG 推論 Workflow', () => {
           version: changelogVersions.version,
           summary: changelogVersions.summary,
           contentJa: changelogItems.contentJa,
-          inferenceBefore: changelogItems.inferenceBefore,
-          inferenceAfter: changelogItems.inferenceAfter,
           inferenceBenefit: changelogItems.inferenceBenefit,
         })
         .from(changelogVersions)
@@ -249,8 +245,6 @@ describe('CHANGELOG 推論 Workflow', () => {
           version: '2.1.234',
           summary: 'Workflow 推論のサポートを追加しました。',
           contentJa: 'Workflow 推論のサポートを追加しました。',
-          inferenceBefore: 'Workflow 推論のサポートがありませんでした。',
-          inferenceAfter: 'Workflow 推論のサポートが追加されました。',
           inferenceBenefit: 'CHANGELOG の更新を自動で推論して保存できます。',
         },
       ]);
@@ -316,8 +310,6 @@ describe('CHANGELOG 推論 Workflow', () => {
       content: '- Old workflow behavior',
       contentJa: null,
       prefix: 'Changed',
-      inferenceBefore: null,
-      inferenceAfter: null,
       inferenceBenefit: null,
       searchText: 'old workflow behavior',
     });
@@ -445,8 +437,6 @@ describe('CHANGELOG 推論 Workflow', () => {
       return chatCompletion({
         inferred_items: ids.map((id) => ({
           id,
-          before: '対応する機能がありませんでした。',
-          after: '対応する機能が追加されました。',
           benefit: '追加された機能をそのまま利用できます。',
         })),
         feature_area_corrections: [],
@@ -506,7 +496,7 @@ describe('CHANGELOG 推論 Workflow', () => {
           itemId: changelogItems.itemId,
           content: changelogItems.content,
           contentJa: changelogItems.contentJa,
-          inferenceBefore: changelogItems.inferenceBefore,
+          inferenceBenefit: changelogItems.inferenceBenefit,
         })
         .from(changelogItems)
         .where(eq(changelogItems.version, '2.1.240'));
@@ -517,13 +507,13 @@ describe('CHANGELOG 推論 Workflow', () => {
             itemId: healthyItem.id,
             content: '- Added workflow inference support for the healthy case 0',
             contentJa: `項目 ${healthyItem.id} を追加した。`,
-            inferenceBefore: '対応する機能がありませんでした。',
+            inferenceBenefit: '追加された機能をそのまま利用できます。',
           },
           {
             itemId: doomedItem.id,
             content: '- Added workflow inference support for the doomed case',
             contentJa: `項目 ${doomedItem.id} を追加した。`,
-            inferenceBefore: null,
+            inferenceBenefit: null,
           },
         ]),
       );
@@ -559,8 +549,6 @@ describe('CHANGELOG 推論 Workflow', () => {
       return chatCompletion({
         inferred_items: ids.map((id) => ({
           id,
-          before: '対応する機能がありませんでした。',
-          after: '対応する機能が追加されました。',
           benefit: '追加された機能をそのまま利用できます。',
         })),
         feature_area_corrections: [],
@@ -691,12 +679,12 @@ describe('CHANGELOG 推論 Workflow', () => {
         db
           .select({
             contentJa: changelogItems.contentJa,
-            inferenceBefore: changelogItems.inferenceBefore,
+            inferenceBenefit: changelogItems.inferenceBenefit,
           })
           .from(changelogItems)
           .where(eq(changelogItems.version, '2.1.234')),
       ).resolves.toEqual([
-        { contentJa: null, inferenceBefore: 'Workflow 推論のサポートがありませんでした。' },
+        { contentJa: null, inferenceBenefit: 'CHANGELOG の更新を自動で推論して保存できます。' },
       ]);
       expect(skipIssueBodies).toHaveLength(1);
       expect(skipIssueBodies[0]).toContain(item.id);

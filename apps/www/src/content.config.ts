@@ -20,13 +20,7 @@ const changelogCollection = defineCollection({
             file: z.string(),
           }),
         ),
-        inference: z
-          .object({
-            before: z.string().min(10).max(500),
-            after: z.string().min(10).max(500),
-            benefit: z.string().min(10).max(500),
-          })
-          .optional(),
+        benefit: z.string().min(1).max(500).optional(), // 変更後
       }),
     ),
   }),

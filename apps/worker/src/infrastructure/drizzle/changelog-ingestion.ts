@@ -32,9 +32,7 @@ export async function ingestChangelogVersion(
     content: item.content,
     contentJa: item.content_ja ?? null,
     prefix: item.prefix,
-    inferenceBefore: item.inference?.before ?? null,
-    inferenceAfter: item.inference?.after ?? null,
-    inferenceBenefit: item.inference?.benefit ?? null,
+    inferenceBenefit: item.benefit ?? null,
     searchText: [item.content, item.content_ja, entry.summary]
       .filter((text) => text != null)
       .join('\n')

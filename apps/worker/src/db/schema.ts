@@ -80,8 +80,6 @@ export const changelogItems = sqliteTable(
     content: text('content').notNull(),
     contentJa: text('content_ja'),
     prefix: text('prefix').notNull(),
-    inferenceBefore: text('inference_before'),
-    inferenceAfter: text('inference_after'),
     inferenceBenefit: text('inference_benefit'),
     // content + content_ja + version の summary を NFKC 正規化・小文字化して連結した検索用カラム。
     // D1 は LIKE パターン長が 50 バイトのため instr() で検索する
