@@ -35,7 +35,37 @@ const AiChatResponseSchema = z.object({
     .optional(),
 });
 
-export function logAiFailure(error: unknown, startedAt: number): void {
+export async function runJsonChat(
+  ai: Pick<Cloudflare.Env['AI'], 'run'>,
+  gatewayId: string,
+  request: {
+    prompt: string;
+    maxCompletionTokens: number;
+    responseFormat: ResponseFormat;
+  },
+): Promise<unknown> {
+  const startedAt = Date.now();
+  let response: unknown;
+  try {
+    response = await ai.run(
+      MODEL,
+      {
+        messages: [{ role: 'user', content: request.prompt }],
+        max_completion_tokens: request.maxCompletionTokens,
+        reasoning_effort: REASONING_EFFORT,
+        response_format: request.responseFormat,
+      },
+      { gateway: { id: gatewayId } },
+    );
+  } catch (error) {
+    logAiFailure(error, startedAt);
+    throw error;
+  }
+  logAiUsage(response, startedAt);
+  return parseAiResponse(response, request.maxCompletionTokens);
+}
+
+function logAiFailure(error: unknown, startedAt: number): void {
   logger.error('Workers AI の呼び出しに失敗しました', {
     'ai.model': MODEL,
     'ai.duration_ms': Date.now() - startedAt,
@@ -43,7 +73,7 @@ export function logAiFailure(error: unknown, startedAt: number): void {
   });
 }
 
-export function logAiUsage(response: unknown, startedAt: number): void {
+function logAiUsage(response: unknown, startedAt: number): void {
   const parsed = AiChatResponseSchema.safeParse(response);
   const usage = parsed.success ? parsed.data.usage : undefined;
   logger.info('Workers AI の呼び出しが完了しました', {
@@ -56,7 +86,14 @@ export function logAiUsage(response: unknown, startedAt: number): void {
   });
 }
 
-export function parseAiResponse(response: unknown, maxCompletionTokens: number): unknown {
+// JSON schema 制約下のモデルは、原文の `"fork"` のような二重引用符をエスケープせずに書き写そうとし、
+// その `"` で文字列が閉じられてしまう。続きを書けなくなったモデルは空白を出力上限まで出し続けるか、
+// 途中で切れた訳を返す。プロンプトに入れる前に一重引用符へ置き換えて、書き写す元をなくす
+export function withoutDoubleQuotes(text: string): string {
+  return text.replaceAll('"', "'");
+}
+
+function parseAiResponse(response: unknown, maxCompletionTokens: number): unknown {
   const parsed = AiChatResponseSchema.safeParse(response);
   if (!parsed.success) {
     throw new Error(`AI 応答の形式が不正です: ${z.prettifyError(parsed.error)}`);

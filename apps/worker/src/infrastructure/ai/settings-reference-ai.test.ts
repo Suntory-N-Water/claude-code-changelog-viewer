@@ -1,190 +1,159 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { SettingsReferenceInput } from '../../usecases/settings-reference';
-import { buildSettingsReferencePrompt, createSettingsReferenceAi } from './settings-reference-ai';
+import type { SettingsReferenceInputEntry } from '../../usecases/settings-reference';
+import {
+  buildSettingsTranslationPrompt,
+  buildSettingsUseCasePrompt,
+  createSettingsTranslationAi,
+  createSettingsUseCaseAi,
+  isUnusableSettingsAiResponseError,
+} from './settings-reference-ai';
 
-const input: SettingsReferenceInput = {
-  entries: [
-    {
-      id: 0,
-      key: 'permissions.additionalDirectories',
-      source: 'settings',
-      descriptionEn: 'Additional directories allowed for access.',
-      parentDescriptions: ['Permission settings'],
-      docSnippets: ['Add directories to grant access.'],
-      officialDocs: ['permissions.md'],
-      relatedChangelog: [],
-    },
-  ],
+const entry: SettingsReferenceInputEntry = {
+  id: 0,
+  key: 'permissions.additionalDirectories',
+  source: 'settings',
+  descriptionEn: 'Additional directories allowed for access.',
+  parentDescriptions: ['Permission settings'],
+  docSnippets: ['Add directories to grant access.'],
+  officialDocs: ['permissions.md'],
+  relatedChangelog: [],
 };
 
-function chatCompletion(content: object | string) {
+function chatCompletion(content: object | string, finishReason = 'stop') {
   return {
     choices: [
       {
         message: {
           content: typeof content === 'string' ? content : JSON.stringify(content),
         },
+        finish_reason: finishReason,
       },
     ],
   };
 }
 
 describe('Workers AI 設定リファレンス adapter', () => {
-  it('関連情報とスキーマ情報がある時、AI 向けの入力に含めること', () => {
-    const result = buildSettingsReferencePrompt({
-      entries: [
-        ...input.entries,
-        {
-          id: 1,
-          key: 'CLAUDE_CODE_TEST',
-          source: 'env',
-          descriptionEn: 'Test environment variable.',
-          parentDescriptions: [],
-          docSnippets: [],
-          officialDocs: [],
-          relatedChangelog: [],
-          schemaDefault: 'false',
-          schemaEnum: ['true', 'false'],
-        },
-      ],
-    });
-
-    expect(result).toContain('`permissions.additionalDirectories`');
-    expect(result).toContain('Add directories to grant access.');
-    expect(result).toContain('`CLAUDE_CODE_TEST`');
-    expect(result).toContain('デフォルト値: "false"');
-    expect(result).toContain('選択肢: ["true", "false"]');
-  });
-
-  it('有効な AI 応答の時、設定リファレンスの翻訳結果を返すこと', async () => {
-    const run = vi.fn().mockResolvedValue(
-      chatCompletion({
-        results: [
-          {
-            id: 0,
-            description_ja: 'アクセスを許可する追加ディレクトリです。',
-            use_case_ja: '- プロジェクト外のディレクトリを参照する場合に使います。',
-            enum_descriptions_ja: [],
-            default_note_ja: '',
-          },
-        ],
-      }),
-    );
-    const sut = createSettingsReferenceAi({ run }, 'project-gateway');
-
-    await expect(sut.infer(input)).resolves.toEqual([
+  it('翻訳のプロンプトに、英語説明・選択肢ごとの英語説明・既定値の補足を二重引用符を外して入れること', () => {
+    const result = buildSettingsTranslationPrompt([
       {
-        id: 0,
-        descriptionJa: 'アクセスを許可する追加ディレクトリです。',
-        useCaseJa: '- プロジェクト外のディレクトリを参照する場合に使います。',
-        enumDescriptionsJa: [],
-        defaultNoteJa: '',
+        ...entry,
+        key: 'autoUpdatesChannel',
+        descriptionEn: 'Choose the "release channel" updates follow.',
+        enumDescriptions: { latest: 'updates follow the most recent release' },
+        defaultNote: 'unset, so Claude Code follows `"latest"`',
       },
     ]);
-  });
 
-  it('選択肢ごとの英文と既定値の補足があるとき、原文を AI 向けの入力に含めること', () => {
-    const result = buildSettingsReferencePrompt({
-      entries: [
-        {
-          id: 0,
-          key: 'autoUpdatesChannel',
-          source: 'settings',
-          descriptionEn: 'Choose which release channel updates follow.',
-          parentDescriptions: [],
-          docSnippets: [],
-          officialDocs: [],
-          relatedChangelog: [],
-          enumDescriptions: {
-            latest: 'updates follow the most recent release',
-          },
-          defaultNote: 'unset, so Claude Code follows `"latest"`',
-        },
-      ],
-    });
-
+    expect(result).toContain('`autoUpdatesChannel`');
+    expect(result).toContain("Choose the 'release channel' updates follow.");
     expect(result).toContain('- `latest`: updates follow the most recent release');
-    expect(result).toContain('unset, so Claude Code follows `"latest"`');
+    expect(result).toContain("unset, so Claude Code follows `'latest'`");
+    expect(result).not.toContain('"');
   });
 
-  it('選択肢ごとの日本語説明を返す AI 応答のとき、値ごとに取り出すこと', async () => {
+  it('用途のプロンプトに、関連ドキュメントと CHANGELOG の英語原文を二重引用符を外して入れること', () => {
+    const result = buildSettingsUseCasePrompt({
+      ...entry,
+      docSnippets: ['Set "additionalDirectories" to grant access.'],
+      relatedChangelog: [
+        { version: '2.1.234', content: '- Added "permissions.additionalDirectories" support' },
+      ],
+    });
+
+    expect(result).toContain("Set 'additionalDirectories' to grant access.");
+    expect(result).toContain("- v2.1.234: Added 'permissions.additionalDirectories' support");
+    expect(result).not.toContain('"');
+  });
+
+  it('翻訳の応答が正しい形のとき、設定ごとの説明・選択肢の説明・既定値の補足に変換すること', async () => {
     const run = vi.fn().mockResolvedValue(
       chatCompletion({
         results: [
           {
             id: 0,
-            description_ja: 'アクセスを許可する追加ディレクトリです。',
-            use_case_ja: '',
-            enum_descriptions_ja: [
-              { value: 'latest', description_ja: '最新のリリースを追いかける' },
-            ],
-            default_note_ja: '未設定のときは最新を追いかける',
+            description_ja: 'アクセスを許可する追加ディレクトリ。',
+            enum_descriptions_ja: [{ value: 'latest', description_ja: '最新のリリースを追う' }],
+            default_note_ja: '未設定のときは最新を追う',
           },
         ],
       }),
     );
-    const sut = createSettingsReferenceAi({ run }, 'project-gateway');
+    const sut = createSettingsTranslationAi({ run }, 'project-gateway');
 
-    await expect(sut.infer(input)).resolves.toEqual([
+    await expect(sut.translate([entry])).resolves.toEqual([
       {
         id: 0,
-        descriptionJa: 'アクセスを許可する追加ディレクトリです。',
-        useCaseJa: '',
-        enumDescriptionsJa: [{ value: 'latest', descriptionJa: '最新のリリースを追いかける' }],
-        defaultNoteJa: '未設定のときは最新を追いかける',
+        descriptionJa: 'アクセスを許可する追加ディレクトリ。',
+        enumDescriptionsJa: [{ value: 'latest', descriptionJa: '最新のリリースを追う' }],
+        defaultNoteJa: '未設定のときは最新を追う',
       },
     ]);
   });
 
-  it('Gateway ID を指定した時、外部 AI 境界へ渡すこと', async () => {
+  it('用途の応答が正しい形のとき要素ごとに 1 行の箇条書きにして返し、モデル・出力上限・Gateway ID を AI に渡すこと', async () => {
     const run = vi.fn().mockResolvedValue(
       chatCompletion({
-        results: [
-          {
-            id: 0,
-            description_ja: 'アクセスを許可する追加ディレクトリです。',
-            use_case_ja: '',
-            enum_descriptions_ja: [],
-            default_note_ja: '',
-          },
+        use_cases_ja: [
+          'プロジェクト外のディレクトリを読ませたいときに使う。',
+          // 指示に反して記号を付けてきても二重にしない
+          '- モノレポの隣のパッケージを参照するときに使う。',
         ],
       }),
     );
-    const sut = createSettingsReferenceAi({ run }, 'project-gateway');
+    const sut = createSettingsUseCaseAi({ run }, 'project-gateway');
 
-    await sut.infer(input);
+    const result = await sut.describeUseCase(entry);
 
-    expect(run.mock.calls[0]?.[0]).toEqual('@cf/zai-org/glm-5.3-flash');
-    expect(run.mock.calls[0]?.[1]).toEqual(
+    expect(result).toBe(
+      '- プロジェクト外のディレクトリを読ませたいときに使う。\n- モノレポの隣のパッケージを参照するときに使う。',
+    );
+    expect(run).toHaveBeenCalledWith(
+      '@cf/zai-org/glm-5.3-flash',
       expect.objectContaining({
         response_format: expect.objectContaining({ type: 'json_schema' }),
-        max_completion_tokens: 8192,
+        max_completion_tokens: 2048,
         reasoning_effort: 'low',
       }),
+      { gateway: { id: 'project-gateway' } },
     );
-    expect(run.mock.calls[0]?.[2]).toEqual({
-      gateway: { id: 'project-gateway' },
+  });
+
+  describe('AI 応答が使えない失敗', () => {
+    it.each([
+      ['出力上限で打ち切られた応答', chatCompletion('{"results":[{"id":0,', 'length')],
+      ['JSON として読めない応答', chatCompletion('not-json')],
+      ['形式が不正な応答', chatCompletion({ results: [{ id: 'invalid' }] })],
+    ])('翻訳で%sのとき、諦めてよい失敗と判定すること', async (_, response) => {
+      const sut = createSettingsTranslationAi(
+        { run: vi.fn().mockResolvedValue(response) },
+        'project-gateway',
+      );
+
+      const error = await sut.translate([entry]).catch((caught: unknown) => caught);
+
+      expect(isUnusableSettingsAiResponseError(error)).toBe(true);
     });
-  });
 
-  it('AI 応答の envelope が不正な時、エラーになること', async () => {
-    const run = vi.fn().mockResolvedValue({ choices: [] });
-    const sut = createSettingsReferenceAi({ run }, 'project-gateway');
+    it('用途で形式が不正な応答のとき、諦めてよい失敗と判定すること', async () => {
+      const sut = createSettingsUseCaseAi(
+        { run: vi.fn().mockResolvedValue(chatCompletion({ use_cases_ja: 1 })) },
+        'project-gateway',
+      );
 
-    await expect(sut.infer(input)).rejects.toThrow('AI 応答の形式が不正です');
-  });
+      const error = await sut.describeUseCase(entry).catch((caught: unknown) => caught);
 
-  it('AI 応答の JSON が不正な時、エラーになること', async () => {
-    const run = vi.fn().mockResolvedValue(chatCompletion('not-json'));
-    const sut = createSettingsReferenceAi({ run }, 'project-gateway');
+      expect(isUnusableSettingsAiResponseError(error)).toBe(true);
+    });
 
-    await expect(sut.infer(input)).rejects.toThrow('AI 応答の JSON 解析に失敗しました');
-  });
+    it('AI の呼び出し自体が失敗したとき、諦めてよい失敗と判定しないこと', async () => {
+      const sut = createSettingsTranslationAi(
+        { run: vi.fn().mockRejectedValue(new Error('network error')) },
+        'project-gateway',
+      );
 
-  it('AI 応答の結果スキーマが不正な時、エラーになること', async () => {
-    const run = vi.fn().mockResolvedValue(chatCompletion({ results: [{ id: 'invalid' }] }));
-    const sut = createSettingsReferenceAi({ run }, 'project-gateway');
+      const error = await sut.translate([entry]).catch((caught: unknown) => caught);
 
-    await expect(sut.infer(input)).rejects.toThrow('AI 設定リファレンス結果の形式が不正です');
+      expect(isUnusableSettingsAiResponseError(error)).toBe(false);
+    });
   });
 });

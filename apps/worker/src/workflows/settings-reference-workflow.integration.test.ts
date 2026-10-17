@@ -37,6 +37,42 @@ function chatCompletion(content: object) {
   };
 }
 
+type AiTask = 'settings_translation' | 'settings_use_case';
+
+function aiTaskOf(inputs: unknown): AiTask {
+  return (inputs as { response_format: { json_schema: { name: AiTask } } }).response_format
+    .json_schema.name;
+}
+
+// 翻訳と用途で応答の形が違うため、response_format の名前で返す応答を分ける
+function mockAi(responses: { [Task in AiTask]?: (inputs: unknown) => unknown }) {
+  return vi.spyOn(testEnv.AI, 'run').mockImplementation((async (
+    _model: string,
+    inputs: unknown,
+  ) => {
+    const respond = responses[aiTaskOf(inputs)];
+    if (respond === undefined) {
+      throw new Error(`想定外の AI 呼び出し: ${aiTaskOf(inputs)}`);
+    }
+    return respond(inputs);
+  }) as never);
+}
+
+function countCalls(aiRun: ReturnType<typeof mockAi>, task: AiTask): number {
+  return aiRun.mock.calls.filter(([, inputs]) => aiTaskOf(inputs) === task).length;
+}
+
+function translationResponse(count: number) {
+  return chatCompletion({
+    results: Array.from({ length: count }, (_, id) => ({
+      id,
+      description_ja: `説明 ${id}です。`,
+      enum_descriptions_ja: [],
+      default_note_ja: '',
+    })),
+  });
+}
+
 describe('設定リファレンス生成 Workflow', () => {
   beforeEach(async () => {
     await applyD1Migrations(testEnv.DB, testEnv.TEST_NOTIFICATION_MIGRATIONS);
@@ -55,7 +91,7 @@ describe('設定リファレンス生成 Workflow', () => {
     vi.restoreAllMocks();
   });
 
-  it('AI 出力と D1 格納を分け、保存再試行で AI を再実行しない', async () => {
+  it('関連ドキュメントがある設定のとき、翻訳と用途を 1 回ずつ生成して保存し、保存の再試行で AI を呼び直さないこと', async () => {
     await seedSettingSchema();
     await seedDocument();
     const db = drizzle(testEnv.DB);
@@ -69,19 +105,23 @@ describe('設定リファレンス生成 Workflow', () => {
       searchText: 'permissions.additionaldirectories',
     });
 
-    const aiRun = vi.spyOn(testEnv.AI, 'run').mockResolvedValue(
-      chatCompletion({
-        results: [
-          {
-            id: 0,
-            description_ja: 'アクセスを許可する追加ディレクトリです。',
-            use_case_ja: '- プロジェクト外のディレクトリを参照する場合に使います。',
-            enum_descriptions_ja: [],
-            default_note_ja: '',
-          },
-        ],
-      }),
-    );
+    const aiRun = mockAi({
+      settings_translation: () =>
+        chatCompletion({
+          results: [
+            {
+              id: 0,
+              description_ja: 'アクセスを許可する追加ディレクトリです。',
+              enum_descriptions_ja: [],
+              default_note_ja: '',
+            },
+          ],
+        }),
+      settings_use_case: () =>
+        chatCompletion({
+          use_cases_ja: ['プロジェクト外のディレクトリを参照する場合に使います。'],
+        }),
+    });
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       if (String(input) === 'https://deploy.example/hook') {
         return new Response(null, { status: 200 });
@@ -108,8 +148,10 @@ describe('設定リファレンス生成 Workflow', () => {
       await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
       await expect(instance.getOutput()).resolves.toEqual({
         processedKeys: ['permissions.additionalDirectories'],
+        removedKeys: [],
       });
-      expect(aiRun).toHaveBeenCalledTimes(1);
+      expect(countCalls(aiRun, 'settings_translation')).toBe(1);
+      expect(countCalls(aiRun, 'settings_use_case')).toBe(1);
 
       await expect(
         db
@@ -152,25 +194,13 @@ describe('設定リファレンス生成 Workflow', () => {
       leafName: 'additionalDirectories',
       slug: 'permissions-additional-directories',
       source: 'settings',
-      descriptionEn: 'Old description',
+      descriptionEn: 'Additional directories allowed for access.',
       descriptionJa: '古い説明です。',
       useCaseJa: null,
       fetchedAt: '2026-08-16',
     });
 
-    const aiRun = vi.spyOn(testEnv.AI, 'run').mockResolvedValue(
-      chatCompletion({
-        results: [
-          {
-            id: 0,
-            description_ja: '再生成した説明です。',
-            use_case_ja: '',
-            enum_descriptions_ja: [],
-            default_note_ja: '',
-          },
-        ],
-      }),
-    );
+    const aiRun = mockAi({ settings_translation: () => translationResponse(1) });
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       if (String(input) === 'https://deploy.example/hook') {
         return new Response(null, { status: 200 });
@@ -264,26 +294,26 @@ describe('設定リファレンス生成 Workflow', () => {
       },
     ]);
 
-    vi.spyOn(testEnv.AI, 'run').mockResolvedValue(
-      chatCompletion({
-        results: [
-          {
-            id: 0,
-            description_ja: '自動更新が追いかけるリリース系統を選ぶ。',
-            use_case_ja: '',
-            enum_descriptions_ja: [
-              { value: 'latest', description_ja: '最新のリリースを追いかける' },
-              {
-                value: 'stable',
-                description_ja: 'おおむね1週間前のリリースを追いかける',
-              },
-              { value: 'nightly', description_ja: '毎晩のビルドを追いかける' },
-            ],
-            default_note_ja: '未設定のときは `"latest"` を追いかける',
-          },
-        ],
-      }),
-    );
+    mockAi({
+      settings_translation: () =>
+        chatCompletion({
+          results: [
+            {
+              id: 0,
+              description_ja: '自動更新が追いかけるリリース系統を選ぶ。',
+              enum_descriptions_ja: [
+                { value: 'latest', description_ja: '最新のリリースを追いかける' },
+                {
+                  value: 'stable',
+                  description_ja: 'おおむね1週間前のリリースを追いかける',
+                },
+                { value: 'nightly', description_ja: '毎晩のビルドを追いかける' },
+              ],
+              default_note_ja: '未設定のときは `"latest"` を追いかける',
+            },
+          ],
+        }),
+    });
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       if (String(input) === 'https://deploy.example/hook') {
         return new Response(null, { status: 200 });
@@ -327,28 +357,19 @@ describe('設定リファレンス生成 Workflow', () => {
     }
   });
 
-  it('31件の設定項目を30件ずつの AI バッチに分ける', async () => {
+  it('関連情報のない 31 件のとき、翻訳を 30 件と 1 件に分けて呼び、用途を作らずに保存すること', async () => {
     await seedSettingSchema(31);
-    let callCount = 0;
-    const aiRun = vi.spyOn(testEnv.AI, 'run').mockImplementation(async () => {
-      const count = callCount === 0 ? 30 : 1;
-      callCount += 1;
-      return chatCompletion({
-        results: Array.from({ length: count }, (_, id) => ({
-          id,
-          description_ja: `説明 ${id}です。`,
-          use_case_ja: '',
-          enum_descriptions_ja: [],
-          default_note_ja: '',
-        })),
-      });
+    const translationBatchSizes: number[] = [];
+    const aiRun = mockAi({
+      settings_translation: (inputs) => {
+        // バッチの件数はプロンプトに並んだ項目の数で数える
+        const prompt = (inputs as { messages: [{ content: string }] }).messages[0].content;
+        const count = prompt.match(/### 項目 id=/g)?.length ?? 0;
+        translationBatchSizes.push(count);
+        return translationResponse(count);
+      },
     });
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
-      if (String(input) === 'https://deploy.example/hook') {
-        return new Response(null, { status: 200 });
-      }
-      throw new Error(`想定外の外部リクエスト: ${String(input)}`);
-    });
+    mockDeployHook();
     const instanceId = `issue-902-batch-${crypto.randomUUID()}`;
     const instance = await introspectWorkflowInstance(
       testEnv.SETTINGS_REFERENCE_WORKFLOW,
@@ -364,17 +385,156 @@ describe('設定リファレンス生成 Workflow', () => {
         params: {},
       });
       await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
-      expect(aiRun).toHaveBeenCalledTimes(2);
+      expect(translationBatchSizes).toEqual([30, 1]);
+      expect(countCalls(aiRun, 'settings_use_case')).toBe(0);
+      const rows = await drizzle(testEnv.DB)
+        .select({ useCaseJa: settingsReference.useCaseJa })
+        .from(settingsReference);
+      expect(rows).toHaveLength(31);
+      expect(rows.every((row) => row.useCaseJa === null)).toBe(true);
     } finally {
       await instance.dispose();
     }
   });
 
-  it('AI 応答が不正な時、失敗 Issue を作成して Workflow を失敗させる', async () => {
+  it('翻訳が使えない応答を返し続けたとき、そのバッチを保存せずに Workflow を完了し、失敗 Issue もビルドも起こさないこと', async () => {
     await seedSettingSchema();
-    const aiRun = vi
-      .spyOn(testEnv.AI, 'run')
-      .mockResolvedValue(chatCompletion({ results: [{ id: 'invalid' }] }));
+    mockAi({
+      settings_translation: () => chatCompletion({ results: [{ id: 'invalid' }] }),
+    });
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      throw new Error(`想定外の外部リクエスト: ${String(input)}`);
+    });
+    const instanceId = `issue-1040-translation-giveup-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.SETTINGS_REFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+      await testEnv.SETTINGS_REFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {},
+      });
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+      await expect(instance.getOutput()).resolves.toEqual({ processedKeys: [], removedKeys: [] });
+      await expect(drizzle(testEnv.DB).select().from(settingsReference)).resolves.toEqual([]);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      await instance.dispose();
+    }
+  });
+
+  it('用途だけが使えない応答を返し続けたとき、説明を保存し、用途を NULL にすること', async () => {
+    await seedSettingSchema();
+    await seedDocument();
+    mockAi({
+      settings_translation: () => translationResponse(1),
+      settings_use_case: () => chatCompletion({ use_cases_ja: 1 }),
+    });
+    mockDeployHook();
+    const instanceId = `issue-1040-use-case-giveup-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.SETTINGS_REFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+      await testEnv.SETTINGS_REFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {},
+      });
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+      await expect(
+        drizzle(testEnv.DB)
+          .select({
+            key: settingsReference.key,
+            descriptionJa: settingsReference.descriptionJa,
+            useCaseJa: settingsReference.useCaseJa,
+          })
+          .from(settingsReference),
+      ).resolves.toEqual([
+        {
+          key: 'permissions.additionalDirectories',
+          descriptionJa: '説明 0です。',
+          useCaseJa: null,
+        },
+      ]);
+    } finally {
+      await instance.dispose();
+    }
+  });
+
+  it('設定スキーマから消えたキーがあるとき、そのキーの設定リファレンスと公式ドキュメントの紐付けを削除し、ほかは残してビルドを起動すること', async () => {
+    await seedSettingSchema();
+    const db = drizzle(testEnv.DB);
+    await db.insert(settingsReference).values(
+      [
+        { key: 'permissions.additionalDirectories', slug: 'permissions-additional-directories' },
+        { key: 'removed.setting', slug: 'removed-setting' },
+      ].map(({ key, slug }) => ({
+        key,
+        leafName: key.split('.').at(-1) ?? key,
+        slug,
+        source: 'settings' as const,
+        descriptionEn: 'Additional directories allowed for access.',
+        descriptionJa: '説明です。',
+        useCaseJa: null,
+        fetchedAt: '2026-08-16',
+      })),
+    );
+    await db.insert(settingsOfficialDocs).values([
+      { settingKey: 'permissions.additionalDirectories', docPath: 'permissions.md' },
+      { settingKey: 'removed.setting', docPath: 'settings.md' },
+    ]);
+    const aiRun = mockAi({});
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${String(input)}`);
+    });
+    const instanceId = `issue-1040-remove-stale-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.SETTINGS_REFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+      await testEnv.SETTINGS_REFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {},
+      });
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+      await expect(instance.getOutput()).resolves.toEqual({
+        processedKeys: [],
+        removedKeys: ['removed.setting'],
+      });
+      expect(aiRun).not.toHaveBeenCalled();
+      await expect(
+        db.select({ key: settingsReference.key }).from(settingsReference),
+      ).resolves.toEqual([{ key: 'permissions.additionalDirectories' }]);
+      await expect(
+        db.select({ settingKey: settingsOfficialDocs.settingKey }).from(settingsOfficialDocs),
+      ).resolves.toEqual([{ settingKey: 'permissions.additionalDirectories' }]);
+      expect(fetchSpy).toHaveBeenCalledWith('https://deploy.example/hook', expect.anything());
+    } finally {
+      await instance.dispose();
+    }
+  });
+
+  it('AI の呼び出し自体が失敗し続けたとき、失敗 Issue を作成して Workflow を失敗させること', async () => {
+    await seedSettingSchema();
+    const aiRun = vi.spyOn(testEnv.AI, 'run').mockRejectedValue(new Error('network error'));
     let issueCreationCount = 0;
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input);
@@ -405,13 +565,23 @@ describe('設定リファレンス生成 Workflow', () => {
         params: {},
       });
       await expect(instance.waitForStatus('errored')).resolves.not.toThrow();
-      expect(aiRun).toHaveBeenCalledTimes(6);
+      // 初回と再試行 3 回
+      expect(aiRun).toHaveBeenCalledTimes(4);
       expect(issueCreationCount).toBe(1);
     } finally {
       await instance.dispose();
     }
   });
 });
+
+function mockDeployHook() {
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    if (String(input) === 'https://deploy.example/hook') {
+      return new Response(null, { status: 200 });
+    }
+    throw new Error(`想定外の外部リクエスト: ${String(input)}`);
+  });
+}
 
 async function seedSettingSchema(count = 1): Promise<void> {
   for (let index = 0; index < count; index += 1) {

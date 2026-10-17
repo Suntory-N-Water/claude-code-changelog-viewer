@@ -29,15 +29,15 @@ export type RelatedSettingDocument = {
   snippets: string[];
 };
 
+// AI が生成した訳や変更後を渡すと、その誤りが用途の文にそのまま写るため、英語の原文だけを渡す
 export type RelatedSettingChangelog = {
   version: string;
-  contentJa?: string;
-  benefit?: string;
+  content: string;
 };
 
 export type SettingsReferenceEntrySourcePort = {
   loadEntries(): Promise<SettingsReferenceEntry[]>;
-  loadExistingKeys(): Promise<ReadonlySet<string>>;
+  loadExistingDescriptions(): Promise<ReadonlyMap<string, string>>;
   findRelatedChangelogs(key: string): Promise<RelatedSettingChangelog[]>;
 };
 
@@ -67,13 +67,21 @@ export type SettingsReferenceInput = {
 export type SettingsReferenceTranslation = {
   id: number;
   descriptionJa: string;
-  useCaseJa: string;
   enumDescriptionsJa: { value: string; descriptionJa: string }[];
   defaultNoteJa: string;
 };
 
-export type SettingsReferenceAiPort = {
-  infer(input: SettingsReferenceInput): Promise<SettingsReferenceTranslation[]>;
+export type SettingsReferenceUseCase = {
+  id: number;
+  useCaseJa: string;
+};
+
+export type SettingsReferenceTranslationPort = {
+  translate(entries: SettingsReferenceInputEntry[]): Promise<SettingsReferenceTranslation[]>;
+};
+
+export type SettingsReferenceUseCasePort = {
+  describeUseCase(entry: SettingsReferenceInputEntry): Promise<string>;
 };
 
 export type SettingsReferenceRecord = {
@@ -92,11 +100,18 @@ export type SettingsReferenceRecord = {
 
 export type SettingsReferenceRepositoryPort = {
   save(input: { records: SettingsReferenceRecord[] }): Promise<void>;
+  deleteByKeys(keys: string[]): Promise<void>;
+};
+
+export type SettingsReferencePlan = {
+  entries: SettingsReferenceEntry[];
+  removedKeys: string[];
 };
 
 type SettingsReferenceSaveInput = {
   input: SettingsReferenceInput;
   translations: SettingsReferenceTranslation[];
+  useCases: SettingsReferenceUseCase[];
   fetchedAt: string;
 };
 
@@ -105,17 +120,29 @@ const MAX_RELATED_CHANGELOGS = 5;
 const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
 const JAPANESE_TEXT_PATTERN = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
 
-export async function loadSettingsReferenceEntries(
+export async function planSettingsReferenceGeneration(
   source: SettingsReferenceEntrySourcePort,
   params: SettingsReferenceWorkflowParams,
-): Promise<SettingsReferenceEntry[]> {
-  const [entries, existingKeys] = await Promise.all([
+): Promise<SettingsReferencePlan> {
+  const [entries, existingDescriptions] = await Promise.all([
     source.loadEntries(),
-    source.loadExistingKeys(),
+    source.loadExistingDescriptions(),
   ]);
   const targetKeys = params.targetKeys === undefined ? undefined : new Set(params.targetKeys);
+  const schemaKeys = new Set(entries.map((entry) => entry.key));
 
-  return entries.filter((entry) => targetKeys?.has(entry.key) ?? !existingKeys.has(entry.key));
+  return {
+    // 公式の英語説明が書き換わっても、生成済みのキーを対象から外すと古い訳が残り続ける
+    entries: entries.filter(
+      (entry) =>
+        targetKeys?.has(entry.key) ?? existingDescriptions.get(entry.key) !== entry.descriptionEn,
+    ),
+    // 設定スキーマを読めずに空だったときに、生成済みの設定をすべて消さないようにする
+    removedKeys:
+      entries.length === 0
+        ? []
+        : [...existingDescriptions.keys()].filter((key) => !schemaKeys.has(key)),
+  };
 }
 
 export async function buildSettingsReferenceInput(
@@ -175,14 +202,21 @@ export async function buildSettingsReferenceInput(
   };
 }
 
+// 関連ドキュメントも更新履歴もない設定は、英語説明の言い換えか、画面に別欄で出ている
+// 既定値・選択肢の繰り返ししか書けないため、用途を作らない
+export function hasUseCaseContext(entry: SettingsReferenceInputEntry): boolean {
+  return entry.docSnippets.length > 0 || entry.relatedChangelog.length > 0;
+}
+
 export async function saveSettingsReferences(
-  repository: SettingsReferenceRepositoryPort,
+  repository: Pick<SettingsReferenceRepositoryPort, 'save'>,
   saveInput: SettingsReferenceSaveInput,
 ): Promise<{ count: number }> {
-  const { input, translations, fetchedAt } = saveInput;
+  const { input, translations, useCases, fetchedAt } = saveInput;
   const translationsById = new Map(
     translations.map((translation) => [translation.id, translation]),
   );
+  const useCasesById = new Map(useCases.map((useCase) => [useCase.id, useCase.useCaseJa]));
   const records = input.entries.flatMap((entry) => {
     const translation = translationsById.get(entry.id);
     if (translation === undefined) {
@@ -190,6 +224,7 @@ export async function saveSettingsReferences(
     }
 
     const leafName = entry.key.split('.').at(-1) ?? entry.key;
+    const useCaseJa = useCasesById.get(entry.id)?.trim() ?? '';
     const defaultNoteJa =
       entry.defaultNote !== undefined && JAPANESE_TEXT_PATTERN.test(translation.defaultNoteJa)
         ? translation.defaultNoteJa
@@ -202,7 +237,7 @@ export async function saveSettingsReferences(
         source: entry.source,
         descriptionEn: entry.descriptionEn,
         descriptionJa: translation.descriptionJa,
-        useCaseJa: translation.useCaseJa === '' ? null : translation.useCaseJa,
+        useCaseJa: JAPANESE_TEXT_PATTERN.test(useCaseJa) ? useCaseJa : null,
         enumDescriptionsJa: buildEnumDescriptionsJa(
           entry.enumDescriptions,
           translation.enumDescriptionsJa,

@@ -8,16 +8,25 @@ import type {
   WorkflowStepConfigWithStaticDelay,
 } from 'cloudflare:workers';
 import { z } from 'zod';
-import { createSettingsReferenceAi } from '../infrastructure/ai/settings-reference-ai';
+import {
+  createSettingsTranslationAi,
+  createSettingsUseCaseAi,
+  isUnusableSettingsAiResponseError,
+} from '../infrastructure/ai/settings-reference-ai';
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
 import { createSettingsReferenceRepository } from '../infrastructure/drizzle/settings-reference-repository';
 import { createSettingsEntrySource } from '../infrastructure/drizzle/settings-entry-source';
 import { createWorkflowFailureReporter } from '../infrastructure/github/workflow-failure-issue';
 import { searchDocsForSettingKey } from '../infrastructure/docs-search';
-import type { SettingsReferenceFailureReporterPort } from '../usecases/settings-reference';
+import type {
+  SettingsReferenceFailureReporterPort,
+  SettingsReferenceTranslation,
+  SettingsReferenceUseCase,
+} from '../usecases/settings-reference';
 import {
   buildSettingsReferenceInput,
-  loadSettingsReferenceEntries,
+  hasUseCaseContext,
+  planSettingsReferenceGeneration,
   saveSettingsReferences,
 } from '../usecases/settings-reference';
 import { createStepRunner } from './run-step';
@@ -26,11 +35,9 @@ const WorkflowParamsSchema = z.object({
   targetKeys: z.array(z.string().min(1)).optional(),
 });
 
-// CHANGELOG 推論と同じく AI 出力が空白ループに落ちて上限で打ち切られることがあるため、
-// 再試行の回数に余裕を持たせる
 const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
   retries: {
-    limit: 5,
+    limit: 3,
     delay: '10 seconds',
     backoff: 'exponential',
   },
@@ -42,6 +49,8 @@ const logger = workerLogger('workflows.settings-reference');
 
 export type SettingsReferenceWorkflowParams = z.infer<typeof WorkflowParamsSchema>;
 
+type SettingsReferenceWorkflowOutput = { processedKeys: string[]; removedKeys: string[] };
+
 export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
   CloudflareBindings,
   SettingsReferenceWorkflowParams
@@ -49,7 +58,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
   override async run(
     event: WorkflowEvent<SettingsReferenceWorkflowParams>,
     step: WorkflowStep,
-  ): Promise<{ processedKeys: string[] }> {
+  ): Promise<SettingsReferenceWorkflowOutput> {
     return runWithLogContext(
       {
         trace_id: event.instanceId,
@@ -62,7 +71,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
   private async runWorkflow(
     event: WorkflowEvent<SettingsReferenceWorkflowParams>,
     step: WorkflowStep,
-  ): Promise<{ processedKeys: string[] }> {
+  ): Promise<SettingsReferenceWorkflowOutput> {
     const paramsResult = WorkflowParamsSchema.safeParse(event.payload ?? {});
     const failureParams: SettingsReferenceWorkflowParams = paramsResult.success
       ? paramsResult.data
@@ -92,7 +101,8 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
       const docsDb = drizzle(this.env.DOCS_DB);
       const entrySource = createSettingsEntrySource(db, this.env.DOCS_DB);
       const documentSearch = searchDocsForSettingKey.bind(null, docsDb);
-      const inference = createSettingsReferenceAi(this.env.AI, this.env.AI_GATEWAY_ID);
+      const translator = createSettingsTranslationAi(this.env.AI, this.env.AI_GATEWAY_ID);
+      const useCaseWriter = createSettingsUseCaseAi(this.env.AI, this.env.AI_GATEWAY_ID);
       const repository = createSettingsReferenceRepository(db);
       const buildTrigger = createDeployHookBuildTrigger(this.env.DEPLOY_HOOK_URL);
       // replay で日付が変わらないよう、実行時刻ではなく起動時刻を使う。
@@ -100,10 +110,11 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         timeZone: 'Asia/Tokyo',
       }).format(event.timestamp);
 
-      const entries = await runStep('load-entries', STEP_RETRIES, async () =>
-        loadSettingsReferenceEntries(entrySource, params),
+      const { entries, removedKeys } = await runStep('load-entries', STEP_RETRIES, async () =>
+        planSettingsReferenceGeneration(entrySource, params),
       );
 
+      const processedKeys: string[] = [];
       for (
         let batchStart = 0, batchIndex = 0;
         batchStart < entries.length;
@@ -113,27 +124,89 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         const input = await runStep(`build-input-${batchIndex}`, STEP_RETRIES, async () =>
           buildSettingsReferenceInput(documentSearch, entrySource, batchEntries),
         );
-        const translations = await runStep(`infer-${batchIndex}`, STEP_RETRIES, async () =>
-          runWithLogContext({ 'ai.batch_index': batchIndex }, () => inference.infer(input)),
-        );
+
+        const translateStep = `translate-${batchIndex}`;
+        let translations: SettingsReferenceTranslation[];
+        try {
+          translations = await runStep(translateStep, STEP_RETRIES, async () =>
+            runWithLogContext({ 'ai.batch_index': batchIndex }, () =>
+              translator.translate(input.entries),
+            ),
+          );
+        } catch (error) {
+          // 保存しなかった設定は未生成のまま残り、次回の定期実行で対象に戻る
+          if (!isUnusableSettingsAiResponseError(error)) {
+            throw error;
+          }
+          logger.warn('AI 処理を諦めて保存を見送ります', {
+            'workflow.step': translateStep,
+            'settings.keys': input.entries.map((entry) => entry.key),
+            error: toError(error),
+          });
+          continue;
+        }
+        const translatedIds = new Set(translations.map((translation) => translation.id));
+        const translatedEntries = input.entries.filter((entry) => translatedIds.has(entry.id));
+
+        // 用途は関連ドキュメント付きで 1 件ずつ書かせる。30 件をまとめると入力が約 5 万トークンになり、
+        // 1 件の失敗で同じバッチの用途がまとめて失われる
+        const useCases: SettingsReferenceUseCase[] = [];
+        for (const entry of translatedEntries.filter(hasUseCaseContext)) {
+          const useCaseStep = `use-case-${batchIndex}-${entry.id}`;
+          try {
+            useCases.push(
+              await runStep(useCaseStep, STEP_RETRIES, async () =>
+                runWithLogContext({ 'ai.batch_index': batchIndex }, async () => ({
+                  id: entry.id,
+                  useCaseJa: await useCaseWriter.describeUseCase(entry),
+                })),
+              ),
+            );
+          } catch (error) {
+            // 翻訳は済んでいるため、用途を諦めても説明は保存する
+            if (!isUnusableSettingsAiResponseError(error)) {
+              throw error;
+            }
+            logger.warn('AI 処理を諦めて用途なしで保存します', {
+              'workflow.step': useCaseStep,
+              'settings.keys': [entry.key],
+              error: toError(error),
+            });
+          }
+        }
+
         await runStep(`store-${batchIndex}`, STEP_RETRIES, async () =>
           saveSettingsReferences(repository, {
             input,
             translations,
+            useCases,
             fetchedAt,
           }),
         );
+        processedKeys.push(...translatedEntries.map((entry) => entry.key));
       }
 
-      if (entries.length > 0) {
+      // 生成の途中で失敗すると trigger-build まで進まず、再実行時には削除済みで removedKeys が空になる。
+      // 削除を最後に回し、失敗した回は削除せずに次の実行で削除とビルドをやり直させる
+      if (removedKeys.length > 0) {
+        await runStep(
+          'remove-stale',
+          { ...STEP_RETRIES, attrs: { 'settings.removed_keys': removedKeys } },
+          async () => repository.deleteByKeys(removedKeys),
+        );
+      }
+
+      if (processedKeys.length > 0 || removedKeys.length > 0) {
         await runStep('trigger-build', STEP_RETRIES, async () => buildTrigger.trigger());
       }
 
       logger.info('Workflow が完了しました', {
         'workflow.name': 'settings-reference',
         'settings.entry_count': entries.length,
+        'settings.processed_count': processedKeys.length,
+        'settings.removed_count': removedKeys.length,
       });
-      return { processedKeys: [...entries].map((entry) => entry.key) };
+      return { processedKeys, removedKeys };
     } catch (error) {
       logger.error('Workflow に失敗しました', {
         'workflow.name': 'settings-reference',

@@ -1,68 +1,69 @@
 import { z } from 'zod';
 import type {
-  SettingsReferenceAiPort,
-  SettingsReferenceInput,
   SettingsReferenceInputEntry,
   SettingsReferenceTranslation,
+  SettingsReferenceTranslationPort,
+  SettingsReferenceUseCasePort,
 } from '../../usecases/settings-reference';
 import {
-  SettingsReferenceResponseFormat,
-  SettingsReferenceResponseSchema,
+  SettingsTranslationResponseFormat,
+  SettingsTranslationResponseSchema,
+  SettingsUseCaseResponseFormat,
+  SettingsUseCaseResponseSchema,
 } from './settings-reference-schema';
-import { logAiFailure, logAiUsage, MODEL, parseAiResponse, REASONING_EFFORT } from './workers-ai';
+import {
+  PARSE_FAILED_MESSAGE,
+  runJsonChat,
+  TRUNCATED_MESSAGE,
+  withoutDoubleQuotes,
+} from './workers-ai';
 
-// JSON schema 制約下では文字列の途中でも空白が合法な継続になるため、モデルが閉じ括弧を出せずに
-// 空白を吐き続けることがある。上限を切って、暴走しても数十秒で打ち切らせ step の再試行に回す。
-// 8192 は D1 の生成済み 622 件のうち最も長い 30 件(9,445字)から見積もった約5,400トークンの1.5倍
-const MAX_COMPLETION_TOKENS = 8192;
-const MODEL_CONTEXT = [
-  '- CHANGELOG の原文や snippets に記載されていないモデル名・バージョン番号・スペック値を捏造しないこと',
-  '- CHANGELOG の原文に具体的なモデル名が記載されている場合はそのまま使用すること',
-].join('\n');
+// 30 件の翻訳は本番データで約 4,300 トークン出力した (2026-10-17 計測、3 バッチの平均)
+const TRANSLATION_MAX_COMPLETION_TOKENS = 8192;
+// 1 件の用途は平均約 150 トークン出力した (同計測、81 件)
+const USE_CASE_MAX_COMPLETION_TOKENS = 2048;
 
-/** Workers AI を設定リファレンス生成 port に接続する adapter。 */
-export function createSettingsReferenceAi(
+const TRANSLATION_SCHEMA_FAILED_MESSAGE = 'AI 設定翻訳結果の形式が不正です';
+const USE_CASE_SCHEMA_FAILED_MESSAGE = 'AI 設定用途結果の形式が不正です';
+
+const UNUSABLE_RESPONSE_MESSAGES = [
+  TRUNCATED_MESSAGE,
+  PARSE_FAILED_MESSAGE,
+  TRANSLATION_SCHEMA_FAILED_MESSAGE,
+  USE_CASE_SCHEMA_FAILED_MESSAGE,
+];
+
+/**
+ * Workflow の step 境界を越えるとエラーは再生成され instanceof が使えないため、
+ * メッセージで判定する。
+ */
+export function isUnusableSettingsAiResponseError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    UNUSABLE_RESPONSE_MESSAGES.some((message) => error.message.startsWith(message))
+  );
+}
+
+export function createSettingsTranslationAi(
   ai: Pick<Cloudflare.Env['AI'], 'run'>,
   gatewayId: string,
-): SettingsReferenceAiPort {
+): SettingsReferenceTranslationPort {
   return {
-    async infer(input): Promise<SettingsReferenceTranslation[]> {
-      const startedAt = Date.now();
-      let response: unknown;
-      try {
-        response = await ai.run(
-          MODEL,
-          {
-            messages: [
-              {
-                role: 'user',
-                content: buildSettingsReferencePrompt(input),
-              },
-            ],
-            max_completion_tokens: MAX_COMPLETION_TOKENS,
-            reasoning_effort: REASONING_EFFORT,
-            response_format: SettingsReferenceResponseFormat,
-          },
-          { gateway: { id: gatewayId } },
-        );
-      } catch (error) {
-        logAiFailure(error, startedAt);
-        throw error;
-      }
-      logAiUsage(response, startedAt);
-      const parsed = SettingsReferenceResponseSchema.safeParse(
-        parseAiResponse(response, MAX_COMPLETION_TOKENS),
+    async translate(entries): Promise<SettingsReferenceTranslation[]> {
+      const parsed = SettingsTranslationResponseSchema.safeParse(
+        await runJsonChat(ai, gatewayId, {
+          prompt: buildSettingsTranslationPrompt(entries),
+          maxCompletionTokens: TRANSLATION_MAX_COMPLETION_TOKENS,
+          responseFormat: SettingsTranslationResponseFormat,
+        }),
       );
       if (!parsed.success) {
-        throw new Error(
-          `AI 設定リファレンス結果の形式が不正です: ${z.prettifyError(parsed.error)}`,
-        );
+        throw new Error(`${TRANSLATION_SCHEMA_FAILED_MESSAGE}: ${z.prettifyError(parsed.error)}`);
       }
 
       return parsed.data.results.map((item) => ({
         id: item.id,
         descriptionJa: item.description_ja,
-        useCaseJa: item.use_case_ja,
         enumDescriptionsJa: item.enum_descriptions_ja.map((description) => ({
           value: description.value,
           descriptionJa: description.description_ja,
@@ -73,191 +74,139 @@ export function createSettingsReferenceAi(
   };
 }
 
-export function buildSettingsReferencePrompt(input: SettingsReferenceInput): string {
-  const withContext = input.entries.filter(
-    (entry) => entry.docSnippets.length > 0 || entry.relatedChangelog.length > 0,
-  );
-  const withoutContext = input.entries.filter(
-    (entry) => entry.docSnippets.length === 0 && entry.relatedChangelog.length === 0,
-  );
+export function createSettingsUseCaseAi(
+  ai: Pick<Cloudflare.Env['AI'], 'run'>,
+  gatewayId: string,
+): SettingsReferenceUseCasePort {
+  return {
+    async describeUseCase(entry): Promise<string> {
+      const parsed = SettingsUseCaseResponseSchema.safeParse(
+        await runJsonChat(ai, gatewayId, {
+          prompt: buildSettingsUseCasePrompt(entry),
+          maxCompletionTokens: USE_CASE_MAX_COMPLETION_TOKENS,
+          responseFormat: SettingsUseCaseResponseFormat,
+        }),
+      );
+      if (!parsed.success) {
+        throw new Error(`${USE_CASE_SCHEMA_FAILED_MESSAGE}: ${z.prettifyError(parsed.error)}`);
+      }
 
-  const contextSection = withContext.map((entry) => buildContextEntry(entry)).join('\n\n');
-  const translationSection = withoutContext
-    .map((entry) => buildTranslationEntry(entry))
+      return parsed.data.use_cases_ja
+        .map((useCase) => useCase.trim().replace(/^-\s*/, ''))
+        .filter((useCase) => useCase !== '')
+        .map((useCase) => `- ${useCase}`)
+        .join('\n');
+    },
+  };
+}
+
+const PROMPT_PREAMBLE = [
+  '## 前提',
+  '- Claude Code は開発者向けの AI アシスタント CLI ツールである',
+  '- 読み手は設定名・環境変数名で検索して来訪し、その設定が何をするのか・いつ使うのかを知りたい',
+  '- 技術用語を適切に日本語化し、開発者にとって自然な日本語で表現する',
+  '- 英語説明・関連ドキュメント・更新履歴にない内容を捏造しない',
+].join('\n');
+
+// モデルは学習時点の知識から実在しないモデル名や古い版数を補いがちなため、明示して止める
+const MODEL_NAME_RULES = [
+  '## Claude Code のモデル情報 (重要)',
+  '- 英語説明や関連ドキュメントに記載されていないモデル名・バージョン番号・スペック値を捏造しない',
+  '- 英語説明に具体的なモデル名が記載されている場合はそのまま使う',
+].join('\n');
+
+function sourceLabel(entry: SettingsReferenceInputEntry): string {
+  return entry.source === 'settings' ? 'settings.json 設定' : '環境変数';
+}
+
+export function buildSettingsTranslationPrompt(entries: SettingsReferenceInputEntry[]): string {
+  const items = entries
+    .map((entry) => {
+      const lines = [
+        `### 項目 id=${entry.id} (${sourceLabel(entry)})`,
+        `- キー: \`${entry.key}\``,
+        `- 英語説明: ${withoutDoubleQuotes(entry.descriptionEn)}`,
+      ];
+      if (entry.enumDescriptions !== undefined) {
+        lines.push(
+          '- 選択肢ごとの英語の説明:',
+          ...Object.entries(entry.enumDescriptions).map(
+            // 引用符を付けて示すと AI が引用符ごと写して返し、英文にない値として保存前に捨てられる
+            ([value, description]) => `  - \`${value}\`: ${withoutDoubleQuotes(description)}`,
+          ),
+        );
+      }
+      if (entry.defaultNote !== undefined) {
+        lines.push(`- 既定値の英語の補足: ${withoutDoubleQuotes(entry.defaultNote)}`);
+      }
+      return lines.join('\n');
+    })
     .join('\n\n');
 
   return [
-    '# 思考のレンズ',
+    PROMPT_PREAMBLE,
     '',
-    '## 前提 (Premise)',
-    '- Claude Code は開発者向けの AI アシスタント CLI ツールである',
-    '- ユーザーは設定名・環境変数名で検索して来訪し、「この設定は何をするのか・いつ使うのか」を知りたい',
-    '- 用途解説は単なる翻訳ではなく、具体的な使いどころや課題解決の観点で書く',
-    '- デフォルト値・有効化/無効化の条件・取りうる値はユーザーが即座に活用するための重要な情報',
-    '- ドキュメント・スキーマ・英語説明に記載のない内容は絶対に書かない',
+    MODEL_NAME_RULES,
     '',
-    '## Claude Code のモデル情報 (重要)',
-    MODEL_CONTEXT,
+    `## 状況\nClaude Code の設定・環境変数 ${entries.length} 件の英語説明を日本語に翻訳する。`,
     '',
-    '## 動機 (Motive)',
-    '設定のデフォルト値や選択肢はスキーマから取得できるが、「なぜその値を変えるのか」「どんな状況で有効化するのか」はドキュメントや更新履歴にしか載っていない。両者を組み合わせてユーザーが即座に使える情報を提供する。',
-    '',
-    '## 状況 (Situation)',
-    `Claude Code の設定・環境変数 ${input.entries.length} 件を処理する。`,
-    '',
-    '## 目的 (Purpose)',
-    '以下の2つのタスクを実行する:',
-    '1. **翻訳+用途解説** (コンテキストあり): 関連ドキュメントまたは更新履歴がある設定について、翻訳 + 用途解説を生成',
-    '2. **翻訳+操作情報** (コンテキストなし): 参照情報がない設定について、日本語翻訳 + スキーマ情報から読み取れる操作情報を生成',
-    '',
-    '---',
-    '',
-    '# タスク1: 翻訳+用途解説 (コンテキストあり)',
-    '',
-    '以下の各エントリについて、description_ja と use_case_ja を生成する。',
-    '',
-    '## 制約',
-    '- description_ja: 英語説明を技術的に正確かつ自然な日本語に翻訳する(1文)',
-    '- use_case_ja: 関連ドキュメントと更新履歴を参照し、「何をする設定か・どんな課題を解決するか」を 2〜3 行の箇条書きで表現する',
-    '  - デフォルト値・有効化条件・選択肢が分かる場合はそれも含める',
-    '  - 固定フォーマットは不要。AI が重要な情報を選んで箇条書きにする',
-    '  - ドキュメントや更新履歴に記載がない内容は書かない',
-    '  - 箇条書きは「- 」で始める',
-    '- enum_descriptions_ja: 「選択肢ごとの英語の説明」がある場合、値ごとに英文を1文の日本語へ訳して返す。ない場合は空配列を返す',
+    '# タスク: 翻訳',
+    '- description_ja: 英語説明の意味を正確に保ち、自然な日本語にする',
+    // 1 文に縮めさせると、取りうる値や必要なバージョンなどの後半の文が訳から落ちた
+    '  - 英語説明のすべての文を訳し、要約や省略をしない',
+    // 公式ドキュメントへのリンクは画面に別欄で並べるため、訳に残すと同じ案内が 2 回出る
+    '  - 「See https://...」「See <ページ名> for ...」のような参照先を案内する文は訳さない',
+    '- enum_descriptions_ja: 「選択肢ごとの英語の説明」がある項目だけ、値ごとに1文の日本語へ訳して返す。ない項目は空配列を返す',
     '  - value は英文に並んだ値をそのまま返し、英文にない値を作らない',
     '  - value は `stable` のように引用符を付けずに返し、値そのものを日本語に置き換えない',
-    '- default_note_ja: 「既定値の英語の補足」がある場合、1文の日本語へ訳して返す。ない場合は空文字で返す',
-    '- id は入力値をそのまま返すこと',
-    '- use_case_ja が空文字の場合、コンテキストなしとして扱う',
+    '- default_note_ja: 「既定値の英語の補足」がある項目だけ、1文の日本語へ訳して返す。ない項目は空文字を返す',
+    '- 設定キー・環境変数名・コマンド名・ファイル名・値は原文の表記のまま残す',
+    '- 常体(である調)で書き、各文を「。」で終える',
+    '- 全項目を1件ずつ返し、id は入力値をそのまま返す',
     '',
-    '## 対象エントリ',
-    '',
-    contextSection || '(対象なし)',
-    '',
-    '---',
-    '',
-    '# タスク2: 翻訳+操作情報 (コンテキストなし)',
-    '',
-    '以下の各エントリについて、description_ja を生成する。スキーマ情報(デフォルト値・選択肢)がある場合は use_case_ja も生成する。',
-    '',
-    '## 制約',
-    '- description_ja: 英語説明を技術的に正確かつ自然な日本語に翻訳する(1文)',
-    '- 開発者向けの自然な日本語表現を心がける',
-    '- use_case_ja: スキーマ情報から読み取れるデフォルト値・選択肢を箇条書きで表現する。スキーマ情報がない場合は空文字で返す',
-    '  - description_en・スキーマに記載のない内容は書かない',
-    '  - 箇条書きは「- 」で始める',
-    '- enum_descriptions_ja: 「選択肢ごとの英語の説明」がある場合、値ごとに英文を1文の日本語へ訳して返す。ない場合は空配列を返す',
-    '  - value は英文に並んだ値をそのまま返し、英文にない値を作らない',
-    '  - value は `stable` のように引用符を付けずに返し、値そのものを日本語に置き換えない',
-    '- default_note_ja: 「既定値の英語の補足」がある場合、1文の日本語へ訳して返す。ない場合は空文字で返す',
-    '- id は入力値をそのまま返すこと',
-    '',
-    '## 対象エントリ',
-    '',
-    translationSection || '(対象なし)',
-    '',
-    '---',
-    '',
-    '# 出力前の確認',
-    '- `_ja` で終わる値はすべて自然な日本語で返し、英語の原文をそのまま返さないこと',
-    '- 日本語にする内容がない場合は、文字列を空文字または配列を空配列で返すこと',
-  ]
-    .join('\n')
-    .trim();
+    items,
+  ].join('\n');
 }
 
-function buildSchemaText(
-  schemaDefault: string | undefined,
-  schemaEnum: string[] | undefined,
-): string {
-  const parts: string[] = [];
-  if (schemaDefault !== undefined) {
-    parts.push(`デフォルト値: ${JSON.stringify(schemaDefault)}`);
+export function buildSettingsUseCasePrompt(entry: SettingsReferenceInputEntry): string {
+  const sections = [
+    `### 設定 (${sourceLabel(entry)})`,
+    `- キー: \`${entry.key}\``,
+    `- 英語説明: ${withoutDoubleQuotes(entry.descriptionEn)}`,
+    ...entry.parentDescriptions.map(
+      (description) => `- 親オブジェクトの説明: ${withoutDoubleQuotes(description)}`,
+    ),
+  ];
+  if (entry.docSnippets.length > 0) {
+    sections.push('', '### 関連ドキュメント', withoutDoubleQuotes(entry.docSnippets.join('\n\n')));
   }
-  if (schemaEnum !== undefined && schemaEnum.length > 0) {
-    parts.push(`選択肢: [${schemaEnum.map((value) => JSON.stringify(value)).join(', ')}]`);
-  }
-  return parts.length > 0 ? ['### スキーマ情報', `- ${parts.join(', ')}`].join('\n') : '';
-}
-
-/** 選択肢ごとの説明と既定値の補足を、公式の英文のまま AI に渡す。 */
-function buildOfficialTextsSection(entry: SettingsReferenceInputEntry): string {
-  const sections: string[] = [];
-  if (entry.enumDescriptions !== undefined) {
+  if (entry.relatedChangelog.length > 0) {
     sections.push(
-      [
-        '### 選択肢ごとの英語の説明',
-        ...Object.entries(entry.enumDescriptions).map(
-          // 引用符を付けて示すと AI が引用符ごと写して返し、保存前の照合で捨てられる
-          ([value, description]) => `- \`${value}\`: ${description}`,
-        ),
-      ].join('\n'),
+      '',
+      '### 関連する CHANGELOG の原文',
+      ...entry.relatedChangelog.map(
+        (changelog) =>
+          `- v${changelog.version}: ${withoutDoubleQuotes(changelog.content.replace(/^- /, ''))}`,
+      ),
     );
   }
-  if (entry.defaultNote !== undefined) {
-    sections.push(['### 既定値の英語の補足', `- ${entry.defaultNote}`].join('\n'));
-  }
-  return sections.join('\n');
-}
-
-function buildContextEntry(entry: SettingsReferenceInputEntry): string {
-  const sourceLabel = entry.source === 'settings' ? 'settings.json 設定' : '環境変数';
-  const parentText =
-    entry.parentDescriptions.length > 0
-      ? [
-          '### 親オブジェクトの説明',
-          entry.parentDescriptions.map((description) => `- ${description}`).join('\n'),
-        ].join('\n')
-      : '';
-  const docsText =
-    entry.docSnippets.length > 0
-      ? ['### 関連ドキュメント', entry.docSnippets.join('\n\n')].join('\n')
-      : '';
-  const changelogText =
-    entry.relatedChangelog.length > 0
-      ? [
-          '### 関連更新履歴',
-          entry.relatedChangelog
-            .map((changelog) => {
-              const lines: string[] = [];
-              if (changelog.contentJa) {
-                lines.push(`- ${changelog.contentJa}`);
-              }
-              if (changelog.benefit) {
-                lines.push(`  変更後: ${changelog.benefit}`);
-              }
-              return lines.join('\n');
-            })
-            .join('\n'),
-        ].join('\n')
-      : '';
-  const schemaText = buildSchemaText(entry.schemaDefault, entry.schemaEnum);
 
   return [
-    `#### エントリ id=${entry.id} (${sourceLabel})`,
-    `- キー: \`${entry.key}\``,
-    `- 英語説明: ${entry.descriptionEn}`,
-    parentText,
-    schemaText,
-    buildOfficialTextsSection(entry),
-    docsText,
-    changelogText,
-  ]
-    .filter((line) => line.length > 0)
-    .join('\n')
-    .trim();
-}
-
-function buildTranslationEntry(entry: SettingsReferenceInputEntry): string {
-  const sourceLabel = entry.source === 'settings' ? 'settings.json 設定' : '環境変数';
-  const schemaText = buildSchemaText(entry.schemaDefault, entry.schemaEnum);
-  return [
-    `#### エントリ id=${entry.id} (${sourceLabel})`,
-    `- キー: \`${entry.key}\``,
-    `- 英語説明: ${entry.descriptionEn}`,
-    schemaText,
-    buildOfficialTextsSection(entry),
-  ]
-    .filter((line) => line.length > 0)
-    .join('\n');
+    PROMPT_PREAMBLE,
+    '',
+    MODEL_NAME_RULES,
+    '',
+    `## 状況\n設定 \`${entry.key}\` を使う場面を、関連ドキュメントと CHANGELOG から読み取って書く。`,
+    '',
+    '# タスク: 用途',
+    '- use_cases_ja: この設定を使う場面や、設定することで解決できる課題を 2〜3 個、1 要素 1 文で書く',
+    '  - 各要素は記号を付けずに書き始め、常体(である調)で「。」で終える',
+    '  - 英語説明の翻訳や言い換えにしない。英語説明の訳は別の欄に表示する',
+    '  - 既定値と取りうる値の一覧は別の欄に表示するため書かない',
+    '  - 関連ドキュメントと CHANGELOG に記載がない効果や推測は書かない',
+    '  - 関連ドキュメントと CHANGELOG にこの設定の使いどころが書かれていない場合は、空配列を返す',
+    '- 設定キー・環境変数名・コマンド名・ファイル名・値は原文の表記のまま残す',
+    '',
+    sections.join('\n'),
+  ].join('\n');
 }

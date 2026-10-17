@@ -1,18 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildSettingsReferenceInput,
-  loadSettingsReferenceEntries,
+  planSettingsReferenceGeneration,
   saveSettingsReferences,
 } from './settings-reference';
 
 describe('設定リファレンス生成ユースケース', () => {
-  it('targetKeys を指定しない時、未生成の設定項目だけを返すこと', async () => {
+  it('targetKeys を指定しない時、未生成の設定項目と英語説明が変わった生成済みの設定項目だけを対象にすること', async () => {
     const source = {
       loadEntries: async () => [
         {
-          key: 'already.generated',
+          key: 'unchanged',
           source: 'settings' as const,
-          descriptionEn: 'Already generated',
+          descriptionEn: 'Same description',
+          parentDescriptions: [],
+        },
+        {
+          key: 'changed',
+          source: 'settings' as const,
+          descriptionEn: 'New description',
           parentDescriptions: [],
         },
         {
@@ -22,23 +28,20 @@ describe('設定リファレンス生成ユースケース', () => {
           parentDescriptions: [],
         },
       ],
-      loadExistingKeys: async () => new Set(['already.generated']),
+      loadExistingDescriptions: async () =>
+        new Map([
+          ['unchanged', 'Same description'],
+          ['changed', 'Old description'],
+        ]),
       findRelatedChangelogs: async () => [],
     };
 
-    const result = await loadSettingsReferenceEntries(source, {});
+    const result = await planSettingsReferenceGeneration(source, {});
 
-    expect(result).toEqual([
-      {
-        key: 'not.generated',
-        source: 'settings',
-        descriptionEn: 'Not generated',
-        parentDescriptions: [],
-      },
-    ]);
+    expect(result.entries.map((entry) => entry.key)).toEqual(['changed', 'not.generated']);
   });
 
-  it('targetKeys を指定した時、生成済みの設定項目も対象に含めること', async () => {
+  it('targetKeys を指定した時、英語説明が同じ生成済みの設定項目も対象に含めること', async () => {
     const source = {
       loadEntries: async () => [
         {
@@ -48,15 +51,15 @@ describe('設定リファレンス生成ユースケース', () => {
           parentDescriptions: [],
         },
       ],
-      loadExistingKeys: async () => new Set(['already.generated']),
+      loadExistingDescriptions: async () => new Map([['already.generated', 'Already generated']]),
       findRelatedChangelogs: async () => [],
     };
 
-    const result = await loadSettingsReferenceEntries(source, {
+    const result = await planSettingsReferenceGeneration(source, {
       targetKeys: ['already.generated'],
     });
 
-    expect(result).toEqual([
+    expect(result.entries).toEqual([
       {
         key: 'already.generated',
         source: 'settings',
@@ -64,6 +67,41 @@ describe('設定リファレンス生成ユースケース', () => {
         parentDescriptions: [],
       },
     ]);
+  });
+
+  it('設定スキーマから消えた生成済みのキーを削除対象として返すこと', async () => {
+    const source = {
+      loadEntries: async () => [
+        {
+          key: 'kept',
+          source: 'settings' as const,
+          descriptionEn: 'Kept',
+          parentDescriptions: [],
+        },
+      ],
+      loadExistingDescriptions: async () =>
+        new Map([
+          ['kept', 'Kept'],
+          ['removed', 'Removed'],
+        ]),
+      findRelatedChangelogs: async () => [],
+    };
+
+    const result = await planSettingsReferenceGeneration(source, {});
+
+    expect(result.removedKeys).toEqual(['removed']);
+  });
+
+  it('設定スキーマが空のとき、生成済みのキーを削除対象として返さないこと', async () => {
+    const source = {
+      loadEntries: async () => [],
+      loadExistingDescriptions: async () => new Map([['generated', 'Generated']]),
+      findRelatedChangelogs: async () => [],
+    };
+
+    const result = await planSettingsReferenceGeneration(source, {});
+
+    expect(result.removedKeys).toEqual([]);
   });
 
   it('env-vars.md を除外し、ドキュメント抜粋を8000文字と更新履歴を5件までに制限すること', async () => {
@@ -75,10 +113,11 @@ describe('設定リファレンス生成ユースケース', () => {
       ],
       {
         loadEntries: async () => [],
-        loadExistingKeys: async () => new Set(),
+        loadExistingDescriptions: async () => new Map(),
         findRelatedChangelogs: async () =>
           Array.from({ length: 6 }, (_, index) => ({
             version: `2.1.${6 - index}`,
+            content: '- Added CLAUDE_CODE_TEST',
           })),
       },
       [
@@ -94,19 +133,16 @@ describe('設定リファレンス生成ユースケース', () => {
     expect(input.entries[0]).toMatchObject({
       id: 0,
       officialDocs: ['guide.md', 'reference.md'],
-      relatedChangelog: [
-        { version: '2.1.6' },
-        { version: '2.1.5' },
-        { version: '2.1.4' },
-        { version: '2.1.3' },
-        { version: '2.1.2' },
-      ],
+      relatedChangelog: ['2.1.6', '2.1.5', '2.1.4', '2.1.3', '2.1.2'].map((version) => ({
+        version,
+        content: '- Added CLAUDE_CODE_TEST',
+      })),
     });
     expect(input.entries[0]?.docSnippets.join('')).toHaveLength(8000);
     expect(input.entries[0]?.docSnippets.at(-1)).toBe('i');
   });
 
-  it('翻訳がない項目を保存対象から除外し、空の用途解説を null に変換すること', async () => {
+  it('翻訳がない項目を保存対象から除外し、用途がない項目は用途を null で保存すること', async () => {
     const saved: unknown[] = [];
     const result = await saveSettingsReferences(
       {
@@ -143,11 +179,11 @@ describe('設定リファレンス生成ユースケース', () => {
           {
             id: 0,
             descriptionJa: 'テスト用の環境変数です。',
-            useCaseJa: '',
             enumDescriptionsJa: [],
             defaultNoteJa: '既定値の補足です。',
           },
         ],
+        useCases: [],
         fetchedAt: '2026-08-17',
       },
     );
@@ -205,7 +241,6 @@ describe('設定リファレンス生成ユースケース', () => {
           {
             id: 0,
             descriptionJa: '自動更新が追いかけるリリース系統を選ぶ。',
-            useCaseJa: '',
             enumDescriptionsJa: [
               { value: 'latest', descriptionJa: '最新のリリースを追いかける' },
               { value: 'nightly', descriptionJa: '毎晩のビルドを追いかける' },
@@ -213,6 +248,7 @@ describe('設定リファレンス生成ユースケース', () => {
             defaultNoteJa: '未設定のときは `"latest"` を追いかける',
           },
         ],
+        useCases: [],
         fetchedAt: '2026-08-17',
       },
     );
@@ -251,11 +287,11 @@ describe('設定リファレンス生成ユースケース', () => {
           {
             id: 0,
             descriptionJa: '自動更新が追いかけるリリース系統を選ぶ。',
-            useCaseJa: '',
             enumDescriptionsJa: [],
             defaultNoteJa: 'unset, so Claude Code follows `"latest"`',
           },
         ],
+        useCases: [],
         fetchedAt: '2026-08-17',
       },
     );
@@ -265,12 +301,54 @@ describe('設定リファレンス生成ユースケース', () => {
     });
   });
 
+  it('用途の文に日本語が含まれないとき、用途を保存しないこと', async () => {
+    const saved: { records: unknown[] }[] = [];
+    await saveSettingsReferences(
+      {
+        save: async (input) => {
+          saved.push(input);
+        },
+      },
+      {
+        input: {
+          entries: [
+            {
+              id: 0,
+              key: 'permissions.additionalDirectories',
+              source: 'settings',
+              descriptionEn: 'Additional directories allowed for access.',
+              parentDescriptions: [],
+              docSnippets: ['Add directories to grant access.'],
+              officialDocs: ['permissions.md'],
+              relatedChangelog: [],
+            },
+          ],
+        },
+        translations: [
+          {
+            id: 0,
+            descriptionJa: 'アクセスを許可する追加ディレクトリ。',
+            enumDescriptionsJa: [],
+            defaultNoteJa: '',
+          },
+        ],
+        useCases: [{ id: 0, useCaseJa: '- Use this to grant access to extra directories.' }],
+        fetchedAt: '2026-08-17',
+      },
+    );
+
+    expect(saved[0]?.records[0]).toMatchObject({
+      descriptionJa: 'アクセスを許可する追加ディレクトリ。',
+      useCaseJa: null,
+    });
+  });
+
   it('英文の選択肢の説明と既定値の補足を AI への入力に含めること', async () => {
     const input = await buildSettingsReferenceInput(
       async () => [],
       {
         loadEntries: async () => [],
-        loadExistingKeys: async () => new Set(),
+        loadExistingDescriptions: async () => new Map(),
         findRelatedChangelogs: async () => [],
       },
       [
