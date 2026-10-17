@@ -14,7 +14,7 @@ import {
 import { chunk, MAX_BATCH_STATEMENTS, runBatchedStatements, toDocPath } from './d1-ingestion-utils';
 
 // D1 の bound parameters 上限 100/query から逆算した 1 INSERT あたりの行数
-const ITEMS_PER_INSERT = 11; // 9 カラム
+const ITEMS_PER_INSERT = 14; // 7 カラム
 const RELATED_DOCS_PER_INSERT = 33; // 3 カラム
 const DIFF_EVENTS_PER_INSERT = 33; // 3 カラム
 const DIFF_EVENT_ITEMS_PER_INSERT = 20; // 5 カラム

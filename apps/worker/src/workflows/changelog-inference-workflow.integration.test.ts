@@ -696,4 +696,74 @@ describe('CHANGELOG 推論 Workflow', () => {
       await instance.dispose();
     }
   });
+
+  it('翻訳と推論の両方を諦めた項目があるとき、Issue にはその項目が 1 回だけ載り、両方の理由が並ぶこと', async () => {
+    const [release] = await parseChangelogReleases(changelog);
+    const item = release?.items[0];
+    if (item === undefined) {
+      throw new Error('テスト用 CHANGELOG の項目がありません');
+    }
+
+    mockAiRun(({ kind }) =>
+      kind === 'changelog_summary' ? singleItemCompletion(kind, item.id) : truncatedCompletion(),
+    );
+    vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
+      metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+    });
+    const skipIssues: { title: string; body: string }[] = [];
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.includes('/contents/CHANGELOG.md')) {
+        return new Response(changelog, { status: 200 });
+      }
+      if (url === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      if (url.includes('/issues?') && init?.method === 'GET') {
+        return new Response('[]', { status: 200 });
+      }
+      if (url.endsWith('/issues') && init?.method === 'POST') {
+        skipIssues.push(JSON.parse(String(init.body)) as { title: string; body: string });
+        return new Response(JSON.stringify({ number: 1 }), { status: 201 });
+      }
+      if (url.includes('/labels')) {
+        return new Response('[]', { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${url}`);
+    });
+
+    const instanceId = `both-skip-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.CHANGELOG_INFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+
+      await testEnv.CHANGELOG_INFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {
+          detectedHash: await sha256Hex(changelog),
+          detectedAt: '2026-10-17T00:00:00.000Z',
+        },
+      });
+
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+
+      expect(skipIssues).toHaveLength(1);
+      const [issue] = skipIssues;
+      if (issue === undefined) {
+        throw new Error('Issue が作られていません');
+      }
+      expect(issue.title).toBe('v2.1.234 の 1 項目で推論を諦めました');
+      expect(issue.body.split(`### \`${item.id}\``)).toHaveLength(2);
+      expect(issue.body).toContain('translate-v2.1.234-0');
+      expect(issue.body).toContain('infer-v2.1.234-0');
+    } finally {
+      await instance.dispose();
+    }
+  });
 });
