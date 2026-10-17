@@ -72,11 +72,13 @@ const logger = workerLogger('workflows.changelog-inference');
 
 export type ChangelogInferenceWorkflowParams = z.infer<typeof WorkflowParamsSchema>;
 
+type SkippedItem = { id: string; content: string; reason: string };
+
 function reportSkippedBatch(
   stepName: string,
   batch: { version: string; items: ChangelogItem[] },
   error: unknown,
-): { id: string; content: string; reason: string }[] {
+): SkippedItem[] {
   const { version, items } = batch;
   logger.warn('AI 処理を諦めて原文のまま保存します', {
     'workflow.step': stepName,
@@ -86,6 +88,18 @@ function reportSkippedBatch(
   });
   const reason = `${stepName}: ${toError(error).message}`;
   return items.map((item) => ({ id: item.id, content: item.content, reason }));
+}
+
+// 翻訳を諦めた項目も推論の対象に残るため、推論も諦めると同じ項目が 2 回届く。
+// Issue の件数と項目の一覧が水増しされないよう、項目ごとに 1 件へまとめて理由を並べる
+function addSkippedItems(skippedItems: Map<string, SkippedItem>, items: SkippedItem[]): void {
+  for (const item of items) {
+    const existing = skippedItems.get(item.id);
+    skippedItems.set(
+      item.id,
+      existing === undefined ? item : { ...item, reason: `${existing.reason} / ${item.reason}` },
+    );
+  }
 }
 
 export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
@@ -168,7 +182,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
 
       for (const release of classification.versions) {
         const translations: ChangelogAiTranslationItem[] = [];
-        const skippedItems: { id: string; content: string; reason: string }[] = [];
+        const skippedItems = new Map<string, SkippedItem>();
         for (
           let batchStart = 0, batchIndex = 0;
           batchStart < release.items.length;
@@ -192,7 +206,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
             if (!isUnusableAiResponseError(error)) {
               throw error;
             }
-            skippedItems.push(...reportSkippedBatch(stepName, batch, error));
+            addSkippedItems(skippedItems, reportSkippedBatch(stepName, batch, error));
           }
         }
 
@@ -240,7 +254,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
             if (!isUnusableAiResponseError(error)) {
               throw error;
             }
-            skippedItems.push(...reportSkippedBatch(stepName, batch, error));
+            addSkippedItems(skippedItems, reportSkippedBatch(stepName, batch, error));
           }
         }
 
@@ -260,17 +274,17 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           }),
         );
 
-        if (skippedItems.length > 0) {
+        if (skippedItems.size > 0) {
           await runStep(
             `report-skipped-${release.version}`,
             {
               ...STEP_RETRIES,
-              attrs: { 'changelog.skipped_item_count': skippedItems.length },
+              attrs: { 'changelog.skipped_item_count': skippedItems.size },
             },
             async () =>
               skipReporter.report({
                 version: release.version,
-                items: skippedItems,
+                items: [...skippedItems.values()],
               }),
           );
         }
