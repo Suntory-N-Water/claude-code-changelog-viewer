@@ -27,8 +27,8 @@ declare global {
 
 const testEnv = env;
 const changelog = `# Changelog\n\n## 2.1.234\n\n- Added workflow inference support\n`;
-// v2.1.238 で Workers AI がタイムアウトしたのは 39 項目。ここでは 3 バッチに割れる最小の件数で再現する
-const LARGE_RELEASE_ITEM_COUNT = 23;
+// 翻訳が 30 件と 1 件に割れる最小の件数
+const LARGE_RELEASE_ITEM_COUNT = 31;
 const largeChangelog = [
   '# Changelog',
   '',
@@ -62,8 +62,6 @@ function chatCompletion(content: object) {
   };
 }
 
-// 空白ループを stop で切った応答。空白は切り落とされ finish_reason も stop のままなので、
-// 途中で切れた JSON だけが残る
 function truncatedCompletion() {
   return {
     id: 'test-completion',
@@ -75,14 +73,60 @@ function truncatedCompletion() {
         index: 0,
         message: {
           role: 'assistant',
-          content: '{"inferred_items":[{"id":"x","content_ja":"途中',
+          content: '{"translated_items":[{"id":"x","content_ja":"途中',
           refusal: null,
         },
-        finish_reason: 'stop',
+        finish_reason: 'length',
         logprobs: null,
       },
     ],
   };
+}
+
+function singleItemCompletion(kind: string, id: string) {
+  if (kind === 'changelog_translation') {
+    return chatCompletion({
+      translated_items: [{ id, content_ja: 'Workflow 推論のサポートを追加しました。' }],
+    });
+  }
+  if (kind === 'changelog_items') {
+    return chatCompletion({
+      inferred_items: [
+        {
+          id,
+          before: 'Workflow 推論のサポートがありませんでした。',
+          after: 'Workflow 推論のサポートが追加されました。',
+          benefit: 'CHANGELOG の更新を自動で推論して保存できます。',
+        },
+      ],
+      feature_area_corrections: [],
+    });
+  }
+  return chatCompletion({ summary: 'Workflow 推論のサポートを追加しました。' });
+}
+
+type AiRequest = {
+  kind: string;
+  prompt: string;
+  ids: string[];
+};
+
+// 応答の種類はスキーマ名で決まるため、テストごとに種類別の応答だけを差し替えられるようにする
+function mockAiRun(respond: (request: AiRequest) => object) {
+  return vi.spyOn(testEnv.AI, 'run').mockImplementation((async (
+    _model: string,
+    options: {
+      messages: [{ content: string }];
+      response_format: { json_schema: { name: string } };
+    },
+  ) => {
+    const prompt = options.messages[0].content;
+    return respond({
+      kind: options.response_format.json_schema.name,
+      prompt,
+      ids: [...prompt.matchAll(/^### 項目 id=(.+)$/gm)].map((match) => match[1] ?? ''),
+    });
+  }) as unknown as typeof testEnv.AI.run);
 }
 
 describe('CHANGELOG 推論 Workflow', () => {
@@ -122,22 +166,7 @@ describe('CHANGELOG 推論 Workflow', () => {
       throw new Error('テスト用 CHANGELOG の項目がありません');
     }
 
-    const aiRun = vi.spyOn(testEnv.AI, 'run').mockResolvedValue(
-      chatCompletion({
-        inferred_items: [
-          {
-            id: item.id,
-            content_ja: 'Workflow 推論のサポートを追加しました。',
-            before: 'Workflow 推論のサポートがありませんでした。',
-            after: 'Workflow 推論のサポートが追加されました。',
-            benefit: 'CHANGELOG の更新を自動で推論して保存できます。',
-          },
-        ],
-        translated_items: [],
-        feature_area_corrections: [{ id: item.id, feature_areas: ['Workflow'] }],
-        summary: 'Workflow 推論のサポートを追加しました。',
-      }),
-    );
+    const aiRun = mockAiRun(({ kind }) => singleItemCompletion(kind, item.id));
     const queueSend = vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
       metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
     });
@@ -182,8 +211,8 @@ describe('CHANGELOG 推論 Workflow', () => {
         notifiedVersions: ['v2.1.234'],
       });
 
-      // 項目推論とサマリー生成で 1 回ずつ呼ばれる
-      expect(aiRun).toHaveBeenCalledTimes(2);
+      // 翻訳・項目推論・サマリー生成で 1 回ずつ呼ばれる
+      expect(aiRun).toHaveBeenCalledTimes(3);
       expect(queueSend).toHaveBeenCalledWith({
         version: 'v2.1.234',
         analysis: {
@@ -298,22 +327,7 @@ describe('CHANGELOG 推論 Workflow', () => {
       throw new Error('テスト用 CHANGELOG の項目がありません');
     }
 
-    const aiRun = vi.spyOn(testEnv.AI, 'run').mockResolvedValue(
-      chatCompletion({
-        inferred_items: [
-          {
-            id: item.id,
-            content_ja: 'Workflow 推論のサポートを追加しました。',
-            before: 'Workflow 推論のサポートがありませんでした。',
-            after: 'Workflow 推論のサポートが追加されました。',
-            benefit: 'CHANGELOG の更新を自動で推論して保存できます。',
-          },
-        ],
-        translated_items: [],
-        feature_area_corrections: [],
-        summary: 'Workflow 推論のサポートを追加しました。',
-      }),
-    );
+    const aiRun = mockAiRun(({ kind }) => singleItemCompletion(kind, item.id));
     const queueSend = vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
       metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
     });
@@ -351,8 +365,8 @@ describe('CHANGELOG 推論 Workflow', () => {
         processedVersions: ['v2.1.234'],
         notifiedVersions: [],
       });
-      // 項目推論とサマリー生成で 1 回ずつ呼ばれる
-      expect(aiRun).toHaveBeenCalledTimes(2);
+      // 翻訳・項目推論・サマリー生成で 1 回ずつ呼ばれる
+      expect(aiRun).toHaveBeenCalledTimes(3);
       expect(queueSend).not.toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledWith('https://deploy.example/hook', {
         method: 'POST',
@@ -392,53 +406,52 @@ describe('CHANGELOG 推論 Workflow', () => {
     }
   });
 
-  it('ある項目の推論が打ち切られ続ける時、その項目を原文のまま保存して Issue を作ること', async () => {
-    const twoItemChangelog = [
+  it('ある推論バッチが打ち切られ続けるとき、そのバッチの項目は日本語訳だけを保存して Issue を作ること', async () => {
+    // 推論は 5 件ずつなので、6 件目だけが 2 つ目のバッチになる
+    const sixItemChangelog = [
       '# Changelog',
       '',
       '## 2.1.240',
       '',
-      '- Added workflow inference support for the healthy case',
+      ...Array.from(
+        { length: 5 },
+        (_, index) => `- Added workflow inference support for the healthy case ${index}`,
+      ),
       '- Added workflow inference support for the doomed case',
       '',
     ].join('\n');
-    const release = (await parseChangelogReleases(twoItemChangelog))[0];
+    const release = (await parseChangelogReleases(sixItemChangelog))[0];
     if (release === undefined) {
       throw new Error('テスト用 CHANGELOG のリリースがありません');
     }
-    const [healthyItem, doomedItem] = release.items;
+    const healthyItem = release.items[0];
+    const doomedItem = release.items[5];
     if (healthyItem === undefined || doomedItem === undefined) {
       throw new Error('テスト用 CHANGELOG の項目が足りません');
     }
 
-    vi.spyOn(testEnv.AI, 'run').mockImplementation((async (
-      _model: string,
-      options: {
-        messages: [{ content: string }];
-        response_format: { json_schema: { name: string } };
-      },
-    ) => {
-      const prompt = options.messages[0].content;
-      if (options.response_format.json_schema.name === 'changelog_summary') {
-        return chatCompletion({ summary: '2 件の変更を追加しました。' });
+    mockAiRun(({ kind, ids }) => {
+      if (kind === 'changelog_summary') {
+        return chatCompletion({ summary: '6 件の変更を追加しました。' });
       }
-      if (prompt.includes(doomedItem.id)) {
+      if (kind === 'changelog_translation') {
+        return chatCompletion({
+          translated_items: ids.map((id) => ({ id, content_ja: `項目 ${id} を追加した。` })),
+        });
+      }
+      if (ids.includes(doomedItem.id)) {
         return truncatedCompletion();
       }
       return chatCompletion({
-        inferred_items: [
-          {
-            id: healthyItem.id,
-            content_ja: '正常に処理できる項目を追加しました。',
-            before: '対応する機能がありませんでした。',
-            after: '対応する機能が追加されました。',
-            benefit: '追加された機能をそのまま利用できます。',
-          },
-        ],
-        translated_items: [],
+        inferred_items: ids.map((id) => ({
+          id,
+          before: '対応する機能がありませんでした。',
+          after: '対応する機能が追加されました。',
+          benefit: '追加された機能をそのまま利用できます。',
+        })),
         feature_area_corrections: [],
       });
-    }) as unknown as typeof testEnv.AI.run);
+    });
     vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
       metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
     });
@@ -447,7 +460,7 @@ describe('CHANGELOG 推論 Workflow', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input);
       if (url.includes('/contents/CHANGELOG.md')) {
-        return new Response(twoItemChangelog, { status: 200 });
+        return new Response(sixItemChangelog, { status: 200 });
       }
       if (url === 'https://deploy.example/hook') {
         return new Response(null, { status: 200 });
@@ -480,7 +493,7 @@ describe('CHANGELOG 推論 Workflow', () => {
       await testEnv.CHANGELOG_INFERENCE_WORKFLOW.create({
         id: instanceId,
         params: {
-          detectedHash: await sha256Hex(twoItemChangelog),
+          detectedHash: await sha256Hex(sixItemChangelog),
           detectedAt: '2026-09-02T00:00:00.000Z',
         },
       });
@@ -502,14 +515,14 @@ describe('CHANGELOG 推論 Workflow', () => {
         expect.arrayContaining([
           {
             itemId: healthyItem.id,
-            content: '- Added workflow inference support for the healthy case',
-            contentJa: '正常に処理できる項目を追加しました。',
+            content: '- Added workflow inference support for the healthy case 0',
+            contentJa: `項目 ${healthyItem.id} を追加した。`,
             inferenceBefore: '対応する機能がありませんでした。',
           },
           {
             itemId: doomedItem.id,
             content: '- Added workflow inference support for the doomed case',
-            contentJa: null,
+            contentJa: `項目 ${doomedItem.id} を追加した。`,
             inferenceBefore: null,
           },
         ]),
@@ -522,41 +535,37 @@ describe('CHANGELOG 推論 Workflow', () => {
     }
   });
 
-  it('1バージョンの項目数が多い時、推論をバッチに分けて保存を1回にまとめること', async () => {
+  it('1バージョンの項目数が多いとき、翻訳は 30 件ずつ・推論は 5 件ずつに分けて全項目の日本語訳を保存すること', async () => {
     const release = (await parseChangelogReleases(largeChangelog))[0];
     if (release === undefined) {
       throw new Error('テスト用 CHANGELOG のリリースがありません');
     }
 
+    const translatedIdBatches: string[][] = [];
     const inferredIdBatches: string[][] = [];
-    const summaryPrompts: string[] = [];
-    const aiRun = vi.spyOn(testEnv.AI, 'run').mockImplementation((async (
-      _model: string,
-      options: {
-        messages: [{ content: string }];
-        response_format: { json_schema: { name: string } };
-      },
-    ) => {
-      const prompt = options.messages[0].content;
-      if (options.response_format.json_schema.name === 'changelog_summary') {
-        summaryPrompts.push(prompt);
+    let summaryCount = 0;
+    mockAiRun(({ kind, ids }) => {
+      if (kind === 'changelog_summary') {
+        summaryCount += 1;
         return chatCompletion({ summary: '多数の変更を追加しました。' });
       }
-
-      const ids = [...prompt.matchAll(/^### 項目 id=(.+)$/gm)].map((match) => match[1] ?? '');
+      if (kind === 'changelog_translation') {
+        translatedIdBatches.push(ids);
+        return chatCompletion({
+          translated_items: ids.map((id) => ({ id, content_ja: `項目 ${id} を追加した。` })),
+        });
+      }
       inferredIdBatches.push(ids);
       return chatCompletion({
         inferred_items: ids.map((id) => ({
           id,
-          content_ja: `項目 ${id} の変更を追加しました。`,
           before: '対応する機能がありませんでした。',
           after: '対応する機能が追加されました。',
           benefit: '追加された機能をそのまま利用できます。',
         })),
-        translated_items: [],
         feature_area_corrections: [],
       });
-    }) as unknown as typeof testEnv.AI.run);
+    });
     vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
       metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
     });
@@ -592,28 +601,104 @@ describe('CHANGELOG 推論 Workflow', () => {
 
       await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
 
-      // 1 項目 1 リクエストなので 23 項目は 23 回に割れ、サマリーが 1 回加わる
-      expect(inferredIdBatches.map((batch) => batch.length)).toEqual(
-        Array.from({ length: LARGE_RELEASE_ITEM_COUNT }, () => 1),
-      );
-      expect(inferredIdBatches.flat()).toEqual(release.items.map((item) => item.id));
-      expect(summaryPrompts).toHaveLength(1);
-      expect(aiRun).toHaveBeenCalledTimes(LARGE_RELEASE_ITEM_COUNT + 1);
+      const itemIds = release.items.map((item) => item.id);
+      // 31 項目 = 翻訳 30 + 1、推論 5 × 6 + 1
+      expect(translatedIdBatches.map((batch) => batch.length)).toEqual([30, 1]);
+      expect(translatedIdBatches.flat()).toEqual(itemIds);
+      expect(inferredIdBatches.map((batch) => batch.length)).toEqual([5, 5, 5, 5, 5, 5, 1]);
+      expect(inferredIdBatches.flat()).toEqual(itemIds);
+      expect(summaryCount).toBe(1);
 
-      await expect(
-        instance.waitForStepResult({ name: `store-${release.version}` }),
-      ).resolves.toEqual({ version: release.version });
+      const db = drizzle(testEnv.DB);
+      const stored = await db
+        .select({ itemId: changelogItems.itemId, contentJa: changelogItems.contentJa })
+        .from(changelogItems)
+        .where(eq(changelogItems.version, '2.1.238'));
+      expect(stored).toEqual(
+        expect.arrayContaining(
+          itemIds.map((id) => ({ itemId: id, contentJa: `項目 ${id} を追加した。` })),
+        ),
+      );
+      expect(stored).toHaveLength(LARGE_RELEASE_ITEM_COUNT);
+    } finally {
+      await instance.dispose();
+    }
+  });
+
+  it('翻訳が使えない応答を返し続けるとき、そのバッチを原文のまま保存し、推論は保存して Issue を作ること', async () => {
+    const [release] = await parseChangelogReleases(changelog);
+    const item = release?.items[0];
+    if (item === undefined) {
+      throw new Error('テスト用 CHANGELOG の項目がありません');
+    }
+
+    mockAiRun(({ kind }) =>
+      kind === 'changelog_translation'
+        ? truncatedCompletion()
+        : singleItemCompletion(kind, item.id),
+    );
+    vi.spyOn(testEnv.NOTIFICATION_QUEUE, 'send').mockResolvedValue({
+      metadata: { metrics: { backlogCount: 0, backlogBytes: 0 } },
+    });
+    const skipIssueBodies: string[] = [];
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.includes('/contents/CHANGELOG.md')) {
+        return new Response(changelog, { status: 200 });
+      }
+      if (url === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      if (url.includes('/issues?') && init?.method === 'GET') {
+        return new Response('[]', { status: 200 });
+      }
+      if (url.endsWith('/issues') && init?.method === 'POST') {
+        const payload = JSON.parse(String(init.body)) as { body: string };
+        skipIssueBodies.push(payload.body);
+        return new Response(JSON.stringify({ number: 1 }), { status: 201 });
+      }
+      if (url.includes('/labels')) {
+        return new Response('[]', { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${url}`);
+    });
+
+    const instanceId = `translation-skip-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.CHANGELOG_INFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+
+      await testEnv.CHANGELOG_INFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {
+          detectedHash: await sha256Hex(changelog),
+          detectedAt: '2026-10-17T00:00:00.000Z',
+        },
+      });
+
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
 
       const db = drizzle(testEnv.DB);
       await expect(
-        db.select({ version: changelogVersions.version }).from(changelogVersions),
-      ).resolves.toEqual([{ version: '2.1.238' }]);
-      await expect(
         db
-          .select({ itemId: changelogItems.itemId })
+          .select({
+            contentJa: changelogItems.contentJa,
+            inferenceBefore: changelogItems.inferenceBefore,
+          })
           .from(changelogItems)
-          .where(eq(changelogItems.version, '2.1.238')),
-      ).resolves.toHaveLength(LARGE_RELEASE_ITEM_COUNT);
+          .where(eq(changelogItems.version, '2.1.234')),
+      ).resolves.toEqual([
+        { contentJa: null, inferenceBefore: 'Workflow 推論のサポートがありませんでした。' },
+      ]);
+      expect(skipIssueBodies).toHaveLength(1);
+      expect(skipIssueBodies[0]).toContain(item.id);
+      expect(skipIssueBodies[0]).toContain('translate-v2.1.234-0');
     } finally {
       await instance.dispose();
     }

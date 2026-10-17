@@ -1,5 +1,7 @@
 import {
   mergeChangelogItemInferences,
+  verifyChangelogTranslations,
+  type ChangelogAiTranslationItem,
   type ChangelogInferenceInput,
   type ChangelogItemInference,
   type ChangelogItemsAiResult,
@@ -16,6 +18,10 @@ export type ChangelogDocumentSearchPort = (entry: string) => Promise<RelatedDocu
 
 export type ChangelogItemInferencePort = {
   inferItems(input: ChangelogInferenceInput): Promise<ChangelogItemsAiResult>;
+};
+
+export type ChangelogTranslationPort = {
+  translateItems(release: ChangelogRelease): Promise<ChangelogAiTranslationItem[]>;
 };
 
 export type ChangelogSummaryPort = {
@@ -56,4 +62,11 @@ export async function inferChangelogItemBatch(
   batch: ChangelogInferenceInput,
 ): Promise<ChangelogItemInference[]> {
   return mergeChangelogItemInferences(batch.items, await inference.inferItems(batch));
+}
+
+export async function translateChangelogItemBatch(
+  translation: ChangelogTranslationPort,
+  batch: ChangelogRelease,
+): Promise<ChangelogAiTranslationItem[]> {
+  return verifyChangelogTranslations(batch.items, await translation.translateItems(batch));
 }

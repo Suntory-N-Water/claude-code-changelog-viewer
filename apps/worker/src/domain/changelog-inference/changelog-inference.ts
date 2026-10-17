@@ -39,7 +39,6 @@ export type InferenceExplanation = {
 
 export type ChangelogAiInferenceItem = {
   id: string;
-  contentJa: string;
   inference: InferenceExplanation;
 };
 
@@ -86,13 +85,11 @@ function normalizeFeatureAreas(areas: string[]): string[] {
 
 export type ChangelogItemsAiResult = {
   inferredItems: ChangelogAiInferenceItem[];
-  translatedItems: ChangelogAiTranslationItem[];
   featureAreaCorrections: ChangelogAiFeatureAreaCorrection[];
 };
 
 export type ChangelogItemInference = {
   id: string;
-  contentJa: string;
   featureAreas: string[];
   inference?: InferenceExplanation;
 };
@@ -123,22 +120,13 @@ export function mergeChangelogItemInferences(
   items: ChangelogInferenceInputItem[],
   aiResult: ChangelogItemsAiResult,
 ): ChangelogItemInference[] {
-  const inferenceItems = items.filter((item) => item.relatedDocs.length > 0);
-  const translationItems = items.filter((item) => item.relatedDocs.length === 0);
-
   assertItemIds(
-    inferenceItems.map((item) => item.id),
+    items.filter((item) => item.relatedDocs.length > 0).map((item) => item.id),
     aiResult.inferredItems.map((item) => item.id),
     '推論',
   );
-  assertItemIds(
-    translationItems.map((item) => item.id),
-    aiResult.translatedItems.map((item) => item.id),
-    '翻訳',
-  );
 
   const inferredById = new Map(aiResult.inferredItems.map((item) => [item.id, item]));
-  const translatedById = new Map(aiResult.translatedItems.map((item) => [item.id, item]));
   const featureAreasById = new Map(
     aiResult.featureAreaCorrections.map((item) => [
       item.id,
@@ -154,15 +142,29 @@ export function mergeChangelogItemInferences(
 
   return items.map((item) => {
     const inferred = inferredById.get(item.id);
-    const translated = translatedById.get(item.id);
     return {
       id: item.id,
-      contentJa: inferred?.contentJa ?? translated?.contentJa ?? '',
       featureAreas: featureAreasById.get(item.id) ?? [],
       ...(inferred === undefined ? {} : { inference: inferred.inference }),
     };
   });
 }
+
+export function verifyChangelogTranslations(
+  items: ChangelogItem[],
+  translations: ChangelogAiTranslationItem[],
+): ChangelogAiTranslationItem[] {
+  assertItemIds(
+    items.map((item) => item.id),
+    translations.map((item) => item.id),
+    '翻訳',
+  );
+  return translations;
+}
+
+// 項目を取りこぼした応答は同じ入力で再試行しても直らないことがあるため、呼び出し側が
+// その項目を諦める判断に使えるよう、メッセージの先頭を固定する
+export const ITEM_IDS_MISMATCH_MESSAGE = 'AI 結果の項目 id が入力と一致しません';
 
 function assertItemIds(expectedIds: string[], actualIds: string[], resultName: string): void {
   const expected = new Set(expectedIds);
@@ -173,6 +175,6 @@ function assertItemIds(expectedIds: string[], actualIds: string[], resultName: s
     expected.size !== actual.size ||
     [...expected].some((id) => !actual.has(id))
   ) {
-    throw new Error(`AI 推論結果の${resultName}項目数が一致しません`);
+    throw new Error(`${ITEM_IDS_MISMATCH_MESSAGE} (${resultName})`);
   }
 }

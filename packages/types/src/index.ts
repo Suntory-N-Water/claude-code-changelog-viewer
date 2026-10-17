@@ -16,13 +16,6 @@ export const InferenceResultSchema = z.object({
 });
 export type InferenceResult = z.infer<typeof InferenceResultSchema>;
 
-export const InferenceWithTranslationSchema = z.object({
-  content_ja: z.string().min(10).max(500),
-  before: z.string().min(10).max(500),
-  after: z.string().min(10).max(500),
-  benefit: z.string().min(10).max(500),
-});
-
 export const ImpactAssessmentSchema = z.object({
   level: z.enum(['high', 'medium', 'low']),
   default_behavior_change: z.boolean(),

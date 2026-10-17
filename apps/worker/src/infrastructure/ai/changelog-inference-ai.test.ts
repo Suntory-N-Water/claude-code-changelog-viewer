@@ -3,9 +3,11 @@ import type {
   ChangelogInferenceInput,
   ChangelogRelease,
 } from '../../domain/changelog-inference/changelog-inference';
+import { translateChangelogItemBatch } from '../../usecases/changelog-inference';
 import {
   createChangelogItemInferenceAi,
   createChangelogSummaryAi,
+  createChangelogTranslationAi,
   isUnusableAiResponseError,
 } from './changelog-inference-ai';
 
@@ -45,13 +47,11 @@ const validResponse = {
   inferred_items: [
     {
       id: 'with-docs',
-      content_ja: '文書化された機能を追加しました。',
       before: '繰り返しの設定を手動で行う必要がありました。',
       after: '設定を自動化する機能が追加されました。',
       benefit: '繰り返しの設定作業を毎回行わずに済みます。',
     },
   ],
-  translated_items: [{ id: 'without-docs', content_ja: '小さな誤字を修正しました。' }],
   feature_area_corrections: [{ id: 'with-docs', feature_areas: ['Settings'] }],
 };
 
@@ -80,7 +80,7 @@ function rawChatCompletion(content: string, finishReason: string) {
   };
 }
 
-const truncatedJson = `{"inferred_items":[{"id":"with-docs","content_ja":"文書化された機能を追`;
+const truncatedJson = `{"inferred_items":[{"id":"with-docs","before":"繰り返しの設定を手動で`;
 
 describe('Workers AI CHANGELOG adapter', () => {
   it('AI 応答が Zod で検証できる時、usecase の型へ変換すること', async () => {
@@ -93,7 +93,6 @@ describe('Workers AI CHANGELOG adapter', () => {
       inferredItems: [
         {
           id: 'with-docs',
-          contentJa: '文書化された機能を追加しました。',
           inference: {
             before: '繰り返しの設定を手動で行う必要がありました。',
             after: '設定を自動化する機能が追加されました。',
@@ -101,7 +100,6 @@ describe('Workers AI CHANGELOG adapter', () => {
           },
         },
       ],
-      translatedItems: [{ id: 'without-docs', contentJa: '小さな誤字を修正しました。' }],
       featureAreaCorrections: [{ id: 'with-docs', featureAreas: ['Settings'] }],
     });
     expect(run).toHaveBeenCalledWith(
@@ -111,7 +109,6 @@ describe('Workers AI CHANGELOG adapter', () => {
         response_format: expect.objectContaining({ type: 'json_schema' }),
         max_completion_tokens: 4096,
         reasoning_effort: 'low',
-        stop: [' '.repeat(24)],
       }),
       { gateway: { id: 'project-gateway' } },
     );
@@ -130,16 +127,14 @@ describe('Workers AI CHANGELOG adapter', () => {
       ['出力上限に達した応答', rawChatCompletion(truncatedJson, 'length')],
       // 思考を抑える指定が無視されると、思考だけで上限を使い切り本文が空になる
       ['思考で上限を使い切った空の応答', rawChatCompletion('', 'length')],
-      // stop で空白の連続を切り落とすと末尾に空白が残らず finish_reason も stop のままになるため、
-      // 打ち切りは壊れた JSON としてしか現れない
-      ['stop で切り落とされた壊れた JSON', rawChatCompletion(truncatedJson, 'stop')],
+      ['途中で終わった JSON', rawChatCompletion(truncatedJson, 'stop')],
       ['JSON ですらない応答', rawChatCompletion('not json at all', 'stop')],
       [
         'スキーマを満たさない応答',
         rawChatCompletion(
           JSON.stringify({
             ...validResponse,
-            translated_items: [{ id: 'without-docs', content_ja: '短い' }],
+            inferred_items: [{ ...validResponse.inferred_items[0], benefit: '短い' }],
           }),
           'stop',
         ),
@@ -153,6 +148,28 @@ describe('Workers AI CHANGELOG adapter', () => {
       expect(isUnusableAiResponseError(error)).toBe(true);
     });
 
+    it.each([
+      [
+        'スキーマを満たさない翻訳応答',
+        chatCompletion({ translated_items: [{ id: 'with-docs', content_ja: '' }] }),
+      ],
+      [
+        '項目を取りこぼした翻訳応答',
+        chatCompletion({
+          translated_items: [{ id: 'with-docs', content_ja: '文書化された機能を追加した。' }],
+        }),
+      ],
+    ])('%s のとき、そのバッチの翻訳を諦めてよい失敗になること', async (_, response) => {
+      const run = vi.fn().mockResolvedValue(response);
+      const translator = createChangelogTranslationAi({ run }, 'project-gateway');
+
+      const error = await translateChangelogItemBatch(translator, release).catch(
+        (caught: unknown) => caught,
+      );
+
+      expect(isUnusableAiResponseError(error)).toBe(true);
+    });
+
     it('Workers AI の呼び出し自体が失敗したとき、諦めてよい失敗にはしないこと', async () => {
       const run = vi.fn().mockRejectedValue(new Error('AiError: 5030: capacity exceeded'));
       const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
@@ -161,6 +178,47 @@ describe('Workers AI CHANGELOG adapter', () => {
 
       expect(isUnusableAiResponseError(error)).toBe(false);
     });
+  });
+
+  it('翻訳の AI 応答が正しい形のとき、原文だけをプロンプトに渡して項目ごとの日本語訳に変換すること', async () => {
+    const run = vi.fn().mockResolvedValue(
+      chatCompletion({
+        translated_items: [
+          { id: 'with-docs', content_ja: '文書化された機能を追加した。' },
+          { id: 'without-docs', content_ja: '小さな誤字を修正した。' },
+        ],
+      }),
+    );
+    const sut = createChangelogTranslationAi({ run }, 'project-gateway');
+
+    const result = await sut.translateItems(release);
+
+    expect(result).toEqual([
+      { id: 'with-docs', contentJa: '文書化された機能を追加した。' },
+      { id: 'without-docs', contentJa: '小さな誤字を修正した。' },
+    ]);
+    const prompt = run.mock.calls[0]?.[1]?.messages?.[0]?.content;
+    expect(prompt).toContain('- content: - Added a documented feature');
+    expect(prompt).not.toContain('The feature automates the repeated setup.');
+  });
+
+  it('原文が短く訳が 10 字未満のとき、翻訳を受け付けること', async () => {
+    const run = vi.fn().mockResolvedValue(
+      chatCompletion({
+        translated_items: [
+          { id: 'with-docs', content_ja: '機能を追加した。' },
+          { id: 'without-docs', content_ja: '誤字を修正した' },
+        ],
+      }),
+    );
+    const sut = createChangelogTranslationAi({ run }, 'project-gateway');
+
+    const result = await sut.translateItems(release);
+
+    expect(result).toEqual([
+      { id: 'with-docs', contentJa: '機能を追加した。' },
+      { id: 'without-docs', contentJa: '誤字を修正した' },
+    ]);
   });
 
   it('サマリーの AI 応答が出力上限で打ち切られた時、打ち切りと分かるエラーにすること', async () => {
