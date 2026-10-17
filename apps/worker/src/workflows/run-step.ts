@@ -3,6 +3,8 @@ import { workerLogger } from '../logger';
 
 const logger = workerLogger('workflows.step');
 
+export type StepRunner = ReturnType<typeof createStepRunner>;
+
 export function createStepRunner(step: WorkflowStep) {
   return async <T extends Rpc.Serializable<T>>(
     name: string,
