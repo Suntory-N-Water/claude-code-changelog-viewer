@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import {
   needsBenefit,
   type ChangelogAiTranslationItem,
+  type ChangelogInferenceGaps,
   type ChangelogInferenceInput,
   type ChangelogInferenceRepository,
   type ChangelogItem,
@@ -121,7 +122,7 @@ export async function processChangelogRelease(
     skipReporter,
   }: ChangelogReleaseProcessingDependencies,
   release: ChangelogRelease,
-): Promise<void> {
+): Promise<ChangelogInferenceGaps> {
   const translations: ChangelogAiTranslationItem[] = [];
   const skippedItems = new Map<string, SkippedItem>();
   for (
@@ -207,7 +208,7 @@ export async function processChangelogRelease(
     summary: await summarizer.summarize(release),
   }));
 
-  await runStep(`store-${release.version}`, STEP_RETRIES, async () =>
+  const { gaps } = await runStep(`store-${release.version}`, STEP_RETRIES, async () =>
     saveChangelogInference(inferenceRepository, {
       input: inferenceInput,
       translations,
@@ -230,4 +231,5 @@ export async function processChangelogRelease(
         }),
     );
   }
+  return gaps;
 }

@@ -9,6 +9,7 @@ import {
   settingsOfficialDocs,
   settingsReference,
 } from '../../db/schema';
+import { compareChangelogVersions } from '../../domain/changelog-inference/changelog-version';
 
 export type ChangelogSearchParams = {
   query: string;
@@ -37,18 +38,7 @@ export async function searchChangelogItems(db: DrizzleD1Database, params: Change
     .from(changelogItems)
     .where(and(...conditions));
 
-  // バージョン降順。semver をテキスト比較すると 2.1.9 > 2.1.10 になるため数値部ごとに比較する
-  rows.sort((a, b) => {
-    const partsA = a.version.split('.').map(Number);
-    const partsB = b.version.split('.').map(Number);
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i += 1) {
-      const diff = (partsB[i] ?? 0) - (partsA[i] ?? 0);
-      if (diff !== 0) {
-        return diff;
-      }
-    }
-    return 0;
-  });
+  rows.sort((a, b) => compareChangelogVersions(b.version, a.version));
   return rows.slice(0, params.limit);
 }
 

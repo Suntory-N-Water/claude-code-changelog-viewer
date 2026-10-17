@@ -68,6 +68,36 @@ export type ChangelogInference = {
   items: ChangelogInferenceItem[];
 };
 
+export type ChangelogInferenceGaps = {
+  itemCount: number;
+  untranslatedItemCount: number;
+  missingBenefitItemCount: number;
+  untranslatedBenefitItemCount: number;
+};
+
+// 漢字・かなを 1 字も含まない訳は、原文のまま残ったものとみなす。
+// コマンド名や設定キーだけの項目でも、訳文には助詞などのかなが入る
+const JAPANESE_CHARACTER = /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u;
+
+export function countChangelogInferenceGaps(
+  items: ChangelogInferenceItem[],
+): ChangelogInferenceGaps {
+  const benefitTargets = items.filter(needsBenefit);
+  return {
+    itemCount: items.length,
+    untranslatedItemCount: items.filter((item) => !JAPANESE_CHARACTER.test(item.contentJa)).length,
+    missingBenefitItemCount: benefitTargets.filter(
+      (item) => item.benefit === undefined || item.benefit.trim() === '',
+    ).length,
+    untranslatedBenefitItemCount: benefitTargets.filter(
+      (item) =>
+        item.benefit !== undefined &&
+        item.benefit.trim() !== '' &&
+        !JAPANESE_CHARACTER.test(item.benefit),
+    ).length,
+  };
+}
+
 export type ChangelogDiffRepository = {
   saveAll(events: ChangelogDiffEvent[]): Promise<void>;
 };

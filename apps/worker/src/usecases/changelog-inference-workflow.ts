@@ -3,13 +3,20 @@ import {
   type ChangelogClassification,
   type ExistingChangelogItem,
 } from '../domain/changelog-inference/changelog-classification';
-import type {
-  ChangelogAiTranslationItem,
-  ChangelogInferenceInput,
-  ChangelogInferenceRepository,
-  ChangelogItemInference,
-  ChangelogRelease,
+import {
+  countChangelogInferenceGaps,
+  type ChangelogAiTranslationItem,
+  type ChangelogInferenceGaps,
+  type ChangelogInferenceInput,
+  type ChangelogInferenceRepository,
+  type ChangelogItemInference,
+  type ChangelogRelease,
 } from '../domain/changelog-inference/changelog-inference';
+import {
+  formatChangelogVersion,
+  selectChangelogVersionsInRange,
+  type ChangelogVersionRange,
+} from '../domain/changelog-inference/changelog-version';
 
 export type ChangelogWorkflowParams = {
   detectedHash: string;
@@ -28,6 +35,20 @@ export type ExistingChangelogReader = {
   findExistingItems(): Promise<ExistingChangelogItem[]>;
   findRecordedRemovedVersions(): Promise<string[]>;
 };
+
+export type StoredChangelogReleaseReader = {
+  listVersions(): Promise<string[]>;
+  findRelease(version: string): Promise<ChangelogRelease | null>;
+};
+
+export async function findRegenerationTargetVersions(
+  reader: StoredChangelogReleaseReader,
+  range: ChangelogVersionRange,
+): Promise<string[]> {
+  return selectChangelogVersionsInRange(await reader.listVersions(), range).map(
+    formatChangelogVersion,
+  );
+}
 
 export type ChangelogNotificationPort = {
   send(version: string): Promise<void>;
@@ -93,7 +114,7 @@ export type SaveChangelogInferenceInput = {
 export async function saveChangelogInference(
   repository: ChangelogInferenceRepository,
   { input, translations, itemInferences, summary }: SaveChangelogInferenceInput,
-): Promise<{ version: string }> {
+): Promise<{ version: string; gaps: ChangelogInferenceGaps }> {
   const contentJaById = new Map(
     translations.map((translation) => [translation.id, translation.contentJa]),
   );
@@ -101,17 +122,14 @@ export async function saveChangelogInference(
     itemInferences.map((itemInference) => [itemInference.id, itemInference]),
   );
 
-  await repository.save({
-    version: input.version,
-    summary,
-    items: input.items.map((item) => {
-      const itemInference = inferenceById.get(item.id);
-      return {
-        ...item,
-        contentJa: contentJaById.get(item.id) ?? '',
-        ...(itemInference?.benefit === undefined ? {} : { benefit: itemInference.benefit }),
-      };
-    }),
+  const items = input.items.map((item) => {
+    const itemInference = inferenceById.get(item.id);
+    return {
+      ...item,
+      contentJa: contentJaById.get(item.id) ?? '',
+      ...(itemInference?.benefit === undefined ? {} : { benefit: itemInference.benefit }),
+    };
   });
-  return { version: input.version };
+  await repository.save({ version: input.version, summary, items });
+  return { version: input.version, gaps: countChangelogInferenceGaps(items) };
 }

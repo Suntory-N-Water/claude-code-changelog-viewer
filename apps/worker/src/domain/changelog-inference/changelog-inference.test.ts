@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { mergeChangelogItemInferences, verifyChangelogTranslations } from './changelog-inference';
+import {
+  countChangelogInferenceGaps,
+  mergeChangelogItemInferences,
+  verifyChangelogTranslations,
+} from './changelog-inference';
 
 const items = [
   {
@@ -70,5 +74,55 @@ describe('CHANGELOG 推論の整合性', () => {
         { id: 'with-docs', contentJa: '文書化された機能を追加した。' },
       ]),
     ).toThrow('AI 結果の項目 id が入力と一致しません (翻訳)');
+  });
+});
+
+describe('CHANGELOG 推論結果の欠け', () => {
+  const withDocs = {
+    id: 'with-docs',
+    content: '- Added a documented feature',
+    prefix: 'Added',
+    relatedDocs: [{ file: 'features.md', snippets: ['The feature automates the setup.'] }],
+  };
+  const withoutDocs = {
+    id: 'without-docs',
+    content: '- Added a small option',
+    prefix: 'Added',
+    relatedDocs: [],
+  };
+
+  it('日本語訳が空か英語のまま残ったとき未翻訳として数え、記号を含んでもかなを含む訳は数えないこと', () => {
+    const gaps = countChangelogInferenceGaps([
+      { ...withoutDocs, id: 'empty', contentJa: '' },
+      { ...withoutDocs, id: 'english', contentJa: 'Added a small option' },
+      { ...withoutDocs, id: 'translated', contentJa: '`--model` オプションを追加した。' },
+    ]);
+
+    expect(gaps).toEqual({
+      itemCount: 3,
+      untranslatedItemCount: 2,
+      missingBenefitItemCount: 0,
+      untranslatedBenefitItemCount: 0,
+    });
+  });
+
+  it('変更後を求める項目だけを対象に、変更後の欠けと英語のまま残った変更後を分けて数えること', () => {
+    const contentJa = '文書化された機能を追加した。';
+    const gaps = countChangelogInferenceGaps([
+      { ...withDocs, id: 'missing', contentJa },
+      { ...withDocs, id: 'blank', contentJa, benefit: '  ' },
+      { ...withDocs, id: 'english', contentJa, benefit: 'You can skip the setup.' },
+      { ...withDocs, id: 'japanese', contentJa, benefit },
+      { ...withDocs, id: 'fixed', prefix: 'Fixed', contentJa },
+      { ...withoutDocs, contentJa },
+    ]);
+
+    // missing と blank が欠け、english が英語のまま。fixed と withoutDocs は変更後を求めない
+    expect(gaps).toEqual({
+      itemCount: 6,
+      untranslatedItemCount: 0,
+      missingBenefitItemCount: 2,
+      untranslatedBenefitItemCount: 1,
+    });
   });
 });
