@@ -21,13 +21,10 @@ import {
   ChangelogTranslationResponseSchema,
 } from './changelog-inference-schema';
 import {
-  logAiFailure,
-  logAiUsage,
-  MODEL,
-  parseAiResponse,
   PARSE_FAILED_MESSAGE,
-  REASONING_EFFORT,
+  runJsonChat,
   TRUNCATED_MESSAGE,
+  withoutDoubleQuotes,
 } from './workers-ai';
 
 // 65536 のままだと暴走した応答が Workers AI の約240秒に達してしまうため、通常の出力量の
@@ -61,39 +58,6 @@ export function isUnusableAiResponseError(error: unknown): boolean {
   );
 }
 
-async function runChat(
-  ai: Pick<Cloudflare.Env['AI'], 'run'>,
-  gatewayId: string,
-  request: {
-    prompt: string;
-    maxCompletionTokens: number;
-    responseFormat:
-      | typeof ChangelogItemsResponseFormat
-      | typeof ChangelogTranslationResponseFormat
-      | typeof ChangelogSummaryResponseFormat;
-  },
-): Promise<unknown> {
-  const startedAt = Date.now();
-  let response: unknown;
-  try {
-    response = await ai.run(
-      MODEL,
-      {
-        messages: [{ role: 'user', content: request.prompt }],
-        max_completion_tokens: request.maxCompletionTokens,
-        reasoning_effort: REASONING_EFFORT,
-        response_format: request.responseFormat,
-      },
-      { gateway: { id: gatewayId } },
-    );
-  } catch (error) {
-    logAiFailure(error, startedAt);
-    throw error;
-  }
-  logAiUsage(response, startedAt);
-  return parseAiResponse(response, request.maxCompletionTokens);
-}
-
 export function createChangelogItemInferenceAi(
   ai: Pick<Cloudflare.Env['AI'], 'run'>,
   gatewayId: string,
@@ -101,7 +65,7 @@ export function createChangelogItemInferenceAi(
   return {
     async inferItems(input): Promise<ChangelogItemsAiResult> {
       const parsed = ChangelogItemsResponseSchema.safeParse(
-        await runChat(ai, gatewayId, {
+        await runJsonChat(ai, gatewayId, {
           prompt: buildItemsPrompt(input),
           maxCompletionTokens: INFERENCE_MAX_COMPLETION_TOKENS,
           responseFormat: ChangelogItemsResponseFormat,
@@ -128,7 +92,7 @@ export function createChangelogTranslationAi(
   return {
     async translateItems(release): Promise<ChangelogAiTranslationItem[]> {
       const parsed = ChangelogTranslationResponseSchema.safeParse(
-        await runChat(ai, gatewayId, {
+        await runJsonChat(ai, gatewayId, {
           prompt: buildTranslationPrompt(release),
           maxCompletionTokens: TRANSLATION_MAX_COMPLETION_TOKENS,
           responseFormat: ChangelogTranslationResponseFormat,
@@ -153,7 +117,7 @@ export function createChangelogSummaryAi(
   return {
     async summarize(release): Promise<string> {
       const parsed = ChangelogSummaryResponseSchema.safeParse(
-        await runChat(ai, gatewayId, {
+        await runJsonChat(ai, gatewayId, {
           prompt: buildSummaryPrompt(release),
           maxCompletionTokens: SUMMARY_MAX_COMPLETION_TOKENS,
           responseFormat: ChangelogSummaryResponseFormat,
@@ -181,13 +145,6 @@ const MODEL_NAME_RULES = [
   '- CHANGELOG の原文や関連ドキュメントに記載されていないモデル名・バージョン番号・スペック値を捏造しない',
   '- CHANGELOG の原文に具体的なモデル名が記載されている場合はそのまま使う',
 ].join('\n');
-
-// JSON schema 制約下のモデルは、原文の `"fork"` のような二重引用符をエスケープせずに書き写そうとし、
-// その `"` で文字列が閉じられてしまう。続きを書けなくなったモデルは空白を出力上限まで出し続けるか、
-// 途中で切れた訳を返す。プロンプトに入れる前に一重引用符へ置き換えて、書き写す元をなくす
-function withoutDoubleQuotes(text: string): string {
-  return text.replaceAll('"', "'");
-}
 
 // 原文は Markdown の箇条書きのまま保存されており、先頭の "- " を渡すと訳にも書き写される
 function toPromptContent(content: string): string {

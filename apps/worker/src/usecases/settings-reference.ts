@@ -29,10 +29,10 @@ export type RelatedSettingDocument = {
   snippets: string[];
 };
 
+// AI が生成した訳や変更後を渡すと、その誤りが用途の文にそのまま写るため、英語の原文だけを渡す
 export type RelatedSettingChangelog = {
   version: string;
-  contentJa?: string;
-  benefit?: string;
+  content: string;
 };
 
 export type SettingsReferenceEntrySourcePort = {
@@ -67,13 +67,21 @@ export type SettingsReferenceInput = {
 export type SettingsReferenceTranslation = {
   id: number;
   descriptionJa: string;
-  useCaseJa: string;
   enumDescriptionsJa: { value: string; descriptionJa: string }[];
   defaultNoteJa: string;
 };
 
-export type SettingsReferenceAiPort = {
-  infer(input: SettingsReferenceInput): Promise<SettingsReferenceTranslation[]>;
+export type SettingsReferenceUseCase = {
+  id: number;
+  useCaseJa: string;
+};
+
+export type SettingsReferenceTranslationPort = {
+  translate(entries: SettingsReferenceInputEntry[]): Promise<SettingsReferenceTranslation[]>;
+};
+
+export type SettingsReferenceUseCasePort = {
+  describeUseCase(entry: SettingsReferenceInputEntry): Promise<string>;
 };
 
 export type SettingsReferenceRecord = {
@@ -97,6 +105,7 @@ export type SettingsReferenceRepositoryPort = {
 type SettingsReferenceSaveInput = {
   input: SettingsReferenceInput;
   translations: SettingsReferenceTranslation[];
+  useCases: SettingsReferenceUseCase[];
   fetchedAt: string;
 };
 
@@ -175,14 +184,21 @@ export async function buildSettingsReferenceInput(
   };
 }
 
+// 関連ドキュメントも更新履歴もない設定は、英語説明の言い換えか、画面に別欄で出ている
+// 既定値・選択肢の繰り返ししか書けないため、用途を作らない
+export function hasUseCaseContext(entry: SettingsReferenceInputEntry): boolean {
+  return entry.docSnippets.length > 0 || entry.relatedChangelog.length > 0;
+}
+
 export async function saveSettingsReferences(
   repository: SettingsReferenceRepositoryPort,
   saveInput: SettingsReferenceSaveInput,
 ): Promise<{ count: number }> {
-  const { input, translations, fetchedAt } = saveInput;
+  const { input, translations, useCases, fetchedAt } = saveInput;
   const translationsById = new Map(
     translations.map((translation) => [translation.id, translation]),
   );
+  const useCasesById = new Map(useCases.map((useCase) => [useCase.id, useCase.useCaseJa]));
   const records = input.entries.flatMap((entry) => {
     const translation = translationsById.get(entry.id);
     if (translation === undefined) {
@@ -190,6 +206,7 @@ export async function saveSettingsReferences(
     }
 
     const leafName = entry.key.split('.').at(-1) ?? entry.key;
+    const useCaseJa = useCasesById.get(entry.id)?.trim() ?? '';
     const defaultNoteJa =
       entry.defaultNote !== undefined && JAPANESE_TEXT_PATTERN.test(translation.defaultNoteJa)
         ? translation.defaultNoteJa
@@ -202,7 +219,7 @@ export async function saveSettingsReferences(
         source: entry.source,
         descriptionEn: entry.descriptionEn,
         descriptionJa: translation.descriptionJa,
-        useCaseJa: translation.useCaseJa === '' ? null : translation.useCaseJa,
+        useCaseJa: JAPANESE_TEXT_PATTERN.test(useCaseJa) ? useCaseJa : null,
         enumDescriptionsJa: buildEnumDescriptionsJa(
           entry.enumDescriptions,
           translation.enumDescriptionsJa,

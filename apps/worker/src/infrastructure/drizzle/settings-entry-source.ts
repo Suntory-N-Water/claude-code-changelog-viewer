@@ -64,8 +64,7 @@ export function createSettingsEntrySource(
       const rows = await db
         .select({
           version: changelogItems.version,
-          contentJa: changelogItems.contentJa,
-          benefit: changelogItems.inferenceBenefit,
+          content: changelogItems.content,
         })
         .from(changelogItems)
         .where(or(...conditions));
@@ -82,11 +81,7 @@ export function createSettingsEntrySource(
         return 0;
       });
 
-      return rows.map((row) => ({
-        version: row.version,
-        ...(row.contentJa === null ? {} : { contentJa: row.contentJa }),
-        ...(row.benefit === null ? {} : { benefit: row.benefit }),
-      }));
+      return rows;
     },
   };
 }
