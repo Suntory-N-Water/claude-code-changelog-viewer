@@ -121,8 +121,12 @@ export async function processChangelogRelease(
     inferenceRepository,
     skipReporter,
   }: ChangelogReleaseProcessingDependencies,
-  release: ChangelogRelease,
+  {
+    release,
+    fallbackTranslations = [],
+  }: { release: ChangelogRelease; fallbackTranslations?: ChangelogAiTranslationItem[] },
 ): Promise<ChangelogInferenceGaps> {
+  const fallbackById = new Map(fallbackTranslations.map((item) => [item.id, item]));
   const translations: ChangelogAiTranslationItem[] = [];
   const skippedItems = new Map<string, SkippedItem>();
   for (
@@ -144,11 +148,12 @@ export async function processChangelogRelease(
         )),
       );
     } catch (error) {
-      // ここで諦めないとリリース全体が保存されないため、このバッチだけ英語原文で残す
+      // ここで諦めないとリリース全体が保存されないため、このバッチだけ既存の訳か、なければ英語原文で残す
       if (!isUnusableAiResponseError(error)) {
         throw error;
       }
       addSkippedItems(skippedItems, reportSkippedBatch(stepName, batch, error));
+      translations.push(...batch.items.flatMap((item) => fallbackById.get(item.id) ?? []));
     }
   }
 

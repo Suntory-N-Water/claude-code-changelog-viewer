@@ -34,7 +34,28 @@ function chatCompletion(content: object) {
   };
 }
 
-function mockAiRun() {
+function truncatedCompletion() {
+  return {
+    id: 'test-completion',
+    object: 'chat.completion',
+    created: 0,
+    model: '@cf/zai-org/glm-5.3-flash',
+    choices: [
+      {
+        index: 0,
+        message: {
+          role: 'assistant',
+          content: '{"translated_items":[{"id":"x","content_ja":"途中',
+          refusal: null,
+        },
+        finish_reason: 'length',
+        logprobs: null,
+      },
+    ],
+  };
+}
+
+function mockAiRun({ translationUnusable = false } = {}) {
   return vi.spyOn(testEnv.AI, 'run').mockImplementation((async (
     _model: string,
     options: {
@@ -46,6 +67,9 @@ function mockAiRun() {
     const ids = [...prompt.matchAll(/^### 項目 id=(.+)$/gm)].map((match) => match[1] ?? '');
     switch (options.response_format.json_schema.name) {
       case 'changelog_translation':
+        if (translationUnusable) {
+          return truncatedCompletion();
+        }
         return chatCompletion({
           // fixed-item は英語のまま返し、未翻訳の件数に表れることを確かめる
           translated_items: ids.map((id) => ({
@@ -87,6 +111,28 @@ async function seedVersion(version: string) {
       searchText: 'fixed a crash on startup',
     },
   ]);
+}
+
+function mockGitHubIssueAndDeployHook() {
+  const createdIssueTitles: string[] = [];
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input);
+    if (url === 'https://deploy.example/hook') {
+      return new Response(null, { status: 200 });
+    }
+    if (url.includes('/issues?') && init?.method === 'GET') {
+      return new Response('[]', { status: 200 });
+    }
+    if (url.endsWith('/issues') && init?.method === 'POST') {
+      createdIssueTitles.push((JSON.parse(String(init.body)) as { title: string }).title);
+      return new Response(JSON.stringify({ number: 1 }), { status: 201 });
+    }
+    if (url.includes('/labels')) {
+      return new Response('[]', { status: 200 });
+    }
+    throw new Error(`想定外の外部リクエスト: ${url}`);
+  });
+  return createdIssueTitles;
 }
 
 async function readStoredItems() {
@@ -252,6 +298,95 @@ describe('CHANGELOG 再生成 Workflow', () => {
       await expect(instance.getOutput()).resolves.toEqual({ regeneratedVersions: [] });
       expect(aiRun).not.toHaveBeenCalled();
       expect(fetchMock).not.toHaveBeenCalled();
+    } finally {
+      await instance.dispose();
+    }
+  });
+
+  it('翻訳 AI が使えない応答を返し続けるとき、既存の日本語訳を残し、既存の訳がない項目は NULL で保存すること', async () => {
+    const db = drizzle(testEnv.DB);
+    await db.insert(changelogVersions).values({ version: '2.1.232', summary: 'GLM 期のサマリー' });
+    await db.insert(changelogItems).values([
+      {
+        version: '2.1.232',
+        itemId: 'kept-item',
+        content: '- Fixed a crash on startup',
+        contentJa: '起動時のクラッシュを修正',
+        prefix: 'Fixed',
+        inferenceBenefit: null,
+        searchText: 'fixed a crash on startup',
+      },
+      {
+        version: '2.1.232',
+        itemId: 'missing-item',
+        content: '- Fixed a hang on exit',
+        contentJa: null,
+        prefix: 'Fixed',
+        inferenceBenefit: null,
+        searchText: 'fixed a hang on exit',
+      },
+    ]);
+    mockAiRun({ translationUnusable: true });
+    const createdIssueTitles = mockGitHubIssueAndDeployHook();
+
+    const instanceId = `regenerate-translation-skip-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.CHANGELOG_REGENERATION_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+
+      await testEnv.CHANGELOG_REGENERATION_WORKFLOW.create({
+        id: instanceId,
+        params: { fromVersion: '2.1.232', toVersion: '2.1.232' },
+      });
+
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+      await expect(readStoredItems()).resolves.toEqual([
+        {
+          version: '2.1.232',
+          itemId: 'kept-item',
+          contentJa: '起動時のクラッシュを修正',
+          inferenceBenefit: null,
+        },
+        { version: '2.1.232', itemId: 'missing-item', contentJa: null, inferenceBenefit: null },
+      ]);
+      expect(createdIssueTitles).toEqual(['v2.1.232 の 2 項目で推論を諦めました']);
+    } finally {
+      await instance.dispose();
+    }
+  });
+
+  it('fromVersion が toVersion より新しいとき、失敗 Issue を作って Workflow を失敗させ、D1 を変更しないこと', async () => {
+    await seedVersion('2.1.232');
+    const aiRun = mockAiRun();
+    const createdIssueTitles = mockGitHubIssueAndDeployHook();
+    const before = await readStoredItems();
+
+    const instanceId = `regenerate-reversed-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.CHANGELOG_REGENERATION_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+
+      await testEnv.CHANGELOG_REGENERATION_WORKFLOW.create({
+        id: instanceId,
+        params: { fromVersion: '2.1.240', toVersion: '2.1.232' },
+      });
+
+      await expect(instance.waitForStatus('errored')).resolves.not.toThrow();
+      expect(createdIssueTitles).toEqual(['CHANGELOG 再生成 Workflow に失敗']);
+      expect(aiRun).not.toHaveBeenCalled();
+      await expect(readStoredItems()).resolves.toEqual(before);
     } finally {
       await instance.dispose();
     }

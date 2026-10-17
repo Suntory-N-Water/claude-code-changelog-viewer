@@ -5,27 +5,31 @@ import { WorkflowEntrypoint } from 'cloudflare:workers';
 import type { WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { z } from 'zod';
 import type { ChangelogInferenceGaps } from '../domain/changelog-inference/changelog-inference';
-import {
-  createChangelogItemInferenceAi,
-  createChangelogSummaryAi,
-  createChangelogTranslationAi,
-} from '../infrastructure/ai/changelog-inference-ai';
+import { compareChangelogVersions } from '../domain/changelog-inference/changelog-version';
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
-import { createChangelogInferenceRepository } from '../infrastructure/drizzle/changelog-inference-repository';
 import { createStoredChangelogReleaseReader } from '../infrastructure/drizzle/stored-changelog-release-reader';
-import { searchDocsForChangelogEntry } from '../infrastructure/docs-search';
-import { createChangelogInferenceSkipReporter } from '../infrastructure/github/changelog-inference-skip-reporter';
 import { createWorkflowFailureReporter } from '../infrastructure/github/workflow-failure-issue';
 import { findRegenerationTargetVersions } from '../usecases/changelog-inference-workflow';
-import { processChangelogRelease, STEP_RETRIES } from './changelog-release-processing';
+import {
+  createChangelogReleaseProcessingDependencies,
+  processChangelogRelease,
+  STEP_RETRIES,
+} from './changelog-release-processing';
 import { createStepRunner } from './run-step';
 
 const ChangelogVersionParamSchema = z.string().regex(/^v?\d+(\.\d+)*$/);
 
-const WorkflowParamsSchema = z.object({
-  fromVersion: ChangelogVersionParamSchema,
-  toVersion: ChangelogVersionParamSchema.optional(),
-});
+const WorkflowParamsSchema = z
+  .object({
+    fromVersion: ChangelogVersionParamSchema,
+    toVersion: ChangelogVersionParamSchema.optional(),
+  })
+  // 逆転した範囲は 0 件のまま成功で終わり、指定の誤りに気づけないため弾く
+  .refine(
+    ({ fromVersion, toVersion }) =>
+      toVersion === undefined || compareChangelogVersions(fromVersion, toVersion) <= 0,
+    { message: 'fromVersion は toVersion 以下にしてください', path: ['toVersion'] },
+  );
 
 const logger = workerLogger('workflows.changelog-regeneration');
 
@@ -82,17 +86,9 @@ export class ChangelogRegenerationWorkflow extends WorkflowEntrypoint<
         throw new Error(`Workflow パラメータが不正です: ${z.prettifyError(paramsResult.error)}`);
       }
       const params = paramsResult.data;
-      const db = drizzle(this.env.DB);
-      const reader = createStoredChangelogReleaseReader(db);
+      const reader = createStoredChangelogReleaseReader(drizzle(this.env.DB));
       const buildTrigger = createDeployHookBuildTrigger(this.env.DEPLOY_HOOK_URL);
-      const processingDependencies = {
-        translator: createChangelogTranslationAi(this.env.AI, this.env.AI_GATEWAY_ID),
-        inference: createChangelogItemInferenceAi(this.env.AI, this.env.AI_GATEWAY_ID),
-        summarizer: createChangelogSummaryAi(this.env.AI, this.env.AI_GATEWAY_ID),
-        documentSearch: searchDocsForChangelogEntry.bind(null, drizzle(this.env.DOCS_DB)),
-        inferenceRepository: createChangelogInferenceRepository(db),
-        skipReporter: createChangelogInferenceSkipReporter(this.env.GITHUB_DISPATCH_TOKEN),
-      };
+      const processingDependencies = createChangelogReleaseProcessingDependencies(this.env);
 
       const versions = await runStep('list-versions', STEP_RETRIES, async () =>
         findRegenerationTargetVersions(reader, params),
@@ -101,13 +97,20 @@ export class ChangelogRegenerationWorkflow extends WorkflowEntrypoint<
       const regeneratedVersions: RegeneratedVersion[] = [];
       for (const version of versions) {
         // 全バージョン分の項目を 1 step で返すと戻り値の上限 1MiB に近づくため、バージョンごとに読む
-        const release = await runStep(`load-${version}`, STEP_RETRIES, async () =>
+        const stored = await runStep(`load-${version}`, STEP_RETRIES, async () =>
           reader.findRelease(version),
         );
-        if (release === null) {
+        if (stored === null) {
+          logger.warn('対象のバージョンが見つからないため再生成を省略します', {
+            'changelog.version': version,
+          });
           continue;
         }
-        const gaps = await processChangelogRelease(runStep, processingDependencies, release);
+        // 翻訳を諦めたバッチは原文で保存されるため、既存の日本語訳を残して劣化を防ぐ
+        const gaps = await processChangelogRelease(runStep, processingDependencies, {
+          release: stored.release,
+          fallbackTranslations: stored.translations,
+        });
         regeneratedVersions.push({ version, ...gaps });
       }
 

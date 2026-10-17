@@ -36,9 +36,14 @@ export type ExistingChangelogReader = {
   findRecordedRemovedVersions(): Promise<string[]>;
 };
 
+export type StoredChangelogRelease = {
+  release: ChangelogRelease;
+  translations: ChangelogAiTranslationItem[];
+};
+
 export type StoredChangelogReleaseReader = {
   listVersions(): Promise<string[]>;
-  findRelease(version: string): Promise<ChangelogRelease | null>;
+  findRelease(version: string): Promise<StoredChangelogRelease | null>;
 };
 
 export async function findRegenerationTargetVersions(

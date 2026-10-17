@@ -106,7 +106,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       );
 
       for (const release of classification.versions) {
-        await processChangelogRelease(runStep, processingDependencies, release);
+        await processChangelogRelease(runStep, processingDependencies, { release });
       }
 
       if (classification.notifiableVersions.length > 0) {

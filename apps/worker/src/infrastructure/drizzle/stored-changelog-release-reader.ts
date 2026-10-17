@@ -32,11 +32,20 @@ export function createStoredChangelogReleaseReader(
           id: changelogItems.itemId,
           content: changelogItems.content,
           prefix: changelogItems.prefix,
+          contentJa: changelogItems.contentJa,
         })
         .from(changelogItems)
         .where(eq(changelogItems.version, normalizedVersion))
         .orderBy(sql`rowid`);
-      return { version: formatChangelogVersion(versionRow.version), items };
+      return {
+        release: {
+          version: formatChangelogVersion(versionRow.version),
+          items: items.map(({ id, content, prefix }) => ({ id, content, prefix })),
+        },
+        translations: items.flatMap(({ id, contentJa }) =>
+          contentJa === null ? [] : [{ id, contentJa }],
+        ),
+      };
     },
   };
 }
