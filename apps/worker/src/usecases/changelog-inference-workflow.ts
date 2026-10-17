@@ -4,6 +4,7 @@ import {
   type ExistingChangelogItem,
 } from '../domain/changelog-inference/changelog-classification';
 import type {
+  ChangelogAiTranslationItem,
   ChangelogInferenceInput,
   ChangelogInferenceRepository,
   ChangelogItemInference,
@@ -84,14 +85,18 @@ export async function notifyChangelogVersions(
 
 export type SaveChangelogInferenceInput = {
   input: ChangelogInferenceInput;
+  translations: ChangelogAiTranslationItem[];
   itemInferences: ChangelogItemInference[];
   summary: string;
 };
 
 export async function saveChangelogInference(
   repository: ChangelogInferenceRepository,
-  { input, itemInferences, summary }: SaveChangelogInferenceInput,
+  { input, translations, itemInferences, summary }: SaveChangelogInferenceInput,
 ): Promise<{ version: string }> {
+  const contentJaById = new Map(
+    translations.map((translation) => [translation.id, translation.contentJa]),
+  );
   const inferenceById = new Map(
     itemInferences.map((itemInference) => [itemInference.id, itemInference]),
   );
@@ -103,9 +108,8 @@ export async function saveChangelogInference(
       const itemInference = inferenceById.get(item.id);
       return {
         ...item,
-        contentJa: itemInference?.contentJa ?? '',
-        featureAreas: itemInference?.featureAreas ?? [],
-        ...(itemInference?.inference === undefined ? {} : { inference: itemInference.inference }),
+        contentJa: contentJaById.get(item.id) ?? '',
+        ...(itemInference?.benefit === undefined ? {} : { benefit: itemInference.benefit }),
       };
     }),
   });

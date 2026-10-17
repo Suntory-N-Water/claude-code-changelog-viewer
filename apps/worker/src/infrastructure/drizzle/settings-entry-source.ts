@@ -65,9 +65,7 @@ export function createSettingsEntrySource(
         .select({
           version: changelogItems.version,
           contentJa: changelogItems.contentJa,
-          inferenceBefore: changelogItems.inferenceBefore,
-          inferenceAfter: changelogItems.inferenceAfter,
-          inferenceBenefit: changelogItems.inferenceBenefit,
+          benefit: changelogItems.inferenceBenefit,
         })
         .from(changelogItems)
         .where(or(...conditions));
@@ -87,17 +85,7 @@ export function createSettingsEntrySource(
       return rows.map((row) => ({
         version: row.version,
         ...(row.contentJa === null ? {} : { contentJa: row.contentJa }),
-        ...(row.inferenceBefore === null ||
-        row.inferenceAfter === null ||
-        row.inferenceBenefit === null
-          ? {}
-          : {
-              inference: {
-                before: row.inferenceBefore,
-                after: row.inferenceAfter,
-                benefit: row.inferenceBenefit,
-              },
-            }),
+        ...(row.benefit === null ? {} : { benefit: row.benefit }),
       }));
     },
   };

@@ -4,7 +4,6 @@ import {
   changelogDiffEventItems,
   changelogDiffEvents,
   changelogItems,
-  changelogItemFeatureAreas,
   changelogItemRelatedDocs,
   changelogVersions,
   settingsOfficialDocs,
@@ -97,27 +96,10 @@ export async function listChangelogItems(db: DrizzleD1Database) {
       content: changelogItems.content,
       contentJa: changelogItems.contentJa,
       prefix: changelogItems.prefix,
-      inferenceBefore: changelogItems.inferenceBefore,
-      inferenceAfter: changelogItems.inferenceAfter,
       inferenceBenefit: changelogItems.inferenceBenefit,
     })
     .from(changelogItems)
     .orderBy(sql`rowid`);
-}
-
-export async function listFeatureAreas(db: DrizzleD1Database) {
-  return db
-    .select({
-      version: changelogItemFeatureAreas.version,
-      itemId: changelogItemFeatureAreas.itemId,
-      featureArea: changelogItemFeatureAreas.featureArea,
-    })
-    .from(changelogItemFeatureAreas)
-    .orderBy(
-      changelogItemFeatureAreas.version,
-      changelogItemFeatureAreas.itemId,
-      changelogItemFeatureAreas.featureArea,
-    );
 }
 
 export async function listRelatedDocs(db: DrizzleD1Database) {

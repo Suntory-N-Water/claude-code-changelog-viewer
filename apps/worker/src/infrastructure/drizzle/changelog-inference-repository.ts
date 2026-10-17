@@ -28,9 +28,8 @@ function toIngestChangelogVersion(inference: ChangelogInference): IngestChangelo
       // 「翻訳済みだが本文が空」と区別できなくなるため NULL で保存する
       content_ja: item.contentJa === '' ? undefined : item.contentJa,
       prefix: item.prefix,
-      feature_areas: [...item.featureAreas],
       related_docs: item.relatedDocs.map((doc) => ({ file: doc.file })),
-      ...(item.inference === undefined ? {} : { inference: item.inference }),
+      ...(item.benefit === undefined ? {} : { benefit: item.benefit }),
     })),
   };
 }

@@ -103,12 +103,7 @@ const vertexItem = {
   content: '- Added interactive Google Vertex AI setup wizard',
   content_ja: 'Google Vertex AI 用のセットアップウィザードを追加しました。',
   prefix: 'Added',
-  feature_areas: ['Settings', 'Model'],
-  inference: {
-    before: '手動で環境変数を構成する必要がありました。',
-    after: 'ウィザード形式で設定を進められるようになりました。',
-    benefit: '素早く確実に使い始めることができます。',
-  },
+  benefit: '素早く確実に使い始めることができます。',
 };
 
 const advisorSetting: IngestSetting = {

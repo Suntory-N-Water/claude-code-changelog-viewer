@@ -65,8 +65,6 @@ describe('設定リファレンス生成 Workflow', () => {
       content: '- Added permissions.additionalDirectories support',
       contentJa: 'permissions.additionalDirectories のサポートを追加しました。',
       prefix: 'Added',
-      inferenceBefore: '追加ディレクトリを指定できませんでした。',
-      inferenceAfter: '追加ディレクトリを指定できるようになりました。',
       inferenceBenefit: '必要な作業領域へアクセスできます。',
       searchText: 'permissions.additionaldirectories',
     });

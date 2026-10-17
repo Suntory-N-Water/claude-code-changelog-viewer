@@ -84,7 +84,7 @@ describe('ドキュメント検索 (FTS5)', () => {
   it('検索語が空白だけの時、空を返すこと', async () => {
     db = await seed([{ path: 'guide.md', content: 'Hooks run shell commands.' }]);
 
-    await expect(searchDocsForChangelogEntry(db, '   ')).resolves.toEqual([]);
+    await expect(searchDocsForChangelogEntry(db, '   ', 0)).resolves.toEqual([]);
   });
 
   it.each([
@@ -97,7 +97,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     async ({ term, expected }) => {
       db = await seed([{ path: 'guide.md', content: 'Permission rules use allow and deny.' }]);
 
-      const results = await searchDocsForChangelogEntry(db, term);
+      const results = await searchDocsForChangelogEntry(db, term, 0);
 
       expect(results.map((result) => result.file)).toEqual(expected);
     },
@@ -116,7 +116,7 @@ describe('ドキュメント検索 (FTS5)', () => {
       },
     ]);
 
-    const results = await searchDocsForChangelogEntry(db, 'additionalDirectories');
+    const results = await searchDocsForChangelogEntry(db, 'additionalDirectories', 0);
 
     expect(results.map((result) => result.file)).toEqual(['iam.md', 'settings.md']);
   });
@@ -131,7 +131,7 @@ describe('ドキュメント検索 (FTS5)', () => {
       ).flat(),
     );
 
-    const results = await searchDocsForChangelogEntry(db, 'hook');
+    const results = await searchDocsForChangelogEntry(db, 'hook', 0);
 
     expect(results.map((result) => result.file)).toEqual(['doc-3.md', 'doc-2.md', 'doc-1.md']);
     expect(results.map((result) => result.snippets.length)).toEqual([3, 3, 3]);
@@ -152,7 +152,7 @@ describe('ドキュメント検索 (FTS5)', () => {
       },
     ]);
 
-    await expect(searchDocsForChangelogEntry(db, 'Fixed Notification hooks')).resolves.toEqual([
+    await expect(searchDocsForChangelogEntry(db, 'Fixed Notification hooks', 0)).resolves.toEqual([
       {
         file: 'settings.md',
         snippets: [
@@ -180,7 +180,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     ].join('\n');
     db = await seed([{ path: 'settings.md', content }]);
 
-    const [result] = await searchDocsForChangelogEntry(db, 'option');
+    const [result] = await searchDocsForChangelogEntry(db, 'option', 0);
 
     expect(result?.snippets[0]?.length).toBeLessThanOrEqual(4000);
     expect(result?.snippets[0]).toContain('# Configuration reference');
@@ -195,7 +195,7 @@ describe('ドキュメント検索 (FTS5)', () => {
     ].join('\n\n');
     db = await seed([{ path: 'settings.md', content }]);
 
-    const [result] = await searchDocsForChangelogEntry(db, 'Notification hooks');
+    const [result] = await searchDocsForChangelogEntry(db, 'Notification hooks', 0);
 
     expect(result?.snippets[0]?.length).toBeLessThanOrEqual(4000);
     expect(result?.snippets[0]).toContain('Notification hooks configure permission prompts.');
@@ -207,11 +207,94 @@ describe('ドキュメント検索 (FTS5)', () => {
       { path: 'unrelated.md', content: 'Set the output style.' },
     ]);
 
-    await expect(searchDocsForChangelogEntry(db, 'Fixed session resume')).resolves.toMatchObject([
-      { file: 'conversation.md' },
+    await expect(searchDocsForChangelogEntry(db, 'Fixed session resume', 0)).resolves.toMatchObject(
+      [{ file: 'conversation.md' }],
+    );
+  });
+
+  it.each(['- Fixed the crash when it exits', '- [VSCode] Fixed the crash when it exits'])(
+    'CHANGELOG の項目 %s がストップワードと先頭の分類語でしか一致しないドキュメントの時、そのドキュメントを返さないこと',
+    async (entry) => {
+      db = await seed([
+        { path: 'release-notes.md', content: 'This was fixed in the latest release.' },
+        { path: 'errors.md', content: 'A crash report is written on exit.' },
+      ]);
+
+      const results = await searchDocsForChangelogEntry(db, entry, 0);
+
+      expect(results.map((result) => result.file)).toEqual(['errors.md']);
+    },
+  );
+
+  it('CHANGELOG の項目と一部の語しか一致しないファイルの時、足切りして返さないこと', async () => {
+    db = await seed([
+      ...backgroundChunks(),
+      {
+        path: 'hooks.md',
+        content:
+          'Notification hooks fire on permission prompts. Configure Notification hooks for permission prompts in settings.',
+      },
+      { path: 'terminal.md', content: 'The terminal can show a permission prompt.' },
+    ]);
+
+    const results = await searchDocsForChangelogEntry(
+      db,
+      '- Fixed Notification hooks not firing for permission prompts',
+    );
+
+    expect(results.map((result) => result.file)).toEqual(['hooks.md']);
+  });
+
+  it('CHANGELOG の項目がどのファイルとも一部の語しか一致しない時、空を返すこと', async () => {
+    db = await seed([
+      ...backgroundChunks(),
+      { path: 'terminal.md', content: 'The terminal can show a permission prompt.' },
+    ]);
+
+    await expect(
+      searchDocsForChangelogEntry(
+        db,
+        '- Fixed Notification hooks not firing for permission prompts',
+      ),
+    ).resolves.toEqual([]);
+  });
+
+  it('足切りを通ったファイルに足切り未満のチャンクがある時、そのチャンクをスニペットに含めず、ヒット件数には数えること', async () => {
+    db = await seed([
+      ...backgroundChunks(),
+      {
+        path: 'hooks.md',
+        content:
+          'Notification hooks fire on permission prompts. Configure Notification hooks for permission prompts in settings.',
+      },
+      { path: 'hooks.md', content: 'Hooks are listed in the reference.' },
+    ]);
+
+    await expect(
+      searchDocsForChangelogEntry(
+        db,
+        '- Fixed Notification hooks not firing for permission prompts',
+      ),
+    ).resolves.toEqual([
+      {
+        file: 'hooks.md',
+        snippets: [
+          'Notification hooks fire on permission prompts. Configure Notification hooks for permission prompts in settings.',
+        ],
+        hitCount: 2,
+      },
     ]);
   });
 });
+
+// bm25() の IDF は索引全体の件数で決まり、数件の索引ではどの語も足切り値に届かない。
+// 複数の語が一致すれば足切り値を超える程度まで IDF を上げるため、検索語を含まないチャンクで埋める
+function backgroundChunks(): ChunkInput[] {
+  return Array.from({ length: 500 }, (_, index) => ({
+    path: `background-${index % 50}.md`,
+    content: `Unrelated reference text number ${index}.`,
+  }));
+}
 
 async function seed(chunks: ChunkInput[]): Promise<DrizzleD1Database> {
   rawDb = new FakeDocsD1Database();

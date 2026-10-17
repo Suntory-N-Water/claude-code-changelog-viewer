@@ -1,36 +1,17 @@
 ---
-import type { InferenceResult } from '@claude-code-changelog-viewer/types';
 import Icon from '../Icon.astro';
 import { formatChangelogContent } from '../../lib/format-changelog-content';
 
 type Props = {
-  inference: InferenceResult;
+  benefit: string;
 };
 
-const { inference } = Astro.props;
+const { benefit } = Astro.props;
 
-const formattedBefore = formatChangelogContent(inference.before);
-const formattedAfter = formatChangelogContent(inference.after);
-const formattedBenefit = formatChangelogContent(inference.benefit);
+const formattedBenefit = formatChangelogContent(benefit);
 ---
 
-<div class='mt-4 space-y-3 border-l-4 border-[hsl(var(--cc-main-orange))] pl-4'>
-  <div class='flex items-start gap-2'>
-    <Icon name='minus-circle' class='w-4 h-4 text-gray-500 shrink-0 mt-0.5' aria-hidden='true' />
-    <div class='min-w-0'>
-      <p class='font-semibold text-sm text-gray-600'>変更前</p>
-      <p class='mt-1 text-sm wrap-break-word' set:html={formattedBefore} />
-    </div>
-  </div>
-
-  <div class='flex items-start gap-2'>
-    <Icon name='plus-circle' class='w-4 h-4 text-gray-500 shrink-0 mt-0.5' aria-hidden='true' />
-    <div class='min-w-0'>
-      <p class='font-semibold text-sm text-gray-600'>変更後</p>
-      <p class='mt-1 text-sm wrap-break-word' set:html={formattedAfter} />
-    </div>
-  </div>
-
+<div class='mt-4 border-l-4 border-[hsl(var(--cc-main-orange))] pl-4'>
   <div class='flex items-start gap-2'>
     <Icon
       name='check-circle'
@@ -38,7 +19,7 @@ const formattedBenefit = formatChangelogContent(inference.benefit);
       aria-hidden='true'
     />
     <div class='min-w-0'>
-      <p class='font-semibold text-sm text-[hsl(var(--cc-main-orange))]'>ユーザーへの恩恵</p>
+      <p class='font-semibold text-sm text-[hsl(var(--cc-main-orange))]'>変更後</p>
       <p class='mt-1 text-sm wrap-break-word font-medium' set:html={formattedBenefit} />
     </div>
   </div>

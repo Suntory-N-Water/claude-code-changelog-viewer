@@ -130,14 +130,30 @@ export function findRelatedChangelogs(
   return results;
 }
 
-export function collectFeatureAreas(items: ChangelogItemWithVersion[]): Set<string> {
-  const areas = new Set<string>();
-  for (const { item } of items) {
-    for (const area of item.feature_areas ?? []) {
-      areas.add(area);
+export type VersionGroup = { version: string; items: InferredChangelogItem[] };
+
+/** バージョン降順でソートし、グループ内は JSON 配列順を保つ */
+export function groupByVersion(
+  items: ChangelogItemWithVersion[],
+  compareFn: (a: string, b: string) => number,
+): VersionGroup[] {
+  const groupMap = new Map<string, InferredChangelogItem[]>();
+
+  for (const { version, item } of items) {
+    const existing = groupMap.get(version);
+    if (existing) {
+      existing.push(item);
+    } else {
+      groupMap.set(version, [item]);
     }
   }
-  return areas;
+
+  const sorted = [...groupMap.entries()].sort(([a], [b]) => compareFn(a, b));
+
+  return sorted.map(([version, groupItems]) => ({
+    version,
+    items: groupItems,
+  }));
 }
 
 const CLAUDE_CODE_DOCS_BASE = 'https://code.claude.com/docs';

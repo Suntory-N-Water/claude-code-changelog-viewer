@@ -8,7 +8,6 @@ import {
   listChangelogVersions,
   listDiffEventItems,
   listDiffEvents,
-  listFeatureAreas,
   listRelatedDocs,
   listSettingsReference,
 } from '../infrastructure/drizzle/changelog-repository';
@@ -32,13 +31,11 @@ siteDataRoute.get('/changelog', async (c) => {
   const db = drizzle(c.env.DB);
   let versionRows: Awaited<ReturnType<typeof listChangelogVersions>>;
   let itemRows: Awaited<ReturnType<typeof listChangelogItems>>;
-  let featureAreaRows: Awaited<ReturnType<typeof listFeatureAreas>>;
   let relatedDocRows: Awaited<ReturnType<typeof listRelatedDocs>>;
   try {
-    [versionRows, itemRows, featureAreaRows, relatedDocRows] = await Promise.all([
+    [versionRows, itemRows, relatedDocRows] = await Promise.all([
       listChangelogVersions(db),
       listChangelogItems(db),
-      listFeatureAreas(db),
       listRelatedDocs(db),
     ]);
   } catch (error) {
@@ -47,15 +44,6 @@ siteDataRoute.get('/changelog', async (c) => {
       error: toError(error),
     });
     throw error;
-  }
-
-  const featureAreasByVersion = new Map<string, Map<string, string[]>>();
-  for (const row of featureAreaRows) {
-    const areasByItem = featureAreasByVersion.get(row.version) ?? new Map<string, string[]>();
-    const areas = areasByItem.get(row.itemId) ?? [];
-    areas.push(row.featureArea);
-    areasByItem.set(row.itemId, areas);
-    featureAreasByVersion.set(row.version, areasByItem);
   }
 
   const relatedDocsByVersion = new Map<string, Map<string, { doc_path: string }[]>>();
@@ -74,22 +62,13 @@ siteDataRoute.get('/changelog', async (c) => {
       id: row.itemId,
       content: row.content,
       prefix: row.prefix,
-      feature_areas: featureAreasByVersion.get(row.version)?.get(row.itemId) ?? [],
       related_docs: relatedDocsByVersion.get(row.version)?.get(row.itemId) ?? [],
     };
     if (row.contentJa !== null) {
       item['content_ja'] = row.contentJa;
     }
-    if (
-      row.inferenceBefore !== null &&
-      row.inferenceAfter !== null &&
-      row.inferenceBenefit !== null
-    ) {
-      item['inference'] = {
-        before: row.inferenceBefore,
-        after: row.inferenceAfter,
-        benefit: row.inferenceBenefit,
-      };
+    if (row.inferenceBenefit !== null) {
+      item['benefit'] = row.inferenceBenefit;
     }
     const items = itemsByVersion.get(row.version) ?? [];
     items.push(item);

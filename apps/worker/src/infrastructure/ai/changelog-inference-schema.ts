@@ -1,29 +1,33 @@
-import { InferenceWithTranslationSchema } from '@claude-code-changelog-viewer/types';
 import { z } from 'zod';
 
-const InferredItemSchema = InferenceWithTranslationSchema.extend({
+// 短い原文からは短い文しか生まれない。1 項目が下限を割るだけでバッチ全体が失敗するため、
+// 下限は空文字を弾くだけにする
+const InferredItemSchema = z.object({
   id: z.string().min(1),
+  benefit: z.string().min(1).max(500),
 });
 
 const TranslatedItemSchema = z.object({
   id: z.string().min(1),
-  content_ja: z.string().min(10).max(500),
+  content_ja: z.string().min(1).max(500),
 });
 
-const FeatureAreaCorrectionSchema = z.object({
-  id: z.string().min(1),
-  feature_areas: z.array(z.string().min(1)),
+export const ChangelogTranslationResponseSchema = z.object({
+  translated_items: z.array(TranslatedItemSchema).describe('各項目の日本語訳'),
 });
+
+export const ChangelogTranslationResponseFormat = {
+  type: 'json_schema',
+  json_schema: {
+    name: 'changelog_translation',
+    schema: z.toJSONSchema(ChangelogTranslationResponseSchema, {
+      target: 'draft-07',
+    }),
+  },
+} as const;
 
 export const ChangelogItemsResponseSchema = z.object({
-  inferred_items: z
-    .array(InferredItemSchema)
-    .describe('関連ドキュメントがある項目の推論と翻訳結果'),
-  translated_items: z.array(TranslatedItemSchema).describe('関連ドキュメントがない項目の翻訳結果'),
-  feature_area_corrections: z
-    .array(FeatureAreaCorrectionSchema)
-    .default([])
-    .describe('機能領域タグの付与結果。該当項目だけを返す'),
+  inferred_items: z.array(InferredItemSchema).describe('変更後を書く対象の項目の推論結果'),
 });
 
 export const ChangelogItemsResponseFormat = {

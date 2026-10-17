@@ -12,13 +12,8 @@ type ChangelogResponse = {
       content: string;
       content_ja?: string;
       prefix: string;
-      feature_areas: string[];
       related_docs: { doc_path: string }[];
-      inference?: {
-        before: string;
-        after: string;
-        benefit: string;
-      };
+      benefit?: string;
     }[];
   }[];
 };
@@ -84,11 +79,10 @@ export const changelogLoader: Loader = {
             content: item.content,
             ...(item.content_ja === undefined ? {} : { content_ja: item.content_ja }),
             prefix: item.prefix,
-            feature_areas: item.feature_areas,
             related_docs: item.related_docs.map(({ doc_path }) => ({
               file: `docs/en/${doc_path}`,
             })),
-            ...(item.inference === undefined ? {} : { inference: item.inference }),
+            ...(item.benefit === undefined ? {} : { benefit: item.benefit }),
           })),
         },
       });

@@ -80,24 +80,12 @@ export const changelogItems = sqliteTable(
     content: text('content').notNull(),
     contentJa: text('content_ja'),
     prefix: text('prefix').notNull(),
-    inferenceBefore: text('inference_before'),
-    inferenceAfter: text('inference_after'),
     inferenceBenefit: text('inference_benefit'),
     // content + content_ja + version の summary を NFKC 正規化・小文字化して連結した検索用カラム。
     // D1 は LIKE パターン長が 50 バイトのため instr() で検索する
     searchText: text('search_text').notNull(),
   },
   (table) => [primaryKey({ columns: [table.version, table.itemId] })],
-);
-
-export const changelogItemFeatureAreas = sqliteTable(
-  'changelog_item_feature_areas',
-  {
-    version: text('version').notNull(),
-    itemId: text('item_id').notNull(),
-    featureArea: text('feature_area').notNull(),
-  },
-  (table) => [primaryKey({ columns: [table.version, table.itemId, table.featureArea] })],
 );
 
 export const changelogItemRelatedDocs = sqliteTable(

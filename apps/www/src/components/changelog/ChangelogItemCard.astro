@@ -1,6 +1,5 @@
 ---
 import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
-import { getFeatureAreaLabel, toFeatureAreaSlug } from '../../lib/feature-area';
 import { formatChangelogContent } from '../../lib/format-changelog-content';
 import { getPrefixPresentation } from '../../lib/prefix';
 import InferenceDetail from './InferenceDetail.astro';
@@ -11,11 +10,9 @@ import Card from '../ui/Card.astro';
 type Props = {
   item: InferredChangelogItem;
   anchorId?: string;
-  /** ページが存在する feature_area の Set(未指定時はリンクを生成しない) */
-  linkedAreas?: Set<string>;
 };
 
-const { item, anchorId, linkedAreas } = Astro.props;
+const { item, anchorId } = Astro.props;
 const formattedContent = formatChangelogContent(item.content);
 const hasJaTranslation = !!item.content_ja;
 const formattedContentJa = item.content_ja ? formatChangelogContent(item.content_ja) : '';
@@ -55,31 +52,6 @@ const { style: prefixStyle, icon: prefixIcon } = getPrefixPresentation(item.pref
     }
 
     {
-      item.feature_areas && item.feature_areas.length > 0 && (
-        <div class='flex flex-wrap gap-1.5 mb-3'>
-          {item.feature_areas.map((area) =>
-            linkedAreas?.has(area) ? (
-              <Badge
-                href={`/features/${toFeatureAreaSlug(area)}`}
-                class='gap-1 text-[hsl(var(--cc-main-black)/0.6)] hover:bg-[hsl(var(--cc-main-orange)/0.1)] hover:text-[hsl(var(--cc-main-orange))] transition-[background-color,color]'
-                data-pagefind-filter={`feature_area:${area}`}
-              >
-                {getFeatureAreaLabel(area)}
-              </Badge>
-            ) : (
-              <Badge
-                class='gap-1 text-[hsl(var(--cc-main-black)/0.6)]'
-                data-pagefind-filter={`feature_area:${area}`}
-              >
-                {getFeatureAreaLabel(area)}
-              </Badge>
-            ),
-          )}
-        </div>
-      )
-    }
-
-    {
       hasJaTranslation ? (
         <>
           <div class='mb-4 p-4 bg-[hsl(var(--cc-main-orange)/0.05)] border-l-4 border-[hsl(var(--cc-main-orange))] rounded-r'>
@@ -107,7 +79,7 @@ const { style: prefixStyle, icon: prefixIcon } = getPrefixPresentation(item.pref
     }
   </div>
 
-  {item.inference && <InferenceDetail inference={item.inference} />}
+  {item.benefit && <InferenceDetail benefit={item.benefit} />}
 
   <RelatedDocsList docs={item.related_docs} />
 </Card>

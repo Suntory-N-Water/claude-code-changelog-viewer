@@ -223,10 +223,8 @@ function buildContextEntry(entry: SettingsReferenceInputEntry): string {
               if (changelog.contentJa) {
                 lines.push(`- ${changelog.contentJa}`);
               }
-              if (changelog.inference) {
-                lines.push(`  変更前: ${changelog.inference.before}`);
-                lines.push(`  変更後: ${changelog.inference.after}`);
-                lines.push(`  恩恵: ${changelog.inference.benefit}`);
+              if (changelog.benefit) {
+                lines.push(`  変更後: ${changelog.benefit}`);
               }
               return lines.join('\n');
             })

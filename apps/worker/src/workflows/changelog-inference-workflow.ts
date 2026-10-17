@@ -8,13 +8,17 @@ import type {
   WorkflowStepConfigWithStaticDelay,
 } from 'cloudflare:workers';
 import { z } from 'zod';
-import type {
-  ChangelogInferenceInput,
-  ChangelogItemInference,
+import {
+  needsBenefit,
+  type ChangelogAiTranslationItem,
+  type ChangelogInferenceInput,
+  type ChangelogItem,
+  type ChangelogItemInference,
 } from '../domain/changelog-inference/changelog-inference';
 import {
   createChangelogItemInferenceAi,
   createChangelogSummaryAi,
+  createChangelogTranslationAi,
   isUnusableAiResponseError,
 } from '../infrastructure/ai/changelog-inference-ai';
 import { createChangelogInferenceSkipReporter } from '../infrastructure/github/changelog-inference-skip-reporter';
@@ -30,6 +34,7 @@ import { createChangelogWorkflowNotifier } from '../infrastructure/notification/
 import {
   buildChangelogInferenceInput,
   inferChangelogItemBatch,
+  translateChangelogItemBatch,
 } from '../usecases/changelog-inference';
 import type { ChangelogFailureReporterPort } from '../usecases/changelog-inference-workflow';
 import {
@@ -44,20 +49,21 @@ const WorkflowParamsSchema = z.object({
   detectedAt: z.string().min(1),
 });
 
-// AI 出力が空白ループに落ちる頻度が実測で約3割あり、3 回では 6 バッチ中どれかが落ち切る確率が
-// 15% 残る。5 回まで許すと 1.5% まで下がる
 const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
   retries: {
-    limit: 5,
+    limit: 3,
     delay: '10 seconds',
     backoff: 'exponential',
   },
 };
 
-// 制約付きデコードの空白ループは 1 回のリクエストで生成させる配列要素が増えるほど起きやすい。
-// 実測では同じ 5 項目が毎回失敗し、1 項目ずつなら 5 項目中 4 項目が 10 秒前後で成功した。
-// 残る 1 項目は単独でも失敗するため、失敗を 1 項目に切り離す目的も兼ねて 1 にする
-const BATCH_SIZE = 1;
+// 翻訳だけのプロンプトなら 89 項目を 1 回で処理しても全件成功した (2026-10-14 計測)。
+// 1 回の失敗で巻き添えになる項目を抑えるため 30 件で区切る
+const TRANSLATION_BATCH_SIZE = 30;
+
+// 推論は関連ドキュメント付きの入れ子の JSON を返させるため、翻訳と違って空白ループが残りうる。
+// 1 件の失敗で同じバッチの推論がまとめて失われないよう、1 項目ずつ切り離す
+const INFERENCE_BATCH_SIZE = 1;
 
 // 1 項目の snippets は最大 8000 字で、約 180 項目のリリースを 1 step にまとめると
 // step の戻り値の上限 1MiB を超えうる。20 項目なら最大でも約 160KB に収まる
@@ -66,6 +72,36 @@ const SEARCH_CHUNK_SIZE = 20;
 const logger = workerLogger('workflows.changelog-inference');
 
 export type ChangelogInferenceWorkflowParams = z.infer<typeof WorkflowParamsSchema>;
+
+type SkippedItem = { id: string; content: string; reason: string };
+
+function reportSkippedBatch(
+  stepName: string,
+  batch: { version: string; items: ChangelogItem[] },
+  error: unknown,
+): SkippedItem[] {
+  const { version, items } = batch;
+  logger.warn('AI 処理を諦めて原文のまま保存します', {
+    'workflow.step': stepName,
+    'changelog.version': version,
+    'changelog.item_ids': items.map((item) => item.id),
+    error: toError(error),
+  });
+  const reason = `${stepName}: ${toError(error).message}`;
+  return items.map((item) => ({ id: item.id, content: item.content, reason }));
+}
+
+// 翻訳を諦めた項目も推論の対象に残るため、推論も諦めると同じ項目が 2 回届く。
+// Issue の件数と項目の一覧が水増しされないよう、項目ごとに 1 件へまとめて理由を並べる
+function addSkippedItems(skippedItems: Map<string, SkippedItem>, items: SkippedItem[]): void {
+  for (const item of items) {
+    const existing = skippedItems.get(item.id);
+    skippedItems.set(
+      item.id,
+      existing === undefined ? item : { ...item, reason: `${existing.reason} / ${item.reason}` },
+    );
+  }
+}
 
 export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
   CloudflareBindings,
@@ -126,6 +162,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       const inferenceRepository = createChangelogInferenceRepository(db);
       const source = createGitHubChangelogMarkdownSource(this.env.GITHUB_DISPATCH_TOKEN);
       const documentSearch = searchDocsForChangelogEntry.bind(null, drizzle(this.env.DOCS_DB));
+      const translator = createChangelogTranslationAi(this.env.AI, this.env.AI_GATEWAY_ID);
       const inference = createChangelogItemInferenceAi(this.env.AI, this.env.AI_GATEWAY_ID);
       const summarizer = createChangelogSummaryAi(this.env.AI, this.env.AI_GATEWAY_ID);
       const notifier = createChangelogWorkflowNotifier(db, this.env.NOTIFICATION_QUEUE);
@@ -145,6 +182,35 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       );
 
       for (const release of classification.versions) {
+        const translations: ChangelogAiTranslationItem[] = [];
+        const skippedItems = new Map<string, SkippedItem>();
+        for (
+          let batchStart = 0, batchIndex = 0;
+          batchStart < release.items.length;
+          batchStart += TRANSLATION_BATCH_SIZE, batchIndex += 1
+        ) {
+          const batch = {
+            version: release.version,
+            items: release.items.slice(batchStart, batchStart + TRANSLATION_BATCH_SIZE),
+          };
+          const stepName = `translate-${release.version}-${batchIndex}`;
+          try {
+            translations.push(
+              ...(await runStep(stepName, STEP_RETRIES, async () =>
+                runWithLogContext({ 'ai.batch_index': batchIndex }, () =>
+                  translateChangelogItemBatch(translator, batch),
+                ),
+              )),
+            );
+          } catch (error) {
+            // ここで諦めないとリリース全体が保存されないため、このバッチだけ英語原文で残す
+            if (!isUnusableAiResponseError(error)) {
+              throw error;
+            }
+            addSkippedItems(skippedItems, reportSkippedBatch(stepName, batch, error));
+          }
+        }
+
         const inferenceInput: ChangelogInferenceInput = {
           version: release.version,
           items: [],
@@ -165,52 +231,34 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
           );
           inferenceInput.items.push(...chunk.items);
         }
+        // 翻訳は済んでいるため、推論を諦めても日本語訳は残る
         const itemInferences: ChangelogItemInference[] = [];
-        const skippedItems: { id: string; content: string; reason: string }[] = [];
+        // 変更後を求めない項目は AI を呼ばないため、step を作らずに済ませる。
+        // Fixed だけで全項目の約 6 割あり、大きなリリースでは step 数が大きく減る
+        const benefitTargets = inferenceInput.items.filter(needsBenefit);
         for (
           let batchStart = 0, batchIndex = 0;
-          batchStart < inferenceInput.items.length;
-          batchStart += BATCH_SIZE, batchIndex += 1
+          batchStart < benefitTargets.length;
+          batchStart += INFERENCE_BATCH_SIZE, batchIndex += 1
         ) {
           const batch = {
             version: inferenceInput.version,
-            items: inferenceInput.items.slice(batchStart, batchStart + BATCH_SIZE),
+            items: benefitTargets.slice(batchStart, batchStart + INFERENCE_BATCH_SIZE),
           };
+          const stepName = `infer-${release.version}-${batchIndex}`;
           try {
             itemInferences.push(
-              ...(await runStep(`infer-${release.version}-${batchIndex}`, STEP_RETRIES, async () =>
+              ...(await runStep(stepName, STEP_RETRIES, async () =>
                 runWithLogContext({ 'ai.batch_index': batchIndex }, () =>
                   inferChangelogItemBatch(inference, batch),
                 ),
               )),
             );
           } catch (error) {
-            // 空白ループによる打ち切りは再試行を使い切っても回復しないことがある。
-            // ここで諦めないとリリース全体が保存されないため、この項目だけ英語原文で残す
             if (!isUnusableAiResponseError(error)) {
               throw error;
             }
-            const reason = toError(error).message;
-            logger.warn('推論を諦めて原文のまま保存します', {
-              'workflow.step': `infer-${release.version}-${batchIndex}`,
-              'changelog.version': release.version,
-              'changelog.item_ids': batch.items.map((item) => item.id),
-              error: toError(error),
-            });
-            skippedItems.push(
-              ...batch.items.map((item) => ({
-                id: item.id,
-                content: item.content,
-                reason,
-              })),
-            );
-            itemInferences.push(
-              ...batch.items.map((item) => ({
-                id: item.id,
-                contentJa: '',
-                featureAreas: [],
-              })),
-            );
+            addSkippedItems(skippedItems, reportSkippedBatch(stepName, batch, error));
           }
         }
 
@@ -224,22 +272,23 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         await runStep(`store-${release.version}`, STEP_RETRIES, async () =>
           saveChangelogInference(inferenceRepository, {
             input: inferenceInput,
+            translations,
             itemInferences,
             summary,
           }),
         );
 
-        if (skippedItems.length > 0) {
+        if (skippedItems.size > 0) {
           await runStep(
             `report-skipped-${release.version}`,
             {
               ...STEP_RETRIES,
-              attrs: { 'changelog.skipped_item_count': skippedItems.length },
+              attrs: { 'changelog.skipped_item_count': skippedItems.size },
             },
             async () =>
               skipReporter.report({
                 version: release.version,
-                items: skippedItems,
+                items: [...skippedItems.values()],
               }),
           );
         }
