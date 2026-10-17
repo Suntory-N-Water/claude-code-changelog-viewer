@@ -143,11 +143,13 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
           });
           continue;
         }
+        const translatedIds = new Set(translations.map((translation) => translation.id));
+        const translatedEntries = input.entries.filter((entry) => translatedIds.has(entry.id));
 
         // 用途は関連ドキュメント付きで 1 件ずつ書かせる。30 件をまとめると入力が約 5 万トークンになり、
         // 1 件の失敗で同じバッチの用途がまとめて失われる
         const useCases: SettingsReferenceUseCase[] = [];
-        for (const entry of input.entries.filter(hasUseCaseContext)) {
+        for (const entry of translatedEntries.filter(hasUseCaseContext)) {
           const useCaseStep = `use-case-${batchIndex}-${entry.id}`;
           try {
             useCases.push(
@@ -179,10 +181,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
             fetchedAt,
           }),
         );
-        const translatedIds = new Set(translations.map((translation) => translation.id));
-        processedKeys.push(
-          ...input.entries.filter((entry) => translatedIds.has(entry.id)).map((entry) => entry.key),
-        );
+        processedKeys.push(...translatedEntries.map((entry) => entry.key));
       }
 
       if (processedKeys.length > 0) {
