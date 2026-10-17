@@ -8,11 +8,12 @@ import type {
   WorkflowStepConfigWithStaticDelay,
 } from 'cloudflare:workers';
 import { z } from 'zod';
-import type {
-  ChangelogAiTranslationItem,
-  ChangelogInferenceInput,
-  ChangelogItem,
-  ChangelogItemInference,
+import {
+  needsBenefit,
+  type ChangelogAiTranslationItem,
+  type ChangelogInferenceInput,
+  type ChangelogItem,
+  type ChangelogItemInference,
 } from '../domain/changelog-inference/changelog-inference';
 import {
   createChangelogItemInferenceAi,
@@ -218,14 +219,17 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
         }
         // 翻訳は済んでいるため、推論を諦めても日本語訳は残る
         const itemInferences: ChangelogItemInference[] = [];
+        // 変更後を求めない項目は AI を呼ばないため、step を作らずに済ませる。
+        // Fixed だけで全項目の約 6 割あり、大きなリリースでは step 数が大きく減る
+        const benefitTargets = inferenceInput.items.filter(needsBenefit);
         for (
           let batchStart = 0, batchIndex = 0;
-          batchStart < inferenceInput.items.length;
+          batchStart < benefitTargets.length;
           batchStart += INFERENCE_BATCH_SIZE, batchIndex += 1
         ) {
           const batch = {
             version: inferenceInput.version,
-            items: inferenceInput.items.slice(batchStart, batchStart + INFERENCE_BATCH_SIZE),
+            items: benefitTargets.slice(batchStart, batchStart + INFERENCE_BATCH_SIZE),
           };
           const stepName = `infer-${release.version}-${batchIndex}`;
           try {
