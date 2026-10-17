@@ -1,5 +1,6 @@
 import { runWithLogContext, toError } from '@claude-code-changelog-viewer/common';
 import type { WorkflowStepConfigWithStaticDelay } from 'cloudflare:workers';
+import { drizzle } from 'drizzle-orm/d1';
 import {
   needsBenefit,
   type ChangelogAiTranslationItem,
@@ -9,7 +10,15 @@ import {
   type ChangelogItemInference,
   type ChangelogRelease,
 } from '../domain/changelog-inference/changelog-inference';
-import { isUnusableAiResponseError } from '../infrastructure/ai/changelog-inference-ai';
+import {
+  createChangelogItemInferenceAi,
+  createChangelogSummaryAi,
+  createChangelogTranslationAi,
+  isUnusableAiResponseError,
+} from '../infrastructure/ai/changelog-inference-ai';
+import { searchDocsForChangelogEntry } from '../infrastructure/docs-search';
+import { createChangelogInferenceRepository } from '../infrastructure/drizzle/changelog-inference-repository';
+import { createChangelogInferenceSkipReporter } from '../infrastructure/github/changelog-inference-skip-reporter';
 import { workerLogger } from '../logger';
 import {
   buildChangelogInferenceInput,
@@ -58,6 +67,19 @@ export type ChangelogReleaseProcessingDependencies = {
   inferenceRepository: ChangelogInferenceRepository;
   skipReporter: ChangelogInferenceSkipReporterPort;
 };
+
+export function createChangelogReleaseProcessingDependencies(
+  env: CloudflareBindings,
+): ChangelogReleaseProcessingDependencies {
+  return {
+    translator: createChangelogTranslationAi(env.AI, env.AI_GATEWAY_ID),
+    inference: createChangelogItemInferenceAi(env.AI, env.AI_GATEWAY_ID),
+    summarizer: createChangelogSummaryAi(env.AI, env.AI_GATEWAY_ID),
+    documentSearch: searchDocsForChangelogEntry.bind(null, drizzle(env.DOCS_DB)),
+    inferenceRepository: createChangelogInferenceRepository(drizzle(env.DB)),
+    skipReporter: createChangelogInferenceSkipReporter(env.GITHUB_DISPATCH_TOKEN),
+  };
+}
 
 function reportSkippedBatch(
   stepName: string,

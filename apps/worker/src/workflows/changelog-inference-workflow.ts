@@ -4,17 +4,9 @@ import { runWithLogContext, toError } from '@claude-code-changelog-viewer/common
 import { WorkflowEntrypoint } from 'cloudflare:workers';
 import type { WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { z } from 'zod';
-import {
-  createChangelogItemInferenceAi,
-  createChangelogSummaryAi,
-  createChangelogTranslationAi,
-} from '../infrastructure/ai/changelog-inference-ai';
-import { createChangelogInferenceSkipReporter } from '../infrastructure/github/changelog-inference-skip-reporter';
 import { createDeployHookBuildTrigger } from '../infrastructure/build/deploy-hook';
 import { createChangelogDiffRepository } from '../infrastructure/drizzle/changelog-diff-repository';
-import { createChangelogInferenceRepository } from '../infrastructure/drizzle/changelog-inference-repository';
 import { createExistingChangelogReader } from '../infrastructure/drizzle/existing-changelog-reader';
-import { searchDocsForChangelogEntry } from '../infrastructure/docs-search';
 import { createGitHubChangelogMarkdownSource } from '../infrastructure/github/changelog-source';
 import { createWorkflowFailureReporter } from '../infrastructure/github/workflow-failure-issue';
 import { parseChangelogReleases } from '../infrastructure/github/changelog-markdown-parser';
@@ -24,7 +16,11 @@ import {
   fetchAndClassifyChangelog,
   notifyChangelogVersions,
 } from '../usecases/changelog-inference-workflow';
-import { processChangelogRelease, STEP_RETRIES } from './changelog-release-processing';
+import {
+  createChangelogReleaseProcessingDependencies,
+  processChangelogRelease,
+  STEP_RETRIES,
+} from './changelog-release-processing';
 import { createStepRunner } from './run-step';
 
 const WorkflowParamsSchema = z.object({
@@ -95,14 +91,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       const source = createGitHubChangelogMarkdownSource(this.env.GITHUB_DISPATCH_TOKEN);
       const notifier = createChangelogWorkflowNotifier(db, this.env.NOTIFICATION_QUEUE);
       const buildTrigger = createDeployHookBuildTrigger(this.env.DEPLOY_HOOK_URL);
-      const processingDependencies = {
-        translator: createChangelogTranslationAi(this.env.AI, this.env.AI_GATEWAY_ID),
-        inference: createChangelogItemInferenceAi(this.env.AI, this.env.AI_GATEWAY_ID),
-        summarizer: createChangelogSummaryAi(this.env.AI, this.env.AI_GATEWAY_ID),
-        documentSearch: searchDocsForChangelogEntry.bind(null, drizzle(this.env.DOCS_DB)),
-        inferenceRepository: createChangelogInferenceRepository(db),
-        skipReporter: createChangelogInferenceSkipReporter(this.env.GITHUB_DISPATCH_TOKEN),
-      };
+      const processingDependencies = createChangelogReleaseProcessingDependencies(this.env);
       const classification = await runStep('fetch-and-classify', STEP_RETRIES, async () =>
         fetchAndClassifyChangelog({
           source,
