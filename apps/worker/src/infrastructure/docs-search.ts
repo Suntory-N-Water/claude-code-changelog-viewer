@@ -16,13 +16,63 @@ const SYNONYM_PAIRS: [string, string][] = [
   ['slash command', 'custom command'],
 ];
 
+// spaCy (en) の STOP_WORDS から短縮形を除いたもの。旧 Python 版の MIN_FILE_SCORE は
+// この一覧で除いたクエリを前提に決めた値なので、語を足し引きすると足切り値も測り直しになる
+const STOP_WORDS = new Set(
+  `a about above across after afterwards again against all almost alone along
+already also although always am among amongst amount an and another any anyhow
+anyone anything anyway anywhere are around as at back be became because become
+becomes becoming been before beforehand behind being below beside besides between
+beyond both bottom but by call can cannot ca could did do does doing done down due
+during each eight either eleven else elsewhere empty enough even ever every everyone
+everything everywhere except few fifteen fifty first five for former formerly forty
+four from front full further get give go had has have he hence her here hereafter
+hereby herein hereupon hers herself him himself his how however hundred i if in
+indeed into is it its itself keep last latter latterly least less just made make
+many may me meanwhile might mine more moreover most mostly move much must my myself
+name namely neither never nevertheless next nine no nobody none noone nor not nothing
+now nowhere of off often on once one only onto or other others otherwise our ours
+ourselves out over own part per perhaps please put quite rather re really regarding
+same say see seem seemed seeming seems serious several she should show side since six
+sixty so some somehow someone something sometime sometimes somewhere still such take
+ten than that the their them themselves then thence there thereafter thereby therefore
+therein thereupon these they third this those though three through throughout thru
+thus to together too top toward towards twelve twenty two under until up unless upon
+us used using various very via was we well were what whatever when whence whenever
+where whereafter whereas whereby wherein whereupon wherever whether which while
+whither who whoever whole whom whose why will with within without would yet you your
+yours yourself yourselves`.split(/\s+/),
+);
+
+// 行頭の分類語は全項目の大半に付き、どのドキュメントにも頻出するため、残すと関係の薄いファイルを引き寄せる
+const LEADING_PREFIX_WORDS = new Set([
+  'added',
+  'changed',
+  'fixed',
+  'improved',
+  'updated',
+  'removed',
+  'enabled',
+  'deprecated',
+]);
+
+// FTS5 の bm25() を正負反転した値。旧 Python 版 (rank_bm25) の MIN_FILE_SCORE=25 とは尺度が違うため、
+// docs-search/evaluation の正解データで測り直した。適合率と「関連なし」判定の正解率が
+// 両方とも旧 Python 版以上になるのは 20 前後だけで、18 では適合率が、22 では判定が旧版を下回る。
+// ファイルの当落とスニペットの当落の両方に使う
+const MIN_CHANGELOG_SCORE = 20;
+
 // combined (path, content, chunk_index, score) を受け取り、
-// ファイルごと・ファイル間の上位を SQL 内で絞り込む共通部分
-const RANKING_SQL = `
+// ファイルごと・ファイル間の上位を SQL 内で絞り込む共通部分。
+// hit_count は足切り前の件数を数える (旧 Python 版の hit_count と同じ意味)
+function buildRankingSql(minScore: number | null): string {
+  const qualifies = minScore === null ? '1' : `-score >= ${minScore}`;
+  return `
 ranked AS (
   SELECT
     path,
     content,
+    ${qualifies} AS qualifies,
     ROW_NUMBER() OVER (PARTITION BY path ORDER BY score, chunk_index) AS chunk_rank,
     COUNT(*) OVER (PARTITION BY path) AS hit_count,
     MIN(score) OVER (PARTITION BY path) AS page_score
@@ -32,14 +82,16 @@ ranked_pages AS (
   SELECT
     path,
     ROW_NUMBER() OVER (ORDER BY page_score, path) AS page_rank
-  FROM (SELECT DISTINCT path, page_score FROM ranked)
+  FROM (SELECT DISTINCT path, page_score FROM ranked WHERE qualifies)
 )
 SELECT ranked.path, ranked.content, ranked.hit_count
 FROM ranked
 JOIN ranked_pages ON ranked_pages.path = ranked.path
-WHERE ranked.chunk_rank <= ${MAX_CHUNKS_PER_FILE}
+WHERE ranked.qualifies
+  AND ranked.chunk_rank <= ${MAX_CHUNKS_PER_FILE}
   AND ranked_pages.page_rank <= ${MAX_FILES}
 ORDER BY ranked_pages.page_rank, ranked.chunk_rank`;
+}
 
 // バッククォート囲みが1件でも当たったら BM25 側を採用しない。
 // 採否の判断を呼び出し側に置くと、設定リファレンス生成と CHANGELOG 推論で挙動がずれるため SQL に閉じ込める。
@@ -92,19 +144,22 @@ export async function searchDocsForSettingKey(
         UNION ALL
         SELECT * FROM fuzzy WHERE NOT EXISTS (SELECT 1 FROM exact)
       ),
-      ${sql.raw(RANKING_SQL)}
+      ${sql.raw(buildRankingSql(null))}
     `,
   );
   return groupByFile(result, words);
 }
 
 // CHANGELOG の箇条書き1行はバッククォート囲みの優先を通さない。
-// 現行も CHANGELOG 推論は BM25 だけを使っており、その動作に揃える
+// 現行も CHANGELOG 推論は BM25 だけを使っており、その動作に揃える。
+// bm25() の値は索引全体の件数で決まり、数件しかない索引では 20 に届かないため、
+// 足切り以外を確かめるテストは minScore に 0 を渡す
 export async function searchDocsForChangelogEntry(
   db: DrizzleD1Database,
   entry: string,
+  minScore = MIN_CHANGELOG_SCORE,
 ): Promise<RelatedDoc[]> {
-  const words = expandSynonyms(entry);
+  const words = expandSynonyms(removeChangelogNoise(entry));
   if (words.length === 0) {
     return [];
   }
@@ -116,10 +171,24 @@ export async function searchDocsForChangelogEntry(
         FROM page_chunks_fts
         WHERE page_chunks_fts MATCH ${buildMatchExpression(words)}
       ),
-      ${sql.raw(RANKING_SQL)}
+      ${sql.raw(buildRankingSql(minScore))}
     `,
   );
   return groupByFile(result, words);
+}
+
+// "the" は全チャンクの 9 割近くに含まれ、OR でつなぐとどの項目も全ドキュメントに当たってしまう。
+// 記号で区切った語がすべてストップワードの語だけを落とし、`--append-system-prompt` のような
+// 記号入りの語はそのまま残してフレーズ一致に使う
+function removeChangelogNoise(entry: string): string {
+  const words = entry.split(/\s+/).filter((word) => {
+    const tokens = splitIntoWords(word);
+    return tokens.length > 0 && !tokens.every((token) => STOP_WORDS.has(token));
+  });
+  if (LEADING_PREFIX_WORDS.has(splitIntoWords(words[0] ?? '').join(' '))) {
+    words.shift();
+  }
+  return words.join(' ');
 }
 
 // 語形の原形化は tokenizer の porter が索引側とクエリ側の両方に効くのでここでは行わない

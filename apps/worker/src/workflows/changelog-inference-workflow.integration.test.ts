@@ -145,11 +145,19 @@ describe('CHANGELOG 推論 Workflow', () => {
     await docsDb.run(sql`
       INSERT INTO page_chunks_fts (content, path, heading, chunk_index)
       VALUES (
-        'Workflow inference support is documented here.',
+        'Workflow inference support. Configure workflow inference support.',
         'docs/en/features.md',
         'Features',
         0
       )
+    `);
+    // 1 件だけの索引では bm25() の IDF がほぼ 0 になり、関連ドキュメントが足切りで消えるため、
+    // 検索語を含まないチャンクで埋めて IDF を上げる
+    await docsDb.run(sql`
+      INSERT INTO page_chunks_fts (content, path, heading, chunk_index)
+      WITH RECURSIVE n(i) AS (SELECT 0 UNION ALL SELECT i + 1 FROM n WHERE i < 1999)
+      SELECT 'Unrelated reference text number ' || i || '.', 'background-' || (i % 50) || '.md', '', i / 50
+      FROM n
     `);
   });
 
