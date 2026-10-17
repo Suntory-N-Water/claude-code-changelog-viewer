@@ -113,13 +113,6 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
       const { entries, removedKeys } = await runStep('load-entries', STEP_RETRIES, async () =>
         planSettingsReferenceGeneration(entrySource, params),
       );
-      if (removedKeys.length > 0) {
-        await runStep(
-          'remove-stale',
-          { ...STEP_RETRIES, attrs: { 'settings.removed_keys': removedKeys } },
-          async () => repository.deleteByKeys(removedKeys),
-        );
-      }
 
       const processedKeys: string[] = [];
       for (
@@ -191,6 +184,16 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
           }),
         );
         processedKeys.push(...translatedEntries.map((entry) => entry.key));
+      }
+
+      // 生成の途中で失敗すると trigger-build まで進まず、再実行時には削除済みで removedKeys が空になる。
+      // 削除を最後に回し、失敗した回は削除せずに次の実行で削除とビルドをやり直させる
+      if (removedKeys.length > 0) {
+        await runStep(
+          'remove-stale',
+          { ...STEP_RETRIES, attrs: { 'settings.removed_keys': removedKeys } },
+          async () => repository.deleteByKeys(removedKeys),
+        );
       }
 
       if (processedKeys.length > 0 || removedKeys.length > 0) {
