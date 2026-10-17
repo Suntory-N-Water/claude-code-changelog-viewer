@@ -134,7 +134,7 @@ describe('Workers AI CHANGELOG adapter', () => {
         rawChatCompletion(
           JSON.stringify({
             ...validResponse,
-            inferred_items: [{ ...validResponse.inferred_items[0], benefit: '短い' }],
+            inferred_items: [{ ...validResponse.inferred_items[0], benefit: '' }],
           }),
           'stop',
         ),
@@ -198,8 +198,37 @@ describe('Workers AI CHANGELOG adapter', () => {
       { id: 'without-docs', contentJa: '小さな誤字を修正した。' },
     ]);
     const prompt = run.mock.calls[0]?.[1]?.messages?.[0]?.content;
-    expect(prompt).toContain('- content: - Added a documented feature');
+    // 原文の箇条書き記号を渡すと訳の先頭にも "- " が書き写される
+    expect(prompt).toContain('- content: Added a documented feature');
+    expect(prompt).not.toContain('- content: - ');
     expect(prompt).not.toContain('The feature automates the repeated setup.');
+  });
+
+  it('原文に二重引用符があるとき、翻訳プロンプトでは一重引用符に置き換えること', async () => {
+    // 二重引用符を書き写させると JSON 文字列が途中で閉じ、空白ループか途中で切れた訳になる
+    const run = vi.fn().mockResolvedValue(
+      chatCompletion({
+        translated_items: [
+          { id: 'quoted', content_ja: 'fork サブエージェントを最初から有効にした。' },
+        ],
+      }),
+    );
+    const sut = createChangelogTranslationAi({ run }, 'project-gateway');
+
+    await sut.translateItems({
+      version: 'v2.1.302',
+      items: [
+        {
+          id: 'quoted',
+          content: '- Changed fork subagents (`subagent_type: "fork"`) to be on by default',
+          prefix: 'Changed',
+        },
+      ],
+    });
+
+    const prompt = run.mock.calls[0]?.[1]?.messages?.[0]?.content;
+    expect(prompt).toContain("(`subagent_type: 'fork'`)");
+    expect(prompt).not.toContain('"fork"');
   });
 
   it('原文が短く訳が 10 字未満のとき、翻訳を受け付けること', async () => {
@@ -218,6 +247,32 @@ describe('Workers AI CHANGELOG adapter', () => {
     expect(result).toEqual([
       { id: 'with-docs', contentJa: '機能を追加した。' },
       { id: 'without-docs', contentJa: '誤字を修正した' },
+    ]);
+  });
+
+  it('推論の before / after / benefit が 10 字未満のとき、推論を受け付けること', async () => {
+    const run = vi.fn().mockResolvedValue(
+      chatCompletion({
+        inferred_items: [
+          {
+            id: 'with-docs',
+            before: '手動だった。',
+            after: '自動になった。',
+            benefit: '手間が減る。',
+          },
+        ],
+        feature_area_corrections: [],
+      }),
+    );
+    const sut = createChangelogItemInferenceAi({ run }, 'project-gateway');
+
+    const result = await sut.inferItems(input);
+
+    expect(result.inferredItems).toEqual([
+      {
+        id: 'with-docs',
+        inference: { before: '手動だった。', after: '自動になった。', benefit: '手間が減る。' },
+      },
     ]);
   });
 

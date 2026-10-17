@@ -1,12 +1,14 @@
-import { InferenceResultSchema } from '@claude-code-changelog-viewer/types';
 import { z } from 'zod';
 
-const InferredItemSchema = InferenceResultSchema.extend({
+// 短い原文からは短い文しか生まれない。1 項目が下限を割るだけでバッチ全体が失敗するため、
+// 下限は空文字を弾くだけにする
+const InferredItemSchema = z.object({
   id: z.string().min(1),
+  before: z.string().min(1).max(500),
+  after: z.string().min(1).max(500),
+  benefit: z.string().min(1).max(500),
 });
 
-// 「Fixed typo」のような短い原文は訳も数文字になる。30 件のうち 1 件が下限を割るだけで
-// バッチ全体が失敗するため、下限は空文字を弾くだけにする
 const TranslatedItemSchema = z.object({
   id: z.string().min(1),
   content_ja: z.string().min(1).max(500),

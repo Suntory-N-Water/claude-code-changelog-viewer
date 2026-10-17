@@ -60,8 +60,9 @@ const STEP_RETRIES: WorkflowStepConfigWithStaticDelay = {
 // 1 回の失敗で巻き添えになる項目を抑えるため 30 件で区切る
 const TRANSLATION_BATCH_SIZE = 30;
 
-// 推論は項目ごとに最大 8000 字の snippets を渡すため、翻訳ほどまとめられない
-const INFERENCE_BATCH_SIZE = 5;
+// 推論は関連ドキュメント付きの入れ子の JSON を返させるため、翻訳と違って空白ループが残りうる。
+// 1 件の失敗で同じバッチの推論がまとめて失われないよう、1 項目ずつ切り離す
+const INFERENCE_BATCH_SIZE = 1;
 
 // 1 項目の snippets は最大 8000 字で、約 180 項目のリリースを 1 step にまとめると
 // step の戻り値の上限 1MiB を超えうる。20 項目なら最大でも約 160KB に収まる

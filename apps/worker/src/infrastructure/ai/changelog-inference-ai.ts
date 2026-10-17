@@ -31,8 +31,9 @@ import {
 } from './workers-ai';
 
 // 65536 のままだと暴走した応答が Workers AI の約240秒に達してしまうため、通常の出力量の
-// 2倍程度で打ち切って step の再試行に回す。翻訳は 30 項目で約3,000 トークンだった (2026-10-14 計測)
+// 2倍程度で打ち切って step の再試行に回す
 const INFERENCE_MAX_COMPLETION_TOKENS = 4096;
+// 30 項目の翻訳は約3,000 トークン出力する
 const TRANSLATION_MAX_COMPLETION_TOKENS = 8192;
 const SUMMARY_MAX_COMPLETION_TOKENS = 4096;
 
@@ -189,9 +190,23 @@ const MODEL_NAME_RULES = [
   '- CHANGELOG の原文に具体的なモデル名が記載されている場合はそのまま使う',
 ].join('\n');
 
+// JSON schema 制約下のモデルは、原文の `"fork"` のような二重引用符をエスケープせずに書き写そうとし、
+// その `"` で文字列が閉じられてしまう。続きを書けなくなったモデルは空白を出力上限まで出し続けるか、
+// 途中で切れた訳を返す。プロンプトに入れる前に一重引用符へ置き換えて、書き写す元をなくす
+function withoutDoubleQuotes(text: string): string {
+  return text.replaceAll('"', "'");
+}
+
+// 原文は Markdown の箇条書きのまま保存されており、先頭の "- " を渡すと訳にも書き写される
+function toPromptContent(content: string): string {
+  return withoutDoubleQuotes(content.replace(/^- /, ''));
+}
+
 function buildTranslationPrompt(release: ChangelogRelease): string {
   const items = release.items
-    .map((item) => [`### 項目 id=${item.id}`, `- content: ${item.content}`].join('\n'))
+    .map((item) =>
+      [`### 項目 id=${item.id}`, `- content: ${toPromptContent(item.content)}`].join('\n'),
+    )
     .join('\n\n');
 
   return [
@@ -217,12 +232,12 @@ function buildItemsPrompt(input: ChangelogInferenceInput): string {
     .filter((item) => item.relatedDocs.length > 0)
     .map((item) => {
       const relatedDocs = item.relatedDocs
-        .map((doc) => `#### ${doc.file}\n${doc.snippets.join('\n')}`)
+        .map((doc) => `#### ${doc.file}\n${withoutDoubleQuotes(doc.snippets.join('\n'))}`)
         .join('\n\n');
       return [
         `### 項目 id=${item.id}`,
         `- prefix: ${item.prefix}`,
-        `- content: ${item.content}`,
+        `- content: ${withoutDoubleQuotes(item.content)}`,
         '',
         '### 関連情報',
         relatedDocs,
@@ -230,7 +245,7 @@ function buildItemsPrompt(input: ChangelogInferenceInput): string {
     })
     .join('\n\n');
   const featureAreaItems = input.items
-    .map((item) => `- id=${item.id}, content: ${item.content}`)
+    .map((item) => `- id=${item.id}, content: ${withoutDoubleQuotes(item.content)}`)
     .join('\n');
 
   return [

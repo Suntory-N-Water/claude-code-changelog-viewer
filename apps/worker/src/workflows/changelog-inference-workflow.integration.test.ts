@@ -407,7 +407,7 @@ describe('CHANGELOG 推論 Workflow', () => {
   });
 
   it('ある推論バッチが打ち切られ続けるとき、そのバッチの項目は日本語訳だけを保存して Issue を作ること', async () => {
-    // 推論は 5 件ずつなので、6 件目だけが 2 つ目のバッチになる
+    // 推論は 1 件ずつなので、失敗した 6 件目以外の推論は残る
     const sixItemChangelog = [
       '# Changelog',
       '',
@@ -535,7 +535,7 @@ describe('CHANGELOG 推論 Workflow', () => {
     }
   });
 
-  it('1バージョンの項目数が多いとき、翻訳は 30 件ずつ・推論は 5 件ずつに分けて全項目の日本語訳を保存すること', async () => {
+  it('1バージョンの項目数が多いとき、翻訳は 30 件ずつ・推論は 1 件ずつに分けて全項目の日本語訳を保存すること', async () => {
     const release = (await parseChangelogReleases(largeChangelog))[0];
     if (release === undefined) {
       throw new Error('テスト用 CHANGELOG のリリースがありません');
@@ -602,10 +602,12 @@ describe('CHANGELOG 推論 Workflow', () => {
       await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
 
       const itemIds = release.items.map((item) => item.id);
-      // 31 項目 = 翻訳 30 + 1、推論 5 × 6 + 1
+      // 31 項目 = 翻訳 30 + 1、推論 1 × 31
       expect(translatedIdBatches.map((batch) => batch.length)).toEqual([30, 1]);
       expect(translatedIdBatches.flat()).toEqual(itemIds);
-      expect(inferredIdBatches.map((batch) => batch.length)).toEqual([5, 5, 5, 5, 5, 5, 1]);
+      expect(inferredIdBatches.map((batch) => batch.length)).toEqual(
+        Array.from({ length: LARGE_RELEASE_ITEM_COUNT }, () => 1),
+      );
       expect(inferredIdBatches.flat()).toEqual(itemIds);
       expect(summaryCount).toBe(1);
 
