@@ -120,13 +120,17 @@ export function mergeChangelogItemInferences(
   items: ChangelogInferenceInputItem[],
   aiResult: ChangelogItemsAiResult,
 ): ChangelogItemInference[] {
+  // モデルは対象外と指示した項目にも変更後を書くことがある。使える機能領域タグまで
+  // 捨てないよう、対象外の項目の変更後だけを除いてから id の一致を確かめる
+  const skippedIds = new Set(items.filter((item) => !needsBenefit(item)).map((item) => item.id));
+  const inferredItems = aiResult.inferredItems.filter((item) => !skippedIds.has(item.id));
   assertItemIds(
     items.filter(needsBenefit).map((item) => item.id),
-    aiResult.inferredItems.map((item) => item.id),
+    inferredItems.map((item) => item.id),
     '推論',
   );
 
-  const inferredById = new Map(aiResult.inferredItems.map((item) => [item.id, item]));
+  const inferredById = new Map(inferredItems.map((item) => [item.id, item]));
   const featureAreasById = new Map(
     aiResult.featureAreaCorrections.map((item) => [
       item.id,

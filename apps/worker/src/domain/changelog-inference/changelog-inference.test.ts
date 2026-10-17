@@ -52,6 +52,22 @@ describe('CHANGELOG 推論の整合性', () => {
     expect(result).toEqual([{ id: 'fixed-with-docs', featureAreas: ['Settings'] }]);
   });
 
+  it('変更後を求めていない項目の変更後が AI 結果に含まれているとき、その変更後を捨てて機能領域タグを残すこと', () => {
+    const fixedItem = {
+      id: 'fixed-with-docs',
+      content: '- Fixed a crash in the documented feature',
+      prefix: 'Fixed',
+      relatedDocs: [{ file: 'features.md', snippets: ['The feature automates the setup.'] }],
+    };
+
+    const result = mergeChangelogItemInferences([fixedItem], {
+      inferredItems: [{ id: 'fixed-with-docs', benefit }],
+      featureAreaCorrections: [{ id: 'fixed-with-docs', featureAreas: ['Settings'] }],
+    });
+
+    expect(result).toEqual([{ id: 'fixed-with-docs', featureAreas: ['Settings'] }]);
+  });
+
   it('機能領域タグが候補と大文字小文字違いや候補外のとき、候補の表記に揃えて候補外を捨てること', () => {
     const result = mergeChangelogItemInferences(items, {
       inferredItems: [{ id: 'with-docs', benefit }],
