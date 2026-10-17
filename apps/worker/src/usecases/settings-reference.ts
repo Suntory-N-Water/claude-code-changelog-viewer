@@ -37,7 +37,7 @@ export type RelatedSettingChangelog = {
 
 export type SettingsReferenceEntrySourcePort = {
   loadEntries(): Promise<SettingsReferenceEntry[]>;
-  loadExistingKeys(): Promise<ReadonlySet<string>>;
+  loadExistingDescriptions(): Promise<ReadonlyMap<string, string>>;
   findRelatedChangelogs(key: string): Promise<RelatedSettingChangelog[]>;
 };
 
@@ -100,6 +100,12 @@ export type SettingsReferenceRecord = {
 
 export type SettingsReferenceRepositoryPort = {
   save(input: { records: SettingsReferenceRecord[] }): Promise<void>;
+  deleteByKeys(keys: string[]): Promise<void>;
+};
+
+export type SettingsReferencePlan = {
+  entries: SettingsReferenceEntry[];
+  removedKeys: string[];
 };
 
 type SettingsReferenceSaveInput = {
@@ -114,17 +120,29 @@ const MAX_RELATED_CHANGELOGS = 5;
 const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
 const JAPANESE_TEXT_PATTERN = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
 
-export async function loadSettingsReferenceEntries(
+export async function planSettingsReferenceGeneration(
   source: SettingsReferenceEntrySourcePort,
   params: SettingsReferenceWorkflowParams,
-): Promise<SettingsReferenceEntry[]> {
-  const [entries, existingKeys] = await Promise.all([
+): Promise<SettingsReferencePlan> {
+  const [entries, existingDescriptions] = await Promise.all([
     source.loadEntries(),
-    source.loadExistingKeys(),
+    source.loadExistingDescriptions(),
   ]);
   const targetKeys = params.targetKeys === undefined ? undefined : new Set(params.targetKeys);
+  const schemaKeys = new Set(entries.map((entry) => entry.key));
 
-  return entries.filter((entry) => targetKeys?.has(entry.key) ?? !existingKeys.has(entry.key));
+  return {
+    // 公式の英語説明が書き換わっても、生成済みのキーを対象から外すと古い訳が残り続ける
+    entries: entries.filter(
+      (entry) =>
+        targetKeys?.has(entry.key) ?? existingDescriptions.get(entry.key) !== entry.descriptionEn,
+    ),
+    // 設定スキーマを読めずに空だったときに、生成済みの設定をすべて消さないようにする
+    removedKeys:
+      entries.length === 0
+        ? []
+        : [...existingDescriptions.keys()].filter((key) => !schemaKeys.has(key)),
+  };
 }
 
 export async function buildSettingsReferenceInput(
@@ -191,7 +209,7 @@ export function hasUseCaseContext(entry: SettingsReferenceInputEntry): boolean {
 }
 
 export async function saveSettingsReferences(
-  repository: SettingsReferenceRepositoryPort,
+  repository: Pick<SettingsReferenceRepositoryPort, 'save'>,
   saveInput: SettingsReferenceSaveInput,
 ): Promise<{ count: number }> {
   const { input, translations, useCases, fetchedAt } = saveInput;

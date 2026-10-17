@@ -51,9 +51,11 @@ export function createSettingsEntrySource(
       });
     },
 
-    async loadExistingKeys(): Promise<ReadonlySet<string>> {
-      const rows = await db.select({ key: settingsReference.key }).from(settingsReference);
-      return new Set(rows.map((row) => row.key));
+    async loadExistingDescriptions(): Promise<ReadonlyMap<string, string>> {
+      const rows = await db
+        .select({ key: settingsReference.key, descriptionEn: settingsReference.descriptionEn })
+        .from(settingsReference);
+      return new Map(rows.map((row) => [row.key, row.descriptionEn]));
     },
 
     async findRelatedChangelogs(key: string): Promise<RelatedSettingChangelog[]> {

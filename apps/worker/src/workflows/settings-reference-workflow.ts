@@ -26,7 +26,7 @@ import type {
 import {
   buildSettingsReferenceInput,
   hasUseCaseContext,
-  loadSettingsReferenceEntries,
+  planSettingsReferenceGeneration,
   saveSettingsReferences,
 } from '../usecases/settings-reference';
 import { createStepRunner } from './run-step';
@@ -49,6 +49,8 @@ const logger = workerLogger('workflows.settings-reference');
 
 export type SettingsReferenceWorkflowParams = z.infer<typeof WorkflowParamsSchema>;
 
+type SettingsReferenceWorkflowOutput = { processedKeys: string[]; removedKeys: string[] };
+
 export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
   CloudflareBindings,
   SettingsReferenceWorkflowParams
@@ -56,7 +58,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
   override async run(
     event: WorkflowEvent<SettingsReferenceWorkflowParams>,
     step: WorkflowStep,
-  ): Promise<{ processedKeys: string[] }> {
+  ): Promise<SettingsReferenceWorkflowOutput> {
     return runWithLogContext(
       {
         trace_id: event.instanceId,
@@ -69,7 +71,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
   private async runWorkflow(
     event: WorkflowEvent<SettingsReferenceWorkflowParams>,
     step: WorkflowStep,
-  ): Promise<{ processedKeys: string[] }> {
+  ): Promise<SettingsReferenceWorkflowOutput> {
     const paramsResult = WorkflowParamsSchema.safeParse(event.payload ?? {});
     const failureParams: SettingsReferenceWorkflowParams = paramsResult.success
       ? paramsResult.data
@@ -108,9 +110,16 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         timeZone: 'Asia/Tokyo',
       }).format(event.timestamp);
 
-      const entries = await runStep('load-entries', STEP_RETRIES, async () =>
-        loadSettingsReferenceEntries(entrySource, params),
+      const { entries, removedKeys } = await runStep('load-entries', STEP_RETRIES, async () =>
+        planSettingsReferenceGeneration(entrySource, params),
       );
+      if (removedKeys.length > 0) {
+        await runStep(
+          'remove-stale',
+          { ...STEP_RETRIES, attrs: { 'settings.removed_keys': removedKeys } },
+          async () => repository.deleteByKeys(removedKeys),
+        );
+      }
 
       const processedKeys: string[] = [];
       for (
@@ -184,7 +193,7 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         processedKeys.push(...translatedEntries.map((entry) => entry.key));
       }
 
-      if (processedKeys.length > 0) {
+      if (processedKeys.length > 0 || removedKeys.length > 0) {
         await runStep('trigger-build', STEP_RETRIES, async () => buildTrigger.trigger());
       }
 
@@ -192,8 +201,9 @@ export class SettingsReferenceWorkflow extends WorkflowEntrypoint<
         'workflow.name': 'settings-reference',
         'settings.entry_count': entries.length,
         'settings.processed_count': processedKeys.length,
+        'settings.removed_count': removedKeys.length,
       });
-      return { processedKeys };
+      return { processedKeys, removedKeys };
     } catch (error) {
       logger.error('Workflow に失敗しました', {
         'workflow.name': 'settings-reference',

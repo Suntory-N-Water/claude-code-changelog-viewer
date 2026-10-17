@@ -148,6 +148,7 @@ describe('設定リファレンス生成 Workflow', () => {
       await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
       await expect(instance.getOutput()).resolves.toEqual({
         processedKeys: ['permissions.additionalDirectories'],
+        removedKeys: [],
       });
       expect(countCalls(aiRun, 'settings_translation')).toBe(1);
       expect(countCalls(aiRun, 'settings_use_case')).toBe(1);
@@ -193,7 +194,7 @@ describe('設定リファレンス生成 Workflow', () => {
       leafName: 'additionalDirectories',
       slug: 'permissions-additional-directories',
       source: 'settings',
-      descriptionEn: 'Old description',
+      descriptionEn: 'Additional directories allowed for access.',
       descriptionJa: '古い説明です。',
       useCaseJa: null,
       fetchedAt: '2026-08-16',
@@ -419,7 +420,7 @@ describe('設定リファレンス生成 Workflow', () => {
         params: {},
       });
       await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
-      await expect(instance.getOutput()).resolves.toEqual({ processedKeys: [] });
+      await expect(instance.getOutput()).resolves.toEqual({ processedKeys: [], removedKeys: [] });
       await expect(drizzle(testEnv.DB).select().from(settingsReference)).resolves.toEqual([]);
       expect(fetchSpy).not.toHaveBeenCalled();
     } finally {
@@ -465,6 +466,67 @@ describe('設定リファレンス生成 Workflow', () => {
           useCaseJa: null,
         },
       ]);
+    } finally {
+      await instance.dispose();
+    }
+  });
+
+  it('設定スキーマから消えたキーがあるとき、そのキーの設定リファレンスと公式ドキュメントの紐付けを削除し、ほかは残してビルドを起動すること', async () => {
+    await seedSettingSchema();
+    const db = drizzle(testEnv.DB);
+    await db.insert(settingsReference).values(
+      [
+        { key: 'permissions.additionalDirectories', slug: 'permissions-additional-directories' },
+        { key: 'removed.setting', slug: 'removed-setting' },
+      ].map(({ key, slug }) => ({
+        key,
+        leafName: key.split('.').at(-1) ?? key,
+        slug,
+        source: 'settings' as const,
+        descriptionEn: 'Additional directories allowed for access.',
+        descriptionJa: '説明です。',
+        useCaseJa: null,
+        fetchedAt: '2026-08-16',
+      })),
+    );
+    await db.insert(settingsOfficialDocs).values([
+      { settingKey: 'permissions.additionalDirectories', docPath: 'permissions.md' },
+      { settingKey: 'removed.setting', docPath: 'settings.md' },
+    ]);
+    const aiRun = mockAi({});
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === 'https://deploy.example/hook') {
+        return new Response(null, { status: 200 });
+      }
+      throw new Error(`想定外の外部リクエスト: ${String(input)}`);
+    });
+    const instanceId = `issue-1040-remove-stale-${crypto.randomUUID()}`;
+    const instance = await introspectWorkflowInstance(
+      testEnv.SETTINGS_REFERENCE_WORKFLOW,
+      instanceId,
+    );
+
+    try {
+      await instance.modify(async (modifier) => {
+        await modifier.disableRetryDelays();
+      });
+      await testEnv.SETTINGS_REFERENCE_WORKFLOW.create({
+        id: instanceId,
+        params: {},
+      });
+      await expect(instance.waitForStatus('complete')).resolves.not.toThrow();
+      await expect(instance.getOutput()).resolves.toEqual({
+        processedKeys: [],
+        removedKeys: ['removed.setting'],
+      });
+      expect(aiRun).not.toHaveBeenCalled();
+      await expect(
+        db.select({ key: settingsReference.key }).from(settingsReference),
+      ).resolves.toEqual([{ key: 'permissions.additionalDirectories' }]);
+      await expect(
+        db.select({ settingKey: settingsOfficialDocs.settingKey }).from(settingsOfficialDocs),
+      ).resolves.toEqual([{ settingKey: 'permissions.additionalDirectories' }]);
+      expect(fetchSpy).toHaveBeenCalledWith('https://deploy.example/hook', expect.anything());
     } finally {
       await instance.dispose();
     }

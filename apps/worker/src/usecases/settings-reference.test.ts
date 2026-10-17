@@ -1,18 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildSettingsReferenceInput,
-  loadSettingsReferenceEntries,
+  planSettingsReferenceGeneration,
   saveSettingsReferences,
 } from './settings-reference';
 
 describe('設定リファレンス生成ユースケース', () => {
-  it('targetKeys を指定しない時、未生成の設定項目だけを返すこと', async () => {
+  it('targetKeys を指定しない時、未生成の設定項目と英語説明が変わった生成済みの設定項目だけを対象にすること', async () => {
     const source = {
       loadEntries: async () => [
         {
-          key: 'already.generated',
+          key: 'unchanged',
           source: 'settings' as const,
-          descriptionEn: 'Already generated',
+          descriptionEn: 'Same description',
+          parentDescriptions: [],
+        },
+        {
+          key: 'changed',
+          source: 'settings' as const,
+          descriptionEn: 'New description',
           parentDescriptions: [],
         },
         {
@@ -22,23 +28,20 @@ describe('設定リファレンス生成ユースケース', () => {
           parentDescriptions: [],
         },
       ],
-      loadExistingKeys: async () => new Set(['already.generated']),
+      loadExistingDescriptions: async () =>
+        new Map([
+          ['unchanged', 'Same description'],
+          ['changed', 'Old description'],
+        ]),
       findRelatedChangelogs: async () => [],
     };
 
-    const result = await loadSettingsReferenceEntries(source, {});
+    const result = await planSettingsReferenceGeneration(source, {});
 
-    expect(result).toEqual([
-      {
-        key: 'not.generated',
-        source: 'settings',
-        descriptionEn: 'Not generated',
-        parentDescriptions: [],
-      },
-    ]);
+    expect(result.entries.map((entry) => entry.key)).toEqual(['changed', 'not.generated']);
   });
 
-  it('targetKeys を指定した時、生成済みの設定項目も対象に含めること', async () => {
+  it('targetKeys を指定した時、英語説明が同じ生成済みの設定項目も対象に含めること', async () => {
     const source = {
       loadEntries: async () => [
         {
@@ -48,15 +51,15 @@ describe('設定リファレンス生成ユースケース', () => {
           parentDescriptions: [],
         },
       ],
-      loadExistingKeys: async () => new Set(['already.generated']),
+      loadExistingDescriptions: async () => new Map([['already.generated', 'Already generated']]),
       findRelatedChangelogs: async () => [],
     };
 
-    const result = await loadSettingsReferenceEntries(source, {
+    const result = await planSettingsReferenceGeneration(source, {
       targetKeys: ['already.generated'],
     });
 
-    expect(result).toEqual([
+    expect(result.entries).toEqual([
       {
         key: 'already.generated',
         source: 'settings',
@@ -64,6 +67,41 @@ describe('設定リファレンス生成ユースケース', () => {
         parentDescriptions: [],
       },
     ]);
+  });
+
+  it('設定スキーマから消えた生成済みのキーを削除対象として返すこと', async () => {
+    const source = {
+      loadEntries: async () => [
+        {
+          key: 'kept',
+          source: 'settings' as const,
+          descriptionEn: 'Kept',
+          parentDescriptions: [],
+        },
+      ],
+      loadExistingDescriptions: async () =>
+        new Map([
+          ['kept', 'Kept'],
+          ['removed', 'Removed'],
+        ]),
+      findRelatedChangelogs: async () => [],
+    };
+
+    const result = await planSettingsReferenceGeneration(source, {});
+
+    expect(result.removedKeys).toEqual(['removed']);
+  });
+
+  it('設定スキーマが空のとき、生成済みのキーを削除対象として返さないこと', async () => {
+    const source = {
+      loadEntries: async () => [],
+      loadExistingDescriptions: async () => new Map([['generated', 'Generated']]),
+      findRelatedChangelogs: async () => [],
+    };
+
+    const result = await planSettingsReferenceGeneration(source, {});
+
+    expect(result.removedKeys).toEqual([]);
   });
 
   it('env-vars.md を除外し、ドキュメント抜粋を8000文字と更新履歴を5件までに制限すること', async () => {
@@ -75,7 +113,7 @@ describe('設定リファレンス生成ユースケース', () => {
       ],
       {
         loadEntries: async () => [],
-        loadExistingKeys: async () => new Set(),
+        loadExistingDescriptions: async () => new Map(),
         findRelatedChangelogs: async () =>
           Array.from({ length: 6 }, (_, index) => ({
             version: `2.1.${6 - index}`,
@@ -310,7 +348,7 @@ describe('設定リファレンス生成ユースケース', () => {
       async () => [],
       {
         loadEntries: async () => [],
-        loadExistingKeys: async () => new Set(),
+        loadExistingDescriptions: async () => new Map(),
         findRelatedChangelogs: async () => [],
       },
       [

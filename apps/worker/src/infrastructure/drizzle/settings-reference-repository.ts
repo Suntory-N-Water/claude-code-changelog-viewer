@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { settingsOfficialDocs, settingsReference } from '../../db/schema';
 import type {
@@ -10,6 +10,8 @@ import { chunk, runBatchedStatements, toDocPath } from './d1-ingestion-utils';
 // D1 の bound parameters 上限 100 を、1 行 10 列で割った件数
 const SETTINGS_PER_INSERT = 10;
 const OFFICIAL_DOCS_PER_INSERT = 50;
+// D1 の bound parameters 上限 100 に収める
+const DELETE_KEYS_PER_STATEMENT = 100;
 
 function sqlExcluded(column: string) {
   return sql.raw(`excluded.${column}`);
@@ -73,6 +75,16 @@ export function createSettingsReferenceRepository(
       ];
 
       await runBatchedStatements(db, statements);
+    },
+
+    async deleteByKeys(keys: string[]) {
+      await runBatchedStatements(
+        db,
+        chunk(keys, DELETE_KEYS_PER_STATEMENT).flatMap((rows) => [
+          db.delete(settingsOfficialDocs).where(inArray(settingsOfficialDocs.settingKey, rows)),
+          db.delete(settingsReference).where(inArray(settingsReference.key, rows)),
+        ]),
+      );
     },
   };
 }
