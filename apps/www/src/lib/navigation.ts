@@ -17,12 +17,6 @@ export type NavItem = {
 /** ヘッダーとモバイルメニューに並べる主要セクション */
 export const NAV_ITEMS: NavItem[] = [
   {
-    href: '/posts/weekly',
-    label: '週次まとめ',
-    description: '1 週間分のアップデートから注目の変更を解説',
-    icon: 'newspaper',
-  },
-  {
     href: '/posts/column',
     label: 'コラム',
     description: '使い方や運用で得た知見を記事にまとめる',

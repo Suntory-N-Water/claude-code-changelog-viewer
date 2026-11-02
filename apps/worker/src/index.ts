@@ -13,7 +13,6 @@ import { ingestChangelogRoute } from './routes/ingest-changelog';
 import { mcpRoute } from './routes/mcp';
 import { siteDataRoute } from './routes/site-data';
 import { unsubscribeRoute } from './routes/unsubscribe';
-import { uploadsRoute } from './routes/uploads';
 import { webhooksRoute } from './routes/webhooks';
 
 export { ChangelogInferenceWorkflow } from './workflows/changelog-inference-workflow';
@@ -65,7 +64,6 @@ app.route('/ingest/changelog', ingestChangelogRoute);
 app.route('/mcp', mcpRoute);
 app.route('/site-data', siteDataRoute);
 app.route('/unsubscribe', unsubscribeRoute);
-app.route('/uploads', uploadsRoute);
 
 async function runCron(name: string, task: () => Promise<void>): Promise<void> {
   return runWithLogContext({ trace_id: crypto.randomUUID(), 'job.name': name }, async () => {

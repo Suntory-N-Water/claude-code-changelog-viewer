@@ -36,18 +36,6 @@ const diffCollection = defineCollection({
   }),
 });
 
-const postsWeeklyCollection = defineCollection({
-  loader: glob({ pattern: 'weekly/**/*.md', base: './src/content/posts' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string().optional(), // meta description / 一覧カードの説明文(生成時は空、後から補足)
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    period_start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    period_end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    versions: z.array(z.string()),
-  }),
-});
-
 const columnCollection = defineCollection({
   loader: glob({ pattern: 'column/**/*.md', base: './src/content/posts' }),
   schema: z.object({
@@ -95,6 +83,5 @@ export const collections = {
   changelog: changelogCollection,
   column: columnCollection,
   diff: diffCollection,
-  postsWeekly: postsWeeklyCollection,
   settingsReference: settingsReferenceCollection,
 };

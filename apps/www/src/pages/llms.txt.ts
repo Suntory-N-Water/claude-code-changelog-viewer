@@ -6,9 +6,8 @@ import { semverCompareDesc } from '../lib/semver';
 export async function GET(context: APIContext) {
   const site = context.site?.href.replace(/\/$/, '') ?? '';
 
-  const [changelogs, posts, columns, settings] = await Promise.all([
+  const [changelogs, columns, settings] = await Promise.all([
     getCollection('changelog'),
-    getCollection('postsWeekly'),
     getCollection('column'),
     getCollection('settingsReference'),
   ]);
@@ -17,7 +16,6 @@ export async function GET(context: APIContext) {
     semverCompareDesc(a.data.version, b.data.version),
   );
 
-  const weeklyPosts = [...posts].sort((a, b) => b.data.date.localeCompare(a.data.date));
   const columnPosts = [...columns].sort((a, b) => b.data.date.localeCompare(a.data.date));
 
   const sortedSettings = [...settings].sort((a, b) => {
@@ -35,7 +33,6 @@ export async function GET(context: APIContext) {
     '## Main Pages',
     '',
     `- [Home](${site}/): Latest changelog entries`,
-    `- [Weekly Posts](${site}/posts/weekly): Weekly roundups of notable Claude Code updates`,
     `- [Columns](${site}/posts/column): Hands-on articles about using and operating Claude Code`,
     `- [Settings Reference](${site}/reference/settings): Look up Claude Code settings and environment variables`,
     `- [About](${site}/about): About this service`,
@@ -49,13 +46,6 @@ export async function GET(context: APIContext) {
     const v = entry.data.version;
     const summary = entry.data.summary ? `: ${entry.data.summary}` : '';
     lines.push(`- [v${v}](${site}/changelog/v${v})${summary}`);
-  }
-
-  lines.push('', '## Weekly Posts', '');
-  for (const entry of weeklyPosts) {
-    const slug = entry.id.split('/').pop();
-    const summary = entry.data.description ? `: ${entry.data.description}` : '';
-    lines.push(`- [${entry.data.title}](${site}/posts/weekly/${slug})${summary}`);
   }
 
   lines.push('', '## Columns', '');

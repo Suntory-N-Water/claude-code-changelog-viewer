@@ -39,26 +39,11 @@ type ReadingCard = {
   archiveLabel: string;
 };
 
-const latestWeekly = (await getCollection('postsWeekly')).sort((a, b) =>
-  b.data.date.localeCompare(a.data.date),
-)[0];
 const latestColumn = (await getCollection('column')).sort((a, b) =>
   b.data.date.localeCompare(a.data.date),
 )[0];
 
 const readingCards: ReadingCard[] = [];
-if (latestWeekly) {
-  readingCards.push({
-    kind: 'Weekly',
-    icon: 'newspaper',
-    meta: `${format(parseISO(latestWeekly.data.period_start), 'M月d日')}〜${format(parseISO(latestWeekly.data.period_end), 'M月d日')}`,
-    href: `/posts/weekly/${latestWeekly.id.split('/').pop()}`,
-    title: latestWeekly.data.title,
-    description: latestWeekly.data.description ?? '',
-    archiveHref: '/posts/weekly',
-    archiveLabel: '週次まとめの一覧',
-  });
-}
 if (latestColumn) {
   readingCards.push({
     kind: 'Column',
@@ -216,8 +201,7 @@ const faqItems = [
               読みもの
             </h2>
             <p class='text-sm text-gray-600 mb-6 leading-relaxed'>
-              1 週間分のアップデートをまとめた週次記事と、Claude Code
-              の使い方や運用で得た知見を書いたコラムです。
+              Claude Code の使い方や運用で得た知見を書いたコラムです。
             </p>
             <div class:list={['grid gap-4', readingCards.length > 1 && 'sm:grid-cols-2']}>
               {readingCards.map((card) => (

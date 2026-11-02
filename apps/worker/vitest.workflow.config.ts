@@ -20,7 +20,6 @@ export default defineConfig({
       },
       miniflare: {
         bindings: {
-          CF_ACCESS_AUD: 'test-access-aud',
           CLOUDFLARE_ACCOUNT_ID: 'test-account-id',
           D1_REST_API_TOKEN: 'test-d1-rest-api-token',
           DEPLOY_HOOK_URL: 'https://deploy.example/hook',

@@ -22,7 +22,8 @@ resource "cloudflare_r2_bucket_lifecycle" "d1_backup" {
   }]
 }
 
-# 週次アップデート記事に添付する画像の保存先
+# コラム記事に添付する画像の保存先
+# 週次記事用に作った名残で weekly-assets という名前だが、改名はバケットの作り直しになり公開中の画像 URL が切れるため据え置く
 resource "cloudflare_r2_bucket" "weekly_assets" {
   account_id = var.account_id
   name       = "weekly-assets"

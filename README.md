@@ -32,9 +32,8 @@ pnpm workspace のモノレポで、`apps/www`(公開サイト)と `apps/worker`
 - 主な画面
   - `/changelog`、`/changelog/v{version}` — バージョン一覧と詳細(要約・変更項目・差分・関連ドキュメント)
   - `/reference/settings`、`/reference/settings/{slug}` — settings.json と環境変数のリファレンス
-  - `/posts/weekly`、`/posts/column` — 週次アップデート記事とコラム(ローカルの Markdown)
+  - `/posts/column` — コラム(ローカルの Markdown)
   - `/notify` — 通知の登録フォーム(Turnstile でボット判定し Worker へ POST)
-  - `/admin/weekly` — 週次記事に載せる項目の選定画面。Cloudflare Zero Trust Access でメールアドレスを限定
 - 主な機能
   - Pagefind による全文検索
   - RSS・sitemap・llms.txt・JSON-LD の出力と、コラムの OGP 画像生成
@@ -54,7 +53,6 @@ Hono 製のバックエンド。関数主体の DDD レイヤ構成(`domain` / `
   - `POST /api/webhooks` — 通知チャンネルの登録(Turnstile 検証・レート制限あり)
   - `GET|POST /api/unsubscribe` — 通知の解除
   - `ALL /api/mcp`、`ALL /mcp` — MCP サーバー
-  - `POST /api/uploads` — 週次記事の画像を R2 へ保存(Cloudflare Access で保護)
   - `POST /api/dispatch`、`POST /api/ingest/changelog` — 共有シークレットで保護した内部用
 - 定期実行
   - 5 分ごと: 公式 CHANGELOG.md を取得してハッシュを比較し、変化があれば推論ワークフローを起動
