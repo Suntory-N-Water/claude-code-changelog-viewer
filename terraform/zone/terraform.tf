@@ -1,11 +1,14 @@
 terraform {
+  required_version = ">= 1.14"
+
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = ">= 5"
+      version = "~> 5.0"
     }
   }
 
+  # bucket と endpoints は backend.hcl から init 時に渡す(アカウント ID を含むため commit しない)
   backend "s3" {
     bucket                      = ""
     key                         = "claude-code-log/zone/terraform.tfstate"
@@ -16,11 +19,9 @@ terraform {
     skip_requesting_account_id  = true
     skip_s3_checksum            = true
     use_path_style              = true
+
     endpoints = {
       s3 = ""
     }
   }
 }
-
-# API トークンは環境変数 CLOUDFLARE_API_TOKEN から自動読み込み
-provider "cloudflare" {}

@@ -16,7 +16,7 @@ resource "cloudflare_bot_management" "main" {
 }
 
 # WAF カスタムルール - 不審クローラーブロック
-resource "cloudflare_ruleset" "block_suspicious_crawlers" {
+resource "cloudflare_ruleset" "suspicious_crawler_block" {
   zone_id     = var.zone_id
   name        = "不審クローラーブロック"
   kind        = "zone"

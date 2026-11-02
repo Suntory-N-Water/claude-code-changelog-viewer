@@ -1,9 +1,3 @@
-variable "zone_id" {
-  description = "Cloudflare Zone ID"
-  type        = string
-  sensitive   = true
-}
-
 variable "account_id" {
   description = "Cloudflare Account ID"
   type        = string
@@ -18,6 +12,12 @@ variable "domain" {
 
 variable "forwarding_email" {
   description = "メール転送先アドレス"
+  type        = string
+  sensitive   = true
+}
+
+variable "zone_id" {
+  description = "Cloudflare Zone ID"
   type        = string
   sensitive   = true
 }

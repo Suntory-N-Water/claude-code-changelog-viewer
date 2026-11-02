@@ -4,35 +4,52 @@ resource "cloudflare_r2_bucket" "d1_backup" {
   name       = "changelog-viewer-d1-backup"
 }
 
+# ライフサイクルは PUT で全ルールを置き換えるため、R2 がバケット作成時に付ける既定ルールもここに書いて残す
 resource "cloudflare_r2_bucket_lifecycle" "d1_backup" {
   account_id  = var.account_id
   bucket_name = cloudflare_r2_bucket.d1_backup.name
-  rules = [{
-    id      = "1年経過した export を削除する"
-    enabled = true
-    conditions = {
-      prefix = "notification-db/"
-    }
-    delete_objects_transition = {
-      condition = {
-        max_age = 31536000
-        type    = "Age"
+
+  rules = [
+    {
+      id      = "Default Multipart Abort Rule"
+      enabled = true
+      conditions = {
+        prefix = ""
       }
-    }
-  }]
+      abort_multipart_uploads_transition = {
+        condition = {
+          max_age = 604800
+          type    = "Age"
+        }
+      }
+    },
+    {
+      id      = "1年経過した export を削除する"
+      enabled = true
+      conditions = {
+        prefix = "notification-db/"
+      }
+      delete_objects_transition = {
+        condition = {
+          max_age = 31536000
+          type    = "Age"
+        }
+      }
+    },
+  ]
 }
 
 # コラム記事に添付する画像の保存先
 # 週次記事用に作った名残で weekly-assets という名前だが、改名はバケットの作り直しになり公開中の画像 URL が切れるため据え置く
-resource "cloudflare_r2_bucket" "weekly_assets" {
+resource "cloudflare_r2_bucket" "assets" {
   account_id = var.account_id
   name       = "weekly-assets"
 }
 
 # R2 の画像を公開配信するカスタムドメイン
-resource "cloudflare_r2_custom_domain" "weekly_assets" {
+resource "cloudflare_r2_custom_domain" "assets" {
   account_id  = var.account_id
-  bucket_name = cloudflare_r2_bucket.weekly_assets.name
+  bucket_name = cloudflare_r2_bucket.assets.name
   domain      = "assets.${var.domain}"
   enabled     = true
   zone_id     = var.zone_id

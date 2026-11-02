@@ -1,7 +1,7 @@
 # Email Routing - 受信メールの転送設定
 # SPF/MX/DKIM は Email Routing が自動管理するため手動定義不要
 
-resource "cloudflare_email_routing_dns" "this" {
+resource "cloudflare_email_routing_dns" "main" {
   zone_id = var.zone_id
   name    = var.domain
 }
@@ -25,7 +25,7 @@ resource "cloudflare_email_routing_rule" "info" {
 }
 
 # catch-all は無効化(それ以外のアドレス宛は受け取らない)
-resource "cloudflare_email_routing_catch_all" "this" {
+resource "cloudflare_email_routing_catch_all" "main" {
   zone_id = var.zone_id
   name    = "その他は破棄"
   enabled = true

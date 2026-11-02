@@ -1,6 +1,6 @@
 # DNSSEC - DNS レスポンスに暗号署名を付与し、DNS 応答の偽造を防ぐ
 
-resource "cloudflare_zone_dnssec" "this" {
+resource "cloudflare_zone_dnssec" "main" {
   zone_id = var.zone_id
   status  = "active"
 }
