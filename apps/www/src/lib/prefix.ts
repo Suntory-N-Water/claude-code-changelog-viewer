@@ -6,10 +6,7 @@
 
 import type { Prefix } from '@claude-code-changelog-viewer/common';
 
-export {
-  getPrefixSortOrder,
-  PREFIX_ORDER,
-} from '@claude-code-changelog-viewer/common';
+export { getPrefixSortOrder } from '@claude-code-changelog-viewer/common';
 export type { Prefix } from '@claude-code-changelog-viewer/common';
 
 /** 日本語ラベル */

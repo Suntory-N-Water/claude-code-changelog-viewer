@@ -334,4 +334,4 @@ function getLogContext(): Readonly<Record<string, unknown>> {
 }
 
 export { getLogContext, getLogger, runWithLogContext };
-export type { AppLogger, LogFn, LoggerOptions, LogId, LogLevel, MsgOptions };
+export type { AppLogger, LogFn, LoggerOptions, LogLevel, MsgOptions };
