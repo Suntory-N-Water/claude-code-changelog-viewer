@@ -685,9 +685,7 @@ function createSettingSchemaEntry({
 }: SettingSchemaEntryInput): SettingSchemaEntry {
   const node = isJsonObject(value) ? value : {};
   const valueType = formatValueType(node);
-  const defaultValue = Object.hasOwn(node, 'default')
-    ? (JSON.stringify(node['default']) ?? null)
-    : null;
+  const defaultValue = node['default'] === undefined ? null : JSON.stringify(node['default']);
   const enumValues = Array.isArray(node['enum'])
     ? JSON.stringify(node['enum'].map((item) => String(item)))
     : null;
