@@ -66,8 +66,6 @@ const latestReleaseDate = format(new TZDate(latestReleaseAt, 'Asia/Tokyo'), 'yyy
 const latestVersionLabel = `v${latestVersion}(${latestReleaseDate}リリース)`;
 const pageTitle = `Claude Code最新版 v${latestVersion} - ${SITE_TITLE}`;
 const pageDescription = `Claude Codeの最新版は${latestVersionLabel}です。公式 CHANGELOG の変更履歴を AI が日本語で解説します。`;
-const totalVersions = sortedChangelogs.length;
-const totalChanges = sortedChangelogs.reduce((sum, entry) => sum + entry.data.items.length, 0);
 
 const faqItems = [
   {
@@ -97,6 +95,9 @@ const faqItems = [
   <div class='min-h-dvh py-12 sm:py-16 px-4'>
     <div class='max-w-6xl mx-auto'>
       <header class='mb-16 sm:mb-20 max-w-4xl'>
+        <p class='mb-3 font-mono text-xs font-bold uppercase tracking-widest text-[hsl(var(--cc-main-black)/0.6)]'>
+          Claude Code 最新版
+        </p>
         <div
           class='flex flex-wrap items-end gap-x-6 gap-y-3 border-b border-[hsl(var(--cc-gray))] pb-6 mb-8'
         >
@@ -106,32 +107,12 @@ const faqItems = [
           >
             v{latestVersion}
           </a>
-          <dl
-            class='font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] flex flex-col gap-1 pb-1'
-          >
-            <div class='flex items-center gap-2'>
-              <dt class='tabular-nums text-[hsl(var(--cc-main-black))]'>
-                {new Intl.NumberFormat('ja-JP').format(totalVersions)}
-              </dt>
-              <dd>versions tracked</dd>
-            </div>
-            <div class='flex items-center gap-2'>
-              <dt class='tabular-nums text-[hsl(var(--cc-main-black))]'>
-                {new Intl.NumberFormat('ja-JP').format(totalChanges)}
-              </dt>
-              <dd>changes summarized</dd>
-            </div>
-          </dl>
         </div>
         <h1
-          class='text-3xl sm:text-4xl font-bold text-balance tracking-tight text-[hsl(var(--cc-main-black))] mb-3'
+          class='text-3xl sm:text-4xl font-bold text-balance tracking-tight text-[hsl(var(--cc-main-black))]'
         >
           {SITE_TITLE}
         </h1>
-        <p class='text-base sm:text-lg text-gray-600 leading-relaxed max-w-2xl'>
-          公式 CHANGELOG を毎時取り込み、Skills・Hooks・MCP
-          など機能別に追跡。日本語サマリーと変更後に何が変わるかを AI が生成します。
-        </p>
         <div class='flex flex-wrap items-center gap-3 mt-7'>
           <Button href={`/changelog/v${latestVersion}`} shape='pill'>
             最新版を読む
@@ -197,12 +178,9 @@ const faqItems = [
       {
         readingCards.length > 0 && (
           <section class='mt-20 max-w-4xl mx-auto'>
-            <h2 class='text-2xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-3'>
+            <h2 class='text-2xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-6'>
               読みもの
             </h2>
-            <p class='text-sm text-gray-600 mb-6 leading-relaxed'>
-              Claude Code の使い方や運用で得た知見を書いたコラムです。
-            </p>
             <div class:list={['grid gap-4', readingCards.length > 1 && 'sm:grid-cols-2']}>
               {readingCards.map((card) => (
                 <a

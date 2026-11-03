@@ -41,6 +41,8 @@ export function setupForm(config: FormConfig) {
     return;
   }
 
+  const submitLabel = submitText.textContent ?? '';
+
   input.addEventListener('input', () => {
     const value = input.value.trim();
     if (value && !validateUrl(value)) {
@@ -92,24 +94,24 @@ export function setupForm(config: FormConfig) {
 
       if (response.ok) {
         resultMessage.className = successClass;
-        resultMessage.textContent = '登録が完了しました。テスト通知を送信しました。';
+        resultMessage.textContent = '登録しました。テスト通知を送りました';
         window.gtag?.('event', 'notify_signup', {
           event_category: 'engagement',
           event_label: channel_type,
         });
       } else if (response.status === 409) {
         resultMessage.className = errorClass;
-        resultMessage.textContent = '既に登録済みです。';
+        resultMessage.textContent = '登録済みです';
       } else {
         resultMessage.className = errorClass;
-        resultMessage.textContent = data.error ?? '登録に失敗しました。もう一度お試しください。';
+        resultMessage.textContent = data.error ?? '登録できませんでした';
       }
     } catch {
       resultMessage.className = errorClass;
-      resultMessage.textContent = 'ネットワークエラーが発生しました。もう一度お試しください。';
+      resultMessage.textContent = '通信できませんでした';
     } finally {
       resultMessage.classList.remove('hidden');
-      submitText.textContent = '登録する';
+      submitText.textContent = submitLabel;
       spinner.classList.add('hidden');
       submitBtn.disabled = true;
       // トークンは一度使うと無効になるのでリセット

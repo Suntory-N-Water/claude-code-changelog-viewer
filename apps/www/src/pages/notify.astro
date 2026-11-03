@@ -30,15 +30,9 @@ const url = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.SITE
 
       <!-- ヘッダー -->
       <div class='mb-8'>
-        <h1
-          class='text-2xl sm:text-3xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-3'
-        >
+        <h1 class='text-2xl sm:text-3xl font-bold text-balance text-[hsl(var(--cc-main-black))]'>
           通知設定
         </h1>
-        <p class='text-base leading-relaxed text-[hsl(var(--cc-main-black)/0.6)]'>
-          Claude Code
-          の新バージョンがリリースされた際に、Discord・Slack・メールへ自動通知します。通知はいつでも解除可能です。
-        </p>
       </div>
 
       <!-- クエリパラメータによるタブ初期化: JS 実行前のちらつきを防ぐ -->
@@ -131,8 +125,13 @@ const url = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.SITE
                 >
                   <li>Discordで通知を受け取りたいサーバーを開く</li>
                   <li>
-                    <strong>サーバー設定</strong> → <strong>連携サービス</strong>
-                    → <strong>ウェブフック</strong>
+                    <span class='inline-flex flex-wrap items-center gap-x-1'>
+                      <strong>サーバー設定</strong>
+                      <Icon name='chevron-right' class='w-3 h-3' aria-hidden='true' />
+                      <strong>連携サービス</strong>
+                      <Icon name='chevron-right' class='w-3 h-3' aria-hidden='true' />
+                      <strong>ウェブフック</strong>
+                    </span>
                   </li>
                   <li>
                     <strong>新しいウェブフック</strong>を作成し、通知先のチャンネルを選択
@@ -184,7 +183,7 @@ const url = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.SITE
               disabled
               class='w-full sm:w-auto h-11 px-6 font-medium text-[hsl(var(--cc-main-white))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:opacity-40'
             >
-              <span id='discord-submit-text'>登録する</span>
+              <span id='discord-submit-text'>Webhook を登録</span>
               <Icon
                 name='spinner'
                 id='discord-submit-spinner'
@@ -221,13 +220,15 @@ const url = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.SITE
                   class='ml-5 list-decimal list-outside space-y-3 text-sm text-[hsl(var(--cc-main-black)/0.7)] leading-relaxed'
                 >
                   <li>
-                    Slack の管理画面( <a
+                    <a
                       href='https://api.slack.com/apps'
                       target='_blank'
                       rel='noopener noreferrer'
-                      class='text-[hsl(var(--cc-main-orange))] hover:underline'
-                      >https://api.slack.com/apps
-                    </a>) に遷移
+                      class='inline-flex items-center gap-1 text-[hsl(var(--cc-main-orange))] hover:underline'
+                    >
+                      Slack の管理画面を開く
+                      <Icon name='external-link' class='w-3.5 h-3.5' aria-hidden='true' />
+                    </a>
                   </li>
                   <li>
                     <strong>Create New App</strong> から <strong>Create app from manifest</strong> を選択し、下記のマニフェストを貼り付ける
@@ -275,11 +276,8 @@ const url = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.SITE
                     App 作成後、アプリ設定ページの <strong>Incoming Webhooks</strong> を選択
                   </li>
                   <li>
-                    <strong>Webhook URLs for Your Workspace</strong> にある <strong
-                      >Add New Webhook to Workspace</strong
-                    > から投稿したいチャンネルを選択
+                    <strong>Add New Webhook to Workspace</strong> を押し、投稿先チャンネルを選んで許可
                   </li>
-                  <li>認証画面で投稿先チャンネルを選択して許可</li>
                   <li>
                     表示された <strong>Webhook URL をコピー</strong>して下のフォームに貼り付け
                   </li>
@@ -327,7 +325,7 @@ const url = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.SITE
               disabled
               class='w-full sm:w-auto h-11 px-6 font-medium text-[hsl(var(--cc-main-white))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:opacity-40'
             >
-              <span id='slack-submit-text'>登録する</span>
+              <span id='slack-submit-text'>Webhook を登録</span>
               <Icon
                 name='spinner'
                 id='slack-submit-spinner'
@@ -343,56 +341,27 @@ const url = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.SITE
 
       <!-- Email パネル -->
       <div id='panel-email' role='tabpanel' aria-labelledby='tab-email' class='hidden'>
-        <!-- プレビュー版バナー -->
-        <Card
-          variant='accent'
-          padding='none'
-          class='mb-6 flex gap-3 items-start px-4 py-3.5'
-          role='note'
-          aria-label='プレビュー版に関する注意'
+        <ul
+          class='mb-6 space-y-2 text-sm text-[hsl(var(--cc-main-black)/0.7)]'
+          aria-label='メール通知の注意'
         >
-          <Icon
-            name='warning'
-            class='w-4 h-4 text-[hsl(var(--cc-main-orange))] mt-px shrink-0'
-            aria-hidden='true'
-          />
-          <div>
-            <p class='text-sm font-semibold text-[hsl(var(--cc-main-orange))]'>プレビュー版</p>
-            <p class='mt-0.5 text-xs leading-relaxed text-[hsl(var(--cc-main-black)/0.6)]'>
-              メール通知はプレビュー版です。予告なく停止する場合があります。
-            </p>
-          </div>
-        </Card>
-
-        <!-- セットアップガイド -->
-        <Card as='section' padding='none' class='mb-8'>
-          <details class='group' open>
-            <summary
-              class='flex items-center justify-between gap-3 px-5 py-4 cursor-pointer select-none'
-            >
-              <span class='text-sm font-medium text-[hsl(var(--cc-main-black)/0.8)]'>
-                メール通知について
-              </span>
-              <Icon
-                name='chevron-down'
-                class='w-4 h-4 text-[hsl(var(--cc-main-black)/0.4)] transition-transform duration-200 group-open:rotate-180'
-                aria-hidden='true'
-              />
-            </summary>
-            <div class='px-5 pb-5'>
-              <div class='border-t border-[hsl(var(--cc-gray))] pt-4'>
-                <ol
-                  class='ml-5 list-decimal list-outside space-y-2 text-sm text-[hsl(var(--cc-main-black)/0.7)] leading-relaxed'
-                >
-                  <li>受け取りたいメールアドレスを入力する</li>
-                  <li>登録ボタンを押すと、確認メールが届く</li>
-                  <li>Claude Code の新バージョンがリリースされると自動でメールが届く</li>
-                  <li>通知停止はメール内の「通知を停止する」リンクから行う</li>
-                </ol>
-              </div>
-            </div>
-          </details>
-        </Card>
+          <li class='flex items-center gap-2'>
+            <Icon
+              name='warning'
+              class='w-4 h-4 text-[hsl(var(--cc-main-orange))] shrink-0'
+              aria-hidden='true'
+            />
+            予告なく停止する場合があります
+          </li>
+          <li class='flex items-center gap-2'>
+            <Icon
+              name='mail'
+              class='w-4 h-4 text-[hsl(var(--cc-main-black)/0.5)] shrink-0'
+              aria-hidden='true'
+            />
+            停止は届いたメール内のリンクから
+          </li>
+        </ul>
 
         <!-- 登録フォーム -->
         <Card as='section'>
@@ -432,7 +401,7 @@ const url = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.SITE
               disabled
               class='w-full sm:w-auto h-11 px-6 font-medium text-[hsl(var(--cc-main-white))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:opacity-40'
             >
-              <span id='email-submit-text'>登録する</span>
+              <span id='email-submit-text'>メールアドレスを登録</span>
               <Icon
                 name='spinner'
                 id='email-submit-spinner'

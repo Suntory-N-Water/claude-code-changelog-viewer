@@ -12,7 +12,6 @@ type Article = {
 
 type Props = {
   heading: string;
-  lead: string;
   basePath: string;
   articles: Article[];
   page: {
@@ -22,7 +21,7 @@ type Props = {
   };
 };
 
-const { heading, lead, basePath, articles, page } = Astro.props;
+const { heading, basePath, articles, page } = Astro.props;
 
 const firstPageUrl = page.url.first ?? basePath;
 const pageUrlBase = firstPageUrl.replace(/\/$/, '');
@@ -46,21 +45,14 @@ const paginationPages = Array.from({ length: page.lastPage }, (_, index) => {
         <span class='text-[hsl(var(--cc-main-black)/0.7)]'>{heading}</span>
       </nav>
       <h1
-        class='text-3xl sm:text-4xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-3'
+        class='text-3xl sm:text-4xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))]'
       >
         {heading}
       </h1>
-      <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] leading-relaxed'>
-        {lead}
-      </p>
     </header>
 
     {
-      articles.length === 0 ? (
-        <p class='py-16 text-center text-sm text-[hsl(var(--cc-main-black)/0.5)]'>
-          まだ記事がありません。
-        </p>
-      ) : (
+      articles.length > 0 && (
         <ul class='space-y-4'>
           {articles.map((article) => (
             <li>

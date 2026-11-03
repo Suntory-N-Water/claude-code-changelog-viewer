@@ -108,18 +108,14 @@ const totalItemCount = items.length;
 
       {
         version !== latestVersion && (
-          <div class='mb-6 flex items-start gap-2 px-4 py-3 rounded-lg bg-[hsl(var(--cc-gray)/0.5)] border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.85)]'>
-            <Icon name='info-circle' class='w-4 h-4 shrink-0 mt-0.5' aria-hidden='true' />
-            <div>
-              <p>このバージョン以降にも更新があります。</p>
-              <a
-                href={`/changelog/v${latestVersion}`}
-                class='font-medium text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-              >
-                最新版 v{latestVersion} を見る →
-              </a>
-            </div>
-          </div>
+          <a
+            href={`/changelog/v${latestVersion}`}
+            class='mb-6 flex items-center gap-2 px-4 py-3 rounded-lg bg-[hsl(var(--cc-gray)/0.5)] border border-[hsl(var(--cc-gray))] text-sm font-medium text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+          >
+            <Icon name='info-circle' class='w-4 h-4 shrink-0' aria-hidden='true' />
+            最新版 v{latestVersion} を読む
+            <Icon name='chevron-right' class='w-4 h-4 shrink-0' aria-hidden='true' />
+          </a>
         )
       }
 
@@ -134,7 +130,7 @@ const totalItemCount = items.length;
           {
             isRemoved && (
               <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
-                公式のCHANGELOG.mdから削除済み
+                {removedDate} 公式のCHANGELOG.mdから削除
               </span>
             )
           }
@@ -160,15 +156,6 @@ const totalItemCount = items.length;
             <Icon name='external-link' class='w-3.5 h-3.5' aria-hidden='true' />
           </a>
         </div>
-        {
-          isRemoved && (
-            <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] mt-1'>
-              この内容は公式のCHANGELOG.mdから削除される前に取得したものです(
-              {removedDate}
-              検出)
-            </p>
-          )
-        }
         {
           itemChangeEvents.length > 0 && (
             <>
@@ -298,67 +285,64 @@ const totalItemCount = items.length;
         }
       </div>
 
-      <aside
-        class='mt-10 p-5 bg-[hsl(var(--cc-main-orange)/0.04)] border border-[hsl(var(--cc-gray))] rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4'
-      >
-        <p class='text-sm text-gray-600'>Claude Codeの新バージョンを見逃さない</p>
+      <div class='mt-10 flex flex-wrap items-center justify-between gap-4'>
         <Button href='/notify' size='sm' shape='pill' data-cta='notify'>
           <Icon name='bell' class='w-4 h-4' aria-hidden='true' />
           更新通知を受け取る
         </Button>
-      </aside>
 
-      <div id='share-section' class='mt-8 flex flex-wrap items-center gap-3'>
-        <span class='text-sm text-gray-500'>シェア:</span>
-        <Button
-          id='web-share-btn'
-          type='button'
-          hidden
-          size='xs'
-          shape='pill'
-          class='px-4'
-          aria-label='シェア'
-        >
-          <Icon name='bell' class='w-3.5 h-3.5' aria-hidden='true' />
-          シェアする
-        </Button>
-        <Button
-          href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`${import.meta.env.SITE}/changelog/v${version}`)}&text=${encodeURIComponent(`Claude Code v${version} の変更点`)}`}
-          target='_blank'
-          rel='noopener noreferrer'
-          variant='outline'
-          size='xs'
-          shape='pill'
-          aria-label='Xでシェア'
-          data-share='x'
-        >
-          <Icon name='x-twitter' class='w-3.5 h-3.5' aria-hidden='true' />
-          X
-        </Button>
-        <Button
-          href={`https://b.hatena.ne.jp/entry/s/${new URL(`/changelog/v${version}`, import.meta.env.SITE).host}${new URL(`/changelog/v${version}`, import.meta.env.SITE).pathname}`}
-          target='_blank'
-          rel='noopener noreferrer'
-          variant='outline'
-          size='xs'
-          shape='pill'
-          aria-label='はてなブックマークに追加'
-          data-share='hatena'
-        >
-          <Icon name='hatena-b' class='w-3.5 h-3.5' aria-hidden='true' />
-          はてブ
-        </Button>
-        <Button
-          id='copy-url-btn'
-          type='button'
-          variant='outline'
-          size='xs'
-          shape='pill'
-          aria-label='URLをコピー'
-        >
-          <Icon name='copy' id='copy-url-icon' class='w-3.5 h-3.5' aria-hidden='true' />
-          <span id='copy-url-label'>URLをコピー</span>
-        </Button>
+        <div id='share-section' class='flex flex-wrap items-center gap-3'>
+          <Button
+            id='web-share-btn'
+            type='button'
+            hidden
+            variant='outline'
+            size='xs'
+            shape='pill'
+            class='px-4'
+            aria-label='シェア'
+          >
+            <Icon name='share' class='w-3.5 h-3.5' aria-hidden='true' />
+            シェアする
+          </Button>
+          <Button
+            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`${import.meta.env.SITE}/changelog/v${version}`)}&text=${encodeURIComponent(`Claude Code v${version} の変更点`)}`}
+            target='_blank'
+            rel='noopener noreferrer'
+            variant='outline'
+            size='xs'
+            shape='pill'
+            aria-label='Xでシェア'
+            data-share='x'
+          >
+            <Icon name='x-twitter' class='w-3.5 h-3.5' aria-hidden='true' />
+            X
+          </Button>
+          <Button
+            href={`https://b.hatena.ne.jp/entry/s/${new URL(`/changelog/v${version}`, import.meta.env.SITE).host}${new URL(`/changelog/v${version}`, import.meta.env.SITE).pathname}`}
+            target='_blank'
+            rel='noopener noreferrer'
+            variant='outline'
+            size='xs'
+            shape='pill'
+            aria-label='はてなブックマークに追加'
+            data-share='hatena'
+          >
+            <Icon name='hatena-b' class='w-3.5 h-3.5' aria-hidden='true' />
+            はてブ
+          </Button>
+          <Button
+            id='copy-url-btn'
+            type='button'
+            variant='outline'
+            size='xs'
+            shape='pill'
+            aria-label='URLをコピー'
+          >
+            <Icon name='copy' id='copy-url-icon' class='w-3.5 h-3.5' aria-hidden='true' />
+            <span id='copy-url-label'>URLをコピー</span>
+          </Button>
+        </div>
       </div>
 
       <nav

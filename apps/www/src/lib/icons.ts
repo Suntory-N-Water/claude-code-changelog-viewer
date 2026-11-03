@@ -53,6 +53,8 @@ export const STROKE_ICONS = {
 
   // InferenceDetail(変更後)
   'check-circle': '<path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+  share:
+    '<path d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3V15"/>',
 
   // ローディングスピナー(内側で fill/stroke を個別指定するため stroke-type に含める)
   spinner:
