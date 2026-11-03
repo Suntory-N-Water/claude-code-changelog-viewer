@@ -15,62 +15,40 @@ const { items } = Astro.props;
   type='button'
   variant='ghost'
   size='icon-sm'
-  class='md:hidden w-10 h-10 rounded-md hover:text-[hsl(var(--cc-main-black))] hover:bg-[hsl(var(--cc-gray)/0.5)]'
+  class='md:hidden w-11 h-11 rounded-md'
   aria-label='メニューを開く'
   aria-expanded='false'
   aria-controls='mobile-menu'
 >
-  <Icon id='icon-menu' name='menu' class='w-5 h-5' aria-hidden='true' />
-  <Icon id='icon-close' name='close' class='w-5 h-5 hidden' aria-hidden='true' />
+  <Icon id='icon-menu' name='menu' class='w-5 h-5' />
+  <Icon id='icon-close' name='close' class='w-5 h-5 hidden' />
 </Button>
 
 <div
   id='mobile-menu'
-  class='absolute top-full left-0 right-0 md:hidden border-t border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white)/0.98)] shadow-lg shadow-[hsl(var(--cc-main-black)/0.06)]'
+  class='absolute top-full left-0 right-0 md:hidden border-b border-rule bg-paper shadow-lg'
 >
-  <nav class='flex flex-col gap-1.5 p-3' aria-label='メインメニュー'>
-    {
-      items.map((item) => (
-        <a
-          href={item.href}
-          class={`group flex items-center gap-3 rounded-xl px-3 py-3 min-h-11 border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))] ${item.isActive ? 'border-[hsl(var(--cc-main-orange)/0.5)] bg-[hsl(var(--cc-main-orange)/0.08)]' : 'border-[hsl(var(--cc-gray))] hover:border-[hsl(var(--cc-main-orange)/0.4)] hover:bg-[hsl(var(--cc-main-orange)/0.04)]'}`}
-          aria-current={item.isActive ? 'page' : undefined}
-        >
-          <span
-            class={`flex items-center justify-center w-9 h-9 rounded-lg shrink-0 ${item.isActive ? 'bg-[hsl(var(--cc-main-orange)/0.12)] text-[hsl(var(--cc-main-orange))]' : 'bg-[hsl(var(--cc-gray)/0.5)] text-[hsl(var(--cc-main-black)/0.6)] group-hover:bg-[hsl(var(--cc-main-orange)/0.12)] group-hover:text-[hsl(var(--cc-main-orange))]'}`}
-          >
-            <Icon name={item.icon} class='w-5 h-5' aria-hidden='true' />
-          </span>
-          <span class='min-w-0 flex-1'>
-            <span
-              class={`block text-sm font-semibold ${item.isActive ? 'text-[hsl(var(--cc-main-orange))]' : 'text-[hsl(var(--cc-main-black))]'}`}
-            >
-              {item.label}
-            </span>
-            <span class='block text-xs text-[hsl(var(--cc-main-black)/0.6)] leading-snug'>
-              {item.description}
-            </span>
-          </span>
-          <Icon
-            name='chevron-right'
-            class='w-4 h-4 shrink-0 text-[hsl(var(--cc-main-black)/0.35)] group-hover:text-[hsl(var(--cc-main-orange))] group-hover:translate-x-0.5 transition-[color,transform]'
-            aria-hidden='true'
-          />
-        </a>
-      ))
-    }
-
-    <div class='my-1 border-t border-[hsl(var(--cc-gray))]'></div>
-
+  <nav class='flex flex-col px-4 py-2' aria-label='メインメニュー'>
+    {items.map((item) => (
+      <a
+        href={item.href}
+        class:list={[
+          'flex items-center gap-3 min-h-13 border-b border-rule text-base transition-colors',
+          item.isActive
+            ? 'text-ink font-semibold underline decoration-accent decoration-2 underline-offset-8'
+            : 'text-ink-2 hover:text-ink',
+        ]}
+        aria-current={item.isActive ? 'page' : undefined}
+      >
+        <Icon name={item.icon} class='w-5 h-5 shrink-0 text-muted' />
+        {item.label}
+      </a>
+    ))}
     <a
       href='/notify'
-      class='flex items-center gap-3 rounded-lg px-3 py-2.5 min-h-11 text-sm text-[hsl(var(--cc-main-black)/0.75)] hover:text-[hsl(var(--cc-main-orange))] hover:bg-[hsl(var(--cc-gray)/0.4)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+      class='flex items-center gap-3 min-h-13 text-base text-ink-2 hover:text-ink transition-colors'
     >
-      <Icon
-        name='bell'
-        class='w-5 h-5 shrink-0 text-[hsl(var(--cc-main-black)/0.6)]'
-        aria-hidden='true'
-      />
+      <Icon name='bell' class='w-5 h-5 shrink-0 text-muted' />
       更新通知を受け取る
     </a>
   </nav>

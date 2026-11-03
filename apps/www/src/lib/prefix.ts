@@ -24,22 +24,19 @@ export const PREFIX_LABELS: Record<Prefix, string> = {
 
 /** Tailwind クラス */
 export const PREFIX_STYLES: Record<Prefix, string> = {
-  Breaking: 'bg-red-600 text-white shadow-sm',
-  Added: 'bg-[hsl(var(--cc-main-orange))] text-white shadow-sm',
-  Deprecated: 'border-2 border-yellow-500 text-yellow-700 bg-yellow-50',
-  Changed: 'bg-[hsl(var(--cc-main-black))] text-[hsl(var(--cc-main-white))]',
-  Improved:
-    'border border-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] bg-[hsl(var(--cc-main-white))]',
-  Updated: 'bg-[hsl(var(--cc-main-black))] text-[hsl(var(--cc-main-white))]',
-  Removed:
-    'border-2 border-[hsl(var(--cc-main-black))] text-[hsl(var(--cc-main-black))] bg-transparent',
-  Fixed: 'bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]',
-  Enabled: 'bg-green-600 text-white shadow-sm',
+  Breaking: 'bg-error text-paper',
+  Added: 'bg-accent text-accent-ink',
+  Deprecated: 'border border-caution text-caution',
+  Changed: 'bg-ink text-paper',
+  Improved: 'border border-rule-2 text-ink',
+  Updated: 'bg-ink-2 text-paper',
+  Removed: 'border border-ink text-ink',
+  Fixed: 'bg-paper-3 text-ink',
+  Enabled: 'bg-success text-paper',
 };
 
 /** 未定義 prefix 用のフォールバックスタイル */
-export const PREFIX_DEFAULT_STYLE =
-  'border border-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] bg-[hsl(var(--cc-main-white))]';
+export const PREFIX_DEFAULT_STYLE = 'border border-rule-2 text-ink';
 
 /** SVG パス(stroke アイコン) */
 export const PREFIX_ICONS: Record<Prefix, string> = {

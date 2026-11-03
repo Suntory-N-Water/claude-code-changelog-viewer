@@ -26,26 +26,39 @@ type Props = {
   style?: string;
 };
 
-const { name, class: className, 'stroke-width': strokeWidth = '2', ...rest } = Astro.props;
+const {
+  name,
+  class: className,
+  'stroke-width': strokeWidth = '2',
+  'aria-hidden': ariaHidden,
+  ...rest
+} = Astro.props;
+const hidden = ariaHidden ?? (rest['aria-label'] ? undefined : 'true');
 
 const isStroke = name in STROKE_ICONS;
 const iconHtml = isStroke ? STROKE_ICONS[name as StrokeIconName] : FILL_ICONS[name as FillIconName];
 ---
 
-{
-  isStroke ? (
-    <svg
-      viewBox='0 0 24 24'
-      fill='none'
-      stroke='currentColor'
-      stroke-width={strokeWidth}
-      stroke-linecap='round'
-      stroke-linejoin='round'
-      class={className}
-      {...rest}
-      set:html={iconHtml}
-    />
-  ) : (
-    <svg viewBox='0 0 24 24' fill='currentColor' class={className} {...rest} set:html={iconHtml} />
-  )
-}
+{isStroke ? (
+  <svg
+    viewBox='0 0 24 24'
+    fill='none'
+    stroke='currentColor'
+    stroke-width={strokeWidth}
+    stroke-linecap='round'
+    stroke-linejoin='round'
+    class={className}
+    aria-hidden={hidden}
+    {...rest}
+    set:html={iconHtml}
+  />
+) : (
+  <svg
+    viewBox='0 0 24 24'
+    fill='currentColor'
+    class={className}
+    aria-hidden={hidden}
+    {...rest}
+    set:html={iconHtml}
+  />
+)}

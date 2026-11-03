@@ -109,7 +109,7 @@ if (jsonLd?.type === 'website') {
 ---
 
 <!doctype html>
-<html lang='ja'>
+<html lang='ja' class='overflow-x-clip'>
   <head>
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1' />
@@ -124,9 +124,11 @@ if (jsonLd?.type === 'website') {
 
     <meta
       name='robots'
-      content={noindex
-        ? 'noindex'
-        : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'}
+      content={
+        noindex
+          ? 'noindex'
+          : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'
+      }
     />
     <link rel='alternate' type='application/rss+xml' title={SITE_TITLE} href='/rss.xml' />
 
@@ -158,30 +160,38 @@ if (jsonLd?.type === 'website') {
       gtag('config', 'G-2815S79087');
     </script>
   </head>
-  <body>
-    <header
-      class='sticky top-0 z-50 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm border-b border-[hsl(var(--cc-gray))]'
-    >
-      <nav class='max-w-6xl mx-auto px-4 h-12 flex items-center justify-between gap-2'>
+  <body class='overflow-x-clip'>
+    <header class='sticky top-0 z-(--z-sticky-nav) bg-paper border-b border-rule'>
+      <nav
+        class='max-w-6xl mx-auto px-4 sm:px-6 h-(--nav-height) flex items-center justify-between gap-4'
+        aria-label='グローバルナビゲーション'
+      >
         <a
           href='/'
-          class='text-sm font-bold text-[hsl(var(--cc-main-black))] hover:text-[hsl(var(--cc-main-orange))] transition-colors shrink-0'
+          class='group flex items-center gap-2.5 shrink-0 rounded-md text-ink'
+          aria-label='CCログ超訳 トップへ'
         >
-          CCログ超訳
+          <img src='/favicon.svg' width='28' height='28' alt='' class='rounded-md' />
+          <span class='text-lg font-bold group-hover:text-accent-text transition-colors'>
+            CCログ超訳
+          </span>
         </a>
 
-        <div class='flex items-center gap-1'>
-          {
-            navItems.map((item) => (
-              <a
-                href={item.href}
-                class={`hidden md:inline whitespace-nowrap rounded-md px-2 py-1.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))] ${item.isActive ? 'text-[hsl(var(--cc-main-orange))] font-medium bg-[hsl(var(--cc-main-orange)/0.08)]' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))] hover:bg-[hsl(var(--cc-main-orange)/0.06)]'}`}
-                aria-current={item.isActive ? 'page' : undefined}
-              >
-                {item.label}
-              </a>
-            ))
-          }
+        <div class='flex items-center gap-1 sm:gap-2'>
+          {navItems.map((item) => (
+            <a
+              href={item.href}
+              class:list={[
+                'hidden md:inline-flex items-center whitespace-nowrap rounded-md px-3 min-h-10 text-sm transition-colors',
+                item.isActive
+                  ? 'text-ink font-semibold underline decoration-accent decoration-2 underline-offset-[10px]'
+                  : 'text-ink-2 hover:text-ink hover:bg-paper-2',
+              ]}
+              aria-current={item.isActive ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          ))}
 
           <SearchModal />
           <MobileMenu items={navItems} />
@@ -205,25 +215,6 @@ if (jsonLd?.type === 'website') {
         });
       }
       initHighlight();
-    </script>
-    <script is:inline>
-      // sibling-index() 非対応ブラウザ(Firefox 等)向けの CSS カスタムプロパティフォールバック
-      function initSiblingIndex() {
-        if (CSS.supports('animation-delay: calc(sibling-index() * 0.1s)')) {
-          return;
-        }
-        for (const cls of ['.changelog-card', '.version-card']) {
-          document.querySelectorAll(cls).forEach((el) => {
-            const parent = el.parentElement;
-            if (!parent) {
-              return;
-            }
-            const idx = Array.prototype.indexOf.call(parent.children, el) + 1;
-            el.style.setProperty('--sibling-index', String(idx));
-          });
-        }
-      }
-      initSiblingIndex();
     </script>
   </body>
 </html>

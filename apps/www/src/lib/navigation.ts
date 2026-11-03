@@ -9,25 +9,13 @@ import type { IconName } from './icons';
 export type NavItem = {
   href: string;
   label: string;
-  /** モバイルメニューで label の下に添える補足 */
-  description: string;
   icon: IconName;
 };
 
 /** ヘッダーとモバイルメニューに並べる主要セクション */
 export const NAV_ITEMS: NavItem[] = [
-  {
-    href: '/posts/column',
-    label: 'コラム',
-    description: '使い方や運用で得た知見を記事にまとめる',
-    icon: 'pencil-square',
-  },
-  {
-    href: '/reference/settings',
-    label: '設定リファレンス',
-    description: '設定項目と環境変数を横断で検索',
-    icon: 'clipboard-doc',
-  },
+  { href: '/posts/column', label: 'コラム', icon: 'pencil-square' },
+  { href: '/reference/settings', label: '設定リファレンス', icon: 'clipboard-doc' },
 ];
 
 type FooterLink = {

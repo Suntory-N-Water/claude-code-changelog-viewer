@@ -13,6 +13,7 @@ export const STROKE_ICONS = {
   'arrow-up': '<path d="M5 15l7-7 7 7"/>',
   'chevron-right': '<path d="M9 5l7 7-7 7"/>',
   'chevron-down': '<path d="M19 9l-7 7-7-7"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
 
   // SearchModal で使用(大きい虫眼鏡)
   search: '<path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>',
