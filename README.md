@@ -82,43 +82,11 @@ claude mcp add --transport http changelog https://claude-code-log.com/api/mcp
 
 ## システムアーキテクチャ
 
-登場人物と役割。
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/stack-dark.png">
+  <img src="docs/images/stack.png" alt="CCログ超訳の技術構成。Astro の静的サイト、Hono の API・MCP、Cloudflare Workflows・Workers AI・D1・KV・R2・Queues の接続を示す。">
+</picture>
 
-```mermaid
-graph LR
-    USER([ユーザー])
-    AGENT([AI エージェント])
-
-    subgraph CF["Cloudflare"]
-        WWW["apps/www<br/>Astro の静的サイト"]
-        WORKER["apps/worker<br/>Hono の API・MCP・定期実行"]
-        STORE[("D1 / KV / R2")]
-    end
-
-    GH["GitHub<br/>公式 CHANGELOG.md"]
-    DOCS["Anthropic 公式ドキュメント"]
-    CHAT["Discord / Slack / メール"]
-
-    USER -->|閲覧・通知登録| WWW
-    AGENT -->|MCP で問い合わせ| WORKER
-    WWW -->|ビルド時にデータ取得| WORKER
-    WORKER <-->|読み書き| STORE
-    GH -->|更新を検知| WORKER
-    DOCS -->|定期同期| WORKER
-    WORKER -->|新バージョンを通知| CHAT
-
-    classDef edge fill:#F5F5F5,stroke:#333,stroke-width:2px,color:#111
-    classDef app fill:#FFE0B2,stroke:#333,stroke-width:2px,color:#111
-    classDef data fill:#BBDEFB,stroke:#333,stroke-width:2px,color:#111
-    classDef ext fill:#E1BEE7,stroke:#333,stroke-width:2px,color:#111
-
-    class USER,AGENT edge
-    class WWW,WORKER app
-    class STORE data
-    class GH,DOCS,CHAT ext
-```
-
-更新を取り込んでから配信するまでの流れ。
 
 ```mermaid
 sequenceDiagram
@@ -132,6 +100,7 @@ sequenceDiagram
     participant Q as 配信キュー
     participant CH as Discord / Slack / メール
     participant WWW as apps/www
+    participant API as サイトデータAPI
 
     CRON->>GH: CHANGELOG.md を取得
     CRON->>KV: 前回のハッシュと比較
@@ -142,7 +111,11 @@ sequenceDiagram
         WF->>Q: 配信を予約
         Q->>CH: 新バージョンを通知
         WF->>WWW: 再ビルドを起動
-        WWW->>D1: サイトデータを読み出して HTML を生成
+        WWW->>API: ビルド時にサイトデータを取得
+        API->>D1: データを読み出す
+        D1-->>API: 推論結果・設定リファレンス
+        API-->>WWW: サイトデータを返す
+        Note over WWW: HTML を生成して配信
     else 変化なし
         CRON-->>CRON: 何もしない
     end
