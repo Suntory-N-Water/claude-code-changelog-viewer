@@ -57,9 +57,7 @@ const tabs = [
         <BackLink href='/'>トップに戻る</BackLink>
       </nav>
 
-      <h1 class='text-2xl sm:text-3xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-8'>
-        お問い合わせ
-      </h1>
+      <h1 class='text-[clamp(2rem,2vw+1.25rem,3rem)] text-ink mb-8'>お問い合わせ</h1>
 
       <div class='space-y-6'>
         <!-- メールテンプレートカード -->
@@ -71,126 +69,114 @@ const tabs = [
             aria-label='お問い合わせの種類'
             id='contact-tablist'
           >
-            {
-              tabs.map((tab, i) => (
-                <TabButton
-                  role='tab'
-                  id={`tab-${tab.id}`}
-                  aria-selected={i === 0 ? 'true' : 'false'}
-                  aria-controls={`panel-${tab.id}`}
-                  tabindex={i === 0 ? 0 : -1}
-                  active={i === 0}
-                  class='contact-tab flex-1 px-3 hover:text-[hsl(var(--cc-main-orange))] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-                  data-tab-id={tab.id}
-                >
-                  {tab.label}
-                </TabButton>
-              ))
-            }
+            {tabs.map((tab, i) => (
+              <TabButton
+                role='tab'
+                id={`tab-${tab.id}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-controls={`panel-${tab.id}`}
+                tabindex={i === 0 ? 0 : -1}
+                active={i === 0}
+                class='contact-tab flex-1 px-3 focus-visible:-outline-offset-2'
+                data-tab-id={tab.id}
+              >
+                {tab.label}
+              </TabButton>
+            ))}
           </div>
 
           <!-- タブパネル -->
-          {
-            tabs.map((tab, i) => (
-              <div
-                role='tabpanel'
-                id={`panel-${tab.id}`}
-                aria-labelledby={`tab-${tab.id}`}
-                class:list={['contact-panel p-5 sm:p-6', i !== 0 && 'hidden']}
-                data-panel-id={tab.id}
-              >
-                <div class='space-y-5'>
-                  {/* 件名 */}
-                  <div>
-                    <div class='flex items-center justify-between mb-2'>
-                      <span class='text-xs font-medium text-[hsl(var(--cc-main-black)/0.4)] tracking-wider uppercase'>
-                        件名
-                      </span>
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='xs'
-                        class='contact-copy-btn p-0 text-[hsl(var(--cc-main-black)/0.4)] hover:bg-transparent'
-                        data-copy-target={`subject-${tab.id}`}
-                        aria-label='件名をコピー'
-                      >
-                        <Icon name='copy' class='w-3.5 h-3.5' aria-hidden='true' />
-                        <span class='contact-copy-label'>コピー</span>
-                      </Button>
-                    </div>
-                    <div
-                      class='rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] px-4 py-3 text-sm text-[hsl(var(--cc-main-black)/0.8)] font-mono'
-                      id={`subject-${tab.id}`}
-                    >
-                      {tab.subject}
-                    </div>
-                  </div>
-
-                  {/* 本文 */}
-                  <div>
-                    <div class='flex items-center justify-between mb-2'>
-                      <span class='text-xs font-medium text-[hsl(var(--cc-main-black)/0.4)] tracking-wider uppercase'>
-                        本文
-                      </span>
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='xs'
-                        class='contact-copy-btn p-0 text-[hsl(var(--cc-main-black)/0.4)] hover:bg-transparent'
-                        data-copy-target={`body-${tab.id}`}
-                        aria-label='本文をコピー'
-                      >
-                        <Icon name='copy' class='w-3.5 h-3.5' aria-hidden='true' />
-                        <span class='contact-copy-label'>コピー</span>
-                      </Button>
-                    </div>
-                    <pre
-                      class='rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] px-4 py-3 text-sm text-[hsl(var(--cc-main-black)/0.8)] font-mono whitespace-pre-wrap break-all leading-relaxed overflow-hidden'
-                      id={`body-${tab.id}`}
-                      set:text={tab.body}
-                    />
-                  </div>
-
-                  {/* 送信先 */}
-                  <div>
-                    <span class='text-xs font-medium text-[hsl(var(--cc-main-black)/0.4)] tracking-wider uppercase block mb-2'>
-                      送信先
-                    </span>
-                    <div class='rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] px-4 py-3 text-sm text-[hsl(var(--cc-main-black)/0.8)] font-mono'>
-                      {CONTACT_EMAIL}
-                    </div>
-                  </div>
-
-                  {/* アクションボタン */}
-                  <div class='flex flex-col sm:flex-row gap-3 pt-2'>
+          {tabs.map((tab, i) => (
+            <div
+              role='tabpanel'
+              id={`panel-${tab.id}`}
+              aria-labelledby={`tab-${tab.id}`}
+              class:list={['contact-panel p-5 sm:p-6', i !== 0 && 'hidden']}
+              data-panel-id={tab.id}
+            >
+              <div class='space-y-5'>
+                {/* 件名 */}
+                <div>
+                  <div class='flex items-center justify-between mb-2'>
+                    <span class='text-sm font-semibold text-ink-2'>件名</span>
                     <Button
-                      href={`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(CONTACT_EMAIL)}&su=${encodeURIComponent(tab.subject)}&body=${encodeURIComponent(tab.body)}`}
-                      size='lg'
-                      class='contact-gmail-btn px-5 text-sm font-medium'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      data-tab-id={tab.id}
-                      aria-label='Gmail でメールを作成する'
+                      type='button'
+                      variant='ghost'
+                      size='xs'
+                      class='contact-copy-btn min-h-9 text-muted'
+                      data-copy-target={`subject-${tab.id}`}
+                      aria-label='件名をコピー'
                     >
-                      <Icon name='mail' class='w-4 h-4' aria-hidden='true' />
-                      Gmail で書く
+                      <Icon name='copy' class='w-3.5 h-3.5' aria-hidden='true' />
+                      <span class='contact-copy-label'>コピー</span>
                     </Button>
-                    <Button
-                      href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(tab.subject)}&body=${encodeURIComponent(tab.body)}`}
-                      variant='outline'
-                      size='lg'
-                      class='contact-mailto-btn px-5 text-sm'
-                      data-tab-id={tab.id}
-                      aria-label='デフォルトのメーラーで開く'
-                    >
-                      <Icon name='external-link' class='w-4 h-4' aria-hidden='true' />
-                      メールアプリで書く
-                    </Button>
+                  </div>
+                  <div
+                    class='rounded-lg bg-paper-2 px-4 py-3 text-sm text-ink font-mono'
+                    id={`subject-${tab.id}`}
+                  >
+                    {tab.subject}
                   </div>
                 </div>
+
+                {/* 本文 */}
+                <div>
+                  <div class='flex items-center justify-between mb-2'>
+                    <span class='text-sm font-semibold text-ink-2'>本文</span>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='xs'
+                      class='contact-copy-btn min-h-9 text-muted'
+                      data-copy-target={`body-${tab.id}`}
+                      aria-label='本文をコピー'
+                    >
+                      <Icon name='copy' class='w-3.5 h-3.5' aria-hidden='true' />
+                      <span class='contact-copy-label'>コピー</span>
+                    </Button>
+                  </div>
+                  <pre
+                    class='rounded-lg bg-paper-2 px-4 py-3 text-sm text-ink font-mono whitespace-pre-wrap break-all leading-relaxed overflow-hidden'
+                    id={`body-${tab.id}`}
+                    set:text={tab.body}
+                  />
+                </div>
+
+                {/* 送信先 */}
+                <div>
+                  <span class='text-sm font-semibold text-ink-2 block mb-2'>送信先</span>
+                  <div class='rounded-lg bg-paper-2 px-4 py-3 text-sm text-ink font-mono'>
+                    {CONTACT_EMAIL}
+                  </div>
+                </div>
+
+                {/* アクションボタン */}
+                <div class='flex flex-col sm:flex-row gap-3 pt-2'>
+                  <Button
+                    href={`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(CONTACT_EMAIL)}&su=${encodeURIComponent(tab.subject)}&body=${encodeURIComponent(tab.body)}`}
+                    size='lg'
+                    class='contact-gmail-btn px-5 text-sm font-medium'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    data-tab-id={tab.id}
+                  >
+                    <Icon name='mail' class='w-4 h-4' aria-hidden='true' />
+                    Gmail で書く
+                  </Button>
+                  <Button
+                    href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(tab.subject)}&body=${encodeURIComponent(tab.body)}`}
+                    variant='outline'
+                    size='lg'
+                    class='contact-mailto-btn px-5 text-sm'
+                    data-tab-id={tab.id}
+                  >
+                    <Icon name='external-link' class='w-4 h-4' aria-hidden='true' />
+                    メールアプリで書く
+                  </Button>
+                </div>
               </div>
-            ))
-          }
+            </div>
+          ))}
         </Card>
       </div>
     </div>
@@ -253,23 +239,6 @@ const tabs = [
       const isActive = btn.dataset.tabId === tabId;
       btn.setAttribute('aria-selected', String(isActive));
       btn.tabIndex = isActive ? 0 : -1;
-      if (isActive) {
-        btn.classList.add(
-          'text-[hsl(var(--cc-main-orange))]',
-          'border-b-2',
-          'border-[hsl(var(--cc-main-orange))]',
-          'font-medium',
-        );
-        btn.classList.remove('text-[hsl(var(--cc-main-black)/0.5)]');
-      } else {
-        btn.classList.remove(
-          'text-[hsl(var(--cc-main-orange))]',
-          'border-b-2',
-          'border-[hsl(var(--cc-main-orange))]',
-          'font-medium',
-        );
-        btn.classList.add('text-[hsl(var(--cc-main-black)/0.5)]');
-      }
     }
 
     for (const panel of document.querySelectorAll('.contact-panel')) {
@@ -295,10 +264,10 @@ const tabs = [
       if (label) {
         const original = label.textContent;
         label.textContent = 'コピーしました';
-        btn.classList.add('text-[hsl(var(--cc-main-orange))]');
+        btn.classList.add('text-accent-text');
         setTimeout(() => {
           label.textContent = original;
-          btn.classList.remove('text-[hsl(var(--cc-main-orange))]');
+          btn.classList.remove('text-accent-text');
         }, 2000);
       }
     } catch {

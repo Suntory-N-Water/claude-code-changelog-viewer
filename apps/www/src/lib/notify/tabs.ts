@@ -21,10 +21,6 @@ export function setupTabs() {
     return;
   }
 
-  const activeTabClass = 'border-[hsl(var(--cc-main-orange))] text-[hsl(var(--cc-main-orange))]';
-  const inactiveTabClass =
-    'border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]';
-
   const tabs: Record<Tab, { tab: HTMLElement; panel: HTMLElement }> = {
     discord: { tab: tabDiscord, panel: panelDiscord },
     slack: { tab: tabSlack, panel: panelSlack },
@@ -39,10 +35,6 @@ export function setupTabs() {
       const isActive = key === active;
       panel.classList.toggle('hidden', !isActive);
       tab.setAttribute('aria-selected', String(isActive));
-      tab.className = tab.className
-        .replace(isActive ? inactiveTabClass : activeTabClass, '')
-        .trim();
-      tab.classList.add(...(isActive ? activeTabClass : inactiveTabClass).split(' '));
     }
 
     if (updateUrl) {

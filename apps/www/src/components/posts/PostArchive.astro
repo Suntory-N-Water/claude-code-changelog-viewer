@@ -34,68 +34,62 @@ const paginationPages = Array.from({ length: page.lastPage }, (_, index) => {
 });
 ---
 
-<div class='min-h-dvh py-12 sm:py-16 px-4'>
-  <div class='max-w-3xl mx-auto'>
-    <header class='mb-12'>
-      <nav aria-label='パンくずリスト' class='text-sm text-gray-400 mb-6'>
-        <a href='/' class='hover:text-[hsl(var(--cc-main-orange))] transition-colors duration-150'
-          >ホーム</a
+<div class='pt-8 sm:pt-10 pb-24'>
+  <div class='max-w-6xl mx-auto px-4 sm:px-6'>
+    <header class='pb-12 sm:pb-16'>
+      <nav aria-label='パンくずリスト' class='flex items-center gap-2 text-sm text-muted'>
+        <a
+          href='/'
+          class='inline-flex items-center min-h-10 underline-offset-4 hover:underline hover:text-ink'
         >
-        <span class='mx-2 select-none'>/</span>
-        <span class='text-[hsl(var(--cc-main-black)/0.7)]'>{heading}</span>
+          ホーム
+        </a>
+        <span aria-hidden='true'>/</span>
+        <span class='text-ink-2'>{heading}</span>
       </nav>
-      <h1
-        class='text-3xl sm:text-4xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))]'
-      >
-        {heading}
-      </h1>
+      <h1 class='mt-6 text-[clamp(2.25rem,3vw+1.25rem,3.5rem)] text-ink'>{heading}</h1>
     </header>
 
-    {
-      articles.length > 0 && (
-        <ul class='space-y-4'>
-          {articles.map((article) => (
-            <li>
-              <a
-                href={`${basePath}/${article.slug}`}
-                class='group flex items-center gap-4 rounded-xl border border-[hsl(var(--cc-gray))] px-5 py-6 sm:px-6 hover:border-[hsl(var(--cc-main-orange)/0.5)] hover:bg-[hsl(var(--cc-gray)/0.15)] transition-colors'
-              >
-                <div class='min-w-0 flex-1'>
-                  <p class='text-xs text-[hsl(var(--cc-main-black)/0.5)] tabular-nums mb-1.5'>
-                    投稿日 <time datetime={article.date}>{article.formattedDate}</time>
-                  </p>
-                  <h2 class='text-xl sm:text-2xl font-bold [word-break:auto-phrase] text-[hsl(var(--cc-main-black))] group-hover:text-[hsl(var(--cc-main-orange))] transition-colors mb-2 leading-snug'>
-                    {article.title}
-                  </h2>
-                  <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] leading-relaxed line-clamp-2'>
-                    {article.description}
-                  </p>
-                </div>
-                <Icon
-                  name='chevron-right'
-                  class='w-5 h-5 shrink-0 text-[hsl(var(--cc-main-black)/0.3)] group-hover:text-[hsl(var(--cc-main-orange))] group-hover:translate-x-1 transition-[color,transform]'
-                  aria-hidden='true'
-                />
-              </a>
-            </li>
-          ))}
-        </ul>
-      )
-    }
+    {articles.length > 0 && (
+      <ul class='border-t-2 border-ink'>
+        {articles.map((article) => (
+          <li class='border-b border-rule'>
+            <a
+              href={`${basePath}/${article.slug}`}
+              class='group grid lg:grid-cols-12 gap-x-8 gap-y-2 py-8 sm:py-10'
+            >
+              <time datetime={article.date} class='lg:col-span-3 text-sm text-muted tabular-nums'>
+                {article.formattedDate}
+              </time>
+              <div class='lg:col-span-8 min-w-0'>
+                <h2 class='text-2xl sm:text-3xl leading-snug text-ink group-hover:text-accent-text transition-colors'>
+                  {article.title}
+                </h2>
+                <p class='mt-3 max-w-[60ch] text-base text-ink-2 leading-relaxed line-clamp-2'>
+                  {article.description}
+                </p>
+              </div>
+              <Icon
+                name='chevron-right'
+                class='hidden lg:block lg:col-span-1 justify-self-end self-center w-5 h-5 text-muted group-hover:text-ink transition-colors'
+              />
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
 
-    {
-      page.lastPage > 1 && (
-        <Pagination
-          pages={paginationPages}
-          currentPage={page.currentPage}
-          totalPages={page.lastPage}
-          previousHref={page.url.prev}
-          nextHref={page.url.next}
-          previousLabel='新しい記事へ'
-          nextLabel='古い記事へ'
-          class='mt-12'
-        />
-      )
-    }
+    {page.lastPage > 1 && (
+      <Pagination
+        pages={paginationPages}
+        currentPage={page.currentPage}
+        totalPages={page.lastPage}
+        previousHref={page.url.prev}
+        nextHref={page.url.next}
+        previousLabel='新しい記事へ'
+        nextLabel='古い記事へ'
+        class='mt-12'
+      />
+    )}
   </div>
 </div>

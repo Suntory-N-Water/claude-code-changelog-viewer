@@ -1,7 +1,5 @@
-const successClass =
-  'mt-5 flex items-start gap-3 p-4 rounded-lg bg-[hsl(var(--cc-main-orange)/0.06)] border border-[hsl(var(--cc-main-orange)/0.2)] text-sm text-[hsl(var(--cc-main-black)/0.8)]';
-const errorClass =
-  'mt-5 flex items-start gap-3 p-4 rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.7)]';
+const successClass = 'mt-5 flex items-start gap-3 p-4 rounded-lg bg-paper-2 text-sm text-ink';
+const errorClass = 'mt-5 flex items-start gap-3 p-4 rounded-lg bg-paper-2 text-sm text-error';
 
 type FormConfig = {
   formId: string;
@@ -72,7 +70,7 @@ export function setupForm(config: FormConfig) {
     const channel_type = form.dataset.channelType ?? 'DSC';
 
     submitBtn.disabled = true;
-    submitText.textContent = '送信中...';
+    submitText.textContent = '登録中…';
     spinner.classList.remove('hidden');
     resultMessage.classList.add('hidden');
 

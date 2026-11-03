@@ -89,7 +89,6 @@ const pageDescription =
     is:inline
     set:html={serializedSettingsSearchData}
   />
-
   <!-- ちらつき防止: URL パラメータで表示グループを初期化 -->
   <script is:inline>
     (() => {
@@ -128,79 +127,72 @@ const pageDescription =
     })();
   </script>
 
-  <div class='min-h-dvh py-12 sm:py-16 px-4'>
-    <div class='max-w-6xl mx-auto'>
-      <nav class='mb-8' aria-label='パンくずリスト'>
-        <BackLink href='/' tone='accent'>トップに戻る</BackLink>
+  <div class='min-h-dvh pt-8 sm:pt-10 pb-24'>
+    <div class='max-w-6xl mx-auto px-4 sm:px-6'>
+      <nav aria-label='パンくずリスト'>
+        <BackLink href='/'>トップに戻る</BackLink>
       </nav>
 
-      <header class='mb-8 max-w-4xl'>
-        <h1 class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))]'>
+      <header class='mt-6 mb-10'>
+        <h1 class='text-[clamp(2.25rem,3vw+1.25rem,3.5rem)] text-ink'>
           設定・環境変数リファレンス
         </h1>
       </header>
 
       <!-- 最近の更新サマリー -->
-      {
-        recentUpdates.length > 0 && (
-          <Accordion class='mb-6 rounded-xl overflow-hidden bg-white open:border-[hsl(var(--cc-main-orange)/0.4)]'>
-            <summary class='flex items-center justify-between gap-3 px-4 py-3.5 cursor-pointer select-none hover:bg-[hsl(var(--cc-gray)/0.3)] active:bg-[hsl(var(--cc-gray)/0.5)] transition-colors duration-150 list-none [&::-webkit-details-marker]:hidden'>
-              <div class='flex items-center gap-2.5 min-w-0'>
-                <span class='inline-flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--cc-main-orange)/0.12)] text-[hsl(var(--cc-main-orange))] shrink-0'>
-                  <Icon name='clock' class='w-3.5 h-3.5' aria-hidden='true' />
-                </span>
-                <span class='text-sm font-semibold text-[hsl(var(--cc-main-black))]'>
-                  最近の更新
-                </span>
-                <span class='tabular-nums px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-main-orange)/0.1)] text-[hsl(var(--cc-main-orange))]'>
-                  {recentUpdateTotal}件
-                </span>
-                <span class='hidden sm:block text-xs text-gray-400 truncate font-mono'>
-                  {recentUpdates[recentUpdates.length - 1].date} 〜 {recentUpdates[0].date}
-                </span>
-              </div>
-              <Icon
-                name='chevron-down'
-                class='w-4 h-4 text-gray-400 transition-transform duration-200 in-[[open]]:rotate-180 shrink-0'
-                aria-hidden='true'
-              />
-            </summary>
-            <div class='border-t border-[hsl(var(--cc-gray)/0.6)] px-4 pb-4 pt-3 space-y-4'>
-              {recentUpdates.map(({ date, entries }) => (
-                <div>
-                  <p class='text-xs text-gray-400 mb-2 font-mono'>{date}</p>
-                  <div class='flex flex-wrap gap-1.5'>
-                    {entries.map((entry) => (
-                      <a
-                        href={`/reference/settings/${entry.data.slug}`}
-                        class='inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-[hsl(var(--cc-gray)/0.5)] text-[hsl(var(--cc-main-black)/0.75)] hover:bg-[hsl(var(--cc-main-orange)/0.1)] hover:text-[hsl(var(--cc-main-orange))] transition-colors duration-150 cursor-pointer'
-                      >
-                        {entry.data.key}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ))}
+      {recentUpdates.length > 0 && (
+        <Accordion variant='muted' class='mb-8 rounded-xl overflow-hidden'>
+          <summary class='flex items-center justify-between gap-3 px-5 py-4 min-h-11 cursor-pointer select-none hover:bg-paper-3 transition-colors list-none [&::-webkit-details-marker]:hidden'>
+            <div class='flex items-center gap-3 min-w-0'>
+              <Icon name='clock' class='w-4 h-4 shrink-0 text-accent-text' />
+              <span class='text-sm font-semibold text-ink'>最近の更新</span>
+              <span class='tabular-nums text-sm text-ink-2'>{recentUpdateTotal}件</span>
+              <span class='hidden sm:block text-xs text-muted truncate tabular-nums'>
+                {recentUpdates[recentUpdates.length - 1].date} 〜 {recentUpdates[0].date}
+              </span>
             </div>
-          </Accordion>
-        )
-      }
+            <Icon
+              name='chevron-down'
+              class='w-4 h-4 text-gray-400 transition-transform duration-200 in-[[open]]:rotate-180 shrink-0'
+              aria-hidden='true'
+            />
+          </summary>
+          <div class='border-t border-rule-2 px-5 pb-5 pt-4 space-y-4'>
+            {recentUpdates.map(({ date, entries }) => (
+              <div>
+                <p class='text-xs text-muted mb-2 tabular-nums'>{date}</p>
+                <div class='flex flex-wrap gap-1.5'>
+                  {entries.map((entry) => (
+                    <a
+                      href={`/reference/settings/${entry.data.slug}`}
+                      class='inline-flex items-center min-h-8 px-2.5 py-1 rounded-md text-xs font-mono bg-paper text-ink-2 hover:text-accent-text transition-colors'
+                    >
+                      {entry.data.key}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Accordion>
+      )}
 
       <!-- 検索ボックス -->
       <div class='mb-6 max-w-md'>
-        <label for='search-input' class='sr-only'>設定名で検索</label>
+        <label for='search-input' class='sr-only'>
+          設定名で検索
+        </label>
         <div class='relative'>
           <Icon
             name='search-sm'
-            class='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400'
-            aria-hidden='true'
+            class='absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted'
           />
           <Input
             id='search-input'
             type='search'
             placeholder='memory、MCP など'
             autocomplete='off'
-            class='pl-9 py-2.5 bg-white focus:ring-1 focus:ring-[hsl(var(--cc-main-orange)/0.3)] placeholder:text-gray-400'
+            class='pl-10'
           />
         </div>
       </div>
@@ -223,7 +215,7 @@ const pageDescription =
       </div>
 
       <!-- 検索結果なし -->
-      <div id='empty-search' class='hidden py-16 text-center text-gray-400' aria-live='polite'>
+      <div id='empty-search' class='hidden py-16 text-center text-muted' aria-live='polite'>
         <Icon
           name='search-sm'
           class='w-10 h-10 mx-auto mb-3 opacity-40'
@@ -235,56 +227,44 @@ const pageDescription =
 
       <!-- settings.json グループ -->
       <section id='group-settings' class='mb-12'>
-        <h2
-          class='text-base font-semibold text-[hsl(var(--cc-main-black)/0.5)] mb-4 flex items-center gap-2'
-        >
-          <span
-            class='inline-block px-2 py-0.5 rounded text-xs font-mono bg-[hsl(var(--cc-gray)/0.5)]'
-            >settings.json</span
-          >
-          <span class='tabular-nums text-sm'>{settingsItems.length}件</span>
-        </h2>
+        <div class='mb-4 flex items-baseline gap-3'>
+          <h2 class='font-mono text-lg font-bold text-ink wrap-break-word min-w-0'>
+            settings.json
+          </h2>
+          <span class='tabular-nums text-sm text-muted'>{settingsItems.length}件</span>
+        </div>
         <div class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {
-            settingsItems.map((entry) => (
-              <div data-key={entry.data.key.toLowerCase()}>
-                <SettingCard
-                  slug={entry.data.slug}
-                  keyName={entry.data.key}
-                  source={entry.data.source}
-                  summary={summarizeSettingDescription(entry.data.description_ja)}
-                  childCount={childTrees.get(entry.data.key)?.length ?? 0}
-                />
-              </div>
-            ))
-          }
+          {settingsItems.map((entry) => (
+            <div data-key={entry.data.key.toLowerCase()}>
+              <SettingCard
+                slug={entry.data.slug}
+                keyName={entry.data.key}
+                source={entry.data.source}
+                summary={summarizeSettingDescription(entry.data.description_ja)}
+                childCount={childTrees.get(entry.data.key)?.length ?? 0}
+              />
+            </div>
+          ))}
         </div>
       </section>
 
       <!-- 環境変数グループ -->
       <section id='group-env'>
-        <h2
-          class='text-base font-semibold text-[hsl(var(--cc-main-black)/0.5)] mb-4 flex items-center gap-2'
-        >
-          <span
-            class='inline-block px-2 py-0.5 rounded text-xs font-mono bg-[hsl(var(--cc-gray)/0.5)]'
-            >環境変数</span
-          >
-          <span class='tabular-nums text-sm'>{envItems.length}件</span>
-        </h2>
+        <div class='mb-4 flex items-baseline gap-3'>
+          <h2 class='font-sans text-lg font-bold text-ink wrap-break-word min-w-0'>環境変数</h2>
+          <span class='tabular-nums text-sm text-muted'>{envItems.length}件</span>
+        </div>
         <div class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {
-            envItems.map((entry) => (
-              <div data-key={entry.data.key.toLowerCase()}>
-                <SettingCard
-                  slug={entry.data.slug}
-                  keyName={entry.data.key}
-                  source={entry.data.source}
-                  summary={summarizeSettingDescription(entry.data.description_ja)}
-                />
-              </div>
-            ))
-          }
+          {envItems.map((entry) => (
+            <div data-key={entry.data.key.toLowerCase()}>
+              <SettingCard
+                slug={entry.data.slug}
+                keyName={entry.data.key}
+                source={entry.data.source}
+                summary={summarizeSettingDescription(entry.data.description_ja)}
+              />
+            </div>
+          ))}
         </div>
       </section>
     </div>
@@ -292,10 +272,6 @@ const pageDescription =
 </Layout>
 
 <script>
-  const ACTIVE_STYLE = 'border-[hsl(var(--cc-main-orange))] text-[hsl(var(--cc-main-orange))]';
-  const INACTIVE_STYLE =
-    'border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]';
-
   let currentType: 'all' | 'settings' | 'env' = 'all';
   let currentQuery = '';
   let debounceTimer: ReturnType<typeof setTimeout>;
@@ -378,13 +354,7 @@ const pageDescription =
     function setTypeTab(type: 'all' | 'settings' | 'env') {
       currentType = type;
       for (const [key, tab] of Object.entries(tabs)) {
-        const isActive = key === type;
-        (tab as HTMLElement).className = (tab as HTMLElement).className
-          .replace(ACTIVE_STYLE, '')
-          .replace(INACTIVE_STYLE, '')
-          .trim();
-        (tab as HTMLElement).className += ` ${isActive ? ACTIVE_STYLE : INACTIVE_STYLE}`;
-        (tab as HTMLElement).setAttribute('aria-selected', String(isActive));
+        (tab as HTMLElement).setAttribute('aria-selected', String(key === type));
       }
       const url = new URL(location.href);
       if (type === 'all') {

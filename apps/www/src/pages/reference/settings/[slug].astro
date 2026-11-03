@@ -88,132 +88,110 @@ const pageDescription = entry.description_ja.slice(0, 120);
     },
   ]}
 >
-  <div class='min-h-dvh py-12 sm:py-16 px-4' data-pagefind-body>
+  <div class='pt-8 sm:pt-10 pb-24 px-4 sm:px-6' data-pagefind-body>
     <div class='max-w-4xl mx-auto'>
       <nav class='mb-8' aria-label='パンくずリスト' data-pagefind-ignore>
-        <BackLink href='/reference/settings' tone='accent'> 設定リファレンス一覧に戻る </BackLink>
+        <BackLink href='/reference/settings'>設定リファレンス一覧に戻る</BackLink>
       </nav>
 
-      <header class='mb-8'>
-        <div class='mb-2'>
-          <span
-            class='inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray)/0.5)] text-[hsl(var(--cc-main-black)/0.7)]'
-          >
-            {sourceLabel}
-          </span>
-        </div>
-        <h1
-          class='text-2xl sm:text-3xl font-bold font-mono break-all text-[hsl(var(--cc-main-black))] mb-3'
-        >
+      <header class='mb-10'>
+        <h1 class='text-[clamp(1.75rem,2.5vw+1rem,3rem)] font-semibold font-mono leading-tight break-all text-ink mb-5'>
           {displayName}
         </h1>
-        {
-          schemaChips.length > 0 && (
-            <div class='flex flex-wrap gap-2 mb-4'>
-              {schemaChips.map(({ label, value, mono }) => (
-                <span class='inline-flex items-center gap-1.5 max-w-full overflow-x-auto whitespace-nowrap px-2.5 py-1 rounded-md border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-gray)/0.2)] text-xs'>
-                  <span class='text-[hsl(var(--cc-main-black)/0.6)]'>{label}</span>
-                  {mono ? (
-                    <code class='font-mono text-[hsl(var(--cc-main-black))]'>{value}</code>
-                  ) : (
-                    <span class='text-[hsl(var(--cc-main-black))]'>{value}</span>
-                  )}
-                </span>
-              ))}
-            </div>
-          )
-        }
+        <div class='flex flex-wrap gap-2 mb-6'>
+          <span class='inline-flex items-center px-2.5 py-1 rounded-md bg-paper-3 text-sm text-ink'>
+            {sourceLabel}
+          </span>
+          {schemaChips.map(({ label, value, mono }) => (
+            <span class='inline-flex items-center gap-1.5 max-w-full overflow-x-auto whitespace-nowrap px-2.5 py-1 rounded-md bg-paper-2 text-sm'>
+              <span class='text-muted'>{label}</span>
+              {mono ? (
+                <code class='font-mono text-[hsl(var(--cc-main-black))]'>{value}</code>
+              ) : (
+                <span class='text-[hsl(var(--cc-main-black))]'>{value}</span>
+              )}
+            </span>
+          ))}
+        </div>
         <p
           class='text-base leading-relaxed text-[hsl(var(--cc-main-black))] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[hsl(var(--cc-gray))] [&_code]:text-sm [&_code]:font-mono'
           set:html={descriptionJaHtml}
         />
-        {
-          defaultNoteHtml !== null && (
-            <p class='mt-3 text-sm leading-relaxed text-[hsl(var(--cc-main-black)/0.7)] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[hsl(var(--cc-gray))] [&_code]:text-xs [&_code]:font-mono'>
-              <span class='font-medium mr-2'>既定値</span>
-              <span set:html={defaultNoteHtml} />
-            </p>
-          )
-        }
+        {defaultNoteHtml !== null && (
+          <p class='mt-3 text-sm leading-relaxed text-[hsl(var(--cc-main-black)/0.7)] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[hsl(var(--cc-gray))] [&_code]:text-xs [&_code]:font-mono'>
+            <span class='font-medium mr-2'>既定値</span>
+            <span set:html={defaultNoteHtml} />
+          </p>
+        )}
       </header>
 
-      {
-        valueOptions.length > 0 && (
-          <section class='mb-8'>
-            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>取りうる値</h2>
-            <div class='overflow-x-auto rounded-lg border border-[hsl(var(--cc-gray))]'>
-              <table class='w-full text-sm border-collapse'>
-                <tbody>
-                  {valueOptions.map(({ value, isDefault, description }) => (
-                    <tr class='border-b border-[hsl(var(--cc-gray)/0.6)] last:border-b-0 align-top'>
-                      <th scope='row' class='whitespace-nowrap px-4 py-2.5 text-left font-normal'>
-                        <code class='font-mono text-[hsl(var(--cc-main-black))]'>{value}</code>
-                        {isDefault && (
-                          <span class='ml-2 inline-block px-1.5 py-0.5 rounded text-[11px] bg-[hsl(var(--cc-main-orange)/0.1)] text-[hsl(var(--cc-main-orange))]'>
-                            既定
-                          </span>
-                        )}
-                      </th>
-                      {hasValueDescription && (
-                        <td class='w-full px-4 py-2.5 leading-relaxed text-[hsl(var(--cc-main-black)/0.8)]'>
-                          {description}
-                        </td>
+      {valueOptions.length > 0 && (
+        <section class='mb-8'>
+          <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>取りうる値</h2>
+          <div class='overflow-x-auto rounded-lg border border-[hsl(var(--cc-gray))]'>
+            <table class='w-full text-sm border-collapse'>
+              <tbody>
+                {valueOptions.map(({ value, isDefault, description }) => (
+                  <tr class='border-b border-[hsl(var(--cc-gray)/0.6)] last:border-b-0 align-top'>
+                    <th scope='row' class='whitespace-nowrap px-4 py-2.5 text-left font-normal'>
+                      <code class='font-mono text-[hsl(var(--cc-main-black))]'>{value}</code>
+                      {isDefault && (
+                        <span class='ml-2 inline-block px-1.5 py-0.5 rounded text-[11px] bg-[hsl(var(--cc-main-orange)/0.1)] text-[hsl(var(--cc-main-orange))]'>
+                          既定
+                        </span>
                       )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )
-      }
+                    </th>
+                    {hasValueDescription && (
+                      <td class='w-full px-4 py-2.5 leading-relaxed text-[hsl(var(--cc-main-black)/0.8)]'>
+                        {description}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
-      {
-        childNodes.length > 0 && (
-          <section class='mb-8'>
-            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>
+      {childNodes.length > 0 && (
+        <section class='mb-8'>
+          <div class='mb-3 flex items-baseline gap-3'>
+            <h2 class='font-sans text-lg font-bold text-ink wrap-break-word min-w-0'>
               含まれる設定
-              <span class='ml-2 text-sm font-normal tabular-nums text-gray-500'>
-                {childNodes.length}件
-              </span>
             </h2>
-            <div class='overflow-hidden rounded-lg border border-[hsl(var(--cc-gray))]'>
-              <SettingChildTree nodes={childNodes} />
-            </div>
-          </section>
-        )
-      }
+            <span class='text-sm tabular-nums text-muted'>{childNodes.length}件</span>
+          </div>
+          <div class='overflow-hidden rounded-lg border border-[hsl(var(--cc-gray))]'>
+            <SettingChildTree nodes={childNodes} />
+          </div>
+        </section>
+      )}
 
-      {
-        entry.example && (
-          <section class='mb-8'>
-            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>記述例</h2>
-            <CodeBlock code={entry.example} label='記述例' />
-          </section>
-        )
-      }
+      {entry.example && (
+        <section class='mb-8'>
+          <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-3'>記述例</h2>
+          <CodeBlock code={entry.example} label='記述例' />
+        </section>
+      )}
 
-      {
-        useCaseHtml && (
-          <Card
-            as='section'
-            padding='none'
-            variant='accent'
-            class='mb-8 p-5 bg-[hsl(var(--cc-main-orange)/0.05)] border-[hsl(var(--cc-main-orange)/0.2)]'
-          >
-            <h2 class='text-base font-bold text-[hsl(var(--cc-main-black))] mb-3'>使い方・用途</h2>
-            <div
-              class='text-sm leading-relaxed text-[hsl(var(--cc-main-black))] space-y-1'
-              set:html={useCaseHtml}
-            />
-          </Card>
-        )
-      }
+      {useCaseHtml && (
+        <Card
+          as='section'
+          padding='none'
+          variant='accent'
+          class='mb-8 p-5 bg-[hsl(var(--cc-main-orange)/0.05)] border-[hsl(var(--cc-main-orange)/0.2)]'
+        >
+          <h2 class='text-base font-bold text-[hsl(var(--cc-main-black))] mb-3'>使い方・用途</h2>
+          <div
+            class='text-sm leading-relaxed text-[hsl(var(--cc-main-black))] space-y-1'
+            set:html={useCaseHtml}
+          />
+        </Card>
+      )}
 
       <!-- 英語原文(公式ドキュメントより) -->
-      <section
-        class='mb-8 p-4 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-gray)/0.15)]'
-      >
+      <section class='mb-8 p-4 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-gray)/0.15)]'>
         <div class='flex items-center gap-2 mb-2'>
           <Icon
             name='clipboard-doc'
@@ -223,67 +201,61 @@ const pageDescription = entry.description_ja.slice(0, 120);
           <span class='text-xs font-medium text-gray-400'>英語原文</span>
         </div>
         <p class='text-sm text-gray-600 leading-relaxed' set:html={descriptionEnHtml} />
-        {
-          officialLinks.length > 0 && (
-            <div class='mt-4'>
-              <h4 class='font-semibold text-sm text-gray-600 mb-2'>関連ドキュメント</h4>
-              <ul class='space-y-1.5'>
-                {officialLinks.map(({ label, url }) => (
-                  <li>
-                    <a
-                      href={url}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      class='text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1.5 transition-colors group'
-                    >
-                      {label}
-                      <Icon
-                        name='external-link'
-                        class='w-3.5 h-3.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all'
-                        aria-hidden='true'
-                      />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        }
+        {officialLinks.length > 0 && (
+          <div class='mt-4'>
+            <h4 class='font-semibold text-sm text-gray-600 mb-2'>関連ドキュメント</h4>
+            <ul class='space-y-1.5'>
+              {officialLinks.map(({ label, url }) => (
+                <li>
+                  <a
+                    href={url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    class='text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1.5 transition-colors group'
+                  >
+                    {label}
+                    <Icon
+                      name='external-link'
+                      class='w-3.5 h-3.5 opacity-70 group-hover:opacity-100 transition-opacity'
+                      aria-hidden='true'
+                    />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
-      {
-        versionGroups.length > 0 && (
-          <section class='mb-8'>
-            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-6'>
-              関連する変更履歴
-            </h2>
-            <div data-pagefind-ignore class='space-y-10'>
-              {versionGroups.map((group) => (
-                <div>
-                  <div class='sticky top-12 z-10 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
-                    <h3 class='flex items-center gap-2 text-base font-bold text-[hsl(var(--cc-main-black))]'>
-                      <a
-                        href={`/changelog/v${group.version}`}
-                        class='text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline transition-colors'
-                      >
-                        v{group.version}
-                      </a>
-                      <span class='text-sm font-normal text-gray-500 tabular-nums'>
-                        ({group.items.length}件)
-                      </span>
-                    </h3>
-                  </div>
-                  <div class='space-y-6'>
-                    {group.items.map((item) => (
-                      <ChangelogItemCard item={item} />
-                    ))}
-                  </div>
+      {versionGroups.length > 0 && (
+        <section class='mb-8'>
+          <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-6'>関連する変更履歴</h2>
+          <div data-pagefind-ignore class='space-y-10'>
+            {versionGroups.map((group) => (
+              <div>
+                <div class='sticky top-(--nav-height) z-10 bg-paper py-3 border-b-2 border-ink'>
+                  <h3 class='flex items-center gap-2 text-base font-bold text-[hsl(var(--cc-main-black))]'>
+                    <a
+                      href={`/changelog/v${group.version}`}
+                      class='text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline transition-colors'
+                    >
+                      v{group.version}
+                    </a>
+                    <span class='text-sm font-normal text-gray-500 tabular-nums'>
+                      ({group.items.length}件)
+                    </span>
+                  </h3>
                 </div>
-              ))}
-            </div>
-          </section>
-        )
-      }
+                <div class='space-y-6'>
+                  {group.items.map((item) => (
+                    <ChangelogItemCard item={item} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   </div>
 </Layout>
