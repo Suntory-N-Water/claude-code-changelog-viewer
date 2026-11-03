@@ -1,9 +1,18 @@
 ---
+import { TZDate } from '@date-fns/tz';
 import { getCollection } from 'astro:content';
+import { format } from 'date-fns';
 import VersionCard from '../../components/changelog/VersionCard.astro';
 import Layout from '../../layouts/Layout.astro';
 import { buildDiffMap, buildVersionData } from '../../lib/changelog-diff';
+import { getReleaseMap } from '../../lib/release-map';
 import { semverCompareDesc } from '../../lib/semver';
+
+const releaseMap = await getReleaseMap();
+const formatReleaseDate = (version: string) => {
+  const releasedAt = releaseMap.get(version);
+  return releasedAt ? format(new TZDate(releasedAt, 'Asia/Tokyo'), 'yyyy/MM/dd') : undefined;
+};
 
 const sortedChangelogs = await getCollection('changelog');
 sortedChangelogs.sort((a, b) => semverCompareDesc(a.data.version, b.data.version));
@@ -38,45 +47,39 @@ for (const v of versionData) {
     { name: '全バージョン一覧', url: 'https://claude-code-log.com/changelog' },
   ]}
 >
-  <div class='min-h-dvh py-12 sm:py-16 px-4'>
-    <div class='max-w-6xl mx-auto'>
-      <header class='mb-12 max-w-4xl'>
-        <nav aria-label='パンくずリスト' class='text-sm text-gray-400 mb-6'>
-          <a href='/' class='hover:text-[hsl(var(--cc-main-orange))] transition-colors duration-150'
-            >ホーム</a
-          >
-          <span class='mx-2 select-none'>/</span>
-          <span class='text-[hsl(var(--cc-main-black)/0.7)]'>全バージョン一覧</span>
-        </nav>
-        <h1
-          class='text-3xl sm:text-4xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))]'
+  <div class='max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-24'>
+    <header class='pb-12 sm:pb-16'>
+      <nav aria-label='パンくずリスト' class='flex items-center gap-2 text-sm text-muted'>
+        <a
+          href='/'
+          class='inline-flex items-center min-h-10 underline-offset-4 hover:underline hover:text-ink'
         >
-          全バージョン一覧
-        </h1>
-      </header>
+          ホーム
+        </a>
+        <span aria-hidden='true'>/</span>
+        <span class='text-ink-2'>全バージョン一覧</span>
+      </nav>
+      <h1 class='mt-6 text-[clamp(2.25rem,3vw+1.25rem,3.5rem)] text-ink'>全バージョン一覧</h1>
+      <p class='mt-3 text-base text-ink-2 tabular-nums'>{versionData.length} バージョン</p>
+    </header>
 
-      {
-        [...groups.entries()].map(([groupKey, versions], i) => (
-          <section class={i > 0 ? 'mt-16' : ''}>
-            <div class='flex items-center gap-3 mb-6'>
-              <span class='text-xs font-medium tracking-widest uppercase text-gray-400'>
-                {groupKey}
-              </span>
-              <div class='flex-1 h-px bg-[hsl(var(--cc-gray))]' />
-            </div>
-            <div class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
-              {versions.map(({ version, itemCount, summary, diffStatus }) => (
-                <VersionCard
-                  version={version}
-                  itemCount={itemCount}
-                  summary={summary}
-                  diffStatus={diffStatus}
-                />
-              ))}
-            </div>
-          </section>
-        ))
-      }
-    </div>
+    {[...groups.entries()].map(([groupKey, versions], i) => (
+      <section class:list={['grid lg:grid-cols-12 gap-x-8 gap-y-4', i > 0 && 'mt-20']}>
+        <h2 class='lg:col-span-2 text-3xl font-bold tabular-nums text-ink lg:sticky lg:top-[calc(var(--nav-height)+var(--space-lg))] self-start'>
+          {groupKey}
+        </h2>
+        <ol class='lg:col-span-10'>
+          {versions.map(({ version, itemCount, summary, diffStatus }) => (
+            <VersionCard
+              version={version}
+              itemCount={itemCount}
+              summary={summary}
+              diffStatus={diffStatus}
+              releaseDate={formatReleaseDate(version)}
+            />
+          ))}
+        </ol>
+      </section>
+    ))}
   </div>
 </Layout>

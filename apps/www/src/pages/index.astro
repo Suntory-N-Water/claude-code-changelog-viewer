@@ -8,64 +8,54 @@ import Button from '../components/ui/Button.astro';
 import Accordion from '../components/ui/Accordion.astro';
 import Layout from '../layouts/Layout.astro';
 import { buildDiffMap, buildVersionData } from '../lib/changelog-diff';
-import type { IconName } from '../lib/icons';
 import { SITE_TITLE } from '../lib/constants';
+import { getPrefixSortOrder, PREFIX_LABELS, type Prefix } from '../lib/prefix';
 import { getReleaseMap } from '../lib/release-map';
 import { semverCompareDesc } from '../lib/semver';
 
 const sortedChangelogs = await getCollection('changelog');
 sortedChangelogs.sort((a, b) => semverCompareDesc(a.data.version, b.data.version));
 
-// 差分データ読み込み
 const diffEntries = await getCollection('diff');
 const diffMap = buildDiffMap(diffEntries);
 
 const versionData = buildVersionData(sortedChangelogs, diffMap);
 
-// トップページは最新30件のみ表示、残りは /changelog へ
 const TOP_PAGE_SIZE = 9;
 const initialVersions = versionData.slice(0, TOP_PAGE_SIZE);
 const remainingCount = versionData.length - TOP_PAGE_SIZE;
 
-// 「読みもの」セクションの導線カード。記事が 1 本もないセクションは出さない
-type ReadingCard = {
-  kind: string;
-  icon: IconName;
-  meta: string;
-  href: string;
-  title: string;
-  description: string;
-  archiveHref: string;
-  archiveLabel: string;
+const releaseMap = await getReleaseMap();
+const formatReleaseDate = (version: string, pattern: string) => {
+  const releasedAt = releaseMap.get(version);
+  return releasedAt ? format(new TZDate(releasedAt, 'Asia/Tokyo'), pattern) : undefined;
 };
 
 const latestColumn = (await getCollection('column')).sort((a, b) =>
   b.data.date.localeCompare(a.data.date),
 )[0];
 
-const readingCards: ReadingCard[] = [];
-if (latestColumn) {
-  readingCards.push({
-    kind: 'Column',
-    icon: 'pencil-square',
-    meta: format(parseISO(latestColumn.data.date), 'yyyy年M月d日'),
-    href: `/posts/column/${latestColumn.data.slug}`,
-    title: latestColumn.data.title,
-    description: latestColumn.data.description,
-    archiveHref: '/posts/column',
-    archiveLabel: 'コラムの一覧',
-  });
-}
-
-const latestVersion = sortedChangelogs[0].data.version;
-const latestReleaseAt = (await getReleaseMap()).get(latestVersion);
-if (latestReleaseAt === undefined) {
+const latestEntry = sortedChangelogs[0];
+const latestVersion = latestEntry.data.version;
+const latestReleaseDate = formatReleaseDate(latestVersion, 'yyyy年M月d日');
+if (latestReleaseDate === undefined) {
   throw new Error(`Claude Code最新版 v${latestVersion} のリリース日を取得できませんでした`);
 }
-const latestReleaseDate = format(new TZDate(latestReleaseAt, 'Asia/Tokyo'), 'yyyy年M月d日');
 const latestVersionLabel = `v${latestVersion}(${latestReleaseDate}リリース)`;
 const pageTitle = `Claude Code最新版 v${latestVersion} - ${SITE_TITLE}`;
 const pageDescription = `Claude Codeの最新版は${latestVersionLabel}です。公式 CHANGELOG の変更履歴を AI が日本語で解説します。`;
+
+const prefixCounts = new Map<string, number>();
+for (const item of latestEntry.data.items) {
+  prefixCounts.set(item.prefix, (prefixCounts.get(item.prefix) ?? 0) + 1);
+}
+const latestBreakdown = [...prefixCounts.entries()]
+  .sort(([a], [b]) => getPrefixSortOrder(a) - getPrefixSortOrder(b))
+  .map(([prefix, count]) => ({
+    prefix,
+    label: PREFIX_LABELS[prefix as Prefix] ?? prefix,
+    count,
+  }));
 
 const faqItems = [
   {
@@ -76,12 +66,12 @@ const faqItems = [
   {
     question: 'このサイトの更新頻度は？',
     answer:
-      'Claude Codeの公式CHANGELOG.mdを毎時チェックで自動検出し、新バージョンが見つかるとAIによる分析結果を生成・反映しています。',
+      '公式 CHANGELOG の更新から1時間以内に反映します。',
   },
   {
     question: '公式との違いは？',
     answer:
-      '公式のCHANGELOG.mdをAIが日本語で要約・分析した非公式サイトです。AI生成のため内容が不正確な場合があります。正確な情報は公式リリースノートをご確認ください。',
+      '公式 CHANGELOG を AI が日本語に訳した非公式サイトです。訳と解説には誤りが含まれることがあります。',
   },
 ];
 ---
@@ -92,159 +82,152 @@ const faqItems = [
   jsonLd={{ type: 'website' }}
   faqItems={faqItems}
 >
-  <div class='min-h-dvh py-12 sm:py-16 px-4'>
-    <div class='max-w-6xl mx-auto'>
-      <header class='mb-16 sm:mb-20 max-w-4xl'>
-        <p class='mb-3 font-mono text-xs font-bold uppercase tracking-widest text-[hsl(var(--cc-main-black)/0.6)]'>
-          Claude Code 最新版
+  <div class='max-w-6xl mx-auto px-4 sm:px-6'>
+    <section
+      class='grid lg:grid-cols-12 gap-x-8 gap-y-12 pt-12 sm:pt-16 pb-16 sm:pb-20 items-end'
+      aria-labelledby='hero-title'
+    >
+      <div class='lg:col-span-7 @container min-w-0'>
+        <p class='text-sm text-muted'>
+          <time>{latestReleaseDate}</time> リリースの最新版
         </p>
-        <div
-          class='flex flex-wrap items-end gap-x-6 gap-y-3 border-b border-[hsl(var(--cc-gray))] pb-6 mb-8'
+        <a
+          href={`/changelog/v${latestVersion}`}
+          class='hero-version mt-2 block w-fit font-bold tabular-nums leading-[0.95] tracking-[-0.03em] text-accent-display hover:text-accent-text transition-colors rounded-md'
         >
-          <a
-            href={`/changelog/v${latestVersion}`}
-            class='font-mono text-5xl sm:text-6xl lg:text-7xl font-bold tabular-nums leading-none tracking-tight text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-          >
-            v{latestVersion}
-          </a>
-        </div>
-        <h1
-          class='text-3xl sm:text-4xl font-bold text-balance tracking-tight text-[hsl(var(--cc-main-black))]'
-        >
-          {SITE_TITLE}
+          v{latestVersion}
+        </a>
+        <h1 id='hero-title' class='mt-8 sm:mt-10 max-w-[18ch] text-section text-ink'>
+          Claude Code の変更履歴を、日本語で読む
         </h1>
-        <div class='flex flex-wrap items-center gap-3 mt-7'>
+        <div class='flex flex-wrap items-center gap-3 mt-8'>
           <Button href={`/changelog/v${latestVersion}`} shape='pill'>
-            最新版を読む
-            <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
+            v{latestVersion} を読む
           </Button>
           <Button href='/notify' variant='outline' shape='pill'>
-            <Icon name='bell' class='w-4 h-4' aria-hidden='true' />
+            <Icon name='bell' class='w-4 h-4' />
             更新通知を受け取る
           </Button>
         </div>
-      </header>
+      </div>
 
-      <section>
-        <div
-          class='flex items-baseline justify-between gap-4 mb-6 border-t border-[hsl(var(--cc-gray))] pt-8'
+      <aside
+        class='lg:col-span-5 lg:col-start-8 min-w-0 rounded-xl bg-paper-2 p-6 sm:p-8'
+        aria-labelledby='latest-breakdown'
+      >
+        <h2 id='latest-breakdown' class='font-sans text-base font-semibold text-ink'>
+          v{latestVersion} の変更内訳
+        </h2>
+        <dl class='mt-5 border-b border-rule-2'>
+          {latestBreakdown.map(({ prefix, label, count }) => (
+            <div class='flex items-baseline justify-between gap-3 border-t border-rule-2 py-2.5'>
+              <dt class='text-sm text-ink-2'>
+                <a
+                  href={`/changelog/v${latestVersion}#prefix-${prefix.toLowerCase()}`}
+                  class='underline-offset-4 hover:underline hover:text-ink'
+                >
+                  {label}
+                </a>
+              </dt>
+              <dd class='text-lg font-semibold tabular-nums text-ink'>{count}</dd>
+            </div>
+          ))}
+        </dl>
+      </aside>
+    </section>
+
+    <section class='pb-24 sm:pb-32' aria-labelledby='recent-versions'>
+      <div class='flex flex-wrap items-end justify-between gap-4 mb-6'>
+        <h2 id='recent-versions' class='text-section text-ink'>
+          最近のバージョン
+        </h2>
+        <a
+          href='/changelog'
+          class='inline-flex items-center gap-1 min-h-10 text-sm text-accent-text underline-offset-4 hover:underline'
         >
-          <div>
-            <h2 class='text-2xl font-bold tracking-tight text-[hsl(var(--cc-main-black))]'>
-              最近のバージョン
-            </h2>
-          </div>
+          全{versionData.length}バージョンの一覧
+          <Icon name='chevron-right' class='w-4 h-4' />
+        </a>
+      </div>
+      <ol id='versions-grid'>
+        {initialVersions.map(({ version, itemCount, summary, diffStatus }) => (
+          <VersionCard
+            version={version}
+            itemCount={itemCount}
+            summary={summary}
+            diffStatus={diffStatus}
+            releaseDate={formatReleaseDate(version, 'yyyy/MM/dd')}
+          />
+        ))}
+      </ol>
+      {remainingCount > 0 && (
+        <div class='mt-8'>
+          <Button href='/changelog' variant='outline' shape='pill'>
+            以前のバージョンを見る(他{remainingCount}件)
+          </Button>
+        </div>
+      )}
+    </section>
+  </div>
+
+  {latestColumn && (
+    <section class='max-w-6xl mx-auto px-4 sm:px-6' aria-labelledby='latest-column'>
+      <div class='grid lg:grid-cols-12 gap-x-8 gap-y-6'>
+        <div class='lg:col-span-4'>
+          <h2 id='latest-column' class='text-section text-ink'>
+            コラム
+          </h2>
           <a
-            href='/changelog'
-            class='hidden sm:inline-flex items-center gap-1 font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+            href='/posts/column'
+            class='mt-3 inline-flex items-center gap-1 min-h-10 text-sm text-accent-text underline-offset-4 hover:underline'
           >
-            すべて表示
-            <Icon name='chevron-right' class='w-3 h-3' aria-hidden='true' />
+            コラムの一覧
+            <Icon name='chevron-right' class='w-4 h-4' />
           </a>
         </div>
-        <div
-          id='versions-grid'
-          class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
+        <a
+          href={`/posts/column/${latestColumn.data.slug}`}
+          class='group lg:col-span-8 block border-t-2 border-ink pt-6'
         >
-          {
-            initialVersions.map(({ version, itemCount, summary, diffStatus }) => (
-              <VersionCard
-                version={version}
-                itemCount={itemCount}
-                summary={summary}
-                diffStatus={diffStatus}
+          <time class='text-sm text-muted tabular-nums'>
+            {format(parseISO(latestColumn.data.date), 'yyyy年M月d日')}
+          </time>
+          <h3 class='mt-3 text-2xl sm:text-3xl font-bold leading-snug text-ink [word-break:auto-phrase] group-hover:text-accent-text transition-colors'>
+            {latestColumn.data.title}
+          </h3>
+          <p class='mt-4 max-w-[60ch] text-base leading-relaxed text-ink-2'>
+            {latestColumn.data.description}
+          </p>
+        </a>
+      </div>
+    </section>
+  )}
+
+  <section class='max-w-6xl mx-auto px-4 sm:px-6 py-24 sm:py-32' aria-labelledby='faq'>
+    <div class='grid lg:grid-cols-12 gap-x-8 gap-y-8'>
+      <h2 id='faq' class='lg:col-span-4 text-section text-ink'>
+        よくある質問
+      </h2>
+      <div class='lg:col-span-8 border-t border-rule'>
+        {faqItems.map(({ question, answer }) => (
+          <Accordion variant='plain' class='details-animated group'>
+            <summary class='flex items-center justify-between gap-4 py-5 min-h-11 cursor-pointer list-none text-base font-semibold text-ink [&::-webkit-details-marker]:hidden'>
+              {question}
+              <Icon
+                name='plus'
+                class='w-5 h-5 shrink-0 text-muted group-open:rotate-45 transition-transform duration-(--dur-short)'
               />
-            ))
-          }
-        </div>
-
-        {
-          remainingCount > 0 && (
-            <div class='mt-8 text-center'>
-              <Button
-                href='/changelog'
-                variant='outline'
-                size='lg'
-                class='text-[hsl(var(--cc-main-black))]'
-              >
-                全バージョン一覧を見る(他{remainingCount}件)
-                <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
-              </Button>
-            </div>
-          )
-        }
-      </section>
-
-      {
-        readingCards.length > 0 && (
-          <section class='mt-20 max-w-4xl mx-auto'>
-            <h2 class='text-2xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-6'>
-              読みもの
-            </h2>
-            <div class:list={['grid gap-4', readingCards.length > 1 && 'sm:grid-cols-2']}>
-              {readingCards.map((card) => (
-                <a
-                  href={card.href}
-                  class='group flex flex-col rounded-lg border border-[hsl(var(--cc-gray))] p-5 hover:border-[hsl(var(--cc-main-orange))] transition-[border-color,transform] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-                >
-                  <div class='flex items-center gap-2.5 mb-2 font-mono text-[11px] tabular-nums text-[hsl(var(--cc-main-black)/0.6)]'>
-                    <span class='inline-flex items-center gap-1 font-bold uppercase tracking-widest'>
-                      <Icon name={card.icon} class='w-3.5 h-3.5' aria-hidden='true' />
-                      {card.kind}
-                    </span>
-                    <span>{card.meta}</span>
-                  </div>
-                  <h3 class='text-base sm:text-lg font-bold [word-break:auto-phrase] text-[hsl(var(--cc-main-black))] group-hover:text-[hsl(var(--cc-main-orange))] transition-colors mb-1.5 leading-snug'>
-                    {card.title}
-                  </h3>
-                  <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] leading-relaxed line-clamp-2'>
-                    {card.description}
-                  </p>
-                </a>
-              ))}
-            </div>
-            <div class='mt-5 flex flex-wrap gap-x-6'>
-              {readingCards.map((card) => (
-                <a
-                  href={card.archiveHref}
-                  class='inline-flex items-center gap-1 min-h-11 font-mono text-xs text-[hsl(var(--cc-main-black)/0.6)] hover:text-[hsl(var(--cc-main-orange))] transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-                >
-                  {card.archiveLabel}
-                  <Icon name='chevron-right' class='w-3 h-3' aria-hidden='true' />
-                </a>
-              ))}
-            </div>
-          </section>
-        )
-      }
-
-      <section class='mt-20 max-w-4xl mx-auto'>
-        <h2
-          class='text-2xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-8'
-        >
-          よくある質問
-        </h2>
-        <div class='faq-list space-y-4'>
-          {
-            faqItems.map(({ question, answer }) => (
-              <Accordion
-                variant='plain'
-                class='details-animated p-5 group open:border-[hsl(var(--cc-main-orange)/0.4)]'
-              >
-                <summary class='font-medium cursor-pointer list-none flex items-center justify-between'>
-                  {question}
-                  <Icon
-                    name='chevron-down'
-                    class='w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform shrink-0'
-                    aria-hidden='true'
-                  />
-                </summary>
-                <p class='mt-3 text-sm text-gray-600 leading-relaxed'>{answer}</p>
-              </Accordion>
-            ))
-          }
-        </div>
-      </section>
+            </summary>
+            <p class='pb-6 max-w-[60ch] text-[15px] leading-relaxed text-ink-2'>{answer}</p>
+          </Accordion>
+        ))}
+      </div>
     </div>
-  </div>
+  </section>
 </Layout>
+
+<style>
+  .hero-version {
+    font-size: min(var(--text-display), 16cqi);
+  }
+</style>

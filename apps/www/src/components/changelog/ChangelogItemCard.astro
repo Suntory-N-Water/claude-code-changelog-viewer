@@ -1,11 +1,8 @@
 ---
 import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
 import { formatChangelogContent } from '../../lib/format-changelog-content';
-import { getPrefixPresentation } from '../../lib/prefix';
 import InferenceDetail from './InferenceDetail.astro';
 import RelatedDocsList from './RelatedDocsList.astro';
-import Badge from '../ui/Badge.astro';
-import Card from '../ui/Card.astro';
 
 type Props = {
   item: InferredChangelogItem;
@@ -14,72 +11,37 @@ type Props = {
 
 const { item, anchorId } = Astro.props;
 const formattedContent = formatChangelogContent(item.content);
-const hasJaTranslation = !!item.content_ja;
 const formattedContentJa = item.content_ja ? formatChangelogContent(item.content_ja) : '';
-
-const { style: prefixStyle, icon: prefixIcon } = getPrefixPresentation(item.prefix);
 ---
 
-<Card
-  as='article'
+<article
   id={anchorId}
-  padding='none'
-  radius='lg'
-  class='changelog-card p-5 bg-white shadow-sm hover:shadow-md transition-[box-shadow,border-color] duration-200 hover:border-[hsl(var(--cc-main-orange))]'
+  class='changelog-item py-7 border-b border-rule last:border-b-0 scroll-mt-[calc(var(--nav-height)+4rem)]'
   data-pagefind-filter={`prefix:${item.prefix}`}
 >
-  <div class='flex-1 min-w-0'>
-    {
-      item.prefix && (
-        <div class='mb-3'>
-          <Badge variant='prefix' class={`gap-1 pl-2.5 pr-3.5 py-1.5 text-sm ${prefixStyle}`}>
-            {prefixIcon && (
-              <svg
-                class='w-3.5 h-3.5'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-                stroke-width='2.5'
-                aria-hidden='true'
-              >
-                <path stroke-linecap='round' stroke-linejoin='round' d={prefixIcon} />
-              </svg>
-            )}
-            {item.prefix}
-          </Badge>
-        </div>
-      )
-    }
-
-    {
-      hasJaTranslation ? (
-        <>
-          <div class='mb-4 p-4 bg-[hsl(var(--cc-main-orange)/0.05)] border-l-4 border-[hsl(var(--cc-main-orange))] rounded-r'>
-            <div
-              class='text-base leading-relaxed text-[hsl(var(--cc-main-black))] font-medium wrap-break-word'
-              set:html={formattedContentJa}
-            />
-          </div>
-          <details class='mb-2 [&_summary]:text-base [&_summary::marker]:text-lg'>
-            <summary class='text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))] cursor-pointer transition-colors mb-2 select-none'>
-              英語原文を表示
-            </summary>
-            <div
-              class='text-base leading-relaxed text-[hsl(var(--cc-main-black))] pl-3 border-l-4 border-gray-300 wrap-break-word'
-              set:html={formattedContent}
-            />
-          </details>
-        </>
-      ) : (
+  {formattedContentJa ? (
+    <>
+      <div
+        class='text-[17px] leading-[1.85] text-ink wrap-break-word'
+        set:html={formattedContentJa}
+      />
+      <details class='group mt-3'>
+        <summary class='inline-flex items-center gap-1 min-h-9 cursor-pointer list-none select-none text-sm text-muted hover:text-ink transition-colors [&::-webkit-details-marker]:hidden'>
+          <span class='group-open:hidden'>英語原文を表示</span>
+          <span class='hidden group-open:inline'>英語原文を閉じる</span>
+        </summary>
         <div
-          class='text-lg leading-relaxed text-[hsl(var(--cc-main-black))] wrap-break-word'
+          class='mt-2 rounded-lg bg-paper-2 px-4 py-3 text-[15px] leading-relaxed text-ink-2 wrap-break-word'
+          lang='en'
           set:html={formattedContent}
         />
-      )
-    }
-  </div>
+      </details>
+    </>
+  ) : (
+    <div class='text-[17px] leading-[1.85] text-ink wrap-break-word' set:html={formattedContent} />
+  )}
 
   {item.benefit && <InferenceDetail benefit={item.benefit} />}
 
   <RelatedDocsList docs={item.related_docs} />
-</Card>
+</article>

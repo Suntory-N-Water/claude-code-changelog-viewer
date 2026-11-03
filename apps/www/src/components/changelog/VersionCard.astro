@@ -1,41 +1,42 @@
 ---
-import Badge from '../ui/Badge.astro';
-import CardLink from '../ui/CardLink.astro';
+import { truncateText } from '../../lib/truncate';
+import Icon from '../Icon.astro';
 
 type Props = {
   version: string;
   itemCount: number;
   summary?: string;
   diffStatus?: 'removed' | 'changed';
+  releaseDate?: string;
 };
 
-const { version, itemCount, summary, diffStatus } = Astro.props;
+const { version, itemCount, summary, diffStatus, releaseDate } = Astro.props;
 ---
 
-<CardLink href={`/changelog/v${version}`} class='version-card'>
-  <div class='flex flex-wrap items-center gap-2 mb-1'>
-    <h2
-      class='text-2xl font-bold text-balance text-[hsl(var(--cc-main-orange))] group-hover:text-[hsl(var(--cc-orange-hover))] transition-[color] tabular-nums'
-    >
+<li class='border-t border-rule last:border-b'>
+  <a
+    href={`/changelog/v${version}`}
+    class='group grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[10rem_minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-1 py-5 sm:py-6 -mx-3 px-3 rounded-lg transition-colors duration-(--dur-short) hover:bg-paper-2'
+  >
+    <h3 class='text-xl sm:text-2xl font-semibold tabular-nums text-accent-text group-hover:text-ink transition-colors'>
       v{version}
-    </h2>
-    {
-      diffStatus === 'removed' && (
-        <Badge size='xs' class='bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
-          削除済み
-        </Badge>
-      )
-    }
-    {
-      diffStatus === 'changed' && (
-        <Badge size='xs' class='bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
-          更新あり
-        </Badge>
-      )
-    }
-  </div>
-  <p class='text-sm text-muted-foreground tabular-nums'>
-    変更項目: {itemCount}件
-  </p>
-  {summary && <p class='mt-1.5 text-xs text-gray-600 line-clamp-2'>{summary}</p>}
-</CardLink>
+    </h3>
+    <p class='col-span-2 sm:col-span-1 row-start-2 sm:row-start-auto min-w-0 text-[15px] leading-relaxed text-ink-2'>
+      {diffStatus === 'removed' && (
+        <span class='mr-2 rounded bg-paper-3 px-1.5 py-0.5 text-xs text-ink'>削除済み</span>
+      )}
+      {diffStatus === 'changed' && (
+        <span class='mr-2 rounded bg-paper-3 px-1.5 py-0.5 text-xs text-ink'>更新あり</span>
+      )}
+      {summary && truncateText(summary, 72)}
+    </p>
+    <p class='col-start-2 row-start-1 sm:col-start-auto sm:row-start-auto flex items-center gap-3 text-sm text-muted tabular-nums whitespace-nowrap'>
+      {releaseDate && <time>{releaseDate}</time>}
+      <span>{itemCount}件</span>
+      <Icon
+        name='chevron-right'
+        class='hidden sm:block w-4 h-4 text-muted group-hover:text-ink group-hover:translate-x-0.5 transition-[color,transform] duration-(--dur-short)'
+      />
+    </p>
+  </a>
+</li>
