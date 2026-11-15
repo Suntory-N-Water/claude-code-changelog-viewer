@@ -20,45 +20,43 @@ const SUMMARY_CLASS = 'text-sm text-gray-600 leading-relaxed';
   class='divide-y divide-[hsl(var(--cc-gray)/0.6)]'
   style={depth === 0 ? undefined : `padding-inline-start: ${depth * 1.25}rem`}
 >
-  {
-    nodes.map((node) =>
-      node.children.length > 0 ? (
-        <li>
-          <details>
-            <summary
-              class={`${ROW_CLASS} cursor-pointer list-none select-none hover:bg-[hsl(var(--cc-gray)/0.25)] [&::-webkit-details-marker]:hidden`}
-            >
-              <span class='flex items-baseline gap-1.5'>
-                <span
-                  class='shrink-0 text-[0.6rem] text-[hsl(var(--cc-main-black)/0.45)] transition-transform duration-150 in-[[open]]:rotate-90'
-                  aria-hidden='true'
-                >
-                  ▶
-                </span>
-                <a href={`/reference/settings/${node.slug}`} class={KEY_CLASS}>
-                  {node.leafName}
-                </a>
+  {nodes.map((node) =>
+    node.children.length > 0 ? (
+      <li>
+        <details>
+          <summary
+            class={`${ROW_CLASS} cursor-pointer list-none select-none hover:bg-[hsl(var(--cc-gray)/0.25)] [&::-webkit-details-marker]:hidden`}
+          >
+            <span class='flex items-baseline gap-1.5'>
+              <span
+                class='shrink-0 text-[0.6rem] text-[hsl(var(--cc-main-black)/0.45)] transition-transform duration-150 in-[[open]]:rotate-90'
+                aria-hidden='true'
+              >
+                ▶
               </span>
-              <span class={TYPE_CLASS}>{node.valueType}</span>
-              <span class={SUMMARY_CLASS}>
-                {node.summary}
-                <span class='ml-1 tabular-nums text-xs text-[hsl(var(--cc-main-black)/0.45)]'>
-                  ({node.children.length}件)
-                </span>
+              <a href={`/reference/settings/${node.slug}`} class={KEY_CLASS}>
+                {node.leafName}
+              </a>
+            </span>
+            <span class={TYPE_CLASS}>{node.valueType}</span>
+            <span class={SUMMARY_CLASS}>
+              {node.summary}
+              <span class='ml-1 tabular-nums text-xs text-[hsl(var(--cc-main-black)/0.45)]'>
+                ({node.children.length}件)
               </span>
-            </summary>
-            <Astro.self nodes={node.children} depth={depth + 1} />
-          </details>
-        </li>
-      ) : (
-        <li class={ROW_CLASS}>
-          <a href={`/reference/settings/${node.slug}`} class={KEY_CLASS}>
-            {node.leafName}
-          </a>
-          <span class={TYPE_CLASS}>{node.valueType}</span>
-          <span class={SUMMARY_CLASS}>{node.summary}</span>
-        </li>
-      ),
-    )
-  }
+            </span>
+          </summary>
+          <Astro.self nodes={node.children} depth={depth + 1} />
+        </details>
+      </li>
+    ) : (
+      <li class={ROW_CLASS}>
+        <a href={`/reference/settings/${node.slug}`} class={KEY_CLASS}>
+          {node.leafName}
+        </a>
+        <span class={TYPE_CLASS}>{node.valueType}</span>
+        <span class={SUMMARY_CLASS}>{node.summary}</span>
+      </li>
+    ),
+  )}
 </ul>

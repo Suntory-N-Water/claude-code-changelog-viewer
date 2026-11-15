@@ -103,21 +103,21 @@ const totalItemCount = items.length;
   <div class='min-h-dvh py-12 sm:py-16 px-4' data-pagefind-body>
     <div class='max-w-4xl mx-auto'>
       <nav class='mb-8' aria-label='パンくずリスト' data-pagefind-ignore>
-        <BackLink href='/' tone='accent'>バージョン一覧に戻る</BackLink>
+        <BackLink href='/' tone='accent'>
+          バージョン一覧に戻る
+        </BackLink>
       </nav>
 
-      {
-        version !== latestVersion && (
-          <a
-            href={`/changelog/v${latestVersion}`}
-            class='mb-6 flex items-center gap-2 px-4 py-3 rounded-lg bg-[hsl(var(--cc-gray)/0.5)] border border-[hsl(var(--cc-gray))] text-sm font-medium text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-          >
-            <Icon name='info-circle' class='w-4 h-4 shrink-0' aria-hidden='true' />
-            最新版 v{latestVersion} を読む
-            <Icon name='chevron-right' class='w-4 h-4 shrink-0' aria-hidden='true' />
-          </a>
-        )
-      }
+      {version !== latestVersion && (
+        <a
+          href={`/changelog/v${latestVersion}`}
+          class='mb-6 flex items-center gap-2 px-4 py-3 rounded-lg bg-[hsl(var(--cc-gray)/0.5)] border border-[hsl(var(--cc-gray))] text-sm font-medium text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+        >
+          <Icon name='info-circle' class='w-4 h-4 shrink-0' aria-hidden='true' />
+          最新版 v{latestVersion} を読む
+          <Icon name='chevron-right' class='w-4 h-4 shrink-0' aria-hidden='true' />
+        </a>
+      )}
 
       <header class='mb-10'>
         <div class='flex flex-wrap items-baseline gap-x-4 gap-y-3 mb-5'>
@@ -127,24 +127,18 @@ const totalItemCount = items.length;
           >
             <span class='sr-only'>Claude Code </span>v{version}
           </h1>
-          {
-            isRemoved && (
-              <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
-                {removedDate} 公式のCHANGELOG.mdから削除
-              </span>
-            )
-          }
-          {
-            !isRemoved && hasItemChanges && (
-              <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
-                公式のCHANGELOG.mdで更新あり
-              </span>
-            )
-          }
+          {isRemoved && (
+            <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
+              {removedDate} 公式のCHANGELOG.mdから削除
+            </span>
+          )}
+          {!isRemoved && hasItemChanges && (
+            <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
+              公式のCHANGELOG.mdで更新あり
+            </span>
+          )}
         </div>
-        <div
-          class='flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 border-b border-[hsl(var(--cc-gray))] pb-6'
-        >
+        <div class='flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 border-b border-[hsl(var(--cc-gray))] pb-6'>
           <p class='tabular-nums'>変更項目 {totalItemCount} 件</p>
           <a
             href={`https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#${version.replace(/\./g, '')}`}
@@ -156,133 +150,127 @@ const totalItemCount = items.length;
             <Icon name='external-link' class='w-3.5 h-3.5' aria-hidden='true' />
           </a>
         </div>
-        {
-          itemChangeEvents.length > 0 && (
-            <>
-              <Button
-                type='button'
-                popovertarget='changelog-history-popover'
-                variant='ghost'
-                size='sm'
-                class='changelog-history-trigger p-0 mt-2 text-gray-600 hover:bg-transparent'
-              >
-                公式のCHANGELOG.mdでの変更履歴
-                <Icon name='chevron-down' class='w-3.5 h-3.5' aria-hidden='true' />
-              </Button>
-              <div
-                id='changelog-history-popover'
-                popover
-                class='changelog-history-popover p-5 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] shadow-xl max-w-md w-[min(90vw,28rem)] max-h-[70vh] overflow-y-auto'
-              >
-                <div class='flex items-center justify-between mb-3 pb-2 border-b border-[hsl(var(--cc-gray))]'>
-                  <p class='text-sm font-semibold text-[hsl(var(--cc-main-black))]'>
-                    公式のCHANGELOG.mdでの変更履歴
-                  </p>
-                  <Button
-                    type='button'
-                    popovertarget='changelog-history-popover'
-                    popovertargetaction='hide'
-                    variant='ghost'
-                    size='icon-sm'
-                    class='w-6 h-6 rounded text-gray-400 hover:text-[hsl(var(--cc-main-black))] hover:bg-transparent'
-                    aria-label='閉じる'
-                  >
-                    <Icon name='close' class='w-4 h-4' aria-hidden='true' />
-                  </Button>
-                </div>
-                <div class='space-y-2 text-sm text-gray-600'>
-                  {itemChangeEvents.map((event: DiffEvent) => (
-                    <div>
-                      <p class='font-medium text-gray-700'>
-                        {formatDiffDateTime(event.detected_at)}
-                        {event.items_added.length > 0 && (
-                          <span class='text-green-700 ml-2'>+{event.items_added.length}件追加</span>
-                        )}
-                        {event.items_removed.length > 0 && (
-                          <span class='text-red-700 ml-2'>-{event.items_removed.length}件削除</span>
-                        )}
-                      </p>
+        {itemChangeEvents.length > 0 && (
+          <>
+            <Button
+              type='button'
+              popovertarget='changelog-history-popover'
+              variant='ghost'
+              size='sm'
+              class='changelog-history-trigger p-0 mt-2 text-gray-600 hover:bg-transparent'
+            >
+              公式のCHANGELOG.mdでの変更履歴
+              <Icon name='chevron-down' class='w-3.5 h-3.5' aria-hidden='true' />
+            </Button>
+            <div
+              id='changelog-history-popover'
+              popover
+              class='changelog-history-popover p-5 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] shadow-xl max-w-md w-[min(90vw,28rem)] max-h-[70vh] overflow-y-auto'
+            >
+              <div class='flex items-center justify-between mb-3 pb-2 border-b border-[hsl(var(--cc-gray))]'>
+                <p class='text-sm font-semibold text-[hsl(var(--cc-main-black))]'>
+                  公式のCHANGELOG.mdでの変更履歴
+                </p>
+                <Button
+                  type='button'
+                  popovertarget='changelog-history-popover'
+                  popovertargetaction='hide'
+                  variant='ghost'
+                  size='icon-sm'
+                  class='w-6 h-6 rounded text-gray-400 hover:text-[hsl(var(--cc-main-black))] hover:bg-transparent'
+                  aria-label='閉じる'
+                >
+                  <Icon name='close' class='w-4 h-4' aria-hidden='true' />
+                </Button>
+              </div>
+              <div class='space-y-2 text-sm text-gray-600'>
+                {itemChangeEvents.map((event: DiffEvent) => (
+                  <div>
+                    <p class='font-medium text-gray-700'>
+                      {formatDiffDateTime(event.detected_at)}
                       {event.items_added.length > 0 && (
-                        <ul class='mt-1 space-y-0.5'>
-                          {event.items_added.map((item: string) => (
-                            <li class='text-green-700 text-xs'>+ {item}</li>
-                          ))}
-                        </ul>
+                        <span class='text-green-700 ml-2'>+{event.items_added.length}件追加</span>
                       )}
                       {event.items_removed.length > 0 && (
-                        <ul class='mt-1 space-y-0.5'>
-                          {event.items_removed.map((item: string) => (
-                            <li class='text-red-700 text-xs'>- {item}</li>
-                          ))}
-                        </ul>
+                        <span class='text-red-700 ml-2'>-{event.items_removed.length}件削除</span>
                       )}
-                    </div>
-                  ))}
-                </div>
+                    </p>
+                    {event.items_added.length > 0 && (
+                      <ul class='mt-1 space-y-0.5'>
+                        {event.items_added.map((item: string) => (
+                          <li class='text-green-700 text-xs'>+ {item}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {event.items_removed.length > 0 && (
+                      <ul class='mt-1 space-y-0.5'>
+                        {event.items_removed.map((item: string) => (
+                          <li class='text-red-700 text-xs'>- {item}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
               </div>
-            </>
-          )
-        }
+            </div>
+          </>
+        )}
       </header>
 
-      {
-        summary && (
-          <div class='mb-10 p-6 bg-linear-to-br from-[hsl(var(--cc-main-orange)/0.05)] to-[hsl(var(--cc-main-orange)/0.02)] border border-[hsl(var(--cc-gray))] rounded-lg'>
-            <div class='border-l-4 border-[hsl(var(--cc-main-orange))] pl-4'>
-              <h2 class='text-xl font-bold text-[hsl(var(--cc-main-black))] mb-3'>
-                このバージョンの概要
-              </h2>
-              <p
-                class='text-base leading-relaxed text-[hsl(var(--cc-main-black))]'
-                data-pagefind-meta='description'
-                set:html={formattedSummary}
-              />
-            </div>
-            <PrefixTableOfContents groups={prefixGroups} />
+      {summary && (
+        <div class='mb-10 p-6 bg-linear-to-br from-[hsl(var(--cc-main-orange)/0.05)] to-[hsl(var(--cc-main-orange)/0.02)] border border-[hsl(var(--cc-gray))] rounded-lg'>
+          <div class='border-l-4 border-[hsl(var(--cc-main-orange))] pl-4'>
+            <h2 class='text-xl font-bold text-[hsl(var(--cc-main-black))] mb-3'>
+              このバージョンの概要
+            </h2>
+            <p
+              class='text-base leading-relaxed text-[hsl(var(--cc-main-black))]'
+              data-pagefind-meta='description'
+              set:html={formattedSummary}
+            />
           </div>
-        )
-      }
+          <PrefixTableOfContents groups={prefixGroups} />
+        </div>
+      )}
 
       <div class='space-y-10'>
-        {
-          prefixGroups.map((group) => {
-            const { style, icon: iconPath } = getPrefixPresentation(group.prefix);
-            return (
-              <section id={`prefix-${group.prefix.toLowerCase()}`}>
-                <div class='sticky top-12 z-10 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
-                  <h3 class='flex items-center gap-2 text-lg font-bold text-[hsl(var(--cc-main-black))]'>
-                    <span
-                      class={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${style}`}
-                    >
-                      {iconPath && (
-                        <svg
-                          class='w-3.5 h-3.5'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                          stroke-width='2.5'
-                          aria-hidden='true'
-                        >
-                          <path stroke-linecap='round' stroke-linejoin='round' d={iconPath} />
-                        </svg>
-                      )}
-                      {group.prefix}
-                    </span>
-                    <span>{group.label}</span>
-                    <span class='text-sm font-normal text-gray-500 tabular-nums'>
-                      ({group.items.length}件)
-                    </span>
-                  </h3>
-                </div>
-                <div class='space-y-6'>
-                  {group.items.map((item) => (
-                    <ChangelogItemCard item={item} anchorId={`item-${item.id}`} />
-                  ))}
-                </div>
-              </section>
-            );
-          })
-        }
+        {prefixGroups.map((group) => {
+          const { style, icon: iconPath } = getPrefixPresentation(group.prefix);
+          return (
+            <section id={`prefix-${group.prefix.toLowerCase()}`}>
+              <div class='sticky top-12 z-10 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
+                <h3 class='flex items-center gap-2 text-lg font-bold text-[hsl(var(--cc-main-black))]'>
+                  <span
+                    class={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${style}`}
+                  >
+                    {iconPath && (
+                      <svg
+                        class='w-3.5 h-3.5'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                        stroke-width='2.5'
+                        aria-hidden='true'
+                      >
+                        <path stroke-linecap='round' stroke-linejoin='round' d={iconPath} />
+                      </svg>
+                    )}
+                    {group.prefix}
+                  </span>
+                  <span>{group.label}</span>
+                  <span class='text-sm font-normal text-gray-500 tabular-nums'>
+                    ({group.items.length}件)
+                  </span>
+                </h3>
+              </div>
+              <div class='space-y-6'>
+                {group.items.map((item) => (
+                  <ChangelogItemCard item={item} anchorId={`item-${item.id}`} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </div>
 
       <div class='mt-10 flex flex-wrap items-center justify-between gap-4'>
@@ -315,8 +303,7 @@ const totalItemCount = items.length;
             aria-label='Xでシェア'
             data-share='x'
           >
-            <Icon name='x-twitter' class='w-3.5 h-3.5' aria-hidden='true' />
-            X
+            <Icon name='x-twitter' class='w-3.5 h-3.5' aria-hidden='true' />X
           </Button>
           <Button
             href={`https://b.hatena.ne.jp/entry/s/${new URL(`/changelog/v${version}`, import.meta.env.SITE).host}${new URL(`/changelog/v${version}`, import.meta.env.SITE).pathname}`}
@@ -349,33 +336,29 @@ const totalItemCount = items.length;
         class='mt-8 pt-8 border-t border-[hsl(var(--cc-gray))] flex justify-between items-center'
         aria-label='バージョンナビゲーション'
       >
-        {
-          prevVersion ? (
-            <a
-              href={`/changelog/v${prevVersion}`}
-              class='inline-flex items-center gap-1 text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
-              data-version-nav='prev'
-            >
-              <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />v{prevVersion}
-            </a>
-          ) : (
-            <span />
-          )
-        }
-        {
-          nextVersion ? (
-            <a
-              href={`/changelog/v${nextVersion}`}
-              class='inline-flex items-center gap-1 text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
-              data-version-nav='next'
-            >
-              v{nextVersion}
-              <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
-            </a>
-          ) : (
-            <span />
-          )
-        }
+        {prevVersion ? (
+          <a
+            href={`/changelog/v${prevVersion}`}
+            class='inline-flex items-center gap-1 text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
+            data-version-nav='prev'
+          >
+            <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />v{prevVersion}
+          </a>
+        ) : (
+          <span />
+        )}
+        {nextVersion ? (
+          <a
+            href={`/changelog/v${nextVersion}`}
+            class='inline-flex items-center gap-1 text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
+            data-version-nav='next'
+          >
+            v{nextVersion}
+            <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
+          </a>
+        ) : (
+          <span />
+        )}
       </nav>
     </div>
   </div>
