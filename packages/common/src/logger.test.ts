@@ -63,6 +63,23 @@ describe('logger', () => {
     expect(record['emailAddress']).toBe('***');
   });
 
+  it.each([
+    'token',
+    'secret',
+    'authorization',
+    'email',
+    'apiToken',
+    'encryptionKey',
+    'jwt',
+    'password',
+  ])('属性名が %s のとき、値を *** で出力すること', (key) => {
+    const logger = createLogger();
+
+    const record = captureJson('log', () => logger.info('x', { [key]: 'sensitive-value' }));
+
+    expect(record[key]).toBe('***');
+  });
+
   it('prompt_tokens は token の部分一致でマスキングしない', () => {
     const logger = createLogger();
 

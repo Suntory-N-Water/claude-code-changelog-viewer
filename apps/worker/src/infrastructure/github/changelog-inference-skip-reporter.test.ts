@@ -75,6 +75,42 @@ describe('推論を諦めた項目の Issue 報告', () => {
     expect(creationCount).toBe(0);
   });
 
+  it('open Issue の1ページ目がちょうど100件で、同じバージョンの Issue が2ページ目にある時、重ねて作成しないこと', async () => {
+    const firstPage = Array.from({ length: 100 }, (_, index) => ({
+      number: index + 1,
+      body: '無関係な Issue',
+      labels: [],
+    }));
+    const secondPage = [
+      {
+        number: 101,
+        body: '<!-- inference-skipped:v2.1.257 -->',
+        labels: [{ name: 'inference-skipped' }],
+      },
+    ];
+    let creationCount = 0;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/issues') && init?.method === 'GET') {
+        const page = url.searchParams.get('page');
+        return Response.json(page === '1' ? firstPage : page === '2' ? secondPage : []);
+      }
+      if (url.pathname.endsWith('/issues') && init?.method === 'POST') {
+        creationCount += 1;
+        return new Response(JSON.stringify({ number: 102 }), { status: 201 });
+      }
+      if (url.pathname.includes('/labels')) {
+        return new Response('[]', { status: 200 });
+      }
+      throw new Error(`想定外のリクエスト: ${url}`);
+    });
+
+    const sut = createChangelogInferenceSkipReporter('test-token');
+    await sut.report({ version: 'v2.1.257', items: skippedItems });
+
+    expect(creationCount).toBe(0);
+  });
+
   it('別のバージョンの Issue しかない時、そのバージョンの Issue を作成すること', async () => {
     let creationCount = 0;
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {

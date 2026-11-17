@@ -32,8 +32,11 @@ function installGitHubIssueApi(
     const method = init?.method ?? 'GET';
 
     if (method === 'GET') {
+      const { searchParams } = new URL(url);
+      const perPage = Number(searchParams.get('per_page') ?? '30');
+      const page = Number(searchParams.get('page') ?? '1');
       return Response.json(
-        initialIssues.map(({ labels, ...issue }) => ({
+        initialIssues.slice((page - 1) * perPage, page * perPage).map(({ labels, ...issue }) => ({
           ...issue,
           labels: labels.map((name) => ({ name })),
         })),
@@ -133,6 +136,29 @@ describe('Workflow 失敗 Issue', () => {
     expect(issues[0]?.labels).toEqual(
       expect.arrayContaining(['automated-failure', 'workflow:changelog-auto-inference', 'bug']),
     );
+  });
+
+  it('open Issue の1ページ目がちょうど100件で、同じ失敗の Issue が2ページ目にあるとき、Issue を新しく作成しないこと', async () => {
+    const unrelatedIssues = Array.from({ length: 100 }, (_, index) => ({
+      number: index + 1,
+      title: `無関係な Issue ${index + 1}`,
+      body: null,
+      labels: [],
+    }));
+    const issues = installGitHubIssueApi([
+      ...unrelatedIssues,
+      {
+        number: 951,
+        title: 'CHANGELOG 推論 Workflow に失敗',
+        body: '<!-- automated-failure:changelog-auto-inference -->',
+        labels: ['automated-failure', 'workflow:changelog-auto-inference', 'bug'],
+      },
+    ]);
+    const reporter = createChangelogReporter('github-token');
+
+    await reporter.report(changelogFailure);
+
+    expect(issues).toHaveLength(101);
   });
 
   it('ラベル付与が拒否されても、Issue 作成は成功として扱うこと', async () => {

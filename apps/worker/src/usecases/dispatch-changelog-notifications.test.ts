@@ -48,4 +48,54 @@ describe('CHANGELOG 通知配信ユースケース', () => {
     ).rejects.toThrow('DB unavailable');
     expect(save).not.toHaveBeenCalled();
   });
+
+  it('1件目の通知先でレート制限を受けたとき、残りの通知先へ送信せず再試行を求めること', async () => {
+    const frequency = createNotificationFrequency('IMM');
+    const firstChannel = createChannel(
+      {
+        type: 'DSC',
+        value: createDiscordWebhookUrl('https://discord.com/api/webhooks/123456/first'),
+      },
+      frequency,
+    );
+    const secondChannel = createChannel(
+      {
+        type: 'DSC',
+        value: createDiscordWebhookUrl('https://discord.com/api/webhooks/123456/second'),
+      },
+      frequency,
+    );
+    const repository = {
+      findById: vi.fn(),
+      findByToken: vi.fn(),
+      findByAddress: vi.fn(),
+      save: vi.fn(),
+      findActiveByFrequency: vi.fn(async () => [firstChannel, secondChannel]),
+      hasDelivered: vi.fn(async () => false),
+      recordDelivered: vi.fn(),
+      findDeactivatedBefore: vi.fn(),
+      delete: vi.fn(),
+    };
+    const sendChangelogNotification = vi.fn(
+      async () => ({ ok: false, failureKind: 'rate_limit' }) as const,
+    );
+    const notifier = {
+      sendTestNotification: vi.fn(),
+      sendChangelogNotification,
+      sendUnsubscribeNotification: vi.fn(),
+    };
+
+    const result = await dispatchChangelogNotifications(repository, notifier, {
+      analysis: { version: 'v1.0.0', summary: '要約', items: [] },
+      version: 'v1.0.0',
+      frequency,
+      failedAt: new Date('2026-08-31T00:00:00.000Z'),
+      sendIntervalMs: 0,
+    });
+
+    expect(sendChangelogNotification).toHaveBeenCalledTimes(1);
+    expect(sendChangelogNotification).toHaveBeenCalledWith(firstChannel, expect.anything());
+    expect(result.shouldRetry).toBe(true);
+    expect(result.failures).toEqual([{ type: 'rate_limit', channel: firstChannel }]);
+  });
 });
