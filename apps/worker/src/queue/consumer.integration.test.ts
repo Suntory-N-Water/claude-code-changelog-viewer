@@ -12,8 +12,9 @@ vi.mock('../infrastructure/channel-notifier', () => ({
   }),
 }));
 
-import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
+import { drizzle } from 'drizzle-orm/d1';
 import { queueConsumer } from './consumer';
+import { changelogItems, changelogVersions } from '../db/schema';
 import { FakeD1Database } from '../test-support/fake-d1';
 import {
   createQueueBatch,
@@ -23,14 +24,23 @@ import {
   insertDiscordWebhook,
 } from '../test-support/notification-test-support';
 
-const validAnalysis: NotificationAnalysis = {
-  version: 'v1.0.0',
-  summary: 'テスト用サマリー',
-  items: [{ content: 'Added new feature', content_ja: '新機能', prefix: 'feat' }],
-};
+// changelog_versions には v なしで保存される
+async function seedRelease(db: FakeD1Database, version = '1.0.0') {
+  const orm = drizzle(db as unknown as D1Database);
+  await orm.insert(changelogVersions).values({ version, summary: 'テスト用サマリー' });
+  await orm.insert(changelogItems).values({
+    version,
+    itemId: `${version}-0`,
+    content: 'Added new feature',
+    contentJa: '新機能',
+    prefix: 'Added',
+    inferenceBenefit: null,
+    searchText: 'added new feature',
+  });
+}
 
 function buildBody(version = 'v1.0.0') {
-  return { version, analysis: { ...validAnalysis, version } };
+  return { version };
 }
 
 async function runWithTimers(promise: Promise<void>) {
@@ -44,21 +54,86 @@ function callConsumer(batch: MessageBatch<unknown>, env: CloudflareBindings) {
 }
 
 describe('queueConsumer integration', () => {
-  let db: FakeD1Database | null = null;
+  let db: FakeD1Database;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    db = new FakeD1Database();
+    await seedRelease(db);
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    db?.close();
-    db = null;
+    db.close();
+  });
+
+  it('Queue メッセージにバージョン番号だけがあるとき、D1 に保存済みの要約と日本語訳(日本語訳が無い項目は英語原文)で各チャンネルへ通知すること', async () => {
+    const orm = drizzle(db as unknown as D1Database);
+    await orm.insert(changelogVersions).values({ version: '2.0.0', summary: '2.0.0 のサマリー' });
+    await orm.insert(changelogItems).values([
+      {
+        version: '2.0.0',
+        itemId: '2.0.0-0',
+        content: 'Added translated item',
+        contentJa: '翻訳済みの項目',
+        prefix: 'Added',
+        inferenceBenefit: null,
+        searchText: 'added translated item',
+      },
+      {
+        version: '2.0.0',
+        itemId: '2.0.0-1',
+        content: 'Fixed untranslated item',
+        contentJa: null,
+        prefix: 'Fixed',
+        inferenceBenefit: null,
+        searchText: 'fixed untranslated item',
+      },
+    ]);
+    await insertDiscordWebhook(db, {
+      id: 'active-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
+      token: 'active-token',
+    });
+    mockedSendChangelogNotification.mockResolvedValue({ ok: true });
+    const message = createQueueMessage({ version: 'v2.0.0' });
+
+    await runWithTimers(callConsumer(createQueueBatch([message]), createTestEnv(db)));
+
+    expect(message.ack).toHaveBeenCalled();
+    expect(mockedSendChangelogNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'active-id' }),
+      {
+        version: 'v2.0.0',
+        analysis: {
+          version: 'v2.0.0',
+          summary: '2.0.0 のサマリー',
+          items: [
+            { content: 'Added translated item', content_ja: '翻訳済みの項目', prefix: 'Added' },
+            { content: 'Fixed untranslated item', content_ja: null, prefix: 'Fixed' },
+          ],
+        },
+      },
+    );
+  });
+
+  it('Queue メッセージのバージョンが D1 に無いとき、どのチャンネルにも通知せず ack すること', async () => {
+    await insertDiscordWebhook(db, {
+      id: 'active-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
+      token: 'active-token',
+    });
+    const message = createQueueMessage({ version: 'v9.9.9' });
+
+    await runWithTimers(callConsumer(createQueueBatch([message]), createTestEnv(db)));
+
+    expect(message.ack).toHaveBeenCalled();
+    expect(message.retry).not.toHaveBeenCalled();
+    expect(mockedSendChangelogNotification).not.toHaveBeenCalled();
   });
 
   it('複数チャンネル配信中に一部が失敗しても各チャンネルの最終状態が正しく反映される', async () => {
-    db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
@@ -98,7 +173,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('frequency が WEK のチャンネルはキュー配信時に個別通知が送信されない', async () => {
-    db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
@@ -116,7 +190,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('通知で 429 が返ると message.retry が呼ばれる', async () => {
-    db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
@@ -137,7 +210,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('一時障害の時、恒久失敗回数を増やさず message.retry が呼ばれること', async () => {
-    db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const env = createTestEnv(db);
     await insertDiscordWebhook(db, {
@@ -160,7 +232,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('同じバージョンを再試行する時、成功済みチャンネルへ重複送信しない', async () => {
-    db = new FakeD1Database();
     const env = createTestEnv(db);
     await insertDiscordWebhook(db, {
       id: 'success-id',
@@ -191,7 +262,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('一部チャンネルで送信例外が発生しても恒久失敗回数を増やさず他の配信を続けること', async () => {
-    db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
@@ -225,7 +295,6 @@ describe('queueConsumer integration', () => {
 
   describe('メッセージ検証', () => {
     it('不正なメッセージボディは ack して無視する', async () => {
-      db = new FakeD1Database();
       const message = createQueueMessage({ invalid: 'body' });
 
       await runWithTimers(callConsumer(createQueueBatch([message]), createTestEnv(db)));
@@ -236,22 +305,7 @@ describe('queueConsumer integration', () => {
     });
 
     it('version が v で始まらないメッセージは ack して無視する', async () => {
-      db = new FakeD1Database();
-      const message = createQueueMessage({
-        version: '1.0.0',
-        analysis: validAnalysis,
-      });
-
-      await runWithTimers(callConsumer(createQueueBatch([message]), createTestEnv(db)));
-
-      expect(message.ack).toHaveBeenCalled();
-      expect(message.retry).not.toHaveBeenCalled();
-      expect(mockedSendChangelogNotification).not.toHaveBeenCalled();
-    });
-
-    it('analysis が欠落しているメッセージは ack して無視する', async () => {
-      db = new FakeD1Database();
-      const message = createQueueMessage({ version: 'v1.0.0' });
+      const message = createQueueMessage({ version: '1.0.0' });
 
       await runWithTimers(callConsumer(createQueueBatch([message]), createTestEnv(db)));
 
@@ -262,7 +316,6 @@ describe('queueConsumer integration', () => {
   });
 
   it('停止済みチャンネルしかない場合は通知を送らず ack する', async () => {
-    db = new FakeD1Database();
     const message = createQueueMessage(buildBody());
     const env = createTestEnv(db);
     await insertDiscordWebhook(db, {
@@ -280,7 +333,7 @@ describe('queueConsumer integration', () => {
   });
 
   it('1 つのバッチに複数バージョンが含まれる時、各バージョンを順に配信する', async () => {
-    db = new FakeD1Database();
+    await seedRelease(db, '2.0.0');
     const env = createTestEnv(db);
     await insertDiscordWebhook(db, {
       id: 'active-id',

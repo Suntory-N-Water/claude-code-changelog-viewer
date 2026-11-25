@@ -89,7 +89,7 @@ export class ChangelogInferenceWorkflow extends WorkflowEntrypoint<
       const existingChangelogReader = createExistingChangelogReader(db);
       const diffRepository = createChangelogDiffRepository(db);
       const source = createGitHubChangelogMarkdownSource(this.env.GITHUB_DISPATCH_TOKEN);
-      const notifier = createChangelogWorkflowNotifier(db, this.env.NOTIFICATION_QUEUE);
+      const notifier = createChangelogWorkflowNotifier(this.env.NOTIFICATION_QUEUE);
       const buildTrigger = createDeployHookBuildTrigger(this.env.DEPLOY_HOOK_URL);
       const processingDependencies = createChangelogReleaseProcessingDependencies(this.env);
       const classification = await runStep('fetch-and-classify', STEP_RETRIES, async () =>

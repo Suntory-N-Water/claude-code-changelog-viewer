@@ -1,8 +1,5 @@
 import { getLogContext, toError } from '@claude-code-changelog-viewer/common';
-import {
-  ClaudeCodeVersionSchema,
-  NotificationAnalysisSchema,
-} from '@claude-code-changelog-viewer/types';
+import { ClaudeCodeVersionSchema } from '@claude-code-changelog-viewer/types';
 import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import { bearerAuth } from 'hono/bearer-auth';
@@ -11,7 +8,6 @@ import { workerLogger } from '../logger';
 
 const RequestSchema = z.object({
   version: ClaudeCodeVersionSchema,
-  analysis: NotificationAnalysisSchema,
 });
 
 const logger = workerLogger('routes.dispatch');
@@ -34,13 +30,12 @@ export const dispatchRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     return;
   }),
   async (c) => {
-    const { version, analysis } = c.req.valid('json');
+    const { version } = c.req.valid('json');
 
     const traceId = getLogContext()['trace_id'];
     try {
       await c.env.NOTIFICATION_QUEUE.send({
         version,
-        analysis,
         traceId: typeof traceId === 'string' ? traceId : crypto.randomUUID(),
       });
     } catch (error) {
