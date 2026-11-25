@@ -108,11 +108,11 @@ describe('Workers AI 設定リファレンス adapter', () => {
       '- プロジェクト外のディレクトリを読ませたいときに使う。\n- モノレポの隣のパッケージを参照するときに使う。',
     );
     expect(run).toHaveBeenCalledWith(
-      '@cf/zai-org/glm-5.3-flash',
+      '@cf/deepseek-ai/deepseek-v4.1-flash-1017',
       expect.objectContaining({
         response_format: expect.objectContaining({ type: 'json_schema' }),
         max_completion_tokens: 2048,
-        reasoning_effort: 'low',
+        reasoning_effort: 'none',
       }),
       { gateway: { id: 'project-gateway' } },
     );

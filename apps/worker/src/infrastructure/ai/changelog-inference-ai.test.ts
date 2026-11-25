@@ -61,7 +61,7 @@ function rawChatCompletion(content: string, finishReason: string) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/zai-org/glm-5.3-flash',
+    model: '@cf/deepseek-ai/deepseek-v4.1-flash-1017',
     choices: [
       {
         index: 0,
@@ -95,12 +95,12 @@ describe('Workers AI CHANGELOG adapter', () => {
       ],
     });
     expect(run).toHaveBeenCalledWith(
-      '@cf/zai-org/glm-5.3-flash',
+      '@cf/deepseek-ai/deepseek-v4.1-flash-1017',
       expect.objectContaining({
         messages: [{ role: 'user', content: expect.any(String) }],
         response_format: expect.objectContaining({ type: 'json_schema' }),
         max_completion_tokens: 4096,
-        reasoning_effort: 'low',
+        reasoning_effort: 'none',
       }),
       { gateway: { id: 'project-gateway' } },
     );

@@ -2,12 +2,11 @@ import { toError } from '@claude-code-changelog-viewer/common';
 import { z } from 'zod';
 import { workerLogger } from '../../logger';
 
-export const MODEL = '@cf/zai-org/glm-5.3-flash';
+export const MODEL = '@cf/deepseek-ai/deepseek-v4.1-flash-1017';
 
 // 思考トークンは出力本体の数倍に達し、量が回ごとに大きく揺れる。
-// chat_template_kwargs.enable_thinking: false は 2026-10 頃から無視されるようになり、
-// reasoning_effort: 'none' でも思考が残る。'low' だけが思考をほぼ 0 に抑える
-export const REASONING_EFFORT = 'low';
+// このモデルでは 'low' でも 1 行の翻訳に約 300 トークンの思考が付き、'none' では思考が 0 になる
+export const REASONING_EFFORT = 'none';
 
 export const TRUNCATED_MESSAGE = 'AI 応答が出力上限で打ち切られました';
 export const PARSE_FAILED_MESSAGE = 'AI 応答の JSON 解析に失敗しました';
