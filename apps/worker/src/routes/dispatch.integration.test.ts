@@ -85,7 +85,7 @@ describe('POST /api/dispatch integration', () => {
     db.close();
   });
 
-  it('JSON が壊れているとき、400を返して Queue を変更しないこと', async () => {
+  it('JSON として解析できないとき、400を返して Queue を変更しないこと', async () => {
     const db = new FakeD1Database();
     const sut = app;
     const { env, queued } = createQueueEnv(db);

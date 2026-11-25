@@ -189,7 +189,7 @@ describe('queueConsumer integration', () => {
     expect(message.ack).toHaveBeenCalled();
   });
 
-  it('通知で 429 が返ると message.retry が呼ばれる', async () => {
+  it('通知で 429 が返却されると message.retry が呼ばれる', async () => {
     const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);

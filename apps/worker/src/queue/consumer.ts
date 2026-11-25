@@ -13,7 +13,7 @@ const logger = workerLogger('queue.consumer');
 
 const SEND_INTERVAL_MS = 1000;
 
-// Queue のメッセージは 128KB が上限で、項目の多いリリースの本文を載せると超える。
+// Queue のメッセージは 128KB が上限で、項目の多いリリースの本文を含めると超える。
 // バージョン番号だけを受け取り、通知内容は D1 から組み立てる
 const NotificationMessageSchema = z.object({
   version: ClaudeCodeVersionSchema,
