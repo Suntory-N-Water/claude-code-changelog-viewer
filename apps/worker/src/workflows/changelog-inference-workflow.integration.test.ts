@@ -45,7 +45,7 @@ function chatCompletion(content: object) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/zai-org/glm-5.3-flash',
+    model: '@cf/deepseek-ai/deepseek-v4.1-flash-1017',
     choices: [
       {
         index: 0,
@@ -66,7 +66,7 @@ function truncatedCompletion() {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/zai-org/glm-5.3-flash',
+    model: '@cf/deepseek-ai/deepseek-v4.1-flash-1017',
     choices: [
       {
         index: 0,
@@ -216,20 +216,7 @@ describe('CHANGELOG 推論 Workflow', () => {
 
       // 翻訳・項目推論・サマリー生成で 1 回ずつ呼ばれる
       expect(aiRun).toHaveBeenCalledTimes(3);
-      expect(queueSend).toHaveBeenCalledWith({
-        version: 'v2.1.234',
-        analysis: {
-          version: 'v2.1.234',
-          summary: 'Workflow 推論のサポートを追加しました。',
-          items: [
-            {
-              content: '- Added workflow inference support',
-              content_ja: 'Workflow 推論のサポートを追加しました。',
-              prefix: 'Added',
-            },
-          ],
-        },
-      });
+      expect(queueSend).toHaveBeenCalledWith({ version: 'v2.1.234' });
       expect(fetchMock).toHaveBeenCalledWith('https://deploy.example/hook', {
         method: 'POST',
       });

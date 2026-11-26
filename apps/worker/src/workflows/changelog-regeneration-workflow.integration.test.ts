@@ -22,7 +22,7 @@ function chatCompletion(content: object) {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/zai-org/glm-5.3-flash',
+    model: '@cf/deepseek-ai/deepseek-v4.1-flash-1017',
     choices: [
       {
         index: 0,
@@ -39,7 +39,7 @@ function truncatedCompletion() {
     id: 'test-completion',
     object: 'chat.completion',
     created: 0,
-    model: '@cf/zai-org/glm-5.3-flash',
+    model: '@cf/deepseek-ai/deepseek-v4.1-flash-1017',
     choices: [
       {
         index: 0,

@@ -1,93 +1,23 @@
 import { workerLogger } from '../../logger';
 import { toError } from '@claude-code-changelog-viewer/common';
-import {
-  ClaudeCodeVersionSchema,
-  NotificationAnalysisSchema,
-  type NotificationAnalysis,
-} from '@claude-code-changelog-viewer/types';
-import { eq, sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import {
-  formatChangelogVersion,
-  normalizeChangelogVersion,
-} from '../../domain/changelog-inference/changelog-version';
+import { ClaudeCodeVersionSchema } from '@claude-code-changelog-viewer/types';
+import { formatChangelogVersion } from '../../domain/changelog-inference/changelog-version';
 import type { ChangelogNotificationPort } from '../../usecases/changelog-inference-workflow';
-import { changelogItems, changelogVersions } from '../../db/schema';
 
 type NotificationQueueMessage = {
   version: string;
-  analysis: NotificationAnalysis;
-};
-
-type NotificationRow = {
-  version: string;
-  summary: string | null;
-  itemId: string | null;
-  content: string | null;
-  contentJa: string | null;
-  prefix: string | null;
 };
 
 const logger = workerLogger('infrastructure.notification.changelog-workflow-notifier');
 
 export function createChangelogWorkflowNotifier(
-  db: DrizzleD1Database,
   queue: Queue<NotificationQueueMessage>,
 ): ChangelogNotificationPort {
   return {
     async send(version) {
-      // 保存済みの D1 行を再取得し、AI のメモリ上の結果ではなく永続化済みデータを Queue に渡す。
-      let rows: NotificationRow[];
+      const notificationVersion = ClaudeCodeVersionSchema.parse(formatChangelogVersion(version));
       try {
-        rows = await db
-          .select({
-            version: changelogVersions.version,
-            summary: changelogVersions.summary,
-            itemId: changelogItems.itemId,
-            content: changelogItems.content,
-            contentJa: changelogItems.contentJa,
-            prefix: changelogItems.prefix,
-          })
-          .from(changelogVersions)
-          .leftJoin(changelogItems, eq(changelogItems.version, changelogVersions.version))
-          .where(eq(changelogVersions.version, normalizeChangelogVersion(version)))
-          .orderBy(sql.raw('changelog_items.rowid'));
-      } catch (error) {
-        logger.error('通知データの取得に失敗しました', {
-          'notification.version': version,
-          error: toError(error),
-        });
-        throw error;
-      }
-      const first = rows[0];
-      if (first === undefined) {
-        throw new Error(`通知対象のバージョンが D1 にありません: ${version}`);
-      }
-
-      const notificationVersion = ClaudeCodeVersionSchema.parse(
-        formatChangelogVersion(first.version),
-      );
-      const analysis = NotificationAnalysisSchema.parse({
-        version: notificationVersion,
-        summary: first.summary,
-        items: rows
-          .filter(
-            (
-              row,
-            ): row is NotificationRow & {
-              itemId: string;
-              content: string;
-              prefix: string;
-            } => row.itemId !== null && row.content !== null && row.prefix !== null,
-          )
-          .map((row) => ({
-            content: row.content,
-            content_ja: row.contentJa,
-            prefix: row.prefix,
-          })),
-      });
-      try {
-        await queue.send({ version: notificationVersion, analysis });
+        await queue.send({ version: notificationVersion });
       } catch (error) {
         logger.error('通知をキューに投入できませんでした', {
           'notification.version': notificationVersion,
@@ -97,7 +27,6 @@ export function createChangelogWorkflowNotifier(
       }
       logger.info('通知をキューに投入しました', {
         'notification.version': notificationVersion,
-        'notification.item_count': analysis.items.length,
       });
     },
   };

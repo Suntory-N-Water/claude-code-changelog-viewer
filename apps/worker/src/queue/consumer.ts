@@ -1,22 +1,22 @@
 import { workerLogger } from '../logger';
 import { runWithLogContext, toError } from '@claude-code-changelog-viewer/common';
-import {
-  ClaudeCodeVersionSchema,
-  NotificationAnalysisSchema,
-} from '@claude-code-changelog-viewer/types';
+import { ClaudeCodeVersionSchema } from '@claude-code-changelog-viewer/types';
+import { drizzle } from 'drizzle-orm/d1';
 import { z } from 'zod';
 import { dispatchChangelogNotifications } from '../usecases/dispatch-changelog-notifications';
 import { createNotificationFrequency } from '../domain/channel/notification-frequency';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
+import { findNotificationAnalysis } from '../infrastructure/drizzle/notification-analysis-reader';
 
 const logger = workerLogger('queue.consumer');
 
 const SEND_INTERVAL_MS = 1000;
 
+// Queue のメッセージは 128KB が上限で、項目の多いリリースの本文を含めると超える。
+// バージョン番号だけを受け取り、通知内容は D1 から組み立てる
 const NotificationMessageSchema = z.object({
   version: ClaudeCodeVersionSchema,
-  analysis: NotificationAnalysisSchema,
   traceId: z.string().optional(),
 });
 
@@ -41,7 +41,17 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] = async
           message.ack();
           return;
         }
-        const { version, analysis } = bodyResult.data;
+        const { version } = bodyResult.data;
+
+        const analysis = await findNotificationAnalysis(drizzle(env.DB), version);
+        if (analysis === null) {
+          // D1 に無いバージョンは再試行しても見つからないため、キューから取り除く
+          logger.error('通知対象のバージョンが D1 にありません', {
+            'notification.version': version,
+          });
+          message.ack();
+          return;
+        }
 
         const repository = createChannelRepository(env.DB, env.EMAIL_ENCRYPTION_KEY);
         const notifier = createChannelNotifier(env);
